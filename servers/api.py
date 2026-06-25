@@ -354,7 +354,7 @@ def _deep_merge_dict(base: dict[str, Any], override: dict[str, Any]) -> dict[str
 
 
 def _load_risk_profile_config() -> dict[str, Any]:
-    cfg_path = Path(os.getenv("REMORA_RISK_PROFILE_PATH", "enterprise/risk-profiles.yaml")).resolve()
+    cfg_path = Path(os.getenv("REMORA_RISK_PROFILE_PATH", "schemas/risk-profiles.yaml")).resolve()
     if not cfg_path.exists():
         if _is_production_mode():
             raise RuntimeError(
@@ -421,7 +421,7 @@ def _sha256_file(path: Path) -> str | None:
 
 def _policy_component_hashes() -> dict[str, str | None]:
     policy_engine_hash = _sha256_file(_REPO_ROOT / "remora" / "policy" / "decision_engine.py")
-    risk_profile_hash = _sha256_file(_REPO_ROOT / "enterprise" / "risk-profiles.yaml")
+    risk_profile_hash = _sha256_file(_REPO_ROOT / "schemas" / "risk-profiles.yaml")
     schema_hash = _sha256_file(_REPO_ROOT / "schemas" / "decision_envelope_schema.yaml")
 
     opa_policy_hash = None
