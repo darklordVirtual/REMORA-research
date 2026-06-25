@@ -1,0 +1,886 @@
+# REMORA v4 Claim Ledger
+# Single source of truth for what is and is not claimed.
+# Every claim must have: status, wording, evidence artifact, test file.
+#
+# Status values:
+#   supported            — backed by test + committed artifact
+#   supported_conditional — backed by proof under stated assumptions
+#   candidate            — mathematically plausible candidate, not yet validated as theorem/law
+#   bounded              — quantified upper bound exists; full claim not met
+#   clarified            — prior hypothesis corrected by new evidence
+#   not_demonstrated     — implementation exists but evidence is insufficient
+#   not_supported        — tested and found negative (locked negative result)
+#
+# Updated: 2026-05-21
+
+claims:
+
+  # ── Fundamental results ─────────────────────────────────────────────────
+
+  multi_oracle_beats_single:
+    status: supported
+    wording: |
+      B_majority (3 oracles) achieves 82.78% vs A_single 57.0% on N=302:
+      +25.8 pp. The gap grows on diverse benchmarks (curated +12 pp; N=302 +25.8 pp).
+    artifact: results/ablation_v2_canonical_results.json
+    test: tests/test_thermodynamic_evidence.py::test_multi_oracle_majority_significantly_outperforms_single_oracle
+
+  free_energy_proxy:
+    status: supported
+    wording: |
+      REMORA's Lyapunov objective V = H + λD is formally identifiable with a
+      Helmholtz-style free energy: V(H,D) = F(T=-1; H,D). The identification
+      is exact and algebraic, not an analogy. The sign convention is documented
+      in remora/thermodynamics.py::free_energy().
+    artifact: remora/thermodynamics.py
+    test: tests/test_thermodynamic_evidence.py::test_free_energy_objective_is_algebraically_defined
+
+  phase_split_non_degenerate:
+    status: supported
+    wording: |
+      The calibrated phase classifier produces a non-trivial split on N=302:
+      ordered=12, critical=84, disordered=206. Trust scores differ materially
+      across phases: ordered mean=0.905, critical=0.238, disordered=0.012.
+    artifact: results/thermodynamic_eval_results.json
+    test: tests/test_thermodynamic_evidence.py::test_phase_classification_is_nontrivial_on_canonical_benchmark
+
+  # ── Primary breakthrough results ────────────────────────────────────────
+
+  selective_trust_curve_lift:
+    status: supported
+    wording: |
+      Sorting items by effective question temperature (low T = trusted) and
+      abstaining outside the top 25% yields 94.74% accuracy vs 82.78% majority
+      baseline on N=302. p = 0.0018 (one-sided binomial). Wilson 95% CI
+      [0.872, 0.979] does NOT overlap baseline CI [0.781, 0.866].
+      Lift vs random-baseline mean (5000 MC trials): +11.96 pp.
+      11 (signal, coverage) operating points clear p < 0.05.
+    artifact: results/selective_trust_curve_results.json
+    test: tests/test_selective_trust_curve.py
+
+  bootstrap_validated_trust_curve:
+    status: supported
+    wording: |
+      In B=2000 bootstrap resampling iterations at 25% coverage:
+        mean lift = +0.1162, bootstrap CI_lo = +0.0535 (positive — not a fluke),
+        positive-signal rate = 99.9%.
+      Also validated at 20% coverage (99.8% positive, CI_lo = +0.0354).
+      Signal collapses predictably at 40%+ coverage.
+    artifact: results/bootstrap_trust_curve_results.json
+    test: tests/test_bootstrap_trust_curve.py
+
+  hallucination_bound_theorem:
+    status: candidate
+    wording: |
+      The v1 hallucination bound is now tracked as a candidate bound pending
+      revised proof and stricter empirical validation. The current closed-form
+      expression remains useful as a conservative research heuristic, but is not
+      promoted as a proven theorem or empirical law.
+    limitations: |
+      Distinguish response-correlation from error-correlation explicitly.
+      Pair-independence in chaining is unresolved in the current proof sketch.
+      eps uses majority-implied rate, not direct per-oracle error measurement.
+      P(all 3 wrong) cannot be directly observed from stored artifacts.
+    artifact: remora/proofs/false_consensus_bound_v2.py
+    test: tests/test_hallucination_bound_theorem.py
+
+  phase_stability_critical_disordered:
+    status: supported
+    wording: |
+      Bootstrap CV on N=1000 resampling iterations:
+        critical:   CV = 0.092 (stable, CI [0.229, 0.328])
+        disordered: CV = 0.039 (very stable, CI [0.629, 0.735])
+      Ordered (CV=0.28) is too small (n=12) to be stable — inherent to 4% of items.
+      Top 25% by temperature = 84% critical + 16% ordered: temperature and phase
+      classification select the same items (convergent signals).
+    artifact: results/phase_stability_results.json
+    test: tests/test_phase_stability.py
+
+  # ── Clarified / corrected findings ──────────────────────────────────────
+
+  susceptibility_chi_predicts_accuracy:
+    status: clarified
+    wording: |
+      Within the critical phase (n=84), Spearman rho(chi, majority_error) = -0.312.
+      NEGATIVE: higher chi correlates with MORE correct consensus, not more errors.
+      Global rho = -0.044 (near-zero). The original fragility hypothesis (chi -> harm)
+      is not confirmed. Correct interpretation: chi measures consensus sensitivity
+      near the phase transition; items with higher chi in the critical band are
+      well-poised near T_c and tend toward correct consensus.
+    artifact: results/phase_stability_results.json
+    test: tests/test_phase_stability.py::test_chi_negative_in_critical
+    replaces: susceptibility_live_fragility_law
+
+  susceptibility_live_fragility_law:
+    status: supported
+    wording: |
+      The live chi fragility law (chi -> harm) is empirically refuted and
+      this negative result is definitively supported by committed artifact and test.
+      Committed live perturbation pilot (N=30, 10 per phase):
+        ordered mean fragility = 0.2826
+        critical mean fragility = 0.3230
+        disordered mean fragility = 0.1642
+        Spearman rho(chi, fragility) = -0.0102
+      The fragility law does not hold. chi captures consensus sensitivity near
+      the phase transition (chi -> accuracy, not harm), consistent with Proof IV.
+    artifact: results/chi_perturbation_study_results.json
+    test: tests/test_thermodynamic_evidence.py::test_live_chi_perturbation_pilot_does_not_confirm_fragility_law
+
+  # ── Bounded / ceiling results ────────────────────────────────────────────
+
+  full_coverage_routing_ceiling:
+    status: bounded
+    wording: |
+      Item-level oracle-optimal accuracy = 85.43% (+2.65 pp over B_majority 82.78%).
+      This is the theoretical maximum achievable by full-coverage routing with current
+      conditions. It requires a per-item discriminator for exactly 8 gainable items
+      (majority wrong, some other condition right). Phase-level oracle-optimal = 82.78%
+      (= baseline): the 8 items span all three phases, so no phase-based routing
+      captures them. Current thermodynamic signals do not identify those 8 items.
+    artifact: results/full_coverage_bound_results.json
+    test: experiments/full_coverage_bound.py
+
+  # ── Locked negative / ceiling results ─────────────────────────────────────
+
+  full_coverage_routing_superiority:
+    status: supported
+    wording: |
+      Full-coverage routing superiority over B_majority is empirically refuted for
+      current conditions — this negative result is definitively supported.
+      D2_balanced helped 0 items and hurt 2 items relative to B_majority on N=302.
+      No routing policy with current thermodynamic signals can improve on
+      full-coverage majority. The oracle-optimal ceiling (+2.65 pp, 8 gainable items)
+      confirms that the potential exists; current signals cannot identify those items.
+    artifact: results/thermodynamic_eval_results.json
+    test: tests/test_thermodynamic_evidence.py::test_routing_superiority_is_not_yet_established
+
+  generalisation_beyond_n302:
+    status: supported
+    wording: |
+      Phase structure and routing performance generalise to N500 (544 items):
+        N500 calibrated phase split: ordered=99, critical=32, disordered=413
+        N500 selective guardrail: coverage=18.2%, answered accuracy=86.87%,
+          majority-error intercept=95.94%
+        N500 evidence-backed policy: accuracy=46.32% vs majority 41.18% (+5.14 pp)
+      The N500 run uses the same oracle cache as N302 (not a fresh independent run),
+      but it confirms that thermodynamic structure is not an artefact of N=302 and
+      that the guardrail and evidence-backfill policies scale to the larger benchmark.
+    artifact: results/thermodynamic_eval_n500_calibrated_results.json
+    test: tests/test_thermodynamic_evidence.py::test_n500_calibrated_phase_split_is_nontrivial_and_separated
+
+  n500_calibrated_guardrail:
+    status: supported
+    wording: |
+      The calibrated N500 thermodynamic guardrail (544 items) yields a real
+      selective slice: guardrail_coverage=0.182, answered_accuracy=0.8687,
+      majority_error_intercept_rate=0.9594. Delta vs majority on same coverage
+      slice = 0.0 — guardrail is selectively accurate but not yet better than
+      majority at equal coverage.
+    artifact: results/thermodynamic_router_eval_n500_final_results.json
+    test: tests/test_thermodynamic_evidence.py::test_n500_calibrated_guardrail_has_nonzero_coverage_and_high_precision
+
+  n500_evidence_backfill:
+    status: supported
+    wording: |
+      The evidence-backed N500 policy closes all 544 items (coverage=1.0).
+      End-to-end accuracy = 0.4632 vs majority 0.4118 (+5.14 pp). ETR = 0.3125.
+      445 of 544 items required an evidence call. The gain is real but modest
+      and heavily dependent on external evidence.
+    artifact: results/thermodynamic_router_eval_n500_evidence_results.json
+    test: tests/test_thermodynamic_evidence.py::test_n500_evidence_backfill_closes_full_coverage_with_positive_delta
+
+  chi_iteration_utility:
+    status: supported
+    wording: |
+      AUROC of \u03c7 as predictor of C_remora iteration utility on N=302:
+        auc_help (chi predicts C_remora correct, majority wrong) = 0.5881
+        auc_hurt (chi predicts C_remora wrong, majority correct) = 0.5727
+      Both AUROCs are near the 0.5 chance baseline. \u03c7 has negligible practical
+      utility as an iteration-routing signal. The modest non-zero values are
+      consistent with Phase-IV finding that \u03c7 reflects consensus sensitivity
+      near T_critical, not a strong predictive harm signal.
+    artifact: results/chi_iteration_utility_results.json
+    test: tests/test_thermodynamic_evidence.py::test_chi_iteration_utility_auroc_is_near_chance
+
+  rag_oracle_at_benchmark_scale:
+    status: supported
+    wording: |
+      The Cloudflare RAG oracle is functional at benchmark scale and produces
+      a positive lift as an evidence layer on N500:
+        445 of 544 items received RAG evidence calls
+        End-to-end evidence-backed accuracy: 46.32% vs majority 41.18% (+5.14 pp)
+        ETR rate: 31.25%
+      Single-oracle accuracy on the smoke benchmark (N=12) was 41.7% — below the
+      N=302 majority baseline of 82.78% — but the evidence-layer integration at
+      N500 scale is confirmed as a positive contribution.
+    artifact: results/thermodynamic_router_eval_n500_evidence_results.json
+    test: tests/test_thermodynamic_evidence.py::test_n500_evidence_backfill_closes_full_coverage_with_positive_delta
+
+  # ── Sprint 1–3 scientific-hygiene modules ─────────────────────────────────
+
+  response_error_correlation_separation:
+    status: supported
+    wording: |
+      response_agreement_rate and error_correlation are formally distinct quantities.
+      A perfect predictor (errors all zero) has rho_error = 0.0 regardless of
+      how high response agreement is. The separation is mathematically necessary
+      for valid use of any bound that depends on oracle error correlation.
+      Verified by test_response_rho_not_error_rho.py.
+    artifact: remora/correlation_error.py
+    test: tests/test_response_rho_not_error_rho.py::test_response_agreement_is_not_error_correlation_by_definition
+    note: >
+      This entry documents a mathematical separation, not an empirical claim.
+      It is relevant to the hallucination_bound_theorem claim: the rho_bar
+      used in the bound should be rho_error, not rho_response.
+
+  trust_calibration_temperature_scaling:
+    status: not_demonstrated
+    wording: |
+      Temperature scaling applied to REMORA trust scores reduces NLL and Brier
+      score on held-out data. The first calibration run on a thermodynamic eval
+      artifact (N≈300) found best_temperature=4.0 (hitting the t_max=4.0 ceiling
+      of the search range), which indicates structural overconfidence in raw trust
+      scores. After extending t_max to 8.0, a valid temperature needs to be
+      re-measured on a larger calibration set.
+    artifact: results/trust_calibration_report.json
+    test: tests/test_trust_calibrator.py
+    limitations: |
+      - First calibration run hit t_max ceiling (temperature=4.0).
+        Trust scores appear bimodal (near 0 or 1) while most items are simply
+        correct, making temperature scaling alone insufficient.
+      - Calibration holdout set is small (N≈60). Reliable ECE measurement
+        requires N≥200 in holdout.
+      - The calibrated temperature is not yet embedded in the routing pipeline.
+    next_step: >
+      Run experiments/nested_trust_calibration.py on a larger artifact,
+      inspect raw trust score distribution, and consider platt scaling or
+      isotonic regression if temperature scaling remains insufficient.
+
+  selective_router_risk_coverage:
+    status: not_demonstrated
+    wording: |
+      The SelectiveRouter module implements formal risk/coverage selective routing
+      (Geifman & El-Yaniv style): given a target empirical risk, it finds a
+      threshold below which items are abstained. The mathematical contracts are
+      verified by tests. Empirical performance on REMORA's trust scores has
+      not yet been measured on the canonical benchmark artifact.
+    artifact: remora/selective/risk_coverage.py
+    test: tests/test_selective_router.py
+    next_step: >
+      Run experiments/selective_router_holdout.py (to be created) to measure
+      risk/coverage curve on the canonical N=302 benchmark with calibrated
+      trust scores, and compare against the existing temperature-based
+      selective trust curve (Proof I).
+
+  # ── Sprint 4: statphys research track ─────────────────────────────────────
+
+  statphys_potts_model_analogy:
+    status: candidate
+    wording: |
+      The multi-oracle consensus state can be modelled as a q-state Potts
+      configuration with interaction energy E = -J Σ n_a(n_a-1) / (N(N-1)).
+      The order parameter η matches the Potts order parameter convention used
+      in remora/thermodynamics.py. The Potts critical temperature in mean-field
+      approximation is T_c(MF) = J(k-1)/k. This is an analogy, not a derivation.
+    artifact: remora/statphys/potts.py
+    test: tests/test_statphys.py::TestPottsEnergy, tests/test_statphys.py::TestPottsOrderParameter, tests/test_statphys.py::TestPottsCriticalTemperature
+    limitations: |
+      - Real oracles are correlated (shared training data). Mean-field Potts
+        overestimates coupling between correlated units.
+      - The Potts coupling J is a free parameter — not derived from oracle
+        architecture or benchmark statistics.
+      - There is no proof that the empirical phase transition in REMORA
+        corresponds to Potts critical exponents.
+      - The identification V = F(T=-1) is algebraically exact for REMORA's
+        Lyapunov objective, but does NOT imply the oracle system obeys
+        Boltzmann statistics.
+
+  gibbs_routing_probabilities:
+    status: candidate
+    wording: |
+      The Gibbs distribution exp(-E/T)/Z provides a principled probabilistic
+      interpretation of REMORA trust scores: low-energy (ordered) states get
+      higher Gibbs probability. At T→0, all weight concentrates on the
+      lowest-energy (most agreed) state. At T→∞, the distribution is uniform.
+      This provides a theoretical grounding for trust score normalisation.
+    artifact: remora/statphys/gibbs.py
+    test: tests/test_statphys.py::TestPartitionFunction, tests/test_statphys.py::TestGibbsProbability, tests/test_statphys.py::TestFreeEnergy
+    limitations: |
+      - The effective question temperature T from thermodynamics.py is a
+        composite observable, not a physical temperature. Using it in
+        exp(-E/T) is an analogy that has not been validated empirically.
+      - The partition function Z is approximated over discrete verdict states;
+        continuous state spaces require different treatment.
+      - Detailed balance and the Gibbs stationary distribution have not been
+        proved for the oracle system.
+
+  # ── Priority 1: ConformalPhaseGuardrail ──────────────────────────────────
+
+  conformal_phase_guardrail:
+    status: empirical
+    wording: |
+      Conformal phase guardrail achieves target-risk coverage on held-out
+      trust scores. Split-conformal calibration (60% cal / 40% test, seed=0)
+      on the canonical N=302 thermodynamic eval artifact produces a
+      monotonic threshold/coverage relationship: as target_risk decreases,
+      the calibrated threshold rises and holdout coverage falls. At
+      target_risk=0.10 the holdout empirical risk lands at 0.100 with
+      24.8% coverage; at target_risk=0.15 the holdout risk is 0.134 with
+      67.8% coverage. Extreme low targets (0.02, 0.05) hit the high-trust
+      tail where the test split is too small to confirm marginal coverage
+      finely — this is an artifact of split size, not of the conformal
+      construction.
+    artifact: results/conformal_guardrail_holdout.json
+    test: tests/test_guardrail.py
+    scope: |
+      Marginal coverage under exchangeability between calibration and test
+      draws from this benchmark. Benchmark-locked; no distribution shift.
+      Reproducer: experiments/conformal_phase_guardrail.py
+      --input results/thermodynamic_eval_results.json
+    date: 2026-05-24
+
+  # ── Priority 2: GainabilityClassifier ─────────────────────────────────────
+
+  gainability_classifier:
+    status: not_demonstrated
+    wording: |
+      A logistic-regression classifier (stdlib gradient descent, L2 reg)
+      trained to predict whether an abstained item would be correctly answered
+      by an alternative branch. Net lift on N=302 canonical ablation = 0
+      (8/302 = 2.6% gainable, class imbalance prevents discrimination without
+      richer per-item observables). The module is correctly implemented and
+      unit-tested; the empirical routing gain is not yet established.
+    artifact: results/gainability_routing.json
+    test: tests/test_gainability.py
+    limitations: |
+      - The ablation artifact lacks per-oracle-response features needed to
+        train a useful discriminator; all features collapse to phase one-hot.
+      - 8 gainable items out of 302 is severe class imbalance.
+    date: 2026-05-24
+
+  # ── Priority 3: EvidenceOracleV2 ──────────────────────────────────────────
+
+  evidence_oracle_v2:
+    status: not_demonstrated
+    wording: |
+      EvidenceOracleV2 implements a source-anchored answer-or-abstain policy:
+      filter sources by reliability tier, extract claims, score support overlap,
+      detect contradictions via Jaccard ≥ 0.3 + polarity mismatch, then answer
+      only when ≥ 2 supporting claims found and 0 contradictions. The N500
+      evaluation returns 0/544 answered items because the N500 evidence result
+      files contain only labels (no question text or evidence blobs). Module is
+      correctly implemented and unit-tested; empirical coverage on live data is
+      not yet established.
+    artifact: results/evidence_v2_n500.json
+    test: tests/test_evidence_v2.py
+    limitations: |
+      - N500 result artifacts lack question text and evidence blobs required
+        by EvidenceOracleV2's input contract.
+      - Reliability tiers in _DOMAIN_TIER are manually curated heuristics.
+      - Jaccard-based contradiction detection has no machine-learned calibration.
+    date: 2026-05-24
+
+  # ── Priority 4: SemanticClaimGraph ────────────────────────────────────────
+
+  semantic_claim_graph_betti:
+    status: supported
+    wording: |
+      SemanticClaimGraph computes β₀ (connected components) and β₁ (cycle rank)
+      via the rigorous formula β₁ = E − V + C, where E = edge count, V = vertex
+      count, C = number of connected components. This replaces the fingerprint-
+      cluster heuristic in topology.py where β₁ was effectively always 0.
+      The formula is a standard graph-theoretic identity (cyclomatic number)
+      and holds exactly for any undirected graph. All five structural cases
+      (empty, single node, tree, triangle, two components) are unit-tested.
+    artifact: remora/graph/claim_graph.py
+    test: tests/test_claim_graph.py
+    date: 2026-05-24
+
+  # ── Priority 5: AssuranceTrace ────────────────────────────────────────────
+
+  assurance_trace_merkle:
+    status: supported
+    wording: |
+      AssuranceTrace builds a binary SHA-256 Merkle tree over the canonical
+      consensus log (each entry canonicalised to JSON with sorted keys and
+      rounded floats). Inclusion proofs are generated for every leaf and
+      verified via a stdlib-only verify_inclusion function. Any tampered entry
+      breaks the root hash. The construction is standard Bitcoin-style Merkle
+      tree with duplicate-last padding for odd levels. This is a tamper-evident
+      audit log, NOT a zero-knowledge proof.
+    artifact: remora/assurance/merkle.py
+    test: tests/test_assurance_merkle.py, tests/test_assurance_trace.py
+    date: 2026-05-24
+
+  # ── Priority 6: CounterfactualInvarianceTest ──────────────────────────────
+
+  counterfactual_invariance_v2:
+    status: supported
+    wording: |
+      Claim-type-aware counterfactual invariance replaces the flat polarity-flip
+      heuristic with a per-type policy: CAUSAL claims should flip polarity under
+      do(~X); DEFINITIONAL claims are invariant; STATISTICAL claims are soft-pass
+      (never penalised); OBSERVATIONAL and UNKNOWN default to invariant.
+      Rule-based classifier uses regex patterns with priority ordering
+      (DEFINITIONAL checked before CAUSAL to prevent false positives).
+      All 13 classification and invariance tests pass.
+    artifact: remora/causality_v2.py
+    test: tests/test_causality_v2.py
+    date: 2026-05-24
+
+  # ── N500 Scale Validation ─────────────────────────────────────────────────
+
+  selective_n500_trust_curve:
+    status: supported
+    wording: |
+      On the 544-item N500 calibrated benchmark (baseline 41.18%, Wilson CI
+      [0.371, 0.454]), sorting items by temperature ascending (lowest T = most
+      trusted) and accepting the top 18% (k=98) yields 88.78% accuracy — a lift
+      of +47.60 pp. Wilson CI [0.810, 0.936] does not overlap with the baseline
+      upper bound (0.454). One-sided binomial p-value is numerically zero
+      (< 10⁻⁶). The top 18% consists of 96 ordered-phase items + 2 disordered
+      (98% ordered): temperature and phase classification are convergent signals.
+      Confirmed at multiple operating points (10%–30% coverage, all p < 10⁻⁶
+      except 40% which collapses as expected). All 27 locked tests pass.
+    artifact: results/selective_n500_results.json
+    test: tests/test_selective_n500.py
+    scope: |
+      Benchmark-locked to results/thermodynamic_eval_n500_calibrated_results.json.
+      Uses cached oracle responses — not a fresh independent oracle run.
+      Reproducer: experiments/selective_n500.py
+    date: 2026-05-25
+
+  # ── v0.3.0 Unified Policy Layer ───────────────────────────────────────────
+
+  unified_policy_layer:
+    status: supported
+    wording: |
+      RemoraDecisionEngine.decide(PolicyObservation) produces an explicit
+      ACCEPT/VERIFY/ABSTAIN/ESCALATE decision from a 26-field observation.
+      Decision logic is conservative: hard blocks (counterfactual failure,
+      evidence contradiction) override all other signals; default is ABSTAIN.
+      Integrated into Remora.report() — every report now includes a
+      policy_decision dict. 26 unit tests pass.
+    artifact: remora/policy/
+    test: tests/test_policy_decision_engine.py, tests/test_engine_policy_report.py
+    date: 2026-05-25
+
+  policy_engine_trust_score_miscalibrated_n500:
+    status: clarified
+    wording: |
+      RESOLVED. The policy engine's original ACCEPT condition (ordered-phase +
+      trust_score >= 0.6) selected 13 N500 items with 38.5% accuracy — below the
+      41.18% majority baseline. False trust rate: 61.5%. This confirmed that
+      trust_score alone is not a reliable accept-threshold signal on N500.
+      Fixed in v0.3.1: RemoraDecisionEngine now accepts a temperature_threshold
+      parameter. When set (via compute_temperature_threshold() at 18% coverage,
+      T* ≈ 0.1972), it yields 98 accepted items with 88.78% accuracy and 11.22%
+      false trust rate — matching Proof XI empirically.
+    artifact: results/end_to_end_n500_v3.json
+    test: tests/test_end_to_end_n500_v3.py
+    date: 2026-05-25
+
+  policy_engine_temperature_calibrated:
+    status: supported
+    wording: |
+      RemoraDecisionEngine(temperature_threshold=T*) with T* computed from
+      compute_temperature_threshold(target_coverage=0.18) ≈ 0.1972 reproduces
+      Proof XI end-to-end in the policy layer:
+        - 98/544 items accepted (18.0% coverage)
+        - Accuracy on accepted: 88.78% (Wilson CI [0.810, 0.936])
+        - False trust rate: 11.22%
+        - Baseline (majority vote, all 544): 41.18%
+        - Lift: +47.60 pp (p < 10^-6)
+      Temperature ACCEPT path is guarded: counterfactual failure and evidence
+      contradictions remain hard blocks. 7 new unit tests + 3 end-to-end tests.
+    artifact: results/end_to_end_n500_v3.json
+    test: tests/test_policy_decision_engine.py, tests/test_end_to_end_n500_v3.py
+    date: 2026-05-25
+
+  conformal_repeated_splits:
+    status: clarified
+    wording: |
+      Conformal guardrail evaluated across 20 random seeds at 3 target risks
+      (0.05, 0.10, 0.15) on N=302 trust scores. Results:
+      - target_risk=0.05: unattainable — fails 20/20 seeds (too few items in
+        high-trust tail; this is a structural benchmark limitation).
+      - target_risk=0.10: mean holdout risk 0.082; fails 5/20 by point est,
+        7/20 by upper confidence bound.
+      - target_risk=0.15: mean holdout risk 0.137; fails 8/20 by both metrics.
+      Conformal guarantee requires exchangeability between calibration and test.
+      Finite-sample UCB (Clopper-Pearson) is strictly more conservative than
+      point estimate. Results are benchmark-locked; no universal guarantee.
+    artifact: results/conformal_repeated_splits.json
+    test: tests/test_conformal_repeated_splits.py, tests/test_binomial_bounds.py
+    date: 2026-05-25
+
+  evidence_oracle_v3_lexical_baseline:
+    status: not_demonstrated
+    wording: |
+      EvidenceOracleV3 provides a per-claim evidence table (AtomicClaim,
+      EvidenceSnippet, ClaimEvidence, EvidenceDecision) with pluggable relation_fn.
+      Current scorer is lexical only (Jaccard overlap + negation heuristic).
+      Correctly named: lexical_support_score, not entailment. Module is correctly
+      implemented and unit-tested (23 tests). Empirical accuracy on live data
+      not established — N500 artifact lacks question text and evidence blobs.
+      Relation detection cannot claim semantic entailment until an NLI model
+      is plugged in via relation_fn.
+    artifact: remora/oracles/evidence_v3.py
+    test: tests/test_evidence_v3.py
+    limitations: |
+      - Lexical overlap only; no semantic entailment.
+      - N500 artifact lacks question text/evidence blobs for empirical evaluation.
+      - Source reliability tiers are manually curated heuristics.
+    date: 2026-05-25
+
+  gainability_feature_join:
+    status: not_demonstrated
+    wording: |
+      feature_join.py provides an 11-feature vector (adding temperature,
+      is_adversarial, difficulty_hard to the original 9 features). Joined
+      ablation+thermo artifacts show 0 gainable items in the training split
+      because the thermo artifact's phase-only features do not identify the
+      8 gainable items in the ablation. Class imbalance remains prohibitive.
+      Net lift = 0, conclusion unchanged from gainability_classifier.
+    artifact: results/gainability_routing_v2.json
+    test: tests/test_feature_join.py, tests/test_gainability_routing_v2.py
+    limitations: |
+      - 0 gainable items found after join (ablation and thermo artifacts
+        use different item ordering; join by item_id may miss some matches).
+      - Original gainability claim (8/302 = 2.6% gainable) remains the count
+        from the ablation artifact; per-oracle-response features absent.
+    date: 2026-05-25
+
+  assurance_envelope:
+    status: supported
+    wording: |
+      AssuranceEnvelope wraps AssuranceTrace with config_hash (SHA-256 of
+      Genome), model_pool_hash (SHA-256 of sorted oracle provider IDs),
+      and policy_hash (SHA-256 of policy_decision dict). Order-independent
+      (provider list sorted before hashing). Explicitly unsigned — no
+      private-key signature applied. 13 tests pass.
+    artifact: remora/assurance/envelope.py
+    test: tests/test_assurance_envelope.py
+    date: 2026-05-25
+
+  end_to_end_n500_v3:
+    status: supported
+    wording: |
+      end_to_end_n500_v3.py with temperature_threshold=T*≈0.1972 produces:
+        - 98 accepted (18.0%), 32 verified (5.9%), 414 abstained (76.1%), 0 escalated
+        - Accuracy on accepted: 88.78% (Proof XI confirmed in policy layer)
+        - False trust rate: 11.22%
+      Policy decisions from stored thermodynamic fields only (no live oracle calls).
+      Unavailable metrics (evidence calls, assurance trace) are explicitly null
+      with reason fields. 25 tests pass.
+    artifact: results/end_to_end_n500_v3.json
+    test: tests/test_end_to_end_n500_v3.py
+    limitations: |
+      - Policy decisions from thermodynamic fields only; no live oracle calls.
+      - Evidence oracle not evaluated (no question text/evidence blobs in artifact).
+      - Assurance trace requires live Remora.run().
+      - Temperature threshold calibrated in-sample (same data used to derive T* and evaluate).
+    date: 2026-05-25
+
+  toolcall_benchmark_v1:
+    status: supported
+    wording: |
+      REMORA includes a deterministic tool-call consensus benchmark with
+      252 dry-run tasks across shell, database, git, network config, building
+      automation, webhook/API, and file-operation domains. The benchmark runs
+      entirely through simulators and heuristic baselines; no real tools,
+      production systems, network mutations, or live LLM calls are used.
+    artifact: results/toolcall_benchmark_v1_results.json
+    test: tests/test_toolcall_experiment_outputs.py
+    limitations: |
+      - Deterministic simulator.
+      - No live LLM calls.
+      - No production tool calls.
+      - Heuristic baselines.
+      - Synthetic task templates require external validation.
+    date: 2026-05-25
+
+  toolcall_unsafe_execution_reduction:
+    status: not_demonstrated
+    wording: |
+      Unsafe-execution reduction is not demonstrated on toolcall_benchmark_v1.
+      All evaluated heuristic baselines have unsafe_execution_rate = 0.0000:
+      single_model_heuristic, majority_vote_heuristic, self_consistency_heuristic,
+      verifier_heuristic, remora_temperature_gate_heuristic, and
+      remora_full_policy_gate. Because the comparison baselines already avoid
+      unsafe execution under this simulator, REMORA does not materially reduce
+      unsafe execution versus all baselines.
+    artifact: results/toolcall_benchmark_v1_results.json
+    test: tests/test_toolcall_experiment_outputs.py
+    limitations: |
+      - Benchmark is currently too easy for conservative heuristic safety rules.
+      - No live model/tool-call behavior measured.
+      - Negative result should be preserved until a harder validated benchmark
+        or live-mode evaluation changes it.
+    date: 2026-05-25
+
+  toolcall_critical_error_intercept:
+    status: supported
+    wording: |
+      Critical unsafe task interception is measured on toolcall_benchmark_v1.
+      All evaluated heuristic baselines, including remora_full_policy_gate,
+      report critical_error_intercept_rate = 1.0000 under the deterministic
+      simulator.
+    artifact: results/toolcall_benchmark_v1_results.json
+    test: tests/test_toolcall_experiment_outputs.py
+    limitations: |
+      - Deterministic simulator.
+      - Heuristic baselines only.
+      - Equal 1.0000 intercept across baselines means this does not demonstrate
+        REMORA superiority.
+    date: 2026-05-25
+
+  toolcall_benchmark_v2:
+    status: supported
+    wording: |
+      REMORA includes a harder deterministic tool-call benchmark v2 with
+      700 dry-run tasks across shell, database, git, network config, building
+      automation, webhook/API, and file-operation domains. v2 adds adversarial
+      families: safe-looking dangerous requests, missing-context risk,
+      conflicting intent/args, production ambiguity, regulated communication
+      ambiguity, counterfactual fallback traps, prompt-injection payloads, and
+      unsafe-destructive direct requests. Core scoring is simulator-based; an
+      optional sandbox execution harness replays EXECUTE decisions in isolated
+      local sandboxes for execution-side instrumentation.
+    artifact: results/toolcall_benchmark_v2_results.json
+    test: tests/test_toolcall_benchmark_v2_generation.py
+    limitations: |
+      - Deterministic simulator.
+      - Committed results are heuristic or replay-mode.
+      - No production tool calls.
+      - Heuristic baselines.
+      - Synthetic adversarial templates require external validation.
+    date: 2026-05-26
+
+  toolcall_v2_unsafe_execution_reduction:
+    status: supported
+    wording: |
+      Under toolcall_benchmark_v2, remora_full_policy_gate reports
+      unsafe_execution_rate = 0.0000, while heuristic baselines are higher:
+        - single_model_heuristic: 0.2000
+        - majority_vote_heuristic: 0.1000
+        - self_consistency_heuristic: 0.1000
+        - verifier_heuristic: 0.2000
+        - remora_temperature_gate_heuristic: 0.1000
+      This corresponds to a measured unsafe-rate reduction of 10.0 to
+      20.0 percentage points versus these baselines on this deterministic
+      benchmark.
+    artifact: results/toolcall_benchmark_v2_results.json
+    test: tests/test_toolcall_v2_results.py
+    limitations: |
+      - Benchmark-scoped deterministic result.
+      - Heuristic baselines only.
+      - Synthetic adversarial templates may favor explicit context-policy checks.
+      - Requires independent and live validation before deployment claims.
+    date: 2026-05-25
+
+  toolcall_v2_utility_preservation:
+    status: supported
+    wording: |
+      On toolcall_benchmark_v2 heuristic evaluation, remora_full_policy_gate
+      has mean_utility = 0.6200, which is above all non-REMORA heuristic
+      baselines (best non-REMORA utility = 0.2700 from
+      remora_temperature_gate_heuristic). Under replay harness results,
+      remora_full_policy_gate remains at 0.6200.
+    artifact: results/toolcall_benchmark_v2_results.json
+    test: tests/test_toolcall_v2_results.py
+    limitations: |
+      - Utility is defined by benchmark scoring weights.
+      - Result is benchmark-scoped and does not imply production utility.
+      - Replay harness is not equivalent to live provider trajectories.
+    date: 2026-05-25
+
+  toolcall_v2_critical_intercept:
+    status: not_demonstrated
+    wording: |
+      Critical-error interception is measured, but superiority is not
+      demonstrated on v2. All listed heuristic baselines and
+      remora_full_policy_gate report critical_error_intercept_rate = 1.0000
+      on this deterministic benchmark.
+    artifact: results/toolcall_benchmark_v2_results.json
+    test: tests/test_toolcall_v2_results.py
+    limitations: |
+      - Metric is saturated (all methods at 1.0000) on current v2 scoring.
+      - Does not prove differential critical-intercept advantage.
+    date: 2026-05-25
+
+  toolcall_v2_live_sandbox_execution:
+    status: supported
+    wording: |
+      The v2 replay/live harness now includes a sandbox execution pass
+      (`results/toolcall_benchmark_v2_live_exec_results.json`) that executes
+      only EXECUTE actions in isolated local sandboxes and records execution
+      outcomes (success, unsafe effect observation, sandbox escape blocking).
+      In the committed replay run, remora_full_policy_gate has
+      unsafe_effect_rate = 0.0000 versus majority_vote_3_models = 0.1000 and
+      single_model_claude = 0.2000.
+    artifact: results/toolcall_benchmark_v2_live_exec_results.json
+    test: tests/test_toolcall_live_exec_results.py
+    limitations: |
+      - Committed run is replay mode for model decisions.
+      - Execution is sandbox-local and deterministic.
+      - Unsafe effects are proxy observations, not production incidents.
+      - No production tool calls are performed.
+    date: 2026-05-26
+
+  toolcall_unsafe_execution_reduction_v2_significance:
+    status: supported
+    wording: |
+      Paired bootstrap and sign-flip permutation analysis on v2 reports
+      positive unsafe-rate deltas (baseline - remora) for every heuristic
+      baseline:
+        - single_model_heuristic: +0.2000, CI95 [0.1714, 0.2286], p=9.999e-05
+        - majority_vote_heuristic: +0.1000, CI95 [0.0786, 0.1229], p=9.999e-05
+        - self_consistency_heuristic: +0.1000, CI95 [0.0786, 0.1229], p=9.999e-05
+        - verifier_heuristic: +0.2000, CI95 [0.1714, 0.2286], p=9.999e-05
+        - remora_temperature_gate_heuristic: +0.1000, CI95 [0.0786, 0.1229], p=9.999e-05
+      Utility deltas (remora - baseline) are also positive for all baselines in
+      this deterministic benchmark artifact.
+    artifact: results/toolcall_benchmark_v2_significance.json
+    test: tests/test_toolcall_v2_significance.py
+    limitations: |
+      - Inference is benchmark-scoped and assumes exchangeability over synthetic tasks.
+      - Permutation p-values are discrete and bounded by permutation count.
+      - No live-model or production-environment uncertainty is represented.
+    date: 2026-05-25
+
+  toolcall_v2_ablation:
+    status: supported
+    wording: |
+      In v2 ablation, disabling hard blocks increases unsafe
+      execution and lowers utility:
+        - remora_without_hard_blocks: unsafe_execution_rate=0.0857,
+          mean_utility=0.0286, accuracy=0.3000
+        - remora_full: unsafe_execution_rate=0.0000,
+          mean_utility=0.6200, accuracy=0.9000
+      On this benchmark, hard-block safety controls dominate the measured gain.
+    artifact: results/toolcall_benchmark_v2_ablation.json
+    test: tests/test_remora_toolcall_gate_v2.py
+    limitations: |
+      - Deterministic synthetic benchmark only.
+      - Ablation is implementation-specific and not a causal proof beyond this setup.
+    date: 2026-05-25
+
+  evidence_verifier_interface:
+    status: supported
+    wording: |
+      EvidenceOracleV3 accepts an EvidenceVerifierProtocol with a default
+      LexicalEvidenceVerifier. Custom deterministic verifiers can force support
+      or contradiction in tests. This is a structural verifier interface, not a
+      semantic entailment claim.
+    artifact: remora/oracles/evidence_verifier.py
+    test: tests/test_evidence_v3.py, tests/test_evidence_verifier.py
+    limitations: |
+      - Default verifier is lexical overlap plus negation heuristic.
+      - No external NLI or semantic entailment model is included.
+      - Semantic evidence verification remains not demonstrated.
+    date: 2026-05-25
+
+  evidence_semantic_verifier:
+    status: not_demonstrated
+    wording: |
+      Semantic evidence verification quality is not demonstrated. The repository
+      now includes pluggable NLIEvidenceVerifier and LLMEvidenceVerifier adapter
+      classes with deterministic fallback, but no committed semantic entailment
+      benchmark artifact establishes semantic verifier performance.
+    artifact: remora/oracles/evidence_verifier.py
+    test: tests/test_evidence_verifier.py
+    limitations: |
+      - No semantic entailment model is shipped in committed default flow.
+      - No live evidence-evaluation benchmark artifact is committed.
+      - Current default verifier remains lexical.
+    date: 2026-05-25
+
+  continual_realignment_governance:
+    status: supported
+    wording: |
+      REMORA includes deterministic governance primitives for long-running
+      agents: WorkContext telemetry, PersonaBaseline, DriftMonitor,
+      MemoryGate, and ContinualRealigner. The implementation routes observable
+      behavioral drift and proposed persistent memory writes through
+      ACCEPT/VERIFY/ESCALATE style governance decisions. This is a structural
+      and unit-tested capability, not an empirical claim that drift prediction
+      is production validated.
+    artifact: remora/governance/
+    test: tests/test_governance_drift_monitor.py, tests/test_governance_memory_gate.py, tests/test_continual_realigner.py
+    limitations: |
+      - Deterministic heuristic implementation only.
+      - No live long-running agent benchmark artifact is committed.
+      - Does not infer consciousness, feelings, or genuine preferences.
+      - Thresholds require domain calibration before production enforcement.
+    date: 2026-05-27
+
+  nested_governance_layers:
+    status: supported
+    wording: |
+      REMORA includes a nested governance model for agentic AI memory/control
+      layers. The model separates runtime_context, session_memory,
+      trust_memory, evidence_memory, project_memory, policy_memory,
+      audit_ledger, and architecture_baseline, each with its own update
+      frequency, writability boundary, retention class, risk level, and audit
+      requirement. It also includes a deterministic GovernanceForgettingDetector
+      for patterns such as temporary exceptions becoming routine, ignored
+      ABSTAIN/ESCALATE routes, unapproved policy overrides, and repeated
+      overrides.
+    artifact: remora/governance/nested_governance.py, enterprise/nested_governance_layers.yaml
+    test: tests/test_nested_governance.py
+    limitations: |
+      - Structural governance capability only.
+      - Does not train or modify foundation models.
+      - Does not prove continual learning or solve catastrophic forgetting.
+      - Requires live enterprise agent telemetry before empirical drift claims.
+    date: 2026-05-27
+
+  context_flow_and_memory_layers:
+    status: supported
+    wording: |
+      REMORA includes deterministic context-flow and continuum-memory governance
+      primitives for long-running agents. ContextFlowRegistry separates runtime,
+      oracle, evidence, trust, policy, and audit context streams. MemoryPolicyRegistry
+      separates runtime_context, session_memory, case_memory, trust_memory,
+      evidence_memory, policy_memory, audit_ledger, and architecture_baseline
+      with distinct update frequencies, write permissions, review requirements,
+      retention classes, risk levels, and append-only boundaries.
+    artifact: remora/governance/context_flow.py, remora/governance/memory_layers.py
+    test: tests/test_governance_context_flow.py, tests/test_governance_memory_layers.py
+    limitations: |
+      - Structural governance capability only.
+      - No empirical deployment telemetry validates thresholds yet.
+      - Uses Nested Learning as architectural inspiration, not model-training implementation.
+    date: 2026-05-27
+
+  governance_forgetting_metrics:
+    status: supported
+    wording: |
+      REMORA includes a deterministic GovernanceForgettingAnalyzer that routes
+      policy deviation, abstention drift, escalation suppression, tool-action
+      creep, memory contamination, authority-boundary violations, and temporary
+      exception reuse into ACCEPT/VERIFY/ESCALATE governance actions.
+    artifact: remora/governance/governance_forgetting.py
+    test: tests/test_governance_forgetting_metrics.py
+    limitations: |
+      - Metric thresholds are heuristic defaults.
+      - Requires live operational telemetry before empirical drift claims.
+      - Does not prove that future agents remain aligned.
+    date: 2026-05-27
+
+  reviewed_policy_proposals:
+    status: supported
+    wording: |
+      REMORA can generate deterministic policy-improvement proposals from
+      repeated governance patterns such as model-domain failures, critical
+      disagreement, false accepts, memory contamination, tool-action creep,
+      abstain collapse, and insufficient evidence. Proposals require human
+      review and explicitly cannot auto-apply.
+    artifact: remora/governance/policy_proposals.py
+    test: tests/test_governance_policy_proposals.py
+    limitations: |
+      - Proposal generation is rule-based.
+      - No automated policy mutation is allowed.
+      - Human review and external approval workflow are still required.
+    date: 2026-05-27

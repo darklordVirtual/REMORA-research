@@ -1,0 +1,141 @@
+{
+  "audit_version": "claim_consistency_audit_v2",
+  "inputs": {
+    "readme": "README.md",
+    "toolcall_doc": "docs/toolcall_consensus_benchmark.md",
+    "toolcall_doc_v2": "docs/toolcall_consensus_benchmark_v2.md",
+    "architecture": "ARCHITECTURE.md",
+    "selective_302": "results/selective_trust_curve_results.json",
+    "selective_544": "results/selective_n500_results.json",
+    "toolcall_results": "results/toolcall_benchmark_v1_results.json",
+    "toolcall_results_v2": "results/toolcall_benchmark_v2_results.json",
+    "toolcall_results_v2_significance": "results/toolcall_benchmark_v2_significance.json"
+  },
+  "extracted_metrics": {
+    "result1_top25": {
+      "k": 76,
+      "correct": 72,
+      "accuracy": 0.9474
+    },
+    "result2": {
+      "n": 544,
+      "baseline_accuracy": 0.411765,
+      "top10": {
+        "k": 54,
+        "correct": 44,
+        "accuracy": 0.814815
+      },
+      "top15": {
+        "k": 82,
+        "correct": 71,
+        "accuracy": 0.865854
+      },
+      "top18": {
+        "k": 98,
+        "correct": 87,
+        "accuracy": 0.887755
+      },
+      "top20": {
+        "k": 109,
+        "correct": 94,
+        "accuracy": 0.862385
+      }
+    },
+    "toolcall_v1": {
+      "n_tasks": 252,
+      "remora_temperature_gate_heuristic": {
+        "accuracy": 0.9523809523809523,
+        "mean_utility": 0.6761904761904762,
+        "unsafe_execution_rate": 0.0
+      },
+      "remora_full_policy_gate": {
+        "accuracy": 0.7619047619047619,
+        "mean_utility": 0.569047619047619,
+        "unsafe_execution_rate": 0.0
+      }
+    },
+    "toolcall_v2": {
+      "n_tasks": 700,
+      "remora_temperature_gate_heuristic": {
+        "accuracy": 0.7,
+        "mean_utility": 0.27,
+        "unsafe_execution_rate": 0.1
+      },
+      "remora_full_policy_gate": {
+        "accuracy": 0.9,
+        "mean_utility": 0.62,
+        "unsafe_execution_rate": 0.0
+      }
+    },
+    "toolcall_v2_significance": {
+      "single_model_heuristic_unsafe_delta": 0.2,
+      "single_model_heuristic_unsafe_ci95": [
+        0.17142857142857143,
+        0.22857142857142856
+      ],
+      "single_model_heuristic_unsafe_pvalue": 9.999000099990002e-05
+    }
+  },
+  "checks": [
+    {
+      "id": "readme_n500_label_544",
+      "passed": true,
+      "detail": "README should explicitly state that Result 2 evaluates 544 questions."
+    },
+    {
+      "id": "readme_n500_historical_note",
+      "passed": true,
+      "detail": "README should clarify that N500 is a historical label."
+    },
+    {
+      "id": "readme_result1_25pct",
+      "passed": true,
+      "detail": "README Result 1 top-25% row should match selective_trust_curve_results.json (neg_temperature)."
+    },
+    {
+      "id": "readme_result2_rows",
+      "passed": true,
+      "detail": "README Result 2 rows should match selective_n500_results.json (neg_temperature)."
+    },
+    {
+      "id": "readme_toolcall_task_counts",
+      "passed": true,
+      "detail": "README tool-call section should match v1 and v2 benchmark task counts."
+    },
+    {
+      "id": "readme_toolcall_v1_metrics",
+      "passed": true,
+      "detail": "README v1 tool-call metrics and negative finding statement should match the artifact."
+    },
+    {
+      "id": "readme_toolcall_v2_metrics",
+      "passed": true,
+      "detail": "README v2 tool-call metrics should match the harder benchmark artifact."
+    },
+    {
+      "id": "readme_toolcall_v2_significance_reference",
+      "passed": true,
+      "detail": "README should reference the v2 significance artifact."
+    },
+    {
+      "id": "toolcall_doc_metrics",
+      "passed": true,
+      "detail": "Tool-call benchmark doc should match committed benchmark metrics and state the non-demonstration."
+    },
+    {
+      "id": "toolcall_v2_doc_metrics",
+      "passed": true,
+      "detail": "Tool-call v2 doc should match committed v2 metrics."
+    },
+    {
+      "id": "architecture_n500_evaluable_items",
+      "passed": true,
+      "detail": "ARCHITECTURE.md should clarify that N500 artifact currently has 544 evaluable items."
+    }
+  ],
+  "all_passed": true,
+  "limitations": [
+    "Checks verify string-level consistency for key headline metrics, not full semantic equivalence of every document sentence.",
+    "Audit is artifact-scoped and does not validate live-model behavior."
+  ]
+}

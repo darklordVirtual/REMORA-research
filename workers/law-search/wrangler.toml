@@ -1,0 +1,18 @@
+name = "remora-law-search"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[ai]
+binding = "AI"
+
+# Bind to DCE's Norwegian law Vectorize index (1024-dim, bge-m3 multilingual)
+[[vectorize]]
+binding = "LAW_INDEX"
+index_name = "norges-lover-law-index"
+
+# Bind to DCE's Norwegian legal intelligence D1 database
+[[d1_databases]]
+binding = "LAW_DB"
+database_name = "norges-lover-legal-intel"
+database_id = "98c4cc05-4add-4bf4-ad73-0001a42e6e77"

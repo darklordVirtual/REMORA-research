@@ -1,0 +1,131 @@
+model_id: network_change_management_v1
+version: "1.0"
+domain: network_change_management
+assumptions:
+  - >-
+    Policy decisions are modelled as deterministic rule evaluations in
+    RemoraDecisionEngine v3. Results may differ with other engine versions
+    or configuration.
+  - >-
+    Concept-to-signal mappings are approximations of the operational conditions
+    they represent. Real-world verification requirements (e.g. change-window
+    approval, dual-control attestation) may exceed what these mappings capture.
+  - >-
+    This model does not establish causal effect on real-world network outcomes,
+    safety properties, or security posture. It maps operational policy concepts
+    to PolicyObservation signals for policy-only counterfactual analysis.
+  - >-
+    Risk-tier reduction (approved_change_window=True overrides risk_tier to
+    "high") assumes the change-window approval process has been fully completed
+    before the action is proposed, not as a result of the action.
+  - >-
+    Source-provenance verification (source_provenance_verified=True clears
+    argument_tainted) assumes the argument-provenance chain has been
+    independently audited, not self-attested by the requesting agent.
+
+variables:
+  # --- Actionable policy concepts ----------------------------------------
+
+  - name: approved_change_window
+    label: Approved Change Window
+    type: concept
+    intervenable: true
+    actionable: true
+    provenance: policy
+    signal_mapping:
+      risk_tier: "high"
+      state_transition_uncertain: false
+      evidence_action: "answer"
+      evidence_confidence: 0.85
+
+  - name: dual_control_verified
+    label: Dual Control Verified
+    type: concept
+    intervenable: true
+    actionable: true
+    provenance: human
+    signal_mapping:
+      counterfactual_passed: true
+
+  - name: operator_authority_verified
+    label: Operator Authority Verified
+    type: concept
+    intervenable: true
+    actionable: true
+    provenance: human
+    signal_mapping:
+      coercion_detected: false
+      blackmail_pattern_detected: false
+
+  - name: rollback_plan_verified
+    label: Rollback Plan Verified
+    type: concept
+    intervenable: true
+    actionable: true
+    provenance: human
+    signal_mapping:
+      rollback_available: true
+
+  - name: source_provenance_verified
+    label: Source Provenance Verified
+    type: concept
+    intervenable: true
+    actionable: true
+    provenance: evidence
+    signal_mapping:
+      argument_tainted: false
+      adversarial_detected: false
+
+  - name: maintenance_mode
+    label: Maintenance Mode Active
+    type: concept
+    intervenable: true
+    actionable: true
+    provenance: policy
+    signal_mapping:
+      target_environment: "staging"
+      environment_mismatch_detected: false
+
+  # --- Non-actionable observed signals ------------------------------------
+
+  - name: target_environment
+    label: Target Environment
+    type: observed
+    intervenable: false
+    actionable: false
+    provenance: tool
+    signal_mapping: {}
+
+  - name: asset_criticality
+    label: Asset Criticality
+    type: observed
+    intervenable: false
+    actionable: false
+    provenance: telemetry
+    signal_mapping: {}
+
+  - name: blast_radius
+    label: Blast Radius
+    type: observed
+    intervenable: false
+    actionable: false
+    provenance: model
+    signal_mapping: {}
+
+  - name: policy_conformance
+    label: Policy Conformance
+    type: outcome
+    intervenable: false
+    actionable: false
+    provenance: policy
+    signal_mapping: {}
+
+edges:
+  - {source: approved_change_window, target: policy_conformance, relation: enables}
+  - {source: dual_control_verified,  target: policy_conformance, relation: enables}
+  - {source: rollback_plan_verified, target: policy_conformance, relation: enables}
+  - {source: source_provenance_verified, target: policy_conformance, relation: enables}
+  - {source: operator_authority_verified, target: policy_conformance, relation: enables}
+  - {source: maintenance_mode, target: target_environment, relation: overrides}
+  - {source: target_environment, target: asset_criticality, relation: context}
+  - {source: blast_radius, target: policy_conformance, relation: constrains}

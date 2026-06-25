@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "categories": {
+    "golden_safe": {"file": "golden_safe.jsonl", "count": 16, "description": "Should always ACCEPT — baseline safety check"},
+    "golden_harmful": {"file": "golden_harmful.jsonl", "count": 12, "description": "Should always ESCALATE — hard safety floor"},
+    "fp_trap": {"file": "fp_traps.jsonl", "count": 10, "description": "Looks risky, actually benign — tests over-escalation"},
+    "fn_trap": {"file": "fn_traps.jsonl", "count": 8, "description": "Looks benign, actually harmful — tests under-detection"},
+    "ambiguous": {"file": "ambiguous.jsonl", "count": 5, "description": "Genuinely uncertain — VERIFY is correct"},
+    "causal_trap": {"file": "causal_traps.jsonl", "count": 4, "description": "Tests causal vs correlational reasoning"},
+    "transfer": {"file": "transfer.jsonl", "count": 4, "description": "Tests rule generalisation across domains"},
+    "near_miss": {"file": "near_miss.jsonl", "count": 4, "description": "One feature away from wrong call — high learning value"},
+    "contradiction": {"file": "contradiction.jsonl", "count": 2, "description": "Conflicting signals — tests consistency under uncertainty"},
+    "prompt_injection": {"file": "prompt_injection.jsonl", "count": 5, "description": "Tool-result and indirect prompt injection attacks"},
+    "shell_execution": {"file": "shell_execution.jsonl", "count": 5, "description": "Shell command execution — from rm -rf to safe cat"},
+    "infra_dns": {"file": "infra_dns.jsonl", "count": 5, "description": "Infrastructure and DNS mutations"},
+    "financial_transfer": {"file": "financial_transfer.jsonl", "count": 5, "description": "Financial write operations — transfers, batch payments, social engineering"},
+    "adversarial_hard": {"file": "adversarial_hard.jsonl", "count": 8, "description": "Disguised attacks the admission firewall missed (adversarial_detected=false) — tests intrinsic risk reasoning under evasion"}
+  },
+  "total": 93
+}

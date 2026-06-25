@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REMORA — AI Action Governance Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #e0e0f0;
+  }
+  h1 {
+    font-size: 1.1rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #7eb8f7;
+    margin-bottom: 6px;
+    font-weight: 400;
+  }
+  .subtitle {
+    font-size: 0.72rem;
+    color: #666;
+    letter-spacing: 0.12em;
+    margin-bottom: 32px;
+  }
+  #canvas-wrap {
+    position: relative;
+    width: 560px;
+    height: 560px;
+  }
+  svg { overflow: visible; }
+
+  /* Decision log panel */
+  #log {
+    margin-top: 28px;
+    width: 560px;
+    min-height: 120px;
+    background: #0d0d1a;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: #8899bb;
+    font-family: 'Courier New', monospace;
+  }
+  #log .entry { opacity: 0; transform: translateX(-6px); transition: all 0.35s; }
+  #log .entry.show { opacity: 1; transform: none; }
+  #log .pass  { color: #4ade80; }
+  #log .warn  { color: #facc15; }
+  #log .block { color: #f87171; }
+  #log .info  { color: #60a5fa; }
+  #log .final-accept  { color: #4ade80; font-weight: bold; font-size: 0.82rem; }
+  #log .final-verify  { color: #facc15; font-weight: bold; font-size: 0.82rem; }
+  #log .final-abstain { color: #a78bfa; font-weight: bold; font-size: 0.82rem; }
+  #log .final-escalate{ color: #f87171; font-weight: bold; font-size: 0.82rem; }
+
+  /* Outcome badges */
+  #outcomes {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .badge {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    font-family: 'Courier New', monospace;
+  }
+  .badge:hover { transform: translateY(-2px); filter: brightness(1.2); }
+  .badge.accept   { background: #052e16; border-color: #16a34a; color: #4ade80; }
+  .badge.verify   { background: #1c1400; border-color: #ca8a04; color: #facc15; }
+  .badge.abstain  { background: #1e1030; border-color: #7c3aed; color: #a78bfa; }
+  .badge.escalate { background: #2d0a0a; border-color: #dc2626; color: #f87171; }
+  .badge.active   { filter: brightness(1.4); transform: translateY(-2px) scale(1.05); }
+</style>
+</head>
+<body>
+
+<h1>REMORA · AI Action Governance</h1>
+<p class="subtitle">Every agent action passes through all six layers before execution</p>
+
+<div id="canvas-wrap">
+<svg id="diagram" viewBox="0 0 560 560" width="560" height="560">
+  <defs>
+    <!-- Glows -->
+    <filter id="glow-blue">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-green">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-red">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Orbit path for envelope -->
+    <path id="orbit0" d="M280,220 a60,60 0 1,1 0.01,0"/>
+    <path id="orbit1" d="M280,192 a88,88 0 1,1 0.01,0"/>
+    <path id="orbit2" d="M280,164 a116,116 0 1,1 0.01,0"/>
+    <path id="orbit3" d="M280,136 a144,144 0 1,1 0.01,0"/>
+    <path id="orbit4" d="M280,108 a172,172 0 1,1 0.01,0"/>
+    <path id="orbit5" d="M280,80  a200,200 0 1,1 0.01,0"/>
+
+    <!-- Radial gradient backgrounds -->
+    <radialGradient id="bg-grad" cx="50%" cy="50%">
+      <stop offset="0%"   stop-color="#1e1e3a"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="280" cy="280" r="275" fill="url(#bg-grad)" stroke="#1a1a3a" stroke-width="1"/>
+
+  <!-- ── Rings (outermost first) ── -->
+
+  <!-- Ring 6: Fail-Closed Controls (r=200) -->
+  <circle id="ring6" cx="280" cy="280" r="200"
+    fill="none" stroke="#4a1030" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.7"/>
+  <text x="280" y="64" text-anchor="middle" font-size="11" fill="#c0405a" letter-spacing="1.5">
+    FAIL-CLOSED CONTROLS
+  </text>
+
+  <!-- Ring 5: Tenant Audit (r=172) -->
+  <circle id="ring5" cx="280" cy="280" r="172"
+    fill="none" stroke="#1a3050" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.8"/>
+  <text x="468" y="295" text-anchor="start" font-size="10.5" fill="#5080a0" letter-spacing="1">
+    TENANT AUDIT
+  </text>
+
+  <!-- Ring 4: Shadow Replay (r=144) -->
+  <circle id="ring4" cx="280" cy="280" r="144"
+    fill="none" stroke="#102a10" stroke-width="1.5" stroke-dasharray="5 3" opacity="0.85"/>
+  <text x="88" y="295" text-anchor="end" font-size="10.5" fill="#407040" letter-spacing="1">
+    SHADOW REPLAY
+  </text>
+
+  <!-- Ring 3: Evidence Routing (r=116) -->
+  <circle id="ring3" cx="280" cy="280" r="116"
+    fill="none" stroke="#2a2000" stroke-width="1.5" opacity="0.9"/>
+  <text x="280" y="500" text-anchor="middle" font-size="11" fill="#806020" letter-spacing="1.5">
+    EVIDENCE ROUTING
+  </text>
+
+  <!-- Ring 2: Oracle Consensus (r=88) -->
+  <circle id="ring2" cx="280" cy="280" r="88"
+    fill="none" stroke="#1a2040" stroke-width="2" opacity="0.95"/>
+  <text x="430" y="215" text-anchor="start" font-size="11" fill="#3060a0" letter-spacing="1">
+    ORACLE CONSENSUS
+  </text>
+
+  <!-- Ring 1: Policy Gate (r=60) -->
+  <circle id="ring1" cx="280" cy="280" r="60"
+    fill="none" stroke="#203a60" stroke-width="2.5"/>
+  <text x="280" y="205" text-anchor="middle" font-size="11.5" fill="#5090d0" letter-spacing="1.5">
+    POLICY GATE
+  </text>
+
+  <!-- Center: Agent Action -->
+  <circle cx="280" cy="280" r="40" fill="#0d1428" stroke="#2a4a80" stroke-width="2"/>
+  <circle cx="280" cy="280" r="36" fill="none" stroke="#3a6aaa" stroke-width="1" opacity="0.6"/>
+  <text x="280" y="275" text-anchor="middle" font-size="9.5" fill="#7eb8f7" letter-spacing="1" font-weight="600">AGENT</text>
+  <text x="280" y="288" text-anchor="middle" font-size="9.5" fill="#7eb8f7" letter-spacing="1" font-weight="600">ACTION</text>
+
+  <!-- ── Decision connector lines (top, pointing inward) ── -->
+  <line x1="280" y1="220" x2="280" y2="240" stroke="#3a6aaa" stroke-width="1" opacity="0.5" stroke-dasharray="3 3"/>
+
+  <!-- ── Moving envelope (DecisionEnvelope) ── -->
+  <g id="envelope" opacity="1">
+    <!-- Envelope body -->
+    <rect id="env-rect" x="-10" y="-7" width="20" height="14" rx="3"
+      fill="#1a3060" stroke="#5090d0" stroke-width="1.5"/>
+    <!-- Envelope flap -->
+    <polyline id="env-flap" points="-10,-7 0,2 10,-7"
+      fill="none" stroke="#5090d0" stroke-width="1.2"/>
+    <!-- SHA dot -->
+    <circle cx="0" cy="3" r="2" fill="#7eb8f7" opacity="0.8"/>
+  </g>
+
+  <!-- ── Pulse rings for active ring highlight ── -->
+  <circle id="pulse" cx="280" cy="280" r="60"
+    fill="none" stroke="#5090d0" stroke-width="0" opacity="0"/>
+
+  <!-- ── Decision outcome flash ── -->
+  <g id="outcome-flash" opacity="0">
+    <circle cx="280" cy="280" r="40" fill="#16a34a" opacity="0.15"/>
+    <text id="outcome-text" x="280" y="284" text-anchor="middle"
+      font-size="10" font-weight="bold" fill="#4ade80" letter-spacing="1">ACCEPT</text>
+  </g>
+</svg>
+</div>
+
+<div id="log">
+  <div class="entry info"  id="l0">⬡  DecisionEnvelope initialised  ·  SHA-256 chain started</div>
+  <div class="entry"       id="l1"></div>
+  <div class="entry pass"  id="l2"></div>
+  <div class="entry pass"  id="l3"></div>
+  <div class="entry pass"  id="l4"></div>
+  <div class="entry pass"  id="l5"></div>
+  <div class="entry pass"  id="l6"></div>
+  <div class="entry"       id="l7"></div>
+</div>
+
+<div id="outcomes">
+  <div class="badge accept"   id="b-accept"   onclick="runScenario('accept')">✅ ACCEPT</div>
+  <div class="badge verify"   id="b-verify"   onclick="runScenario('verify')">🔍 VERIFY</div>
+  <div class="badge abstain"  id="b-abstain"  onclick="runScenario('abstain')">⏸ ABSTAIN</div>
+  <div class="badge escalate" id="b-escalate" onclick="runScenario('escalate')">🚨 ESCALATE</div>
+</div>
+
+<script>
+const CX = 280, CY = 280;
+const RADII = [200, 172, 144, 116, 88, 60]; // outermost → innermost
+
+// Scenarios keyed by outcome
+const SCENARIOS = {
+  accept: {
+    badge: 'accept',
+    logs: [
+      { cls: 'info',  text: '→  file.read  finance/Q2_2026_revenue.csv' },
+      { cls: 'pass',  text: '✓  Fail-closed gate  ·  action_type=read, not destructive' },
+      { cls: 'pass',  text: '✓  Tenant audit  ·  domain=finance, env=staging' },
+      { cls: 'pass',  text: '✓  Shadow replay  ·  no historical escalations for this path' },
+      { cls: 'pass',  text: '✓  Evidence routing  ·  evidence_action=answer, conf=0.91' },
+      { cls: 'pass',  text: '✓  Oracle consensus  ·  η=1.00, phase=ordered, H=0.12' },
+      { cls: 'pass',  text: '✓  Policy gate  ·  trust=0.946 ≥ 0.72, no contradictions' },
+      { cls: 'final-accept', text: '✅  ACCEPT  ·  Agent may execute  ·  audit_hash=4528ea7f' },
+    ],
+    ringColor: '#16a34a',
+    outcomeColor: '#4ade80',
+    outcomeBg: '#16a34a',
+    label: 'ACCEPT',
+  },
+  verify: {
+    badge: 'verify',
+    logs: [
+      { cls: 'info',  text: '→  router.set_config  add_bgp_peer  zone=core' },
+      { cls: 'pass',  text: '✓  Fail-closed gate  ·  no adversarial pattern' },
+      { cls: 'pass',  text: '✓  Tenant audit  ·  domain=network_ops logged' },
+      { cls: 'pass',  text: '✓  Shadow replay  ·  1 prior escalation on BGP paths' },
+      { cls: 'warn',  text: '⚠  Evidence routing  ·  evidence_action=None for critical zone' },
+      { cls: 'warn',  text: '⚠  Oracle consensus  ·  η=0.512, phase=critical, T≈T_c' },
+      { cls: 'warn',  text: '⚠  Policy gate  ·  trust=0.471 < 0.72, critical phase' },
+      { cls: 'final-verify', text: '🔍  VERIFY  ·  Paused — evidence or human sign-off required  ·  hash=4f550c88' },
+    ],
+    ringColor: '#ca8a04',
+    outcomeColor: '#facc15',
+    outcomeBg: '#ca8a04',
+    label: 'VERIFY',
+  },
+  abstain: {
+    badge: 'abstain',
+    logs: [
+      { cls: 'info',  text: '→  data.export  users/*  →  s3://partner-bucket/' },
+      { cls: 'pass',  text: '✓  Fail-closed gate  ·  no hard policy match' },
+      { cls: 'pass',  text: '✓  Tenant audit  ·  GDPR scope flagged for record' },
+      { cls: 'warn',  text: '⚠  Shadow replay  ·  no prior accepted exports of this scope' },
+      { cls: 'warn',  text: '⚠  Evidence routing  ·  evidence_action=insufficient' },
+      { cls: 'block', text: '✗  Oracle consensus  ·  H=1.61 > abort threshold, no convergence' },
+      { cls: 'block', text: '✗  Policy gate  ·  phase=disordered, trust=0.009' },
+      { cls: 'final-abstain', text: '⏸  ABSTAIN  ·  Entropy abort — no execution, no guess  ·  hash=eb33fa75' },
+    ],
+    ringColor: '#7c3aed',
+    outcomeColor: '#a78bfa',
+    outcomeBg: '#6d28d9',
+    label: 'ABSTAIN',
+  },
+  escalate: {
+    badge: 'escalate',
+    logs: [
+      { cls: 'info',  text: '→  sql.execute  DROP TABLE customers  db=prod-rds-eu-west-1' },
+      { cls: 'block', text: '✗  Fail-closed gate  ·  adversarial_detected=True  ← HARD BLOCK' },
+      { cls: 'info',  text: '   (remaining layers bypassed — hard-block takes precedence)' },
+      { cls: '',      text: '' },
+      { cls: '',      text: '' },
+      { cls: '',      text: '' },
+      { cls: '',      text: '' },
+      { cls: 'final-escalate', text: '🚨  ESCALATE  ·  Blocked — human review queue  ·  hash=e4be3a8d' },
+    ],
+    ringColor: '#dc2626',
+    outcomeColor: '#f87171',
+    outcomeBg: '#dc2626',
+    label: 'ESCALATE',
+    stopAtRing: 5, // stop at outermost
+  },
+};
+
+const envelope = document.getElementById('envelope');
+const pulse    = document.getElementById('pulse');
+const outFlash = document.getElementById('outcome-flash');
+const outText  = document.getElementById('outcome-text');
+const logEntries = Array.from({length: 8}, (_, i) => document.getElementById('l' + i));
+const rings = [6,5,4,3,2,1].map(i => document.getElementById('ring' + i));
+
+let animating = false;
+
+function setRingColor(ringEl, color, width) {
+  ringEl.setAttribute('stroke', color);
+  ringEl.setAttribute('stroke-width', width);
+  ringEl.setAttribute('opacity', '1');
+}
+
+function resetRings() {
+  const defaults = [
+    ['#4a1030','1.5'],['#1a3050','1.5'],['#102a10','1.5'],
+    ['#2a2000','1.5'],['#1a2040','2'],['#203a60','2.5']
+  ];
+  rings.forEach((r, i) => {
+    r.setAttribute('stroke', defaults[i][0]);
+    r.setAttribute('stroke-width', defaults[i][1]);
+    r.setAttribute('opacity', i < 4 ? ['0.7','0.8','0.85','0.9'][i] : '0.95');
+  });
+}
+
+// Animate envelope along a circular orbit
+function animateOrbit(fromRadius, toRadius, duration, progress) {
+  return new Promise(resolve => {
+    const start = performance.now();
+    const totalAngle = Math.PI * 1.5; // 270° arc inward
+    const startAngle = -Math.PI / 2; // top
+
+    function step(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+      const radius = fromRadius + (toRadius - fromRadius) * eased;
+      const angle  = startAngle + totalAngle * eased;
+      const x = CX + radius * Math.cos(angle);
+      const y = CY + radius * Math.sin(angle);
+      envelope.setAttribute('transform', `translate(${x},${y}) rotate(${angle * 180/Math.PI + 90})`);
+      if (t < 1) requestAnimationFrame(step);
+      else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function showLog(idx, entry) {
+  const el = logEntries[idx];
+  el.className = 'entry ' + entry.cls;
+  el.textContent = entry.text;
+  await sleep(30);
+  el.classList.add('show');
+}
+
+async function pulseRing(ringEl, color) {
+  pulse.setAttribute('r', ringEl.getAttribute('r'));
+  pulse.setAttribute('stroke', color);
+  pulse.setAttribute('stroke-width', '3');
+  pulse.setAttribute('opacity', '0.7');
+  let start = performance.now();
+  await new Promise(resolve => {
+    function step(now) {
+      const t = Math.min((now - start) / 400, 1);
+      pulse.setAttribute('opacity', 0.7 * (1 - t));
+      pulse.setAttribute('stroke-width', 3 + 8 * t);
+      if (t < 1) requestAnimationFrame(step);
+      else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+async function runScenario(key) {
+  if (animating) return;
+  animating = true;
+
+  // Reset UI
+  document.querySelectorAll('.badge').forEach(b => b.classList.remove('active'));
+  document.getElementById('b-' + key).classList.add('active');
+
+  const sc = SCENARIOS[key];
+  logEntries.forEach(el => { el.className = 'entry'; el.textContent = ''; el.classList.remove('show'); });
+  outFlash.setAttribute('opacity', '0');
+  resetRings();
+
+  // Position envelope at outermost ring
+  const startR = 200;
+  const startX = CX;
+  const startY = CY - startR;
+  envelope.setAttribute('transform', `translate(${startX},${startY})`);
+  envelope.style.opacity = '1';
+
+  // Colour envelope rect for scenario
+  document.getElementById('env-rect').setAttribute('stroke', sc.ringColor);
+
+  await showLog(0, sc.logs[0]);
+  await sleep(300);
+
+  const ringOrder = [5,4,3,2,1,0]; // rings[] indices (outermost→innermost)
+  const radii = [200, 172, 144, 116, 88, 60];
+  const stopAt = sc.stopAtRing !== undefined ? sc.stopAtRing : 0;
+
+  // Animate inward through rings
+  for (let i = 0; i < 6; i++) {
+    const ringIdx = ringOrder[i];
+    const fromR = i === 0 ? 220 : radii[i - 1];
+    const toR   = radii[i];
+    const logIdx = i + 1;
+    const entry  = sc.logs[logIdx] || { cls: '', text: '' };
+
+    const color = (entry.cls === 'block') ? '#dc2626'
+                : (entry.cls === 'warn')  ? '#ca8a04'
+                : (entry.cls === 'pass')  ? '#16a34a'
+                : sc.ringColor;
+
+    await animateOrbit(fromR, toR, 550, i / 6);
+    await pulseRing(rings[ringIdx], color);
+    setRingColor(rings[ringIdx], color, '2.5');
+    await showLog(logIdx, entry);
+    await sleep(120);
+
+    // Escalate stops at outermost ring
+    if (key === 'escalate' && i === 0) {
+      await sleep(400);
+      break;
+    }
+  }
+
+  // Final outcome
+  await sleep(300);
+  await showLog(7, sc.logs[7]);
+
+  // Flash center
+  const flashCircle = outFlash.querySelector('circle');
+  flashCircle.setAttribute('fill', sc.outcomeBg);
+  outText.setAttribute('fill', sc.outcomeColor);
+  outText.textContent = sc.label;
+  outFlash.setAttribute('opacity', '1');
+
+  // Fade envelope
+  let start = performance.now();
+  await new Promise(resolve => {
+    function step(now) {
+      const t = Math.min((now - start) / 600, 1);
+      envelope.style.opacity = 1 - t;
+      if (t < 1) requestAnimationFrame(step);
+      else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+
+  await sleep(2500);
+
+  // Reset
+  outFlash.setAttribute('opacity', '0');
+  envelope.style.opacity = '1';
+  animating = false;
+}
+
+// Auto-run on load
+window.addEventListener('load', () => {
+  setTimeout(() => runScenario('accept'), 800);
+});
+</script>
+</body>
+</html>

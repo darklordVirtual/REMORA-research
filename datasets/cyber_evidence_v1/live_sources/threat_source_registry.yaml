@@ -1,0 +1,195 @@
+registry_id: remora_public_threat_sources_v1
+version: 1.0.0
+purpose: >
+  Dynamic public threat-intelligence sources used to enrich REMORA Cyber
+  evidence with current known-exploited, exploit-likelihood, advisory, package,
+  weakness, and technique metadata.
+public_safety_boundary:
+  metadata_only: true
+  exploit_payload_collection: false
+  weaponizable_poc_collection: false
+  proprietary_scanner_data: false
+  note: >
+    Public REMORA ingests advisory and classification metadata. Controlled
+    dual-use reproducibility artifacts belong in restricted research systems,
+    not in this public evidence feed.
+sources:
+  - id: cisa_kev
+    name: CISA Known Exploited Vulnerabilities Catalog
+    category: known_exploited
+    url: https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
+    docs_url: https://www.cisa.gov/known-exploited-vulnerabilities-catalog
+    update_frequency: daily_or_event_driven
+    auth: none
+    remora_use:
+      - classify KNOWN_EXPLOITED
+      - prioritize escalation
+      - enrich remediation deadlines
+    safe_fields:
+      - cve_id
+      - vulnerability_name
+      - vendor_project
+      - product
+      - date_added
+      - due_date
+      - known_ransomware_use
+      - required_action
+    blocked_fields:
+      - exploit_payload
+      - exploit_steps
+      - weaponized_code
+  - id: nvd_cve
+    name: NVD CVE API 2.0
+    category: vulnerability_metadata
+    url: https://services.nvd.nist.gov/rest/json/cves/2.0
+    docs_url: https://nvd.nist.gov/developers/vulnerabilities
+    update_frequency: continuous
+    auth: optional_api_key
+    remora_use:
+      - CVE metadata
+      - CVSS severity
+      - CWE mapping
+      - CPE affected products
+      - SSVC and affected data where available
+    safe_fields:
+      - cve_id
+      - published
+      - last_modified
+      - descriptions
+      - cvss
+      - weaknesses
+      - configurations
+      - references
+    blocked_fields:
+      - exploit_payload
+      - exploit_steps
+  - id: first_epss
+    name: FIRST EPSS
+    category: exploit_probability
+    url: https://api.first.org/data/v1/epss
+    docs_url: https://www.first.org/epss/
+    update_frequency: daily
+    auth: none
+    remora_use:
+      - classify PUBLIC_EXPLOIT_LIKELY when exact CVE match exists
+      - prioritize review queues
+      - separate severe-but-unlikely from high-probability findings
+    safe_fields:
+      - cve_id
+      - epss
+      - percentile
+      - date
+    blocked_fields:
+      - exploit_payload
+      - exploit_steps
+  - id: osv
+    name: OSV.dev
+    category: open_source_package_advisories
+    url: https://api.osv.dev/v1/query
+    docs_url: https://google.github.io/osv.dev/api/
+    update_frequency: continuous
+    auth: none
+    remora_use:
+      - package and ecosystem advisory lookup
+      - affected version ranges
+      - fix version context
+      - open-source dependency evidence
+    safe_fields:
+      - osv_id
+      - aliases
+      - package
+      - ecosystem
+      - affected_ranges
+      - fixed_versions
+      - severity
+      - references
+    blocked_fields:
+      - exploit_payload
+      - exploit_steps
+  - id: github_advisory
+    name: GitHub Advisory Database
+    category: open_source_package_advisories
+    url: https://api.github.com/advisories
+    docs_url: https://docs.github.com/en/rest/security-advisories
+    update_frequency: continuous
+    auth: optional_github_token
+    remora_use:
+      - GHSA and CVE package advisories
+      - ecosystem/package enrichment
+      - affected version and patched version context
+    safe_fields:
+      - ghsa_id
+      - cve_id
+      - ecosystem
+      - package
+      - vulnerable_version_range
+      - patched_versions
+      - severity
+      - cwe_ids
+      - references
+    blocked_fields:
+      - exploit_payload
+      - exploit_steps
+  - id: mitre_attack
+    name: MITRE ATT&CK STIX
+    category: adversary_technique_mapping
+    url: https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/index.json
+    docs_url: https://attack.mitre.org/resources/attack-data-and-tools/
+    update_frequency: release_based
+    auth: none
+    remora_use:
+      - technique classification
+      - tactics and data-source mapping
+      - threat-informed evidence context
+    safe_fields:
+      - technique_id
+      - technique_name
+      - tactics
+      - platforms
+      - detection_summary
+    blocked_fields:
+      - exploit_payload
+      - operational_attack_playbook
+      - exploit_steps
+  - id: cwe
+    name: Common Weakness Enumeration
+    category: weakness_taxonomy
+    url: https://cwe.mitre.org/data/downloads.html
+    docs_url: https://cwe.mitre.org/data/downloads.html
+    update_frequency: release_based
+    auth: none
+    remora_use:
+      - weakness classification
+      - remediation vocabulary
+      - source-to-sink semantics
+    safe_fields:
+      - cwe_id
+      - name
+      - abstraction
+      - description
+      - consequences
+      - mitigations
+    blocked_fields:
+      - exploit_payload
+      - exploit_steps
+  - id: cisa_ics_advisories
+    name: CISA ICS Advisories
+    category: operational_technology_advisories
+    url: https://www.cisa.gov/news-events/cybersecurity-advisories
+    docs_url: https://www.cisa.gov/news-events/cybersecurity-advisories
+    update_frequency: event_driven
+    auth: none
+    remora_use:
+      - OT/ICS vulnerability context
+      - energy and industrial control relevance
+      - critical-infrastructure escalation evidence
+    safe_fields:
+      - advisory_id
+      - vendor
+      - product
+      - cve_ids
+      - impact
+      - mitigations
+    blocked_fields:
+      - exploit_payload
+      - exploit_steps

@@ -1,0 +1,121 @@
+[
+  {
+    "id": "learn_curated_experience_only",
+    "type": "learning_law",
+    "source": "AROMER cognitive foundation v0.2 / curated learning principle",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["learning", "curation", "data-quality"],
+    "description": "AROMER learns only from episodes that have been curated or verified. Raw unverified feedback from agents can be adversarial. Garbage-in, garbage-out is amplified in governance systems.",
+    "payload": {
+      "law": "curated_experience_only",
+      "curated_sources": [
+        "Human-verified ground_truth episodes",
+        "Shadow mode episodes with confirmed outcome",
+        "Benchmark episodes with artifact backing",
+        "Golden seed episodes (this pack)"
+      ],
+      "forbidden_sources": [
+        "Agent self-reported success without verification",
+        "LLM-generated synthetic episodes without human audit",
+        "Episodes where outcome is unknown or unresolved",
+        "Episodes from adversarial test inputs used for evaluation"
+      ],
+      "aromer_constraint": "Only episodes with ground_truth != null may update DomainHarmPrior. Others stored but not used for world model updates."
+    }
+  },
+  {
+    "id": "learn_positive_verified_gain",
+    "type": "learning_law",
+    "source": "AROMER cognitive foundation v0.2 / conservative learning",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["learning", "gain", "verification"],
+    "description": "AROMER only commits a world model update when the update shows verified positive gain: better accuracy, lower false_accept, or lower calibration error on held-out episodes.",
+    "payload": {
+      "law": "positive_verified_gain",
+      "gain_verification": {
+        "holdout_split": "20% of curated episodes held out for evaluation",
+        "required_metrics_improvement": ">=1 of: accuracy +0.02, false_accept_rate -0.01, ECE -0.01",
+        "no_regression_on": ["safety invariant recall", "critical tier accuracy"],
+        "shadow_episodes_required": 50
+      },
+      "aromer_constraint": "World model rollback if positive_verified_gain not confirmed after 100 episodes post-update",
+      "governance_note": "This law prevents adversarial learning: an attacker cannot gradually shift priors without triggering the gain verification check"
+    }
+  },
+  {
+    "id": "learn_safety_core_immutable",
+    "type": "learning_law",
+    "source": "AROMER cognitive foundation v0.2 / safety learning boundary",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 1.0,
+    "decay_rate": 0.0,
+    "tags": ["learning", "safety", "immutable"],
+    "description": "AROMER never learns to weaken, circumvent, or reduce the effect of safety invariants or REMORA's core policy rules. The safety core is outside the learning boundary.",
+    "payload": {
+      "law": "safety_core_immutable",
+      "immutable_elements": [
+        "Safety invariant verdicts in 01_invariants.seed.json",
+        "REMORA PolicyRule definitions",
+        "DecisionEnvelope SHA-256 chain",
+        "Escalation logic for inv_no_mass_destruction and inv_no_credential_exfiltration"
+      ],
+      "detection": "If a world_model update would result in safety invariant triggering <5% less often → reject update",
+      "aromer_constraint": "inv_no_policy_core_mutation applies to AROMER itself — AROMER cannot learn to avoid triggering its own invariants"
+    }
+  },
+  {
+    "id": "learn_slow_large_updates",
+    "type": "learning_law",
+    "source": "AROMER cognitive foundation v0.2 / conservative update law",
+    "version": "0.2",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.0,
+    "tags": ["learning", "update-rate", "stability"],
+    "description": "Large changes to the world model require proportionally more evidence. Small adjustments can be made with 10 episodes; shifting a prior by >0.3 requires 100+ episodes.",
+    "payload": {
+      "law": "slow_large_updates",
+      "update_evidence_table": {
+        "delta_p_harm_0_to_0_05":   10,
+        "delta_p_harm_0_05_to_0_15": 25,
+        "delta_p_harm_0_15_to_0_30": 50,
+        "delta_p_harm_above_0_30":   100
+      },
+      "shadow_mode_required_for": "delta_p_harm > 0.15",
+      "aromer_constraint": "If proposed update exceeds evidence table → defer update, continue shadow collection",
+      "rationale": "Large rapid prior shifts are the fingerprint of data poisoning attacks"
+    }
+  },
+  {
+    "id": "learn_negative_example_value",
+    "type": "learning_law",
+    "source": "AROMER cognitive foundation v0.2 / contrastive learning",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["learning", "negative-examples", "failure-modes"],
+    "description": "False accepts and incorrect blocks are more informative per episode than correct decisions. AROMER over-weights negative examples to avoid availability bias from a sea of routine correct accepts.",
+    "payload": {
+      "law": "negative_example_value",
+      "weight_table": {
+        "false_accept":             2.0,
+        "false_block":              1.5,
+        "correct_block":            1.0,
+        "correct_accept":           0.8,
+        "correct_intercept_verify": 0.5,
+        "benign_review":            0.25
+      },
+      "application": "When computing world model updates, multiply episode weight by decision_quality weight from this table",
+      "rationale": "Prevents the model from being overwhelmed by low-signal routine accepts and missing the high-signal failure cases",
+      "alignment_with_code": "Maps to DecisionQuality.world_model_weight property in remora/aromer/experience/episode.py"
+    }
+  }
+]

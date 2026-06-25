@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "source_phase_study": "results/phase_transition_study_n500_results.json",
+    "n_items": 544,
+    "searched_candidates": 6480
+  },
+  "calibration": {
+    "temperature_scale": 0.5,
+    "temperature_offset": -0.05,
+    "critical_tolerance": 0.25,
+    "ordered_min_eta": 0.55,
+    "ordered_phase_weight": 1.0,
+    "critical_phase_weight": 0.35,
+    "disordered_phase_weight": 0.03,
+    "chi_scale": 14.0
+  },
+  "summary": {
+    "score": 4.275016,
+    "phase_counts": {
+      "ordered": 99,
+      "critical": 32,
+      "disordered": 413
+    },
+    "phase_fractions": {
+      "ordered": 0.182,
+      "critical": 0.0588,
+      "disordered": 0.7592
+    },
+    "ordered_accuracy": 0.8687,
+    "critical_accuracy": 0.5625,
+    "disordered_accuracy": 0.2712,
+    "ordered_trust": 0.5641,
+    "critical_trust": 0.0797,
+    "disordered_trust": 0.0023
+  },
+  "top_candidates": [
+    {
+      "rank": 1,
+      "score": 4.275016,
+      "calibration": {
+        "temperature_scale": 0.5,
+        "temperature_offset": -0.05,
+        "critical_tolerance": 0.25,
+        "ordered_min_eta": 0.55,
+        "ordered_phase_weight": 1.0,
+        "critical_phase_weight": 0.35,
+        "disordered_phase_weight": 0.03,
+        "chi_scale": 14.0
+      },
+      "summary": {
+        "score": 4.275016,
+        "phase_counts": {
+          "ordered": 99,
+          "critical": 32,
+          "disordered": 413
+        },
+        "phase_fractions": {
+          "ordered": 0.182,
+          "critical": 0.0588,
+          "disordered": 0.7592
+        },
+        "ordered_accuracy": 0.8687,
+        "critical_accuracy": 0.5625,
+        "disordered_accuracy": 0.2712,
+        "ordered_trust": 0.5641,
+        "critical_trust": 0.0797,
+        "disordered_trust": 0.0023
+      }
+    },
+    {
+      "rank": 2,
+      "score": 4.275016,
+      "calibration": {
+        "temperature_scale": 0.5,
+        "temperature_offset": -0.05,
+        "critical_tolerance": 0.25,
+        "ordered_min_eta": 0.55,
+        "ordered_phase_weight": 1.0,
+        "critical_phase_weight": 0.5,
+        "disordered_phase_weight": 0.03,
+        "chi_scale": 14.0
+      },
+      "summary": {
+        "score": 4.275016,
+        "phase_counts": {
+          "ordered": 99,
+          "critical": 32,
+          "disordered": 413
+        },
+        "phase_fractions": {
+          "ordered": 0.182,
+          "critical": 0.0588,
+          "disordered": 0.7592
+        },
+        "ordered_accuracy": 0.8687,
+        "critical_accuracy": 0.5625,
+        "disordered_accuracy": 0.2712,
+        "ordered_trust": 0.5641,
+        "critical_trust": 0.1139,
+        "disordered_trust": 0.0023
+      }
+    },
+    {
+      "rank": 3,
+      "score": 4.275016,
+      "calibration": {
+        "temperature_scale": 0.5,
+        "temperature_offset": -0.05,
+        "critical_tolerance": 0.25,
+        "ordered_min_eta": 0.55,
+        "ordered_phase_weight": 1.0,
+        "critical_phase_weight": 0.65,
+        "disordered_phase_weight": 0.03,
+        "chi_scale": 14.0
+      },
+      "summary": {
+        "score": 4.275016,
+        "phase_counts": {
+          "ordered": 99,
+          "critical": 32,
+          "disordered": 413
+        },
+        "phase_fractions": {
+          "ordered": 0.182,
+          "critical": 0.0588,
+          "disordered": 0.7592
+        },
+        "ordered_accuracy": 0.8687,
+        "critical_accuracy": 0.5625,
+        "disordered_accuracy": 0.2712,
+        "ordered_trust": 0.5641,
+        "critical_trust": 0.148,
+        "disordered_trust": 0.0023
+      }
+    },
+    {
+      "rank": 4,
+      "score": 4.272016,
+      "calibration": {
+        "temperature_scale": 0.5,
+        "temperature_offset": -0.05,
+        "critical_tolerance": 0.25,
+        "ordered_min_eta": 0.55,
+        "ordered_phase_weight": 1.0,
+        "critical_phase_weight": 0.35,
+        "disordered_phase_weight": 0.05,
+        "chi_scale": 14.0
+      },
+      "summary": {
+        "score": 4.272016,
+        "phase_counts": {
+          "ordered": 99,
+          "critical": 32,
+          "disordered": 413
+        },
+        "phase_fractions": {
+          "ordered": 0.182,
+          "critical": 0.0588,
+          "disordered": 0.7592
+        },
+        "ordered_accuracy": 0.8687,
+        "critical_accuracy": 0.5625,
+        "disordered_accuracy": 0.2712,
+        "ordered_trust": 0.5641,
+        "critical_trust": 0.0797,
+        "disordered_trust": 0.0038
+      }
+    },
+    {
+      "rank": 5,
+      "score": 4.272016,
+      "calibration": {
+        "temperature_scale": 0.5,
+        "temperature_offset": -0.05,
+        "critical_tolerance": 0.25,
+        "ordered_min_eta": 0.55,
+        "ordered_phase_weight": 1.0,
+        "critical_phase_weight": 0.5,
+        "disordered_phase_weight": 0.05,
+        "chi_scale": 14.0
+      },
+      "summary": {
+        "score": 4.272016,
+        "phase_counts": {
+          "ordered": 99,
+          "critical": 32,
+          "disordered": 413
+        },
+        "phase_fractions": {
+          "ordered": 0.182,
+          "critical": 0.0588,
+          "disordered": 0.7592
+        },
+        "ordered_accuracy": 0.8687,
+        "critical_accuracy": 0.5625,
+        "disordered_accuracy": 0.2712,
+        "ordered_trust": 0.5641,
+        "critical_trust": 0.1139,
+        "disordered_trust": 0.0038
+      }
+    }
+  ]
+}

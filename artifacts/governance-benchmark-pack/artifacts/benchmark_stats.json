@@ -1,0 +1,26 @@
+{
+  "total": 302,
+  "by_source": {
+    "truthfulqa": 85,
+    "boolq": 135,
+    "remora_curated": 75,
+    "adversarial_curated": 7
+  },
+  "by_domain": {
+    "general": 70,
+    "science": 83,
+    "specialised": 74,
+    "dce": 25,
+    "sci": 25,
+    "fact": 25
+  },
+  "by_difficulty": {
+    "medium": 102,
+    "hard": 58,
+    "easy": 135,
+    "adversarial": 7
+  },
+  "adversarial_fraction": 0.132,
+  "balance": 0.483,
+  "mean_source_confidence": 0.941
+}

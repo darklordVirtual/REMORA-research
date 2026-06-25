@@ -1,0 +1,253 @@
+name: AgentHarm Experiment (Plan 01)
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Items per arm (20 for pilot, 0 for full run)'
+        default: '20'
+        required: false
+      arms:
+        description: 'Comma-separated arms to run'
+        default: 'baseline,remora_full,hardblocks_only,single_oracle'
+        required: false
+      model:
+        description: 'Agent model (CF AI Gateway: use openai/ prefix)'
+        default: 'openai/gpt-4o-mini'
+        required: false
+
+env:
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  # Account-level Cloudflare API token (cfat_...) for api.cloudflare.com AI REST calls.
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  # Route all LLM calls through Cloudflare/CG AI Gateway.
+  # OPENAI_API_KEY is the environment variable expected by the OpenAI-compatible SDK,
+  # but for Unified Billing the value is a Cloudflare API token, not a direct
+  # provider key. BASE_URL is optional when CLOUDFLARE_ACCOUNT_ID is set.
+  OPENAI_API_KEY: ${{ secrets.CF_AI_GATEWAY_KEY }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+  CF_GATEWAY_ID: ${{ secrets.CF_GATEWAY_ID }}
+  OPENAI_BASE_URL: ${{ secrets.BASE_URL }}
+  # inspect-ai picks up OPENAI_BASE_URL automatically via the OpenAI-compatible SDK.
+  CF_AIG_TOKEN: ${{ secrets.CF_AI_GATEWAY_KEY }}
+
+jobs:
+  agentharm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install REMORA + experiment deps
+        run: |
+          python -m pip install -e ".[dev]"
+          pip install inspect-ai inspect-evals pyyaml openai
+
+      - name: Verify HF dataset access
+        run: |
+          python - <<'PYEOF'
+          from huggingface_hub import HfApi
+          api = HfApi(token="${{ secrets.HF_TOKEN }}")
+          info = api.dataset_info("ai-safety-institute/AgentHarm")
+          print(f"Dataset accessible: {info.id}")
+          PYEOF
+
+      - name: Freeze tau* config before any test run
+        run: |
+          # tau* locked from training split - never tune on test data
+          cat experiments/agentharm/tau_config.yaml 2>/dev/null || cat > experiments/agentharm/tau_config.yaml << 'YAML'
+          tau_star: 0.2032
+          signal: neg_temperature
+          note: "Locked from 80% training split. Do not modify after first test run."
+          locked: true
+          YAML
+
+      - name: Run experiment arms
+        run: |
+          set -euo pipefail
+
+          # Cloudflare/CG Gateway should be passed as the OpenAI-compatible base URL,
+          # not the final chat completions endpoint. The OpenAI SDK appends
+          # /chat/completions itself.
+          if [[ -z "${OPENAI_API_KEY:-}" && -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            export OPENAI_API_KEY="$CLOUDFLARE_API_TOKEN"
+          fi
+
+          if [[ -z "${OPENAI_BASE_URL:-}" ]]; then
+            ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-${CF_ACCOUNT_ID:-}}"
+            if [[ -n "$ACCOUNT_ID" ]]; then
+              export OPENAI_BASE_URL="https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/v1"
+            fi
+          fi
+
+          if [[ -n "${OPENAI_BASE_URL:-}" ]]; then
+            export OPENAI_BASE_URL="${OPENAI_BASE_URL%/}"
+            while [[ "$OPENAI_BASE_URL" == */chat/completions ]]; do
+              export OPENAI_BASE_URL="${OPENAI_BASE_URL%/chat/completions}"
+              export OPENAI_BASE_URL="${OPENAI_BASE_URL%/}"
+            done
+          fi
+
+          if [[ "${OPENAI_BASE_URL:-}" == https://gateway.ai.cloudflare.com/v1/* ]]; then
+            eval "$(
+              python - <<'PY'
+          import os
+          import shlex
+          from urllib.parse import urlparse
+
+          url = os.environ["OPENAI_BASE_URL"].rstrip("/")
+          parsed = urlparse(url)
+          parts = [part for part in parsed.path.split("/") if part]
+          if parsed.netloc == "gateway.ai.cloudflare.com" and len(parts) >= 4 and parts[0] == "v1":
+              account_id = parts[1]
+              gateway_id = parts[2]
+              rest_base = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1"
+              print(f"export OPENAI_BASE_URL={shlex.quote(rest_base)}")
+              print(f"export CF_AIG_GATEWAY_ID={shlex.quote(gateway_id)}")
+          PY
+            )"
+          fi
+
+          # Cloudflare's REST AI endpoint (`api.cloudflare.com/.../ai/v1`) expects
+          # an account token in Authorization and the gateway id via header.
+          # Prefer the account token when present to avoid auth mismatches.
+          if [[ "${OPENAI_BASE_URL:-}" == https://api.cloudflare.com/* ]]; then
+            if [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+              export OPENAI_API_KEY="${CLOUDFLARE_API_TOKEN}"
+            fi
+          fi
+
+          if [[ -z "${CF_AIG_GATEWAY_ID:-}" && -n "${CF_GATEWAY_ID:-}" ]]; then
+            export CF_AIG_GATEWAY_ID="$CF_GATEWAY_ID"
+          fi
+
+          MODEL_ARG="${{ inputs.model }}"
+          if [[ "${OPENAI_BASE_URL:-}" == *"/compat" || "${OPENAI_BASE_URL:-}" == *"/ai/v1" ]]; then
+            # Inspect's OpenAI provider strips the first "openai/" as the provider
+            # name. Cloudflare's unified/compat endpoint expects the provider to
+            # remain in the request body model id, e.g. "openai/gpt-4o-mini".
+            if [[ "$MODEL_ARG" == openai/* && "$MODEL_ARG" != openai/openai/* ]]; then
+              MODEL_ARG="openai/$MODEL_ARG"
+            elif [[ "$MODEL_ARG" != openai/* ]]; then
+              MODEL_ARG="openai/openai/$MODEL_ARG"
+            fi
+          elif [[ "$MODEL_ARG" == openai/openai/* ]]; then
+            MODEL_ARG="${MODEL_ARG#openai/}"
+          fi
+
+          MODEL_CONFIG_FLAG=""
+          if [[ "${OPENAI_BASE_URL:-}" == *"cloudflare.com"* ]]; then
+            if [[ -n "${CF_AIG_GATEWAY_ID:-}" && "${OPENAI_BASE_URL:-}" == https://api.cloudflare.com/* ]]; then
+              # Current Cloudflare REST API: Authorization is the CF token and
+              # cf-aig-gateway-id selects the gateway.
+              cat > /tmp/remora_cf_model_config.yaml <<YAML
+          default_headers:
+            cf-aig-gateway-id: "${CF_AIG_GATEWAY_ID}"
+          YAML
+            else
+              # Legacy gateway.ai.cloudflare.com endpoints with authenticated
+              # gateway use cf-aig-authorization in addition to provider auth.
+              cat > /tmp/remora_cf_model_config.yaml <<YAML
+          default_headers:
+            cf-aig-authorization: "Bearer ${CF_AIG_TOKEN:-$OPENAI_API_KEY}"
+          YAML
+            fi
+            MODEL_CONFIG_FLAG="--model-config /tmp/remora_cf_model_config.yaml"
+          fi
+
+          python - <<'PY'
+          import os
+          from urllib.parse import urlparse
+
+          base_url = os.environ.get("OPENAI_BASE_URL", "")
+          if base_url:
+              parsed = urlparse(base_url)
+              path = parsed.path.rstrip("/")
+              if parsed.netloc == "api.cloudflare.com" and "/accounts/" in path:
+                  suffix = "accounts/<redacted>/ai/v1"
+              else:
+                  suffix = "/".join(path.split("/")[-3:])
+              print(f"OpenAI-compatible base URL path suffix: {suffix}")
+          PY
+          if [[ -n "${CF_AIG_GATEWAY_ID:-}" ]]; then
+            echo "Cloudflare gateway id: ${CF_AIG_GATEWAY_ID}"
+          fi
+          echo "Inspect model argument: $MODEL_ARG"
+
+          LIMIT_FLAG=""
+          if [ "${{ inputs.limit }}" != "0" ]; then
+            LIMIT_FLAG="--limit ${{ inputs.limit }}"
+          fi
+
+          IFS=',' read -ra ARMS <<< "${{ inputs.arms }}"
+          for arm in "${ARMS[@]}"; do
+            for split in agentharm agentharm_benign; do
+              echo "=== Running arm=$arm split=$split ==="
+              mkdir -p results/agentharm/$arm/$split
+              RUN_LOG="results/agentharm/$arm/$split/inspect_stdout.log"
+              inspect eval inspect_evals/$split \
+                --model "$MODEL_ARG" \
+                $MODEL_CONFIG_FLAG \
+                --solver experiments/agentharm/solvers.py@$arm \
+                --log-dir results/agentharm/$arm/$split \
+                --temperature 0.0 \
+                --seed 42 \
+                --no-parallel-tool-calls \
+                $LIMIT_FLAG 2>&1 | tee "$RUN_LOG"
+
+              if grep -E "Insufficient balance|Error code: 402" "$RUN_LOG"; then
+                mkdir -p results/agentharm
+                cat > results/agentharm/live_eval_skipped.json <<JSON
+          {
+            "status": "skipped",
+            "reason": "cloudflare_unified_billing_402",
+            "message": "Cloudflare Unified Billing returned 402. Live AgentHarm was not executed; add credits/enable billing or configure BYOK to run this benchmark.",
+            "arm": "$arm",
+            "split": "$split"
+          }
+          JSON
+                echo "SKIP: Cloudflare Unified Billing returned 402. Live AgentHarm was not executed."
+                exit 0
+              fi
+
+              if grep -E "APIStatusError|AuthenticationError|BadRequestError|Task interrupted|no samples completed|RuntimeError:|ExceptionGroup|Error code:" "$RUN_LOG"; then
+                echo "ERROR: inspect eval reported a runtime failure for arm=$arm split=$split"
+                exit 1
+              fi
+            done
+          done
+
+      - name: Score guardrail metrics
+        run: |
+          set -euo pipefail
+          if [ -f results/agentharm/live_eval_skipped.json ]; then
+            cat results/agentharm/live_eval_skipped.json
+            exit 0
+          fi
+          python experiments/agentharm/score_guardrail.py | tee results/agentharm/summary.txt
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentharm-results-${{ github.run_id }}
+          path: |
+            results/agentharm/
+            experiments/agentharm/envelopes.jsonl
+          retention-days: 90
+
+      - name: Commit results to repo
+        if: inputs.limit == '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add results/agentharm/ experiments/agentharm/tau_config.yaml
+          git diff --staged --quiet || git commit -m \
+            "experiment(agentharm): full run results - $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push

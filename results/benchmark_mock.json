@@ -1,0 +1,357 @@
+{
+  "scoring": {
+    "overall": {
+      "n": 5,
+      "correct": 2,
+      "accuracy": 0.4
+    },
+    "per_benchmark": {
+      "dce": {
+        "n": 5,
+        "correct": 2,
+        "accuracy": 0.4,
+        "mean_confidence": 0.8666666666666666
+      }
+    },
+    "details": [
+      {
+        "item_id": "dce_001",
+        "benchmark": "dce",
+        "correct": false,
+        "confidence": 1.0,
+        "predicted": null,
+        "expected": true,
+        "method": "polarity"
+      },
+      {
+        "item_id": "dce_002",
+        "benchmark": "dce",
+        "correct": false,
+        "confidence": 0.6666666666666666,
+        "predicted": true,
+        "expected": false,
+        "method": "polarity"
+      },
+      {
+        "item_id": "dce_003",
+        "benchmark": "dce",
+        "correct": true,
+        "confidence": 0.6666666666666666,
+        "predicted": true,
+        "expected": true,
+        "method": "polarity"
+      },
+      {
+        "item_id": "dce_004",
+        "benchmark": "dce",
+        "correct": true,
+        "confidence": 1.0,
+        "predicted": true,
+        "expected": true,
+        "method": "polarity"
+      },
+      {
+        "item_id": "dce_005",
+        "benchmark": "dce",
+        "correct": false,
+        "confidence": 1.0,
+        "predicted": true,
+        "expected": false,
+        "method": "polarity"
+      }
+    ]
+  },
+  "reports": [
+    {
+      "question": "Er et inkassosalær på kr 700 i strid med inkassoloven § 17 for et hovedkrav på kr 200?",
+      "iterations": 4,
+      "oracle_calls": 15,
+      "total_cost_usd": 0.0,
+      "final_V": 1.8516291673878227,
+      "final_H": 1.584962500721156,
+      "final_D": 0.6666666666666667,
+      "V_reduction": 0.0,
+      "is_converging": true,
+      "open_candidates": 6,
+      "falsified_count": 0,
+      "top_claims": [
+        [
+          "[b718634b] pol=None",
+          1.0
+        ],
+        [
+          "[55637a90] pol=False",
+          1.0
+        ],
+        [
+          "[6bf020e8] pol=True",
+          1.0
+        ],
+        [
+          "[d6ddbc0f] pol=True",
+          0.3333333333333333
+        ],
+        [
+          "[e46a68a8] pol=False",
+          0.3333333333333333
+        ]
+      ],
+      "known_negations": [],
+      "decisions": [],
+      "trajectory": [
+        {
+          "t": 1,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "b718634b1b2fbb95"
+        },
+        {
+          "t": 2,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "b718634b1b2fbb95"
+        },
+        {
+          "t": 3,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "b718634b1b2fbb95"
+        },
+        {
+          "t": 4,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "d6ddbc0f5f578223"
+        }
+      ],
+      "final_entropy": 1.584962500721156,
+      "entropy_trajectory": [
+        1.584962500721156,
+        1.584962500721156,
+        1.584962500721156,
+        1.584962500721156
+      ],
+      "state_hash": "513242d66da3bb7a"
+    },
+    {
+      "question": "Kan en inkassator legge til purregebyr før purrefristen på 14 dager har utløpt?",
+      "iterations": 1,
+      "oracle_calls": 3,
+      "total_cost_usd": 0.0,
+      "final_V": null,
+      "final_H": null,
+      "final_D": null,
+      "V_reduction": 0.0,
+      "is_converging": false,
+      "open_candidates": 1,
+      "falsified_count": 0,
+      "top_claims": [
+        [
+          "[db7c0336] pol=True",
+          0.6666666666666666
+        ]
+      ],
+      "known_negations": [],
+      "decisions": [
+        "t=1: router_gate — mode=balanced agree=2/3 conf=0.74"
+      ],
+      "trajectory": [],
+      "final_entropy": null,
+      "entropy_trajectory": [],
+      "state_hash": "8837a4c7b9e65913"
+    },
+    {
+      "question": "Foreldes et pengekrav etter 3 år i Norge når det ikke har vært gyldige avbruddshandlinger?",
+      "iterations": 1,
+      "oracle_calls": 3,
+      "total_cost_usd": 0.0,
+      "final_V": null,
+      "final_H": null,
+      "final_D": null,
+      "V_reduction": 0.0,
+      "is_converging": false,
+      "open_candidates": 1,
+      "falsified_count": 0,
+      "top_claims": [
+        [
+          "[6256a5bb] pol=True",
+          0.6666666666666666
+        ]
+      ],
+      "known_negations": [],
+      "decisions": [
+        "t=1: router_gate — mode=balanced agree=2/3 conf=0.72"
+      ],
+      "trajectory": [],
+      "final_entropy": null,
+      "entropy_trajectory": [],
+      "state_hash": "6e0acfec656c9a39"
+    },
+    {
+      "question": "Har debitor rett til innsyn i opprinnelig kontrakt fra kreditor under GDPR art. 15?",
+      "iterations": 4,
+      "oracle_calls": 15,
+      "total_cost_usd": 0.0,
+      "final_V": 1.8516291673878227,
+      "final_H": 1.584962500721156,
+      "final_D": 0.6666666666666667,
+      "V_reduction": 0.0,
+      "is_converging": true,
+      "open_candidates": 6,
+      "falsified_count": 0,
+      "top_claims": [
+        [
+          "[9eeb4796] pol=True",
+          1.0
+        ],
+        [
+          "[49cdbaad] pol=False",
+          1.0
+        ],
+        [
+          "[14dbf6da] pol=None",
+          1.0
+        ],
+        [
+          "[21110e29] pol=True",
+          0.3333333333333333
+        ],
+        [
+          "[dc6895d7] pol=False",
+          0.3333333333333333
+        ]
+      ],
+      "known_negations": [],
+      "decisions": [],
+      "trajectory": [
+        {
+          "t": 1,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "9eeb479607c3f9e4"
+        },
+        {
+          "t": 2,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "9eeb479607c3f9e4"
+        },
+        {
+          "t": 3,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "9eeb479607c3f9e4"
+        },
+        {
+          "t": 4,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "21110e29197a97f2"
+        }
+      ],
+      "final_entropy": 1.584962500721156,
+      "entropy_trajectory": [
+        1.584962500721156,
+        1.584962500721156,
+        1.584962500721156,
+        1.584962500721156
+      ],
+      "state_hash": "3aa6cc6d0c8a4af4"
+    },
+    {
+      "question": "Kan en inkassator splitte ett krav i flere saker for å øke gebyrgrunnlaget?",
+      "iterations": 4,
+      "oracle_calls": 15,
+      "total_cost_usd": 0.0,
+      "final_V": 1.8516291673878227,
+      "final_H": 1.584962500721156,
+      "final_D": 0.6666666666666667,
+      "V_reduction": 0.0,
+      "is_converging": true,
+      "open_candidates": 6,
+      "falsified_count": 0,
+      "top_claims": [
+        [
+          "[d6ddbc0f] pol=True",
+          1.0
+        ],
+        [
+          "[e46a68a8] pol=False",
+          1.0
+        ],
+        [
+          "[7d13a28e] pol=None",
+          1.0
+        ],
+        [
+          "[ac06b5ad] pol=True",
+          0.3333333333333333
+        ],
+        [
+          "[43e2a90a] pol=False",
+          0.3333333333333333
+        ]
+      ],
+      "known_negations": [],
+      "decisions": [],
+      "trajectory": [
+        {
+          "t": 1,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "d6ddbc0f5f578223"
+        },
+        {
+          "t": 2,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "d6ddbc0f5f578223"
+        },
+        {
+          "t": 3,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "d6ddbc0f5f578223"
+        },
+        {
+          "t": 4,
+          "V": 1.8516291673878227,
+          "H": 1.584962500721156,
+          "D": 0.6666666666666667,
+          "cost": 0.0,
+          "consensus_fp": "ac06b5ad44444179"
+        }
+      ],
+      "final_entropy": 1.584962500721156,
+      "entropy_trajectory": [
+        1.584962500721156,
+        1.584962500721156,
+        1.584962500721156,
+        1.584962500721156
+      ],
+      "state_hash": "8f794deac42e2530"
+    }
+  ]
+}

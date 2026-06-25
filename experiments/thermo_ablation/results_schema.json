@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "thermo_ablation_results",
+  "type": "object",
+  "required": ["status", "split", "seed", "variants", "claims_allowed"],
+  "properties": {
+    "status": {"enum": ["ok", "invalid", "pending"]},
+    "split": {"enum": ["held_out"]},
+    "seed": {"type": "integer"},
+    "n_train": {"type": "integer"},
+    "n_heldout": {"type": "integer"},
+    "claims_allowed": {"type": "boolean"},
+    "variants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "aurc", "aurc_ci95"],
+        "properties": {
+          "id": {"enum": ["V0", "V1", "V2", "V3", "V4", "V5"]},
+          "aurc": {"type": "number"},
+          "aurc_ci95": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+          "selective_acc_at_cov": {"type": "object"},
+          "abstain_rate": {"type": "number"},
+          "beats_v0": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1337 @@
+{
+  "meta": {
+    "n_items": 12,
+    "per_benchmark": {
+      "truthfulqa": 3,
+      "boolq": 3,
+      "remora_curated": 3,
+      "adversarial_curated": 3
+    },
+    "single_oracle": "cloudflare_rag/all:rerank+dual+multi+high",
+    "oracles": [
+      "cloudflare_rag/science:rerank",
+      "cloudflare_rag/specialised:rerank+high",
+      "cloudflare_rag/all:rerank+dual+multi"
+    ],
+    "backend": "cloudflare"
+  },
+  "conditions": {
+    "A_single": {
+      "n": 12,
+      "correct": 5,
+      "accuracy": 0.4167,
+      "ci_95": [
+        0.1933,
+        0.6805
+      ],
+      "per_source": {
+        "truthfulqa": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "boolq": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "remora_curated": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "adversarial_curated": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6667
+        }
+      },
+      "per_domain": {
+        "general": {
+          "n": 5,
+          "correct": 1,
+          "accuracy": 0.2
+        },
+        "science": {
+          "n": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        },
+        "dce": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        }
+      },
+      "adversarial": {
+        "n": 3,
+        "correct": 2,
+        "accuracy": 0.6667
+      },
+      "etr": {},
+      "items": [
+        {
+          "item_id": "tqa_0000_8ed07b14",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0001_6abde74a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0002_e0dc923a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0000_9814f7c4",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0001_cd654eb9",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": false,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0002_b9580653",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e01",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e02",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e03",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_001",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": true,
+          "predicted": false,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_002",
+          "benchmark": "adversarial_curated",
+          "domain": "science",
+          "correct": true,
+          "predicted": false,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_004",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 1,
+          "routed": false,
+          "final_V": 0.0
+        }
+      ]
+    },
+    "B_majority": {
+      "n": 12,
+      "correct": 3,
+      "accuracy": 0.25,
+      "ci_95": [
+        0.0889,
+        0.5323
+      ],
+      "per_source": {
+        "truthfulqa": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "boolq": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6667
+        },
+        "remora_curated": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "adversarial_curated": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333
+        }
+      },
+      "per_domain": {
+        "general": {
+          "n": 5,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "science": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "dce": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        }
+      },
+      "adversarial": {
+        "n": 3,
+        "correct": 1,
+        "accuracy": 0.3333
+      },
+      "etr": {},
+      "items": [
+        {
+          "item_id": "tqa_0000_8ed07b14",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0001_6abde74a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0002_e0dc923a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0000_9814f7c4",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0001_cd654eb9",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0002_b9580653",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e01",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e02",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e03",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_001",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_002",
+          "benchmark": "adversarial_curated",
+          "domain": "science",
+          "correct": true,
+          "predicted": false,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_004",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        }
+      ]
+    },
+    "C_remora": {
+      "n": 12,
+      "correct": 3,
+      "accuracy": 0.25,
+      "ci_95": [
+        0.0889,
+        0.5323
+      ],
+      "per_source": {
+        "truthfulqa": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "boolq": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6667
+        },
+        "remora_curated": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "adversarial_curated": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333
+        }
+      },
+      "per_domain": {
+        "general": {
+          "n": 5,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "science": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "dce": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        }
+      },
+      "adversarial": {
+        "n": 3,
+        "correct": 1,
+        "accuracy": 0.3333
+      },
+      "etr": {
+        "etr_rate": 0.25,
+        "accuracy": 0.25,
+        "etr_vs_accuracy": 0.0,
+        "n": 12,
+        "n_correct": 3,
+        "n_etr": 3,
+        "n_evidence_gap": 0,
+        "n_consensus_gap": 0,
+        "n_contradiction": 0,
+        "thresholds": {
+          "evidence_min_confidence": 0.65,
+          "oracle_min_support": 0.72,
+          "max_contradiction_fraction": 0.3
+        }
+      },
+      "items": [
+        {
+          "item_id": "tqa_0000_8ed07b14",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 12,
+          "routed": false,
+          "final_V": 1.2
+        },
+        {
+          "item_id": "tqa_0001_6abde74a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0002_e0dc923a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 12,
+          "routed": false,
+          "final_V": 1.0025088022038857
+        },
+        {
+          "item_id": "boolq_0000_9814f7c4",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0001_cd654eb9",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 12,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0002_b9580653",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 12,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e01",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e02",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e03",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_001",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 12,
+          "routed": false,
+          "final_V": 1.0514995459408256
+        },
+        {
+          "item_id": "adv_002",
+          "benchmark": "adversarial_curated",
+          "domain": "science",
+          "correct": true,
+          "predicted": false,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 12,
+          "routed": false,
+          "final_V": 1.081737583674406
+        },
+        {
+          "item_id": "adv_004",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 3,
+          "routed": false,
+          "final_V": 0.0
+        }
+      ]
+    },
+    "D1_strict": {
+      "n": 12,
+      "correct": 4,
+      "accuracy": 0.3333,
+      "ci_95": [
+        0.1381,
+        0.6094
+      ],
+      "per_source": {
+        "truthfulqa": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "boolq": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "remora_curated": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "adversarial_curated": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333
+        }
+      },
+      "per_domain": {
+        "general": {
+          "n": 5,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "science": {
+          "n": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        },
+        "dce": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        }
+      },
+      "adversarial": {
+        "n": 3,
+        "correct": 1,
+        "accuracy": 0.3333
+      },
+      "etr": {},
+      "items": [
+        {
+          "item_id": "tqa_0000_8ed07b14",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0001_6abde74a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0002_e0dc923a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 1.0101985417373571
+        },
+        {
+          "item_id": "boolq_0000_9814f7c4",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0001_cd654eb9",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": false,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0002_b9580653",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e01",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e02",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e03",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_001",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 1.0729033071051715
+        },
+        {
+          "item_id": "adv_002",
+          "benchmark": "adversarial_curated",
+          "domain": "science",
+          "correct": true,
+          "predicted": false,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 1.090099041744991
+        },
+        {
+          "item_id": "adv_004",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        }
+      ]
+    },
+    "D2_balanced": {
+      "n": 12,
+      "correct": 3,
+      "accuracy": 0.25,
+      "ci_95": [
+        0.0889,
+        0.5323
+      ],
+      "per_source": {
+        "truthfulqa": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "boolq": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6667
+        },
+        "remora_curated": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "adversarial_curated": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333
+        }
+      },
+      "per_domain": {
+        "general": {
+          "n": 5,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "science": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "dce": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        }
+      },
+      "adversarial": {
+        "n": 3,
+        "correct": 1,
+        "accuracy": 0.3333
+      },
+      "etr": {
+        "etr_rate": 0.1667,
+        "accuracy": 0.25,
+        "etr_vs_accuracy": -0.0833,
+        "n": 12,
+        "n_correct": 3,
+        "n_etr": 2,
+        "n_evidence_gap": 0,
+        "n_consensus_gap": 1,
+        "n_contradiction": 0,
+        "thresholds": {
+          "evidence_min_confidence": 0.65,
+          "oracle_min_support": 0.72,
+          "max_contradiction_fraction": 0.3
+        }
+      },
+      "items": [
+        {
+          "item_id": "tqa_0000_8ed07b14",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0001_6abde74a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0002_e0dc923a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0000_9814f7c4",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0001_cd654eb9",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0002_b9580653",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e01",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e02",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e03",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_001",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 1.0571994065099466
+        },
+        {
+          "item_id": "adv_002",
+          "benchmark": "adversarial_curated",
+          "domain": "science",
+          "correct": true,
+          "predicted": false,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_004",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        }
+      ]
+    },
+    "D3_hybrid": {
+      "n": 12,
+      "correct": 3,
+      "accuracy": 0.25,
+      "ci_95": [
+        0.0889,
+        0.5323
+      ],
+      "per_source": {
+        "truthfulqa": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "boolq": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6667
+        },
+        "remora_curated": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "adversarial_curated": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333
+        }
+      },
+      "per_domain": {
+        "general": {
+          "n": 5,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "science": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "dce": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        }
+      },
+      "adversarial": {
+        "n": 3,
+        "correct": 1,
+        "accuracy": 0.3333
+      },
+      "etr": {
+        "etr_rate": 0.25,
+        "accuracy": 0.25,
+        "etr_vs_accuracy": 0.0,
+        "n": 12,
+        "n_correct": 3,
+        "n_etr": 3,
+        "n_evidence_gap": 0,
+        "n_consensus_gap": 0,
+        "n_contradiction": 0,
+        "thresholds": {
+          "evidence_min_confidence": 0.65,
+          "oracle_min_support": 0.72,
+          "max_contradiction_fraction": 0.3
+        }
+      },
+      "items": [
+        {
+          "item_id": "tqa_0000_8ed07b14",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 1.2
+        },
+        {
+          "item_id": "tqa_0001_6abde74a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 6,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "tqa_0002_e0dc923a",
+          "benchmark": "truthfulqa",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "medium",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 1.002239723960906
+        },
+        {
+          "item_id": "boolq_0000_9814f7c4",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0001_cd654eb9",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "boolq_0002_b9580653",
+          "benchmark": "boolq",
+          "domain": "science",
+          "correct": true,
+          "predicted": true,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "easy",
+          "oracle_calls": 3,
+          "routed": true,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e01",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 6,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e02",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 6,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "dce_e03",
+          "benchmark": "remora_curated",
+          "domain": "dce",
+          "correct": false,
+          "predicted": null,
+          "expected": true,
+          "is_adversarial": false,
+          "difficulty": "hard",
+          "oracle_calls": 6,
+          "routed": false,
+          "final_V": 0.0
+        },
+        {
+          "item_id": "adv_001",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 1.0567417486060877
+        },
+        {
+          "item_id": "adv_002",
+          "benchmark": "adversarial_curated",
+          "domain": "science",
+          "correct": true,
+          "predicted": false,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 15,
+          "routed": false,
+          "final_V": 1.0716476759392093
+        },
+        {
+          "item_id": "adv_004",
+          "benchmark": "adversarial_curated",
+          "domain": "general",
+          "correct": false,
+          "predicted": null,
+          "expected": false,
+          "is_adversarial": true,
+          "difficulty": "adversarial",
+          "oracle_calls": 6,
+          "routed": false,
+          "final_V": 0.0
+        }
+      ]
+    }
+  }
+}

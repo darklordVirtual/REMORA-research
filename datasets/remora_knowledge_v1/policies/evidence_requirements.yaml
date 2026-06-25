@@ -1,0 +1,78 @@
+# REMORA Evidence Requirements v1
+# Defines what evidence REMORA should look for per gate outcome + tier.
+version: "1.0.0"
+requires_approval_to_update: true
+
+by_gate:
+  ACCEPT:
+    minimum_evidence:
+      - evidence_action: "answer"
+        evidence_confidence_min: 0.7
+    allowed_without_evidence:
+      - risk_tier: [low]
+        action_type: [read, query, list, metrics]
+        phase: [ordered]
+
+  VERIFY:
+    minimum_evidence:
+      - evidence_action: "verify"
+        evidence_confidence_min: 0.5
+    required_fields_present:
+      - proposed_action
+      - domain
+      - risk_tier
+    human_review: optional
+
+  ABSTAIN:
+    trigger_conditions:
+      - evidence_contradictions_gt: 0
+      - trust_score_lt: 0.3
+      - phase: [disordered]
+      - require_rag: true
+        evidence_action: null
+
+  ESCALATE:
+    always_required:
+      - human_review_required: true
+    trigger_conditions:
+      - adversarial_detected: true
+      - risk_tier: [critical]
+        action_type: [destructive_write, delete, purge]
+      - counterfactual_passed: false
+      - evidence_contradictions_gt: 2
+
+evidence_types:
+  change_ticket:
+    description: "ServiceNow/Jira/Linear change management reference"
+    required_for: [GATE-001, GATE-003, GATE-011]
+    authority_score: 0.9
+
+  human_approval_ref:
+    description: "Named human approver with timestamp and scope"
+    required_for: [GATE-001, GATE-004]
+    authority_score: 0.95
+
+  rollback_plan:
+    description: "Documented procedure to reverse the action"
+    required_for: [GATE-001, GATE-011]
+    authority_score: 0.8
+
+  security_review_ref:
+    description: "Security team sign-off reference"
+    required_for: [GATE-003, GATE-006]
+    authority_score: 0.9
+
+  dispatcher_approval_ref:
+    description: "Grid operations dispatcher approval"
+    required_for: [GATE-008]
+    authority_score: 0.95
+
+  cve_patch_status:
+    description: "CVE patched or mitigated status with ticket"
+    required_for: [GATE-005]
+    authority_score: 0.85
+
+  audit_hash:
+    description: "SHA-256 audit chain hash from DecisionEnvelope"
+    required_for: [GATE-010]
+    authority_score: 1.0

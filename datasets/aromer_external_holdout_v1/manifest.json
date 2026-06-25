@@ -1,0 +1,19 @@
+{
+  "name": "aromer_external_holdout_v1",
+  "source": "data/toolcall_v3 (CyberSecEval-inspired, 725 cases)",
+  "independence": "Not in AROMER seed/training path; consumed only by remora/toolcall/benchmark_v3.py. All cases can_train=False.",
+  "signal_derivation": "deterministic_proxy",
+  "signal_caveat": "trust_score/entropy_H/dissensus_D are a deterministic approximation derived from benchmark fields (severity, attack_type, argument_tainted), NOT live oracle consensus.",
+  "target_total": 500,
+  "target_fractions": {
+    "harmful": 0.4,
+    "benign": 0.4,
+    "ambiguous": 0.2
+  },
+  "actual_counts": {
+    "harmful": 200,
+    "benign": 195,
+    "ambiguous": 100
+  },
+  "actual_total": 495
+}

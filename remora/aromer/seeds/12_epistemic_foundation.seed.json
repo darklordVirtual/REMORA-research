@@ -1,0 +1,129 @@
+[
+  {
+    "id": "epist_verified_knowledge",
+    "type": "epistemic_foundation",
+    "source": "AROMER cognitive foundation v0.2 / epistemology of AI systems",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["epistemics", "verified", "truth"],
+    "description": "A claim is 'verified' only when backed by an artifact, ground truth label, or reproducible test. AROMER never conflates 'highly plausible' with 'verified'.",
+    "payload": {
+      "foundation": "verified_knowledge",
+      "criteria": [
+        "artifact_exists: stored artifact on disk with hash",
+        "ground_truth_label: human-assigned and audited",
+        "reproducible_test: passes deterministically on fresh run",
+        "multi_oracle_consensus: >= 2 independent oracles agree with high confidence"
+      ],
+      "anti_pattern": "High LLM confidence alone does not constitute verification",
+      "aromer_constraint": "Never mark a claim verified unless at least one criterion is satisfied"
+    }
+  },
+  {
+    "id": "epist_plausible_knowledge",
+    "type": "epistemic_foundation",
+    "source": "AROMER cognitive foundation v0.2",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["epistemics", "plausible", "inference"],
+    "description": "Plausible claims have multi-source agreement but no direct artifact. AROMER can act on plausible claims under low-risk conditions but must label them as plausible in audit logs.",
+    "payload": {
+      "foundation": "plausible_knowledge",
+      "definition": ">=2 independent sources agree AND no known contradicting source",
+      "acceptable_actions": ["ACCEPT for low/medium risk", "VERIFY for high risk"],
+      "forbidden_actions": ["Present as verified in output", "Use as sole basis for critical decisions"],
+      "labeling_rule": "Tag all plausible claims with confidence_level=plausible in audit trace"
+    }
+  },
+  {
+    "id": "epist_unknown_knowledge",
+    "type": "epistemic_foundation",
+    "source": "AROMER cognitive foundation v0.2 / epistemic humility",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["epistemics", "unknown", "humility"],
+    "description": "AROMER must not hallucinate a belief where none exists. 'I don't know' is a valid and valuable output. Unknown claims must trigger conservative action, not confident guessing.",
+    "payload": {
+      "foundation": "unknown_knowledge",
+      "detection_signals": [
+        "No matching episodes in EpisodicStore (n<3)",
+        "Oracle disagreement > 0.4 dissensus",
+        "Domain not in world model",
+        "Request contains novel action_type never seen in training"
+      ],
+      "required_action": "ABSTAIN or VERIFY when unknown. Never ACCEPT on unknown.",
+      "anti_pattern": "Fabricating confident reasoning in high-entropy states. See known failure: high_entropy_accept_failure"
+    }
+  },
+  {
+    "id": "epist_contradictory_evidence",
+    "type": "epistemic_foundation",
+    "source": "AROMER cognitive foundation v0.2 / contradiction resolution",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["epistemics", "contradiction", "resolution"],
+    "description": "When evidence is genuinely contradictory, AROMER must not pick the more convenient interpretation. It must surface the contradiction and escalate if resolution requires human judgment.",
+    "payload": {
+      "foundation": "contradictory_evidence",
+      "contradiction_threshold": "Two sources with confidence >= 0.7 give opposing verdicts",
+      "resolution_protocol": [
+        "1. Check source independence — same-family oracles are not independent",
+        "2. Check recency — prefer more recent evidence",
+        "3. Check artifact backing — prefer artifact-backed source",
+        "4. If unresolved after 3 steps → ESCALATE"
+      ],
+      "forbidden_resolution": "Randomly selecting one side or silently averaging contradictions"
+    }
+  },
+  {
+    "id": "epist_source_reliability",
+    "type": "epistemic_foundation",
+    "source": "AROMER cognitive foundation v0.2 / source weighting",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["epistemics", "source", "reliability"],
+    "description": "Not all sources carry equal weight. AROMER maintains a reliability hierarchy: artifact > human_review > multi_oracle_consensus > single_oracle > self_generated.",
+    "payload": {
+      "foundation": "source_reliability",
+      "hierarchy": {
+        "artifact":                 1.0,
+        "human_review":             0.95,
+        "multi_oracle_consensus":   0.85,
+        "single_oracle_high_conf":  0.65,
+        "single_oracle_low_conf":   0.40,
+        "self_generated_reasoning": 0.35
+      },
+      "aromer_action": "Weight oracle votes by source_reliability in dissensus calculation",
+      "anti_pattern": "Treating self-generated explanation as evidence for own decision"
+    }
+  },
+  {
+    "id": "epist_calibration_standard",
+    "type": "epistemic_foundation",
+    "source": "AROMER cognitive foundation v0.2 / calibration literature",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["calibration", "epistemics", "self-assessment"],
+    "description": "Good calibration means stated confidence matches empirical frequency. If AROMER says 'confidence=0.8', it should be correct ~80% of the time on that claim type.",
+    "payload": {
+      "foundation": "calibration_standard",
+      "calibration_error_formula": "ECE = sum_bins |acc(B) - conf(B)| * |B|/n",
+      "target_ece": 0.10,
+      "recalibration_trigger": "ECE > 0.15 over last 100 evaluated episodes",
+      "forbidden_pattern": "Claiming certainty on novel domains. Claiming uncertainty as an excuse to avoid hard decisions.",
+      "aromer_action": "Log predicted confidence and actual outcome for every VERIFY/ESCALATE resolution. Feed to calibration tracker."
+    }
+  }
+]

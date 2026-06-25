@@ -1,0 +1,139 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aromer-seed-v0.1",
+  "title": "AROMER Seed Entry",
+  "description": "Schema for AROMER pre-seeded priors, lessons and invariants. Seeds are hypotheses with provenance — not ground truth.",
+  "type": "object",
+  "required": ["id", "type", "source", "version", "weight", "confidence", "description", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$",
+      "description": "Unique seed identifier"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "safety_invariant",
+        "tool_risk",
+        "domain_prior",
+        "lesson",
+        "failure_pattern",
+        "epistemic_rule",
+        "strategy_pattern",
+        "domain_lesson"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "description": "Provenance — where this seed came from"
+    },
+    "version": {
+      "type": "string",
+      "description": "Seed pack version that introduced this entry"
+    },
+    "weight": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Trust weight for this seed (1.0 = fully trusted, 0.0 = disabled)"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Initial confidence — may be lower than weight if source is uncertain"
+    },
+    "decay_rate": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Fractional decay per 1000 episodes. 0.0 = permanent invariant."
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Free-form tags for filtering and retrieval"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of what this seed encodes"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Type-specific payload — see each type's sub-schema below"
+    }
+  },
+  "$defs": {
+    "domain_prior_payload": {
+      "type": "object",
+      "required": ["domain", "action_type", "risk_tier", "p_harm_prior", "n_pseudo_observations"],
+      "properties": {
+        "domain": {"type": "string"},
+        "action_type": {"type": "string"},
+        "risk_tier": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
+        "p_harm_prior": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "n_pseudo_observations": {"type": "integer", "minimum": 1}
+      }
+    },
+    "tool_risk_payload": {
+      "type": "object",
+      "required": ["tool_category", "action_pattern", "risk_tier", "action_type", "default_verdict"],
+      "properties": {
+        "tool_category": {"type": "string"},
+        "action_pattern": {"type": "string"},
+        "risk_tier": {"type": "string"},
+        "action_type": {"type": "string"},
+        "default_verdict": {"type": "string", "enum": ["accept", "verify", "abstain", "escalate"]},
+        "rationale": {"type": "string"}
+      }
+    },
+    "safety_invariant_payload": {
+      "type": "object",
+      "required": ["invariant", "action_types_blocked"],
+      "properties": {
+        "invariant": {"type": "string"},
+        "action_types_blocked": {"type": "array", "items": {"type": "string"}},
+        "override_conditions": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "lesson_payload": {
+      "type": "object",
+      "required": ["scenario", "correct_verdict", "domain", "risk_tier"],
+      "properties": {
+        "scenario": {"type": "string"},
+        "observed_failure": {"type": "string"},
+        "correct_verdict": {"type": "string"},
+        "domain": {"type": "string"},
+        "risk_tier": {"type": "string"},
+        "annotation": {"type": "string"}
+      }
+    },
+    "epistemic_rule_payload": {
+      "type": "object",
+      "required": ["rule", "trigger_condition", "recommended_action"],
+      "properties": {
+        "rule": {"type": "string"},
+        "trigger_condition": {"type": "string"},
+        "recommended_action": {"type": "string"},
+        "rationale": {"type": "string"}
+      }
+    },
+    "strategy_pattern_payload": {
+      "type": "object",
+      "required": ["pattern_name", "activation_condition", "adjustment"],
+      "properties": {
+        "pattern_name": {"type": "string"},
+        "activation_condition": {"type": "string"},
+        "adjustment": {"type": "object"},
+        "rationale": {"type": "string"}
+      }
+    }
+  },
+  "notes": [
+    "Preseed ≠ truth. Preseed = hypothesis with source, weight, confidence and decay.",
+    "AROMER should A/B compare cold-start vs preseeded on the same episode replay set.",
+    "Seeds with decay_rate > 0 should be downweighted as live evidence accumulates.",
+    "Safety invariants (decay_rate=0.0) are the only seeds AROMER cannot override."
+  ]
+}

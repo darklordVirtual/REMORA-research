@@ -1,0 +1,308 @@
+[
+  {
+    "id": "prior_db_destructive_critical",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["database", "destructive_write", "critical"],
+    "description": "Empirical P(harm) for destructive database writes in critical-tier contexts. Derived from benchmark v2: single-model unsafe rate 20% on database tasks.",
+    "payload": {
+      "domain": "database",
+      "action_type": "destructive_write",
+      "risk_tier": "critical",
+      "p_harm_prior": 0.85,
+      "n_pseudo_observations": 20
+    }
+  },
+  {
+    "id": "prior_db_read_low",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.80,
+    "confidence": 0.82,
+    "decay_rate": 0.05,
+    "tags": ["database", "read", "low"],
+    "description": "P(harm) for read-only database operations in low-risk contexts. Low baseline — most queries are benign.",
+    "payload": {
+      "domain": "database",
+      "action_type": "read",
+      "risk_tier": "low",
+      "p_harm_prior": 0.05,
+      "n_pseudo_observations": 15
+    }
+  },
+  {
+    "id": "prior_db_schema_change_high",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["database", "schema", "high"],
+    "description": "ALTER TABLE, ADD COLUMN, schema migrations in high-risk contexts.",
+    "payload": {
+      "domain": "database",
+      "action_type": "schema_change",
+      "risk_tier": "high",
+      "p_harm_prior": 0.55,
+      "n_pseudo_observations": 10
+    }
+  },
+  {
+    "id": "prior_shell_execution_critical",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.92,
+    "confidence": 0.90,
+    "decay_rate": 0.01,
+    "tags": ["shell", "execution", "critical"],
+    "description": "Arbitrary shell execution in critical environments. High base rate of harm from benchmark v2 shell domain.",
+    "payload": {
+      "domain": "shell",
+      "action_type": "execution",
+      "risk_tier": "critical",
+      "p_harm_prior": 0.80,
+      "n_pseudo_observations": 20
+    }
+  },
+  {
+    "id": "prior_shell_execution_medium",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.82,
+    "confidence": 0.78,
+    "decay_rate": 0.03,
+    "tags": ["shell", "execution", "medium"],
+    "description": "Shell execution in medium-risk contexts (development environments, sandboxed systems).",
+    "payload": {
+      "domain": "shell",
+      "action_type": "execution",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.35,
+      "n_pseudo_observations": 12
+    }
+  },
+  {
+    "id": "prior_network_config_critical",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.88,
+    "decay_rate": 0.01,
+    "tags": ["network", "configuration_change", "critical"],
+    "description": "Network infrastructure configuration changes in critical environments. Very high harm potential from benchmark v2.",
+    "payload": {
+      "domain": "network",
+      "action_type": "configuration_change",
+      "risk_tier": "critical",
+      "p_harm_prior": 0.78,
+      "n_pseudo_observations": 18
+    }
+  },
+  {
+    "id": "prior_network_read_low",
+    "type": "domain_prior",
+    "source": "remora_internal_classification",
+    "version": "0.1",
+    "weight": 0.75,
+    "confidence": 0.80,
+    "decay_rate": 0.05,
+    "tags": ["network", "read", "low"],
+    "description": "Network monitoring and read-only operations. Low harm baseline.",
+    "payload": {
+      "domain": "network",
+      "action_type": "read",
+      "risk_tier": "low",
+      "p_harm_prior": 0.08,
+      "n_pseudo_observations": 10
+    }
+  },
+  {
+    "id": "prior_medical_write_critical",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v2_medical_domain",
+    "version": "0.1",
+    "weight": 0.97,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["medical", "write", "critical"],
+    "description": "Any autonomous medical action in critical context. Near-certain harm from benchmark v2 medical domain (high utility penalty for unsafe execution).",
+    "payload": {
+      "domain": "medical",
+      "action_type": "medical_write",
+      "risk_tier": "critical",
+      "p_harm_prior": 0.92,
+      "n_pseudo_observations": 25
+    }
+  },
+  {
+    "id": "prior_legal_write_critical",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v2_legal_domain",
+    "version": "0.1",
+    "weight": 0.95,
+    "confidence": 0.92,
+    "decay_rate": 0.0,
+    "tags": ["legal", "write", "critical"],
+    "description": "Autonomous legal document creation or contract execution. High harm rate from benchmark v2 legal domain.",
+    "payload": {
+      "domain": "legal",
+      "action_type": "legal_write",
+      "risk_tier": "critical",
+      "p_harm_prior": 0.88,
+      "n_pseudo_observations": 22
+    }
+  },
+  {
+    "id": "prior_energy_infrastructure_critical",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v2_energy_domain",
+    "version": "0.1",
+    "weight": 0.97,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["energy", "infrastructure_write", "critical"],
+    "description": "Energy grid control operations. Benchmark v2 energy domain. Physical safety implications.",
+    "payload": {
+      "domain": "energy",
+      "action_type": "infrastructure_write",
+      "risk_tier": "critical",
+      "p_harm_prior": 0.90,
+      "n_pseudo_observations": 22
+    }
+  },
+  {
+    "id": "prior_git_destructive_high",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v1_analysis",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.82,
+    "decay_rate": 0.02,
+    "tags": ["git", "destructive_write", "high"],
+    "description": "Git destructive operations (force push, history rewrite, tag deletion) in high-risk contexts.",
+    "payload": {
+      "domain": "git",
+      "action_type": "destructive_write",
+      "risk_tier": "high",
+      "p_harm_prior": 0.65,
+      "n_pseudo_observations": 12
+    }
+  },
+  {
+    "id": "prior_webhook_write_medium",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v1_analysis",
+    "version": "0.1",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.03,
+    "tags": ["webhook", "write", "medium"],
+    "description": "Webhook dispatch and event trigger operations in medium-risk integrations.",
+    "payload": {
+      "domain": "webhook",
+      "action_type": "write",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.42,
+      "n_pseudo_observations": 10
+    }
+  },
+  {
+    "id": "prior_building_automation_high",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v1_analysis",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.83,
+    "decay_rate": 0.01,
+    "tags": ["building_automation", "infrastructure_write", "high"],
+    "description": "Building automation and HVAC control. Benchmark v1 building automation domain. Physical environment risk.",
+    "payload": {
+      "domain": "building_automation",
+      "action_type": "infrastructure_write",
+      "risk_tier": "high",
+      "p_harm_prior": 0.70,
+      "n_pseudo_observations": 14
+    }
+  },
+  {
+    "id": "prior_filesystem_write_medium",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v1_analysis",
+    "version": "0.1",
+    "weight": 0.78,
+    "confidence": 0.75,
+    "decay_rate": 0.04,
+    "tags": ["filesystem", "write", "medium"],
+    "description": "File write and overwrite operations in medium-risk contexts. Benchmark v1 file operations domain.",
+    "payload": {
+      "domain": "filesystem",
+      "action_type": "write",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.28,
+      "n_pseudo_observations": 10
+    }
+  },
+  {
+    "id": "prior_filesystem_delete_high",
+    "type": "domain_prior",
+    "source": "toolcall_benchmark_v1_analysis",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.85,
+    "decay_rate": 0.02,
+    "tags": ["filesystem", "destructive_write", "high"],
+    "description": "File deletion operations in high-risk contexts. Benchmark v1 file operations domain.",
+    "payload": {
+      "domain": "filesystem",
+      "action_type": "destructive_write",
+      "risk_tier": "high",
+      "p_harm_prior": 0.65,
+      "n_pseudo_observations": 12
+    }
+  },
+  {
+    "id": "prior_api_write_medium",
+    "type": "domain_prior",
+    "source": "remora_internal_classification",
+    "version": "0.1",
+    "weight": 0.75,
+    "confidence": 0.72,
+    "decay_rate": 0.04,
+    "tags": ["api", "write", "medium"],
+    "description": "Third-party API write operations in medium-risk contexts. General-purpose prior for API calls without specific domain classification.",
+    "payload": {
+      "domain": "api",
+      "action_type": "write",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.30,
+      "n_pseudo_observations": 8
+    }
+  },
+  {
+    "id": "prior_unknown_execution_high",
+    "type": "domain_prior",
+    "source": "remora_internal_classification",
+    "version": "0.1",
+    "weight": 0.80,
+    "confidence": 0.70,
+    "decay_rate": 0.03,
+    "tags": ["unknown", "execution", "high", "default"],
+    "description": "Default prior for unclassified execution actions in high-risk contexts. Conservative upper bound when domain is unknown.",
+    "payload": {
+      "domain": "unknown",
+      "action_type": "execution",
+      "risk_tier": "high",
+      "p_harm_prior": 0.60,
+      "n_pseudo_observations": 8
+    }
+  }
+]

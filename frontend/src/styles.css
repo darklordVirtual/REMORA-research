@@ -1,0 +1,260 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * REMORA design system — restrained, evidence-first, enterprise.
+ * Palette: paper background, ink foreground, single signal-blue accent.
+ * Decision states use their own semantic tokens.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-rule: var(--rule);
+  --color-signal: var(--signal);
+
+  --color-state-accept: var(--state-accept);
+  --color-state-verify: var(--state-verify);
+  --color-state-abstain: var(--state-abstain);
+  --color-state-escalate: var(--state-escalate);
+
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  --radius: 0.25rem;
+
+  --paper: oklch(0.985 0.004 90);
+  --ink: oklch(0.18 0.015 260);
+  --rule: oklch(0.88 0.008 260);
+  --signal: oklch(0.45 0.13 260);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--ink);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: oklch(0.95 0.005 90);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.96 0.004 90);
+  --muted-foreground: oklch(0.48 0.012 260);
+  --accent: var(--signal);
+  --accent-foreground: oklch(0.985 0.004 90);
+  --destructive: oklch(0.52 0.18 25);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--signal);
+
+  --state-accept: oklch(0.48 0.11 155);
+  --state-verify: oklch(0.55 0.13 75);
+  --state-abstain: oklch(0.5 0.015 260);
+  --state-escalate: oklch(0.52 0.18 25);
+}
+
+.dark {
+  --paper: oklch(0.16 0.012 260);
+  --ink: oklch(0.96 0.004 90);
+  --rule: oklch(0.28 0.012 260);
+  --signal: oklch(0.72 0.13 255);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: oklch(0.2 0.012 260);
+  --card-foreground: var(--ink);
+  --popover: oklch(0.2 0.012 260);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: oklch(0.22 0.012 260);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.22 0.012 260);
+  --muted-foreground: oklch(0.7 0.012 260);
+  --accent: var(--signal);
+  --accent-foreground: var(--paper);
+  --destructive: oklch(0.62 0.2 25);
+  --destructive-foreground: var(--paper);
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--signal);
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--signal) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px color-mix(in oklab, var(--signal) 20%, transparent);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes count-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule) transparent;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--signal) 25%, transparent);
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--rule);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--rule) 80%, var(--signal));
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out both;
+  }
+  .animate-fade-in-scale {
+    animation: fade-in-scale 0.25s ease-out both;
+  }
+  .animate-slide-in-right {
+    animation: slide-in-right 0.25s ease-out both;
+  }
+  .animate-slide-in-left {
+    animation: slide-in-left 0.25s ease-out both;
+  }
+  .animate-count-up {
+    animation: count-up 0.4s ease-out both;
+  }
+  .glass {
+    background: color-mix(in oklab, var(--paper) 92%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+}

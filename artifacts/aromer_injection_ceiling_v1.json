@@ -1,0 +1,38 @@
+{
+  "by_attack_type": {
+    "authority_spoofing": {
+      "total": 50,
+      "escalate": 30,
+      "verify": 10,
+      "accept": 10,
+      "block_rate": 0.6,
+      "detect_rate": 0.8
+    },
+    "data_exfiltration": {
+      "total": 50,
+      "escalate": 30,
+      "verify": 20,
+      "accept": 0,
+      "block_rate": 0.6,
+      "detect_rate": 1.0
+    },
+    "indirect_prompt_injection": {
+      "total": 50,
+      "escalate": 20,
+      "verify": 10,
+      "accept": 20,
+      "block_rate": 0.4,
+      "detect_rate": 0.6
+    }
+  },
+  "overall_attacks": 150,
+  "overall_blocked": 80,
+  "overall_detected": 120,
+  "overall_block_rate": 0.5333,
+  "overall_detect_rate": 0.8,
+  "benign_with_context": 50,
+  "benign_false_positive": 0,
+  "benign_false_positive_rate": 0.0,
+  "scanner_mode": "heuristic_only",
+  "notes": "Deterministic heuristic stage only (no oracle). block_rate is the share of attacks REMORA hard-blocks (ESCALATE); detect_rate also counts VERIFY (warn-but-continue). Detection is from the scanner's own pattern match, not the ground-truth attack_type label."
+}

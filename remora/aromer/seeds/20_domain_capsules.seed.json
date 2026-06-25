@@ -1,0 +1,165 @@
+[
+  {
+    "id": "cap_database",
+    "type": "domain_capsule",
+    "source": "AROMER cognitive foundation v0.2 / database ops domain",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["domain", "database", "capsule"],
+    "description": "Encapsulated knowledge for the database domain: risk taxonomy, harm priors, common adversarial patterns, and safe action criteria.",
+    "payload": {
+      "domain": "database",
+      "risk_taxonomy": {
+        "read":              {"verdict": "accept",   "risk_tier": "low",      "reversible": true},
+        "write":             {"verdict": "accept",   "risk_tier": "medium",   "reversible": true},
+        "schema_migration":  {"verdict": "verify",   "risk_tier": "high",     "reversible": "partially"},
+        "destructive_write": {"verdict": "escalate", "risk_tier": "critical", "reversible": false}
+      },
+      "p_harm_priors": {
+        "read:low":               0.05,
+        "write:medium":           0.20,
+        "schema_migration:high":  0.45,
+        "destructive_write:critical": 0.85
+      },
+      "adversarial_patterns": [
+        "SQL framed as 'optimization' but contains DROP/TRUNCATE",
+        "'Cleanup' framed action targeting production tables",
+        "Migration script that includes irreversible data deletion"
+      ],
+      "safe_criteria": [
+        "Read-only queries with no side effects",
+        "Writes with rollback/transaction support",
+        "Migrations with down-migration tested in staging"
+      ]
+    }
+  },
+  {
+    "id": "cap_medical",
+    "type": "domain_capsule",
+    "source": "AROMER cognitive foundation v0.2 / medical domain",
+    "version": "0.2",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.0,
+    "tags": ["domain", "medical", "capsule"],
+    "description": "Medical domain: highest harm prior. All writes require expert verification. Regulatory scope: HIPAA, FDA, local medical law.",
+    "payload": {
+      "domain": "medical",
+      "default_verdict": "verify",
+      "critical_verdict": "escalate",
+      "p_harm_prior_all_writes": 0.90,
+      "regulatory_scope": ["HIPAA", "FDA 21 CFR Part 11", "local medical practice law"],
+      "adversarial_patterns": [
+        "AI framed as 'decision support' when actually executing medication orders",
+        "'Routine' dosage adjustment without physician verification",
+        "Bulk patient record modification framed as data cleanup"
+      ],
+      "safe_criteria": [
+        "Read-only retrieval of non-PII medical data",
+        "Physician-verified write with audit trail",
+        "De-identified research queries with IRB approval"
+      ],
+      "aromer_rule": "Any action_type containing 'write', 'prescribe', 'administer' or 'modify' in medical domain → escalate regardless of trust_score"
+    }
+  },
+  {
+    "id": "cap_infrastructure",
+    "type": "domain_capsule",
+    "source": "AROMER cognitive foundation v0.2 / infrastructure domain",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["domain", "infrastructure", "capsule"],
+    "description": "Infrastructure domain: network, cloud, server ops. Highly context-dependent — staging actions may be low risk, prod is high/critical.",
+    "payload": {
+      "domain": "infrastructure",
+      "environment_modifier": {
+        "sandbox":  "risk_tier -1 level",
+        "staging":  "risk_tier no change",
+        "prod":     "risk_tier +1 level, add VERIFY step",
+        "unknown":  "assume prod"
+      },
+      "critical_operations": [
+        "Firewall rule changes",
+        "Load balancer config in prod",
+        "DNS record modification",
+        "Auto-scaling group limit removal",
+        "Security group with 0.0.0.0/0"
+      ],
+      "safe_criteria": [
+        "Read-only metric queries",
+        "Config changes in sandbox with documented rollback",
+        "Deployments with feature flags and staged rollout"
+      ],
+      "adversarial_patterns": [
+        "Security bypass framed as 'temporary' config change",
+        "'Debug mode' that opens unrestricted access",
+        "Resource limit removal framed as 'performance optimization'"
+      ]
+    }
+  },
+  {
+    "id": "cap_agentic",
+    "type": "domain_capsule",
+    "source": "AROMER cognitive foundation v0.2 / agentic action domain",
+    "version": "0.2",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.0,
+    "tags": ["domain", "agentic", "capsule", "autonomy"],
+    "description": "Actions taken by autonomous agents requesting REMORA governance. Key challenge: agents can be deceived, misconfigured, or adversarially prompted.",
+    "payload": {
+      "domain": "agentic",
+      "trust_adjustment": "Agent trust starts 0.10 lower than human requester trust. Agents can earn trust through verified history.",
+      "escalation_triggers": [
+        "Agent requesting own trust_score increase",
+        "Agent claiming emergency bypass of governance",
+        "Agent delegating to sub-agent without AROMER coverage",
+        "Multi-agent chain without provenance tracking"
+      ],
+      "safe_criteria": [
+        "Agent operates within predefined tool manifest",
+        "Agent has human-in-the-loop at defined checkpoints",
+        "Agent actions are auditable and replayable",
+        "Agent trust built through verified episodic history"
+      ],
+      "aromer_rule": "Nested agent governance (agent-in-agent): each level must have REMORA coverage. No autonomy laundering.",
+      "reference": "docs/nested_governance.md"
+    }
+  },
+  {
+    "id": "cap_financial",
+    "type": "domain_capsule",
+    "source": "AROMER cognitive foundation v0.2 / financial domain",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["domain", "financial", "capsule"],
+    "description": "Financial domain: high regulatory exposure. Actions affecting monetary transfers, pricing, billing, or financial reporting require elevated verification.",
+    "payload": {
+      "domain": "financial",
+      "regulatory_scope": ["SOX", "PCI-DSS", "local financial regulation"],
+      "risk_taxonomy": {
+        "read_balance":         {"verdict": "accept",   "risk_tier": "low"},
+        "generate_report":      {"verdict": "accept",   "risk_tier": "medium"},
+        "modify_pricing":       {"verdict": "verify",   "risk_tier": "high"},
+        "execute_transfer":     {"verdict": "verify",   "risk_tier": "high"},
+        "bulk_payment_action":  {"verdict": "escalate", "risk_tier": "critical"}
+      },
+      "adversarial_patterns": [
+        "Bulk transfer framed as 'automated reconciliation'",
+        "Pricing change framed as 'config update'",
+        "Billing rule modification framed as 'bug fix'"
+      ],
+      "safe_criteria": [
+        "Read-only financial reporting",
+        "Single transfers below org-defined threshold with dual approval",
+        "Pricing changes in staging with A/B test evidence"
+      ]
+    }
+  }
+]

@@ -1,0 +1,88 @@
+{
+  "benchmark": "toolcall_benchmark_v2",
+  "n_tasks": 700,
+  "comparison_target": "remora_full_policy_gate",
+  "method": {
+    "unsafe_delta": "paired bootstrap mean CI + sign-flip permutation p-value",
+    "utility_delta": "paired bootstrap mean CI + sign-flip permutation p-value",
+    "n_bootstrap": 5000,
+    "n_permutations": 10000
+  },
+  "comparisons": {
+    "single_model_heuristic": {
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.2,
+      "unsafe_rate_delta_ci95": [
+        0.17142857142857143,
+        0.22857142857142856
+      ],
+      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
+      "utility_delta_remora_minus_baseline": 0.87,
+      "utility_delta_ci95": [
+        0.7999999999999985,
+        0.9401428571428595
+      ],
+      "utility_delta_pvalue_one_sided": 9.999000099990002e-05
+    },
+    "majority_vote_heuristic": {
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.1,
+      "unsafe_rate_delta_ci95": [
+        0.07857142857142857,
+        0.12285714285714286
+      ],
+      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
+      "utility_delta_remora_minus_baseline": 0.62,
+      "utility_delta_ci95": [
+        0.5625714285714244,
+        0.676857142857138
+      ],
+      "utility_delta_pvalue_one_sided": 9.999000099990002e-05
+    },
+    "self_consistency_heuristic": {
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.1,
+      "unsafe_rate_delta_ci95": [
+        0.07857142857142857,
+        0.12285714285714286
+      ],
+      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
+      "utility_delta_remora_minus_baseline": 0.62,
+      "utility_delta_ci95": [
+        0.5625714285714244,
+        0.676857142857138
+      ],
+      "utility_delta_pvalue_one_sided": 9.999000099990002e-05
+    },
+    "verifier_heuristic": {
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.2,
+      "unsafe_rate_delta_ci95": [
+        0.17142857142857143,
+        0.22857142857142856
+      ],
+      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
+      "utility_delta_remora_minus_baseline": 0.87,
+      "utility_delta_ci95": [
+        0.7999999999999985,
+        0.9401428571428595
+      ],
+      "utility_delta_pvalue_one_sided": 9.999000099990002e-05
+    },
+    "remora_temperature_gate_heuristic": {
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.1,
+      "unsafe_rate_delta_ci95": [
+        0.07857142857142857,
+        0.12285714285714286
+      ],
+      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
+      "utility_delta_remora_minus_baseline": 0.35,
+      "utility_delta_ci95": [
+        0.28971428571428487,
+        0.41271428571428453
+      ],
+      "utility_delta_pvalue_one_sided": 9.999000099990002e-05
+    }
+  },
+  "limitations": [
+    "Inference is benchmark-scoped and assumes tasks are exchangeable samples from this synthetic benchmark.",
+    "No live LLM trajectories or production tool calls are included.",
+    "Synthetic templates may induce optimistic or pessimistic bias for specific gating heuristics."
+  ]
+}

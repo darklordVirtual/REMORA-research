@@ -1,0 +1,38 @@
+[
+  {
+    "target_risk": 0.05,
+    "n_seeds": 20,
+    "mean_holdout_risk": 0.5269625832125832,
+    "max_holdout_risk": 1.0,
+    "mean_coverage": 0.062396694214876036,
+    "min_coverage": 0.0,
+    "mean_accepted": 7.55,
+    "failures_by_point_estimate": 20,
+    "failures_by_upper_bound": 20,
+    "notes": "benchmark-locked; exchangeability assumed between cal and test draws"
+  },
+  {
+    "target_risk": 0.1,
+    "n_seeds": 20,
+    "mean_holdout_risk": 0.08147945103413053,
+    "max_holdout_risk": 0.225,
+    "mean_coverage": 0.2582644628099174,
+    "min_coverage": 0.0,
+    "mean_accepted": 31.25,
+    "failures_by_point_estimate": 5,
+    "failures_by_upper_bound": 7,
+    "notes": "benchmark-locked; exchangeability assumed between cal and test draws"
+  },
+  {
+    "target_risk": 0.15,
+    "n_seeds": 20,
+    "mean_holdout_risk": 0.13722151890758455,
+    "max_holdout_risk": 0.2231404958677686,
+    "mean_coverage": 0.6214876033057851,
+    "min_coverage": 0.256198347107438,
+    "mean_accepted": 75.2,
+    "failures_by_point_estimate": 8,
+    "failures_by_upper_bound": 8,
+    "notes": "benchmark-locked; exchangeability assumed between cal and test draws"
+  }
+]

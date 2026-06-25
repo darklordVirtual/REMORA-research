@@ -1,0 +1,926 @@
+{
+  "method": "MondrianPhaseGuardrail",
+  "data_source": "thermodynamic_eval_n500_calibrated_results.json",
+  "n_items": 544,
+  "results_by_target": [
+    {
+      "target_risk": 0.05,
+      "n_seeds": 20,
+      "phase_summaries": {
+        "ordered": {
+          "n_seeds_with_data": 1,
+          "mean_risk": 0.8,
+          "mean_coverage": 0.125,
+          "failures_out_of_20": 1
+        },
+        "critical": {
+          "n_seeds_with_data": 2,
+          "mean_risk": 1.0,
+          "mean_coverage": 0.15384615384615385,
+          "failures_out_of_20": 2
+        },
+        "disordered": {
+          "n_seeds_with_data": 1,
+          "mean_risk": 0.5714285714285714,
+          "mean_coverage": 0.04242424242424243,
+          "failures_out_of_20": 1
+        }
+      },
+      "seed_records": [
+        {
+          "seed": 0,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 1,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 2,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 3,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 4,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 5,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 6,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 7,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 0.0135
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": 0.5714285714285714,
+          "coverage_disordered": 0.04242424242424243
+        },
+        {
+          "seed": 8,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 9,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 10,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 11,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 12,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 13,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 14,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 15,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 16,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 17,
+          "thresholds": {
+            "ordered": 0.9206,
+            "critical": 0.2313,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.8,
+          "coverage_ordered": 0.125,
+          "risk_critical": 1.0,
+          "coverage_critical": 0.15384615384615385,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 18,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 0.2313,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": 1.0,
+          "coverage_critical": 0.15384615384615385,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 19,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        }
+      ]
+    },
+    {
+      "target_risk": 0.1,
+      "n_seeds": 20,
+      "phase_summaries": {
+        "ordered": {
+          "n_seeds_with_data": 1,
+          "mean_risk": 0.8,
+          "mean_coverage": 0.125,
+          "failures_out_of_20": 1
+        },
+        "critical": {
+          "n_seeds_with_data": 2,
+          "mean_risk": 1.0,
+          "mean_coverage": 0.15384615384615385,
+          "failures_out_of_20": 2
+        },
+        "disordered": {
+          "n_seeds_with_data": 1,
+          "mean_risk": 0.5714285714285714,
+          "mean_coverage": 0.04242424242424243,
+          "failures_out_of_20": 1
+        }
+      },
+      "seed_records": [
+        {
+          "seed": 0,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 1,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 2,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 3,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 4,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 5,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 6,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 7,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 0.0135
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": 0.5714285714285714,
+          "coverage_disordered": 0.04242424242424243
+        },
+        {
+          "seed": 8,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 9,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 10,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 11,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 12,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 13,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 14,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 15,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 16,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 17,
+          "thresholds": {
+            "ordered": 0.9206,
+            "critical": 0.2313,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.8,
+          "coverage_ordered": 0.125,
+          "risk_critical": 1.0,
+          "coverage_critical": 0.15384615384615385,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 18,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 0.2313,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": 1.0,
+          "coverage_critical": 0.15384615384615385,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 19,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        }
+      ]
+    },
+    {
+      "target_risk": 0.15,
+      "n_seeds": 20,
+      "phase_summaries": {
+        "ordered": {
+          "n_seeds_with_data": 13,
+          "mean_risk": 0.14425585660403473,
+          "mean_coverage": 0.9730769230769231,
+          "failures_out_of_20": 5
+        },
+        "critical": {
+          "n_seeds_with_data": 2,
+          "mean_risk": 1.0,
+          "mean_coverage": 0.15384615384615385,
+          "failures_out_of_20": 2
+        },
+        "disordered": {
+          "n_seeds_with_data": 2,
+          "mean_risk": 0.5934065934065934,
+          "mean_coverage": 0.06060606060606061,
+          "failures_out_of_20": 2
+        }
+      },
+      "seed_records": [
+        {
+          "seed": 0,
+          "thresholds": {
+            "ordered": 0.4834,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.15384615384615385,
+          "coverage_ordered": 0.975,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 1,
+          "thresholds": {
+            "ordered": 0.4834,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.1794871794871795,
+          "coverage_ordered": 0.975,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 2,
+          "thresholds": {
+            "ordered": 0.4834,
+            "critical": 1.01,
+            "disordered": 0.0073
+          },
+          "risk_ordered": 0.1282051282051282,
+          "coverage_ordered": 0.975,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": 0.6153846153846154,
+          "coverage_disordered": 0.07878787878787878
+        },
+        {
+          "seed": 3,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 4,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 5,
+          "thresholds": {
+            "ordered": 0.4844,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.15789473684210525,
+          "coverage_ordered": 0.95,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 6,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 7,
+          "thresholds": {
+            "ordered": 0.4785,
+            "critical": 1.01,
+            "disordered": 0.0135
+          },
+          "risk_ordered": 0.125,
+          "coverage_ordered": 1.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": 0.5714285714285714,
+          "coverage_disordered": 0.04242424242424243
+        },
+        {
+          "seed": 8,
+          "thresholds": {
+            "ordered": 0.4844,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.13157894736842105,
+          "coverage_ordered": 0.95,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 9,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 10,
+          "thresholds": {
+            "ordered": 0.4785,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.15,
+          "coverage_ordered": 1.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 11,
+          "thresholds": {
+            "ordered": 0.4844,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.13157894736842105,
+          "coverage_ordered": 0.95,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 12,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 13,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 14,
+          "thresholds": {
+            "ordered": 1.01,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": null,
+          "coverage_ordered": 0.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 15,
+          "thresholds": {
+            "ordered": 0.4785,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.125,
+          "coverage_ordered": 1.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 16,
+          "thresholds": {
+            "ordered": 0.5127,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.1388888888888889,
+          "coverage_ordered": 0.9,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 17,
+          "thresholds": {
+            "ordered": 0.4834,
+            "critical": 0.2313,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.15384615384615385,
+          "coverage_ordered": 0.975,
+          "risk_critical": 1.0,
+          "coverage_critical": 0.15384615384615385,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 18,
+          "thresholds": {
+            "ordered": 0.4785,
+            "critical": 0.2313,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.175,
+          "coverage_ordered": 1.0,
+          "risk_critical": 1.0,
+          "coverage_critical": 0.15384615384615385,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        },
+        {
+          "seed": 19,
+          "thresholds": {
+            "ordered": 0.4785,
+            "critical": 1.01,
+            "disordered": 1.01
+          },
+          "risk_ordered": 0.125,
+          "coverage_ordered": 1.0,
+          "risk_critical": null,
+          "coverage_critical": 0.0,
+          "risk_disordered": null,
+          "coverage_disordered": 0.0
+        }
+      ]
+    }
+  ],
+  "interpretation": "Failures = seeds where holdout_risk > target_risk for that phase. Mondrian calibrates one threshold per phase so coverage holds conditionally within each stratum.  Compare to global conformal (results/conformal_repeated_splits.json) where 5%% target failed 20/20 splits."
+}

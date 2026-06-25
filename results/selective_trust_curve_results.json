@@ -1,0 +1,1313 @@
+{
+  "meta": {
+    "experiment": "selective_trust_curve",
+    "thermo_source": "results/thermodynamic_eval_results.json",
+    "ablation_source": "results/ablation_v2_canonical_results.json",
+    "n_items": 302,
+    "baseline_rate": 0.8278,
+    "random_trials_per_point": 5000
+  },
+  "spearman_rho_vs_majority_correctness": {
+    "trust_score": 0.0835,
+    "order_parameter": 0.0749,
+    "neg_temperature": 0.0523,
+    "neg_susceptibility": -0.0437
+  },
+  "curves": {
+    "trust_score": [
+      {
+        "coverage_pct": 0.1,
+        "k_covered": 30,
+        "correct": 26,
+        "accuracy": 0.8667,
+        "lift_vs_baseline": 0.0389,
+        "wilson_ci95": [
+          0.7032,
+          0.9469
+        ],
+        "p_value_one_sided_vs_baseline": 0.393082,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0651,
+        "lift_vs_random_mean": 0.039
+      },
+      {
+        "coverage_pct": 0.15,
+        "k_covered": 45,
+        "correct": 41,
+        "accuracy": 0.9111,
+        "lift_vs_baseline": 0.0833,
+        "wilson_ci95": [
+          0.7927,
+          0.9649
+        ],
+        "p_value_one_sided_vs_baseline": 0.093224,
+        "random_baseline_mean": 0.8289,
+        "random_baseline_stdev": 0.0521,
+        "lift_vs_random_mean": 0.0822
+      },
+      {
+        "coverage_pct": 0.2,
+        "k_covered": 60,
+        "correct": 55,
+        "accuracy": 0.9167,
+        "lift_vs_baseline": 0.0889,
+        "wilson_ci95": [
+          0.8193,
+          0.9639
+        ],
+        "p_value_one_sided_vs_baseline": 0.040942,
+        "random_baseline_mean": 0.8286,
+        "random_baseline_stdev": 0.0434,
+        "lift_vs_random_mean": 0.0881
+      },
+      {
+        "coverage_pct": 0.25,
+        "k_covered": 76,
+        "correct": 71,
+        "accuracy": 0.9342,
+        "lift_vs_baseline": 0.1064,
+        "wilson_ci95": [
+          0.8551,
+          0.9716
+        ],
+        "p_value_one_sided_vs_baseline": 0.006006,
+        "random_baseline_mean": 0.8276,
+        "random_baseline_stdev": 0.0374,
+        "lift_vs_random_mean": 0.1066
+      },
+      {
+        "coverage_pct": 0.3,
+        "k_covered": 91,
+        "correct": 82,
+        "accuracy": 0.9011,
+        "lift_vs_baseline": 0.0733,
+        "wilson_ci95": [
+          0.8226,
+          0.9471
+        ],
+        "p_value_one_sided_vs_baseline": 0.03688,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0328,
+        "lift_vs_random_mean": 0.0729
+      },
+      {
+        "coverage_pct": 0.4,
+        "k_covered": 121,
+        "correct": 100,
+        "accuracy": 0.8264,
+        "lift_vs_baseline": -0.0014,
+        "wilson_ci95": [
+          0.7492,
+          0.8836
+        ],
+        "p_value_one_sided_vs_baseline": 0.573721,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0263,
+        "lift_vs_random_mean": -0.0013
+      },
+      {
+        "coverage_pct": 0.5,
+        "k_covered": 151,
+        "correct": 123,
+        "accuracy": 0.8146,
+        "lift_vs_baseline": -0.0132,
+        "wilson_ci95": [
+          0.7451,
+          0.8685
+        ],
+        "p_value_one_sided_vs_baseline": 0.710693,
+        "random_baseline_mean": 0.8274,
+        "random_baseline_stdev": 0.0219,
+        "lift_vs_random_mean": -0.0128
+      },
+      {
+        "coverage_pct": 0.6,
+        "k_covered": 181,
+        "correct": 153,
+        "accuracy": 0.8453,
+        "lift_vs_baseline": 0.0175,
+        "wilson_ci95": [
+          0.7855,
+          0.8908
+        ],
+        "p_value_one_sided_vs_baseline": 0.305433,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0178,
+        "lift_vs_random_mean": 0.0171
+      },
+      {
+        "coverage_pct": 0.7,
+        "k_covered": 211,
+        "correct": 180,
+        "accuracy": 0.8531,
+        "lift_vs_baseline": 0.0253,
+        "wilson_ci95": [
+          0.799,
+          0.8945
+        ],
+        "p_value_one_sided_vs_baseline": 0.190334,
+        "random_baseline_mean": 0.828,
+        "random_baseline_stdev": 0.0143,
+        "lift_vs_random_mean": 0.0251
+      },
+      {
+        "coverage_pct": 0.8,
+        "k_covered": 242,
+        "correct": 205,
+        "accuracy": 0.8471,
+        "lift_vs_baseline": 0.0193,
+        "wilson_ci95": [
+          0.7964,
+          0.887
+        ],
+        "p_value_one_sided_vs_baseline": 0.241819,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0108,
+        "lift_vs_random_mean": 0.0194
+      },
+      {
+        "coverage_pct": 0.9,
+        "k_covered": 272,
+        "correct": 229,
+        "accuracy": 0.8419,
+        "lift_vs_baseline": 0.0141,
+        "wilson_ci95": [
+          0.7938,
+          0.8805
+        ],
+        "p_value_one_sided_vs_baseline": 0.300565,
+        "random_baseline_mean": 0.8279,
+        "random_baseline_stdev": 0.0072,
+        "lift_vs_random_mean": 0.014
+      },
+      {
+        "coverage_pct": 1.0,
+        "k_covered": 302,
+        "correct": 250,
+        "accuracy": 0.8278,
+        "lift_vs_baseline": 0.0,
+        "wilson_ci95": [
+          0.7812,
+          0.8662
+        ],
+        "p_value_one_sided_vs_baseline": 0.536956,
+        "random_baseline_mean": 0.8278,
+        "random_baseline_stdev": 0.0,
+        "lift_vs_random_mean": 0.0
+      }
+    ],
+    "order_parameter": [
+      {
+        "coverage_pct": 0.1,
+        "k_covered": 30,
+        "correct": 23,
+        "accuracy": 0.7667,
+        "lift_vs_baseline": -0.0611,
+        "wilson_ci95": [
+          0.5907,
+          0.8821
+        ],
+        "p_value_one_sided_vs_baseline": 0.868877,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0651,
+        "lift_vs_random_mean": -0.061
+      },
+      {
+        "coverage_pct": 0.15,
+        "k_covered": 45,
+        "correct": 37,
+        "accuracy": 0.8222,
+        "lift_vs_baseline": -0.0056,
+        "wilson_ci95": [
+          0.6867,
+          0.9071
+        ],
+        "p_value_one_sided_vs_baseline": 0.631524,
+        "random_baseline_mean": 0.8289,
+        "random_baseline_stdev": 0.0521,
+        "lift_vs_random_mean": -0.0067
+      },
+      {
+        "coverage_pct": 0.2,
+        "k_covered": 60,
+        "correct": 52,
+        "accuracy": 0.8667,
+        "lift_vs_baseline": 0.0389,
+        "wilson_ci95": [
+          0.7583,
+          0.9309
+        ],
+        "p_value_one_sided_vs_baseline": 0.273508,
+        "random_baseline_mean": 0.8286,
+        "random_baseline_stdev": 0.0434,
+        "lift_vs_random_mean": 0.0381
+      },
+      {
+        "coverage_pct": 0.25,
+        "k_covered": 76,
+        "correct": 68,
+        "accuracy": 0.8947,
+        "lift_vs_baseline": 0.0669,
+        "wilson_ci95": [
+          0.8058,
+          0.9457
+        ],
+        "p_value_one_sided_vs_baseline": 0.075865,
+        "random_baseline_mean": 0.8276,
+        "random_baseline_stdev": 0.0374,
+        "lift_vs_random_mean": 0.0671
+      },
+      {
+        "coverage_pct": 0.3,
+        "k_covered": 91,
+        "correct": 81,
+        "accuracy": 0.8901,
+        "lift_vs_baseline": 0.0623,
+        "wilson_ci95": [
+          0.8094,
+          0.9392
+        ],
+        "p_value_one_sided_vs_baseline": 0.070034,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0328,
+        "lift_vs_random_mean": 0.0619
+      },
+      {
+        "coverage_pct": 0.4,
+        "k_covered": 121,
+        "correct": 100,
+        "accuracy": 0.8264,
+        "lift_vs_baseline": -0.0014,
+        "wilson_ci95": [
+          0.7492,
+          0.8836
+        ],
+        "p_value_one_sided_vs_baseline": 0.573721,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0263,
+        "lift_vs_random_mean": -0.0013
+      },
+      {
+        "coverage_pct": 0.5,
+        "k_covered": 151,
+        "correct": 124,
+        "accuracy": 0.8212,
+        "lift_vs_baseline": -0.0066,
+        "wilson_ci95": [
+          0.7523,
+          0.8741
+        ],
+        "p_value_one_sided_vs_baseline": 0.634669,
+        "random_baseline_mean": 0.8274,
+        "random_baseline_stdev": 0.0219,
+        "lift_vs_random_mean": -0.0062
+      },
+      {
+        "coverage_pct": 0.6,
+        "k_covered": 181,
+        "correct": 152,
+        "accuracy": 0.8398,
+        "lift_vs_baseline": 0.012,
+        "wilson_ci95": [
+          0.7794,
+          0.8861
+        ],
+        "p_value_one_sided_vs_baseline": 0.378905,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0178,
+        "lift_vs_random_mean": 0.0116
+      },
+      {
+        "coverage_pct": 0.7,
+        "k_covered": 211,
+        "correct": 180,
+        "accuracy": 0.8531,
+        "lift_vs_baseline": 0.0253,
+        "wilson_ci95": [
+          0.799,
+          0.8945
+        ],
+        "p_value_one_sided_vs_baseline": 0.190334,
+        "random_baseline_mean": 0.828,
+        "random_baseline_stdev": 0.0143,
+        "lift_vs_random_mean": 0.0251
+      },
+      {
+        "coverage_pct": 0.8,
+        "k_covered": 242,
+        "correct": 205,
+        "accuracy": 0.8471,
+        "lift_vs_baseline": 0.0193,
+        "wilson_ci95": [
+          0.7964,
+          0.887
+        ],
+        "p_value_one_sided_vs_baseline": 0.241819,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0108,
+        "lift_vs_random_mean": 0.0194
+      },
+      {
+        "coverage_pct": 0.9,
+        "k_covered": 272,
+        "correct": 229,
+        "accuracy": 0.8419,
+        "lift_vs_baseline": 0.0141,
+        "wilson_ci95": [
+          0.7938,
+          0.8805
+        ],
+        "p_value_one_sided_vs_baseline": 0.300565,
+        "random_baseline_mean": 0.8279,
+        "random_baseline_stdev": 0.0072,
+        "lift_vs_random_mean": 0.014
+      },
+      {
+        "coverage_pct": 1.0,
+        "k_covered": 302,
+        "correct": 250,
+        "accuracy": 0.8278,
+        "lift_vs_baseline": 0.0,
+        "wilson_ci95": [
+          0.7812,
+          0.8662
+        ],
+        "p_value_one_sided_vs_baseline": 0.536956,
+        "random_baseline_mean": 0.8278,
+        "random_baseline_stdev": 0.0,
+        "lift_vs_random_mean": 0.0
+      }
+    ],
+    "neg_temperature": [
+      {
+        "coverage_pct": 0.1,
+        "k_covered": 30,
+        "correct": 27,
+        "accuracy": 0.9,
+        "lift_vs_baseline": 0.0722,
+        "wilson_ci95": [
+          0.7438,
+          0.9654
+        ],
+        "p_value_one_sided_vs_baseline": 0.21604,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0651,
+        "lift_vs_random_mean": 0.0723
+      },
+      {
+        "coverage_pct": 0.15,
+        "k_covered": 45,
+        "correct": 41,
+        "accuracy": 0.9111,
+        "lift_vs_baseline": 0.0833,
+        "wilson_ci95": [
+          0.7927,
+          0.9649
+        ],
+        "p_value_one_sided_vs_baseline": 0.093224,
+        "random_baseline_mean": 0.8289,
+        "random_baseline_stdev": 0.0521,
+        "lift_vs_random_mean": 0.0822
+      },
+      {
+        "coverage_pct": 0.2,
+        "k_covered": 60,
+        "correct": 56,
+        "accuracy": 0.9333,
+        "lift_vs_baseline": 0.1055,
+        "wilson_ci95": [
+          0.8407,
+          0.9738
+        ],
+        "p_value_one_sided_vs_baseline": 0.015614,
+        "random_baseline_mean": 0.8286,
+        "random_baseline_stdev": 0.0434,
+        "lift_vs_random_mean": 0.1047
+      },
+      {
+        "coverage_pct": 0.25,
+        "k_covered": 76,
+        "correct": 72,
+        "accuracy": 0.9474,
+        "lift_vs_baseline": 0.1196,
+        "wilson_ci95": [
+          0.8723,
+          0.9793
+        ],
+        "p_value_one_sided_vs_baseline": 0.001839,
+        "random_baseline_mean": 0.8276,
+        "random_baseline_stdev": 0.0374,
+        "lift_vs_random_mean": 0.1198
+      },
+      {
+        "coverage_pct": 0.3,
+        "k_covered": 91,
+        "correct": 84,
+        "accuracy": 0.9231,
+        "lift_vs_baseline": 0.0953,
+        "wilson_ci95": [
+          0.8496,
+          0.9622
+        ],
+        "p_value_one_sided_vs_baseline": 0.007307,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0328,
+        "lift_vs_random_mean": 0.0949
+      },
+      {
+        "coverage_pct": 0.4,
+        "k_covered": 121,
+        "correct": 100,
+        "accuracy": 0.8264,
+        "lift_vs_baseline": -0.0014,
+        "wilson_ci95": [
+          0.7492,
+          0.8836
+        ],
+        "p_value_one_sided_vs_baseline": 0.573721,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0263,
+        "lift_vs_random_mean": -0.0013
+      },
+      {
+        "coverage_pct": 0.5,
+        "k_covered": 151,
+        "correct": 123,
+        "accuracy": 0.8146,
+        "lift_vs_baseline": -0.0132,
+        "wilson_ci95": [
+          0.7451,
+          0.8685
+        ],
+        "p_value_one_sided_vs_baseline": 0.710693,
+        "random_baseline_mean": 0.8274,
+        "random_baseline_stdev": 0.0219,
+        "lift_vs_random_mean": -0.0128
+      },
+      {
+        "coverage_pct": 0.6,
+        "k_covered": 181,
+        "correct": 149,
+        "accuracy": 0.8232,
+        "lift_vs_baseline": -0.0046,
+        "wilson_ci95": [
+          0.7611,
+          0.8719
+        ],
+        "p_value_one_sided_vs_baseline": 0.611269,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0178,
+        "lift_vs_random_mean": -0.005
+      },
+      {
+        "coverage_pct": 0.7,
+        "k_covered": 211,
+        "correct": 174,
+        "accuracy": 0.8246,
+        "lift_vs_baseline": -0.0032,
+        "wilson_ci95": [
+          0.7677,
+          0.87
+        ],
+        "p_value_one_sided_vs_baseline": 0.591761,
+        "random_baseline_mean": 0.828,
+        "random_baseline_stdev": 0.0143,
+        "lift_vs_random_mean": -0.0034
+      },
+      {
+        "coverage_pct": 0.8,
+        "k_covered": 242,
+        "correct": 202,
+        "accuracy": 0.8347,
+        "lift_vs_baseline": 0.0069,
+        "wilson_ci95": [
+          0.7828,
+          0.8762
+        ],
+        "p_value_one_sided_vs_baseline": 0.4282,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0108,
+        "lift_vs_random_mean": 0.007
+      },
+      {
+        "coverage_pct": 0.9,
+        "k_covered": 272,
+        "correct": 228,
+        "accuracy": 0.8382,
+        "lift_vs_baseline": 0.0104,
+        "wilson_ci95": [
+          0.7898,
+          0.8772
+        ],
+        "p_value_one_sided_vs_baseline": 0.359573,
+        "random_baseline_mean": 0.8279,
+        "random_baseline_stdev": 0.0072,
+        "lift_vs_random_mean": 0.0103
+      },
+      {
+        "coverage_pct": 1.0,
+        "k_covered": 302,
+        "correct": 250,
+        "accuracy": 0.8278,
+        "lift_vs_baseline": 0.0,
+        "wilson_ci95": [
+          0.7812,
+          0.8662
+        ],
+        "p_value_one_sided_vs_baseline": 0.536956,
+        "random_baseline_mean": 0.8278,
+        "random_baseline_stdev": 0.0,
+        "lift_vs_random_mean": 0.0
+      }
+    ],
+    "neg_susceptibility": [
+      {
+        "coverage_pct": 0.1,
+        "k_covered": 30,
+        "correct": 20,
+        "accuracy": 0.6667,
+        "lift_vs_baseline": -0.1611,
+        "wilson_ci95": [
+          0.4878,
+          0.8077
+        ],
+        "p_value_one_sided_vs_baseline": 0.991353,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0651,
+        "lift_vs_random_mean": -0.161
+      },
+      {
+        "coverage_pct": 0.15,
+        "k_covered": 45,
+        "correct": 31,
+        "accuracy": 0.6889,
+        "lift_vs_baseline": -0.1389,
+        "wilson_ci95": [
+          0.5433,
+          0.8047
+        ],
+        "p_value_one_sided_vs_baseline": 0.993434,
+        "random_baseline_mean": 0.8289,
+        "random_baseline_stdev": 0.0521,
+        "lift_vs_random_mean": -0.14
+      },
+      {
+        "coverage_pct": 0.2,
+        "k_covered": 60,
+        "correct": 46,
+        "accuracy": 0.7667,
+        "lift_vs_baseline": -0.0611,
+        "wilson_ci95": [
+          0.6456,
+          0.8556
+        ],
+        "p_value_one_sided_vs_baseline": 0.918559,
+        "random_baseline_mean": 0.8286,
+        "random_baseline_stdev": 0.0434,
+        "lift_vs_random_mean": -0.0619
+      },
+      {
+        "coverage_pct": 0.25,
+        "k_covered": 76,
+        "correct": 60,
+        "accuracy": 0.7895,
+        "lift_vs_baseline": -0.0383,
+        "wilson_ci95": [
+          0.685,
+          0.866
+        ],
+        "p_value_one_sided_vs_baseline": 0.850053,
+        "random_baseline_mean": 0.8276,
+        "random_baseline_stdev": 0.0374,
+        "lift_vs_random_mean": -0.0381
+      },
+      {
+        "coverage_pct": 0.3,
+        "k_covered": 91,
+        "correct": 74,
+        "accuracy": 0.8132,
+        "lift_vs_baseline": -0.0146,
+        "wilson_ci95": [
+          0.721,
+          0.88
+        ],
+        "p_value_one_sided_vs_baseline": 0.702172,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0328,
+        "lift_vs_random_mean": -0.015
+      },
+      {
+        "coverage_pct": 0.4,
+        "k_covered": 121,
+        "correct": 100,
+        "accuracy": 0.8264,
+        "lift_vs_baseline": -0.0014,
+        "wilson_ci95": [
+          0.7492,
+          0.8836
+        ],
+        "p_value_one_sided_vs_baseline": 0.573721,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0263,
+        "lift_vs_random_mean": -0.0013
+      },
+      {
+        "coverage_pct": 0.5,
+        "k_covered": 151,
+        "correct": 125,
+        "accuracy": 0.8278,
+        "lift_vs_baseline": 0.0,
+        "wilson_ci95": [
+          0.7597,
+          0.8797
+        ],
+        "p_value_one_sided_vs_baseline": 0.552136,
+        "random_baseline_mean": 0.8274,
+        "random_baseline_stdev": 0.0219,
+        "lift_vs_random_mean": 0.0004
+      },
+      {
+        "coverage_pct": 0.6,
+        "k_covered": 181,
+        "correct": 147,
+        "accuracy": 0.8122,
+        "lift_vs_baseline": -0.0157,
+        "wilson_ci95": [
+          0.749,
+          0.8623
+        ],
+        "p_value_one_sided_vs_baseline": 0.74814,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0178,
+        "lift_vs_random_mean": -0.016
+      },
+      {
+        "coverage_pct": 0.7,
+        "k_covered": 211,
+        "correct": 172,
+        "accuracy": 0.8152,
+        "lift_vs_baseline": -0.0126,
+        "wilson_ci95": [
+          0.7573,
+          0.8617
+        ],
+        "p_value_one_sided_vs_baseline": 0.722733,
+        "random_baseline_mean": 0.828,
+        "random_baseline_stdev": 0.0143,
+        "lift_vs_random_mean": -0.0128
+      },
+      {
+        "coverage_pct": 0.8,
+        "k_covered": 242,
+        "correct": 200,
+        "accuracy": 0.8264,
+        "lift_vs_baseline": -0.0014,
+        "wilson_ci95": [
+          0.7737,
+          0.869
+        ],
+        "p_value_one_sided_vs_baseline": 0.563446,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0108,
+        "lift_vs_random_mean": -0.0013
+      },
+      {
+        "coverage_pct": 0.9,
+        "k_covered": 272,
+        "correct": 224,
+        "accuracy": 0.8235,
+        "lift_vs_baseline": -0.0043,
+        "wilson_ci95": [
+          0.7738,
+          0.8642
+        ],
+        "p_value_one_sided_vs_baseline": 0.611677,
+        "random_baseline_mean": 0.8279,
+        "random_baseline_stdev": 0.0072,
+        "lift_vs_random_mean": -0.0044
+      },
+      {
+        "coverage_pct": 1.0,
+        "k_covered": 302,
+        "correct": 250,
+        "accuracy": 0.8278,
+        "lift_vs_baseline": 0.0,
+        "wilson_ci95": [
+          0.7812,
+          0.8662
+        ],
+        "p_value_one_sided_vs_baseline": 0.536956,
+        "random_baseline_mean": 0.8278,
+        "random_baseline_stdev": 0.0,
+        "lift_vs_random_mean": 0.0
+      }
+    ],
+    "composite_eta_minus_chi": [
+      {
+        "coverage_pct": 0.1,
+        "k_covered": 30,
+        "correct": 26,
+        "accuracy": 0.8667,
+        "lift_vs_baseline": 0.0389,
+        "wilson_ci95": [
+          0.7032,
+          0.9469
+        ],
+        "p_value_one_sided_vs_baseline": 0.393082,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0651,
+        "lift_vs_random_mean": 0.039
+      },
+      {
+        "coverage_pct": 0.15,
+        "k_covered": 45,
+        "correct": 41,
+        "accuracy": 0.9111,
+        "lift_vs_baseline": 0.0833,
+        "wilson_ci95": [
+          0.7927,
+          0.9649
+        ],
+        "p_value_one_sided_vs_baseline": 0.093224,
+        "random_baseline_mean": 0.8289,
+        "random_baseline_stdev": 0.0521,
+        "lift_vs_random_mean": 0.0822
+      },
+      {
+        "coverage_pct": 0.2,
+        "k_covered": 60,
+        "correct": 55,
+        "accuracy": 0.9167,
+        "lift_vs_baseline": 0.0889,
+        "wilson_ci95": [
+          0.8193,
+          0.9639
+        ],
+        "p_value_one_sided_vs_baseline": 0.040942,
+        "random_baseline_mean": 0.8286,
+        "random_baseline_stdev": 0.0434,
+        "lift_vs_random_mean": 0.0881
+      },
+      {
+        "coverage_pct": 0.25,
+        "k_covered": 76,
+        "correct": 71,
+        "accuracy": 0.9342,
+        "lift_vs_baseline": 0.1064,
+        "wilson_ci95": [
+          0.8551,
+          0.9716
+        ],
+        "p_value_one_sided_vs_baseline": 0.006006,
+        "random_baseline_mean": 0.8276,
+        "random_baseline_stdev": 0.0374,
+        "lift_vs_random_mean": 0.1066
+      },
+      {
+        "coverage_pct": 0.3,
+        "k_covered": 91,
+        "correct": 81,
+        "accuracy": 0.8901,
+        "lift_vs_baseline": 0.0623,
+        "wilson_ci95": [
+          0.8094,
+          0.9392
+        ],
+        "p_value_one_sided_vs_baseline": 0.070034,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0328,
+        "lift_vs_random_mean": 0.0619
+      },
+      {
+        "coverage_pct": 0.4,
+        "k_covered": 121,
+        "correct": 102,
+        "accuracy": 0.843,
+        "lift_vs_baseline": 0.0152,
+        "wilson_ci95": [
+          0.7677,
+          0.8971
+        ],
+        "p_value_one_sided_vs_baseline": 0.383171,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0263,
+        "lift_vs_random_mean": 0.0153
+      },
+      {
+        "coverage_pct": 0.5,
+        "k_covered": 151,
+        "correct": 121,
+        "accuracy": 0.8013,
+        "lift_vs_baseline": -0.0265,
+        "wilson_ci95": [
+          0.7306,
+          0.8571
+        ],
+        "p_value_one_sided_vs_baseline": 0.834493,
+        "random_baseline_mean": 0.8274,
+        "random_baseline_stdev": 0.0219,
+        "lift_vs_random_mean": -0.0261
+      },
+      {
+        "coverage_pct": 0.6,
+        "k_covered": 181,
+        "correct": 147,
+        "accuracy": 0.8122,
+        "lift_vs_baseline": -0.0157,
+        "wilson_ci95": [
+          0.749,
+          0.8623
+        ],
+        "p_value_one_sided_vs_baseline": 0.74814,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0178,
+        "lift_vs_random_mean": -0.016
+      },
+      {
+        "coverage_pct": 0.7,
+        "k_covered": 211,
+        "correct": 176,
+        "accuracy": 0.8341,
+        "lift_vs_baseline": 0.0063,
+        "wilson_ci95": [
+          0.7781,
+          0.8782
+        ],
+        "p_value_one_sided_vs_baseline": 0.447536,
+        "random_baseline_mean": 0.828,
+        "random_baseline_stdev": 0.0143,
+        "lift_vs_random_mean": 0.0061
+      },
+      {
+        "coverage_pct": 0.8,
+        "k_covered": 242,
+        "correct": 204,
+        "accuracy": 0.843,
+        "lift_vs_baseline": 0.0152,
+        "wilson_ci95": [
+          0.7918,
+          0.8834
+        ],
+        "p_value_one_sided_vs_baseline": 0.299407,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0108,
+        "lift_vs_random_mean": 0.0153
+      },
+      {
+        "coverage_pct": 0.9,
+        "k_covered": 272,
+        "correct": 225,
+        "accuracy": 0.8272,
+        "lift_vs_baseline": -0.0006,
+        "wilson_ci95": [
+          0.7778,
+          0.8675
+        ],
+        "p_value_one_sided_vs_baseline": 0.549432,
+        "random_baseline_mean": 0.8279,
+        "random_baseline_stdev": 0.0072,
+        "lift_vs_random_mean": -0.0007
+      },
+      {
+        "coverage_pct": 1.0,
+        "k_covered": 302,
+        "correct": 250,
+        "accuracy": 0.8278,
+        "lift_vs_baseline": 0.0,
+        "wilson_ci95": [
+          0.7812,
+          0.8662
+        ],
+        "p_value_one_sided_vs_baseline": 0.536956,
+        "random_baseline_mean": 0.8278,
+        "random_baseline_stdev": 0.0,
+        "lift_vs_random_mean": 0.0
+      }
+    ],
+    "composite_trust_minus_temp": [
+      {
+        "coverage_pct": 0.1,
+        "k_covered": 30,
+        "correct": 27,
+        "accuracy": 0.9,
+        "lift_vs_baseline": 0.0722,
+        "wilson_ci95": [
+          0.7438,
+          0.9654
+        ],
+        "p_value_one_sided_vs_baseline": 0.21604,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0651,
+        "lift_vs_random_mean": 0.0723
+      },
+      {
+        "coverage_pct": 0.15,
+        "k_covered": 45,
+        "correct": 41,
+        "accuracy": 0.9111,
+        "lift_vs_baseline": 0.0833,
+        "wilson_ci95": [
+          0.7927,
+          0.9649
+        ],
+        "p_value_one_sided_vs_baseline": 0.093224,
+        "random_baseline_mean": 0.8289,
+        "random_baseline_stdev": 0.0521,
+        "lift_vs_random_mean": 0.0822
+      },
+      {
+        "coverage_pct": 0.2,
+        "k_covered": 60,
+        "correct": 56,
+        "accuracy": 0.9333,
+        "lift_vs_baseline": 0.1055,
+        "wilson_ci95": [
+          0.8407,
+          0.9738
+        ],
+        "p_value_one_sided_vs_baseline": 0.015614,
+        "random_baseline_mean": 0.8286,
+        "random_baseline_stdev": 0.0434,
+        "lift_vs_random_mean": 0.1047
+      },
+      {
+        "coverage_pct": 0.25,
+        "k_covered": 76,
+        "correct": 72,
+        "accuracy": 0.9474,
+        "lift_vs_baseline": 0.1196,
+        "wilson_ci95": [
+          0.8723,
+          0.9793
+        ],
+        "p_value_one_sided_vs_baseline": 0.001839,
+        "random_baseline_mean": 0.8276,
+        "random_baseline_stdev": 0.0374,
+        "lift_vs_random_mean": 0.1198
+      },
+      {
+        "coverage_pct": 0.3,
+        "k_covered": 91,
+        "correct": 82,
+        "accuracy": 0.9011,
+        "lift_vs_baseline": 0.0733,
+        "wilson_ci95": [
+          0.8226,
+          0.9471
+        ],
+        "p_value_one_sided_vs_baseline": 0.03688,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0328,
+        "lift_vs_random_mean": 0.0729
+      },
+      {
+        "coverage_pct": 0.4,
+        "k_covered": 121,
+        "correct": 100,
+        "accuracy": 0.8264,
+        "lift_vs_baseline": -0.0014,
+        "wilson_ci95": [
+          0.7492,
+          0.8836
+        ],
+        "p_value_one_sided_vs_baseline": 0.573721,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0263,
+        "lift_vs_random_mean": -0.0013
+      },
+      {
+        "coverage_pct": 0.5,
+        "k_covered": 151,
+        "correct": 122,
+        "accuracy": 0.8079,
+        "lift_vs_baseline": -0.0199,
+        "wilson_ci95": [
+          0.7378,
+          0.8628
+        ],
+        "p_value_one_sided_vs_baseline": 0.777762,
+        "random_baseline_mean": 0.8274,
+        "random_baseline_stdev": 0.0219,
+        "lift_vs_random_mean": -0.0195
+      },
+      {
+        "coverage_pct": 0.6,
+        "k_covered": 181,
+        "correct": 149,
+        "accuracy": 0.8232,
+        "lift_vs_baseline": -0.0046,
+        "wilson_ci95": [
+          0.7611,
+          0.8719
+        ],
+        "p_value_one_sided_vs_baseline": 0.611269,
+        "random_baseline_mean": 0.8282,
+        "random_baseline_stdev": 0.0178,
+        "lift_vs_random_mean": -0.005
+      },
+      {
+        "coverage_pct": 0.7,
+        "k_covered": 211,
+        "correct": 177,
+        "accuracy": 0.8389,
+        "lift_vs_baseline": 0.011,
+        "wilson_ci95": [
+          0.7833,
+          0.8823
+        ],
+        "p_value_one_sided_vs_baseline": 0.376041,
+        "random_baseline_mean": 0.828,
+        "random_baseline_stdev": 0.0143,
+        "lift_vs_random_mean": 0.0109
+      },
+      {
+        "coverage_pct": 0.8,
+        "k_covered": 242,
+        "correct": 202,
+        "accuracy": 0.8347,
+        "lift_vs_baseline": 0.0069,
+        "wilson_ci95": [
+          0.7828,
+          0.8762
+        ],
+        "p_value_one_sided_vs_baseline": 0.4282,
+        "random_baseline_mean": 0.8277,
+        "random_baseline_stdev": 0.0108,
+        "lift_vs_random_mean": 0.007
+      },
+      {
+        "coverage_pct": 0.9,
+        "k_covered": 272,
+        "correct": 229,
+        "accuracy": 0.8419,
+        "lift_vs_baseline": 0.0141,
+        "wilson_ci95": [
+          0.7938,
+          0.8805
+        ],
+        "p_value_one_sided_vs_baseline": 0.300565,
+        "random_baseline_mean": 0.8279,
+        "random_baseline_stdev": 0.0072,
+        "lift_vs_random_mean": 0.014
+      },
+      {
+        "coverage_pct": 1.0,
+        "k_covered": 302,
+        "correct": 250,
+        "accuracy": 0.8278,
+        "lift_vs_baseline": 0.0,
+        "wilson_ci95": [
+          0.7812,
+          0.8662
+        ],
+        "p_value_one_sided_vs_baseline": 0.536956,
+        "random_baseline_mean": 0.8278,
+        "random_baseline_stdev": 0.0,
+        "lift_vs_random_mean": 0.0
+      }
+    ]
+  },
+  "breakthrough_operating_points": [
+    {
+      "signal": "trust_score",
+      "coverage_pct": 0.2,
+      "k_covered": 60,
+      "accuracy": 0.9167,
+      "lift_vs_baseline": 0.0889,
+      "p_value": 0.040942,
+      "wilson_ci95": [
+        0.8193,
+        0.9639
+      ]
+    },
+    {
+      "signal": "trust_score",
+      "coverage_pct": 0.25,
+      "k_covered": 76,
+      "accuracy": 0.9342,
+      "lift_vs_baseline": 0.1064,
+      "p_value": 0.006006,
+      "wilson_ci95": [
+        0.8551,
+        0.9716
+      ]
+    },
+    {
+      "signal": "trust_score",
+      "coverage_pct": 0.3,
+      "k_covered": 91,
+      "accuracy": 0.9011,
+      "lift_vs_baseline": 0.0733,
+      "p_value": 0.03688,
+      "wilson_ci95": [
+        0.8226,
+        0.9471
+      ]
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage_pct": 0.2,
+      "k_covered": 60,
+      "accuracy": 0.9333,
+      "lift_vs_baseline": 0.1055,
+      "p_value": 0.015614,
+      "wilson_ci95": [
+        0.8407,
+        0.9738
+      ]
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage_pct": 0.25,
+      "k_covered": 76,
+      "accuracy": 0.9474,
+      "lift_vs_baseline": 0.1196,
+      "p_value": 0.001839,
+      "wilson_ci95": [
+        0.8723,
+        0.9793
+      ]
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage_pct": 0.3,
+      "k_covered": 91,
+      "accuracy": 0.9231,
+      "lift_vs_baseline": 0.0953,
+      "p_value": 0.007307,
+      "wilson_ci95": [
+        0.8496,
+        0.9622
+      ]
+    },
+    {
+      "signal": "composite_eta_minus_chi",
+      "coverage_pct": 0.2,
+      "k_covered": 60,
+      "accuracy": 0.9167,
+      "lift_vs_baseline": 0.0889,
+      "p_value": 0.040942,
+      "wilson_ci95": [
+        0.8193,
+        0.9639
+      ]
+    },
+    {
+      "signal": "composite_eta_minus_chi",
+      "coverage_pct": 0.25,
+      "k_covered": 76,
+      "accuracy": 0.9342,
+      "lift_vs_baseline": 0.1064,
+      "p_value": 0.006006,
+      "wilson_ci95": [
+        0.8551,
+        0.9716
+      ]
+    },
+    {
+      "signal": "composite_trust_minus_temp",
+      "coverage_pct": 0.2,
+      "k_covered": 60,
+      "accuracy": 0.9333,
+      "lift_vs_baseline": 0.1055,
+      "p_value": 0.015614,
+      "wilson_ci95": [
+        0.8407,
+        0.9738
+      ]
+    },
+    {
+      "signal": "composite_trust_minus_temp",
+      "coverage_pct": 0.25,
+      "k_covered": 76,
+      "accuracy": 0.9474,
+      "lift_vs_baseline": 0.1196,
+      "p_value": 0.001839,
+      "wilson_ci95": [
+        0.8723,
+        0.9793
+      ]
+    },
+    {
+      "signal": "composite_trust_minus_temp",
+      "coverage_pct": 0.3,
+      "k_covered": 91,
+      "accuracy": 0.9011,
+      "lift_vs_baseline": 0.0733,
+      "p_value": 0.03688,
+      "wilson_ci95": [
+        0.8226,
+        0.9471
+      ]
+    }
+  ],
+  "best_operating_point_per_signal": {
+    "trust_score": {
+      "coverage_pct": 0.25,
+      "k_covered": 76,
+      "correct": 71,
+      "accuracy": 0.9342,
+      "lift_vs_baseline": 0.1064,
+      "wilson_ci95": [
+        0.8551,
+        0.9716
+      ],
+      "p_value_one_sided_vs_baseline": 0.006006,
+      "random_baseline_mean": 0.8276,
+      "random_baseline_stdev": 0.0374,
+      "lift_vs_random_mean": 0.1066
+    },
+    "order_parameter": null,
+    "neg_temperature": {
+      "coverage_pct": 0.25,
+      "k_covered": 76,
+      "correct": 72,
+      "accuracy": 0.9474,
+      "lift_vs_baseline": 0.1196,
+      "wilson_ci95": [
+        0.8723,
+        0.9793
+      ],
+      "p_value_one_sided_vs_baseline": 0.001839,
+      "random_baseline_mean": 0.8276,
+      "random_baseline_stdev": 0.0374,
+      "lift_vs_random_mean": 0.1198
+    },
+    "neg_susceptibility": null,
+    "composite_eta_minus_chi": {
+      "coverage_pct": 0.25,
+      "k_covered": 76,
+      "correct": 71,
+      "accuracy": 0.9342,
+      "lift_vs_baseline": 0.1064,
+      "wilson_ci95": [
+        0.8551,
+        0.9716
+      ],
+      "p_value_one_sided_vs_baseline": 0.006006,
+      "random_baseline_mean": 0.8276,
+      "random_baseline_stdev": 0.0374,
+      "lift_vs_random_mean": 0.1066
+    },
+    "composite_trust_minus_temp": {
+      "coverage_pct": 0.25,
+      "k_covered": 76,
+      "correct": 72,
+      "accuracy": 0.9474,
+      "lift_vs_baseline": 0.1196,
+      "wilson_ci95": [
+        0.8723,
+        0.9793
+      ],
+      "p_value_one_sided_vs_baseline": 0.001839,
+      "random_baseline_mean": 0.8276,
+      "random_baseline_stdev": 0.0374,
+      "lift_vs_random_mean": 0.1198
+    }
+  },
+  "summary": {
+    "baseline_accuracy": 0.8278,
+    "n_significant_points": 11,
+    "strongest_signal": "neg_temperature"
+  }
+}

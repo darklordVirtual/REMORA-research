@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "experiment": "bootstrap_trust_curve",
+    "thermo_source": "results/thermodynamic_eval_results.json",
+    "ablation_source": "results/ablation_v2_canonical_results.json",
+    "n_items": 302,
+    "n_bootstrap": 2000,
+    "baseline_full_accuracy": 0.8278
+  },
+  "signals": {
+    "neg_temperature": {
+      "0.15": {
+        "coverage_pct": 0.15,
+        "mean_lift": 0.0943,
+        "sd_lift": 0.0411,
+        "bootstrap_ci95_lo": 0.0133,
+        "bootstrap_ci95_hi": 0.1698,
+        "positive_signal_rate": 0.986,
+        "bootstrap_validated": true
+      },
+      "0.2": {
+        "coverage_pct": 0.2,
+        "mean_lift": 0.1066,
+        "sd_lift": 0.0347,
+        "bootstrap_ci95_lo": 0.0354,
+        "bootstrap_ci95_hi": 0.1752,
+        "positive_signal_rate": 0.9975,
+        "bootstrap_validated": true
+      },
+      "0.25": {
+        "coverage_pct": 0.25,
+        "mean_lift": 0.1162,
+        "sd_lift": 0.0304,
+        "bootstrap_ci95_lo": 0.0535,
+        "bootstrap_ci95_hi": 0.1755,
+        "positive_signal_rate": 0.999,
+        "bootstrap_validated": true
+      },
+      "0.3": {
+        "coverage_pct": 0.3,
+        "mean_lift": 0.0857,
+        "sd_lift": 0.0398,
+        "bootstrap_ci95_lo": -0.0036,
+        "bootstrap_ci95_hi": 0.1547,
+        "positive_signal_rate": 0.97,
+        "bootstrap_validated": false
+      },
+      "0.4": {
+        "coverage_pct": 0.4,
+        "mean_lift": -0.005,
+        "sd_lift": 0.0293,
+        "bootstrap_ci95_lo": -0.0609,
+        "bootstrap_ci95_hi": 0.0549,
+        "positive_signal_rate": 0.4185,
+        "bootstrap_validated": false
+      },
+      "0.5": {
+        "coverage_pct": 0.5,
+        "mean_lift": -0.015,
+        "sd_lift": 0.0224,
+        "bootstrap_ci95_lo": -0.0596,
+        "bootstrap_ci95_hi": 0.0298,
+        "positive_signal_rate": 0.2255,
+        "bootstrap_validated": false
+      }
+    },
+    "trust_score": {
+      "0.15": {
+        "coverage_pct": 0.15,
+        "mean_lift": 0.0736,
+        "sd_lift": 0.0442,
+        "bootstrap_ci95_lo": -0.0202,
+        "bootstrap_ci95_hi": 0.1533,
+        "positive_signal_rate": 0.9465,
+        "bootstrap_validated": false
+      },
+      "0.2": {
+        "coverage_pct": 0.2,
+        "mean_lift": 0.0884,
+        "sd_lift": 0.0376,
+        "bootstrap_ci95_lo": 0.0087,
+        "bootstrap_ci95_hi": 0.1585,
+        "positive_signal_rate": 0.982,
+        "bootstrap_validated": true
+      },
+      "0.25": {
+        "coverage_pct": 0.25,
+        "mean_lift": 0.0981,
+        "sd_lift": 0.0319,
+        "bootstrap_ci95_lo": 0.0307,
+        "bootstrap_ci95_hi": 0.1559,
+        "positive_signal_rate": 0.9965,
+        "bootstrap_validated": true
+      },
+      "0.3": {
+        "coverage_pct": 0.3,
+        "mean_lift": 0.0706,
+        "sd_lift": 0.0346,
+        "bootstrap_ci95_lo": 0.0006,
+        "bootstrap_ci95_hi": 0.1338,
+        "positive_signal_rate": 0.975,
+        "bootstrap_validated": true
+      },
+      "0.4": {
+        "coverage_pct": 0.4,
+        "mean_lift": 0.0013,
+        "sd_lift": 0.0297,
+        "bootstrap_ci95_lo": -0.0542,
+        "bootstrap_ci95_hi": 0.0615,
+        "positive_signal_rate": 0.5205,
+        "bootstrap_validated": false
+      },
+      "0.5": {
+        "coverage_pct": 0.5,
+        "mean_lift": -0.0054,
+        "sd_lift": 0.0226,
+        "bootstrap_ci95_lo": -0.0497,
+        "bootstrap_ci95_hi": 0.0397,
+        "positive_signal_rate": 0.375,
+        "bootstrap_validated": false
+      }
+    }
+  },
+  "headline_neg_temperature_25pct": {
+    "coverage_pct": 0.25,
+    "mean_lift": 0.1162,
+    "sd_lift": 0.0304,
+    "bootstrap_ci95_lo": 0.0535,
+    "bootstrap_ci95_hi": 0.1755,
+    "positive_signal_rate": 0.999,
+    "bootstrap_validated": true
+  },
+  "summary": {
+    "headline_mean_lift": 0.1162,
+    "headline_ci95_lo": 0.0535,
+    "headline_positive_rate": 0.999,
+    "bootstrap_validated": true
+  }
+}

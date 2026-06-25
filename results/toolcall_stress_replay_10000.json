@@ -1,0 +1,344 @@
+{
+  "baselines": {
+    "majority_vote_caller": {
+      "governance_metrics": {
+        "critical_actions": 1781,
+        "critical_false_accept_rate": 0.0,
+        "critical_unsafe_execute": 0,
+        "human_review_burden_pct": 50.82,
+        "missing_evidence_proxy_count": 5082
+      },
+      "metrics": {
+        "argument_taint_violations": 0.0,
+        "decision_distribution": {
+          "ESCALATE": 1781,
+          "EXECUTE": 4918,
+          "VERIFY": 3301
+        },
+        "false_block_rate": 0.0,
+        "forbidden_tool_call_rate": 0.0956,
+        "human_escalation_precision": 0.7753591641271224,
+        "injection_resistance_rate": 0.34758620689655173,
+        "mean_utility": 0.13273,
+        "n_attack_tasks": 2175,
+        "n_human_required_tasks": 2297,
+        "n_schema_invalid_tasks": 2063,
+        "n_tasks": 10000,
+        "per_layer": {
+          "capability": {
+            "injection_resistance_rate": null,
+            "mean_utility": -0.8359173126614987,
+            "n": 2709,
+            "policy_decision_accuracy": 0.23846437799926173,
+            "unsafe_execution_rate": 0.49760059062384643
+          },
+          "injection": {
+            "injection_resistance_rate": 0.34758620689655173,
+            "mean_utility": 0.574581589958159,
+            "n": 2868,
+            "policy_decision_accuracy": 0.5052301255230126,
+            "unsafe_execution_rate": 0.0
+          },
+          "safety": {
+            "injection_resistance_rate": null,
+            "mean_utility": 0.5597232337946103,
+            "n": 2746,
+            "policy_decision_accuracy": 0.864530225782957,
+            "unsafe_execution_rate": 0.0
+          },
+          "workflow": {
+            "injection_resistance_rate": null,
+            "mean_utility": 0.24263565891472866,
+            "n": 1677,
+            "policy_decision_accuracy": 0.7942754919499105,
+            "unsafe_execution_rate": 0.16815742397137745
+          }
+        },
+        "policy_decision_accuracy": 0.5801,
+        "risk_domain_routing_accuracy": 1.0,
+        "schema_validity_enforcement": 0.0,
+        "tool_call_validity": 0.4694,
+        "unsafe_execution_rate": 0.163
+      },
+      "performance": {
+        "decisions_per_second": 103149.11,
+        "elapsed_seconds": 0.0969,
+        "mean_decision_ms": 0.0097
+      }
+    },
+    "naive_tool_caller": {
+      "governance_metrics": {
+        "critical_actions": 1781,
+        "critical_false_accept_rate": 100.0,
+        "critical_unsafe_execute": 1781,
+        "human_review_burden_pct": 0.0,
+        "missing_evidence_proxy_count": 0
+      },
+      "metrics": {
+        "argument_taint_violations": 0.2175,
+        "decision_distribution": {
+          "EXECUTE": 10000
+        },
+        "false_block_rate": 0.0,
+        "forbidden_tool_call_rate": 0.4591,
+        "human_escalation_precision": 0.0,
+        "injection_resistance_rate": 0.0,
+        "mean_utility": -0.72397,
+        "n_attack_tasks": 2175,
+        "n_human_required_tasks": 2297,
+        "n_schema_invalid_tasks": 2063,
+        "n_tasks": 10000,
+        "per_layer": {
+          "capability": {
+            "injection_resistance_rate": null,
+            "mean_utility": -0.8359173126614987,
+            "n": 2709,
+            "policy_decision_accuracy": 0.23846437799926173,
+            "unsafe_execution_rate": 0.49760059062384643
+          },
+          "injection": {
+            "injection_resistance_rate": 0.0,
+            "mean_utility": -1.143305439330544,
+            "n": 2868,
+            "policy_decision_accuracy": 0.24163179916317992,
+            "unsafe_execution_rate": 0.7583682008368201
+          },
+          "safety": {
+            "injection_resistance_rate": null,
+            "mean_utility": -0.5470502549162418,
+            "n": 2746,
+            "policy_decision_accuracy": 0.24107793153678078,
+            "unsafe_execution_rate": 0.5087399854333576
+          },
+          "workflow": {
+            "injection_resistance_rate": null,
+            "mean_utility": -0.11568276684555755,
+            "n": 1677,
+            "policy_decision_accuracy": 0.34108527131782945,
+            "unsafe_execution_rate": 0.20572450805008943
+          }
+        },
+        "policy_decision_accuracy": 0.2573,
+        "risk_domain_routing_accuracy": 0.7555,
+        "schema_validity_enforcement": 0.0,
+        "tool_call_validity": 0.4694,
+        "unsafe_execution_rate": 0.5265
+      },
+      "performance": {
+        "decisions_per_second": 139165.7,
+        "elapsed_seconds": 0.0719,
+        "mean_decision_ms": 0.0072
+      }
+    },
+    "remora_full_policy_gate_v3": {
+      "governance_metrics": {
+        "critical_actions": 1781,
+        "critical_false_accept_rate": 0.0,
+        "critical_unsafe_execute": 0,
+        "human_review_burden_pct": 30.02,
+        "missing_evidence_proxy_count": 3002
+      },
+      "metrics": {
+        "argument_taint_violations": 0.0,
+        "decision_distribution": {
+          "BLOCK": 4143,
+          "ESCALATE": 1701,
+          "EXECUTE": 2855,
+          "VERIFY": 1301
+        },
+        "false_block_rate": 0.0,
+        "forbidden_tool_call_rate": 0.0282,
+        "human_escalation_precision": 0.7405311275576839,
+        "injection_resistance_rate": 1.0,
+        "mean_utility": 0.59708,
+        "n_attack_tasks": 2175,
+        "n_human_required_tasks": 2297,
+        "n_schema_invalid_tasks": 2063,
+        "n_tasks": 10000,
+        "per_layer": {
+          "capability": {
+            "injection_resistance_rate": null,
+            "mean_utility": 0.6893318567737172,
+            "n": 2709,
+            "policy_decision_accuracy": 0.7360649686231081,
+            "unsafe_execution_rate": 0.0
+          },
+          "injection": {
+            "injection_resistance_rate": 1.0,
+            "mean_utility": 0.6141562064156206,
+            "n": 2868,
+            "policy_decision_accuracy": 0.7921896792189679,
+            "unsafe_execution_rate": 0.0
+          },
+          "safety": {
+            "injection_resistance_rate": null,
+            "mean_utility": 0.7222869628550619,
+            "n": 2746,
+            "policy_decision_accuracy": 1.0,
+            "unsafe_execution_rate": 0.0
+          },
+          "workflow": {
+            "injection_resistance_rate": null,
+            "mean_utility": 0.21383422778771619,
+            "n": 1677,
+            "policy_decision_accuracy": 0.6696481812760883,
+            "unsafe_execution_rate": 0.16815742397137745
+          }
+        },
+        "policy_decision_accuracy": 0.8135,
+        "risk_domain_routing_accuracy": 1.0,
+        "schema_validity_enforcement": 1.0,
+        "tool_call_validity": 0.4694,
+        "unsafe_execution_rate": 0.0282
+      },
+      "performance": {
+        "decisions_per_second": 57491.11,
+        "elapsed_seconds": 0.1739,
+        "mean_decision_ms": 0.0174
+      }
+    },
+    "schema_only_validator": {
+      "governance_metrics": {
+        "critical_actions": 1781,
+        "critical_false_accept_rate": 0.0,
+        "critical_unsafe_execute": 0,
+        "human_review_burden_pct": 37.16,
+        "missing_evidence_proxy_count": 3716
+      },
+      "metrics": {
+        "argument_taint_violations": 0.0,
+        "decision_distribution": {
+          "BLOCK": 2063,
+          "ESCALATE": 1781,
+          "EXECUTE": 4221,
+          "VERIFY": 1935
+        },
+        "false_block_rate": 0.0,
+        "forbidden_tool_call_rate": 0.0345,
+        "human_escalation_precision": 0.7753591641271224,
+        "injection_resistance_rate": 0.34758620689655173,
+        "mean_utility": 0.45325,
+        "n_attack_tasks": 2175,
+        "n_human_required_tasks": 2297,
+        "n_schema_invalid_tasks": 2063,
+        "n_tasks": 10000,
+        "per_layer": {
+          "capability": {
+            "injection_resistance_rate": null,
+            "mean_utility": 0.6893318567737172,
+            "n": 2709,
+            "policy_decision_accuracy": 0.7360649686231081,
+            "unsafe_execution_rate": 0.0
+          },
+          "injection": {
+            "injection_resistance_rate": 0.34758620689655173,
+            "mean_utility": 0.574581589958159,
+            "n": 2868,
+            "policy_decision_accuracy": 0.5052301255230126,
+            "unsafe_execution_rate": 0.0
+          },
+          "safety": {
+            "injection_resistance_rate": null,
+            "mean_utility": 0.40961398397669335,
+            "n": 2746,
+            "policy_decision_accuracy": 0.6143481427530955,
+            "unsafe_execution_rate": 0.0
+          },
+          "workflow": {
+            "injection_resistance_rate": null,
+            "mean_utility": -0.06416219439475254,
+            "n": 1677,
+            "policy_decision_accuracy": 0.42695289206917114,
+            "unsafe_execution_rate": 0.20572450805008943
+          }
+        },
+        "policy_decision_accuracy": 0.5846,
+        "risk_domain_routing_accuracy": 1.0,
+        "schema_validity_enforcement": 1.0,
+        "tool_call_validity": 0.4694,
+        "unsafe_execution_rate": 0.0345
+      },
+      "performance": {
+        "decisions_per_second": 129402.44,
+        "elapsed_seconds": 0.0773,
+        "mean_decision_ms": 0.0077
+      }
+    },
+    "static_policy_gate": {
+      "governance_metrics": {
+        "critical_actions": 1781,
+        "critical_false_accept_rate": 0.0,
+        "critical_unsafe_execute": 0,
+        "human_review_burden_pct": 34.54,
+        "missing_evidence_proxy_count": 3454
+      },
+      "metrics": {
+        "argument_taint_violations": 0.0262,
+        "decision_distribution": {
+          "BLOCK": 2063,
+          "ESCALATE": 1379,
+          "EXECUTE": 4483,
+          "VERIFY": 2075
+        },
+        "false_block_rate": 0.0,
+        "forbidden_tool_call_rate": 0.0607,
+        "human_escalation_precision": 0.5311275576839356,
+        "injection_resistance_rate": 0.29011494252873565,
+        "mean_utility": 0.32726,
+        "n_attack_tasks": 2175,
+        "n_human_required_tasks": 2297,
+        "n_schema_invalid_tasks": 2063,
+        "n_tasks": 10000,
+        "per_layer": {
+          "capability": {
+            "injection_resistance_rate": null,
+            "mean_utility": 0.6893318567737172,
+            "n": 2709,
+            "policy_decision_accuracy": 0.7360649686231081,
+            "unsafe_execution_rate": 0.0
+          },
+          "injection": {
+            "injection_resistance_rate": 0.29011494252873565,
+            "mean_utility": 0.2511854951185495,
+            "n": 2868,
+            "policy_decision_accuracy": 0.4062064156206416,
+            "unsafe_execution_rate": 0.09135285913528592
+          },
+          "safety": {
+            "injection_resistance_rate": null,
+            "mean_utility": 0.2885651857246905,
+            "n": 2746,
+            "policy_decision_accuracy": 0.5134741442097597,
+            "unsafe_execution_rate": 0.0
+          },
+          "workflow": {
+            "injection_resistance_rate": null,
+            "mean_utility": -0.06416219439475254,
+            "n": 1677,
+            "policy_decision_accuracy": 0.42695289206917114,
+            "unsafe_execution_rate": 0.20572450805008943
+          }
+        },
+        "policy_decision_accuracy": 0.5285,
+        "risk_domain_routing_accuracy": 1.0,
+        "schema_validity_enforcement": 1.0,
+        "tool_call_validity": 0.4694,
+        "unsafe_execution_rate": 0.0607
+      },
+      "performance": {
+        "decisions_per_second": 229717.94,
+        "elapsed_seconds": 0.0435,
+        "mean_decision_ms": 0.0044
+      }
+    }
+  },
+  "benchmark": "toolcall_stress_replay_v1",
+  "delta_vs_naive": {
+    "critical_false_accept_rate_delta": -100.0,
+    "human_review_burden_pct_delta": 30.02,
+    "mean_utility_delta": 1.32105,
+    "unsafe_execution_rate_delta": -0.4983
+  },
+  "n_calls": 10000,
+  "seed": 42
+}

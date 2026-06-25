@@ -1,0 +1,164 @@
+# REMORA policy-as-code example
+# Version: 1.0.0
+#
+# Purpose:
+#   Concrete enterprise policy pack showing how REMORA can be deployed as a
+#   risk-aware AI control layer. This is a deployability example, not a claim
+#   that REMORA is production certified.
+#
+# Design principles:
+#   - fail closed on missing policy, missing evidence, or ambiguous authority
+#   - separate answer generation from action authorization
+#   - require human approval for high-risk and critical operations
+#   - make every route auditable and reproducible
+
+version: "1.0.0"
+default_fail_mode: "ABSTAIN"
+
+decision_outcomes:
+  ACCEPT:
+    description: "Return answer because confidence, consensus, evidence, and policy requirements are satisfied."
+    action_allowed: false
+  VERIFY:
+    description: "Do not finalize. Retrieve more evidence, ask another verifier, or request human review."
+    action_allowed: false
+  ABSTAIN:
+    description: "Return no answer because trust is insufficient or policy cannot be satisfied."
+    action_allowed: false
+  ESCALATE:
+    description: "Route to authorized human reviewer with full trace."
+    action_allowed: false
+  EXECUTE:
+    description: "Run a tool call only when explicitly allowed by risk profile and approval state."
+    action_allowed: true
+
+risk_profiles:
+  low:
+    description: "Internal knowledge lookup, non-sensitive summarization, and harmless drafting."
+    min_phase: "ordered"
+    require_evidence: false
+    require_independent_judge: false
+    require_human_approval: false
+    allow_direct_answer: true
+    allow_tool_action: false
+    permitted_outcomes: ["ACCEPT", "VERIFY", "ABSTAIN"]
+    fail_mode: "ABSTAIN"
+    audit_level: "minimal"
+    retention_days: 90
+
+  medium:
+    description: "Engineering support, maintenance planning, procurement support, and internal analysis."
+    min_phase: "ordered"
+    require_evidence: true
+    min_evidence_sources: 1
+    require_independent_judge: true
+    require_human_approval: false
+    allow_direct_answer: true
+    allow_tool_action: true
+    approved_tool_actions:
+      - "read_asset_status"
+      - "search_knowledge_base"
+      - "create_draft_ticket"
+      - "write_sandbox_report"
+    permitted_outcomes: ["ACCEPT", "VERIFY", "ABSTAIN", "ESCALATE", "EXECUTE"]
+    fail_mode: "VERIFY"
+    audit_level: "standard"
+    retention_days: 365
+
+  high:
+    description: "Safety, cybersecurity, legal, financial, regulated, or production-impacting decisions."
+    min_phase: "ordered"
+    require_evidence: true
+    min_evidence_sources: 2
+    require_cross_reference: true
+    require_independent_judge: true
+    require_human_approval: true
+    allow_direct_answer: true
+    allow_tool_action: false
+    permitted_outcomes: ["ACCEPT", "VERIFY", "ABSTAIN", "ESCALATE"]
+    fail_mode: "ESCALATE"
+    audit_level: "full"
+    retention_days: 3650
+
+  critical_operations:
+    description: "Operational technology, life-safety, emergency response, or irreversible business actions."
+    min_phase: "ordered"
+    require_evidence: true
+    min_evidence_sources: 3
+    require_authoritative_source: true
+    require_cross_reference: true
+    require_independent_judge: true
+    require_human_approval: true
+    require_two_person_review: true
+    allow_direct_answer: false
+    allow_tool_action: false
+    recommendation_only: true
+    permitted_outcomes: ["VERIFY", "ABSTAIN", "ESCALATE"]
+    fail_mode: "ESCALATE"
+    audit_level: "full"
+    retention_days: 7300
+
+authority_boundaries:
+  never_autonomous:
+    - "modify production control systems"
+    - "change safety-critical setpoints"
+    - "disable monitoring, alarms, logging, or network controls"
+    - "approve legal, medical, financial, or regulatory commitments"
+    - "delete, rewrite, or overwrite production data"
+    - "exfiltrate secrets, credentials, customer data, or regulated data"
+
+  sandbox_allowed:
+    - "write generated report to sandbox path"
+    - "read diagnostic state"
+    - "create draft ticket"
+    - "run deterministic dry-run simulation"
+
+evidence_policy:
+  accepted_source_types:
+    - "approved_procedure"
+    - "engineering_standard"
+    - "regulation"
+    - "validated_asset_context"
+    - "approved_knowledge_base"
+  rejected_source_types:
+    - "unverified_chat"
+    - "model_generated_claim_without_source"
+    - "unknown_web_page"
+    - "stale_or_superseded_document"
+  stale_after_days:
+    procedure: 730
+    regulation: 1095
+    asset_context: 30
+    incident_context: 7
+
+runtime_guards:
+  missing_policy: "ABSTAIN"
+  missing_identity: "ABSTAIN"
+  missing_tenant_context: "ABSTAIN"
+  missing_evidence_for_high_risk: "ESCALATE"
+  oracle_timeout: "VERIFY"
+  oracle_pool_unavailable: "ABSTAIN"
+  evidence_contradiction: "ABSTAIN"
+  counterfactual_failure: "ESCALATE"
+  prompt_injection_detected: "ESCALATE"
+  production_target_detected: "ESCALATE"
+
+observability:
+  required_metrics:
+    - "decision_count_by_action"
+    - "unsafe_execution_rate"
+    - "abstain_rate_by_domain"
+    - "escalation_rate_by_domain"
+    - "false_accept_rate"
+    - "oracle_timeout_rate"
+    - "evidence_missing_rate"
+    - "policy_downgrade_count"
+    - "human_approval_latency_seconds"
+  required_logs:
+    - "request_hash"
+    - "tenant_id"
+    - "risk_profile"
+    - "policy_version"
+    - "oracle_pool_hash"
+    - "evidence_refs"
+    - "decision_trace_hash"

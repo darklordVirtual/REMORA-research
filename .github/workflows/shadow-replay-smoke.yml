@@ -1,0 +1,61 @@
+name: Shadow Replay Smoke
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  shadow-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run shadow replay on demo log
+        run: |
+          python scripts/shadow_replay.py \
+            --input artifacts/demo/shadow_mode_sample_agent_action_log.jsonl \
+            --envelopes-out artifacts/shadow_mode/decision_envelopes.jsonl \
+            --report-out artifacts/shadow_mode/governance_delta_report.json \
+            --audit-out artifacts/shadow_mode/replay_audit.jsonl
+
+      - name: Validate outputs
+        run: |
+          test -s artifacts/shadow_mode/decision_envelopes.jsonl
+          test -s artifacts/shadow_mode/governance_delta_report.json
+          test -s artifacts/shadow_mode/replay_audit.jsonl
+          python - <<'PY'
+          import json
+          p = "artifacts/shadow_mode/governance_delta_report.json"
+          d = json.load(open(p))
+          required = [
+              "total_actions_reviewed",
+              "accepted",
+              "verify_required",
+              "abstained",
+              "escalated",
+              "utility_retained_pct",
+              "human_review_burden_pct",
+              "baseline_comparison",
+          ]
+          missing = [k for k in required if k not in d]
+          if missing:
+              raise SystemExit(f"Missing keys in governance report: {missing}")
+          print("Shadow replay report schema OK")
+          PY

@@ -1,0 +1,18 @@
+{
+  "name": "remora-agent-control",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Agent Control Plane for REMORA / Luftfiber",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --port 8788",
+    "db:init": "wrangler d1 execute remora-audit --file=schema.sql",
+    "db:init:remote": "wrangler d1 execute remora-audit --remote --file=schema.sql",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241022.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^3.0.0"
+  }
+}

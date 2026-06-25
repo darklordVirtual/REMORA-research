@@ -1,0 +1,128 @@
+[
+  {
+    "id": "prior_git_write_medium",
+    "type": "domain_prior",
+    "source": "live_telemetry_analysis_2026_06_08",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.02,
+    "tags": ["git", "write", "medium"],
+    "description": "P(harm) for git write operations (commit, push, add) in medium-risk contexts. Live telemetry shows these are the dominant source of benign_review friction (32-63% of episodes). Git commits in a governed coding session are overwhelmingly benign.",
+    "payload": {
+      "domain": "git",
+      "action_type": "write",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.05,
+      "n_pseudo_observations": 25
+    }
+  },
+  {
+    "id": "prior_git_read_low",
+    "type": "domain_prior",
+    "source": "live_telemetry_analysis_2026_06_08",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.90,
+    "decay_rate": 0.01,
+    "tags": ["git", "read", "low"],
+    "description": "P(harm) for read-only git operations (status, log, diff, show). Structurally safe — no writes to repository or system.",
+    "payload": {
+      "domain": "git",
+      "action_type": "read",
+      "risk_tier": "low",
+      "p_harm_prior": 0.02,
+      "n_pseudo_observations": 25
+    }
+  },
+  {
+    "id": "prior_git_branch_medium",
+    "type": "domain_prior",
+    "source": "live_telemetry_analysis_2026_06_08",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["git", "branch_op", "medium"],
+    "description": "P(harm) for git branch operations (checkout, branch create/delete) in medium-risk contexts. Reversible; low harm probability in a governed coding session.",
+    "payload": {
+      "domain": "git",
+      "action_type": "branch_op",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.06,
+      "n_pseudo_observations": 20
+    }
+  },
+  {
+    "id": "prior_system_execution_medium",
+    "type": "domain_prior",
+    "source": "live_telemetry_analysis_2026_06_08",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.03,
+    "tags": ["system", "execution", "medium"],
+    "description": "P(harm) for system execution in medium-risk contexts (running tests, linters, build scripts). Live telemetry shows these are a second major source of benign_review friction. 148 observed cycles show 0 safety violations from test runners and CI scripts in this governed development session.",
+    "payload": {
+      "domain": "system",
+      "action_type": "execution",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.04,
+      "n_pseudo_observations": 25
+    }
+  },
+  {
+    "id": "prior_system_write_medium",
+    "type": "domain_prior",
+    "source": "live_telemetry_analysis_2026_06_08",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.82,
+    "decay_rate": 0.02,
+    "tags": ["system", "write", "medium"],
+    "description": "P(harm) for system write operations to source or config files in medium-risk contexts. Live telemetry: 1666 correct_accepts and 0 safety violations from file writes in this session. Medium-tier writes to code files are routinely benign under REMORA governance.",
+    "payload": {
+      "domain": "system",
+      "action_type": "write",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.04,
+      "n_pseudo_observations": 25
+    }
+  },
+  {
+    "id": "prior_network_read_medium",
+    "type": "domain_prior",
+    "source": "live_telemetry_analysis_2026_06_08",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.75,
+    "decay_rate": 0.04,
+    "tags": ["network", "read", "medium"],
+    "description": "P(harm) for outbound network read operations (web fetch, API GET, documentation lookup) in medium-risk contexts. External calls carry inherent risk (SSRF, data leakage) but are routinely benign in a governed development workflow. Higher than git/system due to external surface.",
+    "payload": {
+      "domain": "network",
+      "action_type": "read",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.05,
+      "n_pseudo_observations": 25
+    }
+  },
+  {
+    "id": "prior_development_execution_medium",
+    "type": "domain_prior",
+    "source": "live_telemetry_analysis_2026_06_08",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.78,
+    "decay_rate": 0.03,
+    "tags": ["development", "execution", "medium"],
+    "description": "P(harm) for development tool execution (npm, pip, pytest, make) in medium-risk contexts. Package managers and test runners carry network/exec risk, but are routinely benign under REMORA governance. 148 cycles with 0 safety violations from dev tooling.",
+    "payload": {
+      "domain": "development",
+      "action_type": "execution",
+      "risk_tier": "medium",
+      "p_harm_prior": 0.04,
+      "n_pseudo_observations": 25
+    }
+  }
+]

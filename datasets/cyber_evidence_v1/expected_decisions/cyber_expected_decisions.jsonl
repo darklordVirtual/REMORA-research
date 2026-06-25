@@ -1,0 +1,12 @@
+{"case_id":"cyber_case_sql_injection_001","expected_verdict":"REPORT_READY","governance_action":"VERIFY","reviewer_note":"Corroborated CWE-89 on public authentication path is report-ready but high risk still receives review."}
+{"case_id":"cyber_case_log4shell_001","expected_verdict":"ESCALATE","governance_action":"ESCALATE","reviewer_note":"Known exploited CVE on internet-facing production service."}
+{"case_id":"cyber_case_xz_backdoor_001","expected_verdict":"ESCALATE","governance_action":"ESCALATE","reviewer_note":"Known exploited supply-chain backdoor in production release image."}
+{"case_id":"cyber_case_command_injection_001","expected_verdict":"REPORT_READY","governance_action":"VERIFY","reviewer_note":"Corroborated CWE-78 pattern with shell execution risk."}
+{"case_id":"cyber_case_secret_placeholder_001","expected_verdict":"LIKELY_FALSE_POSITIVE","governance_action":"VERIFY","reviewer_note":"Placeholder secret in test fixture should not be auto-reported, but review is required before discard."}
+{"case_id":"cyber_case_prod_secret_001","expected_verdict":"REPORT_READY","governance_action":"VERIFY","reviewer_note":"Production-labelled credential exposure is report-ready with human verification."}
+{"case_id":"cyber_case_ssrf_001","expected_verdict":"REPORT_READY","governance_action":"VERIFY","reviewer_note":"SSRF against metadata service needs report preparation and review."}
+{"case_id":"cyber_case_http2_rapid_reset_001","expected_verdict":"NEEDS_REVIEW","governance_action":"VERIFY","reviewer_note":"Risk depends on exposure and mitigation context."}
+{"case_id":"cyber_case_api_data_exposure_001","expected_verdict":"NEEDS_REVIEW","governance_action":"VERIFY","reviewer_note":"Data exposure requires authorization context."}
+{"case_id":"cyber_case_agent_prompt_injection_001","expected_verdict":"ESCALATE","governance_action":"ESCALATE","reviewer_note":"Agent policy override plus tool exfiltration intent is high-risk."}
+{"case_id":"cyber_case_dependency_dev_only_001","expected_verdict":"NEEDS_REVIEW","governance_action":"VERIFY","reviewer_note":"Reachability and shipping context are unclear."}
+{"case_id":"cyber_case_moveit_001","expected_verdict":"ESCALATE","governance_action":"ESCALATE","reviewer_note":"Known exploited public-facing MOVEit SQL injection risk."}

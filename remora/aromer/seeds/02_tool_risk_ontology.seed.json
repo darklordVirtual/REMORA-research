@@ -1,0 +1,268 @@
+[
+  {
+    "id": "tool_db_drop_table",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.01,
+    "tags": ["database", "destructive", "sql", "critical"],
+    "description": "DROP TABLE and analogous DDL statements are irreversible and critically dangerous. Benchmark v2 showed 20% unsafe execution rate for single models on database domain.",
+    "payload": {
+      "tool_category": "database",
+      "action_pattern": "DROP TABLE",
+      "risk_tier": "critical",
+      "action_type": "destructive_write",
+      "default_verdict": "escalate",
+      "rationale": "Irreversible data loss. No safe autonomous execution path. REMORA v2 benchmark: single-model unsafe rate 20%."
+    }
+  },
+  {
+    "id": "tool_db_bulk_delete",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.02,
+    "tags": ["database", "destructive", "sql", "high"],
+    "description": "Bulk DELETE without WHERE clause. Often as dangerous as DROP TABLE. Common adversarial pattern in benchmark v2.",
+    "payload": {
+      "tool_category": "database",
+      "action_pattern": "DELETE FROM ... (no WHERE)",
+      "risk_tier": "high",
+      "action_type": "destructive_write",
+      "default_verdict": "escalate",
+      "rationale": "Unbounded delete is semantically equivalent to table wipe. Agent frequently misses missing WHERE clause."
+    }
+  },
+  {
+    "id": "tool_db_read_select",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.80,
+    "confidence": 0.85,
+    "decay_rate": 0.05,
+    "tags": ["database", "read", "safe", "low"],
+    "description": "Plain SELECT queries with no side effects. Low risk unless targeting sensitive tables (credentials, PII).",
+    "payload": {
+      "tool_category": "database",
+      "action_pattern": "SELECT ... FROM ...",
+      "risk_tier": "low",
+      "action_type": "read",
+      "default_verdict": "accept",
+      "rationale": "Read-only operations are generally safe. Exception: reading credential tables to exfiltrate should be caught by inv_no_credential_exfiltration."
+    }
+  },
+  {
+    "id": "tool_shell_recursive_delete",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.97,
+    "confidence": 0.95,
+    "decay_rate": 0.005,
+    "tags": ["shell", "filesystem", "destructive", "critical"],
+    "description": "rm -rf and recursive filesystem deletions. Extremely high risk. Benchmark v2 shell domain showed consistent unsafe execution in heuristic baselines.",
+    "payload": {
+      "tool_category": "shell",
+      "action_pattern": "rm -rf",
+      "risk_tier": "critical",
+      "action_type": "destructive_write",
+      "default_verdict": "escalate",
+      "rationale": "Irreversible filesystem destruction. No path to autonomous acceptance. Hard block mandatory."
+    }
+  },
+  {
+    "id": "tool_shell_exec_arbitrary",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["shell", "execution", "high", "code-exec"],
+    "description": "Arbitrary shell command execution (eval, subprocess with user-controlled input). High risk due to injection potential.",
+    "payload": {
+      "tool_category": "shell",
+      "action_pattern": "eval | subprocess | os.system",
+      "risk_tier": "high",
+      "action_type": "execution",
+      "default_verdict": "verify",
+      "rationale": "Arbitrary code execution path. Verify unless context fully constrains the command."
+    }
+  },
+  {
+    "id": "tool_shell_read_file",
+    "type": "tool_risk",
+    "source": "remora_internal_classification",
+    "version": "0.1",
+    "weight": 0.70,
+    "confidence": 0.80,
+    "decay_rate": 0.05,
+    "tags": ["shell", "read", "low", "filesystem"],
+    "description": "cat, head, tail — read-only file access. Generally safe unless targeting sensitive paths (/etc/shadow, .env, credentials).",
+    "payload": {
+      "tool_category": "shell",
+      "action_pattern": "cat | head | tail | less",
+      "risk_tier": "low",
+      "action_type": "read",
+      "default_verdict": "accept",
+      "rationale": "Read-only. Safe for most paths. Trust score context should escalate for sensitive paths."
+    }
+  },
+  {
+    "id": "tool_git_force_push",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.85,
+    "decay_rate": 0.02,
+    "tags": ["git", "destructive", "high", "version-control"],
+    "description": "git push --force rewrites shared history. Highly destructive in collaborative contexts. Benchmark v1 git domain showed unsafe patterns.",
+    "payload": {
+      "tool_category": "git",
+      "action_pattern": "git push --force",
+      "risk_tier": "high",
+      "action_type": "destructive_write",
+      "default_verdict": "verify",
+      "rationale": "Force push rewrites published history. Requires human intent confirmation."
+    }
+  },
+  {
+    "id": "tool_git_read_log",
+    "type": "tool_risk",
+    "source": "remora_internal_classification",
+    "version": "0.1",
+    "weight": 0.70,
+    "confidence": 0.85,
+    "decay_rate": 0.05,
+    "tags": ["git", "read", "low"],
+    "description": "git log, git status, git diff — read-only inspection. Safe.",
+    "payload": {
+      "tool_category": "git",
+      "action_pattern": "git log | git status | git diff",
+      "risk_tier": "low",
+      "action_type": "read",
+      "default_verdict": "accept",
+      "rationale": "Read-only version control operations pose no direct risk."
+    }
+  },
+  {
+    "id": "tool_network_firewall_change",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.93,
+    "confidence": 0.88,
+    "decay_rate": 0.01,
+    "tags": ["network", "infrastructure", "critical", "firewall"],
+    "description": "Firewall rule changes, iptables modifications, security group updates. Benchmark v2 infrastructure domain. Can open attack surfaces or cause outages.",
+    "payload": {
+      "tool_category": "network",
+      "action_pattern": "iptables | firewall-cmd | security-group | waf-rule",
+      "risk_tier": "critical",
+      "action_type": "configuration_change",
+      "default_verdict": "escalate",
+      "rationale": "Network security boundary changes. One wrong rule can expose entire subnets. Always escalate."
+    }
+  },
+  {
+    "id": "tool_network_dns_change",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_analysis",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.85,
+    "decay_rate": 0.02,
+    "tags": ["network", "dns", "high", "infrastructure"],
+    "description": "DNS record modifications. Can cause widespread service outages or enable traffic hijacking. Cloudflare DNS changes fall here.",
+    "payload": {
+      "tool_category": "network",
+      "action_pattern": "dns-record update | A record | CNAME | MX change",
+      "risk_tier": "high",
+      "action_type": "configuration_change",
+      "default_verdict": "verify",
+      "rationale": "DNS changes propagate globally and are hard to roll back quickly. Human checkpoint required."
+    }
+  },
+  {
+    "id": "tool_webhook_mass_trigger",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v1_analysis",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.82,
+    "decay_rate": 0.02,
+    "tags": ["webhook", "integration", "high", "side-effects"],
+    "description": "Mass webhook trigger or bulk notification dispatch. Can cause cascading side effects in integrated systems. Benchmark v1 webhook domain.",
+    "payload": {
+      "tool_category": "webhook",
+      "action_pattern": "trigger-all | broadcast-event | bulk-dispatch",
+      "risk_tier": "high",
+      "action_type": "write",
+      "default_verdict": "verify",
+      "rationale": "Cascading side effects across integrated services. Scope unclear without human review."
+    }
+  },
+  {
+    "id": "tool_medical_prescription",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_medical_domain",
+    "version": "0.1",
+    "weight": 0.98,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["medical", "critical", "regulatory", "irreversible"],
+    "description": "Any autonomous prescription or dosage modification. Benchmark v2 medical domain. Direct patient safety risk. Hard escalate.",
+    "payload": {
+      "tool_category": "medical",
+      "action_pattern": "prescribe | dosage-change | treatment-order",
+      "risk_tier": "critical",
+      "action_type": "medical_write",
+      "default_verdict": "escalate",
+      "rationale": "Patient safety risk. No autonomous medical decisions. Always escalate to licensed professional."
+    }
+  },
+  {
+    "id": "tool_legal_contract_sign",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_legal_domain",
+    "version": "0.1",
+    "weight": 0.97,
+    "confidence": 0.93,
+    "decay_rate": 0.0,
+    "tags": ["legal", "critical", "regulatory", "binding"],
+    "description": "Autonomous contract execution or legal document signing. Benchmark v2 legal domain. Creates binding legal obligations.",
+    "payload": {
+      "tool_category": "legal",
+      "action_pattern": "sign-contract | execute-agreement | legal-binding-write",
+      "risk_tier": "critical",
+      "action_type": "legal_write",
+      "default_verdict": "escalate",
+      "rationale": "Legal binding actions require explicit human authorization. No autonomous signing."
+    }
+  },
+  {
+    "id": "tool_energy_grid_change",
+    "type": "tool_risk",
+    "source": "toolcall_benchmark_v2_energy_domain",
+    "version": "0.1",
+    "weight": 0.98,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["energy", "infrastructure", "critical", "regulatory"],
+    "description": "Power grid configuration, load-shedding commands, SCADA writes. Benchmark v2 energy domain. Physical infrastructure risk.",
+    "payload": {
+      "tool_category": "energy",
+      "action_pattern": "grid-command | scada-write | load-shedding | substation-config",
+      "risk_tier": "critical",
+      "action_type": "infrastructure_write",
+      "default_verdict": "escalate",
+      "rationale": "Physical infrastructure control. A single wrong command can cause cascading power failures. Always escalate."
+    }
+  }
+]

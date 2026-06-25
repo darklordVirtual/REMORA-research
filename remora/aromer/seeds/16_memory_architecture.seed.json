@@ -1,0 +1,131 @@
+[
+  {
+    "id": "mem_episodic_memory",
+    "type": "memory_architecture",
+    "source": "AROMER cognitive foundation v0.2 / episodic memory theory",
+    "version": "0.2",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.0,
+    "tags": ["memory", "episodic", "experience"],
+    "description": "Episodic memory stores specific governance decisions with full context: what happened, what was decided, what was the outcome. This is the primary learning signal for AROMER.",
+    "payload": {
+      "memory_type": "episodic",
+      "storage": "EpisodicStore JSONL at ~/.aromer/episodes.jsonl",
+      "retrieval": "Cosine similarity over feature vector [domain, risk_tier, action_type, trust_score, entropy_H, dissensus_D]",
+      "quality_signal": "decision_quality: correct_block=strongest, false_accept=strongest negative, benign_review=weak",
+      "consolidation_rule": "Episodes with ground_truth=human_verified get 2x weight in similarity retrieval",
+      "decay": "Episodic memory does not decay — all episodes retained. Decay applies to world_model priors.",
+      "aromer_action": "Retrieve k=5 most similar episodes before every high/critical decision. Cite in trace."
+    }
+  },
+  {
+    "id": "mem_semantic_memory",
+    "type": "memory_architecture",
+    "source": "AROMER cognitive foundation v0.2 / semantic world model",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["memory", "semantic", "world-model"],
+    "description": "Semantic memory stores general world knowledge: domain harm priors, tool risk ontology, invariants. Encoded in DomainHarmPrior and seed files. Slower to update than episodic.",
+    "payload": {
+      "memory_type": "semantic",
+      "storage": "DomainHarmPrior JSON at ~/.aromer/world_model.json + seed files",
+      "update_mechanism": "Bayesian conjugate update: alpha += n_correct_harm, beta += n_correct_safe",
+      "update_threshold": ">=10 consistent episodes before semantic update. >=50 for safety-relevant domains.",
+      "relationship_to_episodic": "Semantic memory is compressed episodic memory. Episodic is ground truth.",
+      "aromer_action": "When episodic retrieval contradicts semantic belief → flag contradiction for human review"
+    }
+  },
+  {
+    "id": "mem_causal_memory",
+    "type": "memory_architecture",
+    "source": "AROMER cognitive foundation v0.2 / causal memory",
+    "version": "0.2",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.02,
+    "tags": ["memory", "causal", "relationships"],
+    "description": "Causal memory stores known causal relationships between actions, contexts and outcomes — enabling AROMER to reason about why things happen, not just what happened.",
+    "payload": {
+      "memory_type": "causal",
+      "storage": "Not yet implemented — roadmap. Currently approximated via episodic pattern matching.",
+      "intended_format": "Causal graph nodes: {action, context, outcome} with edge weights from interventional evidence",
+      "update_threshold": ">=3 interventional episodes for new causal edge",
+      "aromer_constraint": "Until implemented: label causal reasoning as plausible, not verified",
+      "implementation_note": "Requires causal_graph_update seed. Track as AROMER v0.3 feature."
+    }
+  },
+  {
+    "id": "mem_skill_memory",
+    "type": "memory_architecture",
+    "source": "AROMER cognitive foundation v0.2 / procedural memory",
+    "version": "0.2",
+    "weight": 0.75,
+    "confidence": 0.70,
+    "decay_rate": 0.03,
+    "tags": ["memory", "skill", "procedural"],
+    "description": "Skill memory stores successful governance patterns: configurations of thresholds, oracle weights, and routing rules that performed well on specific episode classes.",
+    "payload": {
+      "memory_type": "skill",
+      "storage": "Strategy patterns in seed files + future adaptive weight store",
+      "examples": [
+        "Phase-adaptive threshold config that worked for ordered+telecom domain",
+        "Oracle diversity weighting that reduced false accepts",
+        "Latency budget routing that maintained accuracy under 500ms constraint"
+      ],
+      "update_rule": "Skill patterns promoted to semantic memory after >=20 successful applications",
+      "decay": "Skill patterns decay at 0.03/month unless re-confirmed by new episodes",
+      "aromer_action": "Track skill pattern usage and outcome. Promote or deprecate after threshold."
+    }
+  },
+  {
+    "id": "mem_failure_memory",
+    "type": "memory_architecture",
+    "source": "AROMER cognitive foundation v0.2 / failure mode retention",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["memory", "failure", "negative"],
+    "description": "Failure memory stores cases where AROMER or REMORA produced wrong verdicts. Failure memory is permanent — it must never be pruned or overwritten.",
+    "payload": {
+      "memory_type": "failure",
+      "storage": "Flagged episodes in EpisodicStore with decision_quality IN (false_accept, false_block)",
+      "retention": "Permanent — decay_rate=0.0 for failure episodes",
+      "retrieval_priority": "Failure episodes get 1.5x retrieval weight in similarity search for similar contexts",
+      "failure_types": {
+        "false_accept": "Most dangerous — should have blocked but didn't",
+        "false_block": "Costly — should have accepted but escalated unnecessarily",
+        "abstain_unknown": "System failure — knowledge gap led to non-decision"
+      },
+      "aromer_rule": "If retrieved similar episode has decision_quality=false_accept → override trust_score downward by 0.2"
+    }
+  },
+  {
+    "id": "mem_memory_consolidation",
+    "type": "memory_architecture",
+    "source": "AROMER cognitive foundation v0.2 / memory consolidation",
+    "version": "0.2",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.02,
+    "tags": ["memory", "consolidation", "compression"],
+    "description": "Memory consolidation is the process of moving verified episodic patterns into semantic memory and deprecating redundant or contradicted entries.",
+    "payload": {
+      "memory_type": "consolidation",
+      "consolidation_triggers": [
+        "100 consistent episodic observations → candidate for semantic promotion",
+        "Episodic pattern contradicts semantic belief with 5+ interventional episodes → revision cycle",
+        "Skill pattern unused for 200 episodes → deprecation candidate"
+      ],
+      "consolidation_forbidden": [
+        "Never consolidate failure memory into normal patterns",
+        "Never consolidate safety invariants — they are not subject to empirical revision",
+        "Never consolidate on <10 episodes regardless of consistency"
+      ],
+      "aromer_action": "Run consolidation review after every 500 episodes. Generate consolidation report artifact."
+    }
+  }
+]

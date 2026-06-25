@@ -1,0 +1,123 @@
+[
+  {
+    "id": "transfer_pattern_over_phrase",
+    "type": "transfer_rule",
+    "source": "AROMER cognitive foundation v0.2 / structural transfer learning",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["transfer", "abstraction", "pattern"],
+    "description": "Transfer the structural pattern of a past episode, not its surface phrasing. A SQL injection framed as 'database optimization' and one framed as 'urgent query fix' share the same adversarial structure.",
+    "payload": {
+      "rule": "pattern_over_phrase",
+      "pattern_features": [
+        "action_type: what category of action is being taken?",
+        "scope: how many systems/users affected?",
+        "adversarial_markers: presence of redirection/framing tricks",
+        "irreversibility: can it be undone?",
+        "trust_score_delta: is requester trust lower than domain average?"
+      ],
+      "surface_features_to_ignore": ["specific tool names", "specific table names", "specific phrasing", "urgency claims without evidence"],
+      "aromer_action": "Match episodes on structural features, not lexical similarity",
+      "example": "DROP TABLE users; vs TRUNCATE ALL; — same structural pattern (destructive_write, irreversible, critical)"
+    }
+  },
+  {
+    "id": "transfer_boundary_conditions",
+    "type": "transfer_rule",
+    "source": "AROMER cognitive foundation v0.2 / transfer boundary checking",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["transfer", "boundary", "validity"],
+    "description": "Every learned pattern has boundary conditions: the context envelope within which it reliably applies. AROMER must check these conditions before applying a transferred pattern.",
+    "payload": {
+      "rule": "boundary_conditions",
+      "boundary_dimensions": [
+        "domain: 'database reads are safe' only in domain=database, not domain=medical",
+        "environment: staging behavior doesn't transfer to prod without validation",
+        "risk_tier: patterns learned on low risk don't transfer to critical",
+        "n_episodes: pattern needs >=5 episodes in target domain to be valid",
+        "time: patterns >12 months old need recency check"
+      ],
+      "boundary_check_protocol": "Before applying pattern: verify all boundary dimensions match. If >=1 fails → label as plausible transfer only",
+      "aromer_action": "Log boundary_check_result in decision trace for transfers",
+      "failure_mode_ref": "err_overgeneralization"
+    }
+  },
+  {
+    "id": "transfer_replay_before_compress",
+    "type": "transfer_rule",
+    "source": "AROMER cognitive foundation v0.2 / shadow replay principle",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["transfer", "replay", "compression"],
+    "description": "Before generalizing a pattern from specific episodes into a reusable rule, replay the episodes in shadow mode to confirm the pattern holds consistently.",
+    "payload": {
+      "rule": "replay_before_compress",
+      "replay_requirements": {
+        "min_consistent_episodes": 10,
+        "shadow_replay_n": 20,
+        "max_exception_rate": 0.10,
+        "required_coverage": "pattern must fire in >= 80% of relevant episodes"
+      },
+      "aromer_action": "Run shadow_mode_replay before promoting any episodic pattern to skill_memory or semantic_memory",
+      "reference": "See Shadow Mode / Replay Engine in ARCHITECTURE.md",
+      "anti_pattern": "Generalizing from 2-3 vivid examples (availability bias)"
+    }
+  },
+  {
+    "id": "transfer_analogical_transfer",
+    "type": "transfer_rule",
+    "source": "AROMER cognitive foundation v0.2 / analogical reasoning",
+    "version": "0.2",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.02,
+    "tags": ["transfer", "analogy", "structure-mapping"],
+    "description": "Analogical transfer maps the relational structure of a known domain to a new domain. AROMER uses this to make reasonable decisions in novel domains when direct episode evidence is absent.",
+    "payload": {
+      "rule": "analogical_transfer",
+      "mapping_principle": "Map by action_type + scope + irreversibility, not by domain label",
+      "analogy_examples": [
+        "Medical prescription (medical:critical) ↔ Chemical plant parameter change (industrial:critical) — both: irreversible, expert-dependent, regulatory scope",
+        "git push --force ↔ database schema drop — both: destructive_write, irreversible, no rollback without backup"
+      ],
+      "confidence_floor": "Analogical transfer sets confidence ceiling at 0.70 — never higher without direct domain evidence",
+      "aromer_action": "Label analogical transfers in trace: transfer_type=analogical, confidence_adjusted=true",
+      "boundary": "Analogy fails when structural similarity breaks down — always verify boundary conditions first"
+    }
+  },
+  {
+    "id": "transfer_domain_boundary_check",
+    "type": "transfer_rule",
+    "source": "AROMER cognitive foundation v0.2 / domain shift detection",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["transfer", "domain", "shift"],
+    "description": "Domain shift is when the target context differs from the training distribution in ways that invalidate the pattern. AROMER detects and flags domain shift before applying patterns.",
+    "payload": {
+      "rule": "domain_boundary_check",
+      "domain_shift_signals": [
+        "New domain not in DomainHarmPrior world model",
+        "action_type not seen in target domain episodes",
+        "regulatory_context differs (e.g. GDPR vs HIPAA vs industrial)",
+        "Organizational scope differs (personal project vs enterprise)",
+        "Temporal shift: production behavior may have changed since last episode"
+      ],
+      "shift_response": {
+        "no_shift": "Apply pattern with normal confidence",
+        "minor_shift": "Apply with confidence * 0.85, flag in trace",
+        "major_shift": "Apply with confidence * 0.60, require VERIFY",
+        "distribution_unknown": "ABSTAIN — request human guidance or more episodes"
+      },
+      "aromer_action": "Compute domain_shift_score before pattern application. Log in trace."
+    }
+  }
+]

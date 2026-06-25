@@ -1,0 +1,17 @@
+{
+  "name": "aromer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail",
+    "db:init": "wrangler d1 execute aromer-episodes --file=src/schema.sql",
+    "db:init:remote": "wrangler d1 execute aromer-episodes --remote --file=src/schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250430.0",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.0.0"
+  }
+}

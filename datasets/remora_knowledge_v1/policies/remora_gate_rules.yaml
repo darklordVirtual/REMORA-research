@@ -1,0 +1,201 @@
+# REMORA Gate Rules — curated policy pack v1
+# These rules map action conditions to gate decisions.
+# Policy updates require explicit human/policy-owner approval and regression tests.
+# Never auto-applied from RAG or LLM output.
+
+version: "1.0.0"
+policy_owner: "governance-team"
+requires_approval_to_update: true
+
+rules:
+
+  - id: GATE-001
+    title: Critical production destructive write always escalates
+    applies_to:
+      risk_tier: [critical]
+      action_type: [destructive_write, delete, purge]
+      target_environment: [production, prod]
+    match_conditions:
+      - "risk_tier == 'critical'"
+      - "action_type in ['destructive_write', 'delete', 'purge']"
+      - "target_environment in ['production', 'prod']"
+    required_evidence:
+      - human_approval_ref
+      - rollback_plan
+      - change_ticket
+      - backup_reference
+    default_gate: ESCALATE
+    allowed_next_steps: [human_review, rollback_plan_required]
+    source_refs: [nist_ai_rmf_summary, owasp_llm_top10_policy_map]
+    test_scenarios: [db_drop_prod_001, k8s_delete_namespace_prod_001]
+
+  - id: GATE-002
+    title: Prompt injection or adversarial input always escalates
+    applies_to:
+      adversarial_detected: true
+    match_conditions:
+      - "adversarial_detected == true"
+    required_evidence:
+      - adversarial_scan_report
+    default_gate: ESCALATE
+    allowed_next_steps: [security_review, incident_response]
+    source_refs: [owasp_llm_top10_policy_map]
+    test_scenarios: [prompt_injection_001, prompt_injection_002]
+
+  - id: GATE-003
+    title: Kubernetes privileged pod in production escalates
+    applies_to:
+      domain: [kubernetes, k8s, infrastructure]
+      action_type: [deploy, apply]
+      target_environment: [production, prod]
+    match_conditions:
+      - "domain in ['kubernetes', 'k8s']"
+      - "pod_security_profile == 'privileged'"
+      - "target_environment in ['production', 'prod']"
+    required_evidence:
+      - security_review_ref
+      - change_ticket
+    default_gate: ESCALATE
+    allowed_next_steps: [security_review, human_review]
+    source_refs: [kubernetes_admission_control_summary]
+    test_scenarios: [k8s_privileged_pod_prod_001]
+
+  - id: GATE-004
+    title: Excessive agency — autonomous high-scope action escalates
+    applies_to:
+      action_type: [mass_update, bulk_delete, data_export, privilege_escalation]
+    match_conditions:
+      - "action_type in ['mass_update', 'bulk_delete', 'data_export', 'privilege_escalation']"
+      - "human_approval_ref is null"
+    required_evidence:
+      - scope_boundary_check
+      - human_approval_ref
+    default_gate: ESCALATE
+    allowed_next_steps: [human_review, scope_reduction]
+    source_refs: [owasp_llm_top10_policy_map]
+    test_scenarios: [excessive_agency_001, bulk_delete_users_001]
+
+  - id: GATE-005
+    title: Action touching known exploited CVE escalates
+    applies_to:
+      evidence_tags: [known_exploited, kev, critical_cve]
+    match_conditions:
+      - "cve_id in cisa_kev_list"
+      - "epss_score > 0.7"
+    required_evidence:
+      - cve_patch_status
+      - vulnerability_assessment
+    default_gate: ESCALATE
+    allowed_next_steps: [security_review, patch_required]
+    source_refs: [nist_ai_rmf_summary]
+    test_scenarios: [vuln_response_kev_001]
+
+  - id: GATE-006
+    title: Public internet-facing service creation requires verification
+    applies_to:
+      action_type: [create_service, expose_port, create_ingress, create_loadbalancer]
+      target_environment: [production, prod]
+    match_conditions:
+      - "action creates public endpoint"
+      - "target_environment in ['production', 'prod']"
+    required_evidence:
+      - security_review_ref
+      - network_policy_ref
+    default_gate: VERIFY
+    allowed_next_steps: [security_review, network_policy_required]
+    source_refs: [kubernetes_admission_control_summary, owasp_llm_top10_policy_map]
+    test_scenarios: [k8s_expose_service_prod_001]
+
+  - id: GATE-007
+    title: Read-only metrics and query accept if low risk
+    applies_to:
+      action_type: [read, query, metrics, list, describe]
+      risk_tier: [low]
+    match_conditions:
+      - "action_type in ['read', 'query', 'metrics', 'list', 'describe']"
+      - "risk_tier == 'low'"
+      - "adversarial_detected == false"
+      - "target_environment not in ['production', 'prod'] OR approved_read_access == true"
+    required_evidence: []
+    default_gate: ACCEPT
+    allowed_next_steps: []
+    source_refs: [nist_ai_rmf_summary]
+    test_scenarios: [read_metrics_001, query_staging_db_001]
+
+  - id: GATE-008
+    title: Grid switching operations require dispatcher verification
+    applies_to:
+      domain: [grid_operations, energy, power_systems]
+      action_type: [switching, breaker_operation, recloser]
+    match_conditions:
+      - "domain in ['grid_operations', 'energy', 'power_systems']"
+      - "action_type in ['switching', 'breaker_operation', 'recloser']"
+    required_evidence:
+      - dispatcher_approval_ref
+      - switching_plan_ref
+    default_gate: VERIFY
+    allowed_next_steps: [dispatcher_approval, safety_check]
+    source_refs: [grid_ai_operations_summary]
+    test_scenarios: [grid_switching_001]
+
+  - id: GATE-009
+    title: Grid load shedding requires operations manager escalation
+    applies_to:
+      domain: [grid_operations, energy]
+      action_type: [load_shedding, demand_response, curtailment]
+    match_conditions:
+      - "domain in ['grid_operations', 'energy']"
+      - "action_type in ['load_shedding', 'demand_response', 'curtailment']"
+    required_evidence:
+      - operations_manager_approval
+      - load_shed_plan
+      - regulatory_compliance_check
+    default_gate: ESCALATE
+    allowed_next_steps: [operations_manager_review, regulatory_check]
+    source_refs: [grid_ai_operations_summary]
+    test_scenarios: [grid_load_shed_001]
+
+  - id: GATE-010
+    title: Missing audit provenance on critical action requires verification
+    applies_to:
+      risk_tier: [critical, high]
+    match_conditions:
+      - "risk_tier in ['critical', 'high']"
+      - "audit.hash is null OR assurance_root is null"
+    required_evidence:
+      - audit_hash
+      - assurance_root
+    default_gate: VERIFY
+    allowed_next_steps: [audit_trail_required]
+    source_refs: [w3c_prov_summary]
+    test_scenarios: [missing_audit_trail_001]
+
+  - id: GATE-011
+    title: Terraform destroy/apply in production escalates
+    applies_to:
+      action_type: [terraform_destroy, terraform_apply]
+      target_environment: [production, prod]
+    match_conditions:
+      - "action_type in ['terraform_destroy', 'terraform_apply']"
+      - "target_environment in ['production', 'prod']"
+    required_evidence:
+      - terraform_plan_output
+      - change_ticket
+      - rollback_plan
+    default_gate: ESCALATE
+    allowed_next_steps: [human_review, terraform_plan_review]
+    source_refs: [kubernetes_admission_control_summary]
+    test_scenarios: [iac_terraform_destroy_prod_001]
+
+  - id: GATE-012
+    title: Dry-run/plan operations accept in non-production
+    applies_to:
+      action_type: [dry_run, plan, preview, simulate]
+    match_conditions:
+      - "action_type in ['dry_run', 'plan', 'preview', 'simulate']"
+      - "target_environment not in ['production', 'prod']"
+    required_evidence: []
+    default_gate: ACCEPT
+    allowed_next_steps: []
+    source_refs: []
+    test_scenarios: [terraform_plan_staging_001]

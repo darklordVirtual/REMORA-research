@@ -1,0 +1,16 @@
+REMORA
+Copyright 2026 Luftfiber AS and Stian Skogbrott
+
+REMORA is authored and maintained by Stian Skogbrott for Luftfiber AS.
+
+The open-source REMORA code in this repository is licensed under the Apache
+License, Version 2.0. See LICENSE.
+
+AROMER branding, Luftfiber AS proprietary modules, hosted/managed service
+offerings, certification programs, compliance packages, support packages, and
+closed commercial extensions are not granted by the Apache-2.0 license. This
+includes GO-STAR, law search, DCE, private policy packs, customer integrations,
+and other proprietary solutions belonging to Luftfiber AS and Stian Skogbrott.
+
+See TRADEMARKS.md and enterprise/ENTERPRISE_LICENSE.md for use beyond the
+open-source license.

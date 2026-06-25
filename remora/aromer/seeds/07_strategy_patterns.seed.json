@@ -1,0 +1,132 @@
+[
+  {
+    "id": "strategy_phase_adaptive_threshold",
+    "type": "strategy_pattern",
+    "source": "selective_routing_analysis",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.82,
+    "decay_rate": 0.03,
+    "tags": ["strategy", "threshold", "phase-adaptive", "selective-routing"],
+    "description": "Dynamically adjust governance entropy thresholds based on thermodynamic phase. In ordered phase, lower threshold allows more accepts. In disordered phase, raise threshold to force more verifies. Derived from +47.6pp selective routing lift.",
+    "payload": {
+      "pattern_name": "phase_adaptive_threshold",
+      "activation_condition": "thermodynamic phase classifier has run and phase is available",
+      "adjustment": {
+        "ordered": {
+          "entropy_threshold_accept": 0.4,
+          "entropy_threshold_verify": 0.8,
+          "rationale": "Ordered phase: 86.9% accuracy. Lower bar for accept is justified."
+        },
+        "critical_phase": {
+          "entropy_threshold_accept": 0.6,
+          "entropy_threshold_verify": 1.0,
+          "rationale": "Critical phase: 62.5% accuracy. Moderate caution."
+        },
+        "disordered": {
+          "entropy_threshold_accept": 999,
+          "entropy_threshold_verify": 0.3,
+          "rationale": "Disordered phase: 28.6% accuracy — below random. Default to verify."
+        }
+      },
+      "rationale": "Selective routing curve shows phase is the strongest accuracy discriminator available. Adaptive thresholds operationalize this signal."
+    }
+  },
+  {
+    "id": "strategy_oracle_diversity_weighting",
+    "type": "strategy_pattern",
+    "source": "ablation_v1_oracle_correlation",
+    "version": "0.1",
+    "weight": 0.82,
+    "confidence": 0.78,
+    "decay_rate": 0.03,
+    "tags": ["strategy", "oracle", "diversity", "ensemble"],
+    "description": "When selecting oracle pools, prefer diverse oracles with low inter-correlation (ρ̄ < 0.3). Ablation v1 measured ρ̄=0.219 across llama-3.3-70b, claude-3.5-sonnet, gpt-4o — near-independent, making ensembling meaningful.",
+    "payload": {
+      "pattern_name": "oracle_diversity_weighting",
+      "activation_condition": "oracle pool selection or reconfiguration",
+      "adjustment": {
+        "target_correlation": 0.25,
+        "min_oracles": 2,
+        "diversity_score_threshold": 0.7,
+        "preferred_oracle_families": ["llama", "gemini", "claude", "mistral"],
+        "avoid_same_family_majority": true
+      },
+      "rationale": "ρ̄=0.219 in ablation v1 indicates oracles are near-independent. Ensembling provides real signal reduction. Using 3 same-family models defeats the purpose."
+    }
+  },
+  {
+    "id": "strategy_bandit_oracle_selection",
+    "type": "strategy_pattern",
+    "source": "aromer_bridge_design",
+    "version": "0.1",
+    "weight": 0.78,
+    "confidence": 0.72,
+    "decay_rate": 0.04,
+    "tags": ["strategy", "bandit", "oracle-selection", "adaptive"],
+    "description": "Use epsilon-greedy bandit to select which oracle to query first based on recent per-oracle accuracy. Start with ε=0.2 (20% exploration), decay to ε=0.05 after 500 episodes per oracle.",
+    "payload": {
+      "pattern_name": "bandit_oracle_selection",
+      "activation_condition": "oracle selection for new governance decision",
+      "adjustment": {
+        "epsilon_initial": 0.20,
+        "epsilon_final": 0.05,
+        "decay_after_n_episodes": 500,
+        "reward_signal": "decision_quality.is_strong_signal",
+        "update_frequency": "per_episode"
+      },
+      "rationale": "Oracle performance varies by domain and time. Bandit selection adapts to current oracle reliability without abandoning exploration."
+    }
+  },
+  {
+    "id": "strategy_latency_budget_routing",
+    "type": "strategy_pattern",
+    "source": "external_validation_latency_analysis",
+    "version": "0.1",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.05,
+    "tags": ["strategy", "latency", "routing", "budget"],
+    "description": "When time budget is constrained (< 500ms), route to single-oracle fast path for low/medium risk. Reserve 2-oracle consensus (p50 ~1.1s) for high/critical. p95 < 4s is acceptable for governance decisions per live benchmark.",
+    "payload": {
+      "pattern_name": "latency_budget_routing",
+      "activation_condition": "time_budget_ms is set in request context",
+      "adjustment": {
+        "budget_thresholds_ms": {
+          "fast_single_oracle": 500,
+          "standard_dual_oracle": 2000,
+          "thorough_full_consensus": 5000
+        },
+        "risk_tier_minimum": {
+          "low": "fast_single_oracle",
+          "medium": "fast_single_oracle",
+          "high": "standard_dual_oracle",
+          "critical": "thorough_full_consensus"
+        }
+      },
+      "rationale": "Live benchmark shows p50=1.1s, p95=3.97s for 2-oracle consensus. Single oracle is ~0.3s. Budget-aware routing allows REMORA to be practical in latency-sensitive contexts."
+    }
+  },
+  {
+    "id": "strategy_shadow_first_adaptation",
+    "type": "strategy_pattern",
+    "source": "remora_governance_design",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.88,
+    "decay_rate": 0.01,
+    "tags": ["strategy", "shadow-mode", "adaptation", "safety"],
+    "description": "AROMER should run all world-model adaptations in shadow mode for at least 50 episodes before committing threshold changes. This prevents rapid adaptation to adversarial episode distributions.",
+    "payload": {
+      "pattern_name": "shadow_first_adaptation",
+      "activation_condition": "any world-model threshold change triggered by adapt()",
+      "adjustment": {
+        "shadow_episodes_required": 50,
+        "min_episodes_for_critical_domain": 100,
+        "commit_only_if": "shadow_lift >= 0.02 (2pp accuracy improvement vs. current)",
+        "rollback_on": "false_accept_rate_increase > 0.01"
+      },
+      "rationale": "Safety invariant: large trust reductions in critical domains need shadow validation. This operationalizes that invariant as an adaptive strategy."
+    }
+  }
+]

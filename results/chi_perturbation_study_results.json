@@ -1,0 +1,341 @@
+{
+  "meta": {
+    "experiment": "chi_perturbation_study",
+    "round1_source": "/workspaces/REMORA/results/thermodynamic_eval_results.json",
+    "round2_cache": ".chi_perturbation_cache.json",
+    "benchmark_module": "remora.benchmarks.extended_v2",
+    "n_items": 30,
+    "expected_items": 30,
+    "is_partial": false
+  },
+  "summary": {
+    "n_items": 30,
+    "expected_items": 30,
+    "spearman_rho_chi_fragility": -0.0102,
+    "fragility_hypothesis_holds": false,
+    "phase_fragility_ordered_lt_disordered": false,
+    "phase_summary": {
+      "ordered": {
+        "n": 10,
+        "mean_fragility": 0.2826,
+        "mean_chi": 1.0093,
+        "phase_stable_rate": 0.6
+      },
+      "critical": {
+        "n": 10,
+        "mean_fragility": 0.323,
+        "mean_chi": 1.9828,
+        "phase_stable_rate": 0.3
+      },
+      "disordered": {
+        "n": 10,
+        "mean_fragility": 0.1642,
+        "mean_chi": 3.2075,
+        "phase_stable_rate": 0.9
+      }
+    },
+    "overall_mean_fragility": 0.2566
+  },
+  "items": [
+    {
+      "item_id": "tqa_0000_8ed07b14",
+      "phase": "disordered",
+      "eta_round1": 0.0556,
+      "chi_round1": 2.7465,
+      "eta_round2": 0.04,
+      "fragility": 0.0156,
+      "phase_stable": true,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0001_6abde74a",
+      "phase": "disordered",
+      "eta_round1": 0.019,
+      "chi_round1": 2.3248,
+      "eta_round2": 0.019,
+      "fragility": 0.0,
+      "phase_stable": true,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0002_e0dc923a",
+      "phase": "critical",
+      "eta_round1": 0.6667,
+      "chi_round1": 1.7329,
+      "eta_round2": 0.3333,
+      "fragility": 0.3334,
+      "phase_stable": false,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0003_d45ce5c9",
+      "phase": "critical",
+      "eta_round1": 0.3333,
+      "chi_round1": 1.9495,
+      "eta_round2": 0.3333,
+      "fragility": 0.0,
+      "phase_stable": true,
+      "phase_round2": "critical"
+    },
+    {
+      "item_id": "tqa_0004_3de0c453",
+      "phase": "critical",
+      "eta_round1": 0.5652,
+      "chi_round1": 2.0794,
+      "eta_round2": 0.3846,
+      "fragility": 0.1806,
+      "phase_stable": true,
+      "phase_round2": "critical"
+    },
+    {
+      "item_id": "tqa_0005_ed62a068",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 1.083,
+      "eta_round2": 1.0,
+      "fragility": 0.0,
+      "phase_stable": true,
+      "phase_round2": "ordered"
+    },
+    {
+      "item_id": "tqa_0007_871da20e",
+      "phase": "disordered",
+      "eta_round1": 0.8624,
+      "chi_round1": 4.1198,
+      "eta_round2": 0.3071,
+      "fragility": 0.5553,
+      "phase_stable": true,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0008_43063574",
+      "phase": "disordered",
+      "eta_round1": 0.5652,
+      "chi_round1": 2.426,
+      "eta_round2": 0.0625,
+      "fragility": 0.5027,
+      "phase_stable": true,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0009_7abba6d0",
+      "phase": "disordered",
+      "eta_round1": 0.85,
+      "chi_round1": 3.8775,
+      "eta_round2": 0.8333,
+      "fragility": 0.0167,
+      "phase_stable": true,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0010_1a56e4d7",
+      "phase": "disordered",
+      "eta_round1": 0.087,
+      "chi_round1": 3.7078,
+      "eta_round2": 0.1136,
+      "fragility": 0.0266,
+      "phase_stable": true,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0011_3f5e305c",
+      "phase": "disordered",
+      "eta_round1": 0.3333,
+      "chi_round1": 2.2603,
+      "eta_round2": 0.0357,
+      "fragility": 0.2976,
+      "phase_stable": true,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0012_8827b336",
+      "phase": "disordered",
+      "eta_round1": 0.125,
+      "chi_round1": 3.6254,
+      "eta_round2": 0.2857,
+      "fragility": 0.1607,
+      "phase_stable": false,
+      "phase_round2": "critical"
+    },
+    {
+      "item_id": "tqa_0013_1e5940e9",
+      "phase": "disordered",
+      "eta_round1": 0.2317,
+      "chi_round1": 3.5313,
+      "eta_round2": 0.2317,
+      "fragility": 0.0,
+      "phase_stable": true,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0014_697ff461",
+      "phase": "disordered",
+      "eta_round1": 0.1667,
+      "chi_round1": 3.4553,
+      "eta_round2": 0.1,
+      "fragility": 0.0667,
+      "phase_stable": true,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0017_3a5b935e",
+      "phase": "critical",
+      "eta_round1": 0.5238,
+      "chi_round1": 2.0794,
+      "eta_round2": 0.3333,
+      "fragility": 0.1905,
+      "phase_stable": true,
+      "phase_round2": "critical"
+    },
+    {
+      "item_id": "tqa_0022_f2e5ef0b",
+      "phase": "critical",
+      "eta_round1": 0.6,
+      "chi_round1": 2.0387,
+      "eta_round2": 1.0,
+      "fragility": 0.4,
+      "phase_stable": false,
+      "phase_round2": "ordered"
+    },
+    {
+      "item_id": "tqa_0023_556034fb",
+      "phase": "critical",
+      "eta_round1": 0.6,
+      "chi_round1": 2.0598,
+      "eta_round2": 1.0,
+      "fragility": 0.4,
+      "phase_stable": false,
+      "phase_round2": "ordered"
+    },
+    {
+      "item_id": "tqa_0038_f8032e24",
+      "phase": "critical",
+      "eta_round1": 0.6667,
+      "chi_round1": 1.9294,
+      "eta_round2": 0.2059,
+      "fragility": 0.4608,
+      "phase_stable": false,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0039_0dedb55a",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 0.9715,
+      "eta_round2": 1.0,
+      "fragility": 0.0,
+      "phase_stable": true,
+      "phase_round2": "ordered"
+    },
+    {
+      "item_id": "tqa_0042_9dad840f",
+      "phase": "critical",
+      "eta_round1": 0.5238,
+      "chi_round1": 1.9995,
+      "eta_round2": 0.28,
+      "fragility": 0.2438,
+      "phase_stable": false,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0046_d589f996",
+      "phase": "critical",
+      "eta_round1": 0.5238,
+      "chi_round1": 1.9959,
+      "eta_round2": 1.0,
+      "fragility": 0.4762,
+      "phase_stable": false,
+      "phase_round2": "ordered"
+    },
+    {
+      "item_id": "tqa_0056_9e598a60",
+      "phase": "critical",
+      "eta_round1": 0.6,
+      "chi_round1": 1.9639,
+      "eta_round2": 0.0556,
+      "fragility": 0.5444,
+      "phase_stable": false,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "tqa_0066_bb525c4d",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 0.9848,
+      "eta_round2": 0.0357,
+      "fragility": 0.9643,
+      "phase_stable": false,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "boolq_0007_be62ae2d",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 0.9801,
+      "eta_round2": 1.0,
+      "fragility": 0.0,
+      "phase_stable": true,
+      "phase_round2": "ordered"
+    },
+    {
+      "item_id": "boolq_0008_ffc3b509",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 0.9907,
+      "eta_round2": 1.0,
+      "fragility": 0.0,
+      "phase_stable": true,
+      "phase_round2": "ordered"
+    },
+    {
+      "item_id": "boolq_0026_d3a3c3d1",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 1.0068,
+      "eta_round2": 0.3793,
+      "fragility": 0.6207,
+      "phase_stable": false,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "boolq_0053_6a10832a",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 1.0104,
+      "eta_round2": 0.3793,
+      "fragility": 0.6207,
+      "phase_stable": false,
+      "phase_round2": "disordered"
+    },
+    {
+      "item_id": "boolq_0064_7211b096",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 1.014,
+      "eta_round2": 1.0,
+      "fragility": 0.0,
+      "phase_stable": true,
+      "phase_round2": "ordered"
+    },
+    {
+      "item_id": "boolq_0076_03748e70",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 1.025,
+      "eta_round2": 1.0,
+      "fragility": 0.0,
+      "phase_stable": true,
+      "phase_round2": "ordered"
+    },
+    {
+      "item_id": "boolq_0114_f0c2532e",
+      "phase": "ordered",
+      "eta_round1": 1.0,
+      "chi_round1": 1.0266,
+      "eta_round2": 0.3793,
+      "fragility": 0.6207,
+      "phase_stable": false,
+      "phase_round2": "disordered"
+    }
+  ]
+}

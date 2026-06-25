@@ -1,0 +1,560 @@
+{
+  "n": 544,
+  "baseline_accuracy": 0.411765,
+  "baseline_wilson_ci": [
+    0.3712,
+    0.4536
+  ],
+  "phase_summary": {
+    "ordered": {
+      "n": 99,
+      "correct": 86,
+      "accuracy": 0.868687
+    },
+    "critical": {
+      "n": 32,
+      "correct": 20,
+      "accuracy": 0.625
+    },
+    "disordered": {
+      "n": 413,
+      "correct": 118,
+      "accuracy": 0.285714
+    }
+  },
+  "best_operating_point": {
+    "signal": "neg_temperature",
+    "coverage": 0.18,
+    "k": 98,
+    "correct": 87,
+    "accuracy": 0.887755,
+    "lift_pp": 47.599,
+    "wilson_ci_lo": 0.8101,
+    "wilson_ci_hi": 0.9362,
+    "ci_nonoverlap": true,
+    "p_one_sided": 0.0,
+    "phase_composition": {
+      "ordered": 96,
+      "disordered": 2
+    }
+  },
+  "selective_curve": [
+    {
+      "signal": "neg_temperature",
+      "coverage": 0.05,
+      "k": 27,
+      "correct": 18,
+      "accuracy": 0.666667,
+      "lift_pp": 25.4902,
+      "wilson_ci_lo": 0.4782,
+      "wilson_ci_hi": 0.8136,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.00355918,
+      "phase_composition": {
+        "ordered": 27
+      }
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage": 0.1,
+      "k": 54,
+      "correct": 44,
+      "accuracy": 0.814815,
+      "lift_pp": 40.305,
+      "wilson_ci_lo": 0.6916,
+      "wilson_ci_hi": 0.8962,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 54
+      }
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage": 0.15,
+      "k": 82,
+      "correct": 71,
+      "accuracy": 0.865854,
+      "lift_pp": 45.4089,
+      "wilson_ci_lo": 0.7755,
+      "wilson_ci_hi": 0.9234,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 82
+      }
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage": 0.18,
+      "k": 98,
+      "correct": 87,
+      "accuracy": 0.887755,
+      "lift_pp": 47.599,
+      "wilson_ci_lo": 0.8101,
+      "wilson_ci_hi": 0.9362,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 96,
+        "disordered": 2
+      }
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage": 0.2,
+      "k": 109,
+      "correct": 94,
+      "accuracy": 0.862385,
+      "lift_pp": 45.0621,
+      "wilson_ci_lo": 0.7853,
+      "wilson_ci_hi": 0.9148,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 98,
+        "disordered": 11
+      }
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage": 0.25,
+      "k": 136,
+      "correct": 99,
+      "accuracy": 0.727941,
+      "lift_pp": 31.6176,
+      "wilson_ci_lo": 0.6477,
+      "wilson_ci_hi": 0.7957,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 99,
+        "disordered": 32,
+        "critical": 5
+      }
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage": 0.3,
+      "k": 163,
+      "correct": 99,
+      "accuracy": 0.607362,
+      "lift_pp": 19.5597,
+      "wilson_ci_lo": 0.5307,
+      "wilson_ci_hi": 0.679,
+      "ci_nonoverlap": true,
+      "p_one_sided": 1.9e-07,
+      "phase_composition": {
+        "ordered": 99,
+        "disordered": 59,
+        "critical": 5
+      }
+    },
+    {
+      "signal": "neg_temperature",
+      "coverage": 0.4,
+      "k": 218,
+      "correct": 99,
+      "accuracy": 0.454128,
+      "lift_pp": 4.2364,
+      "wilson_ci_lo": 0.3894,
+      "wilson_ci_hi": 0.5204,
+      "ci_nonoverlap": false,
+      "p_one_sided": 0.10187638,
+      "phase_composition": {
+        "ordered": 99,
+        "disordered": 114,
+        "critical": 5
+      }
+    },
+    {
+      "signal": "trust_score",
+      "coverage": 0.05,
+      "k": 27,
+      "correct": 16,
+      "accuracy": 0.592593,
+      "lift_pp": 18.0828,
+      "wilson_ci_lo": 0.4073,
+      "wilson_ci_hi": 0.7549,
+      "ci_nonoverlap": false,
+      "p_one_sided": 0.02811935,
+      "phase_composition": {
+        "ordered": 27
+      }
+    },
+    {
+      "signal": "trust_score",
+      "coverage": 0.1,
+      "k": 54,
+      "correct": 42,
+      "accuracy": 0.777778,
+      "lift_pp": 36.6013,
+      "wilson_ci_lo": 0.6506,
+      "wilson_ci_hi": 0.868,
+      "ci_nonoverlap": true,
+      "p_one_sided": 2e-08,
+      "phase_composition": {
+        "ordered": 54
+      }
+    },
+    {
+      "signal": "trust_score",
+      "coverage": 0.15,
+      "k": 82,
+      "correct": 69,
+      "accuracy": 0.841463,
+      "lift_pp": 42.9699,
+      "wilson_ci_lo": 0.7474,
+      "wilson_ci_hi": 0.9049,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 82
+      }
+    },
+    {
+      "signal": "trust_score",
+      "coverage": 0.18,
+      "k": 98,
+      "correct": 85,
+      "accuracy": 0.867347,
+      "lift_pp": 45.5582,
+      "wilson_ci_lo": 0.7862,
+      "wilson_ci_hi": 0.9208,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 98
+      }
+    },
+    {
+      "signal": "trust_score",
+      "coverage": 0.2,
+      "k": 109,
+      "correct": 90,
+      "accuracy": 0.825688,
+      "lift_pp": 41.3923,
+      "wilson_ci_lo": 0.7437,
+      "wilson_ci_hi": 0.8855,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 99,
+        "critical": 10
+      }
+    },
+    {
+      "signal": "trust_score",
+      "coverage": 0.25,
+      "k": 136,
+      "correct": 108,
+      "accuracy": 0.794118,
+      "lift_pp": 38.2353,
+      "wilson_ci_lo": 0.7185,
+      "wilson_ci_hi": 0.8535,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 99,
+        "critical": 29,
+        "disordered": 8
+      }
+    },
+    {
+      "signal": "trust_score",
+      "coverage": 0.3,
+      "k": 163,
+      "correct": 122,
+      "accuracy": 0.748466,
+      "lift_pp": 33.6702,
+      "wilson_ci_lo": 0.6767,
+      "wilson_ci_hi": 0.8088,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 99,
+        "critical": 32,
+        "disordered": 32
+      }
+    },
+    {
+      "signal": "trust_score",
+      "coverage": 0.4,
+      "k": 218,
+      "correct": 160,
+      "accuracy": 0.733945,
+      "lift_pp": 32.218,
+      "wilson_ci_lo": 0.6716,
+      "wilson_ci_hi": 0.7882,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 99,
+        "critical": 32,
+        "disordered": 87
+      }
+    },
+    {
+      "signal": "neg_susceptibility",
+      "coverage": 0.05,
+      "k": 27,
+      "correct": 1,
+      "accuracy": 0.037037,
+      "lift_pp": -37.4728,
+      "wilson_ci_lo": 0.0066,
+      "wilson_ci_hi": 0.1828,
+      "ci_nonoverlap": false,
+      "p_one_sided": 0.99996195,
+      "phase_composition": {
+        "ordered": 5,
+        "disordered": 22
+      }
+    },
+    {
+      "signal": "neg_susceptibility",
+      "coverage": 0.1,
+      "k": 54,
+      "correct": 2,
+      "accuracy": 0.037037,
+      "lift_pp": -37.4728,
+      "wilson_ci_lo": 0.0102,
+      "wilson_ci_hi": 0.1254,
+      "ci_nonoverlap": false,
+      "p_one_sided": 0.99999999,
+      "phase_composition": {
+        "ordered": 6,
+        "disordered": 48
+      }
+    },
+    {
+      "signal": "neg_susceptibility",
+      "coverage": 0.15,
+      "k": 82,
+      "correct": 2,
+      "accuracy": 0.02439,
+      "lift_pp": -38.7374,
+      "wilson_ci_lo": 0.0067,
+      "wilson_ci_hi": 0.0846,
+      "ci_nonoverlap": false,
+      "p_one_sided": 1.0,
+      "phase_composition": {
+        "ordered": 6,
+        "disordered": 76
+      }
+    },
+    {
+      "signal": "neg_susceptibility",
+      "coverage": 0.18,
+      "k": 98,
+      "correct": 3,
+      "accuracy": 0.030612,
+      "lift_pp": -38.1152,
+      "wilson_ci_lo": 0.0105,
+      "wilson_ci_hi": 0.0862,
+      "ci_nonoverlap": false,
+      "p_one_sided": 1.0,
+      "phase_composition": {
+        "ordered": 7,
+        "disordered": 91
+      }
+    },
+    {
+      "signal": "neg_susceptibility",
+      "coverage": 0.2,
+      "k": 109,
+      "correct": 5,
+      "accuracy": 0.045872,
+      "lift_pp": -36.5893,
+      "wilson_ci_lo": 0.0198,
+      "wilson_ci_hi": 0.1029,
+      "ci_nonoverlap": false,
+      "p_one_sided": 1.0,
+      "phase_composition": {
+        "ordered": 9,
+        "disordered": 100
+      }
+    },
+    {
+      "signal": "neg_susceptibility",
+      "coverage": 0.25,
+      "k": 136,
+      "correct": 5,
+      "accuracy": 0.036765,
+      "lift_pp": -37.5,
+      "wilson_ci_lo": 0.0158,
+      "wilson_ci_hi": 0.0832,
+      "ci_nonoverlap": false,
+      "p_one_sided": 1.0,
+      "phase_composition": {
+        "ordered": 9,
+        "disordered": 127
+      }
+    },
+    {
+      "signal": "neg_susceptibility",
+      "coverage": 0.3,
+      "k": 163,
+      "correct": 11,
+      "accuracy": 0.067485,
+      "lift_pp": -34.428,
+      "wilson_ci_lo": 0.0381,
+      "wilson_ci_hi": 0.1168,
+      "ci_nonoverlap": false,
+      "p_one_sided": 1.0,
+      "phase_composition": {
+        "ordered": 16,
+        "disordered": 147
+      }
+    },
+    {
+      "signal": "neg_susceptibility",
+      "coverage": 0.4,
+      "k": 218,
+      "correct": 33,
+      "accuracy": 0.151376,
+      "lift_pp": -26.0389,
+      "wilson_ci_lo": 0.1099,
+      "wilson_ci_hi": 0.205,
+      "ci_nonoverlap": false,
+      "p_one_sided": 1.0,
+      "phase_composition": {
+        "ordered": 33,
+        "disordered": 185
+      }
+    },
+    {
+      "signal": "order_parameter",
+      "coverage": 0.05,
+      "k": 27,
+      "correct": 12,
+      "accuracy": 0.444444,
+      "lift_pp": 3.268,
+      "wilson_ci_lo": 0.2759,
+      "wilson_ci_hi": 0.6269,
+      "ci_nonoverlap": false,
+      "p_one_sided": 0.36503486,
+      "phase_composition": {
+        "ordered": 22,
+        "critical": 5
+      }
+    },
+    {
+      "signal": "order_parameter",
+      "coverage": 0.1,
+      "k": 54,
+      "correct": 38,
+      "accuracy": 0.703704,
+      "lift_pp": 29.1939,
+      "wilson_ci_lo": 0.5717,
+      "wilson_ci_hi": 0.8086,
+      "ci_nonoverlap": true,
+      "p_one_sided": 6.53e-06,
+      "phase_composition": {
+        "ordered": 49,
+        "critical": 5
+      }
+    },
+    {
+      "signal": "order_parameter",
+      "coverage": 0.15,
+      "k": 82,
+      "correct": 65,
+      "accuracy": 0.792683,
+      "lift_pp": 38.0918,
+      "wilson_ci_lo": 0.6928,
+      "wilson_ci_hi": 0.8663,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 77,
+        "critical": 5
+      }
+    },
+    {
+      "signal": "order_parameter",
+      "coverage": 0.18,
+      "k": 98,
+      "correct": 81,
+      "accuracy": 0.826531,
+      "lift_pp": 41.4766,
+      "wilson_ci_lo": 0.7396,
+      "wilson_ci_hi": 0.8888,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 93,
+        "critical": 5
+      }
+    },
+    {
+      "signal": "order_parameter",
+      "coverage": 0.2,
+      "k": 109,
+      "correct": 90,
+      "accuracy": 0.825688,
+      "lift_pp": 41.3923,
+      "wilson_ci_lo": 0.7437,
+      "wilson_ci_hi": 0.8855,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 99,
+        "critical": 5,
+        "disordered": 5
+      }
+    },
+    {
+      "signal": "order_parameter",
+      "coverage": 0.25,
+      "k": 136,
+      "correct": 104,
+      "accuracy": 0.764706,
+      "lift_pp": 35.2941,
+      "wilson_ci_lo": 0.6868,
+      "wilson_ci_hi": 0.8281,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 99,
+        "critical": 13,
+        "disordered": 24
+      }
+    },
+    {
+      "signal": "order_parameter",
+      "coverage": 0.3,
+      "k": 163,
+      "correct": 121,
+      "accuracy": 0.742331,
+      "lift_pp": 33.0567,
+      "wilson_ci_lo": 0.6702,
+      "wilson_ci_hi": 0.8033,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 99,
+        "critical": 17,
+        "disordered": 47
+      }
+    },
+    {
+      "signal": "order_parameter",
+      "coverage": 0.4,
+      "k": 218,
+      "correct": 159,
+      "accuracy": 0.729358,
+      "lift_pp": 31.7593,
+      "wilson_ci_lo": 0.6668,
+      "wilson_ci_hi": 0.784,
+      "ci_nonoverlap": true,
+      "p_one_sided": 0.0,
+      "phase_composition": {
+        "ordered": 99,
+        "critical": 22,
+        "disordered": 97
+      }
+    }
+  ],
+  "summary": "Best: 88.78% accuracy at 18% coverage (k=98, lift +47.60 pp over 41.18% baseline, Wilson CI [0.810, 0.936], p=0.00e+00)",
+  "in_sample_calibration_warning": "threshold is derived from the same N544 artifact used for this evaluation \u2014 in-sample optimum, not held-out"
+}

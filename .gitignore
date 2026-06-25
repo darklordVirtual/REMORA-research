@@ -1,0 +1,51 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Local caches (oracle responses, ablation, research, thermo router eval)
+.remora_cache*.json
+.ablation_cache.json
+.research_cache.json
+.thermo_router_eval_cache.json
+
+# Smoke-test scratch artifacts (kept under results/ during development)
+results/_smoke_*.json
+
+# Node / wrangler — node_modules is installed by CI (npm install), never committed
+node_modules/
+frontend/node_modules/
+.wrangler/
+workers/*/dist-check/
+
+# Logs and secrets
+*.log
+hotpotqa_yesno.json
+.env
+*.key
+.env.vars
+.claude/settings.local.json
+.remora_session/
+docs/superpowers/
+.codex_tmp/
+.codex/config.toml
+.env.vars
+
+# Python virtual environments
+.venv/
+.venv-*/
+venv/
+
+# LaTeX build artifacts
+*.aux
+*.out
+*.toc
+*.synctex.gz
+
+# CodeGraph local index
+.codegraph/

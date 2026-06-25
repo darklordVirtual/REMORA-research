@@ -1,0 +1,16 @@
+{
+  "input": "results/full_coverage_bound_results.json",
+  "n_train": 181,
+  "n_test": 121,
+  "confusion": {
+    "tp": 0,
+    "fp": 0,
+    "tn": 118,
+    "fn": 3
+  },
+  "precision": 0.0,
+  "recall": 0.0,
+  "routed_gainable_items": 0,
+  "misrouted_already_correct_items": 0,
+  "net_lift": 0
+}

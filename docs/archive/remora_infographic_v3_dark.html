@@ -1,0 +1,470 @@
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.rmr{
+  background:#0d1117;color:#e6edf3;
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-size:12px;width:100%;max-width:660px;
+  padding:28px 26px 32px;
+}
+/* labels */
+.slbl{font-family:'DM Mono','Courier New',monospace;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:#6e7681;margin-bottom:9px}
+/* surfaces */
+.srf{background:#161b22;border:0.5px solid rgba(230,237,243,0.08);border-radius:4px}
+.srf2{background:#21262d;border:0.5px solid rgba(230,237,243,0.08);border-radius:3px}
+/* header */
+.hdr{padding-bottom:18px;border-bottom:1px solid rgba(230,237,243,0.1);margin-bottom:20px}
+.hdr-g{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+.kicker{font-family:'DM Mono','Courier New',monospace;font-size:9px;letter-spacing:.14em;color:#6e7681;text-transform:uppercase;margin-bottom:10px}
+.h1{font-family:'DM Serif Display',Georgia,serif;font-size:38px;line-height:1;margin-bottom:7px;color:#e6edf3}
+.h1 em{font-style:italic;color:#d4a843}
+.tagline{font-size:11px;color:#8b949e;line-height:1.65;max-width:470px}
+.bdg-stack{display:flex;flex-direction:column;gap:5px;align-items:flex-end;padding-top:2px}
+.bdg{font-family:'DM Mono','Courier New',monospace;font-size:8.5px;letter-spacing:.06em;padding:3px 8px;border:0.5px solid rgba(230,237,243,0.15);border-radius:2px;color:#6e7681;white-space:nowrap}
+.bdg-hi{background:#161b22;color:#d4a843;border-color:rgba(212,168,67,0.5)}
+/* oracle flow */
+.oflow{padding:13px 16px;margin-bottom:20px;background:#161b22;border:0.5px solid rgba(230,237,243,0.08);border-radius:5px}
+.oflow-inner{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+.ocols{display:flex;flex-direction:column;gap:5px}
+.ochip{font-family:'DM Mono','Courier New',monospace;font-size:9px;color:#8b949e;background:#21262d;border:0.5px solid rgba(230,237,243,0.1);border-radius:3px;padding:4px 8px;white-space:nowrap}
+.oarr{color:rgba(230,237,243,0.2);font-size:18px;padding:0 3px;flex-shrink:0}
+.ogate{text-align:center;padding:10px 14px;background:#1f2937;border:1px solid rgba(212,168,67,0.35);border-radius:5px;flex-shrink:0}
+.ogate-t{font-family:'DM Serif Display',Georgia,serif;font-size:18px;color:#d4a843;line-height:1}
+.ogate-s{font-family:'DM Mono','Courier New',monospace;font-size:8.5px;color:#6e7681;margin-top:2px}
+.ores{display:flex;flex-direction:column;gap:5px}
+.res-chip{font-family:'DM Mono','Courier New',monospace;font-size:9px;letter-spacing:.04em;padding:4px 8px;border-radius:2px;border-width:0.5px;border-style:solid;white-space:nowrap}
+.rc-acc{background:rgba(63,185,80,0.1);color:#3fb950;border-color:rgba(63,185,80,0.4)}
+.rc-ver{background:rgba(210,153,34,0.1);color:#d29922;border-color:rgba(210,153,34,0.4)}
+.rc-abs{background:rgba(88,166,255,0.1);color:#58a6ff;border-color:rgba(88,166,255,0.4)}
+.rc-esc{background:rgba(248,81,73,0.1);color:#f85149;border-color:rgba(248,81,73,0.4)}
+/* metrics */
+.mets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.met{background:#161b22;border:0.5px solid rgba(230,237,243,0.08);border-radius:4px;padding:10px 10px 9px;text-align:center}
+.mn{font-family:'DM Serif Display',Georgia,serif;font-size:32px;line-height:1;color:#d4a843}
+.mn-g{color:#3fb950}
+.msup{font-family:'DM Mono','Courier New',monospace;font-size:14px;vertical-align:super;line-height:0;color:rgba(212,168,67,0.65)}
+.msup-g{color:rgba(63,185,80,0.65)}
+.ml{font-size:9.5px;color:#6e7681;margin-top:3px;line-height:1.35}
+/* two col */
+.tc{display:grid;grid-template-columns:minmax(0,198px) minmax(0,1fr);gap:12px;margin-bottom:20px}
+/* formula */
+.fblk{background:#1a1f2e;border:0.5px solid rgba(212,168,67,0.25);padding:10px;text-align:center;margin-bottom:10px;border-radius:4px}
+.ftxt{font-family:'DM Mono','Courier New',monospace;font-size:14px;color:#d4a843;font-weight:500}
+.fnote{font-size:9px;color:#6e7681;margin-top:3px;line-height:1.4}
+.lt-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.lt-cell{background:#161b22;border:0.5px solid rgba(230,237,243,0.08);padding:7px 6px;text-align:center;border-radius:4px}
+.lt-big{font-family:'DM Serif Display',Georgia,serif;font-size:14px;color:#e6edf3}
+.lt-sub{font-size:8.5px;color:#6e7681;margin-top:2px;line-height:1.3}
+/* phase rows */
+.pr{display:flex;align-items:flex-start;gap:7px;padding:6px 0;border-bottom:0.5px solid rgba(230,237,243,0.06)}
+.pr:last-child{border:none}
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.pr-body{flex:1;min-width:0}
+.pr-hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.pr-name{font-size:10.5px;font-weight:500;color:#e6edf3}
+.pr-sub{font-size:8.5px;color:#6e7681;font-weight:400}
+.pr-acc{font-family:'DM Mono','Courier New',monospace;font-size:11.5px;font-weight:500}
+.bar{height:2px;background:rgba(230,237,243,0.08);border-radius:1px;margin-top:0}
+.barf{height:2px;border-radius:1px}
+/* pipeline */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ps{background:#161b22;border:0.5px solid rgba(230,237,243,0.08);padding:9px 9px;border-radius:4px}
+.ps-hi{border-color:rgba(212,168,67,0.25)}
+.ps-n{font-family:'DM Mono','Courier New',monospace;font-size:8.5px;color:#6e7681;margin-bottom:3px}
+.ps-t{font-size:10.5px;font-weight:600;color:#e6edf3;margin-bottom:3px;line-height:1.2}
+.ps-d{font-size:9.5px;color:#8b949e;line-height:1.4}
+.ps-tag{display:inline-block;font-family:'DM Mono','Courier New',monospace;font-size:8px;color:#d29922;border:0.5px solid rgba(210,153,34,0.3);padding:1px 5px;margin-top:5px;border-radius:2px}
+.cost-note{margin-top:7px;padding:7px 9px;background:#161b22;border:0.5px solid rgba(230,237,243,0.07);border-radius:3px;font-family:'DM Mono','Courier New',monospace;font-size:9px;color:#6e7681}
+/* enterprise */
+.egrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:20px}
+.ec{background:#161b22;border:0.5px solid rgba(230,237,243,0.08);padding:8px 9px;border-radius:4px}
+.ec-t{font-size:10px;font-weight:500;margin-bottom:2px}
+.ec-s{font-size:9px;color:#6e7681;line-height:1.4}
+/* outcomes 2x2 */
+.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.oc{padding:10px 11px;border-width:0.5px;border-style:solid;border-radius:4px}
+.ot{font-size:11.5px;font-weight:700;letter-spacing:.04em;margin-bottom:3px}
+.od{font-size:10px;color:#8b949e;line-height:1.45}
+.o-a{border-color:rgba(63,185,80,0.35);background:rgba(63,185,80,0.06)}
+.o-a .ot{color:#3fb950}
+.o-v{border-color:rgba(210,153,34,0.35);background:rgba(210,153,34,0.06)}
+.o-v .ot{color:#d29922}
+.o-b{border-color:rgba(88,166,255,0.35);background:rgba(88,166,255,0.06)}
+.o-b .ot{color:#58a6ff}
+.o-e{border-color:rgba(248,81,73,0.35);background:rgba(248,81,73,0.06)}
+.o-e .ot{color:#f85149}
+/* tool chart */
+.tchart{margin-bottom:20px}
+.tc-row{margin-bottom:5px}
+.tc-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.tc-name{font-size:10px;color:#8b949e}
+.tc-stats{font-family:'DM Mono','Courier New',monospace;font-size:9.5px;display:flex;gap:14px}
+.track{height:3px;background:rgba(230,237,243,0.07);border-radius:1px}
+.bu{background:#f85149;height:3px;border-radius:1px}
+.bg{background:#3fb950;height:3px;border-radius:1px}
+/* chart header */
+.chart-hd{display:flex;justify-content:space-between;margin-bottom:8px;padding:0 0 6px;border-bottom:0.5px solid rgba(230,237,243,0.08)}
+.chart-legend{display:flex;gap:12px;align-items:center}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* use cases */
+.ctable{width:100%;border-collapse:collapse;margin-bottom:20px}
+.ctable th{font-family:'DM Mono','Courier New',monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#6e7681;padding:5px 0;border-bottom:0.5px solid rgba(230,237,243,0.15);text-align:left}
+.ctable th:last-child{text-align:right}
+.ctable td{font-size:10.5px;padding:6px 0;border-bottom:0.5px solid rgba(230,237,243,0.06);color:#8b949e;vertical-align:middle}
+.ctable td:first-child{font-weight:600;color:#e6edf3;width:85px}
+.ctable td:last-child{text-align:right}
+.chip{font-family:'DM Mono','Courier New',monospace;font-size:8px;padding:2px 6px;border-width:0.5px;border-style:solid;border-radius:2px;white-space:nowrap}
+.cg{color:#3fb950;border-color:rgba(63,185,80,0.4);background:rgba(63,185,80,0.1)}
+.cb{color:#58a6ff;border-color:rgba(88,166,255,0.4);background:rgba(88,166,255,0.1)}
+.cr{color:#f85149;border-color:rgba(248,81,73,0.4);background:rgba(248,81,73,0.1)}
+.ca{color:#d29922;border-color:rgba(210,153,34,0.4);background:rgba(210,153,34,0.1)}
+/* limits */
+.lim{border:1px dashed rgba(230,237,243,0.12);padding:11px 13px;margin-bottom:16px;border-radius:4px;background:rgba(22,27,34,0.6)}
+.lim-t{font-size:9.5px;color:#6e7681;line-height:1.65}
+/* footer */
+.ftr{display:flex;justify-content:space-between;align-items:flex-start;padding-top:12px;border-top:0.5px solid rgba(230,237,243,0.08)}
+.fq{font-family:'DM Serif Display',Georgia,serif;font-style:italic;font-size:11px;color:#6e7681;max-width:360px;line-height:1.55}
+.fref{font-family:'DM Mono','Courier New',monospace;font-size:8.5px;color:#6e7681;text-align:right;line-height:1.65}
+/* divider */
+.div{height:0.5px;background:rgba(230,237,243,0.07);margin:18px 0}
+</style>
+
+<div class="rmr">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-g">
+      <div>
+        <div class="kicker">AI Governance Architecture · Research Prototype · v0.5.0</div>
+        <h1 class="h1">REMORA — <em>Trust Firewall</em><br>for Agentic AI</h1>
+        <p class="tagline">Multi-oracle consensus with Lyapunov stability control. Accept when evidence is strong, verify when uncertain, abstain when models disagree, escalate when humans must decide. Not a chatbot — a governed control plane.</p>
+      </div>
+      <div class="bdg-stack">
+        <span class="bdg bdg-hi">1 195 tests passing</span>
+        <span class="bdg">Apache-2.0 · darklordVirtual/REMORA</span>
+        <span class="bdg">Stian Skogbrott · 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORACLE FLOW -->
+  <div class="oflow">
+    <div class="oflow-inner">
+      <div class="ocols">
+        <div class="ochip">Llama 70B · Meta</div>
+        <div class="ochip">Claude Haiku · Anthropic</div>
+        <div class="ochip">Gemma 27B · Google</div>
+      </div>
+      <div class="oarr">→</div>
+      <div class="ogate">
+        <div class="ogate-t">REMORA</div>
+        <div class="ogate-s">φ · ρ · V(t) · F(T)</div>
+      </div>
+      <div class="oarr">→</div>
+      <div class="ores">
+        <span class="res-chip rc-acc">ACCEPT</span>
+        <span class="res-chip rc-ver">VERIFY</span>
+        <span class="res-chip rc-abs">ABSTAIN</span>
+        <span class="res-chip rc-esc">ESCALATE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="mets">
+    <div class="met">
+      <div class="mn">94<span class="msup">%</span></div>
+      <div class="ml">Selective accuracy<br>Top 25% · N=302 · p=0.0018</div>
+    </div>
+    <div class="met">
+      <div class="mn">88<span class="msup">%</span></div>
+      <div class="ml">Selective accuracy<br>Top 18% · N=544</div>
+    </div>
+    <div class="met">
+      <div class="mn mn-g">0<span class="msup msup-g">%</span></div>
+      <div class="ml">Unsafe tool execution<br>700 adversarial tasks</div>
+    </div>
+    <div class="met">
+      <div class="mn">87<span class="msup">%</span></div>
+      <div class="ml">Sessions V(t) stable<br>ΔV ≤ 0 · 1000-sim</div>
+    </div>
+  </div>
+
+  <!-- TWO-COL: THERMO LEFT, PIPELINE RIGHT -->
+  <div class="tc">
+
+    <!-- LEFT -->
+    <div>
+      <div class="slbl">Thermodynamic model</div>
+      <div class="fblk">
+        <div class="ftxt">F(T) = λD − TH</div>
+        <div class="fnote">D = dissensus · H = entropy<br>T = question temperature · λ = coupling</div>
+      </div>
+      <div class="lt-row">
+        <div class="lt-cell">
+          <div class="lt-big">Low T</div>
+          <div class="lt-sub">Consensus strong<br>→ Accept path</div>
+        </div>
+        <div class="lt-cell">
+          <div class="lt-big">High T</div>
+          <div class="lt-sub">Disorder detected<br>→ Escalate path</div>
+        </div>
+      </div>
+
+      <div class="slbl">Phase accuracy · N=544</div>
+
+      <div class="pr">
+        <div class="pdot" style="background:#3fb950"></div>
+        <div class="pr-body">
+          <div class="pr-hd">
+            <span class="pr-name">Ordered <span class="pr-sub">strong agreement</span></span>
+            <span class="pr-acc" style="color:#3fb950">86.9%</span>
+          </div>
+          <div class="bar"><div class="barf" style="width:86.9%;background:#3fb950"></div></div>
+        </div>
+      </div>
+      <div class="pr">
+        <div class="pdot" style="background:#d29922"></div>
+        <div class="pr-body">
+          <div class="pr-hd">
+            <span class="pr-name">Critical <span class="pr-sub">partial agreement</span></span>
+            <span class="pr-acc" style="color:#d29922">62.5%</span>
+          </div>
+          <div class="bar"><div class="barf" style="width:62.5%;background:#d29922"></div></div>
+        </div>
+      </div>
+      <div class="pr">
+        <div class="pdot" style="background:#f85149"></div>
+        <div class="pr-body">
+          <div class="pr-hd">
+            <span class="pr-name">Disordered <span class="pr-sub">low agreement</span></span>
+            <span class="pr-acc" style="color:#f85149">28.6%</span>
+          </div>
+          <div class="bar"><div class="barf" style="width:28.6%;background:#f85149"></div></div>
+        </div>
+      </div>
+
+      <div class="slbl" style="margin-top:12px">Oracle diversity · ρ̄ = 0.22</div>
+      <div style="font-size:9.5px;color:#6e7681;line-height:1.65">Lower inter-oracle correlation → higher diversity weight → more independent signal. GPT-4o most independent at 37.0%. Oracle pool should span ≥ 2 model families.</div>
+    </div>
+
+    <!-- RIGHT: PIPELINE -->
+    <div>
+      <div class="slbl">6-Stage Cascade Decision Pipeline</div>
+      <div class="pgrid">
+
+        <div class="ps ps-hi">
+          <div class="ps-n">Stage 1</div>
+          <div class="ps-t">FastGate</div>
+          <div class="ps-d">1 oracle call. Platt-calibrated conf ≥ 0.90 → ACCEPT immediately</div>
+          <span class="ps-tag">~$0.001</span>
+        </div>
+
+        <div class="ps">
+          <div class="ps-n">Stage 2</div>
+          <div class="ps-t">ConsensusGate</div>
+          <div class="ps-d">3 oracles. φ-canonicalize, ρ weights, F(T), phase, trust. Accept ≥ 0.65</div>
+          <span class="ps-tag">~$0.003</span>
+        </div>
+
+        <div class="ps">
+          <div class="ps-n">Stage 3</div>
+          <div class="ps-t">VerifierGate</div>
+          <div class="ps-d">LLM judge (Mistral — cross-family). SUPPORTED / CHALLENGED / REFUTED</div>
+          <span class="ps-tag">~$0.001</span>
+        </div>
+
+        <div class="ps">
+          <div class="ps-n">Stage 3b</div>
+          <div class="ps-t">CritiqueRevision</div>
+          <div class="ps-d">Constitutional AI loop. Critique → revise → re-judge. Max 2 rounds</div>
+          <span class="ps-tag">Only CHALLENGED</span>
+        </div>
+
+        <div class="ps">
+          <div class="ps-n">Stage 4</div>
+          <div class="ps-t">SelfConsistency</div>
+          <div class="ps-d">N=7 samples majority. ≥ 0.72 ACCEPT · 0.50–0.72 VERIFY · &lt; 0.50 ABSTAIN</div>
+          <span class="ps-tag">Always terminal</span>
+        </div>
+
+        <div class="ps">
+          <div class="ps-n">Stage 6</div>
+          <div class="ps-t">MoA Synth</div>
+          <div class="ps-d">Mixture-of-Agents: synthesis oracle aggregates the full pool output</div>
+          <span class="ps-tag">~$0.001</span>
+        </div>
+
+      </div>
+      <div class="cost-note">Max: 16 oracle calls · ~$0.016/question · Budget cap → returns VERIFY</div>
+
+      <div class="slbl" style="margin-top:14px">Agent Hook — PreToolUse (Claude Code)</div>
+      <div style="background:#161b22;border:0.5px solid rgba(230,237,243,0.08);border-radius:4px;padding:9px 10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div>
+            <div style="font-size:9.5px;font-weight:600;color:#e6edf3;margin-bottom:2px">Phase 1 — Local</div>
+            <div style="font-size:9px;color:#6e7681;line-height:1.4">AST-primary shell guard. rm -rf · DROP TABLE → BLOCK</div>
+          </div>
+          <div>
+            <div style="font-size:9.5px;font-weight:600;color:#e6edf3;margin-bottom:2px">Phase 2 — Drift</div>
+            <div style="font-size:9px;color:#6e7681;line-height:1.4">Intent drift = 1 − min(J + 0.3B). Warn ≥ 0.75, block ≥ 0.92</div>
+          </div>
+          <div>
+            <div style="font-size:9.5px;font-weight:600;color:#e6edf3;margin-bottom:2px">Phase 3 — Oracle</div>
+            <div style="font-size:9px;color:#6e7681;line-height:1.4">Full 6-stage cascade + V(t) Lyapunov session monitor</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTERPRISE FEATURES -->
+  <div class="slbl">Enterprise Governance Capabilities</div>
+  <div class="egrid">
+    <div class="ec">
+      <div class="ec-t" style="color:#d4a843">Policy-as-Code</div>
+      <div class="ec-s">OPA/Rego adapter. Dynamic action boundaries. Versioned policy bundles per risk tier</div>
+    </div>
+    <div class="ec">
+      <div class="ec-t" style="color:#58a6ff">Audit Trails</div>
+      <div class="ec-s">RDF/SPARQL N-Triples. SHA-256 Merkle tree. SPARQL queries over AI fleet</div>
+    </div>
+    <div class="ec">
+      <div class="ec-t" style="color:#3fb950">Observability</div>
+      <div class="ec-s">OpenTelemetry OTLP. H, D, phase as custom OTel span attributes. Grafana/Datadog</div>
+    </div>
+    <div class="ec">
+      <div class="ec-t" style="color:#f85149">Escalation</div>
+      <div class="ec-s">EscalationPayload JSON Schema: thermodynamic snapshot → domain-aware SME routing</div>
+    </div>
+  </div>
+
+  <!-- POLICY OUTCOMES -->
+  <div class="slbl">Policy Outcomes</div>
+  <div class="ogrid">
+    <div class="oc o-a">
+      <div class="ot">ACCEPT</div>
+      <div class="od">Evidence strong, consensus sufficient, policy permits. Return answer with full Merkle audit trace.</div>
+    </div>
+    <div class="oc o-v">
+      <div class="ot">VERIFY</div>
+      <div class="od">Uncertainty manageable. Retrieve more evidence or request additional oracle sweep before acting.</div>
+    </div>
+    <div class="oc o-b">
+      <div class="ot">ABSTAIN</div>
+      <div class="od">Trust &lt; 0.12. Three independent oracles disagree severely. Deferring is better than forcing an answer.</div>
+    </div>
+    <div class="oc o-e">
+      <div class="ot">ESCALATE</div>
+      <div class="od">Risk or authority exceeds automation boundary. Human reviewer receives full evidence + EscalationPayload.</div>
+    </div>
+  </div>
+
+  <!-- TOOL-CALL BENCHMARK -->
+  <div class="slbl">Tool-Call Benchmark v2 · 700 Adversarial Tasks · Deterministic Simulator</div>
+  <div class="tchart">
+    <div class="chart-hd">
+      <span style="font-size:9px;color:#6e7681">Strategy</span>
+      <div class="chart-legend">
+        <div style="display:flex;align-items:center;gap:4px"><div class="leg-dot" style="background:#f85149"></div><span style="font-size:9px;color:#6e7681">Unsafe %</span></div>
+        <div style="display:flex;align-items:center;gap:4px"><div class="leg-dot" style="background:#3fb950"></div><span style="font-size:9px;color:#6e7681">Mean utility</span></div>
+        <span style="font-size:9px;color:#6e7681;margin-left:4px">Accuracy</span>
+      </div>
+    </div>
+
+    <!-- remora full (highlighted) -->
+    <div style="padding:7px 9px;background:rgba(212,168,67,0.05);border:0.5px solid rgba(212,168,67,0.25);border-radius:3px;margin-bottom:6px">
+      <div class="tc-hd" style="margin-bottom:4px">
+        <span style="font-size:10px;color:#d4a843;font-weight:600">remora_full_policy_gate ✦</span>
+        <div class="tc-stats">
+          <span style="color:#3fb950">0.0%</span>
+          <span style="color:#3fb950">0.62</span>
+          <span style="color:#e6edf3">90%</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:1px;height:3px;background:rgba(230,237,243,0.07);border-radius:1px">
+        <div style="width:62%;background:#3fb950;height:3px;border-radius:1px"></div>
+      </div>
+    </div>
+
+    <div class="tc-row">
+      <div class="tc-hd">
+        <span class="tc-name">remora_temperature_gate</span>
+        <div class="tc-stats"><span style="color:#f85149">10%</span><span style="color:#d29922">0.27</span><span style="color:#6e7681">70%</span></div>
+      </div>
+      <div style="display:flex;gap:1px;height:3px;background:rgba(230,237,243,0.07);border-radius:1px">
+        <div class="bu" style="width:10%"></div>
+        <div class="bg" style="width:27%;margin-left:1px"></div>
+      </div>
+    </div>
+
+    <div class="tc-row" style="margin-top:5px">
+      <div class="tc-hd">
+        <span class="tc-name">majority_vote_heuristic</span>
+        <div class="tc-stats"><span style="color:#f85149">10%</span><span style="color:#6e7681">0.00</span><span style="color:#6e7681">30%</span></div>
+      </div>
+      <div style="display:flex;gap:1px;height:3px;background:rgba(230,237,243,0.07);border-radius:1px">
+        <div class="bu" style="width:10%"></div>
+      </div>
+    </div>
+
+    <div class="tc-row" style="margin-top:5px">
+      <div class="tc-hd">
+        <span class="tc-name">single_model_heuristic</span>
+        <div class="tc-stats"><span style="color:#f85149">20%</span><span style="color:#f85149">−0.25</span><span style="color:#6e7681">20%</span></div>
+      </div>
+      <div style="display:flex;gap:1px;height:3px;background:rgba(230,237,243,0.07);border-radius:1px">
+        <div class="bu" style="width:20%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USE CASES -->
+  <div class="slbl">Industrial Use Cases</div>
+  <table class="ctable">
+    <thead>
+      <tr><th>Domain</th><th>Risk without REMORA</th><th>Outcome</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Legal (NO)</td>
+        <td>Hallucinated Høyesterett citations in Asker municipality vedtak, Apr 2026</td>
+        <td><span class="chip cb">ABSTAIN</span></td>
+      </tr>
+      <tr>
+        <td>Energy OT</td>
+        <td>AI valve shutdown executes automatically without operator review</td>
+        <td><span class="chip cr">ESCALATE</span></td>
+      </tr>
+      <tr>
+        <td>Cybersecurity</td>
+        <td>High-severity alert auto-closes with wrong threat classification</td>
+        <td><span class="chip cr">ESCALATE</span></td>
+      </tr>
+      <tr>
+        <td>Agent / Code</td>
+        <td>rm -rf or DROP TABLE executes from ambiguous agentic instruction</td>
+        <td><span class="chip cr">BLOCK</span></td>
+      </tr>
+      <tr>
+        <td>Network</td>
+        <td>VLAN change pushed without grounding or evidence</td>
+        <td><span class="chip ca">VERIFY</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- HONEST LIMITS -->
+  <div class="lim">
+    <div class="slbl" style="margin-bottom:7px">Honest limits — what is not yet demonstrated</div>
+    <div class="lim-t">N=544 temperature threshold is in-sample calibrated — not an independent holdout result. Tool-call benchmarks are deterministic heuristic simulators, not live LLM calls. EvidenceOracleV3 uses lexical (Jaccard) verification, not semantic entailment. Conformal 5% risk target fails all 20 repeated splits on N=302. Governance drift thresholds require operational telemetry before enforcement. No production environment has been validated.</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="ftr">
+    <div class="fq">"REMORA is not a universal accuracy booster — its value is knowing when to say I don't know."</div>
+    <div class="fref">github.com/darklordVirtual/REMORA<br>Apache-2.0 License · Stian Skogbrott · 2026<br>12 MCP tools · Docker · K8s · Azure</div>
+  </div>
+
+</div>

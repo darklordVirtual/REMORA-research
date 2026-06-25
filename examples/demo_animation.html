@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REMORA — AI Governance</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:      #04070d;
+  --s1:       #070d18;
+  --s2:       #0b1422;
+  --s3:       #0f1c30;
+  --rule:     #182640;
+  --rule2:    #203455;
+
+  --text:     #cdddf0;
+  --text2:    #5c7fa4;
+  --text3:    #2d4462;
+
+  --blue:     #2060c8;
+  --blue-lt:  #5b9cf0;
+  --blue-bg:  rgba(32,96,200,.09);
+
+  --red:      #c03030;
+  --red-lt:   #e85050;
+  --red-bg:   rgba(192,48,48,.08);
+  --red-bd:   rgba(192,48,48,.28);
+
+  --green:    #16a050;
+  --green-lt: #34c870;
+  --green-bg: rgba(22,160,80,.09);
+
+  --ui:   'IBM Plex Sans', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: var(--ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── THE SQUARE STAGE ── */
+
+.stage {
+  width:  min(760px, calc(100vmin - 24px));
+  height: min(760px, calc(100vmin - 24px));
+  background: var(--s1);
+  border: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle inner vignette */
+.stage::after {
+  content:'';
+  position:absolute; inset:0; pointer-events:none;
+  background: radial-gradient(ellipse 80% 70% at 50% 50%,
+    transparent 55%,
+    rgba(4,7,13,.5) 100%
+  );
+}
+
+/* ── HEADER ── */
+
+.hd {
+  flex-shrink: 0;
+  height: 48px;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
+  gap: 14px;
+  background: var(--s2);
+  z-index: 10;
+}
+
+.hd-logo {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  color: #fff;
+}
+
+.hd-sep { width:1px; height:16px; background:var(--rule2); }
+
+.hd-tag {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.hd-space { flex:1; }
+
+/* step dots */
+.dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--rule2);
+  transition: background .4s ease, transform .3s ease;
+}
+
+.dot.on {
+  background: var(--blue-lt);
+  transform: scale(1.3);
+}
+
+/* ── SCENES ── */
+
+.scenes {
+  flex: 1;
+  position: relative;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 40px;
+  opacity: 0;
+  transition: opacity .5s ease;
+  pointer-events: none;
+  gap: 0;
+  z-index: 1;
+}
+
+.scene.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── FOOTER ── */
+
+.ft {
+  flex-shrink: 0;
+  height: 52px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
+  background: var(--s2);
+  z-index: 10;
+  gap: 14px;
+}
+
+.ft-step {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.ft-space { flex:1; }
+
+.progress-track {
+  width: 120px;
+  height: 2px;
+  background: var(--rule2);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--blue-lt);
+  border-radius: 1px;
+  transition: width .5s ease;
+}
+
+/* ── SHARED SCENE ELEMENTS ── */
+
+.scene-icon {
+  width: 64px; height: 64px;
+  border: 1px solid var(--rule2);
+  background: var(--s3);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.scene-icon svg { width: 28px; height: 28px; }
+
+.scene-icon.blue-glow {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 1px var(--blue-bg), 0 0 24px rgba(32,96,200,.15);
+}
+
+.scene-icon.red-glow {
+  border-color: var(--red);
+  box-shadow: 0 0 0 1px var(--red-bg), 0 0 24px rgba(192,48,48,.15);
+}
+
+.scene-icon.green-glow {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px var(--green-bg), 0 0 24px rgba(22,160,80,.12);
+}
+
+.scene-h1 {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-family: var(--mono);
+  text-align: center;
+}
+
+.scene-h2 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: -.3px;
+}
+
+.scene-body {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 480px;
+}
+
+.scene-note {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text3);
+  text-align: center;
+}
+
+/* spacers */
+.sp8  { height: 8px; }
+.sp12 { height: 12px; }
+.sp16 { height: 16px; }
+.sp24 { height: 24px; }
+.sp32 { height: 32px; }
+
+/* ── SCENE 1: TITLE ── */
+
+.tagline-block {
+  text-align: center;
+}
+
+.tagline-main {
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  color: #fff;
+  font-family: var(--ui);
+  line-height: 1;
+}
+
+.tagline-main em {
+  color: var(--blue-lt);
+  font-style: normal;
+}
+
+.tagline-sub {
+  font-size: 16px;
+  color: var(--text2);
+  margin-top: 14px;
+  line-height: 1.6;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tagline-byline {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-top: 32px;
+}
+
+/* ── SCENE 2: AGENT ACTION ── */
+
+.action-flow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  max-width: 540px;
+}
+
+.action-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.action-node-lbl {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.action-arrow {
+  flex: 1;
+  height: 1px;
+  background: var(--rule2);
+  position: relative;
+}
+
+.action-arrow::after {
+  content: '';
+  position: absolute;
+  right: -5px; top: -3.5px;
+  border-left: 5px solid var(--rule2);
+  border-top: 3.5px solid transparent;
+  border-bottom: 3.5px solid transparent;
+}
+
+.action-box {
+  border: 1px solid var(--red-bd);
+  background: var(--red-bg);
+  padding: 14px 20px;
+  text-align: center;
+  flex-shrink: 0;
+  max-width: 220px;
+}
+
+.action-box-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--red-lt);
+  margin-bottom: 6px;
+}
+
+.action-box-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.action-box-warn {
+  font-size: 11px;
+  color: var(--red-lt);
+  margin-top: 6px;
+  font-family: var(--mono);
+  letter-spacing: .3px;
+}
+
+/* ── SCENE 3: INTERCEPT ── */
+
+.intercept-flow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.i-node {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  flex-shrink: 0;
+}
+
+.i-lbl {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--text3);
+}
+
+.i-line {
+  flex: 1; height: 1px; background: var(--rule2);
+  position: relative;
+}
+
+.i-line.blocked {
+  background: var(--red);
+}
+
+.i-line::after {
+  content: '';
+  position: absolute;
+  right: -5px; top: -3.5px;
+  border-left: 5px solid var(--rule2);
+  border-top: 3.5px solid transparent;
+  border-bottom: 3.5px solid transparent;
+  transition: border-left-color .4s ease;
+}
+
+.i-line.blocked::after {
+  border-left-color: var(--red);
+}
+
+.i-block {
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--red);
+}
+
+.i-box-dim {
+  border: 1px solid var(--rule);
+  padding: 10px 16px;
+  text-align: center;
+  opacity: .35;
+}
+
+.i-box-dim-label { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+.i-box-dim-text  { font-size: 13px; font-weight: 500; color: var(--text2); line-height: 1.3; }
+
+/* ── SCENE 4: RISK ── */
+
+.risk-list {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.risk-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background: var(--s2);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--red);
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity .35s ease, transform .35s ease;
+}
+
+.risk-item.show { opacity: 1; transform: translateX(0); }
+
+.risk-x {
+  width: 22px; height: 22px; flex-shrink: 0;
+  background: var(--red-bg);
+  border: 1px solid var(--red-bd);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.risk-x svg { width: 12px; height: 12px; }
+
+.risk-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: .1px;
+}
+
+.risk-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 2px;
+  letter-spacing: .5px;
+}
+
+/* ── SCENE 5: ESCALATE ── */
+
+.escalate-box {
+  border: 1px solid var(--red);
+  background: var(--red-bg);
+  padding: 32px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  max-width: 480px;
+  width: 100%;
+}
+
+.escalate-box::before {
+  content:'';
+  position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(
+    135deg, transparent, transparent 22px,
+    rgba(192,48,48,.03) 22px, rgba(192,48,48,.03) 44px
+  );
+}
+
+.escalate-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--red-lt);
+  margin-bottom: 14px;
+  position: relative; z-index: 1;
+}
+
+.escalate-word {
+  font-size: 54px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: var(--red-lt);
+  line-height: 1;
+  font-family: var(--mono);
+  position: relative; z-index: 1;
+}
+
+.escalate-rule {
+  width: 100%;
+  height: 1px;
+  background: rgba(192,48,48,.25);
+  margin: 20px 0;
+  position: relative; z-index: 1;
+}
+
+.escalate-desc {
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.6;
+  position: relative; z-index: 1;
+}
+
+/* ── SCENE 6: HUMAN ── */
+
+.human-circle {
+  width: 72px; height: 72px; border-radius: 50%;
+  border: 1px solid var(--green);
+  background: var(--green-bg);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 1px var(--green-bg), 0 0 28px rgba(22,160,80,.12);
+  flex-shrink: 0;
+}
+
+.human-circle svg { width: 30px; height: 30px; }
+
+.control-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--s2);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--green);
+  max-width: 380px;
+  width: 100%;
+}
+
+.control-check svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+.control-text {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+/* ── REPLAY ── */
+
+.replay-btn {
+  background: transparent;
+  border: 1px solid var(--rule2);
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  padding: 10px 28px;
+  cursor: pointer;
+  transition: border-color .2s ease, color .2s ease;
+}
+
+.replay-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue-lt);
+}
+
+/* animated dot for intercept scene */
+@keyframes pulse-red {
+  0%,100% { box-shadow: 0 0 0 1px var(--red-bg), 0 0 16px rgba(192,48,48,.12); }
+  50%      { box-shadow: 0 0 0 1px var(--red-bg), 0 0 32px rgba(192,48,48,.25); }
+}
+
+.red-glow-anim { animation: pulse-red 1.8s ease infinite; }
+
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .2; }
+}
+
+.blink { animation: blink 1.1s ease infinite; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- HEADER -->
+  <div class="hd">
+    <div class="hd-logo">REMORA</div>
+    <div class="hd-sep"></div>
+    <div class="hd-tag">AI Agent Governance</div>
+    <div class="hd-space"></div>
+    <div class="dots">
+      <div class="dot on" id="d0"></div>
+      <div class="dot" id="d1"></div>
+      <div class="dot" id="d2"></div>
+      <div class="dot" id="d3"></div>
+      <div class="dot" id="d4"></div>
+      <div class="dot" id="d5"></div>
+    </div>
+  </div>
+
+  <!-- SCENES -->
+  <div class="scenes">
+
+    <!-- SCENE 0: Title -->
+    <div class="scene active" id="sc0">
+      <div class="tagline-block">
+        <div class="tagline-main">
+          Your AI agents,<br>
+          <em>under control.</em>
+        </div>
+        <div class="tagline-sub">
+          AI agents can take powerful actions automatically
+          — deleting data, sending emails, modifying systems.
+          REMORA ensures no dangerous action
+          happens without your approval.
+        </div>
+        <div class="tagline-byline">Watch how it works →</div>
+      </div>
+    </div>
+
+    <!-- SCENE 1: Agent action -->
+    <div class="scene" id="sc1">
+      <div class="scene-h1">Step 1 — AI agent requests an action</div>
+      <div class="sp16"></div>
+      <div class="action-flow">
+        <div class="action-node">
+          <div class="scene-icon blue-glow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue-lt)" stroke-width="1.5" stroke-linecap="round">
+              <rect x="5" y="5" width="14" height="14" rx="1"/>
+              <rect x="9" y="9" width="6" height="6"/>
+              <line x1="9" y1="1" x2="9" y2="5"/><line x1="15" y1="1" x2="15" y2="5"/>
+              <line x1="9" y1="19" x2="9" y2="23"/><line x1="15" y1="19" x2="15" y2="23"/>
+              <line x1="1" y1="9" x2="5" y2="9"/><line x1="1" y1="15" x2="5" y2="15"/>
+              <line x1="19" y1="9" x2="23" y2="9"/><line x1="19" y1="15" x2="23" y2="15"/>
+            </svg>
+          </div>
+          <div class="action-node-lbl">AI Agent</div>
+        </div>
+        <div class="action-arrow"></div>
+        <div class="action-box">
+          <div class="action-box-label">Requested action</div>
+          <div class="action-box-text">Delete the entire<br>customer database</div>
+          <div class="action-box-warn">Permanent — cannot be undone</div>
+        </div>
+      </div>
+      <div class="sp28" style="height:28px;"></div>
+      <div class="scene-body">
+        Your AI agent has decided to take an action
+        that could destroy business-critical data —
+        automatically, without asking anyone.
+      </div>
+    </div>
+
+    <!-- SCENE 2: REMORA intercepts -->
+    <div class="scene" id="sc2">
+      <div class="scene-h1">Step 2 — REMORA stops it immediately</div>
+      <div class="sp16"></div>
+      <div class="intercept-flow">
+        <div class="i-node">
+          <div class="scene-icon blue-glow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue-lt)" stroke-width="1.5" stroke-linecap="round">
+              <rect x="5" y="5" width="14" height="14" rx="1"/>
+              <rect x="9" y="9" width="6" height="6"/>
+              <line x1="9" y1="1" x2="9" y2="5"/><line x1="15" y1="1" x2="15" y2="5"/>
+              <line x1="9" y1="19" x2="9" y2="23"/><line x1="15" y1="19" x2="15" y2="23"/>
+              <line x1="1" y1="9" x2="5" y2="9"/><line x1="1" y1="15" x2="5" y2="15"/>
+              <line x1="19" y1="9" x2="23" y2="9"/><line x1="19" y1="15" x2="23" y2="15"/>
+            </svg>
+          </div>
+          <div class="i-lbl">AI Agent</div>
+        </div>
+        <div class="i-line blocked"></div>
+        <div class="i-node">
+          <div class="scene-icon red-glow red-glow-anim">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--red-lt)" stroke-width="1.5" stroke-linecap="round">
+              <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16" r=".8" fill="var(--red-lt)"/>
+            </svg>
+          </div>
+          <div class="i-lbl">REMORA</div>
+        </div>
+        <div class="i-line" style="opacity:.3;"></div>
+        <div class="i-node">
+          <div class="i-box-dim">
+            <div class="i-box-dim-label">Blocked action</div>
+            <div class="i-box-dim-text">Delete customer database</div>
+          </div>
+          <div class="i-lbl" style="margin-top:8px;">Not executed</div>
+        </div>
+      </div>
+      <div class="sp28" style="height:28px;"></div>
+      <div class="scene-body">
+        The moment REMORA detects a potentially harmful action,
+        it pauses execution automatically — before anything
+        happens to your data or systems.
+      </div>
+    </div>
+
+    <!-- SCENE 3: Risk check -->
+    <div class="scene" id="sc3">
+      <div class="scene-h1">Step 3 — Risk is evaluated automatically</div>
+      <div class="sp20" style="height:20px;"></div>
+      <div class="risk-list">
+        <div class="risk-item" id="ri0">
+          <div class="risk-x">
+            <svg viewBox="0 0 12 12" fill="none" stroke="var(--red-lt)" stroke-width="2" stroke-linecap="round">
+              <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+            </svg>
+          </div>
+          <div>
+            <div class="risk-text">Dangerous operation</div>
+            <div class="risk-sub">Deletes data permanently</div>
+          </div>
+        </div>
+        <div class="risk-item" id="ri1">
+          <div class="risk-x">
+            <svg viewBox="0 0 12 12" fill="none" stroke="var(--red-lt)" stroke-width="2" stroke-linecap="round">
+              <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+            </svg>
+          </div>
+          <div>
+            <div class="risk-text">Live business data</div>
+            <div class="risk-sub">Affects production systems</div>
+          </div>
+        </div>
+        <div class="risk-item" id="ri2">
+          <div class="risk-x">
+            <svg viewBox="0 0 12 12" fill="none" stroke="var(--red-lt)" stroke-width="2" stroke-linecap="round">
+              <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+            </svg>
+          </div>
+          <div>
+            <div class="risk-text">Cannot be undone</div>
+            <div class="risk-sub">No rollback possible</div>
+          </div>
+        </div>
+        <div class="risk-item" id="ri3">
+          <div class="risk-x">
+            <svg viewBox="0 0 12 12" fill="none" stroke="var(--red-lt)" stroke-width="2" stroke-linecap="round">
+              <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+            </svg>
+          </div>
+          <div>
+            <div class="risk-text">Business-critical data at risk</div>
+            <div class="risk-sub">Customer records, sensitive information</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 4: Decision -->
+    <div class="scene" id="sc4">
+      <div class="scene-h1">Step 4 — REMORA makes a decision</div>
+      <div class="sp20" style="height:20px;"></div>
+      <div class="escalate-box">
+        <div class="escalate-label">REMORA Verdict</div>
+        <div class="escalate-word">ESCALATE</div>
+        <div class="escalate-rule"></div>
+        <div class="escalate-desc">
+          This action is too risky to execute automatically.<br>
+          A human must approve it before anything proceeds.
+        </div>
+      </div>
+      <div class="sp24"></div>
+      <div class="scene-body">
+        The action is blocked. Your team is notified immediately.<br>
+        The AI agent waits — it cannot proceed on its own.
+      </div>
+    </div>
+
+    <!-- SCENE 5: You're in control -->
+    <div class="scene" id="sc5">
+      <div class="human-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--green-lt)" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-3.87 3.58-7 8-7s8 3.13 8 7"/>
+        </svg>
+      </div>
+      <div class="sp20" style="height:20px;"></div>
+      <div class="scene-h2">You're in control.</div>
+      <div class="sp12"></div>
+      <div class="scene-body">
+        Nothing happens without your approval.<br>
+        Review the request, then decide.
+      </div>
+      <div class="sp28" style="height:28px;"></div>
+      <div class="control-stat">
+        <svg viewBox="0 0 14 14" fill="none" stroke="var(--green-lt)" stroke-width="1.8" stroke-linecap="round"><polyline points="2,7 6,11 12,3"/></svg>
+        <div class="control-text">Every decision is logged. Full audit trail available.</div>
+      </div>
+      <div class="sp12"></div>
+      <div class="control-stat">
+        <svg viewBox="0 0 14 14" fill="none" stroke="var(--green-lt)" stroke-width="1.8" stroke-linecap="round"><polyline points="2,7 6,11 12,3"/></svg>
+        <div class="control-text">Runs in the background — no friction for your team.</div>
+      </div>
+      <div class="sp12"></div>
+      <div class="control-stat">
+        <svg viewBox="0 0 14 14" fill="none" stroke="var(--green-lt)" stroke-width="1.8" stroke-linecap="round"><polyline points="2,7 6,11 12,3"/></svg>
+        <div class="control-text">Works with any AI agent, any tool, any workflow.</div>
+      </div>
+      <div class="sp32"></div>
+      <button class="replay-btn" onclick="startAnim()">↺ &nbsp; Watch again</button>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="ft">
+    <div class="ft-step" id="ft-lbl">AI Governance Platform</div>
+    <div class="ft-space"></div>
+    <div class="progress-track">
+      <div class="progress-fill" id="prog" style="width:0%;"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const scenes = [
+  { id: 'sc0', dot: 'd0', label: 'Introduction',         pct:  0,  dur: 3000 },
+  { id: 'sc1', dot: 'd1', label: 'Agent action detected', pct: 20,  dur: 3200 },
+  { id: 'sc2', dot: 'd2', label: 'Governance gate activated', pct: 40, dur: 3000 },
+  { id: 'sc3', dot: 'd3', label: 'Risk evaluation',       pct: 60,  dur: 3800 },
+  { id: 'sc4', dot: 'd4', label: 'Decision rendered',     pct: 80,  dur: 3200 },
+  { id: 'sc5', dot: 'd5', label: 'Human in control',      pct: 100, dur: null },
+];
+
+const wait  = ms => new Promise(r => setTimeout(r, ms));
+let timer   = null;
+let running = false;
+
+function showScene(idx) {
+  scenes.forEach((s, i) => {
+    const el = document.getElementById(s.id);
+    el.classList.toggle('active', i === idx);
+
+    const dot = document.getElementById(s.dot);
+    dot.classList.toggle('on', i === idx);
+  });
+
+  document.getElementById('ft-lbl').textContent = scenes[idx].label;
+  document.getElementById('prog').style.width   = scenes[idx].pct + '%';
+}
+
+function resetRiskItems() {
+  ['ri0','ri1','ri2','ri3'].forEach(id => {
+    document.getElementById(id).classList.remove('show');
+  });
+}
+
+async function runRiskItems() {
+  await wait(300);
+  for (const id of ['ri0','ri1','ri2','ri3']) {
+    document.getElementById(id).classList.add('show');
+    await wait(340);
+  }
+}
+
+async function startAnim() {
+  if (running) return;
+  running = true;
+
+  resetRiskItems();
+
+  for (let i = 0; i < scenes.length; i++) {
+    showScene(i);
+
+    if (i === 3) runRiskItems(); // kick off risk items async
+
+    if (scenes[i].dur !== null) {
+      await wait(scenes[i].dur);
+    } else {
+      break; // last scene — stay there
+    }
+  }
+
+  running = false;
+}
+
+// Start on load
+window.addEventListener('load', () => setTimeout(startAnim, 500));
+</script>
+</body>
+</html>

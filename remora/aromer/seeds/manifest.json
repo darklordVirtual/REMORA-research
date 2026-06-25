@@ -1,0 +1,112 @@
+{
+  "name": "AROMER Seed Pack v0.1",
+  "version": "0.1",
+  "created": "2026-06-04",
+  "author": "Stian Skogbrott",
+  "description": "Pre-seeded priors, lessons and invariants for AROMER cold-start acceleration. REMORA remains the authoritative policy layer — AROMER adjusts trust/threshold/oracle selection only, never the policy core.",
+  "principle": "Preseed != truth. Preseed = hypothesis with source, weight, confidence and decay.",
+  "a_b_recommendation": "Run preseeded AROMER in shadow mode for >=50 episodes. Compare against cold-start AROMER on same episode replay set before committing.",
+  "stats": {
+    "total_seed_entries": 71,
+    "golden_episodes": 12,
+    "validation_errors": 0
+  },
+  "type_distribution": {
+    "safety_invariant": 5,
+    "tool_risk": 14,
+    "domain_prior": 17,
+    "lesson_agentharm": 5,
+    "failure_pattern": 10,
+    "epistemic_rule": 6,
+    "strategy_pattern": 5,
+    "domain_lesson_telecom": 9,
+    "domain_lesson_cloudflare_github": 9,
+    "golden_episodes": 12
+  },
+  "files": [
+    {
+      "filename": "00_seed_schema.json",
+      "description": "JSON Schema for all seed entries",
+      "type": "schema",
+      "entries": 0
+    },
+    {
+      "filename": "01_invariants.seed.json",
+      "description": "5 safety invariants — permanent, non-overridable by AROMER",
+      "type": "safety_invariant",
+      "entries": 5
+    },
+    {
+      "filename": "02_tool_risk_ontology.seed.json",
+      "description": "14 tool-risk classifications across database, shell, git, network, webhook, medical, legal, energy domains",
+      "type": "tool_risk",
+      "entries": 14
+    },
+    {
+      "filename": "03_domain_priors.seed.json",
+      "description": "17 Bayesian domain harm priors (p_harm_prior + n_pseudo_observations) for DomainHarmPrior world model",
+      "type": "domain_prior",
+      "entries": 17
+    },
+    {
+      "filename": "04_agentharm_lessons.seed.json",
+      "description": "5 lessons derived from AgentHarm benchmark — adversarial patterns that fooled heuristic baselines",
+      "type": "lesson",
+      "entries": 5
+    },
+    {
+      "filename": "05_known_failure_patterns.seed.json",
+      "description": "10 documented REMORA/AROMER failure patterns with correct verdicts and annotations",
+      "type": "failure_pattern",
+      "entries": 10
+    },
+    {
+      "filename": "06_epistemic_rules.seed.json",
+      "description": "6 epistemic rules for uncertainty handling, calibration and honest claim-making",
+      "type": "epistemic_rule",
+      "entries": 6
+    },
+    {
+      "filename": "07_strategy_patterns.seed.json",
+      "description": "5 adaptive strategy patterns: phase-adaptive thresholds, oracle diversity, bandit selection, latency budget routing, shadow-first adaptation",
+      "type": "strategy_pattern",
+      "entries": 5
+    },
+    {
+      "filename": "08_telecom_network_ops.seed.json",
+      "description": "9 telecom and network operations domain lessons: BGP, SIP, cell tower, number portability, 5G core, spectrum, interconnect, E911, OSS/BSS",
+      "type": "domain_lesson",
+      "entries": 9
+    },
+    {
+      "filename": "09_cloudflare_github_ops.seed.json",
+      "description": "9 Cloudflare and GitHub operations lessons: Worker deployment, D1 migrations, WAF, API tokens, R2 buckets, git force push, branch delete, secret commits, repo visibility",
+      "type": "domain_lesson",
+      "entries": 9
+    },
+    {
+      "filename": "10_golden_episodes.seed.jsonl",
+      "description": "12 golden episodes (JSONL) with correct verdicts and ground truth labels for EpisodicStore warm-start",
+      "type": "golden_episodes",
+      "entries": 12
+    },
+    {
+      "filename": "load_aromer_seeds.py",
+      "description": "Loader script — injects seeds into DomainHarmPrior and EpisodicStore. Supports --dry-run, --shadow, --out.",
+      "type": "loader",
+      "entries": 0
+    }
+  ],
+  "usage": {
+    "dry_run": "python remora/aromer/seeds/load_aromer_seeds.py --seed-dir remora/aromer/seeds --dry-run",
+    "import": "python remora/aromer/seeds/load_aromer_seeds.py --seed-dir remora/aromer/seeds",
+    "shadow": "python remora/aromer/seeds/load_aromer_seeds.py --seed-dir remora/aromer/seeds --shadow",
+    "artifact": "python remora/aromer/seeds/load_aromer_seeds.py --seed-dir remora/aromer/seeds --out artifacts/aromer_seed_import.json"
+  },
+  "design_constraints": {
+    "aromer_cannot_mutate": "REMORA policy core (RemoraDecisionEngine, PolicyRule, DecisionEnvelope)",
+    "aromer_can_adjust": ["trust_score", "entropy_threshold", "oracle_selection", "lambda_weight"],
+    "safety_invariants_permanent": true,
+    "shadow_mode_first": "All world-model adaptations >= 20% trust change require shadow validation (>=50 episodes before commit)"
+  }
+}

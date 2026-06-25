@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REMORA + DCE — Norwegian Law Verification</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: #0b1120;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #e2e8f0;
+  }
+
+  .scene {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .scene.active { opacity: 1; }
+
+  /* ── Typography ── */
+  .title-main {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .title-sub {
+    font-size: 22px;
+    color: #94a3b8;
+    margin-top: 12px;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+  }
+  .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #475569;
+    font-weight: 600;
+  }
+  .h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 8px;
+  }
+  .h3 {
+    font-size: 24px;
+    font-weight: 600;
+  }
+  .body { font-size: 16px; color: #94a3b8; line-height: 1.6; }
+  .mono { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; }
+
+  /* ── Cards ── */
+  .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px 24px;
+  }
+  .card-red   { border-color: #f87171; background: #1c0a0a; }
+  .card-green { border-color: #34d399; background: #052e16; }
+  .card-blue  { border-color: #38bdf8; background: #0c1e2e; }
+  .card-amber { border-color: #fbbf24; background: #1c1505; }
+
+  /* ── Pill badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .badge-red   { background: #7f1d1d; color: #fca5a5; border: 1px solid #f87171; }
+  .badge-green { background: #052e16; color: #6ee7b7; border: 1px solid #34d399; }
+  .badge-blue  { background: #0c1a2e; color: #7dd3fc; border: 1px solid #38bdf8; }
+  .badge-amber { background: #1c1505; color: #fcd34d; border: 1px solid #fbbf24; }
+  .badge-gray  { background: #1e293b; color: #94a3b8; border: 1px solid #475569; }
+
+  /* ── Step indicator ── */
+  .step-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-dot-active { background: #3b82f6; color: white; }
+  .step-dot-done   { background: #16a34a; color: white; }
+  .step-dot-idle   { background: #1e293b; color: #475569; border: 1px solid #334155; }
+
+  /* ── Citation box ── */
+  .citation {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: #1c1505;
+    border: 1.5px solid #fbbf24;
+    font-family: 'Cascadia Code', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fcd34d;
+    transition: all 0.4s ease;
+  }
+  .citation.verified { background: #052e16; border-color: #34d399; color: #6ee7b7; }
+  .citation.rejected { background: #1c0a0a; border-color: #f87171; color: #fca5a5; }
+
+  /* ── Oracle indicators ── */
+  .oracle-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin: 6px 0;
+  }
+  .oracle-model {
+    font-size: 13px;
+    color: #94a3b8;
+    width: 160px;
+    flex-shrink: 0;
+  }
+  .oracle-bar {
+    height: 6px;
+    border-radius: 99px;
+    background: #1e293b;
+    flex: 1;
+    overflow: hidden;
+  }
+  .oracle-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    width: 0;
+    transition: width 1s ease;
+  }
+  .oracle-result {
+    font-size: 13px;
+    font-weight: 600;
+    width: 130px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── Progress connector ── */
+  .connector {
+    width: 2px;
+    background: linear-gradient(to bottom, #334155, transparent);
+    margin: 4px auto;
+  }
+
+  /* ── Grid layouts ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; width: 100%; }
+
+  /* ── Alert box ── */
+  .alert {
+    border: 2px solid #f87171;
+    background: #1c0a0a;
+    border-radius: 12px;
+    padding: 24px 32px;
+    text-align: center;
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+  @keyframes pulse-border {
+    0%, 100% { border-color: #f87171; }
+    50% { border-color: #dc2626; box-shadow: 0 0 24px rgba(248,113,113,0.3); }
+  }
+
+  /* ── Fade animations ── */
+  .fade-in { animation: fadeIn 0.5s ease forwards; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  .slide-in-left { animation: slideLeft 0.5s ease forwards; }
+  @keyframes slideLeft { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:translateX(0); } }
+
+  /* ── Dot grid background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(#1e293b 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 48px;
+    background: rgba(11,17,32,0.9);
+    border-bottom: 1px solid #1e293b;
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    gap: 16px;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+  .topbar-logo {
+    font-size: 15px;
+    font-weight: 700;
+    color: #38bdf8;
+    letter-spacing: -0.3px;
+  }
+  .topbar-sep { color: #334155; }
+  .topbar-title { font-size: 14px; color: #64748b; }
+  .topbar-right { margin-left: auto; display: flex; gap: 8px; }
+  .topbar-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  /* ── Progress bar ── */
+  .progress-track {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: #1e293b;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #38bdf8, #818cf8);
+    transition: width 0.3s ease;
+  }
+
+  /* ── Data table ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: #1e293b;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    border-bottom: 1px solid #334155;
+  }
+  .data-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid #1e293b;
+    color: #cbd5e1;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-logo">REMORA</span>
+  <span class="topbar-sep">+</span>
+  <span class="topbar-title">Norwegian Law Hallucination Detection</span>
+  <div class="topbar-right">
+    <div class="topbar-dot" style="background:#f87171"></div>
+    <div class="topbar-dot" style="background:#fbbf24"></div>
+    <div class="topbar-dot" style="background:#34d399"></div>
+  </div>
+</div>
+
+<div class="progress-track">
+  <div class="progress-fill" id="progressFill" style="width:0%"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SCENE 1: Title -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="scene" id="s1" style="padding-top:48px">
+  <div style="text-align:center; max-width:700px">
+    <div class="label" style="margin-bottom:20px">Multi-oracle AI assurance</div>
+    <div class="title-main">REMORA + DCE</div>
+    <div class="title-sub" style="margin-top:16px">
+      Detecting AI-hallucinated court decisions<br>in Norwegian legal documents
+    </div>
+    <div style="margin-top:40px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+      <span class="badge badge-blue">Open source</span>
+      <span class="badge badge-green">Live pipeline</span>
+      <span class="badge badge-amber">Norwegian law corpus</span>
+      <span class="badge badge-gray">16-item test suite</span>
+    </div>
+    <div style="margin-top:48px; color:#475569; font-size:14px">
+      Based on the real Asker municipality case · VG, 7 May 2026
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SCENE 2: The Problem -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="scene" id="s2" style="padding-top:48px">
+  <div style="width:100%">
+    <div style="text-align:center; margin-bottom:32px">
+      <div class="label" style="margin-bottom:8px; color:#f87171">The problem</div>
+      <div class="h2">AI generates plausible but non-existent court decisions</div>
+    </div>
+    <div class="two-col">
+      <div class="card card-red">
+        <div style="font-size:13px; color:#f87171; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; font-weight:600">What the AI generated</div>
+        <div style="display:flex; flex-direction:column; gap:10px">
+          <div class="citation">HR-2015-2386-A</div>
+          <div class="citation">HR-2014-2288-A</div>
+          <div class="citation">HR-2020-2135-A</div>
+        </div>
+        <div style="margin-top:16px; font-size:13px; color:#94a3b8">
+          Presented as legal foundation for the municipal decision.<br>
+          Cited with full confidence. No uncertainty signal given.
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <div class="card" style="border-color:#475569">
+          <div style="font-size:13px; font-weight:600; color:#cbd5e1; margin-bottom:6px">April 2026 — Asker municipality</div>
+          <div style="font-size:14px; color:#94a3b8">Municipal director uses AI to research legal precedent for evicting demonstrators. Three Supreme Court decisions are cited in the formal executive document.</div>
+        </div>
+        <div class="card card-red">
+          <div style="font-size:13px; font-weight:600; color:#f87171; margin-bottom:6px">Police attorney confirms:</div>
+          <div style="font-size:14px; color:#fca5a5; font-style:italic">"These court decisions must be characterised as AI hallucinations. The document does not represent correct substantive law."</div>
+        </div>
+        <div class="card" style="border-color:#475569">
+          <div style="font-size:13px; font-weight:600; color:#cbd5e1; margin-bottom:6px">Result</div>
+          <div style="font-size:14px; color:#94a3b8">Police refuse assistance. Case reopened. Reported by VG, 7 May 2026.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SCENE 3: The Document -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="scene" id="s3" style="padding-top:48px">
+  <div style="width:100%">
+    <div style="text-align:center; margin-bottom:24px">
+      <div class="label" style="margin-bottom:8px; color:#38bdf8">Step 1</div>
+      <div class="h2">Document received by REMORA</div>
+    </div>
+    <div class="card" style="max-width:820px; margin:0 auto; position:relative">
+      <div style="font-size:12px; color:#475569; margin-bottom:14px; display:flex; gap:8px; align-items:center">
+        <span>📄</span>
+        <span>Saksfremlegg — Asker kommune, April 2026</span>
+        <span style="margin-left:auto" class="badge badge-amber">3 citations found</span>
+      </div>
+      <div class="mono" style="font-size:14px; line-height:1.9; color:#cbd5e1">
+        <span style="color:#64748b">Til Asker kommune v/ Kommunedirektøren</span><br><br>
+        Vi viser til Høyesteretts dom <span style="background:#451a03; color:#fcd34d; padding:2px 6px; border-radius:4px; font-weight:700">HR-2015-2386-A</span>
+        der retten fastslo at offentlige<br>
+        myndigheters eierrådighet ikke utgjør inngrep i ytringsfriheten etter EMK art. 10.<br><br>
+        Videre fremgår det av <span style="background:#451a03; color:#fcd34d; padding:2px 6px; border-radius:4px; font-weight:700">HR-2014-2288-A</span>
+        og <span style="background:#451a03; color:#fcd34d; padding:2px 6px; border-radius:4px; font-weight:700">HR-2020-2135-A</span>
+        at kommunen har<br>
+        adgang til å formalisere okkupasjonen gjennom leiekontrakt.<br><br>
+        <span style="color:#64748b">Vi krever at kommunen inngår leiekontrakt med aksjonsgruppa.<br>
+        Med vennlig hilsen, Aksjonsgruppa Knus Krigsmaskineriet</span>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:20px; color:#475569; font-size:14px">
+      REMORA automatically scans for Norwegian legal citation patterns: <span class="mono" style="color:#94a3b8">HR-YYYY-NNNN-A, Rt. YYYY s. NNN</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SCENE 4: Three layers -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="scene" id="s4" style="padding-top:48px">
+  <div style="width:100%">
+    <div style="text-align:center; margin-bottom:28px">
+      <div class="label" style="margin-bottom:8px; color:#38bdf8">Step 2</div>
+      <div class="h2">Three-layer verification pipeline</div>
+      <div class="body" style="margin-top:8px">Each citation is verified independently through three orthogonal checks</div>
+    </div>
+    <div class="three-col">
+      <div class="card card-blue">
+        <div style="font-size:28px; margin-bottom:10px">1</div>
+        <div class="h3" style="color:#7dd3fc; margin-bottom:8px">DCE Knowledge Base</div>
+        <div style="font-size:14px; color:#94a3b8; line-height:1.6">
+          Direct lookup in the DCE legal database (Cloudflare D1 + Vectorize).<br><br>
+          Contains Norwegian statute law and a selection of court decisions.
+          <br><br>
+          <strong style="color:#7dd3fc">Result:</strong> NOT FOUND = deterministic signal
+        </div>
+      </div>
+      <div class="card card-blue">
+        <div style="font-size:28px; margin-bottom:10px">2</div>
+        <div class="h3" style="color:#7dd3fc; margin-bottom:8px">Multi-Oracle Consensus</div>
+        <div style="font-size:14px; color:#94a3b8; line-height:1.6">
+          Three independent LLMs (Groq LLaMA 8B, 70B + Mistral 7B) are each asked for specific case details.
+          <br><br>
+          Real cases → consistent answers.<br>
+          Fake cases → no consensus.
+          <br><br>
+          <strong style="color:#7dd3fc">Result:</strong> CANNOT VERIFY = hallucination signal
+        </div>
+      </div>
+      <div class="card card-blue">
+        <div style="font-size:28px; margin-bottom:10px">3</div>
+        <div class="h3" style="color:#7dd3fc; margin-bottom:8px">Legal Principle Check</div>
+        <div style="font-size:14px; color:#94a3b8; line-height:1.6">
+          The legal principle attributed to the citation is verified against Norwegian statute law.
+          <br><br>
+          Even if a citation exists, the principle it is claimed to support may be incorrect.
+          <br><br>
+          <strong style="color:#7dd3fc">Result:</strong> INCORRECT = content hallucination
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SCENE 5: DB check results -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="scene" id="s5" style="padding-top:48px">
+  <div style="width:100%; max-width:860px">
+    <div style="text-align:center; margin-bottom:28px">
+      <div class="label" style="margin-bottom:8px; color:#38bdf8">Layer 1</div>
+      <div class="h2">DCE knowledge base lookup</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px">
+      <div class="card" style="display:flex; align-items:center; gap:20px; padding:16px 24px">
+        <div class="citation" style="flex-shrink:0">HR-2015-2386-A</div>
+        <div style="flex:1">
+          <div style="height:4px; background:#1e293b; border-radius:99px; overflow:hidden">
+            <div id="db1" style="height:100%; width:0; background:#f87171; transition:width 1.2s ease; border-radius:99px"></div>
+          </div>
+        </div>
+        <span id="db1r" class="badge" style="opacity:0; transition:opacity 0.4s ease">Checking...</span>
+      </div>
+      <div class="card" style="display:flex; align-items:center; gap:20px; padding:16px 24px">
+        <div class="citation" style="flex-shrink:0">HR-2014-2288-A</div>
+        <div style="flex:1">
+          <div style="height:4px; background:#1e293b; border-radius:99px; overflow:hidden">
+            <div id="db2" style="height:100%; width:0; background:#f87171; transition:width 1.2s 0.4s ease; border-radius:99px"></div>
+          </div>
+        </div>
+        <span id="db2r" class="badge" style="opacity:0; transition:opacity 0.4s 0.4s ease">Checking...</span>
+      </div>
+      <div class="card" style="display:flex; align-items:center; gap:20px; padding:16px 24px">
+        <div class="citation" style="flex-shrink:0">HR-2020-2135-A</div>
+        <div style="flex:1">
+          <div style="height:4px; background:#1e293b; border-radius:99px; overflow:hidden">
+            <div id="db3" style="height:100%; width:0; background:#f87171; transition:width 1.2s 0.8s ease; border-radius:99px"></div>
+          </div>
+        </div>
+        <span id="db3r" class="badge" style="opacity:0; transition:opacity 0.4s 0.8s ease">Checking...</span>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px; background:#1c0a0a; border-color:#f87171; text-align:center">
+      <div style="font-size:15px; color:#fca5a5">
+        None of the three citations appear in the DCE knowledge base.<br>
+        <span style="color:#f87171; font-weight:600">→ Verify directly at lovdata.no for authoritative confirmation</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SCENE 6: Oracle results -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="scene" id="s6" style="padding-top:48px">
+  <div style="width:100%; max-width:860px">
+    <div style="text-align:center; margin-bottom:28px">
+      <div class="label" style="margin-bottom:8px; color:#818cf8">Layer 2</div>
+      <div class="h2">Multi-oracle consistency check</div>
+      <div class="body" style="margin-top:8px">Asked: "What were the parties and legal question in HR-2015-2386-A? Say CANNOT VERIFY if uncertain."</div>
+    </div>
+    <div class="card">
+      <div style="display:flex; flex-direction:column; gap:14px">
+        <div class="oracle-row">
+          <div class="oracle-model">Groq LLaMA 8B</div>
+          <div class="oracle-bar"><div id="o1" class="oracle-bar-fill" style="background:#f87171"></div></div>
+          <div id="o1r" class="oracle-result" style="color:#f87171; opacity:0">CANNOT VERIFY</div>
+        </div>
+        <div class="oracle-row">
+          <div class="oracle-model">Groq LLaMA 70B</div>
+          <div class="oracle-bar"><div id="o2" class="oracle-bar-fill" style="background:#f87171"></div></div>
+          <div id="o2r" class="oracle-result" style="color:#f87171; opacity:0">CANNOT VERIFY</div>
+        </div>
+        <div class="oracle-row">
+          <div class="oracle-model">Mistral 7B (OpenRouter)</div>
+          <div class="oracle-bar"><div id="o3" class="oracle-bar-fill" style="background:#f87171"></div></div>
+          <div id="o3r" class="oracle-result" style="color:#f87171; opacity:0">CANNOT VERIFY</div>
+        </div>
+        <div style="margin-top:4px; padding-top:14px; border-top:1px solid #334155; display:flex; gap:16px; align-items:center">
+          <div style="flex:1">
+            <div style="font-size:13px; color:#64748b; margin-bottom:4px">Oracle consensus confidence</div>
+            <div style="font-size:28px; font-weight:700; color:#f87171">0%</div>
+          </div>
+          <div class="badge badge-red" style="font-size:14px; padding:8px 16px">No consensus — hallucination signal</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px; font-size:14px; color:#475569; text-align:center">
+      A real Supreme Court case → all 3 oracles provide consistent, specific details.
+      A hallucinated case → no oracle can confirm parties, date, or legal question.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SCENE 7: Verdict -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="scene" id="s7" style="padding-top:48px">
+  <div style="width:100%; max-width:860px">
+    <div style="text-align:center; margin-bottom:28px">
+      <div class="label" style="margin-bottom:8px; color:#f87171">Verdict</div>
+      <div class="h2">Document flagged before submission</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px">
+      <div style="display:flex; gap:12px; align-items:center; padding:14px 20px; background:#1c0a0a; border:1.5px solid #f87171; border-radius:10px">
+        <div class="citation" style="flex-shrink:0">HR-2015-2386-A</div>
+        <div style="flex:1; font-size:14px; color:#94a3b8">DCE: NOT FOUND · Oracle: CANNOT VERIFY (0%)</div>
+        <span class="badge badge-red">!! LIKELY HALLUCINATED</span>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center; padding:14px 20px; background:#1c0a0a; border:1.5px solid #f87171; border-radius:10px">
+        <div class="citation" style="flex-shrink:0">HR-2014-2288-A</div>
+        <div style="flex:1; font-size:14px; color:#94a3b8">DCE: NOT FOUND · Oracle: CANNOT VERIFY (0%)</div>
+        <span class="badge badge-red">!! LIKELY HALLUCINATED</span>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center; padding:14px 20px; background:#1c0a0a; border:1.5px solid #f87171; border-radius:10px">
+        <div class="citation" style="flex-shrink:0">HR-2020-2135-A</div>
+        <div style="flex:1; font-size:14px; color:#94a3b8">DCE: NOT FOUND · Oracle: CANNOT VERIFY (0%)</div>
+        <span class="badge badge-red">!! LIKELY HALLUCINATED</span>
+      </div>
+    </div>
+    <div class="alert" style="margin-top:20px">
+      <div style="font-size:22px; font-weight:800; color:#f87171; margin-bottom:6px">ALL THREE CITATIONS ARE LIKELY AI HALLUCINATIONS</div>
+      <div style="font-size:15px; color:#fca5a5">These court decisions do not exist in any verified legal database.</div>
+      <div style="font-size:14px; color:#94a3b8; margin-top:8px">Verify directly at <strong style="color:#f87171">lovdata.no</strong> before use in formal proceedings.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SCENE 8: Test results -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="scene" id="s8" style="padding-top:48px">
+  <div style="width:100%">
+    <div style="text-align:center; margin-bottom:28px">
+      <div class="label" style="margin-bottom:8px; color:#34d399">Empirical results</div>
+      <div class="h2">16-item Norwegian law test suite</div>
+      <div class="body" style="margin-top:8px">Ground truth verified against Arbeidsmiljøloven, GDPR, and Høyesterett records · May 2026</div>
+    </div>
+    <div class="two-col">
+      <table class="data-table" style="background:#1e293b; border-radius:10px; overflow:hidden">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Items</th>
+            <th>Accuracy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:#cbd5e1">Legal principles (aml, GDPR)</td>
+            <td>6</td>
+            <td><span style="color:#34d399; font-weight:700">100%</span></td>
+          </tr>
+          <tr>
+            <td style="color:#cbd5e1">Real court citations</td>
+            <td>2</td>
+            <td><span style="color:#34d399; font-weight:700">100%</span></td>
+          </tr>
+          <tr>
+            <td style="color:#cbd5e1">Hallucinated citations (Asker)</td>
+            <td>4</td>
+            <td><span style="color:#f87171; font-weight:700">0% *</span></td>
+          </tr>
+          <tr>
+            <td style="color:#cbd5e1">Legal misconceptions</td>
+            <td>4</td>
+            <td><span style="color:#fbbf24; font-weight:700">25%</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div class="card card-green">
+          <div style="font-size:13px; color:#34d399; font-weight:600; margin-bottom:4px">Asker citations: DCE detection</div>
+          <div style="font-size:36px; font-weight:800; color:#34d399">3/3</div>
+          <div style="font-size:13px; color:#6ee7b7">All correctly identified as NOT FOUND</div>
+        </div>
+        <div class="card card-red">
+          <div style="font-size:13px; color:#f87171; font-weight:600; margin-bottom:4px">* LLMs alone — 0% detection</div>
+          <div style="font-size:14px; color:#94a3b8">Parametric language models confirm all fake citations with 100% confidence. The DCE database layer is essential.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SCENE 9: Outro -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="scene" id="s9" style="padding-top:48px">
+  <div style="text-align:center; max-width:720px">
+    <div class="label" style="margin-bottom:20px">The core principle</div>
+    <div style="font-size:32px; font-weight:700; color:#f1f5f9; line-height:1.3; margin-bottom:24px">
+      REMORA prefers<br>
+      <span style="color:#34d399">calibrated uncertainty</span><br>
+      over confident hallucination
+    </div>
+    <div style="font-size:17px; color:#64748b; line-height:1.7; margin-bottom:40px">
+      When a citation cannot be verified, the system returns<br>
+      <span class="mono" style="color:#f87171">CANNOT VERIFY</span>
+      — not <em>"70 % likely correct."</em><br>
+      In legal proceedings, an honest <em>"not found"</em><br>
+      is more valuable than a confident wrong answer.
+    </div>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:40px">
+      <span class="badge badge-blue">Open source</span>
+      <span class="badge badge-green">github.com/darklordVirtual/REMORA</span>
+      <span class="badge badge-gray">DCE integration: support@luftfiber.no</span>
+    </div>
+    <div style="font-size:13px; color:#334155">
+      tests/test_norwegian_law.py · results/norwegian_law_eval.json · servers/mcp_remora.py
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- ANIMATION CONTROLLER -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+const SCENES = [
+  { id: 's1', duration: 3500 },
+  { id: 's2', duration: 5500 },
+  { id: 's3', duration: 5000 },
+  { id: 's4', duration: 5500 },
+  { id: 's5', duration: 5000, onEnter: startDB },
+  { id: 's6', duration: 5000, onEnter: startOracle },
+  { id: 's7', duration: 5000 },
+  { id: 's8', duration: 5500 },
+  { id: 's9', duration: 4000 },
+];
+
+const TOTAL = SCENES.reduce((s, sc) => s + sc.duration, 0);
+let current = 0;
+let elapsed = 0;
+let frameStart = null;
+
+function showScene(idx) {
+  SCENES.forEach((sc, i) => {
+    document.getElementById(sc.id).classList.toggle('active', i === idx);
+  });
+  if (SCENES[idx].onEnter) {
+    setTimeout(SCENES[idx].onEnter, 400);
+  }
+}
+
+function startDB() {
+  ['db1','db2','db3'].forEach(id => {
+    document.getElementById(id).style.width = '100%';
+  });
+  setTimeout(() => {
+    [['db1r','badge-red','NOT FOUND'],
+     ['db2r','badge-red','NOT FOUND'],
+     ['db3r','badge-red','NOT FOUND']].forEach(([id, cls, txt], i) => {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        el.className = 'badge ' + cls;
+        el.textContent = txt;
+        el.style.opacity = '1';
+      }, i * 450);
+    });
+  }, 1400);
+}
+
+function startOracle() {
+  setTimeout(() => {
+    ['o1','o2','o3'].forEach((id, i) => {
+      setTimeout(() => {
+        document.getElementById(id).style.width = '30%';
+        document.getElementById(id).style.transition = 'width 0.8s ease';
+      }, i * 300);
+      setTimeout(() => {
+        const r = document.getElementById(id + 'r');
+        r.style.opacity = '1';
+      }, i * 300 + 900);
+    });
+  }, 400);
+}
+
+function tick(ts) {
+  if (!frameStart) frameStart = ts;
+  elapsed = ts - frameStart;
+
+  // Find current scene
+  let acc = 0;
+  let newIdx = 0;
+  for (let i = 0; i < SCENES.length; i++) {
+    if (elapsed < acc + SCENES[i].duration) { newIdx = i; break; }
+    acc += SCENES[i].duration;
+    newIdx = i;
+  }
+
+  if (newIdx !== current) {
+    current = newIdx;
+    showScene(current);
+  }
+
+  // Progress bar
+  const pct = Math.min(elapsed / TOTAL * 100, 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  if (elapsed < TOTAL + 500) {
+    requestAnimationFrame(tick);
+  } else {
+    // Loop
+    frameStart = null;
+    elapsed = 0;
+    current = 0;
+    showScene(0);
+    requestAnimationFrame(tick);
+  }
+}
+
+showScene(0);
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

@@ -1,0 +1,498 @@
+{
+  "generated_at": "2026-06-04T00:00:00Z",
+  "repo_commit": "cc567fc",
+  "auditor_note": "All claims traced to code, tests, or committed artifacts. Scope caveats are mandatory companions. AROMER is EXPERIMENTAL throughout.",
+  "total_claims": 30,
+  "claims": [
+    {
+      "claim_id": "CLAIM-001",
+      "claim_text": "REMORA routes agent tool calls to ACCEPT, VERIFY, ABSTAIN, or ESCALATE before execution.",
+      "source_file": "README.md",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/policy/decision_engine.py",
+          "symbol_or_line": "class RemoraDecisionEngine, method decide()",
+          "why_it_matters": "Full priority-ordered rule chain producing exactly these four outcomes is implemented and tested."
+        },
+        {
+          "file": "remora/governance/envelope.py",
+          "symbol_or_line": "class GateBlock, field outcome",
+          "why_it_matters": "DecisionEnvelope GateBlock records the authoritative outcome."
+        }
+      ],
+      "corrected_wording": "REMORA evaluates a PolicyObservation and routes to ACCEPT, VERIFY, ABSTAIN, or ESCALATE through a deterministic priority-ordered rule chain. The decision is recorded in an immutable DecisionEnvelope.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-002",
+      "claim_text": "Every decision produces a replayable DecisionEnvelope with a SHA-256 audit hash.",
+      "source_file": "README.md",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/governance/envelope.py",
+          "symbol_or_line": "class AuditBlock, fields hash, previous_hash",
+          "why_it_matters": "AuditBlock with SHA-256 hash and hash-chain fields is part of the canonical envelope contract."
+        }
+      ],
+      "corrected_wording": "Every decision produces a replayable DecisionEnvelope with an AuditBlock that includes a SHA-256 hash and a previous_hash field for chain integrity.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-003",
+      "claim_text": "AgentHarm Mode 1 oracle-only: recall=1.000 CI95[0.920,1.000], FPR=0.318.",
+      "source_file": "README.md (AROMER section)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "artifacts/agentharm_trimode_results.json",
+          "symbol_or_line": "modes.mode1_oracle_only: recall=1.0, FPR=0.3182, recall_ci95=[0.9197,1.0]",
+          "why_it_matters": "Numbers match directly in committed artifact."
+        }
+      ],
+      "corrected_wording": "Mode 1 (oracle-only, 88 cases, test_public canonical variant): recall=1.000 CI95[0.920,1.000], FPR=0.318 CI95[0.200,0.466]. Scope: 44 harmful + 44 benign curated cases. Not a production safety result.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-004",
+      "claim_text": "AgentHarm Mode 3 full REMORA gate: blocked_recall=0.977, FPR=0.023 CI95[0.004,0.118].",
+      "source_file": "README.md (AROMER section)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "artifacts/agentharm_trimode_results.json",
+          "symbol_or_line": "modes.mode3_remora_gate_m2_input: blocked_recall=0.9773, FPR=0.0227, FPR_ci95=[0.004,0.1181]",
+          "why_it_matters": "Numbers match directly. blocked_recall is ESCALATE+VERIFY, not ESCALATE-only."
+        }
+      ],
+      "corrected_wording": "Mode 3 (full REMORA gate, 88 cases): blocked_recall=0.977 (ESCALATE|VERIFY), ESCALATE-only recall=0.114, FPR=0.023 CI95[0.004,0.118]. FPR counts only hard ESCALATE on benign, not VERIFY. Not a production safety result.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-005",
+      "claim_text": "Zero false negatives across all 8 harm categories (Mode 1 and Mode 2).",
+      "source_file": "README.md (AROMER section)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "artifacts/agentharm_trimode_results.json",
+          "symbol_or_line": "modes.mode1_oracle_only.FN=0, modes.mode2_harm_specific_oracle.FN=0",
+          "why_it_matters": "FN=0 in both modes is verified in artifact."
+        }
+      ],
+      "corrected_wording": "Zero false negatives (FN=0) in Mode 1 and Mode 2 oracle-only passes, on 44 harmful cases from the AgentHarm test_public canonical variant. This claim does not extend to Mode 3 (where FN=39 by design, as harmful tasks route to VERIFY not ESCALATE) or to production systems.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-006",
+      "claim_text": "Replay benchmark: overall accuracy=1.000 CI95[0.94,1.00] on 65 factory cases.",
+      "source_file": "README.md (AROMER section)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "artifacts/replay_benchmark.json",
+          "symbol_or_line": "overall_accuracy=1.0, overall_accuracy_ci95=[0.9442,1.0], total_episodes=65",
+          "why_it_matters": "Numbers match directly. CI95 lower bound is 0.944 not 0.94 exactly."
+        }
+      ],
+      "corrected_wording": "Factory replay benchmark: accuracy=1.000, CI95[0.944,1.000] on 65 curated factory cases. Safe recall=1.000. Benign precision=0.600 overall (0.0 for ambiguous/causal/near_miss/contradiction categories). These are EpisodeFactory-constructed cases requiring network access to reproduce.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-007",
+      "claim_text": "Cross-domain benchmark: overall precision=1.000, escalation_recall=1.000 on 32 cases.",
+      "source_file": "README.md (AROMER section) and docs/domain_benchmark.md",
+      "status": "PARTIAL",
+      "evidence": [
+        {
+          "file": "artifacts/domain_benchmark_results.json",
+          "symbol_or_line": "overall_precision=1.0, overall_escalation_recall=1.0, domains totals: cyber=12, ai_governance=10, finance=10",
+          "why_it_matters": "Numbers are correct for the static evidence provider benchmark."
+        },
+        {
+          "file": "artifacts/live_benchmark_results.json",
+          "symbol_or_line": "overall_oracle_directional_precision=0.48, ai_governance.oracle_directional_precision=0.25, finance.oracle_directional_precision=0.25",
+          "why_it_matters": "The live oracle benchmark shows dramatically lower precision than the static benchmark. The two are not equivalent."
+        }
+      ],
+      "corrected_wording": "Static evidence provider benchmark: precision=1.000, escalation_recall=1.000 on 32 curated cases (hand-crafted expected verdicts). Live oracle benchmark on same 32 cases: overall oracle directional precision=0.480 (cyber=0.889, ai_governance=0.250, finance=0.250). The static and live benchmarks measure different things.",
+      "recommended_action": "rewrite"
+    },
+    {
+      "claim_id": "CLAIM-008",
+      "claim_text": "Bayesian world model: 44 contexts tracked, updating from outcomes.",
+      "source_file": "README.md (AROMER section, 'What is running right now' table)",
+      "status": "PARTIAL",
+      "evidence": [
+        {
+          "file": "remora/aromer/world_model/domain_prior.py",
+          "symbol_or_line": "class DomainHarmPrior, method summary(), field n_contexts",
+          "why_it_matters": "The 44-context count comes from the live worker state, not a committed artifact. Cannot be independently verified from the repo snapshot."
+        }
+      ],
+      "corrected_wording": "The world model tracks P(harm | domain, action_type, risk_tier) using a Bayesian Beta prior per context key. The 44 contexts figure is from the live worker state at the time of writing and may change. Most contexts likely have LOW confidence (n<5).",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-009",
+      "claim_text": "Oracle bandit: cf_strong 98.8%, cf_fast 97.6% (Thompson Sampling).",
+      "source_file": "README.md (AROMER section, 'What is running right now' table)",
+      "status": "PARTIAL",
+      "evidence": [
+        {
+          "file": "remora/aromer/integration/bridge.py",
+          "symbol_or_line": "AromerAdapterBridge, OracleBandit (Thompson Sampling)",
+          "why_it_matters": "Thompson Sampling bandit is implemented. Quoted percentages are posterior means from self-labeled live episodes."
+        }
+      ],
+      "corrected_wording": "Oracle bandit uses Thompson Sampling. Reported win-rates (cf_strong 98.8%, cf_fast 97.6%) are Thompson Sampling posteriors from self-labeled episode data, not independently validated oracle quality rankings. These numbers reflect the live worker state at time of writing.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-010",
+      "claim_text": "Claude Code is directly wired to AROMER via PreToolUse and PostToolUse hooks.",
+      "source_file": "README.md (AROMER section)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": ".claude/settings.json",
+          "symbol_or_line": "hooks.PreToolUse[aromer_recorder_hook.py], hooks.PostToolUse[aromer_auto_label_hook.py]",
+          "why_it_matters": "Both hooks are configured and exist as scripts."
+        },
+        {
+          "file": "scripts/aromer_recorder_hook.py",
+          "symbol_or_line": "records tool calls as AROMER episodes",
+          "why_it_matters": "Hook implementation exists."
+        }
+      ],
+      "corrected_wording": "Claude Code PreToolUse fires remora_hook.py (risk assessment/blocking) and aromer_recorder_hook.py (episode recording) for all tool calls. PostToolUse fires aromer_auto_label_hook.py. The auto-label hook marks all successful calls as benign, which may underestimate harmful events not caught.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-011",
+      "claim_text": "AROMER quality gate: FA rate=0.000, 200+ episodes processed.",
+      "source_file": "Task prompt context",
+      "status": "UNSUPPORTED",
+      "evidence": [
+        {
+          "file": "remora/aromer/experience/store.py",
+          "symbol_or_line": "EpisodicStore.summary() returns false_accept_rate",
+          "why_it_matters": "The FA rate field exists in the store summary API but no committed artifact records FA rate=0.000 or 200+ episodes as a static verifiable number."
+        }
+      ],
+      "corrected_wording": "AROMER's false_accept_rate is tracked in EpisodicStore.summary(). The specific value depends on live episode accumulation at runtime and is not verifiable from a static artifact. No committed benchmark artifact confirms FA rate=0.000 on 200+ episodes.",
+      "recommended_action": "delete"
+    },
+    {
+      "claim_id": "CLAIM-012",
+      "claim_text": "Tool-call v2 simulator: remora_full_policy_gate achieves 0% unsafe execution vs 10% for majority vote (700 tasks).",
+      "source_file": "README.md (Benchmarks at a glance)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "paper/whitepaper.md",
+          "symbol_or_line": "Section 4.6: remora_full_policy_gate 90.00% accuracy, 0.00% unsafe, majority_vote 30.00% accuracy, 10.00% unsafe",
+          "why_it_matters": "Whitepaper includes the full table and explicit scope caveat about deterministic simulator."
+        }
+      ],
+      "corrected_wording": "In the 700-task deterministic adversarial simulator (no live LLM calls, no production mutation), remora_full_policy_gate achieves 0.00% unsafe execution vs 10.00% for majority vote. This is a benchmark-scoped simulator result. Generalization to live agent deployments is not claimed.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-013",
+      "claim_text": "REMORA is not production-certified.",
+      "source_file": "README.md (top banner and Implementation status table)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "README.md",
+          "symbol_or_line": "Line 3: 'Research-grade prototype. v0.7.1. Apache-2.0. Not production-certified.'",
+          "why_it_matters": "Explicit disclaimer is present and prominent."
+        }
+      ],
+      "corrected_wording": "Keep as-is. The disclaimer is explicit.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-014",
+      "claim_text": "AROMER is research-grade and not production-certified.",
+      "source_file": "README.md (AROMER section, footer)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/aromer/orchestrator.py",
+          "symbol_or_line": "Line 12: 'EXPERIMENTAL: This is a research prototype exploring meta-cognitive AI governance.'",
+          "why_it_matters": "Code-level EXPERIMENTAL label is present."
+        },
+        {
+          "file": "README.md",
+          "symbol_or_line": "AROMER section footer: 'AROMER is research-grade and not production-certified.'",
+          "why_it_matters": "Explicit disclaimer in documentation."
+        }
+      ],
+      "corrected_wording": "Keep as-is.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-015",
+      "claim_text": "The decision engine defaults to ABSTAIN when no other rule matches (fail-safe).",
+      "source_file": "remora/policy/decision_engine.py",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/policy/decision_engine.py",
+          "symbol_or_line": "Lines 248-252: 'reasons.append(DecisionReason.DEFAULT_SAFE_ABSTAIN); return self._build(DecisionAction.ABSTAIN, reasons, obs)'",
+          "why_it_matters": "The fail-safe default is the final fallback in the decide() method."
+        }
+      ],
+      "corrected_wording": "Keep as-is. The fail-safe ABSTAIN default is verified in code.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-016",
+      "claim_text": "Hard policy blocks fire before probabilistic signals (policy precedence).",
+      "source_file": "README.md (Why REMORA section)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/policy/decision_engine.py",
+          "symbol_or_line": "Lines 122-165: HARD BLOCKS section runs before temperature/conformal/evidence paths",
+          "why_it_matters": "adversarial_detected, counterfactual_passed=False, and evidence_contradictions checks are first in the decide() method."
+        }
+      ],
+      "corrected_wording": "Keep as-is.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-017",
+      "claim_text": "DomainHarmPrior uses shadow_mode=True by default in AromerOrchestrator, meaning world model adjustments are computed but not applied.",
+      "source_file": "remora/aromer/orchestrator.py",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/aromer/orchestrator.py",
+          "symbol_or_line": "Line 95: world_model_shadow_mode: bool = True",
+          "why_it_matters": "Default parameter is shadow mode. The world model does not adjust trust scores unless explicitly disabled."
+        },
+        {
+          "file": "remora/aromer/world_model/domain_prior.py",
+          "symbol_or_line": "Lines 112-128: adjust_trust() returns trust_score unchanged when shadow_mode=True",
+          "why_it_matters": "Shadow mode path is code-verified."
+        }
+      ],
+      "corrected_wording": "By default, AromerOrchestrator initializes DomainHarmPrior with shadow_mode=True. The world model computes trust adjustments and logs them to shadow_log but returns the original trust_score unchanged. Active world model trust adjustment requires world_model_shadow_mode=False.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-018",
+      "claim_text": "Cron adaptation cycle: every hour (0 * * * *).",
+      "source_file": "README.md (AROMER section)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/aromer/orchestrator.py",
+          "symbol_or_line": "Method adapt() docstring: 'This is called by the CF Worker cron every hour.'",
+          "why_it_matters": "Cron schedule documented in code."
+        }
+      ],
+      "corrected_wording": "The CF Worker cron is configured at 0 * * * * (hourly). The adapt() cycle runs MetaJudge critique, propagates outcomes, and runs threshold adaptation.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-019",
+      "claim_text": "The GO-STAR bridge stores only SHA-256 hash of artifacts, never exploit payloads.",
+      "source_file": "docs/go_star_bridge.md",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/evidence/finding_envelope.py",
+          "symbol_or_line": "ResearchArtifactRef: artifact_hash field (sha256); CyberFindingEnvelope boundary rules",
+          "why_it_matters": "Type design enforces hash-only storage; exploit payloads stay in GO-STAR vault."
+        }
+      ],
+      "corrected_wording": "Keep as-is. The boundary design is verified in code.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-020",
+      "claim_text": "AROMER is not AGI.",
+      "source_file": "remora/aromer/orchestrator.py",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/aromer/orchestrator.py",
+          "symbol_or_line": "Line 13: 'Claims are limited to what is backed by artifacts and tests. AROMER is not AGI.'",
+          "why_it_matters": "Explicit disclaimer in code."
+        }
+      ],
+      "corrected_wording": "Keep as-is.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-021",
+      "claim_text": "The N500 selective guardrail operates in-sample: the 18% threshold was derived from the same 544-item artifact used for evaluation.",
+      "source_file": "paper/whitepaper.md",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "paper/whitepaper.md",
+          "symbol_or_line": "Section 4.2: 'The 18% coverage operating point is the optimum found on the same 544-item artifact used to report accuracy.'",
+          "why_it_matters": "In-sample caveat is explicitly documented in whitepaper."
+        }
+      ],
+      "corrected_wording": "Keep with explicit warning. The 88.78% accuracy at 18% coverage is an in-sample result. It cannot be cited as a held-out calibration result without a separate validation split.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-022",
+      "claim_text": "REMORA includes an MCP server for MCP-compatible tool integration.",
+      "source_file": "README.md (badges and Start here table)",
+      "status": "PARTIAL",
+      "evidence": [
+        {
+          "file": "servers/mcp_remora.py",
+          "symbol_or_line": "File exists per README reference",
+          "why_it_matters": "File is referenced but not directly read in this audit. README badge links to it."
+        }
+      ],
+      "corrected_wording": "An MCP server implementation exists at servers/mcp_remora.py. Its completeness and test coverage were not directly verified in this audit.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-023",
+      "claim_text": "The live oracle benchmark shows overall directional precision of 0.48 across cyber, ai_governance, and finance domains.",
+      "source_file": "artifacts/live_benchmark_results.json",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "artifacts/live_benchmark_results.json",
+          "symbol_or_line": "overall_oracle_directional_precision=0.48",
+          "why_it_matters": "This is the live Workers AI oracle result. It differs significantly from the static evidence benchmark precision=1.000."
+        }
+      ],
+      "corrected_wording": "The live Workers AI oracle (groq_fast, groq_strong, openrouter_diverse) achieves 0.48 overall directional precision on the 32-case domain benchmark. Domain breakdown: cyber=0.889, ai_governance=0.250, finance=0.250. This should be cited alongside the static provider results to give the full picture.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-024",
+      "claim_text": "External replication of benchmarks is pending. No third-party replication exists.",
+      "source_file": "NEGATIVE_RESULTS.md",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "NEGATIVE_RESULTS.md",
+          "symbol_or_line": "Active Finding 1: 'External replication and live validation pending'",
+          "why_it_matters": "Explicitly documented as active unresolved finding."
+        },
+        {
+          "file": "docs/claim_register.md",
+          "symbol_or_line": "Requires External Replication section",
+          "why_it_matters": "Claim register documents the gap."
+        }
+      ],
+      "corrected_wording": "Keep as-is. This is a correctly documented limitation.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-025",
+      "claim_text": "The default evidence verifier is lexical, not a demonstrated semantic entailment system.",
+      "source_file": "paper/whitepaper.md, docs/claim_register.md",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "paper/whitepaper.md",
+          "symbol_or_line": "Section 3.3: 'The repository does not claim that the default evidence layer performs semantic entailment.'",
+          "why_it_matters": "Explicit caveat in whitepaper."
+        }
+      ],
+      "corrected_wording": "Keep as-is. This limitation is correctly documented.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-026",
+      "claim_text": "Mode 3 meets all three benchmark goals (recall>=0.95, FPR<0.10, coverage>=0.95) under the blocked definition.",
+      "source_file": "docs/agentharm_trimode_benchmark.md",
+      "status": "PARTIAL",
+      "evidence": [
+        {
+          "file": "artifacts/agentharm_trimode_results.json",
+          "symbol_or_line": "goals_met.mode3_blocked: recall=true, fpr=true, coverage=true",
+          "why_it_matters": "Goals are met under the blocked definition (recall = blocked_recall = ESCALATE+VERIFY)."
+        }
+      ],
+      "corrected_wording": "Mode 3 meets all three goals (blocked_recall=0.977 >= 0.95, FPR=0.023 < 0.10, coverage=0.977 >= 0.95) under the blocked recall definition. Under the strict ESCALATE-only definition, recall=0.114 does NOT meet the 0.95 goal. Consumers must understand that VERIFY is included in 'blocked' for this claim to hold.",
+      "recommended_action": "add_caveat"
+    },
+    {
+      "claim_id": "CLAIM-027",
+      "claim_text": "Thermodynamic language (entropy, temperature, phase, Lyapunov) is used as an uncertainty-routing proxy, not a physics claim.",
+      "source_file": "README.md (Benchmarks caveats section)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "README.md",
+          "symbol_or_line": "Caveat: 'Thermodynamic language is an uncertainty-routing proxy, not a physics claim.'",
+          "why_it_matters": "Explicit caveat is present in README."
+        },
+        {
+          "file": "paper/whitepaper.md",
+          "symbol_or_line": "Abstract: 'REMORA treats AI reliability as a dynamic system.'",
+          "why_it_matters": "Whitepaper frames thermodynamic concepts as engineering proxies."
+        }
+      ],
+      "corrected_wording": "Keep as-is. The disclaimer is present.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-028",
+      "claim_text": "Policy proposals always require human review and cannot be auto-applied.",
+      "source_file": "paper/whitepaper.md (Section 5.5)",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/governance/envelope.py",
+          "symbol_or_line": "PolicyLearningBlock: requires_policy_owner_approval=True, can_auto_apply=False",
+          "why_it_matters": "Both fields are hardcoded in the dataclass default."
+        },
+        {
+          "file": "paper/whitepaper.md",
+          "symbol_or_line": "Section 5.5: 'requires_human_review = True, can_auto_apply = False'",
+          "why_it_matters": "Documented as invariant."
+        }
+      ],
+      "corrected_wording": "Keep as-is.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-029",
+      "claim_text": "The HistoryBlock.synthetic=True flag distinguishes demo/test case memory from real operational precedent.",
+      "source_file": "remora/governance/envelope.py",
+      "status": "VERIFIED",
+      "evidence": [
+        {
+          "file": "remora/governance/envelope.py",
+          "symbol_or_line": "Lines 80-85: HistoryBlock.synthetic=True default with PR-12 comment",
+          "why_it_matters": "The flag prevents consumers from treating synthetic data as real precedent."
+        }
+      ],
+      "corrected_wording": "Keep as-is. The synthetic flag is code-verified.",
+      "recommended_action": "keep"
+    },
+    {
+      "claim_id": "CLAIM-030",
+      "claim_text": "The auto-label hook marks all successful tool executions as benign, which may underestimate true harmful events not blocked.",
+      "source_file": "scripts/aromer_auto_label_hook.py",
+      "status": "ASPIRATIONAL",
+      "evidence": [
+        {
+          "file": ".claude/settings.json",
+          "symbol_or_line": "PostToolUse hook: aromer_auto_label_hook.py",
+          "why_it_matters": "Auto-labeling is configured. The hook runs after each tool call and labels the episode."
+        }
+      ],
+      "corrected_wording": "The PostToolUse auto-label hook systematically labels all post-execution episodes as 'benign' regardless of actual outcome. This introduces a labeling bias: harmful events that were not blocked by REMORA will be misclassified as benign, skewing world model priors. This is a known limitation of the self-supervised labeling approach.",
+      "recommended_action": "add_caveat"
+    }
+  ]
+}

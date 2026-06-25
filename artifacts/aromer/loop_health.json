@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-06-09T20:14:36.687983+00:00",
+  "overall": "WARN",
+  "aii_raw_latest": 0.5165,
+  "aii_smoothed_latest": 0.532,
+  "aii_smoothed_api": 0.532,
+  "trend": "stable",
+  "interpretation": "LEARNING",
+  "ema_alpha": 0.35,
+  "n_history": 41,
+  "checks": {
+    "transfer_provenance": {
+      "status": "PASS",
+      "transfer_source": "python_replay_arena",
+      "detail": "transfer component is a real measured replay result"
+    },
+    "aii_volatility": {
+      "status": "WARN",
+      "raw_std": 0.0721,
+      "smoothed_std": 0.0491,
+      "detail": "raw AII volatile \u2014 read aii_smoothed / trend, not single cycles"
+    },
+    "episode_growth": {
+      "status": "WARN",
+      "n_episodes_values": [
+        200
+      ],
+      "detail": "labelled-episode window size unchanged across the whole history \u2014 verify new episodes are being ingested (the window caps at ADAPTATION_CYCLE_WINDOW, so a full window is also consistent with healthy ingestion)"
+    },
+    "stability_liveness": {
+      "status": "PASS",
+      "max_stability": 0.224,
+      "detail": "stability component is live"
+    },
+    "safety": {
+      "status": "PASS",
+      "max_false_accept_rate": 0.0,
+      "detail": "no false accepts in window"
+    }
+  }
+}
