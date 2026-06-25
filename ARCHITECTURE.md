@@ -886,7 +886,8 @@ flowchart TD
 | `remora/causality_v2.py` | **EXPERIMENTAL** | Do-calculus causal stress testing |
 | `remora/topology.py` | **EXPERIMENTAL** | Topological Data Analysis (TDA) |
 | `remora/cascade/` | **EXPERIMENTAL** | Multi-stage cascade pipeline |
-| `remora/aromer/` | **EXPERIMENTAL** | AROMER meta-learning loop |
+| `remora/aromer/` | **EXPERIMENTAL** | AROMER meta-learning loop (v0.2.1) |
+| `remora/causal/` | **EXPERIMENTAL** | Causal PS/PN scoring and concept attribution (Bjøru 2026) |
 | `remora/zkp.py` | **RESEARCH_ONLY** | Zero-Knowledge Proof assurance traces |
 | `remora/statphys/` | **RESEARCH_ONLY** | Statistical physics uncertainty models |
 | `remora/future_concept/` | **RESEARCH_ONLY** | Forward-looking research concepts |
@@ -894,3 +895,37 @@ flowchart TD
 > **Backwards compatibility:** CORE modules follow semantic versioning. EXPERIMENTAL APIs may
 > change in minor releases. RESEARCH_ONLY modules have no BC guarantee and are not
 > production-certified.
+
+---
+
+## AROMER v0.2.1 — Autonomous Learning Overlay
+
+AROMER (Autonomous REMORA Orchestrator, Meta-Emergent Reasoner) is a closed-loop
+meta-cognitive governance layer that learns from every decision outcome.
+**Experimental:** labels are partly self-assigned, world model stays in shadow mode
+until calibrated, no external validation. Do not cite AROMER numbers as production
+evidence.
+
+### AII — AROMER Intelligence Index
+
+| Component | Weight | Formula |
+|-----------|--------|---------|
+| Calibration | 0.30 | `max(0, 1 − ECE × 5)` |
+| Friction | 0.25 | `exp(−benign_review_rate / 0.20)` |
+| MetaJudge | 0.20 | `(mean_critique − 0.5) / 0.5` |
+| Transfer | 0.15 | `0.85 × accuracy + 0.15 × cross_domain` |
+| Stability | 0.10 | `0.5 × dispersion + 0.5 × high_conf_coverage` |
+
+Phase: WARMUP (AII < 0.40) → LEARNING (≥ 0.40) → CAPABLE (≥ 0.60) → TRAINED (≥ 0.80).
+World model activates when ECE < 0.10 AND n\_labelled ≥ 10.
+
+### Causal concept attribution (Bjøru 2026)
+
+Every VERIFY/ESCALATE episode is enriched with **Probability of Sufficiency (PS)**
+per semantic concept. Implementation in `remora/causal/search.py` (score_concepts)
+and `remora/causal/attribution.py` (compute_concept_attribution).
+
+Source: Bjøru, A. R. (2026). *Causal Post-hoc Explainable AI* (PhD thesis). NTNU.
+ISBN 978-82-353-0022-5. Paper IV §4.2.2.
+
+Live log: `https://aromer.razorsharp.workers.dev/log?format=text`

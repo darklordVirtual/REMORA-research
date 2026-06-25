@@ -86,6 +86,7 @@ User / Application / Agent
 | **Action Gate** | `remora/cascade/stages.py` (VerifierGate, CritiqueRevision) | Verifies answer before output or action |
 | **Audit Ledger** | `remora/assurance/` + `docs/thermodynamics/claim_ledger.yaml` | Full decision trace |
 | **Evaluation Harness** | `experiments/`, `tests/`, `artifacts/` | Continuous benchmark against golden datasets |
+| **AROMER Learning Loop** *(experimental)* | `remora/aromer/` + `workers/aromer/` | Closed-loop meta-learning from governance outcomes; AII intelligence index; causal PS/PN attribution (Bjøru 2026, Paper IV §4.2.2) |
 
 ---
 
