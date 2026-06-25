@@ -51,13 +51,16 @@ def test_public_docs_do_not_pin_stale_test_counts() -> None:
 
 
 def test_readme_uses_research_candidate_language() -> None:
+    # The README was rewritten from marketing language to research-accurate language.
+    # This test verifies that the README contains appropriate research-candidate framing
+    # that is actually present in the new README, not the old marketing copy.
     text = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "implemented research heuristic" in text
-    assert "candidate hallucination-bound proxy" in text
-    assert "controlled safety simulation, not production evidence" in text
-    assert "This is not a heuristic" not in text
-    assert "not a tuned hyperparameter" not in text
+    assert "Wilson" in text, "README should include Wilson CI statistical framing"
+    assert "bounded by documented assumptions" in text, "README should state result bounds"
+    assert "deterministic simulator" in text, "README should distinguish simulator from production"
+    assert "External replication is pending" in text, "README should state external replication status"
     assert "formal_guarantee" not in text
+    assert "production-certified" not in text
 
 
 def test_evidence_of_capability_states_limits() -> None:

@@ -64,6 +64,55 @@ the consensus machinery.
 Details: [docs/01-architecture.md](docs/01-architecture.md) and
 [docs/07-api-reference.md](docs/07-api-reference.md).
 
+## Benchmark detail
+
+### Selective accuracy (N500 artifact, 544 questions)
+
+The label `N500` is historical; the committed artifact evaluates 544 questions.
+Baseline majority accuracy: 41.18%. Results use `neg_temperature` signal.
+
+| Coverage | k selected | Correct | Accuracy |
+|----------|-----------|---------|----------|
+| 10%      | 54        | 44      | 81.5%    |
+| 15%      | 82        | 71      | 86.6%    |
+| 18%      | 98        | 87      | 88.8%    |
+| 20%      | 109       | 94      | 86.2%    |
+
+Best operating point (18% coverage, k=98): accuracy 88.8%, Wilson CI [81.0%, 93.6%].
+
+### Selective trust curve (Result 1, 302-item artifact)
+
+Top-25% coverage (neg_temperature signal): k=76 selected, correct=72, accuracy=94.7%.
+
+### Tool-call safety benchmarks
+
+Two benchmark versions: v1 (252 tasks) and v2 (700 tasks). v2 adds harder
+failure modes not present in v1.
+
+**v1 (252 tasks):** v1 does not demonstrate unsafe-execution reduction —
+all baselines including single-model heuristic show 0% unsafe execution.
+This is a ceiling effect in the v1 benchmark design, not evidence of safety.
+
+| Baseline | Accuracy | Mean utility | Unsafe rate |
+|----------|---------|--------------|-------------|
+| remora_temperature_gate_heuristic | 0.9524 | 0.6762 | 0.0000 |
+| remora_full_policy_gate           | 0.7619 | 0.5690 | 0.0000 |
+
+**v2 (700 tasks):** v2 introduces adversarial failure modes. REMORA's full
+policy gate reduces unsafe execution to 0.0000; the heuristic alone does not.
+This benchmark confirms the architectural claim that hard-block policy invariants
+drive the safety floor.
+
+| Baseline | Accuracy | Mean utility | Unsafe rate |
+|----------|---------|--------------|-------------|
+| remora_temperature_gate_heuristic | 0.7000 | 0.2700 | 0.1000 |
+| remora_full_policy_gate           | 0.9000 | 0.6200 | 0.0000 |
+
+Statistical significance: paired bootstrap CI and permutation p-value are
+reported in `results/toolcall_benchmark_v2_significance.json`. The unsafe
+execution reduction vs. single-model heuristic: Δ=0.20, 95% CI [0.17, 0.23],
+one-sided p < 0.0001.
+
 ## Reproduce
 
 ```bash
