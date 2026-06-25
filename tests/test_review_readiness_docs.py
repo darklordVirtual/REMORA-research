@@ -35,7 +35,6 @@ def test_public_docs_do_not_pin_stale_test_counts() -> None:
     docs = [
         ROOT / "README.md",
         ROOT / "Makefile",
-        ROOT / "enterprise" / "executive-brief.md",
         ROOT / "paper" / "whitepaper.md",
         ROOT / "docs" / "deployment" / "onprem-airgapped.md",
     ]
@@ -151,7 +150,7 @@ def test_commercial_license_boundary_is_documented() -> None:
     required_files = [
         ROOT / "NOTICE",
         ROOT / "TRADEMARKS.md",
-        ROOT / "enterprise" / "ENTERPRISE_LICENSE.md",
+        ROOT / "ENTERPRISE_LICENSE.md",
     ]
     for path in required_files:
         assert path.exists(), path
