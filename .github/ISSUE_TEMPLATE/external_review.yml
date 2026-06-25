@@ -1,0 +1,70 @@
+name: External review
+description: Review a REMORA claim, benchmark, caveat, or design. Negative findings are welcome.
+title: "[review] "
+labels: ["external-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reviewing REMORA. The most valuable contribution is a
+        claim you can break, a number you reproduced differently, or a caveat you
+        think is understated. Start with `docs/external-review.md` and
+        `docs/evidence-and-claims.md`.
+  - type: dropdown
+    id: review_type
+    attributes:
+      label: What are you reviewing?
+      options:
+        - A headline claim or number
+        - A benchmark or its methodology
+        - A caveat or limitation (under/overstated)
+        - The decision logic / policy gate
+        - The audit / DecisionEnvelope design
+        - The math / derivations
+        - The AROMER learning layer
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: claim
+    attributes:
+      label: The specific claim or artifact under review
+      description: Quote the exact claim, file, or number (e.g. from docs/evidence-and-claims.md).
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: Your finding
+      description: What is wrong, understated, unclear, or not reproducible? Be specific.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How you tested it (if applicable)
+      description: Commands run, environment, and the result you got versus the committed artifact.
+  - type: dropdown
+    id: severity
+    attributes:
+      label: How serious is it?
+      options:
+        - Blocking (a claim does not hold)
+        - Important (materially changes how a result should be read)
+        - Minor (precision, wording, or clarity)
+    validations:
+      required: true
+  - type: input
+    id: background
+    attributes:
+      label: Your background (optional)
+      description: So we can credit you appropriately (with permission).
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Before submitting
+      options:
+        - label: I read docs/evidence-and-claims.md and NEGATIVE_RESULTS.md.
+          required: true
+        - label: I understand REMORA is research-grade, not a certified product.
+          required: true

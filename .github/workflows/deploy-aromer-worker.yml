@@ -1,0 +1,38 @@
+name: Deploy AROMER Worker to Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "workers/aromer/**"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-aromer-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        working-directory: workers/aromer
+        run: npm ci
+
+      - name: Deploy to Cloudflare Workers
+        working-directory: workers/aromer
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

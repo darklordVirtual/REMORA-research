@@ -1,0 +1,635 @@
+{
+  "overall_precision": 1.0,
+  "overall_escalation_recall": 1.0,
+  "overall_fp_suppression_rate": 1.0,
+  "overall_critical_failure_rate": 0.0,
+  "domains": {
+    "cyber": {
+      "domain": "cyber",
+      "total": 12,
+      "passed": 12,
+      "critical_failures": 0,
+      "precision": 1.0,
+      "escalation_recall": 1.0,
+      "fp_suppression_rate": 1.0,
+      "report_ready_precision": 1.0,
+      "critical_failure_rate": 0.0,
+      "cases": [
+        {
+          "case_id": "cyber_case_sql_injection_001",
+          "domain": "cyber",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "ESCALATE"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.898,
+          "actual_risk_class": "KNOWN_EXPLOITED",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "sql_injection",
+            "internet_facing",
+            "corroborated"
+          ],
+          "reason": "['sql_injection', 'internet_facing', 'corroborated']"
+        },
+        {
+          "case_id": "cyber_case_log4shell_001",
+          "domain": "cyber",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.839,
+          "actual_risk_class": "KNOWN_EXPLOITED",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "kev",
+            "known_exploited",
+            "production"
+          ],
+          "reason": "['kev', 'known_exploited', 'production']"
+        },
+        {
+          "case_id": "cyber_case_xz_backdoor_001",
+          "domain": "cyber",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.714,
+          "actual_risk_class": "KNOWN_EXPLOITED",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "supply_chain",
+            "kev",
+            "production"
+          ],
+          "reason": "['supply_chain', 'kev', 'production']"
+        },
+        {
+          "case_id": "cyber_case_command_injection_001",
+          "domain": "cyber",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "NEEDS_REVIEW"
+          ],
+          "actual_verdict": "REPORT_READY",
+          "actual_confidence": 0.69,
+          "actual_risk_class": "EMERGING_OR_UNKNOWN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "command_injection",
+            "rce",
+            "corroborated"
+          ],
+          "reason": "['command_injection', 'rce', 'corroborated']"
+        },
+        {
+          "case_id": "cyber_case_secret_placeholder_001",
+          "domain": "cyber",
+          "expected_verdict": "LIKELY_FALSE_POSITIVE",
+          "acceptable_verdicts": [
+            "NEEDS_REVIEW"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.718,
+          "actual_risk_class": "EMERGING_OR_UNKNOWN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "placeholder_secret",
+            "test_fixture",
+            "weak_signal"
+          ],
+          "reason": "['placeholder_secret', 'test_fixture', 'weak_signal']"
+        },
+        {
+          "case_id": "cyber_case_prod_secret_001",
+          "domain": "cyber",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "ESCALATE"
+          ],
+          "actual_verdict": "REPORT_READY",
+          "actual_confidence": 0.765,
+          "actual_risk_class": "EMERGING_OR_UNKNOWN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "credential_exposure",
+            "production",
+            "corroborated"
+          ],
+          "reason": "['credential_exposure', 'production', 'corroborated']"
+        },
+        {
+          "case_id": "cyber_case_ssrf_001",
+          "domain": "cyber",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "ESCALATE"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.882,
+          "actual_risk_class": "KNOWN_EXPLOITED",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "ssrf",
+            "metadata_service",
+            "cloud"
+          ],
+          "reason": "['ssrf', 'metadata_service', 'cloud']"
+        },
+        {
+          "case_id": "cyber_case_http2_rapid_reset_001",
+          "domain": "cyber",
+          "expected_verdict": "NEEDS_REVIEW",
+          "acceptable_verdicts": [
+            "REPORT_READY"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.541,
+          "actual_risk_class": "EMERGING_OR_UNKNOWN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "ddos",
+            "exposure_dependent",
+            "needs_context"
+          ],
+          "reason": "['ddos', 'exposure_dependent', 'needs_context']"
+        },
+        {
+          "case_id": "cyber_case_api_data_exposure_001",
+          "domain": "cyber",
+          "expected_verdict": "NEEDS_REVIEW",
+          "acceptable_verdicts": [
+            "REPORT_READY"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.542,
+          "actual_risk_class": "EMERGING_OR_UNKNOWN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "api_security",
+            "data_exposure",
+            "authorization"
+          ],
+          "reason": "['api_security', 'data_exposure', 'authorization']"
+        },
+        {
+          "case_id": "cyber_case_agent_prompt_injection_001",
+          "domain": "cyber",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [
+            "NEEDS_REVIEW"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.618,
+          "actual_risk_class": "PUBLIC_EXPLOIT_LIKELY",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "prompt_injection",
+            "tool_security",
+            "excessive_agency"
+          ],
+          "reason": "['prompt_injection', 'tool_security', 'excessive_agency']"
+        },
+        {
+          "case_id": "cyber_case_dependency_dev_only_001",
+          "domain": "cyber",
+          "expected_verdict": "NEEDS_REVIEW",
+          "acceptable_verdicts": [
+            "LIKELY_FALSE_POSITIVE"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.401,
+          "actual_risk_class": "WEAK_OR_UNCORROBORATED",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "dependency",
+            "reachability_unclear",
+            "review_needed"
+          ],
+          "reason": "['dependency', 'reachability_unclear', 'review_needed']"
+        },
+        {
+          "case_id": "cyber_case_moveit_001",
+          "domain": "cyber",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.916,
+          "actual_risk_class": "KNOWN_EXPLOITED",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "kev",
+            "sql_injection",
+            "internet_facing"
+          ],
+          "reason": "['kev', 'sql_injection', 'internet_facing']"
+        }
+      ]
+    },
+    "ai_governance": {
+      "domain": "ai_governance",
+      "total": 10,
+      "passed": 10,
+      "critical_failures": 0,
+      "precision": 1.0,
+      "escalation_recall": 1.0,
+      "fp_suppression_rate": 1.0,
+      "report_ready_precision": 1.0,
+      "critical_failure_rate": 0.0,
+      "cases": [
+        {
+          "case_id": "ai_gov_case_prompt_injection_prod_001",
+          "domain": "ai_governance",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.798,
+          "actual_risk_class": "KNOWN_ATTACK_PATTERN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "prompt_injection",
+            "production_ai",
+            "known_attack_pattern"
+          ],
+          "reason": "Known attack pattern on production exposed AI endpoint requires escalation"
+        },
+        {
+          "case_id": "ai_gov_case_training_poisoning_deployed_001",
+          "domain": "ai_governance",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.808,
+          "actual_risk_class": "KNOWN_ATTACK_PATTERN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "training_data_poisoning",
+            "backdoor",
+            "ml_supply_chain"
+          ],
+          "reason": "Confirmed supply-chain attack on deployed model requires immediate escalation"
+        },
+        {
+          "case_id": "ai_gov_case_eu_prohibited_biometric_001",
+          "domain": "ai_governance",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.661,
+          "actual_risk_class": "PROHIBITED_USE_CASE",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "eu_ai_act_prohibited",
+            "biometric_surveillance",
+            "regulatory_violation"
+          ],
+          "reason": "EU AI Act Article 5 explicitly prohibits this use case"
+        },
+        {
+          "case_id": "ai_gov_case_medical_ai_no_conformity_001",
+          "domain": "ai_governance",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [
+            "REPORT_READY"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.804,
+          "actual_risk_class": "KNOWN_ATTACK_PATTERN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "eu_ai_act_high_risk",
+            "medical_ai",
+            "missing_conformity"
+          ],
+          "reason": "High-risk EU AI Act category deployed without required conformity assessment"
+        },
+        {
+          "case_id": "ai_gov_case_hallucination_medical_001",
+          "domain": "ai_governance",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "ESCALATE"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.736,
+          "actual_risk_class": "KNOWN_ATTACK_PATTERN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "hallucination",
+            "medical_ai",
+            "high_stakes"
+          ],
+          "reason": "Documented hallucination risk in high-stakes medical context with strong evidence"
+        },
+        {
+          "case_id": "ai_gov_case_pii_disclosure_001",
+          "domain": "ai_governance",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "ESCALATE"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.681,
+          "actual_risk_class": "KNOWN_ATTACK_PATTERN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "pii_disclosure",
+            "training_data_leakage",
+            "production_ai"
+          ],
+          "reason": "Confirmed sensitive information disclosure from production AI system"
+        },
+        {
+          "case_id": "ai_gov_case_excessive_agency_tool_001",
+          "domain": "ai_governance",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.593,
+          "actual_risk_class": "KNOWN_ATTACK_PATTERN",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "excessive_agency",
+            "autonomous_action",
+            "production_impact"
+          ],
+          "reason": "Critical autonomous action without governance gate is confirmed excessive agency"
+        },
+        {
+          "case_id": "ai_gov_case_bias_hiring_unclear_001",
+          "domain": "ai_governance",
+          "expected_verdict": "NEEDS_REVIEW",
+          "acceptable_verdicts": [
+            "REPORT_READY"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.541,
+          "actual_risk_class": "EMERGING_RISK",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "algorithmic_bias",
+            "hiring_ai",
+            "review_required"
+          ],
+          "reason": "Bias signal present but root cause unconfirmed requires human review"
+        },
+        {
+          "case_id": "ai_gov_case_model_uncertainty_financial_001",
+          "domain": "ai_governance",
+          "expected_verdict": "NEEDS_REVIEW",
+          "acceptable_verdicts": [
+            "REPORT_READY"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.423,
+          "actual_risk_class": "WEAK_OR_UNCORROBORATED",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "hallucination_risk",
+            "financial_ai",
+            "nist_gap"
+          ],
+          "reason": "Risk present but evidence and context do not yet reach REPORT_READY threshold"
+        },
+        {
+          "case_id": "ai_gov_case_benign_test_prompt_001",
+          "domain": "ai_governance",
+          "expected_verdict": "LIKELY_FALSE_POSITIVE",
+          "acceptable_verdicts": [
+            "NEEDS_REVIEW"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.406,
+          "actual_risk_class": "LIKELY_FALSE_POSITIVE",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "false_positive",
+            "test_fixture",
+            "sandbox"
+          ],
+          "reason": "Test harness in isolated sandbox is a known false positive pattern"
+        }
+      ]
+    },
+    "finance": {
+      "domain": "finance",
+      "total": 10,
+      "passed": 10,
+      "critical_failures": 0,
+      "precision": 1.0,
+      "escalation_recall": 1.0,
+      "fp_suppression_rate": 1.0,
+      "report_ready_precision": 1.0,
+      "critical_failure_rate": 0.0,
+      "cases": [
+        {
+          "case_id": "finance_case_sdn_match_001",
+          "domain": "finance",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.488,
+          "actual_risk_class": "REGULATORY_BREACH",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "sdn_match",
+            "sanctions",
+            "immediate_escalation"
+          ],
+          "reason": "Direct OFAC SDN match is a regulatory breach requiring immediate escalation"
+        },
+        {
+          "case_id": "finance_case_structuring_confirmed_001",
+          "domain": "finance",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.734,
+          "actual_risk_class": "HIGH_RISK_TYPOLOGY",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "structuring",
+            "sar_obligation",
+            "confirmed_typology"
+          ],
+          "reason": "Confirmed structuring pattern with SAR obligation and strong evidence requires escalation"
+        },
+        {
+          "case_id": "finance_case_shell_round_trip_001",
+          "domain": "finance",
+          "expected_verdict": "ESCALATE",
+          "acceptable_verdicts": [],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.849,
+          "actual_risk_class": "HIGH_RISK_TYPOLOGY",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "round_tripping",
+            "shell_company",
+            "offshore_layering"
+          ],
+          "reason": "Confirmed layering via shell companies with high-risk jurisdictions and SDN-equivalent risk profile"
+        },
+        {
+          "case_id": "finance_case_pep_high_value_001",
+          "domain": "finance",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "ESCALATE"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.782,
+          "actual_risk_class": "HIGH_RISK_TYPOLOGY",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "pep",
+            "adverse_media",
+            "enhanced_dd_required"
+          ],
+          "reason": "PEP with adverse media and high-value real estate transfer has strong evidence for report preparation"
+        },
+        {
+          "case_id": "finance_case_trade_based_ml_001",
+          "domain": "finance",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "ESCALATE"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.708,
+          "actual_risk_class": "HIGH_RISK_TYPOLOGY",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "trade_based_ml",
+            "over_invoicing",
+            "fatf_typology"
+          ],
+          "reason": "Confirmed TBML pattern with strong evidence matches report-ready threshold"
+        },
+        {
+          "case_id": "finance_case_velocity_anomaly_highRisk_001",
+          "domain": "finance",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "ESCALATE"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.842,
+          "actual_risk_class": "HIGH_RISK_TYPOLOGY",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "velocity_anomaly",
+            "high_risk_jurisdiction",
+            "sar_indicator"
+          ],
+          "reason": "Combined velocity and jurisdiction indicators provide strong evidence for SAR preparation"
+        },
+        {
+          "case_id": "finance_case_correspondent_adverse_001",
+          "domain": "finance",
+          "expected_verdict": "NEEDS_REVIEW",
+          "acceptable_verdicts": [
+            "REPORT_READY"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.77,
+          "actual_risk_class": "ELEVATED_RISK_INDICATOR",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "correspondent_banking",
+            "adverse_media",
+            "review_required"
+          ],
+          "reason": "Risk indicators present but evidence not yet sufficient for autonomous report preparation"
+        },
+        {
+          "case_id": "finance_case_pep_distant_relative_001",
+          "domain": "finance",
+          "expected_verdict": "NEEDS_REVIEW",
+          "acceptable_verdicts": [
+            "LIKELY_FALSE_POSITIVE"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.565,
+          "actual_risk_class": "ELEVATED_RISK_INDICATOR",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "pep_screening",
+            "distant_relative",
+            "review_required"
+          ],
+          "reason": "Distant PEP relative in low-risk context needs review but should not escalate automatically"
+        },
+        {
+          "case_id": "finance_case_normal_payroll_001",
+          "domain": "finance",
+          "expected_verdict": "LIKELY_FALSE_POSITIVE",
+          "acceptable_verdicts": [
+            "NEEDS_REVIEW"
+          ],
+          "actual_verdict": "NEEDS_REVIEW",
+          "actual_confidence": 0.397,
+          "actual_risk_class": "LIKELY_FALSE_POSITIVE",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "normal_business",
+            "payroll",
+            "false_positive"
+          ],
+          "reason": "Documented routine payroll is a known normal business pattern"
+        },
+        {
+          "case_id": "finance_case_crypto_mixing_001",
+          "domain": "finance",
+          "expected_verdict": "REPORT_READY",
+          "acceptable_verdicts": [
+            "ESCALATE"
+          ],
+          "actual_verdict": "ESCALATE",
+          "actual_confidence": 0.727,
+          "actual_risk_class": "HIGH_RISK_TYPOLOGY",
+          "passed": true,
+          "critical_fail": false,
+          "tags": [
+            "crypto_mixing",
+            "confirmed_typology",
+            "sar_required"
+          ],
+          "reason": "Confirmed crypto mixing typology with strong evidence supports SAR preparation"
+        }
+      ]
+    }
+  }
+}

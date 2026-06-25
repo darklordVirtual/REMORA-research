@@ -1,0 +1,138 @@
+[
+  {
+    "id": "err_hallucination",
+    "type": "error_taxonomy",
+    "source": "AROMER cognitive foundation v0.2 / LLM failure mode literature",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["error", "hallucination", "fabrication"],
+    "description": "Hallucination: generating a confident claim with no grounding in evidence. High-risk in governance contexts because the claim looks like reasoning.",
+    "payload": {
+      "error_type": "hallucination",
+      "detection_signals": [
+        "Specific numbers/dates without cited artifact",
+        "Named API endpoints or file paths without verification",
+        "Oracle says 'based on' but no source retrievable",
+        "Confidence >0.8 in domain with 0 episodic coverage"
+      ],
+      "mitigation": "RAG retrieval before any factual claim. Require artifact citation for specific values.",
+      "severity": "critical",
+      "known_remora_instance": "Zero RAG coverage → 100% VERIFY expected — see failure pattern 05"
+    }
+  },
+  {
+    "id": "err_partial_truth",
+    "type": "error_taxonomy",
+    "source": "AROMER cognitive foundation v0.2",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["error", "partial_truth", "omission"],
+    "description": "Partial truth: a statement that is technically correct but omits critical context that changes the safety conclusion.",
+    "payload": {
+      "error_type": "partial_truth",
+      "example": "'Deleting the staging database is safe' — true in isolation, but omits: staging DB is shared with production monitoring.",
+      "detection_signals": [
+        "Scoped claim that ignores cross-system dependencies",
+        "Time-limited truth ('safe now') without temporal scope",
+        "Claims that omit known edge cases"
+      ],
+      "mitigation": "Always evaluate claims in full system context. Ask: what is this statement NOT saying?",
+      "severity": "high",
+      "aromer_action": "Surface partial truth risk when scope_markers are narrow but action_type is wide"
+    }
+  },
+  {
+    "id": "err_overgeneralization",
+    "type": "error_taxonomy",
+    "source": "AROMER cognitive foundation v0.2 / learning theory",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["error", "overgeneralization", "transfer"],
+    "description": "Overgeneralization: applying a pattern learned in one context to a different context where it does not hold. Especially dangerous in small-n regime.",
+    "payload": {
+      "error_type": "overgeneralization",
+      "example": "Learned 'database reads are safe' → generalizes to 'all database operations are safe'",
+      "detection_signals": [
+        "Pattern applied to action_type not in training distribution",
+        "Confidence high despite domain shift",
+        "n_episodes < 10 in new domain"
+      ],
+      "mitigation": "Check domain boundary before applying pattern. See transfer_rule: boundary_conditions.",
+      "severity": "high",
+      "known_remora_instance": "Ordered phase instability with small-n (CV=0.28) — seed 05"
+    }
+  },
+  {
+    "id": "err_false_causality",
+    "type": "error_taxonomy",
+    "source": "AROMER cognitive foundation v0.2 / causal inference",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["error", "causality", "correlation"],
+    "description": "False causality: inferring that A causes B because they co-occur, without controlling for confounders or testing interventional evidence.",
+    "payload": {
+      "error_type": "false_causality",
+      "example": "'Every time we deploy on Friday, incidents occur' — may be due to higher deployment volume on Fridays, not the day itself.",
+      "detection_signals": [
+        "Causal language without interventional evidence ('causes', 'because', 'leads to')",
+        "No counterfactual considered",
+        "Single data point used to establish causal rule"
+      ],
+      "mitigation": "Require do(X) evidence for causal claims. Use counterfactual framing. See causal_reasoning seeds.",
+      "severity": "medium"
+    }
+  },
+  {
+    "id": "err_anchoring_bias",
+    "type": "error_taxonomy",
+    "source": "AROMER cognitive foundation v0.2 / cognitive bias research",
+    "version": "0.2",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.02,
+    "tags": ["error", "anchoring", "bias"],
+    "description": "Anchoring: over-weighting the first piece of information encountered, even when later evidence should shift the assessment.",
+    "payload": {
+      "error_type": "anchoring_bias",
+      "example": "Agent describes action as 'routine backup' → AROMER anchors on 'backup' framing and ignores scope=all_production_databases",
+      "detection_signals": [
+        "Initial benign framing followed by high-risk action_args",
+        "Trust score not updating despite new evidence",
+        "First oracle's verdict dominates despite dissensus"
+      ],
+      "mitigation": "Re-evaluate belief state at each reasoning step. Give extra weight to scope and irreversibility regardless of framing.",
+      "severity": "high"
+    }
+  },
+  {
+    "id": "err_confirmation_bias",
+    "type": "error_taxonomy",
+    "source": "AROMER cognitive foundation v0.2 / cognitive bias research",
+    "version": "0.2",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.02,
+    "tags": ["error", "confirmation_bias", "search"],
+    "description": "Confirmation bias: seeking or over-weighting evidence that confirms the initial hypothesis while under-weighting disconfirming evidence.",
+    "payload": {
+      "error_type": "confirmation_bias",
+      "example": "Oracle favors ACCEPT → search for supporting evidence, ignore dissenting oracle",
+      "detection_signals": [
+        "Dissensus score low despite individual oracles having high uncertainty",
+        "Retrieved episodes all match initial framing",
+        "No disconfirming episodes surfaced"
+      ],
+      "mitigation": "Actively retrieve counter-examples in EpisodicStore. Weight disconfirming evidence by 1.2x when dissensus > 0.3.",
+      "severity": "medium",
+      "aromer_action": "Always retrieve at least one 'negative outcome' episode in similar domain before ACCEPT on critical tier"
+    }
+  }
+]

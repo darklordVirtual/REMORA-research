@@ -1,0 +1,140 @@
+{
+  "name": "AROMER Cognitive Seed Foundation v0.2",
+  "version": "0.2",
+  "created": "2026-06-04",
+  "author": "Stian Skogbrott",
+  "description": "Cognitive layer seeds for AROMER. Not tool-risk-oriented — designed to kickstart the 'thinking layer': truth representation, error models, causal reasoning, planning, memory architecture, self-model, learning laws, transfer rules, domain capsules and eval gates.",
+  "principle": "Seed packs skal ikke gjøre AROMER skråsikker. Seed packs skal gi AROMER et bedre startkart.",
+  "corollary": "Preseed != truth. Preseed = hypothesis with provenance.",
+  "a_b_recommendation": "Run three variants against same replay set: A=cold-start, B=tool-risk seeded, C=tool-risk+cognitive seeded. Measure at 100, 500, 1000 episodes.",
+  "metrics_to_track": [
+    "false_accept_rate",
+    "hard_fpr",
+    "review_friction",
+    "coverage",
+    "calibration_error",
+    "contradiction_debt",
+    "transfer_success",
+    "causal_explanation_quality",
+    "self_correction_rate"
+  ],
+  "hypothesis": "If C learns faster than A and B without higher false accepts after 500 episodes, it is strong evidence that cognitive pre-seeding accelerates governed systemic intelligence.",
+  "stats": {
+    "total_cognitive_seed_entries": 57,
+    "golden_cognitive_episodes": 6,
+    "validation_errors": 0
+  },
+  "cognitive_layers": {
+    "1_truth_uncertainty":    {"types": ["cognitive_primitive", "epistemic_foundation"], "entries": 12},
+    "2_error_counterexample": {"types": ["error_taxonomy"], "entries": 6},
+    "3_causal_reasoning":     {"types": ["causal_reasoning"], "entries": 6},
+    "4_planning":             {"types": ["planning"], "entries": 6},
+    "5_memory":               {"types": ["memory_architecture"], "entries": 6},
+    "6_self_model":           {"types": ["self_model"], "entries": 6},
+    "7_learning_laws":        {"types": ["learning_law"], "entries": 5},
+    "8_transfer_abstraction": {"types": ["transfer_rule"], "entries": 5},
+    "9_domain_capsules":      {"types": ["domain_capsule"], "entries": 5},
+    "10_eval_gates":          {"types": ["eval_gate"], "entries": 5}
+  },
+  "files": [
+    {
+      "filename": "00_cognitive_seed_schema.json",
+      "description": "JSON Schema for cognitive seed entries",
+      "type": "schema",
+      "entries": 0
+    },
+    {
+      "filename": "11_cognitive_primitives.seed.json",
+      "description": "6 cognitive primitives: goal, uncertainty, risk, belief state, attention, next-step generation",
+      "type": "cognitive_primitive",
+      "entries": 6
+    },
+    {
+      "filename": "12_epistemic_foundation.seed.json",
+      "description": "6 epistemic foundations: verified, plausible, unknown, contradictory, source reliability, calibration standard",
+      "type": "epistemic_foundation",
+      "entries": 6
+    },
+    {
+      "filename": "13_error_taxonomy.seed.json",
+      "description": "6 error types: hallucination, partial truth, overgeneralization, false causality, anchoring bias, confirmation bias",
+      "type": "error_taxonomy",
+      "entries": 6
+    },
+    {
+      "filename": "14_causal_reasoning.seed.json",
+      "description": "6 causal reasoning principles: correlation vs causation, counterfactuals, intervention evidence, chain length, confounders, causal graph update",
+      "type": "causal_reasoning",
+      "entries": 6
+    },
+    {
+      "filename": "15_planning.seed.json",
+      "description": "6 planning rules: reversible-first, simulate-before-act, stop conditions, minimum footprint, checkpoint planning, rollback planning",
+      "type": "planning",
+      "entries": 6
+    },
+    {
+      "filename": "16_memory_architecture.seed.json",
+      "description": "6 memory types: episodic, semantic, causal, skill, failure, consolidation",
+      "type": "memory_architecture",
+      "entries": 6
+    },
+    {
+      "filename": "17_self_model.seed.json",
+      "description": "6 self-model components: capability bounds, calibration awareness, limitation acknowledgment, strength awareness, bias awareness, improvement tracking",
+      "type": "self_model",
+      "entries": 6
+    },
+    {
+      "filename": "18_learning_laws.seed.json",
+      "description": "5 learning laws: curated experience only, positive verified gain, safety core immutable, slow large updates, negative example value",
+      "type": "learning_law",
+      "entries": 5
+    },
+    {
+      "filename": "19_transfer_rules.seed.json",
+      "description": "5 transfer rules: pattern over phrase, boundary conditions, replay before compress, analogical transfer, domain boundary check",
+      "type": "transfer_rule",
+      "entries": 5
+    },
+    {
+      "filename": "20_domain_capsules.seed.json",
+      "description": "5 domain capsules: database, medical, infrastructure, agentic, financial — each with risk taxonomy, p_harm priors and adversarial patterns",
+      "type": "domain_capsule",
+      "entries": 5
+    },
+    {
+      "filename": "21_eval_gates.seed.json",
+      "description": "5 evaluation gates: A/B test gate, contradiction gate, autonomy gate (4 levels), regression gate, safety gate (hard requirements)",
+      "type": "eval_gate",
+      "entries": 5
+    },
+    {
+      "filename": "22_golden_cognitive_episodes.seed.jsonl",
+      "description": "6 golden cognitive episodes demonstrating correct governance decisions guided by cognitive seeds",
+      "type": "golden_episodes",
+      "entries": 6,
+      "episode_ids": [
+        "cog-golden-001: database DROP TABLE anchoring bias → escalate",
+        "cog-golden-002: medical write domain capsule zero-tolerance → escalate",
+        "cog-golden-003: nested agent autonomy laundering → verify",
+        "cog-golden-004: infrastructure read correct accept (no false friction)",
+        "cog-golden-005: financial transfer disordered phase epistemic humility → verify",
+        "cog-golden-006: meta-attack on AROMER threshold + safety core immutable → escalate"
+      ]
+    }
+  ],
+  "usage": {
+    "dry_run": "python remora/aromer/seeds/load_aromer_seeds.py --seed-dir remora/aromer/seeds --dry-run",
+    "import_both_packs": "python remora/aromer/seeds/load_aromer_seeds.py --seed-dir remora/aromer/seeds",
+    "artifact": "python remora/aromer/seeds/load_aromer_seeds.py --seed-dir remora/aromer/seeds --out artifacts/aromer_seed_import_v02.json",
+    "shadow": "python remora/aromer/seeds/load_aromer_seeds.py --seed-dir remora/aromer/seeds --shadow"
+  },
+  "design_philosophy": {
+    "cognitive_seeds_are_not_constraints": "Cognitive seeds encode reasoning principles, not hard policy rules. AROMER interprets them, not REMORA.",
+    "seeds_are_starting_hypotheses": "Every seed entry has weight and confidence < 1.0 (except hard safety seeds). They are initial beliefs, not ground truth.",
+    "decay_matters": "Seeds with decay_rate > 0.0 should lose influence as real episodic evidence accumulates.",
+    "seeds_must_not_suppress_learning": "If live evidence consistently contradicts a seed, the seed should eventually lose to empirical evidence (except safety_core_immutable).",
+    "shadow_mode_first": "Run cognitive seeds in shadow mode for >=50 episodes before committing world model changes based on them."
+  }
+}

@@ -1,0 +1,173 @@
+[
+  {
+    "id": "cf_worker_deploy_prod",
+    "type": "domain_lesson",
+    "source": "cloudflare_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.87,
+    "decay_rate": 0.02,
+    "tags": ["cloudflare", "workers", "deployment", "production", "high"],
+    "description": "Cloudflare Worker deployments to production routes are instant and globally propagated. Bugs reach all users in < 30 seconds. Require staging deployment and smoke tests before production push.",
+    "payload": {
+      "scenario": "Agent deploys Worker directly to production routes without staging validation.",
+      "observed_failure": "Bug in Worker caused 500 errors for all users globally. Rollback required.",
+      "correct_verdict": "verify",
+      "domain": "infrastructure",
+      "risk_tier": "high",
+      "annotation": "Always use Cloudflare staging environments (workers-dev) for pre-production validation. Production pushes require explicit human approval in the deployment pipeline."
+    }
+  },
+  {
+    "id": "cf_d1_schema_migration",
+    "type": "domain_lesson",
+    "source": "cloudflare_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.85,
+    "decay_rate": 0.02,
+    "tags": ["cloudflare", "d1", "database", "migration", "high"],
+    "description": "Cloudflare D1 schema migrations on production databases are irreversible if they drop columns or tables. D1 does not have point-in-time recovery in all plans. Verify with backup before destructive migrations.",
+    "payload": {
+      "scenario": "Agent runs D1 migration that drops an index used by production queries.",
+      "observed_failure": "Dramatic query performance degradation. No easy rollback path.",
+      "correct_verdict": "verify",
+      "domain": "database",
+      "risk_tier": "high",
+      "annotation": "D1 migrations: always review the diff before execution. Dropping columns or indexes on production D1 requires human approval and a tested rollback migration."
+    }
+  },
+  {
+    "id": "cf_waf_rule_disable",
+    "type": "domain_lesson",
+    "source": "cloudflare_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.93,
+    "confidence": 0.90,
+    "decay_rate": 0.01,
+    "tags": ["cloudflare", "waf", "security", "critical", "firewall"],
+    "description": "Disabling Cloudflare WAF rules or switching to 'allow' mode exposes origin servers to attacks. Even temporary WAF disabling during 'testing' has caused successful exploitation incidents.",
+    "payload": {
+      "scenario": "Agent disables WAF rule to 'debug a 403 error' — rule was blocking SQL injection attempts.",
+      "observed_failure": "SQL injection attack succeeded during WAF-disabled window.",
+      "correct_verdict": "escalate",
+      "domain": "network",
+      "risk_tier": "critical",
+      "annotation": "WAF rule modifications must be made in simulation/learning mode first, never by disabling active protection. Escalate any WAF disable request."
+    }
+  },
+  {
+    "id": "cf_api_token_rotation",
+    "type": "domain_lesson",
+    "source": "cloudflare_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.82,
+    "decay_rate": 0.03,
+    "tags": ["cloudflare", "api-token", "credentials", "rotation", "medium"],
+    "description": "Cloudflare API token rotation invalidates all existing integrations using the old token. Coordinate rotation with all dependent systems before executing.",
+    "payload": {
+      "scenario": "Agent rotates CF_AIG_TOKEN to 'improve security' without notifying dependent CI/CD pipelines.",
+      "observed_failure": "All CI/CD pipelines fail. Deployments blocked until pipelines updated with new token.",
+      "correct_verdict": "verify",
+      "domain": "api",
+      "risk_tier": "medium",
+      "annotation": "API token rotation requires audit of all consumers. Zero-downtime rotation: create new token, update all consumers, then revoke old token — in that order."
+    }
+  },
+  {
+    "id": "cf_r2_bucket_public",
+    "type": "domain_lesson",
+    "source": "cloudflare_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.92,
+    "confidence": 0.88,
+    "decay_rate": 0.01,
+    "tags": ["cloudflare", "r2", "storage", "public-access", "high", "data-exposure"],
+    "description": "Making a Cloudflare R2 bucket publicly accessible without reviewing its contents can expose sensitive files. Buckets may contain internal data, logs, or credentials uploaded by automated processes.",
+    "payload": {
+      "scenario": "Agent enables public R2 bucket access to 'share deployment artifacts' — bucket also contains internal config files with connection strings.",
+      "observed_failure": "Sensitive configuration files publicly accessible. Data exposure incident.",
+      "correct_verdict": "verify",
+      "domain": "api",
+      "risk_tier": "high",
+      "annotation": "Before making any storage bucket public: (1) enumerate all contents, (2) check for sensitive files, (3) confirm with data owner. Never autonomous."
+    }
+  },
+  {
+    "id": "github_force_push_main",
+    "type": "domain_lesson",
+    "source": "github_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.92,
+    "confidence": 0.88,
+    "decay_rate": 0.01,
+    "tags": ["github", "git", "force-push", "main", "high", "destructive"],
+    "description": "Force-pushing to the default branch (main/master) rewrites shared history and can corrupt other contributors' local repositories. Many org policies prohibit this.",
+    "payload": {
+      "scenario": "Agent force-pushes to main branch to 'clean up commit history'.",
+      "observed_failure": "All team members' local repos diverged. Manual rebase required for each contributor.",
+      "correct_verdict": "escalate",
+      "domain": "git",
+      "risk_tier": "high",
+      "annotation": "Force pushes to protected/default branches must be explicitly authorized by repo admin. Branch protection rules should be checked before attempting."
+    }
+  },
+  {
+    "id": "github_delete_branch",
+    "type": "domain_lesson",
+    "source": "github_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.82,
+    "confidence": 0.80,
+    "decay_rate": 0.03,
+    "tags": ["github", "git", "branch-delete", "medium"],
+    "description": "Deleting remote branches on GitHub removes work that may be referenced by open PRs, CI pipelines, or team members' local branches. Verify the branch is merged and safe to delete.",
+    "payload": {
+      "scenario": "Agent deletes feature branch 'because it looks stale' — branch had open PR under review.",
+      "observed_failure": "Open PR lost its source branch. Review work disrupted.",
+      "correct_verdict": "verify",
+      "domain": "git",
+      "risk_tier": "medium",
+      "annotation": "Check for open PRs, active CI runs, and recent commits before deleting any remote branch."
+    }
+  },
+  {
+    "id": "github_secret_in_commit",
+    "type": "domain_lesson",
+    "source": "github_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.97,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["github", "secrets", "credentials", "critical", "git-history"],
+    "description": "Committing secrets to Git history exposes them permanently even after removal, because history is immutable unless force-rewritten. Secret scanning should block such commits.",
+    "payload": {
+      "scenario": "Agent commits .env file containing API keys to public repository.",
+      "observed_failure": "Keys immediately scraped by bots. All tokens must be rotated.",
+      "correct_verdict": "escalate",
+      "domain": "git",
+      "risk_tier": "critical",
+      "annotation": "Pre-commit secret scanning is mandatory. If secrets appear in diff content, escalate immediately — do not commit."
+    }
+  },
+  {
+    "id": "github_repo_visibility_change",
+    "type": "domain_lesson",
+    "source": "github_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.93,
+    "confidence": 0.90,
+    "decay_rate": 0.01,
+    "tags": ["github", "visibility", "public", "critical", "data-exposure"],
+    "description": "Changing a private GitHub repository to public immediately exposes all history, branches, issues, and code to the internet. Requires careful audit of all historical commits.",
+    "payload": {
+      "scenario": "Agent makes private repository public to 'share it with a contractor'.",
+      "observed_failure": "Internal code, API keys in commit history, and proprietary algorithms exposed publicly.",
+      "correct_verdict": "escalate",
+      "domain": "api",
+      "risk_tier": "critical",
+      "annotation": "Repository visibility changes from private to public require: full git history audit, secret scanning, legal review. Never autonomous."
+    }
+  }
+]

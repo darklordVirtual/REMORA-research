@@ -1,0 +1,70 @@
+# REMORA Risk Tier Mapping v1
+# Maps domain + action_type + environment combinations to risk tiers.
+version: "1.0.0"
+requires_approval_to_update: true
+
+tiers:
+  low:
+    description: "Read-only, reversible, non-production, no sensitive data"
+    examples:
+      - action_type: [read, query, list, describe, metrics, dry_run, plan, simulate]
+        target_environment: [dev, staging, test, local]
+      - action_type: [read]
+        domain: [documentation, public_data]
+    thermodynamic_range:
+      H_max: 0.6
+      trust_min: 0.8
+
+  medium:
+    description: "Writes to non-production, or reads of sensitive data with approval"
+    examples:
+      - action_type: [write, create, update, patch]
+        target_environment: [staging, test]
+      - action_type: [read]
+        domain: [finance, pii, health]
+        approved: true
+    thermodynamic_range:
+      H_max: 1.0
+      trust_min: 0.65
+
+  high:
+    description: "Production writes, sensitive data mutation, infrastructure changes"
+    examples:
+      - action_type: [write, create, update, deploy]
+        target_environment: [production, prod]
+      - action_type: [write, update]
+        domain: [finance, pii, health, crm]
+        target_environment: [production, prod]
+      - domain: [kubernetes, infrastructure]
+        action_type: [deploy, apply, create]
+    thermodynamic_range:
+      H_max: 1.2
+      trust_min: 0.5
+
+  critical:
+    description: "Destructive, irreversible, or high-consequence actions"
+    examples:
+      - action_type: [delete, destroy, purge, drop, truncate, destructive_write]
+      - action_type: [load_shedding, demand_response, switching]
+        domain: [grid_operations, energy]
+      - action_type: [privilege_escalation, mass_update, bulk_delete]
+      - target_environment: [production, prod]
+        action_type: [terraform_destroy, kubectl_delete_namespace]
+    thermodynamic_range:
+      H_max: 999
+      trust_min: 0.0
+      note: "Always gates regardless of uncertainty — requires explicit evidence"
+
+domain_overrides:
+  grid_operations:
+    minimum_tier: high
+    critical_actions: [load_shedding, switching, recloser, breaker_operation]
+  finance:
+    minimum_tier: medium
+    critical_actions: [wire_transfer, account_closure, limit_override]
+  healthcare:
+    minimum_tier: high
+    critical_actions: [medication_order, treatment_change, data_export]
+  infrastructure:
+    minimum_tier: medium
+    critical_actions: [terraform_destroy, delete_namespace, security_group_delete]

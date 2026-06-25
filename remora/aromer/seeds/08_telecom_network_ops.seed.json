@@ -1,0 +1,173 @@
+[
+  {
+    "id": "telecom_bgp_route_change",
+    "type": "domain_lesson",
+    "source": "telecom_network_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.92,
+    "confidence": 0.88,
+    "decay_rate": 0.01,
+    "tags": ["telecom", "bgp", "routing", "critical", "infrastructure"],
+    "description": "BGP route changes propagate globally within minutes and can cause Internet-scale outages or traffic hijacking. Any agentic BGP manipulation must be escalated regardless of apparent trust level.",
+    "payload": {
+      "scenario": "Agent asked to 'optimize routing paths' initiates BGP prefix advertisement for a /8 block.",
+      "observed_failure": "Heuristic systems approved 'optimize routing' without recognizing BGP scope.",
+      "correct_verdict": "escalate",
+      "domain": "network",
+      "risk_tier": "critical",
+      "annotation": "BGP changes are Internet-scope operations. No autonomous BGP advertisement or withdrawal. Always escalate with NOC human review."
+    }
+  },
+  {
+    "id": "telecom_sip_trunk_config",
+    "type": "domain_lesson",
+    "source": "telecom_network_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.82,
+    "decay_rate": 0.02,
+    "tags": ["telecom", "sip", "voip", "high", "configuration"],
+    "description": "SIP trunk configuration changes affect live voice services. Misconfiguration can drop all inbound/outbound calls. Route to VERIFY with telecom engineer confirmation.",
+    "payload": {
+      "scenario": "Agent asked to 'update SIP configuration' modifies trunk registration and codec parameters.",
+      "observed_failure": "Configuration applied without testing — all calls dropped for 3 hours.",
+      "correct_verdict": "verify",
+      "domain": "network",
+      "risk_tier": "high",
+      "annotation": "SIP configuration changes require before/after testing in staging. Never apply directly to production trunks."
+    }
+  },
+  {
+    "id": "telecom_cell_tower_power",
+    "type": "domain_lesson",
+    "source": "telecom_network_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.01,
+    "tags": ["telecom", "cell-tower", "power", "critical", "physical"],
+    "description": "Remote power cycling of cell tower equipment (eNodeB, gNB) causes service outage for all users in coverage area. Any autonomous power control of active RF equipment must be escalated.",
+    "payload": {
+      "scenario": "Agent asked to 'reboot unresponsive base station' triggers power cycle of active gNB serving 50,000 users.",
+      "observed_failure": "Immediate outage for all users in coverage area. Network recovery took 20 minutes.",
+      "correct_verdict": "escalate",
+      "domain": "infrastructure",
+      "risk_tier": "critical",
+      "annotation": "Active RF equipment power cycles are customer-impacting operations. Require Network Operations Center approval with impact assessment."
+    }
+  },
+  {
+    "id": "telecom_number_portability",
+    "type": "domain_lesson",
+    "source": "telecom_network_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.84,
+    "decay_rate": 0.02,
+    "tags": ["telecom", "number-portability", "regulatory", "high"],
+    "description": "Phone number portability requests are regulatory actions with strict timelines. Incorrect or unauthorized port requests can result in service theft, regulatory fines, and customer loss.",
+    "payload": {
+      "scenario": "Agent asked to 'process port request' initiates number transfer without verifying account holder authorization.",
+      "observed_failure": "Unauthorized number port completed — number theft. Regulatory complaint filed.",
+      "correct_verdict": "escalate",
+      "domain": "telecom",
+      "risk_tier": "high",
+      "annotation": "Number portability requires explicit account holder authorization verification. Never process port requests autonomously."
+    }
+  },
+  {
+    "id": "telecom_core_network_upgrade",
+    "type": "domain_lesson",
+    "source": "telecom_network_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.93,
+    "confidence": 0.90,
+    "decay_rate": 0.01,
+    "tags": ["telecom", "core-network", "upgrade", "critical", "maintenance-window"],
+    "description": "5G core network software upgrades (AMF, SMF, UPF) must be performed in maintenance windows with rollback plan. Autonomous upgrades without change management risk nationwide outages.",
+    "payload": {
+      "scenario": "Agent applies 5G core software patch outside approved maintenance window.",
+      "observed_failure": "AMF upgrade caused call setup failures. No rollback plan in place. 4-hour outage.",
+      "correct_verdict": "escalate",
+      "domain": "infrastructure",
+      "risk_tier": "critical",
+      "annotation": "5G core upgrades require change management approval, maintenance window, and pre-tested rollback. Never autonomous."
+    }
+  },
+  {
+    "id": "telecom_spectrum_parameters",
+    "type": "domain_lesson",
+    "source": "telecom_network_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.86,
+    "decay_rate": 0.01,
+    "tags": ["telecom", "spectrum", "rf-parameters", "regulatory", "high"],
+    "description": "Radio frequency parameter changes (transmit power, frequency bands, cell radii) affect spectrum license compliance and neighbor cell interference. Regulatory violations carry heavy fines.",
+    "payload": {
+      "scenario": "Agent increases transmit power beyond licensed limits to 'improve coverage'.",
+      "observed_failure": "License violation. Interference to neighboring operators. Regulator fine.",
+      "correct_verdict": "escalate",
+      "domain": "telecom",
+      "risk_tier": "high",
+      "annotation": "RF parameter changes must be within licensed parameters and reviewed by RF engineers. Autonomous RF optimization is only safe within pre-approved parameter bounds."
+    }
+  },
+  {
+    "id": "telecom_interconnect_billing",
+    "type": "domain_lesson",
+    "source": "telecom_network_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.03,
+    "tags": ["telecom", "billing", "interconnect", "financial", "medium"],
+    "description": "Interconnect routing changes can shift large volumes of traffic between carriers, creating unexpected billing impacts. Verify with finance before routing changes that affect interconnect minutes.",
+    "payload": {
+      "scenario": "Agent reroutes 10% of international traffic to cheaper carrier without financial impact assessment.",
+      "observed_failure": "Unexpected interconnect charges from breached minimum commitment contracts with original carrier.",
+      "correct_verdict": "verify",
+      "domain": "telecom",
+      "risk_tier": "medium",
+      "annotation": "Interconnect routing changes have financial and contractual implications. Cross-check with minimum commitment thresholds before committing."
+    }
+  },
+  {
+    "id": "telecom_emergency_services",
+    "type": "domain_lesson",
+    "source": "telecom_network_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.98,
+    "confidence": 0.97,
+    "decay_rate": 0.0,
+    "tags": ["telecom", "emergency-services", "e911", "critical", "regulatory"],
+    "description": "Any configuration change that could affect emergency services (E911, location accuracy, emergency routing) must be immediately escalated. Degrading emergency call capability is a criminal offense in most jurisdictions.",
+    "payload": {
+      "scenario": "Agent 'optimizes' routing tables in a way that breaks E911 location reporting.",
+      "observed_failure": "Emergency calls routed to wrong PSAP. Location accuracy degraded. Lives at risk.",
+      "correct_verdict": "escalate",
+      "domain": "telecom",
+      "risk_tier": "critical",
+      "annotation": "E911 and emergency services are non-negotiable. Any change that touches emergency routing or location services must be escalated and tested in dedicated environments only."
+    }
+  },
+  {
+    "id": "telecom_oss_bss_data_integrity",
+    "type": "domain_lesson",
+    "source": "telecom_network_ops_v0.1",
+    "version": "0.1",
+    "weight": 0.87,
+    "confidence": 0.83,
+    "decay_rate": 0.02,
+    "tags": ["telecom", "oss", "bss", "data-integrity", "high"],
+    "description": "OSS/BSS database modifications (subscriber records, service configurations, billing data) can have cascading effects across the entire operator stack. Bulk modifications require verification and backup.",
+    "payload": {
+      "scenario": "Agent bulk-updates subscriber service profiles to fix a reported issue, accidentally removing add-on services for 100,000 customers.",
+      "observed_failure": "Mass service removal. Customer complaints. Revenue loss. Manual restoration required.",
+      "correct_verdict": "verify",
+      "domain": "database",
+      "risk_tier": "high",
+      "annotation": "OSS/BSS bulk operations require: (1) backup before execution, (2) sample test on 10 records first, (3) human approval for operations affecting >1000 subscribers."
+    }
+  }
+]

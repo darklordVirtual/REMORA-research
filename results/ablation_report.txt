@@ -1,0 +1,149 @@
+========================================================================
+REMORA — SIX-CONDITION ABLATION STUDY
+Timestamp:  2026-05-20T20:38:33
+N =         75 items (dce_ext=25, fact_ext=25, sci_ext=25)
+Oracles:    groq/llama-versatile, openrouter/claude-3.5-sonnet, openrouter/gpt-4o
+========================================================================
+
+── CONDITIONS ──────────────────────────────────────────────────────
+  A) Single oracle (llama-3.3-70b-versatile)
+  B) Unweighted majority: 3 oracles, plain majority vote
+  C) REMORA full: diversity weighting + Lyapunov abort gate
+  D1) REMORA + Router gate STRICT  (all 3 must agree → skip REMORA)
+  D2) REMORA + Router gate BALANCED (majority → skip REMORA)  [recommended]
+  D3) REMORA + Router gate HYBRID   (majority + conf≥0.80 → skip REMORA)
+      (identical prompt format across all conditions)
+
+── 1. EXTERNAL VALIDITY (accuracy) ─────────────────────────────────
+  Benchmark            A         B         C        D1        D2        D3
+  ------------------------------------------------------------
+  dce_ext       76%(19/25)  76%(19/25)  32%(8/25)  16%(4/25)  72%(18/25)  20%(5/25)
+  fact_ext      52%(13/25)  52%(13/25)  28%(7/25)  28%(7/25)  48%(12/25)  44%(11/25)
+  sci_ext       84%(21/25)  84%(21/25)  36%(9/25)  32%(8/25)  84%(21/25)  64%(16/25)
+  ------------------------------------------------------------
+  TOTAL         71%(53/75)  71%(53/75)  32%(24/75)  25%(19/75)  68%(51/75)  43%(32/75)
+
+  95% Wilson confidence intervals:
+    A  (single):    [59.6%, 79.8%]
+    B  (majority):  [59.6%, 79.8%]
+    C  (REMORA):    [22.5%, 43.2%]
+    D1 (strict):    [16.9%, 36.2%]
+    D2 (balanced):  [56.8%, 77.5%]
+    D3 (hybrid):    [32.1%, 53.9%]
+── 2. ORACLE CORRELATION ────────────────────────────────────
+  ρ̄ = 0.2189  (0=independent, 1=identical)
+  Correlation matrix:
+    llama-versatile   : 1.000  0.377  0.280
+    claude-3.5-sonnet : 0.377  1.000  0.000
+    gpt-4o            : 0.280  0.000  1.000
+  Diversity weights wₖ (normalised):
+    llama-versatile   : 0.2859
+    claude-3.5-sonnet : 0.3441
+    gpt-4o            : 0.3700
+
+── 3. LYAPUNOV STABILITY (Condition C) ──────────────────────
+  Monotonically decreasing V: 89.3% of runs
+  Abort gate triggered:       9.3%
+  Early convergence:          0.0%
+  Mean iterations:            4.00 of max 4
+
+── 4. COMPUTE EFFICIENCY (Condition C) ──────────────────────
+  Actual oracle calls:   900
+  Naive maximum:         900
+  Reduction via V-gate:  0.0%
+
+── 5. SWARM GAIN ──────────────────────────────────────────────
+  A → C (single → REMORA):     -38.7%
+  B → C (majority → REMORA):   -38.7%
+  B errors rescued by C:       0.0%
+  B → D2 (majority → routed):  -2.7%
+  C → D2 (REMORA → routed):    +36.0%
+
+── 6. PER-ITEM DETAILS ──────────────────────────────────────
+  ID         Benchmark A     B     C     D2    GT      
+  ----------------------------------------------------
+  dce_e01    dce_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  dce_e02    dce_ext  ✗     ✗     ✗     ✗     False   
+  dce_e03    dce_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  dce_e04    dce_ext  ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  dce_e05    dce_ext  ✗     ✗     ✗     ✗     False   
+  dce_e06    dce_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  dce_e07    dce_ext  ✗     ✗     ✗     ✗     False   
+  dce_e08    dce_ext  ✓     ✓     ✓     ✓⚡    True    
+  dce_e09    dce_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  dce_e10    dce_ext  ✗     ✗     ✗     ✗     False   
+  dce_e11    dce_ext  ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  dce_e12    dce_ext  ✓     ✓     ✓     ✓⚡    True    
+  dce_e13    dce_ext  ✓     ✓     ✗     ✗     True    
+  dce_e14    dce_ext  ✓     ✓     ✓     ✓⚡    True    
+  dce_e15    dce_ext  ✗     ✗     ✗     ✗⚡    False   
+  dce_e16    dce_ext  ✓     ✓     ✓     ✓⚡    True    
+  dce_e17    dce_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  dce_e18    dce_ext  ✓     ✓     ✓     ✓⚡    True    
+  dce_e19    dce_ext  ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  dce_e20    dce_ext  ✓     ✓     ✓     ✓⚡    False   
+  dce_e21    dce_ext  ✓     ✓     ✓     ✓⚡    False   
+  dce_e22    dce_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  dce_e23    dce_ext  ✓     ✓     ✓     ✓⚡    False   
+  dce_e24    dce_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  dce_e25    dce_ext  ✗     ✗     ✗     ✗     False   
+  sci_e01    sci_ext  ✓     ✓     ✓     ✓⚡    True    
+  sci_e02    sci_ext  ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  sci_e03    sci_ext  ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  sci_e04    sci_ext  ✗     ✗     ✗     ✗⚡    False   
+  sci_e05    sci_ext  ✓     ✓     ✓     ✓⚡    True    
+  sci_e06    sci_ext  ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  sci_e07    sci_ext  ✗     ✗     ✗     ✗⚡    True    
+  sci_e08    sci_ext  ✗     ✗     ✗     ✗⚡    True    
+  sci_e09    sci_ext  ✗     ✗     ✗     ✗⚡    True    
+  sci_e10    sci_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  sci_e11    sci_ext  ✓     ✓     ✓     ✓⚡    True    
+  sci_e12    sci_ext  ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  sci_e13    sci_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  sci_e14    sci_ext  ✓     ✓     ✓     ✓⚡    False   
+  sci_e15    sci_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  sci_e16    sci_ext  ✓     ✓     ✓     ✓⚡    True    
+  sci_e17    sci_ext  ✓     ✓     ✓     ✓⚡    True    
+  sci_e18    sci_ext  ✓     ✓     ✓     ✓⚡    False   
+  sci_e19    sci_ext  ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  sci_e20    sci_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  sci_e21    sci_ext  ✓     ✓     ✓     ✓⚡    True    
+  sci_e22    sci_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  sci_e23    sci_ext  ✓     ✓     ✓     ✓⚡    False   
+  sci_e24    sci_ext  ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  sci_e25    sci_ext  ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  fact_e01   fact_ext ✓     ✓     ✓     ✓⚡    True    
+  fact_e02   fact_ext ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  fact_e03   fact_ext ✓     ✓     ✗     ✗     True    
+  fact_e04   fact_ext ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  fact_e05   fact_ext ✓     ✓     ✓     ✓⚡    True    
+  fact_e06   fact_ext ✓     ✓     ✗     ✓⚡    False    ← D2 wins
+  fact_e07   fact_ext ✓     ✓     ✓     ✓⚡    False   
+  fact_e08   fact_ext ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  fact_e09   fact_ext ✓     ✓     ✓     ✓⚡    True    
+  fact_e10   fact_ext ✓     ✓     ✓     ✓⚡    True    
+  fact_e11   fact_ext ✓     ✓     ✗     ✓⚡    True     ← D2 wins
+  fact_e12   fact_ext ✗     ✗     ✗     ✗⚡    True    
+  fact_e13   fact_ext ✓     ✓     ✓     ✓⚡    False   
+  fact_e14   fact_ext ✓     ✓     ✓     ✓⚡    True    
+  fact_e15   fact_ext ✗     ✗     ✗     ✗⚡    True    
+  fact_e16   fact_ext ✗     ✗     ✗     ✗⚡    False   
+  fact_e17   fact_ext ✗     ✗     ✗     ✗⚡    True    
+  fact_e18   fact_ext ✗     ✗     ✗     ✗⚡    False   
+  fact_e19   fact_ext ✗     ✗     ✗     ✗⚡    True    
+  fact_e20   fact_ext ✗     ✗     ✗     ✗⚡    True    
+  fact_e21   fact_ext ✗     ✗     ✗     ✗⚡    False   
+  fact_e22   fact_ext ✗     ✗     ✗     ✗⚡    True    
+  fact_e23   fact_ext ✗     ✗     ✗     ✗⚡    True    
+  fact_e24   fact_ext ✗     ✗     ✗     ✗⚡    True    
+  fact_e25   fact_ext ✗     ✗     ✗     ✗⚡    True    
+  (⚡ = router gate fired, skipped full REMORA)
+
+── 7. ROUTER GATE ANALYSIS (D1/D2/D3) ──────────────────────
+  D1 STRICT  : route_rate=0%  routed=0(—)  full_REMORA=75(25.3%)
+  D2 BALANCED: route_rate=91%  routed=68(75.0%)  full_REMORA=7(0.0%)
+  D3 HYBRID  : route_rate=33%  routed=25(100.0%)  full_REMORA=50(14.0%)
+
+========================================================================
+Saved: ablation_results.json  +  ablation_report.txt
+========================================================================

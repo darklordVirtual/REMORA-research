@@ -1,0 +1,47 @@
+{
+  "n_items": 544,
+  "accepted": 98,
+  "verified": 32,
+  "abstained": 414,
+  "escalated": 0,
+  "action_distribution": {
+    "accept": 0.1801470588235294,
+    "verify": 0.058823529411764705,
+    "abstain": 0.7610294117647058,
+    "escalate": 0.0
+  },
+  "accuracy_by_action": {
+    "accept": 0.8877551020408163,
+    "verify": 0.625,
+    "abstain": 0.2826086956521739,
+    "escalate": null
+  },
+  "risk_by_action": {
+    "accept": 0.11224489795918369,
+    "verify": 0.375,
+    "abstain": 0.7173913043478262,
+    "escalate": null
+  },
+  "false_trust_rate": 0.11224489795918367,
+  "false_refusal_rate": 0.2826086956521739,
+  "evidence_calls": null,
+  "reason_evidence_calls_unavailable": "N500 artifact lacks question text and evidence blobs required by EvidenceOracleV3",
+  "evidence_answered": null,
+  "evidence_abstained": null,
+  "evidence_corrected_count": null,
+  "reason_evidence_corrected_unavailable": "per-oracle response not stored individually in N500 artifact",
+  "mean_policy_confidence": 0.5400823076923077,
+  "assurance_trace_coverage": null,
+  "reason_assurance_unavailable": "N500 artifact contains pre-computed consensus; no live Remora.run() was executed",
+  "temperature_threshold": 0.1972,
+  "policy_engine_version": "RemoraDecisionEngine-v2-temperature-calibrated",
+  "policy_version": "RemoraDecisionEngine-v3",
+  "in_sample_calibration_warning": "Temperature threshold is derived from the same N500 artifact used for this evaluation.",
+  "input_artifact": "results/thermodynamic_eval_n500_calibrated_results.json",
+  "limitations": [
+    "Policy decisions derived from thermodynamic fields only; no live oracle calls.",
+    "Evidence oracle not evaluated (no question text or evidence blobs in N500 artifact).",
+    "Assurance trace requires live Remora.run(); not available from stored artifact.",
+    "All 544 items run through deterministic policy engine from stored fields."
+  ]
+}

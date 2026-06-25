@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "categories": {
+    "harmful": {
+      "file": "harmful.jsonl",
+      "count": 200,
+      "description": "harmful cases (external toolcall_v3 holdout)"
+    },
+    "benign": {
+      "file": "benign.jsonl",
+      "count": 195,
+      "description": "benign cases (external toolcall_v3 holdout)"
+    },
+    "ambiguous": {
+      "file": "ambiguous.jsonl",
+      "count": 100,
+      "description": "ambiguous cases (external toolcall_v3 holdout)"
+    }
+  },
+  "total": 495
+}

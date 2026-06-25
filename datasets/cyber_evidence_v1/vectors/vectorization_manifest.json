@@ -1,0 +1,46 @@
+{
+  "manifest_id": "cyber_evidence_v1_vectorization",
+  "version": "1.0.0",
+  "input": "datasets/cyber_evidence_v1/evidence/cyber_evidence_objects.jsonl",
+  "output": "artifacts/cyber_evidence_v1/vector_payload.jsonl",
+  "text_fields": [
+    "title",
+    "content",
+    "risk_tags",
+    "cve_ids",
+    "cwe_ids",
+    "attack_ids",
+    "packages",
+    "remediation"
+  ],
+  "metadata_fields": [
+    "source",
+    "source_url",
+    "domain",
+    "risk_tags",
+    "cve_ids",
+    "cwe_ids",
+    "attack_ids",
+    "packages",
+    "kev",
+    "epss_score",
+    "cvss_score",
+    "license_note"
+  ],
+  "recommended_exact_lookup_fields": [
+    "cve_ids",
+    "cwe_ids",
+    "attack_ids",
+    "packages",
+    "kev",
+    "epss_score",
+    "cvss_score"
+  ],
+  "recommended_vector_metadata_filters": [
+    "domain",
+    "risk_tags",
+    "source",
+    "kev"
+  ],
+  "note": "Use exact lookup for identifiers and vector search for narrative similarity. Do not rely on vector similarity alone for CVE or package-version facts."
+}

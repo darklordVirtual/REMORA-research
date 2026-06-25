@@ -1,0 +1,55 @@
+name: Sync papers to R2
+
+# Keeps the public PDF downloads in the R2 bucket `remora-artifacts` (prefix
+# papers/) in lockstep with the repository. The agent-control worker serves them
+# at /papers/<name>.pdf. Runs whenever either PDF changes on main, and on demand.
+
+"on":
+  push:
+    branches: [main]
+    paths:
+      - "paper/remora_paper.pdf"
+      - "docs/whitepaper/REMORA_Enterprise_Whitepaper.pdf"
+  workflow_dispatch:
+
+concurrency:
+  group: sync-papers-to-r2
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Upload research paper to R2
+        run: >-
+          npx --yes wrangler@4 r2 object put
+          remora-artifacts/papers/remora_paper.pdf
+          --file paper/remora_paper.pdf
+          --content-type application/pdf
+          --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Upload enterprise whitepaper to R2
+        run: >-
+          npx --yes wrangler@4 r2 object put
+          remora-artifacts/papers/REMORA_Enterprise_Whitepaper.pdf
+          --file docs/whitepaper/REMORA_Enterprise_Whitepaper.pdf
+          --content-type application/pdf
+          --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

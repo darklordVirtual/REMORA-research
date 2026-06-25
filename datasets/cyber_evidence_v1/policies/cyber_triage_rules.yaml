@@ -1,0 +1,100 @@
+policy_pack: cyber_triage_rules_v1
+description: Public REMORA cyber triage policy pack. Proprietary scanner signals may feed this boundary later, but are not required.
+allowed_verdicts:
+  - REPORT_READY
+  - NEEDS_REVIEW
+  - LIKELY_FALSE_POSITIVE
+  - ESCALATE
+rules:
+  - id: CYBER-001
+    title: Known exploited vulnerability on exposed or production target
+    match:
+      kev: true
+      any_context:
+        - exposed: true
+        - production: true
+    default_verdict: ESCALATE
+    governance_action: ESCALATE
+    required_evidence:
+      - cve_id
+      - kev_status
+      - affected_asset_or_package
+    source_refs:
+      - cisa_kev
+      - nvd
+  - id: CYBER-002
+    title: High EPSS with exact vulnerability evidence
+    match:
+      epss_score_gte: 0.80
+      exact_identifier_required: true
+    default_verdict: ESCALATE
+    governance_action: ESCALATE
+    required_evidence:
+      - cve_id
+      - epss_score
+      - exposure_or_reachability
+    source_refs:
+      - first_epss
+      - nvd
+  - id: CYBER-003
+    title: Corroborated application weakness
+    match:
+      min_tool_signals: 2
+      cwe_required: true
+      confidence_gte: 0.68
+    default_verdict: REPORT_READY
+    governance_action: VERIFY
+    required_evidence:
+      - cwe_id
+      - source_to_sink_or_reachability
+      - affected_path
+    source_refs:
+      - cwe
+      - mitre_attack
+  - id: CYBER-004
+    title: Placeholder or test-only secret pattern
+    match:
+      risk_tags_any:
+        - placeholder_secret
+        - test_fixture
+      contradiction_score_gte: 0.35
+    default_verdict: LIKELY_FALSE_POSITIVE
+    governance_action: VERIFY
+    required_evidence:
+      - file_context
+      - production_absence
+    source_refs:
+      - remora_public_seed
+  - id: CYBER-005
+    title: Agent prompt injection with tool authority
+    match:
+      risk_tags_any:
+        - prompt_injection
+        - excessive_agency
+        - tool_security
+    default_verdict: ESCALATE
+    governance_action: ESCALATE
+    required_evidence:
+      - prompt_payload
+      - affected_tool
+      - requested_action
+    source_refs:
+      - owasp_genai
+  - id: CYBER-006
+    title: Weak or uncorroborated evidence
+    match:
+      confidence_lt: 0.68
+    default_verdict: NEEDS_REVIEW
+    governance_action: VERIFY
+    required_evidence:
+      - reviewer_context
+      - reachability_or_asset_scope
+    source_refs:
+      - remora_policy
+safe_learning:
+  policy_candidates_auto_apply: false
+  requires_policy_owner_approval: true
+  requires_regression_tests: true
+commercial_extension_boundary:
+  proprietary_scanners_may_supply_candidate_findings: true
+  proprietary_scanners_must_not_mutate_public_policy: true

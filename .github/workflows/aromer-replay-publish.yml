@@ -1,0 +1,64 @@
+name: AROMER Replay Publish (transfer provenance)
+
+# Keeps the AROMER worker's AII transfer component (T4, weight 0.15) backed by a
+# real measured replay-arena run instead of the static seed fallback. The worker
+# prefers a posted python_replay_arena report for 7 days, then falls back and
+# labels the source honestly — so publishing twice a week keeps T4 measured with
+# margin. The job runs the actual Python arena against the live RemoraDecisionEngine
+# (no API keys, no tuning) and POSTs the result to /replay-report.
+
+"on":
+  schedule:
+    # 06:00 UTC every Monday and Thursday — comfortably inside the 7-day TTL.
+    - cron: "0 6 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "POST the measured report to the worker"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aromer-replay-publish
+  cancel-in-progress: false
+
+jobs:
+  replay-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run replay arena and publish measured transfer score
+        env:
+          # Default to publish on the cron schedule; honour the dispatch toggle.
+          PUBLISH: ${{ github.event_name == 'workflow_dispatch' && inputs.publish || 'true' }}
+        run: |
+          if [ "$PUBLISH" = "true" ]; then
+            python scripts/aromer_publish_replay.py --publish
+          else
+            python scripts/aromer_publish_replay.py
+          fi
+
+      - name: Upload replay artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aromer-replay-report
+          path: artifacts/aromer/replay_arena_report.json
+          if-no-files-found: warn

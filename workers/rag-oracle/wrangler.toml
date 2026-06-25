@@ -1,0 +1,60 @@
+name = "remora-rag-oracle"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── AI ─────────────────────────────────────────────────────────────────────────
+[ai]
+binding = "AI"
+
+# ── Vectorize (English, 768d — bge-base-en-v1.5) ──────────────────────────────
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "remora-knowledge"
+
+# ── Vectorize (Multilingual, 1024d — bge-m3) ──────────────────────────────────
+# Create index: npx wrangler vectorize create remora-knowledge-multi --dimensions=1024 --metric=cosine
+[[vectorize]]
+binding = "VECTORIZE_MULTI"
+index_name = "remora-knowledge-multi"
+
+# ── D1 document metadata ───────────────────────────────────────────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "remora-rag-meta"
+database_id = "6928cf08-cfaa-432c-a0f7-4548dded37f2"
+
+# ── KV response cache (24 h TTL) ───────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "CACHE"
+id = "fce3274d5cf749ee86407b34a5ad0b84"
+
+# ── Env vars ───────────────────────────────────────────────────────────────────
+[vars]
+# Embedding models
+EMBED_MODEL         = "@cf/baai/bge-base-en-v1.5"    # 768d  — English fast-path
+EMBED_MODEL_MULTI   = "@cf/baai/bge-m3"              # 1024d — multilingual (Norwegian, etc.)
+
+# Synthesis models — routed by complexity
+SYNTH_MODEL         = "@cf/meta/llama-3.1-8b-instruct"       # fast  (complexity=low/auto)
+SYNTH_MODEL_STRONG  = "@cf/meta/llama-3.3-70b-instruct"      # accurate (complexity=high)
+
+# Reranker — cross-encoder that reorders initial ANN candidates
+RERANKER_MODEL      = "@cf/baai/bge-reranker-base"
+
+# Translation — auto-translate non-English queries before embedding
+TRANSLATE_MODEL     = "@cf/meta/m2m100-1.2b"
+
+# Retrieval settings
+DEFAULT_TOP_K       = "5"      # Final top-k after reranking
+RERANK_CANDIDATES   = "20"     # Broad ANN recall before reranking
+CACHE_TTL_S         = "86400"
+MAX_CONTEXT_CHR     = "4000"   # Increased for 70B synthesis window
+
+# Feature flags (set "true"/"false")
+ENABLE_RERANK           = "true"   # Rerank ANN candidates via cross-encoder
+ENABLE_TRANSLATION      = "true"   # Auto-translate non-ASCII queries to English
+ENABLE_DUAL_CONSENSUS   = "false"  # Run 8B + 70B in parallel and compare answers
+
+# Secrets (set via: npx wrangler secret put <NAME>)
+# ORACLE_SECRET — shared bearer token for authenticated ingest

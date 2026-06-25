@@ -1,0 +1,162 @@
+{
+  "input": "results/thermodynamic_eval_n500_calibrated_results.json",
+  "n_items": 544,
+  "phase_distribution": {
+    "critical": 32,
+    "ordered": 99,
+    "disordered": 413
+  },
+  "max_critical_tau": 0.1,
+  "empirical_operating_points": {
+    "note": "Flat phase-based policy: no conformal threshold applied. All ordered items are accepted (policy_a), plus all critical items with trust_score < max_critical_tau (policy_b). These are the operating-point figures in the PhaseAwareGuardrail docstring.",
+    "ordered_only": {
+      "n_accepted": 99,
+      "n_total": 544,
+      "coverage": 0.182,
+      "accuracy": 0.8687,
+      "wilson_ci_95": [
+        0.7882,
+        0.9216
+      ]
+    },
+    "ordered_plus_low_tau_critical": {
+      "n_accepted": 120,
+      "n_total": 544,
+      "coverage": 0.2206,
+      "accuracy": 0.85,
+      "wilson_ci_95": [
+        0.7753,
+        0.903
+      ]
+    }
+  },
+  "conformal_operating_points": {
+    "note": "Conformal calibration applied (cal_fraction=0.6, seed=0). Coverage/accuracy on full N; guarantee holds only on holdout. UNATTAINABLE_THRESHOLD (1.01) means no valid threshold found.",
+    "by_target_risk": [
+      {
+        "target_risk": 0.05,
+        "ordered_threshold": 1.01,
+        "critical_inv_threshold": 0.9838,
+        "calibration_summary": {
+          "ordered": {
+            "threshold": 1.01,
+            "n_cal": 59,
+            "n_test": 40,
+            "holdout_coverage": 0.0,
+            "holdout_risk": null
+          },
+          "critical": {
+            "threshold_inverted": 0.9838,
+            "threshold_tau_max": 0.016199999999999992,
+            "max_critical_tau": 0.1,
+            "n_cal": 13,
+            "n_test": 8,
+            "holdout_coverage": 0.125,
+            "holdout_risk": 0.0
+          }
+        },
+        "n_accepted": 4,
+        "n_total": 544,
+        "coverage": 0.0074,
+        "accuracy": 1.0,
+        "wilson_ci_95": [
+          0.5101,
+          1.0
+        ]
+      },
+      {
+        "target_risk": 0.1,
+        "ordered_threshold": 1.01,
+        "critical_inv_threshold": 0.9838,
+        "calibration_summary": {
+          "ordered": {
+            "threshold": 1.01,
+            "n_cal": 59,
+            "n_test": 40,
+            "holdout_coverage": 0.0,
+            "holdout_risk": null
+          },
+          "critical": {
+            "threshold_inverted": 0.9838,
+            "threshold_tau_max": 0.016199999999999992,
+            "max_critical_tau": 0.1,
+            "n_cal": 13,
+            "n_test": 8,
+            "holdout_coverage": 0.125,
+            "holdout_risk": 0.0
+          }
+        },
+        "n_accepted": 4,
+        "n_total": 544,
+        "coverage": 0.0074,
+        "accuracy": 1.0,
+        "wilson_ci_95": [
+          0.5101,
+          1.0
+        ]
+      },
+      {
+        "target_risk": 0.13,
+        "ordered_threshold": 0.4834,
+        "critical_inv_threshold": 0.9838,
+        "calibration_summary": {
+          "ordered": {
+            "threshold": 0.4834,
+            "n_cal": 59,
+            "n_test": 40,
+            "holdout_coverage": 0.975,
+            "holdout_risk": 0.15384615384615385
+          },
+          "critical": {
+            "threshold_inverted": 0.9838,
+            "threshold_tau_max": 0.016199999999999992,
+            "max_critical_tau": 0.1,
+            "n_cal": 13,
+            "n_test": 8,
+            "holdout_coverage": 0.125,
+            "holdout_risk": 0.0
+          }
+        },
+        "n_accepted": 102,
+        "n_total": 544,
+        "coverage": 0.1875,
+        "accuracy": 0.8725,
+        "wilson_ci_95": [
+          0.7941,
+          0.924
+        ]
+      },
+      {
+        "target_risk": 0.15,
+        "ordered_threshold": 0.4834,
+        "critical_inv_threshold": 0.9838,
+        "calibration_summary": {
+          "ordered": {
+            "threshold": 0.4834,
+            "n_cal": 59,
+            "n_test": 40,
+            "holdout_coverage": 0.975,
+            "holdout_risk": 0.15384615384615385
+          },
+          "critical": {
+            "threshold_inverted": 0.9838,
+            "threshold_tau_max": 0.016199999999999992,
+            "max_critical_tau": 0.1,
+            "n_cal": 13,
+            "n_test": 8,
+            "holdout_coverage": 0.125,
+            "holdout_risk": 0.0
+          }
+        },
+        "n_accepted": 102,
+        "n_total": 544,
+        "coverage": 0.1875,
+        "accuracy": 0.8725,
+        "wilson_ci_95": [
+          0.7941,
+          0.924
+        ]
+      }
+    ]
+  }
+}

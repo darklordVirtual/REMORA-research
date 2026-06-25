@@ -1,0 +1,18 @@
+{
+  "input": "results/thermodynamic_router_eval_n500_evidence_results.json",
+  "n_items_total": 544,
+  "n_evaluated": 0,
+  "skipped_no_question": 544,
+  "skipped_no_evidence": 0,
+  "answered": 0,
+  "abstained": 0,
+  "correct_when_answered": 0,
+  "coverage": 0.0,
+  "accuracy_on_answered": 0.0,
+  "config": {
+    "min_reliability": 0.5,
+    "min_support": 2,
+    "max_contradictions": 0
+  },
+  "items": []
+}

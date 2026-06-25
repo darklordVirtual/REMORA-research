@@ -1,0 +1,141 @@
+[
+  {
+    "id": "plan_reversible_first",
+    "type": "planning",
+    "source": "AROMER cognitive foundation v0.2 / safe planning",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["planning", "reversibility", "safety"],
+    "description": "When multiple action paths exist, always prefer the reversible path. Irreversibility is a governance risk multiplier, not just an operational concern.",
+    "payload": {
+      "planning_rule": "reversible_first",
+      "preference_order": [
+        "1. Reversible action with same outcome",
+        "2. Partially reversible with rollback plan documented",
+        "3. Irreversible only when no reversible alternative AND risk_tier >= critical with human approval"
+      ],
+      "aromer_constraint": "If action is irreversible AND no rollback plan exists → ESCALATE",
+      "examples": {
+        "good": "Rename file before overwriting (reversible) > direct overwrite",
+        "good": "Create DB migration with down-migration (reversible) > destructive schema change",
+        "bad": "Deleting data because 'it can be restored from backup' — backup existence must be verified, not assumed"
+      }
+    }
+  },
+  {
+    "id": "plan_simulate_before_act",
+    "type": "planning",
+    "source": "AROMER cognitive foundation v0.2 / simulation-first planning",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["planning", "simulation", "dry-run"],
+    "description": "Before executing in production, simulate or dry-run the action. Simulation evidence raises confidence and surfaces unintended side effects without risk.",
+    "payload": {
+      "planning_rule": "simulate_before_act",
+      "simulation_methods": [
+        "dry_run: execute with --dry-run or equivalent flag",
+        "staging_first: run on staging environment before prod",
+        "shadow_mode: compute result without committing",
+        "impact_analysis: enumerate affected objects before mutation"
+      ],
+      "escalation_condition": "If simulation is not possible AND risk_tier >= high → VERIFY before proceeding",
+      "aromer_action": "Request dry_run evidence before ACCEPT on any mutation in prod environment",
+      "governance_note": "AROMER's own world_model updates follow this rule — shadow mode before commit"
+    }
+  },
+  {
+    "id": "plan_stop_conditions",
+    "type": "planning",
+    "source": "AROMER cognitive foundation v0.2 / bounded autonomy",
+    "version": "0.2",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.0,
+    "tags": ["planning", "stop", "bounds", "autonomy"],
+    "description": "Every plan must have explicit stop conditions: what signals should cause the agent to halt, checkpoint, or escalate. Unbounded plans are ungovernable.",
+    "payload": {
+      "planning_rule": "stop_conditions",
+      "universal_stop_conditions": [
+        "safety_invariant_triggered: immediately ESCALATE, stop all sub-tasks",
+        "scope_exceeded: action would affect more systems than authorized",
+        "resource_limit: time, API calls, or cost exceeds budget",
+        "unexpected_state: system state differs from expected before action",
+        "new_information: information arrives that changes risk assessment"
+      ],
+      "aromer_constraint": "Agent plans without stop conditions → VERIFY and require stop condition specification",
+      "governance_application": "Multi-step agent task must declare stop conditions before AROMER approves first step"
+    }
+  },
+  {
+    "id": "plan_minimum_footprint",
+    "type": "planning",
+    "source": "AROMER cognitive foundation v0.2 / least privilege planning",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["planning", "footprint", "least-privilege"],
+    "description": "Actions should affect the minimum necessary scope to achieve the goal. Expanding scope beyond what the task requires is a governance red flag.",
+    "payload": {
+      "planning_rule": "minimum_footprint",
+      "questions": [
+        "Does this action need prod access or would staging suffice?",
+        "Does this need write access or is read-only sufficient?",
+        "Does this affect one record or the entire table?",
+        "Does this require global scope or user-scoped is enough?"
+      ],
+      "escalation_rule": "If proposed scope > minimum necessary scope by factor > 2 → VERIFY",
+      "aromer_action": "Compute scope_ratio = proposed_scope / minimum_required_scope. Surface in audit trace.",
+      "anti_pattern": "'Just to be safe, let me also...' — scope creep is a governance violation"
+    }
+  },
+  {
+    "id": "plan_checkpoint_planning",
+    "type": "planning",
+    "source": "AROMER cognitive foundation v0.2 / checkpoint-based execution",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["planning", "checkpoint", "verification"],
+    "description": "Long plans should be broken into checkpointed steps where AROMER can re-evaluate risk before proceeding to the next phase.",
+    "payload": {
+      "planning_rule": "checkpoint_planning",
+      "checkpoint_triggers": [
+        "After any step that modifies external state",
+        "Before any irreversible step",
+        "When cumulative scope exceeds threshold",
+        "Every N steps where N depends on risk_tier: critical=1, high=2, medium=5, low=10"
+      ],
+      "checkpoint_action": "Re-assess trust_score and risk at each checkpoint. If changed significantly (>0.15) → re-evaluate verdict.",
+      "governance_application": "Database migration plan: checkpoint after schema change, before data migration, before old-column removal"
+    }
+  },
+  {
+    "id": "plan_rollback_planning",
+    "type": "planning",
+    "source": "AROMER cognitive foundation v0.2 / recovery planning",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["planning", "rollback", "recovery"],
+    "description": "Before ACCEPT on any stateful mutation, AROMER verifies that a rollback plan exists and is executable, not just claimed.",
+    "payload": {
+      "planning_rule": "rollback_planning",
+      "rollback_requirements": {
+        "low":      "Document change, rollback optional",
+        "medium":   "Rollback steps must be documented",
+        "high":     "Rollback steps must be tested in staging",
+        "critical": "Rollback must be automated and tested. Human on standby."
+      },
+      "verification": "Claimed backup/rollback is not verified unless backup timestamp checked and restore tested",
+      "aromer_constraint": "For risk_tier=critical: request rollback plan documentation before ACCEPT",
+      "known_failure": "Assuming backup exists without verifying backup timestamp or last successful restore"
+    }
+  }
+]

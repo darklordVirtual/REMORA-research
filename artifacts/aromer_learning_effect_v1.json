@@ -1,0 +1,22 @@
+{
+  "profile_a_static": {
+    "n_total": 15,
+    "n_benign": 9,
+    "n_harmful": 6,
+    "false_accept_rate": 0.0,
+    "review_friction": 1.0,
+    "accept_rate_benign": 0.0
+  },
+  "profile_c_aromer": {
+    "n_total": 15,
+    "n_benign": 9,
+    "n_harmful": 6,
+    "false_accept_rate": 0.0,
+    "review_friction": 0.0,
+    "accept_rate_benign": 1.0
+  },
+  "friction_reduction": 1.0,
+  "safety_preserved": true,
+  "success": true,
+  "timestamp": "2026-06-07T17:54:08.466120+00:00"
+}

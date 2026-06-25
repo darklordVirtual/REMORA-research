@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://remora.dev/schemas/decision_envelope/v2",
+  "title": "REMORA DecisionEnvelope v2",
+  "type": "object",
+  "required": [
+    "request",
+    "assessment",
+    "gate",
+    "reviewer_context",
+    "follow_up",
+    "history",
+    "policy_learning",
+    "audit"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "request": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "domain",
+        "risk_tier",
+        "proposed_action",
+        "action_type",
+        "target_environment"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "request_id": { "type": "string" },
+        "domain": { "type": "string" },
+        "risk_tier": { "type": "string" },
+        "proposed_action": { "type": "string" },
+        "action_type": { "type": "string" },
+        "target_environment": { "type": "string" }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "required": [
+        "oracle_votes",
+        "thermodynamic",
+        "evidence_quality",
+        "policy_triggers"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "oracle_votes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "thermodynamic": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "evidence_quality": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "policy_triggers": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "required": ["outcome", "blocked_action", "allowed_next_steps"],
+      "additionalProperties": false,
+      "properties": {
+        "outcome": { "type": "string" },
+        "blocked_action": { "type": ["string", "null"] },
+        "allowed_next_steps": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "reviewer_context": {
+      "type": "object",
+      "required": ["asset", "missing_critical_data"],
+      "additionalProperties": false,
+      "properties": {
+        "asset": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "missing_critical_data": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "follow_up": {
+      "type": "object",
+      "required": ["required", "type", "requested_evidence", "sla_hours"],
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "type": { "type": ["string", "null"] },
+        "requested_evidence": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sla_hours": { "type": ["integer", "null"] }
+      }
+    },
+    "history": {
+      "type": "object",
+      "required": ["similar_cases_found", "decision_pattern", "known_blockers", "synthetic"],
+      "additionalProperties": false,
+      "properties": {
+        "similar_cases_found": { "type": "integer" },
+        "decision_pattern": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "known_blockers": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "synthetic": { "type": "boolean" }
+      }
+    },
+    "policy_learning": {
+      "type": "object",
+      "required": ["candidate_rule_update", "requires_policy_owner_approval"],
+      "additionalProperties": false,
+      "properties": {
+        "candidate_rule_update": { "type": "boolean" },
+        "requires_policy_owner_approval": { "type": "boolean" }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "required": ["policy_version", "hash", "previous_hash", "signature"],
+      "additionalProperties": false,
+      "properties": {
+        "policy_version":      { "type": "string" },
+        "hash":                { "type": ["string", "null"] },
+        "previous_hash":       { "type": ["string", "null"] },
+        "signature":           { "type": ["string", "null"] },
+        "schema_version":      { "type": "string" },
+        "timestamp_utc":       { "type": ["string", "null"] },
+        "tenant_id":           { "type": ["string", "null"] },
+        "actor_identity":      { "type": ["string", "null"] },
+        "policy_bundle_hash":  { "type": ["string", "null"] },
+        "tool_args_hash":      { "type": ["string", "null"] },
+        "data_classification": { "type": ["string", "null"] },
+        "retention_policy":    { "type": ["string", "null"] }
+      }
+    }
+  }
+}

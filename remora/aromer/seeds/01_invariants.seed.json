@@ -1,0 +1,82 @@
+[
+  {
+    "id": "inv_no_mass_destruction",
+    "type": "safety_invariant",
+    "source": "remora_policy_core_v0.1",
+    "version": "0.1",
+    "weight": 1.0,
+    "confidence": 1.0,
+    "decay_rate": 0.0,
+    "tags": ["invariant", "destructive", "database", "filesystem"],
+    "description": "Never autonomously execute mass-destructive irreversible write operations without explicit human approval. Covers DROP TABLE, rm -rf, bulk DELETE without WHERE, and analogous destructive patterns.",
+    "payload": {
+      "invariant": "Mass-destructive irreversible writes require human escalation regardless of trust score.",
+      "action_types_blocked": ["destructive_write", "mass_delete", "schema_drop", "recursive_delete"],
+      "override_conditions": ["explicit_human_confirmation_in_context", "dry_run_mode_active"]
+    }
+  },
+  {
+    "id": "inv_no_credential_exfiltration",
+    "type": "safety_invariant",
+    "source": "remora_policy_core_v0.1",
+    "version": "0.1",
+    "weight": 1.0,
+    "confidence": 1.0,
+    "decay_rate": 0.0,
+    "tags": ["invariant", "credentials", "secrets", "exfiltration"],
+    "description": "Never exfiltrate secrets, API keys, tokens, passwords or private keys to any external endpoint. Applies to all action types regardless of requester trust level.",
+    "payload": {
+      "invariant": "Credential and secret exfiltration is unconditionally blocked.",
+      "action_types_blocked": ["credential_export", "secret_transmission", "key_exfiltration"],
+      "override_conditions": []
+    }
+  },
+  {
+    "id": "inv_no_production_deploy_unverified",
+    "type": "safety_invariant",
+    "source": "remora_policy_core_v0.1",
+    "version": "0.1",
+    "weight": 1.0,
+    "confidence": 1.0,
+    "decay_rate": 0.0,
+    "tags": ["invariant", "deployment", "production", "infrastructure"],
+    "description": "Autonomous deployment to production environments requires at minimum VERIFY with human confirmation. No agentic system may push directly to prod without a human checkpoint.",
+    "payload": {
+      "invariant": "Production deployments always require human review checkpoint.",
+      "action_types_blocked": ["autonomous_prod_deploy"],
+      "override_conditions": ["explicit_prod_approval_in_session", "canary_deployment_with_rollback_confirmed"]
+    }
+  },
+  {
+    "id": "inv_no_policy_core_mutation",
+    "type": "safety_invariant",
+    "source": "remora_policy_core_v0.1",
+    "version": "0.1",
+    "weight": 1.0,
+    "confidence": 1.0,
+    "decay_rate": 0.0,
+    "tags": ["invariant", "meta-safety", "self-modification", "policy"],
+    "description": "AROMER must not modify, override, or disable REMORA's policy core (RemoraDecisionEngine, PolicyRule, DecisionEnvelope chain). AROMER may adjust trust/threshold/oracle selection only.",
+    "payload": {
+      "invariant": "AROMER adjusts governance parameters; it does not mutate the policy core.",
+      "action_types_blocked": ["policy_core_mutation", "engine_disable", "safety_rule_override"],
+      "override_conditions": []
+    }
+  },
+  {
+    "id": "inv_shadow_mode_before_live",
+    "type": "safety_invariant",
+    "source": "remora_policy_core_v0.1",
+    "version": "0.1",
+    "weight": 1.0,
+    "confidence": 1.0,
+    "decay_rate": 0.0,
+    "tags": ["invariant", "shadow-mode", "learning", "epistemic-safety"],
+    "description": "Any AROMER world-model adaptation that would reduce a critical-tier trust score by more than 20% must run in shadow mode for at least 100 episodes before committing.",
+    "payload": {
+      "invariant": "Large trust adjustments in critical domains are shadow-tested before live deployment.",
+      "action_types_blocked": ["large_trust_reduction_without_shadow_validation"],
+      "override_conditions": ["shadow_mode_already_ran_n_ge_100", "explicit_operator_override"]
+    }
+  }
+]

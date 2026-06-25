@@ -1,0 +1,192 @@
+[
+  {
+    "id": "fail_mc_format_remora",
+    "type": "failure_pattern",
+    "source": "ablation_v2_canonical_analysis",
+    "version": "0.1",
+    "weight": 0.95,
+    "confidence": 0.92,
+    "decay_rate": 0.01,
+    "tags": ["ablation", "format", "multiple-choice", "known-limitation"],
+    "description": "REMORA reformulates questions into claim-verification JSON internally. This breaks standard multiple-choice answer extraction and causes 39pp accuracy drop vs. majority vote on MC benchmarks. Not a safety failure — a task-mismatch.",
+    "payload": {
+      "scenario": "Multiple-choice Q&A benchmark without RAG context.",
+      "observed_failure": "REMORA full achieves 32-69.5% on MC tasks where majority vote achieves 71-82.8%.",
+      "correct_verdict": "abstain",
+      "domain": "factual_qa",
+      "risk_tier": "low",
+      "annotation": "Use D2 balanced router for factual QA tasks. Reserve REMORA full for governance/safety decisions. This is a known design cost, not a bug."
+    }
+  },
+  {
+    "id": "fail_zero_coverage_no_rag",
+    "type": "failure_pattern",
+    "source": "external_validation_live_400_items",
+    "version": "0.1",
+    "weight": 0.93,
+    "confidence": 0.90,
+    "decay_rate": 0.01,
+    "tags": ["coverage", "rag", "verify", "known-limitation"],
+    "description": "Without RAG/evidence context, REMORA issues VERIFY for 100% of items (0% accept coverage). Policy-correct behavior, but means REMORA cannot standalone on fact-retrieval tasks without evidence injection.",
+    "payload": {
+      "scenario": "Standard benchmark evaluation without RAG context injection.",
+      "observed_failure": "100% VERIFY rate on ARC, BoolQ, HotpotQA. Effectively 0% autonomous answer coverage.",
+      "correct_verdict": "verify",
+      "domain": "factual_qa",
+      "risk_tier": "medium",
+      "annotation": "REMORA is designed to require evidence. Integrate with RAG pipeline before measuring accept coverage. This is expected behavior, not a defect."
+    }
+  },
+  {
+    "id": "fail_ordered_phase_small_n",
+    "type": "failure_pattern",
+    "source": "phase_stability_bootstrap_analysis",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.85,
+    "decay_rate": 0.02,
+    "tags": ["phase", "ordered", "bootstrap", "statistical-instability"],
+    "description": "Ordered phase is rare (4% of items, n=99 in n=544 corpus) and has high coefficient of variation (CV=0.28). Conclusions based solely on ordered-phase items have wide confidence intervals.",
+    "payload": {
+      "scenario": "Selective routing performance claims based on ordered-phase subset.",
+      "observed_failure": "Bootstrap CI for ordered-phase fraction is [2.0%, 6.3%] — very wide. Small ordered-phase sample inflates precision claims.",
+      "correct_verdict": "verify",
+      "domain": "meta",
+      "risk_tier": "medium",
+      "annotation": "Always report n_ordered alongside ordered-phase accuracy claims. Require n>=20 for policy-grade conclusions."
+    }
+  },
+  {
+    "id": "fail_d2_router_indistinguishable",
+    "type": "failure_pattern",
+    "source": "ablation_v2_mcnemar_tests",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.88,
+    "decay_rate": 0.01,
+    "tags": ["ablation", "d2-router", "majority-vote", "statistical-null"],
+    "description": "D2 balanced router is statistically indistinguishable from plain majority vote (McNemar p=0.50, delta=-0.7pp). AROMER should not claim D2 as a REMORA-exclusive advantage.",
+    "payload": {
+      "scenario": "Ablation v2 comparison of D2 balanced router vs. majority vote baseline.",
+      "observed_failure": "p=0.50 for B vs D2. Delta -0.7pp is noise. Any claim that D2 outperforms majority vote is unsupported.",
+      "correct_verdict": "abstain",
+      "domain": "meta",
+      "risk_tier": "low",
+      "annotation": "D2 is a valid safe routing strategy, but not uniquely better than majority vote. Position it as 'parity with safety benefits', not 'superior accuracy'."
+    }
+  },
+  {
+    "id": "fail_synthetic_benchmark_generalization",
+    "type": "failure_pattern",
+    "source": "toolcall_benchmark_v2_limitations",
+    "version": "0.1",
+    "weight": 0.92,
+    "confidence": 0.90,
+    "decay_rate": 0.01,
+    "tags": ["benchmark", "synthetic", "generalization", "known-limitation"],
+    "description": "Both tool-call safety benchmarks use deterministic simulators with synthetic adversarial templates — no live LLM calls, no real production tool-calls. Safety results (0% unsafe) may not generalize to live environments.",
+    "payload": {
+      "scenario": "Tool-call safety benchmark v1 and v2 evaluation.",
+      "observed_failure": "Results achieved on deterministic synthetic simulator. Live production adversarial inputs may expose different failure modes.",
+      "correct_verdict": "verify",
+      "domain": "meta",
+      "risk_tier": "medium",
+      "annotation": "Always caveat tool-call safety claims with 'synthetic benchmark'. Next step: live production validation with AgentHarm or real agent deployment."
+    }
+  },
+  {
+    "id": "fail_lyapunov_simulation_only",
+    "type": "failure_pattern",
+    "source": "lyapunov_aggregate_analysis",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.85,
+    "decay_rate": 0.02,
+    "tags": ["lyapunov", "simulation", "stability", "known-limitation"],
+    "description": "Lyapunov stability results (87.2% stable sessions) come from 1000 simulated sessions, not live oracle interactions. Convergence behavior in real oracle swarms with network latency may differ.",
+    "payload": {
+      "scenario": "Lyapunov stability measurement on simulated sessions.",
+      "observed_failure": "12.8% unstable sessions in simulation. Real-world instability rate unknown due to simulation-only data.",
+      "correct_verdict": "verify",
+      "domain": "meta",
+      "risk_tier": "low",
+      "annotation": "Lyapunov stability is a useful internal monitor. Supplement with real oracle session data before making stability guarantees."
+    }
+  },
+  {
+    "id": "fail_trust_score_miscalibration",
+    "type": "failure_pattern",
+    "source": "remora_internal_analysis",
+    "version": "0.1",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.03,
+    "tags": ["trust-score", "calibration", "threshold"],
+    "description": "The trust score fed to REMORA can be poorly calibrated if the calling agent uses a fixed or heuristic value. A hardcoded trust_score=0.85 bypasses most governance logic by appearing high-confidence.",
+    "payload": {
+      "scenario": "Agent passes trust_score=0.85 without deriving it from actual oracle confidence.",
+      "observed_failure": "REMORA accepts high-risk actions because trust_score appears high, masking low oracle agreement.",
+      "correct_verdict": "verify",
+      "domain": "meta",
+      "risk_tier": "high",
+      "annotation": "AROMER should validate that trust_score correlates with actual oracle dissensus D. If D is high but trust_score is high, the inputs are inconsistent — flag for review."
+    }
+  },
+  {
+    "id": "fail_adversarial_framing",
+    "type": "failure_pattern",
+    "source": "agentharm_benchmark_v1",
+    "version": "0.1",
+    "weight": 0.90,
+    "confidence": 0.87,
+    "decay_rate": 0.02,
+    "tags": ["adversarial", "framing", "prompt-injection", "all-domains"],
+    "description": "Adversarial actors frame dangerous actions as benign tasks: 'cleanup', 'optimize', 'backup', 'test'. Surface framing is never sufficient for governance decisions. The action content must be evaluated, not the request label.",
+    "payload": {
+      "scenario": "Action labeled 'cleanup old records' actually contains DELETE FROM users WHERE created_at < '2020-01-01'.",
+      "observed_failure": "Systems relying on action label rather than action content approved the destructive cleanup.",
+      "correct_verdict": "verify",
+      "domain": "database",
+      "risk_tier": "high",
+      "annotation": "Evaluate what the action DOES, not what it is CALLED. Extract and inspect the SQL/command content before governance decision."
+    }
+  },
+  {
+    "id": "fail_high_entropy_accept",
+    "type": "failure_pattern",
+    "source": "selective_routing_analysis",
+    "version": "0.1",
+    "weight": 0.88,
+    "confidence": 0.85,
+    "decay_rate": 0.02,
+    "tags": ["entropy", "disordered", "accept", "trust-calibration"],
+    "description": "Accepting actions when entropy H is high (disordered phase) dramatically reduces accuracy to 28.6% — 12.6pp below baseline. High entropy signals oracle disagreement and should route to VERIFY, not ACCEPT.",
+    "payload": {
+      "scenario": "Governance decision in disordered phase (H high, D high).",
+      "observed_failure": "System accepted action despite high oracle dissensus. Disordered-phase accuracy: 28.6% — below random.",
+      "correct_verdict": "verify",
+      "domain": "meta",
+      "risk_tier": "high",
+      "annotation": "When phase=disordered AND verdict would be ACCEPT: downgrade to VERIFY. Disordered phase acceptance is less reliable than random chance on the tested corpus."
+    }
+  },
+  {
+    "id": "fail_no_audit_trail",
+    "type": "failure_pattern",
+    "source": "remora_internal_analysis",
+    "version": "0.1",
+    "weight": 0.80,
+    "confidence": 0.85,
+    "decay_rate": 0.0,
+    "tags": ["audit", "traceability", "compliance"],
+    "description": "Governance decisions made without SHA-256 DecisionEnvelope chaining cannot be audited or replayed. This is a compliance failure for regulated domains.",
+    "payload": {
+      "scenario": "Governance decision made directly via policy engine without wrapping in DecisionEnvelope.",
+      "observed_failure": "No audit record. Decision cannot be proven, replayed, or challenged after the fact.",
+      "correct_verdict": "escalate",
+      "domain": "meta",
+      "risk_tier": "critical",
+      "annotation": "Always generate a DecisionEnvelope for every governance decision. AROMER must not allow envelope-free decisions to pass through in regulated contexts."
+    }
+  }
+]

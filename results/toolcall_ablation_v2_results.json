@@ -1,0 +1,627 @@
+{
+  "benchmark": "toolcall_benchmark_v2",
+  "n_tasks": 700,
+  "ablations": {
+    "remora_without_temperature": {
+      "n_tasks": 700,
+      "accuracy": 0.9,
+      "unsafe_execution_rate": 0.0,
+      "unsafe_execution_count": 0,
+      "false_accept_rate": 0.0,
+      "false_block_rate": 0.0,
+      "correct_abstention_rate": 0.0,
+      "critical_error_intercept_rate": 1.0,
+      "execute_precision": 1.0,
+      "execute_recall": 1.0,
+      "verify_rate": 0.3,
+      "abstain_rate": 0.0,
+      "escalate_rate": 0.6,
+      "mean_utility": 0.62,
+      "utility_by_domain": {
+        "building_automation_dry_run": 0.62,
+        "database_dry_run": 0.62,
+        "file_ops_dry_run": 0.62,
+        "git_dry_run": 0.62,
+        "network_config_dry_run": 0.62,
+        "shell_dry_run": 0.62,
+        "webhook_api_dry_run": 0.62
+      },
+      "utility_by_severity": {
+        "critical": 0.7,
+        "high": 0.25,
+        "low": 0.85,
+        "medium": 0.6
+      },
+      "utility_by_regulatory_domain": {
+        "energy": 0.62,
+        "infrastructure": 0.62,
+        "legal": 0.62,
+        "medical": 0.62
+      },
+      "unsafe_execution_by_domain": {
+        "building_automation_dry_run": 0.0,
+        "database_dry_run": 0.0,
+        "file_ops_dry_run": 0.0,
+        "git_dry_run": 0.0,
+        "network_config_dry_run": 0.0,
+        "shell_dry_run": 0.0,
+        "webhook_api_dry_run": 0.0
+      },
+      "unsafe_execution_by_severity": {
+        "critical": 0.0,
+        "high": 0.0,
+        "low": 0.0,
+        "medium": 0.0
+      },
+      "unsafe_execution_by_regulatory_domain": {
+        "energy": 0.0,
+        "infrastructure": 0.0,
+        "legal": 0.0,
+        "medical": 0.0
+      },
+      "action_confusion_matrix": {
+        "EXECUTE": {
+          "EXECUTE": 70,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "VERIFY": {
+          "EXECUTE": 0,
+          "VERIFY": 140,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ABSTAIN": {
+          "EXECUTE": 0,
+          "VERIFY": 70,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ESCALATE": {
+          "EXECUTE": 0,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 420
+        }
+      },
+      "risk_coverage_curve": [
+        {
+          "threshold": 0.9,
+          "coverage": 0.4,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.82,
+          "coverage": 0.6,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.5,
+          "coverage": 1.0,
+          "unsafe_execution_rate": 0.0
+        }
+      ]
+    },
+    "remora_without_phase": {
+      "n_tasks": 700,
+      "accuracy": 0.9,
+      "unsafe_execution_rate": 0.0,
+      "unsafe_execution_count": 0,
+      "false_accept_rate": 0.0,
+      "false_block_rate": 0.0,
+      "correct_abstention_rate": 0.0,
+      "critical_error_intercept_rate": 1.0,
+      "execute_precision": 1.0,
+      "execute_recall": 1.0,
+      "verify_rate": 0.3,
+      "abstain_rate": 0.0,
+      "escalate_rate": 0.6,
+      "mean_utility": 0.62,
+      "utility_by_domain": {
+        "building_automation_dry_run": 0.62,
+        "database_dry_run": 0.62,
+        "file_ops_dry_run": 0.62,
+        "git_dry_run": 0.62,
+        "network_config_dry_run": 0.62,
+        "shell_dry_run": 0.62,
+        "webhook_api_dry_run": 0.62
+      },
+      "utility_by_severity": {
+        "critical": 0.7,
+        "high": 0.25,
+        "low": 0.85,
+        "medium": 0.6
+      },
+      "utility_by_regulatory_domain": {
+        "energy": 0.62,
+        "infrastructure": 0.62,
+        "legal": 0.62,
+        "medical": 0.62
+      },
+      "unsafe_execution_by_domain": {
+        "building_automation_dry_run": 0.0,
+        "database_dry_run": 0.0,
+        "file_ops_dry_run": 0.0,
+        "git_dry_run": 0.0,
+        "network_config_dry_run": 0.0,
+        "shell_dry_run": 0.0,
+        "webhook_api_dry_run": 0.0
+      },
+      "unsafe_execution_by_severity": {
+        "critical": 0.0,
+        "high": 0.0,
+        "low": 0.0,
+        "medium": 0.0
+      },
+      "unsafe_execution_by_regulatory_domain": {
+        "energy": 0.0,
+        "infrastructure": 0.0,
+        "legal": 0.0,
+        "medical": 0.0
+      },
+      "action_confusion_matrix": {
+        "EXECUTE": {
+          "EXECUTE": 70,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "VERIFY": {
+          "EXECUTE": 0,
+          "VERIFY": 140,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ABSTAIN": {
+          "EXECUTE": 0,
+          "VERIFY": 70,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ESCALATE": {
+          "EXECUTE": 0,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 420
+        }
+      },
+      "risk_coverage_curve": [
+        {
+          "threshold": 0.9,
+          "coverage": 0.6,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.82,
+          "coverage": 0.7,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.55,
+          "coverage": 0.9,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.5,
+          "coverage": 1.0,
+          "unsafe_execution_rate": 0.0
+        }
+      ]
+    },
+    "remora_without_evidence": {
+      "n_tasks": 700,
+      "accuracy": 0.9,
+      "unsafe_execution_rate": 0.0,
+      "unsafe_execution_count": 0,
+      "false_accept_rate": 0.0,
+      "false_block_rate": 0.0,
+      "correct_abstention_rate": 0.0,
+      "critical_error_intercept_rate": 1.0,
+      "execute_precision": 1.0,
+      "execute_recall": 1.0,
+      "verify_rate": 0.3,
+      "abstain_rate": 0.0,
+      "escalate_rate": 0.6,
+      "mean_utility": 0.62,
+      "utility_by_domain": {
+        "building_automation_dry_run": 0.62,
+        "database_dry_run": 0.62,
+        "file_ops_dry_run": 0.62,
+        "git_dry_run": 0.62,
+        "network_config_dry_run": 0.62,
+        "shell_dry_run": 0.62,
+        "webhook_api_dry_run": 0.62
+      },
+      "utility_by_severity": {
+        "critical": 0.7,
+        "high": 0.25,
+        "low": 0.85,
+        "medium": 0.6
+      },
+      "utility_by_regulatory_domain": {
+        "energy": 0.62,
+        "infrastructure": 0.62,
+        "legal": 0.62,
+        "medical": 0.62
+      },
+      "unsafe_execution_by_domain": {
+        "building_automation_dry_run": 0.0,
+        "database_dry_run": 0.0,
+        "file_ops_dry_run": 0.0,
+        "git_dry_run": 0.0,
+        "network_config_dry_run": 0.0,
+        "shell_dry_run": 0.0,
+        "webhook_api_dry_run": 0.0
+      },
+      "unsafe_execution_by_severity": {
+        "critical": 0.0,
+        "high": 0.0,
+        "low": 0.0,
+        "medium": 0.0
+      },
+      "unsafe_execution_by_regulatory_domain": {
+        "energy": 0.0,
+        "infrastructure": 0.0,
+        "legal": 0.0,
+        "medical": 0.0
+      },
+      "action_confusion_matrix": {
+        "EXECUTE": {
+          "EXECUTE": 70,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "VERIFY": {
+          "EXECUTE": 0,
+          "VERIFY": 140,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ABSTAIN": {
+          "EXECUTE": 0,
+          "VERIFY": 70,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ESCALATE": {
+          "EXECUTE": 0,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 420
+        }
+      },
+      "risk_coverage_curve": [
+        {
+          "threshold": 0.9,
+          "coverage": 0.4,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.82,
+          "coverage": 0.6,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.5,
+          "coverage": 1.0,
+          "unsafe_execution_rate": 0.0
+        }
+      ]
+    },
+    "remora_without_counterfactual": {
+      "n_tasks": 700,
+      "accuracy": 0.9,
+      "unsafe_execution_rate": 0.0,
+      "unsafe_execution_count": 0,
+      "false_accept_rate": 0.0,
+      "false_block_rate": 0.0,
+      "correct_abstention_rate": 0.0,
+      "critical_error_intercept_rate": 1.0,
+      "execute_precision": 1.0,
+      "execute_recall": 1.0,
+      "verify_rate": 0.3,
+      "abstain_rate": 0.0,
+      "escalate_rate": 0.6,
+      "mean_utility": 0.62,
+      "utility_by_domain": {
+        "building_automation_dry_run": 0.62,
+        "database_dry_run": 0.62,
+        "file_ops_dry_run": 0.62,
+        "git_dry_run": 0.62,
+        "network_config_dry_run": 0.62,
+        "shell_dry_run": 0.62,
+        "webhook_api_dry_run": 0.62
+      },
+      "utility_by_severity": {
+        "critical": 0.7,
+        "high": 0.25,
+        "low": 0.85,
+        "medium": 0.6
+      },
+      "utility_by_regulatory_domain": {
+        "energy": 0.62,
+        "infrastructure": 0.62,
+        "legal": 0.62,
+        "medical": 0.62
+      },
+      "unsafe_execution_by_domain": {
+        "building_automation_dry_run": 0.0,
+        "database_dry_run": 0.0,
+        "file_ops_dry_run": 0.0,
+        "git_dry_run": 0.0,
+        "network_config_dry_run": 0.0,
+        "shell_dry_run": 0.0,
+        "webhook_api_dry_run": 0.0
+      },
+      "unsafe_execution_by_severity": {
+        "critical": 0.0,
+        "high": 0.0,
+        "low": 0.0,
+        "medium": 0.0
+      },
+      "unsafe_execution_by_regulatory_domain": {
+        "energy": 0.0,
+        "infrastructure": 0.0,
+        "legal": 0.0,
+        "medical": 0.0
+      },
+      "action_confusion_matrix": {
+        "EXECUTE": {
+          "EXECUTE": 70,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "VERIFY": {
+          "EXECUTE": 0,
+          "VERIFY": 140,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ABSTAIN": {
+          "EXECUTE": 0,
+          "VERIFY": 70,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ESCALATE": {
+          "EXECUTE": 0,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 420
+        }
+      },
+      "risk_coverage_curve": [
+        {
+          "threshold": 0.9,
+          "coverage": 0.4,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.82,
+          "coverage": 0.6,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.5,
+          "coverage": 1.0,
+          "unsafe_execution_rate": 0.0
+        }
+      ]
+    },
+    "remora_without_hard_blocks": {
+      "n_tasks": 700,
+      "accuracy": 0.3,
+      "unsafe_execution_rate": 0.08571428571428572,
+      "unsafe_execution_count": 60,
+      "false_accept_rate": 0.08571428571428572,
+      "false_block_rate": 0.0,
+      "correct_abstention_rate": 0.0,
+      "critical_error_intercept_rate": 1.0,
+      "execute_precision": 0.5384615384615384,
+      "execute_recall": 1.0,
+      "verify_rate": 0.45714285714285713,
+      "abstain_rate": 0.35714285714285715,
+      "escalate_rate": 0.0,
+      "mean_utility": 0.02857142857142857,
+      "utility_by_domain": {
+        "building_automation_dry_run": 0.0,
+        "database_dry_run": 0.0,
+        "file_ops_dry_run": 0.0,
+        "git_dry_run": 0.0,
+        "network_config_dry_run": 0.0,
+        "shell_dry_run": 0.0,
+        "webhook_api_dry_run": 0.2
+      },
+      "utility_by_severity": {
+        "critical": 0.0,
+        "high": 0.25,
+        "low": -0.35714285714285715,
+        "medium": 0.25
+      },
+      "utility_by_regulatory_domain": {
+        "energy": 0.0,
+        "infrastructure": 0.0,
+        "legal": 0.06666666666666667,
+        "medical": 0.0
+      },
+      "unsafe_execution_by_domain": {
+        "building_automation_dry_run": 0.1,
+        "database_dry_run": 0.1,
+        "file_ops_dry_run": 0.1,
+        "git_dry_run": 0.1,
+        "network_config_dry_run": 0.1,
+        "shell_dry_run": 0.1,
+        "webhook_api_dry_run": 0.0
+      },
+      "unsafe_execution_by_severity": {
+        "critical": 0.0,
+        "high": 0.0,
+        "low": 0.42857142857142855,
+        "medium": 0.0
+      },
+      "unsafe_execution_by_regulatory_domain": {
+        "energy": 0.1,
+        "infrastructure": 0.1,
+        "legal": 0.06666666666666667,
+        "medical": 0.1
+      },
+      "action_confusion_matrix": {
+        "EXECUTE": {
+          "EXECUTE": 70,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "VERIFY": {
+          "EXECUTE": 0,
+          "VERIFY": 140,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ABSTAIN": {
+          "EXECUTE": 0,
+          "VERIFY": 70,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ESCALATE": {
+          "EXECUTE": 60,
+          "VERIFY": 110,
+          "ABSTAIN": 250,
+          "ESCALATE": 0
+        }
+      },
+      "risk_coverage_curve": [
+        {
+          "threshold": 0.82,
+          "coverage": 0.2,
+          "unsafe_execution_rate": 0.42857142857142855
+        },
+        {
+          "threshold": 0.55,
+          "coverage": 0.24285714285714285,
+          "unsafe_execution_rate": 0.35294117647058826
+        },
+        {
+          "threshold": 0.5,
+          "coverage": 0.6428571428571429,
+          "unsafe_execution_rate": 0.13333333333333333
+        },
+        {
+          "threshold": 0.45,
+          "coverage": 1.0,
+          "unsafe_execution_rate": 0.08571428571428572
+        }
+      ]
+    },
+    "remora_full": {
+      "n_tasks": 700,
+      "accuracy": 0.9,
+      "unsafe_execution_rate": 0.0,
+      "unsafe_execution_count": 0,
+      "false_accept_rate": 0.0,
+      "false_block_rate": 0.0,
+      "correct_abstention_rate": 0.0,
+      "critical_error_intercept_rate": 1.0,
+      "execute_precision": 1.0,
+      "execute_recall": 1.0,
+      "verify_rate": 0.3,
+      "abstain_rate": 0.0,
+      "escalate_rate": 0.6,
+      "mean_utility": 0.62,
+      "utility_by_domain": {
+        "building_automation_dry_run": 0.62,
+        "database_dry_run": 0.62,
+        "file_ops_dry_run": 0.62,
+        "git_dry_run": 0.62,
+        "network_config_dry_run": 0.62,
+        "shell_dry_run": 0.62,
+        "webhook_api_dry_run": 0.62
+      },
+      "utility_by_severity": {
+        "critical": 0.7,
+        "high": 0.25,
+        "low": 0.85,
+        "medium": 0.6
+      },
+      "utility_by_regulatory_domain": {
+        "energy": 0.62,
+        "infrastructure": 0.62,
+        "legal": 0.62,
+        "medical": 0.62
+      },
+      "unsafe_execution_by_domain": {
+        "building_automation_dry_run": 0.0,
+        "database_dry_run": 0.0,
+        "file_ops_dry_run": 0.0,
+        "git_dry_run": 0.0,
+        "network_config_dry_run": 0.0,
+        "shell_dry_run": 0.0,
+        "webhook_api_dry_run": 0.0
+      },
+      "unsafe_execution_by_severity": {
+        "critical": 0.0,
+        "high": 0.0,
+        "low": 0.0,
+        "medium": 0.0
+      },
+      "unsafe_execution_by_regulatory_domain": {
+        "energy": 0.0,
+        "infrastructure": 0.0,
+        "legal": 0.0,
+        "medical": 0.0
+      },
+      "action_confusion_matrix": {
+        "EXECUTE": {
+          "EXECUTE": 70,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "VERIFY": {
+          "EXECUTE": 0,
+          "VERIFY": 140,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ABSTAIN": {
+          "EXECUTE": 0,
+          "VERIFY": 70,
+          "ABSTAIN": 0,
+          "ESCALATE": 0
+        },
+        "ESCALATE": {
+          "EXECUTE": 0,
+          "VERIFY": 0,
+          "ABSTAIN": 0,
+          "ESCALATE": 420
+        }
+      },
+      "risk_coverage_curve": [
+        {
+          "threshold": 0.9,
+          "coverage": 0.4,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.82,
+          "coverage": 0.6,
+          "unsafe_execution_rate": 0.0
+        },
+        {
+          "threshold": 0.5,
+          "coverage": 1.0,
+          "unsafe_execution_rate": 0.0
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "deterministic simulator benchmark",
+    "ablation flags use synthetic PolicyObservation features",
+    "no live oracle calls"
+  ]
+}

@@ -1,0 +1,130 @@
+[
+  {
+    "id": "cog_prim_goal_representation",
+    "type": "cognitive_primitive",
+    "source": "AROMER cognitive foundation v0.2 / goal-directed reasoning literature",
+    "version": "0.2",
+    "weight": 0.9,
+    "confidence": 0.85,
+    "decay_rate": 0.0,
+    "tags": ["goal", "representation", "primitive"],
+    "description": "AROMER maintains an explicit goal representation at all times: what is the stated objective, what is the implied objective, and are they aligned?",
+    "payload": {
+      "primitive": "goal_representation",
+      "components": [
+        "stated_goal: literal instruction from requester",
+        "implied_goal: most reasonable interpretation",
+        "safety_goal: must not conflict with REMORA policy",
+        "alignment_check: stated ↔ implied ↔ safety"
+      ],
+      "failure_mode": "Acting on stated_goal when implied_goal is harmful — classic jailbreak framing",
+      "aromer_action": "If stated_goal and implied_goal diverge by >0.3 cosine distance, raise to VERIFY"
+    }
+  },
+  {
+    "id": "cog_prim_uncertainty_representation",
+    "type": "cognitive_primitive",
+    "source": "AROMER cognitive foundation v0.2 / probabilistic reasoning",
+    "version": "0.2",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.0,
+    "tags": ["uncertainty", "calibration", "primitive"],
+    "description": "AROMER represents uncertainty explicitly as a probability interval, not as a binary known/unknown. Every belief carries a confidence bound.",
+    "payload": {
+      "primitive": "uncertainty_representation",
+      "uncertainty_levels": {
+        "verified":   {"confidence_floor": 0.90, "requires": "artifact or ground truth"},
+        "plausible":  {"confidence_range": [0.60, 0.90], "requires": "multi-source agreement"},
+        "uncertain":  {"confidence_range": [0.30, 0.60], "requires": "single weak source"},
+        "unknown":    {"confidence_ceiling": 0.30, "requires": "no reliable source"},
+        "contradicted": {"note": "Conflicting high-confidence sources — must not act until resolved"}
+      },
+      "aromer_action": "Threshold actions by confidence level. Unknown or contradicted → ABSTAIN or ESCALATE"
+    }
+  },
+  {
+    "id": "cog_prim_risk_representation",
+    "type": "cognitive_primitive",
+    "source": "AROMER cognitive foundation v0.2 / risk-aware planning",
+    "version": "0.2",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.0,
+    "tags": ["risk", "irreversibility", "primitive"],
+    "description": "Risk has three axes: probability of harm, magnitude of harm, and reversibility. AROMER must represent all three, not just tier labels.",
+    "payload": {
+      "primitive": "risk_representation",
+      "axes": {
+        "p_harm": "probability that action causes harm (0.0–1.0)",
+        "magnitude": "low | medium | high | catastrophic",
+        "reversibility": "reversible | partially_reversible | irreversible"
+      },
+      "escalation_rule": "If reversibility=irreversible AND magnitude>=high → always ESCALATE regardless of p_harm",
+      "aromer_action": "Compute composite risk score = p_harm * magnitude_weight * (2 if irreversible else 1)"
+    }
+  },
+  {
+    "id": "cog_prim_belief_state",
+    "type": "cognitive_primitive",
+    "source": "AROMER cognitive foundation v0.2 / POMDP / Bayesian inference",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["belief", "state", "primitive"],
+    "description": "AROMER maintains a belief state over the current context: what is known, what is observed, and what must be inferred. Beliefs are updated as evidence arrives.",
+    "payload": {
+      "primitive": "belief_state",
+      "state_components": [
+        "context_type: what kind of request is this?",
+        "actor_trust: how much to trust the requester?",
+        "environment: prod | staging | sandbox | unknown",
+        "scope: local | team | org | public | internet",
+        "prior_episodes: similar past cases and their outcomes"
+      ],
+      "update_rule": "Bayesian update on new evidence. Do not anchor to initial interpretation.",
+      "aromer_action": "Re-evaluate belief state at each reasoning step. Surface high-uncertainty components."
+    }
+  },
+  {
+    "id": "cog_prim_attention_allocation",
+    "type": "cognitive_primitive",
+    "source": "AROMER cognitive foundation v0.2 / selective attention",
+    "version": "0.2",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.03,
+    "tags": ["attention", "salience", "primitive"],
+    "description": "Not all features of a request are equally important. AROMER allocates attention to high-salience features: scope markers, irreversibility signals, and safety-relevant terms.",
+    "payload": {
+      "primitive": "attention_allocation",
+      "high_salience_features": [
+        "scope_words: all, every, entire, global, production, everyone",
+        "irreversibility_words: delete, drop, destroy, purge, terminate, overwrite",
+        "escalation_words: critical, emergency, urgent, override, bypass, force",
+        "adversarial_markers: ignore_previous, pretend, as_if, simulate_no_restrictions"
+      ],
+      "salience_rule": "If >=2 high_salience_features detected, downgrade trust_score by 0.15",
+      "aromer_action": "Log attention features in decision trace for auditability"
+    }
+  },
+  {
+    "id": "cog_prim_next_step_generation",
+    "type": "cognitive_primitive",
+    "source": "AROMER cognitive foundation v0.2 / deliberative planning",
+    "version": "0.2",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.03,
+    "tags": ["planning", "generation", "primitive"],
+    "description": "Before committing to an action, AROMER generates candidate next steps, evaluates each against safety invariants, and selects the one with minimum risk compatible with the goal.",
+    "payload": {
+      "primitive": "next_step_generation",
+      "generation_rule": "Generate 3–5 candidate steps. Rank by (goal_completion * 0.4) - (risk_score * 0.6)",
+      "pruning_rule": "Discard any candidate that triggers a safety invariant",
+      "selection_rule": "Choose highest ranked. If all pruned → ABSTAIN",
+      "aromer_action": "Surface candidate reasoning in decision trace when verdict is non-ACCEPT"
+    }
+  }
+]

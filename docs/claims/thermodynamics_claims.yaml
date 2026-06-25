@@ -1,0 +1,59 @@
+claims:
+  free_energy_proxy:
+    status: supported
+    wording: free-energy-style structural identification
+    code:
+      - remora/thermodynamics.py::free_energy
+      - remora/genome.py::thermo_lambda
+    tests:
+      - tests/test_thermodynamics.py::test_free_energy_uses_helmholtz_sign
+      - tests/test_thermodynamic_evidence.py::test_veto_potential_equals_free_energy_at_inverted_temperature
+    evidence:
+      - results/thermodynamic_eval_results.json
+
+  phase_split_non_degenerate:
+    status: supported
+    wording: ordered/critical/disordered split is empirically non-trivial on N=302
+    code:
+      - experiments/thermodynamic_eval.py
+    tests:
+      - tests/test_thermodynamic_evidence.py::test_phase_classification_is_nontrivial_on_canonical_benchmark
+      - tests/test_thermodynamic_evidence.py::test_trust_is_strictly_ordered_across_phases
+    evidence:
+      - results/thermodynamic_eval_results.json
+
+  susceptibility_offline_harm_signal:
+    status: partially_supported
+    wording: weak offline harm predictor, not a validated live fragility law
+    tests:
+      - tests/test_thermodynamic_evidence.py::test_empirical_chi_carries_moderate_harm_signal
+      - tests/test_thermodynamic_evidence.py::test_live_chi_perturbation_pilot_does_not_confirm_fragility_law
+    evidence:
+      - results/chi_iteration_utility_results.json
+      - results/chi_perturbation_study_results.json
+
+  hard_rag_guardrail:
+    status: supported
+    wording: disordered or evidence-required thermo states block parametric verdicts in engine
+    code:
+      - remora/engine.py::_router_gate
+      - remora/engine.py::_process_subquestion
+    tests:
+      - tests/test_engine.py::test_thermodynamic_guardrail_blocks_parametric_verdict_on_disordered_state
+
+  full_coverage_phase_routing_superiority:
+    status: not_supported
+    wording: no current phase-to-existing-condition policy beats majority at full coverage
+    tests:
+      - tests/test_thermodynamic_evidence.py::test_no_gate_between_majority_and_d2_can_currently_beat_majority
+    evidence:
+      - results/phase_aware_routing_results.json
+
+  hallucination_bound_theorem:
+    status: not_supported
+    wording: empirical hallucination bound remains a proxy/conjecture, not a proven theorem
+    tests:
+      - tests/test_thermodynamic_evidence.py::test_hallucination_bound_is_not_validated_as_empirical_law
+      - tests/test_thermodynamic_evidence.py::test_hallucination_bound_does_not_upper_bound_observed_phase_error_rates
+    evidence:
+      - results/thermodynamic_eval_results.json

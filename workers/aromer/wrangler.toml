@@ -1,0 +1,60 @@
+name = "aromer"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Adjust cron speed here, then redeploy: cd workers/aromer && npx wrangler deploy
+#
+#   "* * * * *"       Every minute   (fastest, most learning, ~0.05usd/day)
+#   "*/5 * * * *"     Every 5 min    (rapid iteration, good for testing)
+#   "*/15 * * * *"    Every 15 min   (balanced speed/cost)
+#   "*/30 * * * *"    Every 30 min   (moderate)
+#   "0 * * * *"       Every hour     (default, cheapest ~0.01usd/day)
+#   "0 */6 * * *"     Every 6 hours  (long-horizon learning)
+#   "0 0 * * *"       Daily
+#
+[triggers]
+crons = ["0 */4 * * *"]    # Every 4 hours — stays within CF free-tier Neurons quota
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding       = "AROMER_DB"
+database_name = "aromer-episodes"
+database_id   = "b91e1f0b-e2bd-4a12-9150-cda2048e508b"
+
+[[kv_namespaces]]
+binding = "AROMER_STATE"
+id      = "6e84acea1ed4488a9b32cef6181900b2"
+
+[vars]
+AROMER_VERSION             = "0.2.0-experimental"
+META_JUDGE_BATCH_SIZE      = "3"
+ADAPTATION_CYCLE_WINDOW    = "200"
+# Three genuinely distinct oracles from three different model families so their
+# errors are decorrelated — the Thompson-Sampling bandit can only learn which
+# oracle is best if the arms are actually different models (previously all three
+# were the same llama-3.1-8b, so the "ensemble" was one effective oracle). The
+# MetaJudge rotates across these via the bandit (see selectOracleThompson).
+#
+# HARD CONSTRAINT: the MetaJudge needs structured JSON, so every arm must be on
+# Workers AI's JSON-mode support list (the worker sends response_format) AND must
+# actually honour it. Pure reasoning models (gpt-oss, qwen3) are not on the list
+# and leaked reasoning prose; hermes-2-pro-mistral-7b is listed but returned zero
+# parseable critiques in live testing — all excluded. The list is Meta-heavy, so
+# only two genuinely distinct families are reliably available (Meta, DeepSeek).
+# cf_diverse therefore uses a different Meta *generation/size* (3.1-8B vs 3.3-70B)
+# for decorrelation rather than a flaky third family. Live testing eliminated the
+# alternatives: gpt-oss/qwen3 leak reasoning, hermes-2-pro and the 3.2 vision
+# model returned zero parseable critiques under JSON mode. These three all
+# produce clean critiques live:
+#   FAST    — Meta Llama-3.3-70B fp8-fast: low-latency, also the scan-result path.
+#   STRONG  — DeepSeek R1-distill-Qwen-32B: distinct family, strong reasoning.
+#   DIVERSE — Meta Llama-3.1-8B: smaller/faster different generation, rock-solid JSON.
+CF_MODEL_FAST              = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+CF_MODEL_STRONG            = "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b"
+CF_MODEL_DIVERSE           = "@cf/meta/llama-3.1-8b-instruct"
+CF_MODEL_LORA_BASE         = "@cf/mistralai/mistral-7b-instruct-v0.2-lora"
+CF_LORA_ID                 = ""
+LORA_METAJUDGE_ACCURACY    = "0"

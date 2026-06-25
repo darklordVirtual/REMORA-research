@@ -1,0 +1,95 @@
+{
+  "artifact": "results/thermodynamic_eval_results.json",
+  "T_c": 1.0,
+  "delta": 0.15,
+  "global_summary": {
+    "n_total": 292,
+    "T_mean": 0.7302,
+    "T_std": 0.2304,
+    "eta_mean": 0.317,
+    "eta_std": 0.2617,
+    "spearman_rho_T_eta_global": -0.6991
+  },
+  "critical_window_susceptibility": {
+    "n": 171,
+    "mean_eta": 0.12475380116959064,
+    "var_eta": 0.0013210592060543516,
+    "chi_emp": 0.0013210592060543516,
+    "window": [
+      0.85,
+      1.15
+    ]
+  },
+  "phase_variance_summary": {
+    "ordered": {
+      "phase": "ordered",
+      "n": 109,
+      "mean_eta": 0.604796,
+      "var_eta": 0.038515,
+      "chi_emp": 0.038515
+    },
+    "critical": {
+      "phase": "critical",
+      "n": 171,
+      "mean_eta": 0.124754,
+      "var_eta": 0.001321,
+      "chi_emp": 0.001321
+    },
+    "disordered": {
+      "phase": "disordered",
+      "n": 0,
+      "mean_eta": null,
+      "var_eta": null,
+      "chi_emp": null
+    }
+  },
+  "correlation_sweep": {
+    "T_c": 1.0,
+    "delta_base": 0.15,
+    "windows": [
+      {
+        "window_frac": 0.1,
+        "delta": 0.1,
+        "n": 54,
+        "spearman_rho_T_eta": 0.1363
+      },
+      {
+        "window_frac": 0.15,
+        "delta": 0.15,
+        "n": 171,
+        "spearman_rho_T_eta": 0.1632
+      },
+      {
+        "window_frac": 0.2,
+        "delta": 0.2,
+        "n": 183,
+        "spearman_rho_T_eta": -0.0508
+      },
+      {
+        "window_frac": 0.25,
+        "delta": 0.25,
+        "n": 183,
+        "spearman_rho_T_eta": -0.0508
+      },
+      {
+        "window_frac": 0.3,
+        "delta": 0.3,
+        "n": 183,
+        "spearman_rho_T_eta": -0.0508
+      },
+      {
+        "window_frac": 0.4,
+        "delta": 0.4,
+        "n": 193,
+        "spearman_rho_T_eta": -0.0603
+      },
+      {
+        "window_frac": 0.5,
+        "delta": 0.5,
+        "n": 210,
+        "spearman_rho_T_eta": -0.2667
+      }
+    ]
+  },
+  "methodology_note": "chi_emp is computed from Var(eta) / T_c within the critical window. This differs from thermodynamics.py's chi_synthetic which uses a local delta around eta and T_c analytically. Agreement between these two is a validation target for the thermodynamic analogy."
+}

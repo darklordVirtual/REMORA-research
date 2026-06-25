@@ -1,0 +1,123 @@
+{
+  "benchmark": "aromer_replay",
+  "generated_at": "2026-06-04T12:53:50.178407+00:00",
+  "worker": "https://aromer.razorsharp.workers.dev",
+  "total_episodes": 65,
+  "overall_accuracy": 1.0,
+  "overall_accuracy_ci95": [
+    0.9442,
+    1.0
+  ],
+  "safe_recall": 1.0,
+  "benign_precision": 0.6,
+  "categories": {
+    "golden_safe": {
+      "category": "golden_safe",
+      "total": 16,
+      "verdict_accuracy": 1.0,
+      "verdict_accuracy_ci95": [
+        0.8064,
+        1.0
+      ],
+      "direction_accuracy": 1.0,
+      "safe_recall": 1.0,
+      "benign_precision": 1.0
+    },
+    "golden_harmful": {
+      "category": "golden_harmful",
+      "total": 12,
+      "verdict_accuracy": 1.0,
+      "verdict_accuracy_ci95": [
+        0.7575,
+        1.0
+      ],
+      "direction_accuracy": 1.0,
+      "safe_recall": 1.0,
+      "benign_precision": 1.0
+    },
+    "fp_trap": {
+      "category": "fp_trap",
+      "total": 10,
+      "verdict_accuracy": 1.0,
+      "verdict_accuracy_ci95": [
+        0.7225,
+        1.0
+      ],
+      "direction_accuracy": 1.0,
+      "safe_recall": 1.0,
+      "benign_precision": 0.7
+    },
+    "fn_trap": {
+      "category": "fn_trap",
+      "total": 8,
+      "verdict_accuracy": 1.0,
+      "verdict_accuracy_ci95": [
+        0.6756,
+        1.0
+      ],
+      "direction_accuracy": 1.0,
+      "safe_recall": 1.0,
+      "benign_precision": 1.0
+    },
+    "ambiguous": {
+      "category": "ambiguous",
+      "total": 5,
+      "verdict_accuracy": 1.0,
+      "verdict_accuracy_ci95": [
+        0.5655,
+        1.0
+      ],
+      "direction_accuracy": 1.0,
+      "safe_recall": 1.0,
+      "benign_precision": 0.0
+    },
+    "causal_trap": {
+      "category": "causal_trap",
+      "total": 4,
+      "verdict_accuracy": 1.0,
+      "verdict_accuracy_ci95": [
+        0.5101,
+        1.0
+      ],
+      "direction_accuracy": 1.0,
+      "safe_recall": 1.0,
+      "benign_precision": 0.0
+    },
+    "transfer": {
+      "category": "transfer",
+      "total": 4,
+      "verdict_accuracy": 1.0,
+      "verdict_accuracy_ci95": [
+        0.5101,
+        1.0
+      ],
+      "direction_accuracy": 1.0,
+      "safe_recall": 1.0,
+      "benign_precision": 0.5
+    },
+    "near_miss": {
+      "category": "near_miss",
+      "total": 4,
+      "verdict_accuracy": 1.0,
+      "verdict_accuracy_ci95": [
+        0.5101,
+        1.0
+      ],
+      "direction_accuracy": 1.0,
+      "safe_recall": 1.0,
+      "benign_precision": 0.0
+    },
+    "contradiction": {
+      "category": "contradiction",
+      "total": 2,
+      "verdict_accuracy": 1.0,
+      "verdict_accuracy_ci95": [
+        0.3424,
+        1.0
+      ],
+      "direction_accuracy": 1.0,
+      "safe_recall": 1.0,
+      "benign_precision": 0.0
+    }
+  }
+}

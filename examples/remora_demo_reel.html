@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>REMORA — Demo Reel</title>
+<!--
+  REMORA LinkedIn demo reel — a self-contained, auto-playing motion sequence.
+  No dependencies, works offline. Designed to be screen-recorded at 1080x1080
+  (LinkedIn square) or 1920x1080. Open in a browser; it plays and loops.
+
+  Every number on screen is transcribed from paper/remora_paper.pdf WITH its
+  caveat (Wilson CI, held-out, p-value) — honest by design.
+
+  Controls:  Space = pause/resume · R = restart · F = fullscreen
+-->
+<style>
+  :root{
+    --bg:#070a0f; --bg2:#0b1018; --ink:#eef2f7; --mut:#8a97a8; --mut2:#5b6675;
+    --signal:#4c8dff;
+    --accept:#34d399; --verify:#fbbf24; --abstain:#94a3b8; --escalate:#fb5a5a;
+    --line:rgba(255,255,255,.08);
+    --serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Menlo","Consolas",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--mono);
+    overflow:hidden; display:grid; place-items:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* Square stage by default; record this region. Scales to viewport. */
+  #stage{
+    position:relative;
+    width:min(100vw,100vh); height:min(100vw,100vh);
+    max-width:1080px; max-height:1080px;
+    background:radial-gradient(120% 120% at 50% 0%,var(--bg2) 0%,var(--bg) 60%);
+    overflow:hidden;
+  }
+  /* animated grid + vignette + glow */
+  #stage::before{
+    content:""; position:absolute; inset:0;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),
+                     linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(80% 80% at 50% 45%,#000 30%,transparent 80%);
+    opacity:.5; animation:drift 18s linear infinite;
+  }
+  #stage::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    box-shadow:inset 0 0 200px 40px rgba(0,0,0,.6);
+  }
+  @keyframes drift{from{background-position:0 0}to{background-position:44px 44px}}
+  .glow{
+    position:absolute; left:50%; top:38%; transform:translate(-50%,-50%);
+    width:680px; height:680px; border-radius:50%;
+    background:radial-gradient(circle,rgba(76,141,255,.14),transparent 62%);
+    filter:blur(20px); pointer-events:none; transition:opacity 1.2s, background 1.2s;
+  }
+
+  /* scenes */
+  .scene{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:7%;
+    opacity:0; transform:translateY(14px) scale(.992);
+    transition:opacity .7s ease, transform .7s ease;
+    pointer-events:none;
+  }
+  .scene.active{opacity:1; transform:none}
+
+  .kicker{font-size:1.05vmin; letter-spacing:.42em; text-transform:uppercase; color:var(--mut2); margin-bottom:3.2vmin}
+  .display{font-family:var(--serif); line-height:1.05; letter-spacing:-.01em}
+  .sub{color:var(--mut); font-size:1.9vmin; line-height:1.6; max-width:62ch; margin-top:3vmin}
+  .mono-sm{font-size:1.5vmin; color:var(--mut2); letter-spacing:.04em}
+
+  /* reveal helpers */
+  .r{opacity:0; transform:translateY(10px); transition:opacity .6s,transform .6s}
+  .active .r{opacity:1; transform:none}
+  .d1{transition-delay:.15s}.d2{transition-delay:.45s}.d3{transition-delay:.8s}
+  .d4{transition-delay:1.15s}.d5{transition-delay:1.5s}.d6{transition-delay:2s}
+  .d7{transition-delay:2.6s}.d8{transition-delay:3.2s}.d9{transition-delay:3.8s}
+
+  /* S1 — terminal hook */
+  .term{
+    width:80%; max-width:760px; text-align:left;
+    border:1px solid var(--line); border-radius:10px; overflow:hidden;
+    background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);
+    box-shadow:0 30px 80px -30px rgba(0,0,0,.8);
+  }
+  .term .bar{display:flex; gap:8px; padding:13px 16px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.02)}
+  .term .bar i{width:11px;height:11px;border-radius:50%;background:#2a3340;display:inline-block}
+  .term .body{padding:26px 24px 30px; font-size:2.2vmin; line-height:1.7}
+  .term .who{color:var(--mut2)}
+  .term .cmd{color:#ffd7d7}
+  .caret{display:inline-block;width:.62ch;height:1.25em;background:var(--escalate);vertical-align:-.22em;margin-left:2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .tag-danger{display:inline-block;margin-top:18px;font-size:1.35vmin;letter-spacing:.22em;text-transform:uppercase;color:var(--escalate);border:1px solid rgba(251,90,90,.35);padding:4px 10px;border-radius:4px}
+
+  /* S3 — pipeline */
+  .pipe{display:flex; flex-direction:column; gap:2.6vmin; width:78%; max-width:720px}
+  .row{display:flex; align-items:center; gap:2.4vmin; text-align:left}
+  .row .lab{width:30%; font-size:1.5vmin; color:var(--mut); text-transform:uppercase; letter-spacing:.12em}
+  .bars{flex:1; display:flex; flex-direction:column; gap:9px}
+  .barline{height:13px; background:rgba(255,255,255,.05); border-radius:7px; overflow:hidden; position:relative}
+  .barfill{height:100%; width:0; border-radius:7px; transition:width 1.1s cubic-bezier(.22,1,.36,1)}
+  .barfill.esc{background:linear-gradient(90deg,var(--escalate),#ff8a8a)}
+  .barfill.ver{background:linear-gradient(90deg,var(--verify),#ffd97a)}
+  .chip{font-size:1.4vmin; padding:5px 11px; border-radius:6px; border:1px solid var(--line); color:var(--mut); white-space:nowrap}
+  .chip.hot{color:var(--escalate); border-color:rgba(251,90,90,.4); background:rgba(251,90,90,.06)}
+  .verdict{
+    margin-top:1vmin; font-family:var(--serif); font-size:8vmin; letter-spacing:.02em;
+    color:var(--escalate); text-shadow:0 0 40px rgba(251,90,90,.35);
+    opacity:0; transform:scale(.8); transition:opacity .5s, transform .5s cubic-bezier(.2,1.4,.4,1)
+  }
+  .active .verdict.show{opacity:1; transform:none}
+
+  /* S4 — four outcomes */
+  .grid4{display:grid; grid-template-columns:repeat(2,1fr); gap:2.4vmin; width:80%; max-width:760px; margin-top:1vmin}
+  .out{border:1px solid var(--line); border-top-width:3px; border-radius:8px; padding:3vmin 2.4vmin; text-align:left; background:rgba(255,255,255,.015)}
+  .out .nm{font-size:2.6vmin; letter-spacing:.18em; font-weight:600}
+  .out .ds{font-size:1.45vmin; color:var(--mut); margin-top:.8vmin; line-height:1.5}
+  .out.accept{border-top-color:var(--accept)} .out.accept .nm{color:var(--accept)}
+  .out.verify{border-top-color:var(--verify)} .out.verify .nm{color:var(--verify)}
+  .out.abstain{border-top-color:var(--abstain)} .out.abstain .nm{color:var(--abstain)}
+  .out.escalate{border-top-color:var(--escalate)} .out.escalate .nm{color:var(--escalate)}
+
+  /* S5 — proof */
+  .proof{display:grid; grid-template-columns:repeat(2,1fr); gap:0; width:82%; max-width:780px; border:1px solid var(--line)}
+  .stat{padding:3.6vmin 3vmin; border:1px solid var(--line); margin:-.5px}
+  .stat .big{font-family:var(--serif); font-size:7.4vmin; line-height:1; color:var(--signal); text-shadow:0 0 30px rgba(76,141,255,.25)}
+  .stat .lab{font-size:1.5vmin; text-transform:uppercase; letter-spacing:.1em; color:var(--ink); margin-top:1.2vmin}
+  .stat .cav{font-size:1.25vmin; color:var(--mut2); margin-top:.7vmin; line-height:1.5}
+
+  /* S6 — CTA */
+  .brand{font-family:var(--serif); font-size:11vmin; letter-spacing:.04em}
+  .repo{
+    margin-top:3vmin; font-size:2.6vmin; color:var(--signal);
+    border:1px solid rgba(76,141,255,.4); border-radius:8px; padding:1.6vmin 3vmin;
+    background:rgba(76,141,255,.06); box-shadow:0 0 40px -10px rgba(76,141,255,.4)
+  }
+  .cta-line{margin-top:3vmin; color:var(--mut); font-size:1.9vmin; letter-spacing:.02em}
+
+  /* progress + watermark */
+  #prog{position:absolute; left:0; bottom:0; height:3px; width:0; background:linear-gradient(90deg,var(--signal),#8fb8ff); box-shadow:0 0 14px rgba(76,141,255,.6); z-index:5}
+  #wm{position:absolute; right:18px; top:14px; font-size:1.15vmin; letter-spacing:.34em; text-transform:uppercase; color:var(--mut2); z-index:5}
+  #wm b{color:var(--ink); font-weight:600}
+  #hint{position:absolute; left:18px; bottom:14px; font-size:1.1vmin; color:var(--mut2); z-index:5; opacity:.7}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="glow" id="glow"></div>
+  <div id="wm"><b>REMORA</b> · AI ASSURANCE LAYER</div>
+
+  <!-- S1 HOOK -->
+  <section class="scene" data-i="0">
+    <div class="kicker r d1">An autonomous AI agent just decided to&nbsp;run&nbsp;this</div>
+    <div class="term r d2">
+      <div class="bar"><i></i><i></i><i></i></div>
+      <div class="body">
+        <div class="who">agent@prod&nbsp;~&nbsp;$</div>
+        <div class="cmd"><span id="typed"></span><span class="caret"></span></div>
+        <div class="tag-danger r d6">production · irreversible · no human in the loop</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S2 STAKES -->
+  <section class="scene" data-i="1">
+    <div class="display r d1" style="font-size:6.4vmin">A wrong sentence is<br><span style="color:var(--mut2)">embarrassing.</span></div>
+    <div class="display r d4" style="font-size:6.4vmin; margin-top:3vmin">A wrong <span style="color:var(--escalate)">action</span> is<br><span style="color:var(--escalate)">irreversible.</span></div>
+  </section>
+
+  <!-- S3 INTERCEPT -->
+  <section class="scene" data-i="2">
+    <div class="kicker r d1">REMORA evaluates the action — before it executes</div>
+    <div class="pipe">
+      <div class="row r d2">
+        <div class="lab">Multi-oracle<br>consensus</div>
+        <div class="bars">
+          <div class="barline"><div class="barfill esc" data-w="71%"></div></div>
+          <div class="barline"><div class="barfill ver" data-w="29%"></div></div>
+        </div>
+      </div>
+      <div class="row r d4">
+        <div class="lab">Uncertainty</div>
+        <div style="display:flex;gap:1.2vmin;flex-wrap:wrap">
+          <span class="chip">entropy H = 0.87 bits</span>
+          <span class="chip">dissensus D = 0.29</span>
+          <span class="chip hot">phase = CRITICAL</span>
+        </div>
+      </div>
+      <div class="row r d6">
+        <div class="lab">Policy gate</div>
+        <div style="display:flex;gap:1.2vmin;flex-wrap:wrap">
+          <span class="chip hot">hard block #6 — critical phase + critical risk</span>
+          <span class="chip">policy overrides consensus</span>
+        </div>
+      </div>
+    </div>
+    <div class="verdict" id="verdict">ESCALATE →&nbsp;human</div>
+    <div class="mono-sm r d9" style="margin-top:1.6vmin">decision hash-chained · follow-up issued · SLA 4h</div>
+  </section>
+
+  <!-- S4 FOUR OUTCOMES -->
+  <section class="scene" data-i="3">
+    <div class="kicker r d1">Every agent action → one of four governed outcomes</div>
+    <div class="grid4">
+      <div class="out accept r d2"><div class="nm">ACCEPT</div><div class="ds">assurance conditions met — proceed autonomously</div></div>
+      <div class="out verify r d3"><div class="nm">VERIFY</div><div class="ds">plausible, validation required before execution</div></div>
+      <div class="out abstain r d4"><div class="nm">ABSTAIN</div><div class="ds">uncertainty too high to decide — hold</div></div>
+      <div class="out escalate r d5"><div class="nm">ESCALATE</div><div class="ds">routed to a human, with the evidence required</div></div>
+    </div>
+    <div class="sub r d7" style="margin-top:3.4vmin">A confident, <i>wrong</i> majority can’t push an unsafe action through.<br><b style="color:var(--ink)">Policy overrides consensus. Always.</b></div>
+  </section>
+
+  <!-- S5 PROOF -->
+  <section class="scene" data-i="4">
+    <div class="kicker r d1">Measured. Held-out. Honestly scoped.</div>
+    <div class="proof">
+      <div class="stat r d2"><div class="big" data-count="0" data-suffix="%">0</div><div class="lab">unsafe execution</div><div class="cav">700 adversarial tool-call tasks · Wilson CI [0, 0.55%] · baselines 10–20%</div></div>
+      <div class="stat r d3"><div class="big" data-count="88" data-suffix="%">0</div><div class="lab">selective accuracy, held-out</div><div class="cav">locked threshold, out-of-sample · p = 1.45×10⁻⁵</div></div>
+      <div class="stat r d4"><div class="big" data-count="99.9" data-suffix="%">0</div><div class="lab">ordered-phase conformal coverage</div><div class="cav">0 of 20 calibration seeds failed</div></div>
+      <div class="stat r d5"><div class="big" style="font-size:5.4vmin">SHA-256</div><div class="lab">tamper-evident audit chain</div><div class="cav">every decision hash-linked to the last</div></div>
+    </div>
+  </section>
+
+  <!-- S6 CTA -->
+  <section class="scene" data-i="5">
+    <div class="kicker r d1">Governed autonomy — open, tested, documented</div>
+    <div class="brand r d2">REMORA</div>
+    <div class="repo r d4">github.com/darklordVirtual/REMORA</div>
+    <div class="cta-line r d6">Read the paper · run the live demo · tell us where we’re wrong.</div>
+  </section>
+
+  <div id="prog"></div>
+  <div id="hint">space pause · R restart · F fullscreen</div>
+</div>
+
+<script>
+(() => {
+  const scenes = [...document.querySelectorAll('.scene')];
+  const prog = document.getElementById('prog');
+  const glow = document.getElementById('glow');
+  const typed = document.getElementById('typed');
+  const verdict = document.getElementById('verdict');
+
+  // Scene timeline (ms). Tuned to ~45s total for a LinkedIn-friendly length.
+  const TL = [4600, 4600, 11200, 9800, 11000, 9200];
+  const TOTAL = TL.reduce((a,b)=>a+b,0);
+  const CMD = 'wire €95,000 to new supplier IBAN DE89… — skip approval';
+
+  // glow tint per scene (subtle mood shift)
+  const TINT = [
+    'rgba(251,90,90,.13)',  // hook - red
+    'rgba(251,90,90,.10)',  // stakes
+    'rgba(251,90,90,.14)',  // intercept
+    'rgba(76,141,255,.12)', // four outcomes - blue
+    'rgba(76,141,255,.16)', // proof
+    'rgba(76,141,255,.18)', // cta
+  ];
+
+  let idx=-1, paused=false, started=0, raf=0, sceneTimer=0, sceneStart=0, remaining=0;
+
+  function setGlow(i){ glow.style.background = `radial-gradient(circle,${TINT[i]},transparent 62%)`; }
+
+  function typeCmd(){
+    typed.textContent=''; let i=0;
+    const iv=setInterval(()=>{
+      if(paused) return;
+      typed.textContent = CMD.slice(0, ++i);
+      if(i>=CMD.length) clearInterval(iv);
+    }, 52);
+  }
+
+  function animateBars(sec){
+    sec.querySelectorAll('.barfill').forEach(b=>{ b.style.width='0'; });
+    setTimeout(()=> sec.querySelectorAll('.barfill').forEach(b=> b.style.width=b.dataset.w), 700);
+  }
+  function showVerdict(){ setTimeout(()=> verdict.classList.add('show'), 4200); }
+  function resetVerdict(){ verdict.classList.remove('show'); }
+
+  function countUp(sec){
+    sec.querySelectorAll('[data-count]').forEach(el=>{
+      const target=parseFloat(el.dataset.count), suf=el.dataset.suffix||'';
+      const dec = (el.dataset.count.indexOf('.')>-1)?1:0;
+      const t0=performance.now(), dur=1400, delay=300;
+      function step(t){
+        const p=Math.min(1,Math.max(0,(t-t0-delay)/dur));
+        const e=1-Math.pow(1-p,3);
+        el.textContent=(target*e).toFixed(dec)+suf;
+        if(p<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  function enter(i){
+    scenes.forEach(s=>s.classList.remove('active'));
+    const sec=scenes[i]; sec.classList.add('active'); setGlow(i);
+    if(i===0) typeCmd();
+    if(i===2){ resetVerdict(); animateBars(sec); showVerdict(); }
+    if(i===4) countUp(sec);
+  }
+
+  function next(){
+    idx=(idx+1)%scenes.length;
+    if(idx===0) started=performance.now();
+    sceneStart=performance.now();
+    enter(idx);
+    clearTimeout(sceneTimer);
+    sceneTimer=setTimeout(next, TL[idx]);
+  }
+
+  // progress bar across the full reel loop
+  function tick(now){
+    if(!paused){
+      const since=now-started;
+      prog.style.width=(Math.min(1, since/TOTAL)*100)+'%';
+    }
+    raf=requestAnimationFrame(tick);
+  }
+
+  // controls: Space pause/resume, R restart, F fullscreen
+  document.addEventListener('keydown',e=>{
+    if(e.code==='Space'){ e.preventDefault();
+      if(!paused){ paused=true; clearTimeout(sceneTimer); remaining=TL[idx]-(performance.now()-sceneStart); }
+      else { paused=false; sceneStart=performance.now()-(TL[idx]-Math.max(300,remaining)); sceneTimer=setTimeout(next, Math.max(300,remaining)); }
+    }
+    if(e.key==='r'||e.key==='R'){ clearTimeout(sceneTimer); idx=-1; paused=false; next(); }
+    if(e.key==='f'||e.key==='F'){ const el=document.getElementById('stage'); (document.fullscreenElement?document.exitFullscreen():el.requestFullscreen()); }
+  });
+
+  // Still-frame mode: ?scene=N freezes on one scene fully revealed (for exporting
+  // thumbnails / OpenGraph cards). Otherwise the reel auto-plays and loops.
+  const params=new URLSearchParams(location.search);
+  if(params.has('scene')){
+    const i=Math.max(0,Math.min(scenes.length-1,parseInt(params.get('scene'),10)||0));
+    const fz=document.createElement('style');
+    fz.textContent=`.scene .r{transition:none!important} #prog{transition:none!important}`;
+    document.head.appendChild(fz);
+    scenes.forEach(s=>s.classList.remove('active'));
+    const sec=scenes[i]; sec.classList.add('active'); setGlow(i);
+    prog.style.width=((i+1)/scenes.length*100)+'%';
+    if(i===0){ typed.textContent=CMD; }
+    if(i===2){ sec.querySelectorAll('.barfill').forEach(b=>b.style.width=b.dataset.w); verdict.classList.add('show'); }
+    if(i===4){ const els=sec.querySelectorAll('[data-count]'); els[0].textContent='0%'; els[1].textContent='88%'; els[2].textContent='99.9%'; }
+  } else {
+    started=performance.now(); next(); raf=requestAnimationFrame(tick);
+  }
+})();
+</script>
+</body>
+</html>

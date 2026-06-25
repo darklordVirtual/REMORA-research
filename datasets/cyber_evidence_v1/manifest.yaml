@@ -1,0 +1,53 @@
+dataset_name: cyber_evidence_v1
+version: 1.0.0
+description: >
+  Public REMORA cyber evidence pack for security finding triage, exact cyber
+  identifier lookup, RAG/vector seeding, and benchmark demos.
+proprietary_boundary:
+  contains_proprietary_scanner_data: false
+  contains_private_findings: false
+  optional_commercial_extensions: true
+  note: >
+    Proprietary scanners may later provide candidate findings to this evidence
+    layer, but this dataset remains public and scanner-independent.
+files:
+  evidence:
+    - evidence/cyber_evidence_objects.jsonl
+  cases:
+    - cases/security_cases.jsonl
+  expected_decisions:
+    - expected_decisions/cyber_expected_decisions.jsonl
+  policies:
+    - policies/cyber_triage_rules.yaml
+  vectors:
+    - vectors/vectorization_manifest.json
+  scripts:
+    - scripts/validate_cyber_evidence.py
+sources:
+  - id: nvd
+    name: National Vulnerability Database
+    url: https://nvd.nist.gov/developers/vulnerabilities
+    use: CVE and CVSS metadata
+  - id: cisa_kev
+    name: CISA Known Exploited Vulnerabilities Catalog
+    url: https://www.cisa.gov/known-exploited-vulnerabilities-catalog
+    use: Known exploited status and remediation prioritization
+  - id: first_epss
+    name: FIRST EPSS
+    url: https://www.first.org/epss/
+    use: Exploit probability signal
+  - id: mitre_attack
+    name: MITRE ATT&CK
+    url: https://attack.mitre.org/resources/attack-data-and-tools/
+    use: Attack technique mapping
+  - id: cwe
+    name: Common Weakness Enumeration
+    url: https://cwe.mitre.org/data/downloads
+    use: Weakness taxonomy
+  - id: github_advisory_database
+    name: GitHub Advisory Database
+    url: https://github.com/advisories
+    use: Open source package advisory context
+license_notes:
+  dataset: Apache-2.0 for REMORA-authored summaries and examples
+  third_party: Respect source-specific licenses and trademarks

@@ -1,0 +1,55 @@
+{
+  "profile_a": {
+    "n_total": 85,
+    "n_harmful": 40,
+    "n_benign": 45,
+    "false_accept_rate": 0.0,
+    "false_block_rate": 0.0222,
+    "review_friction": 0.2889,
+    "correct_intercept_rate": 1.0,
+    "coverage": 1.0,
+    "verdict_accuracy": 0.9647
+  },
+  "profile_b": {
+    "n_total": 85,
+    "n_harmful": 40,
+    "n_benign": 45,
+    "false_accept_rate": 0.0,
+    "false_block_rate": 0.0222,
+    "review_friction": 0.2889,
+    "correct_intercept_rate": 1.0,
+    "coverage": 1.0,
+    "verdict_accuracy": 0.9647
+  },
+  "profile_c": {
+    "n_total": 85,
+    "n_harmful": 40,
+    "n_benign": 45,
+    "false_accept_rate": 0.0,
+    "false_block_rate": 0.0222,
+    "review_friction": 0.2889,
+    "correct_intercept_rate": 1.0,
+    "coverage": 1.0,
+    "verdict_accuracy": 0.9647
+  },
+  "c_vs_a": {
+    "false_accept_rate": 0.0,
+    "false_block_rate": 0.0,
+    "review_friction": 0.0,
+    "correct_intercept_rate": 0.0,
+    "coverage": 0.0,
+    "verdict_accuracy": 0.0
+  },
+  "c_vs_b": {
+    "false_accept_rate": 0.0,
+    "false_block_rate": 0.0,
+    "review_friction": 0.0,
+    "correct_intercept_rate": 0.0,
+    "coverage": 0.0,
+    "verdict_accuracy": 0.0
+  },
+  "success": false,
+  "timestamp": "2026-06-07T22:06:55.905504+00:00",
+  "n_seed_episodes": 68,
+  "n_eval_cases": 85
+}

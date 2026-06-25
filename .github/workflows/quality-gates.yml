@@ -1,0 +1,98 @@
+name: Quality Gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install package and test deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Generate canonical results snapshot
+        run: python scripts/generate_results_snapshot.py
+
+      - name: Verify claim consistency
+        run: python scripts/check_claim_consistency.py
+
+      - name: Run tests with coverage
+        run: pytest -q --cov=remora --cov-report=term-missing --cov-fail-under=60
+
+      - name: Safety gate (false accept rate must be zero)
+        run: |
+          python -m remora.aromer.evals.replay_runner --json | python scripts/check_safety_gate.py
+
+      - name: Quality report
+        run: python scripts/quality_report.py
+
+      - name: Install frontend deps
+        working-directory: frontend
+        # The committed package-lock.json is missing some Linux-only optional
+        # transitive deps (@emnapi/*), so strict `npm ci` fails on the Linux
+        # runner. `npm install` tolerates this and resolves them. Regenerate the
+        # lockfile on Linux (`cd frontend && npm install`) to restore `npm ci`.
+        run: npm install --no-audit --no-fund
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Test frontend
+        working-directory: frontend
+        run: npm run test
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+  replay-heavy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install package and test deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run heavy live replay tests
+        run: |
+          pytest -q -m live_replay_heavy \
+            tests/test_toolcall_live_exec_results.py \
+            tests/test_toolcall_live_cache_replay.py

@@ -1,0 +1,287 @@
+[
+  {
+    "label": "D2_balanced",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4, router=balanced)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 75,
+    "route_rate": 1.0,
+    "mean_oracle_calls": 3.0
+  },
+  {
+    "label": "E1_noneg_b",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4, router=balanced)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 75,
+    "route_rate": 1.0,
+    "mean_oracle_calls": 3.0
+  },
+  {
+    "label": "E10_iter2_h85",
+    "genome_summary": "Genome(iter=2, sub_q=1, conv=0.72, λ=0.4, router=hybrid)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 69,
+    "route_rate": 0.92,
+    "mean_oracle_calls": 3.48
+  },
+  {
+    "label": "E5_noneg_h70",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4, router=hybrid)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 71,
+    "route_rate": 0.947,
+    "mean_oracle_calls": 3.64
+  },
+  {
+    "label": "E11_iter3_h85",
+    "genome_summary": "Genome(iter=3, sub_q=1, conv=0.72, λ=0.4, router=hybrid)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 69,
+    "route_rate": 0.92,
+    "mean_oracle_calls": 3.72
+  },
+  {
+    "label": "D3_hybrid_80",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4, router=hybrid)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 70,
+    "route_rate": 0.933,
+    "mean_oracle_calls": 3.8
+  },
+  {
+    "label": "E2_noneg_h80",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4, router=hybrid)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 70,
+    "route_rate": 0.933,
+    "mean_oracle_calls": 3.8
+  },
+  {
+    "label": "E3_noneg_h85",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4, router=hybrid)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 69,
+    "route_rate": 0.92,
+    "mean_oracle_calls": 3.96
+  },
+  {
+    "label": "E8_conv80_h85",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.8, λ=0.4, router=hybrid)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 69,
+    "route_rate": 0.92,
+    "mean_oracle_calls": 3.96
+  },
+  {
+    "label": "E9_conv85_h85",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.85, λ=0.4, router=hybrid)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 69,
+    "route_rate": 0.92,
+    "mean_oracle_calls": 3.96
+  },
+  {
+    "label": "E12_neg10_h85",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4, router=hybrid)",
+    "overall": 0.96,
+    "correct": 72,
+    "n": 75,
+    "ci_95": [
+      0.889,
+      0.986
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.96,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 69,
+    "route_rate": 0.92,
+    "mean_oracle_calls": 3.96
+  },
+  {
+    "label": "E4_noneg_h90",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4, router=hybrid)",
+    "overall": 0.9467,
+    "correct": 71,
+    "n": 75,
+    "ci_95": [
+      0.871,
+      0.979
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.92,
+      "sci_ext": 0.96,
+      "fact_ext": 0.96
+    },
+    "n_routed": 58,
+    "route_rate": 0.773,
+    "mean_oracle_calls": 5.72
+  },
+  {
+    "label": "E6_noneg_strict",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4, router=strict)",
+    "overall": 0.9067,
+    "correct": 68,
+    "n": 75,
+    "ci_95": [
+      0.82,
+      0.954
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.92,
+      "sci_ext": 0.96,
+      "fact_ext": 0.84
+    },
+    "n_routed": 56,
+    "route_rate": 0.747,
+    "mean_oracle_calls": 6.04
+  },
+  {
+    "label": "C_baseline",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4)",
+    "overall": 0.8933,
+    "correct": 67,
+    "n": 75,
+    "ci_95": [
+      0.803,
+      0.945
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.88,
+      "sci_ext": 0.96,
+      "fact_ext": 0.84
+    },
+    "n_routed": 0,
+    "route_rate": 0.0,
+    "mean_oracle_calls": 9.84
+  },
+  {
+    "label": "E7_noneg_full",
+    "genome_summary": "Genome(iter=4, sub_q=1, conv=0.72, λ=0.4)",
+    "overall": 0.8933,
+    "correct": 67,
+    "n": 75,
+    "ci_95": [
+      0.803,
+      0.945
+    ],
+    "per_benchmark": {
+      "dce_ext": 0.88,
+      "sci_ext": 0.96,
+      "fact_ext": 0.84
+    },
+    "n_routed": 0,
+    "route_rate": 0.0,
+    "mean_oracle_calls": 9.84
+  }
+]

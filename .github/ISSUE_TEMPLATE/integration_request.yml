@@ -1,0 +1,59 @@
+name: Integration request
+description: Ask about wiring REMORA into an agent stack (MCP, LangGraph, OpenAI tool use, custom).
+title: "[integration] "
+labels: ["integration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Want to put REMORA in front of your agent's tool calls? Tell us about your
+        stack. Existing adapters live in `examples/`. For production integration
+        help, see `docs/commercial-packaging.md`.
+  - type: dropdown
+    id: stack
+    attributes:
+      label: Agent stack
+      options:
+        - MCP (Model Context Protocol)
+        - LangGraph
+        - LangChain
+        - OpenAI tool calling
+        - Claude Code / Claude tool use
+        - AutoGen / CrewAI
+        - Custom / in-house
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: usecase
+    attributes:
+      label: What actions do your agents take?
+      description: The kinds of tool calls you want governed (database writes, payments, infra changes, etc.).
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: How do you want to run it first?
+      options:
+        - Shadow Mode (observe decisions, do not enforce)
+        - Enforcing gate (block/route actions)
+        - Not sure yet
+    validations:
+      required: true
+  - type: textarea
+    id: blockers
+    attributes:
+      label: What is blocking you?
+      description: Missing adapter, unclear docs, a policy question, an environment constraint.
+  - type: dropdown
+    id: context
+    attributes:
+      label: Context
+      options:
+        - Personal / side project
+        - Open-source project
+        - Company, exploring
+        - Company, production-bound (may need support)
+    validations:
+      required: true

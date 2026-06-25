@@ -1,0 +1,2732 @@
+{
+  "metadata": {
+    "experiment": "rag_critical_router_v1",
+    "dataset": "nyu-mll/multi_nli",
+    "split": "validation_matched",
+    "dataset_note": "FEVER (copenlu/fever) is unavailable on HuggingFace Hub (deprecated dataset scripts). MultiNLI is used as an equivalent evidence-verification dataset: entailment→SUPPORTS, neutral→NEI, contradiction→REFUTES.",
+    "remora_version": "0.6.0"
+  },
+  "metrics": {
+    "n_total": 3000,
+    "label_distribution": {
+      "neutral": 933,
+      "contradiction": 1025,
+      "entailment": 1042
+    },
+    "action_distribution": {
+      "escalate": 1844,
+      "abstain": 852,
+      "evidence_accept": 304
+    },
+    "action_by_label": {
+      "entailment": {
+        "escalate": 735,
+        "evidence_accept": 304,
+        "abstain": 3
+      },
+      "neutral": {
+        "escalate": 930,
+        "abstain": 3
+      },
+      "contradiction": {
+        "abstain": 846,
+        "escalate": 179,
+        "evidence_accept": 0
+      }
+    },
+    "resolution_rate": 0.3853,
+    "escalation_reduction_vs_baseline": 0.3853,
+    "evidence_accept": {
+      "n": 304,
+      "precision_entailment": 1.0,
+      "false_accept_rate_contradiction": 0.0,
+      "oracle_accuracy_simulated": 0.727
+    },
+    "abstain": {
+      "n": 852,
+      "precision_contradiction": 0.993
+    },
+    "trust_only_baseline": {
+      "description": "All critical-phase items escalated; 0 % coverage, oracle accuracy on accepted = N/A (none accepted)",
+      "resolution_rate": 0.0,
+      "evidence_accept_precision": NaN
+    },
+    "router_config": {
+      "accept_threshold": 0.8,
+      "contradiction_limit": 0.15,
+      "contradiction_floor": 0.5,
+      "coverage_minimum": 0.5,
+      "reliability_minimum": 0.6
+    },
+    "risk_coverage_curve": [
+      {
+        "threshold": 0.5,
+        "coverage": 0.2067,
+        "risk": 0.0161,
+        "n_accepted": 620
+      },
+      {
+        "threshold": 0.55,
+        "coverage": 0.1967,
+        "risk": 0.0085,
+        "n_accepted": 590
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.1853,
+        "risk": 0.009,
+        "n_accepted": 556
+      },
+      {
+        "threshold": 0.65,
+        "coverage": 0.1737,
+        "risk": 0.0058,
+        "n_accepted": 521
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.1573,
+        "risk": 0.0021,
+        "n_accepted": 472
+      },
+      {
+        "threshold": 0.75,
+        "coverage": 0.137,
+        "risk": 0.0024,
+        "n_accepted": 411
+      },
+      {
+        "threshold": 0.8,
+        "coverage": 0.1103,
+        "risk": 0.0,
+        "n_accepted": 331
+      },
+      {
+        "threshold": 0.85,
+        "coverage": 0.077,
+        "risk": 0.0,
+        "n_accepted": 231
+      },
+      {
+        "threshold": 0.9,
+        "coverage": 0.0423,
+        "risk": 0.0,
+        "n_accepted": 127
+      },
+      {
+        "threshold": 0.95,
+        "coverage": 0.013,
+        "risk": 0.0,
+        "n_accepted": 39
+      },
+      {
+        "threshold": 1.0,
+        "coverage": 0.0,
+        "risk": null,
+        "n_accepted": 0
+      }
+    ]
+  },
+  "sample_items": [
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6097,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.2148,
+        "contradiction_score": 0.2171,
+        "citation_coverage": 0.3903,
+        "cross_evidence_consistency": 0.5831,
+        "source_reliability": 0.8781
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7923,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7761,
+        "contradiction_score": 0.7923,
+        "citation_coverage": 0.7657,
+        "cross_evidence_consistency": 0.6853,
+        "source_reliability": 0.8456
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6947,
+        "contradiction_score": 0.1778,
+        "citation_coverage": 0.7166,
+        "cross_evidence_consistency": 0.8846,
+        "source_reliability": 0.7728
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.9238,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8529,
+        "contradiction_score": 0.9238,
+        "citation_coverage": 0.6349,
+        "cross_evidence_consistency": 0.4858,
+        "source_reliability": 0.889
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8913,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6114,
+        "contradiction_score": 0.8913,
+        "citation_coverage": 0.7172,
+        "cross_evidence_consistency": 0.5303,
+        "source_reliability": 0.9447
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.9532,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.9334,
+        "contradiction_score": 0.9532,
+        "citation_coverage": 0.6217,
+        "cross_evidence_consistency": 0.3633,
+        "source_reliability": 0.8883
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.5524,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7381,
+        "contradiction_score": 0.9601,
+        "citation_coverage": 0.4476,
+        "cross_evidence_consistency": 0.7886,
+        "source_reliability": 0.9068
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6659,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.3465,
+        "contradiction_score": 0.1306,
+        "citation_coverage": 0.3341,
+        "cross_evidence_consistency": 0.2115,
+        "source_reliability": 0.7628
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7143,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6646,
+        "contradiction_score": 0.7143,
+        "citation_coverage": 0.6575,
+        "cross_evidence_consistency": 0.3284,
+        "source_reliability": 0.9794
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.766,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.5115,
+        "contradiction_score": 0.0669,
+        "citation_coverage": 0.234,
+        "cross_evidence_consistency": 0.8799,
+        "source_reliability": 0.8783
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7267,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6777,
+        "contradiction_score": 0.7267,
+        "citation_coverage": 0.5661,
+        "cross_evidence_consistency": 0.234,
+        "source_reliability": 0.9437
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8307,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8579,
+        "contradiction_score": 0.8307,
+        "citation_coverage": 0.9099,
+        "cross_evidence_consistency": 0.0693,
+        "source_reliability": 0.405
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.891,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8876,
+        "contradiction_score": 0.891,
+        "citation_coverage": 0.5594,
+        "cross_evidence_consistency": 0.2375,
+        "source_reliability": 0.8876
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.5807,
+        "contradiction_score": 0.0522,
+        "citation_coverage": 0.7918,
+        "cross_evidence_consistency": 0.9393,
+        "source_reliability": 0.9151
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.5568,
+        "contradiction_score": 0.2488,
+        "citation_coverage": 0.5061,
+        "cross_evidence_consistency": 0.7043,
+        "source_reliability": 0.7012
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.5642,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8044,
+        "contradiction_score": 0.0942,
+        "citation_coverage": 0.8148,
+        "cross_evidence_consistency": 0.7587,
+        "source_reliability": 0.9245
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.746,
+        "contradiction_score": 0.0779,
+        "citation_coverage": 0.776,
+        "cross_evidence_consistency": 0.7533,
+        "source_reliability": 0.8548
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.4693,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8317,
+        "contradiction_score": 0.053,
+        "citation_coverage": 0.8475,
+        "cross_evidence_consistency": 0.7172,
+        "source_reliability": 0.7867
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.8592,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7642,
+        "contradiction_score": 0.0969,
+        "citation_coverage": 0.1408,
+        "cross_evidence_consistency": 0.6335,
+        "source_reliability": 0.8295
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8069,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8034,
+        "contradiction_score": 0.8069,
+        "citation_coverage": 0.9251,
+        "cross_evidence_consistency": 0.2645,
+        "source_reliability": 0.7261
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.8968,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.1363,
+        "contradiction_score": 0.2542,
+        "citation_coverage": 0.1032,
+        "cross_evidence_consistency": 0.5521,
+        "source_reliability": 0.6972
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6516,
+        "contradiction_score": 0.1059,
+        "citation_coverage": 0.6894,
+        "cross_evidence_consistency": 0.7812,
+        "source_reliability": 0.9237
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.8505,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.2487,
+        "contradiction_score": 0.0756,
+        "citation_coverage": 0.1495,
+        "cross_evidence_consistency": 0.6624,
+        "source_reliability": 0.7337
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.7324,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.4421,
+        "contradiction_score": 0.289,
+        "citation_coverage": 0.2676,
+        "cross_evidence_consistency": 0.5593,
+        "source_reliability": 0.8927
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9323,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.5,
+        "contradiction_score": 0.5732,
+        "citation_coverage": 0.0677,
+        "cross_evidence_consistency": 0.5797,
+        "source_reliability": 0.937
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.6353,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7865,
+        "contradiction_score": 0.6353,
+        "citation_coverage": 0.501,
+        "cross_evidence_consistency": 0.378,
+        "source_reliability": 0.9269
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.683,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.1808,
+        "contradiction_score": 0.2633,
+        "citation_coverage": 0.317,
+        "cross_evidence_consistency": 0.6848,
+        "source_reliability": 0.8006
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7574,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.532,
+        "contradiction_score": 0.7574,
+        "citation_coverage": 0.8052,
+        "cross_evidence_consistency": 0.1229,
+        "source_reliability": 0.9675
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.4562,
+        "contradiction_score": 0.3331,
+        "citation_coverage": 0.5817,
+        "cross_evidence_consistency": 0.4747,
+        "source_reliability": 0.7751
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.7413,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.122,
+        "contradiction_score": 0.2211,
+        "citation_coverage": 0.2587,
+        "cross_evidence_consistency": 0.358,
+        "source_reliability": 0.8791
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.87,
+        "contradiction_score": 0.0248,
+        "citation_coverage": 0.7857,
+        "cross_evidence_consistency": 0.7096,
+        "source_reliability": 0.4943
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.7397,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9572,
+        "contradiction_score": 0.0886,
+        "citation_coverage": 0.6183,
+        "cross_evidence_consistency": 0.8476,
+        "source_reliability": 0.9117
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.5407,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6466,
+        "contradiction_score": 0.9174,
+        "citation_coverage": 0.4593,
+        "cross_evidence_consistency": 0.3802,
+        "source_reliability": 0.942
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.906,
+        "contradiction_score": 0.2044,
+        "citation_coverage": 0.8499,
+        "cross_evidence_consistency": 0.8181,
+        "source_reliability": 0.9553
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7875,
+        "contradiction_score": 0.0436,
+        "citation_coverage": 0.683,
+        "cross_evidence_consistency": 0.9823,
+        "source_reliability": 0.8059
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.0935,
+        "contradiction_score": 0.1686,
+        "citation_coverage": 0.6933,
+        "cross_evidence_consistency": 0.9101,
+        "source_reliability": 0.8129
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.7503,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.3197,
+        "contradiction_score": 0.5326,
+        "citation_coverage": 0.2497,
+        "cross_evidence_consistency": 0.6178,
+        "source_reliability": 0.9405
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7259,
+        "contradiction_score": 0.124,
+        "citation_coverage": 0.6642,
+        "cross_evidence_consistency": 0.8216,
+        "source_reliability": 0.8888
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9687,
+        "contradiction_score": 0.1778,
+        "citation_coverage": 0.6434,
+        "cross_evidence_consistency": 0.8756,
+        "source_reliability": 0.8897
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.9345,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6352,
+        "contradiction_score": 0.9345,
+        "citation_coverage": 0.7613,
+        "cross_evidence_consistency": 0.116,
+        "source_reliability": 0.6736
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.1503,
+        "contradiction_score": 0.2929,
+        "citation_coverage": 0.5077,
+        "cross_evidence_consistency": 0.8916,
+        "source_reliability": 0.6814
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.9591,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6734,
+        "contradiction_score": 0.9591,
+        "citation_coverage": 0.5716,
+        "cross_evidence_consistency": 0.3649,
+        "source_reliability": 0.8195
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5277,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8119,
+        "contradiction_score": 0.1978,
+        "citation_coverage": 0.4723,
+        "cross_evidence_consistency": 0.7197,
+        "source_reliability": 0.8972
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.6299,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8925,
+        "contradiction_score": 0.6299,
+        "citation_coverage": 0.9321,
+        "cross_evidence_consistency": 0.2204,
+        "source_reliability": 0.6907
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8421,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.963,
+        "contradiction_score": 0.8421,
+        "citation_coverage": 0.7796,
+        "cross_evidence_consistency": 0.378,
+        "source_reliability": 0.8778
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8149,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7818,
+        "contradiction_score": 0.8149,
+        "citation_coverage": 0.6614,
+        "cross_evidence_consistency": 0.1349,
+        "source_reliability": 0.8976
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8085,
+        "contradiction_score": 0.1673,
+        "citation_coverage": 0.7043,
+        "cross_evidence_consistency": 0.7113,
+        "source_reliability": 0.8846
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8003,
+        "contradiction_score": 0.2391,
+        "citation_coverage": 0.6191,
+        "cross_evidence_consistency": 0.8907,
+        "source_reliability": 0.8944
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6536,
+        "contradiction_score": 0.1714,
+        "citation_coverage": 0.6057,
+        "cross_evidence_consistency": 0.8297,
+        "source_reliability": 0.7999
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.5603,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9824,
+        "contradiction_score": 0.0841,
+        "citation_coverage": 0.8093,
+        "cross_evidence_consistency": 0.7647,
+        "source_reliability": 0.7458
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5438,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.1001,
+        "contradiction_score": 0.2719,
+        "citation_coverage": 0.4562,
+        "cross_evidence_consistency": 0.5659,
+        "source_reliability": 0.7757
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.6159,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.386,
+        "contradiction_score": 0.8372,
+        "citation_coverage": 0.3841,
+        "cross_evidence_consistency": 0.3046,
+        "source_reliability": 0.8801
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7195,
+        "contradiction_score": 0.1132,
+        "citation_coverage": 0.7923,
+        "cross_evidence_consistency": 0.8007,
+        "source_reliability": 0.8306
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.603,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.2847,
+        "contradiction_score": 0.0769,
+        "citation_coverage": 0.397,
+        "cross_evidence_consistency": 0.7395,
+        "source_reliability": 0.5815
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7551,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.5169,
+        "contradiction_score": 0.7551,
+        "citation_coverage": 0.6861,
+        "cross_evidence_consistency": 0.1251,
+        "source_reliability": 0.928
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9686,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.232,
+        "contradiction_score": 0.2911,
+        "citation_coverage": 0.0314,
+        "cross_evidence_consistency": 0.7018,
+        "source_reliability": 0.9334
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.6942,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8072,
+        "contradiction_score": 0.0163,
+        "citation_coverage": 0.6891,
+        "cross_evidence_consistency": 0.9498,
+        "source_reliability": 0.9055
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.5474,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.4239,
+        "contradiction_score": 0.5181,
+        "citation_coverage": 0.4526,
+        "cross_evidence_consistency": 0.4137,
+        "source_reliability": 0.873
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8807,
+        "contradiction_score": 0.4245,
+        "citation_coverage": 0.6948,
+        "cross_evidence_consistency": 0.5754,
+        "source_reliability": 0.9681
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.7042,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.0174,
+        "contradiction_score": 0.1685,
+        "citation_coverage": 0.2958,
+        "cross_evidence_consistency": 0.7471,
+        "source_reliability": 0.6888
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6771,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.3269,
+        "contradiction_score": 0.2273,
+        "citation_coverage": 0.3229,
+        "cross_evidence_consistency": 0.4693,
+        "source_reliability": 0.6856
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.3043,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8374,
+        "contradiction_score": 0.1124,
+        "citation_coverage": 0.5457,
+        "cross_evidence_consistency": 0.3946,
+        "source_reliability": 0.9207
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.4159,
+        "contradiction_score": 0.2132,
+        "citation_coverage": 0.7214,
+        "cross_evidence_consistency": 0.7544,
+        "source_reliability": 0.8184
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7782,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9157,
+        "contradiction_score": 0.7782,
+        "citation_coverage": 0.6634,
+        "cross_evidence_consistency": 0.6883,
+        "source_reliability": 0.8675
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8924,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8161,
+        "contradiction_score": 0.8924,
+        "citation_coverage": 0.9025,
+        "cross_evidence_consistency": 0.3394,
+        "source_reliability": 0.8407
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9301,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.1983,
+        "contradiction_score": 0.0467,
+        "citation_coverage": 0.0699,
+        "cross_evidence_consistency": 0.3019,
+        "source_reliability": 0.753
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5393,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8848,
+        "contradiction_score": 0.1786,
+        "citation_coverage": 0.4607,
+        "cross_evidence_consistency": 0.5944,
+        "source_reliability": 0.9748
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8353,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8055,
+        "contradiction_score": 0.8353,
+        "citation_coverage": 0.8679,
+        "cross_evidence_consistency": 0.3628,
+        "source_reliability": 0.9224
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9364,
+        "contradiction_score": 0.1827,
+        "citation_coverage": 0.9207,
+        "cross_evidence_consistency": 0.6437,
+        "source_reliability": 0.7356
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.518,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9184,
+        "contradiction_score": 0.0922,
+        "citation_coverage": 0.5953,
+        "cross_evidence_consistency": 0.7929,
+        "source_reliability": 0.7113
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.7265,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8958,
+        "contradiction_score": 0.8845,
+        "citation_coverage": 0.2735,
+        "cross_evidence_consistency": 0.4602,
+        "source_reliability": 0.9645
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8407,
+        "contradiction_score": 0.0787,
+        "citation_coverage": 0.879,
+        "cross_evidence_consistency": 0.8838,
+        "source_reliability": 0.4371
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.6739,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9692,
+        "contradiction_score": 0.6739,
+        "citation_coverage": 0.5057,
+        "cross_evidence_consistency": 0.325,
+        "source_reliability": 0.9673
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7777,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8986,
+        "contradiction_score": 0.7777,
+        "citation_coverage": 0.9473,
+        "cross_evidence_consistency": 0.7225,
+        "source_reliability": 0.9675
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.9327,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8149,
+        "contradiction_score": 0.9327,
+        "citation_coverage": 0.5866,
+        "cross_evidence_consistency": 0.2017,
+        "source_reliability": 0.9684
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9652,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.0143,
+        "contradiction_score": 0.2807,
+        "citation_coverage": 0.0348,
+        "cross_evidence_consistency": 0.4009,
+        "source_reliability": 0.8055
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.5428,
+        "contradiction_score": 0.0153,
+        "citation_coverage": 0.8345,
+        "cross_evidence_consistency": 0.7732,
+        "source_reliability": 0.9897
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5316,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.2477,
+        "contradiction_score": 0.4602,
+        "citation_coverage": 0.4684,
+        "cross_evidence_consistency": 0.5561,
+        "source_reliability": 0.6906
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7361,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8367,
+        "contradiction_score": 0.7361,
+        "citation_coverage": 0.7406,
+        "cross_evidence_consistency": 0.5298,
+        "source_reliability": 0.8104
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.5923,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7438,
+        "contradiction_score": 0.8932,
+        "citation_coverage": 0.4077,
+        "cross_evidence_consistency": 0.1541,
+        "source_reliability": 0.952
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.4054,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8287,
+        "contradiction_score": 0.1244,
+        "citation_coverage": 0.8322,
+        "cross_evidence_consistency": 0.5266,
+        "source_reliability": 0.9289
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8642,
+        "contradiction_score": 0.2735,
+        "citation_coverage": 0.9161,
+        "cross_evidence_consistency": 0.6715,
+        "source_reliability": 0.9538
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9439,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.2853,
+        "contradiction_score": 0.2066,
+        "citation_coverage": 0.0561,
+        "cross_evidence_consistency": 0.5375,
+        "source_reliability": 0.963
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8569,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7608,
+        "contradiction_score": 0.8569,
+        "citation_coverage": 0.5635,
+        "cross_evidence_consistency": 0.4159,
+        "source_reliability": 0.9476
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5172,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.164,
+        "contradiction_score": 0.1591,
+        "citation_coverage": 0.4828,
+        "cross_evidence_consistency": 0.4117,
+        "source_reliability": 0.9198
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.5029,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7822,
+        "contradiction_score": 0.6577,
+        "citation_coverage": 0.4971,
+        "cross_evidence_consistency": 0.3398,
+        "source_reliability": 0.8523
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.6882,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9714,
+        "contradiction_score": 0.1358,
+        "citation_coverage": 0.8583,
+        "cross_evidence_consistency": 0.77,
+        "source_reliability": 0.9201
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.8704,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.0774,
+        "contradiction_score": 0.1487,
+        "citation_coverage": 0.1296,
+        "cross_evidence_consistency": 0.3827,
+        "source_reliability": 0.8729
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9026,
+        "contradiction_score": 0.3427,
+        "citation_coverage": 0.5064,
+        "cross_evidence_consistency": 0.7236,
+        "source_reliability": 0.9344
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6046,
+        "contradiction_score": 0.2408,
+        "citation_coverage": 0.9615,
+        "cross_evidence_consistency": 0.9235,
+        "source_reliability": 0.9742
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6318,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.1305,
+        "contradiction_score": 0.06,
+        "citation_coverage": 0.3682,
+        "cross_evidence_consistency": 0.5347,
+        "source_reliability": 0.7311
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.2177,
+        "contradiction_score": 0.2325,
+        "citation_coverage": 0.6226,
+        "cross_evidence_consistency": 0.6894,
+        "source_reliability": 0.89
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8313,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.9723,
+        "contradiction_score": 0.8313,
+        "citation_coverage": 0.8041,
+        "cross_evidence_consistency": 0.4603,
+        "source_reliability": 0.89
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.871,
+        "contradiction_score": 0.1621,
+        "citation_coverage": 0.7394,
+        "cross_evidence_consistency": 0.9442,
+        "source_reliability": 0.9124
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.6607,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8206,
+        "contradiction_score": 0.09,
+        "citation_coverage": 0.685,
+        "cross_evidence_consistency": 0.8329,
+        "source_reliability": 0.9666
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6425,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.1468,
+        "contradiction_score": 0.0564,
+        "citation_coverage": 0.3575,
+        "cross_evidence_consistency": 0.7475,
+        "source_reliability": 0.9495
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6438,
+        "contradiction_score": 0.1842,
+        "citation_coverage": 0.8713,
+        "cross_evidence_consistency": 0.6267,
+        "source_reliability": 0.719
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.6527,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8866,
+        "contradiction_score": 0.1438,
+        "citation_coverage": 0.9139,
+        "cross_evidence_consistency": 0.8506,
+        "source_reliability": 0.8654
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9747,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.0783,
+        "contradiction_score": 0.1354,
+        "citation_coverage": 0.0253,
+        "cross_evidence_consistency": 0.2844,
+        "source_reliability": 0.8832
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7399,
+        "contradiction_score": 0.2557,
+        "citation_coverage": 0.9725,
+        "cross_evidence_consistency": 0.8906,
+        "source_reliability": 0.808
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5567,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.3124,
+        "contradiction_score": 0.1946,
+        "citation_coverage": 0.4433,
+        "cross_evidence_consistency": 0.3075,
+        "source_reliability": 0.832
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8575,
+        "contradiction_score": 0.1533,
+        "citation_coverage": 0.6878,
+        "cross_evidence_consistency": 0.6118,
+        "source_reliability": 0.8081
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7729,
+        "contradiction_score": 0.2222,
+        "citation_coverage": 0.7842,
+        "cross_evidence_consistency": 0.9503,
+        "source_reliability": 0.88
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7382,
+        "contradiction_score": 0.0793,
+        "citation_coverage": 0.6806,
+        "cross_evidence_consistency": 0.6903,
+        "source_reliability": 0.8372
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5181,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.2184,
+        "contradiction_score": 0.1334,
+        "citation_coverage": 0.4819,
+        "cross_evidence_consistency": 0.5431,
+        "source_reliability": 0.9382
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.7522,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.3541,
+        "contradiction_score": 0.1512,
+        "citation_coverage": 0.2478,
+        "cross_evidence_consistency": 0.7694,
+        "source_reliability": 0.9522
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.5468,
+        "contradiction_score": 0.0207,
+        "citation_coverage": 0.626,
+        "cross_evidence_consistency": 0.6161,
+        "source_reliability": 0.8854
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9065,
+        "contradiction_score": 0.0796,
+        "citation_coverage": 0.8187,
+        "cross_evidence_consistency": 0.5742,
+        "source_reliability": 0.3432
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7668,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.69,
+        "contradiction_score": 0.7668,
+        "citation_coverage": 0.7103,
+        "cross_evidence_consistency": 0.4468,
+        "source_reliability": 0.9625
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7912,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7198,
+        "contradiction_score": 0.7912,
+        "citation_coverage": 0.6686,
+        "cross_evidence_consistency": 0.3847,
+        "source_reliability": 0.9126
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.6142,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.9877,
+        "contradiction_score": 0.6142,
+        "citation_coverage": 0.5363,
+        "cross_evidence_consistency": 0.14,
+        "source_reliability": 0.7621
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.4699,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8982,
+        "contradiction_score": 0.0488,
+        "citation_coverage": 0.79,
+        "cross_evidence_consistency": 0.5375,
+        "source_reliability": 0.9734
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.656,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8135,
+        "contradiction_score": 0.0717,
+        "citation_coverage": 0.812,
+        "cross_evidence_consistency": 0.8239,
+        "source_reliability": 0.9788
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6594,
+        "contradiction_score": 0.093,
+        "citation_coverage": 0.9182,
+        "cross_evidence_consistency": 0.7089,
+        "source_reliability": 0.9547
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6929,
+        "contradiction_score": 0.0878,
+        "citation_coverage": 0.9087,
+        "cross_evidence_consistency": 0.9729,
+        "source_reliability": 0.9167
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.4994,
+        "contradiction_score": 0.2291,
+        "citation_coverage": 0.6422,
+        "cross_evidence_consistency": 0.7156,
+        "source_reliability": 0.6171
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8925,
+        "contradiction_score": 0.1979,
+        "citation_coverage": 0.9721,
+        "cross_evidence_consistency": 0.7264,
+        "source_reliability": 0.8998
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8518,
+        "contradiction_score": 0.1794,
+        "citation_coverage": 0.823,
+        "cross_evidence_consistency": 0.7411,
+        "source_reliability": 0.7806
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7111,
+        "contradiction_score": 0.1521,
+        "citation_coverage": 0.8361,
+        "cross_evidence_consistency": 0.7107,
+        "source_reliability": 0.7752
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.1077,
+        "contradiction_score": 0.3581,
+        "citation_coverage": 0.6977,
+        "cross_evidence_consistency": 0.6929,
+        "source_reliability": 0.576
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.731,
+        "contradiction_score": 0.151,
+        "citation_coverage": 0.9214,
+        "cross_evidence_consistency": 0.7894,
+        "source_reliability": 0.9399
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.6827,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9114,
+        "contradiction_score": 0.0714,
+        "citation_coverage": 0.3173,
+        "cross_evidence_consistency": 0.6542,
+        "source_reliability": 0.8991
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5302,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.751,
+        "contradiction_score": 0.1227,
+        "citation_coverage": 0.4698,
+        "cross_evidence_consistency": 0.8157,
+        "source_reliability": 0.7758
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.5121,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.5679,
+        "contradiction_score": 0.5121,
+        "citation_coverage": 0.5279,
+        "cross_evidence_consistency": 0.2824,
+        "source_reliability": 0.7098
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.6772,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8818,
+        "contradiction_score": 0.0469,
+        "citation_coverage": 0.9192,
+        "cross_evidence_consistency": 0.8306,
+        "source_reliability": 0.9245
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6933,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.153,
+        "contradiction_score": 0.3174,
+        "citation_coverage": 0.3067,
+        "cross_evidence_consistency": 0.2665,
+        "source_reliability": 0.864
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8958,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6705,
+        "contradiction_score": 0.8958,
+        "citation_coverage": 0.8155,
+        "cross_evidence_consistency": 0.1956,
+        "source_reliability": 0.9261
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.801,
+        "contradiction_score": 0.4625,
+        "citation_coverage": 0.734,
+        "cross_evidence_consistency": 0.9283,
+        "source_reliability": 0.9806
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5214,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6412,
+        "contradiction_score": 0.1729,
+        "citation_coverage": 0.4786,
+        "cross_evidence_consistency": 0.9953,
+        "source_reliability": 0.7982
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7761,
+        "contradiction_score": 0.2262,
+        "citation_coverage": 0.7069,
+        "cross_evidence_consistency": 0.4618,
+        "source_reliability": 0.5738
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.6035,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8044,
+        "contradiction_score": 0.2413,
+        "citation_coverage": 0.3965,
+        "cross_evidence_consistency": 0.661,
+        "source_reliability": 0.8538
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6206,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.2563,
+        "contradiction_score": 0.1462,
+        "citation_coverage": 0.3794,
+        "cross_evidence_consistency": 0.545,
+        "source_reliability": 0.8566
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.6336,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8474,
+        "contradiction_score": 0.6336,
+        "citation_coverage": 0.7004,
+        "cross_evidence_consistency": 0.3659,
+        "source_reliability": 0.767
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.9292,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8164,
+        "contradiction_score": 0.9292,
+        "citation_coverage": 0.7845,
+        "cross_evidence_consistency": 0.3792,
+        "source_reliability": 0.9084
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9603,
+        "contradiction_score": 0.1915,
+        "citation_coverage": 0.9383,
+        "cross_evidence_consistency": 0.7991,
+        "source_reliability": 0.7765
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7797,
+        "contradiction_score": 0.0495,
+        "citation_coverage": 0.6603,
+        "cross_evidence_consistency": 0.6119,
+        "source_reliability": 0.9531
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8863,
+        "contradiction_score": 0.1696,
+        "citation_coverage": 0.7861,
+        "cross_evidence_consistency": 0.9361,
+        "source_reliability": 0.8082
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8637,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7841,
+        "contradiction_score": 0.8637,
+        "citation_coverage": 0.8092,
+        "cross_evidence_consistency": 0.2296,
+        "source_reliability": 0.9806
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6102,
+        "contradiction_score": 0.0383,
+        "citation_coverage": 0.7228,
+        "cross_evidence_consistency": 0.9458,
+        "source_reliability": 0.9625
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.3292,
+        "contradiction_score": 0.1238,
+        "citation_coverage": 0.7929,
+        "cross_evidence_consistency": 0.8147,
+        "source_reliability": 0.8991
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9749,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.383,
+        "contradiction_score": 0.0872,
+        "citation_coverage": 0.0251,
+        "cross_evidence_consistency": 0.788,
+        "source_reliability": 0.8337
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7568,
+        "contradiction_score": 0.1359,
+        "citation_coverage": 0.933,
+        "cross_evidence_consistency": 0.4848,
+        "source_reliability": 0.9053
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.2917,
+        "contradiction_score": 0.2608,
+        "citation_coverage": 0.6878,
+        "cross_evidence_consistency": 0.8252,
+        "source_reliability": 0.9643
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5103,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.0375,
+        "contradiction_score": 0.552,
+        "citation_coverage": 0.4897,
+        "cross_evidence_consistency": 0.7015,
+        "source_reliability": 0.6794
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7703,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.9114,
+        "contradiction_score": 0.7703,
+        "citation_coverage": 0.649,
+        "cross_evidence_consistency": 0.4158,
+        "source_reliability": 0.9167
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.7666,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.2277,
+        "contradiction_score": 0.4188,
+        "citation_coverage": 0.2334,
+        "cross_evidence_consistency": 0.3315,
+        "source_reliability": 0.927
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.6579,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.908,
+        "contradiction_score": 0.1121,
+        "citation_coverage": 0.9314,
+        "cross_evidence_consistency": 0.9415,
+        "source_reliability": 0.7696
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.1699,
+        "contradiction_score": 0.2024,
+        "citation_coverage": 0.5907,
+        "cross_evidence_consistency": 0.678,
+        "source_reliability": 0.9529
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9074,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.3283,
+        "contradiction_score": 0.3109,
+        "citation_coverage": 0.0926,
+        "cross_evidence_consistency": 0.5666,
+        "source_reliability": 0.8019
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8266,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8164,
+        "contradiction_score": 0.8266,
+        "citation_coverage": 0.781,
+        "cross_evidence_consistency": 0.4123,
+        "source_reliability": 0.8445
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.9777,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.8494,
+        "contradiction_score": 0.9777,
+        "citation_coverage": 0.5959,
+        "cross_evidence_consistency": 0.4389,
+        "source_reliability": 0.6801
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.7093,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.9616,
+        "contradiction_score": 0.1222,
+        "citation_coverage": 0.5272,
+        "cross_evidence_consistency": 0.8059,
+        "source_reliability": 0.9153
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9289,
+        "contradiction_score": 0.273,
+        "citation_coverage": 0.6851,
+        "cross_evidence_consistency": 0.7036,
+        "source_reliability": 0.8068
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6785,
+        "contradiction_score": 0.2269,
+        "citation_coverage": 0.6954,
+        "cross_evidence_consistency": 0.93,
+        "source_reliability": 0.579
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.7411,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.1137,
+        "contradiction_score": 0.2393,
+        "citation_coverage": 0.2589,
+        "cross_evidence_consistency": 0.343,
+        "source_reliability": 0.9633
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.6117,
+        "contradiction_score": 0.1257,
+        "citation_coverage": 0.8239,
+        "cross_evidence_consistency": 0.8893,
+        "source_reliability": 0.9058
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9167,
+        "contradiction_score": 0.3733,
+        "citation_coverage": 0.8995,
+        "cross_evidence_consistency": 0.8018,
+        "source_reliability": 0.9189
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7769,
+        "contradiction_score": 0.2001,
+        "citation_coverage": 0.8666,
+        "cross_evidence_consistency": 0.8208,
+        "source_reliability": 0.9517
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8047,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.5124,
+        "contradiction_score": 0.8047,
+        "citation_coverage": 0.6047,
+        "cross_evidence_consistency": 0.1412,
+        "source_reliability": 0.9558
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.8838,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.2699,
+        "contradiction_score": 0.1625,
+        "citation_coverage": 0.1162,
+        "cross_evidence_consistency": 0.9066,
+        "source_reliability": 0.9462
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7775,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6378,
+        "contradiction_score": 0.7775,
+        "citation_coverage": 0.8916,
+        "cross_evidence_consistency": 0.4101,
+        "source_reliability": 0.8924
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8904,
+        "contradiction_score": 0.1902,
+        "citation_coverage": 0.8061,
+        "cross_evidence_consistency": 0.9169,
+        "source_reliability": 0.7208
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.5253,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.9338,
+        "contradiction_score": 0.8916,
+        "citation_coverage": 0.4747,
+        "cross_evidence_consistency": 0.3241,
+        "source_reliability": 0.921
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.8096,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.1621,
+        "contradiction_score": 0.2458,
+        "citation_coverage": 0.1904,
+        "cross_evidence_consistency": 0.7629,
+        "source_reliability": 0.9044
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9007,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.1772,
+        "contradiction_score": 0.3712,
+        "citation_coverage": 0.0993,
+        "cross_evidence_consistency": 0.6143,
+        "source_reliability": 0.9854
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5041,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.0399,
+        "contradiction_score": 0.1604,
+        "citation_coverage": 0.4959,
+        "cross_evidence_consistency": 0.5735,
+        "source_reliability": 0.847
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.6843,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.5914,
+        "contradiction_score": 0.6843,
+        "citation_coverage": 0.5609,
+        "cross_evidence_consistency": 0.1289,
+        "source_reliability": 0.9629
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7046,
+        "contradiction_score": 0.1649,
+        "citation_coverage": 0.7602,
+        "cross_evidence_consistency": 0.6732,
+        "source_reliability": 0.5623
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8919,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9211,
+        "contradiction_score": 0.8919,
+        "citation_coverage": 0.6599,
+        "cross_evidence_consistency": 0.2231,
+        "source_reliability": 0.9708
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.9419,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.3799,
+        "contradiction_score": 0.2257,
+        "citation_coverage": 0.0581,
+        "cross_evidence_consistency": 0.5951,
+        "source_reliability": 0.8188
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.752,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.1329,
+        "contradiction_score": 0.2275,
+        "citation_coverage": 0.248,
+        "cross_evidence_consistency": 0.5657,
+        "source_reliability": 0.5896
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6041,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6264,
+        "contradiction_score": 0.2179,
+        "citation_coverage": 0.3959,
+        "cross_evidence_consistency": 0.736,
+        "source_reliability": 0.8346
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.803,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.3132,
+        "contradiction_score": 0.803,
+        "citation_coverage": 0.5918,
+        "cross_evidence_consistency": 0.2951,
+        "source_reliability": 0.9461
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6905,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.0495,
+        "contradiction_score": 0.0373,
+        "citation_coverage": 0.3095,
+        "cross_evidence_consistency": 0.5186,
+        "source_reliability": 0.7515
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.7627,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.2685,
+        "contradiction_score": 0.2308,
+        "citation_coverage": 0.2373,
+        "cross_evidence_consistency": 0.2603,
+        "source_reliability": 0.9536
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8901,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7753,
+        "contradiction_score": 0.8901,
+        "citation_coverage": 0.6483,
+        "cross_evidence_consistency": 0.6123,
+        "source_reliability": 0.9073
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7039,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.63,
+        "contradiction_score": 0.7039,
+        "citation_coverage": 0.686,
+        "cross_evidence_consistency": 0.5086,
+        "source_reliability": 0.735
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7305,
+        "contradiction_score": 0.1545,
+        "citation_coverage": 0.7846,
+        "cross_evidence_consistency": 0.8756,
+        "source_reliability": 0.6639
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.8205,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.1207,
+        "contradiction_score": 0.7256,
+        "citation_coverage": 0.1795,
+        "cross_evidence_consistency": 0.5906,
+        "source_reliability": 0.7614
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7758,
+        "contradiction_score": 0.2264,
+        "citation_coverage": 0.9428,
+        "cross_evidence_consistency": 0.9184,
+        "source_reliability": 0.9916
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.9244,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6949,
+        "contradiction_score": 0.9244,
+        "citation_coverage": 0.5484,
+        "cross_evidence_consistency": 0.265,
+        "source_reliability": 0.803
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.8869,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6671,
+        "contradiction_score": 0.8869,
+        "citation_coverage": 0.7858,
+        "cross_evidence_consistency": 0.512,
+        "source_reliability": 0.9042
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.7425,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.3692,
+        "contradiction_score": 0.1031,
+        "citation_coverage": 0.2575,
+        "cross_evidence_consistency": 0.3342,
+        "source_reliability": 0.2557
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.9477,
+        "contradiction_score": 0.1819,
+        "citation_coverage": 0.8981,
+        "cross_evidence_consistency": 0.6415,
+        "source_reliability": 0.8903
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.641,
+        "contradiction_score": 0.1392,
+        "citation_coverage": 0.7176,
+        "cross_evidence_consistency": 0.8515,
+        "source_reliability": 0.9697
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8965,
+        "contradiction_score": 0.29,
+        "citation_coverage": 0.8854,
+        "cross_evidence_consistency": 0.5137,
+        "source_reliability": 0.9953
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7178,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6036,
+        "contradiction_score": 0.7178,
+        "citation_coverage": 0.9104,
+        "cross_evidence_consistency": 0.233,
+        "source_reliability": 0.8929
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.79,
+        "contradiction_score": 0.0357,
+        "citation_coverage": 0.8547,
+        "cross_evidence_consistency": 0.7581,
+        "source_reliability": 0.9435
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.5387,
+        "contradiction_score": 0.1022,
+        "citation_coverage": 0.8432,
+        "cross_evidence_consistency": 0.5934,
+        "source_reliability": 0.9129
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5867,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.3044,
+        "contradiction_score": 0.1658,
+        "citation_coverage": 0.4133,
+        "cross_evidence_consistency": 0.4519,
+        "source_reliability": 0.9185
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.5882,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.195,
+        "contradiction_score": 0.1405,
+        "citation_coverage": 0.4118,
+        "cross_evidence_consistency": 0.7641,
+        "source_reliability": 0.8644
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "escalate",
+      "confidence": 0.5586,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7513,
+        "contradiction_score": 0.805,
+        "citation_coverage": 0.4414,
+        "cross_evidence_consistency": 0.1454,
+        "source_reliability": 0.8332
+      }
+    },
+    {
+      "nli_label": "neutral",
+      "action": "escalate",
+      "confidence": 0.6997,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.0718,
+        "contradiction_score": 0.1319,
+        "citation_coverage": 0.3003,
+        "cross_evidence_consistency": 0.6804,
+        "source_reliability": 0.8642
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7281,
+        "contradiction_score": 0.0545,
+        "citation_coverage": 0.7785,
+        "cross_evidence_consistency": 0.9858,
+        "source_reliability": 0.7282
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.5739,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.7044,
+        "contradiction_score": 0.5739,
+        "citation_coverage": 0.8498,
+        "cross_evidence_consistency": 0.1133,
+        "source_reliability": 0.8473
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.985,
+        "contradiction_score": 0.2558,
+        "citation_coverage": 0.838,
+        "cross_evidence_consistency": 0.9167,
+        "source_reliability": 0.9471
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "evidence_accept",
+      "confidence": 0.623,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.8317,
+        "contradiction_score": 0.0568,
+        "citation_coverage": 0.8464,
+        "cross_evidence_consistency": 0.7748,
+        "source_reliability": 0.9668
+      }
+    },
+    {
+      "nli_label": "contradiction",
+      "action": "abstain",
+      "confidence": 0.7505,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.7621,
+        "contradiction_score": 0.7505,
+        "citation_coverage": 0.5489,
+        "cross_evidence_consistency": 0.742,
+        "source_reliability": 0.9124
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": false,
+      "signal": {
+        "evidence_strength": 0.6443,
+        "contradiction_score": 0.227,
+        "citation_coverage": 0.6794,
+        "cross_evidence_consistency": 0.732,
+        "source_reliability": 0.9152
+      }
+    },
+    {
+      "nli_label": "entailment",
+      "action": "escalate",
+      "confidence": 0.5,
+      "oracle_correct": true,
+      "signal": {
+        "evidence_strength": 0.5985,
+        "contradiction_score": 0.1279,
+        "citation_coverage": 0.973,
+        "cross_evidence_consistency": 0.66,
+        "source_reliability": 0.9195
+      }
+    }
+  ]
+}

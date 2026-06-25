@@ -1,0 +1,244 @@
+{
+  "n_items": 16,
+  "accuracy": 0.5625,
+  "n_correct": 9,
+  "by_category": {
+    "principle": {
+      "n": 6,
+      "correct": 6,
+      "accuracy": 1.0
+    },
+    "misconception": {
+      "n": 4,
+      "correct": 1,
+      "accuracy": 0.25
+    },
+    "citation_real": {
+      "n": 2,
+      "correct": 2,
+      "accuracy": 1.0
+    },
+    "citation_fake": {
+      "n": 4,
+      "correct": 0,
+      "accuracy": 0.0
+    }
+  },
+  "citation_hallucination_detection": {
+    "n_fake": 4,
+    "db_detected": 3,
+    "db_detection_rate": 0.75,
+    "remora_correct": 0,
+    "remora_detection_rate": 0.0
+  },
+  "items": [
+    {
+      "item_id": "aml_001",
+      "category": "principle",
+      "claim": "Under Norwegian law, an employee with 10 years of tenure is entitled to at least",
+      "ground_truth": true,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": true,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "Arbeidsmiljøloven § 15-3 (3): 3 months after 10 years"
+    },
+    {
+      "item_id": "aml_002",
+      "category": "misconception",
+      "claim": "An employer in Norway is required to pay 6 months' severance pay (etterlønn) to ",
+      "ground_truth": false,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": false,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "Arbeidsmiljøloven — no general etterlønn obligation"
+    },
+    {
+      "item_id": "aml_003",
+      "category": "principle",
+      "claim": "A pregnant employee in Norway cannot be dismissed during pregnancy unless the em",
+      "ground_truth": true,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": true,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "Arbeidsmiljøloven § 15-9 (1): protection against dismissal during pregnancy"
+    },
+    {
+      "item_id": "aml_004",
+      "category": "principle",
+      "claim": "The maximum normal working time in Norway is 40 hours per week.",
+      "ground_truth": true,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": true,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "Arbeidsmiljøloven § 10-4 (1): 40 hours per week"
+    },
+    {
+      "item_id": "aml_005",
+      "category": "principle",
+      "claim": "Under Norwegian law, an employee can be summarily dismissed (avskjed) without no",
+      "ground_truth": true,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": true,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "Arbeidsmiljøloven § 15-14: avskjed ved grovt pliktbrudd"
+    },
+    {
+      "item_id": "gdpr_001",
+      "category": "principle",
+      "claim": "Under GDPR Article 17, an individual has the right to have their personal data e",
+      "ground_truth": true,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": true,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "GDPR Article 17(1): Right to erasure ('right to be forgotten')"
+    },
+    {
+      "item_id": "gdpr_002",
+      "category": "misconception",
+      "claim": "GDPR requires all organisations to appoint a Data Protection Officer (DPO).",
+      "ground_truth": false,
+      "remora_verdict": true,
+      "remora_conf": 0.7692,
+      "remora_correct": false,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "GDPR Article 37: DPO required only for specific categories"
+    },
+    {
+      "item_id": "gdpr_003",
+      "category": "principle",
+      "claim": "The maximum GDPR fine for serious violations is 4% of annual global turnover or ",
+      "ground_truth": true,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": true,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "GDPR Article 83(5): upper tier fines"
+    },
+    {
+      "item_id": "cite_real_001",
+      "category": "citation_real",
+      "claim": "HR-2020-1948-A (Fosen-saken) is a real Norwegian Supreme Court decision concerni",
+      "ground_truth": true,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": true,
+      "db_found": false,
+      "db_verdict": "NOT_FOUND",
+      "db_detected": null,
+      "source": "Høyesterett HR-2020-1948-A, October 2021"
+    },
+    {
+      "item_id": "cite_real_002",
+      "category": "citation_real",
+      "claim": "Rt. 1988 s. 276 (Vikersund-saken) is a real Norwegian Supreme Court case.",
+      "ground_truth": true,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": true,
+      "db_found": true,
+      "db_verdict": "FOUND_IN_DATABASE",
+      "db_detected": true,
+      "source": "Norsk Retstidende 1988 side 276"
+    },
+    {
+      "item_id": "cite_fake_001",
+      "category": "citation_fake",
+      "claim": "HR-2015-2386-A is a valid Norwegian Supreme Court decision establishing employer",
+      "ground_truth": false,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": false,
+      "db_found": false,
+      "db_verdict": "NOT_FOUND",
+      "db_detected": true,
+      "source": "NOT IN COURT RECORDS — hallucinated citation from Asker case"
+    },
+    {
+      "item_id": "cite_fake_002",
+      "category": "citation_fake",
+      "claim": "HR-2014-2288-A is a real Norwegian Supreme Court decision.",
+      "ground_truth": false,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": false,
+      "db_found": false,
+      "db_verdict": "NOT_FOUND",
+      "db_detected": true,
+      "source": "NOT IN COURT RECORDS — hallucinated citation from Asker case"
+    },
+    {
+      "item_id": "cite_fake_003",
+      "category": "citation_fake",
+      "claim": "HR-2020-2135-A is a real Norwegian Supreme Court decision.",
+      "ground_truth": false,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": false,
+      "db_found": false,
+      "db_verdict": "NOT_FOUND",
+      "db_detected": true,
+      "source": "NOT IN COURT RECORDS — hallucinated citation from Asker case"
+    },
+    {
+      "item_id": "cite_fake_004",
+      "category": "citation_fake",
+      "claim": "Rt. 2018 s. 1234 is a real Norwegian Supreme Court decision.",
+      "ground_truth": false,
+      "remora_verdict": true,
+      "remora_conf": 1.0,
+      "remora_correct": false,
+      "db_found": true,
+      "db_verdict": "FOUND_IN_DATABASE",
+      "db_detected": null,
+      "source": "NOT IN COURT RECORDS — hallucinated format"
+    },
+    {
+      "item_id": "misc_001",
+      "category": "misconception",
+      "claim": "An oral contract is legally valid in Norway for most transactions.",
+      "ground_truth": true,
+      "remora_verdict": true,
+      "remora_conf": 0.0,
+      "remora_correct": true,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "Avtaleloven — principle of no formal requirement"
+    },
+    {
+      "item_id": "misc_002",
+      "category": "misconception",
+      "claim": "In Norway, a landlord can evict a tenant without a court order.",
+      "ground_truth": false,
+      "remora_verdict": true,
+      "remora_conf": 0.5263,
+      "remora_correct": false,
+      "db_found": null,
+      "db_verdict": "",
+      "db_detected": null,
+      "source": "Husleieloven § 13-2 and tvangsfullbyrdelsesloven"
+    }
+  ]
+}

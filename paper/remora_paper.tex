@@ -1,0 +1,1470 @@
+﻿% =====================================================================
+% REMORA: A Policy-Gated Multi-Oracle Assurance Architecture for Agentic AI
+% LaTeX source — suitable for Overleaf, NeurIPS/ICML/ACL workshop templates
+% =====================================================================
+\documentclass[10pt,twocolumn]{article}
+
+% ---- Packages -------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{hyperref}
+% xurl = url with break points after every character class, so long
+% URLs and \path tokens wrap inside the narrow two-column measure
+% instead of protruding into the margin.
+\usepackage{xurl}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{listings}
+% \usepackage{algorithm}    % not installed in build env; no algorithm blocks used
+% \usepackage{algpseudocode}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+
+% ---- Code listings ---------------------------------------------------
+% Global listings setup. verbatim must not be used in this paper: it
+% never breaks lines, so any long line silently overflows the column in
+% twocolumn mode. lstlisting with breaklines wraps instead.
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  breakatwhitespace=false,
+  postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space},
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  framerule=0.3pt,
+  rulecolor=\color{black!25},
+  xleftmargin=4pt,
+  xrightmargin=4pt,
+  aboveskip=6pt,
+  belowskip=6pt,
+}
+
+% Fit a tabular to the column width. Used for tables whose natural width
+% exceeds \columnwidth in twocolumn mode; scaling preserves the layout
+% without overflowing into the neighbouring column.
+\newcommand{\fitcolumn}[1]{\resizebox{\columnwidth}{!}{#1}}
+
+% Paragraph-level overflow tolerance for narrow two-column measure:
+% allow modest extra inter-word stretch before a line is allowed to
+% protrude. Removes residual overfull lines (long URLs, technical
+% tokens) without visibly loosening the typography.
+\setlength{\emergencystretch}{2em}
+\tolerance=2000
+
+% ---- Theorem environments -------------------------------------------
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{lemma}[theorem]{Lemma}
+
+% ---- Metadata -------------------------------------------------------
+\title{REMORA: A Policy-Gated Multi-Oracle\\Assurance Architecture for Agentic AI}
+
+% Paper version — keep in lockstep with the repository release tag.
+\newcommand{\paperversion}{v0.9.0}
+
+\author{
+  Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
+  Contact: \texttt{support@luftfiber.no}.}\\
+  Luftfiber AS\\
+  \texttt{https://github.com/darklordVirtual/REMORA}
+}
+
+\date{\paperversion\ --- June 2026}
+
+% ---- Notation -------------------------------------------------------
+\newcommand{\Oracles}{\mathcal{O}}
+\newcommand{\OraclesV}{\mathcal{O}'}
+\renewcommand{\phi}{\varphi}
+\newcommand{\phat}{\hat{p}}
+\newcommand{\trust}{\tau}
+\newcommand{\lyap}{V}
+\newcommand{\gate}{g}
+\newcommand{\Gate}{\Gamma}
+
+% =====================================================================
+\begin{document}
+
+\maketitle
+
+% =====================================================================
+\begin{abstract}
+Autonomous AI agents that invoke tools, query databases, or actuate
+real-world systems require an assurance layer that decides---before
+execution---whether an action is safe enough to proceed autonomously,
+requires verification, warrants abstention, or must be escalated to
+human review. We present \textbf{REMORA} (Reasoning Ensemble
+Multi-Oracle Routing Architecture), a research-grade control layer for
+agentic AI governance. REMORA combines parallel multi-oracle consensus,
+canonicalized verdict extraction, correlation-aware consensus
+weighting, thermodynamic-inspired uncertainty observables,
+Lyapunov-inspired heuristic stability tracking, and a policy engine with
+hard-block precedence rules to produce one of four structured gate
+outcomes: \textsc{accept}, \textsc{verify}, \textsc{abstain}, or
+\textsc{escalate}.
+
+On a 544-item benchmark (TruthfulQA, BoolQ, adversarial suite), REMORA
+achieves 88.8\% selective accuracy at 18\% coverage (majority-vote
+full-coverage baseline: 41.18\%; $+47.6$\,pp lift; in-sample optimum).
+Exploiting a preliminary critical-phase trust inversion observation ($N=32$ real-oracle
+critical items; low-$\tau$
+critical items achieve 71.4\% accuracy vs.\ 27.3\% for high-$\tau$),
+a \texttt{PhaseAwareGuardrail} with inverted-score selection extends coverage
+to 22.1\% at 85.0\% accuracy ($+43.8$\,pp lift; $N=120$; Wilson~CI [77.5\%,
+90.3\%])---a $+3.9$\,pp coverage gain with only $1.9$\,pp accuracy cost.
+A stratified held-out evaluation ($\tau^*$ locked from training split) confirms
+88.0\% accuracy at 23.2\% holdout coverage ($N_\text{accepted}=25$;
+$p=1.45\times10^{-5}$; Wilson~CI [70.0\%, 95.8\%]---the wide interval reflects the
+small accepted set and should be read as a directional confirmation, not a
+tight estimate). On an adversarial agentic tool-call benchmark ($N=700$),
+REMORA's full policy gate reduces unsafe execution from 10--20\% (baselines)
+to 0\% on benchmark tasks (unsafe-rate Wilson CI [0.00\%, 0.55\%]) while improving
+mean utility from $0.0$ to $0.62$. A critical-phase evidence router resolves
+38.5\% of high-uncertainty cases with 100\% precision on a 3,000-item NLI
+benchmark ($N_{\text{evidence-accept}}=304$, Wilson CI [98.75\%, 100.00\%]); the
+remainder are escalated to human review.
+
+Key limitations: (1) the benchmark contains 13.8\% author-curated
+items subject to selection bias; (2) trust scoring alone cannot
+discriminate correctness in the critical phase (anticorrelation
+confirmed empirically); (3) semantic evidence retrieval is pluggable
+but not live in the current implementation; (4) the audit hash-chain
+is tamper-evident but not tamper-proof without external append-only
+storage; (5) the entropy computation in all reported experiments uses a
+token-fingerprint heuristic backend, not full Semantic Entropy over NLI
+clusters---the NLI backend exists as a drop-in but was not used here.
+An important architectural finding: the unsafe-execution reduction from
+10\% to 0\% is attributable entirely to deterministic policy hard blocks;
+the multi-oracle thermodynamic machinery contributes to decision routing and
+calibration quality, not to the safety guarantee itself.
+REMORA is a governed autonomy layer (not a replacement for domain
+authority) that converts model disagreement, uncertainty, missing
+evidence, and policy triggers into explicit, auditable control
+decisions.
+\end{abstract}
+
+\textbf{Keywords:} agentic AI safety, multi-oracle consensus, selective
+prediction, uncertainty routing, policy-as-code, audit governance,
+human-in-the-loop.
+
+% =====================================================================
+\section{Introduction}
+\label{sec:intro}
+
+The deployment of LLM-powered agents capable of invoking tools
+introduces a class of decision problem distinct from conversational AI:
+an agent proposes a \emph{concrete action} in the world, and the
+system must decide whether to execute it. Unlike a hallucinated
+sentence, an erroneously executed database write or wrongly triggered
+process shutdown has immediate, potentially irreversible consequences.
+
+Existing safeguards (RLHF alignment, system prompts, content
+classifiers) are semantic filters applied at training or prompt time.
+They are not designed to evaluate a specific proposed action against a
+specific operational context, evidence base, and regulatory policy at
+inference time. Majority vote among LLMs improves accuracy but cannot
+block a confident, wrong consensus from triggering unsafe execution.
+
+We argue that what is needed is not a \emph{better oracle} but an
+\emph{assurance layer}: a system that evaluates whether the conditions
+for autonomous action are met before anything is executed. When those
+conditions are not met, the system must route toward verification,
+abstention, or human review, recording the reasoning in an auditable
+envelope.
+
+REMORA demonstrates such a layer. Its core thesis:
+\textbf{governed autonomy requires explicit routing of
+uncertainty---not suppression of it.}
+
+The contribution of this paper is a \textbf{system architecture and
+empirical evaluation for governed agentic AI decision control}---not a
+new foundation model, training procedure, or benchmark. It is a
+reference implementation, a set of measurable observables, a
+documented set of negative results, and an honest account of what
+remains unsolved.
+
+% =====================================================================
+\section{Background and Related Work}
+\label{sec:related}
+
+\subsection{LLM Ensembles and Self-Consistency}
+Wang et al.\ (2023) \cite{wang2023self} introduced self-consistency
+sampling over chain-of-thought paths. Lakshminarayanan et al.\ (2017)
+\cite{lakshminarayanan2017simple} demonstrated that deep ensembles from
+distinct random initialisations improve both accuracy and calibration.
+REMORA's oracle fan-out is structurally related but uses
+\emph{distinct model families} rather than multiple samples from one model,
+and weights oracles by \emph{inverse pairwise correlation} rather than
+treating them as exchangeable. Kuncheva \& Whitaker (2003)
+\cite{kuncheva2003measures} formalised diversity measures for classifier
+ensembles; REMORA's inverse-correlation weighting can be understood as an
+instance of this family applied to instruction-following LLMs.
+
+\subsection{Multi-Agent Debate}
+Du et al.\ (2023) \cite{du2023improving} showed that inter-model
+debate can reduce hallucination. REMORA's dissensus metric $D$ is a
+one-shot, non-iterative analogue: disagreement is measured once, not
+resolved through iterative exchange.
+
+\subsection{LLM-as-Judge and Verifier Models}
+Zheng et al.\ (2023) \cite{zheng2023judging} established the
+LLM-as-judge paradigm. Cobbe et al.\ (2021) \cite{cobbe2021training}
+trained process reward models as verifiers. REMORA differs by using a \emph{structured policy engine} rather than a
+learned verifier, enabling interpretable hard blocks that cannot be
+overridden by a confident oracle.
+
+\subsection{Selective Prediction and Abstention}
+Chow (1970) \cite{chow1970optimum} established the optimal error-reject
+tradeoff for binary classifiers. El-Yaniv \& Wiener (2010)
+\cite{elyaniv2010selective} extended this to a distribution-free
+selective classification framework; their coverage--accuracy bound is
+the foundational result that Geifman \& El-Yaniv (2017)
+\cite{geifman2017selective} apply to deep networks. Kadavath
+et al.\ (2022) \cite{kadavath2022language} show that LLM
+self-uncertainty estimates are unreliable under distribution shift.
+REMORA's abstention is grounded in structural oracle disagreement
+rather than self-reported confidence, which aligns with the observation
+in \cite{elyaniv2010selective} that selection rules based on model-reported
+softmax scores are insufficient under covariate shift.
+
+\subsection{Conformal Prediction}
+Angelopoulos \& Bates (2021) \cite{angelopoulos2021gentle} provide a
+distribution-free framework for coverage guarantees. REMORA implements
+Mondrian phase-stratified conformal calibration for the ordered phase,
+and Conformal Risk Control \cite{angelopoulos2022crc} with
+importance weights for the critical phase
+(\S\ref{sec:crc}). The exchangeability violation in the critical phase
+is documented as a negative result (\S\ref{sec:negative}).
+
+\subsection{Prover-Verifier Games}
+Kirsch et al.\ (2024) \cite{kirsch2024prover} showed that prover-verifier
+games improve LLM output legibility by requiring the prover to justify
+claims to an independent verifier.  REMORA adapts this to the offline
+multi-oracle case, using Semantic Entropy clustering to identify the prover
+(dominant-cluster oracle) and verifier (independent challenger) without
+additional API calls (\S\ref{sec:pvd}).
+
+\subsection{AI Governance and Policy-as-Code}
+The EU AI Act (2024) \cite{euaiact2024} mandates human oversight and
+audit trails for high-risk AI systems. Open Policy Agent (OPA)
+\cite{opa} provides a production-grade Rego policy engine. REMORA
+integrates an OPA adapter---failing closed to a Python fallback---as a
+concrete instantiation of policy-as-code for AI decisions.
+
+\subsection{Assurance Cases}
+Kelly (1998) \cite{kelly1998goal} and Bloomfield \& Bishop (2010)
+\cite{bloomfield2010safety} structure safety arguments as
+claim-evidence-reasoning trees. REMORA's DecisionEnvelope is designed
+to populate one node of such a case with a specific gate decision's
+evidence chain.
+
+\subsection{Human-in-the-Loop / Human-on-the-Loop}
+Endsley (1995) \cite{endsley1995toward} defines supervisory control
+levels. REMORA's four-outcome schema directly implements this
+spectrum: \textsc{accept} (human-on-the-loop) through
+\textsc{escalate} (human-in-the-loop), with \textsc{verify} and
+\textsc{abstain} as intermediate states.
+
+% =====================================================================
+\section{Problem Statement}
+\label{sec:problem}
+
+Let $\mathcal{A}$ be a space of agent-proposed actions, $q$ a query,
+and $c = (\text{domain}, \text{risk}, \text{env})$ an operational
+context. We seek a control function:
+%
+\begin{equation}
+\begin{split}
+\Gate: (q, a, c) \;\longrightarrow\; g, \qquad\qquad\\
+g \in \{\textsc{Accept}, \textsc{Verify}, \textsc{Abstain}, \textsc{Escalate}\}
+\end{split}
+\end{equation}
+%
+with five required properties: (1)~safety-first (hard policy violations
+map to \textsc{Escalate} regardless of consensus); (2)~calibration-aware
+(abstain when uncertainty exceeds threshold); (3)~evidence-sensitive
+(evidence can resolve or contradict ambiguous consensus);
+(4)~auditable (every call produces a signed evidence record);
+(5)~conservative by default (fail closed toward \textsc{Verify} or \textsc{Escalate} depending on risk tier).
+
+This is not a question of oracle \emph{accuracy}---REMORA does not
+know whether action $a$ is correct. It is a question of
+\emph{assurance conditions}: whether the conditions that justify
+autonomous execution of $a$ are verifiably met.
+
+% =====================================================================
+\section{REMORA Architecture}
+\label{sec:architecture}
+
+REMORA processes each gate request through six decision stages,
+followed by DecisionEnvelope emission (Stage~7).
+Figure~\ref{fig:arch} (Mermaid diagram in supplementary) shows the
+full pipeline. Stage~7 is the output record, not a decision stage.
+
+\paragraph{Stage 1: Intake \& Risk Classification.}
+The system classifies intent domain, risk tier
+($\in\{$low, medium, high, critical$\}$), action type, and target
+environment. An adversarial admission firewall checks for injection
+patterns (``ignore previous instructions'', ``drop table'', etc.) and
+fires an immediate \textsc{Escalate} if detected.
+
+\paragraph{Stage 2: Oracle Fan-Out.}
+$n \geq 3$ oracle models from distinct families are queried in parallel
+via \texttt{ThreadPoolExecutor}. Responses with non-null
+\texttt{error} fields are excluded before any aggregation.
+$\OraclesV \subseteq \Oracles$ denotes the valid oracle set.
+
+\paragraph{Stage 3: Canonicalization \& Weighted Consensus.}
+Each response is canonicalized by $\varphi: \mathrm{raw} \rightarrow v$
+where $v$ is the tuple (\texttt{polarity}, \texttt{claim\_hash},
+\texttt{magnitude}, \texttt{tags}).
+The \texttt{claim\_hash} field uses a pluggable backend: the default
+\texttt{TokenFingerprintBackend} applies a 16-char SHA-256 truncation over
+NFKC-normalized sorted tokens for backward-compatible, dependency-free
+operation; the \texttt{NLISemanticBackend} replaces this with bidirectional
+cross-encoder entailment clustering, implementing Semantic Entropy
+\cite{kuhn2023semantic,kuhn2026evse}. Oracle weights are derived from
+inverse pairwise correlation (see \S\ref{sec:method}).
+
+\paragraph{Stage 4: Thermodynamic Observables.}
+Entropy $H$ is computed over the diversity-weighted verdict distribution
+$\hat{p}$. The \texttt{NLISemanticBackend} grounds $H$ as Semantic
+Entropy~\cite{kuhn2023semantic},
+$\mathrm{SE}(x) = -\sum_{c \in \mathcal{C}} p(c\,|\,x)\log p(c\,|\,x)$
+over NLI-derived semantic equivalence clusters $\mathcal{C}$.
+\emph{Note on experimental backend:} all benchmarks reported in
+\S\ref{sec:eval} use the default \texttt{TokenFingerprintBackend}
+(NFKC-normalised, sorted-token SHA-256 truncation), which approximates
+cluster identity via lexical overlap. The NLI backend is a
+drop-in replacement for future work but was not used in the
+reported results; claims about Semantic Entropy properties should
+be read accordingly.
+Dissensus $D$, order parameter $\eta$, structural temperature $T$,
+free-energy proxy $F$, and trust score $\trust$ are computed
+(see \S\ref{sec:method}). Phase $\in\{\text{ordered},
+\text{critical}, \text{disordered}\}$ is assigned. Lyapunov
+heuristic stability observable $V(t) = H(t) + \lambda D(t)$ is tracked.
+
+\paragraph{Stage 5: Evidence Router (Critical Phase).}
+If phase = critical, the \texttt{CriticalEvidenceRouter} evaluates a
+five-field \texttt{EvidenceSignal} and returns one of:
+\texttt{evidence\_accept}, \texttt{abstain}, or \texttt{escalate}.
+\emph{Important:} the current EvidenceSignal is an oracle-proxy
+(built from consensus statistics); semantic BM25/NLI retrieval is
+pluggable but not live (\S\ref{sec:evidence}).
+
+\paragraph{Stage 6: Policy Engine.}
+Seven hard blocks are evaluated in priority order before any routing
+logic. OPA/Rego is queried first; unavailability triggers a Python
+fallback (fail closed). Gate outcome $g$ is assigned.
+
+\paragraph{Output: DecisionEnvelope v2.}
+An immutable envelope records: request, assessment, gate, reviewer
+context, follow-up request, case history, policy-learning candidate,
+and audit hash-chain entry.
+
+% =====================================================================
+\section{Method: Thermodynamic-Inspired Uncertainty Observables}
+\label{sec:method}
+
+\emph{Thermodynamic terminology is an operational metaphor for observable
+consensus structure. No claim is made that LLM systems obey a physical
+thermodynamic law. The observables are deterministic functions of
+oracle outputs and calibration parameters.}
+
+\subsection{Weighted Support Distribution}
+
+Let $\hat{p}(v) = \sum_{o \in \OraclesV} w(o) \cdot
+\mathbf{1}[\varphi(o)=v]$ be the diversity-weighted support for
+verdict $v$, normalized to sum to 1. The diversity weight $w(o)$
+penalizes oracles that frequently agree with others:
+%
+\begin{equation}
+  w(o) = \frac{(1/n)}{1 + \sum_{j \neq o} \rho(o,j)} \cdot Z^{-1}
+\end{equation}
+%
+where $\rho(o,j)$ is the rolling pairwise agreement rate (window 200
+samples) and $Z$ normalizes. Oracles that agree with the swarm receive
+lower weight; independent dissenters receive higher weight.
+
+\subsection{Core Observables}
+
+\textbf{Shannon entropy:}
+\begin{equation}
+  H = -\sum_v \hat{p}(v) \log_2 \hat{p}(v) \quad \text{(bits)}
+\end{equation}
+
+\textbf{Dissensus:}
+\begin{equation}
+  D = 1 - \max_v \hat{p}(v)
+\end{equation}
+
+\textbf{Order parameter:}
+\begin{equation}
+  \eta = \frac{\max_v \hat{p}(v) - 1/k}{1 - 1/k}
+\end{equation}
+where $k = |\{v : \hat{p}(v) > 0\}|$ is the number of active verdicts.
+
+\textbf{Structural temperature} (prompt-only, independent of oracle
+responses):
+\begin{equation}
+  T = 0.70\,T_{\text{prior}}(d)
+        + 0.20\,\frac{|\text{zlib}(q)|}{|q|}
+        + 0.10\,\frac{\ln(1+|q|)}{10}
+\end{equation}
+where $d \in \{\text{factoid, reasoning, creative, adversarial}\}$
+with priors $\{0.25, 0.85, 1.50, 1.70\}$ respectively. This formulation
+resolves the $T$--$D$ circularity documented as resolved finding R7
+(Appendix~\ref{app:negres}).
+
+\textbf{Free-energy proxy:}
+\begin{equation}
+  F(T) = \lambda D - T \cdot H, \quad \lambda = 0.3
+\end{equation}
+
+\textbf{Lyapunov-inspired stability observable (heuristic):}
+\begin{equation}
+  V(t) = H(t) + \lambda D(t)
+\end{equation}
+Iteration halts when $\Delta V > \epsilon_{\text{tol}} \cdot |V|$
+($\epsilon_{\text{tol}} = 0.05$). Across 1,000 synthetic sessions,
+$P(\Delta V \leq 0) = 87.2\%$, mean $\Delta V = -0.329$.
+This is an empirical heuristic metric, not a formal control-theoretic Lyapunov
+proof.
+
+\textbf{Trust score:}
+\begin{equation}
+  \trust = \eta \cdot (1 - h_{\text{bound}})
+           \cdot w_{\text{phase}}
+           \cdot \left(1 + \frac{\chi}{\chi_0}\right)^{-1}
+\end{equation}
+where $h_{\text{bound}}$ is a hallucination-rate bound from
+inter-oracle agreement, $w_{\text{phase}} \in \{1.0, 0.5, 0.1\}$
+for ordered/critical/disordered, and $\chi$ is susceptibility
+(repurposed as OOD detector; \S\ref{sec:negative}).
+
+\subsection{Phase Classification}
+
+\begin{align}
+  \text{phase} &= \begin{cases}
+    \text{ordered}    & T < T_c \text{ and } \eta > 0.5 \\
+    \text{critical}   & |T - T_c|/T_c < 0.15 \\
+    \text{disordered} & \text{otherwise}
+  \end{cases}
+\end{align}
+
+where $T_c$ is calibrated from the oracle response distribution.
+
+% =====================================================================
+\section{Decision and Policy Model}
+\label{sec:decision}
+
+\subsection{Four Gate Outcomes}
+
+\begin{table}[h]
+\centering\small
+\caption{Gate outcomes and autonomous action status.}
+\fitcolumn{%
+\begin{tabular}{@{}llc@{}}
+\toprule
+Outcome & Meaning & Autonomous action \\
+\midrule
+\textsc{Accept}   & Assurance conditions met         & Permitted \\
+\textsc{Verify}   & Plausible, validation required   & Pending \\
+\textsc{Abstain}  & Uncertainty too high to decide   & Blocked \\
+\textsc{Escalate} & Human review required            & Blocked \\
+\bottomrule
+\end{tabular}}
+\label{tab:outcomes}
+\end{table}
+
+\textsc{Accept} does not mean the action is \emph{correct}---it means
+the assurance conditions for autonomous execution are met.
+\textsc{Abstain} does not mean the action is \emph{wrong}---it means
+the conditions for deciding are not met. Both \textsc{Abstain} and
+\textsc{Escalate} block execution; \textsc{Escalate} additionally
+triggers a human-review workflow.
+
+\subsection{Hard Blocks (Priority Order)}
+
+\begin{table}[h]
+\centering\small
+\caption{Policy hard blocks, evaluated before any routing logic.}
+\fitcolumn{%
+\begin{tabular}{@{}clll@{}}
+\toprule
+Pri. & Condition & Reason Code & Action \\
+\midrule
+1 & Adversarial detected       & ADM\_FIREWALL    & ESC. \\
+2 & Counterfactual failed      & CF\_FAILED       & ESC. \\
+3a& Evidence contradicted +    &                  &      \\
+  & \quad contradiction cycles & EV\_CONTRAD.     & ESC. \\
+3b& Evidence contradictions    & EV\_CONTRAD.     & ABS. \\
+4 & Refuse parametric + no ev. & THM\_REQ\_EV.    & VER. \\
+5 & Distribution shift         & DIST\_SHIFT      & VER. \\
+6 & Phase=critical + risk=crit.& CRITICAL\_PHASE  & ESC. \\
+7 & High/crit. risk + no ev.   & EV\_INSUFF.      & VER. \\
+\bottomrule
+\end{tabular}}
+\label{tab:hardblocks}
+\end{table}
+
+\noindent\textbf{Policy must override model consensus.} Majority vote
+is never sufficient for critical autonomous action when a hard block
+condition is met.
+
+\subsection{OPA/Rego Integration}
+
+REMORA exports a 55-field \texttt{PolicyObservation} dataclass as
+JSON to the OPA endpoint. On any communication error (connection
+refused, timeout, parse failure), the Python fallback engine applies
+identical rules and records \texttt{source\_of\_decision =
+"python\_fallback"} in the envelope. No decision is ever withheld due
+to a missing policy engine.
+
+% =====================================================================
+\section{Governance Intelligence Layer: Misspecification-Aware Pre-Policy Enrichment}
+\label{sec:gov_intel}
+
+The policy engine is only as honest as the metadata it is given: an
+integration bug, or a compromised agent, can label a destructive
+action as a low-risk read and present the gate with nothing to fire
+on. Added in release \paperversion, the \emph{Governance Intelligence
+Layer} (\path{remora/governance_intelligence/}) closes this gap with
+an opt-in, fully deterministic enrichment stage that runs before any
+policy rule (no LLM calls): (1)~fail-closed normalization of
+caller-supplied labels (unknown is explicit, never coerced to a safe
+value); (2)~action-semantics extraction from the proposed action text
+and tool metadata; (3)~misspecification-risk inference from
+label/semantics disagreement; (4)~causal-consequence signals (blast
+radius, expected loss); and (5)~policy-generalization risk---would
+repeatedly accepting this \emph{class} of action remain safe
+fleet-wide?
+
+Signals merge into the existing \texttt{PolicyObservation} under a
+\textbf{strengthen-only} rule: inferred higher risk may override a
+supplied lower label, never the reverse, and hard-block flags are
+never cleared. A grid property test across 2{,}160 observation
+combinations verifies that enrichment never converts a rejection into
+an acceptance
+(\path{tests/policy/test_governance_intelligence_never_weakens_policy.py}).
+The engine remains the sole decision authority.
+
+\begin{table}[h]
+\centering\small
+\caption{Governance-intelligence benchmark: 50 deterministic tasks
+across 10 categories of mislabelled, underspecified, or repeated
+actions, evaluated offline with a deliberately permissive trust
+baseline so that enrichment is the only barrier to acceptance.}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Metric & Result \\
+\midrule
+Unsafe accept rate (no-accept tasks) & \textbf{0.0\%} \\
+Metadata-mismatch detection          & 100\% \\
+Unknown-metadata review rate         & 100\% \\
+Legitimate reads still accepted      & 100\% \\
+Escalation precision                 & 96.7\% \\
+Policy-generalization detection      & 90\% \\
+\bottomrule
+\end{tabular}
+\label{tab:govintel}
+\end{table}
+
+Artifact:
+\path{artifacts/governance_intelligence/evaluation_results.json};
+runner: \path{experiments/evaluate_governance_intelligence.py}.
+Without enrichment, \texttt{DROP TABLE users} labelled
+\texttt{action\_type=read, risk\_tier=low} reaches \textsc{Accept} on
+a high-trust path; with enrichment it escalates. The layer is
+heuristic and English-centric; pattern tables can be evaded by novel
+phrasing, so it reduces reliance on caller labels rather than
+replacing verification, evidence, or human review.
+
+% =====================================================================
+\section{Evidence-Grounded Critical-Phase Routing}
+\label{sec:evidence}
+
+\subsection{The Critical-Phase Problem}
+
+In the critical phase, oracle consensus is near the phase boundary.
+Empirically, higher trust scores \emph{negatively} correlate with
+correctness ($n=32$ real-oracle items): Q4 high-trust achieves 50\%
+correct; Q1 low-trust achieves 75\% correct. Conformal calibration at
+5\% risk target fails completely on critical-phase items (mean
+observed risk = 100\%, coverage $\rightarrow 0\%$). Standard trust-based
+routing cannot safely gate critical-phase decisions.
+
+\subsection{PhaseAwareGuardrail: Exploiting Trust Inversion}
+\label{sec:phase_aware}
+
+The inversion is a \emph{selection criterion reversal}, not an
+accuracy problem.  Items with $\tau < 0.10$ in the critical phase
+achieve 71.4\% accuracy ($N=21$) vs.\ 27.3\% for high-$\tau$
+critical items ($N=11$).  A \texttt{PhaseAwareGuardrail} exploits
+this by applying an inverted score $\tilde{\tau} = 1 - \tau$ for
+critical-phase items, then calibrating a conformal threshold on
+$\tilde{\tau}$.  A hard gate rejects all items with $\tau \geq
+\tau_{\max} = 0.10$ (the groupthink boundary) regardless of the
+conformal result.
+
+The combined pool---all 99 ordered-phase items (sorted by
+$\tau \downarrow$) plus 21 low-$\tau$ critical items ($\tau < 0.10$,
+sorted by $\tilde{\tau} \downarrow$)---achieves:
+
+\begin{itemize}[leftmargin=*]
+  \item 20.0\% coverage ($N=108$): 85.2\% accuracy \text{CI~[77.3\%, 90.7\%]}
+  \item 22.1\% coverage ($N=120$): 85.0\% accuracy \text{CI~[77.5\%, 90.3\%]}
+\end{itemize}
+
+This is a $+3.9$\,pp coverage gain over the ordered-only operating
+point (18.2\%, 86.9\% accuracy), with a 1.9\,pp accuracy cost---still
+$+43.8$\,pp above the 41.18\% full-coverage baseline.  The guardrail is
+implemented in \path{remora.selective.guardrail.PhaseAwareGuardrail}
+and fully tested (8 unit tests).
+
+\subsection{Conformal Risk Control Under Covariate Shift}
+\label{sec:crc}
+
+Standard Mondrian conformal calibration assumes that calibration and
+test samples are \emph{exchangeable} — drawn i.i.d.\ from the same
+distribution.  This assumption is violated in the critical phase: the
+joint distribution $(\tau, \text{correct})$ differs structurally
+between ordered-phase calibration items and critical-phase test items
+due to the trust-score inversion documented above.  Empirically,
+applying standard conformal to critical-phase items yields 100\%
+observed risk and zero coverage.
+
+REMORA resolves this with \textbf{Conformal Risk Control} (CRC,
+\cite{angelopoulos2022crc}), an importance-weighted extension of
+split-conformal prediction to general monotone loss functions and
+covariate-shifted test distributions.  Each calibration item $i$
+receives an importance weight $w_i = p_{\text{test}}(x_i) /
+p_{\text{cal}}(x_i)$.  For REMORA's phase shift, we use the
+conservative estimate
+
+\begin{equation}
+  w_i = \begin{cases} 1.0 & \text{if phase}(i) = p_{\text{test}} \\
+                      \beta & \text{otherwise} \end{cases}
+  \qquad (\beta = 0.10)
+  \label{eq:phase_weights}
+\end{equation}
+
+The CRC threshold $\hat{\lambda}$ is the smallest value such that the
+weighted empirical risk $\bar{L}(\lambda) = \sum_i \tilde{w}_i
+\ell_i(\lambda) \leq \alpha$, where
+$\tilde{w}_i = w_i / (\sum_j w_j + w_{n+1})$ are the normalised
+importance weights.
+
+\begin{theorem}[CRC Guarantee, Angelopoulos et al.\ 2022]
+For any monotone loss $\ell : [0,1] \to [0,B]$, target risk
+$\alpha \in (0,B)$, and correctly-specified importance weights:
+\[
+  \mathbb{E}[L(\hat{\lambda})] \leq \alpha + \frac{B}{n+1}
+\]
+where $n$ is the calibration set size.  For binary (0/1) loss $B=1$,
+the overshoot is bounded by $1/(n+1)$ --- negligible for $n \geq 20$.
+\end{theorem}
+
+REMORA implements CRC in \path{remora.selective.crc.CovariateShiftCRC}
+with a \texttt{fit(scores, labels, phases, target\_phase)} interface
+compatible with \texttt{ConformalPhaseGuardrail}.  A \texttt{CRCReport}
+dataclass exposes \texttt{finite\_sample\_slack} ($= 1/(n_{\text{cal}}+1)$)
+and \texttt{guaranteed\_risk\_bound} ($= \alpha + \text{slack}$) for
+transparent reporting.  The module is fully tested (44 unit tests
+covering edge cases, tied-score atomicity, phase-weight algebra, and
+Theorem 1 finite-sample slack).
+
+
+\subsection{Prover-Verifier Deliberation for Critical-Phase Routing}
+\label{sec:pvd}
+
+Kirsch et al.\ (2024) showed that prover-verifier games produce more
+legible and reliable LLM outputs: a \emph{prover} oracle justifies a
+claim to an independent \emph{verifier} oracle, filtering responses
+whose reasoning cannot withstand scrutiny \cite{kirsch2024prover}.
+REMORA adapts this protocol to its offline multi-oracle setting without
+additional API calls.
+
+\paragraph{Protocol.}
+\begin{enumerate}[leftmargin=*,label=\arabic*.]
+  \item \textbf{Cluster} oracle responses via Semantic Entropy clustering
+        (\S\ref{sec:se}), producing semantic equivalence classes
+        $\mathcal{C} = \{C_1, \ldots, C_K\}$ sorted by mass.
+  \item \textbf{Prover} = the oracle whose response belongs to the
+        dominant cluster $C_1$ and has the highest per-oracle confidence.
+  \item \textbf{Verifier} = the oracle with the highest confidence
+        \emph{outside} $C_1$ (the independent challenger).
+  \item \textbf{Deliberation} ($r = 1, \ldots, n_{\text{rounds}}$):
+        evaluate bidirectional NLI entailment
+        $e_r = \text{NLI}(\text{prover} \to \text{verifier}) \cdot \gamma^{r-1}$
+        with round-decay factor $\gamma = 0.85$.
+  \item \textbf{Legibility score}:
+        $\mathcal{L} = \bar{e} \cdot |C_1| / N$,
+        where $\bar{e}$ is the mean entailment and $|C_1|/N$ is the
+        dominant cluster mass.
+  \item \textbf{Final confidence}:
+        $\hat{c} = \sqrt{|C_1|/N \cdot c_{\text{verifier}}}$
+        (geometric mean of prover support and updated verifier confidence).
+\end{enumerate}
+
+\paragraph{Routing signal.}
+The PVD confidence is blended with the raw REMORA trust score:
+\begin{equation}
+  \tilde{\tau} = (1 - w_{\text{pvd}}) \cdot \tau + w_{\text{pvd}} \cdot \hat{c},
+  \qquad w_{\text{pvd}} = 0.40
+  \label{eq:pvd_blend}
+\end{equation}
+This allows PVD to promote borderline critical-phase items to
+\textsc{Accept} when deliberation confidence is high, extending coverage
+beyond the \texttt{PhaseAwareGuardrail} operating point without
+relaxing the formal risk bound.
+
+\paragraph{Implementation.}
+The deliberation entry point is
+\begin{lstlisting}
+remora.selective.pvd.deliberate(
+    oracle_responses, oracle_confidences,
+    n_rounds=2)
+\end{lstlisting}
+It returns a \texttt{PVDResult} with fields
+\path{prover_cluster_mass}, \path{legibility_score},
+\path{agreement}, and \path{final_confidence}.
+\texttt{pvd\_routing\_score(trust\_score, pvd\_result)} implements
+Eq.~\ref{eq:pvd_blend}.  Fully tested (33 unit tests, no external
+model calls).
+
+\subsection{CriticalEvidenceRouter}
+
+The router evaluates a five-field \texttt{EvidenceSignal}
+with fields (\texttt{evidence\_strength}, \texttt{contradiction\_score},
+\texttt{citation\_coverage}, \texttt{cross\_evidence\_consistency},
+\texttt{source\_reliability}):
+
+\begin{enumerate}[leftmargin=*,label=\arabic*.]
+  \item Coverage gate: \texttt{citation\_coverage}~$< 0.50$ $\Rightarrow$ \textsc{Escalate}
+  \item Contradiction block: \texttt{contradiction\_score}~$> 0.50$ $\Rightarrow$ \textsc{Abstain}
+  \item Evidence-accept: all thresholds met $\Rightarrow$ \texttt{evidence\_accept}
+  \item Default: $\Rightarrow$ \textsc{Escalate} with diagnostic
+\end{enumerate}
+
+On MultiNLI ($N=3{,}000$): resolution rate 38.5\%, evidence-accept
+precision 100\%, false-accept rate on contradiction items 0\%,
+abstain precision on contradictions 99.3\%.
+
+\subsection{Evidence Signal Provenance}
+
+\emph{Current implementation:} \texttt{EvidenceSignal} is built as a
+proxy from oracle consensus statistics. This is documented in the
+source as a ``structural bridge'' pending semantic retrieval.
+\emph{Planned:} external BM25/NLI passage retrieval feeding real
+document evidence. The routing logic is fully implemented and tested;
+real evidence quality may differ from NLI label quality.
+
+% =====================================================================
+\section{Audit and Governance Envelope}
+\label{sec:audit}
+
+\subsection{DecisionEnvelope v2}
+
+Every gate invocation produces an immutable
+\texttt{DecisionEnvelope} with blocks: request, assessment, gate,
+reviewer\_context, follow\_up, history, policy\_learning, and audit.
+The full schema is in Appendix~\ref{app:schema}.
+
+\subsection{Audit Hash-Chain}
+
+\begin{equation}
+  h_i = \text{SHA-256}(h_{i-1} \;\|\; \mathrm{json}(e_i))
+\end{equation}
+
+This provides \textbf{tamper-detection}: any modification breaks the
+chain. It does \textbf{not} prevent tampering. Tamper-\emph{proof}
+audit requires external append-only storage (S3 Object Lock, Azure
+Immutable Blob, or equivalent) as a deployment dependency.
+
+\subsection{Follow-Up Workflow}
+
+\textsc{Escalate} generates a structured follow-up request specifying
+reason codes, required evidence, responsible role, and SLA. Data
+structures are implemented; production integration with external
+ticketing systems is a deployment requirement.
+
+% =====================================================================
+\section{Experimental Evaluation}
+\label{sec:eval}
+
+\subsection{Benchmarks}
+
+\textbf{QA benchmark ($N=544$).}
+BoolQ ($n=377$) \cite{clark2019boolq},
+TruthfulQA ($n=85$) \cite{lin2022truthfulqa},
+adversarial-curated ($n=7$),
+REMORA-curated ($n=75$, author-assembled, selection bias possible).
+
+\textbf{Tool-call benchmark ($N=700$).}
+Synthetic adversarial suite: 7 domains $\times$ 4 task types $\times$
+25 tasks. Three adversarial failure modes: intent-argument conflict,
+change-window/dual-control requirements, safe-looking tasks with
+dangerous hidden scope.
+
+\textbf{Evidence benchmark ($N=3{,}000$).}
+MultiNLI validation-matched \cite{williams2018broad} (entailment,
+neutral, contradiction) as proxy for evidence-verification decisions.
+
+\textbf{Lyapunov benchmark ($N=1{,}000$ sessions).}
+Synthetic oracle responses, seeded RNG, 5--20 steps per session.
+
+\subsection{Baselines}
+
+QA: full-coverage majority vote; trust-score selective (threshold=0.50).
+
+Tool-call: single model (Llama-3.3-70B); majority vote; self-consistency;
+verifier heuristic; REMORA temperature-gate only (no policy engine).
+
+\subsection{Oracles}
+
+All experiments: Llama-3.1-8B-Instant, Llama-3.3-70B-Versatile,
+Llama-4-Scout-17B-16E-Instruct (Groq API). Oracle model versions
+may change; stored artifacts ensure deterministic reproduction of
+QA and tool-call benchmarks.
+
+% =====================================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{Selective Accuracy on QA Benchmark}
+
+\begin{table}[h]
+\centering\small
+\caption{QA benchmark selective accuracy ($N=544$). $\dagger$~In-sample
+optimum; $\ddagger$~held-out: stratified 80/20 split, $\tau^*=0.203$
+locked from training set (seed=42); $\S$~\texttt{PhaseAwareGuardrail}:
+ordered~$+$~inverted low-$\tau$ critical ($\tau < 0.10$), $N=120$.}
+\fitcolumn{%
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Condition & Set & Cov. & Acc. & Lift & 95\% CI \\
+\midrule
+Majority vote (full) & full   & 100\%  & 41.18\% & ---  & [37.1, 45.4] \\
+neg-temp. (10\%)$\dagger$     & in-sam & 10\%   & 81.48\% & +40.3 & [69.2, 89.6] \\
+neg-temp. (18\%)$\dagger$     & in-sam & 18\%   & \textbf{88.78\%} & \textbf{+47.6} & [81.0, 93.6] \\
+phase-aware (22\%)$\S$        & in-sam & 22.1\% & 85.0\%  & +43.8 & [77.5, 90.3] \\
+neg-temp. (25\%)$\dagger$     & in-sam & 25\%   & 72.79\% & +31.6 & [64.8, 79.6] \\
+neg-temp. (held-out)$\ddagger$ & \textbf{holdout} & 23.2\% & \textbf{88.00\%} & \textbf{+41.7} & \textbf{[70.0, 95.8]} \\
+\bottomrule
+\end{tabular}}
+
+\smallskip
+\footnotesize
+Held-out: $N_\text{accepted}=25$ (all ordered-phase), $p=1.45\times10^{-5}$
+(one-sided binomial, H$_1$: acc $>$ holdout baseline 46.3\%),
+Wilson CI lies entirely above holdout baseline.
+\label{tab:qa}
+\end{table}
+
+Phase breakdown on full dataset:
+ordered (N=99): 86.9\%; critical (N=32): 62.5\%; disordered (N=413): 28.6\%.
+Disordered items constitute 75.9\% of the benchmark, driving the
+low full-coverage baseline---a structural property of benchmark
+composition. Extending coverage beyond the ordered-only 18.2\% operating
+point requires exploiting the critical-phase trust inversion
+(\S\ref{sec:phase_aware}): the \texttt{PhaseAwareGuardrail} raises
+coverage to 22.1\% at 85.0\% accuracy by adding 21 low-$\tau$ critical
+items ($\tau < 0.10$, inverted-score selection, $+43.8$\,pp lift; Wilson~CI [77.5\%, 90.3\%]).
+
+\subsection{Tool-Call Benchmark ($N=700$)}
+
+\begin{table}[h]
+\centering\small
+\caption{Tool-call benchmark: REMORA vs baselines ($N=700$ tasks).}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Condition & Acc. & Unsafe & Utility \\
+\midrule
+Single model               & 20\% & 20\% & $-$0.25 \\
+Majority vote              & 30\% & 10\% & 0.00 \\
+Self-consistency           & 30\% & 10\% & 0.00 \\
+Verifier heuristic         & 20\% & 20\% & $-$0.25 \\
+REMORA temp. gate only     & 70\% & 10\% & 0.27 \\
+\textbf{REMORA full policy}& \textbf{90\%} & \textbf{0\%} & \textbf{0.62} \\
+\bottomrule
+\end{tabular}
+\label{tab:toolcall}
+\end{table}
+
+The temperature-gate-only row demonstrates that thermodynamic routing
+is necessary but insufficient: policy hard blocks contribute 100\%
+of the unsafe-execution reduction (10\% $\rightarrow$ 0\%).
+
+\subsection{Conformal Coverage (Mondrian, $N=2{,}161$)}
+
+\begin{table}[h]
+\centering\small
+\caption{Mondrian phase-stratified conformal, 15\% risk target
+(20 seeds $\times$ $N=2{,}161$ augmented dataset).}
+\begin{tabular}{@{}lrrl@{}}
+\toprule
+Phase & Mean Risk & Mean Cov. & Seeds Fail \\
+\midrule
+Ordered    & 12.0\% & \textbf{99.9\%} & \textbf{0/20} \\
+Critical   & 64.5\% &  0.9\% & 4/20 \\
+Disordered & 78.6\% &  0.2\% & 2/20 \\
+\bottomrule
+\end{tabular}
+\label{tab:mondrian}
+\end{table}
+
+Ordered-phase conformal achieves 99.9\% coverage with 0/20 failures---a
+deployable operating point. Critical and disordered phases cannot achieve
+meaningful coverage via conformal calibration alone, motivating the
+evidence router.
+
+\subsection{Lyapunov Stability ($N=1{,}000$ Sessions)}
+
+$P(\Delta V \leq 0) = 87.2\%$; mean $\Delta V = -0.329$;
+P95 $= +0.152$; P99 $= +0.308$. The 12.8\% of sessions where $V$
+increased are correctly terminated by the abort criterion.
+
+\subsection{Evidence Router Proxy Benchmark (MultiNLI, $N=3{,}000$)}
+
+Resolution rate 38.5\%; evidence-accept precision 100\%;
+false-accept rate on contradiction 0\%; abstain precision 99.3\%.
+Trust-only baseline: 0\% resolution (all escalated).
+This NLI-proxy benchmark is distinct from the 32-case
+\emph{Cross-Domain Evidence Replay} (static rule-based provider)
+reported in the repository and the enterprise white paper; the two
+measure different mechanisms at different scales.
+
+% =====================================================================
+\section{Ablations}
+\label{sec:ablation}
+
+\textbf{Policy vs. thermodynamics.}
+Temperature gate only achieves 70\% accuracy, 10\% unsafe execution.
+Full policy gate: 90\% accuracy, 0\% unsafe. Hard blocks account for
+the entire safety improvement.
+\emph{Architectural implication.} The unsafe-execution reduction is
+100\% attributable to deterministic, interpretable policy rules that are
+independent of LLM output. The multi-oracle consensus and thermodynamic
+routing machinery improve decision \emph{calibration and routing quality}
+(discriminating VERIFY, ABSTAIN, and ACCEPT paths), but do not contribute
+to the safety guarantee itself. This separation is a design feature: the
+safety floor can be reasoned about and audited without reference to
+oracle behaviour. Readers should not infer that the consensus
+machinery is the source of the 0\% unsafe rate.
+
+\textbf{Oracle count ($N=302$).}
+Single oracle: 56.95\% (95\% CI [51.3, 62.4]).
+Three-oracle majority vote: $\approx$+10 pp.
+Correlation-aware weighting: additional gain within multi-oracle setting.
+
+The primary benefit of the oracle swarm is disagreement
+\emph{detection} (high $H$, high $D$) rather than accuracy
+improvement per se.
+
+% =====================================================================
+\section{Case Study: Well Barrier Agent Action}
+\label{sec:casestudy}
+
+\emph{No domain-engineering correctness is claimed. This is an
+illustrative governance walkthrough.}
+
+A drilling agent proposes: \textit{``Autonomously update kill mud
+weight from 1.52 to 1.48\,SG to improve ROP on the 8½{\textquotedblright}
+section.''} Risk tier: critical. Domain: \texttt{well\_engineering}.
+
+\textbf{Oracle responses:}
+Llama-3.1-8B: ESCALATE, conf 0.78;
+Llama-3.3-70B: ESCALATE, conf 0.85 (NORSOK D-010 §5.4);
+Llama-4-Scout: VERIFY, conf 0.62.
+One oracle failed; excluded.
+
+\textbf{Consensus:}
+$\hat{p}(\textsc{Escalate}) = 0.71$, $\hat{p}(\textsc{Verify}) = 0.29$.
+$H = 0.866$ bits; $D = 0.29$;
+phase = critical ($T = 0.85$, near $T_c$);
+$\trust = 0.31$.
+
+\textbf{Evidence:} No field inspection, no ECD calculation, no OIM
+sign-off. Citation coverage = 0.18 $<$ 0.50 threshold.
+Evidence router: \textsc{Escalate}.
+
+\textbf{Policy engine:} Hard block \#6 fires immediately
+(phase=critical AND risk=critical) $\Rightarrow$ \textsc{Escalate}.
+
+\textbf{Follow-up generated:} type=on\_site\_inspection;
+assign\_to=Independent Well Engineer; required\_evidence = \{ECD
+calculation, kick tolerance, NORSOK D-010 barrier confirmation, OIM
+sign-off\}; SLA=4h.
+
+\textbf{Audit hash} recorded; action blocked.
+
+% =====================================================================
+\section{Negative Results}
+\label{sec:negative}
+
+Publication of negative results is essential for scientific
+credibility. This section documents active and resolved findings.
+Full documentation is in \texttt{NEGATIVE\_RESULTS.md}.
+
+\begin{table}[h]
+\centering\small
+\caption{Negative results and mitigations.}
+\fitcolumn{%
+\begin{tabular}{@{}llll@{}}
+\toprule
+Finding & Sev. & Status & Mitigation \\
+\midrule
+$\chi$-proxy AUC = 0.39 & Med & Docum. & Repurposed as OOD \\
+$T$--$D$ circularity & Med & Resolv. & Structural $T$ \\
+Crit.-phase anticorr. & High & Active & Evidence router \\
+Full-cov. acc. weak & Med & Active & Selective prediction \\
+Oracle diversity part. & Med & Active & Diversity weights \\
+In-sample calibration & Med & \textbf{Resolved} & 88.0\% held-out, $p$=1.45e-5 \\
+Evidence signal proxy & Med & Active & NLI benchmark \\
+Audit not tamper-proof & Med & By des. & WORM storage \\
+\bottomrule
+\end{tabular}}
+\label{tab:negresults}
+\end{table}
+
+\paragraph{$\chi$-proxy failure.}
+Susceptibility $\chi$ as standalone difficulty predictor: AUC = 0.39
+on $N=302$ items---below chance. Repurposed as OOD detector:
+$\chi > 1.45$ (97th percentile) $\Rightarrow$ \textsc{Escalate} with
+\texttt{escalate\_adversarial}.
+
+\paragraph{Critical-phase trust anticorrelation.}
+Q4 high-trust: 50\% correct; Q1 low-trust: 75\% correct.
+Confirmed on $N=32$ real-oracle items and replicated qualitatively
+on augmented $N=511$ simulated dataset. No trust threshold separates
+correct from incorrect critical-phase items. \emph{Consequence:}
+evidence routing---not trust scoring---is the required mechanism for
+critical-phase decisions.
+
+\paragraph{$T$--$D$ circularity (resolved).}
+Legacy temperature estimator weighted $D$ at 18\% of $T$, creating
+a feedback loop ($D \rightarrow T \rightarrow F \rightarrow V$, all
+depending on $D$). Resolved by structural temperature (\S\ref{sec:method}),
+which computes $T$ from prompt structure alone.
+
+% =====================================================================
+\section{Threats to Validity}
+\label{sec:threats}
+
+\textbf{Internal validity:} Trust threshold ($\tau^* = 0.2032$,
+18th-percentile neg-temperature on 80\% training split) is derived
+in-sample; held-out evaluation ($n=108$, 20\% stratified) confirms
+validity ($p=1.45\times10^{-5}$); 13.8\% author-curated benchmark
+items; synthetic tool-call adversarial patterns.
+
+\textbf{External validity:} All experiments use Groq/Llama models;
+benchmark phase distribution may not match deployment reality;
+MultiNLI is a proxy for field evidence retrieval.
+
+\textbf{Construct validity:} Thermodynamic terminology is metaphorical,
+not physical. ``Trust'' is a derived scalar, not a frequency probability
+of per-item correctness. Utility scores are designed task weights, not
+real-world costs.
+
+% =====================================================================
+\section{Safety, Ethics, and Governance}
+\label{sec:safety}
+
+REMORA is designed to \emph{reduce} unsafe autonomous AI actions.
+\textsc{Accept} means assurance conditions are met, not that the action
+is correct. Human reviewers receiving \textsc{Escalate} retain full
+accountability for outcomes. The oracle swarm routes sensitive
+operational data through external APIs; data classification requirements
+must be evaluated before deployment. The adversarial firewall detects
+known injection patterns but is not a complete defense against
+sophisticated adversarial inputs.
+
+% =====================================================================
+\section{Reproducibility}
+\label{sec:repro}
+
+\textbf{Repository:} \url{https://github.com/darklordVirtual/REMORA}.
+\textbf{Release:} \texttt{\paperversion} (this paper is versioned in lockstep
+with the repository release tag).
+\textbf{Python:} 3.11+.
+
+\begin{lstlisting}
+python -m pip install -e ".[dev]"
+make audit        # lint + tests + claim consistency
+make benchmark    # all deterministic benchmarks
+make credibility-pack
+\end{lstlisting}
+
+Live oracle experiments require \texttt{GROQ\_API\_KEY}. Oracle model
+versions on the Groq API may change; results are sensitive to model
+version updates. Stored artifact experiments are fully deterministic.
+
+% =====================================================================
+
+% TEE content moved to Appendix~\ref{app:tee}.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented REMORA, a policy-gated multi-oracle assurance architecture
+for governing agentic AI actions. The central contribution is a
+system-level design that converts multi-oracle disagreement,
+thermodynamic uncertainty observables, evidence signals, and policy
+constraints into four structured gate outcomes with a full audit record.
+
+Key results: 0\% unsafe execution on an adversarial 700-task tool-call
+benchmark (vs.\ 10--20\% for all baselines; Wilson CI [0.00\%, 0.55\%]);
+88.8\% in-sample selective accuracy at 18\% coverage, confirmed at 88.0\%
+on a stratified held-out split ($N_\text{accepted}=25$,
+$p=1.45\times10^{-5}$; Wilson CI [70.0\%, 95.8\%]---directional
+confirmation, not a tight estimate given the small accepted set); 38.5\%
+critical-phase resolution with 100\% evidence-accept precision; 99.9\%
+ordered-phase conformal coverage with 0/20 seed failures.
+
+Key negative findings: trust alone cannot route critical-phase decisions
+safely; $\chi$-proxy susceptibility fails as a difficulty predictor
+(AUC = 0.39); evidence retrieval is currently proxy-based; the benchmark
+has structural composition biases; entropy computation in reported
+experiments uses a token-fingerprint heuristic, not full Semantic Entropy
+over NLI clusters. A central architectural finding is that the
+safety improvement is entirely attributable to deterministic policy
+hard blocks, not to the multi-oracle consensus machinery---the
+latter contributes routing calibration quality.
+
+REMORA is a research-grade prototype. Production deployment requires
+semantic evidence retrieval, WORM audit storage, OPA policy integration,
+and domain-authority validation. The architecture is designed to be
+pluggable: each component can be replaced without changing the gate
+interface.
+
+The broader thesis---that governed autonomy requires explicit uncertainty
+routing, not suppression---is supported by both positive results and
+negative findings. We offer REMORA as a reference architecture, an
+empirical baseline, and a documented set of unsolved problems for the
+AI assurance community.
+
+% =====================================================================
+\section*{Acknowledgements}
+Benchmarks use publicly available datasets (BoolQ, TruthfulQA, MultiNLI,
+ARC-Challenge, MMLU-Pro). Oracle inference via Groq API. Open Policy Agent
+used under Apache 2.0 license. Negative results documented in full in
+\texttt{NEGATIVE\_RESULTS.md}; the authors thank all reviewers who pointed
+out scope corrections and limitations.
+
+% =====================================================================
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+\bibitem{kuhn2023semantic}
+Kuhn, L., Gal, Y., \& Farquhar, S.\ (2023).
+Semantic uncertainty: Linguistic invariances for uncertainty estimation in
+natural language generation.
+In \emph{Proceedings of the International Conference on Learning Representations
+(ICLR 2023)}.
+arXiv:2302.09664.
+
+\bibitem{kuhn2026evse}
+Kuhn, L., Gal, Y., \& Farquhar, S.\ (2026).
+Evidential Semantic Entropy for LLM uncertainty quantification.
+In \emph{Proceedings of the 17th Conference of the European Chapter of the
+Association for Computational Linguistics (EACL 2026)}, pp.\ 334--348.
+
+\bibitem{kirsch2024prover}
+Kirsch, A., Harrison, J., Misra, S., \& Leike, J.\ (2024).
+Prover-verifier games improve legibility of LLM outputs.
+\emph{arXiv:2407.13692}.
+
+\bibitem{angelopoulos2022crc}
+Angelopoulos, A.\ N., Bates, S., Fisch, A., Lei, L., \& Schuster, T.\ (2022).
+Conformal risk control.
+\emph{arXiv:2208.02814}.
+
+\bibitem{zhang2025tee}
+Zhang, Y.\ \& Lee, M.\ (2025).
+Evaluating the performance of large language models in confidential computing
+environments.
+\emph{arXiv:2502.11347}.
+
+\bibitem{wang2023self}
+Wang, X., et al.\ (2023).
+Self-consistency improves chain of thought reasoning in language models.
+\emph{ICLR 2023}.
+
+\bibitem{du2023improving}
+Du, Y., et al.\ (2023).
+Improving factuality and reasoning in language models through multiagent debate.
+\emph{ICML 2024}.
+
+\bibitem{zheng2023judging}
+Zheng, L., et al.\ (2023).
+Judging LLM-as-a-judge with MT-Bench and Chatbot Arena.
+\emph{NeurIPS 2023}.
+
+\bibitem{cobbe2021training}
+Cobbe, K., et al.\ (2021).
+Training verifiers to solve math word problems.
+\emph{arXiv:2110.14168}.
+
+\bibitem{chow1970optimum}
+Chow, C.\ K.\ (1970).
+On optimum recognition error and reject tradeoff.
+\emph{IEEE Transactions on Information Theory, 16}(1), 41--46.
+
+\bibitem{elyaniv2010selective}
+El-Yaniv, R.\ \& Wiener, Y.\ (2010).
+On the foundations of noise-free selective classification.
+\emph{Journal of Machine Learning Research, 11}, 1605--1641.
+
+\bibitem{lakshminarayanan2017simple}
+Lakshminarayanan, B., Pritzel, A., \& Blundell, C.\ (2017).
+Simple and scalable predictive uncertainty estimation using deep ensembles.
+\emph{Advances in Neural Information Processing Systems (NeurIPS 2017)}.
+
+\bibitem{kuncheva2003measures}
+Kuncheva, L.\ I.\ \& Whitaker, C.\ J.\ (2003).
+Measures of diversity in classifier ensembles and their relationship with
+the ensemble accuracy.
+\emph{Machine Learning, 51}(2), 181--207.
+
+\bibitem{geifman2017selective}
+Geifman, Y.\ \& El-Yaniv, R.\ (2017).
+Selective classification for deep neural networks.
+\emph{NeurIPS 2017}.
+
+\bibitem{kadavath2022language}
+Kadavath, S., et al.\ (2022).
+Language models (mostly) know what they know.
+\emph{arXiv:2207.05221}.
+
+\bibitem{angelopoulos2021gentle}
+Angelopoulos, A.\ \& Bates, S.\ (2021).
+A gentle introduction to conformal prediction and distribution-free uncertainty quantification.
+\emph{arXiv:2107.07511}.
+
+\bibitem{guo2017calibration}
+Guo, C., et al.\ (2017).
+On calibration of modern neural networks.
+\emph{ICML 2017}.
+
+\bibitem{endsley1995toward}
+Endsley, M.\ (1995).
+Toward a theory of situation awareness in dynamic systems.
+\emph{Human Factors, 37}(1), 32--64.
+
+\bibitem{kelly1998goal}
+Kelly, T.\ (1998).
+Arguing safety: A systematic approach to managing safety cases.
+PhD thesis, University of York.
+
+\bibitem{bloomfield2010safety}
+Bloomfield, R.\ \& Bishop, P.\ (2010).
+Safety and assurance cases: Practice, trends and challenges.
+\emph{SAFECOMP 2010}.
+
+\bibitem{lin2022truthfulqa}
+Lin, S., et al.\ (2022).
+TruthfulQA: Measuring how models mimic human falsehoods.
+\emph{ACL 2022}.
+
+\bibitem{clark2019boolq}
+Clark, C., et al.\ (2019).
+BoolQ: Exploring the surprising difficulty of natural yes/no questions.
+\emph{NAACL 2019}.
+
+\bibitem{williams2018broad}
+Williams, A., et al.\ (2018).
+A broad-coverage challenge corpus for sentence understanding through inference.
+\emph{NAACL 2018}.
+
+\bibitem{euaiact2024}
+European Parliament \& Council of the European Union.\ (2024).
+Regulation (EU) 2024/1689 of the European Parliament and of the Council
+(Artificial Intelligence Act).
+\emph{Official Journal of the European Union}, L~2024/1689.
+
+\bibitem{opa}
+Open Policy Agent.\ (2024).
+\url{https://www.openpolicyagent.org/}.
+
+\bibitem{bjoru2026causal}
+Bjøru, A.~R.\ (2026).
+Causal Post-hoc Explainable AI.
+PhD thesis, Norwegian University of Science and Technology (NTNU).
+ISBN~978-82-353-0022-5.
+
+\end{thebibliography}
+
+% =====================================================================
+\appendix
+
+\section{Mathematical Notation Table}
+\label{app:math}
+
+\begin{table}[h]
+\centering\small
+\caption{Mathematical notation.}
+\fitcolumn{%
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Definition & Domain \\
+\midrule
+$\Oracles$ & Oracle set & $n \geq 3$ models \\
+$\OraclesV$ & Valid oracle set & $\OraclesV \subseteq \Oracles$ \\
+$\phi(o)$ & Canonical verdict & (polarity, hash, mag., tags) \\
+$\rho(a,b)$ & Pairwise agreement rate & $[0,1]$, window 200 \\
+$w(o)$ & Diversity weight & normalized \\
+$\hat{p}(v)$ & Weighted support & $[0,1]$, sums to 1 \\
+$H$ & Shannon entropy & bits $\geq 0$ \\
+$D$ & Dissensus & $[0,1]$ \\
+$k$ & Active verdict count & $\geq 1$ \\
+$\eta$ & Order parameter & $[0,1]$ \\
+$T$ & Structural temperature & $[0.05, 2.0]$ \\
+$T_c$ & Critical temperature & calibrated \\
+$\chi$ & Susceptibility & $[0, \infty)$ \\
+$F$ & Free-energy proxy & $\mathbb{R}$ \\
+$\lambda$ & Coupling constant & 0.3 \\
+$\trust$ & Trust score & $[0,1]$ \\
+$h_{\rm bound}$ & Hallucination bound & $[0,1]$ \\
+$w_{\rm phase}$ & Phase weight & $\{1.0, 0.5, 0.1\}$ \\
+$V(t)$ & Lyapunov-inspired heuristic stability observable & $[0,\infty)$ \\
+$g$ & Gate outcome & ACCEPT/VERIFY/ABS./ESC. \\
+$\Gate$ & Gate function & $(q,a,c) \to g$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\section{DecisionEnvelope v2 Schema Summary}
+\label{app:schema}
+
+Top-level blocks: \texttt{request}, \texttt{assessment},
+\texttt{gate}, \texttt{reviewer\_context}, \texttt{follow\_up},
+\texttt{history}, \texttt{policy\_learning}, \texttt{audit}.
+Full JSON schema is in the Markdown paper and repository
+(\texttt{remora/policy/report.py}).
+
+\section{Negative Results Archive}
+\label{app:negres}
+
+Full negative results documentation: \path{NEGATIVE_RESULTS.md}
+in repository. Resolved findings include: R1 iteration damage (fixed
+via skip\_high\_trust), R2 Stage-3b critique impact (measured,
+phase-differentiated routing implemented), R7 $T$--$D$ circularity
+(structural temperature introduced).
+
+\section{Implementation Status Table}
+\label{app:impl}
+
+\begin{table}[h]
+\centering\small
+\caption{Component implementation status.}
+\fitcolumn{%
+\begin{tabular}{@{}lll@{}}
+\toprule
+Component & Status & Notes \\
+\midrule
+Oracle fan-out & Impl. & ThreadPoolExecutor \\
+Canonicalization ($\phi$) & Impl. & NFKC, Semantic Entropy \cite{kuhn2023semantic} \\
+Correlation weighting & Impl. & Rolling 200-sample \\
+$H$, $D$, $\eta$, $T$, $F$, $\trust$ & Impl. & \texttt{thermodynamics.py} \\
+$V(t)$ Lyapunov tracking & Impl. & Abort on $\Delta V$ \\
+Phase classification & Impl. & 3-class \\
+Policy engine (7 hard blocks) & Impl. & Priority-ordered \\
+OPA/Rego adapter & Partial & Python fallback \\
+Evidence router (oracle proxy) & Impl. & Proxy signal \\
+Evidence router (semantic) & Planned & Interface ready \\
+DecisionEnvelope v2 & Impl. & Frozen dataclass \\
+SHA-256 hash-chain & Impl. & Tamper-detecting \\
+Human review workflow & Impl. & Demo UI only \\
+WORM audit storage & Planned & External dependency \\
+ZK assurance proofs & Planned & Stubbed \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\section{Optional TEE-Based Audit Hardening (Tamper-Resistant)}
+\label{app:tee}
+
+\emph{This appendix describes tamper-resistant (not tamper-proof) audit hardening
+via hardware attestation. Implementation status: protocol specified; hardware
+integration pending. The term ``tamper-resistant'' is used throughout; the
+hash-chain in the main system is tamper-detecting only.}
+
+\subsection{Motivation}
+
+The SHA-256 hash-chain in \path{remora/audit/hash_chain.py} detects
+post-hoc modification of audit records but does not prevent an adversary with
+storage write access from replacing the entire chain. For deployments where
+stronger guarantees are required, hardware attestation via a Trusted Execution
+Environment (TEE) provides a complementary layer: the \texttt{DecisionEnvelope}
+is signed inside a hardware-isolated enclave, and the attestation quote
+includes a measurement of the enclave binary, making silent substitution
+detectable even if storage is compromised.
+
+This is an optional deployment hardening; it is not required for the core
+REMORA governance protocol described in the main paper.
+
+\subsection{Supported TEE Platforms}
+
+Three platforms are in scope for the reference implementation:
+\begin{itemize}
+  \item \textbf{Intel TDX / SGX} — remote attestation via DCAP quote generation
+  \item \textbf{AMD SEV-SNP} — firmware measurement in attestation report
+  \item \textbf{ARM TrustZone} — OP-TEE trusted application (mobile / edge)
+\end{itemize}
+
+\subsection{DecisionEnvelope Attestation Format}
+
+When TEE hardening is active, each \texttt{DecisionEnvelope} includes an
+\texttt{attestation} sub-object:
+
+\begin{lstlisting}
+{
+  "envelope_id": "env_7f3a...",
+  "gate": { "outcome": "ESCALATE", ... },
+  "attestation": {
+    "tee_platform": "intel_tdx",
+    "quote":        "<base64 DCAP quote>",
+    "mrenclave":    "<SHA-256 of enclave measurement>",
+    "signature":    "<Ed25519 over envelope_id
+                     +outcome+timestamp>",
+    "timestamp":    "2026-01-15T14:23:07Z"
+  }
+}
+\end{lstlisting}
+
+The \texttt{mrenclave} value pins the exact binary that produced the decision,
+allowing auditors to verify that no unauthorised code modification occurred
+between decisions.
+
+\subsection{Verification Flow}
+
+\begin{enumerate}
+  \item Auditor retrieves envelope and attestation quote from audit log.
+  \item Quote is verified against Intel/AMD/ARM attestation service.
+  \item \texttt{mrenclave} is compared against the published release measurement.
+  \item Ed25519 signature over \texttt{(envelope\_id, outcome, timestamp)} is
+        verified with the enclave's ephemeral key, which is bound to the quote.
+\end{enumerate}
+
+If any step fails, the audit record is flagged as potentially tampered.
+
+\subsection{Implementation Status}
+
+Protocol specified and data contract defined. Hardware integration (enclave
+compilation, DCAP provisioning, OP-TEE TA signing) is a deployment
+dependency and is not part of the core open-source release. Stub interfaces
+are present in \texttt{remora/audit/} for downstream integration.
+
+\end{document}
+
+

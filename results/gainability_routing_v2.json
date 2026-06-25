@@ -1,0 +1,98 @@
+{
+  "n_train": 242,
+  "n_test": 60,
+  "n_gainable_train": 0,
+  "n_gainable_test": 0,
+  "precision": 0.0,
+  "recall": 0.0,
+  "net_lift": 0,
+  "class_imbalance_ratio": 0.0,
+  "feature_coverage": {
+    "action": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "benchmark": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "d2_correct": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "d2_routed": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "difficulty": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "domain": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "hallucination_bound": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "helped_vs_majority": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "hurt_vs_majority": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "is_adversarial": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "item_id": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "majority_correct": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "order_parameter": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "phase": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "susceptibility": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "temperature": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    },
+    "trust_score": {
+      "count": 302,
+      "total": 302,
+      "coverage_pct": 100.0
+    }
+  },
+  "conclusion": "not_demonstrated \u2014 no gainable items in training split"
+}

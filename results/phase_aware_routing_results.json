@@ -1,0 +1,184 @@
+{
+  "meta": {
+    "experiment": "phase_aware_routing",
+    "thermo_source": "results/thermodynamic_eval_results.json",
+    "ablation_source": "results/ablation_v2_results.json",
+    "n_items": 302
+  },
+  "per_phase_condition_accuracy": {
+    "disordered": {
+      "n": 206,
+      "A_single": {
+        "accuracy": 0.5825,
+        "correct": 120
+      },
+      "B_majority": {
+        "accuracy": 0.801,
+        "correct": 165
+      },
+      "C_remora": {
+        "accuracy": 0.6456,
+        "correct": 133
+      },
+      "D1_strict": {
+        "accuracy": 0.6505,
+        "correct": 134
+      },
+      "D2_balanced": {
+        "accuracy": 0.7913,
+        "correct": 163
+      },
+      "D3_hybrid": {
+        "accuracy": 0.733,
+        "correct": 151
+      }
+    },
+    "critical": {
+      "n": 84,
+      "A_single": {
+        "accuracy": 0.5714,
+        "correct": 48
+      },
+      "B_majority": {
+        "accuracy": 0.8929,
+        "correct": 75
+      },
+      "C_remora": {
+        "accuracy": 0.8095,
+        "correct": 68
+      },
+      "D1_strict": {
+        "accuracy": 0.8095,
+        "correct": 68
+      },
+      "D2_balanced": {
+        "accuracy": 0.8929,
+        "correct": 75
+      },
+      "D3_hybrid": {
+        "accuracy": 0.8333,
+        "correct": 70
+      }
+    },
+    "ordered": {
+      "n": 12,
+      "A_single": {
+        "accuracy": 0.3333,
+        "correct": 4
+      },
+      "B_majority": {
+        "accuracy": 0.8333,
+        "correct": 10
+      },
+      "C_remora": {
+        "accuracy": 0.75,
+        "correct": 9
+      },
+      "D1_strict": {
+        "accuracy": 0.75,
+        "correct": 9
+      },
+      "D2_balanced": {
+        "accuracy": 0.8333,
+        "correct": 10
+      },
+      "D3_hybrid": {
+        "accuracy": 0.75,
+        "correct": 9
+      }
+    }
+  },
+  "policies": {
+    "baseline": {
+      "policy": "B_majority_no_abstain",
+      "covered": 302,
+      "abstained": 0,
+      "coverage_rate": 1.0,
+      "correct_on_covered": 250,
+      "accuracy_on_covered": 0.8278,
+      "overall_accuracy": 0.8278,
+      "false_trust_rate_on_covered": 0.1722,
+      "ci_95_on_covered": [
+        0.7812,
+        0.8662
+      ]
+    },
+    "E1_phase_abstain": {
+      "policy": "E1_phase_abstain",
+      "description": "Answer ordered+critical with B_majority; abstain on disordered. Thermodynamic phase is the sole routing signal.",
+      "covered": 96,
+      "abstained": 206,
+      "coverage_rate": 0.3179,
+      "correct_on_covered": 85,
+      "accuracy_on_covered": 0.8854,
+      "overall_accuracy": 0.2815,
+      "false_trust_rate_on_covered": 0.1146,
+      "ci_95_on_covered": [
+        0.8064,
+        0.9348
+      ]
+    },
+    "E2_eta_threshold_abstain": {
+      "policy": "E2_eta_threshold_abstain",
+      "description": "Abstain on the 206 lowest-\u03b7 items (same coverage as E1); answer the rest with B_majority. Simple order-parameter threshold.",
+      "covered": 96,
+      "abstained": 206,
+      "coverage_rate": 0.3179,
+      "correct_on_covered": 84,
+      "accuracy_on_covered": 0.875,
+      "overall_accuracy": 0.2781,
+      "false_trust_rate_on_covered": 0.125,
+      "ci_95_on_covered": [
+        0.7941,
+        0.927
+      ]
+    },
+    "E3_trust_score_abstain": {
+      "policy": "E3_trust_score_abstain",
+      "description": "Abstain on the 206 lowest-trust-score items (same coverage as E1); answer the rest with B_majority. Trust-score encodes phase.",
+      "covered": 96,
+      "abstained": 206,
+      "coverage_rate": 0.3179,
+      "correct_on_covered": 85,
+      "accuracy_on_covered": 0.8854,
+      "overall_accuracy": 0.2815,
+      "false_trust_rate_on_covered": 0.1146,
+      "ci_95_on_covered": [
+        0.8064,
+        0.9348
+      ]
+    },
+    "E4_oracle_optimal_phase_route": {
+      "policy": "E4_oracle_optimal_phase_route",
+      "description": "Route each item to the condition with highest per-phase accuracy. Oracle-optimal: not realisable at inference time. Upper bound only.",
+      "phase_assignments": {
+        "disordered": "B_majority",
+        "critical": "B_majority",
+        "ordered": "B_majority"
+      },
+      "covered": 302,
+      "abstained": 0,
+      "coverage_rate": 1.0,
+      "correct_on_covered": 250,
+      "accuracy_on_covered": 0.8278,
+      "overall_accuracy": 0.8278,
+      "false_trust_rate_on_covered": 0.1722,
+      "ci_95_on_covered": [
+        0.7812,
+        0.8662
+      ]
+    }
+  },
+  "summary": {
+    "n_items": 302,
+    "baseline_accuracy": 0.8278,
+    "baseline_false_trust_rate": 0.1722,
+    "e1_accuracy_on_covered": 0.8854,
+    "e1_false_trust_rate": 0.1146,
+    "e1_coverage_rate": 0.3179,
+    "e1_lift_over_baseline": 0.0576,
+    "e1_false_trust_reduction": 0.0576,
+    "e1_lift_over_eta_threshold": 0.0104,
+    "e4_oracle_optimal_accuracy": 0.8278
+  }
+}

@@ -1,0 +1,14 @@
+name = "remora"
+main = "dist/server/server.js"
+compatibility_date = "2025-05-29"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "dist/client"
+binding = "ASSETS"
+
+# Application secrets are set with `wrangler secret put`.
+# Deployment credentials belong in local environment variables or GitHub Actions secrets.
+#   OPENROUTER_API_KEY
+#   CF_AI_GATEWAY_SLUG   (optional; route through your AI Gateway for caching/logs)
+#   CF_AI_GATEWAY_TOKEN  (optional)

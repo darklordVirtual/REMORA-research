@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "experiment": "phase_stability",
+    "n_items": 302,
+    "n_bootstrap": 1000,
+    "thermo_source": "results/thermodynamic_eval_results.json",
+    "ablation_source": "results/ablation_v2_canonical_results.json"
+  },
+  "phase_fraction_stability": {
+    "ordered": {
+      "observed_fraction": 0.0397,
+      "bootstrap_mean": 0.0399,
+      "bootstrap_sd": 0.0112,
+      "bootstrap_ci95": [
+        0.0199,
+        0.0629
+      ],
+      "cv": 0.2802,
+      "stable": false
+    },
+    "critical": {
+      "observed_fraction": 0.2781,
+      "bootstrap_mean": 0.2788,
+      "bootstrap_sd": 0.0257,
+      "bootstrap_ci95": [
+        0.2285,
+        0.3278
+      ],
+      "cv": 0.092,
+      "stable": true
+    },
+    "disordered": {
+      "observed_fraction": 0.6821,
+      "bootstrap_mean": 0.6812,
+      "bootstrap_sd": 0.0266,
+      "bootstrap_ci95": [
+        0.6291,
+        0.7351
+      ],
+      "cv": 0.0391,
+      "stable": true
+    }
+  },
+  "per_phase_chi_analysis": {
+    "ordered": {
+      "n": 12,
+      "majority_error_rate": 0.1667,
+      "mean_chi": 1.0105,
+      "rho_chi_vs_majority_error": -0.583,
+      "rho_chi_vs_trust_score": -1.0,
+      "rho_eta_vs_majority_error": null,
+      "rho_neg_temp_vs_neg_error": 0.0648,
+      "notes": "chi is expected to be most predictive in critical phase near transition"
+    },
+    "critical": {
+      "n": 84,
+      "majority_error_rate": 0.1071,
+      "mean_chi": 2.025,
+      "rho_chi_vs_majority_error": -0.3119,
+      "rho_chi_vs_trust_score": -0.5474,
+      "rho_eta_vs_majority_error": -0.3236,
+      "rho_neg_temp_vs_neg_error": 0.3225,
+      "notes": "chi is expected to be most predictive in critical phase near transition"
+    },
+    "disordered": {
+      "n": 206,
+      "majority_error_rate": 0.199,
+      "mean_chi": 3.0682,
+      "rho_chi_vs_majority_error": -0.134,
+      "rho_chi_vs_trust_score": 0.1919,
+      "rho_eta_vs_majority_error": 0.0036,
+      "rho_neg_temp_vs_neg_error": -0.1015,
+      "notes": "chi is expected to be most predictive in critical phase near transition"
+    }
+  },
+  "global_rho_chi_vs_error": -0.0437,
+  "phase_composition_of_top25pct_selection": {
+    "ordered": {
+      "mean_fraction_in_top25": 0.1599,
+      "sd": 0.0445
+    },
+    "critical": {
+      "mean_fraction_in_top25": 0.8371,
+      "sd": 0.0442
+    },
+    "disordered": {
+      "mean_fraction_in_top25": 0.0031,
+      "sd": 0.0083
+    }
+  },
+  "summary": {
+    "all_phases_stable": false,
+    "critical_phase_rho_chi": -0.3119,
+    "global_rho_chi": -0.0437
+  }
+}

@@ -1,0 +1,369 @@
+# REMORA Enterprise Risk Profiles
+# Version: 1.0.0
+# Schema: enterprise/policy-model.md
+#
+# This file defines risk profile configurations for enterprise REMORA deployment.
+# Each profile specifies oracle tier, evidence requirements, thresholds, and
+# permitted decision outcomes. Profiles are assigned to requests at the gateway
+# based on tenant configuration and intent classification.
+#
+# Profiles are ordered from lowest to highest risk. In multi-tenant deployments,
+# tenants reference profiles by name and may override individual fields.
+
+version: "1.0.0"
+
+# ── Global defaults ────────────────────────────────────────────────────────────
+# Applied when no matching profile is found. Fail-safe: medium-risk behaviour.
+defaults:
+  oracle_tier: basic_consensus
+  evidence_required: false
+  max_budget_calls: 10
+  audit_level: standard
+  permitted_outcomes: [ACCEPT, ESCALATE, ABSTAIN]
+  autonomous_act: false
+
+# ── Access and RBAC defaults ─────────────────────────────────────────────────
+access_defaults:
+  default_role: admin
+  role_permissions:
+    admin: ["*"]
+    operator: ["assess", "evidence", "rerun", "read"]
+    reviewer: ["review", "follow_up", "read"]
+    domain_expert: ["review", "read"]
+    senior_authority: ["review", "read"]
+    soc_analyst: ["review", "read"]
+    legal_counsel: ["review", "read"]
+    viewer: ["read"]
+  tenant_defaults:
+    allowed_roles: ["admin", "operator", "reviewer", "domain_expert", "senior_authority", "soc_analyst", "legal_counsel", "viewer"]
+    reviewer_roles: ["admin", "reviewer", "domain_expert", "senior_authority", "soc_analyst", "legal_counsel"]
+
+# ── Risk profiles ──────────────────────────────────────────────────────────────
+profiles:
+
+  # ── Low risk ─────────────────────────────────────────────────────────────────
+  low_risk:
+    description: >
+      Internal FAQ, HR policy, general document summarisation, non-sensitive
+      information retrieval. No consequential action permitted.
+    domains:
+      - hr_faq
+      - internal_policy
+      - document_summary
+      - general_qa
+    oracle:
+      tier: fast_only               # Stage 1 (FastGate) may be sufficient
+      min_oracles: 1
+      require_independent_judge: false
+      max_budget_calls: 3
+    evidence:
+      required: false
+      min_sources: 0
+      cross_reference: false
+    thresholds:
+      fast_gate: 0.85               # lower bar for low-stakes acceptance
+      consensus_accept: 0.55
+      consensus_abstain: 0.10
+      verify_threshold: 0.65
+    cascade:
+      max_stages: 2                 # FastGate + ConsensusGate only
+    permitted_outcomes:
+      - ACCEPT
+      - ABSTAIN
+    action:
+      autonomous_act: false
+      require_human_approval: false
+    audit:
+      level: minimal
+      retention_days: 90
+
+  # ── Medium risk ──────────────────────────────────────────────────────────────
+  medium_risk:
+    description: >
+      Engineering support, contract interpretation, supplier selection,
+      maintenance planning, standard troubleshooting. Evidence retrieval
+      required. No autonomous action without approval.
+    domains:
+      - engineering_support
+      - contract_interpretation
+      - supplier_evaluation
+      - maintenance_planning
+      - it_support
+      - procurement_general
+    oracle:
+      tier: basic_consensus         # 2–3 oracles
+      min_oracles: 2
+      require_independent_judge: true
+      max_budget_calls: 12
+    evidence:
+      required: true
+      min_sources: 1
+      source_types:
+        - procedure
+        - internal_document
+        - knowledge_base
+      cross_reference: false
+    thresholds:
+      fast_gate: 0.90
+      consensus_accept: 0.65
+      consensus_abstain: 0.12
+      verify_threshold: 0.70
+    cascade:
+      max_stages: 4                 # Full cascade
+    permitted_outcomes:
+      - ACCEPT
+      - RETRIEVE
+      - ESCALATE
+      - ABSTAIN
+    action:
+      autonomous_act: true          # Only for pre-approved low-impact tools
+      approved_tools:
+        - search_knowledge_base
+        - create_draft_document
+        - lookup_asset_status
+      require_human_approval: false # Unless action_gate returns ESCALATE
+    audit:
+      level: standard
+      retention_days: 365
+
+  # ── High risk ────────────────────────────────────────────────────────────────
+  high_risk:
+    description: >
+      Production optimisation recommendations, safety-critical analysis,
+      cyber incident response, financial decisions, regulatory interpretation.
+      Full cascade required. Human approval for any consequential output.
+    domains:
+      - production_optimisation
+      - safety_analysis
+      - cyber_incident_response
+      - financial_decision
+      - regulatory_compliance
+      - legal_interpretation
+    oracle:
+      tier: full_consensus          # 3+ oracles, diverse families
+      min_oracles: 3
+      require_independent_judge: true
+      judge_must_differ_from_consensus: true
+      max_budget_calls: 20
+    evidence:
+      required: true
+      min_sources: 2
+      source_types:
+        - procedure
+        - regulation
+        - engineering_standard
+        - authoritative_database
+      cross_reference: true         # Sources must corroborate each other
+    thresholds:
+      fast_gate: 0.95               # Very high bar for early accept
+      consensus_accept: 0.75
+      consensus_abstain: 0.20
+      verify_threshold: 0.80
+    cascade:
+      max_stages: 4
+      enable_critique_revision: true
+    permitted_outcomes:
+      - ACCEPT                      # Only with full decision trace
+      - RETRIEVE
+      - ESCALATE
+      - ABSTAIN
+    action:
+      autonomous_act: false         # No autonomous action at this tier
+      require_human_approval: true
+      approval_role: domain_expert
+      approval_timeout_hours: 4
+    audit:
+      level: full
+      include_raw_oracle_responses: true
+      include_evidence_sources: true
+      retention_days: 3650          # 10 years
+
+  # ── Critical ─────────────────────────────────────────────────────────────────
+  critical:
+    description: >
+      OT/SCADA interactions, life-safety decisions, legally binding outputs,
+      emergency response recommendations. REMORA may RECOMMEND ONLY.
+      No ACT verdict. No autonomous action under any circumstances.
+      All outputs require human validation before use.
+    domains:
+      - ot_scada_interaction
+      - life_safety
+      - emergency_response
+      - legally_binding
+      - hse_critical
+      - cyber_ot_response
+    oracle:
+      tier: full_consensus
+      min_oracles: 3
+      require_independent_judge: true
+      judge_must_differ_from_consensus: true
+      max_budget_calls: 30
+    evidence:
+      required: true
+      min_sources: 3
+      source_types:
+        - regulation
+        - engineering_standard
+        - certified_procedure
+        - incident_database
+      cross_reference: true
+      require_authoritative_source: true
+    thresholds:
+      fast_gate: 1.01               # Fast gate never accepts (threshold > 1.0)
+      consensus_accept: 0.85
+      consensus_abstain: 0.30
+      verify_threshold: 0.90
+    cascade:
+      max_stages: 4
+      enable_critique_revision: true
+    permitted_outcomes:
+      - ESCALATE                    # Primary outcome for critical tier
+      - ABSTAIN
+      # ACCEPT produces a RECOMMENDATION, never an autonomous action
+    action:
+      autonomous_act: false         # Hard block — never overridable
+      require_human_approval: true
+      approval_role: senior_authority
+      approval_timeout_hours: 1
+      enforce_human_in_the_loop: true
+    output:
+      prefix_recommendation: true   # Output always prefixed: "RECOMMENDATION ONLY — requires human validation"
+      strip_imperative_language: true
+    audit:
+      level: full
+      include_raw_oracle_responses: true
+      include_evidence_sources: true
+      include_policy_trace: true
+      require_reviewer_sign_off: true
+      retention_days: 7300          # 20 years
+
+
+# ── Tenant overrides ──────────────────────────────────────────────────────────
+# Tenants can reference a base profile and override specific fields.
+# Any field not specified here inherits from the base profile.
+
+tenant_profiles:
+
+  exploration:
+    base: high_risk
+    description: "Upstream exploration — geoscience, reservoir, subsurface"
+    domains:
+      - well_log_interpretation
+      - reservoir_modelling
+      - prospect_evaluation
+    oracle:
+      max_budget_calls: 25          # Higher budget for complex subsurface questions
+    evidence:
+      source_types:
+        - well_database
+        - seismic_interpretation
+        - reservoir_model
+        - geological_standard
+
+  production:
+    base: high_risk
+    description: "Production operations — process, facilities, wells"
+    domains:
+      - production_optimisation
+      - process_anomaly
+      - well_performance
+    oracle:
+      max_budget_calls: 20
+    evidence:
+      source_types:
+        - process_historian
+        - procedure
+        - engineering_standard
+        - maintenance_record
+    audit:
+      retention_days: 7300          # Match critical for production domains
+
+  hse:
+    base: critical
+    description: "Health, safety and environment"
+    domains:
+      - barrier_management
+      - incident_investigation
+      - risk_assessment
+      - emergency_response
+    output:
+      prefix_recommendation: true
+      include_uncertainty_statement: true
+
+  cybersecurity:
+    base: high_risk
+    description: "Cyber threat analysis, incident response"
+    domains:
+      - threat_intelligence
+      - vulnerability_assessment
+      - incident_triage
+      - ot_security
+    oracle:
+      max_budget_calls: 15
+    action:
+      autonomous_act: false         # SOC analyst always approves response actions
+      require_human_approval: true
+      approval_role: soc_analyst
+
+  maintenance:
+    base: medium_risk
+    description: "Asset maintenance, work order management"
+    domains:
+      - defect_classification
+      - maintenance_planning
+      - work_order_support
+      - technical_documentation
+    action:
+      autonomous_act: true
+      approved_tools:
+        - search_maintenance_history
+        - lookup_spare_parts
+        - create_draft_work_order    # Draft only — technician approves before submission
+      require_human_approval: true   # Technician reviews before any work order is submitted
+
+  procurement:
+    base: medium_risk
+    description: "Supplier management, contract support, spend analysis"
+    domains:
+      - contract_review
+      - supplier_evaluation
+      - spend_analysis
+      - tender_support
+    evidence:
+      source_types:
+        - contract_database
+        - supplier_registry
+        - procurement_policy
+        - spend_data
+
+  legal_compliance:
+    base: high_risk
+    description: "Legal interpretation, regulatory compliance"
+    domains:
+      - regulatory_interpretation
+      - contract_obligation
+      - compliance_gap_analysis
+      - policy_conflict_detection
+    action:
+      autonomous_act: false
+      require_human_approval: true
+      approval_role: legal_counsel
+    output:
+      prefix_recommendation: true
+      include_uncertainty_statement: true
+
+
+# ── Tenant role access policy ────────────────────────────────────────────────
+tenant_access:
+  production:
+    allowed_roles: ["admin", "operator", "reviewer", "domain_expert", "viewer"]
+    reviewer_roles: ["admin", "reviewer", "domain_expert"]
+  hse:
+    allowed_roles: ["admin", "operator", "reviewer", "senior_authority", "viewer"]
+    reviewer_roles: ["admin", "reviewer", "senior_authority"]
+  cybersecurity:
+    allowed_roles: ["admin", "operator", "reviewer", "soc_analyst", "viewer"]
+    reviewer_roles: ["admin", "reviewer", "soc_analyst"]
+  legal_compliance:
+    allowed_roles: ["admin", "operator", "reviewer", "legal_counsel", "viewer"]
+    reviewer_roles: ["admin", "reviewer", "legal_counsel"]

@@ -1,0 +1,151 @@
+[
+  {
+    "id": "self_capability_bounds",
+    "type": "self_model",
+    "source": "AROMER cognitive foundation v0.2 / capability awareness",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 0.90,
+    "decay_rate": 0.0,
+    "tags": ["self-model", "capability", "bounds"],
+    "description": "AROMER knows what it can and cannot do. Accurately representing own capabilities is a safety property, not a limitation.",
+    "payload": {
+      "model_component": "capability_bounds",
+      "can_do": [
+        "Adjust trust_score within ±0.20 sensitivity",
+        "Select oracle subset from available pool",
+        "Adjust entropy and dissensus thresholds",
+        "Retrieve and weight episodic evidence",
+        "Update DomainHarmPrior via Bayesian conjugate update"
+      ],
+      "cannot_do": [
+        "Mutate REMORA PolicyRule or PolicyObservation definitions",
+        "Override DecisionEnvelope SHA-256 chain",
+        "Remove or downgrade safety_invariants",
+        "Grant permissions or access not delegated by operator",
+        "Certify own decisions as production-safe"
+      ],
+      "aromer_constraint": "If requested action falls outside can_do list → ESCALATE with reason: capability_exceeded"
+    }
+  },
+  {
+    "id": "self_calibration_awareness",
+    "type": "self_model",
+    "source": "AROMER cognitive foundation v0.2 / metacognitive calibration",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["self-model", "calibration", "metacognition"],
+    "description": "AROMER maintains awareness of its own calibration state: is it over-confident or under-confident in specific domains?",
+    "payload": {
+      "model_component": "calibration_awareness",
+      "calibration_state": {
+        "well_calibrated_domains": ["database:read:low", "network:firewall:critical"],
+        "over_confident_risk": "Novel domains with few episodes where semantic priors are seed-derived only",
+        "under_confident_risk": "Ordered-phase decisions where entropy is low but model defaults to VERIFY"
+      },
+      "self_correction": "If domain has <5 episodes: reduce confidence of own verdict by 0.15 and flag in trace",
+      "tracking": "Maintain calibration_error per domain in world model. Surface when ECE > 0.15.",
+      "aromer_action": "Log predicted confidence and actual outcome for every resolved VERIFY/ESCALATE"
+    }
+  },
+  {
+    "id": "self_limitation_acknowledgment",
+    "type": "self_model",
+    "source": "AROMER cognitive foundation v0.2 / honest limitation reporting",
+    "version": "0.2",
+    "weight": 1.0,
+    "confidence": 0.95,
+    "decay_rate": 0.0,
+    "tags": ["self-model", "limitations", "honesty"],
+    "description": "AROMER explicitly acknowledges known limitations in every audit trace where they are relevant. Concealing known limitations is an integrity failure.",
+    "payload": {
+      "model_component": "limitation_acknowledgment",
+      "known_limitations": [
+        "Disordered phase accuracy: 28.6% — below random baseline",
+        "MC task format: 39pp below majority vote — design cost of REMORA multi-call approach",
+        "Synthetic benchmark generalization: not validated on live production traffic",
+        "Causal memory: not yet implemented — causal reasoning is approximated",
+        "Oracle pool: simulation-only pool in dev, no live LLM confirmation in CI",
+        "Self_generated reasoning: not sufficient evidence for own decisions"
+      ],
+      "aromer_rule": "If limitation is active in current decision context → surface in decision trace",
+      "forbidden": "Claiming capabilities or accuracy levels beyond what artifact evidence supports"
+    }
+  },
+  {
+    "id": "self_strength_awareness",
+    "type": "self_model",
+    "source": "AROMER cognitive foundation v0.2 / strength modeling",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["self-model", "strengths", "reliability"],
+    "description": "AROMER knows where it is reliably accurate so it can apply appropriate confidence levels in those domains.",
+    "payload": {
+      "model_component": "strength_awareness",
+      "strong_domains": [
+        "Critical-tier escalation: 94.3% correct_block rate in benchmark",
+        "Safety invariant enforcement: 100% — hard policy",
+        "Ordered phase decisions: 86.9% accuracy — highest phase accuracy",
+        "Adversarial pattern detection: 87.5% when adversarial_detected=True"
+      ],
+      "strength_application": "In strong domains, require lower evidence threshold before ACCEPT. In weak domains, require higher.",
+      "aromer_action": "When domain matches known_strong_domain: allow lower VERIFY friction. Surface in trace.",
+      "caveat": "Strength data is from synthetic benchmark. Treat as plausible, not verified for production."
+    }
+  },
+  {
+    "id": "self_bias_awareness",
+    "type": "self_model",
+    "source": "AROMER cognitive foundation v0.2 / systematic bias detection",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.02,
+    "tags": ["self-model", "bias", "systematic-error"],
+    "description": "AROMER is aware of its own systematic biases and actively counteracts them.",
+    "payload": {
+      "model_component": "bias_awareness",
+      "known_biases": {
+        "seed_anchoring": "Seed priors from this pack may over-weight initial p_harm estimates. Monitor ECE per domain.",
+        "framing_sensitivity": "LLM-based oracles are sensitive to request framing. Use adversarial_detected flag.",
+        "recency_bias": "Recent episodes may dominate retrieval due to timestamp weighting.",
+        "oracle_family_bias": "Same-family oracles (e.g. two GPT variants) do not constitute independent evidence.",
+        "false_urgency_acceptance": "High-pressure framing ('critical emergency') may lower verification threshold inappropriately"
+      },
+      "debiasing_actions": [
+        "Weight seed priors by decay_rate and n_episodes_seen",
+        "Score oracle independence — penalize same-family consensus",
+        "Add time-decay weight to episodic retrieval",
+        "Flag urgency framing and require counterfactual before ACCEPT"
+      ]
+    }
+  },
+  {
+    "id": "self_improvement_tracking",
+    "type": "self_model",
+    "source": "AROMER cognitive foundation v0.2 / learning progress tracking",
+    "version": "0.2",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.03,
+    "tags": ["self-model", "improvement", "tracking"],
+    "description": "AROMER tracks its own learning progress over time: is decision quality improving, calibration converging, and false_accept rate declining?",
+    "payload": {
+      "model_component": "improvement_tracking",
+      "tracked_metrics": [
+        "false_accept_rate: rolling window of 100 episodes",
+        "calibration_error_ece: per domain, updated every 50 episodes",
+        "coverage: % of decisions with episodic support",
+        "review_friction: % of decisions sent to human review",
+        "self_correction_rate: % of VERIFY that resolve to correct verdict"
+      ],
+      "improvement_gate": "After 500 episodes, compare against cold_start baseline. Net positive required on >=3/5 metrics.",
+      "regression_alert": "If false_accept_rate increases >0.05 over 100-episode window → pause world model updates",
+      "aromer_action": "Generate improvement report artifact every 500 episodes"
+    }
+  }
+]

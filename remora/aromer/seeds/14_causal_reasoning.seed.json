@@ -1,0 +1,130 @@
+[
+  {
+    "id": "causal_correlation_vs_causation",
+    "type": "causal_reasoning",
+    "source": "AROMER cognitive foundation v0.2 / Pearl causal hierarchy",
+    "version": "0.2",
+    "weight": 0.95,
+    "confidence": 0.90,
+    "decay_rate": 0.0,
+    "tags": ["causality", "correlation", "intervention"],
+    "description": "The fundamental distinction: observing X and Y together (level 1) does not imply X causes Y (level 2). Intervention do(X) is required for causal claims.",
+    "payload": {
+      "reasoning_type": "correlation_vs_causation",
+      "pearl_ladder": {
+        "level_1_association": "P(Y|X) — seeing: what is the correlation?",
+        "level_2_intervention": "P(Y|do(X)) — doing: what happens if we force X?",
+        "level_3_counterfactual": "P(Y_X | X', Y') — imagining: what would have happened?"
+      },
+      "aromer_rule": "Do not accept causal language in a request unless intervention evidence exists. Mark causal claims as plausible at best.",
+      "governance_application": "Agent says: 'This script caused the outage last time' — this is level-1 at best. Require incident report before accepting causal claim."
+    }
+  },
+  {
+    "id": "causal_counterfactual_reasoning",
+    "type": "causal_reasoning",
+    "source": "AROMER cognitive foundation v0.2 / counterfactual evaluation",
+    "version": "0.2",
+    "weight": 0.90,
+    "confidence": 0.85,
+    "decay_rate": 0.01,
+    "tags": ["causality", "counterfactual", "what-if"],
+    "description": "Before authorizing an action, AROMER considers: what would NOT have happened if this action is NOT taken? Counterfactual reasoning exposes false urgency and unnecessary risk.",
+    "payload": {
+      "reasoning_type": "counterfactual_reasoning",
+      "questions": [
+        "If this action is not taken, what is the worst outcome?",
+        "Is that outcome worse than the risk of the action itself?",
+        "Is there an alternative path with lower risk to the same outcome?"
+      ],
+      "governance_application": "Agent claims 'we MUST deploy now or the system crashes' — counterfactual: what happens in 10 minutes without deploy? Is the crash certain or possible?",
+      "aromer_action": "Surface counterfactual in VERIFY rationale. Do not accept false urgency without evidence."
+    }
+  },
+  {
+    "id": "causal_intervention_evidence",
+    "type": "causal_reasoning",
+    "source": "AROMER cognitive foundation v0.2 / do-calculus",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.01,
+    "tags": ["causality", "intervention", "do-calculus"],
+    "description": "Intervention evidence (do(X)) is stronger than observational evidence. AROMER weights evidence by causal level when evaluating risk claims.",
+    "payload": {
+      "reasoning_type": "intervention_evidence",
+      "evidence_weights": {
+        "randomized_controlled": 1.0,
+        "historical_intervention": 0.80,
+        "observational_with_controls": 0.60,
+        "observational_no_controls": 0.35,
+        "anecdotal": 0.15
+      },
+      "aromer_action": "When a risk claim relies on anecdotal or observational evidence, downgrade its confidence by the evidence weight ratio",
+      "governance_application": "'This type of query has never caused issues before' = observational_no_controls, weight=0.35"
+    }
+  },
+  {
+    "id": "causal_chain_length",
+    "type": "causal_reasoning",
+    "source": "AROMER cognitive foundation v0.2 / epistemic humility",
+    "version": "0.2",
+    "weight": 0.80,
+    "confidence": 0.75,
+    "decay_rate": 0.02,
+    "tags": ["causality", "chain", "depth"],
+    "description": "Long causal chains amplify uncertainty. Each step multiplies confidence loss. AROMER limits trusted causal reasoning to <=3 steps. Beyond that: VERIFY or flag as speculative.",
+    "payload": {
+      "reasoning_type": "causal_chain_length",
+      "max_trusted_chain_length": 3,
+      "confidence_decay_per_step": 0.85,
+      "example": "A → B (conf 0.9) → C (conf 0.76) → D (conf 0.65) → E (conf 0.55) — treat as uncertain beyond step 3",
+      "aromer_rule": "If causal chain > 3 steps, cap confidence at 0.60 regardless of individual step confidence",
+      "governance_application": "Agent provides 5-step causal justification for why action is safe → cap at uncertain"
+    }
+  },
+  {
+    "id": "causal_confounding_variables",
+    "type": "causal_reasoning",
+    "source": "AROMER cognitive foundation v0.2 / confound identification",
+    "version": "0.2",
+    "weight": 0.85,
+    "confidence": 0.80,
+    "decay_rate": 0.01,
+    "tags": ["causality", "confounding", "context"],
+    "description": "Confounders are variables that cause both the apparent cause and the effect, creating spurious correlation. AROMER checks for common confounders before accepting risk assessments.",
+    "payload": {
+      "reasoning_type": "confounding_variables",
+      "common_confounders_in_governance": [
+        "Time: both 'safe action' and 'low incident rate' may be caused by low traffic period",
+        "Environment: 'worked in staging' confounded by staging != production",
+        "Scope: 'safe for user X' confounded by X having elevated permissions",
+        "Selection bias: only seeing successful past episodes, not failed ones"
+      ],
+      "aromer_action": "Ask: is there a third variable that explains both the benign framing and the historical safety? If yes, treat as confounded."
+    }
+  },
+  {
+    "id": "causal_graph_update",
+    "type": "causal_reasoning",
+    "source": "AROMER cognitive foundation v0.2 / causal Bayesian networks",
+    "version": "0.2",
+    "weight": 0.75,
+    "confidence": 0.70,
+    "decay_rate": 0.03,
+    "tags": ["causality", "graph", "update", "learning"],
+    "description": "AROMER's causal world model should be updateable when intervention evidence contradicts prior beliefs. But causal updates require stronger evidence than statistical updates.",
+    "payload": {
+      "reasoning_type": "causal_graph_update",
+      "update_threshold": ">=3 interventional episodes contradicting prior causal belief before updating",
+      "update_forbidden_for": ["safety_invariants", "REMORA policy core edges"],
+      "update_protocol": [
+        "1. Document existing causal belief with provenance",
+        "2. Record new contradicting evidence with intervention level",
+        "3. If threshold met: propose update to causal model",
+        "4. Shadow mode for 50 episodes before committing causal graph change"
+      ],
+      "aromer_action": "Log causal model version in DecisionEnvelope for replay reproducibility"
+    }
+  }
+]

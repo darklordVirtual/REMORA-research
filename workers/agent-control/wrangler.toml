@@ -1,0 +1,48 @@
+name = "remora-agent-control"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Service Bindings (Worker-to-Worker, no public URL needed) ──────────────────
+[[services]]
+binding = "REMORA_SERVICE"
+service = "go-star-remora"
+
+[[services]]
+binding = "LAW_SERVICE"
+service = "remora-law-search"
+
+# ── D1 audit database ──────────────────────────────────────────────────────────
+[[d1_databases]]
+binding       = "AUDIT_DB"
+database_name = "remora-audit"
+database_id   = "642489ab-6c3d-4709-9ad0-d58896e1ce5f"
+
+# ── R2 artifact store ──────────────────────────────────────────────────────────
+[[r2_buckets]]
+binding     = "ARTIFACTS"
+bucket_name = "remora-artifacts"
+# Create with: wrangler r2 bucket create remora-artifacts
+
+# ── KV session store ───────────────────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "SESSIONS"
+id      = "c085347bc8be49f3afc38a0e263e5d87"
+
+# ── Environment variables (non-secret) ────────────────────────────────────────
+[vars]
+# Upstream Workers — surfaced via /status for diagnostics. Outbound traffic
+# uses the service bindings declared above (REMORA_SERVICE, LAW_SERVICE),
+# so these URLs are informational only.
+# DEPLOYERS: replace the three URLs below with your own Cloudflare worker
+# endpoints. Run `npx wrangler publish` in each worker directory first.
+REMORA_WORKER_URL   = "https://go-star-remora.razorsharp.workers.dev"  # replace: your consensus worker
+RAG_ORACLE_URL      = "https://remora-rag-oracle.razorsharp.workers.dev"  # replace: your RAG oracle worker
+LAW_SEARCH_URL      = "https://remora-law-search.razorsharp.workers.dev"  # replace: your law-search worker
+
+# Human-in-the-loop: tools that require approval before executing
+APPROVAL_REQUIRED_TOOLS = "store_artifact"
+
+# Secrets (set with: wrangler secret put <NAME>)
+# CONTROL_SECRET — shared bearer token clients must present. Required;
+# the auth guard refuses writes with 503 if this is unset.

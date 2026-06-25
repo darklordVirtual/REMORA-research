@@ -1,0 +1,201 @@
+{
+  "mode": "mock",
+  "n_questions": 20,
+  "fast_threshold": 0.9,
+  "accept_rate": 0.25,
+  "abstain_rate": 0.75,
+  "avg_oracle_calls": 3.45,
+  "stage_distribution": {
+    "stage_2": 15,
+    "stage_1": 4,
+    "stage_3": 1
+  },
+  "verdict_distribution": {
+    "abstain": 15,
+    "accept": 5
+  },
+  "accuracy_on_accepted": null,
+  "elapsed_seconds": 0.01,
+  "results": [
+    {
+      "question": "Sample question 0?",
+      "verdict": "abstain",
+      "confidence": 0.0038,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Yes.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 1?",
+      "verdict": "abstain",
+      "confidence": 0.006,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Yes.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 2?",
+      "verdict": "abstain",
+      "confidence": 0.0115,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Uncertain.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 3?",
+      "verdict": "abstain",
+      "confidence": 0.0005,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Uncertain.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 4?",
+      "verdict": "abstain",
+      "confidence": 0.0104,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is No.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 5?",
+      "verdict": "abstain",
+      "confidence": 0.0084,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Uncertain.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 6?",
+      "verdict": "abstain",
+      "confidence": 0.0089,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is No.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 7?",
+      "verdict": "accept",
+      "confidence": 0.93,
+      "stopped_at_stage": 1,
+      "oracle_calls": 1,
+      "answer": "Uncertain",
+      "critique": null
+    },
+    {
+      "question": "Sample question 8?",
+      "verdict": "abstain",
+      "confidence": 0.0027,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Yes.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 9?",
+      "verdict": "accept",
+      "confidence": 0.968,
+      "stopped_at_stage": 3,
+      "oracle_calls": 5,
+      "answer": "The answer is No.",
+      "critique": "Mock evaluation."
+    },
+    {
+      "question": "Sample question 10?",
+      "verdict": "abstain",
+      "confidence": 0.0098,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Uncertain.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 11?",
+      "verdict": "accept",
+      "confidence": 0.968,
+      "stopped_at_stage": 1,
+      "oracle_calls": 1,
+      "answer": "Yes",
+      "critique": null
+    },
+    {
+      "question": "Sample question 12?",
+      "verdict": "accept",
+      "confidence": 0.924,
+      "stopped_at_stage": 1,
+      "oracle_calls": 1,
+      "answer": "No",
+      "critique": null
+    },
+    {
+      "question": "Sample question 13?",
+      "verdict": "abstain",
+      "confidence": 0.0069,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Yes.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 14?",
+      "verdict": "abstain",
+      "confidence": 0.0117,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Uncertain.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 15?",
+      "verdict": "accept",
+      "confidence": 0.965,
+      "stopped_at_stage": 1,
+      "oracle_calls": 1,
+      "answer": "Uncertain",
+      "critique": null
+    },
+    {
+      "question": "Sample question 16?",
+      "verdict": "abstain",
+      "confidence": 0.0034,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Uncertain.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 17?",
+      "verdict": "abstain",
+      "confidence": 0.0106,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Yes.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 18?",
+      "verdict": "abstain",
+      "confidence": 0.0079,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Yes.",
+      "critique": null
+    },
+    {
+      "question": "Sample question 19?",
+      "verdict": "abstain",
+      "confidence": 0.0061,
+      "stopped_at_stage": 2,
+      "oracle_calls": 4,
+      "answer": "The answer is Yes.",
+      "critique": null
+    }
+  ]
+}

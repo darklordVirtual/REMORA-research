@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "tsf_results",
+  "type": "object",
+  "required": ["status", "data_source", "claims_allowed", "horizons"],
+  "properties": {
+    "status": {"enum": ["ok", "invalid", "pending"]},
+    "data_source": {"enum": ["synthetic"], "description": "Only synthetic permitted here."},
+    "claims_allowed": {"const": false, "description": "Always false: synthetic harness."},
+    "seed": {"type": "integer"},
+    "horizons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["h", "auroc", "baselines"],
+        "properties": {
+          "h": {"type": "integer"},
+          "auroc": {"type": "number"},
+          "brier": {"type": "number"},
+          "baselines": {"type": "object"}
+        }
+      }
+    }
+  }
+}

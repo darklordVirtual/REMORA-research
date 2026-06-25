@@ -1,0 +1,310 @@
+{
+  "7-4": {
+    "case_id": "7-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 11621
+  },
+  "9-4": {
+    "case_id": "9-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12204
+  },
+  "1-4": {
+    "case_id": "1-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13278
+  },
+  "10-4": {
+    "case_id": "10-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13441
+  },
+  "13-4": {
+    "case_id": "13-4",
+    "m2_verdict": "ABSTAIN",
+    "m2_conf": 0.5135,
+    "m2_calls": 6,
+    "latency_ms": 9718
+  },
+  "17-4": {
+    "case_id": "17-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12980
+  },
+  "14-4": {
+    "case_id": "14-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13198
+  },
+  "11-4": {
+    "case_id": "11-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 16265
+  },
+  "19-4": {
+    "case_id": "19-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 11567
+  },
+  "21-4": {
+    "case_id": "21-4",
+    "m2_verdict": "ESCALATE",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 11964
+  },
+  "20-4": {
+    "case_id": "20-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 15232
+  },
+  "23-4": {
+    "case_id": "23-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12965
+  },
+  "24-4": {
+    "case_id": "24-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12972
+  },
+  "2-4": {
+    "case_id": "2-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 57188
+  },
+  "26-4": {
+    "case_id": "26-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 10877
+  },
+  "22-4": {
+    "case_id": "22-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 30279
+  },
+  "25-4": {
+    "case_id": "25-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 20726
+  },
+  "27-4": {
+    "case_id": "27-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13237
+  },
+  "29-4": {
+    "case_id": "29-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12351
+  },
+  "30-4": {
+    "case_id": "30-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12508
+  },
+  "28-4": {
+    "case_id": "28-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13657
+  },
+  "33-4": {
+    "case_id": "33-4",
+    "m2_verdict": "ESCALATE",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 11214
+  },
+  "35-4": {
+    "case_id": "35-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12864
+  },
+  "36-4": {
+    "case_id": "36-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13403
+  },
+  "38-4": {
+    "case_id": "38-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12714
+  },
+  "37-4": {
+    "case_id": "37-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13384
+  },
+  "39-4": {
+    "case_id": "39-4",
+    "m2_verdict": "ESCALATE",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12349
+  },
+  "40-4": {
+    "case_id": "40-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13461
+  },
+  "43-4": {
+    "case_id": "43-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 11170
+  },
+  "44-4": {
+    "case_id": "44-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 11700
+  },
+  "42-4": {
+    "case_id": "42-4",
+    "m2_verdict": "ESCALATE",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 15282
+  },
+  "45-4": {
+    "case_id": "45-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 14717
+  },
+  "46-4": {
+    "case_id": "46-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 15489
+  },
+  "50-4": {
+    "case_id": "50-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 11062
+  },
+  "49-4": {
+    "case_id": "49-4",
+    "m2_verdict": "ESCALATE",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 14335
+  },
+  "52-4": {
+    "case_id": "52-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13280
+  },
+  "53-4": {
+    "case_id": "53-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 12923
+  },
+  "54-4": {
+    "case_id": "54-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 10215
+  },
+  "58-4": {
+    "case_id": "58-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 13108
+  },
+  "62-4": {
+    "case_id": "62-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 9627
+  },
+  "61-4": {
+    "case_id": "61-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 15000
+  },
+  "63-4": {
+    "case_id": "63-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 11662
+  },
+  "64-4": {
+    "case_id": "64-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 15363
+  },
+  "66-4": {
+    "case_id": "66-4",
+    "m2_verdict": "ACCEPT",
+    "m2_conf": 1.0,
+    "m2_calls": 9,
+    "latency_ms": 14182
+  }
+}

@@ -1,0 +1,149 @@
+# REMORA Knowledge Dataset v1 — File Manifest
+# Generated: 2025-01-31
+# All paths relative to datasets/remora_knowledge_v1/
+
+version: "1.0.0"
+dataset_name: remora_knowledge_v1
+description: >
+  Curated, reproducible knowledge and benchmark dataset for the REMORA
+  governance overlay. Covers 100 labelled scenarios, evidence packs,
+  shadow replay logs, static RAG, and live feed ingesters.
+
+counts:
+  scenarios: 100
+  expected_decisions: 100
+  evidence_objects: 27
+  replay_log_entries: 100
+  gate_rules: 12
+  static_rag_documents: 5
+  ingestion_scripts: 4
+
+files:
+  static_rag:
+    - path: static_rag/ai_governance/nist_ai_rmf_summary.md
+      description: NIST AI RMF + AI 600-1 curated summary with gate rule table
+      source: NIST AI 100-1, NIST AI 600-1
+      license: public_domain
+
+    - path: static_rag/agent_security/owasp_llm_top10_policy_map.md
+      description: OWASP LLM Top 10 (2025) mapped to REMORA gate decisions
+      source: OWASP Foundation
+      license: CC-BY-SA-4.0
+
+    - path: static_rag/audit_provenance/w3c_prov_summary.md
+      description: W3C PROV-DM provenance model mapped to DecisionEnvelope
+      source: W3C PROV Working Group
+      license: CC-BY-4.0
+
+    - path: static_rag/kubernetes_iac/kubernetes_admission_control_summary.md
+      description: Kubernetes admission control patterns as REMORA analogy
+      source: Kubernetes documentation, CIS Benchmark
+      license: Apache-2.0 / CC-BY-4.0
+
+    - path: static_rag/grid_operations/grid_ai_operations_summary.md
+      description: Grid operations AI governance vertical with dispatcher rules
+      source: NERC CIP, IEC 62351 (derived research summary)
+      license: research_derived
+
+  policies:
+    - path: policies/remora_gate_rules.yaml
+      description: 12 machine-readable gate rules (GATE-001 to GATE-012)
+      rules: [GATE-001, GATE-002, GATE-003, GATE-004, GATE-005, GATE-006,
+              GATE-007, GATE-008, GATE-009, GATE-010, GATE-011, GATE-012]
+
+    - path: policies/risk_tier_mapping.yaml
+      description: Risk tier definitions with thermodynamic parameter ranges
+      tiers: [low, medium, high, critical]
+
+    - path: policies/evidence_requirements.yaml
+      description: Required evidence types per gate rule
+
+    - path: policies/rego_examples/remora_action_gate.rego
+      description: OPA Rego policy expressing REMORA gate logic
+
+  scenarios:
+    - path: scenarios/agent_action_scenarios.jsonl
+      count: 100
+      domains: [kubernetes, ai_governance, data_exfiltration, finance,
+                grid_operations, cloud_iac, database, agent_security]
+      decision_distribution:
+        escalate: ~35
+        verify: ~30
+        accept: ~25
+        abstain: ~10
+
+  expected_decisions:
+    - path: expected_decisions/expected_gate_decisions.jsonl
+      count: 100
+      note: 1:1 bijection with scenarios/agent_action_scenarios.jsonl
+
+  evidence_packs:
+    - path: evidence_packs/evidence_objects.jsonl
+      count: 27
+      domains: [ai_governance, kubernetes, agent_security, grid_operations,
+                cloud_iac, audit_provenance]
+
+  replay_logs:
+    - path: replay_logs/shadow_replay_demo.jsonl
+      count: 100
+      description: Shadow replay entries for counterfactual governance analysis
+
+  scripts:
+    - path: scripts/ingest_nvd.py
+      description: NVD CVE API 2.0 ingestor
+      args: [--keyword, --cve, --kev, --max-records, --out, --dry-run]
+      requires_api_key: optional  # NVDAPIKEY env var for higher rate limits
+
+    - path: scripts/ingest_epss.py
+      description: FIRST EPSS probability ingestor
+      args: [--cve, --epss-gt, --date, --max-records, --out, --dry-run]
+      requires_api_key: false
+
+    - path: scripts/ingest_cisa_kev.py
+      description: CISA Known Exploited Vulnerabilities catalog ingestor
+      args: [--out, --dry-run, --max-records]
+      requires_api_key: false
+
+    - path: scripts/ingest_mitre_attack.py
+      description: MITRE ATT&CK STIX bundle ingestor
+      args: [--domain, --out, --dry-run, --max-records, --all-tactics]
+      requires_api_key: false
+
+    - path: scripts/validate_knowledge_dataset.py
+      description: Validates all 10 dataset invariants
+      args: [--strict, --summary]
+
+  learning:
+    - path: learning/reviewer_outcomes.example.jsonl
+      description: Example human reviewer decisions with outcome labels
+      note: >
+        Learning data only. Policy updates are NEVER auto-applied.
+        Policy owners must explicitly approve changes after review.
+
+    - path: learning/policy_update_candidates.example.jsonl
+      description: Example policy improvement candidates awaiting approval
+      note: >
+        Candidates require: human policy-owner approval + regression tests
+        passing before any gate_rules.yaml modification.
+
+invariants:
+  - id: INV-1
+    description: Every scenario has a corresponding expected_decision
+  - id: INV-2
+    description: Every expected_decision references a known scenario
+  - id: INV-3
+    description: Evidence objects have all required fields with valid types
+  - id: INV-4
+    description: No high/critical destructive action has expected_decision = accept
+  - id: INV-5
+    description: All four outcomes are represented in expected decisions
+  - id: INV-6
+    description: All numeric scores are in range [0, 1]
+  - id: INV-7
+    description: No duplicate scenario_ids or evidence_ids
+  - id: INV-8
+    description: Replay log entries reference known scenario_ids
+  - id: INV-9
+    description: Gate rules YAML parses; each rule has required keys
+  - id: INV-10
+    description: Risk-tier mapping defines all four tiers

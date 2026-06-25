@@ -1,0 +1,85 @@
+[build-system]
+requires = ["hatchling", "editables"]
+build-backend = "hatchling.build"
+
+[project]
+name = "remora"
+version = "0.9.0"
+description = "Research-grade governance overlay for agentic AI actions with multi-oracle consensus, policy gating, uncertainty routing, and audit-oriented controls"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Stian Skogbrott", email = "support@luftfiber.no" }]
+keywords = [
+    "agentic-ai", "ai-safety", "ai-governance", "multi-oracle-consensus",
+    "lyapunov-stability", "conformal-prediction", "uncertainty-quantification",
+    "selective-prediction", "policy-as-code", "thermodynamic-ai",
+    "llm", "human-in-the-loop", "audit-trail",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+# Core LLM API clients
+llm = ["openai>=1.0", "groq>=0.5"]
+# Cloud provider SDKs for storage / secrets
+cloud = ["boto3>=1.26"]
+# Cryptography for ZKP and audit integrity features
+security = ["cryptography>=41.0"]
+# MCP server transport (httpx is the only hard dep for the MCP workers)
+mcp = ["httpx>=0.25"]
+# REST API gateway (servers/api.py) — FastAPI + ASGI server
+api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
+# Data analysis and visualisation
+analysis = ["matplotlib>=3.8", "numpy>=1.26"]
+stats = ["scipy>=1.11"]
+datasets = ["datasets>=2.0"]
+agentharm = ["inspect-ai>=0.3", "inspect-evals", "openai>=1.0", "pyyaml>=6.0"]
+causal = ["pyyaml>=6.0"]
+# Documentation
+docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.8", "sqlglot>=23.0"]
+
+[project.urls]
+Homepage = "https://github.com/darklordVirtual/REMORA"
+Repository = "https://github.com/darklordVirtual/REMORA"
+Issues = "https://github.com/darklordVirtual/REMORA/issues"
+
+[project.scripts]
+remora = "remora.cli:main"
+
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = [
+    "E402",   # module-import-not-at-top (conditional/deferred imports are intentional)
+    "E501",   # line-too-long (handled by formatter, not enforced in linter)
+    "E701",   # multiple-statements-on-one-line-colon (compact math style)
+    "E702",   # multiple-statements-on-one-line-semicolon (compact math style)
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short -m 'not live and not live_replay_heavy'"
+markers = [
+    "live: marks tests that require a live Cloudflare Worker (deselect with -m 'not live')",
+    "live_replay_heavy: long-running deterministic replay/sandbox tests (run in dedicated job)",
+    "unit: fast isolated tests with no external dependencies",
+    "integration: tests that wire multiple modules together",
+    "slow: tests that take more than 10 seconds (deselect with -m 'not slow')",
+    "benchmark: reproducible benchmark runs against committed artifacts",
+]

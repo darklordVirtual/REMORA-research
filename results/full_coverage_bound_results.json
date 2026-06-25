@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "experiment": "full_coverage_bound",
+    "ablation_source": "results/ablation_v2_canonical_results.json",
+    "n_items": 302,
+    "conditions": [
+      "A_single",
+      "B_majority",
+      "C_remora",
+      "D1_strict",
+      "D2_balanced",
+      "D3_hybrid"
+    ]
+  },
+  "baseline_B_majority": {
+    "accuracy": 0.8278,
+    "correct": 250
+  },
+  "oracle_optimal_routing": {
+    "accuracy": 0.8543,
+    "correct": 258,
+    "lift_over_majority": 0.0265
+  },
+  "routing_opportunity_analysis": {
+    "gainable_items": 8,
+    "gainable_fraction": 0.0265,
+    "gainable_description": "B_majority wrong, at least one other condition right \u2014 these items routing CAN win",
+    "loseable_items": 93,
+    "loseable_fraction": 0.3079,
+    "loseable_description": "B_majority right, at least one other condition wrong \u2014 these items routing CAN lose",
+    "items_no_condition_correct": 44,
+    "majority_uniquely_correct_items": 2
+  },
+  "per_condition_accuracy": {
+    "A_single": 0.5695,
+    "B_majority": 0.8278,
+    "C_remora": 0.6954,
+    "D1_strict": 0.6987,
+    "D2_balanced": 0.8212,
+    "D3_hybrid": 0.7616
+  },
+  "theorem": {
+    "statement": "No full-coverage routing policy with conditions ['A_single', 'B_majority', 'C_remora', 'D1_strict', 'D2_balanced', 'D3_hybrid'] can exceed oracle-optimal accuracy = 0.8543 on this benchmark.",
+    "oracle_optimal_equals_majority": false,
+    "gainable_items_exist": true,
+    "conclusion": "Full-coverage routing CANNOT improve on B_majority on this benchmark if and only if oracle_optimal equals B_majority. Oracle-optimal = 0.8543, majority = 0.8278."
+  },
+  "interpretation": "Gainable items exist (routing CAN win on individual items), but the oracle-optimal ceiling shows whether any policy can actually win in aggregate. If oracle-optimal > majority, routing improvement is theoretically possible but depends on a per-item predictor that no current signal provides. If oracle-optimal = majority, no routing helps at full coverage \u2014 majority is already the Pareto frontier."
+}
