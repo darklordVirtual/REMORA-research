@@ -263,6 +263,10 @@ eval cases.
 | coverage | 1.000 | 1.000 | 0.769 |
 | verdict_accuracy | 0.769 | 0.769 | 0.585 |
 
+> **Note:** this 85-case figure is the ablation holdout artifact. The live replay
+> arena reported in `02-evidence-and-claims.md` (Claim 6) uses 93 cases — a different
+> evaluation surface.
+
 **Findings:** Safety floor intact. No friction reduction yet (18 seed episodes
 insufficient). Profile C shows 23.1% coverage drop due to world model over-
 abstaining with insufficient training data.
