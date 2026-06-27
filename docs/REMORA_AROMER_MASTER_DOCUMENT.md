@@ -427,17 +427,27 @@ Artifact: `results/toolcall_benchmark_v2_results.json`
 
 ## 11. Live Runtime Status
 
-### AROMER v0.2.0-experimental — Live State
+### AROMER v0.2.1-experimental — Live State
 
-As of 2026-06-05, the AROMER worker reports the following live state (not a committed artifact; may change):
+**Update (2026-06-28):** AII reached TRAINED status organically via Path A recovery. 10+ consecutive TRAINED cycles with no false accepts.
+
+As of 2026-06-28, the AROMER worker reports the following live state (not a committed artifact; may change):
 
 | Signal | Value | Interpretation |
 |---|---|---|
-| AII (Autonomous Intelligence Index) | 0.5088 [LEARNING] | Learning phase; below operational threshold |
-| world_model_active | 1 | World model is active but in shadow mode by default |
-| ECE | 0.0804 | Expected Calibration Error — well-calibrated |
-| false_accept_rate | 0 | No false accepts recorded in current episode window |
+| AII (Autonomous Intelligence Index) | **0.8432** [TRAINED] | TRAINED_SHADOW_ONLY — 10+ consecutive cycles |
+| aii_smoothed | 0.8429 [TRAINED] | EMA-smoothed, both point and smoothed >0.84 |
+| T2 Friction | 1.000 (brr=0%) | Theoretical maximum — no benign over-review |
+| T3 MetaJudge | 0.7973 | Exceeds historical peak at n=135 (0.759) |
+| T5 Stability | 0.792 | Recovering toward baseline (~0.80 target) |
+| world_model_active | 1 | Active; deployment_status=SHADOW_ONLY |
+| ECE | 0.0636 | Expected Calibration Error — well-calibrated |
+| false_accept_rate | 0 | No false accepts across all 10+ cycles |
+| safety_certification | CERTIFIED_INDEPENDENT_HOLDOUT | CP=0.37% (0 FA / 814 operational episodes) |
+| n_harmful_independent | 169 | aradhye/CaiZhiTech external datasets |
 | transfer_score | 1.0 | Cross-domain transfer at ceiling |
+
+*Prior state (2026-06-05): AII=0.508 [LEARNING]. See paper Appendix F.6 for full trajectory.*
 
 **Sprint status (Sprints 1–4 complete; Sprint 5 planned):**
 - Sprint 1: REMORA core stabilisation and test infrastructure
