@@ -8,7 +8,7 @@ validated benchmark.
 
 ## Purpose
 
-The 65-case internal `replay_arena` shares the (domain, action_type, risk_tier)
+The internal `replay_arena` (65 cases at the time this holdout was created; expanded to 96 cases in later versions) shares the (domain, action_type, risk_tier)
 taxonomy that AROMER's synthetic seeds were authored against, so gains on it are
 an instrumentation check, not evidence of transferable governance (see
 `docs/aromer_learning_evidence_v1.md`). This holdout is the first attempt at a
