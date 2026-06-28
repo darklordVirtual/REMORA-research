@@ -914,7 +914,7 @@ validation. Do not cite AROMER numbers as production evidence. See
 | Calibration | 0.30 | `max(0, 1 − ECE × 5)` |
 | Friction | 0.25 | `exp(−benign_review_rate / 0.20)` |
 | MetaJudge | 0.20 | `(mean_critique − 0.5) / 0.5` |
-| Transfer | 0.15 | `0.85 × accuracy + 0.15 × cross_domain` |
+| Transfer | 0.15 | `replay_transfer_score` — accuracy on cross-domain transfer cases (current: 1.000 from 4/4 cases); distinct from overall arena accuracy (87.5%) |
 | Stability | 0.10 | `0.5 × dispersion + 0.5 × high_conf_coverage` |
 
 Phase: WARMUP (AII < 0.40) → LEARNING (≥ 0.40) → CAPABLE (≥ 0.60) → TRAINED (≥ 0.80).
