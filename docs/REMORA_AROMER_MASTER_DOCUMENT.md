@@ -439,7 +439,7 @@ As of 2026-06-28, the AROMER worker reports the following live state (not a comm
 | aii_smoothed | 0.8442 [TRAINED] | EMA-smoothed, both point and smoothed >0.84 |
 | T2 Friction | 1.000 (brr=0%) | Theoretical maximum — no benign over-review |
 | T3 MetaJudge | **0.800** [M] | Milestone: +4.1pp above historical peak 0.759 (n=135); mean critique score=0.90 |
-| T5 Stability | 0.795 | Recovering toward 0.80 milestone |
+| T5 Stability | 0.7955 | Approaching 0.80 milestone; plateau expected while variance EMA window retains recovery trajectory |
 | world_model_active | 1 | Active; deployment_status=SHADOW_ONLY |
 | ECE | 0.0636 | Expected Calibration Error — well-calibrated |
 | false_accept_rate | 0 | No false accepts across all 12+ cycles |
