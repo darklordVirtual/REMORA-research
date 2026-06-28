@@ -43,9 +43,9 @@ Section 2 reviews related work. Section 3 defines the problem. Section 4 describ
 
 ### 2.1 LLM Ensembles and Self-Consistency
 
-Wang et al. (2023) introduced self-consistency sampling—generating multiple chain-of-thought paths and selecting the majority answer—demonstrating that diversity in reasoning paths improves accuracy on reasoning benchmarks (Wang et al., 2023). REMORA's oracle fan-out is structurally related but differs in two key respects: (1) oracles are distinct model families (different architectures and parameter counts), not multiple samples from a single model; (2) consensus is weighted by inter-oracle correlation rather than treated as exchangeable.
+Wang, Wei et al. (2023a) introduced self-consistency sampling—generating multiple chain-of-thought paths and selecting the majority answer—demonstrating that diversity in reasoning paths improves accuracy on reasoning benchmarks (Wang, Wei et al., 2023a). REMORA's oracle fan-out is structurally related but differs in two key respects: (1) oracles are distinct model families (different architectures and parameter counts), not multiple samples from a single model; (2) consensus is weighted by inter-oracle correlation rather than treated as exchangeable.
 
-Wang et al. (2023) show that parameter-efficient LLM ensembles can improve predictive accuracy and uncertainty quantification. This motivates, but does not independently validate, REMORA's use of heterogeneous oracle aggregation.
+Wang, Aitchison, and Rudolph (2023b) show that parameter-efficient LLM ensembles improve predictive accuracy and uncertainty quantification, and that ensemble diversity is the key driver — with OOD detection (AUROC) also improving alongside in-distribution calibration. This motivates, but does not independently validate, REMORA's use of heterogeneous oracle aggregation; the OOD-detection improvement maps conceptually onto handling adversarial or distribution-shifted agent actions.
 
 ### 2.2 Multi-Agent Debate
 
@@ -57,7 +57,7 @@ Zheng et al. (2023) introduced the LLM-as-judge paradigm for evaluating model ou
 
 ### 2.4 Selective Prediction and Abstention
 
-The literature on selective prediction (Geifman & El-Yaniv, 2017; El-Yaniv & Wiener, 2010) establishes the quality-coverage tradeoff as the fundamental metric for systems that may abstain. Kadavath et al. (2022) showed that LLMs can estimate their own uncertainty, but this estimate is unreliable in adversarial or out-of-distribution contexts (Kadavath et al., 2022). REMORA's abstention mechanism is grounded in this literature: uncertainty is measured structurally (via oracle disagreement) rather than through self-reported confidence.
+The literature on selective prediction (Geifman & El-Yaniv, 2017; El-Yaniv & Wiener, 2010) establishes the risk-coverage tradeoff (equivalently, quality-coverage tradeoff) as the fundamental metric for systems that may abstain. El-Yaniv & Wiener (2010) prove that unanimous-hypothesis rejection is the coverage-optimal zero-risk strategy (Consistent Selective Strategy, Theorem 7): no other strategy achieving zero risk can improve on it in coverage. This formalizes REMORA's abstain-on-oracle-disagreement design as theoretically optimal for the zero-false-accept goal. Kadavath et al. (2022) showed that LLMs can estimate their own uncertainty, but this estimate is unreliable in adversarial or out-of-distribution contexts (Kadavath et al., 2022). REMORA's abstention mechanism is grounded in this literature: uncertainty is measured structurally (via oracle disagreement) rather than through self-reported confidence.
 
 ### 2.5 Conformal Prediction
 
@@ -69,7 +69,7 @@ Guo et al. (2017) showed that modern neural networks are miscalibrated (Guo et a
 
 ### 2.7 AI Governance and Policy-as-Code
 
-Algorithmic-audit scholarship emphasizes the importance of institutionalized third-party oversight and audit-system design (Raji et al., 2022). Regulatory requirements for high-risk AI systems—including documentation, logging, and human oversight—are grounded separately in the EU AI Act (European Parliament, 2024). Open Policy Agent (OPA) (Styra, 2024) provides a production-grade policy engine using the Rego declarative language. REMORA integrates an OPA adapter—failing closed to a Python fallback when the OPA daemon is unavailable—as a concrete instantiation of policy-as-code for AI decisions.
+Algorithmic-audit scholarship emphasizes the importance of institutionalized third-party oversight and audit-system design (Raji et al., 2022). Raji et al. identify lack of audit data access as "the most significant vulnerability of the current AI audit ecosystem" (§4.3) and propose post-audit transparency registries (§4.5). REMORA's DecisionEnvelope directly addresses the access gap by logging each governance decision with immutable hash-chaining; the Replay Engine instantiates the transparency registry by publishing governance episodes for third-party inspection. Regulatory requirements for high-risk AI systems—including documentation, logging, and human oversight—are grounded separately in the EU AI Act (European Parliament, 2024). Open Policy Agent (OPA) (Styra, 2024) provides a production-grade policy engine using the Rego declarative language. REMORA integrates an OPA adapter—failing closed to a Python fallback when the OPA daemon is unavailable—as a concrete instantiation of policy-as-code for AI decisions.
 
 ### 2.8 Assurance Cases
 
@@ -907,7 +907,7 @@ Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), Truthful
 - Zhang, Y. & Lee, M. (2025). Evaluating the performance of large language models in confidential computing environments. arXiv:2502.11347.
 
 
-- Wang, X., Wei, J., Schuurmans, D., Le, Q., Chi, E., Narang, S., Chowdhery, A., & Zhou, D. (2023). Self-consistency improves chain of thought reasoning in language models. *ICLR 2023*.
+- Wang, X., Wei, J., Schuurmans, D., Le, Q., Chi, E., Narang, S., Chowdhery, A., & Zhou, D. (2023a). Self-consistency improves chain of thought reasoning in language models. *ICLR 2023*.
 
 - Du, Y., Li, S., Torralba, A., Tenenbaum, J., & Mordatch, I. (2023). Improving factuality and reasoning in language models through multiagent debate. *ICML 2024*.
 
@@ -951,7 +951,7 @@ Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), Truthful
 
 - El-Yaniv, R. & Wiener, Y. (2010). On the foundations of noise-free selective classification. *Journal of Machine Learning Research, 11*, 1605–1641. https://www.jmlr.org/papers/v11/el-yaniv10a.html
 
-- Wang, X., Aitchison, L., & Rudolph, M. (2023). LoRA ensembles for large language model fine-tuning. *arXiv:2310.00035*. https://arxiv.org/abs/2310.00035. doi:10.48550/arXiv.2310.00035
+- Wang, X., Aitchison, L., & Rudolph, M. (2023b). LoRA ensembles for large language model fine-tuning. *arXiv:2310.00035*. https://arxiv.org/abs/2310.00035. doi:10.48550/arXiv.2310.00035
 
 - Raji, I. D., Xu, P., Honigsberg, C., & Ho, D. E. (2022). Outsider oversight: Designing a third party audit ecosystem for AI governance. *arXiv:2206.04737*. https://arxiv.org/abs/2206.04737. doi:10.48550/arXiv.2206.04737
 
