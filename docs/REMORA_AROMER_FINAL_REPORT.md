@@ -1,6 +1,6 @@
 # REMORA × AROMER — Practical Performance, Positioning, and Roadmap
 
-> **Historical snapshot (approx. 2026-06-07/08).** This report documents the diagnostic analysis from when AROMER was in early LEARNING phase (AII ~0.43; T2 formula bug active). All four AII component defects described in §3b have since been resolved. Current state (2026-06-28): AII=0.8442 TRAINED_SHADOW_ONLY, T2=1.000 (brr=0%), T3=0.800 [M], T5=0.7955, ECE=0.0636, FAR=0, safety_certification=CERTIFIED_INDEPENDENT_HOLDOUT. See `paper/remora_paper.md` Appendix F.6–F.7 and `NEGATIVE_RESULTS.md §11` for the full trajectory.
+> **Historical snapshot (approx. 2026-06-07/08).** This report documents the diagnostic analysis from when AROMER was in early LEARNING phase (AII ~0.43; T2 formula bug active). All four AII component defects described in §3b have since been resolved. Peak state (2026-06-28 12:04 UTC, cycle 12): AII=0.8442 TRAINED_SHADOW_ONLY, T2=1.000 (brr=0%), T3=0.800 [M], T5=0.7955, ECE=0.0636, FAR=0. Current state (~13:21 UTC): AII=0.7894 CAPABLE_SHADOW_ONLY — organic brr acceleration 0%→5% caused TRAINED→CAPABLE regression at 13:00 UTC; FAR=0 maintained throughout; recovery in progress (T5 improving, brr declining). See `paper/remora_paper.md` Appendix F.6 and `NEGATIVE_RESULTS.md §12–§13` for the full trajectory.
 
 **Status:** Research-grade prototype (v0.9.0). Every number here is scoped to a
 committed artifact and a regression test. Nothing in this report is externally
