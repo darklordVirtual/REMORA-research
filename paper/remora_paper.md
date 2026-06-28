@@ -947,6 +947,8 @@ International Electrotechnical Commission. (2016). IEC 61511-1:2016 — Function
 
 Bjøru, A. R. (2026). Causal Post-hoc Explainable AI (PhD thesis). Norwegian University of Science and Technology (NTNU). ISBN 978-82-353-0022-5. Paper IV §4.2.1–§4.2.3
 
+Andriushchenko, M., Souly, A., et al. (2024). AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents. arXiv:2410.09024.
+
 ---
 
 ## Appendix A: Mathematical Definitions
