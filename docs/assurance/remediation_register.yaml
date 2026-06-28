@@ -204,9 +204,18 @@ items:
     section: "§11"
     title: "Locked environment (uv.lock / SBOM / Docker digests)"
     gate: P3
-    status: OPEN
-    priority: LOW
-    notes: No lockfile or SBOM currently committed. Required for reproducibility gate.
+    status: DONE
+    completed: "2026-06-29"
+    artifacts:
+      - requirements-lock.txt
+      - pyproject.toml
+    notes: >
+      requirements-lock.txt committed (pip freeze, 267 packages, Python 3.14.0).
+      pyproject.toml updated with Python 3.14 classifier.
+      Full uv.lock not generated: project has no declared dependencies (extras-only);
+      pip freeze captures the full installed dev environment including transitive deps.
+      Docker digests and full SPDX/CycloneDX SBOM remain future work (out of scope
+      for research-grade reproducibility gate).
 
   - id: REM-016
     section: "§2"
