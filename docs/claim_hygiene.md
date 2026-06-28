@@ -43,3 +43,18 @@ If any condition fails, the result is roadmap / not-yet-validated, not a claim.
 Threshold flags in `guardrail_scores.json`, such as `meets_recall` or
 `publishable`, are internal informational flags. They do not authorize external
 statements. Only the decision rule above does.
+
+## Citation gaps requiring external verification
+
+The following references are cited in-text in `paper/remora_paper.md` but do
+not yet have complete Reference section entries. These must be resolved by the
+corresponding author before submission.
+
+| In-text citation | Context (paper §) | Status |
+|---|---|---|
+| Liang et al. (2023) | §2.1 — multi-model ensembles improve calibration on MMLU-style tasks | **Missing** — full citation details (title, venue, arXiv) required |
+| El-Yaniv & Wiener (2010) | §2.4 — selective prediction, quality-coverage tradeoff | **Missing** — full citation details required (note: Geifman & El-Yaniv 2017 is present but is a different paper) |
+| Koshiyama et al. (2022) | §2.6 — high-risk AI systems audit requirements | **Missing** — full citation details required |
+
+These gaps are tracked here and flagged in `paper/remora_paper.md` References
+section. Do not publish without resolving.
