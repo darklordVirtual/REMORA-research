@@ -117,7 +117,7 @@ What is complete and tested:
 | Policy engine (ACCEPT/VERIFY/ABSTAIN/ESCALATE) | Complete |
 | Conformal prediction risk control | Complete |
 | MCP server (12 tools: 8 core + 3 agent control + 1 session monitor) | Complete (agent control tools require agent-control worker deployment) |
-| AROMER closed-loop learning (AII intelligence index, MetaJudge, world model, Thompson-bandit oracle selection) | Complete — experimental. AII=0.844 TRAINED_SHADOW_ONLY (12+ consecutive cycles, brr=0%, T3=0.800 milestone, FAR=0). See `NEGATIVE_RESULTS.md §11` and `paper/remora_paper.md Appendix F.6`. Three production gates remain: longitudinal audit, human review, RBAC. |
+| AROMER closed-loop learning (AII intelligence index, MetaJudge, world model, Thompson-bandit oracle selection) | Complete — experimental. Peak AII=0.844 TRAINED_SHADOW_ONLY (12+ cycles, cycle 12 12:04 UTC); current AII=0.7894 CAPABLE_SHADOW_ONLY (organic brr regression ~13:00 UTC; recovery in progress; FAR=0 throughout). See `NEGATIVE_RESULTS.md §12–§13` and `paper/remora_paper.md Appendix F.6`. Three production gates remain: longitudinal audit, human review, RBAC. |
 | Cloudflare Workers (RAG, law search, agent control, AROMER) | Complete |
 | Audit ledger schema | Designed (enterprise/audit-ledger-schema.sql) |
 | Risk profiles (machine-readable) | Designed (enterprise/risk-profiles.yaml) |
