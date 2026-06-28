@@ -684,9 +684,7 @@ F.6–F.7 for the full recovery trajectory, organic TRAINED confirmation, and ou
 
 Interpretation:
 
-These are measurement-integrity results, not learning-performance claims. The
-AII remains in the LEARNING band (smoothed 0.532 at deployment), and no
-external validation of the adaptive layer has been conducted.
+These are measurement-integrity results, not learning-performance claims. At v0.2.0 deployment, AII was in the LEARNING band (smoothed 0.532); it has since reached TRAINED (AII=0.844, aii_smoothed=0.8442, 12+ organic cycles — see Post-v0.2.0 trajectory above). No external validation of the adaptive layer has been conducted.
 
 ---
 
