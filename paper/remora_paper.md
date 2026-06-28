@@ -1319,14 +1319,14 @@ A fine-tuning pipeline exports 614+ labeled episodes as prompt/completion JSONL 
 
 | Metric | Current (2026-06-28) | Change from F.3 (2026-06-05) |
 |---|---|---|
-| AII | **0.844** [TRAINED] | 0.508 [LEARNING] → +0.336 |
+| AII | 0.829 [TRAINED] (peak 0.844 at cycle 12) | 0.508 [LEARNING] → +0.321 |
 | T1 Calibration | 0.682 (ECE=0.0636) | 0.598 → +0.084 |
-| T2 Friction | **1.000** (brr=0%) | 0.000 → +1.000 |
+| T2 Friction | 0.9499 (brr=1.5%; peak 1.000 at brr=0%, cycle 12) | 0.000 → +0.950 |
 | T3 MetaJudge | **0.800** [milestone] | 0.850 base (corrected formula); now exceeds historical peak 0.759 by +4.1pp |
 | T4 Transfer | 1.000 | 1.000 (unchanged) |
-| T5 Stability | 0.7955 (approaching 0.80; plateau — variance EMA window retains recovery trajectory) | 0.094 → +0.701 |
-| False Accept Rate | **0.000** (12+ cycles) | 0.000 (maintained) |
-| aii_smoothed | 0.8442 [TRAINED] | — |
+| T5 Stability | 0.7705 (declining from 0.7955 plateau; variance EMA active; FAR=0) | 0.094 → +0.677 |
+| False Accept Rate | **0.000** (sustained) | 0.000 (maintained) |
+| aii_smoothed | 0.8292 [TRAINED] | — |
 | safety_certification | CERTIFIED_INDEPENDENT_HOLDOUT | NOT_APPLICABLE |
 
 **Key milestones since F.3:**
@@ -1336,6 +1336,8 @@ A fine-tuning pipeline exports 614+ labeled episodes as prompt/completion JSONL 
 - **T2=1.000 maintained** since cycle 6 (brr=0% across all subsequent cycles).
 - **T3=0.800 [milestone]** — MetaJudge quality crossed 0.800 alert threshold (cycle 12). Mean critique score=0.90. Exceeds historical peak at n=135 (T3=0.759) by +4.1pp via organic MetaJudge cycles.
 - **12+ consecutive TRAINED cycles:** AII trajectory: 0.8097→0.8169→0.8228→0.8283→0.8313→0.8377→0.8397→0.8412→0.8426→0.8432→0.8437→0.844.
+
+**Post-peak observation (2026-06-28, 14:32 UTC):** brr rose from 0% to 1.5% as organic traffic introduced borderline-benign episodes (907 cycles, 15 163 total episodes). T5 declined from 0.7955 to 0.7705. AII=0.8292 [TRAINED], FAR=0 maintained. System self-reports aii_trend="stable". No blockers.
 
 **Remaining open gaps:** Gap 2 (FA=22.2% holdout, contextual harm not visible in instruction text; fix requires runtime execution monitoring), Gap 4 (NLI/SE `torch/lib/shm.dll` Windows DLL block). See full peer review report: `docs/remora_peer_review_report.md` v0.2.1-experimental.
 
