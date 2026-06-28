@@ -160,11 +160,23 @@ items:
     section: "§5.A-B"
     title: "PDP/PEP architectural separation with signed manifests"
     gate: P0
-    status: OPEN
-    priority: HIGH
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - remora/enforcement/__init__.py
+      - remora/enforcement/token.py
+      - remora/enforcement/gate.py
+      - tests/test_rem013_pdp_pep_boundary.py
     notes: >
-      Policy Decision Point and Policy Enforcement Point are not architecturally separated.
-      Requires: separate package boundary, signed authorization tokens between layers.
+      PEP package created at remora/enforcement/. PolicyDecisionToken carries
+      the PDP decision with HMAC-SHA256 signature (REMORA_PDP_SIGNING_KEY env var).
+      EnforcementGate (PEP) verifies signature before allowing ACCEPT execution;
+      fails closed on tampered actions, forged signatures, observation hash mismatch,
+      unsigned tokens (strict mode). Non-strict mode allows unsigned with warning
+      (development only). Observation hash binds token to specific observation
+      (prevents token reuse). 23 tests cover: issuance, verification, strict/non-strict
+      enforcement, observation hash binding.
+      Gaps remaining: RBAC, KMS/HSM key management, process-boundary crossing (gRPC/HTTP).
 
   - id: REM-014
     section: "§10"
