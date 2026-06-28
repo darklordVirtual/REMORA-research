@@ -84,6 +84,8 @@ audit: lint test  ## Full quality gate: lint + tests + all claim consistency che
 	$(PYTHON) scripts/_check_links.py
 	@echo "\n-- Core module import integrity --"
 	$(PYTHON) scripts/_check_imports.py
+	@echo "\n-- Evaluator leakage gate (M1 assurance) --"
+	$(PYTHON) scripts/check_no_evaluation_leakage.py
 	@echo "\nFull audit passed. REMORA claims are consistent with code and artifacts."
 
 # Benchmarks
@@ -232,7 +234,7 @@ credibility-pack:  ## Generate full credibility pack for external review
 	@mkdir -p $(PACK_DIR)/diagrams
 	@cp enterprise/executive-brief.md $(PACK_DIR)/executive-summary.md
 	@cp enterprise/architecture.md $(PACK_DIR)/architecture-overview.md
-	$(PYTEST) tests/ -q --tb=short > $(PACK_DIR)/test-report.txt 2>&1 || true
+	$(PYTEST) tests/ -q --tb=short > $(PACK_DIR)/test-report.txt 2>&1 && echo "CREDIBILITY_PACK_STATUS: PASSED" >> $(PACK_DIR)/test-report.txt || (echo "CREDIBILITY_PACK_STATUS: FAILED — tests failed, pack is invalid" >> $(PACK_DIR)/test-report.txt && exit 1)
 	@echo "Test report written to $(PACK_DIR)/test-report.txt"
 	@cp artifacts/benchmark_summary.json $(PACK_DIR)/benchmark-results.json 2>/dev/null || \
 		($(PYTHON) scripts/generate_results_snapshot.py && cp artifacts/benchmark_summary.json $(PACK_DIR)/benchmark-results.json)

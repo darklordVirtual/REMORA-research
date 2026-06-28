@@ -1,0 +1,197 @@
+# REMORA Assurance Remediation Register
+# Source: intern_forbedring.txt (2026-06-28)
+# Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility)
+
+schema_version: "1"
+last_updated: "2026-06-28"
+
+items:
+  - id: REM-001
+    section: "§2"
+    title: "Eliminate label leakage — is_unsafe_if_executed removed from runtime gate"
+    gate: P0
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - scripts/check_no_evaluation_leakage.py
+      - tests/test_m1_leakage_absent.py
+      - results/toolcall_m1_clean_signal.json
+    notes: >
+      is_unsafe_if_executed removed from remora_gate.py. FAR=0 confirmed post-fix.
+      AST detector added as CI gate. Mutation tests confirm leakage cannot silently return.
+      Caveat: context_override flags correlated with labels by construction; external
+      replication with withheld labels required for definitive resolution.
+
+  - id: REM-002
+    section: "§5.D"
+    title: "schema_valid defaults to None (unknown), not True"
+    gate: P0
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - remora/policy/observation.py
+      - remora/policy/decision_engine.py
+    notes: >
+      M3b: schema_valid=None blocks ACCEPT for mutating actions without explicit schema
+      validation. Floor VERIFY is applied before ACCEPT paths; does not preempt ESCALATE.
+
+  - id: REM-003
+    section: "§6.C"
+    title: "Decision monotonicity — no adapter can downgrade a verdict"
+    gate: P0
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - remora/policy/decision_engine.py
+      - tests/test_decision_monotonicity.py
+    notes: M3a: EXECUTE < VERIFY < ABSTAIN < ESCALATE enforced in engine.
+
+  - id: REM-004
+    section: "§0"
+    title: "No benchmark or credibility command hides failures"
+    gate: P0
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - Makefile
+    notes: M9: Removed || true from benchmark targets; all failures surface as non-zero exit.
+
+  - id: REM-005
+    section: "§8.1"
+    title: "Semantic entropy terminology corrected"
+    gate: P1
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - paper/remora_paper.md
+      - remora/semantic_entropy.py
+    notes: M5: NLI-proxy routing described correctly; not claimed as full SE.
+
+  - id: REM-006
+    section: "§8.2"
+    title: "CRC guarantee language corrected"
+    gate: P1
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - paper/remora_paper.md
+    notes: M6: 'CRC-inspired heuristic' not 'CRC guarantee'; caveat added.
+
+  - id: REM-007
+    section: "§8"
+    title: "NLI-proxy routing precision qualifier"
+    gate: P1
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - paper/remora_paper.md
+    notes: M7: 'NLI-proxy' language used throughout; not claimed as validated NLI.
+
+  - id: REM-008
+    section: "§2"
+    title: "Import boundary enforcement — AST leakage detector in CI"
+    gate: P0
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - scripts/check_no_evaluation_leakage.py
+      - tests/test_m1_leakage_absent.py
+    notes: >
+      AST-based scan of runtime packages; fails CI on any evaluation field reference.
+      Architectural import separation (separate packages) is NOT yet done — that is REM-016.
+
+  - id: REM-009
+    section: "§3"
+    title: "Blinded benchmark v3 with separated evaluator truth"
+    gate: P1
+    status: OPEN
+    priority: HIGH
+    notes: >
+      benchmarks/toolcall_blind_v3/ does not yet exist.
+      Requires: split label file (not co-located with tasks), separate evaluator harness,
+      scorer that loads labels from separate path only at evaluation time.
+
+  - id: REM-010
+    section: "§4"
+    title: "Real baselines (non-heuristic) for comparison"
+    gate: P1
+    status: OPEN
+    priority: HIGH
+    notes: >
+      Current baselines (severity_heuristic, keyword_heuristic) are deterministic.
+      Need: single-model baseline using actual LLM outputs, majority-vote baseline,
+      self-consistency baseline. Currently documented as *_heuristic honestly.
+
+  - id: REM-011
+    section: "§9.4"
+    title: "N_accepted=25 language — one directional observation, not 'resolving generalization'"
+    gate: P1
+    status: OPEN
+    priority: MEDIUM
+    notes: >
+      Paper §10.4 must read 'one directional held-out observation' with wide CI [70%, 95.8%].
+      Wilson CI already present; strengthen language to not imply generalization.
+
+  - id: REM-012
+    section: "§9"
+    title: "Pre-registered statistical analysis plan"
+    gate: P1
+    status: OPEN
+    priority: MEDIUM
+    notes: docs/assurance/statistical_analysis_plan.md does not yet exist.
+
+  - id: REM-013
+    section: "§5.A-B"
+    title: "PDP/PEP architectural separation with signed manifests"
+    gate: P0
+    status: OPEN
+    priority: HIGH
+    notes: >
+      Policy Decision Point and Policy Enforcement Point are not architecturally separated.
+      Requires: separate package boundary, signed authorization tokens between layers.
+
+  - id: REM-014
+    section: "§10"
+    title: "External benchmark integration (tau-bench, ToolEmu)"
+    gate: P2
+    status: OPEN
+    priority: MEDIUM
+    notes: AgentHarm partially integrated. tau-bench and ToolEmu not yet integrated.
+
+  - id: REM-015
+    section: "§11"
+    title: "Locked environment (uv.lock / SBOM / Docker digests)"
+    gate: P3
+    status: OPEN
+    priority: LOW
+    notes: No lockfile or SBOM currently committed. Required for reproducibility gate.
+
+  - id: REM-016
+    section: "§2"
+    title: "Architectural import boundary — separate runtime/evaluation packages"
+    gate: P0
+    status: OPEN
+    priority: HIGH
+    notes: >
+      Requires splitting remora.toolcall into runtime and evaluation sub-packages
+      with explicit import boundary enforcement (import blocker in __init__.py).
+      AST detector (REM-008) is a CI gate but not an architectural boundary.
+
+  - id: REM-017
+    section: "§7"
+    title: "Mutation and fuzz testing for policy logic"
+    gate: P1
+    status: OPEN
+    priority: MEDIUM
+    notes: >
+      No mutation testing of decision_engine.py currently.
+      Need: mutmut or similar; verify tests catch decision logic mutations.
+
+  - id: REM-018
+    section: "§13"
+    title: "Documentation rewrite — claims tighten to artifact-backed language"
+    gate: P1
+    status: IN_PROGRESS
+    notes: >
+      Ongoing as other items complete. Paper and NEGATIVE_RESULTS.md updated for M1-M9.
+      Full paper pass for §9.4 N_accepted language pending (REM-011).
