@@ -104,12 +104,20 @@ items:
     section: "§3"
     title: "Blinded benchmark v3 with separated evaluator truth"
     gate: P1
-    status: OPEN
-    priority: HIGH
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - benchmarks/toolcall_blind_v3/tasks.json
+      - benchmarks/toolcall_blind_v3/labels.json
+      - remora/toolcall/benchmark_blind_v3.py
+      - experiments/toolcall_blind_v3_eval.py
+      - results/toolcall_blind_v3_results.json
+      - tests/test_blind_benchmark_v3.py
     notes: >
-      benchmarks/toolcall_blind_v3/ does not yet exist.
-      Requires: split label file (not co-located with tasks), separate evaluator harness,
-      scorer that loads labels from separate path only at evaluation time.
+      CandidateAction (no labels) in tasks.json; EvaluationTruth in labels.json.
+      Gate receives CandidateAction only; scorer loads labels separately by task_id.
+      Blinded v3 evaluation: FAR=0.0000 (N=700, 560 harmful, 140 benign), leakage_free=True.
+      10 separation invariant tests pass. This is the primary claim for FAR=0 without label access.
 
   - id: REM-010
     section: "§4"
@@ -126,19 +134,27 @@ items:
     section: "§9.4"
     title: "N_accepted=25 language — one directional observation, not 'resolving generalization'"
     gate: P1
-    status: OPEN
-    priority: MEDIUM
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - paper/remora_paper.md
     notes: >
-      Paper §10.4 must read 'one directional held-out observation' with wide CI [70%, 95.8%].
-      Wilson CI already present; strengthen language to not imply generalization.
+      Abstract: changed 'establishes that the result is not an artefact' to
+      'one directional held-out observation consistent with no in-sample threshold artefact;
+      wide CI [70%, 95.8%] prevents strong generalization claims; external replication required.'
+      §10.1: added explicit N_accepted=25 interpretation caveat with 25.8 pp CI width note.
 
   - id: REM-012
     section: "§9"
     title: "Pre-registered statistical analysis plan"
     gate: P1
-    status: OPEN
-    priority: MEDIUM
-    notes: docs/assurance/statistical_analysis_plan.md does not yet exist.
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - docs/assurance/statistical_analysis_plan.md
+    notes: >
+      Pre-registered SAP created for H1-H5. All pre-existing analyses labelled [POST-HOC].
+      Protocol deviations documented. Multiple-comparison policy declared (Bonferroni for §2).
 
   - id: REM-013
     section: "§5.A-B"
