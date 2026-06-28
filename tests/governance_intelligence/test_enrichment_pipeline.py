@@ -186,6 +186,7 @@ class TestEnrichThenDecide:
             question="update billing config flag",
             risk_tier="medium", action_type="write",
             target_environment="staging", phase="ordered", trust_score=0.95,
+            schema_valid=True,  # baseline assumes schema validated
         )
         baseline = ENGINE.decide(obs)
         assert baseline.action == DecisionAction.ACCEPT

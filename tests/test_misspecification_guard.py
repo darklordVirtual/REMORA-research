@@ -19,6 +19,7 @@ def _obs(**kwargs) -> PolicyObservation:
         risk_tier="medium",
         action_type="write",
         target_environment="prod",
+        schema_valid=True,  # tests assume schema validated; None default → VERIFY floor fires
     )
     defaults.update(kwargs)
     return PolicyObservation(**defaults)
