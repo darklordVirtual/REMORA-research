@@ -1270,7 +1270,7 @@ Where:
 - **T1 (Calibration):** `1 − 5 × ECE` — Expected Calibration Error of Bayesian P(harm) priors vs. observed harm rates.
 - **T2 (Friction):** `1 − benign_review_rate / 0.27` — reduction in unnecessary VERIFY verdicts on benign actions (baseline 27%).
 - **T3 (MetaJudge quality):** `(mean_critique_score − 0.5) / 0.5` — quality of LLM self-reflection; boosted when LoRA fine-tuning is active.
-- **T4 (Transfer):** replay arena accuracy on 65 fixed governance cases across 9 categories; 95.4% (62/65) with 100% transfer-category accuracy.
+- **T4 (Transfer):** `replay_transfer_score` — cross-domain governance transfer accuracy; measured on the replay arena (96 fixed cases across 9 categories). Transfer subset: n=4 cross-domain cases, all correct (current T4=1.000). Overall arena accuracy (87.5%) is a separate metric.
 - **T5 (Stability):** normalised oracle-bandit entropy + high-confidence world-model context coverage.
 
 **AII levels:** WARMUP [0, 0.4) → LEARNING [0.4, 0.6) → CAPABLE [0.6, 0.8) → TRAINED [0.8, 1.0].
