@@ -132,7 +132,7 @@ python experiments/evaluate_toolcall_benchmark_v2.py
 # Full quality gate: lint + tests + all claim consistency checks
 make audit
 
-# Safety replay arena (85 episodes, no API keys)
+# Safety replay arena (96 episodes, no API keys)
 make replay
 
 # Counterfactual governance replay on an action log
