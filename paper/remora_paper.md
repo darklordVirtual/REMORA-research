@@ -8,9 +8,9 @@
 
 ## Abstract
 
-Autonomous AI agents that invoke tools, query databases, or actuate real-world systems require an assurance layer that decides—before execution—whether an action is safe enough to proceed autonomously, requires verification, warrants abstention, or must be escalated to human review. We present REMORA (Reasoning Ensemble Multi-Oracle Routing Architecture), a research-grade control layer for agentic AI governance. REMORA combines parallel multi-oracle consensus, canonicalized verdict extraction, correlation-aware consensus weighting, thermodynamic-style uncertainty observables, Lyapunov-based stability tracking, and a policy engine with hard-block precedence rules to produce one of four structured outcomes: ACCEPT, VERIFY, ABSTAIN, or ESCALATE. On a 544-item benchmark drawn from TruthfulQA, BoolQ, and an adversarial suite, REMORA achieves 88.8% selective accuracy at 18% coverage (majority-vote full-coverage baseline: 41.18%; +47.6 pp lift; in-sample optimum). Exploiting the empirically confirmed critical-phase trust inversion (low-τ critical items achieve 71.4% accuracy vs. 27.3% for high-τ), a `PhaseAwareGuardrail` with inverted-score selection extends coverage to **22.1% at 85.0% accuracy** (+43.8 pp lift; N=120; Wilson CI [77.5%, 90.3%]; see `results/phase_aware_guardrail_n544_results.json`)—a +3.9 pp coverage gain with only 1.9 pp accuracy cost. A stratified 80/20 held-out evaluation with threshold τ* locked from the training split confirms **88.0% accuracy at 23.2% holdout coverage** (N\_accepted = 25, Wilson CI [70.0%, 95.8%], p = 1.45 × 10⁻⁵), establishing that the result is not an artefact of in-sample threshold selection. On an adversarial agentic tool-call benchmark (N=700), REMORA's full policy gate reduces unsafe execution from 10–20% (baselines) to 0% while improving mean utility from 0.0–(−0.25) to 0.62. A critical-phase evidence router resolves 38.5% of high-uncertainty cases with 100% precision on a 3,000-item NLI benchmark; the remainder are routed to human review. Key limitations include: (1) the benchmark contains 25% author-curated items subject to selection bias; (2) trust scoring alone cannot discriminate correctness in the critical phase (anticorrelation confirmed); (3) semantic evidence retrieval is pluggable but not live in the current implementation; (4) the audit hash-chain is tamper-evident but not tamper-proof without external append-only storage. REMORA is positioned as a governed autonomy layer—not a replacement for domain authority—that converts model disagreement, uncertainty, missing evidence, and policy triggers into explicit, auditable control decisions.
+Autonomous AI agents that invoke tools, query databases, or actuate real-world systems require an assurance layer that decides—before execution—whether an action is safe enough to proceed autonomously, requires verification, warrants abstention, or must be escalated to human review. We present REMORA (Reasoning Ensemble Multi-Oracle Routing Architecture), a research-grade control layer for agentic AI governance. REMORA combines parallel multi-oracle consensus, canonicalized verdict extraction, correlation-aware consensus weighting, thermodynamic-style uncertainty observables, Lyapunov-based stability tracking, and a policy engine with hard-block precedence rules to produce one of four structured outcomes: ACCEPT, VERIFY, ABSTAIN, or ESCALATE. On a 544-item benchmark drawn from TruthfulQA, BoolQ, and an adversarial suite, REMORA achieves 88.8% selective accuracy at 18% coverage (majority-vote full-coverage baseline: 41.18%; +47.6 pp lift; in-sample optimum). Exploiting the empirically confirmed critical-phase trust inversion (low-τ critical items achieve 71.4% accuracy vs. 27.3% for high-τ), a `PhaseAwareGuardrail` with inverted-score selection extends coverage to **22.1% at 85.0% accuracy** (+43.8 pp lift; N=120; Wilson CI [77.5%, 90.3%]; see `results/phase_aware_guardrail_n544_results.json`)—a +3.9 pp coverage gain with only 1.9 pp accuracy cost. A stratified 80/20 held-out evaluation with threshold τ* locked from the training split confirms **88.0% accuracy at 23.2% holdout coverage** (N\_accepted = 25, Wilson CI [70.0%, 95.8%], p = 1.45 × 10⁻⁵), establishing that the result is not an artefact of in-sample threshold selection. On an adversarial agentic tool-call benchmark (N=700), REMORA's full policy gate reduces unsafe execution from 10–20% (severity and keyword heuristics, not independent LLM evaluators) to 0% while maintaining mean utility 0.62 (vs. 0.0–(−0.25) for heuristics). **Construct validity caveat (M1):** this benchmark uses severity-derived signals and contradiction flags as policy inputs; the result demonstrates deterministic policy behaviour under labelled metadata, not detection of unsafe behaviour from raw context. The component ablation (`component_ablation_results.json`, N=700) uses clean structural signals only (schema validity, forbidden-tool, tainted-argument) and reports identical safety result (FAR=0%); see NEGATIVE_RESULTS.md §14. A critical-phase evidence router achieves 100% NLI-proxy routing precision on a 3,000-item MultiNLI benchmark (NLI-proxy classification; not document-grounded evidence retrieval — see §7); the remainder are routed to human review. Key limitations include: (1) the benchmark contains 25% author-curated items subject to selection bias; (2) trust scoring alone cannot discriminate correctness in the critical phase (anticorrelation confirmed); (3) semantic evidence retrieval is pluggable but not live in the current implementation; (4) the audit hash-chain is tamper-evident but not tamper-proof without external append-only storage. REMORA is positioned as a governed autonomy layer—not a replacement for domain authority—that converts model disagreement, uncertainty, missing evidence, and policy triggers into explicit, auditable control decisions.
 
-On the external AgentHarm benchmark (N=88, UK AI Safety Institute / Gray Swan AI), REMORA's three-mode cascade achieves blocked\_recall = 0.977 with FPR = 0.023 — meeting all three deployment goals (blocked recall ≥ 0.95, FPR < 0.10, coverage ≥ 0.95). On a deterministic 36-case cross-domain evidence benchmark spanning cybersecurity, AI governance, and financial compliance, REMORA achieves precision = 1.000 and escalation recall = 1.000 with zero critical failures. An experimental learning extension, AROMER, reached peak AII=0.844 (aii_smoothed=0.8442) [TRAINED] over 12+ consecutive organic TRAINED cycles with zero false accepts throughout; current live AII=0.7885 CAPABLE_SHADOW_ONLY (organic brr decline 0%→5%; TRAINED→CAPABLE regression at 13:00 UTC 2026-06-28; FAR=0 maintained; see Appendix F.6 and NEGATIVE_RESULTS.md §12–§13); safety_certification=CERTIFIED_INDEPENDENT_HOLDOUT (n_harmful_independent=169 external; safety_upper_bound_95=0.37%). Open gaps: FA=22.2% on aradhye holdout (contextual harm; fix requires runtime execution monitoring); NLI/SE Windows DLL block (Gap 4). Three gates before production-ready: longitudinal stability audit, independent human review, RBAC access control audit. See Appendix F.6 for full trajectory, component breakdown, and current state. Key limitations: the AgentHarm evaluation uses a research oracle setup; AROMER is experimental in shadow-only mode; no production deployment has been validated.
+On the external AgentHarm benchmark (N=88, UK AI Safety Institute / Gray Swan AI), REMORA's three-mode cascade achieves blocked\_recall = 0.977 with FPR = 0.023 under an **intent-gating evaluation protocol** (REMORA evaluates the agent's proposed action and routes it to VERIFY/ESCALATE; true tool-call interception has not been verified — see §10.6 and `experiments/agentharm/INTERCEPTION_NOTES.md`). Meeting all three deployment goals in intent-gating mode (blocked recall ≥ 0.95, FPR < 0.10, coverage ≥ 0.95) demonstrates routing accuracy, not execution prevention. On a deterministic 36-case cross-domain evidence benchmark spanning cybersecurity, AI governance, and financial compliance, REMORA achieves precision = 1.000 and escalation recall = 1.000 with zero critical failures. An experimental learning extension, AROMER, reached `interpretation_nuanced: "TRAINED_SHADOW_ONLY"` with peak AII=0.844 (aii\_smoothed=0.8442) over 12+ consecutive organic TRAINED cycles with zero false accepts; current live AII=0.8042 TRAINED_SHADOW_ONLY (full §12→§13 cycle documented: peak 0.8442 at cycle 12, regression to CAPABLE at ~13:00 UTC 2026-06-28 brr 0%→5%, organic recovery to TRAINED at ~15:53 UTC in ~2h53min, brr 5%→2.5%; FAR=0 throughout; see Appendix F.7 and NEGATIVE_RESULTS.md §12–§13; AII is a composite index with researcher-chosen weights — see Appendix F for formula, weight rationale, and cumulative state; organic TRAINED confirmed after seeding-induced regression and recovery — see Appendix F.6–F.7 and NEGATIVE_RESULTS.md §9–11 for full trajectory). All five evidence gates are cleared: longitudinal stability (201+ records), safety evidence (n\_harmful\_independent=169 external aradhye/CaiZhiTech; safety\_upper\_bound\_95=0.37%), transfer measurement (4 database-to-financial cross-domain cases; `scripts/aromer_publish_replay.py`), and causal enrichment (66 episodes with Bjøru 2026 PS scores (§4.2.2); `scripts/aromer_publish_causal.py`). **Critical caveats:** (1) T4 Transfer = 1.0 derives from a 96-episode in-domain replay arena sharing taxonomy with AROMER's seeds — the 4 cross-domain cases clear the measurement gate but do not establish independent transfer; without T4, renormalized AII ≈ 0.52. (2) External holdout safety floor (proxy-signal transfer) largely de-risked via structural policy gates (schema validity, forbidden-tool, tainted-argument; FA→0%, harm-intercept→100% on 495-case balanced holdout); independent external-corpus validation pending — see NEGATIVE_RESULTS.md §2. (3) Aradhye holdout FA=22.2% (execution-context harm requiring runtime monitoring — Gap 2; see NEGATIVE_RESULTS.md §6). (4) `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT` (n\_harmful\_independent=169 external; safety\_upper\_bound\_95=0.37%); `deployment_status: "SHADOW_ONLY"`, `policy_relaxation_allowed: false`. Three production gates remain before deployment: longitudinal stability audit, independent human review, RBAC access control audit. Key limitations: AgentHarm evaluation is intent-gating only; AROMER external validity not yet established; no production deployment validated.
 
 **Keywords:** agentic AI safety, multi-oracle consensus, selective prediction, uncertainty routing, policy-as-code, audit governance, human-in-the-loop
 
@@ -347,13 +347,13 @@ REMORA resolves this with **Conformal Risk Control** (CRC; Angelopoulos et al., 
 
 $$w_i = \begin{cases} 1.0 & \text{if phase}(i) = p_{\text{test}} \\ \beta = 0.10 & \text{otherwise} \end{cases}$$
 
-The CRC threshold $\hat{\lambda}$ minimises accepted items subject to weighted empirical risk $\bar{L}(\hat{\lambda}) \leq \alpha$. **Theorem 1** (Angelopoulos et al., 2022) guarantees:
+The CRC threshold $\hat{\lambda}$ minimises accepted items subject to weighted empirical risk $\bar{L}(\hat{\lambda}) \leq \alpha$. **Theorem 1** (Angelopoulos et al., 2022) provides a formal risk bound when weights $w_i$ correctly specify the density ratio $p_{\text{test}}/p_{\text{cal}}$. Here $\beta = 0.10$ is a conservative hand-tuned constant, not a validated density ratio estimate; accordingly REMORA uses a *CRC-inspired heuristic operating point*, not a formally guaranteed bound (M6 peer-review finding):
 
-$$\mathbb{E}[L(\hat{\lambda})] \leq \alpha + \frac{1}{n+1}$$
+$$\mathbb{E}[L(\hat{\lambda})] \lesssim \alpha + \frac{1}{n+1} \quad \text{(CRC-inspired heuristic; } \beta\text{=0.10 not validated)}$$
 
-For binary 0/1 loss, the overshoot above $\alpha$ is at most $1/(n+1)$ — 5 pp for $n=19$, 1 pp for $n=99$.
+Empirically: for binary 0/1 loss, overshoot is at most $1/(n+1)$ — 5 pp for $n=19$, 1 pp for $n=99$ — across 20 repeated splits on the synthetic Lyapunov benchmark. To invoke the formal theorem, β must be estimated from held-out calibration density ratios.
 
-Implementation: `remora.selective.crc.CovariateShiftCRC.fit(scores, labels, phases, target_phase)` returns a `CRCReport` with `finite_sample_slack` ($= 1/(n_{\text{cal}}+1)$) and `guaranteed_risk_bound` ($= \alpha + \text{slack}$). Tested: 44 unit tests covering edge cases, tied-score atomicity, phase-weight algebra, and Theorem 1 slack.
+Implementation: `remora.selective.crc.CovariateShiftCRC.fit(scores, labels, phases, target_phase)` returns a `CRCReport` with `finite_sample_slack` ($= 1/(n_{\text{cal}}+1)$) and `guaranteed_risk_bound` ($= \alpha + \text{slack}$; note: label reflects heuristic target, not formal CRC guarantee when β is fixed). Tested: 44 unit tests covering edge cases, tied-score atomicity, phase-weight algebra, and Theorem 1 slack.
 
 
 ### 7.3 Prover-Verifier Deliberation for Critical-Phase Routing
@@ -361,7 +361,7 @@ Implementation: `remora.selective.crc.CovariateShiftCRC.fit(scores, labels, phas
 Kirsch et al. (2024) showed that prover-verifier games produce more legible and reliable LLM outputs. REMORA adapts this protocol to its offline multi-oracle setting without additional API calls.
 
 **Protocol:**
-1. **Cluster** oracle responses via Semantic Entropy clustering, producing semantic equivalence classes sorted by mass.
+1. **Cluster** oracle responses via Semantic Entropy clustering, producing semantic equivalence classes sorted by mass. *(In all reported benchmarks, the `TokenFingerprintBackend` heuristic is used rather than the `NLISemanticBackend`; the two may cluster differently for paraphrases with no shared tokens. The `NLISemanticBackend` is fully implemented as a drop-in alternative using cross-encoder entailment but has not been activated for any reported result — see NEGATIVE_RESULTS.md §3 for analysis and replication instructions.)*
 2. **Prover** = the oracle from the dominant cluster with highest confidence.
 3. **Verifier** = the highest-confidence oracle *outside* the dominant cluster.
 4. **Deliberation** (r = 1, ..., n_rounds): evaluate NLI entailment score prover→verifier with round-decay γ=0.85.
@@ -387,9 +387,9 @@ The `CriticalEvidenceRouter` accepts an `EvidenceSignal` with five fields: `evid
 
 **Important implementation note:** In the current implementation, the `EvidenceSignal` is built as a proxy from oracle consensus statistics (agreement rates, polarity distribution, coverage fraction). This is explicitly documented in the source as a "structural bridge" pending semantic retrieval integration. The evidence router logic is fully implemented and tested; what is not yet live is an external BM25/NLI passage retrieval pipeline feeding real document evidence into the signal.
 
-On the MultiNLI evidence benchmark (N=3,000, entailment/neutral/contradiction labels; used as a proxy for evidence-verification decisions):
+On the MultiNLI evidence benchmark (N=3,000, entailment/neutral/contradiction labels; used as a proxy for evidence-verification decisions). **NLI-proxy routing result** — this measures classification accuracy of the NLI-proxy signal, not document-grounded evidence retrieval precision (see implementation note above and M7 in NEGATIVE_RESULTS.md §14):
 - Resolution rate: 38.5% (items routed to evidence_accept or abstain rather than escalate)
-- `evidence_accept` precision on entailment items: 100%
+- `evidence_accept` NLI-proxy routing precision on entailment items: 100%
 - False accept rate on contradiction items: 0%
 - Abstain precision on contradictions: 99.3%
 
@@ -563,7 +563,7 @@ On the MultiNLI evidence benchmark (N=3,000):
 | Abstain precision (contradiction items) | 99.3% |
 | Items routed to ESCALATE | 61.5% |
 
-The trust-only baseline (all critical items escalated, no evidence routing) achieves 0% resolution. Evidence routing resolves 38.5% of cases with 100% precision—the remaining 61.5% receive human review, which is the correct conservative behavior for unresolved critical-phase decisions.
+The trust-only baseline (all critical items escalated, no evidence routing) achieves 0% resolution. Evidence routing (NLI-proxy classification; not document-grounded evidence retrieval — see §7 implementation note) resolves 38.5% of cases with 100% NLI-proxy routing precision—the remaining 61.5% receive human review, which is the correct conservative behavior for unresolved critical-phase decisions.
 
 ### 10.6 Conformal Coverage (Mondrian, N=2,161 Augmented Dataset)
 
@@ -599,7 +599,7 @@ To evaluate REMORA's governance accuracy on a fully external, independently cons
 
 The conservative posture of Mode 3 — routing 98% of cases to VERIFY or higher — is by design. REMORA treats VERIFY as the appropriate response to uncertainty, not a failure mode. An agent operating under REMORA governance would require human confirmation for the vast majority of ambiguous tasks; only clearly safe, low-entropy actions receive autonomous ACCEPT.
 
-**Caveat.** The AgentHarm benchmark uses a research-grade oracle setup, not a production deployment. Results may not generalise to live agent deployments with different tool distributions, prompt formats, or adversarial injection.
+**Scope caveat.** The AgentHarm evaluation is an **intent-gating result**: REMORA evaluates the agent's proposed action string and routes it — it does not wrap or intercept AgentHarm's internal tool dispatch. True PreToolUse tool-call interception requires a verified solver wrapper (see `experiments/agentharm/INTERCEPTION_NOTES.md`); this has not yet been implemented. The 0.977 blocked_recall figure reflects routing accuracy (correct VERIFY/ESCALATE decisions) on the benchmark's proposed action surface, not prevention of tool execution. Additionally, this evaluation uses a research-grade oracle setup; results may not generalise to live agent deployments with different tool distributions, prompt formats, or adversarial injection.
 
 ---
 
@@ -771,19 +771,31 @@ The current `EvidenceSignal` is built from oracle consensus statistics (agreemen
 
 The Control Room frontend uses a deterministic simulator with seeded RNG to generate oracle votes, latencies, and evidence snippets. The case history and policy-learning panels in the frontend display synthetic data generated deterministically from scenario parameters. These features are clearly labelled as demo components in the source code. The policy engine, thermodynamic observables, and decision routing in the backend are genuine implementations that process real oracle responses.
 
+### 13.9 AROMER MetaJudge Evaluation Circularity (Active)
+
+AROMER's MetaJudge (§Appendix F) uses Cloudflare Workers AI LLMs — the same model family and provider as the governance oracles — to evaluate decision quality. This introduces a family-level circularity: the judge shares the same priors, calibration biases, and distributional tendencies as the system it is judging. Biases common to the oracle family (e.g., a shared tendency to rate "correct_accept" decisions positively) will not be detected by MetaJudge. The AII metajudge component therefore reflects within-family self-consistency more than independent external validation. Mitigation: use a distinct model provider (e.g., Anthropic Claude or OpenAI GPT-4) for MetaJudge in any external validation run.
+
+### 13.10 Causal PS Enrichment — Implemented, Not Yet Deployed in Live Pipeline (Active)
+
+REMORA integrates a PS (probability of sufficiency) causal enrichment module (Bjøru 2026, §4.2.2) in `remora/causal/attribution.py`. As of v0.2.1-experimental, **66 blocking/verifying episodes** carry PS causal enrichment data, published via `scripts/aromer_publish_causal.py` (one-time batch enrichment). The module is unit-tested and correct. The **live pipeline integration** — automatic PS enrichment of new governance episodes as they are created — has not been deployed; new episodes accumulate without causal enrichment. The §6.4 Governance Intelligence Layer description mentions "causal-consequence signals" (blast radius and expected loss), which are heuristic consequence estimates in the governance intelligence enrichment stage — distinct from the formal PS module. The PS module as described in the architecture is an algorithmic design; no empirical results over real governance episodes have been reported for it. Note: Bjøru §4.2.2 defines PS as the primary attribution metric; probability of necessity (PN) is noted there as complementary future work and is not implemented in the current module.
+
 **Table 5: Negative Results and Mitigations**
 
 | Finding | Severity | Status | Mitigation |
 |---------|----------|--------|------------|
 | χ-proxy AUC = 0.39 | Medium | Documented | Repurposed as OOD detector |
 | T–D circularity | Medium | Resolved | Structural temperature (prompt-only) |
-| Critical-phase trust anticorrelation | High | Active | Evidence router (38.5% resolution, 100% precision) |
+| Critical-phase trust anticorrelation | High | Active | Evidence router (38.5% resolution, 100% NLI-proxy routing precision — not document retrieval) |
 | Full-coverage accuracy weak | Medium | Active | Selective prediction at ordered phase |
 | Oracle diversity partial | Medium | Active | Diversity weighting; mixed-family swarm |
 | In-sample calibration | Medium | **Resolved** | Held-out eval: 88.0% @ 23.2% cov., p=1.45e-5 (§13.6) |
 | Evidence retrieval proxy-based | Medium | Active | MultiNLI benchmark as proxy |
 | Demo data synthetic | Low | By design | Source code labelling |
 | Audit chain not tamper-proof | Medium | By design | External WORM storage required |
+| AROMER safety floor does not transfer to external holdout | Medium-Low | **Largely de-risked** | Structural gates achieve 0% false-accept / 100% harm-intercept on 495-case balanced holdout via call-structure signals (schema validity, forbidden-tool, tainted-arg); proxy-signal trust/entropy calibration and external-corpus injection-scanner validation pending (NEGATIVE_RESULTS.md §2). Aradhye holdout FA=22.2% (execution-context harm — Gap 2, open). |
+| Entropy backend is TokenFingerprintBackend, not Semantic Entropy | Medium | Active | NLISemanticBackend exists as drop-in; all reported benchmarks used token-fingerprint heuristic (NEGATIVE_RESULTS.md §3) |
+
+*The above table is synchronized with `NEGATIVE_RESULTS.md`. See that document for full descriptions, confounds tested, and resolution paths. The `NEGATIVE_RESULTS.md` resolved-findings archive preserves the complete scientific record of addressed issues.*
 
 ---
 
@@ -803,6 +815,7 @@ The Control Room frontend uses a deterministic simulator with seeded RNG to gene
 - Thermodynamic terminology frames entropy and dissensus as observable properties of oracle consensus. No claim is made that these observables map to physical thermodynamics or that the phase classification is the unique correct formalism.
 - "Trust score" is a derived scalar, not a frequency probability of correctness for any specific item.
 - Utility scores in the tool-call benchmark reflect designed task weights, not real-world deployment costs.
+- **AII (Autonomous Intelligence Index)** is a researcher-defined composite (calibration 0.30, friction 0.25, metajudge 0.20, transfer 0.15, stability 0.10) with weights chosen as heuristic estimates, not derived from theory or calibrated against an external governance quality measure. Alternative weight assignments would yield different AII values and different CAPABLE thresholds (AII ≥ 0.60). AII improvement over learning iterations describes internal optimization progress only; it has not been cross-validated against any independent outcome measure (e.g., downstream safety incident rate, human expert governance quality ratings). The CAPABLE threshold and phase names (WARMUP, LEARNING, CAPABLE, TRAINED) are qualitative labels, not scientifically calibrated levels. AII weight sensitivity is reported in Appendix F.2: varying each weight ±0.05 (proportionally renormalized) shows CAPABLE classification was fragile at the CAPABLE milestone (AII=0.6007, 2026-06-26) — T2 Friction (±0.032) and T4 Transfer (±0.023) are the highest-sensitivity axes. AROMER has since reached TRAINED (AII=0.8442, 12+ organic cycles; see Appendix F.7). This supports treating AII ≥ 0.60 as a preliminary milestone rather than a stable certification boundary.
 
 **Statistical validity:**
 - 95% Wilson confidence intervals are reported for key accuracy figures. Non-overlapping CIs are used to assess statistical significance; formal hypothesis tests are not performed across all conditions.
@@ -883,6 +896,12 @@ python experiments/lyapunov_aggregate.py
 - `results/rag_critical_router_v1_results.json` — Evidence router metrics
 - `results/lyapunov_aggregate_results.json` — Lyapunov stability (N=1000)
 - `results/mondrian_v2_repeated_splits.json` — Conformal coverage (N=2161)
+- `artifacts/agentharm_trimode_results.json` — AgentHarm pilot results (intent-gating scope; see §10.6 and `docs/claim_hygiene.md`)
+- `artifacts/governance_intelligence/evaluation_results.json` — Governance Intelligence layer benchmark (§6.4; 50 tasks, 10 categories)
+- `artifacts/domain_benchmark_results.json` — Cross-domain evidence benchmark N=36 (§10.7)
+- `results/agentharm/guardrail_scores.json` — AgentHarm evaluation status (`status:skipped`; full pipeline not run — see `docs/claim_hygiene.md`)
+- `results/agentharm/tool_probe.json` — Tool interception probe (`status:skipped`; `inspect_tools_probe.py` not run — condition 4 of claim hygiene not met)
+- `results/agentharm/mode_metadata.jsonl` — Mode degradation metadata (`status:skipped`; condition 5 not met)
 
 **Reproducibility note:** The QA benchmark results are derived from stored oracle response artifacts (not live API calls) and are fully deterministic. Tool-call and Lyapunov benchmarks use seeded RNG and require no API keys. Evidence router requires HuggingFace dataset access. Live ablation experiments depend on external oracle availability.
 
@@ -895,7 +914,7 @@ We presented REMORA, a policy-gated multi-oracle assurance architecture for gove
 Key empirical findings:
 - Thermodynamic routing achieves 88.8% selective accuracy at 18% coverage on the QA benchmark (+47.6 pp over full-coverage majority vote; in-sample calibration caveat applies). A `PhaseAwareGuardrail` exploiting the critical-phase trust inversion extends coverage to 22.1% at 85.0% accuracy (+43.8 pp lift; Wilson CI [77.5%, 90.3%]; `results/phase_aware_guardrail_n544_results.json`), adding 21 low-τ critical items via inverted-score selection.
 - Policy hard blocks reduce unsafe execution to 0% on an adversarial 700-task tool-call benchmark, compared to 10–20% for all baselines.
-- Evidence routing resolves 38.5% of critical-phase items with 100% precision, where trust-based routing fails completely.
+- Evidence routing (NLI-proxy classification; not document-grounded retrieval) resolves 38.5% of critical-phase items with 100% NLI-proxy routing precision, where trust-based routing fails completely.
 - Mondrian phase-stratified conformal achieves 99.9% ordered-phase coverage with 0/20 seed failures at the 15% risk target.
 
 Key negative findings (preserved for scientific record):
@@ -922,7 +941,7 @@ Generative AI tools were used as assistive tools during the development of this 
 
 The author defined the research questions, system architecture, policy semantics, evaluation criteria, experimental scope, and all reported claims. All source code, tests, benchmark artifacts, citations, numerical results, and conclusions were reviewed and verified by the author before inclusion. Generative AI tools were not listed as authors and were not relied upon as independent sources of experimental evidence.
 
-Where AI-assisted output informed implementation or prose, the final responsibility for correctness, reproducibility, and interpretation remains with the human author. A full disclosure is available in `docs/AI_USE.md` in the main repository.
+Where AI-assisted output informed implementation or prose, the final responsibility for correctness, reproducibility, and interpretation remains with the human author. A full disclosure is available in `docs/AI_USE.md`.
 
 ---
 
@@ -1304,9 +1323,23 @@ To measure whether AROMER becomes more intelligent over time, we define a compos
 
 $$\text{AII} = 0.30 \cdot T_1 + 0.25 \cdot T_2 + 0.20 \cdot T_3 + 0.15 \cdot T_4 + 0.10 \cdot T_5$$
 
+**Weight rationale.** The weights are researcher-chosen heuristic values, not derived from theoretical optimisation or empirical ablation. The ordering reflects a domain-specific priority judgment: calibration (T1) is weighted most heavily because miscalibrated confidence is the most direct path to false accepts; friction (T2) captures the practical operational cost of over-blocking (the primary governance failure mode in deployment); metajudge (T3) provides the learning signal quality; transfer (T4) reflects generalisation scope; and stability (T5) is a diagnostic observable rather than a primary learning target. These weights should be treated as a hyperparameter and validated via ablation in any external evaluation.
+
+**AII weight sensitivity analysis.** Each weight varied by ±0.05 while other weights are rescaled proportionally to sum to 1.00. Scores at the CAPABLE milestone (2026-06-26): T1=0.681, T2=0.127, T3=0.716, T4=1.000, T5=0.711 (AII=0.6007).
+
+| Component | w | +0.05 → ΔAII | −0.05 → ΔAII | CAPABLE (≥0.60) robust? |
+|---|---|---|---|---|
+| T1 Calibration | 0.30 | +0.006 → 0.607 | −0.006 → 0.595 | Yes (+) / borderline (−) |
+| **T2 Friction** | **0.25** | **−0.032 → 0.569** | **+0.031 → 0.632** | **No (+) / Yes (−)** |
+| T3 MetaJudge | 0.20 | +0.007 → 0.608 | −0.008 → 0.593 | Yes (+) / borderline (−) |
+| **T4 Transfer** | **0.15** | **+0.023 → 0.623** | **−0.023 → 0.577** | Yes (+) / **No (−)** |
+| T5 Stability | 0.10 | +0.006 → 0.607 | −0.007 → 0.594 | Yes (+) / borderline (−) |
+
+**Interpretation:** The CAPABLE classification was fragile at the initial AII of 0.6007 (gap = 0.0007 on T4−0.05 and T1−0.05 paths). T2 (Friction) was the highest-sensitivity axis due to its low component score (0.127 at CAPABLE baseline). Subsequently, world model seeding raised T2 to 0.975, pushing AII to 0.820 (TRAINED_SHADOW_ONLY) — but this T2 improvement is window-composition driven (see §F.6 TRAINED caveat and NEGATIVE\_RESULTS.md §5). At the TRAINED milestone, the sensitivity table is recomputed with T2=0.975: now T1 (lowest score, 0.691) becomes the highest-sensitivity axis. The analysis supports treating both CAPABLE and TRAINED thresholds as preliminary milestones requiring organic confirmation, not stable certification boundaries.
+
 Where:
 - **T1 (Calibration):** `1 − 5 × ECE` — Expected Calibration Error of Bayesian P(harm) priors vs. observed harm rates.
-- **T2 (Friction):** `1 − benign_review_rate / 0.27` — reduction in unnecessary VERIFY verdicts on benign actions (baseline 27%).
+- **T2 (Friction):** `exp(−benign_review_rate / 0.20)` — gradient-retaining exponential function; higher when fewer benign actions require oracle review. The earlier linear formula `1 − r/0.27` flatlined at zero for any rate ≥ 27% and was replaced in v0.2.1 (see §F.7 / Appendix F.6).
 - **T3 (MetaJudge quality):** `(mean_critique_score − 0.5) / 0.5` — quality of LLM self-reflection; boosted when LoRA fine-tuning is active.
 - **T4 (Transfer):** `replay_transfer_score` — cross-domain governance transfer accuracy; measured on the replay arena (96 fixed cases across 9 categories). Transfer subset: n=4 cross-domain cases, all correct (current T4=1.000). Overall arena accuracy (87.5%) is a separate metric.
 - **T5 (Stability):** normalised oracle-bandit entropy + high-confidence world-model context coverage.
@@ -1321,7 +1354,7 @@ After 663+ governance episodes and 8 hours of live operation:
 |---|---|
 | AII | **0.5088** [LEARNING] |
 | T1 Calibration | 0.598 (ECE = 0.0804) |
-| T2 Friction | 0.000 (benign\_review\_rate = 41%; world model recently activated) |
+| T2 Friction | 0.000 (benign\_review\_rate = 41%; pre-fix linear formula; formula replaced in v0.2.1 — see §F.6) |
 | T3 MetaJudge | 0.850 (base llama-3.1-8b; LoRA pending) |
 | T4 Transfer | **1.000** (`replay_transfer_score`: transfer cases 4/4 correct; note: overall arena accuracy 95.4% at this date is a separate metric not used for T4) |
 | T5 Stability | 0.094 (high-confidence contexts = 12) |
@@ -1343,34 +1376,80 @@ A fine-tuning pipeline exports 614+ labeled episodes as prompt/completion JSONL 
 
 **Update (2026-06-07/08):** The T2 Friction component flatlined at 0.000 in live telemetry because `max(0, 1 − benign_review_rate/0.27)` returns zero for any review rate ≥ 27%, and the live rate was running at ~31–41%. Diagnosed 2026-06-07. Fix: replaced the formula with the gradient-retaining `exp(−r/0.20)` function (centred on 15% target), now in `remora/aromer/intelligence/score.py`. Additionally, the friction-optimizer's MetaJudge-driven per-scope adjustments were wired into the active decision path (previously computed but only written to file). Safety floor was unaffected throughout (false_accept = 0.000 remained). The world_model_active state and calibration_score are unchanged. Live AII is indeterminate pending a fresh measurement cycle with the corrected formula; the archived 0.508 figure should be interpreted as pre-fix.
 
+### F.6 Cumulative Live State (2026-06-26) — TRAINED\_SHADOW\_ONLY (via world-model seeding)
+
+All interpretation gates cleared. Stable status as of 2026-06-26T13:00 UTC (pre-world-model-seeding baseline):
+
+| Metric | Value | Change vs F.3 |
+|---|---|---|
+| AII (smoothed) | **0.629** [**CAPABLE\_SHADOW\_ONLY**] | +12.1 pp |
+| T1 Calibration | 0.699 (ECE = 0.060) | +9.7 pp (ECE ↓) |
+| T2 Friction | 0.205 (benign\_review\_rate = 37.3%) | +20.5 pp (formula fixed + optimizer wired: verify\_p→0.45, trust\_min→0.65) |
+| T3 MetaJudge | 0.727 (organic LLM eval) | −12.3 pp (LoRA not deployed) |
+| T4 Transfer | **1.000** (96-episode arena; 4 database\_to\_financial cases) | unchanged — **measured in-domain arena only** |
+| T5 Stability | 0.700 | +60.6 pp |
+| False Accept Rate | **0.000** | unchanged (zero throughout) |
+| causal\_enriched | **66 episodes** (Bjøru 2026 PS) | new — clears CAUSAL\_UNMEASURED gate |
+| cross\_domain\_cases | **4** (database\_to\_financial) | new — clears TRANSFER\_UNMEASURED gate |
+| longitudinal\_records | **201** | clears LONGITUDINAL\_DATA gate |
+| n\_harmful\_internal | 256 | clears SAFETY\_EVIDENCE + CP gates |
+| **Status** | **CAPABLE\_SHADOW\_ONLY** | All 5 gates cleared; deployment = SHADOW\_ONLY |
+
+**Iter 13 (hook pre-check, 2026-06-25):** The REMORA pre-tool-use hook now calls AROMER `/decide` for MEDIUM-risk actions before the remote oracle. World-model fast-path (`P(harm) < 5%`, `n_obs ≥ 20`, `trust ≥ 0.40`) returns ACCEPT without oracle call, reducing benign oracle traffic. Benign\_review\_rate declined 0.54 → 0.52 → 0.495 → 0.41 → 0.21 across 5 cron cycles + 4 manual adapt cycles.
+
+**CAPABLE reached (2026-06-26 08:35 UTC):** AII crossed 0.60 raw via MetaJudge improvement and friction reduction. At that point `interpretation_nuanced = COMPOSITE_THRESHOLD_REACHED_TRANSFER_UNMEASURED`.
+
+**CAPABLE\_SHADOW\_ONLY reached (2026-06-26 ≈13:00 UTC):** All five evidence gates cleared:
+1. ~~TRANSFER\_UNMEASURED~~ — 3 new database\_to\_financial episodes (trans-005 to trans-007) added to replay arena (total 96), published via `scripts/aromer_publish_replay.py`. xdomain = 4.
+2. ~~CAUSAL\_UNMEASURED~~ — Bug fixed: `load_domain()` raised `FileNotFoundError` for unknown domains, silently blocking the `network_change_management_v1` fallback. After fix: 66 blocking/verifying episodes enriched with Bjøru 2026 §4.2.2 PS scores, published via `scripts/aromer_publish_causal.py`. Top concept: `approved_change_window`.
+3. ~~LONGITUDINAL\_DATA~~ — 8 manual adapt cycles built history from 2 to 15+ records (adapt cron runs every 4 h; subsequent standard cycles brought total to 201).
+4. ~~SAFETY\_EVIDENCE~~ — 256 internal harmful cases > 30 threshold.
+5. ~~SAFETY\_NOT\_CERTIFIED~~ — CP upper 95% bound ≈ 1.2% ≤ 5%.
+
+**World model optimization (2026-06-26, post-CAPABLE\_SHADOW\_ONLY):** accept\_trust\_min reached floor 0.50 (n\_updates=13). World model Bayesian priors updated with 150 benign correct\_accept seeds across 14 domain contexts (5 passes × 30 episodes, via `scripts/aromer_seed_benign_outcomes.py --runs 5`). After adapt cycles processing the seeded episodes, p\_harm for benign contexts fell from uniform 0.50 to 0.10–0.17 (medium-confidence posterior, ≥5 observations per context). AII smoothed rose to 0.675 while window benign\_review\_rate fell to 0% (artifact of seeded window — see caveat below). Stable AII (post-window-rotation) is estimated at 0.65–0.70 once the seeded episodes rotate out.
+
+**Caveat — window benign\_rate artifact:** Concentrated benign seeding fills the 200-episode sliding window, temporarily showing benign\_review\_rate = 0% and degrading the window quality gate to INSUFFICIENT\_SAFETY\_EVIDENCE. This is a window composition artifact, not evidence of a safety regression. The global safety gate remains PASS (256 harmful all-time, 0 FA, CP 1.2%). T5 stability dropped to 0.51 due to distribution shift; recovery expected after window rotation (≈200 new decisions). See NEGATIVE\_RESULTS.md §5.
+
+**Remaining honest caveats after CAPABLE\_SHADOW\_ONLY:**
+- T4 Transfer (0.15 weight) measured on the same replay arena as seeds; true cross-domain independence is not established. Without T4, renormalized AII ≈ 0.52.
+- ~~Safety certification is `CERTIFIED_INTERNAL_ONLY` — no time-separated independent holdout.~~ **Resolved (2026-06-27):** `CERTIFIED_INDEPENDENT_HOLDOUT` via aradhye/CaiZhiTech external holdout (n\_harmful\_independent=169, safety\_upper\_bound\_95=0.37%). See §F.7.
+- ~~API: `policy_relaxation_allowed = false`, `world_model_can_relax = false` until TRAINED + independent certification.~~ TRAINED confirmed organically and independent certification achieved (see §F.7); `policy_relaxation_allowed` remains false pending three production gates.
+
+**TRAINED_SHADOW_ONLY reached (2026-06-26, AII=0.820):** Following world model seeding (150 benign correct\_accept episodes across 14 contexts, 5 passes), the 200-episode sliding window filled with seeded entries, reducing `benign_review_rate` to ≈0.5% in the window (operational baseline: 35.3%). This drove T2 from 0.175 to 0.975, pushing AII smoothed from 0.629 to 0.820. Component scores at TRAINED milestone: T1=0.691, T2=0.975⚠, T3=0.736, T4=1.000, T5=0.711, AII=0.820.
+
+**Critical caveat — T2 is window-composition driven:** The TRAINED threshold reflects the seeded window, not organically confirmed friction reduction. T2 will revert as seeded episodes rotate out (~200 new organic decisions). Estimated AII after full rotation (operational T2≈0.27): ≈0.643 (CAPABLE). The Bayesian world model priors updated by seeding (p\_harm 0.10–0.17 for 14 benign contexts) are persisted in D1 and will reduce future benign_review_rate for those specific contexts. Whether this sustains T2 ≥ 0.80 organically is an open empirical question. LoRA MetaJudge (blocked on CF Workers AI beta) remains the path to durable T2 improvement. See NEGATIVE\_RESULTS.md §4–5 for full detail.
+
+**Post-seeding equilibrium (2026-06-26, ~60 adapt cycles after TRAINED milestone):** T2 stabilized at 0.905 (benign_review_rate ≈ 2% in window; window still ~93% seeded); AII smoothed = 0.804 (TRAINED_SHADOW_ONLY maintained); T5 recovering 0.711 → 0.717; T3 improved 0.736 → 0.744. Current component scores: T1=0.691, T2=0.905, T3=0.744, T4=1.000, T5=0.717, AII=0.804. False accepts: 0. Global gate: PASS (CP bound 1.2%). Bottleneck: T1 calibration (ECE=0.062), improvable only via organic labeled traffic.
+
 *Note: AROMER is an experimental research plugin. AII scores are computed from a live but uncontrolled deployment. Results should be treated as preliminary research observations, not validated benchmark results.*
 
-### F.6 Update (2026-06-28): TRAINED Status — Organic Path A Recovery
+---
 
-**AII=0.844 TRAINED_SHADOW_ONLY** (12+ consecutive TRAINED cycles, 2026-06-28).
+### F.7 Organic TRAINED Confirmation and Current State (2026-06-28)
 
-| Metric | Current (2026-06-28) | Change from F.3 (2026-06-05) |
-|---|---|---|
-| AII | 0.789 [CAPABLE] (peak 0.844 TRAINED at cycle 12; TRAINED→CAPABLE regression ~13:00 UTC) | 0.508 [LEARNING] → +0.281 |
-| T1 Calibration | 0.682 (ECE=0.0637) | 0.598 → +0.084 |
-| T2 Friction | 0.8098 (brr=5.0%; peak 1.000 at brr=0%, cycle 12) | 0.000 → +0.810 |
-| T3 MetaJudge | **0.800** [milestone] | 0.850 base (corrected formula); now exceeds historical peak 0.759 by +4.1pp |
-| T4 Transfer | 1.000 | 1.000 (unchanged) |
-| T5 Stability | 0.7158 (declining; variance EMA active; FAR=0; 912 cycles, 15 306 episodes) | 0.094 → +0.622 |
-| False Accept Rate | **0.000** (sustained) | 0.000 (maintained) |
-| aii_smoothed | 0.7885 [CAPABLE] | — |
-| safety_certification | CERTIFIED_INDEPENDENT_HOLDOUT | NOT_APPLICABLE |
+This section documents resolution of the open caveats in §F.6 and the current system state following organic TRAINED confirmation.
 
-**Key milestones since F.3:**
+**Gap 1 resolved — CERTIFIED\_INDEPENDENT\_HOLDOUT (2026-06-27):** 169 harmful episodes from aradhye and CaiZhiTech (external taxonomy, independent of AROMER seeds) seeded via `scripts/aromer_seed_harmful_episodes.py`. `safety_upper_bound_95 = 0.00367` (Clopper-Pearson 95% upper bound; 0.37% ≤ 5%). `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT`. Holdout eval (36-case time-separated split): FA=22.2% on aradhye holdout (execution-context harm — Gap 2 below). See NEGATIVE\_RESULTS.md §9–10.
 
-- **Gap 1 closed (2026-06-27):** `n_harmful_independent=169` (aradhye/agent-safety-bench + CaiZhiTech/guardrails). Holdout validation: 36 aradhye cases not seen during seeding → FA=22.2% (vs 52.2% Phase 2 aradhye). CP bound: 0.37% operational (0 FA / 814 episodes). `safety_certification=CERTIFIED_INDEPENDENT_HOLDOUT`.
-- **Organic TRAINED recovery — Path A (00:36 UTC+2 2026-06-28):** After bulk-seeding caused a temporary CAPABLE regression (AII=0.762), all 15 historical VERIFY episodes rotated out organically within ~2.5 hours. brr: 7.5%→0%. T2 reached theoretical maximum (exp(−0/0.20)=1.0) by cycle 6.
-- **T2=1.000 maintained** since cycle 6 (brr=0% across all subsequent cycles).
-- **T3=0.800 [milestone]** — MetaJudge quality crossed 0.800 alert threshold (cycle 12). Mean critique score=0.90. Exceeds historical peak at n=135 (T3=0.759) by +4.1pp via organic MetaJudge cycles.
-- **12+ consecutive TRAINED cycles:** AII trajectory: 0.8097→0.8169→0.8228→0.8283→0.8313→0.8377→0.8397→0.8412→0.8426→0.8432→0.8437→0.844.
+**Gap 2 open — aradhye external FA=22.2%:** On a 36-case holdout from aradhye/CaiZhiTech seeds, false accept rate was 22.2%. Root cause: instruction-text signals do not encode execution-context harm (the harmful action in context looks identical to benign). Resolution requires runtime execution monitoring; architectural gap, not a tuning issue.
 
-**Post-peak decline and TRAINED→CAPABLE regression (2026-06-28):** brr accelerated from 0% to 5.0% as organic traffic introduced borderline-benign episodes across 14 consecutive adapt cycles. AII crossed below 0.80 at ~13:00 UTC: AII=0.7885 CAPABLE_SHADOW_ONLY, T2=0.8098, T5=0.7158, FAR=0 maintained (912 cycles, 15 306 total episodes). Full sparkline in NEGATIVE_RESULTS.md §12–§13. FrictionOptimizer: 229 reduce vs 3 vigilance — organic recovery expected (recovery threshold: T2 ≥ 0.856, brr ≤ 3.1%). Peer-review impact: none.
+**Gap 3 resolved — organic T2 confirmation (2026-06-28):** The critical caveat from §F.6 ("T2 will revert as seeded episodes rotate out") was empirically refuted. After §9 regression (168 harmful seeds crashed T2 to 0.274, AII to 0.62) and §10 organic recovery, T2 reached 1.000 (brr=0%, maintained for 6+ consecutive cycles). World-model Bayesian priors (p\_harm 0.10–0.17 for 14 benign contexts) successfully generalised to organic /decide traffic. See NEGATIVE\_RESULTS.md §11.
 
-**Remaining open gaps:** Gap 2 (FA=22.2% holdout, contextual harm not visible in instruction text; fix requires runtime execution monitoring), Gap 4 (NLI/SE `torch/lib/shm.dll` Windows DLL block). See full peer review report: `docs/remora_peer_review_report.md` v0.2.1-experimental.
+**Organic TRAINED trajectory (12 consecutive cycles, AII 0.8097 → 0.844):**
 
-**Three gates remain before production-ready:** longitudinal stability audit, independent human review, RBAC access control audit.
+| Cycle | AII | T2 | T3 | T5 | brr |
+|-------|-----|----|----|-----|-----|
+| 1 (milestone) | 0.8097 | 0.916 | 0.791 | 0.681 | 0.5% |
+| 6 | 0.8377 | **1.000** | 0.792 | 0.747 | 0% |
+| 12 | **0.8440** | 1.000 | **0.800** [M] | 0.794 | 0% |
+
+[M] T3=0.800 milestone: MetaJudge quality +4.1pp above historical peak (0.759 at n=135). Full 12-row trajectory: `NEGATIVE_RESULTS.md §11`.
+
+**Current state (2026-06-28, ~15:53 UTC):** AII=0.8042 TRAINED\_SHADOW\_ONLY (recovered from §13 regression). T1=0.682 (ECE=0.064). T2=0.8518 (brr=2.5%, recovering). T3=0.800 [M]. T4=1.000. T5=0.7768 (recovering). FAR=0. `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT`. Full §12→§13 cycle: peak AII=0.8442 (cycle 12, 12:04 UTC) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885 CAPABLE) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). Recovery trajectory: AII 0.789→0.791→0.799→0.7997→0.8042 across 5 consecutive polls. Full §12→§13 sparkline: `NEGATIVE_RESULTS.md §12–§13`. Peer-review impact: none; FAR=0 throughout; the §12→§13→recovery cycle is a documented reproducible empirical result (organic brr acceleration and decay under fixed-size EMA window).
+
+**Three production gates remaining before deployment:**
+1. Longitudinal stability audit — multi-week continuous TRAINED confirmation by independent reviewer.
+2. Independent human review of governance decisions.
+3. RBAC access control audit.
+
+*Gap 4 (NLI/SE DLL block on Windows) remains architecturally unresolved — see NEGATIVE\_RESULTS.md §3.*
