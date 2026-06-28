@@ -668,7 +668,7 @@ Fixes (worker 0.2.0, deployed and verified live):
 
 | Component | Before | After |
 |---|---|---|
-| Transfer provenance | static constant 1.0 | measured replay arena (85 cases, 88.2% accuracy, 0% false accepts), provenance labelled in the API |
+| Transfer provenance | static constant 1.0 | measured replay arena (96 cases, 87.5% accuracy, 0% false accepts; `replay_accuracy=0.875` per `artifacts/aromer/replay_arena_report.json`), provenance labelled in the API |
 | Stability (T5) | 0.1119, flat 92 h | 0.21 on first post-v2 cycle; now measures agreement of repeated measurements |
 | Trend | computed on raw AII | computed on EMA-smoothed AII (alpha 0.35, read-time; raw history preserved) |
 

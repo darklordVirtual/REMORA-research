@@ -648,7 +648,7 @@ these independently; it transcribes them.
 | Evidence router (MultiNLI) | 38.5% resolution, 100% accept-precision | `paper §9.5`, `N=3000` |
 | Lyapunov `P(ΔV ≤ 0)` | 87.2%, mean ΔV −0.329 | `paper §10.4`, `N=1000` |
 | Governance-intelligence unsafe-accept | 0.0% | `artifacts/governance_intelligence/evaluation_results.json` |
-| AROMER replay arena (untuned) | 87.1% acc, 0% false-accept | `scripts/aromer_publish_replay.py`, 93 cases |
+| AROMER replay arena (untuned) | 87.5% acc, 0% false-accept | `artifacts/aromer/replay_arena_report.json`, 96 cases |
 
 **Backend note.** All findings in this table were produced with the default
 `TokenFingerprintBackend` (sorted-token SHA-256 heuristic), not the
