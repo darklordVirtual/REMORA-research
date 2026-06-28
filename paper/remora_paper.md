@@ -909,45 +909,45 @@ Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), Truthful
 
 - Wang, X., Wei, J., Schuurmans, D., Le, Q., Chi, E., Narang, S., Chowdhery, A., & Zhou, D. (2023). Self-consistency improves chain of thought reasoning in language models. *ICLR 2023*.
 
-Du, Y., Li, S., Torralba, A., Tenenbaum, J., & Mordatch, I. (2023). Improving factuality and reasoning in language models through multiagent debate. *ICML 2024*.
+- Du, Y., Li, S., Torralba, A., Tenenbaum, J., & Mordatch, I. (2023). Improving factuality and reasoning in language models through multiagent debate. *ICML 2024*.
 
-Lin, S., Hilton, J., & Evans, O. (2022). TruthfulQA: Measuring how models mimic human falsehoods. *ACL 2022*.
+- Lin, S., Hilton, J., & Evans, O. (2022). TruthfulQA: Measuring how models mimic human falsehoods. *ACL 2022*.
 
-Clark, C., Lee, K., Chang, M.-W., Kwiatkowski, T., Collins, M., & Toutanova, K. (2019). BoolQ: Exploring the surprising difficulty of natural yes/no questions. *NAACL 2019*.
+- Clark, C., Lee, K., Chang, M.-W., Kwiatkowski, T., Collins, M., & Toutanova, K. (2019). BoolQ: Exploring the surprising difficulty of natural yes/no questions. *NAACL 2019*.
 
-Geifman, Y. & El-Yaniv, R. (2017). Selective classification for deep neural networks. *NeurIPS 2017*.
+- Geifman, Y. & El-Yaniv, R. (2017). Selective classification for deep neural networks. *NeurIPS 2017*.
 
-Angelopoulos, A. & Bates, S. (2021). A gentle introduction to conformal prediction and distribution-free uncertainty quantification. *arXiv:2107.07511*.
+- Angelopoulos, A. & Bates, S. (2021). A gentle introduction to conformal prediction and distribution-free uncertainty quantification. *arXiv:2107.07511*.
 
-Guo, C., Pleiss, G., Sun, Y., & Weinberger, K. Q. (2017). On calibration of modern neural networks. *ICML 2017*.
+- Guo, C., Pleiss, G., Sun, Y., & Weinberger, K. Q. (2017). On calibration of modern neural networks. *ICML 2017*.
 
-Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E. P., Zhang, H., Gonzalez, J. E., & Stoica, I. (2023). Judging LLM-as-a-judge with MT-Bench and Chatbot Arena. *NeurIPS 2023*.
+- Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E. P., Zhang, H., Gonzalez, J. E., & Stoica, I. (2023). Judging LLM-as-a-judge with MT-Bench and Chatbot Arena. *NeurIPS 2023*.
 
-Shafer, G. & Vovk, V. (2008). A tutorial on conformal prediction. *Journal of Machine Learning Research, 9*, 371–421.
+- Shafer, G. & Vovk, V. (2008). A tutorial on conformal prediction. *Journal of Machine Learning Research, 9*, 371–421.
 
-Endsley, M. (1995). Toward a theory of situation awareness in dynamic systems. *Human Factors, 37*(1), 32–64.
+- Endsley, M. (1995). Toward a theory of situation awareness in dynamic systems. *Human Factors, 37*(1), 32–64.
 
-Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., Hesse, C., & Schulman, J. (2021). Training verifiers to solve math word problems. *arXiv:2110.14168*.
+- Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., Hesse, C., & Schulman, J. (2021). Training verifiers to solve math word problems. *arXiv:2110.14168*.
 
-Williams, A., Nangia, N., & Bowman, S. (2018). A broad-coverage challenge corpus for sentence understanding through inference. *NAACL 2018*.
+- Williams, A., Nangia, N., & Bowman, S. (2018). A broad-coverage challenge corpus for sentence understanding through inference. *NAACL 2018*.
 
-Kelly, T. (1998). Arguing safety: A systematic approach to managing safety cases. PhD thesis, University of York.
+- Kelly, T. (1998). Arguing safety: A systematic approach to managing safety cases. PhD thesis, University of York.
 
-Bloomfield, R. & Bishop, P. (2010). Safety and assurance cases: Practice, trends and challenges. *SAFECOMP 2010*.
+- Bloomfield, R. & Bishop, P. (2010). Safety and assurance cases: Practice, trends and challenges. *SAFECOMP 2010*.
 
-Kadavath, S., Conerly, T., Askell, A., Henighan, T., Drain, D., Perez, E., Schiefer, N., Hatfield-Dodds, Z., DasSarma, N., Tran-Johnson, E., Johnston, S., El-Showk, S., Jones, A., Elhage, N., Hume, T., Chen, A., Bai, Y., Bowman, S., Fort, S., Ganguli, D., Hernandez, D., Jacobson, J., Kernion, J., Kravec, S., Lovitt, L., Ndousse, K., Olsson, C., Ringer, S., Amodei, D., Brown, T., Clark, J., McCandlish, S., Olah, C., Mann, B., & Kaplan, J. (2022). Language models (mostly) know what they know. *arXiv:2207.05221*.
+- Kadavath, S., Conerly, T., Askell, A., Henighan, T., Drain, D., Perez, E., Schiefer, N., Hatfield-Dodds, Z., DasSarma, N., Tran-Johnson, E., Johnston, S., El-Showk, S., Jones, A., Elhage, N., Hume, T., Chen, A., Bai, Y., Bowman, S., Fort, S., Ganguli, D., Hernandez, D., Jacobson, J., Kernion, J., Kravec, S., Lovitt, L., Ndousse, K., Olsson, C., Ringer, S., Amodei, D., Brown, T., Clark, J., McCandlish, S., Olah, C., Mann, B., & Kaplan, J. (2022). Language models (mostly) know what they know. *arXiv:2207.05221*.
 
-Open Policy Agent contributors. (2024). Open Policy Agent. https://www.openpolicyagent.org/
+- Open Policy Agent contributors. (2024). Open Policy Agent. https://www.openpolicyagent.org/
 
-European Parliament & Council of the European Union. (2024). Regulation (EU) 2024/1689 (Artificial Intelligence Act). *Official Journal of the European Union*, L 2024/1689.
+- European Parliament & Council of the European Union. (2024). Regulation (EU) 2024/1689 (Artificial Intelligence Act). *Official Journal of the European Union*, L 2024/1689.
 
-Standards Norway. (2021). NORSOK D-010:2021 — Well integrity in drilling and well operations. Standards Norway.
+- Standards Norway. (2021). NORSOK D-010:2021 — Well integrity in drilling and well operations. Standards Norway.
 
-International Electrotechnical Commission. (2016). IEC 61511-1:2016 — Functional safety: Safety instrumented systems for the process industry sector. IEC.
+- International Electrotechnical Commission. (2016). IEC 61511-1:2016 — Functional safety: Safety instrumented systems for the process industry sector. IEC.
 
-Bjøru, A. R. (2026). Causal Post-hoc Explainable AI (PhD thesis). Norwegian University of Science and Technology (NTNU). ISBN 978-82-353-0022-5. Paper IV §4.2.1–§4.2.3
+- Bjøru, A. R. (2026). Causal Post-hoc Explainable AI (PhD thesis). Norwegian University of Science and Technology (NTNU). ISBN 978-82-353-0022-5. Paper IV §4.2.1–§4.2.3
 
-Andriushchenko, M., Souly, A., et al. (2024). AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents. arXiv:2410.09024.
+- Andriushchenko, M., Souly, A., et al. (2024). AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents. arXiv:2410.09024.
 
 ---
 
