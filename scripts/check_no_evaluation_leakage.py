@@ -51,6 +51,7 @@ ALLOWLIST_PATTERNS = [
     "remora/toolcall/schema_v3.py",
     "remora/aromer/evals/",
     "remora/toolcall/live_execution.py",
+    "remora/toolcall/evaluation/",   # evaluation sub-package allowed to have labels
     "scripts/check_no_evaluation_leakage.py",
     "results/",
     "artifacts/",
@@ -74,6 +75,35 @@ RUNTIME_EXCLUDED_FILES = {
     "baselines.py", "baselines_v3.py", "splits_v2.py",
 }
 
+# Import patterns forbidden in runtime packages (architectural boundary REM-016)
+FORBIDDEN_EVAL_IMPORT_PATTERNS = {
+    "remora.toolcall.evaluation",
+    "from remora.toolcall import evaluation",
+}
+
+# Directories that constitute the evaluation layer (allowed to have label fields)
+EVALUATION_SUBDIRS = {"evaluation"}  # remora/toolcall/evaluation/
+
+
+class EvalImportVisitor(ast.NodeVisitor):
+    """Check for forbidden imports of remora.toolcall.evaluation from runtime."""
+
+    def __init__(self, filepath: Path) -> None:
+        self.filepath = filepath
+        self.violations: list[tuple[int, str]] = []
+
+    def visit_Import(self, node: ast.Import) -> None:
+        for alias in node.names:
+            if "remora.toolcall.evaluation" in alias.name:
+                self.violations.append((node.lineno, f"import {alias.name}"))
+        self.generic_visit(node)
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        module = node.module or ""
+        if "remora.toolcall.evaluation" in module:
+            self.violations.append((node.lineno, f"from {module} import ..."))
+        self.generic_visit(node)
+
 
 class LeakageVisitor(ast.NodeVisitor):
     def __init__(self, filepath: Path) -> None:
@@ -95,6 +125,29 @@ class LeakageVisitor(ast.NodeVisitor):
 def is_allowlisted(filepath: Path) -> bool:
     rel = str(filepath.relative_to(REPO_ROOT)).replace("\\", "/")
     return any(pattern in rel for pattern in ALLOWLIST_PATTERNS)
+
+
+def is_evaluation_subdir(filepath: Path) -> bool:
+    """True if file lives under remora/toolcall/evaluation/ (allowed to have labels)."""
+    parts = filepath.parts
+    return "evaluation" in parts and "toolcall" in parts
+
+
+def scan_file_for_eval_imports(filepath: Path) -> list[tuple[Path, int, str, str]]:
+    """Scan for forbidden imports of remora.toolcall.evaluation in runtime files."""
+    # evaluation/ itself and allowlisted paths are permitted
+    if is_allowlisted(filepath) or is_evaluation_subdir(filepath):
+        return []
+    if filepath.name in RUNTIME_EXCLUDED_FILES:
+        return []
+    try:
+        source = filepath.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(filepath))
+    except SyntaxError:
+        return []
+    visitor = EvalImportVisitor(filepath)
+    visitor.visit(tree)
+    return [(filepath, line, pattern, "forbidden_import") for line, pattern in visitor.violations]
 
 
 def scan_file(filepath: Path) -> list[tuple[Path, int, str, str]]:
@@ -125,6 +178,7 @@ def main() -> int:
             if "__pycache__" in str(py_file):
                 continue
             found = scan_file(py_file)
+            found += scan_file_for_eval_imports(py_file)
             violations.extend(found)
             scanned += 1
 

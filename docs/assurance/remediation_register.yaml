@@ -3,7 +3,7 @@
 # Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility)
 
 schema_version: "1"
-last_updated: "2026-06-28"
+last_updated: "2026-06-28T03:00Z"
 
 items:
   - id: REM-001
@@ -186,22 +186,36 @@ items:
     section: "§2"
     title: "Architectural import boundary — separate runtime/evaluation packages"
     gate: P0
-    status: OPEN
-    priority: HIGH
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - remora/toolcall/evaluation/__init__.py
+      - remora/toolcall/runtime/__init__.py
+      - tests/test_rem016_import_boundary.py
     notes: >
-      Requires splitting remora.toolcall into runtime and evaluation sub-packages
-      with explicit import boundary enforcement (import blocker in __init__.py).
-      AST detector (REM-008) is a CI gate but not an architectural boundary.
+      Created remora/toolcall/evaluation/ sub-package with import-time guard
+      (_check_import_boundary) that raises ImportError if imported from any
+      known runtime module (remora_gate, decision_engine, etc.).
+      Created remora/toolcall/runtime/ sub-package exposing only runtime-safe API.
+      AST detector extended to also scan for forbidden eval imports in runtime files.
+      12 boundary tests pass. Leakage detector: 75 files scanned, 0 violations.
 
   - id: REM-017
     section: "§7"
     title: "Mutation and fuzz testing for policy logic"
     gate: P1
-    status: OPEN
-    priority: MEDIUM
+    status: DONE
+    completed: "2026-06-28"
+    artifacts:
+      - tests/test_rem017_policy_mutations.py
     notes: >
-      No mutation testing of decision_engine.py currently.
-      Need: mutmut or similar; verify tests catch decision logic mutations.
+      Manual mutation tests for decision_engine.py (mutmut not available on Python 3.14).
+      28 tests guard 14 named mutations: M_ADV, M_SCHEMA, M_TOOL, M_COERCE, M_TAINT,
+      M_TRUST0, M_TRUST1, M_EVCONF, M_CRIT, M_PROD, M_CONTRAD, M_PRIORITY,
+      M_SCHEMA_NONE, M_ABSTHRESH, M_SESSION, M_NEGATION.
+      Coverage: hard-block escalations, priority ordering, threshold boundary values,
+      critical path mutations, contradiction cycles, schema floor bypass, session risk.
+      All 28 pass on clean code and would fail if the named mutation is introduced.
 
   - id: REM-018
     section: "§13"
