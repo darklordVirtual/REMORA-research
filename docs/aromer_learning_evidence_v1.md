@@ -1,5 +1,7 @@
 # AROMER Learning Evidence Report v1
 
+> **Historical snapshot (2026-06-05, AROMER v1, 65–85 case arena).** This report documents the initial ablation evaluation with 18 seed episodes and a small arena; AROMER did not yet improve over static REMORA at this stage. The arena has since expanded to 96 cases (87.5% accuracy). Current evidence: `artifacts/aromer/replay_arena_report.json` (REMORA main repo); full trajectory in `paper/remora_paper.md Appendix F.6–F.7`.
+
 **Date:** 2026-06-05
 **Status:** RESEARCH PROTOTYPE — results are preliminary observations, not validated benchmarks
 **Artifact:** `artifacts/aromer_learning_ablation_v1.json`
