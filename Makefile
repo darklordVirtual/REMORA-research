@@ -57,7 +57,7 @@ docker-test:  ## Build the image and run the full suite inside it
 
 typecheck: lint test  ## Run lint + tests
 
-replay:  ## Run the safety replay arena (85 episodes, no API keys)
+replay:  ## Run the safety replay arena (96 episodes, no API keys)
 	$(PYTHON) -m remora.aromer.evals.replay_runner
 
 safety-check: lint test replay  ## Full safety check: lint + tests + replay arena + gate
