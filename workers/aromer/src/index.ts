@@ -973,6 +973,7 @@ async function runReplayArena(env: Env, force = false): Promise<ReplayReport | n
     (sum, item) => sum + item.n * item.expectedAccuracy,
     0,
   ) / Math.max(transferN, 1);
+  // replay_score is a legacy informational blend stored in DB; T4 uses replay_transfer_score only.
   const replay_score = Math.min(1, 0.85 * replay_accuracy + 0.15 * replay_transfer_score);
   const report: ReplayReport = {
     replay_score: parseFloat(replay_score.toFixed(4)),
