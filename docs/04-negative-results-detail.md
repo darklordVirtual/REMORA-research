@@ -34,7 +34,7 @@ performance failure. The mitigation path and protocol are tracked in
 
 ### 2. AROMER safety floor does not transfer to the external holdout under proxy signals
 
-On the internal 65-case replay arena, the seeded AROMER profile records
+On the internal replay arena (65 cases at the time of this evaluation; expanded to 96 cases in later versions), the seeded AROMER profile records
 false_accept_rate 0.000 and correct_intercept_rate 1.000. On the first external
 holdout — 495 cases derived from the independent `toolcall_v3`
 (CyberSecEval-inspired) set, `datasets/aromer_external_holdout_v1/`, all
