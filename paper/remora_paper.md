@@ -1293,7 +1293,7 @@ After 663+ governance episodes and 8 hours of live operation:
 | T1 Calibration | 0.598 (ECE = 0.0804) |
 | T2 Friction | 0.000 (benign\_review\_rate = 41%; world model recently activated) |
 | T3 MetaJudge | 0.850 (base llama-3.1-8b; LoRA pending) |
-| T4 Transfer | **1.000** (replay arena 95.4% accuracy; transfer cases 100%) |
+| T4 Transfer | **1.000** (`replay_transfer_score`: transfer cases 4/4 correct; note: overall arena accuracy 95.4% at this date is a separate metric not used for T4) |
 | T5 Stability | 0.094 (high-confidence contexts = 12) |
 | False Accept Rate | **0.000** (zero throughout operation) |
 | world\_model\_active | **1** (activated: ECE 0.0804 < 0.10, n\_high 12 ≥ 10) |
