@@ -81,11 +81,16 @@ False accept rate: **0.0%**. Transfer category accuracy: **100%** (4/4).
 
 ## AROMER — Learning Extension (Experimental)
 
-Live AII (AROMER Intelligence Index) after 663+ episodes:
-- AII: **0.508** [LEARNING]
-- ECE: 0.0804 (world model active)
-- False accept rate: **0.000**
-- MetaJudge quality: 0.850
+Live AII (AROMER Intelligence Index) — current state (2026-06-28):
+- AII: **0.844** (aii_smoothed=0.8442) [TRAINED — shadow-only mode]
+- ECE: 0.0636 (T1=0.682; world model active)
+- T2 Friction: **1.000** (brr=0%; theoretical maximum)
+- T3 MetaJudge: **0.800** [milestone — +4.1pp above prior peak]
+- T5 Stability: 0.7955 (approaching 0.80 milestone)
+- False accept rate: **0.000** (12+ consecutive TRAINED cycles)
+- safety_certification: CERTIFIED_INDEPENDENT_HOLDOUT (n=169 external; CP bound 0.37%)
+- Open gaps: FA=22.2% on aradhye holdout; NLI/SE DLL block (Windows)
+- Three production gates remain: longitudinal audit, human review, RBAC audit
 
 ## Test Suite
 
