@@ -916,6 +916,16 @@ Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), Truthful
 
 ---
 
+## Use of AI-Assisted Development Tools
+
+Generative AI tools were used as assistive tools during the development of this research prototype. Their use included brainstorming, code drafting and refactoring, test scaffolding, documentation editing, language revision, and support in locating and summarising relevant literature.
+
+The author defined the research questions, system architecture, policy semantics, evaluation criteria, experimental scope, and all reported claims. All source code, tests, benchmark artifacts, citations, numerical results, and conclusions were reviewed and verified by the author before inclusion. Generative AI tools were not listed as authors and were not relied upon as independent sources of experimental evidence.
+
+Where AI-assisted output informed implementation or prose, the final responsibility for correctness, reproducibility, and interpretation remains with the human author. A full disclosure is available in `docs/AI_USE.md` in the main repository.
+
+---
+
 ## References
 
 - Kuhn, L., Gal, Y., & Farquhar, S. (2023). Semantic uncertainty: Linguistic invariances for uncertainty estimation in natural language generation. *ICLR 2023*. arXiv:2302.09664.
