@@ -1,7 +1,7 @@
 # REMORA — Mathematical Supplement and Defence Notes
 
 **Companion to** `paper/remora_paper.pdf` (REMORA v0.9.0) and the AROMER learning
-layer (worker `0.2.0-experimental`).
+layer (worker v0.2.1).
 **Purpose.** A single, self-contained derivation of every quantity REMORA and
 AROMER compute, with worked numerical examples that can be reproduced on a
 whiteboard and checked digit-for-digit against the source. Each formula carries
