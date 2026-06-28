@@ -85,8 +85,8 @@ number, or do not quote the number.
 
 ### 6. AROMER learning loop (experimental)
 - **Claim:** AROMER, the closed-loop learning layer, runs 24/7 and holds 0%
-  false-accepts on its replay arena while learning (87.1% overall accuracy on the
-  93-case arena, untuned).
+  false-accepts on its replay arena while learning (87.5% overall accuracy on the
+  96-case arena, untuned; `replay_accuracy=0.875`, `replay_cases=96` per artifact).
 - **Artifact:** `scripts/aromer_publish_replay.py`,
   `artifacts/aromer/replay_arena_report.json`; live AII at
   `https://aromer.razorsharp.workers.dev/intelligence`.
