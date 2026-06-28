@@ -33,7 +33,7 @@ Use the factory methods for clean integration with agent frameworks:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 
 @dataclass(frozen=True)
@@ -132,8 +132,12 @@ class PolicyObservation:
     # Security
     adversarial_detected: bool = False
     # Structural validity of the proposed tool call against its schema.
-    # False → the call is malformed and must not auto-execute (hard ESCALATE).
-    schema_valid: bool = True
+    # False → malformed call, hard ESCALATE.
+    # None → validator was not run; engine treats as UNVERIFIED (conservative).
+    # True → explicitly validated against schema.
+    # Default is None (unknown) — True is only appropriate when a real schema
+    # validator has been executed against the tool call's arguments.
+    schema_valid: Optional[bool] = None
     # The proposed tool is on the task's own forbidden-tool list → hard ESCALATE.
     tool_forbidden: bool = False
     # The call's arguments derive from untrusted input → never auto-accept (VERIFY).

@@ -1,55 +1,55 @@
 {
   "profile_a": {
-    "n_total": 85,
-    "n_harmful": 40,
-    "n_benign": 45,
+    "n_total": 88,
+    "n_harmful": 42,
+    "n_benign": 46,
     "false_accept_rate": 0.0,
-    "false_block_rate": 0.0222,
-    "review_friction": 0.2889,
+    "false_block_rate": 0.0217,
+    "review_friction": 0.5217,
     "correct_intercept_rate": 1.0,
     "coverage": 1.0,
-    "verdict_accuracy": 0.9647
+    "verdict_accuracy": 0.8864
   },
   "profile_b": {
-    "n_total": 85,
-    "n_harmful": 40,
-    "n_benign": 45,
+    "n_total": 88,
+    "n_harmful": 42,
+    "n_benign": 46,
     "false_accept_rate": 0.0,
-    "false_block_rate": 0.0222,
-    "review_friction": 0.2889,
+    "false_block_rate": 0.0217,
+    "review_friction": 0.5217,
     "correct_intercept_rate": 1.0,
     "coverage": 1.0,
-    "verdict_accuracy": 0.9647
+    "verdict_accuracy": 0.8864
   },
   "profile_c": {
-    "n_total": 85,
-    "n_harmful": 40,
-    "n_benign": 45,
+    "n_total": 88,
+    "n_harmful": 42,
+    "n_benign": 46,
     "false_accept_rate": 0.0,
-    "false_block_rate": 0.0222,
-    "review_friction": 0.2889,
+    "false_block_rate": 0.0217,
+    "review_friction": 0.413,
     "correct_intercept_rate": 1.0,
     "coverage": 1.0,
-    "verdict_accuracy": 0.9647
+    "verdict_accuracy": 0.9432
   },
   "c_vs_a": {
     "false_accept_rate": 0.0,
     "false_block_rate": 0.0,
-    "review_friction": 0.0,
+    "review_friction": -0.1087,
     "correct_intercept_rate": 0.0,
     "coverage": 0.0,
-    "verdict_accuracy": 0.0
+    "verdict_accuracy": 0.0568
   },
   "c_vs_b": {
     "false_accept_rate": 0.0,
     "false_block_rate": 0.0,
-    "review_friction": 0.0,
+    "review_friction": -0.1087,
     "correct_intercept_rate": 0.0,
     "coverage": 0.0,
-    "verdict_accuracy": 0.0
+    "verdict_accuracy": 0.0568
   },
-  "success": false,
-  "timestamp": "2026-06-07T22:06:55.905504+00:00",
+  "success": true,
+  "timestamp": "2026-06-28T20:36:23.822648+00:00",
   "n_seed_episodes": 68,
-  "n_eval_cases": 85
+  "n_eval_cases": 88
 }

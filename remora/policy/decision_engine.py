@@ -236,10 +236,14 @@ class RemoraDecisionEngine:
             return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # GAP B: schema_valid=None means the validator did not run — UNVERIFIED.
-        # Treat as VERIFY for explicitly mutating action types; read-only passes.
-        if obs.schema_valid is None and (obs.action_type or "") in _MUTATING_TYPES:
+        # Mark as a floor check (prevents ACCEPT for mutating actions) without
+        # preempting higher-priority ESCALATE paths. The actual VERIFY return is
+        # placed just before the ACCEPT paths below.
+        _schema_unverified_mutating = (
+            obs.schema_valid is None and (obs.action_type or "") in _MUTATING_TYPES
+        )
+        if _schema_unverified_mutating:
             reasons.append(DecisionReason.SCHEMA_UNVERIFIED_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         if obs.tool_forbidden:
             reasons.append(DecisionReason.FORBIDDEN_TOOL_BLOCKED)
@@ -428,6 +432,14 @@ class RemoraDecisionEngine:
             and obs.counterfactual_passed is None
         ):
             reasons.append(DecisionReason.COUNTERFACTUAL_UNKNOWN_VERIFY)
+            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+
+        # ── SCHEMA UNVERIFIED FLOOR ─────────────────────────────────────────
+        # All higher-priority ESCALATE/VERIFY paths (adversarial, malformed,
+        # forbidden, production-write, critical risk, etc.) have been checked.
+        # If schema was not validated for a mutating action, force VERIFY here
+        # rather than letting the action reach an ACCEPT outcome.
+        if _schema_unverified_mutating:
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── MONDRIAN PER-PHASE CONFORMAL ────────────────────────────────────

@@ -796,6 +796,7 @@ def test_critical_production_write_in_prod_escalates() -> None:
         evidence_confidence=0.95,
         evidence_contradictions=0,
         counterfactual_passed=True,
+        schema_valid=True,  # schema validated; None default would route to VERIFY first
     )
     report = RemoraDecisionEngine().decide(obs)
     assert report.action == DecisionAction.ESCALATE
@@ -847,6 +848,7 @@ def _obs_c1(**kwargs) -> PolicyObservation:
         domain="generic",
         action_type="read",
         target_environment="staging",
+        schema_valid=True,  # tests assume schema validated; None default → VERIFY fires first
     )
     defaults.update(kwargs)
     return PolicyObservation(**defaults)
