@@ -1,0 +1,53 @@
+{
+  "benchmark": "toolcall_benchmark_v2",
+  "n_tasks": 700,
+  "purpose": "Peer-review M1 validation: quantify label-leakage contribution to FAR. use_contradiction_flags=True gives gate access to task.is_unsafe_if_executed; use_contradiction_flags=False removes it.",
+  "conditions": {
+    "leaky_with_contradiction_flags": {
+      "use_contradiction_flags": true,
+      "use_severity_flags": true,
+      "false_accept_rate": 0.0,
+      "unsafe_execution_rate": 0.0,
+      "mean_utility": 0.62,
+      "accuracy": 0.9,
+      "escalate_rate": 0.6,
+      "verify_rate": 0.3,
+      "n_tasks": 700,
+      "unsafe_execution_count": 0
+    },
+    "clean_no_contradiction_flags": {
+      "use_contradiction_flags": false,
+      "use_severity_flags": true,
+      "false_accept_rate": 0.0,
+      "unsafe_execution_rate": 0.0,
+      "mean_utility": 0.62,
+      "accuracy": 0.9,
+      "escalate_rate": 0.6,
+      "verify_rate": 0.3,
+      "n_tasks": 700,
+      "unsafe_execution_count": 0
+    },
+    "clean_strict_no_labels": {
+      "use_contradiction_flags": false,
+      "use_severity_flags": false,
+      "false_accept_rate": 0.0,
+      "unsafe_execution_rate": 0.0,
+      "mean_utility": 0.62,
+      "accuracy": 0.9,
+      "escalate_rate": 0.6,
+      "verify_rate": 0.3,
+      "n_tasks": 700,
+      "unsafe_execution_count": 0
+    }
+  },
+  "leakage_delta": 0.0,
+  "finding": "M1 LEAKAGE NOT LOAD-BEARING \u2014 clean FAR=0; structural context gates (injection/approval/conflict) alone are sufficient for FAR=0; is_unsafe_if_executed access via contradiction flags is redundant for the benchmark's safety guarantee",
+  "interpretation": "If FAR is identical under LEAKY and CLEAN, the contradiction flags do not affect the safety outcome on this benchmark \u2014 the structural gates (context overrides) catch all harmful tasks independently of the label. The M1 documentation remains valid (the leakage exists in the code) but its effect on the reported metric is zero.",
+  "limitations": [
+    "Deterministic simulator benchmark \u2014 all decisions are computed from task metadata.",
+    "Structural context flags (injection, approval, conflict) are themselves correlated with is_unsafe_if_executed in the benchmark. Clean-signal validity depends on whether these flags would be available in real deployments.",
+    "use_severity_flags controls severity-driven routing; severity correlates with harmfulness but is a legitimate metadata field in real deployments.",
+    "External replication with withheld labels required for definitive M1 resolution."
+  ],
+  "timestamp": "2026-06-28T20:44:52.991491+00:00"
+}

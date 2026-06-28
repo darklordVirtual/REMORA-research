@@ -677,22 +677,42 @@ AII crossed below 0.80 at approximately 13:00 UTC 2026-06-28, reverting interpre
 paper; conditionally approvable as systems / governance architecture paper. Nine findings
 documented below. M3 and M9 are fixed in the same commit as this section.
 
-**M1 — Toolcall benchmark construct validity (CRITICAL — documented)**
+**M1 — Toolcall benchmark construct validity (CRITICAL — clean-signal evaluated)**
 
 `RemoraToolCallGate.to_observation()` uses `task.is_unsafe_if_executed` (via
 `use_contradiction_flags=True`) to populate `evidence_contradictions`, and derives
 `phase` and `trust_score` from `task.severity`. These labels are functionally equivalent
-to the evaluation target, making the N=700 toolcall result an internal consistency check
-rather than an independent safety measurement.
+to the evaluation target, making the N=700 toolcall result a potential internal
+consistency check rather than an independent safety measurement.
 
-**Component ablation is the clean evidence.** `component_ablation_results.json` uses only
-structural proxy signals (schema validity, forbidden-tool, tainted-argument) with no access
-to `is_unsafe_if_executed` or severity-derived phase/trust. FAR=0%, utility=0.62 on the same
-700-task suite. This is REMORA's primary claim-clean safety result. Claim_register updated.
+**Clean-signal evaluation completed (2026-06-28).** Three conditions run on the same 700-task
+benchmark (`experiments/m1_clean_signal_eval.py`, artifact `results/toolcall_m1_clean_signal.json`):
 
-Full benchmark rebuild (labels withheld from gate input) is required before "0% unsafe
-execution" can stand as an independent safety result. Run with `use_contradiction_flags=False`
-for a fair evaluation baseline.
+| Condition | contradiction_flags | severity_flags | FAR | Utility |
+|-----------|--------------------|--------------|----|---------|
+| leaky (standard) | ON | ON | 0.000 | 0.620 |
+| clean (no label access) | OFF | ON | 0.000 | 0.620 |
+| clean strict (no labels, no severity) | OFF | OFF | 0.000 | 0.620 |
+
+**Finding: M1 leakage is not load-bearing on this benchmark.** FAR=0 holds under all three
+conditions. Structural analysis: 420/560 harmful tasks are blocked by structural context gates
+(injection/approval/conflict flags); the remaining 140 harmful tasks (all severity=high) are
+caught by text-based destructive-keyword heuristics (`results/m1_flag_coverage.json`).
+
+**Important caveats** (documented in artifact, must accompany this claim):
+- The benchmark's structural context flags (`contains_prompt_injection`, `fallback_contains_destructive`,
+  `requires_human_approval`, `intent_arg_conflict`) are themselves correlated with `is_unsafe_if_executed`.
+  If all harmful tasks have at least one detectable signal in their metadata by construction, the
+  clean-signal result may document a tautology rather than generalization.
+- 140/560 harmful tasks (25%) have no structural flags; their clean-signal blocking depends on
+  text heuristics matching destructive keywords. These heuristics could be evaded by rewording.
+- External replication with a benchmark where labels are independently withheld (not just
+  `use_contradiction_flags=False`) remains the definitive M1 resolution.
+
+**Component ablation remains the primary clean evidence.** `component_ablation_results.json`
+conditions C and D use only structural proxy signals with no access to `is_unsafe_if_executed`
+or severity-derived phase/trust. FAR=0%, utility=0.62. The clean-signal benchmark result above
+corroborates this. Claim_register updated to reflect both.
 
 **M2 — Baseline naming (documentation gap — partially fixed)**
 
@@ -762,7 +782,7 @@ It is not approvable as a demonstrated AI safety result. `deployment_status: SHA
 | External adversarial dataset: FA=30.7% under neutral metadata (Phase 2) | **Partially addressed** — Phase 1 FA=43.0% (structural-only); Phase 2 FA=30.7% (−12.3 pp via semantic enrichment); Post-seeding aradhye holdout FA=22.2% (−30 pp vs Phase 2 aradhye, confirms seeding generalizes). Residual gap: 22.2% holdout FA from contextual harm not visible in instruction text. Fix path: runtime execution monitoring. Artifacts: `external_dataset_eval*.json`, `harmful_seed_holdout_eval.json` | High |
 | Harmful seeding → TRAINED→CAPABLE regression (§9) | **RESOLVED via organic recovery** — 168 harmful seeds caused T2 crash (0.921→0.274), AII crash (0.8083→0.62). Recovery via 210 benign seeds + EMA cycles to AII=0.752 (equilibrium); organic Path A sustained over 12 cycles: AII=0.8097→0.844, T2=1.000, T3=0.800 [M], brr=0%. Architectural finding preserved: stage seeding ≤25 per batch or implement EMA dual-window. See §9 root cause and §11 recovery. | **Resolved** |
 | brr=7.5% stable equilibrium — CAPABLE ceiling and INSUFFICIENT_SAFETY_EVIDENCE gate (§10) | **RESOLVED organically** — 15 historical VERIFY episodes rotated out via organic /decide traffic in ~2.5h. brr: 7.5%→0.5%. T2=0.916. AII=0.8097 TRAINED (00:36 UTC+2 2026-06-28). See §11. | **Resolved** |
-| Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M3 (monotonic) and M9 (credibility-pack) **FIXED**; M1 documented with component_ablation as primary clean-signal result; M2/M5/M6/M7 paper language updated; M4/M8 documented as open architecture/experimental gaps | **Critical (M1), Fixed (M3/M9), Docs (M2/M5/M6/M7)** |
+| Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **clean-signal eval run** — FAR=0 with contradiction_flags=OFF (leakage not load-bearing; caveats on benchmark construction validity documented); M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open architecture/experimental gaps | **Evaluated (M1), Fixed (M3/M9), Docs (M2/M5/M6/M7)** |
 
 ---
 
