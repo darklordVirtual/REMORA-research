@@ -45,7 +45,7 @@ Section 2 reviews related work. Section 3 defines the problem. Section 4 describ
 
 Wang et al. (2023) introduced self-consistency sampling—generating multiple chain-of-thought paths and selecting the majority answer—demonstrating that diversity in reasoning paths improves accuracy on reasoning benchmarks (Wang et al., 2023). REMORA's oracle fan-out is structurally related but differs in two key respects: (1) oracles are distinct model families (different architectures and parameter counts), not multiple samples from a single model; (2) consensus is weighted by inter-oracle correlation rather than treated as exchangeable.
 
-Liang et al. (2023) showed that multi-model ensembles improve calibration and accuracy on MMLU-style tasks (Liang et al., 2023), supporting the diversity premise of REMORA's oracle swarm design.
+Wang et al. (2023) show that parameter-efficient LLM ensembles can improve predictive accuracy and uncertainty quantification. This motivates, but does not independently validate, REMORA's use of heterogeneous oracle aggregation.
 
 ### 2.2 Multi-Agent Debate
 
@@ -69,7 +69,7 @@ Guo et al. (2017) showed that modern neural networks are miscalibrated (Guo et a
 
 ### 2.7 AI Governance and Policy-as-Code
 
-Koshiyama et al. (2022) and the EU AI Act (European Parliament, 2024) establish that high-risk AI systems require documented decision processes, human oversight, and audit trails. Open Policy Agent (OPA) (Styra, 2024) provides a production-grade policy engine using the Rego declarative language. REMORA integrates an OPA adapter—failing closed to a Python fallback when the OPA daemon is unavailable—as a concrete instantiation of policy-as-code for AI decisions.
+Algorithmic-audit scholarship emphasizes the importance of institutionalized third-party oversight and audit-system design (Raji et al., 2022). Regulatory requirements for high-risk AI systems—including documentation, logging, and human oversight—are grounded separately in the EU AI Act (European Parliament, 2024). Open Policy Agent (OPA) (Styra, 2024) provides a production-grade policy engine using the Rego declarative language. REMORA integrates an OPA adapter—failing closed to a Python fallback when the OPA daemon is unavailable—as a concrete instantiation of policy-as-code for AI decisions.
 
 ### 2.8 Assurance Cases
 
@@ -949,13 +949,11 @@ Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), Truthful
 
 - Andriushchenko, M., Souly, A., et al. (2024). AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents. arXiv:2410.09024.
 
-> **Note to reviewers / pre-submission checklist:** Three in-text citations are
-> missing from this reference list and must be resolved before publication:
-> (1) Liang et al. (2023) — §2.1, multi-model ensemble calibration on MMLU;
-> (2) El-Yaniv & Wiener (2010) — §2.4, selective prediction foundations
-> (distinct from Geifman & El-Yaniv 2017 which is present);
-> (3) Koshiyama et al. (2022) — §2.6, high-risk AI audit requirements.
-> Tracked in `docs/claim_hygiene.md`.
+- El-Yaniv, R. & Wiener, Y. (2010). On the foundations of noise-free selective classification. *Journal of Machine Learning Research, 11*, 1605–1641.
+
+- Wang, X., Aitchison, L., & Rudolph, M. (2023). LoRA ensembles for large language model fine-tuning. *arXiv:2310.00035*. doi:10.48550/arXiv.2310.00035
+
+- Raji, I. D., Xu, P., Honigsberg, C., & Ho, D. E. (2022). Outsider oversight: Designing a third party audit ecosystem for AI governance. *arXiv:2206.04737*. doi:10.48550/arXiv.2206.04737
 
 ---
 
