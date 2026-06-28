@@ -1305,18 +1305,18 @@ A fine-tuning pipeline exports 614+ labeled episodes as prompt/completion JSONL 
 
 ### F.6 Update (2026-06-28): TRAINED Status — Organic Path A Recovery
 
-**AII=0.8432 TRAINED_SHADOW_ONLY** (10+ consecutive TRAINED cycles, 2026-06-28).
+**AII=0.844 TRAINED_SHADOW_ONLY** (12+ consecutive TRAINED cycles, 2026-06-28).
 
 | Metric | Current (2026-06-28) | Change from F.3 (2026-06-05) |
 |---|---|---|
-| AII | **0.8432** [TRAINED] | 0.508 [LEARNING] → +0.335 |
-| T1 Calibration | 0.6819 (ECE=0.0636) | 0.598 → +0.084 |
+| AII | **0.844** [TRAINED] | 0.508 [LEARNING] → +0.336 |
+| T1 Calibration | 0.682 (ECE=0.0636) | 0.598 → +0.084 |
 | T2 Friction | **1.000** (brr=0%) | 0.000 → +1.000 |
-| T3 MetaJudge | 0.7973 | 0.850 base (corrected formula) |
+| T3 MetaJudge | **0.800** [milestone] | 0.850 base (corrected formula); now exceeds historical peak 0.759 by +4.1pp |
 | T4 Transfer | 1.000 | 1.000 (unchanged) |
-| T5 Stability | 0.792 (recovering) | 0.094 → +0.698 |
-| False Accept Rate | **0.000** (10+ cycles) | 0.000 (maintained) |
-| aii_smoothed | 0.8429 [TRAINED] | — |
+| T5 Stability | 0.794 (recovering toward 0.80) | 0.094 → +0.700 |
+| False Accept Rate | **0.000** (12+ cycles) | 0.000 (maintained) |
+| aii_smoothed | 0.8438 [TRAINED] | — |
 | safety_certification | CERTIFIED_INDEPENDENT_HOLDOUT | NOT_APPLICABLE |
 
 **Key milestones since F.3:**
@@ -1324,8 +1324,8 @@ A fine-tuning pipeline exports 614+ labeled episodes as prompt/completion JSONL 
 - **Gap 1 closed (2026-06-27):** `n_harmful_independent=169` (aradhye/agent-safety-bench + CaiZhiTech/guardrails). Holdout validation: 36 aradhye cases not seen during seeding → FA=22.2% (vs 52.2% Phase 2 aradhye). CP bound: 0.37% operational (0 FA / 814 episodes). `safety_certification=CERTIFIED_INDEPENDENT_HOLDOUT`.
 - **Organic TRAINED recovery — Path A (00:36 UTC+2 2026-06-28):** After bulk-seeding caused a temporary CAPABLE regression (AII=0.762), all 15 historical VERIFY episodes rotated out organically within ~2.5 hours. brr: 7.5%→0%. T2 reached theoretical maximum (exp(−0/0.20)=1.0) by cycle 6.
 - **T2=1.000 maintained** since cycle 6 (brr=0% across all subsequent cycles).
-- **T3=0.797** — MetaJudge quality now exceeds the historical peak at n=135 (T3=0.759) by +3.8pp via organic MetaJudge cycles.
-- **10+ consecutive TRAINED cycles:** AII trajectory: 0.8097→0.8169→0.8228→0.8283→0.8313→0.8377→0.8397→0.8412→0.8426→0.8432.
+- **T3=0.800 [milestone]** — MetaJudge quality crossed 0.800 alert threshold (cycle 12). Mean critique score=0.90. Exceeds historical peak at n=135 (T3=0.759) by +4.1pp via organic MetaJudge cycles.
+- **12+ consecutive TRAINED cycles:** AII trajectory: 0.8097→0.8169→0.8228→0.8283→0.8313→0.8377→0.8397→0.8412→0.8426→0.8432→0.8437→0.844.
 
 **Remaining open gaps:** Gap 2 (FA=22.2% holdout, contextual harm not visible in instruction text; fix requires runtime execution monitoring), Gap 4 (NLI/SE `torch/lib/shm.dll` Windows DLL block). See full peer review report: `docs/remora_peer_review_report.md` v0.2.1-experimental.
 
