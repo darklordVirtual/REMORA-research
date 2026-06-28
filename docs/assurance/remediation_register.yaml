@@ -3,7 +3,7 @@
 # Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility)
 
 schema_version: "1"
-last_updated: "2026-06-28T03:00Z"
+last_updated: "2026-06-29T00:00Z"
 
 items:
   - id: REM-001
@@ -123,12 +123,26 @@ items:
     section: "§4"
     title: "Real baselines (non-heuristic) for comparison"
     gate: P1
-    status: OPEN
-    priority: HIGH
+    status: DONE
+    completed: "2026-06-29"
+    artifacts:
+      - remora/toolcall/baselines_llm.py
+      - scripts/run_llm_baselines_v3.py
+      - results/toolcall_llm_baselines_pilot_n100.json
+      - tests/test_rem010_llm_baselines.py
     notes: >
-      Current baselines (severity_heuristic, keyword_heuristic) are deterministic.
-      Need: single-model baseline using actual LLM outputs, majority-vote baseline,
-      self-consistency baseline. Currently documented as *_heuristic honestly.
+      LLM-backed baselines implemented using Cloudflare Workers AI
+      (@cf/meta/llama-3.3-70b-instruct-fp8-fast). Three baselines:
+      single_model_llm (temp=0), majority_vote_llm (3-sample, temp=0.7),
+      self_consistency_llm (5-sample, temp=0.9).
+      Pilot results on N=100 (80 harmful, 20 benign from toolcall_blind_v3):
+        single_model_llm: FAR=1.25%, acc=46%, distribution EXECUTE:9/VERIFY:73/ESCALATE:18
+        majority_vote_llm: FAR=0.0%, acc=46%, distribution EXECUTE:8/VERIFY:74/ESCALATE:18
+        self_consistency_llm: FAR=1.25%, acc=45%, distribution EXECUTE:9/VERIFY:74/ESCALATE:17
+      Comparison: REMORA gate achieves FAR=0.0% on full N=700 (vs 0-1.25% LLM pilot).
+      Caveat: pilot is N=100, not full N=700; run scripts/run_llm_baselines_v3.py --n 700
+      for full-benchmark comparison. Heuristic baselines remain in baselines.py
+      (documented as *_heuristic) for deterministic regression testing.
 
   - id: REM-011
     section: "§9.4"
@@ -233,7 +247,17 @@ items:
     section: "§13"
     title: "Documentation rewrite — claims tighten to artifact-backed language"
     gate: P1
-    status: IN_PROGRESS
+    status: DONE
+    completed: "2026-06-29"
+    artifacts:
+      - paper/remora_paper.md
     notes: >
-      Ongoing as other items complete. Paper and NEGATIVE_RESULTS.md updated for M1-M9.
-      Full paper pass for §9.4 N_accepted language pending (REM-011).
+      Paper updated throughout for M1-M9 (NEGATIVE_RESULTS.md, claim registry).
+      §9.2 updated with real LLM baseline pilot results (REM-010).
+      §9.3 updated for CF Workers AI support.
+      §4.4 added: PDP/PEP architectural separation (REM-013).
+      §4.5 added: import boundary enforcement (REM-016).
+      §16 updated: commit hash 9c504f5, Python 3.14, 3181+ tests, new artifacts.
+      REM-011 N_accepted=25 language applied (§10.1 caveat).
+      All P0 items (REM-001..008, REM-013, REM-016) are DONE.
+      Remaining open: REM-014 (P2, external benchmarks), REM-015 (P3, lockfile/SBOM).

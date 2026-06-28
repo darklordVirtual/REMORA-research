@@ -198,6 +198,20 @@ $$w(o) = \frac{\tfrac{1}{n}}{1 + \sum_{j \neq o} \rho(o, j)} \cdot Z^{-1}$$
 
 where $Z$ normalizes weights to sum to one. Oracles that frequently agree with others receive down-weighted votes; oracles that dissent from the majority receive up-weighted votes. This is an operational heuristic—not a proof of statistical independence.
 
+### 4.4 PDP/PEP Architectural Separation (REM-013)
+
+REMORA implements a **Policy Decision Point / Policy Enforcement Point** (PDP/PEP) separation in `remora/enforcement/`. The PDP layer (`RemoraDecisionEngine`) produces a `PolicyDecisionToken` — a frozen dataclass carrying the authorized action, an observation hash, a request ID, a timestamp, and an HMAC-SHA256 signature over the canonical JSON payload (signed with `REMORA_PDP_SIGNING_KEY`). The PEP layer (`EnforcementGate`) verifies the signature and allows execution only if:
+
+1. The signature is valid (HMAC-SHA256, constant-time comparison).
+2. The action is ACCEPT (not VERIFY, ABSTAIN, or ESCALATE).
+3. The observation hash matches the hash at the time of enforcement (prevents token reuse for a different observation).
+
+Without a valid signed token, the gate **fails closed** in strict mode (production default). Non-strict mode (development) allows unsigned tokens with a warning. The observation hash is SHA-256 of the serialized `PolicyObservation` dataclass, binding the token to a specific governance call. **Gaps acknowledged:** RBAC on the signing key, KMS/HSM key management, and process-boundary token transport (gRPC/mTLS) are not implemented in this version.
+
+### 4.5 Architectural Import Boundary (REM-016)
+
+The `remora/toolcall/evaluation/` sub-package carries a runtime import guard (`_check_import_boundary`) that raises `ImportError` at import time if called from any listed runtime module (e.g., `remora_gate`, `decision_engine`). An AST-based leakage detector (`scripts/check_no_evaluation_leakage.py`) additionally scans all runtime packages for forbidden field references (`is_unsafe_if_executed`, `ground_truth_action`) and for imports of `remora.toolcall.evaluation`. Both checks run as part of `make audit`. The runtime sub-package (`remora/toolcall/runtime/`) exposes only runtime-safe API symbols.
+
 ---
 
 ## 5. Method: Thermodynamic Uncertainty Observables
@@ -458,16 +472,18 @@ For QA benchmark:
 - Full-coverage majority vote (three-oracle, unweighted)
 - Trust-score selective (same oracle pool, threshold = 0.50)
 
-For tool-call benchmark:
-- Single model heuristic (Llama-3.3-70B only)
-- Majority vote heuristic (unweighted, three oracles)
-- Self-consistency heuristic (temperature sampling, three draws)
-- Verifier heuristic (single oracle with prompted self-evaluation)
+For tool-call benchmark (N=700, deterministic heuristic):
+- Single model heuristic (Llama-3.3-70B keyword routing only)
+- Majority vote heuristic (unweighted, three deterministic heuristic variants)
+- Self-consistency heuristic (temperature sampling over heuristic variants, five draws)
+- Verifier heuristic (heuristic with destructive-keyword override)
 - REMORA temperature gate only (thermodynamic routing, no policy engine)
+
+**Real LLM baselines (REM-010, pilot N=100):** A second baseline set backed by actual LLM inference (`@cf/meta/llama-3.3-70b-instruct-fp8-fast` via Cloudflare Workers AI, `remora/toolcall/baselines_llm.py`) was evaluated on a 100-task stratified pilot subset of toolcall_blind_v3. Results: `single_model_llm` FAR=1.25%, `majority_vote_llm` (3-sample, temperature=0.7) FAR=0.0%, `self_consistency_llm` (5-sample, temperature=0.9) FAR=1.25%. Artifact: `results/toolcall_llm_baselines_pilot_n100.json`. Caveat: N=100 pilot; wide confidence interval; full N=700 comparison is a future experiment. The heuristic baselines remain in `remora/toolcall/baselines.py` for deterministic regression testing; they use keyword routing without LLM inference and are labeled `*_heuristic` throughout.
 
 ### 9.3 Oracles
 
-All experiments use three oracle models via the Groq inference API: Llama-3.1-8B-Instant, Llama-3.3-70B-Versatile, Llama-4-Scout-17B-16E-Instruct. Oracle responses are collected with per-request timeouts. All recorded experiments were conducted on live oracle APIs; results may differ if oracle model versions are updated.
+All QA and tool-call experiments use three oracle models: Llama-3.1-8B-Instant, Llama-3.3-70B-Versatile, Llama-4-Scout-17B-16E-Instruct (originally via Groq inference API; Cloudflare Workers AI also supported). Oracle responses are collected with per-request timeouts. All recorded experiments were conducted on live oracle APIs; results may differ if oracle model versions are updated.
 
 ### 9.4 Metrics
 
@@ -861,9 +877,9 @@ REMORA is designed to *reduce* unsafe autonomous AI actions, not to enable them.
 
 ## 16. Reproducibility and Artifact Availability
 
-**Repository:** Available at [https://github.com/darklordVirtual/REMORA](https://github.com/darklordVirtual/REMORA). Commit hash: `7cb4fae`.
+**Repository:** Available at [https://github.com/darklordVirtual/REMORA](https://github.com/darklordVirtual/REMORA). Commit hash: `9c504f5`.
 
-**Python version:** 3.11
+**Python version:** 3.14
 
 **Installation:**
 ```
@@ -889,7 +905,7 @@ make credibility-pack
 ```
 python -m pytest tests/ -q
 ```
-Expected: 2,400+ individual tests passing across 100+ test files (count grows with the suite; treat CI output as authoritative).
+Expected: 3,181+ individual tests passing across 120+ test files (count grows with the suite; treat CI output as authoritative).
 
 **Key benchmark reproductions:**
 ```
@@ -906,13 +922,14 @@ python experiments/rag_critical_router_v1.py
 python experiments/lyapunov_aggregate.py
 ```
 
-**Live oracle experiments:** Require a valid Groq API key (`GROQ_API_KEY` environment variable). Oracle model versions on the Groq API may change; results are sensitive to model version updates.
+**Live oracle experiments:** Require `CLOUDFLARE_API_TOKEN` (Cloudflare Workers AI) or `GROQ_API_KEY`. Oracle model versions may change; results are sensitive to model version updates.
 
 **Artifact paths:**
 - `results/selective_n500_results.json` — QA benchmark selective curve
 - `results/end_to_end_n500_v3.json` — Action distribution and accuracy by action
 - `results/ablation_v2_n500_results.json` — Ablation conditions (N=544)
 - `results/toolcall_benchmark_v2_results.json` — Tool-call benchmark all conditions
+- `results/toolcall_llm_baselines_pilot_n100.json` — Real LLM baseline pilot (N=100, §9.2, REM-010)
 - `results/rag_critical_router_v1_results.json` — Evidence router metrics
 - `results/lyapunov_aggregate_results.json` — Lyapunov stability (N=1000)
 - `results/mondrian_v2_repeated_splits.json` — Conformal coverage (N=2161)
@@ -922,6 +939,8 @@ python experiments/lyapunov_aggregate.py
 - `results/agentharm/guardrail_scores.json` — AgentHarm evaluation status (`status:skipped`; full pipeline not run — see `docs/claim_hygiene.md`)
 - `results/agentharm/tool_probe.json` — Tool interception probe (`status:skipped`; `inspect_tools_probe.py` not run — condition 4 of claim hygiene not met)
 - `results/agentharm/mode_metadata.jsonl` — Mode degradation metadata (`status:skipped`; condition 5 not met)
+- `docs/assurance/remediation_register.yaml` — Assurance remediation register (REM-001 through REM-018); all P0 items DONE
+- `docs/assurance/statistical_analysis_plan.md` — Pre-registered SAP (H1–H5; REM-012)
 
 **Reproducibility note:** The QA benchmark results are derived from stored oracle response artifacts (not live API calls) and are fully deterministic. Tool-call and Lyapunov benchmarks use seeded RNG and require no API keys. Evidence router requires HuggingFace dataset access. Live ablation experiments depend on external oracle availability.
 
