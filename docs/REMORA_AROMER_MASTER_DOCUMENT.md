@@ -435,11 +435,11 @@ As of 2026-06-28, the AROMER worker reports the following live state (not a comm
 
 | Signal | Value | Interpretation |
 |---|---|---|
-| AII (Autonomous Intelligence Index) | **0.789** [CAPABLE] (peak 0.844 TRAINED) | CAPABLE_SHADOW_ONLY — organic brr regression ~13:00 UTC 2026-06-28; recovery in progress |
-| aii_smoothed | 0.7894 [CAPABLE] | Peak 0.8442 TRAINED (cycle 12); organic decline documented in §12–§13 |
-| T2 Friction | 0.8069 (brr=4.0%) | Recovering from 5.0% peak; theoretical max 1.000 achieved at brr=0% (cycle 12) |
+| AII (Autonomous Intelligence Index) | **0.804** [TRAINED] (peak 0.844 TRAINED) | TRAINED_SHADOW_ONLY — organic recovery from §13 regression confirmed ~15:53 UTC 2026-06-28 |
+| aii_smoothed | 0.8042 [TRAINED] | Full §12→§13→recovery cycle: peak 0.8442 → regression 0.7885 → recovery 0.8042; documented in §12–§13 |
+| T2 Friction | 0.8518 (brr=2.5%) | Recovered from 5.0% peak; recovery trajectory 5%→2.5% over ~2h53min |
 | T3 MetaJudge | **0.800** [M] | Sustained — milestone: +4.1pp above historical peak 0.759 (n=135); mean critique score=0.90 |
-| T5 Stability | 0.741 | Recovering from 0.716 low; was 0.7955 at peak |
+| T5 Stability | 0.777 | Recovering — was 0.7158 at regression low; was 0.7955 at peak |
 | world_model_active | 1 | Active; deployment_status=SHADOW_ONLY |
 | ECE | 0.0636 | Expected Calibration Error — well-calibrated |
 | false_accept_rate | 0 | No false accepts across all 12+ cycles |
