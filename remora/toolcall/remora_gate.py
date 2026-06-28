@@ -87,7 +87,7 @@ class RemoraToolCallGate:
     use_evidence_flags: bool = True
     use_severity_flags: bool = True
     use_counterfactual_flags: bool = True
-    use_contradiction_flags: bool = True
+    use_contradiction_flags: bool = True  # no-op: is_unsafe_if_executed removed (M1 fix)
     use_context_overrides: bool = True
     use_phase_signal: bool = True
     use_temperature_signal: bool = True
@@ -123,8 +123,9 @@ class RemoraToolCallGate:
             reasons.append("toolcall_ambiguous_review_override")
         elif "read_only" in task.tags or "sandbox" in task.tags:
             if task.severity == "low":
-                action = "EXECUTE"
-                reasons.append("toolcall_safe_readonly_override")
+                # Monotonic constraint: policy engine verdict is final.
+                # Annotate context only; never loosen a conservative decision.
+                reasons.append("toolcall_safe_readonly_context")
 
         confidence = report.confidence
         if confidence is None:
@@ -164,9 +165,6 @@ class RemoraToolCallGate:
                 evidence_action = "verify"
                 evidence_confidence = 0.2
                 evidence_contradictions = 0
-
-        if self.use_contradiction_flags and destructive and task.is_unsafe_if_executed:
-            evidence_contradictions = 1 if task.severity in {"high", "critical"} else 0
 
         if self.use_counterfactual_flags and task.severity == "critical" and destructive:
             counterfactual_passed = False
