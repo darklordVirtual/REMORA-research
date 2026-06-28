@@ -264,8 +264,8 @@ eval cases.
 | verdict_accuracy | 0.769 | 0.769 | 0.585 |
 
 > **Note:** this 85-case figure is the ablation holdout artifact. The live replay
-> arena reported in `02-evidence-and-claims.md` (Claim 6) uses 93 cases — a different
-> evaluation surface.
+> arena reported in `02-evidence-and-claims.md` (Claim 6) uses 96 cases — a different
+> evaluation surface (87.5% accuracy; see `artifacts/aromer/replay_arena_report.json`).
 
 **Findings:** Safety floor intact. No friction reduction yet (18 seed episodes
 insufficient). Profile C shows 23.1% coverage drop due to world model over-
