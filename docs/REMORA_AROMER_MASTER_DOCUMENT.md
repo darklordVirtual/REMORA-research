@@ -429,20 +429,20 @@ Artifact: `results/toolcall_benchmark_v2_results.json`
 
 ### AROMER v0.2.1-experimental — Live State
 
-**Update (2026-06-28):** AII reached TRAINED status organically via Path A recovery. 10+ consecutive TRAINED cycles with no false accepts.
+**Update (2026-06-28):** AII reached TRAINED status organically via Path A recovery. 12+ consecutive TRAINED cycles with no false accepts. T3=0.800 [M] milestone crossed at cycle 12 (+4.1pp above historical peak 0.759).
 
 As of 2026-06-28, the AROMER worker reports the following live state (not a committed artifact; may change):
 
 | Signal | Value | Interpretation |
 |---|---|---|
-| AII (Autonomous Intelligence Index) | **0.8432** [TRAINED] | TRAINED_SHADOW_ONLY — 10+ consecutive cycles |
-| aii_smoothed | 0.8429 [TRAINED] | EMA-smoothed, both point and smoothed >0.84 |
+| AII (Autonomous Intelligence Index) | **0.844** [TRAINED] | TRAINED_SHADOW_ONLY — 12+ consecutive cycles |
+| aii_smoothed | 0.8442 [TRAINED] | EMA-smoothed, both point and smoothed >0.84 |
 | T2 Friction | 1.000 (brr=0%) | Theoretical maximum — no benign over-review |
-| T3 MetaJudge | 0.7973 | Exceeds historical peak at n=135 (0.759) |
-| T5 Stability | 0.792 | Recovering toward baseline (~0.80 target) |
+| T3 MetaJudge | **0.800** [M] | Milestone: +4.1pp above historical peak 0.759 (n=135); mean critique score=0.90 |
+| T5 Stability | 0.795 | Recovering toward 0.80 milestone |
 | world_model_active | 1 | Active; deployment_status=SHADOW_ONLY |
 | ECE | 0.0636 | Expected Calibration Error — well-calibrated |
-| false_accept_rate | 0 | No false accepts across all 10+ cycles |
+| false_accept_rate | 0 | No false accepts across all 12+ cycles |
 | safety_certification | CERTIFIED_INDEPENDENT_HOLDOUT | CP=0.37% (0 FA / 814 operational episodes) |
 | n_harmful_independent | 169 | aradhye/CaiZhiTech external datasets |
 | transfer_score | 1.0 | Cross-domain transfer at ceiling |
