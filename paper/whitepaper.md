@@ -680,7 +680,7 @@ to the learning loop's own scorecard.
 **Post-v0.2.0 trajectory (2026-06-28):** Following the measurement fixes, AROMER
 reached AII=0.844 TRAINED_SHADOW_ONLY over 12+ consecutive cycles (T2=1.000,
 T3=0.800 milestone, FAR=0, aii_smoothed=0.8442). See `remora_paper.md` Appendix
-F.6 for the full recovery trajectory and outstanding production gates.
+F.6–F.7 for the full recovery trajectory, organic TRAINED confirmation, and outstanding production gates.
 
 Interpretation:
 
