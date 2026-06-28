@@ -945,6 +945,8 @@ Standards Norway. (2021). NORSOK D-010:2021 — Well integrity in drilling and w
 
 International Electrotechnical Commission. (2016). IEC 61511-1:2016 — Functional safety: Safety instrumented systems for the process industry sector. IEC.
 
+Bjøru, A. R. (2026). Causal Post-hoc Explainable AI (PhD thesis). Norwegian University of Science and Technology (NTNU). ISBN 978-82-353-0022-5. Paper IV §4.2.1–§4.2.3
+
 ---
 
 ## Appendix A: Mathematical Definitions
