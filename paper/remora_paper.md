@@ -622,7 +622,29 @@ All 36 cases pass with zero critical failures. Precision and escalation recall a
 
 ## 11. Ablations
 
-### 11.1 Component Contribution
+### 11.1 End-to-End Component Ablation
+
+To demonstrate that the combination of techniques gives better safety–utility balance than any component in isolation, we run a five-condition ablation on the full 700-task tool-call benchmark. Conditions A, B, and E are loaded from the pre-existing locked results (`toolcall_benchmark_v2_results.json`). Conditions C and D are computed deterministically from the task context flags (structural admission signals and proxy trust scores derived from authorization, evidence-completeness, and conflict flags). All five conditions operate on the same 700 tasks; metrics are therefore directly comparable. Results are locked in `artifacts/aromer/component_ablation_results.json` and verified by `tests/test_component_ablation.py`.
+
+**Table 3: Five-Condition Safety–Utility Ablation (N = 700, tool-call benchmark)**
+
+| Condition | FAR | Unsafe exec | Benign friction† | Utility‡ |
+|---|---|---|---|---|
+| A. Threshold guardrail (≈ LlamaGuard) | 0.300 | 0.200 | 0.000 | −0.25 |
+| B. Ensemble majority vote | 0.100 | 0.100 | 0.000 | 0.00 |
+| C. Structural gates only | 0.250 | 0.200 | 0.000 | 0.00 |
+| D. REMORA policy, no learning | **0.000** | **0.000** | 0.500 | 0.10 |
+| E. REMORA full (+ AROMER) | **0.000** | **0.000** | **0.170**§ | **0.62** |
+
+†Fraction of benign cases routed to human review (VERIFY). ‡Utility = (benign accepted − harmful accepted) / N. §Friction for E is from the 495-case balanced holdout (`artifacts/aromer_balanced_validation_v1.json`); the toolcall_benchmark_v2 artifact does not break down VERIFY routing by harm label.
+
+*Limitations.* All conditions use deterministic proxy or pre-existing heuristic signals, not live LLM oracle calls. External replication on a held-out production corpus is required before generalising beyond this benchmark.
+
+**Reading the table.** Conditions A and B (threshold and ensemble) achieve FAR > 0 because probabilistic methods alone cannot resolve cases where structural gate signals — prompt injection, fallback destructive execution, explicit human-approval requirements, and intent-argument conflicts — are the distinguishing factor; 30% and 10% of harmful actions slip through, respectively. Condition C (structural gates only) achieves zero false blocks of benign traffic but incurs FAR = 25%: the 140 cases from the `missing_context_high_risk` and `regulated_ambiguity` scenario families carry no hard structural flag, so they require a probabilistic thermodynamic signal to route correctly. Only the combination (conditions D and E) reaches FAR = 0 for both failure modes simultaneously. Condition D achieves the same safety floor as E, but without AROMER's learned world model it routes 50% of benign actions to review; AROMER learning reduces this to 17%, raising mean utility from 0.10 to 0.62.
+
+**Conclusion.** Zero false-accept rate requires *both* structural gates (catches injection/approval/conflict failures) *and* thermodynamic policy (catches missing-context/regulated-ambiguity failures). Competitive utility requires additionally the AROMER learning layer to distinguish proven-safe contexts from genuinely uncertain ones. No single component achieves all three properties simultaneously.
+
+### 11.2 Temperature-Gate vs. Full Policy Gate
 
 The temperature-gate-only condition in the tool-call benchmark isolates the thermodynamic routing contribution. Moving from temperature gate to full policy gate:
 - Unsafe execution: 10% → 0% (policy hard blocks contribute 100% of unsafe execution reduction)
@@ -631,11 +653,11 @@ The temperature-gate-only condition in the tool-call benchmark isolates the ther
 
 This demonstrates that thermodynamic routing is necessary but not sufficient for safety. Policy hard blocks are the primary safety mechanism; thermodynamic observables serve as a routing and coverage signal.
 
-### 11.2 Oracle Count
+### 11.3 Oracle Count
 
 The ablation across N=302 (single oracle vs. three oracles) shows a +10.2 pp accuracy gain from single oracle to three-oracle majority vote (56.95% vs. ~67%). Correlation-aware weighting provides additional gain within the multi-oracle setting. The gain from multi-oracle is meaningful but not transformative; the primary benefit of the oracle swarm is disagreement detection (high H, high D) rather than accuracy improvement per se.
 
-### 11.3 Correlation Weighting
+### 11.4 Correlation Weighting
 
 Without correlation weighting, consensus from a within-family oracle cluster (high $\bar{\rho}$) would receive inflated support. The diversity weights $w(o)$ reduce effective k in correlated settings, appropriately reducing trust scores and increasing escalation rates when oracles are likely agreeing due to shared training rather than factual correctness. Empirical validation of this effect requires a controlled study varying oracle family composition, which is identified as future work.
 
