@@ -94,7 +94,7 @@ Live AII (AROMER Intelligence Index) — current state (2026-06-28):
 
 ## Test Suite
 
-2204 passing tests · 3 skipped · pre-push quality gate active
+3073 passing tests · 14 skipped · pre-push quality gate active
 
 ## Limitations
 
