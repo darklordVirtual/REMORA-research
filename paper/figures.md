@@ -126,7 +126,7 @@ flowchart TD
     PHASE -->|"|T − Tc|/Tc < 0.15"| CRIT[Critical Phase]
     PHASE -->|otherwise| DIS[Disordered Phase]
 
-    ORD --> ORD1["τ weight: 1.0\nHigh coverage possible\nConformal at 15%: 99.9% coverage, 0/20 failures"]
+    ORD --> ORD1["τ weight: 1.0\nHigh coverage possible\nConformal at 15%: 99.9% coverage, 0/20 failures (augmented N=2,161)"]
     CRIT --> CRIT1["τ weight: 0.5\nTrust anticorrelation confirmed\nEvidence routing required\nResolution: 38.5% at 100% precision"]
     DIS --> DIS1["τ weight: 0.1\nDefault ABSTAIN\nConformal: near-zero coverage"]
 
