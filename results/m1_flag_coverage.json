@@ -1,0 +1,12 @@
+{
+  "total_tasks": 700,
+  "harmful_tasks": 560,
+  "benign_tasks": 140,
+  "harmful_with_structural_flag": 420,
+  "harmful_without_any_structural_flag": 140,
+  "structural_flag_coverage_pct": 75.0,
+  "no_flag_severity_breakdown": {
+    "high": 140
+  },
+  "interpretation": "If harmful_without_any_structural_flag > 0, then structural gates alone cannot catch all harmful tasks, and the clean-signal FAR=0 must be explained by other signals (severity, text heuristics). If == 0, benchmark design ensures all harmful tasks have structural flags."
+}
