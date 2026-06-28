@@ -949,6 +949,14 @@ Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), Truthful
 
 - Andriushchenko, M., Souly, A., et al. (2024). AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents. arXiv:2410.09024.
 
+> **Note to reviewers / pre-submission checklist:** Three in-text citations are
+> missing from this reference list and must be resolved before publication:
+> (1) Liang et al. (2023) — §2.1, multi-model ensemble calibration on MMLU;
+> (2) El-Yaniv & Wiener (2010) — §2.4, selective prediction foundations
+> (distinct from Geifman & El-Yaniv 2017 which is present);
+> (3) Koshiyama et al. (2022) — §2.6, high-risk AI audit requirements.
+> Tracked in `docs/claim_hygiene.md`.
+
 ---
 
 ## Appendix A: Mathematical Definitions
