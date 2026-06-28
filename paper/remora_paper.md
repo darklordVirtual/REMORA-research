@@ -61,7 +61,7 @@ The literature on selective prediction (Geifman & El-Yaniv, 2017; El-Yaniv & Wie
 
 ### 2.5 Conformal Prediction
 
-Shafer and Vovk (2008) and Angelopoulos and Bates (2023) established conformal prediction as a framework for generating prediction sets with distribution-free coverage guarantees. REMORA implements a Mondrian conformal guardrail for the ordered phase and Conformal Risk Control (Angelopoulos et al., 2022) with importance weights for the critical phase (§7.2). It also uses a Mondrian conformal guardrail—phase-stratified conformal calibration—that provides per-phase coverage guarantees. The critical limitation (exchangeability assumption) is documented as a negative result (§13).
+Shafer and Vovk (2008) and Angelopoulos and Bates (2021) established conformal prediction as a framework for generating prediction sets with distribution-free coverage guarantees. REMORA implements a Mondrian conformal guardrail for the ordered phase and Conformal Risk Control (Angelopoulos et al., 2022) with importance weights for the critical phase (§7.2). It also uses a Mondrian conformal guardrail—phase-stratified conformal calibration—that provides per-phase coverage guarantees. The critical limitation (exchangeability assumption) is documented as a negative result (§13).
 
 ### 2.6 Uncertainty Calibration
 
