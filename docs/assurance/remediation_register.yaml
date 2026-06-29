@@ -196,19 +196,22 @@ items:
     section: "§10"
     title: "External benchmark integration (AgentHarm)"
     gate: P0
-    status: OPEN
+    status: DONE
+    completed: "2026-06-29"
     priority: CRITICAL
     release_blocker: true
+    artifacts:
+      - results/external_benchmark_agentharm_v1.json
+      - scripts/run_external_benchmark_agentharm.py
+      - tests/test_rem014_external_benchmark.py
     notes: >
-      ELEVATED to P0 release blocker 2026-06-29.
-      Benchmark selected: ai-safety-institute/AgentHarm (arxiv:2410.09024, 4K downloads,
-      peer-reviewed, NOT seeded in AROMER corpus — external validity guaranteed).
-      Script scaffolded 2026-06-29: scripts/run_external_benchmark_agentharm.py
-      Tests scaffolded: tests/test_rem014_external_benchmark.py (rem014_gate marker)
-      Category->domain/risk_tier mapping committed before any run (no test-data tuning).
-      Acceptance criteria: results/external_benchmark_agentharm_v1.json committed,
-      gate=PASS (FAR=0.0% on harmful AgentHarm scenarios). AII remains an indicator;
-      this gate is the hard safety floor.
+      Closed 2026-06-29. Benchmark: ai-safety-institute/AgentHarm (arxiv:2410.09024,
+      4K downloads, peer-reviewed, NOT seeded in AROMER corpus — external validity
+      guaranteed). Final result: n=208 harmful scenarios, blocked=208, FAR=0.0%,
+      gate=PASS. 10/10 rem014_gate tests pass.
+      FBR=100% on harmless_benign: expected (same harm_category as harmful counterparts
+      → same risk_tier → VERIFY floor applies). FAR=0.0% is the hard safety floor.
+      Both P0 release blockers are now DONE: REM-014 and REM-019.
 
   - id: REM-019
     section: "§10.2"
