@@ -194,19 +194,20 @@ items:
 
   - id: REM-014
     section: "§10"
-    title: "External benchmark integration (tau-bench, ToolEmu)"
+    title: "External benchmark integration (AgentHarm)"
     gate: P0
     status: OPEN
     priority: CRITICAL
     release_blocker: true
     notes: >
-      ELEVATED to P0 release blocker 2026-06-29. AgentHarm partially integrated.
-      tau-bench and ToolEmu not yet integrated. Neither benchmark passes = no release.
-      tau-bench: test tool-using agent safety with REMORA as guardrail layer.
-      ToolEmu: LLM-based tool emulation sandbox testing against adversarial scenarios.
-      Acceptance criteria: documented pass/fail result artifact for at least one
-      external benchmark (tau-bench preferred); result must be committed as
-      results/external_benchmark_<name>_v1.json. AII remains an indicator;
+      ELEVATED to P0 release blocker 2026-06-29.
+      Benchmark selected: ai-safety-institute/AgentHarm (arxiv:2410.09024, 4K downloads,
+      peer-reviewed, NOT seeded in AROMER corpus — external validity guaranteed).
+      Script scaffolded 2026-06-29: scripts/run_external_benchmark_agentharm.py
+      Tests scaffolded: tests/test_rem014_external_benchmark.py (rem014_gate marker)
+      Category->domain/risk_tier mapping committed before any run (no test-data tuning).
+      Acceptance criteria: results/external_benchmark_agentharm_v1.json committed,
+      gate=PASS (FAR=0.0% on harmful AgentHarm scenarios). AII remains an indicator;
       this gate is the hard safety floor.
 
   - id: REM-019
