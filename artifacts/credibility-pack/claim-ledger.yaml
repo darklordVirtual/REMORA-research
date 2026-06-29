@@ -415,17 +415,17 @@ claims:
   # ── Priority 6: CounterfactualInvarianceTest ──────────────────────────────
 
   counterfactual_invariance_v2:
-    status: supported
+    status: not_measured
     wording: |
-      Claim-type-aware counterfactual invariance replaces the flat polarity-flip
-      heuristic with a per-type policy: CAUSAL claims should flip polarity under
-      do(~X); DEFINITIONAL claims are invariant; STATISTICAL claims are soft-pass
-      (never penalised); OBSERVATIONAL and UNKNOWN default to invariant.
-      Rule-based classifier uses regex patterns with priority ordering
-      (DEFINITIONAL checked before CAUSAL to prevent false positives).
-      All 13 classification and invariance tests pass.
-    artifact: remora/causality_v2.py
-    test: tests/test_causality_v2.py
+      Claim-type-aware counterfactual invariance policy is architecturally
+      specified: CAUSAL claims flip polarity under do(~X); DEFINITIONAL claims
+      are invariant; STATISTICAL claims are soft-pass; OBSERVATIONAL and UNKNOWN
+      default to invariant. Rule-based classifier uses regex patterns.
+      Implementation (causality_v2.py) and tests (test_causality_v2.py) have
+      not been committed to this repository. Status downgraded from "supported"
+      on 2026-06-29 during claim hygiene audit.
+    artifact: not_committed
+    test: not_committed
     date: 2026-05-24
 
   # ── N500 Scale Validation ─────────────────────────────────────────────────
@@ -827,7 +827,7 @@ claims:
       for patterns such as temporary exceptions becoming routine, ignored
       ABSTAIN/ESCALATE routes, unapproved policy overrides, and repeated
       overrides.
-    artifact: remora/governance/nested_governance.py, enterprise/nested_governance_layers.yaml
+    artifact: remora/governance/nested_governance.py
     test: tests/test_nested_governance.py
     limitations: |
       - Structural governance capability only.

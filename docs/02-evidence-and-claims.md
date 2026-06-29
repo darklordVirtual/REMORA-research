@@ -66,8 +66,8 @@ number, or do not quote the number.
 - **Claim:** every decision is recorded in an immutable `DecisionEnvelope` and
   hash-chained (`hᵢ = SHA-256(hᵢ₋₁ ‖ envelope)`); any modification breaks the chain.
 - **Evidence:** `remora/audit/hash_chain.py`; replay reconstructs the chain.
-- **Artifact:** `paper/remora_paper.pdf` §7.2; shadow-replay artifacts under
-  `artifacts/shadow_mode/`.
+- **Artifact:** `paper/remora_paper.pdf` §7.2; shadow-replay produces output
+  on demand via `make shadow-replay` (output directory not committed).
 - **Caveat:** tamper-**evident**, not tamper-**proof**. Preventing tampering needs
   external append-only (WORM) storage as a deployment dependency.
 - **Reproduce:** `make shadow-replay INPUT=artifacts/demo/shadow_mode_sample_agent_action_log.jsonl`.
