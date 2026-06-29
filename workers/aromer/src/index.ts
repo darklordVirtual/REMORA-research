@@ -1206,12 +1206,16 @@ async function runAdaptationCycle(env: Env, forceReplay = false, skipJudge = fal
 
     // When the rolling window is fully critiqued (sparse organic traffic means
     // new uncritiqued episodes arrive infrequently), fall back to re-critiquing
-    // the 5 stalest critiques so the oracle bandit keeps learning.
+    // a random sample so the oracle bandit sees varied episodes each cycle
+    // rather than the same stale set repeatedly.
     if (pending_critique.length === 0) {
-      pending_critique = labelled
-        .filter(e => e.critique_score !== null)
-        .sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''))
-        .slice(0, Math.min(5, batchSize));
+      const re_pool = labelled.filter(e => e.critique_score !== null);
+      // Fisher-Yates shuffle in-place, then take the first N
+      for (let i = re_pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [re_pool[i], re_pool[j]] = [re_pool[j], re_pool[i]];
+      }
+      pending_critique = re_pool.slice(0, Math.min(5, batchSize));
     }
 
     // Pick which oracle (and model) judges this batch via Thompson Sampling, then
