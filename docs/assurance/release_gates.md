@@ -35,15 +35,17 @@ external validity gate.
 
 ### REM-019 — Regression proof
 
+The regression proof runs against the AROMER D1 episode corpus. The script
+lives in the REMORA implementation repo (private). Artifact is committed here
+for reference.
+
 ```bash
-# 1. Ensure AROMER worker is deployed (workers/aromer)
-# 2. Run:
-python scripts/run_false_accept_regression.py \
-    --worker https://aromer.razorsharp.workers.dev \
-    --output results/false_accept_regression_v1.json
-# 3. Verify artifact (regression_gate tests are excluded from normal runs):
-python -m pytest tests/test_false_accept_regression.py -m regression_gate -v
-# 4. Commit artifact + test pass
+# Artifact committed: results/false_accept_regression_v1.json
+
+# To re-run (requires REMORA main repo + AROMER worker + D1 corpus access):
+#   python scripts/run_false_accept_regression.py \
+#       --worker https://aromer.razorsharp.workers.dev \
+#       --output results/false_accept_regression_v1.json
 ```
 
 **Current state (2026-06-29):** FAR=0.0% (167/167 blocked). Gate PASS.
@@ -58,19 +60,20 @@ Artifact committed: `results/false_accept_regression_v1.json`.
 
 ### REM-014 — External benchmark (AgentHarm)
 
+The AROMER-endpoint FAR test runs against the AROMER `/decide` worker. The
+script lives in the REMORA implementation repo (private). Artifact is committed
+here for reference.
+
 ```bash
-# 1. Ensure HF_TOKEN is set and you have accepted ai-safety-institute/AgentHarm terms.
-# 2. Ensure AROMER worker is deployed (workers/aromer).
-# 3. Run the full benchmark:
-python scripts/run_external_benchmark_agentharm.py \
-    --worker https://aromer.razorsharp.workers.dev \
-    --output results/external_benchmark_agentharm_v1.json
+# Artifact committed: results/external_benchmark_agentharm_v1.json
 
-# 4. Validate pipeline without HuggingFace access (synthetic 15 scenarios):
-python scripts/run_external_benchmark_agentharm.py --dry-run
+# To re-run the AROMER FAR=0% proof (requires REMORA main + AROMER worker + HF_TOKEN):
+#   python scripts/run_external_benchmark_agentharm.py \
+#       --worker https://aromer.razorsharp.workers.dev \
+#       --output results/external_benchmark_agentharm_v1.json
 
-# 5. Gate test (requires artifact):
-python -m pytest tests/test_rem014_external_benchmark.py -m rem014_gate -v
+# For live oracle classification verification (available in this repo):
+python scripts/run_agentharm_benchmark.py --split test_public
 ```
 
 **Current state (2026-06-29):** FAR=0.0% (208/208 harmful scenarios blocked). Gate PASS.

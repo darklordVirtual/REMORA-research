@@ -111,7 +111,7 @@ All claims are bounded by documented assumptions. External replication is pendin
 
 **Architectural caveat:** Stage 1 hard-block policy invariants account for this result. The multi-oracle consensus machinery contributes VERIFY/ABSTAIN routing quality but does not drive the safety floor. Do not cite this result as evidence for the consensus layer.
 
-Artifact: `results/external_benchmark_agentharm_v1.json` (REMORA main) | Gate: REM-014 (PASS)
+Artifact: `results/external_benchmark_agentharm_v1.json` | Gate: REM-014 (PASS)
 
 ### Zero false accepts on historical regression corpus (N = 167)
 
