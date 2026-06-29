@@ -95,6 +95,17 @@ AII dropping below TRAINED threshold does NOT block operation by itself
 (the world model adapts continuously). It triggers investigation, not halt.
 Only FAR > 0 is an unconditional stop.
 
+## Production deployment gates (required before leaving SHADOW_ONLY)
+
+The system holds `deployment_status = SHADOW_ONLY`. Leaving shadow-only mode requires all
+three production deployment gates below to be DONE in addition to the P0 safety gates above.
+
+| ID | Gate | Status | What "DONE" means |
+|----|------|--------|-------------------|
+| REM-020 | Longitudinal stability audit | **NOT STARTED** | AII (EMA-smoothed) ≥ 0.80 for 7 calendar days with FAR = 0.0% throughout. Artifact: `results/longitudinal_stability_v1.json`. Eligible close: not before 2026-07-05. |
+| REM-021 | Independent human review | **NOT STARTED** | External reviewer covers decision engine, PDP/PEP, REM-019 corpus, REM-014 benchmark, claim hygiene. Written report: `docs/assurance/independent_review_v1.md`. |
+| REM-022 | RBAC access control audit | **NOT STARTED** | RBAC for signing key, D1 database, production API. Policy: `docs/assurance/rbac_policy_v1.md`. Gap acknowledged in REM-013. |
+
 ## Record of gate elevation and closure
 
 | Date | Change | Reason |
@@ -103,3 +114,4 @@ Only FAR > 0 is an unconditional stop.
 | 2026-06-29 | REM-019 created P0 | User direction: versioned regression proof for 169 historical false accepts is a hard safety floor |
 | 2026-06-29 | REM-019 CLOSED | FAR=0.0% on 167-episode corpus. Artifact: `results/false_accept_regression_v1.json` |
 | 2026-06-29 | REM-014 CLOSED | AgentHarm external benchmark FAR=0.0%, N=208. Artifact: `results/external_benchmark_agentharm_v1.json` |
+| 2026-06-29 | REM-020/021/022 created P3 | Formal production deployment gates defined for SHADOW_ONLY exit |
