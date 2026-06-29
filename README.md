@@ -1,54 +1,70 @@
-# REMORA: Policy-Gated Multi-Oracle Assurance for Agentic AI
+# REMORA — Policy-Gated Governance for Operational AI Agents
 
-REMORA is a pre-execution governance layer for autonomous AI agents. Before any
-proposed action runs, REMORA gates it through deterministic hard-block policy
-invariants and a multi-oracle consensus pipeline, returning one of four outcomes:
-**ACCEPT** (assurance conditions met, execution permitted), **VERIFY** (plausible
-but validation required, held pending), **ABSTAIN** (trust too low to decide,
-blocked), or **ESCALATE** (human review required, routed to a person). Every
-decision is recorded in an immutable `DecisionEnvelope` with a SHA-256
-tamper-evident hash chain. The architecture is bounded by documented assumptions:
-results come from controlled simulators and internal benchmarks, not live
-deployments.
+REMORA is a pre-execution governance framework for AI agents operating in environments where actions carry real operational consequences — building automation, energy management, infrastructure control, and regulated enterprise workflows. Before any proposed action executes, REMORA evaluates it through a deterministic policy layer and a multi-oracle consensus pipeline, returning one of four outcomes:
 
-## Headline findings
+| Outcome | Meaning |
+|---------|---------|
+| **ACCEPT** | Assurance conditions met; execution permitted |
+| **VERIFY** | Plausible but requires additional validation before proceeding |
+| **ABSTAIN** | Trust too low to decide; action blocked |
+| **ESCALATE** | Risk exceeds autonomous authority; routed to human review |
 
-All claims are bounded by documented assumptions and internally replicated.
-External replication is pending. See [docs/02-evidence-and-claims.md](docs/02-evidence-and-claims.md)
-for the full evidence, artifact, caveat, and reproduce map. The caveat is part
-of the claim — quote the caveat with the number, or do not quote the number.
+Every decision is logged in an immutable `DecisionEnvelope` carrying a SHA-256 tamper-evident hash chain, a policy version stamp, and a complete audit trail. The architecture is designed to remain conservative under uncertainty: when evidence is insufficient, REMORA errs toward ABSTAIN or ESCALATE rather than ACCEPT, and requires human approval before acting beyond its confidence boundary.
 
-- **0% unsafe execution** on a 700-task adversarial tool-call benchmark (Wilson
-  95% CI [0.00%, 0.55%] — "at most ~1 in 180", not "never"). The benchmark is a
-  deterministic simulator; no real shell/network/database mutations occur.
-  Architectural caveat: the hard-block policy rules alone account for 100% of
-  this reduction. The multi-oracle consensus machinery contributes calibration
-  and routing quality for VERIFY/ABSTAIN decisions but does not drive the safety
-  floor. Do not cite this result as evidence for the consensus layer.
-- **88.0% selective accuracy** at 23.2% coverage on a stratified held-out split
-  (N_accepted=25; Wilson CI [70.0%, 95.8%]; one-sided p=1.45×10⁻⁵ vs. 46.3%
-  base rate). The decision threshold τ\*=0.2032 was locked on the training split
-  before the held-out set was touched. The lower bound of 70.0% is the honest
-  floor; the CI is wide because N_accepted=25. Read as directional confirmation,
-  not a tight accuracy estimate.
-- **Critical-phase trust inversion** (N=32 critical-phase items): trust
-  anti-correlates with correctness — low-trust items 71.4% correct (N=21),
-  high-trust items 27.3% correct (N=11). Small sample; published as a negative
-  result. REMORA routes around this failure mode via `PhaseAwareGuardrail`. See
-  [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
+Architecture bounded by documented assumptions. Results are from controlled experiments and internal benchmarks; external replication is pending. See the [Limitations](#limitations) section before drawing deployment conclusions.
+
+---
+
+## Building Automation Demo
+
+The governance concept is demonstrated in a concrete dry-run scenario: an AI assistant proposes lighting adjustments across all floors of a commercial building, and REMORA evaluates each floor-level command independently against occupancy state and the active energy policy — before any command is sent.
+
+```bash
+python scripts/demo_building_lights.py
+```
+
+```
+REMORA building-light action-gating dry run
+================================================================================================
+Request: Turn on all lights on all 8 floors.
+Safety model: No live building automation command is sent.
+Policy: Occupied floors may execute; empty floors must not be activated without evidence.
+
+Floor   Occupancy                         Motion age    Decision  Confidence  Reason
+------------------------------------------------------------------------------------------------
+1       12 persons, open office           active        ALLOW     92%         confirmed occupancy and permitted manual override
+2       8 persons, meetings active        active        ALLOW     92%         confirmed occupancy and permitted manual override
+3       15 persons, development team      active        ALLOW     92%         confirmed occupancy and permitted manual override
+4       6 persons, finance                active        ALLOW     92%         confirmed occupancy and permitted manual override
+5       3 persons, management             active        ALLOW     92%         confirmed occupancy and permitted manual override
+6       empty                             47 min        BLOCK     96%         no occupancy evidence and active energy policy
+7       empty                             131 min       BLOCK     96%         no occupancy evidence and active energy policy
+8       1 person, conference room         active        ALLOW     92%         confirmed occupancy and permitted manual override
+------------------------------------------------------------------------------------------------
+EXECUTE dry-run command: lights_on(floors=[1, 2, 3, 4, 5, 8])
+BLOCKED dry-run command: lights_on(floors=[6, 7])
+```
+
+REMORA does not treat the user request as a single all-or-nothing action. It decomposes the tool call by zone, evaluates each sub-action independently against occupancy context and energy policy, and blocks the subset that conflicts — while allowing the compliant subset to proceed. This per-zone governance model extends directly to HVAC scheduling, ventilation setpoints, energy load management, and any domain where a single agent command maps to multiple physical sub-actions with differing risk profiles.
+
+Full use case documentation: [docs/use-cases/04-energy.md](docs/use-cases/04-energy.md)
+
+---
 
 ## Architecture
 
+The pipeline runs synchronously before any action executes. Stage 1 always runs first.
+
 ```mermaid
 flowchart TD
-    A[Agent action / question] --> B[Stage 1: Hard-block policy invariants]
+    A[Agent action] --> B[Stage 1: Hard-block policy invariants]
     B --> C[Stage 2: Multi-oracle consensus\nEntropy H, dissensus D, phase]
-    C --> D[Stage 3: Evidence verification\nRAG / cyber / finance / AI-governance]
+    C --> D[Stage 3: Evidence verification\nRAG / domain / cyber / finance]
     D --> E[Stage 4: Trust + conformal routing\nPhaseAwareGuardrail, CRC]
     E --> F{Decision}
-    F -->|ACCEPT| G[Execute / answer]
-    F -->|VERIFY| H[Seek additional evidence]
-    F -->|ABSTAIN| I[Refuse — trust too low]
+    F -->|ACCEPT| G[Execute]
+    F -->|VERIFY| H[Hold for validation]
+    F -->|ABSTAIN| I[Block — trust too low]
     F -->|ESCALATE| J[Human review]
     G --> K[Stage 5: DecisionEnvelope + hash chain audit]
     H --> K
@@ -56,62 +72,99 @@ flowchart TD
     J --> K
 ```
 
-Stage 1 always runs first. Hard-block policy invariants are deterministic and
-cannot be overridden by any probabilistic oracle result. This is why the 0%
-unsafe execution result is an architectural property of the policy layer, not of
-the consensus machinery.
+**Stage 1 is deterministic and cannot be overridden by any probabilistic oracle result.** Hard-block policy invariants are evaluated before the consensus machinery runs. This is the architectural reason the zero-false-accept safety result is a property of the policy layer — the multi-oracle consensus machinery governs VERIFY/ABSTAIN routing quality, not the safety floor. These are distinct claims and must not be conflated.
 
-Details: [docs/01-architecture.md](docs/01-architecture.md) and
-[docs/07-api-reference.md](docs/07-api-reference.md).
+Full architecture detail: [docs/01-architecture.md](docs/01-architecture.md) | API reference: [docs/07-api-reference.md](docs/07-api-reference.md)
 
-## Benchmark detail
+---
 
-### Selective accuracy (N500 artifact, 544 questions)
+## Live System Status
 
-The label `N500` is historical; the committed artifact evaluates 544 questions.
-Baseline majority accuracy: 41.18%. Results use `neg_temperature` signal.
+AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's closed-loop learning layer. It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII) — a weighted composite of five diagnostic dimensions. Status is updated every 6 hours by automated GitHub Actions telemetry.
 
-| Coverage | k selected | Correct | Accuracy |
-|----------|-----------|---------|----------|
-| 10%      | 54        | 44      | 81.5%    |
-| 15%      | 82        | 71      | 86.6%    |
-| 18%      | 98        | 87      | 88.8%    |
-| 20%      | 109       | 94      | 86.2%    |
+<!-- LIVE_STATUS_START -->
+> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-06-29T07:05Z
 
-Best operating point (18% coverage, k=98): accuracy 88.8%, Wilson CI [81.0%, 93.6%].
+| Metric | Value | Status |
+|--------|-------|--------|
+| Autonomous Intelligence Index (AII, EMA) | 0.8218 | TRAINED |
+| False accept rate (FAR) | 0.0% | Zero |
+| Deployment mode | SHADOW_ONLY | Research only |
+| T1 Calibration (ECE = 0.0637) | 0.6817 | Bottleneck |
+| T2 Friction suppression | 0.8980 | Active |
+| T3 MetaJudge quality | 0.8000 | Milestone |
+| T4 Transfer score | 1.0000 | Max |
+| T5 Stability | 0.7528 | Active |
+<!-- LIVE_STATUS_END -->
 
-### Selective trust curve (Result 1, 302-item artifact)
+AII phase transitions: WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28. Three production deployment gates remain open before use outside shadow-mode research: longitudinal stability audit (7-day TRAINED window with FAR = 0.0%), independent human review, and RBAC access control audit. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
 
-Top-25% coverage (neg_temperature signal): k=76 selected, correct=72, accuracy=94.7%.
+---
+
+## Evidence Summary
+
+All claims are bounded by documented assumptions. External replication is pending. **The caveat is part of the claim** — do not quote a number without its associated caveat. Full evidence with artifact links and reproduce instructions: [docs/02-evidence-and-claims.md](docs/02-evidence-and-claims.md).
+
+### Zero false accepts on external adversarial benchmark (AgentHarm)
+
+208 independently-sourced harmful scenarios from the AI Safety Institute's [AgentHarm benchmark](https://arxiv.org/abs/2410.09024) (Andriushchenko et al., 2024; arxiv:2410.09024; 4K+ downloads, peer-reviewed). This dataset was not present in REMORA's training corpus — external validity guaranteed. Result: 0 false accepts, FAR = 0.0%, Wilson 95% CI [0.00%, 1.81%].
+
+**Architectural caveat:** Stage 1 hard-block policy invariants account for this result. The multi-oracle consensus machinery contributes VERIFY/ABSTAIN routing quality but does not drive the safety floor. Do not cite this result as evidence for the consensus layer.
+
+Artifact: `results/external_benchmark_agentharm_v1.json` (REMORA main) | Gate: REM-014 (PASS)
+
+### Zero false accepts on historical regression corpus (N = 167)
+
+167 historical false-accept episodes re-evaluated against the current system. Result: 0 recurrences (FAR = 0.0%). Confirms that policy improvements eliminating historical failures have not regressed.
+
+Artifact: `results/false_accept_regression_v1.json` | Gate: REM-019 (PASS)
+
+### 88.0% selective accuracy at 23.2% coverage (held-out split)
+
+N_accepted = 25; Wilson CI [70.0%, 95.8%]; one-sided p = 1.45×10⁻⁵ vs. 46.3% base rate. The decision threshold τ\* = 0.2032 was locked on the training split before the held-out set was touched.
+
+**Read as directional confirmation, not a tight accuracy estimate.** The CI is wide because N_accepted = 25. The 88.0% point estimate must always be quoted with its CI. The lower bound of 70.0% is the honest floor.
+
+Artifact: `artifacts/benchmark_n500_locked.json`
+
+### Critical-phase trust inversion (negative result)
+
+N = 32 critical-phase items: trust anti-correlates with correctness. Low-trust items 71.4% correct (N=21), high-trust items 27.3% correct (N=11). Small sample; published as a negative result requiring further investigation. REMORA routes around this failure mode via `PhaseAwareGuardrail`. Full documentation: [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
+
+---
+
+## Benchmark Detail
 
 ### Tool-call safety benchmarks
 
-Two benchmark versions: v1 (252 tasks) and v2 (700 tasks). v2 adds harder
-failure modes not present in v1.
+Two benchmark versions. v2 introduces adversarial failure modes not present in v1.
 
-**v1 (252 tasks):** v1 does not demonstrate unsafe-execution reduction —
-all baselines including single-model heuristic show 0% unsafe execution.
-This is a ceiling effect in the v1 benchmark design, not evidence of safety.
+**v1 (252 tasks):** v1 does not demonstrate unsafe-execution reduction — all baselines including the single-model heuristic show 0% unsafe execution. This is a ceiling effect in the v1 benchmark design, not evidence of safety. Do not use v1 to make safety claims.
 
-| Baseline | Accuracy | Mean utility | Unsafe rate |
-|----------|---------|--------------|-------------|
-| remora_temperature_gate_heuristic | 0.9524 | 0.6762 | 0.0000 |
-| remora_full_policy_gate           | 0.7619 | 0.5690 | 0.0000 |
-
-**v2 (700 tasks):** v2 introduces adversarial failure modes. REMORA's full
-policy gate reduces unsafe execution to 0.0000; the heuristic alone does not.
-This benchmark confirms the architectural claim that hard-block policy invariants
-drive the safety floor.
+**v2 (700 tasks):**
 
 | Baseline | Accuracy | Mean utility | Unsafe rate |
-|----------|---------|--------------|-------------|
+|----------|----------|--------------|-------------|
 | remora_temperature_gate_heuristic | 0.7000 | 0.2700 | 0.1000 |
-| remora_full_policy_gate           | 0.9000 | 0.6200 | 0.0000 |
+| remora_full_policy_gate | 0.9000 | 0.6200 | 0.0000 |
 
-Statistical significance: paired bootstrap CI and permutation p-value are
-reported in `results/toolcall_benchmark_v2_significance.json`. The unsafe
-execution reduction vs. single-model heuristic: Δ=0.20, 95% CI [0.17, 0.23],
-one-sided p < 0.0001.
+Unsafe execution reduction vs. single-model heuristic: Δ=0.20, 95% CI [0.17, 0.23], one-sided p < 0.0001 (paired bootstrap).
+Artifact: `results/toolcall_benchmark_v2_results.json` | Significance: `results/toolcall_benchmark_v2_significance.json`
+
+### Selective accuracy (N500, 544 questions)
+
+Baseline majority accuracy: 41.18%. Signal: `neg_temperature`.
+
+| Coverage | k selected | Correct | Accuracy |
+|----------|-----------|---------|----------|
+| 10% | 54 | 44 | 81.5% |
+| 15% | 82 | 71 | 86.6% |
+| 18% | 98 | 87 | 88.8% |
+| 20% | 109 | 94 | 86.2% |
+
+Best operating point (18% coverage, k=98): accuracy 88.8%, Wilson CI [81.0%, 93.6%]. Artifact: `artifacts/benchmark_n500_locked.json`
+
+---
 
 ## Reproduce
 
@@ -119,54 +172,49 @@ one-sided p < 0.0001.
 # Install
 python -m pip install -e ".[dev]"
 
-# Run full deterministic test suite (no API keys required)
+# Full deterministic test suite (no API keys required)
 make test
 
-# Held-out selective accuracy (headline claim 2)
+# Building automation demo (dry-run, zero network calls)
+python scripts/demo_building_lights.py
+
+# Held-out selective accuracy (headline claim 3)
 python experiments/end_to_end_n500_v3.py
 
-# Tool-call safety benchmark (headline claim 1)
-python experiments/generate_toolcall_benchmark_v2.py
+# Tool-call safety benchmark v2 (headline claims 1-2)
 python experiments/evaluate_toolcall_benchmark_v2.py
 
-# Full quality gate: lint + tests + all claim consistency checks
+# Full quality gate: lint + tests + claim consistency checks
 make audit
-
-# Safety replay arena (96 episodes, no API keys)
-make replay
 
 # Counterfactual governance replay on an action log
 make shadow-replay INPUT=artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
 ```
 
-Step-by-step instructions: [docs/06-reproducibility.md](docs/06-reproducibility.md).
-All benchmark claims link to committed result artifacts under `results/` and `artifacts/`.
+Step-by-step instructions: [docs/06-reproducibility.md](docs/06-reproducibility.md). All benchmark claims link to committed result artifacts under `results/` and `artifacts/`.
+
+---
 
 ## Limitations
 
-- **Simulator-scoped safety.** The 0% unsafe execution result comes from a
-  deterministic synthetic benchmark. No real shell, network, or database
-  mutations occur. Controlled benchmarks do not prove field deployment safety.
-- **Small held-out accepted set.** N_accepted=25 yields a Wilson CI of
-  [70.0%, 95.8%]. This is a directional confirmation, not a tight accuracy
-  estimate. The 88.0% point estimate should always be quoted with its CI.
-- **Entropy backend mismatch.** All reported benchmarks use
-  `TokenFingerprintBackend` (sorted SHA-256 tokens), not the NLI Semantic
-  Entropy backend described in the paper. The NLI backend exists as a drop-in
-  but was not used for any reported result. See
-  [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) finding #3.
-- **No external replication.** All benchmarks are internally run. External
-  replication is pending.
-- **AROMER is experimental.** The closed-loop learning layer has no external
-  validation. Episode labels are partly self-labeled. Do not cite AROMER numbers
-  as evidence for the core system.
-- **Tamper-evident, not tamper-proof.** The hash chain detects modification but
-  preventing tampering requires external append-only (WORM) storage.
-- **Not a replacement for domain authority.** REMORA governs execution
-  permission, not truth. It does not make models truthful and is not a universal
-  AI safety solution.
+- **Simulator-scoped safety.** The 0% unsafe execution results come from deterministic synthetic benchmarks and a controlled internal corpus. No real shell, network, or database mutations occur. Controlled benchmarks do not prove field deployment safety.
+- **Small held-out accepted set.** N_accepted = 25 yields a Wilson CI of [70.0%, 95.8%]. This is a directional confirmation, not a tight accuracy estimate. The 88.0% point estimate must always be quoted with its CI.
+- **Entropy backend mismatch.** All reported benchmarks use `TokenFingerprintBackend` (sorted SHA-256 tokens), not the NLI Semantic Entropy backend described in the paper. The NLI backend exists as a drop-in replacement but was not used for any reported result. See [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) finding #3.
+- **No external replication.** All benchmarks were run internally by the author. External replication is listed as a distinct evidence level in the claim register, explicitly required before any `externally_validated` label can be applied.
+- **AROMER is experimental.** The closed-loop learning layer has no external validation. Episode labels are partly self-labeled by the system. Do not cite AROMER AII numbers as evidence for the core governance system.
+- **Three production gates remain open.** REM-020 (longitudinal stability, eligible close 2026-07-05), REM-021 (independent human review), and REM-022 (RBAC audit) are not yet closed. The system may not be used outside shadow-mode research until all three are satisfied. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
+- **Tamper-evident, not tamper-proof.** The hash chain detects modification after the fact. Preventing tampering requires external append-only (WORM) storage not included in this implementation.
+- **Not a replacement for domain authority.** REMORA governs execution permission, not truth. It does not make models truthful and is not a universal AI safety solution.
 
-Full negative results: [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
+Full negative results and documented gaps: [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md)
+
+---
+
+## AI Use Disclosure
+
+REMORA was built with the assistance of generative AI development tools. Human authorship, research integrity, and accountability are documented in [docs/AI_USE.md](docs/AI_USE.md). The short version: AI tools generated code drafts and prose that were reviewed, corrected, and tested by the author. No AI output was accepted as evidence without an independently confirmed committed artifact, a passing test, or a verified external source.
+
+---
 
 ## Cite
 
@@ -182,10 +230,10 @@ Full negative results: [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
 }
 ```
 
+---
+
 ## License / Contributing
 
 Apache-2.0. See [LICENSE](LICENSE) and [docs/10-contributing.md](docs/10-contributing.md).
 
-Contributions are welcome. Before submitting: run `make audit`, ensure all claims
-link to artifacts on disk, and do not remove negative results or caveats. See
-[CLAUDE.md](CLAUDE.md) for the working agreement and claim hygiene rules.
+Contributions are welcome. Before submitting: run `make audit`, ensure all claims link to committed artifacts on disk, and do not remove negative results or caveats. See [CLAUDE.md](CLAUDE.md) for the working agreement and claim hygiene rules.

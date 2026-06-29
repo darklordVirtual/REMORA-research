@@ -49,3 +49,11 @@ venv/
 
 # CodeGraph local index
 .codegraph/
+
+# Private and internal files — must not be pushed
+internal_*
+_*extract*.txt
+_*detail*.txt
+
+# Academic reference PDFs in the repository root (copyright, not redistributable)
+/*.pdf
