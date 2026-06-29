@@ -317,7 +317,7 @@ items:
     section: "§12"
     title: "Longitudinal stability audit — 7-day TRAINED AII with zero false accepts"
     gate: P3
-    status: NOT_STARTED
+    status: IN_PROGRESS
     notes: >
       Eligible start: 2026-06-28 (date AII first reached TRAINED ≥ 0.80).
       Eligible close: not before 2026-07-05 (7 calendar days).
