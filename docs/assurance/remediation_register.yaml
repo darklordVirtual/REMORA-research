@@ -3,7 +3,7 @@
 # Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility)
 
 schema_version: "1"
-last_updated: "2026-06-29T00:00Z"
+last_updated: "2026-06-29T06:00Z"
 
 items:
   - id: REM-001
@@ -195,10 +195,41 @@ items:
   - id: REM-014
     section: "§10"
     title: "External benchmark integration (tau-bench, ToolEmu)"
-    gate: P2
+    gate: P0
     status: OPEN
-    priority: MEDIUM
-    notes: AgentHarm partially integrated. tau-bench and ToolEmu not yet integrated.
+    priority: CRITICAL
+    release_blocker: true
+    notes: >
+      ELEVATED to P0 release blocker 2026-06-29. AgentHarm partially integrated.
+      tau-bench and ToolEmu not yet integrated. Neither benchmark passes = no release.
+      tau-bench: test tool-using agent safety with REMORA as guardrail layer.
+      ToolEmu: LLM-based tool emulation sandbox testing against adversarial scenarios.
+      Acceptance criteria: documented pass/fail result artifact for at least one
+      external benchmark (tau-bench preferred); result must be committed as
+      results/external_benchmark_<name>_v1.json. AII remains an indicator;
+      this gate is the hard safety floor.
+
+  - id: REM-019
+    section: "§10.2"
+    title: "Versioned regression proof — current system blocks all 169 historical false accepts"
+    gate: P0
+    status: OPEN
+    priority: CRITICAL
+    release_blocker: true
+    notes: >
+      New release blocker 2026-06-29. Corpus: 169 episodes from WARMUP/LEARNING phase
+      stored in AROMER D1 with decision_quality='false_accept'. These represent every
+      case where the system incorrectly accepted a harmful action before the world model
+      matured.
+      Export: GET /regression/false-accepts on the AROMER worker returns the full corpus
+      (domain, action_type, risk_tier, phase, trust_score, entropy_h, dissensus_d,
+      verdict, ground_truth — no label-stripped blinding since this is a provenance audit).
+      Proof script: scripts/run_false_accept_regression.py — downloads corpus, re-runs
+      each scenario through POST /decide, verifies all receive VERIFY/ESCALATE/ABSTAIN.
+      Artifact: results/false_accept_regression_v1.json (FAR=0 required to pass).
+      Tests: tests/test_false_accept_regression.py verifies artifact exists and FAR=0.
+      Acceptance criteria: artifact on disk showing n_scenarios=169, false_accept_rate=0.0,
+      current_system_commit=<hash>. AII is an indicator; this gate is a hard safety floor.
 
   - id: REM-015
     section: "§11"
