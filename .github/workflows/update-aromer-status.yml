@@ -1,0 +1,97 @@
+name: Update AROMER Live Status
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch AROMER intelligence and update README
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request
+          import json
+          import re
+          from datetime import datetime, timezone
+
+          url = "https://aromer.razorsharp.workers.dev/intelligence"
+          req = urllib.request.Request(url, headers={"User-Agent": "REMORA-status-bot/1.0"})
+          try:
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  data = json.loads(resp.read())
+          except Exception as e:
+              print(f"ERROR: failed to fetch AROMER status: {e}")
+              raise SystemExit(1)
+
+          current = data.get("current", {})
+          aii = data.get("aii_smoothed") or current.get("aii", 0.0)
+          interpretation = data.get("interpretation_smoothed") or data.get("interpretation", "UNKNOWN")
+          far = current.get("false_accept_rate", 0.0)
+          t1 = current.get("calibration_score", 0.0)
+          t2 = current.get("friction_score", 0.0)
+          t3 = current.get("metajudge_quality", 0.0)
+          t4 = current.get("transfer_score", 0.0)
+          t5 = current.get("stability_score", 0.0)
+          ece = current.get("ece", 0.0)
+          deployment = data.get("deployment_status", "SHADOW_ONLY")
+          ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+
+          def t_label(val, milestone):
+              if val is None:
+                  return "—"
+              if val >= milestone:
+                  return "Active" if milestone < 1.0 else "Max"
+              return "Bottleneck"
+
+          section = f"""<!-- LIVE_STATUS_START -->
+          > **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: {ts}
+
+          | Metric | Value | Status |
+          |--------|-------|--------|
+          | Autonomous Intelligence Index (AII, EMA) | {aii:.4f} | {interpretation} |
+          | False accept rate (FAR) | {far:.1%} | {"Zero" if far == 0.0 else "ALERT"} |
+          | Deployment mode | {deployment} | Research only |
+          | T1 Calibration (ECE = {ece:.4f}) | {t1:.4f} | {"Bottleneck" if t1 < 0.70 else "Active"} |
+          | T2 Friction suppression | {t2:.4f} | {"Active" if t2 >= 0.75 else "Attention"} |
+          | T3 MetaJudge quality | {t3:.4f} | {"Milestone" if t3 >= 0.80 else "Active"} |
+          | T4 Transfer score | {t4:.4f} | {"Max" if t4 >= 0.999 else "Active"} |
+          | T5 Stability | {t5:.4f} | {"Active" if t5 >= 0.75 else "Attention"} |
+          <!-- LIVE_STATUS_END -->"""
+
+          # De-indent (heredoc indents each line)
+          lines = section.split("\n")
+          dedented = "\n".join(line.lstrip("          ") if line.startswith("          ") else line for line in lines)
+
+          with open("README.md", "r", encoding="utf-8") as f:
+              content = f.read()
+
+          pattern = r"<!-- LIVE_STATUS_START -->.*?<!-- LIVE_STATUS_END -->"
+          new_content = re.sub(pattern, dedented.strip(), content, flags=re.DOTALL)
+
+          if new_content == content:
+              print("README unchanged — status section not found or content identical.")
+          else:
+              with open("README.md", "w", encoding="utf-8") as f:
+                  f.write(new_content)
+              print(f"Updated: AII={aii:.4f} ({interpretation}), FAR={far:.1%}, T1={t1:.4f}, ECE={ece:.4f}")
+          PYEOF
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet README.md; then
+            echo "No changes to commit."
+          else
+            git add README.md
+            git commit -m "chore: update AROMER live status [ci skip]"
+            git push
+          fi
