@@ -1,0 +1,18 @@
+{
+  "schema_version": "longitudinal_stability_v1",
+  "gate": "IN_PROGRESS",
+  "gate_criterion": "AII_EMA >= 0.8 for 7 calendar days with FAR = 0.0%",
+  "eligible_close_date": "2026-07-05",
+  "n_cycles_analyzed": 168,
+  "n_cycles_in_trained_window": 168,
+  "analysis_window_start": "2026-06-30T02:45:47.649Z",
+  "analysis_window_end": "2026-06-30T12:48:58.195Z",
+  "analysis_window_days": 0.4189,
+  "days_remaining": 6.5811,
+  "aii_min_ema": 0.923706,
+  "aii_max_ema": 0.971247,
+  "aii_mean_raw": 0.951289,
+  "n_cycles_below_trained": 0,
+  "far_max": 0.0,
+  "reason": "0.42 days of TRAINED stability collected (need 7). 6.58 days remaining."
+}
