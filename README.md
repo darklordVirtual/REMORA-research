@@ -83,16 +83,16 @@ Full architecture detail: [docs/01-architecture.md](docs/01-architecture.md) | A
 AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's closed-loop learning layer. It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII) — a weighted composite of five diagnostic dimensions. Status is updated every 6 hours by automated GitHub Actions telemetry.
 
 <!-- LIVE_STATUS_START -->
-> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-06-29T18:49Z
+> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-06-30T01:03Z
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| Autonomous Intelligence Index (AII, EMA) | 0.9072 | TRAINED |
+| Autonomous Intelligence Index (AII, EMA) | 0.9240 | TRAINED |
 | False accept rate (FAR) | 0.0% | Zero |
 | Deployment mode | SHADOW_ONLY | Research only |
 | T1 Calibration (ECE = 0.0065) | 0.9677 | Active |
-| T2 Friction suppression | 0.8395 | Active |
-| T3 MetaJudge quality | 0.8320 | Milestone |
+| T2 Friction suppression | 0.8825 | Active |
+| T3 MetaJudge quality | 0.8620 | Milestone |
 | T4 Transfer score | 1.0000 | Max |
 | T5 Stability | 0.9066 | Active |
 <!-- LIVE_STATUS_END -->
