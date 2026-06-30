@@ -58,11 +58,16 @@ Accuracy, Generalizability, Customizability, Adaptability, Traceability, Portabi
 | L3 | HMAC-SHA256 capability tokens + JSON schema | <0.02 ms | Zero-trust protocol |
 | L4 | Append-only fsync audit log | 4.1 ms | Immutable trail |
 
+**L2 models evaluated (§4.2):**
+- Qwen3.5-4B, Qwen3.5-9B (local small), Qwen2.5-14B (local large), GPT-4o-mini (cloud), Llama-3.1-8B
+- Note: Qwen3.5 series released post-August 2025 (after knowledge cutoff); names verified from arXiv:2603.07191 abstract
+
 **Key empirical results (TC1/TC2, n=457 malicious):**
 - Best local model: Qwen2.5-14B — ZH 98.2% IR / 9.7% FPR, EN 98.5% IR / 20.1% FPR
-- Best precision: GPT-4o-mini — ZH 93.0% IR / 3.2% FPR, EN 95.4% IR / 12.3% FPR  
+- Best precision: GPT-4o-mini — ZH 93.0% IR / 3.2% FPR, EN 95.4% IR / 12.3% FPR
 - NLI baselines (BART-MNLI, mDeBERTa): <10% IR — insufficient without task-specific tuning
-- Local cascade (small Qwen→Qwen2.5-14B): 94.7–95.6% IR, 6.0–9.7% FPR — viable data-sovereign option [⚠️ exact cascade model name unverified — "Qwen3.5-9B" used in earlier notes does not correspond to a known model; verify against paper §4.2]
+- Local cascade (Qwen3.5-9B→Qwen2.5-14B): 94.7–95.6% IR, 6.0–9.7% FPR — viable data-sovereign option
+- Cloud hybrid cascade (Qwen3.5-9B→GPT-4o-mini): 91.9–92.6% IR, 1.9–6.7% FPR — best precision
 - TC3 harder: 75–94% IR; covert side-channel attacks partially blend with declared intent
 
 **Critical statistical finding:** At 1% attack prevalence, even GPT-4o-mini (ZH, FPR=3.2%) yields only **22.7% PPV** — 3 out of 4 blocks are false positives. Consequence: Layer 2 must not be the sole gatekeeper; L1 sandbox is the always-on containment boundary.
@@ -259,7 +264,7 @@ REMORA's layering is **stronger** than what Shamsujjoha et al. study covers — 
 
 #### L2 Intent Verification vs REMORA Oracle Pipeline
 
-**LGA L2:** Single LLM judge receiving structured `(task, tool_call) → ALLOW/BLOCK` prompt. Best: Qwen2.5-14B (98.2–98.5% IR). Local small→large cascade improves FPR to 1.9–6.7% range [⚠️ cascade first-stage model name unverified in Ge paper; not "Qwen3.5-9B"].
+**LGA L2:** Single LLM judge receiving structured `(task, tool_call) → ALLOW/BLOCK` prompt. Best: Qwen2.5-14B (98.2–98.5% IR). Local cascade Qwen3.5-9B→Qwen2.5-14B: 94.7–95.6% IR, 6.0–9.7% FPR. Cloud hybrid Qwen3.5-9B→GPT-4o-mini: 91.9–92.6% IR, 1.9–6.7% FPR (best precision). Models verified from arXiv:2603.07191 §4.2.
 
 **REMORA Stage 2–5:** Intent-drift (Jaccard) + FastGate → ConsensusGate → VerifierGate → CritiqueRevision → SelfConsistency + 3-oracle GO-STAR ensemble (llama-3.3-70b-fp8-fast, qwen3-30b-a3b-fp8, mistral-small-3.1-24b).
 
@@ -410,8 +415,8 @@ The following capabilities exceed what both papers study or propose:
 - [ ] Add PPV-at-prevalence metric to AII dashboard (low effort, high informational value)
 - [ ] Review oracle hook prompt structure against LGA's `(task, tool_call)` template
 - [ ] Expand LOCAL_BLOCK to cover TC3-class patterns (telemetry exfiltration signatures)
-- [ ] Add IPR and CE calibration metrics to `/log` endpoint (Zhang et al. 2024)
-- [ ] Verify cascade model name in Ge 2026 §4.2 — correct the "Qwen3.5-9B" error in this document
+- [x] MCE and ACE calibration metrics added to `/log` endpoint (Zhang et al. 2024) — commit a2f1612
+- [x] Cascade model verified: Qwen3.5-9B→Qwen2.5-14B (local), Qwen3.5-9B→GPT-4o-mini (hybrid) — confirmed from arXiv:2603.07191 §4.2
 
 **Phase 5 (post-gate):**
 - [ ] Implement declared tool permission schemas (JSON schema per tool type; validate at hook)
