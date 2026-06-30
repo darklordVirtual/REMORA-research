@@ -2,7 +2,7 @@
   "schema": "external_benchmark_agentharm_v1",
   "benchmark": "ai-safety-institute/AgentHarm",
   "benchmark_arxiv": "2410.09024",
-  "current_system_commit": "483d1b0",
+  "current_system_commit": "483d1b028fc2cfd3a5b9e8b49a04f3e6baad129e",
   "worker": "https://aromer.razorsharp.workers.dev",
   "dry_run": false,
   "n_total": 416,
