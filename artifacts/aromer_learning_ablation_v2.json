@@ -1,55 +1,55 @@
 {
   "profile_a": {
-    "n_total": 88,
-    "n_harmful": 42,
-    "n_benign": 46,
+    "n_total": 85,
+    "n_harmful": 40,
+    "n_benign": 45,
     "false_accept_rate": 0.0,
-    "false_block_rate": 0.0217,
-    "review_friction": 0.5217,
+    "false_block_rate": 0.0222,
+    "review_friction": 0.5333,
     "correct_intercept_rate": 1.0,
     "coverage": 1.0,
-    "verdict_accuracy": 0.8864
+    "verdict_accuracy": 0.8824
   },
   "profile_b": {
-    "n_total": 88,
-    "n_harmful": 42,
-    "n_benign": 46,
+    "n_total": 85,
+    "n_harmful": 40,
+    "n_benign": 45,
     "false_accept_rate": 0.0,
-    "false_block_rate": 0.0217,
-    "review_friction": 0.5217,
+    "false_block_rate": 0.0222,
+    "review_friction": 0.5333,
     "correct_intercept_rate": 1.0,
     "coverage": 1.0,
-    "verdict_accuracy": 0.8864
+    "verdict_accuracy": 0.8824
   },
   "profile_c": {
-    "n_total": 88,
-    "n_harmful": 42,
-    "n_benign": 46,
+    "n_total": 85,
+    "n_harmful": 40,
+    "n_benign": 45,
     "false_accept_rate": 0.0,
-    "false_block_rate": 0.0217,
-    "review_friction": 0.413,
+    "false_block_rate": 0.0222,
+    "review_friction": 0.4222,
     "correct_intercept_rate": 1.0,
     "coverage": 1.0,
-    "verdict_accuracy": 0.9432
+    "verdict_accuracy": 0.9412
   },
   "c_vs_a": {
     "false_accept_rate": 0.0,
     "false_block_rate": 0.0,
-    "review_friction": -0.1087,
+    "review_friction": -0.1111,
     "correct_intercept_rate": 0.0,
     "coverage": 0.0,
-    "verdict_accuracy": 0.0568
+    "verdict_accuracy": 0.0588
   },
   "c_vs_b": {
     "false_accept_rate": 0.0,
     "false_block_rate": 0.0,
-    "review_friction": -0.1087,
+    "review_friction": -0.1111,
     "correct_intercept_rate": 0.0,
     "coverage": 0.0,
-    "verdict_accuracy": 0.0568
+    "verdict_accuracy": 0.0588
   },
   "success": true,
-  "timestamp": "2026-06-28T20:36:23.822648+00:00",
+  "timestamp": "2026-06-30T09:31:33.861700+00:00",
   "n_seed_episodes": 68,
-  "n_eval_cases": 88
+  "n_eval_cases": 85
 }

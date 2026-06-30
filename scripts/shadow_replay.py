@@ -6,7 +6,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+# Ensure the repo root is on the path so that `remora` is importable when this
+# script is invoked directly (e.g. `python scripts/shadow_replay.py`) without
+# the package being installed in the active Python environment.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from remora.shadow.replay import replay_action_log
 

@@ -139,21 +139,21 @@ N = 32 critical-phase items: trust anti-correlates with correctness. Low-trust i
 
 Two benchmark versions. v2 introduces adversarial failure modes not present in v1.
 
-**v1 (252 tasks):** v1 does not demonstrate unsafe-execution reduction — all baselines including the single-model heuristic show 0% unsafe execution. This is a ceiling effect in the v1 benchmark design, not evidence of safety. Do not use v1 to make safety claims.
+**v1 (252 tasks):** v1 does not demonstrate unsafe-execution reduction — all baselines including the single-model heuristic show 0% unsafe execution. This is a ceiling effect in the v1 benchmark design, not evidence of safety. Do not use v1 to make safety claims. Committed metrics: remora_temperature_gate_heuristic mean_utility=0.6762; remora_full_policy_gate accuracy=0.7619, mean_utility=0.5690. These are deterministic simulator results. Artifact: `results/toolcall_benchmark_v1_results.json`
 
-**v2 (700 tasks):**
+**v2 (700 tasks):** v2 is a deterministic simulator benchmark with adversarial failure modes. REMORA full policy gate reduces unsafe execution to 0% vs. 10–20% for all baselines; this is a simulator-scoped result. It does not prove field-deployment safety.
 
 | Baseline | Accuracy | Mean utility | Unsafe rate |
 |----------|----------|--------------|-------------|
 | remora_temperature_gate_heuristic | 0.7000 | 0.2700 | 0.1000 |
 | remora_full_policy_gate | 0.9000 | 0.6200 | 0.0000 |
 
-Unsafe execution reduction vs. single-model heuristic: Δ=0.20, 95% CI [0.17, 0.23], one-sided p < 0.0001 (paired bootstrap).
+Unsafe execution reduction vs. single-model heuristic: Δ=0.20, 95% CI [0.17, 0.23], one-sided p < 0.0001 (paired bootstrap). The `remora_full_policy_gate` reduces unsafe execution rate from 0.20 to 0.00 on the v2 benchmark.
 Artifact: `results/toolcall_benchmark_v2_results.json` | Significance: `results/toolcall_benchmark_v2_significance.json`
 
 ### Selective accuracy (N500, 544 questions)
 
-Baseline majority accuracy: 41.18%. Signal: `neg_temperature`.
+The label `N500` is historical; the current artifact evaluates 544 questions. Baseline majority accuracy: 41.18%. Signal: `neg_temperature`.
 
 | Coverage | k selected | Correct | Accuracy |
 |----------|-----------|---------|----------|
@@ -163,6 +163,16 @@ Baseline majority accuracy: 41.18%. Signal: `neg_temperature`.
 | 20% | 109 | 94 | 86.2% |
 
 Best operating point (18% coverage, k=98): accuracy 88.8%, Wilson CI [81.0%, 93.6%]. Artifact: `artifacts/benchmark_n500_locked.json`
+
+### Selective trust curve (N=302, neg_temperature signal)
+
+N=302 items evaluated on the pre-held-out calibration set. Baseline accuracy: 82.78%. Selected rows for the `neg_temperature` signal:
+
+| Coverage | k covered | Correct | Accuracy |
+|----------|-----------|---------|----------|
+| 25% | 76 | 72 | 94.7% |
+
+Top-25% slice: k=76, correct=72, accuracy=94.7%. Artifact: `results/selective_trust_curve_results.json`
 
 ---
 
