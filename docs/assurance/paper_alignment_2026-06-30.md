@@ -413,8 +413,8 @@ The following capabilities exceed what both papers study or propose:
 
 **Phase 4 (current — before REM-020/021/022 gate):**
 - [x] Add PPV-at-prevalence metric to AII dashboard — deployed ddf426b: safety.precision_recall JSON + Section 2 text block; precision=98.5%, recall=100.0%, F1=99.3%
-- [ ] Review oracle hook prompt structure against LGA's `(task, tool_call)` template
-- [ ] Expand LOCAL_BLOCK to cover TC3-class patterns (telemetry exfiltration signatures)
+- [x] Review oracle hook prompt structure against LGA's `(task, tool_call)` template — f80a689: session intent now included in oracle context; 2 tests added
+- [x] Expand LOCAL_BLOCK to cover TC3-class patterns (telemetry exfiltration signatures) — f80a689: 3 regex patterns (env/printenv|base64/curl, |base64|curl chain); 6 tests
 - [x] MCE and ACE calibration metrics added to `/log` endpoint (Zhang et al. 2024) — commit a2f1612
 - [x] Cascade model verified: Qwen3.5-9B→Qwen2.5-14B (local), Qwen3.5-9B→GPT-4o-mini (hybrid) — confirmed from arXiv:2603.07191 §4.2
 
