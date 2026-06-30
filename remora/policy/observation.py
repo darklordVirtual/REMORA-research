@@ -173,6 +173,7 @@ class PolicyObservation:
     # "retrieval"     — evidence from a live RAG / document-retrieval pipeline
     evidence_signal_source: str = "oracle_proxy"
     evidence_provenance: dict[str, Any] | None = None
+    evidence_timestamp: str | None = None
 
     # ------------------------------------------------------------------
     # Factory methods
@@ -349,6 +350,7 @@ class PolicyObservation:
             session_cumulative_risk=_f("session_cumulative_risk"),
             evidence_signal_source=record.get("evidence_signal_source") or "oracle_proxy",
             evidence_provenance=record.get("evidence_provenance"),
+            evidence_timestamp=record.get("evidence_timestamp"),
         )
 
     @classmethod

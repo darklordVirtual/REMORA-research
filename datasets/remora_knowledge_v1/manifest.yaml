@@ -24,26 +24,41 @@ files:
       description: NIST AI RMF + AI 600-1 curated summary with gate rule table
       source: NIST AI 100-1, NIST AI 600-1
       license: public_domain
+      source_url: https://doi.org/10.6028/NIST.AI.100-1
+      source_sha256: null
+      ingest_script: null
 
     - path: static_rag/agent_security/owasp_llm_top10_policy_map.md
       description: OWASP LLM Top 10 (2025) mapped to REMORA gate decisions
       source: OWASP Foundation
       license: CC-BY-SA-4.0
+      source_url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+      source_sha256: null
+      ingest_script: null
 
     - path: static_rag/audit_provenance/w3c_prov_summary.md
       description: W3C PROV-DM provenance model mapped to DecisionEnvelope
       source: W3C PROV Working Group
       license: CC-BY-4.0
+      source_url: https://www.w3.org/TR/prov-dm/
+      source_sha256: null
+      ingest_script: null
 
     - path: static_rag/kubernetes_iac/kubernetes_admission_control_summary.md
       description: Kubernetes admission control patterns as REMORA analogy
       source: Kubernetes documentation, CIS Benchmark
       license: Apache-2.0 / CC-BY-4.0
+      source_url: https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/
+      source_sha256: null
+      ingest_script: null
 
     - path: static_rag/grid_operations/grid_ai_operations_summary.md
       description: Grid operations AI governance vertical with dispatcher rules
       source: NERC CIP, IEC 62351 (derived research summary)
       license: research_derived
+      source_url: https://www.nerc.com/pa/Stand/Pages/CIPStandards.aspx
+      source_sha256: null
+      ingest_script: scripts/ingest_grid_ops.py
 
   policies:
     - path: policies/remora_gate_rules.yaml

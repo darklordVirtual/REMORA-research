@@ -1,0 +1,216 @@
+model_id: ot_ics_v1
+version: "1"
+domain: ot_ics
+description: >
+  Causal domain model for Operational Technology (OT) and Industrial Control
+  Systems (ICS). Covers safety-instrumented systems, engineering workstation
+  access, maintenance bypass, change control, and air-gap integrity.
+  Standards basis: IEC 62443, NERC CIP, ISA-99.
+
+assumptions:
+  - Safety Instrumented Systems (SIS) have independent action scope from
+    the Basic Process Control System (BPCS). SIS overrides BPCS.
+  - Physical access to engineering workstations is a privileged action that
+    must be authorized through the Management of Change (MoC) process.
+  - Maintenance bypass of a safety interlock removes a safety layer; it must
+    be recorded as a mode degradation event.
+  - Air-gap integrity is a binary observable: once broken, the system is
+    treated as potentially compromised until an air-gap re-establishment
+    event is logged.
+  - NERC CIP-007 / IEC 62443-2-4 require change control authorization before
+    any modification to a Cyber Asset within a BES Cyber System.
+
+variables:
+  - name: safety_instrumented_system_active
+    label: Safety Instrumented System active (SIS override)
+    type: binary
+    intervenable: false
+    actionable: false
+    provenance: safety_plc_heartbeat
+    signal_mapping:
+      source: sis_heartbeat_monitor
+      field: sis_trip_active
+      threshold: 1
+
+  - name: maintenance_bypass_authorized
+    label: Maintenance bypass of safety interlock authorized
+    type: binary
+    intervenable: true
+    actionable: false
+    provenance: permit_to_work_system
+    signal_mapping:
+      source: ptw_system
+      field: active_bypass_permits
+      threshold: 1
+
+  - name: engineering_workstation_access
+    label: Engineering workstation (EWS) access requested
+    type: binary
+    intervenable: true
+    actionable: true
+    provenance: privileged_access_management
+    signal_mapping:
+      source: pam_system
+      field: ews_session_active
+      threshold: 1
+
+  - name: physical_access_verified
+    label: Physical presence to restricted area verified
+    type: binary
+    intervenable: false
+    actionable: false
+    provenance: physical_access_control
+    signal_mapping:
+      source: badge_reader
+      field: zone_access_granted
+      threshold: 1
+
+  - name: change_control_authorized
+    label: Change control ticket authorized for this asset
+    type: binary
+    intervenable: false
+    actionable: false
+    provenance: change_management_system
+    signal_mapping:
+      source: moc_system
+      field: approved_change_window_active
+      threshold: 1
+
+  - name: process_safety_critical
+    label: Process is safety-critical (HAZOP / SIL ≥ 1)
+    type: binary
+    intervenable: false
+    actionable: false
+    provenance: process_hazard_analysis
+    signal_mapping:
+      source: pha_database
+      field: sil_rating
+      threshold: 1
+
+  - name: air_gap_preserved
+    label: Air-gap to corporate network preserved
+    type: binary
+    intervenable: true
+    actionable: false
+    provenance: network_segregation_monitor
+    signal_mapping:
+      source: ot_network_monitor
+      field: air_gap_intact
+      threshold: 1
+
+  - name: firmware_integrity_verified
+    label: Firmware hash matches last-known-good baseline
+    type: binary
+    intervenable: false
+    actionable: false
+    provenance: asset_integrity_monitor
+    signal_mapping:
+      source: fim_system
+      field: hash_match
+      threshold: 1
+
+  - name: human_operator_present
+    label: Licensed human operator present in control room
+    type: binary
+    intervenable: false
+    actionable: false
+    provenance: operator_authentication
+    signal_mapping:
+      source: operator_console
+      field: operator_logged_in
+      threshold: 1
+
+edges:
+  - from: maintenance_bypass_authorized
+    to: safety_instrumented_system_active
+    type: inhibit
+    weight: 0.85
+    rationale: >
+      An active maintenance bypass reduces the effective protection of the SIS.
+      If the bypass is unauthorized, the SIS active status is unreliable.
+
+  - from: engineering_workstation_access
+    to: firmware_integrity_verified
+    type: threat
+    weight: 0.70
+    rationale: >
+      Unauthorized EWS access is a precursor to firmware tampering. An
+      unverified EWS session should trigger a firmware integrity re-check.
+
+  - from: change_control_authorized
+    to: engineering_workstation_access
+    type: prerequisite
+    weight: 0.90
+    rationale: >
+      Per NERC CIP-010 and IEC 62443-2-4, a valid change control ticket is a
+      prerequisite for authorized engineering workstation access.
+
+  - from: physical_access_verified
+    to: engineering_workstation_access
+    type: prerequisite
+    weight: 0.80
+    rationale: >
+      Physical access to the restricted zone must be verified before an EWS
+      session can be treated as authorized.
+
+  - from: air_gap_preserved
+    to: firmware_integrity_verified
+    type: prerequisite
+    weight: 0.75
+    rationale: >
+      A compromised air-gap invalidates the trusted path for firmware updates
+      and requires a fresh integrity verification.
+
+  - from: process_safety_critical
+    to: maintenance_bypass_authorized
+    type: constraint
+    weight: 0.95
+    rationale: >
+      For SIL ≥ 1 processes, any maintenance bypass requires additional
+      authorization (two-person rule / senior authority sign-off).
+
+  - from: human_operator_present
+    to: safety_instrumented_system_active
+    type: oversight
+    weight: 0.60
+    rationale: >
+      A licensed operator must be present during any SIS test or bypass
+      operation. Absence increases residual risk.
+
+gate_rules:
+  - id: OT-001
+    description: >
+      If maintenance_bypass_authorized=0 and safety_instrumented_system_active=0,
+      ESCALATE — a safety interlock is down without authorization.
+    action: ESCALATE
+    reason_code: unplanned_safety_interlock_outage
+
+  - id: OT-002
+    description: >
+      If engineering_workstation_access=1 and change_control_authorized=0,
+      ABSTAIN — EWS access without a change ticket is unconditionally blocked.
+    action: ABSTAIN
+    reason_code: unauthorized_ews_access
+
+  - id: OT-003
+    description: >
+      If air_gap_preserved=0, ESCALATE — any action requiring network integrity
+      must be escalated until air-gap re-establishment is confirmed.
+    action: ESCALATE
+    reason_code: air_gap_compromised
+
+  - id: OT-004
+    description: >
+      If process_safety_critical=1 and maintenance_bypass_authorized=1
+      and human_operator_present=0, ABSTAIN — safety-critical bypass without
+      human oversight is unconditionally blocked.
+    action: ABSTAIN
+    reason_code: unattended_safety_critical_bypass
+
+  - id: OT-005
+    description: >
+      If firmware_integrity_verified=0 and air_gap_preserved=1,
+      VERIFY — firmware mismatch on an air-gapped asset requires human
+      verification before resuming operation.
+    action: VERIFY
+    reason_code: firmware_integrity_mismatch

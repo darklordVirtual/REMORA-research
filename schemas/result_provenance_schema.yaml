@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://remora.dev/schemas/result_provenance/v1",
+  "title": "REMORA Result Provenance v1",
+  "description": "Provenance metadata for REMORA result artifacts. See docs/assurance/artifact_provenance_spec_v1.md.",
+  "type": "object",
+  "required": ["schema", "schema_version", "commit_hash", "generated_at", "script", "n_samples"],
+  "additionalProperties": true,
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "result_provenance_v1",
+      "description": "Schema identifier — must be the literal string 'result_provenance_v1'"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1",
+      "description": "Schema version string — must be '1' for this version"
+    },
+    "commit_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Full 40-character hex SHA-1 of the Git commit used to produce the artifact"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of when the artifact was produced"
+    },
+    "script": {
+      "type": "string",
+      "description": "Relative path to the producing script from repository root",
+      "examples": ["scripts/run_agentharm_benchmark.py", "experiments/selective_n500.py"]
+    },
+    "n_samples": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Total number of items evaluated"
+    },
+    "model_version": {
+      "type": ["string", "null"],
+      "description": "Model identifier when a model was used; null if not applicable",
+      "examples": ["@cf/meta/llama-3.3-70b-instruct-fp8-fast", null]
+    },
+    "split": {
+      "oneOf": [
+        {"type": "string"},
+        {
+          "type": "object",
+          "properties": {
+            "calibration_fraction": {"type": "number"},
+            "test_fraction": {"type": "number"},
+            "seed": {"type": "integer"},
+            "n_calibration": {"type": "integer"},
+            "n_test": {"type": "integer"}
+          }
+        },
+        {"type": "null"}
+      ],
+      "description": "Train/calibration/test split description"
+    },
+    "jurisdiction": {
+      "type": ["string", "null"],
+      "description": "ISO 3166-1 alpha-2 country code or free-form jurisdiction string",
+      "examples": ["EU", "NO", null]
+    },
+    "reviewed_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of reviewer sign-off"
+    },
+    "reviewer": {
+      "type": ["string", "null"],
+      "description": "Reviewer identifier (role or anonymised identifier, not personal data)",
+      "examples": ["policy-owner-A", null]
+    },
+    "gate": {
+      "type": ["string", "null"],
+      "enum": ["PASS", "FAIL", "CONDITIONAL", null],
+      "description": "Safety gate result; required for gated artifacts"
+    },
+    "notes": {
+      "type": ["string", "null"],
+      "description": "Free-form human-readable notes about how the artifact was produced"
+    }
+  }
+}
