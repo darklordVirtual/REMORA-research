@@ -6,6 +6,7 @@
 2. Ge (arXiv:2603.07191v2) — LGA 4-layer governance architecture for autonomous agent systems
 3. Zhang et al. (arXiv:2404.02655v2) — UF Calibration: decomposing LLM confidence into Uncertainty and Fidelity
 4. Corsi, Marchesini & Farinelli (UAI 2021, PMLR 161) — ProVe formal verification and violation rate metric
+5. OOD Detection literature survey — tran2023ood (doi:10.5281/zenodo.17527926) — ~500 papers; 14 most relevant mapped to REMORA components
 
 ---
 
@@ -160,6 +161,33 @@ Properties encode rational decision constraints (e.g., "if obstacle close right,
 
 ---
 
+### 1.5 OOD Detection Literature — REMORA Positioning Summary
+
+**Source:** Huy Tran, "OOD Machine Learning: Detection, Robustness, and Generalization," doi:10.5281/zenodo.17527926 (~500 papers, 2017–2026). Full analysis in `docs/researchpapers/analysis_notes_ood_2026-06-30.md`.
+
+**Core framing:** REMORA's governance problem is structurally an OOD problem. A tool call is *in-distribution* if it falls within the world model of rational, authorized agent behavior that AROMER has learned. A tool call is *out-of-distribution* when the oracle pipeline cannot govern it reliably — and should trigger ABSTAIN or ESCALATE rather than force a decision.
+
+**Existing OOD stack in REMORA:**
+
+| Component | OOD subproblem addressed | Comparable technique |
+|---|---|---|
+| H(t) Semantic Entropy (Kuhn et al. 2023) | Semantic OOD — ambiguous meaning | Semantic Uncertainty; Colombo et al. NeurIPS 2022 |
+| CRC/PhaseAwareGuardrail | Uncertainty-driven abstention with coverage guarantee | Narasimhan et al. ICLR 2024; Gomes & Romanelli UAI 2025 |
+| Stage 1 LOCAL_BLOCK | Known-threat OOD (pattern-matched) | Hendrycks & Gimpel 2017 (baseline) |
+| Lyapunov V(t) stability | Session-level trajectory OOD | Mirzaei & Mathis ICLR 2025 (Lyapunov-stabilized embeddings) |
+| GO-STAR 3-oracle ensemble | Epistemic uncertainty aggregation | Lakshminarayanan 2017 (Deep Ensembles) |
+
+**Strongest positioning advantage:** REMORA's governance chain (hook → semantic entropy → CRC abstention → multi-oracle ensemble) covers more OOD subproblems than any single OOD paper addresses. The critical gap is **online per-step OOD detection with Type-I error control** — no existing REMORA component fires before the oracle on anomalous inputs.
+
+**Top 5 actionable OOD improvements (effort-adjusted):**
+1. Energy proxy score in AROMER MetaJudge — Low effort, immediate (Liu et al. NeurIPS 2020)
+2. Online martingale OOD test in hook — Medium effort (Ma et al. ICML 2025)
+3. Wasserstein-CP bound extension for general shift — Medium effort (Xu et al. ICLR 2025)
+4. Cite Ren et al. ICLR 2023 for oracle-level OOD abstention — Zero effort (mandatory citation)
+5. Map REM-021 reviewer loop to Vishwakarma et al. — Zero effort documentation (AISTATS 2024)
+
+---
+
 ## 2. REMORA Alignment Analysis
 
 ### 2.1 Swiss Cheese Model — Layer Coverage
@@ -307,7 +335,33 @@ REMORA tracks ECE (currently 0.007) but not IPR or CE. ECE alone can be gamed: a
 
 **Recommendation:** Add IPR and CE alongside ECE in the `/log` calibration section. Both can be computed from existing episode data (mean_score distribution vs. correctness labels). See `docs/researchpapers/analysis_notes_2026-06-30.md` §2.2 for formulas.
 
-### 3.10 Formal Violation Rate and Property Coverage Gap (Corsi et al. 2021)
+### 3.10 No Online Per-step OOD Detection with Error Control (OOD literature gap)
+
+REMORA's hook currently calls the oracle pipeline for any MEDIUM/HIGH risk call. There is no pre-oracle filter that routes anomalous tool calls to ABSTAIN based on statistical OOD detection. The result: the oracle runs on inputs it may not be calibrated for, and all per-decision uncertainty is captured only post-hoc via H(t) and CRC.
+
+**Martingale-based online OOD (Ma et al. ICML 2025):** A martingale statistic maintained over tool-call feature vectors (e.g., command n-gram hashes) can detect distribution shift with Type-I error control, firing a pre-oracle ABSTAIN on anomalous inputs without requiring a labeled OOD dataset. This closes the gap with zero oracle cost on OOD inputs.
+
+**Energy proxy (Liu et al. NeurIPS 2020):** Even without a pre-oracle filter, the oracle's existing `mean_score` output implicitly encodes an energy proxy:
+```
+E_proxy = −log(mean_score) − log(1 − mean_score)
+```
+High `E_proxy` = oracle uncertainty = likely OOD input. This can be computed post-oracle with zero additional cost, surfaced in `/log`, and used to flag sessions trending toward OOD governance for MetaJudge re-weighting.
+
+**Recommendation:** Phase 4 — add `ood_energy_proxy` to AROMER MetaJudge; Phase 5 — add martingale OOD gate to hook Phase 1.5.
+
+### 3.11 Conformal Bound Degrades Under General (Non-Covariate) Shift
+
+REMORA's CRC guarantee `E[L(λ̂)] ≤ α + 1/(n+1)` assumes covariate shift — the label distribution stays fixed while tool-call input patterns change. When a new Claude version introduces novel harm categories (label shift) simultaneously with new command patterns, the standard CRC bound is technically violated.
+
+**Xu et al. ICLR 2025** extend conformal prediction to general distribution shift via Wasserstein regularisation:
+```
+E[L(λ̂)] ≤ α + 1/(n+1) + W₁(P_cal, P_test)
+```
+where W₁ is the Wasserstein-1 distance between calibration and test distributions — computable from episode embeddings.
+
+**Recommendation:** Phase 5 — extend `remora/selective/crc.py` with W₁ correction term; cite Xu et al. when claiming CRC covers distribution-shifted deployments.
+
+### 3.12 Formal Violation Rate and Property Coverage Gap (Corsi et al. 2021)
 
 REMORA's safety metrics (FAR=0%, ECE=0.007, AII=0.979) are empirically estimated over observed episodes. Corsi et al. demonstrate that empirical evaluation systematically **misses adversarial input configurations** that are structurally unsafe but rarely encountered in practice — even policies with maximum reward can exhibit 50% violation rates in the formally-evaluated input domain.
 
@@ -327,6 +381,7 @@ Both encode rational decision constraints without requiring complete prior knowl
 - Define REMORA's Stage 1 rules in property form (Corsi et al. §3.1 formalism) in documentation
 - Compute empirical violation_rate proxy from AH harness episodes: fraction of threat inputs NOT blocked by Stage 1 that the oracle subsequently fails on
 - Cite Corsi et al. 2021 whenever "formal coverage" or "safety verification" is claimed in REMORA docs
+- See also §3.10 (energy proxy and martingale OOD gate) for complementary formal coverage metrics
 
 ---
 
@@ -367,6 +422,11 @@ The following capabilities exceed what both papers study or propose:
 - [ ] Implement Wilson Score CIs for all calibration metrics in evaluation reports
 - [ ] Define Stage 1 LOCAL_BLOCK rules in ProVe property form and compute empirical violation_rate proxy (Corsi et al. 2021)
 - [ ] Track violation_rate (harm-detection coverage) throughout AROMER LoRA fine-tuning to detect safety regression analogous to Corsi et al. Fig. 4
+- [ ] Add online martingale OOD gate to `scripts/remora_hook.py` Phase 1.5 (Ma et al. ICML 2025)
+- [ ] Extend `remora/selective/crc.py` with Wasserstein-1 coverage correction for general shift (Xu et al. ICLR 2025)
+- [ ] Add AROMER energy proxy score `ood_energy_proxy = −log(p) − log(1−p)` to MetaJudge loop (Liu et al. NeurIPS 2020)
+- [ ] Map REM-021 human reviewer feedback loop formally to Vishwakarma et al. AISTATS 2024 FP-correction architecture
+- [ ] Evaluate AROMER oracle on OOD NLP benchmark (Yuan et al. NeurIPS 2023) to establish standardised OOD AUROC baseline
 
 ---
 
@@ -404,6 +464,39 @@ Department of Computer Science, University of Verona.
 - IPR and CE metrics (to be added to REMORA) → Zhang et al. 2024
 - Any claim about "formal safety verification", "violation rate", or "behavioral safety properties" → cite Corsi et al. 2021
 - Stage 1 LOCAL_BLOCK rules described as "behavioral safety properties" → cite Corsi et al. 2021
+- Any claim about "OOD detection for LLM/text" or oracle-level abstention → cite Ren et al. ICLR 2023 and Lang et al. TMLR 2023
+- Any claim about energy-based OOD scoring → cite Liu et al. NeurIPS 2020
+- Any claim about per-step/online OOD detection → cite Ma et al. ICML 2025
+- Any claim about CRC under distribution shift (non-covariate) → cite Xu et al. ICLR 2025
+- Any claim about human feedback for FP correction in escalation loop → cite Vishwakarma et al. AISTATS 2024
+
+**OOD literature citations (top-priority additions):**
+```
+Liu, W., Wang, X., Owens, J., and Li, Y. 2020. "Energy-based Out-of-Distribution
+Detection." Advances in Neural Information Processing Systems (NeurIPS 2020).
+
+Ren, J., Liao, J., Snell, J., Frosst, N., Hinton, G.E., and Vinyals, O. 2023.
+"Out-of-Distribution Detection and Selective Generation for Conditional Language
+Models." International Conference on Learning Representations (ICLR 2023).
+
+Lang, Y. et al. 2023. "A Survey on Out-of-Distribution Detection in NLP."
+Transactions on Machine Learning Research (TMLR). arXiv:2305.03236.
+
+Vishwakarma, H., Garg, R., and Bhatt, G. 2024. "Taming False Positives in
+Out-of-Distribution Detection with Human Feedback." AISTATS 2024. arXiv:2404.16954.
+
+Ma, Y. et al. 2025. "An Online Statistical Framework for Out-of-Distribution
+Detection." ICML 2025. PMLR vol. 267.
+
+Xu, C. et al. 2025. "Wasserstein-Regularized Conformal Prediction Under General
+Distribution Shift." ICLR 2025.
+
+Gomes, D.D.C. and Romanelli, M. 2025. "Optimal Zero-shot Regret Minimization for
+Selective Classification with OOD Detection." UAI 2025. PMLR vol. 286.
+
+Zhang, M. et al. 2025. "Your Finetuned Large Language Model is Already a Powerful
+Out-of-Distribution Detector." AISTATS 2025. PMLR vol. 258.
+```
 
 ---
 
