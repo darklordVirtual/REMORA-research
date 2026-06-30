@@ -1,0 +1,11 @@
+{
+  "schema": "result_provenance_v1",
+  "schema_version": "1",
+  "commit_hash": "483d1b028fc2cfd3a5b9e8b49a04f3e6baad129e",
+  "generated_at": "2026-06-30T09:54:34Z",
+  "script": "experiments/agentharm/score_guardrail.py",
+  "n_samples": 416,
+  "model_version": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "gate": null,
+  "notes": "AgentHarm ai-safety-institute/AgentHarm benchmark. 208 harmful + 208 benign scenarios. Artifact produced in REMORA main implementation repo at commit 483d1b028fc2cfd3a5b9e8b49a04f3e6baad129e; copied to REMORA-research for public verifiability. Full benchmark metadata in external_benchmark_agentharm_v1.json."
+}
