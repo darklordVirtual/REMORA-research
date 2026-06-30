@@ -412,7 +412,7 @@ The following capabilities exceed what both papers study or propose:
 ## 5. Recommendations for REMORA Roadmap
 
 **Phase 4 (current — before REM-020/021/022 gate):**
-- [ ] Add PPV-at-prevalence metric to AII dashboard (low effort, high informational value)
+- [x] Add PPV-at-prevalence metric to AII dashboard — deployed ddf426b: safety.precision_recall JSON + Section 2 text block; precision=98.5%, recall=100.0%, F1=99.3%
 - [ ] Review oracle hook prompt structure against LGA's `(task, tool_call)` template
 - [ ] Expand LOCAL_BLOCK to cover TC3-class patterns (telemetry exfiltration signatures)
 - [x] MCE and ACE calibration metrics added to `/log` endpoint (Zhang et al. 2024) — commit a2f1612
