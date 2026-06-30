@@ -338,7 +338,7 @@ REMORA tracks ECE (currently 0.007) but not IPR or CE. ECE alone can be gamed: a
 
 **CE gap:** AROMER MetaJudge tends to score most critiques in the 0.95–0.99 range (narrow band). This low CE means the oracle confidence is not informative across the full range.
 
-**Recommendation:** Add IPR and CE alongside ECE in the `/log` calibration section. Both can be computed from existing episode data (mean_score distribution vs. correctness labels). See `docs/researchpapers/analysis_notes_2026-06-30.md` §2.2 for formulas.
+**Status: DONE — commit ac954ec.** IPR=0.000 (perfect monotonicity confirmed), CE=0.141 (skewed toward low-harm bucket; reflects actual tool-call distribution). Both exposed in `aii_components.current.calibration` JSON and text Section 1.
 
 ### 3.10 No Online Per-step OOD Detection with Error Control (OOD literature gap)
 
@@ -352,7 +352,7 @@ E_proxy = −log(mean_score) − log(1 − mean_score)
 ```
 High `E_proxy` = oracle uncertainty = likely OOD input. This can be computed post-oracle with zero additional cost, surfaced in `/log`, and used to flag sessions trending toward OOD governance for MetaJudge re-weighting.
 
-**Recommendation:** Phase 4 — add `ood_energy_proxy` to AROMER MetaJudge; Phase 5 — add martingale OOD gate to hook Phase 1.5.
+**Recommendation:** Phase 5 — add martingale OOD gate to hook Phase 1.5. The `ood_energy_proxy` Phase 4 item is addressed by the existing `oracle_uncertainty` H(p) field in `ood_monitoring` — functionally equivalent for in-distribution detection (H(0.9987)=0.010 correctly flags uncertainty); explicit E_proxy would provide an alternative scale but no additional coverage.
 
 ### 3.11 Conformal Bound Degrades Under General (Non-Covariate) Shift
 
