@@ -30,6 +30,12 @@ from remora.policy.trap_classifier import (
     score as trap_score,
 )
 
+# Minimum number of independent oracle votes required to trust consensus.
+# Fewer votes means the oracle pool may be degraded or partially compromised.
+# If oracle consultation was attempted (valid_oracle_count > 0 or oracle_failures > 0)
+# but fewer than this number of oracles responded, route to human review.
+MIN_REQUIRED_ORACLE_VOTES: int = 2
+
 # Action types that are inherently safe to classify conservatively.
 # Misspecification gates skip these to avoid blocking obviously read-only actions.
 _READ_ONLY_TYPES: frozenset[str] = frozenset({
@@ -311,6 +317,16 @@ class RemoraDecisionEngine:
 
         if obs.risk_tier == "critical":
             reasons.append(DecisionReason.EVIDENCE_INSUFFICIENT)
+            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+
+        # ── ORACLE QUORUM GATE ───────────────────────────────────────────────
+        # Route to human review when oracle consultation was attempted but fewer
+        # than MIN_REQUIRED_ORACLE_VOTES independent oracles responded. A partial
+        # oracle pool (1 of 3 responding) provides no meaningful consensus signal
+        # and cannot be distinguished from a degraded or compromised oracle pool.
+        _oracle_attempted = obs.valid_oracle_count > 0 or obs.oracle_failures > 0
+        if _oracle_attempted and obs.valid_oracle_count < MIN_REQUIRED_ORACLE_VOTES:
+            reasons.append(DecisionReason.INSUFFICIENT_ORACLE_VOTES)
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── MINIMAX GATE ─────────────────────────────────────────────────────

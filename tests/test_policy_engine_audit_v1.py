@@ -660,6 +660,103 @@ class TestPolicyBundleHash:
 
 
 # ---------------------------------------------------------------------------
+# Oracle quorum gate (Wave 3 P0 — oracle collusion gap)
+# ---------------------------------------------------------------------------
+
+class TestOracleQuorumGate:
+    """Oracle quorum gate: VERIFY when < MIN_REQUIRED_ORACLE_VOTES responded.
+
+    Addresses the oracle collusion gap documented in docs/assurance/red_team_plan_v1.md
+    (AT-11) and operation_master_plan_v1.md. When fewer than 2 independent oracles
+    respond, the engine cannot distinguish genuine consensus from oracle degradation
+    or a partial oracle pool compromise.
+    """
+
+    def test_single_oracle_vote_routes_to_verify(self) -> None:
+        """1 of N oracles responding → INSUFFICIENT_ORACLE_VOTES → VERIFY."""
+        obs = _obs(
+            phase="ordered",
+            risk_tier="low",
+            trust_score=0.95,
+            action_type="read",
+            valid_oracle_count=1,
+            oracle_failures=2,
+        )
+        report = _engine.decide(obs)
+        assert report.action == DecisionAction.VERIFY
+        assert DecisionReason.INSUFFICIENT_ORACLE_VOTES in report.reasons
+
+    def test_zero_oracles_with_failures_routes_to_verify(self) -> None:
+        """0 oracles responded but failures indicate consultation was attempted → VERIFY."""
+        obs = _obs(
+            phase="ordered",
+            risk_tier="low",
+            trust_score=0.99,
+            action_type="read",
+            valid_oracle_count=0,
+            oracle_failures=3,
+        )
+        report = _engine.decide(obs)
+        assert report.action == DecisionAction.VERIFY
+        assert DecisionReason.INSUFFICIENT_ORACLE_VOTES in report.reasons
+
+    def test_two_oracle_votes_passes_quorum(self) -> None:
+        """2 oracle votes meets minimum — does NOT trigger insufficient gate."""
+        obs = _obs(
+            phase="ordered",
+            risk_tier="low",
+            trust_score=0.95,
+            action_type="read",
+            valid_oracle_count=2,
+            oracle_failures=0,
+        )
+        report = _engine.decide(obs)
+        assert DecisionReason.INSUFFICIENT_ORACLE_VOTES not in report.reasons
+
+    def test_three_oracle_votes_passes_quorum(self) -> None:
+        """3 oracle votes (full pool) — gate silent."""
+        obs = _obs(
+            phase="ordered",
+            risk_tier="low",
+            trust_score=0.95,
+            action_type="read",
+            valid_oracle_count=3,
+            oracle_failures=0,
+        )
+        report = _engine.decide(obs)
+        assert DecisionReason.INSUFFICIENT_ORACLE_VOTES not in report.reasons
+
+    def test_no_oracle_consultation_not_triggered(self) -> None:
+        """No oracle data (count=0, failures=0) — gate is silent (no consultation attempted)."""
+        obs = _obs(
+            phase="ordered",
+            risk_tier="low",
+            trust_score=0.95,
+            action_type="read",
+            valid_oracle_count=0,
+            oracle_failures=0,
+        )
+        report = _engine.decide(obs)
+        assert DecisionReason.INSUFFICIENT_ORACLE_VOTES not in report.reasons
+
+    def test_hard_blocks_take_priority_over_oracle_quorum(self) -> None:
+        """adversarial_detected ESCALATE fires before oracle quorum check."""
+        obs = _obs(
+            phase="ordered",
+            risk_tier="low",
+            trust_score=0.95,
+            action_type="read",
+            valid_oracle_count=1,
+            oracle_failures=2,
+            adversarial_detected=True,
+        )
+        report = _engine.decide(obs)
+        assert report.action == DecisionAction.ESCALATE
+        assert DecisionReason.ADMISSION_FIREWALL_BLOCKED in report.reasons
+        assert DecisionReason.INSUFFICIENT_ORACLE_VOTES not in report.reasons
+
+
+# ---------------------------------------------------------------------------
 # Additional invariant sweep — smoke test for new findings
 # ---------------------------------------------------------------------------
 

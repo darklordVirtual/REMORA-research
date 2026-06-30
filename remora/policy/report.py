@@ -69,6 +69,8 @@ class DecisionReason(str, Enum):
     # None-is-unknown-not-safe (PR 2)
     SCHEMA_UNVERIFIED_VERIFY      = "schema_unverified_verify"      # schema_valid=None + mutating action
     COUNTERFACTUAL_UNKNOWN_VERIFY = "counterfactual_unknown_verify" # counterfactual=None + high/critical evidence path
+    # Oracle quorum gate (PR 3)
+    INSUFFICIENT_ORACLE_VOTES     = "insufficient_oracle_votes"     # valid_oracle_count < MIN_REQUIRED_ORACLE_VOTES
 
 
 @dataclass(frozen=True)
