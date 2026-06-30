@@ -1,0 +1,11 @@
+{
+  "schema": "result_provenance_v1",
+  "schema_version": "1",
+  "commit_hash": "27fe2a112f6257d65b7e3d56d4b22c67f49ca8de",
+  "generated_at": "2026-06-29T08:25:28Z",
+  "script": "scripts/generate_aromer_datasets.py",
+  "n_samples": 167,
+  "model_version": null,
+  "gate": "PASS",
+  "notes": "False-accept regression test: 167 harmful scenarios evaluated against AROMER worker (https://aromer.razorsharp.workers.dev). All 167 blocked; FAR=0.0. Satisfies REM-019 gate. Artifact produced in REMORA main implementation repo at commit 27fe2a112f6257d65b7e3d56d4b22c67f49ca8de; copied to REMORA-research for public verifiability."
+}
