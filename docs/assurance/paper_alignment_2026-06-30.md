@@ -1,9 +1,10 @@
 # Research Paper Alignment Analysis
 **Date:** 2026-06-30  
-**Scope:** REMORA/AROMER alignment with two frontier governance papers  
+**Scope:** REMORA/AROMER alignment with three frontier papers  
 **Papers reviewed:**
 1. Shamsujjoha et al. (arXiv:2408.02205v2) — Swiss Cheese Model taxonomy of runtime guardrails
 2. Ge (arXiv:2603.07191v2) — LGA 4-layer governance architecture for autonomous agent systems
+3. Zhang et al. (arXiv:2404.02655v2) — UF Calibration: decomposing LLM confidence into Uncertainty and Fidelity
 
 ---
 
@@ -59,7 +60,7 @@ Accuracy, Generalizability, Customizability, Adaptability, Traceability, Portabi
 - Best local model: Qwen2.5-14B — ZH 98.2% IR / 9.7% FPR, EN 98.5% IR / 20.1% FPR
 - Best precision: GPT-4o-mini — ZH 93.0% IR / 3.2% FPR, EN 95.4% IR / 12.3% FPR  
 - NLI baselines (BART-MNLI, mDeBERTa): <10% IR — insufficient without task-specific tuning
-- Local cascade (Qwen3.5-9B→Qwen2.5-14B): 94.7–95.6% IR, 6.0–9.7% FPR — viable data-sovereign option
+- Local cascade (small Qwen→Qwen2.5-14B): 94.7–95.6% IR, 6.0–9.7% FPR — viable data-sovereign option [⚠️ exact cascade model name unverified — "Qwen3.5-9B" used in earlier notes does not correspond to a known model; verify against paper §4.2]
 - TC3 harder: 75–94% IR; covert side-channel attacks partially blend with declared intent
 
 **Critical statistical finding:** At 1% attack prevalence, even GPT-4o-mini (ZH, FPR=3.2%) yields only **22.7% PPV** — 3 out of 4 blocks are false positives. Consequence: Layer 2 must not be the sole gatekeeper; L1 sandbox is the always-on containment boundary.
@@ -67,6 +68,55 @@ Accuracy, Generalizability, Customizability, Adaptability, Traceability, Portabi
 **Adversarial robustness:** Purpose-built evasion samples reduce IR to 50–63%, with double-negation and authority-injection as hardest attacks.
 
 **End-to-end pipeline:** 96% IR, P50=980ms total (L1+L3+L4 contribute only ∼18ms; LLM judge dominates).
+
+---
+
+### 1.3 Zhang et al. 2024 — UF Calibration
+
+**Citation:** Zhang, M., Huang, M., Shi, R., Guo, L., Peng, C., Yan, P., Zhou, Y., and Qiu, X. 2024. "Calibrating the Confidence of Large Language Models by Eliciting Fidelity." *arXiv preprint arXiv:2404.02655v2*. Fudan University / Meituan.
+
+**Problem:** RLHF-optimized LLMs exhibit systematic overconfidence — expressed confidence scores don't match actual correctness rates. Logit-based methods require T>2.0 (destabilizing outputs); verbalization-based methods biased toward fixed expressions.
+
+**Core contribution: UF Calibration** — decomposes confidence into two orthogonal dimensions:
+
+```
+Conf(Q, ai) = (1 − Uncertainty(Q)) × F(ai)
+```
+
+**Uncertainty(Q):** Normalized Shannon entropy of K=10 sampled answers:
+```
+Uncertainty(Q) = −Σ(pi · log pi) / log M     [M = number of candidate answers]
+```
+
+**Fidelity F(ai):** Hierarchical fidelity chain via greedy decoding:
+1. Replace chosen answer content oi with "All other options are wrong."
+2. Re-query model (greedy). If model switches, fidelity is low; repeat until model selects the "wrong" option.
+3. Chain: e.g., A→C→D (model prefers A; if A removed, prefers C; etc.)
+4. Assign weight τ^i from right-to-left (τ=2 default); normalize.
+5. Average fidelity across chains weighted by Psampled.
+
+**Works without logits** (black-box compatible). Requires known candidate answer set — applies to MCQA, classification, preference labeling.
+
+**Key results (LLaMA2-13B-Chat ablation, Table 4 of paper):**
+- Best competing method ECE avg: 0.185 (across ARC/MMLU/CSQA/TruthfulQA)
+- UF Calibration ECE avg: **0.076** (−59% vs. best baseline)
+- Temperature-robust: maintains lowest ECE across all temperatures tested
+
+**Two new calibration metrics proposed:**
+
+*IPR (Inverse Pair Ratio)* — reliability diagram monotonicity:
+```
+IPR_M = IP / C(K, 2)     [IP = inverse pairs, K = non-empty bins; lower is better]
+```
+
+*CE (Confidence Evenness)* — spread of confidence across the full range:
+```
+CE_M = −Σ(pi · log pi) / log M     [pi = density per bin; higher is better]
+```
+
+ECE alone can be gamed (constant base-rate prediction achieves ECE=0 and IPR=0 but CE=0). All three together define "truly well-calibrated" confidence.
+
+**Experiments:** 6 RLHF-LMs (GPT-3.5-Turbo, GPT-4-Turbo, LLaMA2-7B/13B/70B-Chat, Baichuan2-13B-Chat), 4 MCQA datasets, 0-shot setting.
 
 ---
 
@@ -141,7 +191,7 @@ REMORA's layering is **stronger** than what Shamsujjoha et al. study covers — 
 
 #### L2 Intent Verification vs REMORA Oracle Pipeline
 
-**LGA L2:** Single LLM judge receiving structured `(task, tool_call) → ALLOW/BLOCK` prompt. Best: Qwen2.5-14B (98.2–98.5% IR). Cascade improves precision to 1.9% FPR.
+**LGA L2:** Single LLM judge receiving structured `(task, tool_call) → ALLOW/BLOCK` prompt. Best: Qwen2.5-14B (98.2–98.5% IR). Local small→large cascade improves FPR to 1.9–6.7% range [⚠️ cascade first-stage model name unverified in Ge paper; not "Qwen3.5-9B"].
 
 **REMORA Stage 2–5:** Intent-drift (Jaccard) + FastGate → ConsensusGate → VerifierGate → CritiqueRevision → SelfConsistency + 3-oracle GO-STAR ensemble (llama-3.3-70b-fp8-fast, qwen3-30b-a3b-fp8, mistral-small-3.1-24b).
 
@@ -207,6 +257,16 @@ LGA's adversarial probe shows IR drops to 50–63% under purpose-built evasion s
 
 Shamsujjoha et al. identify Privacy as a primary external quality attribute. REMORA masks secrets (CF_AIG_TOKEN etc.) but has no PII detection, data minimization guardrails, or GDPR-specific protections beyond organizational RBAC.
 
+### 3.9 Calibration Monotonicity and Spread (Zhang et al. gap)
+
+REMORA tracks ECE (currently 0.007) but not IPR or CE. ECE alone can be gamed: a model that always outputs the base-rate confidence has ECE=0 without being informative. Zhang et al. show that IPR (monotonicity) and CE (spread) are orthogonal dimensions that ECE misses.
+
+**IPR gap:** REMORA's current oracle pipeline may exhibit non-monotonic calibration — high-confidence decisions could be systematically less accurate than medium-confidence decisions if the anchor threshold (exRiskScore 0.99) is too compressed. IPR would detect this.
+
+**CE gap:** AROMER MetaJudge tends to score most critiques in the 0.95–0.99 range (narrow band). This low CE means the oracle confidence is not informative across the full range.
+
+**Recommendation:** Add IPR and CE alongside ECE in the `/log` calibration section. Both can be computed from existing episode data (mean_score distribution vs. correctness labels). See `docs/researchpapers/analysis_notes_2026-06-30.md` §2.2 for formulas.
+
 ---
 
 ## 4. What REMORA Does Better
@@ -233,12 +293,16 @@ The following capabilities exceed what both papers study or propose:
 - [ ] Add PPV-at-prevalence metric to AII dashboard (low effort, high informational value)
 - [ ] Review oracle hook prompt structure against LGA's `(task, tool_call)` template
 - [ ] Expand LOCAL_BLOCK to cover TC3-class patterns (telemetry exfiltration signatures)
+- [ ] Add IPR and CE calibration metrics to `/log` endpoint (Zhang et al. 2024)
+- [ ] Verify cascade model name in Ge 2026 §4.2 — correct the "Qwen3.5-9B" error in this document
 
 **Phase 5 (post-gate):**
 - [ ] Implement declared tool permission schemas (JSON schema per tool type; validate at hook)
 - [ ] Add adversarial robustness evaluation to AgentHarm harness
 - [ ] Consider process-level isolation for Bash tool calls (WSL2/Docker via hook)
 - [ ] Multi-agent governance design (relevant for REMORA-edge DIANA)
+- [ ] Evaluate UF Calibration fidelity chain on AROMER oracle decisions (Zhang et al. 2024)
+- [ ] Implement Wilson Score CIs for all calibration metrics in evaluation reports
 
 ---
 
@@ -253,14 +317,21 @@ by Design." arXiv preprint arXiv:2408.02205v2. CSIRO Data61.
 
 Ge, Y. 2026. "Governance Architecture for Autonomous Agent Systems: Threats, Framework,
 and Engineering Practice." arXiv preprint arXiv:2603.07191v2. University of York.
+
+Zhang, M., Huang, M., Shi, R., Guo, L., Peng, C., Yan, P., Zhou, Y., and Qiu, X. 2024.
+"Calibrating the Confidence of Large Language Models by Eliciting Fidelity."
+arXiv preprint arXiv:2404.02655v2. Fudan University / Meituan.
 ```
 
 **Where citations apply in REMORA:**
-- `docs/whitepaper/` — Section on multi-layer defense architecture (both papers)
+- `docs/whitepaper/` — Section on multi-layer defense architecture (Shamsujjoha, Ge)
+- `docs/whitepaper/` — Calibration and uncertainty quantification section (Zhang et al.)
 - `docs/assurance/` — REM-021 external review prep: these papers validate REMORA's layered approach
 - `REMORA-research/` — Architecture overview, credibility pack
 - Any claim about "Swiss Cheese defense layering" → cite Shamsujjoha et al.
 - Any claim about "LLM-based intent verification" → cite Ge 2026
+- Any claim about ECE, calibration, or oracle confidence quality → cite Zhang et al. 2024
+- IPR and CE metrics (to be added to REMORA) → Zhang et al. 2024
 
 ---
 
