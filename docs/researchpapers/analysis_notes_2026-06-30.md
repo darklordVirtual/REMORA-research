@@ -1,0 +1,211 @@
+# Research Analysis Notes — 2026-06-30
+
+**Covers:**
+1. Error review of `analyse_av_remora_forskning.pdf`
+2. Key findings from Zhang et al. 2024 (arXiv:2404.02655v2) — UF Calibration
+3. Implementation recommendations for REMORA
+
+---
+
+## 1. Error Review: `analyse_av_remora_forskning.pdf`
+
+This Norwegian-language review document covers REMORA governance, claim hygiene, calibration, OOD detection, and formal verification. Overall quality is high, but the following issues were identified.
+
+### 1.1 Factual Error — Model Name "Qwen3.5-9B" (§2.2, Tabell 1)
+
+**Issue:** Table 1 in Section 2.2 shows a cascade configuration "Qwen3.5-9B → GPT-4o-mini" with IR=91.9–92.6%, FPR=1.9–6.7%.
+
+"Qwen3.5-9B" does not exist as a published model. The Qwen model family uses naming like Qwen2.5-7B, Qwen2.5-14B, Qwen3-8B, Qwen3-14B. No "Qwen3.5" series exists as of 2026-06-30.
+
+Additionally, the companion paper_alignment document (created from the same Ge source) describes the cascade differently as "Qwen3.5-9B→Qwen2.5-14B" — inconsistent with the Norwegian doc's "Qwen3.5-9B → GPT-4o-mini". These two descriptions cannot both be correct.
+
+**Action required:** Verify against original Ge paper (arXiv:2603.07191v2) for exact cascade model names. The cascade is most likely a local Qwen2.5-small → Qwen2.5-14B configuration. The paper_alignment_2026-06-30.md must also be corrected.
+
+**Status:** Error confirmed — both the Norwegian analysis and paper_alignment use an incorrect model name from the Ge paper.
+
+### 1.2 ECE Claim Verified (§5.2)
+
+**Claim:** "fra 0.185 til 0.076" (ECE reduction from 0.185 to 0.076 via UF Calibration)
+
+**Status: CORRECT.** Table 4 in Zhang et al. (2404.02655v2) shows for LLaMA2-13B-Chat:
+- "Best Result (Others)" average ECE = 0.185 across 4 benchmarks
+- "Ours (UF Calibration)" average ECE = 0.076
+
+The claim is accurately attributed to [12] = Zhang et al. 2024.
+
+### 1.3 Incomplete Reference List (§Sources)
+
+The numbered source list (§ "Kilder") contains only short titles without full author names, publication years, arXiv IDs, or DOIs. References [3], [13], [15], [17], [20], [21], [24] are not locatable from title alone.
+
+**Specifically missing:**
+- [15] "Selective Classification of Sequential Data Using Inductive..." — critical for the ICP claim (§6.2) but not identifiable without full citation
+- [13] "ICML 2026 Papers" — reference to a conference listing, not a specific paper
+- [3] "AdaptiveGuard: Towards Adaptive Runtime Safety for LLM-Powered..." — should cite full arXiv ID
+
+**Recommendation:** Convert the short-title list to full academic citations with arXiv IDs where available. This is required for any publication submission.
+
+### 1.4 Subjective Section (§9 — Author Competence Profile)
+
+Section 9 assesses the author's competence. This is appropriate for an internal review document but would not appear in a published paper. The technical strengths identified are:
+- Advanced statistical knowledge (Wilson CI, Pseudo-Count Bootstrap) ✓
+- Security architecture (multi-layer runtime barriers) ✓
+- Claim hygiene methodology ✓
+
+**Improvement areas noted in §9.2:**
+- Gap between formal verification theory and runtime cost (TLA+/ProVe latency)
+- Non-IID temporal drift: mathematical proofs for conformal validity under temporal correlation not formalized
+
+These are **valid gaps** that should appear in REMORA's research roadmap.
+
+### 1.5 Tips for Documentation Structure
+
+Based on the analysis document, the following improvements would strengthen REMORA-research:
+
+1. **Add Claim-Evidence Maps to README**: Each empirical claim links to its executable artifact. The Norwegian doc describes this as a needed improvement (§11.2) — implement it.
+
+2. **Replace Wald CIs everywhere**: Current evaluation docs should use Wilson Score intervals, especially for metrics near 0 or 1 (FAR=0%, ECE=0.007). Add CIs to AII dashboard.
+
+3. **Escalation matrix**: The document's Table 2 (§8.1) shows Low/Medium/High/Critical autonomy tiers with response times. REMORA has the architecture for this but the documentation doesn't expose it clearly. Add to architecture overview.
+
+4. **Identity Blast Radius metric**: §8.2 introduces this concept — "the total scope of resources an autonomous identity can affect or destroy before a human operator can intervene." REMORA's RBAC controls this but doesn't compute or expose the metric.
+
+5. **Roadmap structure**: The 12-week publication roadmap in §11.2 is useful — extract the statistical upgrade items (Wilson CI, Pseudo-Count Bootstrap) and add them as concrete REMORA improvement tickets.
+
+---
+
+## 2. UF Calibration — Zhang et al. 2024 (arXiv:2404.02655v2)
+
+**Full citation:**
+Zhang, M., Huang, M., Shi, R., Guo, L., Peng, C., Yan, P., Zhou, Y., and Qiu, X. 2024. "Calibrating the Confidence of Large Language Models by Eliciting Fidelity." arXiv preprint arXiv:2404.02655v2. Fudan University / Meituan.
+
+### 2.1 Core Method: UF Calibration
+
+RLHF-optimized LLMs exhibit overconfidence — their stated confidence does not match actual correctness rates. The paper decomposes confidence into two orthogonal dimensions:
+
+**Uncertainty(Q):** How ambiguous is the question itself?
+```
+Uncertainty(Q) = -Σ(pi · log pi) / log M
+```
+Computed via K=10 samples, M = number of candidate answers. Normalized Shannon entropy.
+
+**Fidelity F(ai):** How committed is the model to its chosen answer?
+
+Elicitation procedure:
+1. For answer ai with content oi, replace oi with "All other options are wrong."
+2. Re-query the model under greedy decoding.
+3. If the model switches, fidelity is low. Repeat until model selects the "wrong" option.
+4. This builds a hierarchical fidelity chain C (e.g., "A→C→D").
+5. Assign weights τ^i from right-to-left: rightmost (last choice) gets τ^1, etc. Default τ=2.
+6. Normalized fidelity: FidelityC(ai) = τ^i / Σ(τ^j)
+7. Overall fidelity F(ai) averaged across chains weighted by Psampled.
+
+**Combined confidence:**
+```
+Conf(Q, ai) = (1 - Uncertainty(Q)) × F(ai)
+```
+
+**Results on LLaMA2-13B-Chat (ablation, Table 4):**
+- Best competing method: ECE avg = 0.185
+- UF Calibration: ECE avg = 0.076
+- Temperature-robust: best ECE across all temperatures tested
+
+**Limitation:** Requires known answer set (MCQA, classification, preference labeling). Not directly applicable to open-ended generation.
+
+### 2.2 New Metrics: IPR and CE
+
+These supplement ECE and should be adopted in REMORA's calibration monitoring:
+
+**IPR (Inverse Pair Ratio):** Measures reliability diagram monotonicity.
+```
+IPR_M = IP / C(K, 2)
+```
+Where IP = number of inverse pairs in reliability diagram (bins where high-conf has lower accuracy than low-conf), K = non-empty bins, C(K,2) = K*(K-1)/2.
+
+- IPR = 0: perfectly monotonic (ideal)
+- IPR = 1: fully inverted (worst)
+- ECE alone misses non-monotonic patterns; IPR catches them
+
+**CE (Confidence Evenness):** Measures if confidence is spread across the full [0,1] range.
+```
+CE_M = -Σ(pi · log pi) / log M
+```
+Applied to density of each bin in the reliability diagram (not answer entropy — here pi = fraction of predictions falling in bin i).
+
+- High CE: predictions spread across all confidence levels (informative)
+- Low CE: all predictions cluster at 0.8-0.9 (model always says "likely" regardless of question)
+- A model with ECE=0, IPR=0, but CE=0 is gaming calibration by always predicting the base rate
+
+**The three-metric view:** ECE (accuracy), IPR (monotonicity), CE (spread) together define "truly well-calibrated" confidence. Per the paper: "We suggest that truly well-calibrated confidence should achieve a balance among ECE, IPR, and CE, rather than over-optimizing any of them."
+
+### 2.3 Applicability to REMORA
+
+| UF Technique | REMORA Application | Effort |
+|---|---|---|
+| Sampling K=10 for oracle decisions | AROMER critique already multi-sample; formalize Uncertainty(Q) | Low |
+| Fidelity chain probe for oracle | Re-query oracle with "All other decisions are wrong" to verify commitment | Medium |
+| IPR metric | Add to `/log` endpoint calibration section | Low |
+| CE metric | Add to `/log` endpoint calibration section | Low |
+| Conf(Q,ai) = (1-U)×F formula | Replace mean_score anchor with calibrated composite | High |
+| Temperature-robust calibration | Current ECE=0.007 — verify this holds across temperature settings | Low |
+
+**Priority implementation (Quick wins):**
+
+1. **Add IPR and CE tracking to AROMER**: These require only the existing episode data (confidence scores + correctness labels). Can be computed alongside current ECE.
+
+2. **Document oracle fidelity probe**: Add a fidelity verification step to the structured oracle prompt as an optional HIGH-confidence verification path.
+
+3. **Cite Zhang et al. 2024 in calibration documentation**: Add to `docs/assurance/` and whitepaper wherever ECE is discussed.
+
+---
+
+## 3. Consolidated Improvement Recommendations
+
+### Immediate (documentation only):
+
+- [ ] Fix "Qwen3.5-9B" model name in paper_alignment_2026-06-30.md (verify against Ge arXiv)
+- [ ] Add full citations with arXiv IDs to `analyse_av_remora_forskning.pdf` source list
+- [ ] Add Zhang et al. 2024 (2404.02655v2) to paper_alignment document
+- [ ] Add IPR/CE metric definitions to `docs/aromer/learning-log-v2.md`
+
+### Phase 4 (code changes):
+
+- [ ] Compute IPR and CE alongside ECE in the `/log` endpoint's calibration section
+  - Requires: binned reliability data from episode outcomes vs. confidence scores
+  - File: `workers/aromer/src/index.ts` — add to calibration computation block
+- [ ] Add Wilson Score CI to AII dashboard next to point estimates
+- [ ] Expose Identity Blast Radius concept in RBAC documentation
+
+### Phase 5 (research):
+
+- [ ] Evaluate UF Calibration fidelity chain on AROMER oracle decisions
+- [ ] Evaluate IPR score on current episode set — if non-zero, investigate miscalibration direction
+- [ ] Consider Pseudo-Count Regularized Bootstrap for F1-score CIs in AromerEvaluate
+
+---
+
+## 4. Literature Structure Recommendations
+
+For REMORA-research documentation, the following literature organization improves academic credibility:
+
+**Tier 1 — Core alignment (mandatory citations):**
+- Shamsujjoha et al. 2024 (arXiv:2408.02205v2) — Swiss Cheese taxonomy
+- Ge 2026 (arXiv:2603.07191v2) — LGA 4-layer architecture
+- Zhang et al. 2024 (arXiv:2404.02655v2) — UF Calibration (ECE/IPR/CE)
+- Bjøru 2026 (NTNU ISBN 978-82-353-0022-5) — Causal PS/PN attribution
+
+**Tier 2 — Selective prediction / OOD:**
+- Chen & Yoon 2024 (Google ASPIRE) — selective prediction for LLMs
+- El-Yaniv & Wiener 2010 — selective classification foundational theory
+- Kumar et al. 2023 — conformal prediction for LLM calibration
+
+**Tier 3 — Supporting architecture:**
+- Corsi et al. 2021 — formal verification of neural networks (ProVe, violation rate)
+- Kuhn et al. 2023 (ICLR) — Semantic Uncertainty (NLI-based, REMORA's H(t))
+- Wang et al. 2023 — selective trust in LLM ensembles
+
+Each REMORA claim category should cite at least one Tier 1 paper:
+- Multi-layer defense → Shamsujjoha et al.
+- Intent verification → Ge 2026
+- Calibration → Zhang et al. 2024
+- Selective abstention → ASPIRE / El-Yaniv
+- Causal attribution → Bjøru 2026
