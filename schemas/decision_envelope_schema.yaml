@@ -134,6 +134,10 @@
         "requires_policy_owner_approval": { "type": "boolean" }
       }
     },
+    "causal_explanation": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
     "audit": {
       "type": "object",
       "required": ["policy_version", "hash", "previous_hash", "signature"],
