@@ -165,7 +165,9 @@ Applied to density of each bin in the reliability diagram (not answer entropy �
 - [ ] Fix "Qwen3.5-9B" model name in paper_alignment_2026-06-30.md (verify against Ge arXiv)
 - [ ] Add full citations with arXiv IDs to `analyse_av_remora_forskning.pdf` source list
 - [ ] Add Zhang et al. 2024 (2404.02655v2) to paper_alignment document
+- [ ] Add Corsi et al. 2021 to paper_alignment document
 - [ ] Add IPR/CE metric definitions to `docs/aromer/learning-log-v2.md`
+- [ ] Frame Stage 1 LOCAL_BLOCK rules as behavioral safety properties (Corsi et al. formalism)
 
 ### Phase 4 (code changes):
 
@@ -183,7 +185,94 @@ Applied to density of each bin in the reliability diagram (not answer entropy �
 
 ---
 
-## 4. Literature Structure Recommendations
+## 3. Formal Verification — Corsi et al. 2021 (UAI, PMLR 161:333–343)
+
+**Full citation:**
+Corsi, D., Marchesini, E., and Farinelli, A. 2021. "Formal Verification of Neural Networks for Safety-Critical Tasks in Deep Reinforcement Learning." *Proceedings of the Thirty-Seventh Conference on Uncertainty in Artificial Intelligence (UAI 2021)*. PMLR 161:333–343. Department of Computer Science, University of Verona.
+
+### 3.1 Core Contribution: ProVe and Violation Rate
+
+**Central insight:** Standard DRL metrics (cumulative reward, success rate) cannot detect adversarial input configurations — sparse regions of the input space where a correctly-rewarded policy makes irrational decisions. Formal verification fills this gap.
+
+**Violation Rate (Def. 4.1):**
+```
+v = |X_UNSAT| / |X|
+```
+ProVe measures the fraction of the input domain where a safety property is violated. This is an upper bound on the actual probability of failure in deployment — the adversarial regions are typically not visited in standard rollouts (Fig. 3 in paper).
+
+**Safe Rate (Def. 4.2):**
+```
+s = 1 − v
+```
+
+**Behavioral Safety Property (safe-decision form):**
+```
+Θ: If x₀ ∈ [a₀,b₀] ∧ ... ∧ xₙ ∈ [aₙ,bₙ] → yⱼ > yᵢ
+```
+Properties encode rational decisions without requiring deep domain knowledge (e.g., "if obstacle right and obstacle-free otherwise, always prefer left turn"). Properties cover general behavior, not every individual safe/unsafe case.
+
+### 3.2 ProVe Algorithm
+
+1. Encode input domain as matrix A₀ (m×2n: sub-areas × 2 bounds per input node).
+2. Generate multiplication matrix B_{2n×4n} for GPU-parallel bisection.
+3. Propagate each sub-area through the DNN (layer-by-layer bound computation via interval algebra, Moore 1963).
+4. Check each output-bound: SAT / UNSAT / inconclusive (bounds overlap — bisect further).
+5. Remove verified sub-areas; recursively split remaining.
+6. Track violation_rate continuously. Discretization parameter ε limits maximum bisection depth (convergence guarantee).
+
+**GPU advantage:** Matrix bisection is highly parallelizable. ProVe achieves **22x average speedup** over Neurify on ACAS benchmark (25526s → 1163s total). Especially effective on large properties that split into exponentially many sub-areas.
+
+### 3.3 Key Results
+
+**ACAS XU collision avoidance (Table 1 of paper):**
+- 2 behavioral properties (θL, θR: never turn toward an intruder)
+- Violation rate range: ~50% (worst model) to ~5% (best model), across 6 trained models achieving similar reward
+- Strong correlation: violation_rate ≈ 10× actual collision_rate
+- Models with identical reward can differ 10× in safety — reward alone is insufficient as a safety metric
+- ProVe violation_rate with 2 domain-agnostic properties ≈ collision_rate under all 15 formal ACAS properties
+
+**TurtleBot3 navigation (Fig. 4):**
+- Safe rate is NOT correlated with success rate in early/late training phases
+- Policy learns shorter paths at the cost of safety in the final training stage
+- Motivates using violation_rate as a complementary training-time metric
+
+**Timing:** At violation_rate ≈ 5%, runtime check per timestep < 0.01s. At 12%, requires ~1.02s — impractical for real-time control loops (hardware-dependent).
+
+### 3.4 Applicability to REMORA
+
+| ProVe Concept | REMORA Analog | Alignment |
+|---|---|---|
+| Safety property: If input ∈ [a,b] → yⱼ > yᵢ | Stage 1 LOCAL_BLOCK: if tool_call matches pattern → always block | Direct analog — both are "if X, always do Y" behavioral safety rules |
+| Violation rate v = |X_UNSAT|/|X| | FAR (False Accept Rate) | FAR is empirical over observed episodes; violation_rate is formal (covers unvisited threat space too) |
+| Safe rate s = 1−v | Stage 1 coverage | Both measure "what fraction of threat space is correctly handled" |
+| Reachability set Γ(X, fθ) | Lyapunov V(t) = H(t) + λ·D(t) | Both track whether system output stays within a safe semantic region |
+| ε discretization precision | CRC α calibration tolerance | Both control the precision/coverage tradeoff of formal guarantees |
+| ProVe runtime controller | REMORA Shadow Mode | Both verify decisions in real-time before committing to execution |
+| GPU-parallel matrix splitting | GO-STAR parallel 3-oracle ensemble | Both exploit computational parallelism for verification throughput |
+| Behavioral property design (rational decisions) | AROMER MetaJudge scoring (rational governance decisions) | Both evaluate rational vs. irrational decision boundaries |
+
+### 3.5 Limitations and Scope Boundaries
+
+- ProVe requires DNN weight access (not black-box). REMORA's oracle is a remote Cloudflare Worker — direct DNN verification is not applicable.
+- Violation rate is defined over continuous input domains; REMORA's tool-call inputs are partially discrete/symbolic.
+- ProVe complexity is exponential in 1/ε — not feasible for REMORA's high-dimensional decision spaces without significant adaptation.
+- **Takeaway:** ProVe validates the *design principle* (formal coverage metrics, behavioral properties, runtime verification) and provides the citation anchor for REMORA's formal safety claims.
+
+### 3.6 Implementation Recommendations
+
+**Immediate (documentation):**
+- [ ] Cite Corsi et al. 2021 in `docs/assurance/` wherever "formal safety verification" is mentioned
+- [ ] Frame Stage 1 LOCAL_BLOCK rules as "behavioral safety properties" in documentation (aligning with ProVe's formalism)
+- [ ] Add violation_rate concept to REMORA's formal evaluation vocabulary
+
+**Phase 5 (research):**
+- [ ] Define REMORA's Stage 1 rules in property form: Θ: if tool_call ∈ [pattern_set] → decision = BLOCK
+- [ ] Compute empirical violation_rate proxy from AgentHarm episodes (fraction of threat inputs blocked by Stage 1)
+- [ ] Add ProVe-style property verification to AgentHarm harness for formal coverage measurement
+
+---
+
+## 4. Consolidated Improvement Recommendations
 
 For REMORA-research documentation, the following literature organization improves academic credibility:
 
@@ -199,7 +288,7 @@ For REMORA-research documentation, the following literature organization improve
 - Kumar et al. 2023 — conformal prediction for LLM calibration
 
 **Tier 3 — Supporting architecture:**
-- Corsi et al. 2021 — formal verification of neural networks (ProVe, violation rate)
+- Corsi et al. 2021 (UAI/PMLR 161) — formal verification of neural networks (ProVe, violation rate, behavioral safety properties)
 - Kuhn et al. 2023 (ICLR) — Semantic Uncertainty (NLI-based, REMORA's H(t))
 - Wang et al. 2023 — selective trust in LLM ensembles
 
@@ -209,3 +298,4 @@ Each REMORA claim category should cite at least one Tier 1 paper:
 - Calibration → Zhang et al. 2024
 - Selective abstention → ASPIRE / El-Yaniv
 - Causal attribution → Bjøru 2026
+- Formal safety properties / violation rate → Corsi et al. 2021
