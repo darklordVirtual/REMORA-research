@@ -97,7 +97,7 @@ AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's closed
 | T5 Stability | 1.0000 | Active |
 <!-- LIVE_STATUS_END -->
 
-AII phase transitions: WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28. Three production deployment gates remain open before use outside shadow-mode research: longitudinal stability audit (7-day TRAINED window with FAR = 0.0%), independent human review, and RBAC access control audit. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
+AII phase transitions: WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28 and has maintained it since. Two production deployment gates remain open before use outside shadow-mode research: REM-020 (30-day longitudinal stability audit, FAR=0.0%, eligible close 2026-07-07) and REM-021 (independent human review). REM-022 (RBAC audit) is DONE. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
 
 ---
 
