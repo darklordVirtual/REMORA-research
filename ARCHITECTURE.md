@@ -903,7 +903,8 @@ flowchart TD
 AROMER (Autonomous REMORA Orchestrator, Meta-Emergent Reasoner) is a closed-loop
 meta-cognitive governance layer that learns from every decision outcome.
 **Experimental:** labels are partly self-assigned, world model active in shadow mode
-(AII=0.844 TRAINED_SHADOW_ONLY, 12+ cycles, T3=0.800 milestone, FAR=0). No external
+(AII=0.9922 TRAINED, 1814+ adapt_cycles, T1=0.9741, T2=T3=T4=T5=1.000,
+ECE=0.0052 structural ceiling — MCE bucket selection bias, FAR=0). No external
 validation. Do not cite AROMER numbers as production evidence. See
 `docs/REMORA_AROMER_MASTER_DOCUMENT.md` for live state and production gates.
 
