@@ -1486,7 +1486,7 @@ This section documents resolution of the open caveats in §F.6 and the current s
 
 **Current state (2026-06-28, ~15:53 UTC):** AII=0.8042 TRAINED\_SHADOW\_ONLY (recovered from §13 regression). T1=0.682 (ECE=0.064). T2=0.8518 (brr=2.5%, recovering). T3=0.800 [M]. T4=1.000. T5=0.7768 (recovering). FAR=0. `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT`. Full §12→§13 cycle: peak AII=0.8442 (cycle 12, 12:04 UTC) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885 CAPABLE) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). Recovery trajectory: AII 0.789→0.791→0.799→0.7997→0.8042 across 5 consecutive polls. Full §12→§13 sparkline: `NEGATIVE_RESULTS.md §12–§13`. Peer-review impact: none; FAR=0 throughout; the §12→§13→recovery cycle is a documented reproducible empirical result (organic brr acceleration and decay under fixed-size EMA window).
 
-**Three production gates remaining before deployment:**
+**Two production gates remaining before deployment (REM-022 DONE 2026-06-30):**
 1. Longitudinal stability audit — multi-week continuous TRAINED confirmation by independent reviewer.
 2. Independent human review of governance decisions.
 3. RBAC access control audit.

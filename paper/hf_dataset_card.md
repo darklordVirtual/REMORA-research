@@ -90,7 +90,7 @@ Live AII (AROMER Intelligence Index) — current state (2026-06-28):
 - False accept rate: **0.000** (12+ consecutive TRAINED cycles)
 - safety_certification: CERTIFIED_INDEPENDENT_HOLDOUT (n=169 external; CP bound 0.37%)
 - Open gaps: FA=22.2% on aradhye holdout; NLI/SE DLL block (Windows)
-- Three production gates remain: longitudinal audit, human review, RBAC audit
+- Two production gates remain: REM-020 (longitudinal audit, eligible close 2026-07-07), REM-021 (human review). REM-022 RBAC audit DONE.
 
 ## Test Suite
 
