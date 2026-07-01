@@ -777,7 +777,23 @@ to the test report. See `Makefile` credibility-pack target.
 
 **Overall:** REMORA is approvable as a policy-gated governance prototype with strong claim hygiene.
 It is not approvable as a demonstrated AI safety result. `deployment_status: SHADOW_ONLY`,
-`policy_relaxation_allowed: false`. Three production gates remain open.
+`policy_relaxation_allowed: false`. Two production gates remain open (REM-020 eligible 2026-07-07; REM-021 not started; REM-022 DONE 2026-06-30).
+
+---
+
+### 15. MCE Bucket Selection Bias — AII Calibration Ceiling (Structural, Active)
+
+**Identified:** 2026-07-01 (Fixes #52–53 in main repo).
+
+**Summary:** The AROMER adapt window is structurally biased toward benign developer tool calls. All MCE-bucket priors (p\_harm ∈ [0.75, 0.85)) receive zero organic traffic. This is a selection bias problem, not a volume problem.
+
+**Root cause:** REMORA's governance hook is exercised exclusively through Claude Code `PreToolUse` events during development sessions. The adapt window is dominated by: `information/read/low` (39%), `system/execution/medium` (28.5%), `system/write/low` (22%). None of these correspond to adversarial action patterns that generate p\_harm ∈ [0.75, 0.85) priors.
+
+**Impact:** With ECE=0.0052 (structurally limited by MCE bucket sparsity), T1 calibration is capped at 0.9741 (=1 − 0.0052×5). AII ceiling = 0.30×0.9741 + 0.70×1.0 = **0.9922**. This ceiling was reached 2026-07-01 (adapt_cycles=1814+, stability=1.000, T2=T3=T4=1.000).
+
+**Fix path:** Adversarial scenario injection OR production deployment where REMORA encounters real harmful agent actions. Neither is available in the current development-only deployment context.
+
+**Status:** Active — structurally unresolved. `mce_healing_has_traffic: false`.
 
 ---
 
@@ -795,6 +811,7 @@ It is not approvable as a demonstrated AI safety result. `deployment_status: SHA
 | Harmful seeding → TRAINED→CAPABLE regression (§9) | **RESOLVED via organic recovery** — 168 harmful seeds caused T2 crash (0.921→0.274), AII crash (0.8083→0.62). Recovery via 210 benign seeds + EMA cycles to AII=0.752 (equilibrium); organic Path A sustained over 12 cycles: AII=0.8097→0.844, T2=1.000, T3=0.800 [M], brr=0%. Architectural finding preserved: stage seeding ≤25 per batch or implement EMA dual-window. See §9 root cause and §11 recovery. | **Resolved** |
 | brr=7.5% stable equilibrium — CAPABLE ceiling and INSUFFICIENT_SAFETY_EVIDENCE gate (§10) | **RESOLVED organically** — 15 historical VERIFY episodes rotated out via organic /decide traffic in ~2.5h. brr: 7.5%→0.5%. T2=0.916. AII=0.8097 TRAINED (00:36 UTC+2 2026-06-28). See §11. | **Resolved** |
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)** — `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
+| MCE bucket selection bias — AII calibration ceiling (§15) | Active — ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 
 ---
 
