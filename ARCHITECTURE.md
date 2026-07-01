@@ -930,4 +930,12 @@ and `remora/causal/attribution.py` (compute_concept_attribution).
 Source: Bjøru, A. R. (2026). *Causal Post-hoc Explainable AI* (PhD thesis). NTNU.
 ISBN 978-82-353-0022-5. Paper IV §4.2.2.
 
-Live log: `https://aromer.razorsharp.workers.dev/log?format=text`
+**Live endpoints:**
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /log?format=text` | Adaptation log with AII trend and bottleneck |
+| `GET /intelligence` | Full AII state: aii_ceiling (Fix #57), gates_status (Fix #58), interpretation_evidence (Fix #59) |
+| `GET /readiness` | Deployment readiness synthesis: ready_for_deployment, blocking_items, next_eligible_deployment (Fix #60) |
+| `GET /status` | Worker health |
+| `GET /world` | World model priors |
