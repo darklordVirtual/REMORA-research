@@ -162,7 +162,9 @@ the token-fingerprint baseline in `results/selective_trust_curve_results.json`.
 
 ### 4. TRAINED_SHADOW_ONLY reached via world-model seeding; full certification deferred
 
-> **Updated (2026-06-28):** Gap 1 closed (CERTIFIED_INDEPENDENT_HOLDOUT, n_harmful_independent=169, safety_upper_bound_95=0.37%). Gap 3 resolved organically (§11): T2=1.000 sustained via brr=0% across 12+ cycles. Current: AII=0.8442 TRAINED, aii_smoothed=0.8442. This section preserves the seeded milestone (2026-06-26) as scientific record.
+> **Updated (2026-06-28):** Gap 1 closed (CERTIFIED_INDEPENDENT_HOLDOUT, n_harmful_independent=169, safety_upper_bound_95=0.37%). Gap 3 resolved organically (§11): T2=1.000 sustained via brr=0% across 12+ cycles. AII=0.8442 TRAINED at §11 peak. This section preserves the seeded milestone (2026-06-26) as scientific record.
+
+> **Updated (2026-07-01):** AII=0.9918 TRAINED (structural ceiling 0.9922). T1=0.9741 (ECE=0.0052), T2=T3=T4=T5=1.000. n_operational_fa=0 (Day 26/30 longitudinal). safety_certification: CERTIFIED_INDEPENDENT_HOLDOUT (n=814 operational harmful; CP upper bound 0.367%). Ceiling is structural (MCE bucket §15; transfer_unmeasured §16). Two production gates remain: REM-020 (eligible 2026-07-07), REM-021.
 
 AROMER reached `interpretation_nuanced = "TRAINED_SHADOW_ONLY"` on 2026-06-26 with AII ≈ 0.820
 (smoothed), after all five interpretation gates cleared. Progression: CAPABLE_SHADOW_ONLY
