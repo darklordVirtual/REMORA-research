@@ -81,20 +81,17 @@ False accept rate: **0.0%**. Transfer category accuracy: **100%** (4/4).
 
 ## AROMER — Learning Extension (Experimental)
 
-Live AII (AROMER Intelligence Index) — current state (2026-06-28):
-- AII: **0.844** (aii_smoothed=0.8442) [TRAINED — shadow-only mode]
-- ECE: 0.0636 (T1=0.682; world model active)
-- T2 Friction: **1.000** (brr=0%; theoretical maximum)
-- T3 MetaJudge: **0.800** [milestone — +4.1pp above prior peak]
-- T5 Stability: 0.7955 (approaching 0.80 milestone)
-- False accept rate: **0.000** (12+ consecutive TRAINED cycles)
-- safety_certification: CERTIFIED_INDEPENDENT_HOLDOUT (n=169 external; CP bound 0.37%)
-- Open gaps: FA=22.2% on aradhye holdout; NLI/SE DLL block (Windows)
-- Two production gates remain: REM-020 (longitudinal audit, eligible close 2026-07-07), REM-021 (human review). REM-022 RBAC audit DONE.
+Live AII (AROMER Intelligence Index) — current state (2026-07-01):
+- AII: **0.9895** (structural ceiling 0.9922) [TRAINED — shadow-only mode]
+- ECE: 0.0052 (T1=0.9741; T2=T3=T4=T5=1.000)
+- False accept rate: **0.000** (n_operational_fa=0; Day 25/30 longitudinal)
+- safety_certification: CERTIFIED_INDEPENDENT_HOLDOUT (n=814 operational harmful; CP upper bound 0.367%)
+- Open gaps: MCE bucket selection bias (§15, structural); live cross-domain episodes absent (§16, interpretation ceiling)
+- Two production gates remain: REM-020 (eligible close 2026-07-07), REM-021 (independent human review). REM-022 DONE.
 
 ## Test Suite
 
-3073 passing tests · 14 skipped · pre-push quality gate active
+3333 passing tests · 14 skipped · pre-push quality gate active
 
 ## Limitations
 
