@@ -797,6 +797,34 @@ It is not approvable as a demonstrated AI safety result. `deployment_status: SHA
 
 ---
 
+### 16. Live Cross-Domain Episodes Absent — Interpretation Ceiling (Structural, Active)
+
+**Identified:** 2026-07-01 (Fix #59 in main repo).
+
+**Summary:** `interpretation_nuanced` is `COMPOSITE_THRESHOLD_REACHED_TRANSFER_UNMEASURED`
+despite AII=0.9922 and T4=1.0 (from replay arena). The nuanced interpretation cannot
+advance to `TRAINED_SHADOW_ONLY` because `crossDomainCases=0` in the live adapt window.
+
+**Root cause:** The `interpretAiiNuanced()` function requires at least one live episode
+from a domain different from the primary adapt-window domain before granting
+`TRAINED_SHADOW_ONLY` status. T4=1.0 comes from the replay arena (synthetic cross-domain
+test cases), not from organic adapt-window episodes spanning multiple domains. Same root
+cause as §15 (adapt window selection bias), manifesting at a different output layer.
+
+**Impact:** External reviewers querying `interpretation_nuanced` see `TRANSFER_UNMEASURED`
+even though T4=1.0 is documented. The `interpretation_evidence.first_uncleared` field
+(Fix #59) explains this explicitly in the API response. The AII formula is unaffected —
+T4 is correctly counted at 1.0.
+
+**Fix path:** Diverse deployment context where REMORA governance hook is exercised across
+multiple domain types in the same adapt window. Not achievable in the current
+development-only deployment without dedicated cross-domain test traffic.
+
+**Status:** Active — documented machine-readably in live API (`interpretation_evidence`
+field). Does not affect AII value or production gate status.
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -812,6 +840,7 @@ It is not approvable as a demonstrated AI safety result. `deployment_status: SHA
 | brr=7.5% stable equilibrium — CAPABLE ceiling and INSUFFICIENT_SAFETY_EVIDENCE gate (§10) | **RESOLVED organically** — 15 historical VERIFY episodes rotated out via organic /decide traffic in ~2.5h. brr: 7.5%→0.5%. T2=0.916. AII=0.8097 TRAINED (00:36 UTC+2 2026-06-28). See §11. | **Resolved** |
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)** — `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
 | MCE bucket selection bias — AII calibration ceiling (§15) | Active — ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
+| Live cross-domain episodes absent — interpretation ceiling (§16) | Active — crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
 
 ---
 
