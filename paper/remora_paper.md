@@ -1484,11 +1484,12 @@ This section documents resolution of the open caveats in §F.6 and the current s
 
 [M] T3=0.800 milestone: MetaJudge quality +4.1pp above historical peak (0.759 at n=135). Full 12-row trajectory: `NEGATIVE_RESULTS.md §11`.
 
-**Current state (2026-06-28, ~15:53 UTC):** AII=0.8042 TRAINED\_SHADOW\_ONLY (recovered from §13 regression). T1=0.682 (ECE=0.064). T2=0.8518 (brr=2.5%, recovering). T3=0.800 [M]. T4=1.000. T5=0.7768 (recovering). FAR=0. `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT`. Full §12→§13 cycle: peak AII=0.8442 (cycle 12, 12:04 UTC) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885 CAPABLE) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). Recovery trajectory: AII 0.789→0.791→0.799→0.7997→0.8042 across 5 consecutive polls. Full §12→§13 sparkline: `NEGATIVE_RESULTS.md §12–§13`. Peer-review impact: none; FAR=0 throughout; the §12→§13→recovery cycle is a documented reproducible empirical result (organic brr acceleration and decay under fixed-size EMA window).
+**State as of 2026-06-28 (historical, §12→§13):** AII=0.8042 TRAINED\_SHADOW\_ONLY (recovered from §13 regression). T1=0.682 (ECE=0.064). T2=0.8518 (brr=2.5%, recovering). T3=0.800 [M]. T4=1.000. T5=0.7768 (recovering). FAR=0. `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT`. Full §12→§13 sparkline: `NEGATIVE_RESULTS.md §12–§13`.
+
+**Current state (2026-07-01):** AII=0.9895 TRAINED (structural ceiling 0.9922). T1=0.9741 (ECE=0.0052). T2=T3=T4=T5=1.000. FAR=0 (n_operational_fa=0; Day 25/30 longitudinal). `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT` (n=814 operational harmful; CP upper bound 0.367%). Structural ceiling reached: MCE bucket selection bias §15; live cross-domain episodes absent §16. Tests: 3333 passing.
 
 **Two production gates remaining before deployment (REM-022 DONE 2026-06-30):**
-1. Longitudinal stability audit — multi-week continuous TRAINED confirmation by independent reviewer.
-2. Independent human review of governance decisions.
-3. RBAC access control audit.
+1. Longitudinal stability audit — REM-020, Day 25/30, eligible close 2026-07-07 (FAR=0 throughout).
+2. Independent human review — REM-021, template at `docs/assurance/independent_review_template_v1.md`.
 
 *Gap 4 (NLI/SE DLL block on Windows) remains architecturally unresolved — see NEGATIVE\_RESULTS.md §3.*
