@@ -15,6 +15,7 @@
 | [10-contributing.md](10-contributing.md) | How do I contribute a result, fix, or new oracle? |
 | [11-benchmark-validation-plan.md](11-benchmark-validation-plan.md) | What is the plan for external validation? |
 | [12-agentharm-validation.md](12-agentharm-validation.md) | What is the AgentHarm external validation protocol? |
+| [theoretical_foundations_proposals_v1.md](theoretical_foundations_proposals_v1.md) | Which formal frameworks could REMORA adopt next, and what would each one buy? (PROPOSED/roadmap — nothing in it is implemented) |
 
 ## Start here
 
