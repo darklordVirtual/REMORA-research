@@ -1,5 +1,18 @@
 # Energy & Infrastructure — Smart Building Intelligence
 
+> ⚠️ **Scope: illustrative scenario, not a deployment result.** REMORA is a
+> research-grade governance overlay in **SHADOW_ONLY** mode — it is not
+> production-certified and has not been deployed in the sector below. The
+> walkthrough and any numbers in it are **illustrative** unless they link to a
+> committed artifact in `results/` or `artifacts/`; they are not measured
+> outcomes. REMORA governs whether a proposed **action** may proceed
+> (ACCEPT/VERIFY/ABSTAIN/ESCALATE); it does not certify truth and is not a
+> fact-checker. **ETR** ("evidence-trust rate") is an *illustrative* narrative
+> score in these documents only — it is **not** one of REMORA's canonical
+> outputs and appears in no claim in `docs/assurance/claim_register_v1.yaml`.
+> See the [claim register](../assurance/claim_register_v1.yaml) and
+> [evidence summary](../02-evidence-and-claims.md) for governed claims.
+
 > **Who this is for:** Building operators, energy managers, facility directors,
 > and IoT platform developers — particularly relevant for EOS and Luftfiber use cases.
 
@@ -96,5 +109,5 @@ building network. REMORA can act as the reasoning layer over:
 When EOS detects an anomaly, REMORA provides the multi-source, multi-oracle analysis
 that transforms a raw alarm into a verified, actionable diagnosis — with a full audit trail.
 
-*For technical details, see the GO-STAR integration in [`go-star/`](../../../gostar/go-star/)
+*For technical details, see the GO-STAR integration in the GO-STAR project (external repository, not included in REMORA-research)
 and the [REMORA engine](../../remora/engine.py).*

@@ -153,7 +153,7 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml` and 
 | CLAIM-006 | AROMER AII=0.8412 TRAINED (shadow-mode only) | `artifacts/aromer/intelligence_after_v020.json` | Yes | Live endpoint | No deterministic test possible |
 | CLAIM-007 | Component ablation: REMORA full gate dominates (N=700) | `artifacts/aromer/component_ablation_results.json` | Yes | N=700 confirmed | `test_toolcall_benchmark_v2_results.py` |
 | CLAIM-008 | 94.7% accuracy at 25% coverage, calibration set (N=302) | `results/selective_trust_curve_results.json` | Yes | N=302 confirmed | `test_selective_trust_curve.py` |
-| CLAIM-009 | FA=30.7% on neutral-metadata external datasets (negative) | `artifacts/aromer/external_dataset_eval_v2.json` | **No — missing from disk** (pending restore from main repo; baselined in `claim_provenance_baseline.json`) | Not verifiable from this repo | Documented negative result; no lock test |
+| CLAIM-009 | FA=30.7% on neutral-metadata external datasets (negative) | `artifacts/aromer/external_dataset_eval_v2.json` | Yes (restored from main repo 2026-07-03) | N=1036 confirmed | Documented negative result; no lock test |
 | CLAIM-010 | FAR=0% blinded v3 (N=700, leakage_free=True) | `results/toolcall_blind_v3_results.json` | Yes | N=700, leakage_free=True | `test_toolcall_v2_results.py` |
 | CLAIM-A | Profile C false_block_rate=0.0222, arena (N=85) | `artifacts/aromer_learning_ablation_v2.json` | Yes (regenerated) | N=85 confirmed | `test_learning_ablation.py::TestProfileCArtifactLock` |
 

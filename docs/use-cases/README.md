@@ -1,16 +1,30 @@
 # REMORA — Use Cases
 
-> **For non-technical readers.** This section explains where REMORA adds real value,
-> using plain language and visual examples from real sectors.
+> **For non-technical readers.** This section explains where REMORA could add
+> value, using plain language and illustrative examples from real sectors.
+
+> ⚠️ **Scope: illustrative, not deployment results.** REMORA is a research-grade
+> governance overlay in **SHADOW_ONLY** mode — not production-certified and not
+> deployed in any sector below. Every scenario here is illustrative; numbers are
+> illustrative unless they link to a committed artifact in `results/` or
+> `artifacts/`. **ETR** ("evidence-trust rate") is an illustrative narrative
+> score used in these documents only — it is not a canonical REMORA output and
+> appears in no entry of `docs/assurance/claim_register_v1.yaml`. For governed
+> claims see the [claim register](../assurance/claim_register_v1.yaml) and
+> [evidence summary](../02-evidence-and-claims.md). The full academic treatment
+> is [`paper/remora_paper.md`](../../paper/remora_paper.md) (the canonical
+> source; any PDF is a dated snapshot).
 
 ---
 
 ## The core idea in one sentence
 
-> REMORA does not just ask an AI and hope for the best.
-> It asks multiple AI systems, measures how much they agree,
-> checks the answer against authoritative sources,
-> and tells you **when the answer is trustworthy** — not just when it sounds confident.
+> REMORA governs whether a proposed **agent action** may proceed. Before an
+> action executes, it asks multiple AI oracles, measures how much they agree,
+> checks against authoritative sources where available, and routes the action to
+> **ACCEPT / VERIFY / ABSTAIN / ESCALATE** — abstaining or escalating when
+> evidence is insufficient. It governs execution permission, not truth; it is
+> not a fact-checker.
 
 ---
 
@@ -54,7 +68,7 @@ REMORA is most valuable when the **cost of a wrong answer is high**:
 | [Legal & Compliance](02-legal-compliance.md) | Regulatory misinterpretation → €20M fine | RAG retrieves current statute text + cites source |
 | [Financial Services](03-financial.md) | Hallucinated data in due diligence | ETR score gates auto-approve vs human review |
 | [Energy & Infrastructure](04-energy.md) | False fault alarms waste engineer visits | Role-oracle swarm diagnoses root cause |
-| [Security Research](05-security.md) | 92% of AI alerts are false positives | REMORA FP screen reduces to ~3% false positives |
+| [Security Research](05-security.md) | Security teams spend most of their time triaging false positives | REMORA screens alerts through multi-oracle consensus (illustrative; the only committed security artifact is an N=75 triage sample, `results/rag_adversarial_results.json` — no false-positive-rate claim is made) |
 | [Public Administration — AI Hallucination](06-public-administration-hallucination.md) | Fabricated court decisions enter formal documents | DCE knowledge base lookup flags non-existent citations |
 | [Norwegian Law via MCP](07-norwegian-law-mcp.md) | Legal research without authoritative statute access | MCP tools query DCE Norwegian law corpus + multi-oracle consensus |
 
@@ -67,14 +81,15 @@ Each use case document covers:
 1. **The scenario** — a specific, realistic situation in that sector
 2. **The problem without REMORA** — what goes wrong with a standard AI approach
 3. **How REMORA handles it** — step by step, in plain language
-4. **The measurable value** — real numbers from experiments or realistic estimates
+4. **The illustrative value** — numbers are illustrative estimates unless a
+   `results/` or `artifacts/` link is given
 5. **A visual diagram** — showing the difference clearly
 
 Technical readers can find the underlying code and research in:
-- [`paper/whitepaper.md`](../../paper/whitepaper.md) — full academic treatment
+- [`paper/remora_paper.md`](../../paper/remora_paper.md) — full academic treatment (canonical)
 - [`remora/`](../../remora/) — the implementation
 - [`results/`](../../results/) — all experimental data
-- [`docs/mcp-integration.md`](../mcp-integration.md) — MCP server, all 8 tools, and extension model
+- [`docs/mcp-integration.md`](../mcp-integration.md) — MCP server, all 14 tools, and extension model
 
 ---
 

@@ -1,16 +1,5 @@
 {
   "schema": "claim_provenance_baseline_v1",
-  "description": "Known violations grandfathered by scripts/check_claim_provenance.py. Entries here are reported as WARN and do not fail the gate. Do not add new entries without a documented reason; remove entries once the underlying defect is fixed.",
-  "known_violations": [
-    {
-      "error_id": "artifact-missing:CLAIM-009:artifacts/aromer/external_dataset_eval.json",
-      "reason": "CLAIM-009 (negative result, FA=43.0% Phase 1) cites an artifact that was never committed to this repo; it exists in the private main repo. Restore from main repo or requalify the claim. Tracked since 2026-07-02.",
-      "added": "2026-07-02"
-    },
-    {
-      "error_id": "artifact-missing:CLAIM-009:artifacts/aromer/external_dataset_eval_v2.json",
-      "reason": "CLAIM-009 (negative result, FA=30.7% Phase 2) cites an artifact that was never committed to this repo; it exists in the private main repo. Restore from main repo or requalify the claim. Tracked since 2026-07-02.",
-      "added": "2026-07-02"
-    }
-  ]
+  "description": "Known violations grandfathered by scripts/check_claim_provenance.py. Entries here are reported as WARN and do not fail the gate. Do not add new entries without a documented reason; remove entries once the underlying defect is fixed. The CLAIM-009 external_dataset_eval artifacts were restored from the main implementation repo on 2026-07-03, so this file is now empty.",
+  "known_violations": []
 }

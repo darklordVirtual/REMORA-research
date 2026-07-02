@@ -1,5 +1,18 @@
 # Financial Services — Verified Claims for High-Stakes Decisions
 
+> ⚠️ **Scope: illustrative scenario, not a deployment result.** REMORA is a
+> research-grade governance overlay in **SHADOW_ONLY** mode — it is not
+> production-certified and has not been deployed in the sector below. The
+> walkthrough and any numbers in it are **illustrative** unless they link to a
+> committed artifact in `results/` or `artifacts/`; they are not measured
+> outcomes. REMORA governs whether a proposed **action** may proceed
+> (ACCEPT/VERIFY/ABSTAIN/ESCALATE); it does not certify truth and is not a
+> fact-checker. **ETR** ("evidence-trust rate") is an *illustrative* narrative
+> score in these documents only — it is **not** one of REMORA's canonical
+> outputs and appears in no claim in `docs/assurance/claim_register_v1.yaml`.
+> See the [claim register](../assurance/claim_register_v1.yaml) and
+> [evidence summary](../02-evidence-and-claims.md) for governed claims.
+
 > **Who this is for:** Investment analysts, compliance teams, risk officers,
 > and anyone where wrong financial data has serious consequences.
 

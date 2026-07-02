@@ -250,12 +250,10 @@ claims:
       real-world labeled patterns. This result must NOT be removed or suppressed.
       Semantic enrichment also raises false-block rate (74.1% vs 70.9% Phase 1).
     reproduce: >
-      Cited artifacts (artifacts/aromer/external_dataset_eval.json Phase 1,
-      artifacts/aromer/external_dataset_eval_v2.json Phase 2) are NOT yet
-      committed to this repo — pending restore from the main implementation
-      repo; tracked as baselined violations in
-      docs/assurance/claim_provenance_baseline.json.
-      Requires AROMER worker access to re-run.
+      Artifacts committed 2026-07-03 (restored from the main implementation
+      repo): artifacts/aromer/external_dataset_eval.json (Phase 1, FA=43.0%),
+      artifacts/aromer/external_dataset_eval_v2.json (Phase 2, FA=30.7%).
+      Re-running against the live datasets requires AROMER worker access.
 
   - id: CLAIM-010
     title: "Blinded benchmark v3: FAR=0% without label access (N=700)"

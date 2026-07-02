@@ -33,6 +33,10 @@ Quick start
 >>> print(explanation.counterfactual_verdict)  # "verify"
 >>> print(explanation.remaining_blockers)      # ["Action arguments derive from untrusted source..."]
 """
+from remora.causal.attribution import (
+    ConceptAttributionResult,
+    compute_concept_attribution,
+)
 from remora.causal.counterfactual import CounterfactualReplay, CounterfactualResult
 from remora.causal.explanation import CausalExplanation, generate_explanation
 from remora.causal.intervention import PolicyIntervention, validate_intervention
@@ -43,17 +47,29 @@ from remora.causal.schema import (
     VariableProvenance,
     VariableType,
 )
+from remora.causal.search import (
+    InterventionScore,
+    MinimalSufficientInterventions,
+    find_minimal_sufficient_interventions,
+    score_concepts,
+)
 
 __all__ = [
     "CausalDecisionModel",
     "CausalEdge",
     "CausalExplanation",
     "CausalVariable",
+    "ConceptAttributionResult",
     "CounterfactualReplay",
     "CounterfactualResult",
+    "InterventionScore",
+    "MinimalSufficientInterventions",
     "PolicyIntervention",
     "VariableProvenance",
     "VariableType",
+    "compute_concept_attribution",
+    "find_minimal_sufficient_interventions",
     "generate_explanation",
+    "score_concepts",
     "validate_intervention",
 ]

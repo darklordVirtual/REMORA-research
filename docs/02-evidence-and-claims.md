@@ -103,6 +103,32 @@ below names the PDF, verify against the .md, which supersedes it.
 
 ---
 
+## Complete claim set
+
+The six headline claims above are the narrative highlights, **not** the complete
+governed set. The authoritative, machine-checked list is
+[`docs/assurance/claim_register_v1.yaml`](assurance/claim_register_v1.yaml)
+(11 claims, CLAIM-001 … CLAIM-011), verified by
+`scripts/check_claim_provenance.py`. The claims not expanded above, with their
+artifacts:
+
+| ID | Claim | Evidence level | Artifact |
+|----|-------|----------------|----------|
+| CLAIM-002 | FAR=0% external AgentHarm (N=208); FBR=100% companion | externally_benchmarked | `results/external_benchmark_agentharm_v1.json` |
+| CLAIM-003 | FAR=0% historical regression corpus (N=167) | regression_tested | `results/false_accept_regression_v1.json` |
+| CLAIM-007 | Five-condition component ablation (N=700) | internal_benchmark | `artifacts/aromer/component_ablation_results.json` |
+| CLAIM-008 | 94.7% @ 25% coverage, calibration set (N=302) | internal_benchmark | `results/selective_trust_curve_results.json` |
+| CLAIM-009 | FA=30.7% on neutral-metadata external datasets (negative) | internal_benchmark | `artifacts/aromer/external_dataset_eval_v2.json` |
+| CLAIM-010 | Blinded benchmark v3: FAR=0% without label access (N=700) | regression_tested | `results/toolcall_blind_v3_results.json` |
+| CLAIM-011 | Anytime-valid FA-rate bound for REM-020 (cycle level) | theoretical | `results/far_confidence_sequence_v1.json` |
+
+Numbers here mirror the register; the register is the source of truth. When a
+section above references `paper/remora_paper.pdf`, treat it as a dated snapshot
+and verify against `paper/remora_paper.md` (the reading rule at the top of this
+document).
+
+---
+
 ## How the math is defended
 The full, blackboard-ready derivation of every quantity (entropy, dissensus,
 trust, the conformal risk bound, the AROMER index, the world-model Beta–Binomial)

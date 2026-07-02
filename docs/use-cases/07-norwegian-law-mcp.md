@@ -1,5 +1,18 @@
 # Norwegian Law — Verified Legal Research via MCP
 
+> ⚠️ **Scope: illustrative scenario, not a deployment result.** REMORA is a
+> research-grade governance overlay in **SHADOW_ONLY** mode — it is not
+> production-certified and has not been deployed in the sector below. The
+> walkthrough and any numbers in it are **illustrative** unless they link to a
+> committed artifact in `results/` or `artifacts/`; they are not measured
+> outcomes. REMORA governs whether a proposed **action** may proceed
+> (ACCEPT/VERIFY/ABSTAIN/ESCALATE); it does not certify truth and is not a
+> fact-checker. **ETR** ("evidence-trust rate") is an *illustrative* narrative
+> score in these documents only — it is **not** one of REMORA's canonical
+> outputs and appears in no claim in `docs/assurance/claim_register_v1.yaml`.
+> See the [claim register](../assurance/claim_register_v1.yaml) and
+> [evidence summary](../02-evidence-and-claims.md) for governed claims.
+
 > **Who this is for:** Lawyers, compliance officers, public sector employees,
 > and anyone who needs to verify Norwegian legal claims or citations using AI.
 
@@ -21,9 +34,9 @@ Without leaving the AI assistant, they can run a three-step verification:
 
 ## System context: REMORA and DCE
 
-**REMORA** (this repository) is an open-source multi-oracle AI consensus engine.
+**REMORA** (this repository) is an open-source governance overlay for AI-agent actions; its multi-oracle consensus is one input to that governance, not the product itself.
 Its MCP server (`servers/mcp_remora.py`) exposes tools that Claude can call.
-REMORA's three Cloudflare Workers provide: consensus scoring, RAG synthesis,
+REMORA's Cloudflare Workers provide: consensus scoring, RAG synthesis,
 and a law-search bridge.
 
 **DCE** (Document Compliance Engine / Mine Dokumenter) is a separate, closed-source
