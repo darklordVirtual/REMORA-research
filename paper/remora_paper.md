@@ -1486,7 +1486,7 @@ This section documents resolution of the open caveats in §F.6 and the current s
 
 **State as of 2026-06-28 (historical, §12→§13):** AII=0.8042 TRAINED\_SHADOW\_ONLY (recovered from §13 regression). T1=0.682 (ECE=0.064). T2=0.8518 (brr=2.5%, recovering). T3=0.800 [M]. T4=1.000. T5=0.7768 (recovering). FAR=0. `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT`. Full §12→§13 sparkline: `NEGATIVE_RESULTS.md §12–§13`.
 
-**Current state (2026-07-01):** AII=0.9895 TRAINED (structural ceiling 0.9922). T1=0.9741 (ECE=0.0052). T2=T3=T4=T5=1.000. FAR=0 (n_operational_fa=0; Day 25/30 longitudinal). `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT` (n=814 operational harmful; CP upper bound 0.367%). Structural ceiling reached: MCE bucket selection bias §15; live cross-domain episodes absent §16. Tests: 3333 passing.
+**Current state (2026-07-02):** AII=0.9923 TRAINED at the structural ceiling (at\_ceiling=true, gap\_from\_ceiling=0; frozen snapshot `artifacts/aromer/intelligence_snapshot_2026-07-02.json`). T1=0.9745 (ECE=0.0051). T2=T3=T4=T5=1.000. FAR=0 (n_operational_fa=0; Day 25/30 longitudinal). `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT` (n=814 operational harmful; CP upper bound 0.367%). Two structural ceilings bound further progress: the calibration ceiling is a selection-bias artifact (MCE bucket p\_harm∈[0.75,0.85) receives zero organic traffic — §15), and the interpretation ceiling is the absence of live cross-domain episodes in the adapt window (T4=1.0 derives from the replay arena — §16). Tests: 3418 passing.
 
 **Two production gates remaining before deployment (REM-022 DONE 2026-06-30):**
 1. Longitudinal stability audit — REM-020, Day 25/30, eligible close 2026-07-07 (FAR=0 throughout).
