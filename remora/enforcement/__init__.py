@@ -22,6 +22,14 @@ Deployment pattern:
     3. Token passed to PEP layer (may cross process/network boundary)
     4. PEP verifies and enforces: gate.enforce(token, execute_fn)
 
+INTEGRATION STATUS: this package is a library plus its test suite
+(tests/test_rem013_pdp_pep_boundary.py); no runtime component in this repo
+issues or verifies tokens yet. The deployment pattern above is prescriptive,
+not a description of current wiring — actual runtime blocking happens in
+remora/adapters/action_gate.py, which calls the PDP directly. This is
+consistent with deployment_status=SHADOW_ONLY (ARCHITECTURE.md §10); do not
+cite this package as evidence of integrated enforcement.
+
 See docs/assurance/remediation_register.yaml REM-013.
 """
 from remora.enforcement.gate import EnforcementGate, EnforcementResult

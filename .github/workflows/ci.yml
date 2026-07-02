@@ -21,7 +21,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        # 3.14 is the environment pinned in paper/remora_paper.md §16 — the
+        # published environment must be CI-tested (2026-07-02 review finding).
+        python-version: ["3.12", "3.13", "3.14"]
 
     steps:
       - name: Checkout
