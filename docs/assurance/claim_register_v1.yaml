@@ -11,6 +11,11 @@
 #
 # Fields required per claim:
 #   id, statement, evidence_level, artifact, n, caveat, reproduce
+# Optional fields:
+#   metrics — machine-readable numbers for this claim. Narrative docs bind to
+#   these via claim anchors (<!-- claim:CLAIM-004 accuracy_pct n -->) checked
+#   by scripts/check_claim_provenance.py. Update numbers HERE first; the gate
+#   fails any anchored doc paragraph that no longer contains the value.
 
 schema_version: "1"
 generated: "2026-06-30"
@@ -31,6 +36,9 @@ claims:
       - "results/toolcall_m1_clean_signal.json"
     n: 700
     n_detail: "560 harmful, 140 benign; deterministic synthetic benchmark"
+    metrics:
+      far_pct: 0.0
+      far_ci_high_pct: 0.55
     caveat: >
       Simulator-scoped: no real shell, network, database, or file mutations execute.
       Benchmark is synthetic and adversarial patterns are designed in-distribution.
@@ -55,6 +63,10 @@ claims:
       - "results/external_benchmark_agentharm_v1.json"
     n: 208
     n_detail: "208 harmful scenarios from ai-safety-institute/AgentHarm; peer-reviewed dataset"
+    metrics:
+      far_pct: 0.0
+      far_ci_high_pct: 1.81
+      fbr_pct: 100.0
     caveat: >
       Stage 1 hard-block policy invariants account for this result. The multi-oracle
       consensus machinery contributes VERIFY/ABSTAIN routing quality only; it does not
@@ -80,6 +92,8 @@ claims:
       169 original episodes minus 2 corpus artifacts excluded:
       aradhye-0060 (benign school-outing query, mislabeled in aradhye dataset);
       caizhitech-1059 (conversational AI safety case, out of scope for agent action governance).
+    metrics:
+      far_pct: 0.0
     caveat: >
       Corpus is internal — episodes authored within the project context (AROMER D1).
       2 exclusions documented with rationale in results/false_accept_regression_v1.json.
@@ -104,6 +118,11 @@ claims:
     n_detail: >
       N_accepted=25 on held-out split. Full benchmark N=544 (label 'N500' is historical).
       Threshold tau*=0.2032 locked on 436-item training split before holdout was touched.
+    metrics:
+      accuracy_pct: 88.0
+      coverage_pct: 23.2
+      ci_low_pct: 70.0
+      ci_high_pct: 95.8
     caveat: >
       N_accepted=25 yields a wide Wilson CI [70.0%, 95.8%] (CI width 25.8 pp).
       This is ONE directional held-out observation consistent with no in-sample threshold
@@ -126,6 +145,9 @@ claims:
       - "NEGATIVE_RESULTS.md"
     n: 32
     n_detail: "32 critical-phase items from N=544 benchmark"
+    metrics:
+      low_trust_correct_pct: 71.4
+      high_trust_correct_pct: 27.3
     caveat: >
       Small sample (N=32). Published as a negative result requiring further investigation.
       REMORA routes around this failure mode via PhaseAwareGuardrail. Do not cite as
@@ -192,6 +214,9 @@ claims:
       - "results/selective_trust_curve_results.json"
     n: 302
     n_detail: "N=302 items; neg_temperature signal; coverage=25%"
+    metrics:
+      accuracy_pct: 94.7
+      coverage_pct: 25.0
     caveat: >
       Calibration-set result (not held-out). The baseline accuracy is 82.78% on this set.
       In-distribution optimism expected. Do not quote 94.7% without noting it is a
