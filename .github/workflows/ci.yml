@@ -38,7 +38,9 @@ jobs:
       - name: Install package and test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          # causal extra: tests/test_causal.py imports remora.causal.domains,
+          # whose loader needs pyyaml — without it, test collection fails.
+          pip install -e ".[dev,causal]"
 
       - name: Run deterministic test suite
         # Markers 'live' and 'live_replay_heavy' are excluded by default in
