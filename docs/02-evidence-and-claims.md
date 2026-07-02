@@ -8,6 +8,12 @@ is a liability — see `CLAUDE.md` and `docs/05-claim-hygiene.md`.
 **Reading rule:** the caveat is part of the claim. Quote the caveat with the
 number, or do not quote the number.
 
+**Paper versions:** `paper/remora_paper.md` is the canonical, continuously
+corrected paper. The PDF (`remora_paper.pdf`, built 2026-06-10 from the .tex)
+is a dated snapshot that predates the AgentHarm trimode results, the AROMER
+ceiling milestone, and NEGATIVE_RESULTS §15–§16. Where a section reference
+below names the PDF, verify against the .md, which supersedes it.
+
 ---
 
 ## Headline claims
