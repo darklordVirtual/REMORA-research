@@ -277,8 +277,15 @@ class RemoraDecisionEngine:
             return self._build(action, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # Tainted arguments (derived from untrusted input) must never auto-accept.
-        # VERIFY floor — placed after the hard ESCALATE blocks so those take
-        # priority, and before the trust logic so a tainted call cannot reach ACCEPT.
+        # VERIFY floor — placed after the unconditional hard ESCALATE blocks
+        # above (adversarial, schema, forbidden-tool, coercion, blackmail,
+        # counterfactual, contradiction) and before the trust logic so a
+        # tainted call cannot reach ACCEPT. Note: the conditional ESCALATE
+        # gates further down (critical-phase+critical-risk, rollback,
+        # state-transition, production-write matrix) are intentionally NOT
+        # given priority over this floor — a tainted critical production
+        # write yields VERIFY, not ESCALATE; both block autonomous execution
+        # and set human_review_required.
         if obs.argument_tainted:
             reasons.append(DecisionReason.TAINTED_ARGUMENT_VERIFY)
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)

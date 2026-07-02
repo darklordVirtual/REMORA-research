@@ -37,8 +37,10 @@ Usage
 
 OPA Rego skeleton
 -----------------
-See ``enterprise/policy-model.md`` for the complete Rego package that mirrors
-the Python decision engine logic.
+See ``artifacts/credibility-pack/policy-model.md`` for the complete Rego
+package that mirrors the Python decision engine logic, and
+``datasets/remora_knowledge_v1/policies/rego_examples/remora_action_gate.rego``
+for a runnable example.
 """
 from __future__ import annotations
 
@@ -332,11 +334,17 @@ def query_opa_policy(
             body = json.loads(resp.read().decode("utf-8"))
         result = body.get("result") or {}
         if isinstance(result, dict):
-            allow = result.get("allow", result.get("action", True))
+            allow = result.get("allow", result.get("action"))
+            if allow is None:
+                # Fail-closed: an empty result means the queried rule is
+                # undefined at this policy path (OPA returns {} for a missing
+                # package/rule). A misconfigured policy_path must deny, not allow.
+                return "DENY"
             if allow is False or str(allow).lower() in {"deny", "false"}:
                 return "DENY"
-        elif result is False:
-            return "DENY"
-        return "ALLOW"
+            return "ALLOW"
+        if result is True:
+            return "ALLOW"
+        return "DENY"  # fail-closed: non-dict, non-True result is not an explicit allow
     except (urllib.error.URLError, OSError, KeyError, ValueError):
         return "DENY"  # fail-closed: OPA server unreachable

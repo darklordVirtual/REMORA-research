@@ -12,7 +12,7 @@ Language requirements (from CLAUDE.md / Bjøru 2026):
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from remora.causal.intervention import PolicyIntervention
@@ -20,7 +20,6 @@ from remora.causal.schema import CausalDecisionModel
 from remora.policy.observation import PolicyObservation
 
 if TYPE_CHECKING:
-    from remora.causal.counterfactual import CounterfactualResult
     from remora.policy.decision_engine import RemoraDecisionEngine
 
 
