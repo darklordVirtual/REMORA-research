@@ -260,7 +260,7 @@ class TestAT04MisleadingToolDescription:
             classification_alternatives=["prod_deploy"],
             target_environment="staging",  # not prod — avoids unknown-risk-tier prod gate
         )
-        report = engine.decide(obs)
+        assert engine.decide(obs).action is not DecisionAction.ACCEPT
         # schema_valid=None + action_type="write" → SCHEMA_UNVERIFIED_VERIFY fires before
         # CRITICAL_ALTERNATIVE when risk_tier is known. Supply schema_valid=True to let
         # CRITICAL_ALTERNATIVE fire.

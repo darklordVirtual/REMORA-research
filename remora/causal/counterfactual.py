@@ -14,7 +14,7 @@ produces the same result.
 from __future__ import annotations
 
 import dataclasses
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from remora.causal.intervention import PolicyIntervention, validate_intervention

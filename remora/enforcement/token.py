@@ -45,14 +45,27 @@ def _get_signing_key() -> bytes | None:
     return val.encode() if val else None
 
 
-def _canonical_payload(action: str, observation_hash: str, request_id: str, issued_at: str) -> bytes:
-    """Stable canonical serialization for signing (sorted keys, no whitespace)."""
+def _canonical_payload(
+    action: str,
+    observation_hash: str,
+    request_id: str,
+    issued_at: str,
+    expires_at: str | None = None,
+) -> bytes:
+    """Stable canonical serialization for signing (sorted keys, no whitespace).
+
+    ``expires_at`` is included in the signed payload only when set, so tokens
+    issued before expiry support remain verifiable, while an expiring token
+    cannot have its ``expires_at`` stripped without invalidating the signature.
+    """
     payload = {
         "action": action,
         "issued_at": issued_at,
         "observation_hash": observation_hash,
         "request_id": request_id,
     }
+    if expires_at is not None:
+        payload["expires_at"] = expires_at
     return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
 
 
@@ -82,6 +95,10 @@ class PolicyDecisionToken:
         observation_hash: SHA-256 of the PolicyObservation that was evaluated.
         request_id: Unique identifier for this governance request.
         issued_at: ISO-8601 timestamp of issuance (UTC).
+        expires_at: Optional ISO-8601 expiry timestamp (UTC). When set, it is
+            part of the signed payload and verify() rejects the token after
+            this instant. When None, the token does not expire (audit finding
+            F-2 documents this legacy mode; new issuers should set an expiry).
         signature: HMAC-SHA256 over canonical payload, or "" if unsigned.
         is_signed: True if a signing key was available at issuance time.
     """
@@ -91,6 +108,7 @@ class PolicyDecisionToken:
     issued_at: str
     signature: str
     is_signed: bool
+    expires_at: str | None = None
 
     @classmethod
     def issue(
@@ -99,6 +117,7 @@ class PolicyDecisionToken:
         observation_hash: str,
         request_id: str,
         issued_at: str,
+        expires_at: str | None = None,
     ) -> "PolicyDecisionToken":
         """Issue a signed (or unsigned) PolicyDecisionToken from the PDP.
 
@@ -107,10 +126,14 @@ class PolicyDecisionToken:
             observation_hash: Output of _hash_observation(obs) for binding.
             request_id: Unique request identifier.
             issued_at: UTC ISO-8601 timestamp string (from caller to avoid Date.now()).
+            expires_at: Optional UTC ISO-8601 expiry; signed into the payload
+                when set, so it cannot be stripped or extended post-issuance.
         """
         key = _get_signing_key()
         if key:
-            payload = _canonical_payload(action, observation_hash, request_id, issued_at)
+            payload = _canonical_payload(
+                action, observation_hash, request_id, issued_at, expires_at
+            )
             sig = _compute_signature(payload, key)
             return cls(
                 action=action,
@@ -119,6 +142,7 @@ class PolicyDecisionToken:
                 issued_at=issued_at,
                 signature=sig,
                 is_signed=True,
+                expires_at=expires_at,
             )
         return cls(
             action=action,
@@ -127,16 +151,24 @@ class PolicyDecisionToken:
             issued_at=issued_at,
             signature="",
             is_signed=False,
+            expires_at=expires_at,
         )
 
-    def verify(self, observation_hash: str | None = None) -> "TokenVerificationResult":
-        """Verify this token's signature and optionally the observation hash.
+    def verify(
+        self,
+        observation_hash: str | None = None,
+        now: str | None = None,
+    ) -> "TokenVerificationResult":
+        """Verify this token's signature, expiry, and optionally the observation hash.
 
         Args:
             observation_hash: Expected hash; if provided, must match self.observation_hash.
+            now: UTC ISO-8601 timestamp to evaluate expiry against; defaults to
+                the current UTC time. Only consulted when expires_at is set.
 
         Returns:
-            TokenVerificationResult with verified=True if signature is valid.
+            TokenVerificationResult with verified=True if signature is valid
+            and the token has not expired.
         """
         key = _get_signing_key()
         if not key:
@@ -153,7 +185,8 @@ class PolicyDecisionToken:
             )
 
         payload = _canonical_payload(
-            self.action, self.observation_hash, self.request_id, self.issued_at
+            self.action, self.observation_hash, self.request_id, self.issued_at,
+            self.expires_at,
         )
         expected = _compute_signature(payload, key)
         sig_ok = hmac.compare_digest(expected, self.signature)
@@ -164,6 +197,29 @@ class PolicyDecisionToken:
                 reason="signature_invalid",
                 is_signed=True,
             )
+
+        if self.expires_at is not None:
+            from datetime import datetime, timezone
+
+            try:
+                expiry = datetime.fromisoformat(self.expires_at.replace("Z", "+00:00"))
+                current = (
+                    datetime.fromisoformat(now.replace("Z", "+00:00"))
+                    if now is not None
+                    else datetime.now(timezone.utc)
+                )
+            except ValueError:
+                return TokenVerificationResult(
+                    verified=False,
+                    reason="expiry_unparseable",
+                    is_signed=True,
+                )
+            if current >= expiry:
+                return TokenVerificationResult(
+                    verified=False,
+                    reason="token_expired",
+                    is_signed=True,
+                )
 
         if observation_hash is not None and observation_hash != self.observation_hash:
             return TokenVerificationResult(

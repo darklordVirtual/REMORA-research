@@ -128,7 +128,7 @@ flowchart TD
 | **Cascade pipeline** | `remora/cascade/` | staged execution: `FastGate` → `ConsensusGate` → `VerifierGate` → `CritiqueRevisionGate` → `SelfConsistencyGate` → `MixtureOfAgentsSynth` (see §5) |
 | **Consensus core** | `remora/engine.py`, `remora/correlation.py` | multi-oracle consensus loop; rolling correlation matrix and diversity weights |
 | **Uncertainty observables** | `remora/thermodynamics/`, `remora/statphys/` | entropy `H`, dissensus `D`, value `V` as an uncertainty-routing metaphor (not physics) |
-| **Selective prediction** | `remora/selective/` | `conformal.py`, `crc.py` (weight-corrected slack), `pvd.py`, `guardrail.py` (`PhaseAwareGuardrail`), `adaptive_conformal.py` |
+| **Selective prediction** | `remora/selective/` | `conformal.py`, `crc.py` (weight-corrected slack), `pvd.py`, `guardrail.py` (`PhaseAwareGuardrail`), `drift_detector.py` |
 | **Oracles (pluggable)** | `remora/oracles/` | interchangeable backends — see §6 |
 | **Audit chain** | `remora/audit/hash_chain.py` | SHA-256 hash chain; tamper-**evident** |
 | **Governance API** | `servers/api.py` | FastAPI governance gateway |
@@ -213,8 +213,7 @@ an external append-only (WORM) store as a deployment dependency.
 | `guardrail.py` | `PhaseAwareGuardrail` — phase-specific accept/verify/abstain routing; inverts the selection score in the critical phase (§8) |
 | `conformal.py` | split-conformal risk control with finite-sample coverage bookkeeping |
 | `crc.py` | conformal risk control with the weight-corrected slack term |
-| `adaptive_conformal.py` | online/adaptive conformal thresholds |
-| `pvd.py` | predictive-value / decision support |
+| `pvd.py` | Prover-Verifier Deliberation — semantic-entropy clustering of oracle responses blended with a verifier confidence signal (no LLM calls; deliberation rounds are simulated) |
 | `binomial_bounds.py` | Clopper–Pearson / binomial upper confidence bounds on empirical risk |
 
 ### 5.4 Interfaces: API, MCP, and edge workers

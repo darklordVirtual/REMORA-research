@@ -9,7 +9,6 @@ Baseline scenario: production network change without any operational approvals.
 import pytest
 
 from remora.causal import (
-    CausalExplanation,
     CounterfactualReplay,
     PolicyIntervention,
     generate_explanation,

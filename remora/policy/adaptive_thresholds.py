@@ -150,9 +150,21 @@ class AdaptiveThresholdEngine:
             self._outcomes = self._outcomes[-self._max_window:]
 
     def get_threshold(self, name: str) -> float:
-        """Get the current adapted value of a threshold."""
+        """Get the current adapted value of a threshold.
+
+        Raises:
+            KeyError: If ``name`` was never registered. Failing loud here is
+                deliberate: for a lower-bound trust threshold, silently
+                returning 0.0 would be maximally permissive, so a typo'd
+                threshold name would disable a gate without any signal.
+        """
         state = self._thresholds.get(name)
-        return state.current_value if state else 0.0
+        if state is None:
+            raise KeyError(
+                f"threshold '{name}' is not registered; "
+                f"registered: {sorted(self._thresholds)}"
+            )
+        return state.current_value
 
     @property
     def thresholds(self) -> dict[str, ThresholdState]:
