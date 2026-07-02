@@ -220,11 +220,12 @@ No new numbers were introduced without matching artifacts.
 
 | Claim | Evidence level | Caveat required |
 |-------|---------------|-----------------|
-| FAR=0% on adversarial tool-call benchmark | externally_benchmarked | Wilson CI [0.00%, 0.55%]; deterministic simulator; policy layer only |
-| 88% selective accuracy at ~25% coverage | regression_tested | N_accepted=25; Wilson CI [70.0%, 95.8%]; single split |
+| FAR=0% on adversarial tool-call benchmark (CLAIM-001) | internal_benchmark | Wilson CI [0.00%, 0.55%]; deterministic simulator; policy layer only |
+| FAR=0% on external AgentHarm benchmark, N=208 (CLAIM-002) | externally_benchmarked | Intent-gating only; FBR=100% on benign variants |
+| 88% selective accuracy at 23.2% coverage (CLAIM-004) | internal_benchmark | N_accepted=25; Wilson CI [70.0%, 95.8%]; single split |
 | AROMER 0% false-accept on 96-case arena | internal_benchmark | EXPERIMENTAL; shadow mode only; self-labeled |
-| AII=0.9701 (TRAINED) | regression_tested | Three production gates remain before deployment |
-| AROMER FA=30.7% under neutral metadata | internal_benchmark | NEGATIVE RESULT; structural gates achieve 0% |
+| AII TRAINED status (CLAIM-006) | internal_simulation | Production gates remain before deployment; not a safety metric |
+| AROMER FA=30.7% under neutral metadata (CLAIM-009) | internal_benchmark | NEGATIVE RESULT; structural gates achieve 0% only with accurate metadata |
 
 No REMORA claim currently reaches `independently_replicated` or `externally_validated`.
 The highest level is `externally_benchmarked` (REM-014, AgentHarm, n=208).

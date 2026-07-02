@@ -97,7 +97,7 @@ AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's closed
 | T5 Stability | 1.0000 | Active |
 <!-- LIVE_STATUS_END -->
 
-AII phase transitions: WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28 and has maintained it since. Two production deployment gates remain open before use outside shadow-mode research: REM-020 (30-day longitudinal stability audit, FAR=0.0%, eligible close 2026-07-07) and REM-021 (independent human review). REM-022 (RBAC audit) is DONE. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
+AII phase transitions: WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28, regressed to CAPABLE for some hours the same day, and recovered organically ([NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§13); it has held TRAINED since. Two production deployment gates remain open before use outside shadow-mode research: REM-020 (longitudinal stability audit: AII EMA ≥ 0.80 for 7 calendar days with FAR = 0.0% throughout; eligible close no earlier than 2026-07-05) and REM-021 (independent human review). REM-022 (RBAC audit) is DONE. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
 
 ---
 
@@ -107,8 +107,8 @@ All claims are bounded by documented assumptions. External replication is pendin
 
 ### Zero false accepts on external adversarial benchmark (AgentHarm)
 
-<!-- claim:CLAIM-002 far_pct far_ci_high_pct n -->
-208 independently-sourced harmful scenarios from the AI Safety Institute's [AgentHarm benchmark](https://arxiv.org/abs/2410.09024) (Andriushchenko et al., 2024; arxiv:2410.09024; 4K+ downloads, peer-reviewed). This dataset was not present in REMORA's training corpus, which supports external validity of the input distribution. Result: 0 false accepts, FAR = 0.0%, Wilson 95% CI [0.00%, 1.81%].
+<!-- claim:CLAIM-002 far_pct far_ci_high_pct fbr_pct n -->
+208 independently-sourced harmful scenarios from the AI Safety Institute's [AgentHarm benchmark](https://arxiv.org/abs/2410.09024) (Andriushchenko et al., 2024; arxiv:2410.09024; 4K+ downloads, peer-reviewed). This dataset was not present in REMORA's training corpus, which supports external validity of the input distribution. Result: 0 false accepts, FAR = 0.0%, Wilson 95% CI [0.00%, 1.81%]. The companion metric is FBR = 100%: the deployed configuration also blocked every benign variant (the same harm-category mapping triggers the same risk tier), so this result documents a hard safety floor bought at maximal benign friction — not a calibrated accept/block discriminator.
 
 **Intent-gating, not interception:** this result routes the agent's *proposed* action to VERIFY/ESCALATE; true tool-call interception is unverified (`experiments/agentharm/INTERCEPTION_NOTES.md`). It demonstrates routing accuracy, not execution prevention — as the paper abstract states.
 

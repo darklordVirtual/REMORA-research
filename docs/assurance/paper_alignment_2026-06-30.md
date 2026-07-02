@@ -208,7 +208,7 @@ REMORA implements multi-layered defense implicitly through:
 | DecisionEnvelope v2 + hash chain | Output / audit guard | Cryptographic |
 | Shadow Mode / Replay Engine | Retrospective guard | Counterfactual |
 
-REMORA's layering is **stronger** than what Shamsujjoha et al. study covers — the paper surveys existing systems, while REMORA adds an adaptive learning layer (AROMER) not found in the SLR corpus.
+REMORA's layering covers an additional dimension not present in the Shamsujjoha et al. survey corpus: an adaptive learning layer (AROMER). This is a difference in scope, not a validated superiority claim — no head-to-head evaluation against surveyed systems has been performed.
 
 ### 2.2 Design Actions — Completeness Check
 
@@ -270,8 +270,8 @@ REMORA's layering is **stronger** than what Shamsujjoha et al. study covers — 
 
 **Assessment:** REMORA's oracle is architecturally richer than LGA's L2. Key differentiators:
 1. Multi-oracle ensemble vs single judge — reduces variance
-2. Semantic Entropy (NLI-based) provides calibrated uncertainty, not just binary verdict
-3. CRC provides formal coverage guarantee E[L(λ̂)] ≤ α + 1/(n+1) — LGA has no formal guarantee
+2. Semantic-entropy-style clustering provides graded uncertainty, not just a binary verdict (token-fingerprint heuristic in all reported results; the NLI backend is implemented but unused in any reported run — see NEGATIVE_RESULTS §3 / M5)
+3. CRC-inspired heuristic operating point (the formal CRC bound E[L(λ̂)] ≤ α + 1/(n+1) assumes correctly specified importance weights and is not claimed — see M6); LGA has no comparable selective mechanism
 4. Thompson bandit routing adaptively selects best oracle — LGA uses fixed model
 5. AROMER MetaJudge provides ongoing calibration of the verification layer
 
@@ -291,7 +291,7 @@ REMORA's layering is **stronger** than what Shamsujjoha et al. study covers — 
 
 **REMORA:** DecisionEnvelope v2 with HMAC-SHA256 signature, tenant-scoped hash chain (`previous_hash`), schema version, policy bundle hash, actor identity, timestamp. `verify_envelope_hash_chain()` in Shadow Mode.
 
-**Assessment:** REMORA **exceeds** LGA's L4 design. REMORA's hash chain prevents log tampering even for an insider with database write access — a property LGA identifies as missing in OpenClaw and recommends for LGA. This is a genuine competitive advantage.
+**Assessment:** REMORA's L4 analog includes a hash chain that makes log tampering evident even for an insider with database write access — a property LGA identifies as missing in OpenClaw and recommends for LGA. Note the standing caveat: the chain is tamper-evident, not tamper-proof, without external append-only anchoring (see paper limitations).
 
 ---
 
@@ -397,7 +397,7 @@ The following capabilities exceed what both papers study or propose:
 | Capability | Papers' Scope | REMORA Advantage |
 |---|---|---|
 | Adaptive learning loop | Neither paper discusses runtime adaptation | AROMER self-improves via EpisodicStore + MetaJudge |
-| Formal CRC guarantee | LGA has no formal guarantee | E[L(λ̂)] ≤ α + 1/(n+1) |
+| CRC-inspired operating point | LGA has no comparable selective mechanism | Heuristic importance weights; formal bound not claimed (M6) |
 | Multi-oracle ensemble | LGA: single judge; Shamsujjoha: parallel calls at most | GO-STAR 3-oracle Thompson bandit |
 | Counterfactual replay | Neither paper discusses shadow mode | Shadow Mode + Replay Engine unique |
 | Hash-chain audit integrity | LGA identifies OpenClaw's mutable log as a gap | REMORA's hash chain + HMAC exceeds LGA L4 |
@@ -509,7 +509,7 @@ Out-of-Distribution Detector." AISTATS 2025. PMLR vol. 258.
 
 **Alignment: Strong with identified gaps.**
 
-REMORA's architecture is **well-aligned** with all four papers' frameworks. REMORA implements the Swiss Cheese multi-layer model (Shamsujjoha et al.), has analog layers for all four LGA layers (Ge), employs calibrated confidence decomposition comparable to UF Calibration (Zhang et al.), and encodes behavioral safety properties in Stage 1 (Corsi et al.). REMORA **exceeds** all four papers in: adaptive learning, formal CRC guarantee, multi-oracle ensemble, audit integrity, and counterfactual replay.
+REMORA's architecture is **well-aligned** with all four papers' frameworks. REMORA implements the Swiss Cheese multi-layer model (Shamsujjoha et al.), has analog layers for all four LGA layers (Ge), employs calibrated confidence decomposition comparable to UF Calibration (Zhang et al.), and encodes behavioral safety properties in Stage 1 (Corsi et al.). REMORA additionally covers dimensions the four papers do not: adaptive learning, a CRC-inspired selective operating point (heuristic weights — no formal guarantee is claimed; see M6), multi-oracle ensemble, audit integrity, and counterfactual replay. These are scope differences, not benchmarked superiority claims.
 
 **Corsi et al. contribution:** ProVe's violation_rate metric formalizes what REMORA measures empirically as FAR. The behavioral property formalism (Θ: if input ∈ [a,b] → yⱼ > yᵢ) provides the academic framing for REMORA's Stage 1 LOCAL_BLOCK rules. Crucially, Corsi et al. demonstrate that models with identical reward can differ 10× in safety — validating REMORA's design choice of using AII (not task performance alone) as the primary quality metric. The training safety degradation finding (Fig. 4) directly informs Phase 5 LoRA planning.
 

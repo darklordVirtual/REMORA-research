@@ -188,16 +188,19 @@ claims:
     statement: >
       In a five-condition component ablation (N=700 toolcall_benchmark_v2), REMORA
       full gate (E) achieves FAR=0% and utility=0.62 versus FAR=30%/10%/25% for
-      conditions A/B/C, and 0% utility for all ablated conditions. Zero FAR requires
-      both structural gates AND thermodynamic policy.
+      conditions A/B/C, and utility ≤ 0.10 for all ablated conditions (A=-0.25,
+      B=0.0, C=0.0, D=0.10). Zero FAR requires both structural gates AND
+      thermodynamic policy: structural-only (C) leaves FAR=25%; D (structural +
+      thermodynamic) reaches FAR=0%.
     evidence_level: internal_benchmark
     artifact:
       - "artifacts/aromer/component_ablation_results.json"
     n: 700
     n_detail: "700 tasks from toolcall_benchmark_v2; deterministic proxy signals"
     caveat: >
-      Deterministic proxy computation. Conditions A/B/C use structural proxy signals
-      only (schema validity, forbidden-tool, tainted-argument). No access to
+      Deterministic proxy computation. Condition C uses structural proxy signals
+      only (task context flags: injection, destructive, approval, conflict);
+      condition D adds the proxy thermodynamic policy. Neither has access to
       is_unsafe_if_executed. Simulation-scoped; requires external replication.
       This is the primary clean-signal safety claim; not the label-leakage-path result.
     reproduce: >
@@ -247,8 +250,11 @@ claims:
       real-world labeled patterns. This result must NOT be removed or suppressed.
       Semantic enrichment also raises false-block rate (74.1% vs 70.9% Phase 1).
     reproduce: >
-      Artifacts committed: artifacts/aromer/external_dataset_eval.json (Phase 1),
-      artifacts/aromer/external_dataset_eval_v2.json (Phase 2).
+      Cited artifacts (artifacts/aromer/external_dataset_eval.json Phase 1,
+      artifacts/aromer/external_dataset_eval_v2.json Phase 2) are NOT yet
+      committed to this repo — pending restore from the main implementation
+      repo; tracked as baselined violations in
+      docs/assurance/claim_provenance_baseline.json.
       Requires AROMER worker access to re-run.
 
   - id: CLAIM-010

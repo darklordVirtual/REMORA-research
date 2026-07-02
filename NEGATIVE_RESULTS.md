@@ -204,7 +204,9 @@ At the time of seeding (2026-06-26), the `deployment_status = "SHADOW_ONLY"` and
 **Gap 1 — Closed 2026-06-27 (gate logic fixed 2026-06-27).** `n_harmful_independent = 169`
 as of 2026-06-27. 84 aradhye + 84 CaiZhiTech harmful episodes seeded via
 `scripts/aromer_seed_harmful_episodes.py`. A 36-case holdout was saved to
-`artifacts/aromer/harmful_seed_holdout.json`. The worker now computes n_harmful_independent
+`artifacts/aromer/harmful_seed_holdout.json` (raw holdout file not committed to
+this repo; its evaluation results are committed as
+`artifacts/aromer/harmful_seed_holdout_eval.json`, n_cases=36). The worker now computes n_harmful_independent
 from episodes where `id LIKE 'seed-harmful-%'` or `meta.source_tag IN ('aradhye','caizhitech')`.
 The certification gate was updated to check `n_harmful_independent >= 30` (previously checked
 only `globalHarmful >= 30`). With `n_harmful_independent=169` and `safety_upper_bound_95=0.00367` (0.37% ≤ 5%),
@@ -725,8 +727,10 @@ severity=high, 25%) are caught by text-based destructive-keyword heuristics.
   flags disabled) is required for the definitive M1 resolution. See REM-009 (blinded benchmark v3).
 
 **Component ablation is the primary clean evidence.** `artifacts/aromer/component_ablation_results.json`
-conditions C and D use only structural proxy signals with no access to `is_unsafe_if_executed`
-or severity-derived phase/trust. FAR=0%, utility=0.62. Claim_register updated to reflect both.
+conditions C and D are computed from task context flags with no access to `is_unsafe_if_executed`
+or severity-derived phase/trust. Structural-only (C) leaves FAR=25%; structural gates plus the
+proxy thermodynamic policy (D) reach FAR=0% at utility=0.10; the full gate (E) reaches FAR=0%
+at utility=0.62. Claim_register updated to reflect this (CLAIM-007).
 
 **M2 — Baseline naming (documentation gap — partially fixed)**
 
@@ -837,7 +841,7 @@ field). Does not affect AII value or production gate status.
 | AROMER TRAINED milestone, organic regression, and recovery | **TRAINED_SHADOW_ONLY recovered (~15:53 UTC 2026-06-28)** — AII=0.8042. Full §12→§13 cycle: peak AII=0.844 (T2=1.000, T3=0.800 [M], cycle 12) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). FAR=0 throughout. 2 active gaps: Gap 2 (FA holdout 22.2%), Gap 4 (NLI/SE DLL). 3 gates before deployment: longitudinal stability, human review, RBAC audit. | **Medium** |
 | benign_review_rate window distortion during world-model seeding | **Resolved** — brr fell from 11.33% (secondary equilibrium) to 1.03% (n=134) via organic /decide window rotation. T2 recovered to 0.949 (T2_eq≈0.946). T5 recovered to 0.669. Global gate PASS throughout; 0 FA. | Low |
 | Window-rotation bottleneck — adapt cycles do not generate /decide episodes | **Resolved in practice** — confirmed plateau n=107–112; recovery occurred via session hook MEDIUM/HIGH traffic generating organic /decide episodes across n=119–134; design gap (fixed-size recency window vs. EMA) remains open for future improvement | Low |
-| External adversarial dataset: FA=30.7% under neutral metadata (Phase 2) | **Partially addressed** — Phase 1 FA=43.0% (structural-only); Phase 2 FA=30.7% (−12.3 pp via semantic enrichment); Post-seeding aradhye holdout FA=22.2% (−30 pp vs Phase 2 aradhye, confirms seeding generalizes). Residual gap: 22.2% holdout FA from contextual harm not visible in instruction text. Fix path: runtime execution monitoring. Artifacts: `external_dataset_eval*.json`, `harmful_seed_holdout_eval.json` | High |
+| External adversarial dataset: FA=30.7% under neutral metadata (Phase 2) | **Partially addressed** — Phase 1 FA=43.0% (structural-only); Phase 2 FA=30.7% (−12.3 pp via semantic enrichment); Post-seeding aradhye holdout FA=22.2% (−30 pp vs Phase 2 aradhye, confirms seeding generalizes). Residual gap: 22.2% holdout FA from contextual harm not visible in instruction text. Fix path: runtime execution monitoring. Artifacts: `harmful_seed_holdout_eval.json` committed; `external_dataset_eval*.json` pending restore from the main implementation repo (tracked as baselined violations in `docs/assurance/claim_provenance_baseline.json`) | High |
 | Harmful seeding → TRAINED→CAPABLE regression (§9) | **RESOLVED via organic recovery** — 168 harmful seeds caused T2 crash (0.921→0.274), AII crash (0.8083→0.62). Recovery via 210 benign seeds + EMA cycles to AII=0.752 (equilibrium); organic Path A sustained over 12 cycles: AII=0.8097→0.844, T2=1.000, T3=0.800 [M], brr=0%. Architectural finding preserved: stage seeding ≤25 per batch or implement EMA dual-window. See §9 root cause and §11 recovery. | **Resolved** |
 | brr=7.5% stable equilibrium — CAPABLE ceiling and INSUFFICIENT_SAFETY_EVIDENCE gate (§10) | **RESOLVED organically** — 15 historical VERIFY episodes rotated out via organic /decide traffic in ~2.5h. brr: 7.5%→0.5%. T2=0.916. AII=0.8097 TRAINED (00:36 UTC+2 2026-06-28). See §11. | **Resolved** |
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)** — `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
