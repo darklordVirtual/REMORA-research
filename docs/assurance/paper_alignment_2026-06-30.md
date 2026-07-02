@@ -208,7 +208,7 @@ REMORA implements multi-layered defense implicitly through:
 | DecisionEnvelope v2 + hash chain | Output / audit guard | Cryptographic |
 | Shadow Mode / Replay Engine | Retrospective guard | Counterfactual |
 
-REMORA's layering covers an additional dimension not present in the Shamsujjoha et al. survey corpus: an adaptive learning layer (AROMER). This is a difference in scope, not a validated superiority claim — no head-to-head evaluation against surveyed systems has been performed.
+REMORA's layering covers an additional dimension not present in the Shamsujjoha et al. survey corpus: an adaptive learning layer (AROMER). This is a difference in scope, not a validated superiority claim — no head-to-head evaluation against surveyed systems has been performed. Note (2026-07-03): adaptive/self-improving guardrail layers have since appeared in the broader literature — GuardAgent (ICML 2025), AgentTrust (arXiv:2606.08539), Membrane (arXiv:2606.05743) — so the scope difference holds only against this survey's corpus; differentiation against the newer systems is in paper §2.11.
 
 ### 2.2 Design Actions — Completeness Check
 
@@ -227,7 +227,7 @@ REMORA's layering covers an additional dimension not present in the Shamsujjoha 
 | Human Intervention | ESCALATE + `/v1/review` endpoint | ✅ |
 | Defer | ABSTAIN decision | ✅ |
 | Isolate | No process-level isolation | ❌ Gap (see §3.1) |
-| Simulate | Shadow Mode / Replay Engine | ✅ Unique |
+| Simulate | Shadow Mode / Replay Engine | ✅ Unique among the four compared papers (conceptually preempted by ToolEmu, ICLR 2024 — see paper §2.11) |
 | Redundancy | 3-oracle ensemble (Thompson bandit ensemble) | ✅ |
 | Log | DecisionEnvelope v2 with hash chain, Prometheus | ✅ Strong |
 
@@ -244,7 +244,7 @@ REMORA's layering covers an additional dimension not present in the Shamsujjoha 
 | Intermediate Results | AROMER EpisodicStore captures intermediate states | ✅ Partial |
 | Final Results | DecisionEnvelope captures final decision | ✅ |
 | Goals | Intent anchor (`scripts/remora_anchor.py`) | ✅ Partial |
-| Context | Lyapunov V(t) = H(t) + λ·D(t) tracks semantic drift | ✅ Unique |
+| Context | Lyapunov V(t) = H(t) + λ·D(t) tracks semantic drift | ✅ Unique among the four compared papers |
 | Memory | EpisodicStore stores agent memory of decisions; no poisoning guard | ⚠️ Gap |
 | Reasoning | Oracle pipeline evaluates reasoning but no explicit reasoning guard | ⚠️ Partial |
 | Plans | Not explicitly targeted | ❌ Gap |
@@ -399,7 +399,7 @@ The following capabilities exceed what both papers study or propose:
 | Adaptive learning loop | Neither paper discusses runtime adaptation | AROMER self-improves via EpisodicStore + MetaJudge |
 | CRC-inspired operating point | LGA has no comparable selective mechanism | Heuristic importance weights; formal bound not claimed (M6) |
 | Multi-oracle ensemble | LGA: single judge; Shamsujjoha: parallel calls at most | GO-STAR 3-oracle Thompson bandit |
-| Counterfactual replay | Neither paper discusses shadow mode | Shadow Mode + Replay Engine unique |
+| Counterfactual replay | Neither paper discusses shadow mode | Unique among the four compared papers; ToolEmu (ICLR 2024) anticipates LM-emulated counterfactual execution (paper §2.11) |
 | Hash-chain audit integrity | LGA identifies OpenClaw's mutable log as a gap | REMORA's hash chain + HMAC exceeds LGA L4 |
 | Domain harm priors | Not discussed in any of the four papers | DomainHarmPrior + OT/ICS domain pack |
 | Causal attribution | Not discussed | Bjøru 2026 PS/PN causal framework |
