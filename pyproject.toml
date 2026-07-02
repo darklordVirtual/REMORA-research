@@ -79,7 +79,10 @@ ignore = [
 # package-by-package; do not add blanket ignores to get a package through.
 python_version = "3.12"
 ignore_missing_imports = true
-warn_unused_ignores = true
+# warn_unused_ignores stays OFF: `# type: ignore` comments here guard
+# optional-dependency imports (scipy, opentelemetry, sqlglot, ...) and are
+# unused/used depending on which extras are installed in the environment.
+warn_unused_ignores = false
 warn_redundant_casts = true
 
 [tool.pytest.ini_options]
