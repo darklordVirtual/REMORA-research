@@ -112,8 +112,10 @@ def free_energy_approx(energies: list[float], temperature: float) -> float:
     energies:
         List of energy values for all states.
     temperature:
-        Effective temperature T (must be > 0 for valid physics; T < 0 is
-        a formal analytic continuation used in the Lyapunov identification).
+        Effective temperature T (must be > 0 for valid physics). The T = -1
+        substitution used in the Lyapunov identification is a SIGN CONVENTION
+        (it flips -T·H to +H so that V = H + λD matches F's algebraic form);
+        it is not an analytic continuation and carries no physical content.
 
     Returns
     -------

@@ -124,8 +124,11 @@ def potts_critical_temperature_approx(k: int, J: float = 1.0) -> float:
 
     T_c(mean-field) = J · (k − 1) / k · N_eff
 
-    In the mean-field limit (fully connected), the exact result is:
-        T_c = J (k-1)/k   (for the per-site coupling convention used here)
+    T_c = J (k-1)/k is used here as a simple REFERENCE VALUE for the
+    per-site coupling convention. It is not presented as the exact
+    mean-field Potts result: the mean-field q-state Potts transition is
+    FIRST-order for q >= 3 (Wu, Rev. Mod. Phys. 54, 235 (1982)), and no
+    transition-order claim is made for REMORA's small-n consensus setting.
 
     This is provided for reference only.  REMORA's empirical T_c is
     determined by calibration, not by this formula.

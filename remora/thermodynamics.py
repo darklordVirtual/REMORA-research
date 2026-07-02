@@ -458,7 +458,16 @@ def susceptibility(eta_values: list[float], t_values: list[float]) -> list[float
 
 
 def critical_exponent_gamma(k: int) -> float:
-    """Return the Potts-style susceptibility exponent used for reporting."""
+    """Return 2D-LATTICE Potts susceptibility exponents — reporting decoration only.
+
+    These are the exact 2D Potts values (gamma = 7/4, 13/9, 7/6 for
+    k = 2, 3, 4; the transition is first-order for k > 4, hence inf).
+    They do NOT apply to REMORA's setting: the consensus model is mean-field
+    (fully connected, remora/statphys/potts.py) where gamma = 1, there is no
+    lattice, and n <= 5 oracles is nowhere near a scaling regime. The value
+    is carried in PhaseDiagram for descriptive labeling only and feeds no
+    routing decision (compute_phase_diagram is referenced only by tests).
+    """
     if k <= 1:
         return 0.0
     if k == 2:
@@ -542,13 +551,29 @@ def estimate_temperature_semantic(
     )
     return se_to_temperature(se_result, n_oracles=len(oracle_responses), rho_bar=rho_bar)
 def hallucination_bound(n_oracles: int, rho_bar: float, individual_error_rate: float) -> float:
-    """Upper-bound the false-consensus rate for a correlated oracle pool."""
+    """Heuristic false-consensus RISK PROXY for a correlated oracle pool.
+
+    NOT the proven bound. Two deliberate departures from the theorem in
+    remora/proofs/hallucination_bound_theorem.py (B = q^floor(n/2)):
+
+    1. Exponent n/2 instead of floor(n/2) — tighter than what the theorem
+       proves (at n=3: q^1.5 vs the proven q^1).
+    2. rho_bar clamped at 0.49 — the paper's own §13.5 reports within-family
+       rho_bar ≈ 0.4–0.6, so in exactly that regime this proxy UNDERSTATES
+       false-consensus risk, which inflates the trust score via the
+       (1 − h_bound) factor.
+
+    Both choices keep the signal informative for routing and are preserved
+    unchanged because committed benchmark artifacts depend on them; they
+    forfeit any guarantee. Do not cite this function as a bound — the paper
+    describes it as a heuristic proxy (§5.1).
+    """
     eps = max(0.0, min(individual_error_rate, 1.0))
     rho = max(0.0, min(rho_bar, 1.0))
     if eps >= 0.5 or n_oracles < 2:
         return 1.0
-    # Experimental calibration: keep the bound informative instead of becoming
-    # vacuous as soon as observed rolling rho crosses 0.5.
+    # Heuristic clamp (see docstring point 2): keeps the signal informative,
+    # forfeits the bound property for rho_bar >= 0.5.
     rho = min(rho, 0.49)
     base = eps * eps + rho * eps * (1.0 - eps)
     return min(1.0, base ** (n_oracles / 2.0))
@@ -630,7 +655,14 @@ def compute_phase_diagram(
     n_points: int = 200,
     calibration: ThermodynamicCalibration | None = None,
 ) -> PhaseDiagram:
-    """Compute a simple phase diagram over a temperature range."""
+    """SYNTHETIC ILLUSTRATION of a phase diagram over a temperature range.
+
+    The eta(T) curves below are hard-coded piecewise shapes (including a
+    2D-Ising-style 0.125 exponent) chosen for plotting, NOT measured from
+    oracle data. Nothing in the runtime decision path consumes this
+    function; it exists for tests and illustrative figures only. Do not
+    present its output as an empirical result.
+    """
     t_critical = critical_temperature(lambda_coupling, rho_bar, k_verdicts)
     gamma = critical_exponent_gamma(k_verdicts)
     t_min, t_max = t_range

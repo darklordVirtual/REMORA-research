@@ -106,10 +106,17 @@ Let O_1, …, O_n be n oracles. Let ε := P(O_i wrong), ρ̄ := mean pairwise er
 
 then:
 ```
-P(all n oracles wrong) ≤ B(n, ε, ρ̄) = [ε² + ρ̄·ε(1−ε)]^(n/2)
+P(all n oracles wrong) ≤ B(n, ε, ρ̄) = [ε² + ρ̄·ε(1−ε)]^⌊n/2⌋
 ```
 
-**Proof sketch:** Pair-blocking gives P(X_i=1 ∧ X_j=1) ≤ ε² + ρ̄·ε(1−ε) =: q by assumption A2. Chaining over ⌊n/2⌋ pairs yields P(all n wrong) ≤ q^(n/2). See `remora/proofs/hallucination_bound_theorem.py` for the complete derivation.
+*(Corrected 2026-07-03: a prior version stated exponent n/2 via an
+inequality with the direction reversed for q < 1; the derivable exponent is
+⌊n/2⌋ — at n = 3, q¹ not q^1.5. An explicit between-pair-independence
+assumption A5 was also added. The runtime routing proxy in
+`remora/thermodynamics.py` retains the tighter n/2 form plus a ρ̄-clamp as a
+disclosed heuristic and must not be cited as this theorem.)*
+
+**Proof sketch:** Pair-blocking gives P(X_i=1 ∧ X_j=1) ≤ ε² + ρ̄·ε(1−ε) =: q by assumption A2. Chaining over ⌊n/2⌋ disjoint pairs, independent by A5, yields P(all n wrong) ≤ q^⌊n/2⌋. See `remora/proofs/hallucination_bound_theorem.py` for the complete derivation.
 
 **Numerical consistency on N=302:**
 
@@ -117,9 +124,9 @@ P(all n oracles wrong) ≤ B(n, ε, ρ̄) = [ε² + ρ̄·ε(1−ε)]^(n/2)
 |---|---:|
 | Implied pool epsilon (from majority error rate) | 0.264 |
 | rho_bar (observed inter-oracle correlation) | 0.236 |
-| B(3, 0.264, 0.236) | 0.0393 |
+| B(3, 0.264, 0.236) = q¹ (corrected exponent) | 0.1156 |
 | Independence-model P(all 3 wrong) | 0.0184 |
-| Slack (B − model) | **+0.021** (positive — bound holds) |
+| Slack (B − model) | **+0.097** (positive — bound holds; looser than the retracted q^1.5 form, as a proven bound must be) |
 
 P(all 3 wrong) cannot be directly observed from stored artifacts (per-oracle responses are not individually logged). The bound is verified against the independence model and a practical conditional estimate derived from majority failures.
 
@@ -127,12 +134,12 @@ P(all 3 wrong) cannot be directly observed from stored artifacts (per-oracle res
 
 | eps | rho=0.00 | rho=0.10 | rho=0.20 | rho=0.236 | rho=0.30 | rho=0.40 |
 |---:|---:|---:|---:|---:|---:|---:|
-| 0.10 | 0.00100 | 0.00262 | 0.00469 | 0.00552 | 0.00712 | 0.00987 |
-| 0.20 | 0.00800 | 0.01325 | 0.01932 | 0.02168 | 0.02611 | 0.03354 |
-| 0.264 | 0.01839 | 0.02825 | 0.03890 | 0.03925 | — | — |
-| 0.30 | 0.02700 | 0.03698 | 0.04796 | 0.05214 | 0.05985 | 0.07258 |
+| 0.10 | 0.01000 | 0.01900 | 0.02800 | 0.03124 | 0.03700 | 0.04600 |
+| 0.20 | 0.04000 | 0.05600 | 0.07200 | 0.07776 | 0.08800 | 0.10400 |
+| 0.264 | 0.06970 | 0.08913 | 0.10856 | 0.11555 | 0.12799 | 0.14742 |
+| 0.30 | 0.09000 | 0.11100 | 0.13200 | 0.13956 | 0.15300 | 0.17400 |
 
-**Limitations:** The pair-independence step (chaining) is conservative — between-pair correlation would tighten the bound further. The theorem holds under stated assumptions only; no claim of universality.
+**Limitations:** Between-pair independence (A5) is the weakest assumption — the reported experiments use all-Llama oracles (§13.5), so A5 is not well-supported empirically there and the bound should be read as model-conditional. The theorem holds under stated assumptions only; no claim of universality.
 
 **Reproducer:**
 ```bash

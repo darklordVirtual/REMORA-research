@@ -22,7 +22,7 @@ class TestBoundFormula:
         """Bound rises as pairwise correlation increases."""
         eps, n = 0.20, 3
         prev = 0.0
-        for rho in [0.0, 0.1, 0.2, 0.3, 0.4, 0.49]:
+        for rho in [0.0, 0.1, 0.2, 0.3, 0.4, 0.49, 0.6]:
             b = bound(n, eps, rho)
             assert b >= prev, f"bound not monotone at rho={rho}"
             prev = b
@@ -34,15 +34,30 @@ class TestBoundFormula:
     def test_degenerate_n_lt_2(self) -> None:
         assert bound(1, 0.1, 0.0) == 1.0
 
-    def test_zero_correlation_matches_iid(self) -> None:
-        """At rho=0 bound equals eps^n (independent case)."""
+    def test_zero_correlation_matches_iid_pairs(self) -> None:
+        """At rho=0 bound equals eps^(2*floor(n/2)) — the proven pair exponent.
+
+        (q = eps^2 at rho=0, and B = q^floor(n/2).) A prior version asserted
+        eps^n, matching the retracted n/2-exponent claim.
+        """
         eps, n = 0.2, 3
         b = bound(n, eps, 0.0)
-        assert abs(b - eps ** n) < 1e-9
+        assert abs(b - (eps * eps) ** (n // 2)) < 1e-9
 
-    def test_rho_clamped_at_49pct(self) -> None:
-        """Bound with rho=0.5 equals bound with rho=0.49."""
-        assert bound(3, 0.2, 0.5) == bound(3, 0.2, 0.49)
+    def test_no_049_clamp_bound_stays_honest_above_half_rho(self) -> None:
+        """The theorem function must NOT clamp rho at 0.49 (the runtime proxy
+        does; the verification function reports honest values)."""
+        assert bound(3, 0.2, 0.5) > bound(3, 0.2, 0.49)
+        assert bound(3, 0.2, 0.6) > bound(3, 0.2, 0.5)
+        assert bound(3, 0.2, 1.0) < 1.0  # q < eps < 0.5 keeps it informative
+
+    def test_proven_exponent_is_floor_n_over_2(self) -> None:
+        """B uses floor(n/2), not n/2: at n=3 the proven bound is q^1."""
+        eps, rho = 0.264, 0.236
+        q = eps * eps + rho * eps * (1 - eps)
+        assert abs(bound(3, eps, rho) - q) < 1e-12
+        assert abs(bound(4, eps, rho) - q ** 2) < 1e-12
+        assert bound(3, eps, rho) > q ** 1.5  # the retracted claim was tighter
 
     def test_bound_is_always_in_unit_interval(self) -> None:
         for eps in [0.01, 0.1, 0.3, 0.49]:
