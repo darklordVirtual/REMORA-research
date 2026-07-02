@@ -1,0 +1,299 @@
+# Simulated Hostile Review v1 — Readiness Gaps for a Physics/XAI/Ethics Reviewer
+
+**Status:** INTERNAL — findings register + remediation plan. Nothing here is a claim.
+**Date:** 2026-07-02
+**Method:** Three independent review passes over the full repository, simulating
+the reviewer archetype most dangerous to this project: a physics-trained
+researcher in explainable AI and AI ethics, publicly critical of AI hype and of
+physics vocabulary borrowed without physical content, who *will* check
+citations, run the demos, and read the code behind the claims.
+Pass A: physics-metaphor and XAI rigor (code + paper). Pass B: literature
+alignment against the 2024–2026 agent-safety field, with web verification of
+existing citations. Pass C: fresh-eyes coherence audit of the surfaces the
+2026-07-02 reconciliation campaign did *not* cover (docs/01, docs/02,
+docs/use-cases/, docs/07-api-reference, frontend, demo scripts, secondary docs).
+
+**Verdict:** The inner ring — README ↔ ARCHITECTURE ↔ paper ↔ claim register ↔
+artifacts — is now largely coherent and would survive scrutiny. The project
+fails this reviewer today on three fronts: (1) **two broken literature
+references, one of them load-bearing** — the exact failure mode that ends a
+review; (2) **one module and several secondary docs that violate the repo's own
+anti-metaphor discipline**, including a "this is NOT a metaphor" claim resting
+on an invalid derivation; (3) **a middle ring of documentation
+(docs/07-api-reference, docs/use-cases/, README demo, frontend prose) that
+tells a different — sometimes fictional — story than the code**. All are
+fixable; none is fixable by tightening prose alone.
+
+Cross-references: external peer review 2026-06-25 (NEGATIVE_RESULTS §14);
+reconciliation campaign 2026-07-02 (commits 635ee69..cd06fda);
+`theoretical_foundations_proposals_v1.md` (anti-metaphor rule).
+
+---
+
+## P0 — Submission blockers (fix before any external review)
+
+### P0-1. Citation integrity: two references are wrong, one is load-bearing
+- `paper/remora_paper.md` References: **"Kuhn, L., Gal, Y., & Farquhar, S.
+  (2026). Evidential Semantic Entropy… EACL 2026, pp. 334–348"** — the paper
+  at ACL Anthology `2026.eacl-long.334` is by **Kunitomo-Jacquin,
+  Marrese-Taylor, Fukuda & Hamasaki**, pp. 7107–7122. The author list was
+  pattern-matched from the 2023 predecessor and the page range hallucinated
+  from the anthology ID. This is the signature of an LLM-fabricated citation;
+  a reviewer who checks one reference will check this one.
+- **"Zhang, Y. & Lee, M. (2025) … arXiv:2502.11347"** — that arXiv ID is
+  **Dong & Wang, "Evaluating the Performance of the DeepSeek Model in
+  Confidential Computing Environment"**. Worse: the paper's TEE section
+  attributes a specific quantitative claim ("<50 ms attestation overhead…")
+  to the non-existent "Zhang & Lee". The number must be re-verified against
+  Dong & Wang before it can be kept at all.
+- Minor: Du et al. dated 2023 but published ICML 2024; AgentHarm should be
+  cited as **ICLR 2025**, not bare arXiv; Raji et al. venue is AIES '22.
+- **Fix:** correct or delete both entries; re-verify the TEE numbers; add a
+  CI check that every reference resolves (arXiv ID ↔ title match is
+  scriptable). *This violates CLAUDE.md's "no invented results" rule and is
+  the single highest-priority item in this document.*
+
+### P0-2. `remora/theory/maxent_grounding.py` claims the physics is literal — with an invalid proof
+Docstring: *"REMORA's free energy F(T) = λD − TH is NOT a metaphor. It is the
+negative log partition function of the Gibbs distribution that solves the
+MaxEnt consensus problem exactly."* This contradicts the paper's own
+disclosure ("No claim is made that LLM systems obey a physical thermodynamic
+law") and ARCHITECTURE.md. The derivation is wrong: the MaxEnt Lagrangian
+fixes the H-coefficient at 1; the "temperature" T is smuggled in as a
+"Lagrange multiplier for H", which is incoherent (H is the objective). The
+same file asserts a second-order phase transition "same as the Potts model"
+with no derivation (mean-field Potts for k≥3 is first-order) and calls T=−1
+"imaginary temperature" (it is negative). The claim is laundered into
+`docs/claim_register.md` as a "Theoretical derivation".
+**Fix:** rewrite the docstring to what the code actually verifies (a
+numerical identity in a hand-constructed exponential family at T=1); strike
+"NOT a metaphor", the phase-transition and VI claims; correct
+`docs/claim_register.md`. This one file undoes the repo's hedging discipline.
+
+### P0-3. `docs/07-api-reference.md` is substantially fictional
+6 of 8 spot-checked APIs are wrong, and the MCP tools table lists **five
+tools that do not exist** (`remora_consensus`, `remora_verify`,
+`remora_audit`, `remora_gate`, `remora_shadow_replay`) while the real server
+registers 14 differently-named tools. `decide()` documented as returning
+`DecisionEnvelope` (actual: `DecisionReport`); PolicyObservation,
+OracleResponse, `detect_adversarial`, ActionGateResult, and the LangGraph
+adapter are all documented with fields/signatures that don't exist.
+**Fix:** regenerate the API reference from source (mkdocstrings is already in
+the docs extra), or rewrite by hand against code; add a doc-vs-code signature
+test in the style of `test_doc_consistency.py`.
+
+### P0-4. Related work ignores the field the paper competes in
+The References contain **zero guardrail systems, zero agent-safety benchmarks
+besides AgentHarm, zero AI-control work**. Mandatory additions, verified:
+- *Guardrails:* Llama Guard (Inan et al. 2023, arXiv:2312.06674; + LG3/LG4),
+  LlamaFirewall (Chennabasappa et al. 2025, arXiv:2505.03574), NeMo
+  Guardrails (Rebedea et al., EMNLP 2023 demos), Constitutional Classifiers
+  (Sharma et al. 2025, arXiv:2501.18837), Rule-Based Rewards (Mu et al.,
+  NeurIPS 2024), GuardAgent (Xiang et al., ICML 2025), AgentSpec (Wang et
+  al. 2025, arXiv:2503.18666).
+- *Permissioning (preempts REMORA's roadmap and answers the FBR critique):*
+  Progent (Shi et al. 2025, arXiv:2504.11703 — ASR 41.2%→2.2% on AgentDojo
+  *while preserving utility*), CaMeL (Debenedetti et al. 2025,
+  arXiv:2503.18813 — provable security by construction).
+- *Benchmarks:* AgentDojo (NeurIPS 2024 D&B), ToolEmu (ICLR 2024), InjecAgent
+  (ACL Findings 2024), R-Judge (EMNLP Findings 2024), τ-bench
+  (arXiv:2406.12045) — the paper already promises replication on τ-bench and
+  ToolEmu without citing them.
+- *UQ:* **Farquhar et al., Nature 630 (2024)** — the canonical semantic-entropy
+  follow-up, currently uncited while H(t) is built on the 2023 paper; Mohri &
+  Hashimoto (ICML 2024, conformal factuality); Yadkori et al. 2024
+  (arXiv:2405.01563, conformal abstention — directly preempts §7.2's framing).
+- *AI control:* Greenblatt et al., ICML 2024 (arXiv:2312.06942). REMORA *is*
+  a trusted-monitoring control protocol in their taxonomy; the threat model
+  must add the strategically subversive policy model.
+- *Regulatory:* COMPL-AI (arXiv:2410.07959) to anchor the "suitable for
+  regulatory review" claim.
+- The four papers analyzed in `paper_alignment_2026-06-30.md` (Shamsujjoha,
+  Ge, Zhang UF, Corsi) are mandated citations there but **absent from the
+  paper's References** — the positioning was never propagated.
+**Fix:** new related-work subsection "Runtime guardrails, permissioning, and
+AI control" (~15 citations above); reposition "unique" claims (Shadow
+Mode/Replay is preempted conceptually by ToolEmu; say "unique among the four
+compared papers").
+
+### P0-5. Read arXiv:2606.08539 ("AgentTrust: A Self-Improving Trust Layer for AI-Agent Actions") immediately
+Title-level, this is REMORA+AROMER's thesis published elsewhere in 2026 and
+currently invisible to the repo. Also check Membrane (arXiv:2606.05743).
+Novelty positioning cannot be written until these are read and differentiated.
+
+### P0-6. Paper cites causal artifacts that do not exist
+Paper §13.10 cites `remora/causal/attribution.py` (absent),
+`scripts/aromer_publish_causal.py` (absent; only `aromer_publish_replay.py`
+exists), and "66 episodes with Bjøru 2026 PS scores" (no artifact found).
+The CAUSAL_UNMEASURED gate closure rests on these. Violates CLAUDE.md.
+**Fix:** commit the module/script/artifact from the main repo, or downgrade
+§13.10 to roadmap and reopen the gate; if they live in the private repo, say
+so at every citation site (same treatment as CLAIM-009).
+
+---
+
+## P1 — Major (would each draw a hostile review paragraph)
+
+### Mathematics and physics vocabulary
+1. **2D Potts critical exponents on a mean-field 3-oracle system**
+   (`remora/thermodynamics.py` `critical_exponent_gamma`: γ = 7/4, 13/9, 7/6
+   are exact *2D lattice* values; the repo's own `statphys/potts.py` says the
+   model is mean-field, where γ=1). Delete or relabel "reference values, not
+   applicable"; remove `gamma_exponent` from `PhaseDiagram`.
+2. **`compute_phase_diagram` fabricates curves** (hard-coded η(T) with the 2D
+   Ising β=1/8 exponent). Only tests reference it — rename
+   `illustrative_phase_diagram` + "synthetic, not measured" docstring.
+3. **"Hallucination bound" is clamped so it cannot bind** (ρ capped at 0.49
+   while the paper reports within-family ρ̄≈0.4–0.6 — the clamp silently
+   understates false-consensus risk and inflates τ). Remove the clamp or
+   rename `false_consensus_risk_proxy`; purge "bound" from §5.1.
+4. **`proofs/hallucination_bound_theorem.py` has a direction error**
+   (q^⌊n/2⌋ ≤ q^(n/2) is false for q<1, odd n; at the deployed n=3 the
+   argument supports q^1, not q^1.5) and an unstated pair-independence
+   assumption. Fix the bound to q^⌊n/2⌋, add the assumption as A5, downgrade
+   "theorem" language until re-verified.
+5. **Live "susceptibility" χ is a constant** (algebraically ≡ 1/T_c whenever
+   clamps don't bind — not a sensitivity), *and* χ has AUC 0.39 (below
+   chance, §13.2) yet still multiplies the headline trust score. Compute by
+   actual perturbation, or remove χ from τ, or show the ablation that keeps it.
+6. **Vocabulary slippage in secondary docs:** `docs/thermodynamic_abs.md`
+   ("continuous thermodynamic trajectory", "proportionally scalar",
+   "Gold Standard … proven in test boundaries" — no disclaimer),
+   README "phase transitions" for AII threshold crossings, abstract
+   "theoretical ceiling reached" for a heuristic composite,
+   `statphys/gibbs.py` "formal analytic continuation" for a sign flip.
+   **Fix:** one canonical disclaimer doc linked from every file using the
+   vocabulary; rewrite `thermodynamic_abs.md`; repo-wide audit for
+   "proven/exact/not a metaphor". Consider the renames that lose nothing:
+   T → difficulty prior, F → routing objective, phases → consensus regimes,
+   `LyapunovController` → consensus-progress monitor (H and D can stay,
+   qualified). λ is 0.3/0.4/1.0 in three places — reconcile.
+
+### XAI honesty
+7. **No human evaluation of any explanation exists** — yet explain() promises
+   "human-readable audit trails … compliance". Add the explicit limitation
+   now; plan a small expert comprehension study (this is also the reviewer's
+   own research home turf — the absence will be noticed in minutes).
+8. **"Causal" machinery is honest what-if replay wearing Pearl vocabulary:**
+   `CausalEdge`/`model.edges` are never read by any code; do-calculus is
+   invoked but no identification happens (none is needed — the SCM is the
+   engine). Rename to "policy what-if analysis" or make the graph
+   load-bearing. Three unrelated things share the name "counterfactual";
+   the worst is the benchmark's `COUNTERFACTUAL_FAILED` hard block, which in
+   `toolcall/remora_gate.py` is **a severity/keyword lookup** — rename the
+   flag (e.g. `premise_stress_check_failed`) and disclose in §6.2.
+
+### Documentation/code coherence (middle ring)
+9. **README "Building Automation Demo" is a hardcoded mock:**
+   `scripts/demo_building_lights.py` imports nothing from `remora/`; the
+   92%/96% "confidence" values are literals; outcomes are ALLOW/BLOCK — a
+   vocabulary that exists nowhere else (canonical: ACCEPT/VERIFY/ABSTAIN/
+   ESCALATE). The linked use-case doc describes a different scenario.
+   **Fix:** either wire the demo through `RemoraDecisionEngine` with real
+   outcomes, or label it "illustrative mock — not the engine" in README and
+   script; align vocabulary either way.
+10. **`docs/use-cases/` tells the pre-pivot story:** REMORA described as a
+    question-answering consensus engine ("It is not a fact-checker" —
+    ARCHITECTURE.md); an undefined "ETR" metric carries quantitative claims
+    (87%/91%); production-implying language ("Auto-confirm", "your own REMORA
+    deployment", BACnet/MODBUS integration) with **zero SHADOW_ONLY
+    disclaimers in the whole directory**; an unartifacted "~3% false
+    positives"; invented SEC-filing examples not labeled illustrative; broken
+    links out of the repo. **Fix:** rewrite the directory against the
+    action-governance story, define or remove ETR, add the standard
+    research-scope banner to every file, register or delete every number.
+11. **`docs/02-evidence-and-claims.md` is 5 claims behind the register**
+    (missing CLAIM-002 — the flagship external result — 007, 009, 010, 011),
+    contains two headline numbers that are in no register (99.9% ordered-phase
+    coverage; replay_accuracy=0.875), has no claim anchors, and cites the
+    stale PDF as artifact. **Fix:** regenerate from the register (ideally
+    literally — a script that renders this doc from claim_register_v1.yaml
+    would make drift impossible), and extend the provenance gate's anchor
+    coverage to it.
+12. **Frontend violates the register's own quoting rules in unbound surfaces:**
+    `cascade.tsx` says "94.7% @ 25% *abstain*" (operating point inverted —
+    it's 25% coverage ≈ 75% abstain) and presents the 82.8% majority-vote
+    *baseline* as a REMORA result; `index.tsx` quotes 88% without the Wilson
+    CI that CLAIM-004 mandates; `content/whitepaper.ts` claims an "RDF audit
+    graph with OTel telemetry" — neither exists in `remora/` (audit is a
+    SHA-256 hash chain) — and lists integrations as "Integrated" that aren't.
+    **Fix:** correct the strings; extend `test_frontend_benchmark_snapshot.py`
+    (or claim anchors) to bind the prose surfaces, not just
+    benchmark-snapshot.json.
+13. **Stale references that survived the campaign:** README line ~224 still
+    says "eligible close 2026-07-07" (contradicting line 100 of the same
+    file); `docs/claim_register.md` has 2026-07-07 twice, "Day 25/30", and
+    two Makefile targets that don't exist (`make check-live`,
+    `make rem020-check`); `paper/hf_dataset_card.md` 2026-07-07;
+    `paper/remora_mathematical_supplement.md` still presents "the seven hard
+    blocks" as complete with a hardcoded line-range pointer;
+    `docs/REMORA_AROMER_MASTER_DOCUMENT.md` has a **third** AROMER expansion
+    ("Autonomous REMORA Orchestrator, Meta-Emergent Reasoner"); register
+    CLAIM-006 caveat still says "Three production gates remain" (REM-022 is
+    DONE, and REM-023 now exists); register header still stamped 2026-06-30;
+    `run_external_benchmark_agentharm.py` survives in three assurance docs;
+    ARCHITECTURE §5.5 expands AII as "AROMER Intelligence Index" vs README's
+    "Autonomous Intelligence Index". **Fix:** mechanical sweep; then extend
+    the provenance gate with a stale-string denylist so these cannot recur.
+14. **`docs/01-architecture.md`:** references non-existent
+    `enterprise/nested_governance_layers.yaml`; wrong module path for
+    `OracleDiversityTracker`; degenerate module table. Small fixes.
+
+### Statistics presentation
+15. **AII precision theater:** reported to 4 significant figures with
+    researcher-chosen weights; T₂'s formula was changed mid-experiment
+    (1−r/0.27 → exp(−r/0.20)) making the trend non-comparable across the
+    break. Report ≤2 decimals, mark the metric-version break on every trend,
+    never say "theoretical ceiling", and lead with the honest
+    renormalized-AII≈0.52-without-T₄ caveat rather than trailing it.
+16. **Operating thresholds without CIs:** τ*=0.2032 to 4 decimals from N=544;
+    the τ≥0.10 "groupthink boundary" driving PhaseAwareGuardrail rests on
+    N=21 vs N=11. CIs beside every threshold; label the 0.10 boundary
+    provisional.
+
+---
+
+## P2 — Minor (batchable)
+
+- Four ceremonial write-ups of the one-line V=F(T=−1) identity — collapse to
+  match the supplement's honest "design consequence" note.
+- `potts.py` "exact result T_c = J(k−1)/k" — cite or delete ("exact" is
+  unearned; mean-field q≥3 Potts is first-order).
+- Causal domain YAMLs: keep the partial-specification disclosure; no
+  generalization claims.
+- `docs/06-reproducibility.md` Claim 5 points at the stale PDF instead of the
+  committed JSONs it could name.
+- Use-case README: "8 tools" vs 14 actual; "three Cloudflare Workers" vs four.
+- `theoretical_foundations_proposals_v1.md` proposes
+  `remora/selective/adaptive_conformal.py` — fine as roadmap, but the doc
+  should carry its PROPOSED banner near those lines too.
+
+---
+
+## What already withstands this reviewer (do not break while fixing)
+
+NEGATIVE_RESULTS discipline incl. published below-chance χ AUC and the T–D
+circularity confession; the claim register + provenance gate + anchors; the
+explain/decide parity harness (a genuine answer to post-hoc-faithfulness
+critique); paper's own "Is thermodynamic terminology scientifically
+justified? No physical law applies" Q&A; per-claim caveats-as-part-of-claim
+rule; the 2026-06-25 external review being documented verbatim; anytime-valid
+REM-020 bound; stage-1-vs-consensus anti-conflation rule. The reviewer's
+summary line: *"the discipline exists but is not enforced uniformly"* — the
+remediation goal is uniformity, not new machinery.
+
+---
+
+## Execution plan
+
+| Wave | Items | Effort | Owner-blocking? |
+|------|-------|--------|-----------------|
+| 1 (immediately) | P0-1 citations, P0-2 maxent docstring, P1-13 stale sweep, P1-14 | hours | no |
+| 2 | P0-3 API reference regeneration + doc-signature test; P1-9 demo fix; P1-12 frontend strings + binding | 1–2 days | no |
+| 3 | P0-4 related-work section + Farquhar/Mohri/Yadkori/Greenblatt/COMPL-AI; P0-5 read AgentTrust/Membrane and write the differentiation | 1–2 days | reading required |
+| 4 | P1-1..6 math corrections + vocabulary renames + canonical disclaimer doc; P1-15/16 stats presentation | 2–3 days | rename decisions |
+| 5 | P1-10 use-cases rewrite; P1-11 docs/02 regeneration from register; P1-7 XAI limitation + study plan | 2–3 days | no |
+| — | P0-6 causal artifacts | — | **yes — main repo access** |
+
+Gate rule for closure: each item closes only with a commit reference here, and
+Waves 1–2 must land before any external reviewer is invited (REM-021).
