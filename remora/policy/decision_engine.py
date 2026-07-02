@@ -482,10 +482,17 @@ class RemoraDecisionEngine:
 
         # ── ACCEPT PATHS ────────────────────────────────────────────────────
 
+        # Marginal (phase-blind) conformal ACCEPT must not apply to the
+        # critical phase: trust anti-correlates with correctness there
+        # (ARCHITECTURE.md §8, CLAIM-005), so a phase-blind trust threshold
+        # would accept exactly the items most likely to be wrong. Critical-
+        # phase routing is handled by the Mondrian per-phase path above and
+        # the critical-phase VERIFY below.
         if (
             self.conformal_trust_threshold is not None
             and obs.trust_score is not None
             and obs.trust_score >= self.conformal_trust_threshold
+            and obs.phase != "critical"
             and obs.counterfactual_passed is not False
             and not (obs.evidence_contradictions or 0)
         ):
@@ -637,11 +644,6 @@ class RemoraDecisionEngine:
           f"blackmail_pattern_detected={obs.blackmail_pattern_detected}",
           "ESCALATE")
 
-        r("tainted_argument_check",
-          obs.argument_tainted,
-          f"argument_tainted={obs.argument_tainted}",
-          "VERIFY")
-
         r("counterfactual_check",
           obs.counterfactual_passed is False,
           f"counterfactual_passed={obs.counterfactual_passed}",
@@ -652,6 +654,11 @@ class RemoraDecisionEngine:
           contradictions > 0,
           f"evidence_contradictions={obs.evidence_contradictions}",
           "ESCALATE" if (obs.contradiction_cycles or 0) > 0 else "ABSTAIN")
+
+        r("tainted_argument_check",
+          obs.argument_tainted,
+          f"argument_tainted={obs.argument_tainted}",
+          "VERIFY")
 
         r("refuse_parametric",
           bool(obs.refuse_parametric_verdict and obs.evidence_action != "answer"),
@@ -666,6 +673,16 @@ class RemoraDecisionEngine:
         r("critical_phase_critical_risk",
           obs.phase == "critical" and obs.risk_tier == "critical",
           f"phase={obs.phase!r}, risk_tier={obs.risk_tier!r}",
+          "ESCALATE")
+
+        r("rollback_unavailable",
+          obs.rollback_available is False and obs.risk_tier in ("high", "critical"),
+          f"rollback_available={obs.rollback_available!r}, risk_tier={obs.risk_tier!r}",
+          "ESCALATE")
+
+        r("state_transition_uncertain",
+          obs.state_transition_uncertain and obs.risk_tier in ("high", "critical"),
+          f"state_transition_uncertain={obs.state_transition_uncertain}, risk_tier={obs.risk_tier!r}",
           "ESCALATE")
 
         write_action = self._production_write_outcome(obs)
@@ -691,6 +708,14 @@ class RemoraDecisionEngine:
           f"risk_tier={obs.risk_tier!r}",
           "VERIFY")
 
+        _oracle_attempted = obs.valid_oracle_count > 0 or obs.oracle_failures > 0
+        r("oracle_quorum_gate",
+          _oracle_attempted and obs.valid_oracle_count < MIN_REQUIRED_ORACLE_VOTES,
+          f"valid_oracle_count={obs.valid_oracle_count}, "
+          f"oracle_failures={obs.oracle_failures}, "
+          f"min_required={MIN_REQUIRED_ORACLE_VOTES}",
+          "VERIFY")
+
         _explain_credal = compute_from_obs(obs)
         _explain_trap   = trap_score(obs)
 
@@ -713,15 +738,13 @@ class RemoraDecisionEngine:
           f"[{TRAP_VERIFY_THRESHOLD}, {TRAP_ESCALATE_THRESHOLD})",
           "VERIFY")
 
-        r("rollback_unavailable",
-          obs.rollback_available is False and obs.risk_tier in ("high", "critical"),
-          f"rollback_available={obs.rollback_available!r}, risk_tier={obs.risk_tier!r}",
-          "ESCALATE")
-
-        r("state_transition_uncertain",
-          obs.state_transition_uncertain and obs.risk_tier in ("high", "critical"),
-          f"state_transition_uncertain={obs.state_transition_uncertain}, risk_tier={obs.risk_tier!r}",
-          "ESCALATE")
+        r("unknown_risk_tier_verify",
+          obs.risk_tier == "unknown"
+          and ((obs.action_type or "") in _MUTATING_TYPES
+               or (obs.target_environment or "") in _PROD_ENVS),
+          f"risk_tier={obs.risk_tier!r}, action_type={obs.action_type!r}, "
+          f"target_environment={obs.target_environment!r}",
+          "VERIFY")
 
         r("env_mismatch_escalate",
           obs.environment_mismatch_detected,
@@ -787,23 +810,55 @@ class RemoraDecisionEngine:
           f"similar_action_seen_count={obs.similar_action_seen_count}",
           "VERIFY")
 
-        if self.conformal_phase_thresholds and obs.phase in (self.conformal_phase_thresholds or {}):
+        r("counterfactual_unknown_verify",
+          obs.risk_tier in ("high", "critical")
+          and obs.evidence_action in ("answer", "evidence_accept")
+          and obs.counterfactual_passed is None,
+          f"risk_tier={obs.risk_tier!r}, evidence_action={obs.evidence_action!r}, "
+          f"counterfactual_passed={obs.counterfactual_passed}",
+          "VERIFY")
+
+        _schema_unverified_mutating = (
+            obs.schema_valid is None and (obs.action_type or "") in _MUTATING_TYPES
+        )
+        r("schema_unverified_floor",
+          _schema_unverified_mutating,
+          f"schema_valid={obs.schema_valid}, action_type={obs.action_type!r}",
+          "VERIFY")
+
+        if (
+            self.conformal_phase_thresholds is not None
+            and obs.phase in self.conformal_phase_thresholds
+            and obs.trust_score is not None
+        ):
             thresh = self.conformal_phase_thresholds[obs.phase]
-            above = (obs.trust_score or 0) >= thresh
+            above = obs.trust_score >= thresh
             r("mondrian_conformal",
               True,
-              f"phase={obs.phase!r}, trust={(obs.trust_score or 0.0):.3f}, threshold={thresh:.3f}",
+              f"phase={obs.phase!r}, trust={obs.trust_score:.3f}, threshold={thresh:.3f}",
               "ACCEPT" if above else "ABSTAIN")
 
         if self.conformal_trust_threshold is not None:
-            above_marginal = (obs.trust_score or 0) >= self.conformal_trust_threshold
+            above_marginal = (
+                obs.trust_score is not None
+                and obs.trust_score >= self.conformal_trust_threshold
+                and obs.phase != "critical"
+                and obs.counterfactual_passed is not False
+                and not contradictions
+            )
             r("marginal_conformal",
               above_marginal,
-              f"trust={obs.trust_score}, threshold={self.conformal_trust_threshold}",
+              f"trust={obs.trust_score}, threshold={self.conformal_trust_threshold}, "
+              f"phase={obs.phase!r}",
               "ACCEPT" if above_marginal else None)
 
         if self.temperature_threshold is not None:
-            below_temp = obs.temperature is not None and obs.temperature <= self.temperature_threshold
+            below_temp = (
+                obs.temperature is not None
+                and obs.temperature <= self.temperature_threshold
+                and obs.counterfactual_passed is not False
+                and not contradictions
+            )
             r("temperature_accept",
               bool(below_temp),
               f"temperature={obs.temperature}, threshold={self.temperature_threshold}",
@@ -811,19 +866,49 @@ class RemoraDecisionEngine:
 
         ev_accept = (
             obs.evidence_action in ("answer", "evidence_accept")
-            and (obs.evidence_confidence or 0) >= 0.7
+            and obs.evidence_confidence is not None
+            and obs.evidence_confidence >= 0.7
             and not contradictions
+            and obs.counterfactual_passed is not False
+        )
+        ev_outcome = (
+            "ACCEPT"
+            if (obs.phase == "ordered" or (obs.trust_score or 0) >= 0.72)
+            else "VERIFY"
         )
         r("evidence_supported_accept",
           ev_accept,
-          f"evidence_action={obs.evidence_action!r}, confidence={obs.evidence_confidence}",
-          "ACCEPT")
+          f"evidence_action={obs.evidence_action!r}, confidence={obs.evidence_confidence}, "
+          f"phase={obs.phase!r}, trust={obs.trust_score}",
+          ev_outcome)
 
-        ordered_trust = obs.phase == "ordered" and (obs.trust_score or 0) >= 0.72
+        _effective_trust = (
+            _explain_credal.adjusted_trust
+            if _explain_credal.adjusted_trust is not None
+            else (obs.trust_score or 0.0)
+        )
+        ordered_trust = (
+            obs.phase == "ordered"
+            and _effective_trust >= 0.72
+            and obs.counterfactual_passed is not False
+            and not contradictions
+        )
         r("ordered_high_trust",
           ordered_trust,
-          f"phase={obs.phase!r}, trust={obs.trust_score}",
+          f"phase={obs.phase!r}, trust={obs.trust_score}, "
+          f"ambiguity_adjusted_trust={_effective_trust:.3f}",
           "ACCEPT")
+
+        r("ambiguity_penalty_verify",
+          obs.phase == "ordered"
+          and (obs.trust_score or 0) >= 0.72
+          and _explain_credal.adjusted_trust is not None
+          and _explain_credal.adjusted_trust < 0.72
+          and obs.counterfactual_passed is not False
+          and not contradictions,
+          f"trust={obs.trust_score}, "
+          f"ambiguity_adjusted_trust={_explain_credal.adjusted_trust}",
+          "VERIFY")
 
         r("critical_phase_verify",
           obs.phase == "critical",
