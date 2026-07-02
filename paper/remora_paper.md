@@ -109,7 +109,7 @@ This is not a question of *accuracy*—REMORA does not know whether action $a$ i
 
 ## 4. REMORA Architecture
 
-REMORA processes each gate request through six decision stages, followed by DecisionEnvelope emission:
+REMORA processes each gate request through six decision stages, followed by DecisionEnvelope emission. **Stage numbering vs. enforcement precedence:** the stages below describe *data flow* (what is computed when); they do not describe *decision precedence*. In the implementation (`remora/policy/decision_engine.py`), the deterministic hard-block invariants are evaluated with absolute priority before any probabilistic ACCEPT path, and no consensus, thermodynamic, or conformal score can override them. ARCHITECTURE.md and README.md present the same system with the policy invariants as "Stage 1" for exactly this reason — the two numberings are different views of one pipeline, and the enforcement-precedence view (hard blocks first) is the authoritative one for safety claims.
 
 ```
 [Agent Proposed Action]
@@ -162,9 +162,11 @@ REMORA processes each gate request through six decision stages, followed by Deci
                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │ 6. POLICY ENGINE (hard-block priority, then routing)            │
-│    7 hard blocks evaluated first (adversarial, counterfactual,  │
-│    evidence-contradicted, distribution-shift, critical+critical, │
-│    evidence-insufficient, require-evidence)                     │
+│    Hard-block invariants evaluated with absolute precedence     │
+│    (Table 3 lists the 7 headline blocks; the audited engine     │
+│    contains further hard gates — see                            │
+│    docs/assurance/policy_engine_audit_v1.md for the full        │
+│    priority-ordered inventory)                                  │
 │    Accept / Verify / Abstain paths evaluated in order           │
 │    OPA/Rego adapter (fail-closed to Python fallback)            │
 └────────────────────────────────┬────────────────────────────────┘
@@ -180,7 +182,7 @@ REMORA processes each gate request through six decision stages, followed by Deci
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Figure 1:** REMORA gate architecture. Stages 1–6 are sequential; hard blocks in Stage 6 can override any earlier routing. Stage 7 (DecisionEnvelope emission) is the output record, not a decision stage.
+**Figure 1:** REMORA gate architecture in data-flow order. Stages 1–6 are sequential as computation; in decision precedence the hard-block invariants (drawn in Stage 6, plus the admission firewall in Stage 1) take absolute priority and override any earlier probabilistic routing — equivalent to the hard-blocks-first "Stage 1" presentation in ARCHITECTURE.md/README.md. Stage 7 (DecisionEnvelope emission) is the output record, not a decision stage.
 
 ### 4.1 Oracle Swarm
 
@@ -1285,7 +1287,7 @@ Output: gate_decision g, explanation r, envelope D
 
 **The problem.** Autonomous AI agents that invoke tools or actuate real-world systems can cause irreversible harm if they execute actions that are incorrect, unauthorized, or unsafe. Majority-vote consensus—the standard ensemble primitive—does not prevent a confident wrong consensus from triggering unsafe execution. What is needed is not a better oracle but an assurance layer: a system that evaluates whether the conditions for autonomous action are verifiably met before execution.
 
-**What REMORA does.** REMORA intercepts proposed agent actions and routes each through six stages: (1) intent and risk classification; (2) parallel oracle fan-out with failed-oracle filtering; (3) correlation-aware consensus weighting; (4) thermodynamic uncertainty observables (entropy H, dissensus D, trust score τ, phase classification); (5) evidence routing for critical-phase decisions; and (6) a policy engine with seven hard-block rules. The output is one of four outcomes—ACCEPT, VERIFY, ABSTAIN, or ESCALATE—emitted as a full DecisionEnvelope with audit hash-chain.
+**What REMORA does.** REMORA intercepts proposed agent actions and routes each through six stages: (1) intent and risk classification; (2) parallel oracle fan-out with failed-oracle filtering; (3) correlation-aware consensus weighting; (4) thermodynamic uncertainty observables (entropy H, dissensus D, trust score τ, phase classification); (5) evidence routing for critical-phase decisions; and (6) a policy engine whose deterministic hard-block invariants take absolute precedence over all probabilistic routing (Table 3 lists the 7 headline blocks; the full priority-ordered gate inventory is in `docs/assurance/policy_engine_audit_v1.md`). The output is one of four outcomes—ACCEPT, VERIFY, ABSTAIN, or ESCALATE—emitted as a full DecisionEnvelope with audit hash-chain.
 
 **Key results.** On a 544-item QA benchmark: 88.8% selective accuracy at 18% coverage vs. 41.18% full-coverage majority-vote baseline (+47.6 pp; in-sample calibration—held-out validation required). On a 700-task adversarial agentic benchmark: REMORA's full policy gate achieves 0% unsafe execution vs. 10–20% for all baselines, with mean utility 0.62 vs. 0.0 for majority vote. A critical-phase evidence router resolves 38.5% of high-uncertainty cases with 100% precision; the remainder receive human review.
 
