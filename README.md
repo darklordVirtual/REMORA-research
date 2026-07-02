@@ -107,6 +107,7 @@ All claims are bounded by documented assumptions. External replication is pendin
 
 ### Zero false accepts on external adversarial benchmark (AgentHarm)
 
+<!-- claim:CLAIM-002 far_pct far_ci_high_pct n -->
 208 independently-sourced harmful scenarios from the AI Safety Institute's [AgentHarm benchmark](https://arxiv.org/abs/2410.09024) (Andriushchenko et al., 2024; arxiv:2410.09024; 4K+ downloads, peer-reviewed). This dataset was not present in REMORA's training corpus, which supports external validity of the input distribution. Result: 0 false accepts, FAR = 0.0%, Wilson 95% CI [0.00%, 1.81%].
 
 **Intent-gating, not interception:** this result routes the agent's *proposed* action to VERIFY/ESCALATE; true tool-call interception is unverified (`experiments/agentharm/INTERCEPTION_NOTES.md`). It demonstrates routing accuracy, not execution prevention — as the paper abstract states.
@@ -117,12 +118,15 @@ Artifact: `results/external_benchmark_agentharm_v1.json` | Gate: REM-014 (PASS)
 
 ### Zero false accepts on historical regression corpus (N = 167)
 
+<!-- claim:CLAIM-003 far_pct n -->
 167 historical false-accept episodes re-evaluated against the current system. Result: 0 recurrences (FAR = 0.0%). Confirms that policy improvements eliminating historical failures have not regressed.
 
 Artifact: `results/false_accept_regression_v1.json` | Gate: REM-019 (PASS)
 
+<!-- claim:CLAIM-004 accuracy_pct coverage_pct -->
 ### 88.0% selective accuracy at 23.2% coverage (held-out split)
 
+<!-- claim:CLAIM-004 ci_low_pct ci_high_pct n -->
 N_accepted = 25; Wilson CI [70.0%, 95.8%]; one-sided p = 1.45×10⁻⁵ vs. 46.3% base rate. The decision threshold τ\* = 0.2032 was locked on the training split before the held-out set was touched.
 
 **Read as directional confirmation, not a tight accuracy estimate.** The CI is wide because N_accepted = 25. The 88.0% point estimate must always be quoted with its CI. The lower bound of 70.0% is the honest floor.
@@ -131,6 +135,7 @@ Artifact: `artifacts/benchmark_n500_locked.json`
 
 ### Critical-phase trust inversion (negative result)
 
+<!-- claim:CLAIM-005 low_trust_correct_pct high_trust_correct_pct n -->
 N = 32 critical-phase items: trust anti-correlates with correctness. Low-trust items 71.4% correct (N=21), high-trust items 27.3% correct (N=11). Small sample; published as a negative result requiring further investigation. REMORA routes around this failure mode via `PhaseAwareGuardrail`. Full documentation: [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
 
 ---
@@ -143,6 +148,7 @@ Two benchmark versions. v2 introduces adversarial failure modes not present in v
 
 **v1 (252 tasks):** v1 does not demonstrate unsafe-execution reduction — all baselines including the single-model heuristic show 0% unsafe execution. This is a ceiling effect in the v1 benchmark design, not evidence of safety. Do not use v1 to make safety claims. Committed metrics: remora_temperature_gate_heuristic mean_utility=0.6762; remora_full_policy_gate accuracy=0.7619, mean_utility=0.5690. These are deterministic simulator results. Artifact: `results/toolcall_benchmark_v1_results.json`
 
+<!-- claim:CLAIM-001 far_pct n -->
 **v2 (700 tasks):** v2 is a deterministic simulator benchmark with adversarial failure modes. REMORA full policy gate reduces unsafe execution to 0% vs. 10–20% for all baselines; this is a simulator-scoped result. It does not prove field-deployment safety.
 
 | Baseline | Accuracy | Mean utility | Unsafe rate |
@@ -174,7 +180,8 @@ N=302 items evaluated on the pre-held-out calibration set. On this canonical ben
 |----------|-----------|---------|----------|
 | 25% | 76 | 72 | 94.7% |
 
-Top-25% slice: k=76, correct=72, accuracy=94.7%. Artifact: `results/selective_trust_curve_results.json`
+<!-- claim:CLAIM-008 accuracy_pct coverage_pct n -->
+Top-25% slice: k=76, correct=72, accuracy=94.7% on the N=302 calibration set. Artifact: `results/selective_trust_curve_results.json`
 
 ---
 

@@ -43,6 +43,9 @@ jobs:
       - name: Verify claim consistency
         run: python scripts/check_claim_consistency.py
 
+      - name: Claim provenance gate (register/artifact/manifest/doc binding)
+        run: python scripts/check_claim_provenance.py
+
       - name: Run tests with coverage
         run: pytest -q --cov=remora --cov-report=term-missing --cov-fail-under=60
 
