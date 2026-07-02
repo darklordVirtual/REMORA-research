@@ -1,6 +1,6 @@
 # REMORA — Policy-Gated Governance for Operational AI Agents
 
-REMORA is a pre-execution governance framework for AI agents operating in environments where actions carry real operational consequences — building automation, energy management, infrastructure control, and regulated enterprise workflows. Before any proposed action executes, REMORA evaluates it through a deterministic policy layer and a multi-oracle consensus pipeline, returning one of four outcomes:
+REMORA is a pre-execution governance overlay for AI agents operating in environments where actions carry real operational consequences — building automation, energy management, infrastructure control, and regulated enterprise workflows. It governs proposed agent actions; it does not replace the agent. Before any proposed action executes, REMORA evaluates it through a deterministic policy layer and a multi-oracle consensus pipeline, returning one of four outcomes:
 
 | Outcome | Meaning |
 |---------|---------|
@@ -168,7 +168,7 @@ Best operating point (18% coverage, k=98): accuracy 88.8%, Wilson CI [81.0%, 93.
 
 ### Selective trust curve (N=302, neg_temperature signal)
 
-N=302 items evaluated on the pre-held-out calibration set. Baseline accuracy: 82.78%. Selected rows for the `neg_temperature` signal:
+N=302 items evaluated on the pre-held-out calibration set. On this canonical benchmark the baselines are single-oracle accuracy 57.0% and majority-vote accuracy 82.8% (`artifacts/benchmark_summary.json`; full ablation in [docs/results_snapshot.md](docs/results_snapshot.md)). Majority voting is a strong baseline here: REMORA's balanced variant (82.1%) is competitive with it but does not beat it on raw accuracy — the value is in selective coverage, not full-coverage accuracy. Selected rows for the `neg_temperature` signal:
 
 | Coverage | k covered | Correct | Accuracy |
 |----------|-----------|---------|----------|
