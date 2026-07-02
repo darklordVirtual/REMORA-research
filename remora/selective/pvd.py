@@ -46,8 +46,6 @@ Prover-verifier games improve legibility of LLM outputs.
 """
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 import math
 from dataclasses import dataclass
 from typing import Sequence
@@ -293,7 +291,7 @@ def pvd_routing_score(
 def _select_oracle(
     responses: list[str],
     confidences: list[float],
-    members: "Sequence[str]",
+    members: Sequence[str],
     prefer_high: bool = True,
 ) -> tuple[str, int]:
     """Select the oracle from *members* with highest (or lowest) confidence."""

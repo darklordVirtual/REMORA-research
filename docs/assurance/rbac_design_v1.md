@@ -315,6 +315,13 @@ has confirmed the design, and the artifact is at `docs/assurance/rbac_policy_v1.
 (note: that path differs from this document's path; this document serves as the design
 input; the policy document will be the formal output after review).
 
+> **Closure deviation (2026-07-02).** REM-022 was closed 2026-06-30 without
+> steps 8 (isolation test), 9 (admin-wildcard removal), and 10 (external
+> confirmation) being met. The deviation is recorded in
+> `remediation_register.yaml` (REM-022 notes) and the unmet steps are tracked
+> as **REM-023**. This paragraph exists so the criteria above remain as
+> originally written rather than being silently weakened after the fact.
+
 ---
 
 ## 8. Non-Claims

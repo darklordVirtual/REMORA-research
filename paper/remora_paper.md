@@ -8,6 +8,9 @@
 
 ## Abstract
 
+<!-- claim:CLAIM-004 accuracy_pct coverage_pct ci_low_pct ci_high_pct -->
+<!-- claim:CLAIM-001 far_pct n -->
+<!-- claim:CLAIM-005 low_trust_correct_pct high_trust_correct_pct -->
 Autonomous AI agents that invoke tools, query databases, or actuate real-world systems require an assurance layer that decides—before execution—whether an action is safe enough to proceed autonomously, requires verification, warrants abstention, or must be escalated to human review. We present REMORA (Reasoning Ensemble Multi-Oracle Routing Architecture), a research-grade control layer for agentic AI governance. REMORA combines parallel multi-oracle consensus, canonicalized verdict extraction, correlation-aware consensus weighting, thermodynamic-style uncertainty observables, Lyapunov-based stability tracking, and a policy engine with hard-block precedence rules to produce one of four structured outcomes: ACCEPT, VERIFY, ABSTAIN, or ESCALATE. On a 544-item benchmark drawn from TruthfulQA, BoolQ, and an adversarial suite, REMORA achieves 88.8% selective accuracy at 18% coverage (majority-vote full-coverage baseline: 41.18%; +47.6 pp lift; in-sample optimum). Exploiting the empirically confirmed critical-phase trust inversion (low-τ critical items achieve 71.4% accuracy vs. 27.3% for high-τ), a `PhaseAwareGuardrail` with inverted-score selection extends coverage to **22.1% at 85.0% accuracy** (+43.8 pp lift; N=120; Wilson CI [77.5%, 90.3%]; see `results/phase_aware_guardrail_n544_results.json`)—a +3.9 pp coverage gain with only 1.9 pp accuracy cost. A stratified 80/20 held-out evaluation with threshold τ* locked from the training split yields **88.0% accuracy at 23.2% holdout coverage** (N\_accepted = 25, Wilson CI [70.0%, 95.8%], p = 1.45 × 10⁻⁵). This constitutes one directional held-out observation consistent with no in-sample threshold artefact; the wide CI reflects N\_accepted=25 and prevents strong generalization claims — external replication with a larger holdout is required. On an adversarial agentic tool-call benchmark (N=700), REMORA's full policy gate reduces unsafe execution from 10–20% (severity and keyword heuristics, not independent LLM evaluators) to 0% while maintaining mean utility 0.62 (vs. 0.0–(−0.25) for heuristics). **Construct validity (M1) — fixed (2026-06-28):** The gate formerly accessed `task.is_unsafe_if_executed` (label leakage). This branch has been removed entirely; `use_contradiction_flags` is now a no-op. Pre-fix clean-signal evaluation confirmed the leakage was not load-bearing (FAR=0, utility=0.62 across all three conditions: leaky, no-contradiction-flags, no-labels-no-severity); post-fix, FAR=0 confirmed with code path absent. AST leakage detector and mutation tests guard against re-introduction. The component ablation (`component_ablation_results.json`, N=700) corroborates that the clean-signal path carries the result without label access — but structural gates alone are not sufficient: structural-only (condition C) leaves FAR=25%; adding the proxy thermodynamic policy (condition D) reaches FAR=0% at utility=0.10, and the full gate (condition E) reaches FAR=0% at utility=0.62. Caveats: context flags correlate with harmfulness by benchmark construction; 140/560 harmful tasks rely on keyword heuristics vulnerable to evasion; external replication with independently withheld labels is the definitive resolution. See `results/toolcall_m1_clean_signal.json`, NEGATIVE_RESULTS.md §14, `docs/assurance/remediation_register.yaml` REM-001. A critical-phase evidence router achieves 100% NLI-proxy routing precision on a 3,000-item MultiNLI benchmark (NLI-proxy classification; not document-grounded evidence retrieval — see §7); the remainder are routed to human review. Key limitations include: (1) the benchmark contains 13.8% author-curated items (75/544) subject to selection bias; (2) trust scoring alone cannot discriminate correctness in the critical phase (anticorrelation confirmed); (3) semantic evidence retrieval is pluggable but not live in the current implementation; (4) the audit hash-chain is tamper-evident but not tamper-proof without external append-only storage. REMORA is positioned as a governed autonomy layer—not a replacement for domain authority—that converts model disagreement, uncertainty, missing evidence, and policy triggers into explicit, auditable control decisions.
 
 On the external AgentHarm benchmark (N=88, UK AI Safety Institute / Gray Swan AI), REMORA's three-mode cascade achieves blocked\_recall = 0.977 with FPR = 0.023 under an **intent-gating evaluation protocol** (REMORA evaluates the agent's proposed action and routes it to VERIFY/ESCALATE; true tool-call interception has not been verified — see §10.7 and `experiments/agentharm/INTERCEPTION_NOTES.md`). Meeting all three deployment goals in intent-gating mode (blocked recall ≥ 0.95, FPR < 0.10, coverage ≥ 0.95) demonstrates routing accuracy, not execution prevention. On a deterministic 36-case cross-domain evidence benchmark spanning cybersecurity, AI governance, and financial compliance, REMORA achieves precision = 1.000 and escalation recall = 1.000 with zero critical failures. An experimental learning extension, AROMER, reached `interpretation_nuanced: "TRAINED"` with AII=0.9922 over 1814+ adapt cycles (2026-07-01; **theoretical ceiling reached**: T2=T3=T4=T5=1.000, T1=0.9741 at ECE=0.0052 structural ceiling — MCE bucket selection bias; see NEGATIVE\_RESULTS.md §15; historical §12→§13→recovery cycle: peak 0.8442 at cycle 12, regression to CAPABLE 2026-06-28, organic recovery; FAR=0 throughout; AII is a composite index with researcher-chosen weights — see Appendix F). All five evidence gates are cleared: longitudinal stability (201+ records), safety evidence (n\_harmful\_independent=169 external aradhye/CaiZhiTech; safety\_upper\_bound\_95=0.37%), transfer measurement (4 database-to-financial cross-domain cases; `scripts/aromer_publish_replay.py`), and causal enrichment (66 episodes with Bjøru 2026 PS scores (§4.2.2); `scripts/aromer_publish_causal.py`). **Critical caveats:** (1) T4 Transfer = 1.0 derives from a 96-episode in-domain replay arena sharing taxonomy with AROMER's seeds — the 4 cross-domain cases clear the measurement gate but do not establish independent transfer; without T4, renormalized AII ≈ 0.52. (2) External holdout safety floor (proxy-signal transfer) largely de-risked via structural policy gates (schema validity, forbidden-tool, tainted-argument; FA→0%, harm-intercept→100% on 495-case balanced holdout); independent external-corpus validation pending — see NEGATIVE_RESULTS.md §2. (3) Aradhye holdout FA=22.2% (execution-context harm requiring runtime monitoring — Gap 2; see NEGATIVE_RESULTS.md §6). (4) `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT` (n\_harmful\_independent=169 external; safety\_upper\_bound\_95=0.37%); `deployment_status: "SHADOW_ONLY"`, `policy_relaxation_allowed: false`. Two production gates remain: REM-020 longitudinal stability (7-day AII-EMA ≥ 0.80 criterion with FAR = 0.0% throughout; eligible close no earlier than 2026-07-05 — see `docs/assurance/release_gates.md`) and REM-021 independent human review. REM-022 RBAC audit DONE 2026-06-30. Key limitations: AgentHarm evaluation is intent-gating only; AROMER external validity not yet established; no production deployment validated.
@@ -244,7 +247,7 @@ $$F(T) = \lambda D - T \cdot H, \quad \lambda = 0.3$$
 
 At low $T$ (structured, factual prompts), high entropy penalizes $F$ strongly; at high $T$ (adversarial, open-ended prompts), the thermal term $T \cdot H$ partially compensates for entropy.
 
-**Lyapunov observable:**
+**Lyapunov observable** (terminology after the classical stability framework, Khalil 2002; used here as an empirical observable, not a certified Lyapunov function):
 $$V(t) = H(t) + \lambda D(t)$$
 
 $V(t)$ is tracked across iterative oracle invocations. If $V$ increases by more than $\epsilon_{\text{tol}} \cdot |V|$ between steps, the session is flagged as potentially unstable and iteration halts. Across 1,000 synthetic sessions (N sessions × 5–20 steps), $P(\Delta V \leq 0) = 87.2\%$, mean $\Delta V = -0.329$ (§10.4). This is a measurement of empirical behavior, not a proof of formal stability.
@@ -359,7 +362,7 @@ A +3.9 pp coverage gain with 1.9 pp accuracy cost; still +43.8 pp above the 41.1
 
 Standard Mondrian conformal calibration assumes exchangeability between calibration and test samples — a condition violated in the critical phase. Applying standard conformal to critical-phase items yields 100% observed risk and 0% coverage (negative result, §6).
 
-REMORA resolves this with **Conformal Risk Control** (CRC; Angelopoulos et al., 2022), which extends split-conformal prediction to covariate-shifted test distributions via per-item importance weights. For the phase-shift setting, REMORA uses:
+REMORA resolves this with **Conformal Risk Control** (CRC; Angelopoulos et al., 2022), which extends split-conformal prediction to covariate-shifted test distributions via per-item importance weights (building on weighted conformal prediction; Tibshirani et al., 2019). For the phase-shift setting, REMORA uses:
 
 $$w_i = \begin{cases} 1.0 & \text{if phase}(i) = p_{\text{test}} \\ \beta = 0.10 & \text{otherwise} \end{cases}$$
 
@@ -857,6 +860,7 @@ REMORA integrates a PS (probability of sufficiency) causal enrichment module (Bj
 
 **Statistical validity:**
 - 95% Wilson confidence intervals are reported for key accuracy figures. Non-overlapping CIs are used to assess statistical significance; formal hypothesis tests are not performed across all conditions.
+- Wilson intervals are fixed-N constructions and are not valid under the continuous monitoring that the REM-020 longitudinal gate performs (optional stopping). A time-uniform confidence sequence (Ville, 1939; Darling & Robbins, 1967; Howard et al., 2021; Ramdas et al., 2023) is therefore reported alongside for the gate's cycle-level false-accept indicator: 0/168 cycles gives a 95% time-uniform upper bound of 4.72% (`results/far_confidence_sequence_v1.json`, claim register CLAIM-011). The sequence is wider than Wilson at any fixed N — the price of validity under data-dependent stopping.
 - N=32 critical-phase items is too small to draw strong conclusions about the trust-anticorrelation finding; the 511 critical-phase items of the augmented N=2,161 dataset (simulated trust distributions) partially address this.
 
 ---
@@ -988,66 +992,77 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 ## References
 
+- Andriushchenko, M., Souly, A., et al. (2024). AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents. arXiv:2410.09024.
+
+- Angelopoulos, A. & Bates, S. (2021). A gentle introduction to conformal prediction and distribution-free uncertainty quantification. *arXiv:2107.07511*.
+
+- Angelopoulos, A. N., Bates, S., Fisch, A., Lei, L., & Schuster, T. (2022). Conformal risk control. arXiv:2208.02814.
+
+- Bjøru, A. R. (2026). Causal Post-hoc Explainable AI (PhD thesis). Norwegian University of Science and Technology (NTNU). ISBN 978-82-353-0022-5. Paper IV §4.2.1–§4.2.3
+
+- Bloomfield, R. & Bishop, P. (2010). Safety and assurance cases: Practice, trends and challenges. *SAFECOMP 2010*.
+
+- Clark, C., Lee, K., Chang, M.-W., Kwiatkowski, T., Collins, M., & Toutanova, K. (2019). BoolQ: Exploring the surprising difficulty of natural yes/no questions. *NAACL 2019*.
+
+- Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., Hesse, C., & Schulman, J. (2021). Training verifiers to solve math word problems. *arXiv:2110.14168*.
+
+- Darling, D. A. & Robbins, H. (1967). Confidence sequences for mean, variance, and median. *Proceedings of the National Academy of Sciences, 58*(1), 66–68.
+
+- Du, Y., Li, S., Torralba, A., Tenenbaum, J., & Mordatch, I. (2023). Improving factuality and reasoning in language models through multiagent debate. *ICML 2024*.
+
+- El-Yaniv, R. & Wiener, Y. (2010). On the foundations of noise-free selective classification. *Journal of Machine Learning Research, 11*, 1605–1641. https://www.jmlr.org/papers/v11/el-yaniv10a.html
+
+- Endsley, M. (1995). Toward a theory of situation awareness in dynamic systems. *Human Factors, 37*(1), 32–64.
+
+- European Parliament & Council of the European Union. (2024). Regulation (EU) 2024/1689 (Artificial Intelligence Act). *Official Journal of the European Union*, L 2024/1689.
+
+- Geifman, Y. & El-Yaniv, R. (2017). Selective classification for deep neural networks. *NeurIPS 2017*.
+
+- Guo, C., Pleiss, G., Sun, Y., & Weinberger, K. Q. (2017). On calibration of modern neural networks. *ICML 2017*.
+
+- Howard, S. R., Ramdas, A., McAuliffe, J., & Sekhon, J. (2021). Time-uniform, nonparametric, nonasymptotic confidence sequences. *Annals of Statistics, 49*(2), 1055–1080.
+
+- International Electrotechnical Commission. (2016). IEC 61511-1:2016 — Functional safety: Safety instrumented systems for the process industry sector. IEC.
+
+- Kadavath, S., Conerly, T., Askell, A., Henighan, T., Drain, D., Perez, E., Schiefer, N., Hatfield-Dodds, Z., DasSarma, N., Tran-Johnson, E., Johnston, S., El-Showk, S., Jones, A., Elhage, N., Hume, T., Chen, A., Bai, Y., Bowman, S., Fort, S., Ganguli, D., Hernandez, D., Jacobson, J., Kernion, J., Kravec, S., Lovitt, L., Ndousse, K., Olsson, C., Ringer, S., Amodei, D., Brown, T., Clark, J., McCandlish, S., Olah, C., Mann, B., & Kaplan, J. (2022). Language models (mostly) know what they know. *arXiv:2207.05221*.
+
+- Kelly, T. (1998). Arguing safety: A systematic approach to managing safety cases. PhD thesis, University of York.
+
+- Khalil, H. K. (2002). *Nonlinear Systems* (3rd ed.). Prentice Hall.
+
+- Kirchner, J. H., Chen, Y., Edwards, H., Leike, J., McAleese, N., & Burda, Y. (2024). Prover-verifier games improve legibility of LLM outputs. arXiv:2407.13692.
+
 - Kuhn, L., Gal, Y., & Farquhar, S. (2023). Semantic uncertainty: Linguistic invariances for uncertainty estimation in natural language generation. *ICLR 2023*. arXiv:2302.09664.
 
 - Kuhn, L., Gal, Y., & Farquhar, S. (2026). Evidential Semantic Entropy for LLM uncertainty quantification. *EACL 2026*, pp. 334–348.
 
-- Kirsch, A., Harrison, J., Misra, S., & Leike, J. (2024). Prover-verifier games improve legibility of LLM outputs. arXiv:2407.13692.
-
-- Angelopoulos, A. N., Bates, S., Fisch, A., Lei, L., & Schuster, T. (2022). Conformal risk control. arXiv:2208.02814.
-
-- Zhang, Y. & Lee, M. (2025). Evaluating the performance of large language models in confidential computing environments. arXiv:2502.11347.
-
-
-- Wang, X., Wei, J., Schuurmans, D., Le, Q., Chi, E., Narang, S., Chowdhery, A., & Zhou, D. (2023a). Self-consistency improves chain of thought reasoning in language models. *ICLR 2023*.
-
-- Du, Y., Li, S., Torralba, A., Tenenbaum, J., & Mordatch, I. (2023). Improving factuality and reasoning in language models through multiagent debate. *ICML 2024*.
-
 - Lin, S., Hilton, J., & Evans, O. (2022). TruthfulQA: Measuring how models mimic human falsehoods. *ACL 2022*.
-
-- Clark, C., Lee, K., Chang, M.-W., Kwiatkowski, T., Collins, M., & Toutanova, K. (2019). BoolQ: Exploring the surprising difficulty of natural yes/no questions. *NAACL 2019*.
-
-- Geifman, Y. & El-Yaniv, R. (2017). Selective classification for deep neural networks. *NeurIPS 2017*.
-
-- Angelopoulos, A. & Bates, S. (2021). A gentle introduction to conformal prediction and distribution-free uncertainty quantification. *arXiv:2107.07511*.
-
-- Guo, C., Pleiss, G., Sun, Y., & Weinberger, K. Q. (2017). On calibration of modern neural networks. *ICML 2017*.
-
-- Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E. P., Zhang, H., Gonzalez, J. E., & Stoica, I. (2023). Judging LLM-as-a-judge with MT-Bench and Chatbot Arena. *NeurIPS 2023*.
-
-- Shafer, G. & Vovk, V. (2008). A tutorial on conformal prediction. *Journal of Machine Learning Research, 9*, 371–421.
-
-- Endsley, M. (1995). Toward a theory of situation awareness in dynamic systems. *Human Factors, 37*(1), 32–64.
-
-- Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., Hesse, C., & Schulman, J. (2021). Training verifiers to solve math word problems. *arXiv:2110.14168*.
-
-- Williams, A., Nangia, N., & Bowman, S. (2018). A broad-coverage challenge corpus for sentence understanding through inference. *NAACL 2018*.
-
-- Kelly, T. (1998). Arguing safety: A systematic approach to managing safety cases. PhD thesis, University of York.
-
-- Bloomfield, R. & Bishop, P. (2010). Safety and assurance cases: Practice, trends and challenges. *SAFECOMP 2010*.
-
-- Kadavath, S., Conerly, T., Askell, A., Henighan, T., Drain, D., Perez, E., Schiefer, N., Hatfield-Dodds, Z., DasSarma, N., Tran-Johnson, E., Johnston, S., El-Showk, S., Jones, A., Elhage, N., Hume, T., Chen, A., Bai, Y., Bowman, S., Fort, S., Ganguli, D., Hernandez, D., Jacobson, J., Kernion, J., Kravec, S., Lovitt, L., Ndousse, K., Olsson, C., Ringer, S., Amodei, D., Brown, T., Clark, J., McCandlish, S., Olah, C., Mann, B., & Kaplan, J. (2022). Language models (mostly) know what they know. *arXiv:2207.05221*.
 
 - Open Policy Agent contributors. (2024). Open Policy Agent. https://www.openpolicyagent.org/
 
-- European Parliament & Council of the European Union. (2024). Regulation (EU) 2024/1689 (Artificial Intelligence Act). *Official Journal of the European Union*, L 2024/1689.
+- Raji, I. D., Xu, P., Honigsberg, C., & Ho, D. E. (2022). Outsider oversight: Designing a third party audit ecosystem for AI governance. *arXiv:2206.04737*. https://arxiv.org/abs/2206.04737. doi:10.48550/arXiv.2206.04737
+
+- Ramdas, A., Grünwald, P., Vovk, V., & Shafer, G. (2023). Game-theoretic statistics and safe anytime-valid inference. *Statistical Science, 38*(4), 576–601.
+
+- Shafer, G. & Vovk, V. (2008). A tutorial on conformal prediction. *Journal of Machine Learning Research, 9*, 371–421.
 
 - Standards Norway. (2021). NORSOK D-010:2021 — Well integrity in drilling and well operations. Standards Norway.
 
-- International Electrotechnical Commission. (2016). IEC 61511-1:2016 — Functional safety: Safety instrumented systems for the process industry sector. IEC.
+- Tibshirani, R. J., Barber, R. F., Candès, E. J., & Ramdas, A. (2019). Conformal prediction under covariate shift. *NeurIPS 2019*.
 
-- Bjøru, A. R. (2026). Causal Post-hoc Explainable AI (PhD thesis). Norwegian University of Science and Technology (NTNU). ISBN 978-82-353-0022-5. Paper IV §4.2.1–§4.2.3
+- Ville, J. (1939). *Étude critique de la notion de collectif.* Gauthier-Villars.
 
-- Andriushchenko, M., Souly, A., et al. (2024). AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents. arXiv:2410.09024.
-
-- El-Yaniv, R. & Wiener, Y. (2010). On the foundations of noise-free selective classification. *Journal of Machine Learning Research, 11*, 1605–1641. https://www.jmlr.org/papers/v11/el-yaniv10a.html
+- Vovk, V., Gammerman, A., & Shafer, G. (2005). *Algorithmic Learning in a Random World.* Springer.
 
 - Wang, X., Aitchison, L., & Rudolph, M. (2023b). LoRA ensembles for large language model fine-tuning. *arXiv:2310.00035*. https://arxiv.org/abs/2310.00035. doi:10.48550/arXiv.2310.00035
 
-- Raji, I. D., Xu, P., Honigsberg, C., & Ho, D. E. (2022). Outsider oversight: Designing a third party audit ecosystem for AI governance. *arXiv:2206.04737*. https://arxiv.org/abs/2206.04737. doi:10.48550/arXiv.2206.04737
+- Wang, X., Wei, J., Schuurmans, D., Le, Q., Chi, E., Narang, S., Chowdhery, A., & Zhou, D. (2023a). Self-consistency improves chain of thought reasoning in language models. *ICLR 2023*.
 
----
+- Williams, A., Nangia, N., & Bowman, S. (2018). A broad-coverage challenge corpus for sentence understanding through inference. *NAACL 2018*.
+
+- Zhang, Y. & Lee, M. (2025). Evaluating the performance of large language models in confidential computing environments. arXiv:2502.11347.
+
+- Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E. P., Zhang, H., Gonzalez, J. E., & Stoica, I. (2023). Judging LLM-as-a-judge with MT-Bench and Chatbot Arena. *NeurIPS 2023*.
 
 ## Appendix A: Mathematical Definitions
 

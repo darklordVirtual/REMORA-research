@@ -366,3 +366,27 @@ items:
       AROMER D1 access (worker-binding only, no direct SQL), rotation policy (90/180d),
       audit log retention. Acknowledged gaps documented in §8 (KMS/HSM, RFC 3161,
       bearer expiry, CI/CD-only deploy, OIDC approver binding) — consistent with TRL 3-4.
+      CLOSURE DEVIATION (recorded 2026-07-02, external review finding): the design
+      document rbac_design_v1.md defined DONE as "all steps above have artifacts
+      committed, an external reviewer has confirmed the design" — but closure on
+      2026-06-30 did not include step 8 (tests/test_rbac_isolation.py), step 9
+      (admin wildcard removal in servers/api.py), or step 10 (external review).
+      Rather than silently amending the criteria, the unmet steps are split out
+      and tracked as REM-023; REM-022 remains DONE for the self-auditable scope
+      actually delivered (policy document + inventory + role matrix + key/rotation
+      policy).
+
+  - id: REM-023
+    section: "§5.A-B (follow-through)"
+    title: "RBAC follow-through — isolation test, admin wildcard, external confirmation"
+    gate: P3
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      Carries the three REM-022 design-document closure criteria that were not
+      met at REM-022's closure (see REM-022 CLOSURE DEVIATION note):
+      (1) tests/test_rbac_isolation.py — no cross-tenant data leakage via API
+      (rbac_design_v1 step 8); (2) enumerate admin permissions and remove the
+      wildcard in servers/api.py (step 9); (3) external reviewer confirmation of
+      the RBAC design (step 10 — feeds into / may be satisfied by REM-021).
+      DONE when all three artifacts are committed.
