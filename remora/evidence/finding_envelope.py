@@ -46,11 +46,11 @@ class DisclosureStatus(str, Enum):
     PATCH_VALIDATED = "patch_validated"
     REPORT_READY = "report_ready"
 
-    def index(self) -> int:
+    def stage_index(self) -> int:
         return _STAGE_ORDER.index(self.value)
 
     def can_advance_to(self, next_status: "DisclosureStatus") -> bool:
-        return next_status.index() > self.index()
+        return next_status.stage_index() > self.stage_index()
 
 
 @dataclass(frozen=True)

@@ -517,7 +517,7 @@ class StaticJsonlEvidenceProvider:
 
     def summary(self) -> dict:
         """Diagnostic summary for logging/inspection."""
-        domains = {}
+        domains: dict[str, int] = {}
         for obj in self._store:
             d = str(obj.get("domain", "unknown"))
             domains[d] = domains.get(d, 0) + 1

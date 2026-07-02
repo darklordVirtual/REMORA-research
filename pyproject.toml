@@ -51,7 +51,7 @@ agentharm = ["inspect-ai>=0.3", "inspect-evals", "openai>=1.0", "pyyaml>=6.0"]
 causal = ["pyyaml>=6.0"]
 # Documentation
 docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
-dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.8", "sqlglot>=23.0"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.8", "sqlglot>=23.0", "mypy>=1.11"]
 
 [project.urls]
 Homepage = "https://github.com/darklordVirtual/REMORA-research"
@@ -72,6 +72,15 @@ ignore = [
     "E701",   # multiple-statements-on-one-line-colon (compact math style)
     "E702",   # multiple-statements-on-one-line-semicolon (compact math style)
 ]
+
+[tool.mypy]
+# Gate scope: the safety-critical core (policy, enforcement, selective) and
+# what they transitively import — enforced in quality-gates.yml. Expand
+# package-by-package; do not add blanket ignores to get a package through.
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

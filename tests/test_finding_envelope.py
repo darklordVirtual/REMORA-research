@@ -55,8 +55,8 @@ def test_target_scan_profile_to_dict() -> None:
 
 
 def test_disclosure_status_ordering() -> None:
-    assert DisclosureStatus.COVERAGE_HIT.index() == 0
-    assert DisclosureStatus.REPORT_READY.index() == 5
+    assert DisclosureStatus.COVERAGE_HIT.stage_index() == 0
+    assert DisclosureStatus.REPORT_READY.stage_index() == 5
     assert DisclosureStatus.COVERAGE_HIT.can_advance_to(DisclosureStatus.REACHABLE_SINK)
     assert DisclosureStatus.COVERAGE_HIT.can_advance_to(DisclosureStatus.CONTROLLED_REPRO)
     assert not DisclosureStatus.REPORT_READY.can_advance_to(DisclosureStatus.COVERAGE_HIT)

@@ -40,6 +40,9 @@ jobs:
       - name: Lint (ruff)
         run: ruff check .
 
+      - name: Type check core packages (mypy)
+        run: mypy remora/policy/ remora/enforcement/ remora/selective/
+
       - name: Generate canonical results snapshot
         run: python scripts/generate_results_snapshot.py
 
