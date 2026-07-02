@@ -339,7 +339,7 @@ class _AsyncActionGate:
 
 
 # ---------------------------------------------------------------------------
-# AsyncLocalGateway — async wrapper over DirectPolicyGateway
+# AsyncLocalGateway — async wrapper over a synchronous RemoraGateway (e.g. LocalGateway)
 # ---------------------------------------------------------------------------
 
 class AsyncLocalGateway:
@@ -356,7 +356,7 @@ class AsyncLocalGateway:
         from remora.adapters.gateway import LocalGateway
 
         # Wrap a sync gateway
-        async_gw = AsyncLocalGateway(sync_gateway=DirectPolicyGateway())
+        async_gw = AsyncLocalGateway(sync_gateway=LocalGateway(engine))
         adapter = AsyncActionGate(gateway=async_gw)
         result = await adapter.intercept(
             action_name="send_email",
@@ -428,7 +428,7 @@ class LangGraphActionAdapter(_BaseActionGate):
     -----
     ::
 
-        adapter = LangGraphActionAdapter(gateway=DirectPolicyGateway())
+        adapter = LangGraphActionAdapter(gateway=LocalGateway(engine))
 
         for call in state["messages"][-1].tool_calls:
             result = adapter.intercept(
@@ -453,7 +453,7 @@ class OpenAIToolCallingAdapter(_BaseActionGate):
     -----
     ::
 
-        adapter = OpenAIToolCallingAdapter(gateway=DirectPolicyGateway())
+        adapter = OpenAIToolCallingAdapter(gateway=LocalGateway(engine))
 
         for call in response.choices[0].message.tool_calls:
             result = adapter.intercept_tool_call(
@@ -501,9 +501,9 @@ class CrewAIActionAdapter(_BaseActionGate):
     ::
 
         from remora.adapters.action_gate import CrewAIActionAdapter
-        from remora.adapters.gateway import DirectPolicyGateway
+        from remora.adapters.gateway import LocalGateway
 
-        adapter = CrewAIActionAdapter(gateway=DirectPolicyGateway())
+        adapter = CrewAIActionAdapter(gateway=LocalGateway(engine))
 
         class GovernedWebSearch(BaseTool):
             name = "web_search"
@@ -576,7 +576,7 @@ class AutoGenActionAdapter(_BaseActionGate):
 
         from remora.adapters.action_gate import AutoGenActionAdapter
 
-        adapter = AutoGenActionAdapter(gateway=DirectPolicyGateway())
+        adapter = AutoGenActionAdapter(gateway=LocalGateway(engine))
 
         def governed_execute_code(code: str, lang: str) -> str:
             result = adapter.intercept_function_call(
@@ -644,7 +644,7 @@ class AsyncActionGate(_AsyncActionGate):
         from remora.adapters.action_gate import AsyncActionGate, AsyncLocalGateway
 
         async def main():
-            gw = AsyncLocalGateway(sync_gateway=DirectPolicyGateway())
+            gw = AsyncLocalGateway(sync_gateway=LocalGateway(engine))
             gate = AsyncActionGate(gateway=gw)
             result = await gate.intercept(
                 action_name="delete_record",

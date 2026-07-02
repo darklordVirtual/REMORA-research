@@ -42,7 +42,7 @@ export const PILLARS = [
   },
   {
     title: "Auditable decisions",
-    body: "Every ACCEPT, VERIFY, ABSTAIN or ESCALATE is written to an RDF audit graph with OTel telemetry.",
+    body: "Every ACCEPT, VERIFY, ABSTAIN or ESCALATE is written to a DecisionEnvelope carrying a SHA-256 tamper-evident hash chain (tamper-evident, not tamper-proof, without external WORM storage).",
   },
 ];
 
@@ -57,7 +57,7 @@ export const CAPABILITIES = [
   },
   { name: "PolicyGate", role: "OPA / rules-based action gate", status: "Integrated" },
   { name: "PreToolUse Hook", role: "Block unsafe tool calls", status: "Integrated" },
-  { name: "Audit Graph", role: "RDF + OTel envelope", status: "Integrated" },
+  { name: "Audit chain", role: "SHA-256 hash-chain DecisionEnvelope", status: "Integrated" },
 ];
 
 export const QA_BENCH = {
@@ -126,7 +126,7 @@ export const CITATIONS = [
   },
   { id: "S3", label: "Cascade module — Oracle pool and canonicalization." },
   { id: "S6", label: "OracleDiversityTracker — rolling pairwise agreement." },
-  { id: "S12", label: "Audit envelope — RDF graph + OTel spans." },
+  { id: "S12", label: "Audit envelope — SHA-256 hash-chain DecisionEnvelope." },
   {
     id: "S14",
     label: "Control Room GUI — deterministic review-loop demo with follow-up request envelope.",

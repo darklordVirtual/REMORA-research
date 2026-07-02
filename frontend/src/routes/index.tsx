@@ -4,7 +4,7 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
 });
 
-// Proof points — every number is transcribed from paper/remora_paper.pdf with its
+// Proof points — every number is transcribed from paper/remora_paper.md with its
 // caveat intact (CLAUDE.md: claims must match artifacts; keep the qualifiers).
 const PROOF = [
   {
@@ -15,7 +15,7 @@ const PROOF = [
   {
     stat: "88%",
     label: "selective accuracy, held-out",
-    detail: "locked threshold, out-of-sample · p = 1.45×10⁻⁵",
+    detail: "locked threshold, out-of-sample · Wilson CI [70.0%, 95.8%] · p = 1.45×10⁻⁵",
   },
   {
     stat: "99.9%",

@@ -1610,8 +1610,8 @@ function WelcomeScreen({ onPreset }: { onPreset: (q: string) => void }) {
           </div>
         </div>
         <div className="pt-1 flex gap-6 font-mono text-[9px] text-muted-foreground/40">
-          <span>94.7% selective accuracy @ 25% abstain</span>
-          <span>82.8% precision @ full coverage</span>
+          <span>94.7% selective accuracy @ 25% coverage (calibration-set upper bound)</span>
+          <span>82.8% majority-vote baseline @ full coverage</span>
           <span>0.0% unsafe tool execution / 700 tasks</span>
         </div>
       </div>

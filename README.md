@@ -17,37 +17,37 @@ Architecture bounded by documented assumptions. Results are from controlled expe
 
 ## Building Automation Demo
 
-The governance concept is demonstrated in a concrete dry-run scenario: an AI assistant proposes lighting adjustments across all floors of a commercial building, and REMORA evaluates each floor-level command independently against occupancy state and the active energy policy — before any command is sent.
+The governance concept is demonstrated in a concrete dry-run scenario: an AI assistant proposes lighting adjustments across all floors of a commercial building, and REMORA evaluates each floor-level command independently against occupancy state and the active energy policy — before any command is sent. The demo drives the **real `RemoraDecisionEngine`**: each floor becomes a `PolicyObservation` (occupancy sensing is the caller-supplied evidence layer), and the decisions and reason codes below are the engine's actual output — REMORA's canonical ACCEPT/VERIFY/ABSTAIN/ESCALATE outcomes.
 
 ```bash
 python scripts/demo_building_lights.py
 ```
 
 ```
-REMORA building-light action-gating dry run
-================================================================================================
+REMORA building-light action-gating dry run (real RemoraDecisionEngine)
+==========================================================================================
 Request: Turn on all lights on all 8 floors.
 Safety model: No live building automation command is sent.
 Policy: Occupied floors may execute; empty floors must not be activated without evidence.
 
-Floor   Occupancy                         Motion age    Decision  Confidence  Reason
-------------------------------------------------------------------------------------------------
-1       12 persons, open office           active        ALLOW     92%         confirmed occupancy and permitted manual override
-2       8 persons, meetings active        active        ALLOW     92%         confirmed occupancy and permitted manual override
-3       15 persons, development team      active        ALLOW     92%         confirmed occupancy and permitted manual override
-4       6 persons, finance                active        ALLOW     92%         confirmed occupancy and permitted manual override
-5       3 persons, management             active        ALLOW     92%         confirmed occupancy and permitted manual override
-6       empty                             47 min        BLOCK     96%         no occupancy evidence and active energy policy
-7       empty                             131 min       BLOCK     96%         no occupancy evidence and active energy policy
-8       1 person, conference room         active        ALLOW     92%         confirmed occupancy and permitted manual override
-------------------------------------------------------------------------------------------------
+Floor   Occupancy                         Motion age   Decision  Engine reason codes
+------------------------------------------------------------------------------------------
+1       12 persons, open office           active       ACCEPT    evidence_supported
+2       8 persons, meetings active        active       ACCEPT    evidence_supported
+3       15 persons, development team      active       ACCEPT    evidence_supported
+4       6 persons, finance                active       ACCEPT    evidence_supported
+5       3 persons, management             active       ACCEPT    evidence_supported
+6       empty                             47 min       ABSTAIN   disordered_no_evidence
+7       empty                             131 min      ABSTAIN   disordered_no_evidence
+8       1 person, conference room         active       ACCEPT    evidence_supported
+------------------------------------------------------------------------------------------
 EXECUTE dry-run command: lights_on(floors=[1, 2, 3, 4, 5, 8])
 BLOCKED dry-run command: lights_on(floors=[6, 7])
 ```
 
-REMORA does not treat the user request as a single all-or-nothing action. It decomposes the tool call by zone, evaluates each sub-action independently against occupancy context and energy policy, and blocks the subset that conflicts — while allowing the compliant subset to proceed. This per-zone governance model extends directly to HVAC scheduling, ventilation setpoints, energy load management, and any domain where a single agent command maps to multiple physical sub-actions with differing risk profiles.
+REMORA does not treat the user request as a single all-or-nothing action. It decomposes the tool call by zone, evaluates each floor-level command independently against occupancy context and the active energy policy, and blocks the subset that conflicts — while allowing the compliant subset to proceed. Empty floors ABSTAIN via the engine's deny-by-default path (`disordered_no_evidence`): absence of occupancy evidence blocks activation. This per-zone governance model extends directly to HVAC scheduling, ventilation setpoints, energy load management, and any domain where a single agent command maps to multiple physical sub-actions with differing risk profiles.
 
-Full use case documentation: [docs/use-cases/04-energy.md](docs/use-cases/04-energy.md)
+Related energy-domain use case (different scenario — diagnostic Q&A): [docs/use-cases/04-energy.md](docs/use-cases/04-energy.md)
 
 ---
 

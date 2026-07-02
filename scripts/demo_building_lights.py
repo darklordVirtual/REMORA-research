@@ -3,13 +3,33 @@
 # License: Apache-2.0
 """Deterministic REMORA dry-run demo for building-light action gating.
 
-The script demonstrates split execution: safe occupied zones are allowed while
-unoccupied zones are blocked before any building automation command is sent.
-It performs no live tool calls and mutates no external system.
+This demo drives the REAL decision engine (`remora.policy.RemoraDecisionEngine`):
+each floor-level sub-action becomes a `PolicyObservation`, and the printed
+decision and reason codes come from `engine.decide()` — REMORA's canonical
+ACCEPT / VERIFY / ABSTAIN / ESCALATE outcomes, not demo-local vocabulary.
+No live building-automation command is sent and no external system is mutated.
+
+What the mapping encodes:
+- An occupied floor has occupancy-sensor evidence: the observation carries
+  `evidence_action="answer"` with high evidence confidence in the ordered
+  phase, so the engine ACCEPTs via its evidence-supported path.
+- An empty floor has no occupancy evidence: no evidence signal, low trust,
+  disordered phase — the engine ABSTAINs (deny-by-default: absence of
+  evidence blocks activation; it does not prove the floor is unsafe).
+
+A prior version of this script hard-coded ALLOW/BLOCK outcomes with invented
+confidence percentages and imported nothing from `remora/`; it was replaced
+2026-07-03 (hostile-review finding P1-9).
 """
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from remora.policy import PolicyObservation, RemoraDecisionEngine  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -19,14 +39,6 @@ class FloorContext:
     occupied: bool
     minutes_since_motion: int
     policy: str
-
-
-@dataclass(frozen=True)
-class FloorDecision:
-    floor: int
-    action: str
-    confidence: float
-    reason: str
 
 
 FLOORS = [
@@ -41,78 +53,86 @@ FLOORS = [
 ]
 
 
-def evaluate_floor(context: FloorContext) -> FloorDecision:
-    """Return the dry-run REMORA policy decision for one floor."""
+def observation_for(context: FloorContext) -> PolicyObservation:
+    """Map one floor-level sub-action to a PolicyObservation.
 
+    REMORA is stateless: occupancy sensing is the caller's evidence layer,
+    encoded here as the evidence fields of the observation.
+    """
+    question = (
+        f"lights_on(floor={context.floor}) — occupancy: {context.occupancy_label}; "
+        f"policy: {context.policy}"
+    )
     if context.occupied:
-        return FloorDecision(
-            floor=context.floor,
-            action="ALLOW",
-            confidence=0.92,
-            reason="confirmed occupancy and permitted manual override",
+        return PolicyObservation(
+            question=question,
+            phase="ordered",
+            trust_score=0.85,
+            evidence_action="answer",
+            evidence_confidence=0.90,
+            evidence_signal_source="occupancy_sensor",
+            risk_tier="low",
+            action_type="write",
+            target_environment="staging",  # dry-run: no production write
+            schema_valid=True,
+            rollback_available=True,
         )
-
-    if context.minutes_since_motion >= 5:
-        return FloorDecision(
-            floor=context.floor,
-            action="BLOCK",
-            confidence=0.96,
-            reason="no occupancy evidence and active energy policy",
-        )
-
-    return FloorDecision(
-        floor=context.floor,
-        action="VERIFY",
-        confidence=0.62,
-        reason="recent motion but insufficient occupancy confirmation",
+    return PolicyObservation(
+        question=question,
+        phase="disordered",
+        trust_score=0.30,
+        risk_tier="low",
+        action_type="write",
+        target_environment="staging",
+        schema_valid=True,
+        rollback_available=True,
     )
 
 
-def evaluate_floors(floors: list[FloorContext]) -> list[FloorDecision]:
-    return [evaluate_floor(floor) for floor in floors]
-
-
-def _line(char: str = "-", width: int = 96) -> str:
+def _line(char: str = "-", width: int = 110) -> str:
     return char * width
 
 
 def main() -> None:
-    decisions = evaluate_floors(FLOORS)
-    allowed = [decision.floor for decision in decisions if decision.action == "ALLOW"]
-    blocked = [decision.floor for decision in decisions if decision.action == "BLOCK"]
-    verify = [decision.floor for decision in decisions if decision.action == "VERIFY"]
+    engine = RemoraDecisionEngine()
+    reports = [(ctx, engine.decide(observation_for(ctx))) for ctx in FLOORS]
+
+    accepted = [c.floor for c, r in reports if r.action.value == "accept"]
+    held = [c.floor for c, r in reports if r.action.value == "verify"]
+    blocked = [c.floor for c, r in reports if r.action.value in ("abstain", "escalate")]
 
     print()
-    print("REMORA building-light action-gating dry run")
+    print("REMORA building-light action-gating dry run (real RemoraDecisionEngine)")
     print(_line("="))
     print("Request: Turn on all lights on all 8 floors.")
     print("Safety model: No live building automation command is sent.")
     print("Policy: Occupied floors may execute; empty floors must not be activated without evidence.")
     print()
-    print(f"{'Floor':<8}{'Occupancy':<34}{'Motion age':<14}{'Decision':<10}{'Confidence':<12}Reason")
+    print(f"{'Floor':<8}{'Occupancy':<34}{'Motion age':<13}{'Decision':<10}Engine reason codes")
     print(_line())
-    for context, decision in zip(FLOORS, decisions, strict=True):
+    for context, report in reports:
         motion_age = "active" if context.occupied else f"{context.minutes_since_motion} min"
+        reasons = ", ".join(r.value for r in report.reasons)
         print(
             f"{context.floor:<8}"
             f"{context.occupancy_label:<34}"
-            f"{motion_age:<14}"
-            f"{decision.action:<10}"
-            f"{decision.confidence:<12.0%}"
-            f"{decision.reason}"
+            f"{motion_age:<13}"
+            f"{report.action.value.upper():<10}"
+            f"{reasons}"
         )
 
     print(_line())
-    print(f"EXECUTE dry-run command: lights_on(floors={allowed})")
+    print(f"EXECUTE dry-run command: lights_on(floors={accepted})")
     if blocked:
         print(f"BLOCKED dry-run command: lights_on(floors={blocked})")
-    if verify:
-        print(f"VERIFY dry-run command: lights_on(floors={verify})")
+    if held:
+        print(f"HELD for validation:     lights_on(floors={held})")
     print()
     print("Interpretation:")
     print("- REMORA does not treat the user request as a single all-or-nothing action.")
-    print("- It decomposes the tool call by zone and gates each critical sub-action.")
-    print("- Empty floors are blocked because the proposed action conflicts with context and policy.")
+    print("- Each floor-level sub-action is gated independently by the real policy engine.")
+    print("- Empty floors ABSTAIN (deny-by-default): no occupancy evidence means no activation,")
+    print("  which is REMORA's conservative default rather than a claim the floor is unsafe.")
     print()
 
 
