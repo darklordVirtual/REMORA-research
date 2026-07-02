@@ -239,7 +239,7 @@ an external append-only (WORM) store as a deployment dependency.
 
 AROMER is a closed-loop meta-cognitive layer that runs alongside REMORA and
 learns from decision outcomes (episodic memory, Bayesian world-model priors, a
-Workers-AI meta-judge, a replay arena). **AII** ("AROMER Intelligence Index") is a
+Workers-AI meta-judge, a replay arena). **AII** ("Autonomous Intelligence Index") is a
 composite index over five weighted components (calibration, friction, meta-judge,
 transfer, stability). AROMER is **experimental and shadow-only**: episode labels
 are partly self-assigned and the world model defaults to shadow mode. It has **no

@@ -334,7 +334,7 @@ requires external access), create a sidecar file `<artifact>.provenance.json`:
   "schema_version": "1.0",
   "commit_hash": "483d1b0[NEEDS FULL SHA]",
   "generated_at": "[date from git log]",
-  "script": "scripts/run_external_benchmark_agentharm.py",
+  "script": "scripts/run_agentharm_benchmark.py",
   "n_samples": 416,
   "model_version": null,
   "notes": "Script lives in private REMORA main repo. Artifact reproduced and committed to REMORA-research for reference.",

@@ -39,22 +39,22 @@ consensus machinery — see `02-evidence-and-claims.md` §1 architectural caveat
 
 ## Key modules
 
-| Module | Purpose | Primary file |
+| Module | Purpose | Key entry point |
 |---|---|---|
-| `remora/engine.py` | Orchestrates the five stages | `remora/engine.py` |
-| `remora/policy/decision_engine.py` | Hard-block invariants + routing logic | `remora/policy/decision_engine.py` |
-| `remora/policy/invariants.py` | Deterministic safety rules | `remora/policy/invariants.py` |
+| `remora/engine.py` | Orchestrates the five stages | `Remora` |
+| `remora/policy/decision_engine.py` | Hard-block invariants + routing logic | `RemoraDecisionEngine.decide()` |
+| `remora/policy/invariants.py` | Deterministic safety rules | `CORE_INVARIANTS`, `assert_invariants()` |
 | `remora/cascade/` | Multi-oracle cascade + consensus | `remora/cascade/stages.py` |
-| `remora/selective/guardrail.py` | Phase-aware trust routing | `remora/selective/guardrail.py` |
-| `remora/selective/conformal.py` | Conformal risk control | `remora/selective/conformal.py` |
-| `remora/selective/crc.py` | Conformal risk control under shift | `remora/selective/crc.py` |
-| `remora/lyapunov.py` | Session stability V(t) = H + λD | `remora/lyapunov.py` |
-| `remora/audit/hash_chain.py` | SHA-256 hash-chain audit trail | `remora/audit/hash_chain.py` |
-| `remora/governance/nested_governance.py` | Nested memory layers + forgetting | `remora/governance/nested_governance.py` |
+| `remora/selective/guardrail.py` | Phase-aware trust routing | `PhaseAwareGuardrail` |
+| `remora/selective/conformal.py` | Split-conformal threshold calibration | `conformal_threshold()` |
+| `remora/selective/crc.py` | Conformal risk control under shift | `CovariateShiftCRC` |
+| `remora/lyapunov.py` | Session stability V(t) = H + λD (heuristic observable) | `LyapunovController` |
+| `remora/audit/hash_chain.py` | SHA-256 hash-chain audit trail | `HashChain` |
+| `remora/governance/nested_governance.py` | Nested memory layers + forgetting | `NestedGovernance` |
 | `remora/safety/` | Adversarial detection, file-risk classification | `remora/safety/adversarial.py` |
-| `remora/toolcall/` | Tool-call schema validation and gating | `remora/toolcall/` |
-| `remora/aromer/` | Closed-loop learning layer (EXPERIMENTAL) | `remora/aromer/` |
-| `servers/mcp_remora.py` | MCP server exposing REMORA as Claude tools | `servers/mcp_remora.py` |
+| `remora/toolcall/` | Tool-call schema validation and gating | `remora/toolcall/remora_gate.py` |
+| `remora/aromer/` | Closed-loop learning layer (EXPERIMENTAL) | `remora/aromer/orchestrator.py` |
+| `servers/mcp_remora.py` | MCP server exposing REMORA as Claude tools | 14 registered tools |
 
 ---
 
@@ -72,7 +72,7 @@ Oracle C (Gemma 3 27B)     ─┘        │                                    
 
 Three independent model families are used to reduce correlated failure risk.
 The `OracleDiversityTracker` monitors pairwise correlation; it warns when
-swarm convergence ρ > 0.60. See `remora/cascade/stages.py`.
+swarm convergence ρ > 0.60. See `remora/oracles/diversity.py`.
 
 **Consensus is not truth.** Oracle agreement is one input to the governance
 decision. It is combined with evidence signals, policy constraints, and phase
@@ -95,7 +95,10 @@ boundaries:
 | L4 Audit ledger | append-only | no | permanent |
 | L5 Governance learning | reviewed change only | no | permanent |
 
-Machine-readable profile: `enterprise/nested_governance_layers.yaml`.
+Implementation: `remora/governance/nested_governance.py`; the machine-readable
+layer profile is the `nested_governance_layers` section of
+`artifacts/credibility-pack/claim-ledger.yaml` (no standalone `enterprise/`
+directory exists in this repository).
 
 Governance forgetting — when a temporary exception becomes normal behaviour, or
 an agent begins ignoring `ABSTAIN` / `ESCALATE` — is detected by

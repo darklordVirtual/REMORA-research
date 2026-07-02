@@ -1,80 +1,58 @@
 """
-Maximum Entropy Grounding: REMORA's Free Energy is Exact Statistical Mechanics
-===============================================================================
+Maximum Entropy Grounding: what the F = λD − H identity is, and is not
+=======================================================================
 
-Claim: REMORA's free energy F(T) = λD − TH is NOT a metaphor.  It is the
-negative log partition function of the Gibbs distribution that solves the
-Maximum Entropy (MaxEnt) consensus problem exactly.
+SCOPE (read before citing): this module verifies a narrow, exact algebraic
+identity for a hand-constructed exponential family over oracle votes. It does
+NOT ground REMORA's runtime free-energy expression F(T) = λD − TH for T ≠ 1,
+and it does not license physical-thermodynamics language for the system.
+(A prior version of this docstring claimed "F(T) = λD − TH is NOT a metaphor"
+via a MaxEnt derivation; that derivation was invalid — see "What is NOT
+established" below — and the claim is withdrawn, 2026-07-03.)
 
-MaxEnt consensus problem
-------------------------
-Given k oracle votes over m candidate answers, form a consensus distribution
-p = (p_1, ..., p_m) over candidate answers. We want the distribution that is:
-
-  * maximally uncertain (high H), avoiding overconfidence
-  * consistent with observed dissensus (E[D] = D_bar), respecting evidence
-
-Formally:
+What IS established (and numerically verified by this class)
+-------------------------------------------------------------
+For the MaxEnt problem over consensus distributions p = (p_1, ..., p_m):
 
     maximise  H(p) = -sum_j p_j log p_j
-    subject to  sum_j p_j * phi_j(v) = D_bar   (dissensus constraint)
-                sum_j p_j = 1                  (normalisation)
+    subject to  sum_j p_j * phi_j = D_bar   (dissensus constraint, phi_j = 1 - e_j)
+                sum_j p_j = 1               (normalisation)
 
-Proof that the solution is the Gibbs distribution
---------------------------------------------------
-Lagrangian:
+the stationarity conditions give the Gibbs form p*_j = exp(-λ·phi_j)/Z with
+Z = Σ_j exp(-λ·phi_j), and at the optimum the standard identity
 
-    L(p, lambda, nu) =
-        H(p) - lambda * (sum_j p_j * phi_j - D_bar) - nu * (sum_j p_j - 1)
+    F := λ · D_bar − H(p*) = −log Z
 
-Setting ∂ℒ/∂pⱼ = 0:
+holds exactly (Jaynes 1957). `verify_free_energy_formula()` confirms this to
+< 1e-9, and `verify_gibbs_minimises_free_energy()` confirms that the Gibbs
+distribution minimises F(p) = λ·Σp_j·phi_j − H(p) over random alternatives
+(convexity of −H plus linearity of the constraint term). Note the entropy
+coefficient in this identity is fixed at 1.
 
-    -log p_j - 1 - lambda * phi_j - nu = 0
-    p_j* = exp(-lambda * phi_j) / Z
-    Z = sum_j exp(-lambda * phi_j)  (partition function)
-
-Free energy at the optimum:
-
-    F = -log Z = sum_j p_j* * (lambda * phi_j) - H(p*) = lambda * D_bar - H(p*)
-
-In REMORA's notation with temperature T (Lagrange multiplier for H):
-
-    F(T) = lambda * D - T * H    (Helmholtz free energy)
-
-QED: F(T) = lambda * D - T * H is the Gibbs free energy under this model.
-
-Consequences
-------------
-1. Trust score = Gibbs-optimal belief:  max-trust answer = argmax p_j* is the
-   posterior maximum of the MaxEnt distribution.  Any other aggregation yields
-   strictly higher free energy.
-
-2. lambda is the inverse temperature of the dissensus field: lambda -> 0
-   ignores dissensus (pure entropy), while large lambda resolves toward
-   majority vote (low entropy).
-
-3. Phase transition at T_c = lambda * (1 - rho_bar) / ln(k): the Gibbs distribution undergoes
-   a second-order phase transition from ordered (peaked) to disordered
-   (flat) as T crosses T_c.  This is the same transition as the Potts model
-   in statistical mechanics (k states, coupling lambda).
-
-4. Lyapunov-free energy identity: V(t) = H(t) + lambda * D(t).
-   The Lyapunov function is the free energy evaluated at imaginary temperature,
-   connecting stability theory to thermodynamics.
-
-5. Connection to variational inference:
-   ELBO = E_q[log p(x|z)] - KL[q(z)||p(z)]
-        = -F_variational
-   REMORA's trust = approximate posterior q(z) in the oracle vote space.
-   Minimising F(T) = maximising ELBO; REMORA can be interpreted as a form
-   of variational inference over oracle vote space.
+What is NOT established
+-----------------------
+1. The runtime expression F(T) = λD − T·H for T ≠ 1 does NOT follow from the
+   derivation above. H is the MaxEnt *objective*; it has no Lagrange
+   multiplier, so there is no principled place for a free "temperature"
+   coefficient on H in this framework. T in REMORA's runtime is a heuristic
+   difficulty/uncertainty dial (see `remora/thermodynamics.py` and the
+   paper's disclosure that no physical thermodynamic law is claimed).
+2. No phase-transition result is established here. The Potts-model analogy
+   used elsewhere in the research layer is qualitative; note that the
+   mean-field q-state Potts transition is first-order for q ≥ 3, so
+   second-order 2D-lattice results do not transfer to this setting.
+3. The V = F(T=−1) relation checked by `lyapunov_free_energy_identity()` is
+   a sign convention (substituting T = −1 flips −TH to +H), not an analytic
+   continuation and not a physical statement. It is one line of algebra.
+4. Any variational-inference interpretation is an informal analogy; no ELBO
+   equivalence is derived or verified here.
 
 References
 ----------
-* Jaynes, E.T. (1957), Information theory and statistical mechanics
-* Gibbs, J.W. (1902), Elementary Principles in Statistical Mechanics
-* Jordan et al. (1999), Variational Bayes and free energy
-* Wu (1982), The Potts model (Rev. Mod. Phys. 54, 235)
+* Jaynes, E.T. (1957), Information theory and statistical mechanics,
+  Phys. Rev. 106, 620.
+* Cover, T.M. & Thomas, J.A. (2006), Elements of Information Theory,
+  ch. 12 (maximum entropy).
 """
 
 from __future__ import annotations

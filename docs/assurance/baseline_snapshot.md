@@ -62,7 +62,7 @@ Prior to assurance remediation:
 
 These gates must pass before REMORA can be deployed in production:
 
-1. **Longitudinal stability audit** — 30-day shadow-mode observation period
+1. **Longitudinal stability audit** — 30-day shadow-mode observation period *(historical: the REM-020 gate as later defined in release_gates.md uses a 7-day AII-EMA criterion)*
 2. **Independent human review** — external expert governance review
 3. **RBAC access control audit** — role-based authorization for policy mutations
 

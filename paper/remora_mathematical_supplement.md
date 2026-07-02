@@ -238,10 +238,9 @@ phase = ordered     if T < T_c  and  η > 0.5
 `T_c` is calibrated from the oracle-response distribution
 (`thermodynamics.py::critical_temperature`).
 
-### 4.2 The seven hard blocks (priority-ordered, evaluated *before* routing)
+### 4.2 The seven headline hard blocks (priority-ordered, evaluated *before* routing)
 
-`Γ : (q, a, c) → g`. Hard blocks fire in order; the first match returns. *Source
-(verified):* `remora/policy/decision_engine.py::decide` lines 211–330.
+`Γ : (q, a, c) → g`. Hard blocks fire in order; the first match returns. *Source:* `remora/policy/decision_engine.py::decide` (hard-block segment at the top of the rule ladder; exact line numbers drift with edits). These are the seven *headline* blocks; the audited engine contains further hard gates — see `docs/assurance/policy_engine_audit_v1.md` for the full priority-ordered inventory.
 
 | Pri | Condition | Outcome |
 |---:|---|---|

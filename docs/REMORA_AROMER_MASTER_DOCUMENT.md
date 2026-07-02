@@ -39,7 +39,7 @@ REMORA is a pre-execution governance overlay. It sits between the AI agent's pro
 
 ### AROMER (Experimental Plugin)
 
-AROMER (Autonomous REMORA Orchestrator, Meta-Emergent Reasoner) wraps RemoraDecisionEngine with a persistent learning loop. It is a research prototype exploring whether meta-cognitive governance can improve over time.
+AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) wraps RemoraDecisionEngine with a persistent learning loop. It is a research prototype exploring whether meta-cognitive governance can improve over time.
 
 **EXPERIMENTAL label applies to the entire AROMER subsystem.** Claims about AROMER are limited to what is backed by committed artifacts and unit tests.
 
@@ -630,7 +630,7 @@ Enterprise framing is documented in `enterprise/remora-control-plane.md` as arch
 
 | Term | Definition |
 |---|---|
-| AROMER | Autonomous REMORA Orchestrator, Meta-Emergent Reasoner. EXPERIMENTAL learning plugin for REMORA. |
+| AROMER | Autonomous Risk-Oriented Meta-Evaluator and Reasoner. EXPERIMENTAL learning plugin for REMORA. |
 | blocked_recall | Fraction of harmful cases routed to ESCALATE or VERIFY. Distinct from ESCALATE recall. |
 | DecisionEnvelope | The canonical, immutable governance contract produced per action decision. |
 | DomainHarmPrior | Bayesian Beta prior over P(harm | domain, action_type, risk_tier). Core of AROMER world model. |

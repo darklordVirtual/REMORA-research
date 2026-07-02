@@ -52,7 +52,7 @@ Wang, Aitchison, and Rudolph (2023b) show that parameter-efficient LLM ensembles
 
 ### 2.2 Multi-Agent Debate
 
-Du et al. (2023) demonstrated that having LLMs debate each other—iteratively exchanging arguments—can reduce hallucination and improve factuality (Du et al., 2023). REMORA does not implement iterative debate but shares the intuition that inter-model disagreement is an informative signal. REMORA's dissensus metric D is a one-shot, non-iterative analogue.
+Du et al. (2024) demonstrated that having LLMs debate each other—iteratively exchanging arguments—can reduce hallucination and improve factuality (Du et al., 2024). REMORA does not implement iterative debate but shares the intuition that inter-model disagreement is an informative signal. REMORA's dissensus metric D is a one-shot, non-iterative analogue.
 
 ### 2.3 LLM-as-Judge and Verifier Models
 
@@ -380,7 +380,7 @@ Implementation: `remora.selective.crc.CovariateShiftCRC.fit(scores, labels, phas
 Kirsch et al. (2024) showed that prover-verifier games produce more legible and reliable LLM outputs. REMORA adapts this protocol to its offline multi-oracle setting without additional API calls.
 
 **Protocol:**
-1. **Cluster** oracle responses via Semantic Entropy clustering, producing semantic equivalence classes sorted by mass. *(In all reported benchmarks, the `TokenFingerprintBackend` heuristic is used rather than the `NLISemanticBackend`; the two may cluster differently for paraphrases with no shared tokens. The `NLISemanticBackend` is fully implemented as a drop-in alternative using cross-encoder entailment but has not been activated for any reported result — see NEGATIVE_RESULTS.md §3 for analysis and replication instructions.)*
+1. **Cluster** oracle responses via Semantic Entropy clustering (Kuhn et al., 2023; Farquhar et al., 2024), producing semantic equivalence classes sorted by mass. *(In all reported benchmarks, the `TokenFingerprintBackend` heuristic is used rather than the `NLISemanticBackend`; the two may cluster differently for paraphrases with no shared tokens. The `NLISemanticBackend` is fully implemented as a drop-in alternative using cross-encoder entailment but has not been activated for any reported result — see NEGATIVE_RESULTS.md §3 for analysis and replication instructions.)*
 2. **Prover** = the oracle from the dominant cluster with highest confidence.
 3. **Verifier** = the highest-confidence oracle *outside* the dominant cluster.
 4. **Deliberation** (r = 1, ..., n_rounds): evaluate NLI entailment score prover→verifier with round-decay γ=0.85.
@@ -992,7 +992,7 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 ## References
 
-- Andriushchenko, M., Souly, A., et al. (2024). AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents. arXiv:2410.09024.
+- Andriushchenko, M., Souly, A., et al. (2024). AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents. *ICLR 2025*. arXiv:2410.09024.
 
 - Angelopoulos, A. & Bates, S. (2021). A gentle introduction to conformal prediction and distribution-free uncertainty quantification. *arXiv:2107.07511*.
 
@@ -1008,7 +1008,9 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 - Darling, D. A. & Robbins, H. (1967). Confidence sequences for mean, variance, and median. *Proceedings of the National Academy of Sciences, 58*(1), 66–68.
 
-- Du, Y., Li, S., Torralba, A., Tenenbaum, J., & Mordatch, I. (2023). Improving factuality and reasoning in language models through multiagent debate. *ICML 2024*.
+- Du, Y., Li, S., Torralba, A., Tenenbaum, J., & Mordatch, I. (2024). Improving factuality and reasoning in language models through multiagent debate. *ICML 2024*.
+
+- Farquhar, S., Kossen, J., Kuhn, L., & Gal, Y. (2024). Detecting hallucinations in large language models using semantic entropy. *Nature, 630*, 625–630.
 
 - El-Yaniv, R. & Wiener, Y. (2010). On the foundations of noise-free selective classification. *Journal of Machine Learning Research, 11*, 1605–1641. https://www.jmlr.org/papers/v11/el-yaniv10a.html
 
@@ -1034,13 +1036,11 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 - Kuhn, L., Gal, Y., & Farquhar, S. (2023). Semantic uncertainty: Linguistic invariances for uncertainty estimation in natural language generation. *ICLR 2023*. arXiv:2302.09664.
 
-- Kuhn, L., Gal, Y., & Farquhar, S. (2026). Evidential Semantic Entropy for LLM uncertainty quantification. *EACL 2026*, pp. 334–348.
-
 - Lin, S., Hilton, J., & Evans, O. (2022). TruthfulQA: Measuring how models mimic human falsehoods. *ACL 2022*.
 
 - Open Policy Agent contributors. (2024). Open Policy Agent. https://www.openpolicyagent.org/
 
-- Raji, I. D., Xu, P., Honigsberg, C., & Ho, D. E. (2022). Outsider oversight: Designing a third party audit ecosystem for AI governance. *arXiv:2206.04737*. https://arxiv.org/abs/2206.04737. doi:10.48550/arXiv.2206.04737
+- Raji, I. D., Xu, P., Honigsberg, C., & Ho, D. E. (2022). Outsider oversight: Designing a third party audit ecosystem for AI governance. *AIES '22*. *arXiv:2206.04737*. https://arxiv.org/abs/2206.04737. doi:10.48550/arXiv.2206.04737
 
 - Ramdas, A., Grünwald, P., Vovk, V., & Shafer, G. (2023). Game-theoretic statistics and safe anytime-valid inference. *Statistical Science, 38*(4), 576–601.
 
@@ -1060,7 +1060,7 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 - Williams, A., Nangia, N., & Bowman, S. (2018). A broad-coverage challenge corpus for sentence understanding through inference. *NAACL 2018*.
 
-- Zhang, Y. & Lee, M. (2025). Evaluating the performance of large language models in confidential computing environments. arXiv:2502.11347.
+- Dong, B. & Wang, Q. (2025). Evaluating the performance of the DeepSeek model in confidential computing environment. arXiv:2502.11347.
 
 - Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E. P., Zhang, H., Gonzalez, J. E., & Stoica, I. (2023). Judging LLM-as-a-judge with MT-Bench and Chatbot Arena. *NeurIPS 2023*.
 
@@ -1333,7 +1333,7 @@ Output: gate_decision g, explanation r, envelope D
 
 ## Appendix E: Optional TEE-Based Audit Hardening
 
-REMORA's software-only audit trail can be strengthened with hardware attestation from Trusted Execution Environments (TEEs), ensuring the recorded decision was produced by the correct model under the correct policy inside an isolated enclave (Zhang & Lee, 2025). Note: this provides tamper-*resistant* audit hardening; tamper-proof guarantees require external WORM storage in addition to TEE attestation.
+REMORA's software-only audit trail can be strengthened with hardware attestation from Trusted Execution Environments (TEEs), ensuring the recorded decision was produced by the correct model under the correct policy inside an isolated enclave (Dong & Wang, 2025). Note: this provides tamper-*resistant* audit hardening; tamper-proof guarantees require external WORM storage in addition to TEE attestation.
 
 **Supported platforms:**
 - **AMD SEV-SNP**: Hardware memory encryption + VM-level isolation. Attestation report (SHA-384 measurement) signed by AMD VCEK.
@@ -1351,7 +1351,7 @@ REMORA's software-only audit trail can be strengthened with hardware attestation
 
 **Verification flow:** Launch TEE VM/enclave → Register golden measurement in governance ledger → Attestation request (with nonce) → Remote verification (AMD KDS / Intel DCAP / NVIDIA NRAS) → Key injection into enclave → Oracle calls + CRC calibration + PVD deliberation run inside TEE → Signed DecisionEnvelope appended to D1 audit ledger.
 
-**Implementation status:** Protocol specified; hardware integration pending TEE development environment. `DecisionEnvelope` includes `tee_attestation: dict | None`. Zhang & Lee (2025) demonstrated <50 ms attestation overhead per session at near-native inference performance.
+**Implementation status:** Protocol specified; hardware integration pending TEE development environment. `DecisionEnvelope` includes `tee_attestation: dict | None`. Dong & Wang (2025) evaluated LLM inference inside Intel TDX confidential-computing environments, finding CPU-based TEE inference feasible (near parity with non-TEE CPU inference for small models such as DeepSeek-R1-1.5B; average GPU-to-CPU performance ratio ≈12 across model sizes). Per-session attestation-overhead figures for the envelope protocol above have not been measured and are future work.
 
 ---
 
@@ -1373,7 +1373,7 @@ AROMER adds five components around REMORA's static `RemoraDecisionEngine`:
 
 The system runs as a Cloudflare Worker with an hourly cron (reduced to 4-hour intervals to remain within the Cloudflare Workers AI free-tier Neurons quota of 10,000/day).
 
-### F.2 AROMER Intelligence Index (AII)
+### F.2 Autonomous Intelligence Index (AII)
 
 To measure whether AROMER becomes more intelligent over time, we define a composite index:
 

@@ -68,6 +68,31 @@ DOC_PATTERNS = (
 # with levels in explanatory examples; it is not a citation site.
 EVIDENCE_CHECK_EXCLUDE = ("docs/assurance/evidence_levels.md",)
 
+# Strings that were corrected repo-wide and must not reappear. Each entry:
+# (exact substring, why it is stale). Review-findings documents that quote
+# defects verbatim are excluded via STALE_CHECK_EXCLUDE.
+STALE_STRINGS = (
+    ("eligible close 2026-07-07",
+     "REM-020 canonical: 7-day criterion, eligible close no earlier than 2026-07-05"),
+    ("Day 25/30",
+     "REM-020 uses a 7-day criterion, not a 30-day count"),
+    ("Autonomous REMORA, Meta-Emergent Reasoner",
+     "canonical AROMER expansion: Autonomous Risk-Oriented Meta-Evaluator and Reasoner"),
+    ("Autonomous REMORA Orchestrator",
+     "canonical AROMER expansion: Autonomous Risk-Oriented Meta-Evaluator and Reasoner"),
+    ("AROMER Intelligence Index",
+     "canonical AII expansion: Autonomous Intelligence Index"),
+    ("run_external_benchmark_agentharm.py",
+     "actual script: scripts/run_agentharm_benchmark.py"),
+    ("independent_review_template_v1.md",
+     "actual file: docs/assurance/independent_review_protocol_v1.md"),
+    ("Zhang & Lee",
+     "citation corrected 2026-07-03: arXiv:2502.11347 is Dong & Wang"),
+)
+STALE_CHECK_EXCLUDE = (
+    "docs/assurance/simulated_hostile_review_v1.md",  # findings register; quotes defects verbatim
+)
+
 ANCHOR_RE = re.compile(r"<!--\s*claim:(CLAIM-\d{3})((?:\s+[a-z0-9_]+)+)\s*-->")
 CLAIM_ID_RE = re.compile(r"\bCLAIM-\d{3}\b")
 MANIFEST_ROW_RE = re.compile(
@@ -342,6 +367,23 @@ def check_doc_anchors(
     return errors
 
 
+def check_stale_strings(doc_path: Path, text: str) -> list[tuple[str, str]]:
+    errors: list[tuple[str, str]] = []
+    rel = _display_path(doc_path)
+    if rel in STALE_CHECK_EXCLUDE:
+        return errors
+    for idx, line in enumerate(text.splitlines(), start=1):
+        for pattern, reason in STALE_STRINGS:
+            if pattern in line:
+                errors.append(
+                    (
+                        f"stale-string:{rel}:{pattern}",
+                        f"{rel}:{idx}: stale string {pattern!r} — {reason}",
+                    )
+                )
+    return errors
+
+
 def check_evidence_citations(
     doc_path: Path, text: str, claims_by_id: dict[str, dict]
 ) -> list[tuple[str, str]]:
@@ -413,6 +455,7 @@ def run() -> int:
         text = doc.read_text(encoding="utf-8", errors="replace")
         errors.extend(check_doc_anchors(doc, text, claims_by_id))
         errors.extend(check_evidence_citations(doc, text, claims_by_id))
+        errors.extend(check_stale_strings(doc, text))
 
     baseline = _load_baseline()
     seen_ids = {eid for eid, _ in errors}

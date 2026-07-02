@@ -202,7 +202,7 @@ items:
     release_blocker: true
     artifacts:
       - results/external_benchmark_agentharm_v1.json
-      - scripts/run_external_benchmark_agentharm.py
+      - scripts/run_agentharm_benchmark.py
       - tests/test_rem014_external_benchmark.py
     notes: >
       Closed 2026-06-29. Benchmark: ai-safety-institute/AgentHarm (arxiv:2410.09024,

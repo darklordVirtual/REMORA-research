@@ -158,7 +158,7 @@ The following deliverables from the campaign brief do NOT exist yet:
 | Blocker | Impact |
 |---------|--------|
 | `torch/lib/shm.dll` DLL policy (Windows) | Blocks NLI backend for Semantic Entropy comparison |
-| REMORA main repo (private) required for AROMER scripts | `run_false_accept_regression.py`, `run_external_benchmark_agentharm.py` cannot be reproduced without the private implementation repo |
+| REMORA main repo (private) required for AROMER scripts | `run_false_accept_regression.py`, `run_agentharm_benchmark.py` cannot be reproduced without the private implementation repo |
 | Cloudflare Workers AI API key | Live oracle LLM baseline (`run_llm_baselines_v3.py`) requires network access + API key |
 | HF_TOKEN | Some external dataset evaluations require HuggingFace API token |
 | No CI/CD workflows | `.github/workflows/` directory is empty — no automated test execution on push |

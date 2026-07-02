@@ -288,7 +288,7 @@ remediation goal is uniformity, not new machinery.
 
 | Wave | Items | Effort | Owner-blocking? |
 |------|-------|--------|-----------------|
-| 1 (immediately) | P0-1 citations, P0-2 maxent docstring, P1-13 stale sweep, P1-14 | hours | no |
+| 1 — **CLOSED 2026-07-03** | P0-1 citations (Dong & Wang corrected incl. removal of the unsupported "<50 ms" figure; fabricated EACL-2026 entry deleted; Farquhar et al. Nature 2024 added and cited in-text; Du et al./AgentHarm/Raji venues fixed), P0-2 maxent docstring rewritten with explicit withdrawal note + claim_register.md row corrected, P1-13 stale sweep (incl. 3 additional hits found by the new denylist), P1-14 docs/01 fixes. The provenance gate now carries a stale-string denylist so the P1-13 class cannot recur. | hours | no |
 | 2 | P0-3 API reference regeneration + doc-signature test; P1-9 demo fix; P1-12 frontend strings + binding | 1–2 days | no |
 | 3 | P0-4 related-work section + Farquhar/Mohri/Yadkori/Greenblatt/COMPL-AI; P0-5 read AgentTrust/Membrane and write the differentiation | 1–2 days | reading required |
 | 4 | P1-1..6 math corrections + vocabulary renames + canonical disclaimer doc; P1-15/16 stats presentation | 2–3 days | rename decisions |

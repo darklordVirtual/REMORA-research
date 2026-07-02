@@ -326,7 +326,7 @@ feeding back into AROMER.
 - Phase 2 deployment operating stably for ≥30 days
 - Independent external replication of at least one benchmark (closes REM-021
   external replication scope)
-- AROMER organic TRAINED stability demonstrated over a 30-day window
+- AROMER organic TRAINED stability demonstrated over a sustained window *(the formal REM-020 gate criterion is 7 days of AII-EMA ≥ 0.80 with FAR = 0.0%; see release_gates.md)*
   (not just 7 days per REM-020)
 - Signed tool-schema registry built (M4 resolution)
 - Commercial licensing terms, support model, and SLA framework defined
