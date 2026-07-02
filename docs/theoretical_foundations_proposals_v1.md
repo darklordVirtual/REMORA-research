@@ -50,6 +50,18 @@ load-bearing; P4 = research direction, not a near-term feature.
 
 ## 1. Anytime-valid inference: e-processes and confidence sequences — **P1**
 
+> **Status update 2026-07-02: IMPLEMENTED (library + artifact).**
+> `remora/selective/confidence_sequence.py` (Beta-mixture confidence
+> sequence, stdlib-only) + `tests/test_confidence_sequence.py` (17 tests,
+> including a seeded demonstration that per-step Wilson monitoring violates
+> its nominal level while the sequence holds) +
+> `scripts/compute_far_confidence_sequence.py` →
+> `results/far_confidence_sequence_v1.json` (0/168 cycles → 95%
+> time-uniform upper bound 4.72%). Registered as CLAIM-011 (theoretical).
+> The REM-020 criterion itself is unchanged pending owner sign-off — the
+> bound is reported as supplementary in `release_gates.md`. The
+> conformal-martingale drift detector remains unimplemented.
+
 **Problem being solved.** REM-020 (release gate, IN_PROGRESS) monitors FAR
 continuously over a 7-day window and will be closed the day the criterion
 holds (`docs/assurance/release_gates.md`, `results/longitudinal_stability_v1.json`).

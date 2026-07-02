@@ -280,3 +280,36 @@ claims:
     reproduce: >
       python experiments/toolcall_blind_v3_eval.py
       Artifact: results/toolcall_blind_v3_results.json
+
+  - id: CLAIM-011
+    title: "Anytime-valid FA-rate bound for REM-020 monitoring (cycle level)"
+    statement: >
+      Over the REM-020 monitoring window, 0 of 168 analyzed adapt cycles
+      contained a false accept. The Beta-mixture confidence sequence gives a
+      95% time-uniform upper bound of 4.72% on the per-cycle FA-indicator
+      rate — valid under continuous monitoring and data-dependent stopping
+      (Ville's inequality), unlike the fixed-N Wilson intervals reported
+      elsewhere in this repository.
+    evidence_level: theoretical
+    artifact:
+      - "results/far_confidence_sequence_v1.json"
+      - "results/longitudinal_stability_v1.json"
+    n: 168
+    n_detail: "168 adapt cycles from the REM-020 window (longitudinal_stability_v1)"
+    metrics:
+      upper_bound_pct: 4.72
+    caveat: >
+      Cycle-level bound on the indicator "any false accept in this cycle" —
+      NOT a per-decision FAR bound (per-decision counts are not aggregated in
+      the input artifact). The method's validity is theorem-backed
+      (Ville 1939; Howard et al. 2021); the numeric bound inherits the
+      internal-telemetry provenance of the input artifact. Time-uniformity
+      costs width: the bound is ~2x wider than a fixed-N Wilson interval at
+      the same N — this is the price of surviving optional stopping, and is
+      the reason it is safe for a gate that closes on a data-dependent date.
+    reproduce: >
+      python scripts/compute_far_confidence_sequence.py
+      Artifact: results/far_confidence_sequence_v1.json.
+      Library: remora/selective/confidence_sequence.py (tests:
+      tests/test_confidence_sequence.py, including a seeded demonstration
+      that per-step Wilson monitoring violates its nominal level).

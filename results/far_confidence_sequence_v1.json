@@ -1,0 +1,21 @@
+{
+  "schema": "far_confidence_sequence_v1",
+  "unit_of_analysis": "adapt-cycle level: indicator 'any false accept occurred in this cycle'. NOT a per-decision FAR bound; per-decision counts are not aggregated in the input artifact.",
+  "input_artifact": "results/longitudinal_stability_v1.json",
+  "gate": "REM-020 (supplementary anytime-valid bound)",
+  "method": "beta_mixture_confidence_sequence",
+  "prior": "Beta(1,1)",
+  "alpha": 0.05,
+  "k_events": 0,
+  "n_trials": 168,
+  "empirical_rate": 0.0,
+  "time_uniform_upper_bound": 0.04721580705115075,
+  "validity": "Time-uniform (anytime-valid): the bound holds simultaneously for all sample sizes, so it remains valid under continuous monitoring and data-dependent stopping (Ville's inequality). It is wider than a fixed-N Wilson interval by construction.",
+  "threshold": 0.05,
+  "upper_bound_below_threshold": true,
+  "provenance": {
+    "script": "scripts/compute_far_confidence_sequence.py",
+    "git_commit": "e10f5785029f6bda4d74e6c6b58c440aa3d94b7a",
+    "input_sha_note": "input is manifest-tracked; see artifact_manifest_v1.md"
+  }
+}
