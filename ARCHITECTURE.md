@@ -385,8 +385,10 @@ not a guarantee of safety, and not a replacement for domain authority.
 - **Deployment status: SHADOW_ONLY.** The system is intended to be run beside an
   agent (Shadow Mode) and does not have a production-certified enforcement mode.
 - **Production gates:** `REM-022` (RBAC audit) is **DONE** (2026-06-30). `REM-020`
-  (longitudinal false-accept stability) is **open**, eligible to close
-  2026-07-07. `REM-021` (independent human review) is **open** (not started).
+  (longitudinal false-accept stability: AII EMA ≥ 0.80 for 7 calendar days with
+  FAR = 0.0% throughout) is **open**, eligible to close no earlier than
+  2026-07-05 (see `docs/assurance/release_gates.md` and
+  `results/longitudinal_stability_v1.json`). `REM-021` (independent human review) is **open** (not started).
   Deployment status cannot advance past SHADOW_ONLY until REM-020 and REM-021 are
   cleared.
 - **External replication is pending.** All benchmarks are internally run; no

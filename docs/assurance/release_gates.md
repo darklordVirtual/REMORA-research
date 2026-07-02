@@ -57,13 +57,10 @@ Artifact committed: `results/false_accept_regression_v1.json`.
 ```bash
 # 1. Ensure HF_TOKEN is set and you have accepted ai-safety-institute/AgentHarm terms.
 # 2. Ensure AROMER worker is deployed (workers/aromer).
-# 3. Run the full benchmark:
-python scripts/run_external_benchmark_agentharm.py \
-    --worker https://aromer.razorsharp.workers.dev \
-    --output results/external_benchmark_agentharm_v1.json
-
-# 4. Validate pipeline without HuggingFace access (synthetic 15 scenarios):
-python scripts/run_external_benchmark_agentharm.py --dry-run
+# 3. Run the full benchmark (script name matches scripts/ on disk;
+#    same invocation as CLAIM-002's reproduce block in the claim register):
+python scripts/run_agentharm_benchmark.py --split test_public \
+    --out results/external_benchmark_agentharm_v1.json
 
 # 5. Gate test (requires artifact):
 python -m pytest tests/test_rem014_external_benchmark.py -m rem014_gate -v
