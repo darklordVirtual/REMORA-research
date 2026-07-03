@@ -32,8 +32,37 @@ Use the factory methods for clean integration with agent frameworks:
 """
 from __future__ import annotations
 
+import hashlib
+import json as _json
 from dataclasses import dataclass
 from typing import Any, Optional
+
+
+def _canonical_json(data: Any) -> str:
+    """Deterministic JSON (sorted keys, no whitespace) for hashing."""
+    return _json.dumps(data, sort_keys=True, separators=(",", ":"), default=str)
+
+
+def canonical_tool_call_hash(
+    *,
+    name: str,
+    arguments: Any,
+    tenant: str = "",
+    target: str | None = None,
+) -> str:
+    """SHA-256 binding a tool call to its exact, full arguments (security audit
+    CLAIM 6). Covers (name, full canonical arguments, tenant, target) — never a
+    truncated preview. An enforcement point recomputes this immediately before
+    execution and refuses on mismatch, preventing an approved decision from
+    being reused for different arguments.
+    """
+    preimage = _canonical_json({
+        "name": name,
+        "arguments": arguments,
+        "tenant": tenant or "",
+        "target": target or "",
+    })
+    return hashlib.sha256(preimage.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -175,6 +204,13 @@ class PolicyObservation:
     evidence_provenance: dict[str, Any] | None = None
     evidence_timestamp: str | None = None
 
+    # Canonical binding of the FULL tool call to this decision (security audit
+    # CLAIM 6). SHA-256 over canonical (name, full arguments, tenant, target) —
+    # NOT the truncated question preview. A downstream enforcement point must
+    # recompute this immediately before execution and refuse on mismatch, so an
+    # approved decision cannot be reused for different arguments (TOCTOU).
+    tool_call_hash: str | None = None
+
     # ------------------------------------------------------------------
     # Factory methods
     # ------------------------------------------------------------------
@@ -233,9 +269,16 @@ class PolicyObservation:
                     risk_tier=risk_policy[call["name"]],
                 )
         """
-        import json as _json
-        args_preview = _json.dumps(arguments, separators=(",", ":"))[:120]
+        args_preview = _canonical_json(arguments)[:120]
         question = f"{name}({args_preview})"
+        # Bind the decision to the FULL tool call, not the 120-char preview.
+        tenant = str(kwargs.get("session_id") or "")
+        tool_call_hash = canonical_tool_call_hash(
+            name=name,
+            arguments=arguments,
+            tenant=tenant,
+            target=target_environment,
+        )
         return cls(
             question=question,
             risk_tier=risk_tier,
@@ -247,6 +290,7 @@ class PolicyObservation:
             final_H=final_H,
             final_D=final_D,
             adversarial_detected=adversarial_detected,
+            tool_call_hash=tool_call_hash,
             **kwargs,
         )
 

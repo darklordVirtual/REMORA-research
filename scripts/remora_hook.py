@@ -39,6 +39,23 @@ DRIFT_WARN_THRESHOLD = float(os.environ.get("REMORA_HOOK_DRIFT_WARN_THRESHOLD", 
 DRIFT_BLOCK_THRESHOLD = float(os.environ.get("REMORA_HOOK_DRIFT_BLOCK_THRESHOLD", "0.92"))
 # Fail-closed for HIGH-risk by default — set REMORA_HOOK_REQUIRE_REMOTE=0 to opt out
 REQUIRE_REMOTE_FOR_HIGH = os.environ.get("REMORA_HOOK_REQUIRE_REMOTE", "1") != "0"
+# Global fail-closed switch for the ERROR paths (malformed input, missing
+# required fields, unexpected exceptions). Default "0" preserves the permissive
+# research/local behavior (fail-open so a hook bug never blocks the agent).
+# Set REMORA_HOOK_FAIL_CLOSED=1 for any real actuator boundary: then a hook
+# that cannot produce a valid governance decision BLOCKS the action rather than
+# allowing it (external security audit finding P0-B). Exit codes: 0=allow, 2=block.
+FAIL_CLOSED = os.environ.get("REMORA_HOOK_FAIL_CLOSED", "0") == "1"
+
+
+def _fail_exit(reason: str) -> None:
+    """Exit on an error path: block when FAIL_CLOSED, else allow (with a warning)."""
+    if FAIL_CLOSED:
+        print(f"[REMORA] BLOCK (fail-closed): {reason}", file=sys.stderr)
+        sys.exit(2)
+    print(f"[REMORA] WARNING (fail-open): {reason}. Allowing action. "
+          f"Set REMORA_HOOK_FAIL_CLOSED=1 to block instead.", file=sys.stderr)
+    sys.exit(0)
 
 
 def _load_secret() -> str:
@@ -201,22 +218,20 @@ def _read_payload() -> dict[str, Any] | None:
         payload = json.loads(raw)
         return payload if isinstance(payload, dict) else None
     except Exception as exc:
-        # Malformed hook input — log and fail open to avoid blocking agent.
-        # Do NOT silently swallow; this could mask a hook integration bug.
-        print(f"[REMORA] WARNING: could not parse hook input ({type(exc).__name__}: {exc}). Allowing action.", file=sys.stderr)
-        sys.exit(0)
+        # Malformed hook input — fail-open in research mode, block if FAIL_CLOSED.
+        _fail_exit(f"could not parse hook input ({type(exc).__name__}: {exc})")
 
 
 def main() -> None:
     payload = _read_payload()
     if not payload:
-        sys.exit(0)
+        _fail_exit("empty or unparseable hook payload")
 
     tool_name = str(payload.get("tool_name", payload.get("tool", "")))
     tool_input = payload.get("tool_input", payload.get("input", {}))
     session_id = str(payload.get("session_id", ""))
     if not tool_name or not isinstance(tool_input, dict):
-        sys.exit(0)
+        _fail_exit("missing required tool fields (tool_name / tool_input)")
 
     assessment = assess_tool_call(tool_name, tool_input)
     tracker = LyapunovTracker()
@@ -260,7 +275,10 @@ def main() -> None:
     result = remora_verify(claim, context, session_id)
 
     if "error" in result:
-        if assessment.risk == RiskLevel.HIGH and REQUIRE_REMOTE_FOR_HIGH:
+        # Remote verifier unavailable. HIGH-risk always blocks (when
+        # REQUIRE_REMOTE_FOR_HIGH); under FAIL_CLOSED, MEDIUM risk blocks too
+        # rather than proceeding on an unverified action.
+        if (assessment.risk == RiskLevel.HIGH and REQUIRE_REMOTE_FOR_HIGH) or FAIL_CLOSED:
             tracker.record(tool_name, "ABSTAIN", 0.25, drift_score=drift)
             _print_block(
                 "remote verification required but unavailable",
@@ -268,7 +286,9 @@ def main() -> None:
                     f"Tool: {tool_name}",
                     f"Risk: {assessment.risk.value} ({assessment.reason})",
                     f"Error: {str(result.get('error', 'unknown'))[:140]}",
-                    "Set AGENT_CONTROL_SECRET or lower the risk of the proposed action.",
+                    ("Blocked under REMORA_HOOK_FAIL_CLOSED=1."
+                     if FAIL_CLOSED and assessment.risk != RiskLevel.HIGH
+                     else "Set AGENT_CONTROL_SECRET or lower the risk of the proposed action."),
                 ],
             )
             sys.exit(2)
@@ -330,8 +350,8 @@ if __name__ == "__main__":
         main()
     except SystemExit:
         raise
-    except Exception:
-        # Unexpected error — fail open for LOW/MEDIUM, maintain hook operation
-        # HIGH-risk fail-closed behaviour is handled in the main flow above
-        sys.exit(0)
+    except Exception as exc:
+        # Unexpected error — block if FAIL_CLOSED, else keep the hook operating
+        # (research mode). HIGH-risk fail-closed is handled in the main flow.
+        _fail_exit(f"unexpected hook error ({type(exc).__name__}: {exc})")
 

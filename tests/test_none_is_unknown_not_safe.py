@@ -226,3 +226,69 @@ class TestEvidenceContradictionsNoneHighRisk:
         )
         report = engine.decide(obs)
         assert report.action == DecisionAction.ACCEPT
+
+
+# ── Unknown action-type floor (external security audit, 2026-07-03) ──────────
+
+def _obs_uat(**kw):
+    from remora.policy import PolicyObservation
+    return PolicyObservation(question="uat probe", **kw)
+
+
+def test_unknown_action_type_floored_to_verify():
+    """A non-empty, unrecognised action_type must not reach ACCEPT on low risk
+    + high trust — it is floored to VERIFY (deny-by-default for actuation)."""
+    from remora.policy import RemoraDecisionEngine
+    from remora.policy.report import DecisionReason
+
+    engine = RemoraDecisionEngine()
+    obs = _obs_uat(
+        action_type="frobnicate_widget",   # not in any known set
+        risk_tier="low",
+        phase="ordered",
+        trust_score=0.99,
+        schema_valid=True,
+    )
+    report = engine.decide(obs)
+    assert report.action.value == "verify"
+    assert DecisionReason.UNKNOWN_ACTION_TYPE_VERIFY in report.reasons
+
+
+def test_none_action_type_still_reaches_accept():
+    """action_type=None (pure QA / no tool call) is NOT floored."""
+    from remora.policy import RemoraDecisionEngine
+
+    engine = RemoraDecisionEngine()
+    obs = _obs_uat(
+        action_type=None,
+        risk_tier="low",
+        phase="ordered",
+        trust_score=0.99,
+        evidence_action="answer",
+        evidence_confidence=0.95,
+    )
+    assert engine.decide(obs).action.value == "accept"
+
+
+def test_known_readonly_action_type_not_floored():
+    from remora.policy import RemoraDecisionEngine
+
+    engine = RemoraDecisionEngine()
+    obs = _obs_uat(
+        action_type="read",
+        risk_tier="low",
+        phase="ordered",
+        trust_score=0.99,
+        evidence_action="answer",
+        evidence_confidence=0.95,
+    )
+    assert engine.decide(obs).action.value == "accept"
+
+
+def test_unknown_action_type_does_not_override_hard_blocks():
+    """The floor is a VERIFY floor — a hard ESCALATE still wins."""
+    from remora.policy import RemoraDecisionEngine
+
+    engine = RemoraDecisionEngine()
+    obs = _obs_uat(action_type="frobnicate_widget", adversarial_detected=True)
+    assert engine.decide(obs).action.value == "escalate"

@@ -146,3 +146,38 @@ def test_chain_to_dicts_roundtrip() -> None:
     assert len(dicts) == 1
     assert dicts[0]["question_hash"] == "abc"
     assert dicts[0]["metadata"]["version"] == "v1"
+
+
+def test_concurrent_appends_do_not_fork_chain():
+    """External security audit CLAIM 5: concurrent append() must not fork the
+    chain. With the append lock, N threads appending produce one linear chain
+    of N entries that verifies end-to-end."""
+    import threading
+    from remora.audit.hash_chain import AuditHashChain
+
+    chain = AuditHashChain()
+    n = 200
+    barrier = threading.Barrier(8)
+
+    def worker(i: int) -> None:
+        barrier.wait()  # maximize contention
+        chain.append(
+            timestamp="2026-07-03T00:00:00Z",
+            question_hash=f"q{i}",
+            action="verify",
+            trust_score=0.5,
+            phase="ordered",
+        )
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(n)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    entries = chain.entries() if hasattr(chain, "entries") else chain._entries
+    assert len(entries) == n
+    # Every non-genesis entry must link to its predecessor — no forks.
+    for prev, cur in zip(entries, entries[1:]):
+        assert cur.previous_hash == prev.entry_hash
+    assert chain.verify()

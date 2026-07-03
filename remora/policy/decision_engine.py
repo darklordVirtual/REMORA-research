@@ -54,6 +54,18 @@ _MUTATING_TYPES: frozenset[str] = frozenset({
     "network_change", "prod_deploy", "data_exfiltration", "irreversible_delete",
 })
 
+# Non-actuating action types the engine recognizes as safe to route normally
+# (question-answering and read-only work). Combined with the mutating and
+# read-only sets, this defines the KNOWN action-type vocabulary. A non-empty
+# action_type outside this vocabulary is treated as an unknown actuation type
+# and floored to VERIFY (external security audit finding: "unknown must mean
+# not authorized", not "possibly benign"). action_type=None is the pure QA /
+# no-tool-call case and is intentionally NOT floored.
+_NON_ACTUATING_TYPES: frozenset[str] = frozenset({
+    "qa", "answer", "question", "chat", "classify", "read_only", "noop",
+    "unspecified", "none",
+})
+
 # Action types that warrant ESCALATE when found as classification alternatives.
 _CRITICAL_ALT_TYPES: frozenset[str] = frozenset({
     "destructive_write", "privilege_escalation",
@@ -465,6 +477,23 @@ class RemoraDecisionEngine:
         if _schema_unverified_mutating:
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
+        # ── UNKNOWN ACTION-TYPE FLOOR ───────────────────────────────────────
+        # A non-empty action_type outside the known vocabulary (mutating,
+        # read-only, or non-actuating) is an unrecognised actuation type: it
+        # must not reach ACCEPT via the conformal/temperature/evidence/
+        # ordered-trust paths on a low/medium declared risk tier. Deny-by-
+        # default for actuation — route to VERIFY. action_type=None (pure QA /
+        # no tool call) is intentionally allowed through.
+        _action_norm = (obs.action_type or "").strip().lower()
+        if (
+            _action_norm
+            and _action_norm not in _READ_ONLY_TYPES
+            and _action_norm not in _MUTATING_TYPES
+            and _action_norm not in _NON_ACTUATING_TYPES
+        ):
+            reasons.append(DecisionReason.UNKNOWN_ACTION_TYPE_VERIFY)
+            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+
         # ── MONDRIAN PER-PHASE CONFORMAL ────────────────────────────────────
 
         if (
@@ -824,6 +853,15 @@ class RemoraDecisionEngine:
         r("schema_unverified_floor",
           _schema_unverified_mutating,
           f"schema_valid={obs.schema_valid}, action_type={obs.action_type!r}",
+          "VERIFY")
+
+        _explain_action_norm = (obs.action_type or "").strip().lower()
+        r("unknown_action_type_floor",
+          bool(_explain_action_norm)
+          and _explain_action_norm not in _READ_ONLY_TYPES
+          and _explain_action_norm not in _MUTATING_TYPES
+          and _explain_action_norm not in _NON_ACTUATING_TYPES,
+          f"action_type={obs.action_type!r} (not in known vocabulary)",
           "VERIFY")
 
         if (

@@ -45,7 +45,7 @@ documented in [06-reproducibility.md](06-reproducibility.md), not this envelope.
 ## PolicyObservation — input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 56 fields; **all fields except `question` are optional and
+with 57 fields; **all fields except `question` are optional and
 caller-populated** — REMORA is stateless and performs no detection itself
 (the engine treats `None` as "unknown, not safe"). Selected fields by group:
 
@@ -58,6 +58,7 @@ caller-populated** — REMORA is stateless and performs no detection itself
 | Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected` |
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
+| Binding | `tool_call_hash` — SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
 
 Construct from a dict with `PolicyObservation.from_json_record(record)`
 (unknown keys are ignored — misspelled safety flags therefore silently default

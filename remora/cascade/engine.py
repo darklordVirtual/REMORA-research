@@ -96,6 +96,19 @@ def _extract_oracle_probs(oracle_responses: list[OracleResponse]) -> list[float]
 class CascadeEngine:
     """Adaptive multi-stage cascade for question answering with quality gates.
 
+    .. warning::
+       **Answer-quality only — NOT an execution-authorization component.**
+       ``run()`` takes a question/context/evidence/domain and its ``FastGate``
+       can return ``ACCEPT`` from a single oracle's self-reported confidence
+       (>= ``fast_threshold``). That ``ACCEPT`` means "this answer is high
+       quality", NOT "this tool call may execute". It carries no
+       ``PolicyObservation``, ``action_type``, ``risk_tier``, or tenant, and
+       must never gate a real tool call. Actuation must go through
+       ``remora.policy.RemoraDecisionEngine.decide()`` (the deterministic
+       policy floor). External security audit CLAIM 2 confirmed this component
+       is not on any enforcement path; ``tests/test_cascade_not_authorization.py``
+       keeps it that way.
+
     Parameters
     ----------
     consensus_oracles:

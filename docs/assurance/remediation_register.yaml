@@ -390,3 +390,113 @@ items:
       wildcard in servers/api.py (step 9); (3) external reviewer confirmation of
       the RBAC design (step 10 — feeds into / may be satisfied by REM-021).
       DONE when all three artifacts are committed.
+      UPDATE 2026-07-03: the header-role escalation half (external security
+      audit A-1) is FIXED — _require_tenant_capability now authorizes from the
+      authenticated token role, not the X-Remora-Role header; regression tests
+      added. Steps 8/9/10 remain open.
+
+  # External security audit remediation (2026-07-03).
+  # Full disposition: docs/assurance/external_security_audit_v1.md.
+  # Code defects A-1..A-6 are FIXED there; platform items below are the honest
+  # "not a production enterprise control plane" boundary.
+
+  - id: REM-024
+    section: "security-audit B"
+    title: "Mandatory fail-closed policy enforcement point (PEP)"
+    gate: P3
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      Enforcement is not yet inseparable from tool execution: the local hook is
+      optional and the signed-token PDP/PEP boundary (REM-013) is a library, not
+      an integrated dispatcher. In-repo building blocks exist: opt-in hook
+      fail-closed (REMORA_HOOK_FAIL_CLOSED, audit A-4) and full-args binding
+      (PolicyObservation.tool_call_hash + canonical_tool_call_hash, audit A-5).
+      DONE when a native dispatcher middleware or tool proxy issues short-lived
+      signed execution leases bound to tenant, tool, canonical args hash, policy
+      version, nonce, expiry, and environment, and refuses execution without a
+      valid lease. The agent must not hold downstream tool credentials.
+
+  - id: REM-025
+    section: "security-audit B"
+    title: "Durable audit integrity (transactional sequence + external anchoring)"
+    gate: P3
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      The in-memory chain fork is fixed (audit A-3: append() lock). Durable
+      integrity still needs a transactional per-tenant audit sequence with a
+      UNIQUE(tenant_id, sequence_no) constraint, WORM retention, KMS/HSM signing
+      keys, RFC 3161 timestamps, and periodic signed Merkle-root anchoring.
+
+  - id: REM-026
+    section: "security-audit B"
+    title: "Database-enforced tenant isolation"
+    gate: P3
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      tenant_id exists in the envelope but isolation is not DB-enforced. DONE
+      with Postgres row-level security keyed to verified tenant claims,
+      per-tenant crypto domains, mandatory tenant filters, and cross-tenant
+      negative tests.
+
+  - id: REM-027
+    section: "security-audit B"
+    title: "Secure software supply chain"
+    gate: P3
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      Dependencies use unbounded lower bounds; CI installs editable extras, not
+      a hash-verified lock. DONE with a hash-pinned lockfile installed in CI,
+      SBOM, SLSA provenance, Sigstore-signed images, and dependency scanning.
+      NOTE: result-artifact SHA-256 verification against the manifest is already
+      enforced by scripts/check_claim_provenance.py.
+
+  - id: REM-028
+    section: "security-audit B"
+    title: "High availability and latency control"
+    gate: P3
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      Synchronous engine in the request path; no circuit breaker, bounded queue,
+      deadline propagation, or distributed rate limiting. DONE with a stateless
+      horizontally-scaled PDP service, deadline propagation, circuit breakers,
+      cached signed policy bundles, and a local deterministic fallback only.
+
+  - id: REM-029
+    section: "security-audit B"
+    title: "SIEM and incident-response integration"
+    gate: P3
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      Prometheus-style metrics only. DONE with OpenTelemetry traces and
+      immutable audit events to a SIEM, correlation/decision/tenant IDs, and
+      alert rules for deny spikes, policy bypass, and audit-chain breaks.
+
+  - id: REM-030
+    section: "security-audit B"
+    title: "Independent tool-interception validation"
+    gate: P3
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      AgentHarm is intent-gating, not verified per-tool wrapping (see
+      experiments/agentharm/INTERCEPTION_NOTES.md). DONE with verified
+      tool-wrapper integration tests and an external red team (overlaps REM-021).
+
+  - id: REM-031
+    section: "security-audit B"
+    title: "GDPR / EU AI Act evidence pack"
+    gate: P4
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      Retention/classification fields are integration-provided, not enforced,
+      and there is no intended-use classification record. DONE (where the
+      deployment context requires it) with a DPIA, field-level minimization,
+      and an AI Act technical-documentation pack. Governing law: Regulation
+      (EU) 2016/679 (GDPR); Regulation (EU) 2024/1689 (AI Act). Not legal advice.

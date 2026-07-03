@@ -579,6 +579,14 @@ def _tenant_access_policy(tenant_id: str) -> dict[str, Any]:
 
 
 def _role_from_request(request: Request) -> str:
+    """DEPRECATED for authorization (P0-A, 2026-07-03).
+
+    Reading the role from ``X-Remora-Role`` for a capability decision is a
+    privilege-escalation vector (a low-privilege token could assert ``admin``).
+    Authorization now flows the authenticated role from ``_authenticate()``
+    into ``_require_tenant_capability()``. This helper is no longer called on
+    any authorization path.
+    """
     role = request.headers.get("X-Remora-Role", "").strip().lower()
     if role:
         return role
@@ -596,8 +604,18 @@ def _role_from_request(request: Request) -> str:
     return role.strip() or ""
 
 
-def _require_tenant_capability(request: Request, tenant_id: str, capability: str) -> str:
-    role = _role_from_request(request)
+def _require_tenant_capability(role: str, tenant_id: str, capability: str) -> str:
+    """Authorize a capability from the AUTHENTICATED role (P0-A fix, 2026-07-03).
+
+    ``role`` MUST be the role returned by ``_authenticate()`` — i.e. the
+    token-bound role in multi-tenant mode. It must never be re-read from the
+    ``X-Remora-Role`` request header here: doing so let a caller holding a
+    low-privilege token assert ``X-Remora-Role: admin`` and obtain the
+    wildcard capability (external security audit finding P0-A). The header is
+    consulted only inside ``_authenticate`` in the weaker single-token/dev
+    modes, where the token itself does not carry a role.
+    """
+    role = (role or "").strip().lower()
     capability_key = capability.strip().lower()
     tenant_policy = _tenant_access_policy(tenant_id)
     allowed_roles = tenant_policy.get("allowed_roles", []) if isinstance(tenant_policy, dict) else []
@@ -1111,8 +1129,8 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
     """
     t0 = time.monotonic()
 
-    tenant_id, _caller_role = _authenticate(request)
-    _require_tenant_capability(request, tenant_id, "assess")
+    tenant_id, role = _authenticate(request)
+    _require_tenant_capability(role, tenant_id, "assess")
 
     # Rate limiting — per-tenant sliding window
     if not _rate_limiter.is_allowed(f"assess:{tenant_id}"):
@@ -1251,8 +1269,8 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
 @app.get("/v1/envelope/{request_id}", response_model=dict, tags=["governance"])
 def get_envelope(request_id: str, request: Request) -> dict:
     """Fetch a previously generated DecisionEnvelope by request id."""
-    tenant_id, _caller_role = _authenticate(request)
-    _require_tenant_capability(request, tenant_id, "read")
+    tenant_id, role = _authenticate(request)
+    _require_tenant_capability(role, tenant_id, "read")
     env = _CONTROL_PLANE_STORE.get_envelope(request_id=request_id, tenant_id=tenant_id)
     if env is None:
         raise HTTPException(status_code=404, detail="envelope not found")
@@ -1266,8 +1284,8 @@ def get_envelope(request_id: str, request: Request) -> dict:
 @app.get("/v1/audit/{request_id}", response_model=dict, tags=["governance"])
 def get_audit_record(request_id: str, request: Request) -> dict:
     """Fetch structured audit metadata for a request id."""
-    tenant_id, _caller_role = _authenticate(request)
-    _require_tenant_capability(request, tenant_id, "read")
+    tenant_id, role = _authenticate(request)
+    _require_tenant_capability(role, tenant_id, "read")
     record = _CONTROL_PLANE_STORE.get_audit_record(request_id=request_id, tenant_id=tenant_id)
     if record is None:
         raise HTTPException(status_code=404, detail="audit record not found")
@@ -1278,7 +1296,7 @@ def get_audit_record(request_id: str, request: Request) -> dict:
 def review(req: ReviewRequest, request: Request) -> dict:
     """Submit a human review decision for a previously assessed request."""
     tenant_id, role = _authenticate(request)
-    _require_tenant_capability(request, tenant_id, "review")
+    _require_tenant_capability(role, tenant_id, "review")
     envelope = _CONTROL_PLANE_STORE.get_envelope(request_id=req.request_id, tenant_id=tenant_id)
     if envelope is None:
         raise HTTPException(status_code=404, detail="request not found")
@@ -1316,8 +1334,8 @@ def review(req: ReviewRequest, request: Request) -> dict:
 @app.post("/v1/follow-up", response_model=dict, tags=["governance"])
 def follow_up(req: FollowUpRequest, request: Request) -> dict:
     """Submit follow-up actions tied to an assessed request."""
-    tenant_id, _caller_role = _authenticate(request)
-    _require_tenant_capability(request, tenant_id, "follow_up")
+    tenant_id, role = _authenticate(request)
+    _require_tenant_capability(role, tenant_id, "follow_up")
     if _CONTROL_PLANE_STORE.get_envelope(request_id=req.request_id, tenant_id=tenant_id) is None:
         raise HTTPException(status_code=404, detail="request not found")
 
@@ -1343,8 +1361,8 @@ def follow_up(req: FollowUpRequest, request: Request) -> dict:
 @app.get("/v1/metrics", response_model=dict, tags=["infrastructure"])
 def metrics(request: Request) -> dict:
     """Basic governance gateway metrics for prototype observability."""
-    tenant_id, _caller_role = _authenticate(request)
-    _require_tenant_capability(request, tenant_id, "read")
+    tenant_id, role = _authenticate(request)
+    _require_tenant_capability(role, tenant_id, "read")
     total = _metric_int("assess_total")
     total_elapsed = _metric_float("total_elapsed_ms")
     mean_elapsed = round(total_elapsed / total, 3) if total else 0.0
@@ -1395,8 +1413,8 @@ def metrics_prometheus(request: Request) -> PlainTextResponse:
 @app.get("/v1/policy/version", response_model=dict, tags=["governance"])
 def policy_version(request: Request) -> dict:
     """Expose active policy-engine version metadata for audit/replay clients."""
-    tenant_id, _caller_role = _authenticate(request)
-    _require_tenant_capability(request, tenant_id, "read")
+    tenant_id, role = _authenticate(request)
+    _require_tenant_capability(role, tenant_id, "read")
     version = DecisionReport.__dataclass_fields__["policy_version"].default
     hashes = _policy_component_hashes()
     return {
@@ -1413,8 +1431,8 @@ def policy_version(request: Request) -> dict:
 @app.post("/v1/evidence", response_model=dict, tags=["governance"])
 def evidence(req: EvidenceRequest, request: Request) -> dict:
     """Attach external evidence payloads to a tenant-scoped request record."""
-    tenant_id, _caller_role = _authenticate(request)
-    _require_tenant_capability(request, tenant_id, "evidence")
+    tenant_id, role = _authenticate(request)
+    _require_tenant_capability(role, tenant_id, "evidence")
     if _CONTROL_PLANE_STORE.get_envelope(request_id=req.request_id, tenant_id=tenant_id) is None:
         raise HTTPException(status_code=404, detail="request not found")
 
@@ -1440,8 +1458,8 @@ def evidence(req: EvidenceRequest, request: Request) -> dict:
 @app.post("/v1/rerun", response_model=dict, tags=["governance"])
 def rerun(req: RerunRequest, request: Request) -> dict:
     """Re-run governance assessment with the same persisted request context."""
-    tenant_id, _caller_role = _authenticate(request)
-    _require_tenant_capability(request, tenant_id, "rerun")
+    tenant_id, role = _authenticate(request)
+    _require_tenant_capability(role, tenant_id, "rerun")
     prior = _CONTROL_PLANE_STORE.get_envelope(request_id=req.request_id, tenant_id=tenant_id)
     if prior is None:
         raise HTTPException(status_code=404, detail="request not found")

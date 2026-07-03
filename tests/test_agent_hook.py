@@ -220,3 +220,46 @@ def test_hook_allows_remora_worker_webfetch_without_oracle(tmp_path: Path) -> No
         session_dir=tmp_path,
     )
     assert result.returncode == 0, f"Hook blocked a trusted REMORA URL: {result.stderr}"
+
+
+# ── Fail-closed error paths (external security audit P0-B, 2026-07-03) ───────
+
+def _run_hook_raw(raw_input: str, extra_env: dict | None = None):
+    env = os.environ.copy()
+    env.pop("AGENT_CONTROL_SECRET", None)
+    if extra_env:
+        env.update(extra_env)
+    return subprocess.run(
+        [sys.executable, str(HOOK_SCRIPT)],
+        input=raw_input, text=True, capture_output=True,
+        cwd=REPO_ROOT, env=env, timeout=20, check=False,
+    )
+
+
+def test_malformed_input_fails_open_by_default() -> None:
+    r = _run_hook_raw("{not valid json")
+    assert r.returncode == 0  # research default: allow
+
+
+def test_malformed_input_fails_closed_when_set() -> None:
+    r = _run_hook_raw("{not valid json", {"REMORA_HOOK_FAIL_CLOSED": "1"})
+    assert r.returncode == 2  # blocks
+    assert "fail-closed" in r.stderr.lower()
+
+
+def test_missing_tool_fields_fail_closed_when_set() -> None:
+    r = _run_hook_raw(json.dumps({"session_id": "s1"}),
+                      {"REMORA_HOOK_FAIL_CLOSED": "1"})
+    assert r.returncode == 2
+
+
+def test_empty_payload_fails_closed_when_set() -> None:
+    r = _run_hook_raw("", {"REMORA_HOOK_FAIL_CLOSED": "1"})
+    assert r.returncode == 2
+
+
+def test_local_block_still_blocks_regardless_of_mode() -> None:
+    # A locally-detected destructive command must block in either mode.
+    payload = {"tool_name": "Bash", "tool_input": {"command": "rm -rf /tmp/remora-danger"}}
+    assert _run_hook_raw(json.dumps(payload)).returncode == 2
+    assert _run_hook_raw(json.dumps(payload), {"REMORA_HOOK_FAIL_CLOSED": "1"}).returncode == 2

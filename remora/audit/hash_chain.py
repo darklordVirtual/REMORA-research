@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from typing import Any
@@ -121,6 +122,13 @@ class AuditHashChain:
 
     def __init__(self) -> None:
         self._entries: list[HashChainEntry] = []
+        # Serialise append() so concurrent writers cannot both read the same
+        # chain head and fork the chain (external security audit finding: the
+        # in-memory chain had no concurrency control). This makes the in-process
+        # chain linear under threads; a multi-process / durable deployment must
+        # additionally use a transactional per-tenant sequence — see
+        # docs/assurance/external_security_audit_v1.md.
+        self._lock = threading.Lock()
 
     def append(
         self,
@@ -132,31 +140,32 @@ class AuditHashChain:
         phase: str,
         metadata: dict[str, Any] | None = None,
     ) -> HashChainEntry:
-        """Append a new entry and return it."""
+        """Append a new entry and return it. Thread-safe (serialised)."""
         if isinstance(timestamp, datetime):
             timestamp = timestamp.isoformat()
-        previous_hash = self._entries[-1].entry_hash if self._entries else None
-        entry_hash = _compute_hash(
-            timestamp=timestamp,
-            question_hash=question_hash,
-            action=action,
-            trust_score=trust_score,
-            phase=phase,
-            previous_hash=previous_hash,
-            metadata=metadata or {},
-        )
-        entry = HashChainEntry(
-            timestamp=timestamp,
-            question_hash=question_hash,
-            action=action,
-            trust_score=trust_score,
-            phase=phase,
-            previous_hash=previous_hash,
-            entry_hash=entry_hash,
-            metadata=metadata or {},
-        )
-        self._entries.append(entry)
-        return entry
+        with self._lock:
+            previous_hash = self._entries[-1].entry_hash if self._entries else None
+            entry_hash = _compute_hash(
+                timestamp=timestamp,
+                question_hash=question_hash,
+                action=action,
+                trust_score=trust_score,
+                phase=phase,
+                previous_hash=previous_hash,
+                metadata=metadata or {},
+            )
+            entry = HashChainEntry(
+                timestamp=timestamp,
+                question_hash=question_hash,
+                action=action,
+                trust_score=trust_score,
+                phase=phase,
+                previous_hash=previous_hash,
+                entry_hash=entry_hash,
+                metadata=metadata or {},
+            )
+            self._entries.append(entry)
+            return entry
 
     def verify(self) -> bool:
         """Verify the entire chain.  Returns ``False`` on any break."""

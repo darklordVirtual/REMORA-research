@@ -26,6 +26,64 @@ def _load_api_module(monkeypatch: pytest.MonkeyPatch, token: str | None = None):
     return importlib.reload(api)
 
 
+def _load_multitenant_api(monkeypatch: pytest.MonkeyPatch, tokens: dict):
+    import json as _json
+
+    monkeypatch.setenv("REMORA_ENV", "development")
+    monkeypatch.delenv("REMORA_CONTROL_PLANE_DSN", raising=False)
+    monkeypatch.delenv("REMORA_API_ALLOW_MOCK_ORACLES", raising=False)
+    monkeypatch.delenv("REMORA_API_BEARER_TOKEN", raising=False)
+    monkeypatch.setenv("REMORA_API_TOKENS", _json.dumps(tokens))
+    import servers.api as api
+
+    return importlib.reload(api)
+
+
+def test_header_role_cannot_override_authenticated_token_role(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P0-A regression: a viewer-bound token must not gain admin capability by
+    asserting X-Remora-Role: admin. In multi-tenant mode the token role is
+    authoritative; the header must be ignored for authorization."""
+    api = _load_multitenant_api(
+        monkeypatch,
+        {"viewer-tok": {"tenant": "acme", "role": "viewer"}},
+    )
+    client = TestClient(api.app)
+
+    # viewer has only {"read"} — /v1/assess needs "assess". The admin header
+    # must NOT grant it.
+    resp = client.post(
+        "/v1/assess",
+        json={"question": "deploy?", "risk_tier": "high"},
+        headers={
+            "Authorization": "Bearer viewer-tok",
+            "X-Remora-Role": "admin",
+        },
+    )
+    assert resp.status_code == 403, (
+        "header role escalation: viewer token + X-Remora-Role:admin was accepted"
+    )
+
+
+def test_authenticated_admin_token_has_wildcard(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Positive control: an admin-bound token legitimately gets the capability,
+    with no X-Remora-Role header present."""
+    api = _load_multitenant_api(
+        monkeypatch,
+        {"admin-tok": {"tenant": "acme", "role": "admin"}},
+    )
+    client = TestClient(api.app)
+    resp = client.post(
+        "/v1/assess",
+        json={"question": "deploy?", "risk_tier": "high"},
+        headers={"Authorization": "Bearer admin-tok"},
+    )
+    assert resp.status_code == 200
+
+
 def test_assess_returns_envelope(monkeypatch: pytest.MonkeyPatch) -> None:
     api = _load_api_module(monkeypatch, token=None)
     client = TestClient(api.app)
@@ -274,6 +332,9 @@ def test_review_and_follow_up_endpoints(monkeypatch: pytest.MonkeyPatch) -> None
         headers={
             "Authorization": "Bearer test-token",
             "X-Remora-Tenant": "tenant-review",
+            # follow_up capability belongs to reviewer/admin, not operator.
+            # In single-token mode the role is set at auth time via this header.
+            "X-Remora-Role": "reviewer",
         },
     )
     assert follow_up.status_code == 200
