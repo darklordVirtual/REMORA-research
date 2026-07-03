@@ -42,7 +42,7 @@ and risk categories relevant to each use case.
 
 | AI RMF Sub-category | REMORA Implementation | Status |
 |---|---|---|
-| MP-1 System purpose documented | `README.md`, `docs/plain_language_overview.md`, `paper/whitepaper.md` | Implemented |
+| MP-1 System purpose documented | `README.md`, `docs/plain_language_overview.md`, `paper/remora_paper.md` | Implemented |
 | MP-2 Intended users / stakeholders | `enterprise/sector-use-cases.md`, `docs/use-cases/` | Implemented |
 | MP-3 AI system type categorised | Multi-oracle consensus system with selective abstention; not a training pipeline | Documented |
 | MP-4 Risk categories identified | `enterprise/threat-model.md` — five primary threat categories | Implemented |

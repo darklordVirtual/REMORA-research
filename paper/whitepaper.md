@@ -1,5 +1,13 @@
 # REMORA: A Nested Governance Control Plane for Agentic AI
 
+> ⚠️ **SUPERSEDED — legacy snapshot (June 2026).** This technical report is
+> **not** the canonical paper. The current, continuously-corrected paper is
+> [`paper/remora_paper.md`](remora_paper.md); it supersedes this document on
+> every point of conflict (numbers, claims, caveats, architecture framing).
+> This file is retained only as a historical snapshot and is not maintained.
+> For governed claims see `docs/assurance/claim_register_v1.yaml` and
+> `docs/02-evidence-and-claims.md`. Do not cite this document.
+
 **Multi-oracle consensus, selective trust, tool-call gating, and memory
 governance for long-running AI systems**
 
