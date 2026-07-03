@@ -24,9 +24,9 @@ defaults:
 
 # ── Access and RBAC defaults ─────────────────────────────────────────────────
 access_defaults:
-  default_role: admin
+  default_role: viewer
   role_permissions:
-    admin: ["*"]
+    admin: ["assess", "evidence", "follow_up", "read", "rerun", "review"]
     operator: ["assess", "evidence", "rerun", "read"]
     reviewer: ["review", "follow_up", "read"]
     domain_expert: ["review", "read"]

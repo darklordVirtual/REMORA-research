@@ -380,20 +380,30 @@ items:
     section: "§5.A-B (follow-through)"
     title: "RBAC follow-through — isolation test, admin wildcard, external confirmation"
     gate: P3
-    status: NOT_STARTED
-    artifacts: []
+    status: IN_PROGRESS
+    artifacts:
+      - tests/test_rbac_isolation.py
+      - servers/api.py
+      - schemas/risk-profiles.yaml
     notes: >
       Carries the three REM-022 design-document closure criteria that were not
-      met at REM-022's closure (see REM-022 CLOSURE DEVIATION note):
-      (1) tests/test_rbac_isolation.py — no cross-tenant data leakage via API
-      (rbac_design_v1 step 8); (2) enumerate admin permissions and remove the
-      wildcard in servers/api.py (step 9); (3) external reviewer confirmation of
-      the RBAC design (step 10 — feeds into / may be satisfied by REM-021).
-      DONE when all three artifacts are committed.
-      UPDATE 2026-07-03: the header-role escalation half (external security
-      audit A-1) is FIXED — _require_tenant_capability now authorizes from the
-      authenticated token role, not the X-Remora-Role header; regression tests
-      added. Steps 8/9/10 remain open.
+      met at REM-022's closure (see REM-022 CLOSURE DEVIATION note).
+      STEP 8 (cross-tenant isolation) — DONE 2026-07-03: tests/test_rbac_isolation.py
+      proves a tenant cannot read another tenant's envelope or attach evidence to
+      its requests (404, not data), and that X-Remora-Tenant cannot redirect a read
+      across tenants (the token tenant is authoritative; the store is keyed by
+      (tenant_id, request_id)).
+      STEP 9 (admin wildcard removal) — DONE 2026-07-03: _BUILTIN_ROLE_PERMISSIONS
+      and both risk-profiles.yaml configs now enumerate admin's six capabilities
+      explicitly; the "*" branch was removed from _require_tenant_capability, so a
+      config-injected wildcard grants nothing; default_role changed admin->viewer
+      (least privilege). Tests assert no wildcard, full-capability coverage, and
+      that an injected "*" is denied.
+      STEP 10 (external reviewer confirmation) — OPEN, folded into REM-021.
+      Also FIXED earlier (external security audit A-1): _require_tenant_capability
+      authorizes from the authenticated token role, not the X-Remora-Role header.
+      Remaining to close REM-023: only the external RBAC-design confirmation
+      (REM-021). Code/test criteria (steps 8 & 9) are complete.
 
   # External security audit remediation (2026-07-03).
   # Full disposition: docs/assurance/external_security_audit_v1.md.

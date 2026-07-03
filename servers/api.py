@@ -233,8 +233,17 @@ _SLO_TARGETS = {
 }
 _LATENCY_BUCKETS_MS = [100.0, 250.0, 500.0, 1000.0, 2000.0]
 
+# Complete capability vocabulary. admin is enumerated explicitly rather than
+# holding a "*" wildcard (REM-023 step 9): least-privilege by construction, and
+# a new capability is not silently granted to admin — it must be added here on
+# purpose. Adding a capability elsewhere without listing it here will fail the
+# _ALL_CAPABILITIES coverage test in tests/test_rbac_isolation.py.
+_ALL_CAPABILITIES: frozenset[str] = frozenset({
+    "assess", "evidence", "follow_up", "read", "rerun", "review",
+})
+
 _BUILTIN_ROLE_PERMISSIONS: dict[str, set[str]] = {
-    "admin": {"*"},
+    "admin": set(_ALL_CAPABILITIES),
     "operator": {"assess", "evidence", "rerun", "read"},
     "reviewer": {"review", "follow_up", "read"},
     "domain_expert": {"review", "read"},
@@ -627,7 +636,11 @@ def _require_tenant_capability(role: str, tenant_id: str, capability: str) -> st
 
     role_permissions = _role_permissions_map()
     permissions = role_permissions.get(role, set())
-    if "*" in permissions or capability_key in permissions:
+    # No wildcard: capabilities are enumerated per role (REM-023 step 9). A
+    # config-injected "*" grants nothing on its own — it must match a real
+    # capability. This closes wildcard-based privilege escalation even via a
+    # misconfigured tenant role_permissions map.
+    if capability_key in permissions:
         return role
     raise HTTPException(status_code=403, detail=f"role {role} cannot perform {capability_key}")
 

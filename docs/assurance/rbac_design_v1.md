@@ -306,9 +306,9 @@ acceptance criteria.
 | 5 | Create GitHub environment `production` with required reviewers | GitHub repository settings |
 | 6 | Deprecate single-token auth mode or harden header trust | Code change in `servers/api.py` |
 | 7 | Document D1 row-level tenant isolation verification | Test or audit artifact |
-| 8 | Create test: no cross-tenant data leakage via API | `tests/test_rbac_isolation.py` |
-| 9 | Enumerate admin permissions (remove wildcard) | Code change in `servers/api.py` |
-| 10 | External review of this RBAC design | Feeds into REM-021 |
+| 8 | Create test: no cross-tenant data leakage via API | ✅ DONE 2026-07-03 — `tests/test_rbac_isolation.py` |
+| 9 | Enumerate admin permissions (remove wildcard) | ✅ DONE 2026-07-03 — explicit set in `servers/api.py` + both `risk-profiles.yaml`; `"*"` branch removed; `default_role` admin→viewer |
+| 10 | External review of this RBAC design | OPEN — folded into REM-021 |
 
 REM-022 is DONE when: all steps above have artifacts committed, an external reviewer
 has confirmed the design, and the artifact is at `docs/assurance/rbac_policy_v1.md`
