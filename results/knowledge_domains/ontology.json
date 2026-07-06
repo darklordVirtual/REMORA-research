@@ -1,0 +1,20 @@
+{
+  "schema": "ontology_v1",
+  "status": "ok",
+  "result": {
+    "n_levels": 6,
+    "n_claim_types": 5,
+    "n_claims_checked": 6,
+    "nonconforming": 0
+  },
+  "provenance": {
+    "schema": "result_provenance_v1",
+    "schema_version": "1",
+    "commit_hash": "d01677a2670c72613134f517f7745eb63ec6e1e3",
+    "generated_at": "2026-07-06T15:33:57.236645+00:00",
+    "script": "scripts/gen_knowledge_domains.py",
+    "n_samples": 6,
+    "gate": "PASS",
+    "notes": "Machine-readable claim ontology + register conformance."
+  }
+}

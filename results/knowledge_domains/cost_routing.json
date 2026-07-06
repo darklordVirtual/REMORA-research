@@ -1,0 +1,56 @@
+{
+  "schema": "cost_routing_v1",
+  "status": "ok",
+  "result": {
+    "n_models": 4,
+    "n_requests": 8,
+    "routed_cost": 5.94,
+    "baseline_cost": 30.6,
+    "savings_ratio": 0.8059,
+    "quality_violations": 0,
+    "decisions": [
+      {
+        "rid": "r1",
+        "model": "nano"
+      },
+      {
+        "rid": "r2",
+        "model": "small"
+      },
+      {
+        "rid": "r3",
+        "model": "mid"
+      },
+      {
+        "rid": "r4",
+        "model": "small"
+      },
+      {
+        "rid": "r5",
+        "model": "premium"
+      },
+      {
+        "rid": "r6",
+        "model": "small"
+      },
+      {
+        "rid": "r7",
+        "model": "nano"
+      },
+      {
+        "rid": "r8",
+        "model": "mid"
+      }
+    ]
+  },
+  "provenance": {
+    "schema": "result_provenance_v1",
+    "schema_version": "1",
+    "commit_hash": "d01677a2670c72613134f517f7745eb63ec6e1e3",
+    "generated_at": "2026-07-06T15:33:57.236645+00:00",
+    "script": "scripts/gen_knowledge_domains.py",
+    "n_samples": 8,
+    "gate": "PASS",
+    "notes": "Cost-aware routing under quality floors; synthetic prices."
+  }
+}

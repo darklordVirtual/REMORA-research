@@ -1,0 +1,20 @@
+{
+  "schema": "multitenant_v1",
+  "status": "ok",
+  "result": {
+    "n_tenants": 5,
+    "n_isolation_checks": 85,
+    "cross_tenant_leaks": 0,
+    "n_chain_forks": 0
+  },
+  "provenance": {
+    "schema": "result_provenance_v1",
+    "schema_version": "1",
+    "commit_hash": "d01677a2670c72613134f517f7745eb63ec6e1e3",
+    "generated_at": "2026-07-06T15:33:57.236645+00:00",
+    "script": "scripts/gen_knowledge_domains.py",
+    "n_samples": 85,
+    "gate": "PASS",
+    "notes": "Tenant-isolation invariant, in-memory model."
+  }
+}
