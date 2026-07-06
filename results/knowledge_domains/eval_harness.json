@@ -1,0 +1,21 @@
+{
+  "schema": "eval_harness_v1",
+  "status": "ok",
+  "result": {
+    "n_cases": 10,
+    "grounding_precision": 0.9,
+    "grounding_recall": 0.9,
+    "grounding_f1": 0.9,
+    "refusal_accuracy": 0.6667
+  },
+  "provenance": {
+    "schema": "result_provenance_v1",
+    "schema_version": "1",
+    "commit_hash": "d01677a2670c72613134f517f7745eb63ec6e1e3",
+    "generated_at": "2026-07-06T15:33:57.236645+00:00",
+    "script": "scripts/gen_knowledge_domains.py",
+    "n_samples": 10,
+    "gate": "PASS",
+    "notes": "Grounding P/R/F1 + refusal accuracy over a committed SUT; grades the scorer, not a live model."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "evidence_graph_v1",
+  "status": "ok",
+  "result": {
+    "n_nodes": 18,
+    "n_edges": 15,
+    "n_claims": 6,
+    "orphan_claims": 0,
+    "max_evidence_depth": 2
+  },
+  "provenance": {
+    "schema": "result_provenance_v1",
+    "schema_version": "1",
+    "commit_hash": "d01677a2670c72613134f517f7745eb63ec6e1e3",
+    "generated_at": "2026-07-06T15:33:57.236645+00:00",
+    "script": "scripts/gen_knowledge_domains.py",
+    "n_samples": 6,
+    "gate": "PASS",
+    "notes": "Register-as-graph integrity over a committed fixture."
+  }
+}
