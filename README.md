@@ -83,18 +83,18 @@ Full architecture detail: [docs/01-architecture.md](docs/01-architecture.md) | A
 AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's closed-loop learning layer. It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII) — a weighted composite of five diagnostic dimensions. Status is updated every 6 hours by automated GitHub Actions telemetry.
 
 <!-- LIVE_STATUS_START -->
-> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-07-16T06:56Z
+> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-07-16T12:40Z
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| Autonomous Intelligence Index (AII, EMA) | 0.9914 | TRAINED |
+| Autonomous Intelligence Index (AII, EMA) | 0.9908 | TRAINED |
 | False accept rate (FAR) | 0.0% | Zero |
 | Deployment mode | SHADOW_ONLY | Research only |
 | T1 Calibration (ECE = 0.0057) | 0.9715 | Active |
 | T2 Friction suppression | 1.0000 | Active |
 | T3 MetaJudge quality | 1.0000 | Milestone |
 | T4 Transfer score | 1.0000 | Max |
-| T5 Stability | 1.0000 | Active |
+| T5 Stability | 0.9950 | Active |
 <!-- LIVE_STATUS_END -->
 
 AII bands (labeled threshold crossings of a composite index — not physical phase transitions): WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28, regressed to CAPABLE for some hours the same day, and recovered organically ([NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§13); it has held TRAINED since. Two production deployment gates remain open before use outside shadow-mode research: REM-020 (longitudinal stability audit: AII EMA ≥ 0.80 for 7 calendar days with FAR = 0.0% throughout; eligible close no earlier than 2026-07-05) and REM-021 (independent human review). REM-022 (RBAC audit) is DONE. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
