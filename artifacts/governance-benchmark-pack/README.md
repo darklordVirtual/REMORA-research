@@ -1007,7 +1007,7 @@ tau* = 0.203200  (selected on 436-item training set)
 |----------|---------|
 | [`CONTRIBUTIONS.md`](CONTRIBUTIONS.md) | Formal academic contribution statements (C1–C7) with claim, validation, scope, and limitations |
 | [`paper/claim_ledger.md`](paper/claim_ledger.md) | Every strong claim mapped to evidence, implementation, and recommended wording |
-| [`NEGATIVE_RESULTS.md`](NEGATIVE_RESULTS.md) | 1 active finding + 12 resolved findings (archived) — honest account of what did not work |
+| [`NEGATIVE_RESULTS.md`](NEGATIVE_RESULTS.md) | Active findings, event chronicles, and a resolved-findings archive — honest account of what did not work |
 | [`paper/remora_paper.md`](paper/remora_paper.md) | Full technical paper (Markdown source; under submission) |
 | [`paper/remora_paper.tex`](paper/remora_paper.tex) | LaTeX source for Overleaf / arXiv submission |
 | [`docs/empirical_evidence_record.md`](docs/empirical_evidence_record.md) | N=302 selective trust statistical proof pack |

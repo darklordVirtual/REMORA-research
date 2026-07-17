@@ -1,16 +1,21 @@
 # What didn't work and what remains open?
 
 Active findings are also indexed in `02-evidence-and-claims.md` caveat blocks.
+*Last synchronized with the canonical record: 2026-07-17.*
 
 > **Why this document exists.**  Publishing negative results is standard
 > scientific practice and is almost never done in individual portfolio projects.
 > Every number here increases external credibility by proving the system was
 > not optimised until only the positive findings remained.
 
-This document contains only **active, unresolved findings**.  Findings that
-have been fully addressed are preserved in the
-[Resolved Findings Archive](#resolved-findings-archive) below.
-All findings are registered in `docs/claim_register.md`.
+**Scope of this document:** the deep-dive on the three headline *research*
+gaps (external replication, holdout transfer, entropy backend), plus the
+resolved-findings archive (R1–R12). It is **not** the complete negative-results
+record — the canonical, complete record is
+[`../NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md) (16 findings including the
+operational event chronicles and the structural AII ceilings §15–§16).
+Statuses here are synchronized with that record; on any discrepancy the root
+record wins. All findings are registered in `docs/claim_register.md`.
 
 ---
 
@@ -135,7 +140,7 @@ intent, not of the implementation used in experiments.
 | Finding | Status | Severity |
 |---------|--------|----------|
 | External replication and live validation pending | Active — formal third-party replication still outstanding | Medium |
-| AROMER safety floor does not transfer to external holdout (proxy signals) | Active — faithful signals + tighter success criterion required before any transfer claim | High |
+| AROMER safety floor does not transfer to external holdout (proxy signals) | Active, largely de-risked — structural gates now intercept 100% of holdout harm with 0% false-accept; remaining before closure: (a) live-oracle trust/entropy for the non-structural margin, (b) external-corpus validation of injection-scanner rules. The ablation success criterion is already tightened. | High → Medium |
 | Entropy backend is token-fingerprint heuristic, not Semantic Entropy | Active — NLI backend not yet benchmarked; SE framing in paper is aspirational | Medium |
 
 ---
