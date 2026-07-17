@@ -136,7 +136,7 @@ responsibilities are complementary, not overlapping:
 | Team (type) | Owns (capabilities) | REMORA components | Key backlog |
 |---|---|---|---|
 | **Platform team** (platform) | 2, 3, 7, 8 — the governance platform as a product | PDP service, PEP/lease service, gateway, audit chain, identity | REM-013, REM-024, REM-025, REM-026, REM-028, REM-029 |
-| **Policy & Governance team** (complicated-subsystem) | 1, 9 — policy-as-code, claim discipline, compliance evidence | `remora/policy`, OPA/Rego bundles, claim-provenance gate, release gates | REM-020, REM-021, REM-023, REM-031 |
+| **Policy & Governance team** (complicated-subsystem) | 1, 9 — policy-as-code, claim discipline, compliance evidence | `remora/policy`, OPA/Rego bundles, claim-provenance gate, release gates | REM-021, REM-023, REM-031 |
 | **Decision Science team** (complicated-subsystem) | 4, 5 — oracles, uncertainty, evidence, conformal calibration | `remora/oracles`, `remora/selective`, `remora/evidence`, credal/conformal | REM-030, calibration & anytime-valid monitoring |
 | **Stream-aligned product teams** (stream-aligned, many) | 10 + business use — integrate agents behind the platform | SDK/adapters (`remora/adapters`), tool contracts | per-domain onboarding |
 | **Enabling team** (enabling) | temporary uplift — coaches the above on TOGAF, secure SDLC, TDD | — | reviews, pairing, standards |
@@ -234,7 +234,7 @@ Group the backlog into deliverable work packages, each with a clear owner:
 Incremental, gated increments — each a usable Transition Architecture:
 
 - **T0 — Shadow-only research (current).** PDP decides; enforcement optional;
-  claim-provenance gate green. Gates open: REM-020/021/023.
+  claim-provenance gate green. Gates open: REM-021 (production gate) and REM-023 (follow-through; external confirmation folded into REM-021). REM-020 closed 2026-07-17.
 - **T1 — Governed pilot (single business unit).** WP1+WP2+WP5: mandatory PEP,
   signed leases, GitOps policy, real OIDC. Exit criteria: 100% of pilot tool
   calls through the PEP; RBAC isolation test passing; REM-021 external review

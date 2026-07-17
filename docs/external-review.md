@@ -22,7 +22,7 @@ Negative findings are first-class here. See `NEGATIVE_RESULTS.md`.
 ## Three review paths
 
 ### 30-minute review (is this credible?)
-1. Read the README top section and `docs/evidence-and-claims.md`.
+1. Read the README top section and `docs/02-evidence-and-claims.md`.
 2. Skim `NEGATIVE_RESULTS.md`. A project that hides failures is the one to doubt.
 3. Run the live demo: `remora.razorsharp.workers.dev/control-room`, or the local
    60-second demo: `python examples/demo_scenarios/run_demo_scenarios.py`.
@@ -31,7 +31,7 @@ Negative findings are first-class here. See `NEGATIVE_RESULTS.md`.
 ### 2-hour technical review (does it hold up?)
 1. `python -m pip install -e ".[dev]"`
 2. `make audit` (lint + tests + claim-consistency gate).
-3. Pick one headline claim from `docs/evidence-and-claims.md` and reproduce it
+3. Pick one headline claim from `docs/02-evidence-and-claims.md` and reproduce it
    from the listed command. Compare to the committed artifact.
 4. Read the relevant source (e.g. `remora/policy/decision_engine.py` for the hard
    blocks, `remora/selective/` for the conformal/guardrail logic).

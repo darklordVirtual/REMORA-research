@@ -1,5 +1,8 @@
 # Selective Trust Curve — Empirical Breakthrough Proof
 
+> **ARCHIVED (legacy) — historical document.** Superseded; preserved as record only. Do not cite as current. Current documentation index: [`../../README.md`](../../README.md).
+
+
 **Status:** statistically significant on canonical N=302 benchmark.
 **Reproducer:** [experiments/selective_trust_curve.py](../../experiments/selective_trust_curve.py)
 **Artifact:** [results/selective_trust_curve_results.json](../../results/selective_trust_curve_results.json)

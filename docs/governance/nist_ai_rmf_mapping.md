@@ -63,7 +63,7 @@ to quantify AI system performance and risk levels.
 
 | AI RMF Sub-category | REMORA Implementation | Status |
 |---|---|---|
-| MS-1 Metrics defined | Accuracy, ETR (evaluation-to-run ratio), F1, calibration ECE | Implemented |
+| MS-1 Metrics defined | Accuracy, ETR (Effective Truth Rate, `remora/scoring.py`), F1, calibration ECE | Implemented |
 | MS-1 Evaluation methodology documented | `docs/stat_tests.md`, `artifacts/reproduce.sh` | Implemented |
 | MS-2 Baseline comparisons | Single oracle, majority vote, REMORA full cascade vs. selective | `artifacts/benchmark_summary.json` |
 | MS-2 Negative results documented | `NEGATIVE_RESULTS.md` — resolved findings archive with root cause/mitigation and one active replication gap | Implemented |

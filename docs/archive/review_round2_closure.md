@@ -1,5 +1,8 @@
 # REMORA External Review Round 2 Closure
 
+> **ARCHIVED — historical document.** Superseded; preserved as record only. Do not cite as current. Current documentation index: [`../README.md`](../README.md).
+
+
 This document is the closure template and status tracker for the external review round 2 cycle.
 
 ## 1. Metadata

@@ -245,7 +245,7 @@ These should not be compared directly.
 - Live-agent deployment validation
 - Zero false negatives (harmful tasks missed) in Mode 1 and Mode 2
 
-**Not claimed**:
+**Known shortfalls** (distinct from not-claimed — these were measured and missed):
 
 - Mode 2 FPR < 0.10 is not achieved (0.114, above goal)
 - Mode 3 strict ESCALATE recall = 0.114 (most harmful tasks get VERIFY not ESCALATE)

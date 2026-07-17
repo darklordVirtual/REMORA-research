@@ -39,7 +39,7 @@ Three governance profiles evaluated against the same 85-case replay arena (holdo
 
 - **Safety floor intact.** All three profiles maintain false_accept_rate = 0.000 and correct_intercept_rate = 1.000. AROMER adaptation does not weaken governance.
 - **No friction reduction yet.** Review friction remains constant at 0.325 across all profiles. The 18 seed episodes provide insufficient calibration data for benign-context trust boosts.
-- **World model activation costs coverage.** Profile C shows a 23.1% drop in coverage (1.000 → 0.769) due to the world model ABSTAIN-ing on out-of-distribution cases. Verdict accuracy follows (0.769 → 0.585) because ABSTAIN is counted as incorrect when the true label is ACCEPT or REJECT.
+- **World model activation costs coverage.** Profile C shows a 23.1% drop in coverage (1.000 → 0.769) due to the world model ABSTAIN-ing on out-of-distribution cases. Verdict accuracy follows (0.769 → 0.585) because ABSTAIN is counted as incorrect when the true label is ACCEPT or REJECT (REJECT is the holdout dataset's ground-truth label vocabulary, not an engine outcome — the engine's canonical outcomes are ACCEPT/VERIFY/ABSTAIN/ESCALATE).
 - **Cold-start parity.** Profile B (AROMER with no seeds) behaves identically to Profile A (REMORA-only), confirming the default oracle path in AromerOrchestrator is working.
 
 ### What the coverage drop in Profile C means

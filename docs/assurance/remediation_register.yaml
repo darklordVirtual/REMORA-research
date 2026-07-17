@@ -1,6 +1,6 @@
 # REMORA Assurance Remediation Register
 # Source: intern_forbedring.txt (2026-06-28)
-# Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility)
+# Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility) → P4 (hardening/roadmap)
 
 schema_version: "1"
 last_updated: "2026-07-17T12:10Z"
@@ -352,6 +352,7 @@ items:
     title: "Independent human review of safety design and claims"
     gate: P3
     status: NOT_STARTED
+    artifacts: []
     notes: >
       Reviewer must not be on the REMORA team (external, not author-adjacent).
       Minimum review scope:

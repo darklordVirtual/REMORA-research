@@ -1,5 +1,8 @@
 # REMORA + AROMER Documentation Drift Report
 
+> **ARCHIVED — historical document.** Superseded; preserved as record only. Do not cite as current. Current documentation index: [`../README.md`](../README.md).
+
+
 **Generated:** 2026-06-04  
 **Commit audited:** cc567fc  
 **Auditor scope:** README.md, NEGATIVE_RESULTS.md, docs/claim_register.md, paper/whitepaper.md, docs/agentharm_trimode_benchmark.md, docs/go_star_bridge.md, artifacts/*.json, key source files.

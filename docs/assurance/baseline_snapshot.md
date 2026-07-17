@@ -1,5 +1,9 @@
 # Baseline Snapshot
 
+> **HISTORICAL SNAPSHOT (2026-06-28).** Locked baseline; gate statuses and
+> metrics reflect that date and are intentionally preserved unedited. Current
+> gate status: [`release_gates.md`](release_gates.md).
+
 Locked baseline state as of 2026-06-28. This document records the exact
 quantitative state of REMORA at the point when active assurance work began
 against intern_forbedring.txt. All numbers are traceable to committed artifacts.

@@ -7,7 +7,7 @@
 > governance overlay in **SHADOW_ONLY** mode — not production-certified and not
 > deployed in any sector below. Every scenario here is illustrative; numbers are
 > illustrative unless they link to a committed artifact in `results/` or
-> `artifacts/`. **ETR** ("evidence-trust rate") is an illustrative narrative
+> `artifacts/`. **ETR** ("Effective Truth Rate" — `remora/scoring.py`) is an illustrative narrative
 > score used in these documents only — it is not a canonical REMORA output and
 > appears in no entry of `docs/assurance/claim_register_v1.yaml`. For governed
 > claims see the [claim register](../assurance/claim_register_v1.yaml) and

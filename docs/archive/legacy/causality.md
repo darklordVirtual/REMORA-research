@@ -1,5 +1,8 @@
 # Causal Stress Testing & Counterfactual Validation (Do-Calculus)
 
+> **ARCHIVED (legacy) — historical document.** Superseded; preserved as record only. Do not cite as current. Current documentation index: [`../../README.md`](../../README.md).
+
+
 REMORA introduces a fundamentally new paradigm in LLM assurance: **Causal Stress Testing**.
 
 Instead of purely relying on multiple models confirming each other's outputs (which remains vulnerable to shared training-data biases and massive-scale pattern matching errors), REMORA implements Pearl's Do-Calculus (causal inference) to physically attack the logical consistency of an LLM ensemble.

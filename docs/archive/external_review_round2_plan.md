@@ -1,5 +1,8 @@
 # REMORA External Review Round 2 Plan
 
+> **ARCHIVED — historical document.** Superseded; preserved as record only. Do not cite as current. Current documentation index: [`../README.md`](../README.md).
+
+
 This plan defines the next external-review cycle as a governed delivery process.
 Scope is REMORA as a governance overlay for agent actions, not an agent-replacement system.
 

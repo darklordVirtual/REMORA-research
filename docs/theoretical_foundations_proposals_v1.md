@@ -62,7 +62,7 @@ load-bearing; P4 = research direction, not a near-term feature.
 > bound is reported as supplementary in `release_gates.md`. The
 > conformal-martingale drift detector remains unimplemented.
 
-**Problem being solved.** REM-020 (release gate, IN_PROGRESS) monitors FAR
+**Problem being solved.** REM-020 (release gate — closed 2026-07-17 under the 7-day criterion) monitors FAR
 continuously over a 7-day window and will be closed the day the criterion
 holds (`docs/assurance/release_gates.md`, `results/longitudinal_stability_v1.json`).
 Fixed-sample intervals (Wilson, Clopper–Pearson — used throughout the repo)

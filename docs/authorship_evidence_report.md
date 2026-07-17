@@ -1,5 +1,7 @@
 # Intern rapport: Menneskelig forfatterskapsbevis — REMORA
 
+> *This document is intentionally in Norwegian: it is the author's first-person authorship evidence record, dated 2026-06-28, preserved in the language it was written in.*
+
 **Dato:** 2026-06-28  
 **Formål:** Dokumentere de fem evidenspunktene fra `docs/AI_USE.md § For Reviewers`
 med faktiske data fra repoet. Brukes som internt grunnlag for å forsvare

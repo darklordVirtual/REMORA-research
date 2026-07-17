@@ -7,7 +7,7 @@
 > committed artifact in `results/` or `artifacts/`; they are not measured
 > outcomes. REMORA governs whether a proposed **action** may proceed
 > (ACCEPT/VERIFY/ABSTAIN/ESCALATE); it does not certify truth and is not a
-> fact-checker. **ETR** ("evidence-trust rate") is an *illustrative* narrative
+> fact-checker. **ETR** ("Effective Truth Rate" — `remora/scoring.py`) is an *illustrative* narrative
 > score in these documents only — it is **not** one of REMORA's canonical
 > outputs and appears in no claim in `docs/assurance/claim_register_v1.yaml`.
 > See the [claim register](../assurance/claim_register_v1.yaml) and

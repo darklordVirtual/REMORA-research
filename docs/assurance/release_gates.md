@@ -92,8 +92,8 @@ Only FAR > 0 is an unconditional stop.
 
 ## Production deployment gates (required before leaving SHADOW_ONLY)
 
-The system holds `deployment_status = SHADOW_ONLY`. Leaving shadow-only mode requires all
-three production deployment gates below to be DONE in addition to the P0 safety gates above.
+The system holds `deployment_status = SHADOW_ONLY`. Leaving shadow-only mode requires every
+production deployment gate below to be DONE in addition to the P0 safety gates above.
 
 | ID | Gate | Status | What "DONE" means |
 |----|------|--------|-------------------|

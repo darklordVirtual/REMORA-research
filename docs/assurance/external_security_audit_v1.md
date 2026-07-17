@@ -101,7 +101,7 @@ SHADOW_ONLY and research-grade throughout.
 
 | REM | Capability | Gap | Disposition |
 |-----|-----------|-----|-------------|
-| REM-023 | RBAC (identity) | Header role escalation | **RBAC half FIXED (A-1)**; isolation test + admin-wildcard review + external confirmation still open |
+| REM-023 | RBAC (identity) | Header role escalation | **RBAC half FIXED (A-1)**; isolation test and admin-wildcard removal DONE 2026-07-03 (same day as this audit); external confirmation still open, folded into REM-021 |
 | REM-024 | Mandatory fail-closed PEP | Enforcement is not inseparable from tool execution (hook is optional; no signed execution lease binding tenant/tool/args-hash/policy-version/nonce/expiry) | ROADMAP — native dispatcher middleware or tool proxy; agent must not hold downstream credentials |
 | REM-025 | Durable audit integrity | In-memory chain fork fixed (A-3), but no transactional per-tenant sequence, WORM, KMS/HSM signing, RFC 3161 timestamps, or transparency-log anchoring | ROADMAP — transactional sequence + external immutable anchoring |
 | REM-026 | Tenant isolation | `tenant_id` in envelope, but no DB-enforced RLS / per-tenant crypto domains | ROADMAP — Postgres RLS keyed to verified claims + tenant KMS |

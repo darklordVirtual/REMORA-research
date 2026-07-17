@@ -1,5 +1,7 @@
 # Nested Governance for Agentic AI
 
+*(Some code examples below contain Norwegian legal text by design — the demonstration domain is Norwegian debt-collection law, `inkassoloven`.)*
+
 ## Purpose
 
 REMORA treats long-running agentic AI as a nested control system. The system is

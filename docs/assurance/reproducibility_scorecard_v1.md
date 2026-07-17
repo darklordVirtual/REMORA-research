@@ -147,6 +147,6 @@ Gaps: `thermodynamic_eval_n500_calibrated_results.json` (349 KB, 2026-06-09) doe
 
 ## 7. Constraints Verified
 
-- REM-020, REM-021, REM-022 are **NOT** claimed as complete. Their status (`IN_PROGRESS` / `NOT_STARTED`) is accurately reflected in `remediation_register.yaml` and `release_gates.md`.
+- Gate statuses are never claimed beyond the registers: REM-020 DONE 2026-07-17 (self-reported values pending REM-021 verification), REM-022 DONE 2026-06-30 with recorded deviation (REM-023 IN_PROGRESS), REM-021 NOT_STARTED. The authoritative record is `remediation_register.yaml` + `release_gates.md`.
 - No benchmark labels or historical result artifacts were modified by this audit.
 - No invented numbers appear in this document — all figures are drawn from committed artifacts.

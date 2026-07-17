@@ -165,6 +165,10 @@ Health check across the three inference workers (consensus engine, RAG oracle, l
 
 ### Knowledge Base (RAG Oracle)
 - Total documents: 93 chunks
+  - specialised: 13 chunks (GDPR Art. 4+5, ISO 27001)
+  - science: 35 chunks (CRISPR, vaccines, chemistry)
+  - general: 45 chunks (REMORA whitepaper, architecture docs, general knowledge)
+```
 
 ### `remora_codegraph_scope`
 
@@ -195,10 +199,6 @@ remora_codegraph_scope({
   "query": "MCP Cloudflare",
   "limit": 5
 })
-```
-  - specialised: 13 chunks (GDPR Art. 4+5, ISO 27001)
-  - science: 35 chunks (CRISPR, vaccines, chemistry)
-  - general: 45 chunks (REMORA whitepaper, architecture docs, general knowledge)
 ```
 
 ---
@@ -464,7 +464,7 @@ from the local `.remora_session/` directory. No network calls — reads local st
 **Parameters:** none
 
 **Returns:** V(t), H, D, drift score, consecutive-critical-phase count, autonomy level
-(FULL / SUPERVISED / HUMAN_REQUIRED), and formal stability assessment.
+(FULL / SUPERVISED / HUMAN_REQUIRED), and heuristic stability assessment.
 
 **Example output:**
 ```
@@ -474,7 +474,7 @@ V(t): 0.42   H: 0.31   D: 0.12
 Drift score: 0.05
 Consecutive critical phases: 0
 Autonomy level: FULL
-Formal guarantee: V(t) non-increasing over last 8 tool calls — session is Lyapunov-stable
+Trajectory signal: V(t) non-increasing (heuristic braking signal — not a formal guarantee; see `thermodynamic_abs.md`) over last 8 tool calls — session trajectory is contracting under the V(t) heuristic
 ```
 
 ---

@@ -1,5 +1,8 @@
 # Agent Governance for Long-Running Agents
 
+> **ARCHIVED (legacy) — historical document.** Superseded; preserved as record only. Do not cite as current. Current documentation index: [`../../README.md`](../../README.md).
+
+
 This document covers REMORA's governance primitives for long-running AI agents:
 behavioral drift detection, memory governance, self-modification policy, and
 governance-forgetting detection.

@@ -1,5 +1,8 @@
 # Academic Evaluation of REMORA
 
+> **ARCHIVED — historical document.** Superseded; preserved as record only. Do not cite as current. Current documentation index: [`../README.md`](../README.md).
+
+
 ## Abstract
 With the introduction of Topological Data Analysis (TDA), Generative Adversarial Assurance (GAA), and Zero-Knowledge Proof (ZKP) trace verification, REMORA has transitioned from a simple majority-vote system to a rigorous, cryptographically verifiable, logically fault-tolerant ecosystem. This document tracks its performance variables in a controlled environment using a heterogeneous mix of state-of-the-art Large Language Models.
 

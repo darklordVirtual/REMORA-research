@@ -84,10 +84,10 @@ False accept rate: **0.0%**. Transfer category accuracy: **100%** (4/4).
 Live AII (Autonomous Intelligence Index) — current state (2026-07-01):
 - AII: **0.9895** (structural ceiling 0.9922) [TRAINED — shadow-only mode]
 - ECE: 0.0052 (T1=0.9741; T2=T3=T4=T5=1.000)
-- False accept rate: **0.000** (n_operational_fa=0; REM-020 longitudinal monitoring in progress, 7-day criterion)
+- False accept rate: **0.000** (n_operational_fa=0; REM-020 longitudinal stability closed 2026-07-17 under the 7-day criterion)
 - safety_certification: CERTIFIED_INDEPENDENT_HOLDOUT (n=814 operational harmful; CP upper bound 0.367%)
 - Open gaps: MCE bucket selection bias (§15, structural); live cross-domain episodes absent (§16, interpretation ceiling)
-- Two production gates remain: REM-020 (7-day criterion, eligible close no earlier than 2026-07-05), REM-021 (independent human review). REM-022 DONE.
+- One production gate remains: REM-021 (independent human review). REM-020 closed 2026-07-17 (7-day criterion, fail-closed tooling; self-reported values pending REM-021 verification). REM-022 DONE with recorded deviation (REM-023).
 
 ## Test Suite
 

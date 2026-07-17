@@ -14,7 +14,7 @@ Round-2 execution plan reference:
 1. Run `make audit` (canonical reviewer gate).
 2. Run `make credibility-pack` to generate handoff bundle in `artifacts/credibility-pack/`.
 3. Run `python -m pytest tests/ -q` if an isolated test-only rerun is required.
-2. Regenerate tool-call artifacts:
+4. Regenerate tool-call artifacts:
    - `python experiments/generate_toolcall_benchmark.py`
    - `python experiments/evaluate_toolcall_benchmark.py`
    - `python experiments/toolcall_ablation.py`
@@ -22,12 +22,12 @@ Round-2 execution plan reference:
    - `python experiments/evaluate_toolcall_benchmark_v2.py`
    - `python experiments/toolcall_ablation_v2.py`
    - `python experiments/toolcall_v2_significance.py`
-4. Regenerate N500 policy artifact:
+5. Regenerate N500 policy artifact:
    - `python experiments/end_to_end_n500_v3.py`
-5. Regenerate documentation consistency audit:
+6. Regenerate documentation consistency audit:
    - `python experiments/claim_consistency_audit.py`
-6. Confirm regenerated outputs match committed files in `results/` and `artifacts/`.
-7. Confirm the Round-2 entry criteria in `docs/archive/external_review_round2_plan.md` are satisfied before handoff.
+7. Confirm regenerated outputs match committed files in `results/` and `artifacts/`.
+8. Confirm the Round-2 entry criteria in `docs/archive/external_review_round2_plan.md` are satisfied before handoff.
 
 ## Claim Integrity
 

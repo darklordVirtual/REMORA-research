@@ -57,7 +57,7 @@ claims:
       REMORA blocked all 208 independently-sourced harmful scenarios from the
       AI Safety Institute's AgentHarm benchmark (arxiv:2410.09024). FAR=0.0%,
       Wilson 95% CI [0.00%, 1.81%]. This dataset was not present in REMORA's
-      training corpus; external validity is guaranteed by dataset independence.
+      training corpus; external validity is supported by dataset independence.
     evidence_level: externally_benchmarked
     artifact:
       - "results/external_benchmark_agentharm_v1.json"

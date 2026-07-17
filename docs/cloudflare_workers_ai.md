@@ -23,13 +23,13 @@ security_lora = CloudflareOracle(
 
 ## Architectural Guidelines
 
-To maintain REMORA's thermodynamic guarantees, you must configure LoRAs meticulously. Improper use of fine-tunes in the Consensus stage can artificially inflate consensus by destroying oracle diversity.
+To preserve REMORA's uncertainty-routing properties, you must configure LoRAs meticulously. Improper use of fine-tunes in the Consensus stage can artificially inflate consensus by destroying oracle diversity.
 
 ### 1. FastGate (Stage 1) - **Highly Recommended**
 The `FastGate` relies on confident self-reflection to quickly `ACCEPT` simple, harmless queries. 
 By utilizing a Cloudflare LoRA specialized in policy gating:
 - **Cost**: Hugely reduced. You bypass AI Gateway and big model API costs.
-- **Latency**: Typically `< 300ms`, critical for `PreToolUse` agent intercepts.
+- **Latency**: low single-call latency matters for `PreToolUse` agent intercepts (no committed latency benchmark exists — measure in your own deployment before relying on a number).
 - **Accuracy**: A custom LoRA learns your exact `ACCEPT` criteria.
 
 ```python
