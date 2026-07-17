@@ -45,11 +45,12 @@ python scripts/demo_industrial_maintenance.py
 ```
 
 An RCA-style maintenance agent reads telemetry (**ACCEPT**), proposes a
-work-order change (**VERIFY** — human approves recommendations), meets
-contradicting evidence (**ABSTAIN**), and attempts direct equipment actuation
-(**ESCALATE** — capability never delegated; analysis confidence cannot buy
-actuation authority). All five outcomes come from the real decision engine
-and are pinned by tests.
+work-order change (**VERIFY** — the production-write policy matrix requires
+human approval), meets contradicting evidence (**ABSTAIN**), and attempts
+direct equipment actuation (**ESCALATE** — the signed delegation envelope
+fails scope verification; analysis confidence cannot buy actuation
+authority). All five decisions come from verified delegation plus the real
+decision engine — four canonical outcomes, pinned by tests.
 
 ## Evidence discipline
 

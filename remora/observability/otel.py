@@ -79,10 +79,20 @@ GenAI semconv attribute          Source
 ===============================  =============================================
 ``gen_ai.operation.name``        ``"execute_tool"`` for governed tool calls
 ``gen_ai.tool.name``             tool name from the governed call
-``gen_ai.tool.call.id``          ``PolicyObservation.tool_call_hash``
+``gen_ai.tool.call.id``          unique per-invocation id (auto-generated if
+                                 not supplied — NOT the argument hash, so
+                                 replays of identical calls stay distinct)
 ``gen_ai.agent.id``              caller-provided acting agent id
 ``gen_ai.conversation.id``       ``PolicyObservation.session_id``
+``remora.tool_call_hash``        deterministic canonical argument hash
+                                 (``PolicyObservation.tool_call_hash``) —
+                                 joins the trace to the DecisionEnvelope
+``remora.decision_envelope.id``  evidence-record reference
 ===============================  =============================================
+
+Spans are created against a pinned OTel schema URL (``OTEL_SCHEMA_URL``) so
+attribute interpretation is versioned; bump it deliberately together with
+semconv updates.
 
 The REMORA-specific signals (phase, entropy, dissensus, decision, policy
 version) remain under the ``remora.*`` namespace — they are governance
@@ -106,6 +116,11 @@ try:
 except ImportError:
     _ot_trace = None  # type: ignore[assignment]
     _OTEL_AVAILABLE = False
+
+# Pinned telemetry schema URL — versions the meaning of emitted attributes.
+# The GenAI semantic conventions are still evolving; bump this deliberately
+# alongside attribute changes, never implicitly.
+OTEL_SCHEMA_URL = "https://opentelemetry.io/schemas/1.36.0"
 
 
 # ---------------------------------------------------------------------------
@@ -195,11 +210,14 @@ class RemoraSpan:
         policy_version: str | None = None,
         source_of_decision: str | None = None,
         human_review_required: bool | None = None,
+        decision_envelope_id: str | None = None,
     ) -> None:
         """Attach the governance decision to the span (``remora.*`` family).
 
         Complements ``set_outcome()`` with the policy-provenance fields audit
-        consumers need to correlate a trace with a DecisionEnvelope.
+        consumers need to correlate a trace with a DecisionEnvelope —
+        including the envelope id itself, so the trace links directly to the
+        evidentiary record.
         """
         attrs: dict[str, Any] = {}
         if action is not None:
@@ -210,6 +228,8 @@ class RemoraSpan:
             attrs[self.ATTR_PREFIX + "decision_source"] = source_of_decision
         if human_review_required is not None:
             attrs[self.ATTR_PREFIX + "human_review_required"] = human_review_required
+        if decision_envelope_id is not None:
+            attrs[self.ATTR_PREFIX + "decision_envelope.id"] = decision_envelope_id
         self._set_attrs(attrs)
 
     def set_attribute(self, key: str, value: Any) -> None:
@@ -280,7 +300,10 @@ class RemoraTracer:
         if tracer is not None:
             self._tracer = tracer
         elif _OTEL_AVAILABLE:
-            self._tracer = _ot_trace.get_tracer(service_name)
+            # schema_url pins the versioned meaning of emitted attributes.
+            self._tracer = _ot_trace.get_tracer(
+                service_name, schema_url=OTEL_SCHEMA_URL
+            )
         else:
             self._tracer = None
 
@@ -325,7 +348,8 @@ class RemoraTracer:
         self,
         tool_name: str,
         *,
-        tool_call_id: str | None = None,
+        invocation_id: str | None = None,
+        tool_call_hash: str | None = None,
         agent_id: str | None = None,
         conversation_id: str | None = None,
         **attributes: Any,
@@ -334,11 +358,17 @@ class RemoraTracer:
         semantic conventions (``execute_tool {tool_name}``) and stamped with
         the ``gen_ai.*`` attribute family plus any ``remora.*`` extras.
 
+        ``invocation_id`` becomes ``gen_ai.tool.call.id`` and must be unique
+        per invocation (auto-generated when omitted) — two replays of the
+        identical call get distinct ids. The deterministic canonical argument
+        hash goes to ``remora.tool_call_hash`` instead, where it joins the
+        trace to the DecisionEnvelope and the enforcement gate's binding.
+
         Usage::
 
             with tracer.tool_governance_span(
                 "update_work_order",
-                tool_call_id=obs.tool_call_hash,
+                tool_call_hash=obs.tool_call_hash,
                 agent_id="agent://maintenance-planner/07",
                 conversation_id=obs.session_id,
             ) as span:
@@ -350,14 +380,18 @@ class RemoraTracer:
                     human_review_required=report.human_review_required,
                 )
         """
+        import uuid as _uuid
+
         span = self._start_span(f"execute_tool {tool_name}", dict(attributes))
         span.set_genai_context(
             operation_name="execute_tool",
             tool_name=tool_name,
-            tool_call_id=tool_call_id,
+            tool_call_id=invocation_id or str(_uuid.uuid4()),
             agent_id=agent_id,
             conversation_id=conversation_id,
         )
+        if tool_call_hash is not None:
+            span._set_attrs({RemoraSpan.ATTR_PREFIX + "tool_call_hash": tool_call_hash})
         with span:
             yield span
 

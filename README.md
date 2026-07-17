@@ -19,7 +19,7 @@ Architecture bounded by documented assumptions. Results are from controlled expe
 
 ## Industrial Maintenance Demo
 
-An RCA-style maintenance agent investigates pump vibration and proposes actions of escalating consequence. The demo drives the **real `RemoraDecisionEngine`** and shows the autonomy boundary as policy output: telemetry reads **ACCEPT**, the work-order proposal routes to **VERIFY** (parameters derive from retrieved documents — tainted input never auto-accepts), contradicting evidence **ABSTAIN**s, and direct equipment actuation hard-**ESCALATE**s on the forbidden-tool guard — analysis confidence cannot buy actuation authority that was never delegated. Outcomes are pinned by `tests/test_demo_industrial_maintenance.py`.
+An RCA-style maintenance agent investigates pump vibration and proposes actions of escalating consequence. The demo drives the full chain end to end: a per-link-signed **A2A delegation envelope is actually verified** for each requested capability, the verification outcome feeds the observation, and the **real `RemoraDecisionEngine`** decides. Telemetry reads **ACCEPT**; the work-order proposal routes to **VERIFY** via the explicit production-write policy matrix (human approval before any business-system write); contradicting evidence **ABSTAIN**s; and direct equipment actuation fails delegation-scope verification — the failure sets the forbidden-tool signal and the engine hard-**ESCALATE**s. Analysis confidence cannot buy actuation authority that was never delegated. Outcomes are pinned by `tests/test_demo_industrial_maintenance.py`.
 
 ```bash
 python scripts/demo_industrial_maintenance.py
@@ -87,29 +87,6 @@ flowchart TD
 **Stage 1 is deterministic and cannot be overridden by any probabilistic oracle result.** Hard-block policy invariants are evaluated before the consensus machinery runs. This is the architectural reason the zero-false-accept safety result is a property of the policy layer — the multi-oracle consensus machinery governs VERIFY/ABSTAIN routing quality, not the safety floor. These are distinct claims and must not be conflated.
 
 Full architecture detail: [docs/01-architecture.md](docs/01-architecture.md) | API reference: [docs/07-api-reference.md](docs/07-api-reference.md)
-
----
-
-## Live System Status
-
-AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's closed-loop learning layer. It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII) — a weighted composite of five diagnostic dimensions. Status is updated every 6 hours by automated GitHub Actions telemetry.
-
-<!-- LIVE_STATUS_START -->
-> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-07-17T12:32Z
-
-| Metric | Value | Status |
-|--------|-------|--------|
-| Autonomous Intelligence Index (AII, EMA) | 0.9914 | TRAINED |
-| False accept rate (FAR) | 0.0% | Zero |
-| Deployment mode | SHADOW_ONLY | Research only |
-| T1 Calibration (ECE = 0.0057) | 0.9715 | Active |
-| T2 Friction suppression | 1.0000 | Active |
-| T3 MetaJudge quality | 1.0000 | Milestone |
-| T4 Transfer score | 1.0000 | Max |
-| T5 Stability | 1.0000 | Active |
-<!-- LIVE_STATUS_END -->
-
-AII bands (labeled threshold crossings of a composite index — not physical phase transitions): WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28, regressed to CAPABLE for some hours the same day, and recovered organically ([NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§13); it has held TRAINED since. Two production deployment gates remain open before use outside shadow-mode research: REM-020 (longitudinal stability audit: AII EMA ≥ 0.80 for 7 calendar days with FAR = 0.0% throughout; eligible close no earlier than 2026-07-05) and REM-021 (independent human review). REM-022 (RBAC audit) is DONE. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
 
 ---
 
@@ -242,6 +219,29 @@ Step-by-step instructions: [docs/06-reproducibility.md](docs/06-reproducibility.
 - **Not a replacement for domain authority.** REMORA governs execution permission, not truth. It does not make models truthful and is not a universal AI safety solution.
 
 Full negative results and documented gaps: [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md)
+
+---
+
+## Experimental Research: AROMER Live Status
+
+AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's **experimental** closed-loop learning layer — adaptive calibration research layered on top of the governance control plane. Nothing in the control plane depends on it, and its metrics are not evidence for the core governance system (see Limitations above). It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII) — a weighted composite of five diagnostic dimensions. Status is updated every 6 hours by automated GitHub Actions telemetry.
+
+<!-- LIVE_STATUS_START -->
+> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-07-17T12:32Z
+
+| Metric | Value | Status |
+|--------|-------|--------|
+| Autonomous Intelligence Index (AII, EMA) | 0.9914 | TRAINED |
+| False accept rate (FAR) | 0.0% | Zero |
+| Deployment mode | SHADOW_ONLY | Research only |
+| T1 Calibration (ECE = 0.0057) | 0.9715 | Active |
+| T2 Friction suppression | 1.0000 | Active |
+| T3 MetaJudge quality | 1.0000 | Milestone |
+| T4 Transfer score | 1.0000 | Max |
+| T5 Stability | 1.0000 | Active |
+<!-- LIVE_STATUS_END -->
+
+AII bands (labeled threshold crossings of a composite index — not physical phase transitions): WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28, regressed to CAPABLE for some hours the same day, and recovered organically ([NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§13); it has held TRAINED since. Two production deployment gates remain open before use outside shadow-mode research: REM-020 (longitudinal stability audit: AII EMA ≥ 0.80 for 7 calendar days with FAR = 0.0% throughout; eligible close no earlier than 2026-07-05) and REM-021 (independent human review). REM-022 (RBAC audit) is DONE. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
 
 ---
 

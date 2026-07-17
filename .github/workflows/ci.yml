@@ -77,6 +77,58 @@ jobs:
           print("Zero false-accept gate: PASS")
           PY
 
+  opa-conformance:
+    name: OPA/Rego policy conformance (mandatory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      # Pinned OPA version — the same version the conformance harness was
+      # verified against locally. Bump deliberately, never float `latest`.
+      OPA_VERSION: "1.18.2"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,causal]"
+
+      - name: Install pinned OPA binary
+        run: |
+          curl -sSfL -o /usr/local/bin/opa \
+            "https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64_static"
+          chmod +x /usr/local/bin/opa
+          opa version
+
+      - name: Rego syntax check
+        run: opa check datasets/remora_knowledge_v1/policies/rego_examples/remora_action_gate.rego
+
+      - name: Golden conformance — safety parity (hard gate)
+        # Exit 1 = conformance failure, exit 2 = opa missing; both fail CI.
+        # The shipped illustrative policy must always pass safety parity;
+        # a full Rego port must additionally pass --strict (run it against
+        # your production policy in your deployment pipeline).
+        run: python scripts/opa_conformance.py
+
+      - name: Pytest conformance gate (must run, not skip)
+        # With opa on PATH the opa_gate test must actually execute; a skip
+        # here would mean the harness silently lost its binary detection.
+        run: |
+          python -m pytest tests/test_opa_conformance_gate.py -q -rs | tee out.txt
+          if grep -qi "skipped" out.txt; then
+            echo "ERROR: conformance gate skipped despite opa being installed" >&2
+            exit 1
+          fi
+
   lockfile-check:
     name: Lockfile integrity
     runs-on: ubuntu-latest

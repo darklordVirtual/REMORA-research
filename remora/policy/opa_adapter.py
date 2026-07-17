@@ -272,7 +272,7 @@ class OPAAdapter:
                 body = json.loads(resp.read().decode("utf-8"))
             result = body.get("result") or {}
             report = self._opa_result_to_report(result, obs)
-            return self._apply_hard_guard_floor(report, obs), False
+            return self._apply_decision_floor(report, obs), False
         except (urllib.error.URLError, OSError, KeyError, ValueError):
             pass
 
@@ -295,45 +295,70 @@ class OPAAdapter:
         DecisionAction.ESCALATE: 3,
     }
 
-    def _apply_hard_guard_floor(
+    def _apply_decision_floor(
         self, report: DecisionReport, obs: PolicyObservation
     ) -> DecisionReport:
-        """Enforce the Python engine's hard-guard floor over an OPA result.
+        """Enforce decision monotonicity over an OPA result, in two tiers.
 
-        ``hard_guard_floor`` is the same function the engine's own decide()
-        uses as its first stage, so this cannot drift from engine behaviour.
-        If the OPA action is at least as severe as the floor, the OPA result
-        stands unchanged (OPA may always tighten). If OPA returned something
-        weaker — e.g. a Rego policy that predates a security signal and
-        therefore never sees it — the floor action wins and the override is
-        recorded in the report for audit consumers.
+        1. **Hard-guard floor (all risk tiers):** ``hard_guard_floor`` is the
+           same function the engine's own decide() uses as its first stage,
+           so this cannot drift from engine behaviour. A Rego policy that
+           predates a security signal can tighten but never loosen.
+        2. **Full-engine floor (high/critical risk):** for the fail-closed
+           risk tiers, the *entire* Python decision — including conditional
+           gates such as the production-write matrix, missing rollback,
+           oracle quorum, and misspecification checks — is a monotone floor.
+           An external policy may therefore only relax decisions in the
+           low/medium band; on high/critical risk it can only tighten.
+
+        If the OPA action is at least as severe as the applicable floor, the
+        OPA result stands unchanged. Otherwise the floor wins and the
+        override is recorded in the report for audit consumers.
         """
         from dataclasses import replace as _replace
 
         from remora.policy.decision_engine import hard_guard_floor
 
         floor = hard_guard_floor(obs)
-        if floor is None:
+        floor_action: DecisionAction | None = floor[0] if floor else None
+        floor_desc = floor[1].value if floor else None
+        floor_reasons: tuple = (floor[1],) if floor else ()
+        floor_source = "opa_hard_guard_floor"
+
+        risk_tier = (obs.risk_tier or "").lower()
+        if risk_tier in self._fail_closed_risk_tiers:
+            engine_report = self._python_fallback(obs)
+            if (
+                floor_action is None
+                or self._ACTION_SEVERITY[engine_report.action]
+                > self._ACTION_SEVERITY[floor_action]
+            ):
+                floor_action = engine_report.action
+                floor_desc = ", ".join(r.value for r in engine_report.reasons)
+                floor_reasons = engine_report.reasons
+                floor_source = "opa_engine_floor"
+
+        if floor_action is None:
             return report
-        floor_action, floor_reason = floor
         if self._ACTION_SEVERITY[report.action] >= self._ACTION_SEVERITY[floor_action]:
             return report
         return _replace(
             report,
             action=floor_action,
-            reasons=(floor_reason,) + report.reasons,
+            reasons=floor_reasons + report.reasons,
             evidence_required=True,
             human_review_required=(
                 floor_action in {DecisionAction.ESCALATE, DecisionAction.VERIFY}
                 or obs.risk_tier == "critical"
             ),
-            source_of_decision="opa_hard_guard_floor",
+            source_of_decision=floor_source,
             explanation=(
-                f"OPA returned '{report.action.value}' but the hard-guard floor "
-                f"requires '{floor_action.value}' ({floor_reason.value}). "
+                f"OPA returned '{report.action.value}' but the decision floor "
+                f"requires '{floor_action.value}' ({floor_desc}). "
                 "Decision monotonicity: an external policy cannot downgrade "
-                "below the engine's hard blocks. Original OPA explanation: "
-                + report.explanation
+                "below the engine's hard blocks (any risk tier) or below the "
+                "full engine decision (high/critical risk). "
+                "Original OPA explanation: " + report.explanation
             ),
         )
 

@@ -36,8 +36,10 @@ demo = _load_demo()
 EXPECTED = {
     "read_vibration_telemetry": (DecisionAction.ACCEPT, None),
     "read_equipment_history": (DecisionAction.ACCEPT, None),
+    # High-risk production write → the explicit production-write policy
+    # matrix requires human review (engine reason: evidence_insufficient).
     "propose_workorder_change": (
-        DecisionAction.VERIFY, DecisionReason.TAINTED_ARGUMENT_VERIFY,
+        DecisionAction.VERIFY, DecisionReason.EVIDENCE_INSUFFICIENT,
     ),
     "propose_with_contradicting_evidence": (
         DecisionAction.ABSTAIN, DecisionReason.EVIDENCE_CONTRADICTED,
@@ -75,6 +77,49 @@ def test_actuation_block_is_confidence_independent() -> None:
     report = engine.decide(actuation.observation)
     assert report.action == DecisionAction.ESCALATE
     assert report.human_review_required
+
+
+def test_tool_forbidden_comes_from_a2a_verification_not_hardcoding() -> None:
+    """P1 review finding: the demo must derive tool_forbidden from actual
+    A2A envelope verification, not from a manually set flag."""
+    src = (ROOT / "scripts" / "demo_industrial_maintenance.py").read_text(
+        encoding="utf-8"
+    )
+    assert "tool_forbidden=True" not in src  # no hardcoded flag anywhere
+    assert "A2AGovernanceEnvelope" in src
+    forbidden, failures = demo.delegation_check("ot:set_pump_speed")
+    assert forbidden
+    assert any(f.startswith("scope_exceeds_delegation") for f in failures)
+    allowed, no_failures = demo.delegation_check("workorder:propose_change")
+    assert not allowed
+    assert no_failures == ()
+
+
+def test_delegation_chain_is_per_link_signed_and_verified() -> None:
+    """The demo verifies against a key registry: forging a link breaks it."""
+    envelope = demo.issue_envelope("telemetry:read")
+    good = envelope.verify(
+        signing_key=demo.ENVELOPE_KEY,
+        expected_audience=demo.AUDIENCE,
+        link_keys=demo.LINK_KEYS,
+    )
+    assert good.valid, good.failures
+    # Without the registry key for the second hop, the chain is revoked.
+    partial = envelope.verify(
+        signing_key=demo.ENVELOPE_KEY,
+        expected_audience=demo.AUDIENCE,
+        link_keys={"coe-2026": demo.COE_KEY},
+    )
+    assert not partial.valid
+
+
+def test_workorder_review_comes_from_policy_matrix_not_taint() -> None:
+    """P2 review finding: review is an explicit policy decision — data from
+    the operator's controlled maintenance sources is not modeled as tainted."""
+    proposal = {a.label: a for a in demo.build_actions()}["propose_workorder_change"]
+    assert proposal.observation.argument_tainted is False
+    assert proposal.observation.action_type == "production_write"
+    assert proposal.observation.risk_tier == "high"
 
 
 def test_demo_main_runs_and_exits_zero(capsys) -> None:

@@ -281,3 +281,70 @@ def test_floor_report_survives_json_audit_serialisation() -> None:
     buffer = io.StringIO()
     json.dump({"action": report.action.value, "explanation": report.explanation}, buffer)
     assert buffer.getvalue()
+
+
+def test_high_risk_conditional_gates_floor_opa_results() -> None:
+    """P1 review finding: conditional risk gates (production-write matrix,
+    missing rollback) must also be monotone floors on high/critical risk —
+    an OPA policy may only relax decisions in the low/medium band."""
+    engine = RemoraDecisionEngine()
+    conditional_cases = [
+        # Production-write matrix: high-risk production write → VERIFY
+        PolicyObservation(
+            question="apply work order", risk_tier="high",
+            action_type="production_write", target_environment="prod",
+            schema_valid=True, trust_score=0.95, phase="ordered",
+            evidence_action="answer", evidence_confidence=0.9,
+        ),
+        # Missing rollback on high risk → ESCALATE
+        PolicyObservation(
+            question="apply migration", risk_tier="high",
+            action_type="write", schema_valid=True,
+            rollback_available=False, trust_score=0.95, phase="ordered",
+        ),
+        # Critical tier with no evidence → conservative routing
+        PolicyObservation(
+            question="rotate root key", risk_tier="critical",
+            action_type="permission_change", schema_valid=True,
+            trust_score=0.99, phase="ordered",
+        ),
+    ]
+    for obs in conditional_cases:
+        engine_action = engine.decide(obs).action
+        assert engine_action != DecisionAction.ACCEPT  # precondition sanity
+        adapter = _adapter_with_opa_response("accept")
+        with adapter._urlopen_patch:
+            report, fallback_used = adapter.evaluate(obs)
+        assert not fallback_used
+        assert _SEVERITY[report.action] >= _SEVERITY[engine_action], obs.question
+        assert report.source_of_decision == "opa_engine_floor", obs.question
+
+
+def test_low_risk_opa_result_not_floored_by_conditional_gates() -> None:
+    """The full-engine floor applies only to fail-closed tiers: on low risk
+    an OPA policy remains authoritative in the probabilistic band."""
+    obs = PolicyObservation(
+        question="update internal wiki page", risk_tier="low",
+        action_type="write", schema_valid=True,
+        trust_score=0.4, phase="disordered",  # engine alone would not accept
+    )
+    adapter = _adapter_with_opa_response("accept")
+    with adapter._urlopen_patch:
+        report, _ = adapter.evaluate(obs)
+    assert report.action == DecisionAction.ACCEPT
+    assert report.source_of_decision == "opa"
+
+
+def test_high_risk_opa_tighten_still_respected() -> None:
+    """OPA saying ESCALATE where the engine says VERIFY must stand."""
+    obs = PolicyObservation(
+        question="apply work order", risk_tier="high",
+        action_type="production_write", target_environment="prod",
+        schema_valid=True, trust_score=0.95, phase="ordered",
+        evidence_action="answer", evidence_confidence=0.9,
+    )
+    adapter = _adapter_with_opa_response("escalate")
+    with adapter._urlopen_patch:
+        report, _ = adapter.evaluate(obs)
+    assert report.action == DecisionAction.ESCALATE
+    assert report.source_of_decision == "opa"

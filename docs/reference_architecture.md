@@ -165,13 +165,19 @@ Three mechanisms keep this delegation safe:
    decision path reads — including all security hard-block signals — enforced
    structurally by `tests/test_opa_parity.py` (the test scans the engine
    source for field accesses; a new guard on an unexported field fails CI).
-2. **Runtime monotonicity floor.** Every OPA result is floored by
-   `hard_guard_floor()`: an incomplete or stale Rego policy can tighten but
-   never loosen a decision. Overrides are recorded in the report
-   (`source_of_decision="opa_hard_guard_floor"`).
-3. **Golden conformance.** `scripts/opa_conformance.py` evaluates a
-   deterministic observation set through both engines via `opa eval` and
-   fails on hard-guard divergence; `--strict` mode proves full equivalence
+2. **Runtime monotonicity floor, in two tiers.** Every OPA result is floored
+   by `hard_guard_floor()` (all risk tiers) — and on high/critical risk the
+   *entire* Python decision, including conditional gates like the
+   production-write matrix and missing-rollback checks, is a monotone floor.
+   An external policy can therefore only relax decisions in the low/medium
+   band; it can only tighten high/critical ones. Overrides are recorded in
+   the report (`source_of_decision="opa_hard_guard_floor"` /
+   `"opa_engine_floor"`).
+3. **Golden conformance, mandatory in CI.** `scripts/opa_conformance.py`
+   evaluates a deterministic observation set through both engines via
+   `opa eval` and fails on hard-guard divergence. CI installs a pinned OPA
+   version and runs this as a hard gate on every push (`.github/workflows/
+   ci.yml`, job `opa-conformance`); `--strict` mode proves full equivalence
    for deployments that maintain a complete Rego port.
 
 Outage behavior is fail-closed by risk tier: unreachable OPA on
@@ -189,15 +195,27 @@ cross-boundary agent request:
 - **Identity + accountability**: agent id/version, issuing organisation, and
   the organisation *accountable* for the agent — verification fails closed
   without accountability.
-- **Delegation chain with capability attenuation**: each link may only narrow
-  the scope it received (strict subset semantics; wildcards rejected). The
-  requested action must fall inside the final attenuated scope.
+- **Delegation chain with capability attenuation and per-link attestation**:
+  each link may only narrow the scope it received (strict subset semantics;
+  wildcards rejected) and carries its own signature and key id (`kid`)
+  verified against a key registry — the envelope issuer alone cannot
+  fabricate the delegation history, and removing a key from the registry
+  revokes every dependent chain. The requested action must fall inside the
+  final attenuated scope.
+- **Audience, replay, and argument binding**: a mandatory audience (the
+  intended verifier), a per-envelope nonce checked via a caller-supplied
+  replay guard, and an optional binding to the canonical tool-call hash —
+  the same envelope cannot authorise a different verifier, a replayed
+  request, or a different argument payload.
 - **Policy + evidence binding**: the policy version evaluated and
   content-addressed evidence references, so cross-organisation disputes can
   be replayed against the exact artifacts.
 - **Integrity**: HMAC-SHA256 over canonical serialisation, same discipline as
   the PDP→PEP token; every verification failure is reported (complete defect
-  set, not first-failure).
+  set, not first-failure), and malformed input — bad timestamps, bad JSON —
+  is a failure code, never an exception or a pass. The symmetric-key layer
+  is a stated reference-implementation scope; the module documents the
+  asymmetric (JWS + published keys + rotation) production path.
 
 This is the request-side complement to the decision plane: delegation answers
 *may this agent ask*; the decision engine answers *should this action run*.
@@ -235,9 +253,13 @@ attribute families:
   entropy, dissensus, decision, policy version, decision source,
   human-review flag).
 
-Prompts are never exported to telemetry (length only). Traces are the
-operational view; the DecisionEnvelope remains the evidentiary record — the
-two are correlated via `gen_ai.tool.call.id` = `tool_call_hash`.
+Prompts are never exported to telemetry (length only). `gen_ai.tool.call.id`
+is a unique per-invocation id (replays of identical calls stay distinct);
+the deterministic canonical argument hash is emitted as
+`remora.tool_call_hash`, and `remora.decision_envelope.id` links the span to
+the evidentiary record. Spans are created against a pinned OTel schema URL
+so attribute interpretation is versioned. Traces are the operational view;
+the DecisionEnvelope remains the evidence.
 
 ---
 

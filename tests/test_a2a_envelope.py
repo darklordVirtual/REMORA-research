@@ -15,7 +15,9 @@ from remora.governance.a2a_envelope import (
 )
 
 KEY = b"test-a2a-signing-key"
-NOW = datetime(2026, 7, 17, 12, 0, 0, tzinfo=timezone.utc)
+# Envelopes are issued with the real clock; verify against the real clock so
+# the issued-in-future guard (clock-skew tolerance 300s) does not trip.
+NOW = datetime.now(timezone.utc)
 
 
 def _identity(**overrides) -> AgentIdentity:
@@ -46,12 +48,16 @@ def _chain() -> tuple[DelegationLink, ...]:
     )
 
 
+AUDIENCE = "control-plane://operator-remora"
+
+
 def _issue(**overrides) -> A2AGovernanceEnvelope:
     kwargs = dict(
         identity=_identity(),
         delegation_chain=_chain(),
         requested_scope=("workorder:propose_change",),
         policy_version="RemoraDecisionEngine-v3",
+        audience=AUDIENCE,
         decision_ref="envelope:2f6a…",
         evidence_refs=("sha256:abc123",),
         signing_key=KEY,
@@ -259,3 +265,149 @@ def test_all_failures_are_reported_together(monkeypatch) -> None:
         "empty_delegation_chain",
         "empty_requested_scope",
     } <= set(result.failures)
+
+
+# ---------------------------------------------------------------------------
+# Hardening: audience, replay, argument binding, timestamps, per-link keys
+# ---------------------------------------------------------------------------
+
+def test_missing_audience_is_invalid() -> None:
+    env = _issue(audience="")
+    result = env.verify(signing_key=KEY, now=NOW)
+    assert not result.valid
+    assert "missing_audience" in result.failures
+
+
+def test_audience_mismatch_is_invalid() -> None:
+    env = _issue()
+    result = env.verify(
+        signing_key=KEY, now=NOW, expected_audience="control-plane://someone-else"
+    )
+    assert not result.valid
+    assert "audience_mismatch" in result.failures
+
+
+def test_replay_guard_rejects_seen_nonce() -> None:
+    env = _issue()
+    seen: set[str] = set()
+
+    def guard(nonce: str) -> bool:
+        replayed = nonce in seen
+        seen.add(nonce)
+        return replayed
+
+    first = env.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    assert first.valid, first.failures
+    second = env.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    assert not second.valid
+    assert "replay_detected" in second.failures
+
+
+def test_tool_call_binding_mismatch_is_invalid() -> None:
+    env = _issue(tool_call_hash="a" * 64)
+    result = env.verify(
+        signing_key=KEY, now=NOW, expected_tool_call_hash="b" * 64
+    )
+    assert not result.valid
+    assert "tool_call_binding_mismatch" in result.failures
+
+
+def test_missing_tool_call_binding_when_required() -> None:
+    env = _issue()  # no binding set
+    result = env.verify(
+        signing_key=KEY, now=NOW, expected_tool_call_hash="b" * 64
+    )
+    assert not result.valid
+    assert "missing_tool_call_binding" in result.failures
+
+
+def test_matching_tool_call_binding_is_valid() -> None:
+    env = _issue(tool_call_hash="c" * 64)
+    result = env.verify(
+        signing_key=KEY, now=NOW, expected_tool_call_hash="c" * 64
+    )
+    assert result.valid, result.failures
+
+
+def test_malformed_timestamp_is_failure_not_exception() -> None:
+    env = _issue(expires_at="not-a-timestamp")
+    result = env.verify(signing_key=KEY, now=NOW)
+    assert not result.valid
+    assert "malformed_timestamp:expires_at" in result.failures
+
+
+def test_future_issued_at_is_rejected() -> None:
+    import json as _json
+    from remora.governance.a2a_envelope import A2AGovernanceEnvelope as Env
+    env = _issue()
+    data = _json.loads(env.to_json())
+    data["issued_at"] = (NOW + timedelta(hours=2)).isoformat()
+    tampered = Env.from_json(_json.dumps(data))
+    result = tampered.verify(signing_key=KEY, now=NOW)
+    assert not result.valid
+    # Both the future timestamp and the broken signature must surface.
+    assert "issued_in_future" in result.failures
+    assert "signature_mismatch" in result.failures
+
+
+def test_from_json_fails_closed_on_malformed_input() -> None:
+    import pytest
+    for raw in ("not json", "[]", '{"identity": {}}', '{"unexpected": 1}'):
+        with pytest.raises(ValueError, match="malformed_envelope:"):
+            A2AGovernanceEnvelope.from_json(raw)
+
+
+def test_link_registry_verifies_signed_chain() -> None:
+    from remora.governance.a2a_envelope import sign_delegation_link
+    coe_key, orch_key = b"coe-key", b"orchestrator-key"
+    registry = {"coe-2026": coe_key, "orch-2026": orch_key}
+    root, hop = _chain()
+    chain = (
+        sign_delegation_link(root, key=coe_key, kid="coe-2026"),
+        sign_delegation_link(hop, key=orch_key, kid="orch-2026"),
+    )
+    env = _issue(delegation_chain=chain)
+    result = env.verify(signing_key=KEY, now=NOW, link_keys=registry)
+    assert result.valid, result.failures
+
+
+def test_forged_link_signature_is_rejected() -> None:
+    from remora.governance.a2a_envelope import sign_delegation_link
+    registry = {"coe-2026": b"coe-key", "orch-2026": b"orchestrator-key"}
+    root, hop = _chain()
+    chain = (
+        sign_delegation_link(root, key=b"coe-key", kid="coe-2026"),
+        # Envelope issuer forges the second hop with a key it controls:
+        sign_delegation_link(hop, key=b"attacker-key", kid="orch-2026"),
+    )
+    env = _issue(delegation_chain=chain)
+    result = env.verify(signing_key=KEY, now=NOW, link_keys=registry)
+    assert not result.valid
+    assert "link_signature_mismatch:1" in result.failures
+
+
+def test_revoked_kid_invalidates_chain() -> None:
+    from remora.governance.a2a_envelope import sign_delegation_link
+    root, hop = _chain()
+    chain = (
+        sign_delegation_link(root, key=b"coe-key", kid="coe-2026"),
+        sign_delegation_link(hop, key=b"orchestrator-key", kid="orch-2026"),
+    )
+    env = _issue(delegation_chain=chain)
+    # Registry without orch-2026 — revoked.
+    result = env.verify(
+        signing_key=KEY, now=NOW, link_keys={"coe-2026": b"coe-key"}
+    )
+    assert not result.valid
+    assert any(
+        f.startswith("unknown_or_revoked_kid_at_link:1") for f in result.failures
+    )
+
+
+def test_unsigned_links_rejected_when_registry_supplied() -> None:
+    env = _issue()  # links carry no signatures
+    result = env.verify(
+        signing_key=KEY, now=NOW, link_keys={"coe-2026": b"coe-key"}
+    )
+    assert not result.valid
+    assert "unsigned_delegation_link:0" in result.failures

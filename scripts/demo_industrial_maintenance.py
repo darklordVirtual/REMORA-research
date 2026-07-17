@@ -5,26 +5,31 @@
 
 Scenario: a root-cause-analysis agent has investigated abnormal vibration on a
 seawater lift pump and now proposes a sequence of actions with escalating
-consequence. This demo drives the REAL decision engine
-(`remora.policy.RemoraDecisionEngine`): each proposed action becomes a
-`PolicyObservation`, and every printed decision and reason code comes from
-`engine.decide()` — REMORA's canonical ACCEPT / VERIFY / ABSTAIN / ESCALATE
-outcomes, not demo-local vocabulary. No live industrial system is contacted
-and nothing is mutated.
+consequence. This demo drives the REAL components end to end:
+
+    A2AGovernanceEnvelope.verify()          (delegation actually verified)
+            │
+    capability outside effective scope → PolicyObservation.tool_forbidden
+            │
+    RemoraDecisionEngine.decide()           (real engine, real reason codes)
+
+No live industrial system is contacted and nothing is mutated.
 
 The autonomy boundary this demo encodes:
 
 1. **Reading is cheap.** Telemetry and document reads with evidence are
    ACCEPTed — governance does not add friction where consequence is low.
-2. **Recommendations pass through review.** The agent may PROPOSE a
-   work-order change, but the proposed parameters are derived from retrieved
-   documents and the agent's own analysis — externally-derived (tainted)
-   input, which the engine floors to VERIFY (human review before any
-   business-system write), never silently auto-applied.
-3. **Actuation is out of bounds.** A direct command to physical equipment is
-   hard-blocked (forbidden-tool ESCALATE): the agent's role is analysis and
-   recommendation — the actuation capability is simply not delegated, and the
-   engine refuses regardless of how confident the analysis is.
+2. **Recommendations pass through review by explicit policy.** The proposal
+   is a high-risk production write against the work-order system, so the
+   engine's production-write policy matrix routes it to VERIFY: a human
+   approves before any business-system write. (The data comes from the
+   operator's own controlled maintenance sources, so it is *not* modeled as
+   tainted — review is a policy decision, not a data-provenance workaround.)
+3. **Actuation is out of bounds — and provably so.** The agent's delegation
+   chain simply does not include the OT-actuation capability. The A2A
+   envelope for that request fails scope verification, the failure sets the
+   forbidden-tool signal, and the engine hard-ESCALATEs — regardless of how
+   confident the analysis is.
 4. **Uncertainty degrades autonomy.** The same work-order proposal with
    contradicting evidence in the source data ABSTAINs instead of VERIFYing:
    contradictions must be resolved before a human is even asked to approve.
@@ -32,7 +37,7 @@ The autonomy boundary this demo encodes:
 This is the pattern for placing an assurance layer between agent platforms
 and industrial systems (work-order management, maintenance planning, OT/SCADA
 gateways): recommendations flow, actuation does not, and every decision is
-explainable via `report.reasons` and `explain()`.
+explainable via `report.reasons` and the envelope's verification failures.
 """
 from __future__ import annotations
 
@@ -42,131 +47,185 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from remora.governance.a2a_envelope import (  # noqa: E402
+    A2AGovernanceEnvelope,
+    AgentIdentity,
+    DelegationLink,
+    sign_delegation_link,
+)
 from remora.policy import PolicyObservation, RemoraDecisionEngine  # noqa: E402
+
+# Demo-fixed keys (this is a dry run — in production these come from key
+# management, and the HMAC layer is replaced by asymmetric signatures).
+ENVELOPE_KEY = b"demo-envelope-key"
+COE_KEY, ORCH_KEY = b"demo-coe-key", b"demo-orchestrator-key"
+LINK_KEYS = {"coe-2026": COE_KEY, "orch-2026": ORCH_KEY}
+
+AGENT_ID = "agent://maintenance-planner/07"
+AUDIENCE = "control-plane://operator-remora"
+
+# What the operator actually delegated to this agent — note what is absent:
+# no "ot:*" capability. Actuation authority was never granted.
+DELEGATED_SCOPE = ("telemetry:read", "docs:read", "workorder:propose_change")
+
+
+def issue_envelope(capability: str) -> A2AGovernanceEnvelope:
+    """Issue the agent's delegation envelope for one requested capability."""
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc).isoformat()
+    chain = (
+        sign_delegation_link(
+            DelegationLink(
+                delegator="operator-coe",
+                delegatee="agent://orchestrator/01",
+                scope=("telemetry:read", "docs:read",
+                       "workorder:propose_change", "workorder:read"),
+                issued_at=now,
+            ),
+            key=COE_KEY, kid="coe-2026",
+        ),
+        sign_delegation_link(
+            DelegationLink(
+                delegator="agent://orchestrator/01",
+                delegatee=AGENT_ID,
+                scope=DELEGATED_SCOPE,  # attenuated: workorder:read dropped
+                issued_at=now,
+            ),
+            key=ORCH_KEY, kid="orch-2026",
+        ),
+    )
+    return A2AGovernanceEnvelope.issue(
+        identity=AgentIdentity(
+            agent_id=AGENT_ID,
+            agent_version="2.4.1",
+            issuer_org="operator-coe",
+            responsible_org="operator-asset-team",
+        ),
+        delegation_chain=chain,
+        requested_scope=(capability,),
+        policy_version="RemoraDecisionEngine-v3",
+        audience=AUDIENCE,
+        signing_key=ENVELOPE_KEY,
+    )
+
+
+def delegation_check(capability: str) -> tuple[bool, tuple[str, ...]]:
+    """Verify the A2A envelope for a capability.
+
+    Returns (tool_forbidden, failures): a request outside the verified
+    effective scope — or any verification failure — sets the forbidden-tool
+    signal, which the engine hard-escalates. Fail closed.
+    """
+    envelope = issue_envelope(capability)
+    result = envelope.verify(
+        signing_key=ENVELOPE_KEY,
+        expected_audience=AUDIENCE,
+        link_keys=LINK_KEYS,
+    )
+    return (not result.valid), result.failures
 
 
 @dataclass(frozen=True)
 class ProposedAction:
     label: str
     narrative: str
+    capability: str
     observation: PolicyObservation
+    delegation_failures: tuple[str, ...]
 
 
 def build_actions() -> list[ProposedAction]:
-    """The agent's proposed action sequence, mapped to PolicyObservations.
+    """The agent's proposed action sequence.
 
-    REMORA is stateless: sensor evidence, schema validation, and delegation
-    context are the caller's responsibility, encoded as observation fields.
+    For each action the A2A envelope is verified first; the delegation
+    outcome feeds `tool_forbidden` on the PolicyObservation. REMORA is
+    stateless: sensor evidence and schema validation are the caller's
+    responsibility, encoded as observation fields.
     """
+
+    def action(label: str, narrative: str, capability: str,
+               **obs_fields) -> ProposedAction:
+        tool_forbidden, failures = delegation_check(capability)
+        return ProposedAction(
+            label=label,
+            narrative=narrative,
+            capability=capability,
+            observation=PolicyObservation(tool_forbidden=tool_forbidden, **obs_fields),
+            delegation_failures=failures,
+        )
+
     return [
-        ProposedAction(
-            label="read_vibration_telemetry",
-            narrative="Read 24h vibration trend for pump P-3101A",
-            observation=PolicyObservation(
-                question="read_telemetry(asset=P-3101A, signal=vibration, window=24h)",
-                phase="ordered",
-                trust_score=0.91,
-                evidence_action="answer",
-                evidence_confidence=0.94,
-                evidence_signal_source="retrieval",
-                risk_tier="low",
-                action_type="read",
-                domain="maintenance",
-                target_environment="prod",  # reading prod telemetry is fine
-                schema_valid=True,
-            ),
+        action(
+            "read_vibration_telemetry",
+            "Read 24h vibration trend for pump P-3101A",
+            "telemetry:read",
+            question="read_telemetry(asset=P-3101A, signal=vibration, window=24h)",
+            phase="ordered", trust_score=0.91,
+            evidence_action="answer", evidence_confidence=0.94,
+            evidence_signal_source="retrieval",
+            risk_tier="low", action_type="read", domain="maintenance",
+            target_environment="prod", schema_valid=True,
         ),
-        ProposedAction(
-            label="read_equipment_history",
-            narrative="Retrieve maintenance history and last overhaul report",
-            observation=PolicyObservation(
-                question="read_documents(asset=P-3101A, type=maintenance_history)",
-                phase="ordered",
-                trust_score=0.88,
-                evidence_action="answer",
-                evidence_confidence=0.90,
-                evidence_signal_source="retrieval",
-                risk_tier="low",
-                action_type="read",
-                domain="maintenance",
-                target_environment="prod",
-                schema_valid=True,
-            ),
+        action(
+            "read_equipment_history",
+            "Retrieve maintenance history and last overhaul report",
+            "docs:read",
+            question="read_documents(asset=P-3101A, type=maintenance_history)",
+            phase="ordered", trust_score=0.88,
+            evidence_action="answer", evidence_confidence=0.90,
+            evidence_signal_source="retrieval",
+            risk_tier="low", action_type="read", domain="maintenance",
+            target_environment="prod", schema_valid=True,
         ),
-        ProposedAction(
-            label="propose_workorder_change",
-            narrative=(
-                "Propose advancing the bearing-replacement work order by 3 weeks "
-                "based on vibration trend + history"
+        action(
+            "propose_workorder_change",
+            "Propose advancing the bearing-replacement work order by 3 weeks "
+            "based on vibration trend + history",
+            "workorder:propose_change",
+            question=(
+                "update_work_order(order=WO-88231, action=reschedule, "
+                "new_date=advance_3_weeks, justification=vibration_trend)"
             ),
-            observation=PolicyObservation(
-                question=(
-                    "update_work_order(order=WO-88231, action=reschedule, "
-                    "new_date=advance_3_weeks, justification=vibration_trend)"
-                ),
-                phase="ordered",
-                trust_score=0.86,
-                evidence_action="verify",
-                evidence_confidence=0.82,
-                evidence_supporters=3,
-                evidence_signal_source="retrieval",
-                risk_tier="high",          # business-system write in production
-                action_type="write",
-                # The proposed parameters are derived from retrieved documents
-                # and the agent's own analysis — externally-derived input is
-                # tainted and must never auto-accept (VERIFY floor).
-                argument_tainted=True,
-                domain="maintenance",
-                target_environment="prod",
-                schema_valid=True,
-                rollback_available=True,
-            ),
+            phase="ordered", trust_score=0.86,
+            evidence_action="verify", evidence_confidence=0.82,
+            evidence_supporters=3, evidence_signal_source="retrieval",
+            # High-risk production write → the engine's explicit
+            # production-write policy matrix requires human review.
+            risk_tier="high", action_type="production_write",
+            domain="maintenance", target_environment="prod",
+            schema_valid=True, rollback_available=True,
         ),
-        ProposedAction(
-            label="propose_with_contradicting_evidence",
-            narrative=(
-                "Same work-order proposal, but the overhaul report contradicts "
-                "the vibration interpretation"
+        action(
+            "propose_with_contradicting_evidence",
+            "Same work-order proposal, but the overhaul report contradicts "
+            "the vibration interpretation",
+            "workorder:propose_change",
+            question=(
+                "update_work_order(order=WO-88231, action=reschedule, "
+                "new_date=advance_3_weeks, justification=vibration_trend)"
             ),
-            observation=PolicyObservation(
-                question=(
-                    "update_work_order(order=WO-88231, action=reschedule, "
-                    "new_date=advance_3_weeks, justification=vibration_trend)"
-                ),
-                phase="critical",
-                trust_score=0.61,
-                evidence_action="verify",
-                evidence_confidence=0.55,
-                evidence_supporters=2,
-                evidence_contradictions=1,   # hard guard: contradiction blocks
-                evidence_signal_source="retrieval",
-                risk_tier="high",
-                action_type="write",
-                argument_tainted=True,
-                domain="maintenance",
-                target_environment="prod",
-                schema_valid=True,
-                rollback_available=True,
-            ),
+            phase="critical", trust_score=0.61,
+            evidence_action="verify", evidence_confidence=0.55,
+            evidence_supporters=2,
+            evidence_contradictions=1,   # hard guard: contradiction blocks
+            evidence_signal_source="retrieval",
+            risk_tier="high", action_type="production_write",
+            domain="maintenance", target_environment="prod",
+            schema_valid=True, rollback_available=True,
         ),
-        ProposedAction(
-            label="direct_ot_actuation",
-            narrative="Directly reduce pump speed via the control system",
-            observation=PolicyObservation(
-                question="set_pump_speed(asset=P-3101A, target_rpm=2400)",
-                phase="ordered",
-                trust_score=0.93,            # confidence is irrelevant here:
-                evidence_action="answer",    # actuation is not delegated
-                evidence_confidence=0.95,
-                evidence_signal_source="retrieval",
-                risk_tier="critical",
-                action_type="write",
-                domain="ot_control",
-                target_environment="prod",
-                schema_valid=True,
-                tool_forbidden=True,         # capability outside delegated scope
-                rollback_available=True,
-            ),
+        action(
+            "direct_ot_actuation",
+            "Directly reduce pump speed via the control system",
+            "ot:set_pump_speed",   # never delegated → envelope verify fails
+            question="set_pump_speed(asset=P-3101A, target_rpm=2400)",
+            phase="ordered", trust_score=0.93,   # confidence is irrelevant:
+            evidence_action="answer",            # authority was never granted
+            evidence_confidence=0.95,
+            evidence_signal_source="retrieval",
+            risk_tier="critical", action_type="write", domain="ot_control",
+            target_environment="prod", schema_valid=True,
+            rollback_available=True,
         ),
     ]
 
@@ -179,6 +238,7 @@ def main() -> int:
     print("REMORA industrial-maintenance action-gating dry run (real RemoraDecisionEngine)")
     print("=" * width)
     print("Scenario: RCA agent investigated abnormal vibration on pump P-3101A.")
+    print(f"Delegated scope (A2A envelope, per-link signed): {', '.join(DELEGATED_SCOPE)}")
     print("Safety model: no live industrial system is contacted; decisions are real.")
     print("-" * width)
 
@@ -188,17 +248,20 @@ def main() -> int:
         review = "human review" if report.human_review_required else "no review needed"
         print(f"{action.label:38s} -> {report.action.value.upper():8s} ({review})")
         print(f"    {action.narrative}")
-        print(f"    reasons: {reason_codes}")
+        print(f"    capability: {action.capability}  |  reasons: {reason_codes}")
+        if action.delegation_failures:
+            print(f"    delegation verify FAILED: {', '.join(action.delegation_failures)}")
     print("-" * width)
     print("Interpretation:")
     print("- Low-consequence reads ACCEPT: governance adds no friction where it isn't needed.")
-    print("- The work-order proposal routes to VERIFY on the tainted-argument floor:")
-    print("  its parameters derive from retrieved documents, so a human approves before")
-    print("  any business-system write — the agent recommends, it does not apply.")
+    print("- The work-order proposal routes to VERIFY via the explicit production-write")
+    print("  policy matrix (high-risk production write): a human approves before any")
+    print("  business-system write — the agent recommends, it does not apply.")
     print("- With contradicting evidence the same proposal ABSTAINs: contradictions must")
     print("  be resolved before a human is even asked to approve.")
-    print("- Direct OT actuation hard-ESCALATEs on the forbidden-tool guard: analysis")
-    print("  confidence cannot buy actuation authority that was never delegated.")
+    print("- Direct OT actuation fails A2A scope verification (the capability was never")
+    print("  delegated); that failure feeds tool_forbidden and the engine hard-ESCALATEs.")
+    print("  Analysis confidence cannot buy actuation authority.")
     return 0
 
 

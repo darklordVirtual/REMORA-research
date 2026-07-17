@@ -175,10 +175,63 @@ class TestGenAISemanticConventions:
         """Without OTel installed the semconv span is a silent no-op."""
         tracer = NoOpTracer()
         with tracer.tool_governance_span(
-            "update_work_order", tool_call_id="h", agent_id="a"
+            "update_work_order", tool_call_hash="h" * 64, agent_id="a"
         ) as span:
             span.set_governance_outcome(action="escalate")
         # No exception — governance instrumentation never breaks the gate.
+
+    def test_invocation_id_is_unique_and_hash_is_separate(self) -> None:
+        """gen_ai.tool.call.id must be a per-invocation id, never the
+        deterministic argument hash (replays of identical calls must get
+        distinct ids); the hash lives in remora.tool_call_hash."""
+        import remora.observability.otel as otel_mod
+
+        class _RecordingTracer:
+            def __init__(self) -> None:
+                self.spans: list[_RecordingSpan] = []
+
+            def start_span(self, name: str, attributes: dict | None = None):
+                span = _RecordingSpan()
+                span.attributes.update(attributes or {})
+                self.spans.append(span)
+                return span
+
+        original = otel_mod._OTEL_AVAILABLE
+        otel_mod._OTEL_AVAILABLE = True
+        try:
+            recording = _RecordingTracer()
+            tracer = RemoraTracer(tracer=recording)
+            arg_hash = "f" * 64
+            for _ in range(2):
+                with tracer.tool_governance_span(
+                    "update_work_order", tool_call_hash=arg_hash
+                ):
+                    pass
+        finally:
+            otel_mod._OTEL_AVAILABLE = original
+        first, second = recording.spans
+        assert first.attributes["remora.tool_call_hash"] == arg_hash
+        assert second.attributes["remora.tool_call_hash"] == arg_hash
+        assert (
+            first.attributes["gen_ai.tool.call.id"]
+            != second.attributes["gen_ai.tool.call.id"]
+        )
+        assert first.attributes["gen_ai.tool.call.id"] != arg_hash
+
+    def test_governance_outcome_carries_envelope_id(self) -> None:
+        import remora.observability.otel as otel_mod
+        span, raw, original = self._recording_remora_span()
+        try:
+            span.set_governance_outcome(
+                action="verify", decision_envelope_id="env-8812"
+            )
+        finally:
+            otel_mod._OTEL_AVAILABLE = original
+        assert raw.attributes["remora.decision_envelope.id"] == "env-8812"
+
+    def test_schema_url_is_pinned(self) -> None:
+        from remora.observability.otel import OTEL_SCHEMA_URL
+        assert OTEL_SCHEMA_URL.startswith("https://opentelemetry.io/schemas/")
 
     def test_partial_genai_context_sets_only_provided(self) -> None:
         import remora.observability.otel as otel_mod
