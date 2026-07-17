@@ -65,9 +65,9 @@ benchmark-scoped, neither a field-deployment claim.
 
 ## Limitations — stated, not buried
 
-Research-grade, `SHADOW_ONLY`. All benchmarks internally run; independent
-review and longitudinal stability gates are open and tracked in a public gate
-register (`docs/assurance/release_gates.md`). The audit chain is
+Research-grade, `SHADOW_ONLY`. All benchmarks internally run; the
+independent-review gate is open and blocks any enforcement mode, tracked in a
+public gate register (`docs/assurance/release_gates.md`). The audit chain is
 tamper-evident, not tamper-proof. This is an architecture proof intended to
 be shadow-run against real agent logs before any enforcement is enabled.
 

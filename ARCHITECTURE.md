@@ -383,16 +383,14 @@ not a guarantee of safety, and not a replacement for domain authority.
 
 - **Deployment status: SHADOW_ONLY.** The system is intended to be run beside an
   agent (Shadow Mode) and does not have a production-certified enforcement mode.
-- **Production gates:** `REM-022` (RBAC audit) is **DONE** (2026-06-30, with
-  recorded deviation — unmet closure criteria tracked as `REM-023`, of which
-  only external confirmation remains, folded into `REM-021`). `REM-020`
-  (longitudinal false-accept stability) is **open**: self-reported telemetry
-  satisfies this repo's 7-day criterion, but formal closure is blocked by a
-  recorded criterion conflict with the main repo's fail-closed closure tooling
-  (see the gate register). `REM-021` (independent
-  human review) is **open** (not started).
-  Deployment status cannot advance past SHADOW_ONLY until REM-020 and REM-021 are
-  cleared.
+- **Production gates:** `REM-020` (longitudinal stability) is **DONE**
+  (2026-07-17, closed by fail-closed tooling under the owner-reconciled 7-day
+  criterion; self-reported values pending independent verification).
+  `REM-022` (RBAC audit) is **DONE** (2026-06-30, with recorded deviation —
+  follow-through tracked as `REM-023`, of which only external confirmation
+  remains, folded into `REM-021`). `REM-021` (independent human review) is
+  **open** (not started) and blocks exit from shadow mode.
+  Deployment status cannot advance past SHADOW_ONLY until REM-021 is cleared.
 - **External replication is pending.** All benchmarks are internally run; no
   external live-agent validation has been conducted.
 - **Result scope:** reported results are simulator-scoped or post-hoc over
