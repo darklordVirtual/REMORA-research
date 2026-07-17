@@ -658,7 +658,7 @@ Baseline accuracy (full coverage, N=500): **41.18%**
 
 </details>
 
-**Artifacts:** `results/bootstrap_trust_curve_results.json` · `results/end_to_end_n500_v3.json` · `docs/breakthrough_proof.md`
+**Artifacts:** `results/bootstrap_trust_curve_results.json` · `results/end_to_end_n500_v3.json` · `docs/empirical_evidence_record.md`
 
 ### Risk-calibrated guardrail (conformal prediction)
 
@@ -1010,7 +1010,7 @@ tau* = 0.203200  (selected on 436-item training set)
 | [`NEGATIVE_RESULTS.md`](NEGATIVE_RESULTS.md) | 1 active finding + 12 resolved findings (archived) — honest account of what did not work |
 | [`paper/remora_paper.md`](paper/remora_paper.md) | Full technical paper (Markdown source; under submission) |
 | [`paper/remora_paper.tex`](paper/remora_paper.tex) | LaTeX source for Overleaf / arXiv submission |
-| [`docs/breakthrough_proof.md`](docs/breakthrough_proof.md) | N=302 selective trust statistical proof pack |
+| [`docs/empirical_evidence_record.md`](docs/empirical_evidence_record.md) | N=302 selective trust statistical proof pack |
 | [`CODEGRAPH.md`](CODEGRAPH.md) | Canonical codegraph scope for Codespaces, Claude Code, and local Codex |
 
 **Engineering:**

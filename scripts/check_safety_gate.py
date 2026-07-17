@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# Author: Stian Skogbrott
+# License: Apache-2.0
 """CI safety gate: fail if false_accept_rate > 0 or arena is empty.
 
 Usage (from CI):

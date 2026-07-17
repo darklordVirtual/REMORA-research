@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Author: Stian Skogbrott
+# License: Apache-2.0
 """
 Feed 125 diverse labeled episodes to the live AROMER Worker.
 

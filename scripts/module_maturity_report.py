@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Author: Stian Skogbrott
+# License: Apache-2.0
 """Generate a module maturity report for REMORA.
 
 Usage:

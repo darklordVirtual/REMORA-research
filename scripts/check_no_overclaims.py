@@ -39,7 +39,7 @@ SCAN_FILES = [
     ROOT / "enterprise" / "sector-use-cases.md",
     ROOT / "enterprise" / "production-readiness.md",
     ROOT / "docs" / "plain_language_overview.md",
-    ROOT / "docs" / "breakthrough_proof.md",
+    ROOT / "docs" / "empirical_evidence_record.md",
 ]
 
 # ---------------------------------------------------------------------------
