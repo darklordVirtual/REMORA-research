@@ -1,5 +1,12 @@
 # REMORA Assurance Operation Master Plan v1
 
+> **HISTORICAL SNAPSHOT (2026-07-01).** Gate statuses, metrics, and plans in this
+> document reflect the state on its date and are intentionally preserved
+> unedited. For current gate status see
+> [`docs/assurance/release_gates.md`](
+> release_gates.md); for current metrics see the repository README.
+
+
 **Status:** Wave 2 synthesis — 2026-06-30
 **Based on:** Wave 0 baseline (`2cd573d`) + Wave 1 parallel audit (`e58d2f3`)
 **Test count:** 3068 passed, 0 failed, 36 deselected

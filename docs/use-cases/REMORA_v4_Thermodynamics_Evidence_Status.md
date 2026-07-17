@@ -115,7 +115,7 @@ This matters because the earlier prototype collapsed almost everything into dege
 
 ### 3. Experiment 3 is now real, not just proposed
 
-The phase-transition study is no longer only a plan. It is a runnable benchmark artifact documented in [docs/experiment3_phase_transition_study.md](../experiment3_phase_transition_study.md) and executed into [results/phase_transition_study_results.json](../../results/phase_transition_study_results.json).
+The phase-transition study is no longer only a plan. It is a runnable benchmark artifact documented in [docs/experiment3_phase_transition_study.md](../experiments/experiment3_phase_transition_study.md) and executed into [results/phase_transition_study_results.json](../../results/phase_transition_study_results.json).
 
 The current calibrated N=302 baseline shows:
 
@@ -159,7 +159,7 @@ From [results/susceptibility_validation_results.json](../../results/susceptibili
 
 That earlier result showed that the D2 target was too weak for a meaningful validation.
 
-The new full-iteration utility study in [docs/experiment5_chi_iteration_utility.md](../experiment5_chi_iteration_utility.md) improves on this by testing `C_remora` relative to majority. It finds:
+The new full-iteration utility study in [docs/experiment5_chi_iteration_utility.md](../experiments/experiment5_chi_iteration_utility.md) improves on this by testing `C_remora` relative to majority. It finds:
 
 - `AUC(help) = 0.5881`
 - `AUC(hurt) = 0.5727`

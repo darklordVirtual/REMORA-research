@@ -186,8 +186,9 @@ operational consequences (not simulation, not replay).
 > agent actions. Limitations: [..."
 
 **Status in REMORA:** No claims at this level. REMORA is `SHADOW_ONLY` as of
-2026-06-30. Three production gates remain (REM-020, REM-021, REM-022) before
-any deployment outside shadow mode.
+2026-06-30. One production gate remains (REM-021, independent human review)
+before any deployment outside shadow mode; REM-020 closed 2026-07-17 and
+REM-022 closed 2026-06-30 with recorded deviation (REM-023).
 
 **Promotion path:** Promote to `externally_validated` when an independent
 external party formally validates the field result.

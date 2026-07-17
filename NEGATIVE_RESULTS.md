@@ -5,10 +5,15 @@
 > Every number here increases external credibility by proving the system was
 > not optimised until only the positive findings remained.
 
-This document contains only **active, unresolved findings**.  Findings that
-have been fully addressed are preserved in the
-[Resolved Findings Archive](#resolved-findings-archive) below.
-All findings are registered in `docs/claim_register.md`.
+This document holds the full negative-results record: **active findings**
+first, then event chronicles whose resolutions are part of the finding itself
+(§5–§13 — seeding distortions, regressions, and organic recoveries are kept
+in sequence because the recovery evidence is only meaningful next to the
+failure), and a [Resolved Findings Archive](#resolved-findings-archive) for
+findings that are fully closed with no ongoing caveat. Section numbers are
+stable and referenced from other documents — resolved sections are marked in
+place, never renumbered. All findings are registered in
+`docs/claim_register.md`.
 
 ---
 
@@ -166,6 +171,12 @@ the token-fingerprint baseline in `results/selective_trust_curve_results.json`.
 
 > **Updated (2026-07-01):** AII=0.9918 TRAINED (structural ceiling 0.9922). T1=0.9741 (ECE=0.0052), T2=T3=T4=T5=1.000. n_operational_fa=0 (Day 26/30 longitudinal). safety_certification: CERTIFIED_INDEPENDENT_HOLDOUT (n=814 operational harmful; CP upper bound 0.367%). Ceiling is structural (MCE bucket §15; transfer_unmeasured §16). Two production gates remain: REM-020 (eligible 2026-07-07), REM-021.
 
+> **Updated (2026-07-17):** REM-020 (longitudinal stability) CLOSED by the
+> fail-closed tooling under the owner-reconciled 7-day criterion
+> (days_elapsed=19 of 7, n_operational_fa=0, AII=0.9914 — self-reported,
+> pending REM-021 verification). One production gate remains: REM-021
+> (independent human review). Deployment stays SHADOW_ONLY until it closes.
+
 AROMER reached `interpretation_nuanced = "TRAINED_SHADOW_ONLY"` on 2026-06-26 with AII ≈ 0.820
 (smoothed), after all five interpretation gates cleared. Progression: CAPABLE_SHADOW_ONLY
 (AII≈0.629) on 2026-06-26 → TRAINED_SHADOW_ONLY (AII≈0.820) same day, via world model seeding.
@@ -221,7 +232,7 @@ external distribution.
 window composition. The LoRA MetaJudge that provides sustained friction reduction signals
 is blocked on Cloudflare Workers AI beta access.
 
-**Why not closed (at 2026-06-26):** Items 1, 2, and 3 required organic data accumulation and external validation. **Update (2026-06-28):** Gap 1 resolved (CERTIFIED_INDEPENDENT_HOLDOUT). Gap 3 resolved organically (§11: T2=1.000, brr=0%, 12+ cycles). Gap 2 remains open (FA=22.2% aradhye holdout). `policy_relaxation_allowed = false` remains set; three gates required before relaxation: longitudinal stability audit, human review, RBAC audit.
+**Why not closed (at 2026-06-26):** Items 1, 2, and 3 required organic data accumulation and external validation. **Update (2026-06-28):** Gap 1 resolved (CERTIFIED_INDEPENDENT_HOLDOUT). Gap 3 resolved organically (§11: T2=1.000, brr=0%, 12+ cycles). Gap 2 remains open (FA=22.2% aradhye holdout). `policy_relaxation_allowed = false` remains set. Of the three gates originally required before relaxation, the longitudinal stability audit (REM-020) closed 2026-07-17 and the RBAC audit (REM-022) closed 2026-06-30 with recorded deviation (REM-023); independent human review (REM-021) remains the blocker.
 
 ---
 
@@ -783,7 +794,7 @@ to the test report. See `Makefile` credibility-pack target.
 
 **Overall:** REMORA is approvable as a policy-gated governance prototype with strong claim hygiene.
 It is not approvable as a demonstrated AI safety result. `deployment_status: SHADOW_ONLY`,
-`policy_relaxation_allowed: false`. Two production gates remain open (REM-020 eligible 2026-07-07; REM-021 not started; REM-022 DONE 2026-06-30).
+`policy_relaxation_allowed: false`. One production gate remains open: REM-021 (not started). REM-020 closed 2026-07-17 (7-day criterion, fail-closed tooling); REM-022 DONE 2026-06-30 with recorded deviation (REM-023).
 
 ---
 
@@ -826,7 +837,12 @@ T4 is correctly counted at 1.0.
 multiple domain types in the same adapt window. Not achievable in the current
 development-only deployment without dedicated cross-domain test traffic.
 
-**Status:** Active — documented machine-readably in live API (`interpretation_evidence`
+**Fix path unblocked (2026-07-17):** the "no seeding during the REM-020
+window" constraint lapsed when REM-020 closed. Live cross-domain episodes can
+now be generated (batch ≤ 25 per the §9 lesson) to clear `transfer_live`;
+until that traffic exists this finding stays active.
+
+**Status:** Active — documented machine-readably in live API (`interpretation_evidence
 field). Does not affect AII value or production gate status.
 
 ---

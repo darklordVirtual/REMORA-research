@@ -1,14 +1,14 @@
 # REMORA RBAC Design v1
 
-**Status:** Design proposal — REM-022 NOT_STARTED; this document initiates the audit
+**Status:** Design document for REM-022 — the gate closed 2026-06-30 **with recorded deviation** (unmet DONE criteria tracked as REM-023; see §closure note at the end of this document)
 **Date:** 2026-06-30
 **Author:** Agent D (security/RBAC audit)
 **Scope:** `darklordVirtual/REMORA-research` at commit `2cd573d` (master branch)
-**Related gates:** REM-022 (NOT_STARTED) — RBAC audit is a required production deployment gate
+**Related gates:** REM-022 (DONE with recorded deviation, 2026-06-30) and REM-023 (follow-through, IN_PROGRESS) — the RBAC audit is a required production deployment gate
 
-**IMPORTANT:** This document describes the RBAC design that REMORA needs. It does
-NOT claim that RBAC is implemented or that REM-022 is closed. The gate status is
-NOT_STARTED as recorded in `docs/assurance/release_gates.md` and
+**IMPORTANT:** This document describes the RBAC design that REMORA needs; the
+implemented subset and the deviation from this design's own DONE criteria are
+recorded in `docs/assurance/release_gates.md` (REM-022/REM-023) and
 `docs/assurance/remediation_register.yaml`.
 
 ---

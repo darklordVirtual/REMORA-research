@@ -135,8 +135,9 @@ If you are reviewing this project and want to assess the human authorship:
    base. They are independent of any AI text generation and are deterministically
    reproducible.
 
-5. **The three production gates** (longitudinal stability audit, independent
-   human review, RBAC audit) represent the author's own assessment of what
+5. **The production gates** (longitudinal stability audit — closed
+   2026-07-17; RBAC audit — closed with recorded deviation; independent
+   human review — still open) represent the author's own assessment of what
    remains before the system can claim deployment readiness — a conservative
    judgement kept despite the system's strong internal results.
 

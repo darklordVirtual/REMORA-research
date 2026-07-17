@@ -1,5 +1,12 @@
 # Research Analysis Notes — 2026-06-30
 
+> **HISTORICAL SNAPSHOT (2026-06-30).** Gate statuses, metrics, and plans in this
+> document reflect the state on its date and are intentionally preserved
+> unedited. For current gate status see
+> [`docs/assurance/release_gates.md`](
+> ../assurance/release_gates.md); for current metrics see the repository README.
+
+
 **Covers:**
 1. Error review of `analyse_av_remora_forskning.pdf`
 2. Key findings from Zhang et al. 2024 (arXiv:2404.02655v2) — UF Calibration

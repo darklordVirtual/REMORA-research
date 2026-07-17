@@ -40,17 +40,17 @@ falsifiable threshold for "χ has predictive content beyond chance."
 ## Study Vehicle
 
 The runnable script is
-[experiments/chi_iteration_utility.py](../experiments/chi_iteration_utility.py).
+[experiments/chi_iteration_utility.py](../../experiments/chi_iteration_utility.py).
 
 It reads:
 
 - per-item χ from
-  [results/thermodynamic_eval_results.json](../results/thermodynamic_eval_results.json)
+  [results/thermodynamic_eval_results.json](../../results/thermodynamic_eval_results.json)
 - per-condition correctness from
-  [results/ablation_v2_canonical_results.json](../results/ablation_v2_canonical_results.json)
+  [results/ablation_v2_canonical_results.json](../../results/ablation_v2_canonical_results.json)
 
 and writes output to
-[results/chi_iteration_utility_results.json](../results/chi_iteration_utility_results.json).
+[results/chi_iteration_utility_results.json](../../results/chi_iteration_utility_results.json).
 
 ## Execution
 
@@ -64,7 +64,7 @@ python experiments/chi_iteration_utility.py \
 ## Current Baseline Readout
 
 Results from the committed artifact
-[results/chi_iteration_utility_results.json](../results/chi_iteration_utility_results.json),
+[results/chi_iteration_utility_results.json](../../results/chi_iteration_utility_results.json),
 run on N=302:
 
 | Metric | Value |

@@ -13,7 +13,7 @@ Every decision is logged in an immutable `DecisionEnvelope` carrying a SHA-256 t
 
 Architecture bounded by documented assumptions. Results are from controlled experiments and internal benchmarks; external replication is pending. See the [Limitations](#limitations) section before drawing deployment conclusions.
 
-**Start here:** [Reference architecture](docs/reference_architecture.md) (the assurance control plane, plane by plane, with code pointers) · [Executive one-pager](docs/executive_onepager.md) (problem → architecture → demo → evidence → limitations → pilot shape).
+**Start here:** [Reference architecture](docs/reference_architecture.md) (the assurance control plane, plane by plane, with code pointers) · [Executive one-pager](docs/executive_onepager.md) (problem → architecture → demo → evidence → limitations → pilot shape) · [Full documentation index](docs/README.md).
 
 ---
 

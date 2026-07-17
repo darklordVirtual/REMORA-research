@@ -160,7 +160,7 @@ For regulated environments (energy, finance, healthcare):
 
 ## Monitoring and SLOs
 
-Deploy the observability stack described in [`enterprise/observability.md`](../../enterprise/observability.md):
+Deploy the observability stack described in [`enterprise/observability.md`](../reference_architecture.md):
 
 | Metric                        | Azure Service              | Alert Threshold    |
 |-------------------------------|----------------------------|--------------------|

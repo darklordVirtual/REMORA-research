@@ -3,10 +3,10 @@
 **Status:** internal mapping — not independently audited.
 **Reference:** NIST AI RMF 1.0 (January 2023).
 **Companion documents:**
-- [`enterprise/governance-model.md`](../../enterprise/policy-model.md)
-- [`enterprise/human-approval-workflow.md`](../../enterprise/human-approval-workflow.md)
-- [`enterprise/observability.md`](../../enterprise/observability.md)
-- [`enterprise/threat-model.md`](../../enterprise/threat-model.md)
+- [`enterprise/governance-model.md`](../../artifacts/credibility-pack/policy-model.md)
+- [`enterprise/human-approval-workflow.md`](../01-architecture.md)
+- [`enterprise/observability.md`](../reference_architecture.md)
+- [`enterprise/threat-model.md`](../../artifacts/credibility-pack/threat-model.md)
 
 The [NIST AI Risk Management Framework](https://www.nist.gov/artificial-intelligence)
 organises AI risk into four functions: **Govern, Map, Measure, Manage**.

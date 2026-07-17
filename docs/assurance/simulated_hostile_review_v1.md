@@ -1,5 +1,16 @@
 # Simulated Hostile Review v1 — Readiness Gaps for a Physics/XAI/Ethics Reviewer
 
+> **RECONCILIATION NOTE (2026-07-17).** This is a findings register from the
+> 2026-07-02/03 hostile-review round, preserved verbatim (it quotes defects
+> deliberately and is excluded from stale-string scanning). Several items
+> listed as OPEN below have since been fixed — including the non-canonical
+> AROMER/AII expansions and the "three production gates" phrasing — and
+> `docs/breakthrough_proof.md` was renamed to
+> `docs/empirical_evidence_record.md` (2026-07-17). Do not treat OPEN
+> statuses in this document as current; the live status surface is
+> `release_gates.md` + `remediation_register.yaml`.
+
+
 **Status:** INTERNAL — findings register + remediation plan. Nothing here is a claim.
 **Date:** 2026-07-02
 **Method:** Three independent review passes over the full repository, simulating

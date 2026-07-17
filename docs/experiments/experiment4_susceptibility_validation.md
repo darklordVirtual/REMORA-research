@@ -33,9 +33,9 @@ Items in the highest susceptibility band should also show one or more of the fol
 
 ## Study Vehicle
 
-The runnable study script is [experiments/susceptibility_validation.py](../experiments/susceptibility_validation.py).
+The runnable study script is [experiments/susceptibility_validation.py](../../experiments/susceptibility_validation.py).
 
-It reads the existing per-item thermodynamic output from [results/thermodynamic_eval_results.json](../results/thermodynamic_eval_results.json), bins items by susceptibility quantiles, and computes utility metrics for each band.
+It reads the existing per-item thermodynamic output from [results/thermodynamic_eval_results.json](../../results/thermodynamic_eval_results.json), bins items by susceptibility quantiles, and computes utility metrics for each band.
 
 ## Execution
 
@@ -47,7 +47,7 @@ python3 experiments/susceptibility_validation.py --output results/susceptibility
 
 ## Current Baseline Readout
 
-The first baseline run has now been executed on the current N=302 benchmark, with output stored in [results/susceptibility_validation_results.json](../results/susceptibility_validation_results.json).
+The first baseline run has now been executed on the current N=302 benchmark, with output stored in [results/susceptibility_validation_results.json](../../results/susceptibility_validation_results.json).
 
 Observed baseline:
 

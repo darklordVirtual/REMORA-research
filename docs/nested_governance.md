@@ -85,8 +85,9 @@ L5 Governance Learning
 | Audit ledger | append only | no | permanent | critical |
 | Architecture baseline | reviewed change | no | permanent | critical |
 
-Canonical machine-readable profile:
-[`enterprise/nested_governance_layers.yaml`](../enterprise/nested_governance_layers.yaml)
+Canonical machine-readable profile: not yet published — the layer profile
+lives in code (`remora/governance/nested_governance.py`); a committed YAML
+profile is roadmap, not an existing artifact.
 
 ## Governance Forgetting
 

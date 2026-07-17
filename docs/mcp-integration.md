@@ -10,7 +10,7 @@ Cloudflare services are optional accelerators, not hard requirements. The MCP
 server still works without Cloudflare by using local repository manifests and
 the Python code paths already in this repo.
 
-For a reproducible end-to-end setup, see [Cloudflare Productivity Layer](cloudflare-productivity-layer.md).
+For a reproducible end-to-end setup, see [`cloudflare_workers_ai.md`](cloudflare_workers_ai.md) and the worker sources under `workers/`.
 
 ---
 

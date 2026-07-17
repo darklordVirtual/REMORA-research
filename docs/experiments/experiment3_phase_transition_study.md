@@ -24,7 +24,7 @@ If Experiment 3 succeeds, REMORA gains three stronger claims:
 
 ## Current Baseline Readout
 
-The first baseline run has already been executed on the current N=302 benchmark using [experiments/phase_transition_study.py](../experiments/phase_transition_study.py), with results stored in [results/phase_transition_study_results.json](../results/phase_transition_study_results.json).
+The first baseline run has already been executed on the current N=302 benchmark using [experiments/phase_transition_study.py](../../experiments/phase_transition_study.py), with results stored in [results/phase_transition_study_results.json](../../results/phase_transition_study_results.json).
 
 Observed calibrated baseline:
 
@@ -103,7 +103,7 @@ Target a benchmark of at least `N >= 500` items.
 
 Preferred path:
 
-1. Rebuild the benchmark using the dedicated `n500` preset in [scripts/build_benchmark.py](../scripts/build_benchmark.py).
+1. Rebuild the benchmark using the dedicated `n500` preset in [scripts/build_benchmark.py](../../scripts/build_benchmark.py).
 2. Preserve domain balance and source diversity.
 3. Retain difficulty labels and adversarial markers in the generated benchmark metadata.
 
@@ -158,7 +158,7 @@ The study should count as promising only if at least one of the following holds:
 
 ### Step 1: Use current study script
 
-The initial study vehicle is [experiments/phase_transition_study.py](../experiments/phase_transition_study.py).
+The initial study vehicle is [experiments/phase_transition_study.py](../../experiments/phase_transition_study.py).
 
 Smoke run:
 
