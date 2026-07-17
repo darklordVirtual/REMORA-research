@@ -48,10 +48,24 @@ import json
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass
+from dataclasses import fields as dataclasses_fields
 from typing import Any
 
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
+
+
+# PolicyObservation fields that are deliberately NOT exported to OPA.
+# These are audit/correlation metadata with no role in policy evaluation.
+# tests/test_opa_parity.py enforces that every field the decision path reads
+# is either exported by OPAContext or listed here with a justification.
+OPA_EXPORT_EXCLUSIONS: frozenset[str] = frozenset({
+    "session_id",               # audit correlation only — engine docstring: not used in gate logic
+    "evidence_provenance",      # free-form provenance dict; audit only
+    "evidence_timestamp",       # audit only
+    "evidence_request_reason",  # human-readable annotation; audit only
+    "gainability_score",        # v4 routing signal; not read by the decision engine
+})
 
 
 @dataclass(frozen=True)
@@ -59,31 +73,98 @@ class OPAContext:
     """JSON-serialisable input document for OPA policy evaluation.
 
     This is the canonical "input" object that the Rego package receives.
-    All fields map 1-to-1 to ``PolicyObservation`` fields that the decision
-    engine uses as guards.  Optional fields use ``None`` so the Rego policy
-    can distinguish "not provided" from "zero".
+    It exports every ``PolicyObservation`` field the decision path
+    (``decision_engine``, ``credal``, ``trap_classifier``) reads, so a Rego
+    policy can express any guard the Python engine can. Audit-only fields are
+    excluded and enumerated in ``OPA_EXPORT_EXCLUSIONS``. Parity is enforced
+    structurally by ``tests/test_opa_parity.py`` — a new engine guard on an
+    unexported field fails CI.
+
+    Optional fields use ``None`` so the Rego policy can distinguish
+    "not provided" from "zero". Note the Rego idiom: ``not input.flag``
+    succeeds when a field is absent — policies must therefore be written
+    against this full contract, and the adapter additionally enforces the
+    hard-guard floor (see ``OPAAdapter.evaluate``) so a policy that ignores
+    a security signal can never downgrade below the Python engine's
+    hard-block verdict.
     """
 
+    # Proposed action (also used by keyword-gating policies)
+    question: str
+    tool_call_hash: str | None
+
+    # Thermodynamic / consensus state
     trust_score: float | None
     phase: str | None
     temperature: float | None
-    distribution_shift_detected: bool
-    counterfactual_passed: bool | None
-    evidence_action: str | None
-    evidence_confidence: float | None
-    evidence_contradictions: int | None
-    contradiction_cycles: int | None
+    order_parameter: float | None
+    susceptibility: float | None
+    hallucination_bound: float | None
+    weighted_support: float | None
+    majority_support: float | None
+    final_V: float | None
+    final_H: float | None
+    final_D: float | None
+
+    # Policy flags
     require_rag: bool
     refuse_parametric_verdict: bool
-    claim_graph_betti_1: int | None
+    distribution_shift_detected: bool
     conformal_score: float | None
-    # Enterprise risk fields — required for Rego policies that gate on risk tier,
-    # domain, or action type (previously absent, causing silent policy no-ops).
+
+    # Evidence pipeline
+    evidence_action: str | None
+    evidence_confidence: float | None
+    evidence_supporters: int | None
+    evidence_contradictions: int | None
+    evidence_signal_source: str
+
+    # Claim-graph topology
+    claim_graph_betti_0: int | None
+    claim_graph_betti_1: int | None
+    contradiction_cycles: int | None
+
+    # Counterfactual gate
+    counterfactual_passed: bool | None
+
+    # Assurance trace anchor — lets a Rego policy require a committed audit
+    # trace before permitting high-risk actions.
+    assurance_root: str | None
+
+    # Operational context
     risk_tier: str | None
     domain: str | None
     action_type: str | None
-    order_parameter: float | None
-    susceptibility: float | None
+    target_environment: str | None
+
+    # Oracle health
+    oracle_failures: int
+    valid_oracle_count: int
+
+    # Security hard-block signals — absence of any of these previously allowed
+    # an OPA policy to approve actions the Python engine hard-blocks.
+    adversarial_detected: bool
+    schema_valid: bool | None
+    tool_forbidden: bool
+    argument_tainted: bool
+    coercion_detected: bool
+    blackmail_pattern_detected: bool
+
+    # Misspecification context
+    environment_confidence: float | None
+    environment_mismatch_detected: bool
+    rollback_available: bool | None
+    state_transition_uncertain: bool
+    classification_confidence: float | None
+    classification_alternatives: list[str] | None
+    model_misspecification_risk: float | None
+
+    # Fleet / session risk
+    similar_action_seen_count: int | None
+    policy_generalization_risk: float | None
+    fleet_level_effect: str | None
+    session_action_count: int | None
+    session_cumulative_risk: float | None
 
     def to_opa_input(self) -> dict[str, Any]:
         """Return the ``{"input": {...}}`` envelope expected by the OPA REST API."""
@@ -91,27 +172,15 @@ class OPAContext:
 
 
 def export_opa_context(obs: PolicyObservation) -> OPAContext:
-    """Extract a JSON-serialisable OPAContext from a PolicyObservation."""
-    return OPAContext(
-        trust_score=obs.trust_score,
-        phase=obs.phase,
-        temperature=obs.temperature,
-        distribution_shift_detected=obs.distribution_shift_detected,
-        counterfactual_passed=obs.counterfactual_passed,
-        evidence_action=obs.evidence_action,
-        evidence_confidence=obs.evidence_confidence,
-        evidence_contradictions=obs.evidence_contradictions,
-        contradiction_cycles=obs.contradiction_cycles,
-        require_rag=obs.require_rag,
-        refuse_parametric_verdict=obs.refuse_parametric_verdict,
-        claim_graph_betti_1=obs.claim_graph_betti_1,
-        conformal_score=obs.conformal_score,
-        risk_tier=obs.risk_tier,
-        domain=obs.domain,
-        action_type=obs.action_type,
-        order_parameter=obs.order_parameter,
-        susceptibility=obs.susceptibility,
-    )
+    """Extract a JSON-serialisable OPAContext from a PolicyObservation.
+
+    Built field-by-field from the observation; the field set is the full
+    decision-path contract (see ``OPAContext`` docstring). Structural parity
+    with the engine is enforced by ``tests/test_opa_parity.py``.
+    """
+    field_names = {f.name for f in dataclasses_fields(OPAContext)}
+    values = {name: getattr(obs, name) for name in field_names}
+    return OPAContext(**values)
 
 
 class OPAAdapter:
@@ -203,7 +272,7 @@ class OPAAdapter:
                 body = json.loads(resp.read().decode("utf-8"))
             result = body.get("result") or {}
             report = self._opa_result_to_report(result, obs)
-            return report, False
+            return self._apply_hard_guard_floor(report, obs), False
         except (urllib.error.URLError, OSError, KeyError, ValueError):
             pass
 
@@ -215,6 +284,58 @@ class OPAAdapter:
         # Stamp fallback_used on the report so audit consumers can see it.
         from dataclasses import replace as _replace
         return _replace(report, fallback_used=True), True
+
+    # Severity ordering for decision monotonicity (REM-003 extended to
+    # adapters): an external policy result may tighten but never loosen
+    # relative to the Python engine's hard-guard floor.
+    _ACTION_SEVERITY = {
+        DecisionAction.ACCEPT: 0,
+        DecisionAction.VERIFY: 1,
+        DecisionAction.ABSTAIN: 2,
+        DecisionAction.ESCALATE: 3,
+    }
+
+    def _apply_hard_guard_floor(
+        self, report: DecisionReport, obs: PolicyObservation
+    ) -> DecisionReport:
+        """Enforce the Python engine's hard-guard floor over an OPA result.
+
+        ``hard_guard_floor`` is the same function the engine's own decide()
+        uses as its first stage, so this cannot drift from engine behaviour.
+        If the OPA action is at least as severe as the floor, the OPA result
+        stands unchanged (OPA may always tighten). If OPA returned something
+        weaker — e.g. a Rego policy that predates a security signal and
+        therefore never sees it — the floor action wins and the override is
+        recorded in the report for audit consumers.
+        """
+        from dataclasses import replace as _replace
+
+        from remora.policy.decision_engine import hard_guard_floor
+
+        floor = hard_guard_floor(obs)
+        if floor is None:
+            return report
+        floor_action, floor_reason = floor
+        if self._ACTION_SEVERITY[report.action] >= self._ACTION_SEVERITY[floor_action]:
+            return report
+        return _replace(
+            report,
+            action=floor_action,
+            reasons=(floor_reason,) + report.reasons,
+            evidence_required=True,
+            human_review_required=(
+                floor_action in {DecisionAction.ESCALATE, DecisionAction.VERIFY}
+                or obs.risk_tier == "critical"
+            ),
+            source_of_decision="opa_hard_guard_floor",
+            explanation=(
+                f"OPA returned '{report.action.value}' but the hard-guard floor "
+                f"requires '{floor_action.value}' ({floor_reason.value}). "
+                "Decision monotonicity: an external policy cannot downgrade "
+                "below the engine's hard blocks. Original OPA explanation: "
+                + report.explanation
+            ),
+        )
 
     def _fail_closed_on_opa_outage(self, obs: PolicyObservation) -> DecisionReport:
         """Conservative fail-closed path for high-stakes OPA outages."""

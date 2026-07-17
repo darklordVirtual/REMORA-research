@@ -99,6 +99,48 @@ def _normalize_risk_tier(tier: str | None) -> str:
     return normalised if normalised in _KNOWN_RISK_TIERS else "unknown"
 
 
+def hard_guard_floor(
+    obs: PolicyObservation,
+) -> tuple[DecisionAction, DecisionReason] | None:
+    """Evaluate the unconditional hard guards, in the engine's priority order.
+
+    This is the single source of truth for the hard-block floor. It is used
+    by ``RemoraDecisionEngine.decide()`` as the first evaluation stage, and by
+    external policy adapters (e.g. ``remora.policy.opa_adapter``) to enforce
+    decision monotonicity: no external policy result may downgrade below the
+    action returned here (REM-003 extended to adapters).
+
+    Only guards that depend purely on boolean/count security signals belong
+    here — trust routing, credal gates, and risk-tier flooring are engine
+    policy and intentionally excluded, so an external PDP can legitimately
+    differ in the probabilistic band without violating the floor.
+
+    Returns ``None`` when no hard guard fires.
+    """
+    if obs.adversarial_detected:
+        return DecisionAction.ESCALATE, DecisionReason.ADMISSION_FIREWALL_BLOCKED
+    if obs.schema_valid is False:
+        return DecisionAction.ESCALATE, DecisionReason.MALFORMED_CALL_BLOCKED
+    if obs.tool_forbidden:
+        return DecisionAction.ESCALATE, DecisionReason.FORBIDDEN_TOOL_BLOCKED
+    if obs.coercion_detected:
+        return DecisionAction.ESCALATE, DecisionReason.COERCION_BLOCKED
+    if obs.blackmail_pattern_detected:
+        return DecisionAction.ESCALATE, DecisionReason.BLACKMAIL_BLOCKED
+    if obs.counterfactual_passed is False:
+        return DecisionAction.ESCALATE, DecisionReason.COUNTERFACTUAL_FAILED
+    if obs.evidence_contradictions is not None and obs.evidence_contradictions > 0:
+        action = (
+            DecisionAction.ESCALATE
+            if (obs.contradiction_cycles or 0) > 0
+            else DecisionAction.ABSTAIN
+        )
+        return action, DecisionReason.EVIDENCE_CONTRADICTED
+    if obs.argument_tainted:
+        return DecisionAction.VERIFY, DecisionReason.TAINTED_ARGUMENT_VERIFY
+    return None
+
+
 def _normalize_observation(obs: PolicyObservation) -> PolicyObservation:
     """Return a copy of *obs* with context fields normalised for fail-closed handling.
 
@@ -244,14 +286,26 @@ class RemoraDecisionEngine:
         _trap: float = trap_score(obs)
 
         # ── HARD BLOCKS (priority order) ────────────────────────────────────
+        # Single source of truth: hard_guard_floor(). The same function backs
+        # the OPA adapter's monotonicity floor, so an external PDP can never
+        # downgrade below what this stage would return. The tainted-argument
+        # VERIFY floor is intentionally last in hard_guard_floor(): the
+        # conditional ESCALATE gates further down (critical-phase+critical-risk,
+        # rollback, state-transition, production-write matrix) are NOT given
+        # priority over it — a tainted critical production write yields VERIFY,
+        # not ESCALATE; both block autonomous execution and set
+        # human_review_required.
 
-        if obs.adversarial_detected:
-            reasons.append(DecisionReason.ADMISSION_FIREWALL_BLOCKED)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+        _floor = hard_guard_floor(obs)
 
-        if obs.schema_valid is False:
-            reasons.append(DecisionReason.MALFORMED_CALL_BLOCKED)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+        # Adversarial and malformed-schema guards fire before the
+        # schema-unverified annotation below (preserves reason ordering).
+        if _floor is not None and _floor[1] in (
+            DecisionReason.ADMISSION_FIREWALL_BLOCKED,
+            DecisionReason.MALFORMED_CALL_BLOCKED,
+        ):
+            reasons.append(_floor[1])
+            return self._build(_floor[0], reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # GAP B: schema_valid=None means the validator did not run — UNVERIFIED.
         # Mark as a floor check (prevents ACCEPT for mutating actions) without
@@ -263,44 +317,9 @@ class RemoraDecisionEngine:
         if _schema_unverified_mutating:
             reasons.append(DecisionReason.SCHEMA_UNVERIFIED_VERIFY)
 
-        if obs.tool_forbidden:
-            reasons.append(DecisionReason.FORBIDDEN_TOOL_BLOCKED)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.coercion_detected:
-            reasons.append(DecisionReason.COERCION_BLOCKED)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.blackmail_pattern_detected:
-            reasons.append(DecisionReason.BLACKMAIL_BLOCKED)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.counterfactual_passed is False:
-            reasons.append(DecisionReason.COUNTERFACTUAL_FAILED)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.evidence_contradictions is not None and obs.evidence_contradictions > 0:
-            reasons.append(DecisionReason.EVIDENCE_CONTRADICTED)
-            action = (
-                DecisionAction.ESCALATE
-                if (obs.contradiction_cycles or 0) > 0
-                else DecisionAction.ABSTAIN
-            )
-            return self._build(action, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # Tainted arguments (derived from untrusted input) must never auto-accept.
-        # VERIFY floor — placed after the unconditional hard ESCALATE blocks
-        # above (adversarial, schema, forbidden-tool, coercion, blackmail,
-        # counterfactual, contradiction) and before the trust logic so a
-        # tainted call cannot reach ACCEPT. Note: the conditional ESCALATE
-        # gates further down (critical-phase+critical-risk, rollback,
-        # state-transition, production-write matrix) are intentionally NOT
-        # given priority over this floor — a tainted critical production
-        # write yields VERIFY, not ESCALATE; both block autonomous execution
-        # and set human_review_required.
-        if obs.argument_tainted:
-            reasons.append(DecisionReason.TAINTED_ARGUMENT_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+        if _floor is not None:
+            reasons.append(_floor[1])
+            return self._build(_floor[0], reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         if obs.refuse_parametric_verdict and obs.evidence_action != "answer":
             reasons.append(DecisionReason.THERMO_REQUIRE_EVIDENCE)

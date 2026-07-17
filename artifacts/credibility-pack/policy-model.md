@@ -153,27 +153,59 @@ update rules without redeploying Python services.
 ### Input document
 
 `remora.policy.opa_adapter.export_opa_context()` produces the canonical input
-sent to OPA. Every field maps 1-to-1 to a `PolicyObservation` attribute:
+sent to OPA. The contract is **full decision-path parity**: every
+`PolicyObservation` field the Python engine, credal gates, or trap classifier
+reads is exported — including all security hard-block signals
+(`adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`,
+`coercion_detected`, `blackmail_pattern_detected`), operational context
+(`target_environment`, oracle health), misspecification and fleet/session
+risk fields. Audit-only fields are excluded and enumerated in
+`OPA_EXPORT_EXCLUSIONS`. This parity is enforced structurally by
+`tests/test_opa_parity.py` — a new engine guard on an unexported field fails CI.
+
+Abridged example (see `OPAContext` in `remora/policy/opa_adapter.py` for the
+complete field list):
 
 ```json
 {
   "input": {
+    "question": "update_work_order({\"order_id\": \"WO-1123\"})",
+    "tool_call_hash": "0f9c…",
     "trust_score": 0.87,
     "phase": "ordered",
-    "temperature": 0.14,
-    "distribution_shift_detected": false,
+    "risk_tier": "high",
+    "action_type": "write",
+    "target_environment": "prod",
+    "adversarial_detected": false,
+    "schema_valid": true,
+    "tool_forbidden": false,
+    "argument_tainted": false,
+    "coercion_detected": false,
+    "blackmail_pattern_detected": false,
     "counterfactual_passed": true,
     "evidence_action": "answer",
     "evidence_confidence": 0.91,
     "evidence_contradictions": 0,
     "contradiction_cycles": 0,
-    "require_rag": false,
-    "refuse_parametric_verdict": false,
-    "claim_graph_betti_1": 0,
+    "oracle_failures": 0,
+    "valid_oracle_count": 3,
     "conformal_score": null
   }
 }
 ```
+
+Two safeguards make the OPA path safe even against an incomplete policy:
+
+1. **Runtime hard-guard floor.** The adapter floors every OPA result with
+   `remora.policy.decision_engine.hard_guard_floor()` — the same function the
+   engine's own `decide()` uses as its first stage. A Rego policy that
+   ignores a security signal can tighten but never loosen the decision
+   (decision monotonicity, REM-003 extended to adapters).
+2. **Golden conformance check.** `scripts/opa_conformance.py` evaluates a
+   deterministic golden observation set through both the Python engine and
+   the Rego policy (`opa eval`) and fails on any hard-guard divergence.
+   Run with `--strict` against a full Rego port to prove complete
+   equivalence.
 
 ### Expected OPA output
 

@@ -97,4 +97,5 @@ markers = [
     "integration: tests that wire multiple modules together",
     "slow: tests that take more than 10 seconds (deselect with -m 'not slow')",
     "benchmark: reproducible benchmark runs against committed artifacts",
+    "opa_gate: OPA/Rego conformance tests (skip automatically when the opa binary is absent)",
 ]
