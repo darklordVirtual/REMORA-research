@@ -66,6 +66,29 @@ Custom span attributes to add as Grafana panels:
 - ``remora.entropy`` (time series)
 - ``remora.dissensus`` (time series)
 - ``remora.action`` (pie: accept/verify/abstain/escalate)
+
+OpenTelemetry GenAI semantic conventions
+----------------------------------------
+Governance spans additionally carry the standard ``gen_ai.*`` attributes
+(OTel GenAI semantic conventions) so REMORA traces correlate with any other
+GenAI-instrumented component in the same trace — agent frameworks, model
+gateways, tool runtimes — without a REMORA-specific dashboard:
+
+===============================  =============================================
+GenAI semconv attribute          Source
+===============================  =============================================
+``gen_ai.operation.name``        ``"execute_tool"`` for governed tool calls
+``gen_ai.tool.name``             tool name from the governed call
+``gen_ai.tool.call.id``          ``PolicyObservation.tool_call_hash``
+``gen_ai.agent.id``              caller-provided acting agent id
+``gen_ai.conversation.id``       ``PolicyObservation.session_id``
+===============================  =============================================
+
+The REMORA-specific signals (phase, entropy, dissensus, decision, policy
+version) remain under the ``remora.*`` namespace — they are governance
+attributes with no semconv equivalent, attached to the same span. Use
+``tool_governance_span()`` to get both families with semconv-compliant span
+naming (``execute_tool {tool.name}``).
 """
 from __future__ import annotations
 
@@ -136,6 +159,57 @@ class RemoraSpan:
             attrs[self.ATTR_PREFIX + "confidence"] = confidence
         if risk_estimate is not None:
             attrs[self.ATTR_PREFIX + "risk_estimate"] = risk_estimate
+        self._set_attrs(attrs)
+
+    def set_genai_context(
+        self,
+        operation_name: str | None = None,
+        tool_name: str | None = None,
+        tool_call_id: str | None = None,
+        agent_id: str | None = None,
+        conversation_id: str | None = None,
+    ) -> None:
+        """Attach OTel GenAI semantic-convention attributes (``gen_ai.*``).
+
+        Emitting the standard attribute names lets REMORA governance spans
+        join distributed traces produced by any other GenAI-instrumented
+        component (agent framework, model gateway, tool runtime) without
+        custom correlation config. Only provided values are set.
+        """
+        attrs: dict[str, str] = {}
+        if operation_name is not None:
+            attrs["gen_ai.operation.name"] = operation_name
+        if tool_name is not None:
+            attrs["gen_ai.tool.name"] = tool_name
+        if tool_call_id is not None:
+            attrs["gen_ai.tool.call.id"] = tool_call_id
+        if agent_id is not None:
+            attrs["gen_ai.agent.id"] = agent_id
+        if conversation_id is not None:
+            attrs["gen_ai.conversation.id"] = conversation_id
+        self._set_attrs(attrs)
+
+    def set_governance_outcome(
+        self,
+        action: str | None = None,
+        policy_version: str | None = None,
+        source_of_decision: str | None = None,
+        human_review_required: bool | None = None,
+    ) -> None:
+        """Attach the governance decision to the span (``remora.*`` family).
+
+        Complements ``set_outcome()`` with the policy-provenance fields audit
+        consumers need to correlate a trace with a DecisionEnvelope.
+        """
+        attrs: dict[str, Any] = {}
+        if action is not None:
+            attrs[self.ATTR_PREFIX + "action"] = action
+        if policy_version is not None:
+            attrs[self.ATTR_PREFIX + "policy_version"] = policy_version
+        if source_of_decision is not None:
+            attrs[self.ATTR_PREFIX + "decision_source"] = source_of_decision
+        if human_review_required is not None:
+            attrs[self.ATTR_PREFIX + "human_review_required"] = human_review_required
         self._set_attrs(attrs)
 
     def set_attribute(self, key: str, value: Any) -> None:
@@ -242,6 +316,47 @@ class RemoraTracer:
         span = self._start_span(
             f"remora.cascade.{stage}",
             {RemoraSpan.ATTR_PREFIX + "stage": stage, **attributes},
+        )
+        with span:
+            yield span
+
+    @contextlib.contextmanager
+    def tool_governance_span(
+        self,
+        tool_name: str,
+        *,
+        tool_call_id: str | None = None,
+        agent_id: str | None = None,
+        conversation_id: str | None = None,
+        **attributes: Any,
+    ) -> Iterator[RemoraSpan]:
+        """Span for one governed tool call, named per the OTel GenAI
+        semantic conventions (``execute_tool {tool_name}``) and stamped with
+        the ``gen_ai.*`` attribute family plus any ``remora.*`` extras.
+
+        Usage::
+
+            with tracer.tool_governance_span(
+                "update_work_order",
+                tool_call_id=obs.tool_call_hash,
+                agent_id="agent://maintenance-planner/07",
+                conversation_id=obs.session_id,
+            ) as span:
+                report = engine.decide(obs)
+                span.set_governance_outcome(
+                    action=report.action.value,
+                    policy_version=report.policy_version,
+                    source_of_decision=report.source_of_decision,
+                    human_review_required=report.human_review_required,
+                )
+        """
+        span = self._start_span(f"execute_tool {tool_name}", dict(attributes))
+        span.set_genai_context(
+            operation_name="execute_tool",
+            tool_name=tool_name,
+            tool_call_id=tool_call_id,
+            agent_id=agent_id,
+            conversation_id=conversation_id,
         )
         with span:
             yield span

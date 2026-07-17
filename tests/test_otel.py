@@ -103,3 +103,88 @@ class TestRemoraTracerInterface:
         tracer = NoOpTracer()
         span = tracer._start_span("test.span")
         assert isinstance(span, RemoraSpan)
+
+class _RecordingSpan:
+    """Minimal fake OTel span that records set_attributes calls."""
+
+    def __init__(self) -> None:
+        self.attributes: dict = {}
+
+    def set_attributes(self, attrs: dict) -> None:
+        self.attributes.update(attrs)
+
+    def set_attribute(self, key: str, value: object) -> None:
+        self.attributes[key] = value
+
+    def __enter__(self):  # noqa: ANN204
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        pass
+
+
+class TestGenAISemanticConventions:
+    """gen_ai.* attributes per the OTel GenAI semantic conventions."""
+
+    def _recording_remora_span(self) -> tuple[RemoraSpan, _RecordingSpan, bool]:
+        import remora.observability.otel as otel_mod
+        raw = _RecordingSpan()
+        span = RemoraSpan(raw)
+        # Force the attribute path even when opentelemetry-api is absent.
+        original = otel_mod._OTEL_AVAILABLE
+        otel_mod._OTEL_AVAILABLE = True
+        return span, raw, original
+
+    def test_set_genai_context_emits_standard_attributes(self) -> None:
+        import remora.observability.otel as otel_mod
+        span, raw, original = self._recording_remora_span()
+        try:
+            span.set_genai_context(
+                operation_name="execute_tool",
+                tool_name="update_work_order",
+                tool_call_id="hash-abc",
+                agent_id="agent://planner/07",
+                conversation_id="sess-1",
+            )
+        finally:
+            otel_mod._OTEL_AVAILABLE = original
+        assert raw.attributes["gen_ai.operation.name"] == "execute_tool"
+        assert raw.attributes["gen_ai.tool.name"] == "update_work_order"
+        assert raw.attributes["gen_ai.tool.call.id"] == "hash-abc"
+        assert raw.attributes["gen_ai.agent.id"] == "agent://planner/07"
+        assert raw.attributes["gen_ai.conversation.id"] == "sess-1"
+
+    def test_set_governance_outcome_uses_remora_namespace(self) -> None:
+        import remora.observability.otel as otel_mod
+        span, raw, original = self._recording_remora_span()
+        try:
+            span.set_governance_outcome(
+                action="verify",
+                policy_version="RemoraDecisionEngine-v3",
+                source_of_decision="opa_hard_guard_floor",
+                human_review_required=True,
+            )
+        finally:
+            otel_mod._OTEL_AVAILABLE = original
+        assert raw.attributes["remora.action"] == "verify"
+        assert raw.attributes["remora.policy_version"] == "RemoraDecisionEngine-v3"
+        assert raw.attributes["remora.decision_source"] == "opa_hard_guard_floor"
+        assert raw.attributes["remora.human_review_required"] is True
+
+    def test_tool_governance_span_noop_safe(self) -> None:
+        """Without OTel installed the semconv span is a silent no-op."""
+        tracer = NoOpTracer()
+        with tracer.tool_governance_span(
+            "update_work_order", tool_call_id="h", agent_id="a"
+        ) as span:
+            span.set_governance_outcome(action="escalate")
+        # No exception — governance instrumentation never breaks the gate.
+
+    def test_partial_genai_context_sets_only_provided(self) -> None:
+        import remora.observability.otel as otel_mod
+        span, raw, original = self._recording_remora_span()
+        try:
+            span.set_genai_context(tool_name="read_metrics")
+        finally:
+            otel_mod._OTEL_AVAILABLE = original
+        assert raw.attributes == {"gen_ai.tool.name": "read_metrics"}

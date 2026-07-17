@@ -13,6 +13,18 @@ Every decision is logged in an immutable `DecisionEnvelope` carrying a SHA-256 t
 
 Architecture bounded by documented assumptions. Results are from controlled experiments and internal benchmarks; external replication is pending. See the [Limitations](#limitations) section before drawing deployment conclusions.
 
+**Start here:** [Reference architecture](docs/reference_architecture.md) (the assurance control plane, plane by plane, with code pointers) · [Executive one-pager](docs/executive_onepager.md) (problem → architecture → demo → evidence → limitations → pilot shape).
+
+---
+
+## Industrial Maintenance Demo
+
+An RCA-style maintenance agent investigates pump vibration and proposes actions of escalating consequence. The demo drives the **real `RemoraDecisionEngine`** and shows the autonomy boundary as policy output: telemetry reads **ACCEPT**, the work-order proposal routes to **VERIFY** (parameters derive from retrieved documents — tainted input never auto-accepts), contradicting evidence **ABSTAIN**s, and direct equipment actuation hard-**ESCALATE**s on the forbidden-tool guard — analysis confidence cannot buy actuation authority that was never delegated. Outcomes are pinned by `tests/test_demo_industrial_maintenance.py`.
+
+```bash
+python scripts/demo_industrial_maintenance.py
+```
+
 ---
 
 ## Building Automation Demo
@@ -194,8 +206,12 @@ python -m pip install -e ".[dev]"
 # Full deterministic test suite (no API keys required)
 make test
 
-# Building automation demo (dry-run, zero network calls)
+# Demos (dry-run, zero network calls)
 python scripts/demo_building_lights.py
+python scripts/demo_industrial_maintenance.py
+
+# OPA/Rego golden conformance (requires the opa binary; skips explicitly without it)
+python scripts/opa_conformance.py
 
 # Held-out selective accuracy (headline claim 3)
 python experiments/end_to_end_n500_v3.py
