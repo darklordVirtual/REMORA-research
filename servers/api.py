@@ -239,12 +239,12 @@ _LATENCY_BUCKETS_MS = [100.0, 250.0, 500.0, 1000.0, 2000.0]
 # purpose. Adding a capability elsewhere without listing it here will fail the
 # _ALL_CAPABILITIES coverage test in tests/test_rbac_isolation.py.
 _ALL_CAPABILITIES: frozenset[str] = frozenset({
-    "assess", "evidence", "follow_up", "read", "rerun", "review",
+    "assess", "evidence", "execute", "follow_up", "read", "rerun", "review",
 })
 
 _BUILTIN_ROLE_PERMISSIONS: dict[str, set[str]] = {
     "admin": set(_ALL_CAPABILITIES),
-    "operator": {"assess", "evidence", "rerun", "read"},
+    "operator": {"assess", "evidence", "execute", "rerun", "read"},
     "reviewer": {"review", "follow_up", "read"},
     "domain_expert": {"review", "read"},
     "senior_authority": {"review", "read"},
@@ -860,12 +860,12 @@ def _load_token_table() -> dict[str, tuple[str, str]]:
             "Fix the env var or unset it to use single-token mode."
         ) from exc
 
-_TOKEN_TABLE = _load_token_table()
-
-
-# Optional credential -> human/service principal mapping (from REMORA_API_TOKENS
-# "actor_id" entries). Audit identity NEVER comes from client-controlled fields.
+# Optional credential -> principal mapping, populated by _load_token_table()
+# from "actor_id" entries — MUST exist before the loader runs at import time
+# (review finding: NameError aborted startup when actor_id was configured).
 _TOKEN_ACTOR_IDS: dict[str, str] = {}
+
+_TOKEN_TABLE = _load_token_table()
 
 
 def _authenticated_principal(request: Request) -> str:
@@ -1395,7 +1395,11 @@ def follow_up(req: FollowUpRequest, request: Request) -> dict:
             request_id=req.request_id,
             tenant_id=tenant_id,
             follow_up_type=req.follow_up_type,
-            requested_by=req.requested_by,
+            requested_by=(
+                _authenticated_principal(request)
+                + (f" (on_behalf_of={req.requested_by}, unverified)"
+                   if req.requested_by else "")
+            ),
             payload=req.payload,
             created_at=utc_now_iso(),
         )
@@ -1493,7 +1497,11 @@ def evidence(req: EvidenceRequest, request: Request) -> dict:
             tenant_id=tenant_id,
             evidence_type=req.evidence_type,
             payload=req.payload,
-            submitted_by=req.submitted_by,
+            submitted_by=(
+                _authenticated_principal(request)
+                + (f" (on_behalf_of={req.submitted_by}, unverified)"
+                   if req.submitted_by else "")
+            ),
             created_at=utc_now_iso(),
         )
     )

@@ -26,8 +26,8 @@ defaults:
 access_defaults:
   default_role: viewer
   role_permissions:
-    admin: ["assess", "evidence", "follow_up", "read", "rerun", "review"]
-    operator: ["assess", "evidence", "rerun", "read"]
+    admin: ["assess", "evidence", "execute", "follow_up", "read", "rerun", "review"]
+    operator: ["assess", "evidence", "execute", "rerun", "read"]
     reviewer: ["review", "follow_up", "read"]
     domain_expert: ["review", "read"]
     senior_authority: ["review", "read"]

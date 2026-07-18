@@ -56,3 +56,53 @@ def test_principal_falls_back_to_credential_fingerprint(monkeypatch) -> None:
     # Deterministic per credential; different credential -> different identity.
     assert principal == api_mod._authenticated_principal(_StubRequest("some-opaque-token"))
     assert principal != api_mod._authenticated_principal(_StubRequest("other-token"))
+
+
+def test_startup_with_actor_id_in_first_import(tmp_path) -> None:
+    """Review-7 P1: REMORA_API_TOKENS with actor_id set BEFORE first import
+    must not abort module init (the actor map must exist before the loader
+    runs). Subprocess = genuinely fresh import."""
+    import json as _json
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    env = dict(os.environ)
+    env["REMORA_API_TOKENS"] = _json.dumps(
+        {"tok_1": {"tenant": "acme", "role": "reviewer", "actor_id": "employee-123"}}
+    )
+    env["REMORA_ENV"] = "development"
+    proc = subprocess.run(
+        [sys.executable, "-c",
+         "import servers.api as a; assert a._TOKEN_ACTOR_IDS['tok_1'] == 'employee-123'; print('ok')"],
+        capture_output=True, text=True, env=env, timeout=120,
+        cwd=str(Path(__file__).resolve().parents[1]),
+    )
+    assert proc.returncode == 0, proc.stderr[-800:]
+    assert "ok" in proc.stdout
+
+
+def test_execution_endpoints_enforce_capabilities(monkeypatch) -> None:
+    """Review-7 P1: a viewer must not reach assess/execute; audit needs read."""
+    import pytest as _pytest
+
+    fastapi = _pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("REMORA_ENV", "development")
+    import servers.api as api_mod
+
+    monkeypatch.setattr(api_mod, "_authenticate", lambda request: ("acme", "viewer"))
+    monkeypatch.setattr(api_mod, "_authenticated_principal", lambda request: "v-1")
+    client = TestClient(api_mod.app)
+    r = client.post("/v1/execution/assess", json={"tool_name": "read_x"})
+    assert r.status_code == 403
+    r = client.post("/v1/execution/execute",
+                    json={"item_id": "x", "tool_call": {"tool_name": "t"}})
+    assert r.status_code == 403
+    # viewer HAS read -> audit verify is allowed
+    assert client.get("/v1/execution/audit/verify").status_code == 200
+    # reviewer lacks assess/execute as well
+    monkeypatch.setattr(api_mod, "_authenticate", lambda request: ("acme", "reviewer"))
+    assert client.post("/v1/execution/assess", json={"tool_name": "read_x"}).status_code == 403

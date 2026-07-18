@@ -95,7 +95,10 @@ def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
 
 @router.post("/assess")
 def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
-    tenant, _role, principal = _auth(request)
+    tenant, role, principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "assess")
     obs = _observation(req, tenant)
     report = _ENGINE.decide(obs)
     now = datetime.now(timezone.utc)
@@ -183,7 +186,10 @@ class ExecuteRequest(BaseModel):
 
 @router.post("/execute")
 def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
-    tenant, _role, principal = _auth(request)
+    tenant, role, principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "execute")
     if _ITEM_TENANT.get(req.item_id) != tenant:
         raise HTTPException(status_code=404, detail="review item not found")
     fresh_obs = _observation(req.tool_call, tenant)
@@ -227,6 +233,9 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
 
 @router.get("/audit/verify")
 def audit_verify(request: Request) -> dict[str, Any]:
-    tenant, _role, _principal = _auth(request)
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "read")
     ok, problems = _CHAIN.verify(tenant)
     return {"tenant": tenant, "valid": ok, "problems": problems}
