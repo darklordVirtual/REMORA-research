@@ -8,7 +8,8 @@ import json
 
 import pytest
 
-from servers import api as api_mod
+pytest.importorskip("fastapi")  # servers.api needs the 'api' extra
+from servers import api as api_mod  # noqa: E402
 
 
 def _table(role: str, actor: str | None = None) -> str:
