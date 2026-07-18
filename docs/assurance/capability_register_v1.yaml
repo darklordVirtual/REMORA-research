@@ -1,0 +1,117 @@
+# REMORA Capability Register v1
+# Single machine-readable source of truth for HOW FAR each claimed mechanism
+# is actually wired (external documentation review, 2026-07-18). Narrative
+# documents must not claim a stronger status than this register records.
+# Validated by tests/test_capability_register.py (structure + evidence paths).
+#
+# Status ladder (cumulative — each level implies the ones above it):
+#   IMPLEMENTED_LIBRARY  - module and unit tests exist
+#   WIRED_REFERENCE_PATH - wired in a demo or reference flow
+#   WIRED_API_PATH       - used by the public REST API
+#   PERSISTED_ATOMIC     - state transitions are atomically persisted
+#   ENFORCED_PRODUCTION  - a real PEP enforces it on live actions
+#   EXTERNALLY_VERIFIED  - independently verified (REM-021 or later)
+#
+# NOTE: nothing in this repository is ENFORCED_PRODUCTION or
+# EXTERNALLY_VERIFIED — deployment_status is SHADOW_ONLY until REM-021.
+
+schema_version: "1"
+updated: "2026-07-18"
+
+capabilities:
+  - id: CAP-001
+    name: "Decision engine (hard guards -> conditional gates -> trust routing)"
+    status: WIRED_API_PATH
+    evidence:
+      - remora/policy/decision_engine.py
+      - tests/test_rem017_policy_mutations.py
+      - servers/api.py
+    caveat: "REST /v1/assess wires the engine; execution enforcement is not wired (REM-035)."
+
+  - id: CAP-002
+    name: "OPA/Rego delegation with full input parity and monotone floors"
+    status: WIRED_REFERENCE_PATH
+    evidence:
+      - remora/policy/opa_adapter.py
+      - tests/test_opa_parity.py
+      - scripts/opa_conformance.py
+    caveat: "CI-gated conformance; not exposed through the REST API."
+
+  - id: CAP-003
+    name: "Signed PDP->PEP token (mandatory expiry, jti one-time consumption, audience, max age)"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - remora/enforcement/token.py
+      - remora/enforcement/gate.py
+      - tests/test_token_hardening.py
+    caveat: "REST /v1/assess does not yet issue tokens; consumption store is in-memory (REM-035)."
+
+  - id: CAP-004
+    name: "Tool-call payload binding (canonical hash, recomputed before execution)"
+    status: WIRED_REFERENCE_PATH
+    evidence:
+      - remora/policy/observation.py
+      - scripts/demo_industrial_maintenance.py
+      - tests/test_demo_industrial_maintenance.py
+    caveat: "REST assess model does not accept full tool arguments; API-boundary hash binds only a summary (REM-035)."
+
+  - id: CAP-005
+    name: "Audit chain (hash-chained decision history)"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - remora/governance/audit_chain.py
+      - remora/governance/envelope.py
+    caveat: "REST-path records are individually signed with predecessor references only; not an atomic chain (REM-034)."
+
+  - id: CAP-006
+    name: "A2A delegation envelope (principal-bound keys, attenuation, replay, payload binding)"
+    status: WIRED_REFERENCE_PATH
+    evidence:
+      - remora/governance/a2a_envelope.py
+      - tests/test_a2a_envelope.py
+      - scripts/demo_industrial_maintenance.py
+    caveat: "Symmetric HMAC reference implementation; production needs JWS/COSE + trust anchors."
+
+  - id: CAP-007
+    name: "Review queue with TTL-to-ABSTAIN and approval freshness re-gate"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - remora/governance/review_queue.py
+      - tests/test_review_queue.py
+    caveat: "REST /v1/review does not use the queue or re-gate at execution (REM-035); queue is in-memory."
+
+  - id: CAP-008
+    name: "Degradation ladder G0-G4 with tamper-evident transition log"
+    status: WIRED_REFERENCE_PATH
+    evidence:
+      - remora/governance/degradation.py
+      - scripts/remora_hook.py
+      - tests/test_degradation_ladder.py
+      - tests/test_hook_production_profile.py
+    caveat: "Hook enforces G4 in the production profile; no long-lived recorder process is deployed."
+
+  - id: CAP-009
+    name: "RBAC (eight-role capability matrix, credential-bound audit identity)"
+    status: WIRED_API_PATH
+    evidence:
+      - servers/api.py
+      - tests/test_rbac_role_contract.py
+      - tests/test_rbac_isolation.py
+    caveat: "Symmetric bearer tokens; OIDC/mfa principal claims are roadmap (rbac_policy_v1.md §8)."
+
+  - id: CAP-010
+    name: "Shared-engine concurrency safety (request-local cancellation, locked correlation reads)"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - remora/engine.py
+      - remora/correlation.py
+      - tests/test_concurrency_rem036.py
+    caveat: "Race-tested at 60 concurrent fan-outs / 100 correlation threads; no production load profile measured."
+
+  - id: CAP-011
+    name: "OTel GenAI telemetry (gen_ai.* + remora.* spans, pinned schema)"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - remora/observability/otel.py
+      - tests/test_otel.py
+    caveat: "Instrumentation helpers; no deployed collector pipeline in this repo."

@@ -38,11 +38,17 @@ class CorrelationMatrix:
                     self._samples[key].append(1 if a_v.equivalent_to(b_v) else 0)
 
     def rho(self, a, b):
-        """Return the rolling agreement rate ρ between providers a and b."""
+        """Return the rolling agreement rate ρ between providers a and b.
+
+        Reads snapshot under the same lock ``observe()`` writes under, so a
+        shared matrix cannot yield an inconsistent view mid-mutation
+        (external review REM-036).
+        """
         if a == b:
             return 1.0
         key = self._pair_key(a, b)
-        samples = self._samples.get(key)
+        with self._lock:
+            samples = list(self._samples.get(key) or ())
         return sum(samples) / len(samples) if samples else 0.0
 
     def rho_matrix(self, providers):

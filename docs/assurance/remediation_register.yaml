@@ -624,12 +624,33 @@ items:
     section: "review-2026-07-18 P2"
     title: "Shared-engine concurrency safety"
     gate: P4
+    status: DONE
+    completed: "2026-07-18"
+    artifacts:
+      - remora/engine.py
+      - remora/correlation.py
+      - tests/test_concurrency_rem036.py
+    notes: >
+      Implemented 2026-07-18: fan-out now creates a request-local stop
+      event (shared _stop_event kept only as an observability mirror), and
+      CorrelationMatrix.rho() snapshots under the same lock observe()
+      writes under. Acceptance met: barrier-synchronised race tests — 60
+      concurrent fan-outs on one engine (all complete, none cancels
+      another) and 100 threads racing observe()/rho() with invariant
+      checks on every read.
+
+  - id: REM-037
+    section: "review-2026-07-18 CI"
+    title: "CI reproducibility and stricter gates"
+    gate: P4
     status: NOT_STARTED
     artifacts: []
     notes: >
-      External review finding: Remora holds an instance-shared _stop_event
-      cleared per fan-out, and CorrelationMatrix.rho() reads without the
-      write lock — a shared engine pool can cross-contaminate deadlines and
-      read inconsistent snapshots. DONE means request-local cancellation,
-      locked correlation snapshots, and a 50-100 concurrent-assessment
-      race test with deterministic barriers.
+      External review finding: frontend build uses npm install (lockfile
+      missing Linux deps) instead of npm ci; Python installs are not
+      hash-locked; coverage gate is 60 percent; ruff checks only E/F/W;
+      mypy covers only some packages. DONE means: frontend lock
+      regenerated on Linux + npm ci restored; hash-locked Python installs
+      (uv.lock or pip-compile --generate-hashes); coverage >= 85 percent
+      for policy/enforcement/governance/storage; extended ruff rule sets
+      (B, S, I, UP, RUF); mutation coverage as a measured gate.

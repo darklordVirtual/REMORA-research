@@ -76,6 +76,7 @@ Process, audits, and specifications:
 | [`assurance/independent_review_protocol_v1.md`](assurance/independent_review_protocol_v1.md) | REM-021 independent-review protocol |
 | [`assurance/domain_pack_governance_v1.md`](assurance/domain_pack_governance_v1.md) | Domain-pack governance rules |
 | [`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md) | Partition + stale-approval resilience: design + implementation (REM-032/033 DONE) |
+| [`assurance/capability_register_v1.yaml`](assurance/capability_register_v1.yaml) | Machine-readable wiring-status register (six-level ladder; CI-validated) |
 
 Historical snapshots (banner-marked, preserved unedited):
 

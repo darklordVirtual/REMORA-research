@@ -154,7 +154,8 @@ class Remora:
         Returns responses in provider-registration order to preserve
 determinism.  Falls back to sequential execution on error.
 
-        The instance-level ``_stop_event`` is set when the deadline fires so
+        A request-local stop event is created per fan-out (and mirrored to
+        ``_stop_event`` for observability) and is set when the deadline fires so
         that oracle calls which are still queued are rejected without waiting
         for a thread to become available.  Already-running threads complete
         naturally (CPython cannot forcibly terminate threads), but no new
@@ -163,8 +164,10 @@ determinism.  Falls back to sequential execution on error.
         if len(self.oracles) < 2:
             return [o.ask(prompt) for o in self.oracles]
 
-        stop = self._stop_event
-        stop.clear()  # reset for this fan-out
+        # Request-local: a shared event would let concurrent assessments
+        # clear/set each other's deadline state (external review REM-036).
+        stop = threading.Event()
+        self._stop_event = stop  # kept for observability/backward-compat
 
         timeout_s = self.oracle_timeout_s
         if deadline_monotonic is not None:

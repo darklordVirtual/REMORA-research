@@ -294,6 +294,13 @@ boundaries are explicit:
   system, or OT gateway. Site adapters are deliberately thin: the contract
   surface (`PolicyObservation` in, `DecisionEnvelope` out) is the stable part.
 
+**How far each mechanism is actually wired** — library, reference path,
+API path, atomic persistence, production enforcement — is recorded per
+capability in the machine-readable
+[`assurance/capability_register_v1.yaml`](assurance/capability_register_v1.yaml)
+(CI-validated; narrative documents must not claim beyond it). Nothing is
+production-enforced or externally verified while deployment is SHADOW_ONLY.
+
 Partition behavior and approval-freshness semantics (what stops when a link
 goes down; when a human approval expires or is invalidated by a changed
 world) are specified in

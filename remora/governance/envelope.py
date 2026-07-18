@@ -1,4 +1,4 @@
-"""DecisionEnvelope v2 "” canonical decision contract for REMORA.
+"""DecisionEnvelope v2 — canonical decision contract for REMORA.
 
 This module defines the shared envelope schema used by both the backend
 consensus engine and the frontend Control Room.  Using a single
@@ -48,7 +48,7 @@ class AssessmentBlock:
 
 @dataclass(frozen=True)
 class GateBlock:
-    """Authoritative gate decision "” the single source of truth."""
+    """Authoritative gate decision — the single source of truth."""
 
     outcome: str
     blocked_action: str | None = None
@@ -137,7 +137,7 @@ class AuditBlock:
 
 @dataclass(frozen=True)
 class DecisionEnvelope:
-    """Top-level v2 envelope "” the canonical decision contract.
+    """Top-level v2 envelope — the canonical decision contract.
 
     All sub-blocks are immutable and JSON-serialisable.
     """
@@ -165,7 +165,7 @@ class DecisionEnvelope:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "DecisionEnvelope":
-        """Deserialise from a plain dict (minimal "” no deep validation)."""
+        """Deserialise from a plain dict (minimal — no deep validation)."""
         return cls(
             request=RequestBlock(**d["request"]),
             assessment=AssessmentBlock(**d["assessment"]),
