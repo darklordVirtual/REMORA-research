@@ -1,4 +1,4 @@
-# REMORA — Policy-Gated Governance for Operational AI Agents
+# REMORA  Policy-Gated Governance for Operational AI Agents
 
 REMORA is a pre-execution governance overlay for AI agents operating in environments where actions carry real operational consequences — building automation, energy management, infrastructure control, and regulated enterprise workflows. It governs proposed agent actions; it does not replace the agent. Before any proposed action executes, REMORA evaluates it through a deterministic policy layer and a multi-oracle consensus pipeline, returning one of four outcomes:
 
