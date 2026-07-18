@@ -1,0 +1,122 @@
+{
+  "schema_version": "aromer_cross_domain_transfer_v1",
+  "overall_accuracy": 0.8385,
+  "n_target_cases": 130,
+  "n_correct": 109,
+  "n_source_domains": 10,
+  "n_target_domains": 10,
+  "threshold": 0.5,
+  "protocol": "Leave-one-domain-out: abstract (action_type \u00d7 risk_tier) prior trained on all OTHER domains predicts harm on the held-out domain via p_harm_backoff. No target-domain episode is ever seen during that fold's training.",
+  "folds": [
+    {
+      "target_domain": "agentic",
+      "n_target_cases": 19,
+      "correct": 16,
+      "accuracy": 0.8421,
+      "n_source_updates": 111
+    },
+    {
+      "target_domain": "communication",
+      "n_target_cases": 7,
+      "correct": 2,
+      "accuracy": 0.2857,
+      "n_source_updates": 123
+    },
+    {
+      "target_domain": "database",
+      "n_target_cases": 22,
+      "correct": 20,
+      "accuracy": 0.9091,
+      "n_source_updates": 108
+    },
+    {
+      "target_domain": "financial",
+      "n_target_cases": 15,
+      "correct": 13,
+      "accuracy": 0.8667,
+      "n_source_updates": 115
+    },
+    {
+      "target_domain": "git",
+      "n_target_cases": 12,
+      "correct": 10,
+      "accuracy": 0.8333,
+      "n_source_updates": 118
+    },
+    {
+      "target_domain": "information",
+      "n_target_cases": 12,
+      "correct": 12,
+      "accuracy": 1.0,
+      "n_source_updates": 118
+    },
+    {
+      "target_domain": "infrastructure",
+      "n_target_cases": 15,
+      "correct": 13,
+      "accuracy": 0.8667,
+      "n_source_updates": 115
+    },
+    {
+      "target_domain": "medical",
+      "n_target_cases": 8,
+      "correct": 8,
+      "accuracy": 1.0,
+      "n_source_updates": 122
+    },
+    {
+      "target_domain": "network",
+      "n_target_cases": 10,
+      "correct": 9,
+      "accuracy": 0.9,
+      "n_source_updates": 120
+    },
+    {
+      "target_domain": "shell",
+      "n_target_cases": 10,
+      "correct": 6,
+      "accuracy": 0.6,
+      "n_source_updates": 120
+    }
+  ],
+  "cross_domain_transfer": {
+    "transfer_success": 0.8385,
+    "threshold": 0.5,
+    "measured": true,
+    "agentic_cases": 19,
+    "agentic_accuracy": 0.8421,
+    "communication_cases": 7,
+    "communication_accuracy": 0.2857,
+    "database_cases": 22,
+    "database_accuracy": 0.9091,
+    "financial_cases": 15,
+    "financial_accuracy": 0.8667,
+    "git_cases": 12,
+    "git_accuracy": 0.8333,
+    "information_cases": 12,
+    "information_accuracy": 1.0,
+    "infrastructure_cases": 15,
+    "infrastructure_accuracy": 0.8667,
+    "medical_cases": 8,
+    "medical_accuracy": 1.0,
+    "network_cases": 10,
+    "network_accuracy": 0.9,
+    "shell_cases": 10,
+    "shell_accuracy": 0.6
+  },
+  "n_episodes": 130,
+  "domains_evaluated": [
+    "agentic",
+    "communication",
+    "database",
+    "financial",
+    "git",
+    "information",
+    "infrastructure",
+    "medical",
+    "network",
+    "shell"
+  ],
+  "domains_dropped_below_min": [],
+  "source": "scripts/feed_aromer_episodes.py TEMPLATES (deterministic)"
+}

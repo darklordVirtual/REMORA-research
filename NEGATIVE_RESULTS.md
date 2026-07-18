@@ -842,6 +842,25 @@ window" constraint lapsed when REM-020 closed. Live cross-domain episodes can
 now be generated (batch ≤ 25 per the §9 lesson) to clear `transfer_live`;
 until that traffic exists this finding stays active.
 
+**Offline cross-domain transfer now MEASURED (2026-07-18) — but this does NOT
+clear the live gate.** The transfer question was previously unmeasured in
+*either* form. It is now measured offline: a leave-one-domain-out harness
+(`remora/aromer/evals/cross_domain_transfer.py`) trains an abstract
+`(action_type × risk_tier)` harm prior on all-but-one domain and predicts the
+held-out domain's harm labels from that structure alone —
+**83.8% transfer accuracy (109/130 across 10 domains)**, artifact
+`results/aromer_cross_domain_transfer_v1.json`, deterministic and
+offline-reproducible (`scripts/run_cross_domain_transfer.py`), pinned by
+`tests/test_cross_domain_transfer.py`. The per-domain breakdown is honest and
+non-uniform (communication 28.6%, medical/information 100%), which is the
+point: it shows the world model learned *transferable harm structure*, not
+just per-domain lookups. **Scope, stated plainly:** this is an offline
+measurement over the curated template corpus, not live adapt-window traffic;
+`crossDomainCases` in the worker still reads 0 and `interpretation_nuanced`
+still shows `TRANSFER_UNMEASURED` until organic cross-domain episodes exist.
+So this finding stays **active** for the live gate — but the transfer
+*capability* is no longer unevidenced.
+
 **Status:** Active — documented machine-readably in live API (`interpretation_evidence
 field). Does not affect AII value or production gate status.
 

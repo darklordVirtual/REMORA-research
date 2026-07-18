@@ -27,6 +27,10 @@ _SENSITIVITY  = 0.20   # max trust adjustment magnitude (±20%)
 _ALPHA_INIT   = 1.0    # uniform prior
 _BETA_INIT    = 1.0
 
+# Synthetic domain holding the domain-agnostic abstract prior used for
+# cross-domain transfer (§16). Never a real domain; excluded from all_stats.
+_ABSTRACT_DOMAIN = "__abstract__"
+
 # Bounded evidence mass (fixed-memory / discounted Beta). Without a cap, a
 # context's pseudo-count grows without bound (observed live: alpha=628, beta=1),
 # which (a) freezes calibration — a new observation moves p_harm by < 1/N, so
@@ -266,9 +270,54 @@ class DomainHarmPrior:
         result = []
         for key in self._priors:
             parts = key.split(":", 2)
-            if len(parts) == 3:
+            if len(parts) == 3 and parts[0] != _ABSTRACT_DOMAIN:
                 result.append(self.stats(*parts))
         return sorted(result, key=lambda s: s.p_harm, reverse=True)
+
+    # ------------------------------------------------------------------
+    # Cross-domain transfer (abstract harm structure)
+    # ------------------------------------------------------------------
+
+    def update_abstract(
+        self,
+        action_type: str,
+        risk_tier: str,
+        harm_occurred: bool,
+        weight: float = 1.0,
+    ) -> None:
+        """Update the domain-agnostic abstract prior over (action_type, risk_tier).
+
+        The abstract prior captures harm structure that generalises *across*
+        domains: a ``destructive_write`` on a ``critical`` tier tends to be
+        harmful whether the domain is ``database`` or ``medical``. It is
+        stored under the synthetic domain :data:`_ABSTRACT_DOMAIN`, so it
+        round-trips through the same persistence yet never collides with a
+        real domain key, and is excluded from ``all_stats``/``summary``.
+        """
+        self.update(_ABSTRACT_DOMAIN, action_type, risk_tier,
+                    harm_occurred=harm_occurred, weight=weight)
+
+    def p_harm_abstract(self, action_type: str, risk_tier: str) -> float:
+        """P(harm | action_type, risk_tier), domain-agnostic — the transfer
+        signal. Returns the uniform 0.5 until abstract evidence accrues."""
+        return self.p_harm(_ABSTRACT_DOMAIN, action_type, risk_tier)
+
+    def abstract_stats(self, action_type: str, risk_tier: str) -> DomainStats:
+        return self.stats(_ABSTRACT_DOMAIN, action_type, risk_tier)
+
+    def p_harm_backoff(self, domain: str, action_type: str, risk_tier: str) -> float:
+        """Harm probability with cross-domain backoff.
+
+        If the exact ``(domain, action_type, risk_tier)`` context has real
+        observations, its own prior is authoritative. For an **unseen domain**
+        the estimate backs off to the abstract ``(action_type, risk_tier)``
+        prior — this is how a context REMORA has never observed in a given
+        domain still inherits harm structure learned elsewhere. This backoff
+        is the mechanism the cross-domain transfer harness measures.
+        """
+        if self.stats(domain, action_type, risk_tier).n_observations > 0:
+            return self.p_harm(domain, action_type, risk_tier)
+        return self.p_harm_abstract(action_type, risk_tier)
 
     def summary(self) -> dict[str, Any]:
         all_s = self.all_stats()
