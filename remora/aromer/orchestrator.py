@@ -137,7 +137,12 @@ class AromerOrchestrator:
             action_type=obs.action_type or "execution",
             risk_tier=obs.risk_tier or "medium",
         )
-        world_adjustment = adjusted_trust - original_trust
+        # No trust signal to adjust (obs.trust_score is None) → no adjustment.
+        world_adjustment = (
+            (adjusted_trust - original_trust)
+            if (adjusted_trust is not None and original_trust is not None)
+            else 0.0
+        )
 
         # Build adjusted observation
         adjusted_obs = _replace_trust(obs, adjusted_trust)

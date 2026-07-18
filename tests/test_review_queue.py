@@ -202,3 +202,43 @@ def test_full_lifecycle_event_chain_verifies() -> None:
         "approval_granted",
         "approval_expired",
     ]
+
+
+def test_approved_escalate_with_fresh_abstain_does_not_execute() -> None:
+    """Review finding (fail-open): approved ESCALATE + fresh ABSTAIN has
+    severity 2<=3 but ABSTAIN must NEVER execute."""
+    queue, _ = _queue()
+    # Enqueue an ESCALATE item (contradiction forces ESCALATE).
+    obs = _obs(evidence_contradictions=1, contradiction_cycles=1)
+    item = queue.enqueue(obs, DecisionAction.ESCALATE)
+    queue.approve(item.item_id, approver="senior", approval_ttl=timedelta(minutes=15))
+    # Fresh world: contradiction resolved but only to ABSTAIN (not executable).
+    fresh_abstain = _obs(evidence_contradictions=2)  # ABSTAIN, no cycles
+    outcome = queue.execute(item.item_id, fresh_abstain)
+    assert outcome.decision is not ExecutionDecision.EXECUTE
+    assert item.status is not ItemStatus.EXECUTED
+
+
+def test_concurrent_execute_double_spend_is_prevented() -> None:
+    """Review finding: one approval must not yield two execution grants."""
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+    queue, _ = _queue()
+    obs = _obs()
+    item = queue.enqueue(obs, DecisionAction.VERIFY)
+    queue.approve(item.item_id, approver="ops", approval_ttl=timedelta(minutes=15))
+    barrier = threading.Barrier(8)
+    outcomes = []
+
+    def race() -> None:
+        barrier.wait(timeout=10)
+        try:
+            outcomes.append(queue.execute(item.item_id, obs).decision)
+        except ValueError:
+            outcomes.append("not_approved")  # lost the race → already executed
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for f in [pool.submit(race) for _ in range(8)]:
+            f.result(timeout=30)
+    executes = [o for o in outcomes if o is ExecutionDecision.EXECUTE]
+    assert len(executes) == 1  # exactly one grant, never two

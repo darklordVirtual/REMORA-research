@@ -256,7 +256,15 @@ class PolicyDecisionToken:
                     if now is not None
                     else datetime.now(UTC)
                 )
-            except ValueError:
+                # Coerce naive timestamps to UTC so a naive expires_at / now
+                # cannot raise TypeError on comparison (fail-closed: an
+                # unparseable/ambiguous time must yield verified=False, never
+                # an uncaught exception).
+                if expiry.tzinfo is None:
+                    expiry = expiry.replace(tzinfo=UTC)
+                if current.tzinfo is None:
+                    current = current.replace(tzinfo=UTC)
+            except (ValueError, TypeError):
                 return TokenVerificationResult(
                     verified=False,
                     reason="expiry_unparseable",

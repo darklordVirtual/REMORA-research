@@ -75,13 +75,18 @@ def compute_entry_hash(
     sequence_no: int,
     timestamp: str,
 ) -> str:
-    preimage = (
-        previous_hash
-        + _canonical(payload)
-        + tenant_id
-        + str(sequence_no)
-        + timestamp
-    )
+    # ASCII unit separator (0x1f) between every field so field boundaries are
+    # unambiguous: without it (tenant="a", seq=12) and (tenant="a1", seq=2)
+    # would hash identically. 0x1f cannot occur in any field value (hex hash,
+    # JSON, identifier, ISO timestamp), so it is an injective delimiter.
+    sep = "\x1f"
+    preimage = sep.join((
+        previous_hash,
+        _canonical(payload),
+        tenant_id,
+        str(sequence_no),
+        timestamp,
+    ))
     return hashlib.sha256(preimage.encode("utf-8")).hexdigest()
 
 
@@ -188,6 +193,7 @@ CREATE TABLE IF NOT EXISTS tenant_chain_entry (
 def _verify_generic(chain, tenant_id: str) -> tuple[bool, list[str]]:
     problems: list[str] = []
     previous_hash = _GENESIS
+    key = os.environ.get(_ENV_KEY, "").strip().encode()
     for i, e in enumerate(chain.entries(tenant_id)):
         if e.sequence_no != i:
             problems.append(f"sequence_gap_at:{i}")
@@ -196,6 +202,16 @@ def _verify_generic(chain, tenant_id: str) -> tuple[bool, list[str]]:
         if compute_entry_hash(e.previous_hash, e.payload, e.tenant_id,
                               e.sequence_no, e.timestamp) != e.entry_hash:
             problems.append(f"hash_mismatch_at:{i}")
+        # Durable-path signature check: a tamper-with-rehash (recomputing
+        # entry_hash after editing payload) is only caught by the HMAC, which
+        # requires the key the attacker does not hold.
+        if key and e.signature:
+            want = hmac.new(key, e.entry_hash.encode(), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(want, e.signature):
+                problems.append(f"signature_mismatch_at:{i}")
+        elif key and not e.signature:
+            # Key configured but an entry carries no signature -> stripped.
+            problems.append(f"signature_missing_at:{i}")
         previous_hash = e.entry_hash
     return (not problems, problems)
 

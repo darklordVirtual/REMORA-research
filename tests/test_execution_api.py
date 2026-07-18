@@ -275,3 +275,39 @@ def test_postgres_chain_contract() -> None:
     assert entry.sequence_no >= 0
     ok, problems = chain.verify("contract-test")
     assert ok, problems
+
+
+def test_durable_chain_signature_tamper_is_detected(tmp_path, monkeypatch) -> None:
+    """Review finding: _verify_generic must validate the HMAC signature, so a
+    tamper-with-rehash on the durable path is caught."""
+    monkeypatch.setenv("REMORA_AUDIT_SIGNING_KEY", "durable-chain-key")
+    from remora.governance.tenant_chain import SQLiteTenantChain, compute_entry_hash
+
+    db = str(tmp_path / "signed.db")
+    chain = SQLiteTenantChain(db)
+    chain.append("acme", {"event": "a"})
+    e = chain.append("acme", {"event": "b"})
+    assert chain.verify("acme")[0]
+    # Attacker edits the payload AND recomputes entry_hash (defeats hash check)
+    # but cannot forge the HMAC signature without the key.
+    import sqlite3
+    conn = sqlite3.connect(db)
+    forged_payload = '{"event":"TAMPERED"}'
+    forged_hash = compute_entry_hash(e.previous_hash, {"event": "TAMPERED"},
+                                     "acme", e.sequence_no, e.timestamp)
+    conn.execute("UPDATE tenant_chain_entry SET payload=?, entry_hash=? "
+                 "WHERE tenant_id=? AND sequence_no=?",
+                 (forged_payload, forged_hash, "acme", e.sequence_no))
+    conn.commit(); conn.close()
+    ok, problems = SQLiteTenantChain(db).verify("acme")
+    assert not ok
+    assert any(p.startswith("signature_mismatch") for p in problems)
+
+
+def test_hash_field_boundaries_are_unambiguous() -> None:
+    """Review finding: (tenant='a', seq=12) and (tenant='a1', seq=2) must not
+    collide — the separator makes field boundaries injective."""
+    from remora.governance.tenant_chain import compute_entry_hash
+    h1 = compute_entry_hash("0" * 64, {"e": 1}, "a", 12, "2026-07-18T00:00:00")
+    h2 = compute_entry_hash("0" * 64, {"e": 1}, "a1", 2, "2026-07-18T00:00:00")
+    assert h1 != h2

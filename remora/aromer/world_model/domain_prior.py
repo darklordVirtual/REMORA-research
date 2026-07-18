@@ -151,6 +151,11 @@ class DomainHarmPrior:
         In shadow_mode the adjustment is computed and logged but the original
         trust is returned, allowing safe monitoring before activation.
         """
+        if trust_score is None:
+            # No trust signal to adjust. The engine already handles a missing
+            # trust_score conservatively (no conformal accept path); AROMER must
+            # not crash the decision path on it — return it unchanged.
+            return trust_score
         st = self.stats(domain, action_type, risk_tier)
         ph = st.p_harm
 

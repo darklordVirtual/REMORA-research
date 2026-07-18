@@ -130,6 +130,10 @@ class ReviewQueue:
         self._default_queue_ttl = default_queue_ttl
         self._items: dict[str, PendingReview] = {}
         self._log = ChainedEventLog(sink=sink, now_fn=self._now_fn)
+        # Serialises approve/execute/expire so a single approval cannot be
+        # double-spent by concurrent execute() calls (non-atomic check-then-act).
+        import threading
+        self._lock = threading.RLock()
 
     # ------------------------------------------------------------------
     # Introspection
@@ -186,6 +190,10 @@ class ReviewQueue:
 
     def expire_due(self, now: datetime | None = None) -> list[PendingReview]:
         """Resolve every overdue PENDING item to ABSTAIN, with an event each."""
+        with self._lock:
+            return self._expire_due_locked(now)
+
+    def _expire_due_locked(self, now: datetime | None) -> list[PendingReview]:
         now = now or self._now_fn()
         expired: list[PendingReview] = []
         for item in self._items.values():
@@ -213,6 +221,15 @@ class ReviewQueue:
         approver: str,
         approval_ttl: timedelta,
     ) -> Approval:
+        with self._lock:
+            return self._approve_locked(item_id, approver, approval_ttl)
+
+    def _approve_locked(
+        self,
+        item_id: str,
+        approver: str,
+        approval_ttl: timedelta,
+    ) -> Approval:
         if approval_ttl <= timedelta(0) or approval_ttl > MAX_APPROVAL_TTL:
             raise ValueError(
                 "approval_ttl must be positive and at most "
@@ -225,7 +242,7 @@ class ReviewQueue:
             raise ValueError(f"item {item_id} is {item.status.value}, not pending")
         if now >= item.queue_deadline:
             # Overdue items must expire, not be approved after the fact.
-            self.expire_due(now)
+            self._expire_due_locked(now)
             raise ValueError(f"item {item_id} exceeded its queue TTL")
         approval = Approval(
             item_id=item_id,
@@ -258,6 +275,15 @@ class ReviewQueue:
         item_id: str,
         fresh_observation: PolicyObservation,
         now: datetime | None = None,
+    ) -> ExecutionOutcome:
+        with self._lock:
+            return self._execute_locked(item_id, fresh_observation, now)
+
+    def _execute_locked(
+        self,
+        item_id: str,
+        fresh_observation: PolicyObservation,
+        now: datetime | None,
     ) -> ExecutionOutcome:
         item = self._items[item_id]
         now = now or self._now_fn()
@@ -307,9 +333,16 @@ class ReviewQueue:
             )
 
         # 4c. Re-gate on the fresh observation: the approval survives only an
-        # equal-or-safer world (decision monotonicity over time).
+        # equal-or-safer world (decision monotonicity over time) AND only when
+        # the fresh decision is itself an executable outcome. ABSTAIN and
+        # ESCALATE never execute — a numerically-lower severity (e.g. approved
+        # ESCALATE=3, fresh ABSTAIN=2) must NOT be read as "safe to run".
         fresh = self._engine.decide(fresh_observation)
-        if _SEVERITY[fresh.action] <= _SEVERITY[approval.approved_action]:
+        _EXECUTABLE = (DecisionAction.ACCEPT, DecisionAction.VERIFY)
+        if (
+            fresh.action in _EXECUTABLE
+            and _SEVERITY[fresh.action] <= _SEVERITY[approval.approved_action]
+        ):
             item.status = ItemStatus.EXECUTED
             self._log.append(
                 "executed",

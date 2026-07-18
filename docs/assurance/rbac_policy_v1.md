@@ -24,16 +24,16 @@
 
 Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 
-| Role | assess | evidence | rerun | read | review | follow_up |
-|------|--------|----------|-------|------|--------|-----------|
-| admin | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| operator | ✓ | ✓ | ✓ | ✓ | — | — |
-| reviewer | — | — | — | ✓ | ✓ | ✓ |
-| domain_expert | — | — | — | ✓ | ✓ | — |
-| senior_authority | — | — | — | ✓ | ✓ | — |
-| soc_analyst | — | — | — | ✓ | ✓ | — |
-| legal_counsel | — | — | — | ✓ | ✓ | — |
-| viewer | — | — | — | ✓ | — | — |
+| Role | assess | evidence | execute | rerun | read | review | follow_up |
+|------|--------|----------|---------|-------|------|--------|-----------|
+| admin | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| operator | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
+| reviewer | — | — | — | — | ✓ | ✓ | ✓ |
+| domain_expert | — | — | — | — | ✓ | ✓ | — |
+| senior_authority | — | — | — | — | ✓ | ✓ | — |
+| soc_analyst | — | — | — | — | ✓ | ✓ | — |
+| legal_counsel | — | — | — | — | ✓ | ✓ | — |
+| viewer | — | — | — | — | ✓ | — | — |
 
 **Capability definitions:**
 - `assess` — submit a governance request (`POST /v1/assess`)
@@ -41,7 +41,10 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 - `rerun` — replay a request deterministically (`POST /v1/rerun`)
 - `read` — read envelopes and audit records (`GET /v1/envelope/*`, `GET /v1/audit/*`)
 - `review` — submit human review (`POST /v1/review`)
+- `execute` — execute an approved review item, consuming a one-time grant (`POST /v1/execution/execute`); granted to admin and operator only
 - `follow_up` — add follow-up information (`POST /v1/follow-up`)
+
+(`assess` also gates `POST /v1/execution/assess`; `review` gates `POST /v1/execution/approve`.)
 
 **Role enforcement:** `X-Remora-Role` header is validated against `REMORA_API_TOKENS` tenant map or the builtin table. An empty or missing role grants zero permissions. See `servers/api.py:_require_capability()`.
 

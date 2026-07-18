@@ -23,7 +23,8 @@ Deployment pattern:
     4. PEP verifies and enforces: gate.enforce(token, execute_fn)
 
 INTEGRATION STATUS: this package is a library plus its test suite
-(tests/test_rem013_pdp_pep_boundary.py); no runtime component in this repo
+    The PDP/PEP token flow is wired into the execution API
+    (servers/execution_api.py, /v1/execution/*); see capability_register CAP-003.
 issues or verifies tokens yet. The deployment pattern above is prescriptive,
 not a description of current wiring — actual runtime blocking happens in
 remora/adapters/action_gate.py, which calls the PDP directly. This is

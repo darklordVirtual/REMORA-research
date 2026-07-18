@@ -168,10 +168,47 @@ gate.check(token, expected_observation_hash=...)   # verify only
 gate.enforce(token, action_fn)                      # raises PermissionError unless ACCEPT
 ```
 
-`expires_at`, when set, is signed into the payload and enforced by
-`token.verify()`. **Integration status:** this package is a library plus its
-test suite; no runtime component in this repo issues or verifies tokens yet
-(see the package docstring). Do not cite it as integrated enforcement.
+Every token carries a **mandatory** signed `expires_at` (a default TTL is
+applied at issue when unset; `verify()` rejects any token without expiry as
+`missing_expiry`), a unique `jti` for one-time consumption, and an optional
+signed `audience`. `EnforcementGate.check(token, obs_hash, consume=True)`
+verifies the signature, expiry, max age and audience, and atomically consumes
+the `jti` so a token can authorise exactly one execution.
+
+**Integration status (SHADOW_ONLY):** the PDP→PEP token flow is wired into the
+live app via the execution API — `POST /v1/execution/assess` issues a
+short-lived signed token on ACCEPT, and `POST /v1/execution/execute` re-gates
+the fresh observation and consumes a one-time grant through the gate. The
+`jti`-consumption store is in-process (durable multi-node consumption is a
+deployment concern). See `servers/execution_api.py` and
+`docs/assurance/capability_register_v1.yaml` CAP-003 (WIRED_API_PATH).
+
+### Execution state machine — `servers/execution_api.py` (`/v1/execution/*`)
+
+The end-to-end path (REM-035): `POST /assess` (issues an ACCEPT token or
+enqueues a review item), `POST /approve` (records the authenticated principal;
+mandatory bounded TTL; profile-specific approval role enforced), `POST
+/execute` (re-gates the fresh observation, binds the exact payload, consumes a
+one-time grant), `GET /audit/verify` (recomputes the per-tenant chain). RBAC:
+`assess`/`execute` capabilities gate assess/execute; `review` gates approve;
+`read` gates audit.
+
+### Governance modules (library)
+
+- `remora/governance/tenant_chain.py` — `TenantAuditChain` (in-process) and the
+  durable `SQLiteTenantChain` / `PostgresTenantChain` adapters (REM-034):
+  `entry_hash` covers previous-hash, tenant, sequence and timestamp;
+  `append()` is atomic; `verify()` recomputes and checks the HMAC signature.
+- `remora/governance/review_queue.py` — `ReviewQueue`: enqueue (VERIFY/ESCALATE
+  only), TTL→ABSTAIN, mandatory-expiry approvals, execution-time re-gate
+  (only ACCEPT/VERIFY execute), all transitions hash-chained.
+- `remora/governance/degradation.py` — `DegradationRecorder` (G0–G4 ladder with
+  tamper-evident transitions) and `g4_refuses()`.
+- `remora/governance/a2a_envelope.py` — `A2AGovernanceEnvelope`, `RegisteredKey`
+  (principal-bound per-link keys), `sign_delegation_link()`.
+
+Wiring status per module is authoritative in
+`docs/assurance/capability_register_v1.yaml`.
 
 ---
 

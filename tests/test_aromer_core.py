@@ -660,3 +660,25 @@ def test_orchestrator_world_model_lowers_trust_when_shadow_disabled(tmp_path):
     # Next decision should have lower adjusted trust
     adjusted = aromer._world.adjust_trust(0.8, "dangerous", "execution", "critical")
     assert adjusted < 0.8
+
+
+def test_decide_does_not_crash_without_trust_score():
+    """Review P1: an observation with trust_score=None (the field default)
+    must not crash the AROMER decision path (TypeError on None arithmetic)."""
+    from remora.aromer import AromerOrchestrator
+    from remora.policy import PolicyObservation
+    a = AromerOrchestrator(world_model_shadow_mode=True)
+    obs = PolicyObservation(question="delete prod db", domain="database",
+                            risk_tier="critical", action_type="destructive_write")
+    assert obs.trust_score is None
+    report, episode_id = a.decide(obs)
+    assert report.action.value in ("accept", "verify", "abstain", "escalate")
+    assert episode_id
+
+
+def test_world_model_adjust_trust_handles_none():
+    from remora.aromer.world_model.domain_prior import DomainHarmPrior
+    p = DomainHarmPrior(path="/tmp/aromer-none-test")
+    p._priors = {}
+    assert p.adjust_trust(None, "d", "write", "high") is None
+    assert isinstance(p.adjust_trust(0.8, "d", "write", "high"), float)

@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
@@ -133,34 +134,40 @@ class ChainedEventLog:
         self._events: list[ChainedEvent] = []
         self._sink = sink
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self._lock = threading.Lock()
 
     @property
     def events(self) -> tuple[ChainedEvent, ...]:
         return tuple(self._events)
 
     def append(self, kind: str, payload: dict[str, Any]) -> ChainedEvent:
-        prev_hash = self._events[-1].entry_hash if self._events else _GENESIS
-        timestamp = self._now_fn().isoformat()
-        body = {
-            "sequence": len(self._events),
-            "timestamp": timestamp,
-            "kind": kind,
-            "payload": payload,
-        }
-        entry_hash = hashlib.sha256(
-            (prev_hash + _canonical(body)).encode("utf-8")
-        ).hexdigest()
-        event = ChainedEvent(
-            sequence=len(self._events),
-            timestamp=timestamp,
-            kind=kind,
-            payload=payload,
-            prev_hash=prev_hash,
-            entry_hash=entry_hash,
-        )
-        self._events.append(event)
-        if self._sink is not None:
-            self._sink(event)
+        # Lock the read-predecessor + append so concurrent callers cannot read
+        # the same tail and fork the tamper-evident chain.
+        with self._lock:
+            prev_hash = self._events[-1].entry_hash if self._events else _GENESIS
+            seq = len(self._events)
+            timestamp = self._now_fn().isoformat()
+            body = {
+                "sequence": seq,
+                "timestamp": timestamp,
+                "kind": kind,
+                "payload": payload,
+            }
+            entry_hash = hashlib.sha256(
+                (prev_hash + _canonical(body)).encode("utf-8")
+            ).hexdigest()
+            event = ChainedEvent(
+                sequence=seq,
+                timestamp=timestamp,
+                kind=kind,
+                payload=payload,
+                prev_hash=prev_hash,
+                entry_hash=entry_hash,
+            )
+            self._events.append(event)
+            sink = self._sink
+        if sink is not None:
+            sink(event)
         return event
 
     def verify(self) -> tuple[bool, list[str]]:
