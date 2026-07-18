@@ -41,11 +41,97 @@ explainable via `report.reasons` and the envelope's verification failures.
 """
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+# ---------------------------------------------------------------------------
+# Terminal presentation — an exclusive finish within plain-terminal limits.
+# Colour is used only on a real TTY, honours NO_COLOR and --no-color, and
+# degrades to clean ASCII so piping/CI output stays readable. None of this
+# touches the decision logic: every value shown is computed live below.
+# ---------------------------------------------------------------------------
+
+_WIDTH = 78
+
+
+class _Glyphs:
+    """Two glyph sets: refined box-drawing where the terminal encoding can
+    render it, clean ASCII where it cannot (Windows cp1252, dumb terminals)."""
+
+    def __init__(self, unicode_ok: bool) -> None:
+        if unicode_ok:
+            self.tl, self.tr, self.bl, self.br = "╔", "╗", "╚", "╝"
+            self.h, self.v, self.rule = "═", "║", "─"
+            self.acc, self.ver, self.abs, self.esc = "●", "◐", "○", "▲"
+            self.ok, self.bad, self.dot = "✓", "✗", "•"
+        else:
+            self.tl, self.tr, self.bl, self.br = "+", "+", "+", "+"
+            self.h, self.v, self.rule = "=", "|", "-"
+            self.acc, self.ver, self.abs, self.esc = "[+]", "[~]", "[o]", "[!]"
+            self.ok, self.bad, self.dot = "OK", "x", "-"
+
+
+def _unicode_ok() -> bool:
+    enc = (getattr(sys.stdout, "encoding", None) or "").lower()
+    if "utf" in enc:
+        return True
+    try:
+        "╔●◐○▲✓✗".encode(sys.stdout.encoding or "ascii")
+        return True
+    except (UnicodeEncodeError, LookupError, TypeError):
+        return False
+
+
+_ASCII_MAP = {
+    ord("\u2014"): "-",   # em dash
+    ord("\u2013"): "-",   # en dash
+    ord("\u00b7"): "/",   # middot
+    ord("\u2192"): "->",  # arrow
+    ord("\u2011"): "-",   # non-breaking hyphen
+}
+
+
+def _ascii(text: str) -> str:
+    return text.translate(_ASCII_MAP)
+
+
+class _Style:
+    def __init__(self, enabled: bool) -> None:
+        self.on = enabled
+
+    def _wrap(self, code: str, text: str) -> str:
+        return f"\x1b[{code}m{text}\x1b[0m" if self.on else text
+
+    def bold(self, t: str) -> str:   return self._wrap("1", t)
+    def dim(self, t: str) -> str:    return self._wrap("2", t)
+    def cyan(self, t: str) -> str:   return self._wrap("36", t)
+    def green(self, t: str) -> str:  return self._wrap("32", t)
+    def yellow(self, t: str) -> str: return self._wrap("33", t)
+    def red(self, t: str) -> str:    return self._wrap("91", t)
+    def gray(self, t: str) -> str:   return self._wrap("90", t)
+
+
+# Decision → (glyph attr on _Glyphs, colouriser attr on _Style)
+_VERDICT_STYLE = {
+    "ACCEPT":   ("acc", "green"),
+    "VERIFY":   ("ver", "yellow"),
+    "ABSTAIN":  ("abs", "gray"),
+    "ESCALATE": ("esc", "red"),
+}
+
+
+def _make_style() -> _Style:
+    enabled = (
+        sys.stdout.isatty()
+        and os.environ.get("NO_COLOR") is None
+        and "--no-color" not in sys.argv
+        and os.environ.get("TERM") != "dumb"
+    )
+    return _Style(enabled)
 
 from remora.governance.a2a_envelope import (  # noqa: E402
     A2AGovernanceEnvelope,
@@ -279,41 +365,85 @@ def build_actions() -> list[ProposedAction]:
 
 
 def main() -> int:
+    # Prefer UTF-8 so the refined glyphs render on any modern terminal; the
+    # ASCII fallback below handles the rest. Never fatal.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
     engine = RemoraDecisionEngine()
     actions = build_actions()
+    s = _make_style()
+    g = _Glyphs(_unicode_ok())
+    bullet_sep = " · " if _unicode_ok() else " / "
+    rule = s.gray(g.rule * _WIDTH)
 
-    width = 86
-    print("REMORA industrial-maintenance action-gating dry run (real RemoraDecisionEngine)")
-    print("=" * width)
-    print("Scenario: RCA agent investigated abnormal vibration on pump P-3101A.")
-    print(f"Delegated scope (A2A envelope, per-link signed): {', '.join(DELEGATED_SCOPE)}")
-    print("Safety model: no live industrial system is contacted; decisions are real.")
-    print("-" * width)
+    inner = _WIDTH - 2
 
+    def emit(text: str = "") -> None:
+        print(text if _unicode_ok() else _ascii(text))
+
+    # ── Banner ────────────────────────────────────────────────────────────
+    emit()
+    emit(s.cyan(g.tl + g.h * inner + g.tr))
+    title = "REMORA " + bullet_sep.strip() + " Assurance Control Plane"
+    sub = "Industrial Maintenance " + bullet_sep.strip() + " dry run"
+    gap = max(3, inner - 4 - len(title) - len(sub))
+    content = ("  " + title + " " * gap + sub + "  ")[:inner].ljust(inner)
+    emit(s.cyan(g.v) + s.bold(content) + s.cyan(g.v))
+    emit(s.cyan(g.bl + g.h * inner + g.br))
+    emit()
+
+    # ── Context ───────────────────────────────────────────────────────────
+    def meta(label: str, value: str) -> None:
+        emit(f"  {s.gray(label.ljust(10))}{value}")
+
+    meta("Scenario", "RCA agent investigated abnormal vibration on pump P-3101A")
+    meta("Delegated", s.dim(bullet_sep.join(DELEGATED_SCOPE)) + s.gray("   (A2A envelope, per-link signed)"))
+    meta("Safety", "no live industrial system is contacted — " + s.bold("every decision below is real"))
+    emit()
+
+    # ── Proposed actions ──────────────────────────────────────────────────
+    emit("  " + s.bold("PROPOSED ACTIONS") + s.gray("   agent -> A2A delegation -> RemoraDecisionEngine"))
+    emit("  " + rule)
     for action in actions:
         report = engine.decide(action.observation)
+        verdict = report.action.value.upper()
+        glyph_attr, colour = _VERDICT_STYLE.get(verdict, ("dot", "dim"))
+        glyph = getattr(g, glyph_attr)
+        paint = getattr(s, colour)
+        review = "human review" if report.human_review_required else "no review"
+        badge = paint(f"{glyph} {verdict:8s}")
+        emit(f"  {badge}  {s.bold(action.label)}"
+              + s.gray(f"   [{review}]"))
+        emit(f"             {s.dim(action.narrative)}")
         reason_codes = ", ".join(r.value for r in report.reasons)
-        review = "human review" if report.human_review_required else "no review needed"
-        print(f"{action.label:38s} -> {report.action.value.upper():8s} ({review})")
-        print(f"    {action.narrative}")
-        print(f"    capability: {action.capability}  |  reasons: {reason_codes}")
+        emit(f"             {s.gray('cap')} {action.capability}"
+              + s.gray("   reasons ") + s.dim(reason_codes))
         if action.delegation_failures:
-            print(f"    delegation verify FAILED: {', '.join(action.delegation_failures)}")
-    print("-" * width)
-    print("Interpretation:")
-    print("- Low-consequence reads ACCEPT: governance adds no friction where it isn't needed.")
-    print("- The work-order proposal routes to VERIFY via the explicit production-write")
-    print("  policy matrix (high-risk production write): a human approves before any")
-    print("  business-system write — the agent recommends, it does not apply.")
-    print("- With contradicting evidence the same proposal ABSTAINs: contradictions must")
-    print("  be resolved before a human is even asked to approve.")
-    print("- Direct OT actuation fails A2A scope verification (the capability was never")
-    print("  delegated); that failure feeds tool_forbidden and the engine hard-ESCALATEs.")
-    print("  Analysis confidence cannot buy actuation authority.")
+            emit(f"             {s.red(g.bad + ' delegation verify failed:')} "
+                  + s.red(", ".join(action.delegation_failures)))
+        emit()
+    emit("  " + rule)
 
-    # -- Replay and payload-binding demonstration ------------------------------
-    print("-" * width)
-    print("Replay/binding checks (same telemetry envelope, attacked two ways):")
+    # ── Interpretation ────────────────────────────────────────────────────
+    emit("  " + s.bold("WHAT THIS PROVES"))
+    for bullet in (
+        "Low-consequence reads ACCEPT — governance adds no friction where none is needed.",
+        "The work-order proposal routes to VERIFY via the production-write policy matrix:",
+        "  a human approves before any business-system write. The agent recommends, it does not apply.",
+        "Contradicting evidence turns the same proposal to ABSTAIN — resolve first, then ask a human.",
+        "Direct OT actuation fails A2A scope verification (never delegated) -> forbidden-tool -> ESCALATE.",
+        "  Analysis confidence cannot buy actuation authority.",
+    ):
+        lead = s.cyan("  " + g.dot) if not bullet.startswith("  ") else "   "
+        emit(f"  {lead} {s.dim(bullet.strip())}")
+    emit()
+
+    # ── Adversarial checks ────────────────────────────────────────────────
+    emit("  " + s.bold("ADVERSARIAL CHECKS") + s.gray("   one telemetry envelope, attacked two ways"))
+    emit("  " + rule)
     telemetry_hash = canonical_tool_call_hash(
         name="read_telemetry",
         arguments={"asset": "P-3101A", "signal": "vibration", "window": "24h"},
@@ -339,10 +469,22 @@ def main() -> int:
         signing_key=ENVELOPE_KEY, expected_audience=AUDIENCE,
         link_keys=LINK_KEYS, expected_tool_call_hash=other_payload,
     )
-    print(f"  first use              : {'VALID' if first.valid else first.failures}")
-    print(f"  replayed (same nonce)  : {'VALID' if replayed.valid else ', '.join(replayed.failures)}")
-    print(f"  different payload hash : {'VALID' if rebound.valid else ', '.join(rebound.failures)}")
-    print("  One envelope authorises one payload, once.")
+
+    def check(label: str, result, want_valid: bool) -> None:
+        if result.valid == want_valid:
+            mark, detail = (s.green(g.ok + " accepted") if result.valid
+                            else s.green(g.ok + " rejected")), ""
+        else:
+            mark, detail = s.red(g.bad + " unexpected"), ""
+        codes = "" if result.valid else s.dim("  " + ", ".join(result.failures))
+        emit(f"  {mark}  {label.ljust(26)}{codes}{detail}")
+
+    check("first use", first, True)
+    check("replayed (same nonce)", replayed, False)
+    check("different payload hash", rebound, False)
+    emit("  " + rule)
+    emit("  " + s.dim("One envelope authorises one payload, once."))
+    emit()
     return 0
 
 

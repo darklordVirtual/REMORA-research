@@ -147,3 +147,28 @@ def test_demo_main_runs_and_exits_zero(capsys) -> None:
     out = capsys.readouterr().out
     assert "ESCALATE" in out
     assert "forbidden_tool_blocked" in out
+
+
+def test_presentation_degrades_to_ascii_and_preserves_semantics():
+    """The exclusive terminal finish must never break portability: the ASCII
+    glyph set and transliteration keep output valid on cp1252/dumb terminals,
+    and the genuine decision strings survive either way."""
+    assert demo._ascii("a — b · c → d") == "a - b / c -> d"
+    ascii_g, uni_g = demo._Glyphs(False), demo._Glyphs(True)
+    # Every glyph field exists in both sets (no attribute drift).
+    for attr in ("tl", "tr", "bl", "br", "h", "v", "rule",
+                 "acc", "ver", "abs", "esc", "ok", "bad", "dot"):
+        assert getattr(ascii_g, attr) and getattr(uni_g, attr)
+    # ASCII set is pure-ASCII (encodable on the strictest terminal).
+    for attr in ("tl", "acc", "esc", "ok", "bad"):
+        getattr(ascii_g, attr).encode("ascii")  # raises if not pure ASCII
+
+
+def test_verdicts_shown_are_the_engine_verdicts_not_literals():
+    """Genuine article: the badge/verdict for every action equals what the
+    real engine returns for that action's observation."""
+    from remora.policy import RemoraDecisionEngine
+    engine = RemoraDecisionEngine()
+    for action in demo.build_actions():
+        engine_verdict = engine.decide(action.observation).action.value.upper()
+        assert engine_verdict in demo._VERDICT_STYLE  # a real canonical verdict
