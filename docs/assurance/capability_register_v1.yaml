@@ -26,7 +26,7 @@ capabilities:
       - remora/policy/decision_engine.py
       - tests/test_rem017_policy_mutations.py
       - servers/api.py
-    caveat: "REST /v1/assess wires the engine; execution enforcement is not wired (REM-035)."
+    caveat: "Wired via /v1/assess (decision only) and /v1/execution/* (full state machine incl. enforcement grants)."
 
   - id: CAP-002
     name: "OPA/Rego delegation with full input parity and monotone floors"
@@ -39,29 +39,32 @@ capabilities:
 
   - id: CAP-003
     name: "Signed PDP->PEP token (mandatory expiry, jti one-time consumption, audience, max age)"
-    status: IMPLEMENTED_LIBRARY
+    status: WIRED_API_PATH
     evidence:
       - remora/enforcement/token.py
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
-    caveat: "REST /v1/assess does not yet issue tokens; consumption store is in-memory (REM-035)."
+      - servers/execution_api.py
+    caveat: "Issued and consumed via /v1/execution/*; consumption store is in-process (durable jti store is a deployment concern)."
 
   - id: CAP-004
     name: "Tool-call payload binding (canonical hash, recomputed before execution)"
-    status: WIRED_REFERENCE_PATH
+    status: WIRED_API_PATH
     evidence:
       - remora/policy/observation.py
-      - scripts/demo_industrial_maintenance.py
-      - tests/test_demo_industrial_maintenance.py
-    caveat: "REST assess model does not accept full tool arguments; API-boundary hash binds only a summary (REM-035)."
+      - servers/execution_api.py
+      - tests/test_execution_api.py
+    caveat: "/v1/execution/assess hashes tool name + full arguments at the boundary; the legacy /v1/assess keeps summary binding until migrated."
 
   - id: CAP-005
     name: "Audit chain (hash-chained decision history)"
-    status: IMPLEMENTED_LIBRARY
+    status: WIRED_API_PATH
     evidence:
       - remora/governance/audit_chain.py
-      - remora/governance/envelope.py
-    caveat: "REST-path records are individually signed with predecessor references only; not an atomic chain (REM-034)."
+      - remora/governance/tenant_chain.py
+      - servers/execution_api.py
+      - tests/test_execution_api.py
+    caveat: "Atomic fork-free per-tenant chain on /v1/execution/* (in-process; Postgres DDL shipped); the legacy /v1/assess path keeps predecessor-reference records until migrated."
 
   - id: CAP-006
     name: "A2A delegation envelope (principal-bound keys, attenuation, replay, payload binding)"
@@ -74,11 +77,12 @@ capabilities:
 
   - id: CAP-007
     name: "Review queue with TTL-to-ABSTAIN and approval freshness re-gate"
-    status: IMPLEMENTED_LIBRARY
+    status: WIRED_API_PATH
     evidence:
       - remora/governance/review_queue.py
       - tests/test_review_queue.py
-    caveat: "REST /v1/review does not use the queue or re-gate at execution (REM-035); queue is in-memory."
+      - servers/execution_api.py
+    caveat: "Wired via /v1/execution/approve + /execute with fresh re-gate; queue is in-process (durable store is a deployment concern). Legacy /v1/review records only."
 
   - id: CAP-008
     name: "Degradation ladder G0-G4 with tamper-evident transition log"

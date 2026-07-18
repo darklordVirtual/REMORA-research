@@ -1635,3 +1635,10 @@ def rerun(req: RerunRequest, request: Request) -> dict:
         },
         "review_requirements": _extract_review_requirements(profile_cfg),
     }
+
+
+# REM-035: end-to-end execution state machine (assess -> review -> re-gate
+# -> one-time grant -> PEP consume), wired as a first-class API path.
+from servers.execution_api import router as _execution_router  # noqa: E402
+
+app.include_router(_execution_router)

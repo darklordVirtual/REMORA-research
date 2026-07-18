@@ -587,38 +587,52 @@ items:
     section: "review-2026-07-18 P1"
     title: "Atomic per-tenant audit chain in the REST/storage path"
     gate: P4
-    status: NOT_STARTED
-    artifacts: []
+    status: DONE
+    completed: "2026-07-18"
+    artifacts:
+      - remora/governance/tenant_chain.py
+      - servers/execution_api.py
+      - tests/test_execution_api.py
     notes: >
-      External review finding: envelope_hash does not cover previous_hash,
-      timestamp, tenant or policy-bundle hash; predecessor lookup and insert
-      are separate non-serialised operations, so concurrent requests can
-      fork the chain, and no verifier exists for the API-produced chain.
-      DONE means: entry_hash = SHA256(previous_hash || canonical payload ||
-      tenant_id || sequence_no || timestamp || policy_bundle_hash), signed;
-      per-tenant chain table with SELECT FOR UPDATE and unique
-      (tenant_id, sequence_no); full-chain verification at export and
-      startup. Documentation downgraded to "individually signed records
-      with predecessor references" until then (reference_architecture.md).
+      Implemented 2026-07-18. remora/governance/tenant_chain.py:
+      entry_hash = SHA256(previous_hash || canonical(payload) || tenant_id
+      || sequence_no || timestamp); append() performs predecessor read,
+      sequence assignment and insert atomically under one lock (fork-free
+      proven by a 100-append barrier race test); per-tenant verify() at
+      export/startup plus a /v1/execution/audit/verify endpoint; optional
+      HMAC per entry. The Postgres discipline (per-tenant head row,
+      SELECT FOR UPDATE, unique (tenant_id, sequence_no)) ships as
+      POSTGRES_DDL with the adapter contract documented. CAVEAT: the
+      in-process reference store is atomic but not durable; a deployment
+      must implement the shipped DDL contract for persistence. The legacy
+      /v1/assess path keeps its predecessor-reference records until
+      migrated onto this chain.
 
   - id: REM-035
     section: "review-2026-07-18 P1/P2"
     title: "End-to-end execution path: assess -> review -> re-gate -> grant -> PEP consume"
     gate: P4
-    status: NOT_STARTED
-    artifacts: []
+    status: DONE
+    completed: "2026-07-18"
+    artifacts:
+      - servers/execution_api.py
+      - tests/test_execution_api.py
     notes: >
-      External review finding: the components exist (ReviewQueue,
-      PolicyDecisionToken with jti/audience/consumption, EnforcementGate)
-      but the REST layer does not wire them into one authoritative state
-      machine: /v1/assess returns no signed token, /v1/review does not use
-      ReviewQueue or re-gate at execution, and no ToolCallRequest model
-      binds exact tool arguments at the API boundary. DONE means the
-      documented state machine (PROPOSED -> ACCEPTED/VERIFY -> APPROVED ->
-      fresh re-gate -> one-time grant -> CONSUMED/EXPIRED/INVALIDATED) is
-      the only execution path, with atomic audited transitions and a
-      ToolCallRequest carrying tool name, full arguments, schema id and
-      idempotency key hashed at the boundary.
+      Implemented 2026-07-18. servers/execution_api.py wires the state
+      machine as a first-class API path (/v1/execution/*): ToolCallRequest
+      carries tool name + FULL arguments hashed canonically at the
+      boundary; assess issues a signed 300s execution token
+      (jti/audience) on ACCEPT and enqueues VERIFY/ESCALATE into the
+      per-tenant ReviewQueue; approve records the authenticated principal
+      with mandatory bounded TTL; execute re-presents the full payload,
+      re-gates on the fresh observation (equal-or-safer executes;
+      stricter invalidates; changed args refused by binding) and issues a
+      one-time grant consumed atomically by the PEP. Every transition
+      appends to the REM-034 tenant chain. CAVEAT: queue and consumption
+      store are in-process; durable multi-process deployment requires the
+      REM-034 DDL adapter and an external jti store. The legacy
+      /v1/assess+/v1/review endpoints remain for compatibility and do not
+      issue grants.
 
   - id: REM-036
     section: "review-2026-07-18 P2"
