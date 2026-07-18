@@ -14,6 +14,7 @@ document without indexing it fails CI). Gate status lives in one place only:
 | Executive / non-technical | [`executive_onepager.md`](executive_onepager.md) · [`plain_language_overview.md`](plain_language_overview.md) |
 | Reproducing results | [`06-reproducibility.md`](06-reproducibility.md) — clone-and-run instructions |
 | Auditing claims | [`02-evidence-and-claims.md`](02-evidence-and-claims.md) · [`claim_register.md`](claim_register.md) · [`../NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md) |
+| Understanding the whole hardening arc | [`assurance/development_review_log_v1.md`](assurance/development_review_log_v1.md) — engineering & review log |
 
 ## Core series (the numbered narrative)
 
@@ -77,6 +78,7 @@ Process, audits, and specifications:
 | [`assurance/domain_pack_governance_v1.md`](assurance/domain_pack_governance_v1.md) | Domain-pack governance rules |
 | [`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md) | Partition + stale-approval resilience: design + implementation (REM-032/033 DONE) |
 | [`assurance/capability_register_v1.yaml`](assurance/capability_register_v1.yaml) | Machine-readable wiring-status register (six-level ladder; CI-validated) |
+| [`assurance/development_review_log_v1.md`](assurance/development_review_log_v1.md) | Engineering & review log — the whole hardening arc, artifact-linked (start here for the story) |
 
 Historical snapshots (banner-marked, preserved unedited):
 

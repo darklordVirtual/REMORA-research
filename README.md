@@ -224,6 +224,9 @@ Full negative results and documented gaps: [NEGATIVE_RESULTS.md](NEGATIVE_RESULT
 
 ## Experimental Research: AROMER Live Status
 
+> **Cross-domain transfer (measured 2026-07-19).** AROMER's abstract harm prior transfers across domains it never trained on at **83.8% accuracy** (leave-one-domain-out, 109/130 over 10 domains): `results/aromer_cross_domain_transfer_v1.json`, reproduce with `python scripts/run_cross_domain_transfer.py`. This evidences the transfer *capability* offline; it does not clear the live worker's transfer gate (see [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §16).
+
+
 AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's **experimental** closed-loop learning layer — adaptive calibration research layered on top of the governance control plane. Nothing in the control plane depends on it, and its metrics are not evidence for the core governance system (see Limitations above). It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII) — a weighted composite of five diagnostic dimensions. Status is updated every 6 hours by automated GitHub Actions telemetry.
 
 <!-- LIVE_STATUS_START -->

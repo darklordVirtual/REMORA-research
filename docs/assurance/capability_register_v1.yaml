@@ -16,7 +16,7 @@
 # EXTERNALLY_VERIFIED — deployment_status is SHADOW_ONLY until REM-021.
 
 schema_version: "1"
-updated: "2026-07-18"
+updated: "2026-07-19"
 
 capabilities:
   - id: CAP-001
@@ -119,3 +119,14 @@ capabilities:
       - remora/observability/otel.py
       - tests/test_otel.py
     caveat: "Instrumentation helpers; no deployed collector pipeline in this repo."
+
+  - id: CAP-012
+    name: "AROMER cross-domain transfer measurement (abstract harm-prior backoff)"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - remora/aromer/world_model/domain_prior.py
+      - remora/aromer/evals/cross_domain_transfer.py
+      - scripts/run_cross_domain_transfer.py
+      - results/aromer_cross_domain_transfer_v1.json
+      - tests/test_cross_domain_transfer.py
+    caveat: "OFFLINE measurement (leave-one-domain-out over the curated corpus): 83.8% transfer accuracy. NOT the live worker gate — crossDomainCases still reads 0 and interpretation stays TRANSFER_UNMEASURED until organic cross-domain traffic exists (NEGATIVE_RESULTS §16)."
