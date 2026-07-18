@@ -77,6 +77,8 @@ def client(monkeypatch):
     monkeypatch.setattr(api_mod, "_authenticated_principal", lambda request: "employee-1")
     monkeypatch.setattr(api_mod, "_require_tenant_capability",
                         lambda role, tenant, cap: None)
+    monkeypatch.setattr(api_mod, "_enforce_review_approval_role",
+                        lambda **kwargs: None)
     # Reset module state between tests.
     exec_mod._QUEUES.clear()
     exec_mod._ITEM_TENANT.clear()
@@ -172,3 +174,42 @@ def test_cross_tenant_item_access_is_refused(client) -> None:
     api_mod._authenticate = lambda request: ("other-tenant", "reviewer")
     r = client.post("/v1/execution/approve", json={"item_id": item_id})
     assert r.status_code == 404
+
+
+def test_profile_approval_role_is_enforced(client, monkeypatch) -> None:
+    """Review-8 finding: a generic reviewer must not approve an item whose
+    risk profile reserves approval for a stronger role."""
+    import servers.api as api_mod
+    from fastapi import HTTPException
+
+    item_id = client.post("/v1/execution/assess", json=PROD_WRITE).json()["review_item_id"]
+
+    def real_enforce(**kwargs):
+        # Simulate the tenant profile: high risk requires domain_expert.
+        if kwargs["role"] not in {"domain_expert", "senior_authority", "admin"}:
+            raise HTTPException(status_code=403, detail="approval role insufficient")
+
+    monkeypatch.setattr(api_mod, "_enforce_review_approval_role", real_enforce)
+    # Authenticated as generic "reviewer" (fixture) -> refused.
+    r = client.post("/v1/execution/approve", json={"item_id": item_id})
+    assert r.status_code == 403
+    # Stronger role passes.
+    monkeypatch.setattr(api_mod, "_authenticate", lambda request: ("acme", "domain_expert"))
+    assert client.post("/v1/execution/approve", json={"item_id": item_id}).status_code == 200
+
+
+def test_approve_passes_item_risk_tier_to_profile_resolution(client, monkeypatch) -> None:
+    """The item's own observation risk tier drives profile selection."""
+    import servers.api as api_mod
+
+    seen: dict = {}
+    original = api_mod._resolve_tenant_policy_profile
+
+    def spy(tenant, risk_tier):
+        seen["risk_tier"] = risk_tier
+        return original(tenant, risk_tier)
+
+    monkeypatch.setattr(api_mod, "_resolve_tenant_policy_profile", spy)
+    item_id = client.post("/v1/execution/assess", json=PROD_WRITE).json()["review_item_id"]
+    client.post("/v1/execution/approve", json={"item_id": item_id})
+    assert seen["risk_tier"] == "high"

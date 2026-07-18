@@ -154,6 +154,24 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
     api_mod._require_tenant_capability(role, tenant, "review")
     if _ITEM_TENANT.get(req.item_id) != tenant:
         raise HTTPException(status_code=404, detail="review item not found")
+    # Profile-specific approval role (review-8 finding): a generic reviewer
+    # must not approve what the tenant's risk profile reserves for
+    # domain_expert/senior_authority. The item's own observation carries the
+    # authoritative risk tier; same enforcement path as legacy /v1/review.
+    try:
+        item = _queue(tenant).item(req.item_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="review item not found") from exc
+    risk_tier = item.observation.risk_tier
+    _, profile_cfg = api_mod._resolve_tenant_policy_profile(
+        tenant, str(risk_tier) if risk_tier is not None else None
+    )
+    api_mod._enforce_review_approval_role(
+        role=role,
+        tenant_id=tenant,
+        decision="approved",
+        review_requirements=api_mod._extract_review_requirements(profile_cfg),
+    )
     try:
         approval = _queue(tenant).approve(
             req.item_id, approver=principal,
