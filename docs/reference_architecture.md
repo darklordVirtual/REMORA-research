@@ -288,6 +288,13 @@ boundaries are explicit:
   system, or OT gateway. Site adapters are deliberately thin: the contract
   surface (`PolicyObservation` in, `DecisionEnvelope` out) is the stable part.
 
+Partition behavior and approval-freshness semantics (what stops when a link
+goes down; when a human approval expires or is invalidated by a changed
+world) are specified in
+[`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md) —
+implemented mechanisms mapped with code pointers, remaining scope tracked as
+REM-032/REM-033.
+
 Full inventory of caveats and negative results:
 [NEGATIVE_RESULTS.md](../NEGATIVE_RESULTS.md),
 [README — Limitations](../README.md#limitations).

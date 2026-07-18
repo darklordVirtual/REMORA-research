@@ -75,6 +75,7 @@ Process, audits, and specifications:
 | [`assurance/red_team_plan_v1.md`](assurance/red_team_plan_v1.md) | Red-team plan |
 | [`assurance/independent_review_protocol_v1.md`](assurance/independent_review_protocol_v1.md) | REM-021 independent-review protocol |
 | [`assurance/domain_pack_governance_v1.md`](assurance/domain_pack_governance_v1.md) | Domain-pack governance rules |
+| [`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md) | Partition + stale-approval resilience plan (design; REM-032/033) |
 
 Historical snapshots (banner-marked, preserved unedited):
 

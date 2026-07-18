@@ -530,3 +530,41 @@ items:
       deployment context requires it) with a DPIA, field-level minimization,
       and an AI Act technical-documentation pack. Governing law: Regulation
       (EU) 2016/679 (GDPR); Regulation (EU) 2024/1689 (AI Act). Not legal advice.
+
+  - id: REM-032
+    section: "resilience-plan §1-2"
+    title: "Partition degradation ladder G0-G4 with recorded mode transitions"
+    gate: P4
+    status: NOT_STARTED
+    artifacts:
+      - docs/assurance/resilience_plan_v1.md
+    notes: >
+      Design in resilience_plan_v1.md. Scope: degradation recorder emitting
+      audit-chain events on G0-G4 transitions; production hook profile that
+      fails CLOSED for mutating/production actions when the control plane is
+      unreachable (current scripts/remora_hook.py default is fail-open, a
+      documented research-mode exception); review-queue TTL resolving
+      unattended VERIFY/ESCALATE items to ABSTAIN with a recorded expiry
+      event. Acceptance: simulated per-link partition tests; degradation
+      events present in the audit chain; hook test proving mutating actions
+      refuse under G4 in the production profile.
+
+  - id: REM-033
+    section: "resilience-plan §3"
+    title: "Approval freshness contract — mandatory expiry + execution-time re-gate"
+    gate: P4
+    status: NOT_STARTED
+    artifacts:
+      - docs/assurance/resilience_plan_v1.md
+    notes: >
+      Design in resilience_plan_v1.md. Payload binding already exists
+      (canonical_tool_call_hash + observation hash recomputed at the
+      enforcement gate). Remaining scope: mandatory expires_at on
+      VERIFY/ESCALATE approvals (closes audit finding F-2 legacy no-expiry
+      mode); execution-time re-gate re-running decide() on a fresh
+      observation with monotone severity comparison (approval survives an
+      equal-or-safer world, never overrides a riskier one);
+      approval_invalidated audit events. Acceptance: expired approval
+      returns to queue; fresh-stricter voids with recorded event;
+      fresh-equal-or-safer executes; argument change already refused by
+      hash binding.
