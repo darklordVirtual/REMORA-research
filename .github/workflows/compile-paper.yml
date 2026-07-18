@@ -2,7 +2,7 @@ name: Compile Paper PDF
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - 'paper/remora_paper.tex'
       - '.github/workflows/compile-paper.yml'
@@ -38,11 +38,11 @@ jobs:
           python -m pip install --quiet pymupdf
           python scripts/check_paper_overflow.py paper/remora_paper.pdf
 
-      # Only main owns the committed PDF. Branch runs (workflow_dispatch)
+      # Only master owns the committed PDF. Branch runs (workflow_dispatch)
       # validate compile + layout without committing, which prevents the
       # recurring binary merge conflict: every PR that touched the .tex used
       # to carry its own CI-compiled PDF that collided with the PDF the
-      # main-branch run committed right after the previous merge.
+      # master-branch run committed right after the previous merge.
       - name: Commit PDF
         if: github.ref == 'refs/heads/main'
         uses: stefanzweifel/git-auto-commit-action@v5
