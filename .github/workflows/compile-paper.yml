@@ -44,7 +44,7 @@ jobs:
       # to carry its own CI-compiled PDF that collided with the PDF the
       # master-branch run committed right after the previous merge.
       - name: Commit PDF
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/master'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ci: compile remora_paper.pdf from LaTeX source [skip ci]"
