@@ -535,36 +535,50 @@ items:
     section: "resilience-plan §1-2"
     title: "Partition degradation ladder G0-G4 with recorded mode transitions"
     gate: P4
-    status: NOT_STARTED
+    status: DONE
+    completed: "2026-07-18"
     artifacts:
       - docs/assurance/resilience_plan_v1.md
+      - remora/governance/degradation.py
+      - scripts/remora_hook.py
+      - tests/test_degradation_ladder.py
+      - tests/test_hook_production_profile.py
     notes: >
-      Design in resilience_plan_v1.md. Scope: degradation recorder emitting
-      audit-chain events on G0-G4 transitions; production hook profile that
-      fails CLOSED for mutating/production actions when the control plane is
-      unreachable (current scripts/remora_hook.py default is fail-open, a
-      documented research-mode exception); review-queue TTL resolving
-      unattended VERIFY/ESCALATE items to ABSTAIN with a recorded expiry
-      event. Acceptance: simulated per-link partition tests; degradation
-      events present in the audit chain; hook test proving mutating actions
-      refuse under G4 in the production profile.
+      Implemented 2026-07-18. remora/governance/degradation.py:
+      DegradationRecorder derives the mode (worst down link wins) and
+      appends every transition - degradation AND recovery - to a
+      hash-chained, tamper-evident event log (verify_chain detects any
+      modification); g4_refuses() uses the decision engine's own
+      mutating/production vocabularies so hook and engine cannot drift.
+      scripts/remora_hook.py gained REMORA_HOOK_PROFILE=production: implies
+      fail-closed error paths and refuses every above-LOW action when the
+      control plane is unreachable (G4); the research default's fail-open
+      behavior is preserved as the documented local exception. Review-queue
+      TTL -> ABSTAIN implemented in remora/governance/review_queue.py
+      (shared with REM-033). Acceptance met: per-link partition tests,
+      recovery-event tests, chain-tamper detection, and hook tests proving
+      production-profile refusal under G4.
 
   - id: REM-033
     section: "resilience-plan §3"
     title: "Approval freshness contract — mandatory expiry + execution-time re-gate"
     gate: P4
-    status: NOT_STARTED
+    status: DONE
+    completed: "2026-07-18"
     artifacts:
       - docs/assurance/resilience_plan_v1.md
+      - remora/governance/review_queue.py
+      - tests/test_review_queue.py
     notes: >
-      Design in resilience_plan_v1.md. Payload binding already exists
-      (canonical_tool_call_hash + observation hash recomputed at the
-      enforcement gate). Remaining scope: mandatory expires_at on
-      VERIFY/ESCALATE approvals (closes audit finding F-2 legacy no-expiry
-      mode); execution-time re-gate re-running decide() on a fresh
-      observation with monotone severity comparison (approval survives an
-      equal-or-safer world, never overrides a riskier one);
-      approval_invalidated audit events. Acceptance: expired approval
-      returns to queue; fresh-stricter voids with recorded event;
-      fresh-equal-or-safer executes; argument change already refused by
-      hash binding.
+      Implemented 2026-07-18. remora/governance/review_queue.py: ReviewQueue
+      with enqueue restricted to VERIFY/ESCALATE; queue-TTL expiry to
+      ABSTAIN with recorded events (REM-032 item); Approval with MANDATORY
+      bounded expiry (0 < ttl <= 24h - the F-2 legacy no-expiry mode does
+      not exist in this API); execute() re-gate: expired approval returns
+      the item to the queue (approval_expired), payload-hash mismatch is
+      refused (binding_refused), and the engine re-decides on the fresh
+      observation - the approval survives only an equal-or-safer world
+      (monotone severity), otherwise approval_invalidated is recorded and
+      the item re-queues with the stricter fresh action. All events
+      hash-chained. Acceptance met: all four register criteria covered,
+      including a full-lifecycle chain-verification test.

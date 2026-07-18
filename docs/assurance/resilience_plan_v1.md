@@ -1,9 +1,14 @@
 # Partition and Stale-Approval Resilience Plan (v1)
 
-**Status:** DESIGN PLAN — this document specifies required behavior and maps
-it against what is implemented today. Nothing here is claimed as implemented
-unless it carries a code pointer. Roadmap items are registered as REM-032 and
-REM-033 in [`remediation_register.yaml`](remediation_register.yaml).
+**Status:** IMPLEMENTED (2026-07-18) — REM-032 and REM-033 are DONE in
+[`remediation_register.yaml`](remediation_register.yaml). Implementation:
+`remora/governance/degradation.py` (ladder + tamper-evident transition log),
+`remora/governance/review_queue.py` (queue TTL, mandatory-expiry approvals,
+execution-time re-gate), `scripts/remora_hook.py`
+(`REMORA_HOOK_PROFILE=production` refuses above-LOW actions under G4).
+Tests: `tests/test_degradation_ladder.py`, `tests/test_review_queue.py`,
+`tests/test_hook_production_profile.py`. This document remains the design
+rationale; on any discrepancy the code + tests win.
 **Date:** 2026-07-18
 
 Two failure classes this plan covers, both raised in internal review:
@@ -29,9 +34,9 @@ mode-degradation rule, [`../01-architecture.md`](../01-architecture.md)).
 | PDP → oracle pool | Quorum gate: consultation attempted but < 2 valid votes → VERIFY (`INSUFFICIENT_ORACLE_VOTES`). `remora/policy/decision_engine.py` | **Implemented** |
 | PDP → PEP (token) | Signed token; expiry (when set) is inside the signed payload; enforcement gate recomputes the observation hash and refuses on mismatch, tamper, or expiry. `remora/enforcement/` | **Implemented** (expiry optional — see §3) |
 | A2A counterparty | Envelope expiry, clock-skew bounds, nonce replay guard, fail-closed verification. `remora/governance/a2a_envelope.py` | **Implemented** |
-| Agent hook → control plane | `scripts/remora_hook.py` has a global fail-closed switch **defaulting to fail-open** ("a hook bug never blocks the agent") — an unreachable control plane currently allows the action with a warning. Deliberate for research/local use; **not acceptable as a production default** for mutating/production actions. | **Gap → REM-032** |
-| Control plane → human review channel | Undefined. VERIFY/ESCALATE items have no specified queue semantics when no reviewer is reachable. | **Gap → REM-032** |
-| Control plane → AROMER telemetry | Engine operates on REMORA defaults when learning telemetry is absent (AROMER is advisory by design and can only tighten); but the absence itself is not recorded as a degradation event. | **Partial → REM-032** |
+| Agent hook → control plane | `REMORA_HOOK_PROFILE=production` refuses every above-LOW action when the control plane is unreachable (G4) and implies fail-closed error paths; the research default keeps the documented fail-open local behavior. `scripts/remora_hook.py`, `tests/test_hook_production_profile.py` | **Implemented (REM-032)** |
+| Control plane → human review channel | Queue TTL: unattended VERIFY/ESCALATE items resolve to ABSTAIN with a recorded `review_expired_to_abstain` event. `remora/governance/review_queue.py` | **Implemented (REM-032)** |
+| Control plane → AROMER telemetry | Engine operates on REMORA defaults when telemetry is absent (advisory-only by design); the outage is now recordable as a G1 transition via `DegradationRecorder`. | **Implemented (REM-032)** |
 
 ## 2. Required behavior: the degradation ladder (REM-032)
 
@@ -114,6 +119,7 @@ re-collected.
 | REM-032 | Degradation ladder G0–G4: recorder emitting audit-chain events on mode transitions; hook production profile (fail-closed for mutating/production under G4); review-queue TTL → ABSTAIN with recorded expiry | Simulated partition tests per link; degradation events present in audit chain; hook test proving mutating actions refuse when control plane is unreachable in production profile |
 | REM-033 | Approval freshness: mandatory `expires_at` on VERIFY/ESCALATE approvals (close audit F-2); execution-time re-gate with monotone severity comparison; `approval_invalidated` audit events | Tests: expired approval → queue; fresh-stricter → void + recorded; fresh-equal-or-safer → executes; argument change → refused by existing hash binding |
 
-Both are P4 (hardening) items: this plan is the design artifact; no code
-changes accompany it (development is frozen except bugfixes — the plan
-exists precisely so the freeze does not silently swallow these two gaps).
+Both items are DONE (2026-07-18) — implemented with the acceptance criteria
+above as tests. Deployment wiring (which process hosts the recorder and the
+queue, and where the JSONL event exports land) remains a deployment concern;
+the semantics are fixed here and pinned by the test suites.

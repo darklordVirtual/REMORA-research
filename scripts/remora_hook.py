@@ -39,13 +39,25 @@ DRIFT_WARN_THRESHOLD = float(os.environ.get("REMORA_HOOK_DRIFT_WARN_THRESHOLD", 
 DRIFT_BLOCK_THRESHOLD = float(os.environ.get("REMORA_HOOK_DRIFT_BLOCK_THRESHOLD", "0.92"))
 # Fail-closed for HIGH-risk by default — set REMORA_HOOK_REQUIRE_REMOTE=0 to opt out
 REQUIRE_REMOTE_FOR_HIGH = os.environ.get("REMORA_HOOK_REQUIRE_REMOTE", "1") != "0"
+# Deployment profile (REM-032, resilience_plan_v1.md §2, mode G4):
+#   "research"   (default) — permissive: error paths and an unreachable
+#                control plane fail OPEN with a warning, so a hook bug never
+#                blocks a local research agent.
+#   "production" — fail CLOSED: error paths block, and when the control
+#                plane is unreachable every action that reached the remote
+#                stage (i.e. anything above LOW risk) refuses. Read-only
+#                LOW-risk actions never reach the remote stage and continue
+#                with local guards only.
+PROFILE = os.environ.get("REMORA_HOOK_PROFILE", "research").strip().lower()
+PRODUCTION_PROFILE = PROFILE == "production"
 # Global fail-closed switch for the ERROR paths (malformed input, missing
 # required fields, unexpected exceptions). Default "0" preserves the permissive
 # research/local behavior (fail-open so a hook bug never blocks the agent).
 # Set REMORA_HOOK_FAIL_CLOSED=1 for any real actuator boundary: then a hook
 # that cannot produce a valid governance decision BLOCKS the action rather than
 # allowing it (external security audit finding P0-B). Exit codes: 0=allow, 2=block.
-FAIL_CLOSED = os.environ.get("REMORA_HOOK_FAIL_CLOSED", "0") == "1"
+# The production profile implies fail-closed regardless of this switch.
+FAIL_CLOSED = os.environ.get("REMORA_HOOK_FAIL_CLOSED", "0") == "1" or PRODUCTION_PROFILE
 
 
 def _fail_exit(reason: str) -> None:
@@ -275,9 +287,24 @@ def main() -> None:
     result = remora_verify(claim, context, session_id)
 
     if "error" in result:
-        # Remote verifier unavailable. HIGH-risk always blocks (when
-        # REQUIRE_REMOTE_FOR_HIGH); under FAIL_CLOSED, MEDIUM risk blocks too
-        # rather than proceeding on an unverified action.
+        # Remote verifier unavailable — this is governance mode G4 (control
+        # plane unreachable; REM-032). HIGH-risk always blocks (when
+        # REQUIRE_REMOTE_FOR_HIGH); under FAIL_CLOSED or the production
+        # profile, everything that reached the remote stage blocks rather
+        # than proceeding on an unverified action.
+        if PRODUCTION_PROFILE:
+            tracker.record(tool_name, "ABSTAIN", 0.25, drift_score=drift)
+            _print_block(
+                "G4: control plane unreachable (production profile)",
+                [
+                    f"Tool: {tool_name}",
+                    f"Risk: {assessment.risk.value} ({assessment.reason})",
+                    f"Error: {str(result.get('error', 'unknown'))[:140]}",
+                    "Production profile refuses unverified non-read-only actions "
+                    "during a control-plane partition (resilience_plan_v1.md, G4).",
+                ],
+            )
+            sys.exit(2)
         if (assessment.risk == RiskLevel.HIGH and REQUIRE_REMOTE_FOR_HIGH) or FAIL_CLOSED:
             tracker.record(tool_name, "ABSTAIN", 0.25, drift_score=drift)
             _print_block(
