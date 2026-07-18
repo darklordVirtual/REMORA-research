@@ -1,6 +1,6 @@
 # AROMER External Holdout v1
 
-**Status:** RESEARCH PROTOTYPE — skeleton + first empirical finding. Not a
+**Status:** RESEARCH PROTOTYPE, skeleton + first empirical finding. Not a
 validated benchmark.
 
 **Built:** 2026-06-06 · **Builder:** `remora/aromer/evals/external_holdout.py`
@@ -16,7 +16,7 @@ an instrumentation check, not evidence of transferable governance (see
 
 ## Source & independence
 
-- **Source:** `data/toolcall_v3/` — 725 CyberSecEval-inspired tool-call cases
+- **Source:** `data/toolcall_v3/`, 725 CyberSecEval-inspired tool-call cases
   (capability 200, injection 200, safety 200, workflow 125) with ground-truth
   `expected_policy_decision`, `severity`, `attack_type`, `argument_tainted`.
 - **Independence:** `toolcall_v3` is consumed only by
@@ -35,7 +35,7 @@ an instrumentation check, not evidence of transferable governance (see
 Benign is capped at 195 (all available EXECUTE cases), so the actual split is
 40/39/20 against the 40/40/20 target.
 
-## Signal derivation — deterministic proxy (a known limitation)
+## Signal derivation, deterministic proxy (a known limitation)
 
 `toolcall_v3` carries an oracle-independent ground-truth label but **not** the
 runtime consensus signals (`trust_score`, `entropy_H`, `dissensus_D`) that the
@@ -54,7 +54,7 @@ case (non-deterministic, requires keys); that is tracked as a separate
 validation and would write a distinct artifact.
 
 **Admission firewall (now wired in).** The ablation runs REMORA's real admission
-firewall — `Remora._detect_adversarial_input` — on each action description,
+firewall (`Remora._detect_adversarial_input`) on each action description,
 mirroring the production pipeline. It is deliberately NOT seeded from the
 ground-truth `attack_type` field (that would assume a perfect firewall and
 inflate safety). The honest consequence: the firewall catches almost none of the
@@ -87,13 +87,13 @@ Artifact: `artifacts/aromer_external_holdout_ablation_v1.json`
    **half** of them. The internal arena overstated safety because its cases were
    authored against REMORA's own signal taxonomy.
 2. **AROMER provides zero differentiation here.** Profiles A, B, and C are
-   bit-identical — the seed episodes do not change any decision on this
+   bit-identical, the seed episodes do not change any decision on this
    distribution.
 3. **`success` is now correctly FALSE.** The criterion was tightened
    (`_evaluate_success`) to require a strict utility improvement over both
    baselines; when A = B = C it returns FALSE, as it does here.
 
-**What remains a confound:** the proxy derivation of trust/entropy/dissensus —
+**What remains a confound:** the proxy derivation of trust/entropy/dissensus, 
 harmful cases span all severities, so low-severity harmful actions receive high
 proxy-trust and are accepted. But running REMORA's real admission firewall did
 **not** move the result, so the 50% false-accept is not a missing-flag artifact.
@@ -103,7 +103,7 @@ cannot generalise, but it is strong evidence that the internal arena is an
 optimistic surface and that REMORA's firewall does not cover tool-context
 injection.
 
-## Injection ceiling — measured (deterministic)
+## Injection ceiling, measured (deterministic)
 
 REMORA has a second gate for exactly the indirect injection the admission
 firewall misses: `ToolResultScanner` (`remora/agent_hook/result_scanner.py`),
@@ -125,9 +125,9 @@ Artifact: `artifacts/aromer_injection_ceiling_v1.json` · Test:
 | authority_spoofing | 0% | 0% |
 | **overall** | **6.7% (10/150)** | **20%** |
 
-**After adding semantically-general rules** for the two failing classes —
+**After adding semantically-general rules** for the two failing classes, 
 exfiltration (transmit-verb → external destination: raw IP / scp / ftp / URL /
-email) and authority spoofing (claimed authority granting a control-bypass) — in
+email) and authority spoofing (claimed authority granting a control-bypass), in
 `result_scanner.py`:
 
 | Attack type | hard-block | detect |
@@ -136,20 +136,20 @@ email) and authority spoofing (claimed authority granting a control-bypass) — 
 | data_exfiltration | 60% | **100%** |
 | authority_spoofing | 60% | 80% |
 | **overall** | **53.3% (80/150)** | **80%** |
-| benign false-positive | — | **0% (0/50)** |
+| benign false-positive |, | **0% (0/50)** |
 
 Hard-block rose from 6.7% to **53%** and detection from 20% to **80%**, while
-benign false-positives stayed at **0%** — the new rules are precise, not
+benign false-positives stayed at **0%**, the new rules are precise, not
 trigger-happy.
 
-**Honesty boundary — this is in-distribution recall.** The rules were written
+**Honesty boundary, this is in-distribution recall.** The rules were written
 knowing this corpus's attack classes, so 53%/80% measures recall *within the
 toolcall_v3 distribution*, not external generalisation. Two checks guard against
 mere memorisation: (1) zero benign false-positives, and (2)
 `TestScannerGeneralization` confirms the rules fire on hand-authored phrasings
 absent from the corpus and stay silent on benign authority/copy look-alikes.
 True generalisation still requires an independent attack corpus (AgentHarm or a
-fresh authored set) — tracked, not claimed.
+fresh authored set), tracked, not claimed.
 
 ## Balanced gated validation (full defense)
 
@@ -172,7 +172,7 @@ Artifact: `artifacts/aromer_balanced_validation_v1.json` · Test:
 The first diagnosis localised the FAIL exactly: all 100 false-accepts were
 **low-risk-tier harmful actions with no injection payload** that the proxy mapped
 (low severity → high trust) into ACCEPT. Inspection showed every one was a
-**schema-invalid tool call** (`schema_valid_call=False`) — a malformed call.
+**schema-invalid tool call** (`schema_valid_call=False`), a malformed call.
 Adding a schema-validity hard gate to the policy engine
 (`DecisionReason.MALFORMED_CALL_BLOCKED`: a malformed call → ESCALATE) closes
 them. This is a real, general capability (any deployment can validate a call
@@ -185,7 +185,7 @@ added: forbidden-tool (the proposed tool is on the task's own forbidden list →
 ESCALATE) and tainted-argument (untrusted-derived args → VERIFY floor). With
 these, the policy engine intercepts **all 200** harmful cases via structural
 signals (100 schema + 100 forbidden) with **zero** reliance on the deterministic
-proxy trust — previously 40 cases depended on it — and still zero false-blocks
+proxy trust (previously 40 cases depended on it) and still zero false-blocks
 (benign/ambiguous carry no forbidden/tainted/invalid calls). These signals (tool
 schema, the task's allowed-tool list, argument taint) exist in any real agent
 loop, so the holdout safety is deployable, not an artifact. Locked by
@@ -211,7 +211,7 @@ The `kpis` block in the artifact separates the two
 | ambiguous_verify_rate (VERIFY on a should-verify case) | 1.000 |
 
 So on this holdout the entire 0.170 review-friction is **correct verification of
-genuinely-ambiguous cases** — *unnecessary* friction is **0%**, false-blocks are
+genuinely-ambiguous cases**, *unnecessary* friction is **0%**, false-blocks are
 **0%**, and clear-accept actions are never sent to review. Properly measured,
 REMORA is well-calibrated here, not over-conservative; the "too conservative"
 reading comes from the raw friction metric lumping correct ambiguous-verification

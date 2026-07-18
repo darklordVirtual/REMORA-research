@@ -59,12 +59,12 @@ where:
 
 - **H** = Shannon entropy = `Σ -p·log₂(p)` over the verdict distribution
 - **σ²** = population variance of `individual_confidences`
-- **k\_eff** = `exp(H)` — the effective number of competing answers
+- **k\_eff** = `exp(H)`, the effective number of competing answers
 - **mean\_conf** = mean of `individual_confidences`
 - **max\_support** = largest weight in `weighted_distribution`
 - **ρ̄** = `rho_bar`, clamped to `[0, 1]`
 
-**Return:** `max(T, 1e-9)` — always strictly positive.
+**Return:** `max(T, 1e-9)`, always strictly positive.
 
 **Design intent:** The formula keeps temperature informative even when all oracles
 agree on the pre-sweep. In that regime entropy is zero and max\_support is 1, but
@@ -121,11 +121,11 @@ T_c = λ · (1 - ρ̄) / log(k)
 
 where:
 
-- **λ** (`lambda_coupling`) — coupling strength, controls how strongly oracle
+- **λ** (`lambda_coupling`), coupling strength, controls how strongly oracle
   disagreement penalises free energy
-- **ρ̄** (`rho_bar`) — mean pairwise oracle correlation; higher correlation lowers
+- **ρ̄** (`rho_bar`), mean pairwise oracle correlation; higher correlation lowers
   `T_c` (the system is easier to disorder)
-- **k** — number of distinct verdict fingerprints observed in the pre-sweep
+- **k**, number of distinct verdict fingerprints observed in the pre-sweep
 
 When `k <= 1`, `T_c = ∞` (the system is trivially ordered; no phase transition is
 possible).
@@ -166,8 +166,8 @@ where:
 
 | Factor | Default | Description |
 |---|---|---|
-| η | — | Order parameter (consensus strength) |
-| `halluc_bound` | — | Upper bound on false-consensus rate from `hallucination_bound()` |
+| η |, | Order parameter (consensus strength) |
+| `halluc_bound` |, | Upper bound on false-consensus rate from `hallucination_bound()` |
 | `phase_weight` | 1.0 / 0.5 / 0.1 | Per-phase multiplier (ordered / critical / disordered) |
 | `fragility_penalty` | `1 / (1 + χ / chi_scale)` | Penalises high susceptibility (default `chi_scale=10`) |
 

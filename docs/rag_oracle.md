@@ -1,9 +1,9 @@
-# REMORA RAG Oracle — Technical Reference
+# REMORA RAG Oracle: Technical Reference
 
 **CloudflareRAGOracle** is an evidence-grounded oracle node for the REMORA
 multi-oracle consensus framework. It retrieves authoritative documents from a
 curated vector knowledge base and synthesises a verdict grounded exclusively in
-primary sources — providing an independent signal with an orthogonal failure mode
+primary sources, providing an independent signal with an orthogonal failure mode
 to parametric LLM oracles.
 
 ---
@@ -13,14 +13,14 @@ to parametric LLM oracles.
 REMORA's ablation study (N = 75) found three items where all LLM oracles agreed
 on the wrong answer. These *unanimous consensus failures* arise when:
 
-1. **Shared training-data bias** — multiple LLMs are trained on overlapping
+1. **Shared training-data bias**, multiple LLMs are trained on overlapping
    web-scale corpora and inherit the same errors or omissions.
-2. **Domain under-coverage** — specialised regulatory or scientific text is
+2. **Domain under-coverage**, specialised regulatory or scientific text is
    unevenly distributed across training datasets.
 
 The RAG oracle breaks this pattern because its knowledge is **retrieved at
 inference time from authoritative primary sources**, not encoded in model weights.
-Its failure mode — a *retrieval gap* (document not in corpus) — is orthogonal to
+Its failure mode (a *retrieval gap* (document not in corpus)) is orthogonal to
 training-data bias.
 
 ### Predicted inter-oracle correlation
@@ -86,7 +86,7 @@ OracleResponse → phi() → CorrelationMatrix → weighted_consensus → V(x_t)
 
 ## Usage
 
-### Basic — query existing knowledge base
+### Basic, query existing knowledge base
 
 ```python
 from remora.oracles.cloudflare_rag import CloudflareRAGOracle
@@ -216,9 +216,9 @@ oracle.ingest(
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `GET` | `/status` | — | Corpus statistics and health |
-| `GET` | `/search?q=&k=&domain=` | — | Raw vector search (debug) |
-| `POST` | `/query` | — | Ask a question; returns REMORA verdict |
+| `GET` | `/status` |, | Corpus statistics and health |
+| `GET` | `/search?q=&k=&domain=` |, | Raw vector search (debug) |
+| `POST` | `/query` |, | Ask a question; returns REMORA verdict |
 | `POST` | `/ingest` | Bearer | Ingest a document chunk |
 
 ### POST /query
@@ -276,12 +276,12 @@ Live evaluation against the REMORA test suite (five representative queries):
 
 The key advantage: the RAG oracle explicitly refuses to answer from prior knowledge.
 When the corpus does not contain relevant evidence, it returns `answer: null` with
-`confidence: 0.0` — signalling to REMORA that it abstains rather than guessing.
+`confidence: 0.0`: signalling to REMORA that it abstains rather than guessing.
 This abstention signal is handled gracefully by the weighted consensus mechanism.
 
 ---
 
-## Coverage Analysis — N=544 + N=1000 Offline Simulation
+## Coverage Analysis: N=544 + N=1000 Offline Simulation
 
 The analysis below quantifies how the RAG oracle converts the narrow
 high-precision window of LLM-only selective trust into a wide, stable operating
@@ -290,25 +290,25 @@ live Cloudflare Vectorize oracle runs. Reproducing with the live oracle requires
 `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` (see `REPRODUCIBILITY NOTE`
 in `experiments/selective_n1000.py`).
 
-### Selective trust curve — N=544 calibrated benchmark
+### Selective trust curve: N=544 calibrated benchmark
 
 ![Selective trust curve N=544 with and without RAG oracle](figures/fig_n1000_a_selective_trust.png)
 
 **How to read this chart:**
-The x-axis is *coverage* — the fraction of incoming queries REMORA chooses to
+The x-axis is *coverage*, the fraction of incoming queries REMORA chooses to
 answer rather than abstain. The y-axis is *precision* on those answered queries.
 Shaded bands are 95% Wilson confidence intervals.
 
-- **REMORA (no RAG) — blue solid line:** Without the RAG oracle the
+- **REMORA (no RAG), blue solid line:** Without the RAG oracle the
   precision-coverage curve forms an inverted-U. It peaks at **88.8% precision
   at 18% coverage**, but as coverage rises REMORA must include progressively
   less-certain items. Precision collapses to **30% at 60% coverage**.
-- **REMORA + RAG — orange dashed line:** The RAG oracle answers items where
+- **REMORA + RAG, orange dashed line:** The RAG oracle answers items where
   the LLM ensemble abstains. The curve stays **flat at 79–83% across all
   coverage levels from 25% to 60%**. RAG does not improve precision on
-  already-confident LLM items — its value is exclusively in preventing the
+  already-confident LLM items, its value is exclusively in preventing the
   collapse at higher coverage.
-- **Baseline — grey dotted line:** Unfiltered majority vote: 41.18%.
+- **Baseline: grey dotted line:** Unfiltered majority vote: 41.18%.
 
 > **Key finding:** The RAG oracle converts a narrow high-precision window
 > (88.8% @ 18%) into a wide, stable operating region (≥78% at any coverage up
@@ -326,7 +326,7 @@ Annotations show the RAG lift in percentage points.
 
 | Domain | Baseline | Top 18% (no RAG) | Top 18% (+RAG) | RAG lift |
 |--------|----------|------------------|----------------|----------|
-| **DCE** — Norwegian inkassolov | 68.0% | 25.0% | **75.0%** | **+50 pp** |
+| **DCE**, Norwegian inkassolov | 68.0% | 25.0% | **75.0%** | **+50 pp** |
 | science | 39.8% | 75.9% | 75.9% | 0 pp |
 | general | 33.8% | 88.9% | 88.9% | 0 pp |
 | sci | 84.0% | 100.0% | 100.0% | 0 pp |
@@ -334,12 +334,12 @@ Annotations show the RAG lift in percentage points.
 | specialised | 32.5% | 72.4% | 69.0% | −3 pp |
 
 **DCE explanation:** LLM ensembles are highly uncertain on Norwegian
-financial-law questions — the top-18% temperature slice selects the uncertain
+financial-law questions, the top-18% temperature slice selects the uncertain
 items first in this domain, yielding only 25% precision. When the Norges-lover
 corpus is available in Vectorize, the RAG oracle answers those items with 94%
 precision, restoring accuracy to 75%.
 
-> **Reproducibility note — DCE:** The +50 pp DCE lift requires the
+> **Reproducibility note, DCE:** The +50 pp DCE lift requires the
 > Norwegian inkassolov Vectorize index. Offline calibration constants used
 > here: `coverage = 0.88`, `precision = 0.94`. See
 > `docs/deployment/cloudflare-vectorize.md` for index setup.
@@ -364,7 +364,7 @@ should reflect the authoritative standing of the primary source.
 ## Security
 
 The `/ingest` endpoint is authenticated with a shared bearer token (`ORACLE_SECRET`)
-stored as a Cloudflare Worker Secret. The query endpoint is public — rate limiting
+stored as a Cloudflare Worker Secret. The query endpoint is public, rate limiting
 and DDoS protection are handled by Cloudflare's edge network automatically.
 
 The system stores no personal data. All document content should be non-sensitive

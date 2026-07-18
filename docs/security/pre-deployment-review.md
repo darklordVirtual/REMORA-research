@@ -27,7 +27,7 @@
 | Endpoint | Method | Auth Required | Status |
 |---|---|---|---|
 | `/ingest` | POST | ✅ Bearer (ORACLE_SECRET) | ✅ Fixed (was fail-open) |
-| `/query` | POST | Public (read-only) | Intentional — review if RAG content is sensitive |
+| `/query` | POST | Public (read-only) | Intentional, review if RAG content is sensitive |
 | `/status` | GET | Public | OK |
 
 **Action required before go-live:** `wrangler secret put ORACLE_SECRET`  
@@ -40,9 +40,9 @@
 | Location | Risk | Status |
 |---|---|---|
 | `/execute` body: `tool`, `input`, `session_id` | Missing field returns 400 | ✅ Validated |
-| `/ingest` body: `content`, `source`, `domain` | Passed to AI model | ⚠️ No max-length guard — add `content.slice(0, 50_000)` before embedding |
+| `/ingest` body: `content`, `source`, `domain` | Passed to AI model | ⚠️ No max-length guard, add `content.slice(0, 50_000)` before embedding |
 | SQL queries (D1 bindings) | All parameterised via `.bind()` | ✅ No SQL injection risk |
-| `store_artifact` key | Written to R2 — path traversal risk | ⚠️ Validate key matches `[a-zA-Z0-9/_\-\.]+` before write |
+| `store_artifact` key | Written to R2, path traversal risk | ⚠️ Validate key matches `[a-zA-Z0-9/_\-\.]+` before write |
 | Shell commands in agent_hook | AST-primary, regex fallback | ✅ See `remora/agent_hook.py` |
 
 ---

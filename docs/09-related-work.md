@@ -42,7 +42,7 @@ Boundary:
 - REMORA treats conformal results as exchangeability-dependent.
 - Repeated-split failures are preserved as negative evidence.
 
-## 3. Self-Consistency, Debate, and Cross-Model Verification
+## 3. Self-Consistency: Debate, and Cross-Model Verification
 
 Relevant ideas:
 
@@ -129,7 +129,7 @@ Boundary:
 - Some theoretical claims remain not demonstrated or explicitly negative in the
   claim ledger.
 
-## 7. Nested Learning, Context Flow, and Continuum Memory
+## 7. Nested Learning: Context Flow, and Continuum Memory
 
 Primary sources:
 

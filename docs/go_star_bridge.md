@@ -6,7 +6,7 @@
 a GO-STAR proprietary scanner finding into REMORA's public governance layer.
 
 The design principle is strict separation:
-- **Public REMORA** sees structured metadata — no scanner internals, no
+- **Public REMORA** sees structured metadata, no scanner internals, no
   exploit code, no private customer data.
 - **Proprietary GO-STAR** keeps all scan rules, taint traces, and PoC
   reproduction artifacts in its own controlled environment.
@@ -69,7 +69,7 @@ PATCH_VALIDATED     fix confirmed, regression test passes
 REPORT_READY        ready for coordinated disclosure
 ```
 
-Transitions are **forward-only** — a finding can skip stages (e.g. jump
+Transitions are **forward-only**, a finding can skip stages (e.g. jump
 straight to CONTROLLED_REPRO when a KEV is confirmed), but cannot go
 backwards.  Each advance is logged in the ledger's history.
 
@@ -95,7 +95,7 @@ at creation time, providing tamper evidence for the disclosure record.
 The primary bridge type.  Wraps a scanner finding with its scope profile,
 vault references, and disclosure ledger.  Calling `apply_remora()` runs
 REMORA's public evidence triage and returns a new envelope with the verdict
-attached — the original is unchanged.
+attached: the original is unchanged.
 
 ```python
 from remora.evidence.finding_envelope import (
@@ -183,7 +183,7 @@ envelope_with_verdict = envelope.apply_remora(CyberEvidenceProvider())
 1. `CyberFindingEnvelope` must never carry exploit payloads, weaponized PoC
    code, or credential values.  Those stay in the GO-STAR vault.
 2. `ResearchArtifactRef.vault_ref` is an opaque identifier.  REMORA does not
-   resolve it — it is logged for audit purposes only.
+   resolve it: it is logged for audit purposes only.
 3. `DisclosureLedger.disclosure_locked = True` freezes the ledger.  No status
    changes are permitted after lock.
 4. `TargetScanProfile.authorization_ref` must reference a valid bug-bounty

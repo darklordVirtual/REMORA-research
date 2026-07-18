@@ -1,6 +1,6 @@
 # Nested Governance for Agentic AI
 
-*(Some code examples below contain Norwegian legal text by design — the demonstration domain is Norwegian debt-collection law, `inkassoloven`.)*
+*(Some code examples below contain Norwegian legal text by design, the demonstration domain is Norwegian debt-collection law, `inkassoloven`.)*
 
 ## Purpose
 
@@ -87,7 +87,7 @@ L5 Governance Learning
 | Audit ledger | append only | no | permanent | critical |
 | Architecture baseline | reviewed change | no | permanent | critical |
 
-Canonical machine-readable profile: not yet published — the layer profile
+Canonical machine-readable profile, not yet published, the layer profile
 lives in code (`remora/governance/nested_governance.py`); a committed YAML
 profile is roadmap, not an existing artifact.
 
@@ -157,8 +157,8 @@ In multi-user deployments, different principals have access to different
 information. A query from an analyst should never surface documents classified
 above their clearance, and a tool call from a tenant should never affect another
 tenant's data. The LLM synthesis prompt must never receive document context the
-user is not authorised to see — not even for the model to "summarise and
-redact" — because the act of summarisation can leak structure and content.
+user is not authorised to see, not even for the model to "summarise and
+redact": because the act of summarisation can leak structure and content.
 
 ### Two attack surfaces
 
@@ -177,10 +177,10 @@ redact" — because the act of summarisation can leak structure and content.
 | Document metadata | Cloudflare D1 (`remora-rag-meta`) | Domain/source/title only; no clearance column yet (schema migration needed for full audit) |
 | Query cache | Cloudflare KV (`REMORA_RAG_CACHE`) | Key includes `clearance:groups:tenant` partition |
 | Identity/roles | JWT claims (Entra ID / Keycloak / custom OIDC) | Validated at Python layer before oracle is called |
-| Tool call policy | `enterprise/policy_as_code_example.yaml` | Governed change — not writable by agent |
+| Tool call policy | `enterprise/policy_as_code_example.yaml` | Governed change, not writable by agent |
 | Audit events | Append-only audit ledger | Immutable; retention permanent |
 
-### Implementation — RAG (optional extension)
+### Implementation: RAG (optional extension)
 
 Access control is **opt-in**. Without `AccessContext`, the oracle behaves
 exactly as before. With it, every query is automatically filtered.
@@ -243,7 +243,7 @@ oracle.ingest(
 )
 ```
 
-### Implementation — Tool Calls (optional extension)
+### Implementation: Tool Calls (optional extension)
 
 Tool call access control is policy-as-code and enforced pre-execution.
 

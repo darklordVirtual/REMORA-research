@@ -1,7 +1,7 @@
-# REMORA External Validation Report — v1
+# REMORA External Validation Report, v1
 
 **Date:** 2026-06-03  
-**Status:** `internally_supported` — live-oracle runs on four public HF benchmarks.  
+**Status:** `internally_supported`: live-oracle runs on four public HF benchmarks.  
 Upgrade to `externally_validated` only after independent third-party replication.  
 **Harness:** `scripts/run_external_validation.py` (two-track: direct oracle + REMORA governance)  
 **Random seed:** 42  **Items:** 400 (100 × 4 datasets)  
@@ -25,13 +25,13 @@ Key findings:
 | Datasets evaluated | 4 (ARC-Challenge, ARC-Easy, BoolQ, HotpotQA) |
 | Total items | 400 (N=100 per dataset, seed=42) |
 | REMORA governance routing coverage | 100% of items routed to `verify` |
-| Direct accuracy — ARC-Challenge (MC) | 80.2% (65/81), Wilson 95% CI [0.703, 0.875] |
-| Direct accuracy — ARC-Easy (MC) | 86.3% (69/80), Wilson 95% CI [0.770, 0.921] |
-| Direct accuracy — BoolQ (bool) | 83.7% (82/98), Wilson 95% CI [0.751, 0.897] |
-| Direct accuracy — HotpotQA (open) | 29.0% (29/100), Wilson 95% CI [0.210, 0.385] |
+| Direct accuracy, ARC-Challenge (MC) | 80.2% (65/81), Wilson 95% CI [0.703, 0.875] |
+| Direct accuracy, ARC-Easy (MC) | 86.3% (69/80), Wilson 95% CI [0.770, 0.921] |
+| Direct accuracy, BoolQ (bool) | 83.7% (82/98), Wilson 95% CI [0.751, 0.897] |
+| Direct accuracy, HotpotQA (open) | 29.0% (29/100), Wilson 95% CI [0.210, 0.385] |
 | REMORA governance latency p50 | 1.044–1.226 s across all datasets |
 | REMORA governance latency p95 | 2.83–3.97 s across all datasets |
-| Cryptographic audit coverage | 100% — SHA-256 decision hash per item |
+| Cryptographic audit coverage | 100%, SHA-256 decision hash per item |
 
 > **Calibration note:** Direct accuracy is measured on parseable items (80–100 of 100 per
 > dataset). The rotating Cloudflare oracle pool eliminated the Groq rate-limit drop-outs
@@ -124,7 +124,7 @@ demonstrates that REMORA's policy gate correctly identifies knowledge claims as 
 evidence, regardless of whether the underlying LLMs are confident.
 
 A circuit breaker that issues `accept` on unsupported factual claims would be a *weaker*
-governance system. The 0% coverage is not a failure — it is the system behaving precisely
+governance system. The 0% coverage is not a failure, it is the system behaving precisely
 as designed when no supporting evidence was provided in the request context.
 
 > **Analogy:** A compliance officer who flags 100% of unsigned contracts for review is not
@@ -138,12 +138,12 @@ The consensus log recorded per-item entropy $H$ and dissensus $D$ values. For th
 datasets tested, all oracles returned consistent `{"answer": true/false}` JSON responses
 (i.e., they were in agreement on their internal claim verification), yielding $H \approx 0$
 and $D \approx 0$. This indicates the oracles reached consensus but the policy gate still
-required verification — consistent with `risk_tier="medium"` requiring evidence-backed
+required verification, consistent with `risk_tier="medium"` requiring evidence-backed
 acceptance.
 
 The thermodynamic phase system was active during all runs (`enable_thermodynamic_control=True`).
 Phase transitions to `ESCALATE` would be triggered by high $D$ (oracle disagreement) or
-large $\Delta V$ momentum — conditions not observed in these factual Q&A benchmarks where
+large $\Delta V$ momentum, conditions not observed in these factual Q&A benchmarks where
 oracles consistently agreed on claim truth values.
 
 ### 2.3 Latency Analysis
@@ -201,7 +201,7 @@ The parseable rate (80–100%) reflects the shift from Groq free-tier (v1: 6–2
 dataset) to a **5-model Cloudflare Workers AI rotating pool** (v2). Each model in the
 pool receives approximately 20 calls per 100-item dataset, well within Cloudflare's rate
 limits. Non-parseable items (MC: ~19–20%; Bool: ~2%; freetext: 0%) reflect responses where
-no valid letter/word/phrase could be extracted — typically caused by longer explanatory
+no valid letter/word/phrase could be extracted, typically caused by longer explanatory
 text from the smaller 3B model or occasional refusals. These items are excluded from the
 accuracy denominator, not counted as wrong.
 
@@ -209,7 +209,7 @@ The non-parseable fraction is small and uncorrelated with question difficulty, s
 estimates on the scored subsets are unlikely to be systematically biased. The Wilson 95%
 CI properly accounts for the effective sample size in each dataset.
 
-### 3.3 ARC-Challenge — 80.2% (65/81)
+### 3.3 ARC-Challenge, 80.2% (65/81)
 
 The rotating 5-model pool achieved 80.2% accuracy on 81 parseable ARC-Challenge items,
 Wilson 95% CI [0.703, 0.875]. ARC-Challenge is designed to defeat retrieval-only heuristics;
@@ -225,14 +225,14 @@ what a single strong model would achieve.
 > of its ~20-item subset). Population-level accuracy over full N=1172 requires a
 > dedicated single-model run.
 
-### 3.4 ARC-Easy — 86.3% (69/80)
+### 3.4 ARC-Easy, 86.3% (69/80)
 
 The pool achieved 86.3% on 80 parseable ARC-Easy items, CI [0.770, 0.921]. This is
-higher than ARC-Challenge (as expected — ARC-Easy targets straightforward factual MC)
+higher than ARC-Challenge (as expected, ARC-Easy targets straightforward factual MC)
 and the entire CI lies above 77%, indicating the pool is reliably above chance on this
 benchmark.
 
-### 3.5 BoolQ — 83.7% (82/98)
+### 3.5 BoolQ, 83.7% (82/98)
 
 82 of 98 scored BoolQ items were answered correctly. BoolQ requires reading a passage
 and answering a binary question; the 16 errors may reflect passages requiring subtle
@@ -240,12 +240,12 @@ negation or presupposition inference, or shorter models responding with explanat
 than a single word. The Wilson 95% CI [0.751, 0.897] indicates performance well above
 random (50%), consistent with strong binary reading comprehension across the pool.
 
-### 3.6 HotpotQA — 29.0% Substring Accuracy (100% parseable)
+### 3.6 HotpotQA, 29.0% Substring Accuracy (100% parseable)
 
 HotpotQA is now **fully parseable** (100/100 items): freetext answers are never
-"unparseable" — the raw lowercased response is always usable for substring matching.
+"unparseable": the raw lowercased response is always usable for substring matching.
 
-The 29.0% substring match (29/100) is an **upper-bound** on accuracy — true token-F1
+The 29.0% substring match (29/100) is an **upper-bound** on accuracy, true token-F1
 would be lower. HotpotQA requires multi-hop reasoning across multiple documents, and
 our prompt provides only the question with a "concise 1-5 word" constraint. Accurate
 answers require the model to hold multi-paragraph context; the 8-token limit and
@@ -291,7 +291,7 @@ Answer in one short phrase:
 ### 4.2 Answer Extraction
 
 - **MC:** regex `[A-E]` extracted from first 60 chars; fallback keyword scan (`answer is X`)
-- **Bool:** JSON parse attempted first (REMORA returns `{"answer": bool, ...}`); fallback string match `true/false`
+- **Bool:** JSON parse attempted first (REMORA returns `{"answer": bool...}`); fallback string match `true/false`
 - **Freetext:** raw lowercased response returned; scored by substring containment
 
 ### 4.3 Statistical Tests
@@ -339,7 +339,7 @@ providing tamper-evident auditability for each governance decision.
 
 ## 5. Key Findings Summary
 
-### Finding 1 — REMORA correctly classifies all 400 knowledge claims as requiring verification
+### Finding 1: REMORA correctly classifies all 400 knowledge claims as requiring verification
 
 Every item across all four datasets and all four question types (MC, binary,
 open-ended, multi-hop) was routed to `verify`. This indicates the governance policy
@@ -349,14 +349,14 @@ correctly identifies unsupported factual claims as requiring evidence, independe
 - Domain (science, reading comprehension, multi-hop reasoning)
 - Oracle confidence level
 
-### Finding 2 — No errors, panics, or unhandled exceptions across 400 items
+### Finding 2: No errors, panics, or unhandled exceptions across 400 items
 
 Every item produced a complete, schema-valid JSONL audit row. The timeout handling
-(Cloudflare fp8 hitting 15 s) did not crash the run — the engine returned gracefully
+(Cloudflare fp8 hitting 15 s) did not crash the run, the engine returned gracefully
 and the item was logged with the correct action and latency. This demonstrates
 production-grade error resilience.
 
-### Finding 3 — Consistent sub-1.3 s p50 governance latency across all datasets
+### Finding 3: Consistent sub-1.3 s p50 governance latency across all datasets
 
 All four datasets achieved p50 in the range **1.044–1.226 s** (p95: 2.83–3.97 s),
 compared to v1 where ARC-Easy/BoolQ/HotpotQA hit p50 = 14.15 s due to Cloudflare
@@ -364,17 +364,17 @@ fp8 oracle timeouts in that run. The consistent ~1.1 s p50 with a 2-oracle CF po
 demonstrates that REMORA governance adds approximately **1 second** of overhead for
 2-oracle consensus + thermodynamic phase evaluation + SHA-256 audit hash.
 
-### Finding 4 — Statistically robust direct oracle accuracy on all four datasets
+### Finding 4: Statistically robust direct oracle accuracy on all four datasets
 
 The rotating 5-model Cloudflare pool achieved statistically robust accuracy across all
 four datasets: ARC-Challenge 80.2% CI [0.703, 0.875], ARC-Easy 86.3% CI [0.770, 0.921],
 BoolQ 83.7% CI [0.751, 0.897]. The lower bounds of all three MC/bool CIs are well above
 chance (25% and 50% respectively), supporting the quality of the underlying factual
 reasoning capacity in the oracle pool used by REMORA. HotpotQA is now fully parseable
-(100/100) at 29.0% substring accuracy — a known ceiling limitation of the evaluation
+(100/100) at 29.0% substring accuracy, a known ceiling limitation of the evaluation
 format for multi-hop open-ended questions.
 
-### Finding 5 — Cryptographic audit chain complete
+### Finding 5: Cryptographic audit chain complete
 
 SHA-256 decision hashes were generated for all 400 items, providing a tamper-evident
 record that can be verified independently. Combined with the JSONL audit file and

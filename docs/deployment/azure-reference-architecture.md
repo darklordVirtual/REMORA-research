@@ -1,6 +1,6 @@
 # Azure Reference Architecture
 
-REMORA on Azure — mapping each component to the appropriate Azure service for enterprise deployment in regulated environments.
+REMORA on Azure: mapping each component to the appropriate Azure service for enterprise deployment in regulated environments.
 
 ---
 

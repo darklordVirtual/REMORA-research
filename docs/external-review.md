@@ -1,4 +1,4 @@
-# REMORA — External Review
+# REMORA: External Review
 
 REMORA's claims are backed by committed artifacts and the math is written out in
 full. What it needs now is independent scrutiny. This page is the front door for

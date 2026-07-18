@@ -4,7 +4,7 @@ Use this template to produce an external-facing validation report. Fill all
 sections and attach `results/external_validation_raw.jsonl` alongside the
 report for audit.
 
-Title: REMORA External Validation — [dataset / benchmark]
+Title: REMORA External Validation, [dataset / benchmark]
 Date: YYYY-MM-DD
 Authors: [names]
 

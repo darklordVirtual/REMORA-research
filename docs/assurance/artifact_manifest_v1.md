@@ -29,7 +29,7 @@ Verification performed before re-issuing:
 - `results/external_benchmark_agentharm_v1.json` (P0, REM-014) is the only
   content change: the prior hash `b27ccd37…` corresponds to the version at
   commit `e2b235f` (verified against the git blob); commit `59c1670`
-  ("Wave 3 P0 — oracle quorum gate + P0 safety artifact provenance") added
+  ("Wave 3 P0, oracle quorum gate + P0 safety artifact provenance") added
   provenance fields to the artifact without updating this manifest. The gate
   invariants (`false_accept_rate = 0.0`, `n_harmful = 208`) are unchanged
   between versions. This entry is re-issued under this documented protocol.

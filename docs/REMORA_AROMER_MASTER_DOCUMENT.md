@@ -1,4 +1,4 @@
-# REMORA + AROMER — Authoritative Technical Reference
+# REMORA + AROMER: Authoritative Technical Reference
 
 **Repository:** `darklordVirtual/REMORA`  
 **Status:** Research-grade prototype, v0.9.0, Apache-2.0 licensed
@@ -21,7 +21,7 @@ Autonomous AI agents can call tools, write memory, and take actions in workflows
 
 > When should an AI system execute, verify, abstain, escalate, or block a proposed tool call?
 
-This is treated as a governance problem, not a model-quality problem. The failure mode REMORA is designed to prevent is not "AI says I don't know" — it is "AI acts when it should not."
+This is treated as a governance problem, not a model-quality problem. The failure mode REMORA is designed to prevent is not "AI says I don't know", it is "AI acts when it should not."
 
 ---
 
@@ -145,10 +145,10 @@ Boundary rule: `CyberFindingEnvelope` must never carry exploit payloads, weaponi
 ### 4.6 Adapters
 
 Implemented adapters (from README evidence):
-- `LangGraphActionAdapter` — LangGraph integration
-- `OpenAI tool-calling adapter` — OpenAI tool calls
-- `MCP server` — `servers/mcp_remora.py`
-- `LocalGateway` — local in-process gateway
+- `LangGraphActionAdapter`, LangGraph integration
+- `OpenAI tool-calling adapter`, OpenAI tool calls
+- `MCP server`, `servers/mcp_remora.py`
+- `LocalGateway`, local in-process gateway
 
 ---
 
@@ -228,7 +228,7 @@ Workers AI LLM call that critiques AROMER's past governance decisions. Uses `Rub
 
 ### 5.7 Seed Data
 
-**Directory:** `remora/aromer/seeds/` — 22 seed JSON files providing initial domain harm priors for bootstrap.
+**Directory:** `remora/aromer/seeds/`, 22 seed JSON files providing initial domain harm priors for bootstrap.
 
 ---
 
@@ -331,9 +331,9 @@ The `HistoryBlock.synthetic = True` flag distinguishes demo/test case memory fro
 
 | Mode | Recall | Recall CI95 | FPR | FPR CI95 | Blocked Recall | Coverage |
 |---|---|---|---|---|---|---|
-| Mode 1 — Oracle only | 1.000 | [0.920, 1.000] | 0.318 | [0.200, 0.466] | 1.000 | 0.989 |
-| Mode 2 — Harm-specific oracle | 1.000 | [0.920, 1.000] | 0.114 | [0.050, 0.240] | 1.000 | 0.989 |
-| Mode 3 — Full REMORA gate | 0.114 | [0.050, 0.240] | 0.023 | [0.004, 0.118] | **0.977** | 0.977 |
+| Mode 1, Oracle only | 1.000 | [0.920, 1.000] | 0.318 | [0.200, 0.466] | 1.000 | 0.989 |
+| Mode 2, Harm-specific oracle | 1.000 | [0.920, 1.000] | 0.114 | [0.050, 0.240] | 1.000 | 0.989 |
+| Mode 3, Full REMORA gate | 0.114 | [0.050, 0.240] | 0.023 | [0.004, 0.118] | **0.977** | 0.977 |
 
 **Confusion matrix (Mode 3):**
 
@@ -369,7 +369,7 @@ The `HistoryBlock.synthetic = True` flag distinguishes demo/test case memory fro
 **Critical reading notes:**
 - 65 curated cases with wide CI95 on small subcategories (n=2 to n=16).
 - These are factory-constructed episodes, not independent real-world cases.
-- `benign_precision=0.600` at the overall level (0.0 for ambiguous, causal_trap, near_miss, contradiction categories) — the system is conservative and routes ambiguous cases to non-ACCEPT verdicts.
+- `benign_precision=0.600` at the overall level (0.0 for ambiguous, causal_trap, near_miss, contradiction categories): the system is conservative and routes ambiguous cases to non-ACCEPT verdicts.
 - This benchmark tests the AROMER worker endpoint, requiring network access to reproduce.
 
 ### 10.3 Cross-Domain Evidence Benchmark
@@ -421,13 +421,13 @@ Artifact: `results/toolcall_benchmark_v2_results.json`
 | majority_vote_heuristic | 30.00% | 10.00% | 0.00 |
 | remora_full_policy_gate | 90.00% | 0.00% | 0.62 |
 
-**Caveat:** Both baselines and REMORA policy gate are deterministic heuristic classifiers replaying pre-labelled tasks — not live LLM calls. "0% unsafe execution" is a benchmark-scoped simulator result.
+**Caveat:** Both baselines and REMORA policy gate are deterministic heuristic classifiers replaying pre-labelled tasks, not live LLM calls. "0% unsafe execution" is a benchmark-scoped simulator result.
 
 ---
 
 ## 11. Live Runtime Status
 
-### AROMER v0.2.1-experimental — Live State
+### AROMER v0.2.1-experimental: Live State
 
 **Update (2026-06-28):** AII reached TRAINED status organically via Path A recovery. 12+ consecutive TRAINED cycles with no false accepts. T3=0.800 [M] milestone crossed at cycle 12 (+4.1pp above historical peak 0.759).
 
@@ -435,13 +435,13 @@ As of 2026-06-28, the AROMER worker reports the following live state (not a comm
 
 | Signal | Value | Interpretation |
 |---|---|---|
-| AII (Autonomous Intelligence Index) | **0.804** [TRAINED] (peak 0.844 TRAINED) | TRAINED_SHADOW_ONLY — organic recovery from §13 regression confirmed ~15:53 UTC 2026-06-28 |
+| AII (Autonomous Intelligence Index) | **0.804** [TRAINED] (peak 0.844 TRAINED) | TRAINED_SHADOW_ONLY, organic recovery from §13 regression confirmed ~15:53 UTC 2026-06-28 |
 | aii_smoothed | 0.8042 [TRAINED] | Full §12→§13→recovery cycle: peak 0.8442 → regression 0.7885 → recovery 0.8042; documented in §12–§13 |
 | T2 Friction | 0.8518 (brr=2.5%) | Recovered from 5.0% peak; recovery trajectory 5%→2.5% over ~2h53min |
-| T3 MetaJudge | **0.800** [M] | Sustained — milestone: +4.1pp above historical peak 0.759 (n=135); mean critique score=0.90 |
-| T5 Stability | 0.777 | Recovering — was 0.7158 at regression low; was 0.7955 at peak |
+| T3 MetaJudge | **0.800** [M] | Sustained, milestone: +4.1pp above historical peak 0.759 (n=135); mean critique score=0.90 |
+| T5 Stability | 0.777 | Recovering, was 0.7158 at regression low; was 0.7955 at peak |
 | world_model_active | 1 | Active; deployment_status=SHADOW_ONLY |
-| ECE | 0.0636 | Expected Calibration Error — well-calibrated |
+| ECE | 0.0636 | Expected Calibration Error, well-calibrated |
 | false_accept_rate | 0 | No false accepts across all 12+ cycles |
 | safety_certification | CERTIFIED_INDEPENDENT_HOLDOUT | CP=0.37% (0 FA / 814 operational episodes) |
 | n_harmful_independent | 169 | aradhye/CaiZhiTech external datasets |
@@ -454,7 +454,7 @@ As of 2026-06-28, the AROMER worker reports the following live state (not a comm
 - Sprint 2: AROMER learning loop and episodic store
 - Sprint 3: AgentHarm benchmarks (Mode 1–3) and domain evidence layer
 - Sprint 4: GO-STAR bridge, cyber evidence layer, replay benchmark
-- Sprint 5 (planned): REMORA shadow tandem — live validation alongside production agent
+- Sprint 5 (planned): REMORA shadow tandem, live validation alongside production agent
 
 ### Cloudflare Workers
 
@@ -482,9 +482,9 @@ PostToolUse:
 
 ### CI/CD
 
-- `.github/workflows/quality-gates.yml` — lint + tests + claim checks, runs on push
-- `.github/workflows/codegraph-index.yml` — D1 codegraph index on every push
-- `.github/workflows/deploy-aromer-worker.yml` — CF Worker deploy
+- `.github/workflows/quality-gates.yml`, lint + tests + claim checks, runs on push
+- `.github/workflows/codegraph-index.yml`, D1 codegraph index on every push
+- `.github/workflows/deploy-aromer-worker.yml`, CF Worker deploy
 
 ---
 
@@ -542,13 +542,13 @@ Items clearly not yet implemented or validated:
 
 | Item | Status |
 |---|---|
-| Independent external replication of all benchmarks | ROADMAP — only internal replication to date |
-| Live-agent validation on real tool calls (non-simulated) | ROADMAP — pending |
-| Production deployment with operational telemetry | ROADMAP — no production deployment exists |
-| Semantic evidence verification (NLI/LLM verifier) | ROADMAP — default is lexical |
-| TEE attestation (AMD SEV-SNP / Intel TDX) | ROADMAP — specified, not executed |
+| Independent external replication of all benchmarks | ROADMAP, only internal replication to date |
+| Live-agent validation on real tool calls (non-simulated) | ROADMAP, pending |
+| Production deployment with operational telemetry | ROADMAP, no production deployment exists |
+| Semantic evidence verification (NLI/LLM verifier) | ROADMAP, default is lexical |
+| TEE attestation (AMD SEV-SNP / Intel TDX) | ROADMAP, specified, not executed |
 | CRC covariate-shift calibration on real oracle responses | ROADMAP |
-| AROMER world model in active (non-shadow) mode | ROADMAP — shadow mode is default |
+| AROMER world model in active (non-shadow) mode | ROADMAP, shadow mode is default |
 | Governance drift thresholds calibrated on deployment telemetry | ROADMAP |
 
 ---
@@ -663,7 +663,7 @@ For the full machine-readable claim register, see `artifacts/remora_aromer_claim
 | UNSUPPORTED | 2 | Claims without corresponding artifact evidence |
 
 **Claims safe for external use (with required caveats):**
-- AgentHarm Mode 3 blocked_recall=0.977, FPR=0.023 CI95[0.004,0.118] — on test_public canonical variant, 88 cases
+- AgentHarm Mode 3 blocked_recall=0.977, FPR=0.023 CI95[0.004,0.118], on test_public canonical variant, 88 cases
 - Replay benchmark accuracy=1.000 CI95[0.944,1.000] on 65 curated factory cases
 - Cross-domain evidence benchmark precision=1.000 on 32 curated cases (static provider only)
 - Tool-call v2: remora_full_policy_gate achieves 0% unsafe execution in deterministic simulator (700 tasks)

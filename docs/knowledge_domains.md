@@ -14,7 +14,7 @@ python scripts/gen_knowledge_domains.py
 Per `docs/claim_hygiene.md`, every number below is computed by the code and
 written to the cited artifact; an invariant breach is written with
 `status: "invalid"` and the generator exits non-zero. These are demonstrations
-of each technique on **committed, synthetic fixtures** — not validated external
+of each technique on **committed, synthetic fixtures**, not validated external
 results.
 
 | Module | What it computes | Artifact | Key numbers |
@@ -32,7 +32,7 @@ results.
   isolation logic, the validator, the router), not any live model, tenant, or
   price.
 - `cost_routing` is the policy the REMORA audit recommends for the worker's
-  otherwise-unbounded AI endpoints: never call the premium model when a cheaper
+  otherwise-unbounded AI endpoints, never call the premium model when a cheaper
   one clears the request's quality floor.
 - `multitenant` models the isolation invariant only; a deployment must still
   enforce the same boundary at the auth and storage layers.

@@ -11,7 +11,7 @@ readable result artifact at `artifacts/domain_benchmark_results.json`.
 
 REMORA governs agent actions through evidence-backed, human-reviewable
 decisions.  The evidence layer is organised as a **registry of domain
-providers** — each provider specialises in one risk domain while sharing
+providers**, each provider specialises in one risk domain while sharing
 the same four-verdict governance interface.
 
 ```
@@ -60,7 +60,7 @@ the same four-verdict governance interface.
 
 ## How Evidence Retrieval Works
 
-### Step 1 — Exact identifier lookup
+### Step 1: Exact identifier lookup
 
 Each provider indexes its evidence corpus by domain-specific identifiers:
 
@@ -74,7 +74,7 @@ An exact match contributes `score = 0.58 + 0.12 × number_of_matching_keys`,
 capped at 1.0.  This ensures that a CVE with both NVD and CISA KEV records
 ranks above a generic CWE taxonomy entry.
 
-### Step 2 — Lexical search
+### Step 2: Lexical search
 
 Query tokens (lowercase, 3+ characters) are Jaccard-scored against each
 evidence record's `vector_text` field.  Tag similarity and source authority
@@ -87,17 +87,17 @@ score = exact_score
       + 0.10 × (authority_score × freshness_score)
 ```
 
-### Step 3 — Signal aggregation
+### Step 3: Signal aggregation
 
 The top-K matches are aggregated into an `EvidenceSignal`:
 
-- `evidence_strength` — authority-weighted mean score of top-3 matches
-- `contradiction_score` — mean contradiction score of all matches
-- `citation_coverage` — matches / 5 (normalised)
-- `cross_evidence_consistency` — pairwise tag Jaccard across all matches
-- `source_reliability` — mean authority score
+- `evidence_strength`, authority-weighted mean score of top-3 matches
+- `contradiction_score`, mean contradiction score of all matches
+- `citation_coverage`, matches / 5 (normalised)
+- `cross_evidence_consistency`, pairwise tag Jaccard across all matches
+- `source_reliability`, mean authority score
 
-### Step 4 — Governance decision
+### Step 4: Governance decision
 
 Confidence is a weighted sum of the signal components plus bonuses:
 
@@ -162,13 +162,13 @@ Identifiers: FATF-TYP-NN, AMLD-RI-NN, typology tags (structuring, round_tripping
 ## GO-STAR Bridge
 
 For the cyber domain, findings from the GO-STAR proprietary scanner enter
-REMORA through `CyberFindingEnvelope` — see `docs/go_star_bridge.md`.
+REMORA through `CyberFindingEnvelope`, see `docs/go_star_bridge.md`.
 
 The envelope carries:
-- `TargetScanProfile` — authorised scope and scan mode
-- Finding fields — title, CWEs, CVEs, source/sink, tool signal count
-- `DisclosureLedger` — 6-stage capability ladder
-- `ResearchArtifactRef[]` — metadata-only references to private PoC vault
+- `TargetScanProfile`, authorised scope and scan mode
+- Finding fields, title, CWEs, CVEs, source/sink, tool signal count
+- `DisclosureLedger`, 6-stage capability ladder
+- `ResearchArtifactRef[]`, metadata-only references to private PoC vault
 
 ```python
 from remora.evidence.finding_envelope import (
@@ -224,7 +224,7 @@ Case format:
 `expected_verdict` is the ideal outcome.
 `acceptable_verdicts` are also considered passing (e.g. a KEV case that gets
 REPORT_READY when ESCALATE was expected, but ESCALATE is listed as acceptable).
-`must_not_verdict` is a hard failure regardless — a KEV finding classified as
+`must_not_verdict` is a hard failure regardless, a KEV finding classified as
 LIKELY_FALSE_POSITIVE is a critical governance error.
 
 ## Pass / Fail Rules
@@ -268,7 +268,7 @@ The results below are derived from that artifact and are machine-verifiable.
 
 **100% precision** means every case in the benchmark dataset receives
 the expected or an explicitly acceptable verdict.  It does not mean the
-system is infallible on unseen data — it means the benchmark cases are
+system is infallible on unseen data, it means the benchmark cases are
 well-calibrated and the evidence corpus supports them.
 
 **100% escalation recall** means every case that a security analyst would
@@ -283,7 +283,7 @@ REPORT_READY.  They land in NEEDS_REVIEW (appropriate review trigger) or
 LIKELY_FALSE_POSITIVE, not in the high-priority queue.
 
 **100% report-ready precision** means when REMORA predicts REPORT_READY,
-it is correct — no false REPORT_READY verdicts on this dataset.
+it is correct: no false REPORT_READY verdicts on this dataset.
 
 ### What these numbers do not mean
 

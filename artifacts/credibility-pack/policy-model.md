@@ -4,7 +4,7 @@
 
 The REMORA policy model governs every request from classification to verdict. It determines which oracles are invoked, what evidence is required, which decision outcomes are permitted, and who (or what) acts on the result.
 
-Policy is evaluated before model calls are made — not after. This ensures governance is structural, not advisory.
+Policy is evaluated before model calls are made, not after. This ensures governance is structural, not advisory.
 
 ---
 
@@ -30,13 +30,13 @@ Standard policy verdicts (ACCEPT / VERIFY / ABSTAIN / ESCALATE) from the cascade
 | Outcome | Meaning | Who acts |
 |---|---|---|
 | `ACCEPT` | Answer is supported with sufficient confidence and evidence | System returns answer to caller |
-| `RETRIEVE` | Insufficient evidence — fetch more before deciding | System triggers additional RAG pass |
-| `DEBATE` | Confidence is borderline — escalate to additional oracles | System triggers Stage 4 self-consistency |
+| `RETRIEVE` | Insufficient evidence, fetch more before deciding | System triggers additional RAG pass |
+| `DEBATE` | Confidence is borderline, escalate to additional oracles | System triggers Stage 4 self-consistency |
 | `ESCALATE` | Decision requires human judgment | Routes to subject-matter expert or approval workflow |
-| `ABSTAIN` | Models disagree too strongly — no reliable answer | System returns abstention with explanation |
+| `ABSTAIN` | Models disagree too strongly, no reliable answer | System returns abstention with explanation |
 | `ACT` | Approved action can be executed | Only available on pre-approved tool calls at medium tier or below |
 
-`ABSTAIN` is a valid, successful outcome — not a failure. In regulated or high-stakes environments, knowing that the AI cannot reliably answer is more valuable than a forced low-confidence answer.
+`ABSTAIN` is a valid, successful outcome, not a failure. In regulated or high-stakes environments, knowing that the AI cannot reliably answer is more valuable than a forced low-confidence answer.
 
 ---
 
@@ -44,7 +44,7 @@ Standard policy verdicts (ACCEPT / VERIFY / ABSTAIN / ESCALATE) from the cascade
 
 Risk profiles are machine-readable configurations. Each profile specifies oracle configuration, thresholds, evidence requirements, and permitted actions. See [`risk-profiles.yaml`](risk-profiles.yaml) for the full schema.
 
-Example — high-risk profile:
+Example, high-risk profile:
 
 ```yaml
 profiles:
@@ -139,7 +139,7 @@ REMORA's `ABSTAIN` outcome is an explicit, first-class result that:
 - Is logged in the audit trail with the reason for abstention
 - Can be tracked as a metric (abstention rate by domain) for ongoing calibration
 
-A high abstention rate on a domain is useful information — it means the oracle pool, evidence sources, or risk thresholds need calibration for that domain.
+A high abstention rate on a domain is useful information: it means the oracle pool, evidence sources, or risk thresholds need calibration for that domain.
 
 ---
 
@@ -155,13 +155,13 @@ update rules without redeploying Python services.
 `remora.policy.opa_adapter.export_opa_context()` produces the canonical input
 sent to OPA. The contract is **full decision-path parity**: every
 `PolicyObservation` field the Python engine, credal gates, or trap classifier
-reads is exported — including all security hard-block signals
+reads is exported, including all security hard-block signals
 (`adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`,
 `coercion_detected`, `blackmail_pattern_detected`), operational context
 (`target_environment`, oracle health), misspecification and fleet/session
 risk fields. Audit-only fields are excluded and enumerated in
 `OPA_EXPORT_EXCLUSIONS`. This parity is enforced structurally by
-`tests/test_opa_parity.py` — a new engine guard on an unexported field fails CI.
+`tests/test_opa_parity.py`: a new engine guard on an unexported field fails CI.
 
 Abridged example (see `OPAContext` in `remora/policy/opa_adapter.py` for the
 complete field list):
@@ -197,7 +197,7 @@ complete field list):
 Two safeguards make the OPA path safe even against an incomplete policy:
 
 1. **Runtime hard-guard floor.** The adapter floors every OPA result with
-   `remora.policy.decision_engine.hard_guard_floor()` — the same function the
+   `remora.policy.decision_engine.hard_guard_floor()`, the same function the
    engine's own `decide()` uses as its first stage. A Rego policy that
    ignores a security signal can tighten but never loosen the decision
    (decision monotonicity, REM-003 extended to adapters).

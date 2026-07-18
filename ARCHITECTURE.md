@@ -16,7 +16,7 @@ the diagrams as a map when reading the source.
 
 ## 1. What REMORA governs
 
-REMORA governs **agent actions** — tool calls an autonomous agent proposes to
+REMORA governs **agent actions**, tool calls an autonomous agent proposes to
 run (write to a database, send a payment, change infrastructure, call an external
 API). It is not a fact-checker and does not answer questions. It sits between the
 agent's decision to act and the action actually running, and decides whether that
@@ -50,7 +50,7 @@ The consensus, entropy/dissensus, thermodynamic-phase, and Lyapunov components d
 **not** contribute to the unsafe-execution safety floor. What they contribute is
 **routing quality**: calibrated separation of the plausible-but-unverified cases
 into VERIFY versus ABSTAIN. Do not cite REMORA's safety result as evidence for
-the value of the consensus machinery — they are distinct claims backed by
+the value of the consensus machinery, they are distinct claims backed by
 distinct artifacts. See `docs/02-evidence-and-claims.md` §1 and
 `NEGATIVE_RESULTS.md`.
 
@@ -59,7 +59,7 @@ distinct artifacts. See `docs/02-evidence-and-claims.md` §1 and
 ## 3. The five-stage pipeline
 
 A proposed action passes through five stages. **Stage 1 always runs first and its
-hard-block invariants cannot be overridden by any probabilistic score** — a
+hard-block invariants cannot be overridden by any probabilistic score**, a
 confident, wrong majority cannot push an unsafe action through.
 
 ```mermaid
@@ -90,29 +90,29 @@ flowchart TD
 
 **Stage summary:**
 
-1. **Hard-block policy invariants** (`remora/policy`) — deterministic gates that
+1. **Hard-block policy invariants** (`remora/policy`), deterministic gates that
    run before any vote is tallied. Adversarial input, malformed calls, forbidden
    tools, coercion/blackmail patterns, tainted arguments, and production-write
    without safeguards route straight to ESCALATE/ABSTAIN. This is the safety
    floor of §2.
 2. **Multi-oracle consensus** (`remora/engine.py`, `remora/correlation.py`,
-   `remora/thermodynamics`) — several oracle backends answer; a thermodynamic
+   `remora/thermodynamics`), several oracle backends answer; a thermodynamic
    *phase* (ordered / critical / disordered) is derived from entropy `H`,
    dissensus `D`, and a trust score. Correlated oracles are down-weighted so
    echo-chamber agreement does not inflate confidence. "Thermodynamic" here is an
    operational uncertainty-routing metaphor, **not** a physics claim.
 3. **Evidence verification** (`remora/oracles/evidence_verifier.py`,
-   `evidence_v2.py`, `evidence_v3.py`) — where evidence is available, checks
+   `evidence_v2.py`, `evidence_v3.py`), where evidence is available, checks
    whether cited sources support or contradict the candidate. Relation detection
    is lexical (token overlap + negation heuristic), pluggable for a future NLI
    upgrade.
-4. **Trust / conformal selective routing** (`remora/selective`) — the
+4. **Trust / conformal selective routing** (`remora/selective`), the
    `PhaseAwareGuardrail`, conformal risk control (`conformal.py`), and the
    weight-corrected CRC (`crc.py`) map the phase and trust state to
    accept/verify/abstain, with phase-specific thresholds (the critical phase is
-   handled by score inversion — see §8).
+   handled by score inversion, see §8).
 5. **Hash-chain audit** (`remora/governance/envelope.py`,
-   `remora/audit/hash_chain.py`) — the decision is written as a
+   `remora/audit/hash_chain.py`), the decision is written as a
    `DecisionEnvelope` and hash-chained. The record is **tamper-evident**, not
    tamper-proof.
 
@@ -124,17 +124,17 @@ flowchart TD
 |---|---|---|
 | **Policy engine** | `remora/policy/decision_engine.py` | `RemoraDecisionEngine.decide(obs) -> DecisionReport`; ordered hard-block-first ladder; `explain()` reproduces the full rule-by-rule trace |
 | Policy support | `remora/policy/invariants.py`, `trap_classifier.py`, `opa_adapter.py` | machine-checked safety invariants; irreversibility/impact trap scoring; OPA/Rego integration with a Python fallback |
-| **Governance envelope** | `remora/governance/envelope.py` | `DecisionEnvelope` (v2) + `AuditBlock` — the canonical governance contract |
+| **Governance envelope** | `remora/governance/envelope.py` | `DecisionEnvelope` (v2) + `AuditBlock`, the canonical governance contract |
 | **Cascade pipeline** | `remora/cascade/` | staged execution: `FastGate` → `ConsensusGate` → `VerifierGate` → `CritiqueRevisionGate` → `SelfConsistencyGate` → `MixtureOfAgentsSynth` (see §5) |
 | **Consensus core** | `remora/engine.py`, `remora/correlation.py` | multi-oracle consensus loop; rolling correlation matrix and diversity weights |
 | **Uncertainty observables** | `remora/thermodynamics/`, `remora/statphys/` | entropy `H`, dissensus `D`, value `V` as an uncertainty-routing metaphor (not physics) |
 | **Selective prediction** | `remora/selective/` | `conformal.py`, `crc.py` (weight-corrected slack), `pvd.py`, `guardrail.py` (`PhaseAwareGuardrail`), `drift_detector.py` |
-| **Oracles (pluggable)** | `remora/oracles/` | interchangeable backends — see §6 |
+| **Oracles (pluggable)** | `remora/oracles/` | interchangeable backends, see §6 |
 | **Audit chain** | `remora/audit/hash_chain.py` | SHA-256 hash chain; tamper-**evident** |
 | **Governance API** | `servers/api.py` | FastAPI governance gateway |
 | **MCP server** | `servers/mcp_remora.py` | Model Context Protocol tool suite (`remora_verify_claim`, `remora_analyze_document`, `remora_rag_query`, `remora_norwegian_law_search`, `agent_start_session`, `agent_execute_tool`, `remora_session_status`, …) |
 | **Edge workers** | `workers/` | `agent-control`, `rag-oracle`, `law-search`, `aromer` (see §5.4) |
-| **Learning overlay** | `remora/aromer/` | AROMER — experimental, shadow-only (see §5.5) |
+| **Learning overlay** | `remora/aromer/` | AROMER, experimental, shadow-only (see §5.5) |
 
 ### 5.1 Cascade Pipeline (`remora/cascade/`)
 
@@ -210,19 +210,19 @@ an external append-only (WORM) store as a deployment dependency.
 
 | Module | Role |
 |---|---|
-| `guardrail.py` | `PhaseAwareGuardrail` — phase-specific accept/verify/abstain routing; inverts the selection score in the critical phase (§8) |
+| `guardrail.py` | `PhaseAwareGuardrail`, phase-specific accept/verify/abstain routing; inverts the selection score in the critical phase (§8) |
 | `conformal.py` | split-conformal risk control with finite-sample coverage bookkeeping |
 | `crc.py` | conformal risk control with the weight-corrected slack term |
-| `pvd.py` | Prover-Verifier Deliberation — semantic-entropy clustering of oracle responses blended with a verifier confidence signal (no LLM calls; deliberation rounds are simulated) |
+| `pvd.py` | Prover-Verifier Deliberation, semantic-entropy clustering of oracle responses blended with a verifier confidence signal (no LLM calls; deliberation rounds are simulated) |
 | `binomial_bounds.py` | Clopper–Pearson / binomial upper confidence bounds on empirical risk |
 
-### 5.4 Interfaces: API, MCP, and edge workers
+### 5.4 Interfaces: API: MCP, and edge workers
 
-- **`servers/api.py`** — FastAPI governance gateway.
-- **`servers/mcp_remora.py`** — MCP server exposing REMORA as a tool suite to
+- **`servers/api.py`**, FastAPI governance gateway.
+- **`servers/mcp_remora.py`**, MCP server exposing REMORA as a tool suite to
   Claude Desktop and compatible hosts (stdlib `urllib` only). Profiles: `local`,
   `demo`, `enterprise`.
-- **`workers/`** — Cloudflare edge workers, all fail-closed on authentication
+- **`workers/`**, Cloudflare edge workers, all fail-closed on authentication
   (missing `ORACLE_SECRET` / `CONTROL_SECRET` → reject, never silently permit):
 
   | Worker | Directory | Primary endpoints |
@@ -285,7 +285,7 @@ REMORA run. Current defaults:
 | `max_subquestions` | 2 | decomposition breadth |
 | `converged_threshold` | **0.75** | weighted support needed for early exit |
 | `entropy_abort_ratio` | 1.3 | ε tolerance for V increase before abort |
-| `negation_weight` | 0.4 | λ — dissensus contribution to the Lyapunov value |
+| `negation_weight` | 0.4 | λ, dissensus contribution to the Lyapunov value |
 | `thermo_lambda` | 0.4 | dissensus weight in the thermodynamic phase metric |
 | `divergent_boost` | 0.5 | boost applied to divergence signal |
 | `negation_ratio` | 0.25 | fraction of iterations using negation prompts |
@@ -336,7 +336,7 @@ values above are the `LyapunovParams` dataclass defaults.
 ## 8. The critical-phase inversion (why routing is phase-aware)
 
 In the hardest ("critical") cases, the trust score **anti-correlates** with
-correctness — low-trust items were more often correct than high-trust ones (a
+correctness, low-trust items were more often correct than high-trust ones (a
 trust inversion, N=32 critical items total; small sample, published as a negative
 result). A naive conformal guardrail at a 5% risk target collapses to 100%
 observed risk / 0 coverage in this regime. REMORA does not trust the score here;
@@ -386,7 +386,7 @@ not a guarantee of safety, and not a replacement for domain authority.
 - **Production gates:** `REM-020` (longitudinal stability) is **DONE**
   (2026-07-17, closed by fail-closed tooling under the owner-reconciled 7-day
   criterion; self-reported values pending independent verification).
-  `REM-022` (RBAC audit) is **DONE** (2026-06-30, with recorded deviation —
+  `REM-022` (RBAC audit) is **DONE** (2026-06-30, with recorded deviation, 
   follow-through tracked as `REM-023`, of which only external confirmation
   remains, folded into `REM-021`). `REM-021` (independent human review) is
   **open** (not started) and blocks exit from shadow mode.
@@ -396,7 +396,7 @@ not a guarantee of safety, and not a replacement for domain authority.
 - **Result scope:** reported results are simulator-scoped or post-hoc over
   committed artifacts where noted (the 0% unsafe-execution result is a
   deterministic simulator; the selective-accuracy hold-out accepted only ~25
-  items, so its Wilson CI is wide — quote the CI, not the point estimate). The
+  items, so its Wilson CI is wide, quote the CI, not the point estimate). The
   historically-labelled "N500" selective-prediction artifact currently has
   **544 evaluable items** ("N500" is a legacy name, not the item count).
 - **Semantic-entropy caveat:** the reported headline numbers use a
@@ -421,4 +421,4 @@ overlay for agent actions**; the full history is in git.
 *Document scope: this document describes the current governance architecture. It
 is the canonical architecture reference for this repository.*
 
-*Author: Stian Skogbrott — https://github.com/darklordVirtual/REMORA*
+*Author: Stian Skogbrott, https://github.com/darklordVirtual/REMORA*

@@ -3,7 +3,7 @@
 REMORA exposes its consensus and verification capabilities as an
 [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server.
 This allows AI assistants such as Claude Desktop and Claude Code to call REMORA
-tools directly — grounding AI answers in multi-oracle consensus, authoritative
+tools directly, grounding AI answers in multi-oracle consensus, authoritative
 knowledge bases, and deterministic database lookups.
 
 Cloudflare services are optional accelerators, not hard requirements. The MCP
@@ -224,7 +224,7 @@ Returns a consensus verdict with calibrated confidence.
 | ≥ 85 % | HIGH | Reliable basis for decision |
 | 65–84 % | MEDIUM | Verify against primary source |
 | 40–64 % | LOW | Indicative only |
-| < 40 % | VERY LOW | Abstain — seek expert |
+| < 40 % | VERY LOW | Abstain, seek expert |
 
 **Example:**
 ```
@@ -384,7 +384,7 @@ and a combined conclusion for each citation.
 
 | DB result | Oracle result | Conclusion |
 |-----------|---------------|------------|
-| FOUND_IN_DATABASE | NEEDS_CONTENT_CHECK | Partially verified — check content |
+| FOUND_IN_DATABASE | NEEDS_CONTENT_CHECK | Partially verified, check content |
 | NOT_FOUND | CANNOT_VERIFY | Likely hallucinated |
 | NOT_FOUND | LIKELY_HALLUCINATED | Likely hallucinated |
 | FOUND_IN_DATABASE | LIKELY_HALLUCINATED | Exists, but claimed content is wrong |
@@ -459,7 +459,7 @@ timestamps, confidence scores, and any pending actions awaiting human approval.
 ### `remora_session_status`
 
 Reports the live Lyapunov stability state for the current Claude Code session
-from the local `.remora_session/` directory. No network calls — reads local state only.
+from the local `.remora_session/` directory. No network calls: reads local state only.
 
 **Parameters:** none
 
@@ -488,7 +488,7 @@ the consensus worker (`workers/rag-oracle/`), and the law-search bridge
 However, two of the twelve MCP tools depend on **private data extensions**
 that connect REMORA to closed-source knowledge bases and infrastructure.
 
-### DCE — Document Compliance Engine (Mine Dokumenter)
+### DCE: Document Compliance Engine (Mine Dokumenter)
 
 DCE is a closed-source Norwegian document intelligence platform. It is not
 part of this repository and is not publicly available.
@@ -514,7 +514,7 @@ bridge is already deployed at `https://remora-law-search.razorsharp.workers.dev`
 with DCE bindings active. If you are running your own deployment and need DCE
 access, contact **support@luftfiber.no**.
 
-### GO-STAR — Security Research Platform
+### GO-STAR: Security Research Platform
 
 GO-STAR is a separate open-source security research platform. It is not part
 of this repository, but integrates with REMORA for vulnerability validation.
@@ -531,11 +531,11 @@ See [use case 05](use-cases/05-security.md) for details.
 An extension adds new knowledge to REMORA without modifying the core. The
 minimum components are:
 
-1. **A data source** — a Cloudflare Vectorize index or D1 database (or any HTTP
+1. **A data source**, a Cloudflare Vectorize index or D1 database (or any HTTP
    endpoint your knowledge lives behind)
-2. **A bridge worker** — a Cloudflare Worker (like `workers/law-search/`) that
+2. **A bridge worker**, a Cloudflare Worker (like `workers/law-search/`) that
    exposes `/search` and optionally `/verify-citation` endpoints
-3. **An MCP handler** — a new `handle_remora_<name>` function in
+3. **An MCP handler**, a new `handle_remora_<name>` function in
    `servers/mcp_remora.py` that calls your bridge worker
 
 The existing `workers/law-search/src/index.ts` and the handler
@@ -549,9 +549,9 @@ reference implementation for this pattern.
 | Confidence | Trust level | Recommended action |
 |------------|------------|-------------------|
 | ≥ 85 % | HIGH | Reliable basis for decision |
-| 65–84 % | MEDIUM | Useful — verify against primary source |
+| 65–84 % | MEDIUM | Useful, verify against primary source |
 | 40–64 % | LOW | Indicative only |
-| < 40 % | VERY LOW | Abstain — seek expert advice |
+| < 40 % | VERY LOW | Abstain, seek expert advice |
 
 ---
 
@@ -562,5 +562,5 @@ python -m pytest tests/test_mcp_remora.py -v
 ```
 
 20 unit tests covering: `remora_legal_analysis` bug fixes, output formatting,
-`remora_norwegian_law_search`, and `remora_rag_query`. All tests use local mocks —
+`remora_norwegian_law_search`, and `remora_rag_query`. All tests use local mocks, 
 no live API calls required.

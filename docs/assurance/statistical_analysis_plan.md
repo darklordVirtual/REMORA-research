@@ -2,7 +2,7 @@
 
 **Date pre-registered:** 2026-06-28
 **Version:** 1.0
-**Status:** Pre-registered — analyses not yet re-run after this document
+**Status:** Pre-registered, analyses not yet re-run after this document
 **Implements:** intern_forbedring.txt §9, `docs/assurance/remediation_register.yaml` REM-012
 
 This document pre-declares the statistical methods, hypotheses, sample sizes,
@@ -92,7 +92,7 @@ One-sided for blocked_recall (H: > 0.95); one-sided for FPR (H: < 0.10).
 **Pre-declared parameters:**
 - Dataset: AgentHarm (44 harmful, 44 benign), `hint_included=False, detailed_prompt=False`
 - Protocol: Mode 3 cascade only (Modes 1/2 are exploratory baselines, not hypothesis-tested)
-- Evaluation scope: **intent-gating only** — not tool-call interception
+- Evaluation scope: **intent-gating only**, not tool-call interception
   (see `experiments/agentharm/INTERCEPTION_NOTES.md`)
 - This claim does NOT imply execution prevention
 

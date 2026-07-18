@@ -1,9 +1,9 @@
-# AROMER Quickstart — the learning loop in 10 minutes
+# AROMER Quickstart, the learning loop in 10 minutes
 
 AROMER is REMORA's closed-loop meta-cognitive layer: every governance decision
 becomes an episode, every observed outcome becomes a learning signal, and a
 4-hourly cycle adapts thresholds, oracle ranking, and Bayesian harm priors.
-Research-grade and experimental — not production-certified.
+Research-grade and experimental, not production-certified.
 
 ## 1. Offline in 60 seconds (no API keys)
 
@@ -36,7 +36,7 @@ aromer.adapt()                                       # one learning cycle
 
 Minimal observations are supported: thermodynamic state (`final_H`,
 `final_D`) is optional, and episodes without it still feed the threshold and
-bandit learners (the λ-coupling learner is skipped — it needs the
+bandit learners (the λ-coupling learner is skipped, it needs the
 dissensus signal).
 
 ## 2. Reading the live intelligence score (AII)
@@ -55,7 +55,7 @@ Key fields:
 | Field | Meaning |
 |---|---|
 | `current.aii` | Raw AII for the latest cycle (carries window-composition noise) |
-| `aii_smoothed` | EMA-smoothed AII (α=0.35) — **read this one** |
+| `aii_smoothed` | EMA-smoothed AII (α=0.35), **read this one** |
 | `trend` | Computed on the smoothed series |
 | `meta.transfer_source` | `python_replay_arena` (measured) or `static_seed_expectation` (fallback) |
 
@@ -87,7 +87,7 @@ python experiments/aromer_loop_health.py
 Deterministic checks against the live history: transfer provenance, AII
 volatility, episode-window movement, stability liveness, and the
 zero-false-accept safety floor. Writes `artifacts/aromer/loop_health.json`
-and exits non-zero on safety failures — suitable as a cron/CI guard.
+and exits non-zero on safety failures: suitable as a cron/CI guard.
 
 ## 5. Scaling posture
 
@@ -96,7 +96,7 @@ episode ingestion is a single INSERT per decision, the heavy work happens in
 the 4-hourly scheduled cycle, and reads (`/intelligence`, `/world`, `/stats`)
 are bounded queries. The Python library is stateless per process except for
 the JSONL episodic store. Multi-tenant hardening (per-tenant auth and
-isolation on the POST endpoints) is documented future work — the current
+isolation on the POST endpoints) is documented future work, the current
 worker is a research deployment, not a hardened multi-tenant service.
 
 ## Troubleshooting
@@ -106,4 +106,4 @@ worker is a research deployment, not a hardened multi-tenant service.
 | AII jumps between cycles | Window-composition noise | Read `aii_smoothed`, not `current.aii` |
 | `transfer_source: static_seed_expectation` | No recent real replay | `python scripts/aromer_publish_replay.py --publish` |
 | `stability_score` near 0.10 | Pre-v2 formula (dead bandit-entropy term) | Redeploy worker ≥ 0.2.0; needs 2+ cycles of history |
-| AII < 0.40 (WARMUP) | Insufficient labelled episodes | Record outcomes (`record_ground_truth`) — the loop can only learn what you tell it |
+| AII < 0.40 (WARMUP) | Insufficient labelled episodes | Record outcomes (`record_ground_truth`), the loop can only learn what you tell it |

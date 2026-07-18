@@ -1,13 +1,13 @@
 # Causal-Consequence Gating Signals
 
 Status: research-grade, deterministic, heuristic. Not production-certified.
-Causal-consequence *inspired* — this is not causal decision theory and there
+Causal-consequence *inspired*, this is not causal decision theory and there
 is no interventional world model.
 
 ## Idea
 
 Pre-execution governance should ask "what does executing this action cause?"
-— not just "what does the label say?". The layer derives, per action:
+- not just "what does the label say?". The layer derives, per action:
 
 | Field | Content |
 |-------|---------|
@@ -29,7 +29,7 @@ Pre-execution governance should ask "what does executing this action cause?"
 - DNS/firewall/security changes → system (production when prod-targeted)
 - external email/webhook/payment → external (cannot be recalled)
 - unknown environment + mutation → blast radius `unknown`, causal uncertainty
-  ≥ 0.8 — unknown is not safe
+  ≥ 0.8, unknown is not safe
 - bulk scope widens the radius one step
 
 ## How it routes
@@ -45,5 +45,5 @@ also fully available to reviewers via `GovernanceIntelligenceResult.causal`.
 - Table-driven: the loss bands are design constants, not measured losses.
 - No dependency graph: downstream effects are category narratives, not a
   traced impact analysis.
-- `unknown` blast radius is deliberately sticky — the layer prefers admitting
+- `unknown` blast radius is deliberately sticky, the layer prefers admitting
   ignorance over guessing a small radius.

@@ -1,6 +1,6 @@
-# RAG Critical Router v1 — Results Summary
+# RAG Critical Router v1: Results Summary
 
-**Dataset**: MultiNLI validation_matched (used in place of FEVER — see metadata)
+**Dataset**: MultiNLI validation_matched (used in place of FEVER, see metadata)
 **N**: 3000 critical-phase items
 
 ## Routing Distribution

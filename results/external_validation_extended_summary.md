@@ -2,14 +2,14 @@
 
 **Date:** 2026-06-02
 **Prompt template:** v1.1
-**Direct oracle:** Cloudflare Workers AI rotating pool — `llama-3.3-70b-instruct-fp8-fast`, `llama-4-scout-17b-16e-instruct`, `mistral-small-3.1-24b-instruct`, `llama-3.2-3b-instruct`, `llama-3.1-8b-instruct-fp8`
+**Direct oracle:** Cloudflare Workers AI rotating pool, `llama-3.3-70b-instruct-fp8-fast`, `llama-4-scout-17b-16e-instruct`, `mistral-small-3.1-24b-instruct`, `llama-3.2-3b-instruct`, `llama-3.1-8b-instruct-fp8`
 **REMORA oracles:** cf/llama-3.3-70b-instruct-fp8-fast, cf/llama-4-scout-17b-16e-instruct
 **Random seed:** 42  **Live:** True
 
-> **Claim status:** `internally_supported` — live-oracle runs on public HF benchmarks.
+> **Claim status:** `internally_supported`: live-oracle runs on public HF benchmarks.
 > Upgrade to `externally_validated` only after independent replication.
 
-## Direct Oracle Accuracy (Groq llama-3.3-70b, direct — no REMORA wrapper)
+## Direct Oracle Accuracy (Groq llama-3.3-70b, direct, no REMORA wrapper)
 
 | Dataset | Accuracy | Wilson 95% CI | Correct | Scored | Parseable/N |
 |---------|----------|--------------|---------|--------|-------------|
@@ -20,7 +20,7 @@
 
 ## REMORA Governance Action Distribution
 
-> REMORA is a governance circuit breaker — `verify` means the action needs supporting evidence.
+> REMORA is a governance circuit breaker, `verify` means the action needs supporting evidence.
 > For factual Q&A benchmarks, routing all items to `verify` is **correct** governance behaviour.
 
 | Dataset | N | Accept | Verify | Escalate | Abstain | Coverage |
@@ -46,7 +46,7 @@ Prompt requests a single letter (MC) / True|False (BoolQ) / short phrase (Hotpot
 Answer parsed by regex; unparseable items are excluded from accuracy but counted.
 Wilson 95% CI computed on parseable items; HotpotQA accuracy is a **substring match upper bound**.
 
-**REMORA governance:** `engine.run(question, risk_tier='medium')` — 2-3 oracle consensus + policy gate.
+**REMORA governance:** `engine.run(question, risk_tier='medium')`, 2-3 oracle consensus + policy gate.
 Coverage = proportion of items issued `accept`.
 Latency = wall-clock per item.
 
@@ -69,7 +69,7 @@ Latency = wall-clock per item.
 - HotpotQA uses substring match, not token F1.
 - TruthfulQA accuracy is a substring match; it measures surface overlap, not hallucination rate.
 - MMLU accuracy uses letter matching (A/B/C/D); subject coverage reflects the selected configs.
-- SQuAD-RAG coverage > 0% is **expected** (evidence supplied) — this is not inflated accuracy,   it is governance coverage demonstrating the evidence-augmented accept path.
+- SQuAD-RAG coverage > 0% is **expected** (evidence supplied): this is not inflated accuracy,   it is governance coverage demonstrating the evidence-augmented accept path.
 - Results are non-deterministic; slight variation expected on rerun.
 
 ## RAG Track Note

@@ -30,16 +30,16 @@ Key assets:
 
 | Threat | Location | Existing Control | Gap |
 |--------|----------|-----------------|-----|
-| **S** — Spoofing observation fields | PolicyObservation construction | `_normalize_observation` normalises risk_tier/action_type/target_environment; factory methods validate structure | Caller can set `adversarial_detected=False` on a real adversarial input; detection depends on upstream classifier |
-| **S** — Token forgery (PDP→PEP) | PolicyDecisionToken | HMAC-SHA256 over canonical payload; observation_hash binds token to specific call | Unsigned tokens accepted in non-strict mode; no replay-window TTL on token |
-| **T** — Observation field tampering | PolicyObservation (frozen dataclass) | Frozen dataclass prevents mutation after construction | `from_dict` / `from_json_record` accepts any serialized dict — no signature on the observation itself |
-| **T** — Verdict tampering in transit | PolicyDecisionToken to EnforcementGate | HMAC-SHA256; changing `action` field invalidates signature | Token carries no expiry; a captured signed ACCEPT token remains valid indefinitely |
-| **T** — Audit chain tampering | AuditHashChain | SHA-256 hash chain detects tampering | In-memory chain can be fully rewritten by adversary with write access (documented: detect-only) |
-| **R** — Decision non-repudiation | DecisionReport | policy_version, reasons, source_of_decision recorded | No cryptographic timestamp (RFC 3161); server-clock UTC only |
-| **I** — Information leakage via audit | AuditBlock | tool_args_hash hides full action text | observation serialization in _hash_observation includes all fields; if hash is logged, pre-image may leak |
-| **D** — Session flooding | Session attack gates | session_action_count > 100 → VERIFY; session_cumulative_risk > 0.80 → VERIFY | Threshold constants are not configurable at runtime; no per-tenant session table |
-| **E** — Privilege escalation via phase manipulation | Phase gate | critical phase + critical risk → ESCALATE | Non-critical phase with critical risk only gets VERIFY (not ESCALATE); intentional design |
-| **E** — Bypass via unclassified action_type | Unknown action_type handling | None action_type falls through to normal logic (not conservatively blocked) | Documented caveat: unknown action_type is not conservatively escalated; caller must classify |
+| **S**, Spoofing observation fields | PolicyObservation construction | `_normalize_observation` normalises risk_tier/action_type/target_environment; factory methods validate structure | Caller can set `adversarial_detected=False` on a real adversarial input; detection depends on upstream classifier |
+| **S**, Token forgery (PDP→PEP) | PolicyDecisionToken | HMAC-SHA256 over canonical payload; observation_hash binds token to specific call | Unsigned tokens accepted in non-strict mode; no replay-window TTL on token |
+| **T**, Observation field tampering | PolicyObservation (frozen dataclass) | Frozen dataclass prevents mutation after construction | `from_dict` / `from_json_record` accepts any serialized dict, no signature on the observation itself |
+| **T**, Verdict tampering in transit | PolicyDecisionToken to EnforcementGate | HMAC-SHA256; changing `action` field invalidates signature | Token carries no expiry; a captured signed ACCEPT token remains valid indefinitely |
+| **T**, Audit chain tampering | AuditHashChain | SHA-256 hash chain detects tampering | In-memory chain can be fully rewritten by adversary with write access (documented: detect-only) |
+| **R**, Decision non-repudiation | DecisionReport | policy_version, reasons, source_of_decision recorded | No cryptographic timestamp (RFC 3161); server-clock UTC only |
+| **I**, Information leakage via audit | AuditBlock | tool_args_hash hides full action text | observation serialization in _hash_observation includes all fields; if hash is logged, pre-image may leak |
+| **D**, Session flooding | Session attack gates | session_action_count > 100 → VERIFY; session_cumulative_risk > 0.80 → VERIFY | Threshold constants are not configurable at runtime; no per-tenant session table |
+| **E**, Privilege escalation via phase manipulation | Phase gate | critical phase + critical risk → ESCALATE | Non-critical phase with critical risk only gets VERIFY (not ESCALATE); intentional design |
+| **E**, Bypass via unclassified action_type | Unknown action_type handling | None action_type falls through to normal logic (not conservatively blocked) | Documented caveat: unknown action_type is not conservatively escalated; caller must classify |
 
 ---
 
@@ -93,7 +93,7 @@ External anchoring (not yet implemented):
   - KMS/HSM for signing key (REM-022)
 ```
 
-**Trust boundary A** (agent → PDP): PolicyObservation fields are caller-controlled. The engine normalises and validates them conservatively but cannot verify `adversarial_detected` itself — it depends on an upstream classifier.
+**Trust boundary A** (agent → PDP): PolicyObservation fields are caller-controlled. The engine normalises and validates them conservatively but cannot verify `adversarial_detected` itself: it depends on an upstream classifier.
 
 **Trust boundary B** (PDP → PEP): Protected by HMAC-SHA256 signed PolicyDecisionToken. The observation_hash binds each token to a specific call, preventing reuse.
 
@@ -119,7 +119,7 @@ Traced all ACCEPT-returning paths in `decide()`:
 
 **High risk with evidence CAN reach ACCEPT** via conformal or temperature paths if:
 - `evidence_action='answer'` (bypasses evidence_insufficient gate)
-- `counterfactual_passed=True` (not False or None — bypasses GAP A)
+- `counterfactual_passed=True` (not False or None, bypasses GAP A)
 - `schema_valid` is True or action is read-only (bypasses schema floor)
 - Trust/temperature satisfies threshold
 
@@ -190,13 +190,13 @@ Priority 11+: ACCEPT paths (conformal, temperature, evidence, ordered_high_trust
 
 | Property | Verified |
 |----------|----------|
-| PEP cannot be called without a PDP token | Yes — `gate.enforce()` requires a `PolicyDecisionToken` |
-| Forged signatures rejected | Yes — HMAC verify fails; `allowed=False` |
-| Changed `action` field invalidates signature | Yes — action is in canonical payload |
-| Observation hash mismatch rejected | Yes — `verify(observation_hash=...)` checks binding |
-| Non-ACCEPT decisions block execution | Yes — `ACCEPT_ACTIONS = frozenset({"accept"})` |
-| Strict mode rejects unsigned tokens | Yes — returns `allowed=False` |
-| Non-strict mode warns on unsigned | Yes — `warnings.warn` emitted |
+| PEP cannot be called without a PDP token | Yes, `gate.enforce()` requires a `PolicyDecisionToken` |
+| Forged signatures rejected | Yes, HMAC verify fails; `allowed=False` |
+| Changed `action` field invalidates signature | Yes, action is in canonical payload |
+| Observation hash mismatch rejected | Yes, `verify(observation_hash=...)` checks binding |
+| Non-ACCEPT decisions block execution | Yes, `ACCEPT_ACTIONS = frozenset({"accept"})` |
+| Strict mode rejects unsigned tokens | Yes, returns `allowed=False` |
+| Non-strict mode warns on unsigned | Yes, `warnings.warn` emitted |
 
 ### 4.3 Known gaps (documented in REM-013 and REM-022)
 
@@ -289,11 +289,11 @@ A captured valid `PolicyDecisionToken` for a specific observation is permanently
 
 | Control | Status | Gap |
 |---------|--------|-----|
-| Version string on every DecisionReport | Present — `POLICY_VERSION_ALWAYS_SET` invariant enforces this | None |
+| Version string on every DecisionReport | Present, `POLICY_VERSION_ALWAYS_SET` invariant enforces this | None |
 | Version in PolicyTrace | Present | None |
 | Version in AuditBlock | Set by caller, not auto-populated | Integration layer must copy it |
 | Policy bundle hash (`policy_bundle_hash`) | Field exists in AuditBlock but is None by default | Not computed automatically; requires external tooling |
-| Version bump on policy change | Manual — no tooling enforces a bump on git changes to decision_engine.py | Gap: silent version-string drift |
+| Version bump on policy change | Manual, no tooling enforces a bump on git changes to decision_engine.py | Gap: silent version-string drift |
 | Previous envelope hash (`previous_hash`) | Field exists; populated externally | Not enforced in engine |
 
 **Finding F-4 (Medium): Policy bundle hash not auto-computed**
@@ -361,8 +361,8 @@ Implements tests T-01 through T-10 plus additional edge cases for:
 | F-2 | PolicyDecisionToken has no expiry/replay TTL | Low | Documented (REM-022 scope) |
 | F-3 | `AROMER_CONFORMAL_TRUST_THRESHOLD` class attribute is unused by `decide()` | Informational | Documented in tests |
 | F-4 | `AuditBlock.policy_bundle_hash` not auto-computed | Medium | New utility added |
-| — | Critical risk cannot ACCEPT through any path | No bypass found | Verified |
-| — | Hard block ordering is correct (all hard blocks precede ACCEPT paths) | No bypass found | Verified |
-| — | PDP/PEP token binding prevents cross-action reuse | No bypass found | Verified |
-| — | Schema unverified floor fires before conformal ACCEPT | No bypass found | Verified |
-| — | GAP A (counterfactual=None) fires before conformal ACCEPT | No bypass found | Verified |
+|, | Critical risk cannot ACCEPT through any path | No bypass found | Verified |
+|, | Hard block ordering is correct (all hard blocks precede ACCEPT paths) | No bypass found | Verified |
+|, | PDP/PEP token binding prevents cross-action reuse | No bypass found | Verified |
+|, | Schema unverified floor fires before conformal ACCEPT | No bypass found | Verified |
+|, | GAP A (counterfactual=None) fires before conformal ACCEPT | No bypass found | Verified |

@@ -6,12 +6,12 @@ Curated, reproducible knowledge and benchmark dataset for the REMORA governance 
 
 This dataset provides:
 - **100 labelled agent-action scenarios** with expected gate decisions
-- **Curated static RAG** — policy summaries agents can retrieve at decision time
-- **Evidence packs** — 27 structured evidence objects covering 6 domains
-- **Shadow replay log** — 100 entries for counterfactual governance analysis
-- **Live feed ingesters** — NVD, EPSS, CISA KEV, MITRE ATT&CK
-- **Policy YAML + Rego** — machine-readable gate rules and risk-tier definitions
-- **Learning examples** — reviewer outcome patterns and policy update candidates
+- **Curated static RAG**, policy summaries agents can retrieve at decision time
+- **Evidence packs**, 27 structured evidence objects covering 6 domains
+- **Shadow replay log**, 100 entries for counterfactual governance analysis
+- **Live feed ingesters**, NVD, EPSS, CISA KEV, MITRE ATT&CK
+- **Policy YAML + Rego**, machine-readable gate rules and risk-tier definitions
+- **Learning examples**, reviewer outcome patterns and policy update candidates
 
 ## Critical Policy Constraint
 
@@ -106,12 +106,12 @@ Each line in `evidence_objects.jsonl`:
 
 | Field | Type | Range | Description |
 |-------|------|-------|-------------|
-| `evidence_id` | str | — | Unique identifier |
-| `source` | str | — | Originating authority (NIST, CISA, etc.) |
-| `title` | str | — | Human-readable title |
-| `content` | str | — | Substantive evidence text |
-| `domain` | str | — | Primary domain |
-| `risk_tags` | list | — | Risk vocabulary tags |
+| `evidence_id` | str |, | Unique identifier |
+| `source` | str |, | Originating authority (NIST, CISA, etc.) |
+| `title` | str |, | Human-readable title |
+| `content` | str |, | Substantive evidence text |
+| `domain` | str |, | Primary domain |
+| `risk_tags` | list |, | Risk vocabulary tags |
 | `authority_score` | float | [0,1] | Source authority weight |
 | `freshness_score` | float | [0,1] | How current the evidence is |
 | `coverage_score` | float | [0,1] | Breadth of coverage |

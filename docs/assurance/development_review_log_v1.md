@@ -1,12 +1,12 @@
 # REMORA Engineering & Review Log
 
-*A single, honest record of how this repository was built and hardened — for a
+*A single, honest record of how this repository was built and hardened, for a
 reviewer who wants to see the engineering discipline, not just the result.*
 
 **Current head reflects:** research-grade assurance control plane, deployment
 status `SHADOW_ONLY`. Every claim below links to an artifact, a test, or a
 file:line. Where something is unproven, this document says so in the same
-sentence. That discipline — the caveat travelling with the claim — is the
+sentence. That discipline, keeping each caveat next to its claim, is the
 point of the whole repository, so it is the point of this log too.
 
 ---
@@ -20,11 +20,11 @@ point of the whole repository, so it is the point of this log too.
 | Result artifacts | 78 committed under `results/`; every headline number is reproducible offline | see §6 |
 | Remediation items | 22 of 30 tracked REM-items DONE; **REM-021 (independent review) is the sole open production gate** | [`remediation_register.yaml`](remediation_register.yaml) |
 | Capability wiring | 12 capabilities on an explicit six-rung ladder; **nothing claims `ENFORCED_PRODUCTION` or `EXTERNALLY_VERIFIED`** (a CI-enforced invariant) | [`capability_register_v1.yaml`](capability_register_v1.yaml), `tests/test_capability_register.py` |
-| Deployment status | `SHADOW_ONLY` — unchanged, by design, until REM-021 closes | [`release_gates.md`](release_gates.md) |
+| Deployment status | `SHADOW_ONLY`, unchanged, by design, until REM-021 closes | [`release_gates.md`](release_gates.md) |
 
 The honest one-line summary: **a credible, executable reference architecture
 for policy-governed agent assurance, hardened through eight external review
-rounds into testable invariants — not a production-certified enforcement
+rounds into testable invariants. It is not a production-certified enforcement
 product, and it does not claim to be one.**
 
 ---
@@ -39,7 +39,7 @@ the process rejected bad findings as rigorously as it accepted good ones.
 |---|---|---|
 | 1–2 | OPA policy parity | `OPAContext` exports the full decision-path contract; `tests/test_opa_parity.py` scans the engine source and fails CI if a new guard reads an unexported field |
 | 3 | Decision monotonicity over adapters | `hard_guard_floor()` as one source of truth; OPA results floored, tightened-only |
-| 4 | A2A trust chain | per-link signatures, principal-bound `RegisteredKey`, replay guard, payload binding — `tests/test_a2a_envelope.py` |
+| 4 | A2A trust chain | per-link signatures, principal-bound `RegisteredKey`, replay guard, payload binding, `tests/test_a2a_envelope.py` |
 | 5 | Token replay, RBAC contract, identity | mandatory token expiry + `jti` one-time consumption; single role vocabulary; audit identity bound to the authenticated principal |
 | 6 | Partition & stale approvals | degradation ladder G0–G4 + approval-freshness re-gate (REM-032/033) |
 | 7 | Startup ordering, execution RBAC | actor-map init order; `execute` capability; profile approval role |
@@ -75,7 +75,7 @@ All artifact- and test-backed. Wiring status is authoritative in
   re-gated against the fresh world at execution.
 - **AROMER cross-domain transfer, measured** (`remora/aromer/evals/cross_domain_transfer.py`,
   CAP-012): an abstract `(action_type × risk_tier)` harm prior, evaluated
-  leave-one-domain-out — **83.8% transfer accuracy (109/130 across 10
+  leave-one-domain-out, **83.8% transfer accuracy (109/130 across 10
   domains)**, artifact `results/aromer_cross_domain_transfer_v1.json`. Honest
   scope: this evidences the *capability* offline; it does **not** clear the
   live worker gate, which still shows `TRANSFER_UNMEASURED` until organic
@@ -91,7 +91,7 @@ safety-critical codebase's process to behave.
 1. **It rejected false positives.** The adversarial multi-agent review flagged
    39 findings. Two ("FALSE_BLOCK outcomes discarded", "oracle bandit credited
    with fabricated signal") were verified against the actual code and found to
-   be **already handled** — and were deliberately *not* "fixed". Verifying
+   be **already handled**, and were deliberately *not* "fixed". Verifying
    before acting is the discipline; a fix applied to working code is a
    regression waiting to happen.
 
@@ -104,7 +104,7 @@ safety-critical codebase's process to behave.
 
 3. **A gate refused to self-close.** REM-020's closure tooling found two
    conflicting "canonical" criteria (7-day vs 30-day) and **refused to close
-   the gate** until the owner reconciled them — rather than silently picking
+   the gate** until the owner reconciled them, rather than silently picking
    one. The conflict, the reconciliation, and the fail-closed tooling run are
    all in the elevation record.
 
@@ -165,7 +165,7 @@ python scripts/run_cross_domain_transfer.py     # 83.8% cross-domain transfer
 make audit                                       # lint + tests + claim consistency
 ```
 
-Regenerated result artifacts are byte-identical to the committed ones — the
+Regenerated result artifacts are byte-identical to the committed ones, the
 determinism is itself part of the evidence. Full reproduction guide:
 [`../06-reproducibility.md`](../06-reproducibility.md).
 

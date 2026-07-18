@@ -8,8 +8,8 @@ Cloudflare Worker providing full-text and semantic search over Norwegian statute
 
 Exposes the `norges-lover-legal-intel` database (D1 + Vectorize) to the REMORA MCP server. Handles two tasks:
 
-1. **Citation verification** — checks whether a specific court decision (e.g. `HR-2015-2386-A`) exists in the database.
-2. **Statute search** — retrieves relevant sections from Norwegian law given a free-text query.
+1. **Citation verification**: checks whether a specific court decision (e.g. `HR-2015-2386-A`) exists in the database.
+2. **Statute search**: retrieves relevant sections from Norwegian law given a free-text query.
 
 ## Endpoints
 
@@ -67,7 +67,7 @@ npx wrangler deploy
 
 ## Used by
 
-- `remora_norwegian_law_search` MCP tool — semantic statute search
-- `remora_verify_legal_citations` MCP tool — hallucination detection for court references
-- `scripts/demo_norwegian_law.py` — live citation verification demo
-- `tests/test_norwegian_law.py` — offline test suite (uses cached responses)
+- `remora_norwegian_law_search` MCP tool, semantic statute search
+- `remora_verify_legal_citations` MCP tool, hallucination detection for court references
+- `scripts/demo_norwegian_law.py`, live citation verification demo
+- `tests/test_norwegian_law.py`, offline test suite (uses cached responses)

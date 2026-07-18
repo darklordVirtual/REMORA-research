@@ -1,4 +1,4 @@
-# REMORA Paper — Figure Descriptions and Mermaid Diagrams
+# REMORA Paper: Figure Descriptions and Mermaid Diagrams
 
 ## Figure 1: REMORA Architecture (Mermaid)
 

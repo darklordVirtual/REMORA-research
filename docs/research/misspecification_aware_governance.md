@@ -7,10 +7,10 @@ Status: research-grade, deterministic, heuristic. Not production-certified.
 A governance overlay that trusts caller-supplied labels inherits every
 labelling bug and every labelling attack. The two dominant failure shapes:
 
-1. **Benign misspecification** — integration code maps every tool to
+1. **Benign misspecification**, integration code maps every tool to
    `action_type="tool_call"` or forgets `risk_tier`, so the engine's gates have
    nothing to key on.
-2. **Adversarial misspecification** — a compromised or prompt-injected agent
+2. **Adversarial misspecification**, a compromised or prompt-injected agent
    labels `DROP TABLE users` as a low-risk read to slip past the policy gate.
 
 ## Approach

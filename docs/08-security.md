@@ -1,12 +1,12 @@
 # What are the security properties and known gaps?
 
 This document covers the threat model, OWASP GenAI Top 10 mapping, and the
-pre-deployment checklist. Status: internal mapping — not externally audited.
+pre-deployment checklist. Status: internal mapping, not externally audited.
 
 Companion documents:
-- `enterprise/threat-model.md` — full threat narrative and controls
-- `enterprise/policy-model.md` — OPA policy gates
-- `docs/security/owasp_genai_mapping.md` — source for the mapping table below
+- `enterprise/threat-model.md`, full threat narrative and controls
+- `enterprise/policy-model.md`, OPA policy gates
+- `docs/security/owasp_genai_mapping.md`, source for the mapping table below
 
 → [01-architecture.md](01-architecture.md) for architectural context.
 → [07-api-reference.md](07-api-reference.md) for the adversarial detection API.
@@ -18,13 +18,13 @@ Companion documents:
 REMORA is an application-layer governance overlay. It does not control model
 weights, inference infrastructure, or network perimeter. Its threat surface is:
 
-1. **Prompt injection** — malicious content in user input or retrieved documents
+1. **Prompt injection**, malicious content in user input or retrieved documents
    instructing the model to bypass policy.
-2. **Tool-call abuse** — agent invokes a tool outside its role/clearance scope or
+2. **Tool-call abuse**, agent invokes a tool outside its role/clearance scope or
    with malformed arguments.
-3. **Audit tampering** — modification of past `DecisionEnvelope` records.
-4. **Oracle failure** — all oracles agree and are all wrong (correlated failure).
-5. **Governance forgetting** — a temporary exception becomes permanent behaviour.
+3. **Audit tampering**: modification of past `DecisionEnvelope` records.
+4. **Oracle failure**: all oracles agree and are all wrong (correlated failure).
+5. **Governance forgetting**: a temporary exception becomes permanent behaviour.
 
 REMORA addresses 1–5 at the application layer with the controls below. It does
 not prevent host-level attacks, model extraction, or infrastructure compromise.
@@ -41,9 +41,9 @@ not prevent host-level attacks, model extraction, or infrastructure compromise.
 | LLM04 Model DoS | `budget_oracle_calls` hard cap, stage short-circuit on terminal verdict, tenant isolation (infra-level) | Budget cap implemented | Tenant isolation is infrastructure-level |
 | LLM05 Supply Chain | Pure Python core, pinned `pyproject.toml` deps, signed artifacts, deterministic locked benchmarks | Implemented at code level | Infra signing is deployer responsibility |
 | LLM06 Sensitive Disclosure | Secret-pattern detection in file risk classifier (`remora/safety/`), context isolation, audit redaction runbook | Partial | No PII detection in free-form model output |
-| LLM07 Insecure Plugin | Policy gate + OPA (`remora/policy/`), risk-profile allowlist, default-deny on missing policy | Implemented | — |
-| LLM08 Excessive Agency | Autonomy degradation (`remora/governance/`), human approval workflow (`enterprise/human-approval-workflow.md`), `ESCALATE` on high uncertainty, Lyapunov V(t) drift detection | Implemented | — |
-| LLM09 Overreliance | Selective abstention, Platt-scaled confidence calibration, uncertainty decomposition (epistemic vs aleatoric), explicit `VERIFY` verdict | Implemented | — |
+| LLM07 Insecure Plugin | Policy gate + OPA (`remora/policy/`), risk-profile allowlist, default-deny on missing policy | Implemented |, |
+| LLM08 Excessive Agency | Autonomy degradation (`remora/governance/`), human approval workflow (`enterprise/human-approval-workflow.md`), `ESCALATE` on high uncertainty, Lyapunov V(t) drift detection | Implemented |, |
+| LLM09 Overreliance | Selective abstention, Platt-scaled confidence calibration, uncertainty decomposition (epistemic vs aleatoric), explicit `VERIFY` verdict | Implemented |, |
 | LLM10 Model Theft | System prompt isolation (programmatic construction, not user-accessible), audit trail (question hash logged by default) | Application-layer only | Model extraction protection is inference-infrastructure responsibility |
 
 **Overall posture:** REMORA addresses 8/10 OWASP GenAI risks at the application
@@ -61,8 +61,8 @@ Before any production deployment, confirm all items below. Source:
 
 - [ ] `CONTROL_SECRET` set via `wrangler secret put` (non-empty, cryptographically random)
 - [ ] `ORACLE_SECRET` set via `wrangler secret put` (non-empty, cryptographically random)
-- [ ] `/audit` and `/test-bindings` endpoints require Bearer auth (previously open — fixed)
-- [ ] `/ingest` endpoint is fail-closed when `ORACLE_SECRET` is unset (previously fail-open — fixed)
+- [ ] `/audit` and `/test-bindings` endpoints require Bearer auth (previously open, fixed)
+- [ ] `/ingest` endpoint is fail-closed when `ORACLE_SECRET` is unset (previously fail-open, fixed)
 
 ### Input validation
 
@@ -94,7 +94,7 @@ Before any production deployment, confirm all items below. Source:
 ### Rate limiting
 
 - [ ] Cloudflare Rate Limiting rules configured (100 req/min per IP minimum)
-  (no rate limiting currently implemented — risk of DoS / cost amplification on leaked secret)
+  (no rate limiting currently implemented, risk of DoS / cost amplification on leaked secret)
 
 ### Dependencies
 
@@ -135,7 +135,7 @@ triage (`remora/evidence/cyber.py`, `datasets/cyber_evidence_v1/`). It provides:
 - RAG/vector search over advisory narratives and remediation text,
 - exploit classification (`KNOWN_EXPLOITED`, `PUBLIC_EXPLOIT_LIKELY`,
   `EMERGING_OR_UNKNOWN`, `WEAK_OR_UNCORROBORATED`, `LIKELY_FALSE_POSITIVE`),
-- defensive PoC plans (not exploit payloads — production exploitation is
+- defensive PoC plans (not exploit payloads, production exploitation is
   explicitly blocked by the provider API).
 
 What this layer does not claim: it is not a full vulnerability database, not

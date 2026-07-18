@@ -2,7 +2,7 @@
 
 ## Positioning
 
-REMORA is not a model, a chatbot, or an AI application. It is a **control plane** — a governance and trust layer that sits between the consumers of AI (users, applications, agents) and the producers of AI output (models, tools, data sources).
+REMORA is not a model, a chatbot, or an AI application. It is a **control plane**: a governance and trust layer that sits between the consumers of AI (users, applications, agents) and the producers of AI output (models, tools, data sources).
 
 The question REMORA answers is not "what is the answer?" but "should this answer be trusted, acted on, escalated, or rejected?"
 
@@ -98,7 +98,7 @@ The control plane does not compete with the model layer. It orchestrates trust b
 
 ### 2. Fail-closed behavior
 
-When evidence is insufficient, models disagree, or budget is exhausted, REMORA defaults to `ABSTAIN` or `ESCALATE` — not to a forced low-confidence answer. This is analogous to a circuit breaker: the safe failure mode is to stop, not to guess.
+When evidence is insufficient, models disagree, or budget is exhausted, REMORA defaults to `ABSTAIN` or `ESCALATE`, not to a forced low-confidence answer. This is analogous to a circuit breaker: the safe failure mode is to stop, not to guess.
 
 ### 3. Policy before execution
 
@@ -106,17 +106,17 @@ Every request is evaluated against a policy profile before any model call is mad
 
 ### 4. Auditability is structural
 
-The decision trace — inputs, models used, evidence retrieved, scores computed, verdict issued — is not optional telemetry. It is an architectural output of every request. This makes REMORA usable in regulated environments where decisions must be explainable.
+The decision trace, inputs, models used, evidence retrieved, scores computed, verdict issued, is not optional telemetry. It is an architectural output of every request. This makes REMORA usable in regulated environments where decisions must be explainable.
 
 ### 5. Model diversity as a safety mechanism
 
-Independent oracles from different model families are not used for capability redundancy — they are used to detect failure modes. A judge oracle from a different family than the consensus oracles cannot share the same systematic errors, making its disagreement a reliable signal.
+Independent oracles from different model families are not used for capability redundancy: they are used to detect failure modes. A judge oracle from a different family than the consensus oracles cannot share the same systematic errors, making its disagreement a reliable signal.
 
 ---
 
 ## The Circuit Breaker Analogy
 
-Enterprise networks use multiple control layers: firewalls, load balancers, intrusion detection systems, access control lists. None of these run the application — they control what reaches it and what it can do.
+Enterprise networks use multiple control layers: firewalls, load balancers, intrusion detection systems, access control lists. None of these run the application: they control what reaches it and what it can do.
 
 REMORA applies the same pattern to AI systems:
 
@@ -135,9 +135,9 @@ The goal is not to replace AI infrastructure. The goal is to make it governable.
 
 ## Related Documents
 
-- [`enterprise/remora-control-plane.md`](remora-control-plane.md) — multi-tenant deployment model
-- [`enterprise/policy-model.md`](policy-model.md) — risk tiers and decision outcomes
-- [`enterprise/risk-profiles.yaml`](risk-profiles.yaml) — machine-readable profile configuration
+- [`enterprise/remora-control-plane.md`](remora-control-plane.md), multi-tenant deployment model
+- [`enterprise/policy-model.md`](policy-model.md), risk tiers and decision outcomes
+- [`enterprise/risk-profiles.yaml`](risk-profiles.yaml), machine-readable profile configuration
 - [`enterprise/policy_as_code_example.yaml`](policy_as_code_example.yaml) - concrete fail-closed policy-as-code example
 - [`enterprise/nested_governance_layers.yaml`](nested_governance_layers.yaml) - multi-frequency memory and governance layers
 - [`enterprise/threat-model.md`](threat-model.md) - threat model and security controls
@@ -145,7 +145,7 @@ The goal is not to replace AI infrastructure. The goal is to make it governable.
 - [`enterprise/deployment-runbook.md`](deployment-runbook.md) - secure deployment and operations runbook
 - [`enterprise/observability.md`](observability.md) - SLOs, safety metrics, and alerts
 - [`enterprise/human-approval-workflow.md`](human-approval-workflow.md) - approval workflow and authority boundaries
-- [`enterprise/integration-patterns.md`](integration-patterns.md) — enterprise stack integration
-- [`enterprise/audit-ledger-schema.sql`](audit-ledger-schema.sql) — audit trail schema
-- [`enterprise/sector-use-cases.md`](sector-use-cases.md) — domain-specific use cases
-- [`enterprise/executive-brief.md`](executive-brief.md) — strategic positioning
+- [`enterprise/integration-patterns.md`](integration-patterns.md), enterprise stack integration
+- [`enterprise/audit-ledger-schema.sql`](audit-ledger-schema.sql), audit trail schema
+- [`enterprise/sector-use-cases.md`](sector-use-cases.md), domain-specific use cases
+- [`enterprise/executive-brief.md`](executive-brief.md), strategic positioning

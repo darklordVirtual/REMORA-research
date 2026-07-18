@@ -33,7 +33,7 @@ flowchart TD
 Stage 1 always runs first. Hard-block policy rules are deterministic and cannot
 be overridden by any probabilistic oracle result. This is why the 0% unsafe
 execution claim is an architectural property of the policy layer, not of the
-consensus machinery — see `02-evidence-and-claims.md` §1 architectural caveat.
+consensus machinery: see `02-evidence-and-claims.md` §1 architectural caveat.
 
 ---
 
@@ -100,8 +100,8 @@ layer profile is the `nested_governance_layers` section of
 `artifacts/credibility-pack/claim-ledger.yaml` (no standalone `enterprise/`
 directory exists in this repository).
 
-Governance forgetting — when a temporary exception becomes normal behaviour, or
-an agent begins ignoring `ABSTAIN` / `ESCALATE` — is detected by
+Governance forgetting, when a temporary exception becomes normal behaviour, or
+an agent begins ignoring `ABSTAIN` / `ESCALATE`, is detected by
 `remora/governance/governance_forgetting.py`.
 
 ---
@@ -112,7 +112,7 @@ an agent begins ignoring `ABSTAIN` / `ESCALATE` — is detected by
 |---|---|---|
 | Full REMORA | All five stages | Research / high-stakes deployment |
 | Hard-blocks-only | Policy invariants only, no oracle calls | Low-cost fallback; degraded mode |
-| Shadow mode | Full pipeline but no enforcement — decisions logged only | Parallel observation without intervention |
+| Shadow mode | Full pipeline but no enforcement, decisions logged only | Parallel observation without intervention |
 
 Mode degradation from full REMORA to hard-blocks-only must always be recorded
 in `results/agentharm/mode_metadata.jsonl` and is never hidden from scoring.
@@ -125,7 +125,7 @@ REMORA exposes its consensus and verification capabilities as an MCP server
 (`servers/mcp_remora.py`). This allows AI assistants (Claude Desktop, Claude
 Code) to call REMORA tools directly over JSON-RPC. The server connects to:
 
-- Cloudflare Workers AI for oracle routing (optional — local Python fallback
+- Cloudflare Workers AI for oracle routing (optional, local Python fallback
   available without Cloudflare),
 - Cloudflare D1 for the audit ledger,
 - Cloudflare Vectorize for RAG evidence retrieval.
@@ -140,13 +140,13 @@ From `docs/architecture_risk_register.md`:
 
 | Risk | Current status | Next acceptance gate |
 |---|---|---|
-| Live evidence quality — stale, noisy, or contradictory retrieval | Partial; live semantic retrieval is not the headline evidence result | Locked-corpus retrieval benchmark with contradiction false-accept rate |
+| Live evidence quality, stale, noisy, or contradictory retrieval | Partial; live semantic retrieval is not the headline evidence result | Locked-corpus retrieval benchmark with contradiction false-accept rate |
 | Oracle swarm cost and latency | Adaptive cascade short-circuits easy cases | Tiered gating policy for low/medium/high risk |
-| Canonicalization brittleness — token-hash misses synonymy and negation | Lexical heuristic documented; NLI alternative exists as drop-in | NLI/cross-encoder clustering benchmark |
-| Correlated oracle failure — agreement does not equal truth | Diversity weighting, phase classification, hard-block precedence | Multi-provider correlation benchmark on live cached outputs |
+| Canonicalization brittleness, token-hash misses synonymy and negation | Lexical heuristic documented; NLI alternative exists as drop-in | NLI/cross-encoder clustering benchmark |
+| Correlated oracle failure, agreement does not equal truth | Diversity weighting, phase classification, hard-block precedence | Multi-provider correlation benchmark on live cached outputs |
 | Critical-phase trust inversion | `PhaseAwareGuardrail` implemented and tested internally | External benchmark phase-conditioned confidence curves |
 | Simulator-scoped tool-call safety | Scoped honestly as simulator result | Live-agent shadow replay with cached model outputs |
-| Audit tamper prevention — hash chains detect but do not prevent full-chain replacement | Hash-chain integrity implemented; append-only storage is external dependency | Append-only storage profile + replay verification test |
+| Audit tamper prevention, hash chains detect but do not prevent full-chain replacement | Hash-chain integrity implemented; append-only storage is external dependency | Append-only storage profile + replay verification test |
 
 Do not infer from this architecture that REMORA proves correctness of arbitrary
 agent actions, certifies deployment readiness, makes consensus equivalent to

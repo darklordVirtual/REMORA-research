@@ -1,4 +1,4 @@
-# Finance / AML Evidence Pack — v1
+# Finance / AML Evidence Pack, v1
 
 Public REMORA evidence corpus for AML, sanctions screening, and financial
 compliance triage.  Covers FATF typologies, FinCEN SAR guidance, EU AMLD
@@ -48,16 +48,16 @@ these field semantics:
 
 The `FinanceEvidenceProvider.triage()` method applies these rules in order:
 
-1. **SDN match** — `sdnmatch=True` → ESCALATE
-2. **Known typology + elevated risk** — HIGH_RISK_TYPOLOGY AND exact_count ≥ 2
+1. **SDN match**, `sdnmatch=True` → ESCALATE
+2. **Known typology + elevated risk**, HIGH_RISK_TYPOLOGY AND exact_count ≥ 2
    AND (`pep_exposure=True` OR `high_risk_jurisdiction=True`) → ESCALATE
-3. **High-risk signal** — severity high/critical AND risk_score ≥ 0.80 AND
+3. **High-risk signal**, severity high/critical AND risk_score ≥ 0.80 AND
    exact match → ESCALATE
-4. **Report ready** — confidence ≥ 0.68 AND exact match AND tool_signals ≥ 2
+4. **Report ready**, confidence ≥ 0.68 AND exact match AND tool_signals ≥ 2
    → REPORT_READY
-5. **Likely false positive** — confidence ≤ 0.22 AND contradiction ≥ 0.35
+5. **Likely false positive**, confidence ≤ 0.22 AND contradiction ≥ 0.35
    → LIKELY_FALSE_POSITIVE
-6. **Default** — NEEDS_REVIEW
+6. **Default**, NEEDS_REVIEW
 
 ## Quick Start
 

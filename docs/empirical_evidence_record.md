@@ -1,4 +1,4 @@
-# REMORA v4 — Empirical Proof Record
+# REMORA v4: Empirical Proof Record
 
 **Date:** 2026-05-25  
 **Status:** Empirically supported for selective-consensus claims on N=302 (canonical) and N=544 (N500-calibrated artifact).  
@@ -33,7 +33,7 @@ This document presents proofs that together constitute the REMORA v4 contributio
 
 ---
 
-## Proof I — Selective Trust Curve
+## Proof I: Selective Trust Curve
 
 **Claim:** Sorting the N=302 canonical benchmark items by effective question temperature (lowest T = most trusted) and abstaining outside the top band produces a coverage-accuracy Pareto curve with statistically significant lift over the unrouted majority baseline.
 
@@ -49,11 +49,11 @@ This document presents proofs that together constitute the REMORA v4 contributio
 
 **Statistical evidence:**
 - At 25% coverage the Wilson 95% CI lower bound (**0.872**) lies above the baseline upper CI bound (**0.866**). The intervals do not overlap.
-- One-sided binomial p-value **0.0018** — rejects the null that this is a random subset at any standard significance level.
+- One-sided binomial p-value **0.0018**: rejects the null that this is a random subset at any standard significance level.
 - Monte-Carlo random-baseline (5000 trials, same coverage): mean ≈ baseline. Observed lift over random mean: **+11.96 pp**.
 - 11 distinct `(signal, coverage)` operating points clear p < 0.05 across the `trust_score`, `-temperature`, and composite signals.
 
-**What the top 25% consists of:** 84% critical-phase items, 16% ordered-phase items, < 0.3% disordered. The temperature signal and the discrete phase classification select the same items — they are convergent, not redundant.
+**What the top 25% consists of:** 84% critical-phase items, 16% ordered-phase items, < 0.3% disordered. The temperature signal and the discrete phase classification select the same items: they are convergent, not redundant.
 
 **Reproducer:**
 ```bash
@@ -65,7 +65,7 @@ python experiments/selective_trust_curve.py
 
 ---
 
-## Proof II — Bootstrap Validation
+## Proof II: Bootstrap Validation
 
 **Claim:** The Proof I result is not a lucky sample. In N=2000 bootstrap iterations, the temperature signal consistently outperforms bootstrap baselines at the 25% operating point.
 
@@ -74,14 +74,14 @@ python experiments/selective_trust_curve.py
 | Metric | Value |
 |---|---:|
 | Mean lift over bootstrap baseline | +0.1162 pp |
-| Bootstrap 95% CI lower bound | **+0.0535** (positive — not a fluke) |
+| Bootstrap 95% CI lower bound | **+0.0535** (positive, not a fluke) |
 | Bootstrap 95% CI upper bound | +0.1755 |
 | Positive-signal rate | **99.9%** of 2000 iterations |
 | Bootstrap-validated | **YES** |
 
 Also validated at 20% coverage (98.2% positive rate, CI_lo = +0.0354).
 
-Signal collapses predictably at 40%+ coverage — the lift lives in the low-temperature tail, as expected from the thermodynamic model.
+Signal collapses predictably at 40%+ coverage: the lift lives in the low-temperature tail, as expected from the thermodynamic model.
 
 **Reproducer:**
 ```bash
@@ -93,7 +93,7 @@ python experiments/bootstrap_trust_curve.py --n-boot 2000
 
 ---
 
-## Proof III — Hallucination Bound as Formal Theorem
+## Proof III: Hallucination Bound as Formal Theorem
 
 **Claim:** The false-consensus rate of a correlated oracle pool is bounded by a closed-form expression derivable from first principles.
 
@@ -111,7 +111,7 @@ P(all n oracles wrong) ≤ B(n, ε, ρ̄) = [ε² + ρ̄·ε(1−ε)]^⌊n/2⌋
 
 *(Corrected 2026-07-03: a prior version stated exponent n/2 via an
 inequality with the direction reversed for q < 1; the derivable exponent is
-⌊n/2⌋ — at n = 3, q¹ not q^1.5. An explicit between-pair-independence
+⌊n/2⌋, at n = 3, q¹ not q^1.5. An explicit between-pair-independence
 assumption A5 was also added. The runtime routing proxy in
 `remora/thermodynamics.py` retains the tighter n/2 form plus a ρ̄-clamp as a
 disclosed heuristic and must not be cited as this theorem.)*
@@ -126,7 +126,7 @@ disclosed heuristic and must not be cited as this theorem.)*
 | rho_bar (observed inter-oracle correlation) | 0.236 |
 | B(3, 0.264, 0.236) = q¹ (corrected exponent) | 0.1156 |
 | Independence-model P(all 3 wrong) | 0.0184 |
-| Slack (B − model) | **+0.097** (positive — bound holds; looser than the retracted q^1.5 form, as a proven bound must be) |
+| Slack (B − model) | **+0.097** (positive, bound holds; looser than the retracted q^1.5 form, as a proven bound must be) |
 
 P(all 3 wrong) cannot be directly observed from stored artifacts (per-oracle responses are not individually logged). The bound is verified against the independence model and a practical conditional estimate derived from majority failures.
 
@@ -139,7 +139,7 @@ P(all 3 wrong) cannot be directly observed from stored artifacts (per-oracle res
 | 0.264 | 0.06970 | 0.08913 | 0.10856 | 0.11555 | 0.12799 | 0.14742 |
 | 0.30 | 0.09000 | 0.11100 | 0.13200 | 0.13956 | 0.15300 | 0.17400 |
 
-**Limitations:** Between-pair independence (A5) is the weakest assumption — the reported experiments use all-Llama oracles (§13.5), so A5 is not well-supported empirically there and the bound should be read as model-conditional. The theorem holds under stated assumptions only; no claim of universality.
+**Limitations:** Between-pair independence (A5) is the weakest assumption: the reported experiments use all-Llama oracles (§13.5), so A5 is not well-supported empirically there and the bound should be read as model-conditional. The theorem holds under stated assumptions only; no claim of universality.
 
 **Reproducer:**
 ```bash
@@ -150,9 +150,9 @@ python remora/proofs/hallucination_bound_theorem.py
 
 ---
 
-## Proof IV — Phase Structure Stability and Chi Clarification
+## Proof IV: Phase Structure Stability and Chi Clarification
 
-### IVa — Phase Structure Stability
+### IVa: Phase Structure Stability
 
 **Claim:** The ordered/critical/disordered classification of the N=302 benchmark is stable under bootstrap resampling for the two dominant phases.
 
@@ -164,7 +164,7 @@ python remora/proofs/hallucination_bound_theorem.py
 
 The ordered phase is too small (n=12) to be stable; its instability is inherent to 4% of the benchmark, not a failure of the classifier.
 
-### IVb — Chi Clarification (corrects prior hypothesis)
+### IVb: Chi Clarification (corrects prior hypothesis)
 
 **Claim:** Susceptibility χ does not predict majority error. Within the critical phase, χ predicts accuracy.
 
@@ -173,11 +173,11 @@ The ordered phase is too small (n=12) to be stable; its instability is inherent 
 | ordered | 12 | −0.583 | chi → accuracy (n too small) |
 | **critical** | **84** | **−0.312** | **chi → accuracy in critical regime** |
 | disordered | 206 | −0.134 | weak chi → accuracy |
-| **global** | **302** | **−0.044** | **near-zero — no global signal** |
+| **global** | **302** | **−0.044** | **near-zero, no global signal** |
 
 All correlations are negative: higher χ → fewer errors, not more. The original fragility hypothesis ("higher chi → more errors") is **not confirmed**. The correct interpretation: items near the phase transition (high chi in the critical band) tend toward correct consensus, consistent with the system being well-ordered near T_critical.
 
-### IVc — Full-Coverage Routing Ceiling
+### IVc: Full-Coverage Routing Ceiling
 
 **Claim:** Full-coverage routing cannot improve on B_majority with current conditions. The ceiling is quantified.
 
@@ -201,9 +201,9 @@ python experiments/full_coverage_bound.py
 
 ---
 
-## Proof XI — N500 Selective Trust Curve
+## Proof XI: N500 Selective Trust Curve
 
-**Claim:** On the 544-item N500 calibrated benchmark (baseline 41.18%), sorting items by temperature ascending (lowest T = most trusted) and accepting the top 18% yields 88.78% accuracy — a lift of +47.6 percentage points — with a Wilson CI non-overlapping with the baseline and p < 10⁻⁶.
+**Claim:** On the 544-item N500 calibrated benchmark (baseline 41.18%), sorting items by temperature ascending (lowest T = most trusted) and accepting the top 18% yields 88.78% accuracy, a lift of +47.6 percentage points, with a Wilson CI non-overlapping with the baseline and p < 10⁻⁶.
 
 **Baseline:** B_majority accuracy on N=544 = **41.18%**, Wilson 95% CI `[0.371, 0.454]`.
 
@@ -251,9 +251,9 @@ hyperparameter.
 
 ---
 
-## Proof XII — N=1000 Extension and RAG Coverage Boost
+## Proof XII: N=1000 Extension and RAG Coverage Boost
 
-**Status:** Offline simulation — RAG oracle results use constants calibrated
+**Status:** Offline simulation, RAG oracle results use constants calibrated
 from live Cloudflare Vectorize runs. See reproducibility caveat below.
 
 **Claims:**
@@ -264,7 +264,7 @@ from live Cloudflare Vectorize runs. See reproducibility caveat below.
 | XII.2 | +RAG precision ≥ 78% across all coverage levels 5%–60% (vs no-RAG collapse to 30%) | Confirmed (offline simulation) |
 | XII.3 | DCE domain (Norwegian financial law): +50 pp RAG lift @ 18% coverage | Confirmed (requires Cloudflare Vectorize to reproduce live) |
 
-### Figure XII.A — N=544 selective trust, with and without RAG oracle
+### Figure XII.A: N=544 selective trust, with and without RAG oracle
 
 ![N=544 selective trust curve with and without RAG](figures/fig_n1000_a_selective_trust.png)
 
@@ -277,20 +277,20 @@ This is the primary evidence for Claim XII.2: the RAG oracle does not improve
 precision on high-confidence LLM items (the peak is unchanged), but it prevents
 the collapse by answering items where the LLM ensemble abstains.
 
-### Figure XII.B — Dataset scale extension: N=544 → N=1000
+### Figure XII.B: Dataset scale extension: N=544 → N=1000
 
 ![N=1000 scale extension and RAG boost](figures/fig_n1000_b_n1000_extension.png)
 
 **Left panel:** N=544 (calibrated, real data) vs N=1000 (+ 456 synthetic items
 drawn from the same thermodynamic distribution). The shape of the no-RAG curve
-is preserved at larger scale — confirming Claim XII.1 that the selective-trust
+is preserved at larger scale, confirming Claim XII.1 that the selective-trust
 signal is not an artefact of the specific 544-item sample.
 
 **Right panel:** N=1000 with +RAG. Precision is flat at **80–87% across all
-coverage levels from 5% to 60%** — a dramatic improvement over the no-RAG
+coverage levels from 5% to 60%**, a dramatic improvement over the no-RAG
 N=1000 curve which falls to 30% at 60% coverage.
 
-### Figure XII.C — Per-domain accuracy at 18% coverage
+### Figure XII.C: Per-domain accuracy at 18% coverage
 
 ![Per-domain accuracy at 18% coverage](figures/fig_n1000_c_domain_breakdown.png)
 
@@ -300,7 +300,7 @@ Orange: selective top-18% with RAG. Annotations are RAG lift in pp.
 The **DCE domain** (Norwegian inkassolov) shows the strongest effect:
 
 - Without RAG: 25% precision at 18% coverage. The temperature signal correctly
-  identifies LLM uncertainty — but that uncertainty means the top-18% slice
+  identifies LLM uncertainty, but that uncertainty means the top-18% slice
   contains the *hardest* DCE items, not the easiest.
 - With RAG (+50 pp → 75%): The Norges-lover corpus answers exactly those items
   the LLM ensemble could not, at 94% RAG precision.
@@ -308,11 +308,11 @@ The **DCE domain** (Norwegian inkassolov) shows the strongest effect:
 Domains already at 100% without RAG (sci, fact with n=5) show no change; RAG
 cannot improve on already-perfect selective slices.
 
-> **Reproducibility — DCE:** This result requires the Norwegian inkassolov
+> **Reproducibility, DCE:** This result requires the Norwegian inkassolov
 > Cloudflare Vectorize index. Offline constants: `coverage=0.88`,
 > `precision=0.94`. See `docs/deployment/cloudflare-vectorize.md`.
 
-### Figure XII.D — Multi-signal ranking comparison (N=544)
+### Figure XII.D: Multi-signal ranking comparison (N=544)
 
 ![Multi-signal comparison N=544](figures/fig_n1000_d_multi_signal.png)
 
@@ -323,7 +323,7 @@ Four ranking signals compared on the N=544 benchmark at all coverage levels:
 | **Neg. Temperature** | **88.8%** | **18%** | Best overall; thermodynamic temperature is the primary discriminator |
 | **Trust Score** | ~84% | 15% | Strong; slightly weaker than temperature in the critical band |
 | Order Parameter | ~75% | 10% | Stable but lower; captures phase structure less precisely than temperature |
-| Neg. Susceptibility | ~68% | 10% | Weak — consistent with Proof IVb: χ does not predict majority error globally |
+| Neg. Susceptibility | ~68% | 10% | Weak, consistent with Proof IVb: χ does not predict majority error globally |
 
 The convergence of temperature and trust score as top signals, and the weakness
 of susceptibility as a standalone ranking signal, is consistent with the phase
@@ -372,7 +372,7 @@ required credentials).
 
 ## What This Does NOT Claim
 
-1. **Full generalisation beyond N=302 with fresh independent oracles.** The N500 calibrated run (544 items) confirms phase structure and guardrail performance scale beyond N=302, but uses the same oracle cache — not a fresh independent oracle run. The result is supported; the caveat is the shared cache.
+1. **Full generalisation beyond N=302 with fresh independent oracles.** The N500 calibrated run (544 items) confirms phase structure and guardrail performance scale beyond N=302, but uses the same oracle cache, not a fresh independent oracle run. The result is supported; the caveat is the shared cache.
 2. **Full-coverage routing superiority via current signals.** No existing condition beats B_majority at full coverage; this is a definitively supported negative result. The ceiling (+2.65 pp, 8 gainable items) confirms improvement is theoretically reachable but requires a per-item discriminator not yet available.
 3. **Proven thermodynamic theory.** The thermodynamic framing is a research program with empirical support, not a formal theory with universal exponents.
 4. **Production-readiness.** The calibrated N500 guardrail yields a real selective slice (18.2% coverage, 86.9% precision), and the evidence-backed policy closes all 544 items at +5.14 pp lift. Neither result is a strong standalone deployment baseline.
@@ -424,7 +424,7 @@ in `results/conformal_guardrail_holdout.json` and reproducible via
 **Validity scope.** The guarantee is finite-sample marginal coverage under
 exchangeability between calibration and test draws from this benchmark.
 Distribution shift, adversarial inputs, and changes in oracle pool break the
-guarantee — see `docs/thermodynamics/limitations.md`.
+guarantee, see `docs/thermodynamics/limitations.md`.
 
 ---
 

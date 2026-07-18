@@ -1,26 +1,26 @@
-# Energy & Infrastructure — Smart Building Intelligence
+# Energy & Infrastructure: Smart Building Intelligence
 
 > ⚠️ **Scope: illustrative scenario, not a deployment result.** REMORA is a
-> research-grade governance overlay in **SHADOW_ONLY** mode — it is not
+> research-grade governance overlay in **SHADOW_ONLY** mode, it is not
 > production-certified and has not been deployed in the sector below. The
 > walkthrough and any numbers in it are **illustrative** unless they link to a
 > committed artifact in `results/` or `artifacts/`; they are not measured
 > outcomes. REMORA governs whether a proposed **action** may proceed
 > (ACCEPT/VERIFY/ABSTAIN/ESCALATE); it does not certify truth and is not a
-> fact-checker. **ETR** ("Effective Truth Rate" — `remora/scoring.py`) is an *illustrative* narrative
-> score in these documents only — it is **not** one of REMORA's canonical
+> fact-checker. **ETR** ("Effective Truth Rate", `remora/scoring.py`) is an *illustrative* narrative
+> score in these documents only, it is **not** one of REMORA's canonical
 > outputs and appears in no claim in `docs/assurance/claim_register_v1.yaml`.
 > See the [claim register](../assurance/claim_register_v1.yaml) and
 > [evidence summary](../02-evidence-and-claims.md) for governed claims.
 
 > **Who this is for:** Building operators, energy managers, facility directors,
-> and IoT platform developers — particularly relevant for EOS and Luftfiber use cases.
+> and IoT platform developers: particularly relevant for EOS and Luftfiber use cases.
 
 ---
 
 ## The scenario
 
-A building management system detects an unusual energy spike at 3am —
+A building management system detects an unusual energy spike at 3am, 
 power consumption 40 % above the 30-day baseline for this time slot.
 
 **What caused it?**
@@ -47,7 +47,7 @@ A single AI assistant typically pattern-matches against its training data:
 - It cannot distinguish "this looks like a HVAC fault" from "this IS a HVAC fault"
 - If it is wrong, there is no record of how it reached its conclusion
 
-**A confident wrong answer that dispatches an engineer for a sensor glitch — and misses the real fault — is worse than no answer.**
+**A confident wrong answer that dispatches an engineer for a sensor glitch (and misses the real fault) is worse than no answer.**
 
 ---
 
@@ -62,7 +62,7 @@ REMORA assigns each oracle a different diagnostic role:
 | **Sensor Oracle** | Checks calibration history, drift patterns, recent sensor replacements |
 | **Domain Oracle** | Knows typical HVAC, elevator, and industrial equipment fault patterns |
 | **RAG Oracle** | Retrieves the building's maintenance log, past fault reports, and scheduled events |
-| **Skeptic Oracle** | Actively considers alternative explanations — what else fits this pattern? |
+| **Skeptic Oracle** | Actively considers alternative explanations, what else fits this pattern? |
 | **Adversarial Oracle** | Checks for anomalous data patterns that might indicate cyber interference |
 
 The Lyapunov gate monitors whether the oracles are converging on a single explanation
@@ -87,7 +87,7 @@ or diverging (which would mean the situation is genuinely ambiguous and needs hu
 
 | Situation | Without REMORA | With REMORA |
 |-----------|---------------|-------------|
-| False alarm dispatch rate | ~30–40 % of callouts | Reduced — abstains when uncertain |
+| False alarm dispatch rate | ~30–40 % of callouts | Reduced, abstains when uncertain |
 | Root cause documented | Rarely | Always, with sources |
 | Escalation trigger | Manual, ad hoc | Automatic when ETR low or oracles disagree |
 | Cross-signal reasoning | Single prompt, single model | Parallel specialist oracles |
@@ -107,7 +107,7 @@ building network. REMORA can act as the reasoning layer over:
 - Manufacturer fault code databases
 
 When EOS detects an anomaly, REMORA provides the multi-source, multi-oracle analysis
-that transforms a raw alarm into a verified, actionable diagnosis — with a full audit trail.
+that transforms a raw alarm into a verified, actionable diagnosis: with a full audit trail.
 
 *For technical details, see the GO-STAR integration in the GO-STAR project (external repository, not included in REMORA-research)
 and the [REMORA engine](../../remora/engine.py).*

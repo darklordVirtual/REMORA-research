@@ -34,7 +34,7 @@ Items with higher χ should have a higher `hurt_by_c` rate than items with low �
 
 ### H2
 
-AUROC of χ for predicting `hurt_by_c` should exceed 0.55 — a weak but
+AUROC of χ for predicting `hurt_by_c` should exceed 0.55, a weak but
 falsifiable threshold for "χ has predictive content beyond chance."
 
 ## Study Vehicle
@@ -105,13 +105,13 @@ The disordered phase concentrates the overwhelming majority of hurt cases.
 
 This experiment supports χ as a useful pre-iteration gate if:
 
-1. AUROC(hurt) > 0.55 — χ discriminates hurt cases above chance.
+1. AUROC(hurt) > 0.55, χ discriminates hurt cases above chance.
 2. Hurt rate is higher in the highest-χ band than the lowest.
 
 **Both conditions are met.** AUROC(hurt) = 0.5727 exceeds 0.55. The hurt rate
 in the three upper bands (16–20 %) exceeds the lowest band (10 %) consistently.
 
-This is **weak but real predictive content** — χ has a modest, nonzero signal
+This is **weak but real predictive content**, χ has a modest, nonzero signal
 for iteration harm. It is not strong enough to serve as a hard gate without
 further calibration.
 
@@ -119,7 +119,7 @@ further calibration.
 
 The metric would have no predictive value if:
 
-- AUROC(hurt) ≤ 0.50 — indistinguishable from random.
+- AUROC(hurt) ≤ 0.50, indistinguishable from random.
 - Hurt rates are flat across susceptibility bands.
 - High-χ items show the same accuracy profile as low-χ items.
 
@@ -132,7 +132,7 @@ high on items where `C_remora` hurts relative to majority. The effect is real
 but small (AUROC ≈ 0.57, ρ ≈ 0.09).
 
 The disordered phase drives most hurt cases. Using phase classification as an
-additional gate — not just χ alone — may improve control signal quality.
+additional gate (not just χ alone) may improve control signal quality.
 
 The current evidence is **insufficient to recommend χ as a standalone
 production gate**. It is sufficient to motivate continued development, with a

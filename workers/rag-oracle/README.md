@@ -38,10 +38,10 @@ POST /query
 ```
 
 `use_case` routes the query to the correct vector index and synthesis model:
-- `"general"` — English knowledge base (bge-base-en-v1.5, 768d)
-- `"legal"` / `"norwegian"` — Multilingual index (bge-m3, 1024d)
-- `"science"` — English knowledge base, strong model preferred
-- `"auto"` — inferred from query language
+- `"general"`, English knowledge base (bge-base-en-v1.5, 768d)
+- `"legal"` / `"norwegian"`, Multilingual index (bge-m3, 1024d)
+- `"science"`, English knowledge base, strong model preferred
+- `"auto"`, inferred from query language
 
 ## Bindings
 

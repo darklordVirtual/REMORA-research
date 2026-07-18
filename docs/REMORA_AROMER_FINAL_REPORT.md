@@ -1,6 +1,6 @@
-# REMORA × AROMER — Practical Performance, Positioning, and Roadmap
+# REMORA × AROMER: Practical Performance, Positioning, and Roadmap
 
-> **Historical snapshot (approx. 2026-06-07/08).** This report documents the diagnostic analysis from when AROMER was in early LEARNING phase (AII ~0.43; T2 formula bug active). All four AII component defects described in §3b have since been resolved. Peak state (2026-06-28 12:04 UTC, cycle 12): AII=0.8442 TRAINED_SHADOW_ONLY, T2=1.000 (brr=0%), T3=0.800 [M], T5=0.7955, ECE=0.0636, FAR=0. Current state (2026-07-01): AII=0.9922 TRAINED (adapt_cycles=1814+; ECE=0.0052 structural ceiling — MCE bucket selection bias; T1=0.9741, T2=T3=T4=T5=1.000; FAR=0). Historical §12→§13→recovery cycle documented in `NEGATIVE_RESULTS.md §12–§13`.
+> **Historical snapshot (approx. 2026-06-07/08).** This report documents the diagnostic analysis from when AROMER was in early LEARNING phase (AII ~0.43; T2 formula bug active). All four AII component defects described in §3b have since been resolved. Peak state (2026-06-28 12:04 UTC, cycle 12): AII=0.8442 TRAINED_SHADOW_ONLY, T2=1.000 (brr=0%), T3=0.800 [M], T5=0.7955, ECE=0.0636, FAR=0. Current state (2026-07-01): AII=0.9922 TRAINED (adapt_cycles=1814+; ECE=0.0052 structural ceiling, MCE bucket selection bias; T1=0.9741, T2=T3=T4=T5=1.000; FAR=0). Historical §12→§13→recovery cycle documented in `NEGATIVE_RESULTS.md §12–§13`.
 
 **Status:** Research-grade prototype (v0.9.0). Every number here is scoped to a
 committed artifact and a regression test. Nothing in this report is externally
@@ -48,17 +48,17 @@ learning layer that calibrates trust per context over time.
 | Scanner is semantic, not memorised | catches hand-authored paraphrases; silent on benign look-alikes | authored | `TestScannerGeneralization` |
 | AROMER learning effect | review friction **1.000 → 0.000** on held-out benign, false-accept **0** | controlled, held-out | `artifacts/aromer_learning_effect_v1.json` · `test_learning_effect.py` |
 | AROMER is no longer a coverage cost | internal-arena Profile C recovered 0.9692 → **1.000** (= static baseline) | internal arena | `aromer_learning_ablation_v2.json` · `TestProfileCArtifactLock` |
-| Determinism + audit | every decision → replayable `DecisionEnvelope` with SHA-256 hash | — | governance tests |
+| Determinism + audit | every decision → replayable `DecisionEnvelope` with SHA-256 hash |, | governance tests |
 | Test suite | **2326 passing**, 3 skipped | full | CI / pre-push gate |
-| Start-up | `docker compose up` → keyless API on `:8080` | — | `compose.yaml`, API tests |
+| Start-up | `docker compose up` → keyless API on `:8080` |, | `compose.yaml`, API tests |
 
 **Plain-language read.** On an independent, balanced set, REMORA accepts **zero**
 harmful actions and intercepts **all** of them *by structure* (not by a tunable
 trust knob), with **zero** unnecessary review of clearly-safe actions and **zero**
 false blocks. Its content scanner catches a slim majority of indirect-injection
 attacks with no false alarms. And AROMER now demonstrably *learns* to remove
-review friction on contexts it has proven safe — the thing a governance product
-must do — without lowering the safety floor.
+review friction on contexts it has proven safe, the thing a governance product
+must do: without lowering the safety floor.
 
 ---
 
@@ -85,10 +85,10 @@ must do — without lowering the safety floor.
      a **Safety-vs-Friction gate** (`kpi.py::safety_friction_gate`) now reports
      the two axes separately (PASS ≤ 0.15, WARN ≤ 0.27, FAIL otherwise). Closing
      the live rate to < 0.15 still needs accumulated per-context outcomes (or a
-     deploy of the relaxed gate) — it is a usability item, not a safety one.
+     deploy of the relaxed gate): it is a usability item, not a safety one.
 4. **The boost has a bounded residual false-accept risk.** A harmful action that
-   defeats *every* signal simultaneously — valid schema, allowed tool, untainted
-   args, no injection text, low entropy/dissensus, in a proven-safe context — is
+   defeats *every* signal simultaneously, valid schema, allowed tool, untainted
+   args, no injection text, low entropy/dissensus, in a proven-safe context, is
    accepted by AROMER where static REMORA would abstain. Structural gates and
    uncertainty signals otherwise dominate the boost (verified,
    `TestBoostSafetyBoundary`). The risk is bounded by the context's proven harm
@@ -100,7 +100,7 @@ must do — without lowering the safety floor.
 
 ---
 
-## 3b. Intelligence metric (AII) — what is real vs measurement noise
+## 3b. Intelligence metric (AII), what is real vs measurement noise
 
 Analysis of a 24-cycle live AII history (every 4 h):
 
@@ -123,14 +123,14 @@ Analysis of a 24-cycle live AII history (every 4 h):
     floor while the high-confidence-coverage term (n_high=13) is swamped.
 
 **Conclusion:** the AII understates the system because four of its five components
-are noisy, saturated, or dead — not because learning stalled. The credible path is
+are noisy, saturated, or dead, not because learning stalled. The credible path is
 a **fixed-holdout, well-conditioned AII** (no window noise, correct friction
 metric, non-saturated transfer, LoRA-stabilised metajudge); see roadmap Tier 2.
 
 ## 4. Positioning vs comparable solutions
 
 > **Method + caveat.** This is a *capability* comparison from public documentation,
-> not a head-to-head benchmark — no such benchmark has been run, and claim hygiene
+> not a head-to-head benchmark, no such benchmark has been run, and claim hygiene
 > forbids presenting one. Treat the cells as "does the category typically do this,"
 > not as measured scores.
 
@@ -148,8 +148,8 @@ metric, non-saturated transfer, LoRA-stabilised metajudge); see roadmap Tier 2.
 **Where REMORA is differentiated (honest):** it combines OPA-style *structural*
 action governance, injection detection, a graded 4-verdict policy, a hash-chained
 audit envelope, *and* a learning layer that calibrates trust per context. That
-specific combination — especially the learning-driven friction reduction with a
-structurally-guaranteed safety floor — is uncommon in open guardrail tooling.
+specific combination, especially the learning-driven friction reduction with a
+structurally-guaranteed safety floor: is uncommon in open guardrail tooling.
 
 **Where it is behind (honest):** the mature commercial guardrails have real-world
 deployment scale, managed threat-intelligence feeds, and (in some cases) published
@@ -162,7 +162,7 @@ leaderboard.
 a distinctive and coherent architecture (structural pre-execution governance +
 learning calibration + audit) with honest, reproducible internal evidence. It is
 **not** yet a benchmarked, externally-validated, production-grade product, and this
-report does not claim it ranks above named tools — only that its capability mix is
+report does not claim it ranks above named tools, only that its capability mix is
 unusual and its internal results are clean.
 
 ---
@@ -171,7 +171,7 @@ unusual and its internal results are clean.
 
 Ordered by leverage. Each item names what it unlocks and what it needs.
 
-**Tier 1 — turns internal results into external claims (highest leverage)**
+**Tier 1, turns internal results into external claims (highest leverage)**
 1. **External attack-corpus validation.** Run the content scanner + structural
    gates against an independent corpus (AgentHarm prompts, fresh authored attacks).
    *Unlocks:* a generalisation claim for the 53%/80% ceiling. *Needs:* HF access,
@@ -184,7 +184,7 @@ Ordered by leverage. Each item names what it unlocks and what it needs.
    benign/harmful/ambiguous) through the full KPI split. *Unlocks:* settles the
    "is the live 31% friction real over-conservatism or correct caution" question.
 
-**Tier 2 — strengthen the learning layer + condition the intelligence metric**
+**Tier 2, strengthen the learning layer + condition the intelligence metric**
 4. **Well-conditioned AII.** Compute the index on a *fixed* holdout (kills the
    rolling-window noise), use the unnecessary-review friction metric, replace the
    saturated transfer score with a harder cross-domain test, and enable LoRA so
@@ -198,7 +198,7 @@ Ordered by leverage. Each item names what it unlocks and what it needs.
    previously-safe context that starts producing harm suspends its boost *before*
    the first false accept, not after.
 
-**Tier 3 — productisation**
+**Tier 3, productisation**
 8. **Raise scanner sensitivity** for exfiltration/authority-spoofing using the 0%
    false-positive headroom; add the oracle stage for residual injection.
 9. **Independent reproduction.** Hand the credibility pack to a third party and
@@ -206,7 +206,7 @@ Ordered by leverage. Each item names what it unlocks and what it needs.
 10. **Operational hardening.** RBAC, human-approval workflow, incident handling,
     and the observability stack already scaffolded in `deploy/docker-compose/`.
 
-**The single most valuable next action:** Tier-1 item 1 or 2 — both convert
+**The single most valuable next action:** Tier-1 item 1 or 2, both convert
 already-built, internally-clean results into externally-defensible claims, which is
 exactly what separates "promising prototype" from "credible solution."
 

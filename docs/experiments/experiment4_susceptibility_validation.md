@@ -12,7 +12,7 @@ This is the cleanest next experiment because it does not depend on speculative t
 
 - `helped_vs_majority`: D2 is correct and majority is incorrect.
 - `hurt_vs_majority`: majority is correct and D2 is incorrect.
-- `not_helpful_iteration`: not `helped_vs_majority`.
+- `not_helpful_iteration`, not `helped_vs_majority`.
 
 The main target is deliberately conservative: if high $\chi$ cannot even predict `not_helpful_iteration`, then it is not yet a useful control metric.
 

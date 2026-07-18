@@ -1,10 +1,10 @@
-# REMORA — Executive Brief
+# REMORA: Executive Brief
 
 ## The strategic problem
 
 Enterprise AI adoption is accelerating. The governance infrastructure for it is not.
 
-Models are deployed in production workflows. Agents are given tool access. Outputs influence decisions. But the fundamental question — **how do we know when to trust AI output?** — is answered inconsistently, if at all.
+Models are deployed in production workflows. Agents are given tool access. Outputs influence decisions. But the fundamental question, **how do we know when to trust AI output?**, is answered inconsistently, if at all.
 
 The common approaches are insufficient:
 
@@ -13,7 +13,7 @@ The common approaches are insufficient:
 - **Prompt engineering and guardrails** address input filtering, not output quality.
 - **Model evaluation** tells you about average performance, not about individual decision reliability.
 
-What is missing is a **runtime governance layer** — a system that evaluates the quality of AI output at the point of decision, and routes it accordingly before it reaches a user or triggers an action.
+What is missing is a **runtime governance layer**: a system that evaluates the quality of AI output at the point of decision, and routes it accordingly before it reaches a user or triggers an action.
 
 ---
 
@@ -41,7 +41,7 @@ Disagreement between independently operating models is a stronger and more relia
 
 REMORA demonstrated this on research benchmarks:
 
-- On N=544 items, the most-agreed-upon 18% of answers reached **88.8% accuracy** against a 41.2% full-coverage baseline — a +47.6 percentage point improvement. *Caveat: the 18% coverage threshold is optimised on the same dataset used to report accuracy (in-sample). A calibration/evaluation split is required before treating this as a generalising result.*
+- On N=544 items, the most-agreed-upon 18% of answers reached **88.8% accuracy** against a 41.2% full-coverage baseline, a +47.6 percentage point improvement. *Caveat: the 18% coverage threshold is optimised on the same dataset used to report accuracy (in-sample). A calibration/evaluation split is required before treating this as a generalising result.*
 - On tool-call safety: REMORA's full policy gate measured **0% unsafe execution** across 700 adversarial tasks in a controlled deterministic simulator, compared to 10-20% for the tested heuristic baselines. *Caveat: all decisions are made by deterministic heuristic classifiers on pre-labelled tasks, not by live LLM calls. This is a benchmark-scoped result, not a production safety measurement.*
 
 The implication for enterprise AI: a system that can reliably identify *which* AI outputs to trust is more valuable than a system that slightly improves the average quality of all outputs.
@@ -60,15 +60,15 @@ In regulated industries, forcing a low-confidence answer is worse than saying "I
 
 ### 3. Fail-closed behaviour
 
-When confidence is insufficient, budget is exhausted, or the oracle pool disagrees beyond a threshold, REMORA defaults to abstention or escalation — not to a forced answer. This is analogous to a circuit breaker: the safe failure mode is to stop.
+When confidence is insufficient, budget is exhausted, or the oracle pool disagrees beyond a threshold, REMORA defaults to abstention or escalation, not to a forced answer. This is analogous to a circuit breaker: the safe failure mode is to stop.
 
 ### 4. Auditability is structural
 
-REMORA's decision trace — inputs, models used, evidence retrieved, scores, verdict — is a structural output of every request. It is not optional telemetry added after the fact. This makes REMORA deployable in regulated environments (energy, legal, finance) where decisions must be explainable and auditable.
+REMORA's decision trace (inputs, models used, evidence retrieved, scores, verdict) is a structural output of every request. It is not optional telemetry added after the fact. This makes REMORA deployable in regulated environments (energy, legal, finance) where decisions must be explainable and auditable.
 
 ### 5. Model diversity as safety infrastructure
 
-A judge model from a different family than the consensus oracles cannot share the same systematic failures. Diversity is not a capability choice — it is a structural error-detection mechanism.
+A judge model from a different family than the consensus oracles cannot share the same systematic failures. Diversity is not a capability choice: it is a structural error-detection mechanism.
 
 ---
 
@@ -85,7 +85,7 @@ REMORA is:
 
 > **An enterprise control layer for trustworthy agentic AI. It evaluates uncertainty, routes tasks by risk, retrieves authoritative evidence, gates autonomous actions, and produces auditable decisions before AI output reaches business-critical workflows.**
 
-This positions REMORA as infrastructure — analogous to a firewall, a load balancer, or an access control layer — not as an AI product.
+This positions REMORA as infrastructure, analogous to a firewall, a load balancer, or an access control layer, not as an AI product.
 
 ---
 
@@ -117,7 +117,7 @@ What is complete and tested:
 | Policy engine (ACCEPT/VERIFY/ABSTAIN/ESCALATE) | Complete |
 | Conformal prediction risk control | Complete |
 | MCP server (12 tools: 8 core + 3 agent control + 1 session monitor) | Complete (agent control tools require agent-control worker deployment) |
-| AROMER closed-loop learning (AII intelligence index, MetaJudge, world model, Thompson-bandit oracle selection) | Complete — experimental. Current AII=0.9922 TRAINED (adapt_cycles=1814+; ECE=0.0052 structural ceiling — MCE bucket selection bias; T1=0.9741, T2=T3=T4=T5=1.000; FAR=0; theoretical ceiling reached 2026-07-01). One production gate remains: REM-021 (REM-020 closed 2026-07-17 under the 7-day criterion; self-reported values pending REM-021 verification). See `NEGATIVE_RESULTS.md §15` and `docs/REMORA_AROMER_MASTER_DOCUMENT.md`. |
+| AROMER closed-loop learning (AII intelligence index, MetaJudge, world model, Thompson-bandit oracle selection) | Complete, experimental. Current AII=0.9922 TRAINED (adapt_cycles=1814+; ECE=0.0052 structural ceiling, MCE bucket selection bias; T1=0.9741, T2=T3=T4=T5=1.000; FAR=0; theoretical ceiling reached 2026-07-01). One production gate remains: REM-021 (REM-020 closed 2026-07-17 under the 7-day criterion; self-reported values pending REM-021 verification). See `NEGATIVE_RESULTS.md §15` and `docs/REMORA_AROMER_MASTER_DOCUMENT.md`. |
 | Cloudflare Workers (RAG, law search, agent control, AROMER) | Complete |
 | Audit ledger schema | Designed (enterprise/audit-ledger-schema.sql) |
 | Risk profiles (machine-readable) | Designed (enterprise/risk-profiles.yaml) |
@@ -145,7 +145,7 @@ What is not yet built:
 
 Every major enterprise AI deployment eventually encounters the same problem: the model is fast and fluent, and wrong in ways that are hard to detect until the damage is done.
 
-REMORA addresses this problem at the architectural level, not at the model level. It is the governance layer that enterprise AI deployments are missing — and it is grounded in measurable, reproducible results.
+REMORA addresses this problem at the architectural level, not at the model level. It is the governance layer that enterprise AI deployments are missing, and it is grounded in measurable, reproducible results.
 
 ---
 

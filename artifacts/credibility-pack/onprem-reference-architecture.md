@@ -59,7 +59,7 @@ REMORA is platform-agnostic. Cloudflare Workers and cloud-hosted oracles are one
 | Model server    | Local LLM inference        | Ollama 0.3+ or vLLM 0.4+ with GPU         |
 | Redis / NATS    | Async queue (optional)     | Redis 7+ or NATS 2.10+                    |
 | MinIO           | S3-compatible storage      | MinIO latest or any S3-compatible service  |
-| Keycloak        | Identity / OIDC            | Keycloak 24+ (optional — JWT also works)   |
+| Keycloak        | Identity / OIDC            | Keycloak 24+ (optional, JWT also works)   |
 | Prometheus      | Metrics collection         | Prometheus 2.50+ (optional)                |
 | Grafana         | Dashboards                 | Grafana 10+ (optional)                     |
 
@@ -117,7 +117,7 @@ For sequential loading (lower VRAM), Ollama automatically manages model loading/
 | Access control           | Keycloak RBAC or JWT-based identity                       |
 | Audit trail              | Append-only PostgreSQL tables (see `enterprise/audit-ledger-schema.sql`) |
 | Model provenance         | Document model checksums and sources in deployment manifest|
-| No telemetry             | REMORA does not phone home — no external telemetry        |
+| No telemetry             | REMORA does not phone home, no external telemetry        |
 
 ---
 
@@ -154,4 +154,4 @@ make benchmark         # Deterministic replay benchmarks
 make credibility-pack  # Full credibility pack for audit
 ```
 
-All tests and benchmarks run in deterministic replay mode — no external API calls are made.
+All tests and benchmarks run in deterministic replay mode: no external API calls are made.

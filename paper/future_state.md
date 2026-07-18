@@ -54,8 +54,8 @@ while REMORA retains policy, trust scoring, and final decisions.
 checker so that assurance is grounded in a type-theoretic kernel rather than
 model confidence alone.
 
-Large language models operate probabilistically. Some domains — mathematical
-proofs, formal specifications, regulatory logic — admit deductive guarantees
+Large language models operate probabilistically. Some domains, mathematical
+proofs, formal specifications, regulatory logic, admit deductive guarantees
 for narrow subclaims. When the REMORA ensemble converges on a constrained
 claim that is expressible in a formal language, a neuro-symbolic component
 could attempt to auto-formalize the reasoning in Lean 4 or Coq and feed the
@@ -65,7 +65,7 @@ $$\text{Assurance}(C) = \begin{cases} 1 & \text{if } \vdash \mathcal{F}(C) \text
 
 If $\mathcal{F}(C)$ fails to check, the policy routes to `VERIFY` or
 `ESCALATE` rather than treating model confidence as sufficient. This would
-not make arbitrary natural-language answers mathematically infallible — only
+not make arbitrary natural-language answers mathematically infallible, only
 claims that can be expressed in a formal language are candidates.
 
 **Research challenges:** automatic extraction of formalizable sub-claims from
@@ -88,7 +88,7 @@ the weight level without sacrificing traceability.
 External multi-model routing (the current approach) is practical and auditable
 but requires separate API calls. A longer-horizon question is whether the
 `OracleDiversityTracker`'s historical pairwise agreement data could inform
-adapter selection — choosing submodules or specialist heads based on domain
+adapter selection, choosing submodules or specialist heads based on domain
 performance and measured independence rather than static configuration.
 
 The key constraint is that any composition must remain auditable: the graft
@@ -111,7 +111,7 @@ the diversity tracker's selection signal.
 
 **Research goal:** Estimate a stability signal from hidden states or KV-cache
 activations *during* generation and apply a conservative logit correction when
-the predictor indicates high divergence risk — before the full sequence is
+the predictor indicates high divergence risk, before the full sequence is
 completed.
 
 Current REMORA components operate on completed outputs, proposed actions, or

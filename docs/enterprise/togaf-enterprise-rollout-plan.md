@@ -1,4 +1,4 @@
-# Enterprise Rollout Architecture — TOGAF-Aligned Plan for a REMORA-class Agent Governance Platform
+# Enterprise Rollout Architecture: TOGAF-Aligned Plan for a REMORA-class Agent Governance Platform
 
 **Status:** Reference architecture plan (documentation). Not a claim about the
 current repository. It describes how an enterprise would take a REMORA-*class*
@@ -7,9 +7,9 @@ multi-team production platform.
 **Framework:** TOGAF 10 ADM (Architecture Development Method).
 **Audience:** Enterprise/Chief Architect (accountable owner) distributing the
 architecture to complementary delivery teams.
-**Grounding:** Uses REMORA's real building blocks — the deterministic PDP
+**Grounding:** Uses REMORA's real building blocks, the deterministic PDP
 (`RemoraDecisionEngine`), the `DecisionEnvelope` contract, policy-as-code,
-the claim-provenance discipline — and the open remediation items (REM-013,
+the claim-provenance discipline, and the open remediation items (REM-013,
 REM-020…REM-031) as the concrete backlog. See
 `docs/assurance/external_security_audit_v1.md` and
 `docs/assurance/remediation_register.yaml`.
@@ -22,7 +22,7 @@ TOGAF's ADM is a cycle of phases (Preliminary → A…H) with Requirements
 Management at the centre. This plan walks the phases once for a REMORA-class
 rollout and, in each, names **the deliverable, the accountable owner, and the
 executing team(s)**. The Enterprise Architect owns the *whole* and delegates
-each phase's execution — that delegation is the point of §3 (Business
+each phase's execution, that delegation is the point of §3 (Business
 Architecture / org) and §12 (RACI).
 
 ```
@@ -37,7 +37,7 @@ Architecture / org) and §12 (RACI).
 
 ---
 
-## 1. Preliminary Phase — Establish the EA capability and principles
+## 1. Preliminary Phase: Establish the EA capability and principles
 
 **Purpose:** stand up the architecture function and the rules everyone will be
 held to before any solution work.
@@ -68,7 +68,7 @@ ARB ratifies.
 
 ---
 
-## 2. Phase A — Architecture Vision
+## 2. Phase A: Architecture Vision
 
 **Purpose:** agree scope, value, stakeholders, and success criteria before
 detailed design.
@@ -79,7 +79,7 @@ detailed design.
 - **Value proposition**: govern autonomous agent actions in consequential
   systems so that unsafe execution is blocked deterministically, every
   decision is auditable/replayable, and human oversight is enforced where risk
-  demands — mapped to regulatory obligations (EU AI Act Art. 12 logging,
+  demands, mapped to regulatory obligations (EU AI Act Art. 12 logging,
   Art. 14 human oversight).
 - **SMART target measures** (Architecture Requirements): e.g. *0 unsafe
   autonomous executions in shadow-replay over the release-gate window with an
@@ -99,7 +99,7 @@ detailed design.
 
 ---
 
-## 3. Phase B — Business Architecture (capabilities, value streams, org)
+## 3. Phase B: Business Architecture (capabilities, value streams, org)
 
 This is where the architecture is **distributed to teams**. It defines the
 business capabilities, the value stream a governed action flows through, and
@@ -135,22 +135,22 @@ responsibilities are complementary, not overlapping:
 
 | Team (type) | Owns (capabilities) | REMORA components | Key backlog |
 |---|---|---|---|
-| **Platform team** (platform) | 2, 3, 7, 8 — the governance platform as a product | PDP service, PEP/lease service, gateway, audit chain, identity | REM-013, REM-024, REM-025, REM-026, REM-028, REM-029 |
-| **Policy & Governance team** (complicated-subsystem) | 1, 9 — policy-as-code, claim discipline, compliance evidence | `remora/policy`, OPA/Rego bundles, claim-provenance gate, release gates | REM-021, REM-023, REM-031 |
-| **Decision Science team** (complicated-subsystem) | 4, 5 — oracles, uncertainty, evidence, conformal calibration | `remora/oracles`, `remora/selective`, `remora/evidence`, credal/conformal | REM-030, calibration & anytime-valid monitoring |
-| **Stream-aligned product teams** (stream-aligned, many) | 10 + business use — integrate agents behind the platform | SDK/adapters (`remora/adapters`), tool contracts | per-domain onboarding |
-| **Enabling team** (enabling) | temporary uplift — coaches the above on TOGAF, secure SDLC, TDD | — | reviews, pairing, standards |
+| **Platform team** (platform) | 2, 3, 7, 8, the governance platform as a product | PDP service, PEP/lease service, gateway, audit chain, identity | REM-013, REM-024, REM-025, REM-026, REM-028, REM-029 |
+| **Policy & Governance team** (complicated-subsystem) | 1, 9, policy-as-code, claim discipline, compliance evidence | `remora/policy`, OPA/Rego bundles, claim-provenance gate, release gates | REM-021, REM-023, REM-031 |
+| **Decision Science team** (complicated-subsystem) | 4, 5, oracles, uncertainty, evidence, conformal calibration | `remora/oracles`, `remora/selective`, `remora/evidence`, credal/conformal | REM-030, calibration & anytime-valid monitoring |
+| **Stream-aligned product teams** (stream-aligned, many) | 10 + business use, integrate agents behind the platform | SDK/adapters (`remora/adapters`), tool contracts | per-domain onboarding |
+| **Enabling team** (enabling) | temporary uplift (coaches the above on TOGAF, secure SDLC, TDD |) | reviews, pairing, standards |
 
 **Conway alignment:** the platform is a product with an API; stream-aligned
 teams consume it via a self-service SDK and never hold downstream tool
-credentials (those live only in the PEP/proxy — security audit A-4/REM-024).
+credentials (those live only in the PEP/proxy, security audit A-4/REM-024).
 
 **Owner:** Enterprise Architect defines the topology; **Domain Architects**
 embedded in each team execute detailed design under the Architecture Contract.
 
 ---
 
-## 4. Phase C — Information Systems Architecture
+## 4. Phase C: Information Systems Architecture
 
 ### 4.1 Data architecture
 - **Canonical contract: `DecisionEnvelope` (v2).** Stable, versioned,
@@ -160,7 +160,7 @@ embedded in each team execute detailed design under the Architecture Contract.
 - **Authoritative data classification:** all safety-load-bearing observation
   fields (`risk_tier`, `action_type`, `target_environment`, `tool schema`,
   `argument_tainted`, `tenant_id`) are **server-derived from trusted sources
-  (registries, verified identity, data-flow middleware)** — never
+  (registries, verified identity, data-flow middleware)**, never
   agent-declared (security audit P1). Full-argument binding via
   `tool_call_hash`.
 - **Stores:** policy bundle registry (signed OCI), decision/envelope store
@@ -191,7 +191,7 @@ embedded in each team execute detailed design under the Architecture Contract.
 
 ---
 
-## 5. Phase D — Technology Architecture
+## 5. Phase D: Technology Architecture
 
 - **Runtime:** stateless PDP (horizontally scaled), PEP sidecar or gateway
   filter, tool proxy. Deadline propagation, circuit breakers, bounded oracle
@@ -210,7 +210,7 @@ embedded in each team execute detailed design under the Architecture Contract.
 
 ---
 
-## 6. Phase E — Opportunities & Solutions (work packages)
+## 6. Phase E: Opportunities & Solutions (work packages)
 
 Group the backlog into deliverable work packages, each with a clear owner:
 
@@ -229,20 +229,20 @@ Group the backlog into deliverable work packages, each with a clear owner:
 
 ---
 
-## 7. Phase F — Migration Planning (transition architectures)
+## 7. Phase F: Migration Planning (transition architectures)
 
-Incremental, gated increments — each a usable Transition Architecture:
+Incremental, gated increments, each a usable Transition Architecture:
 
-- **T0 — Shadow-only research (current).** PDP decides; enforcement optional;
+- **T0, Shadow-only research (current).** PDP decides; enforcement optional;
   claim-provenance gate green. Gates open: REM-021 (production gate) and REM-023 (follow-through; external confirmation folded into REM-021). REM-020 closed 2026-07-17.
-- **T1 — Governed pilot (single business unit).** WP1+WP2+WP5: mandatory PEP,
+- **T1, Governed pilot (single business unit).** WP1+WP2+WP5: mandatory PEP,
   signed leases, GitOps policy, real OIDC. Exit criteria: 100% of pilot tool
   calls through the PEP; RBAC isolation test passing; REM-021 external review
   started.
-- **T2 — Multi-tenant GA.** WP3+WP4+WP6+WP7: durable audit, tenant isolation,
+- **T2, Multi-tenant GA.** WP3+WP4+WP6+WP7: durable audit, tenant isolation,
   HA, SIEM. Exit: cross-tenant isolation tests green; SLOs met; audit anchoring
   live.
-- **T3 — Regulated / safety-critical.** WP8+WP9+WP10: supply-chain hardening,
+- **T3, Regulated / safety-critical.** WP8+WP9+WP10: supply-chain hardening,
   independent validation, compliance pack. Exit: external red team + AI Act
   evidence pack complete.
 
@@ -252,7 +252,7 @@ scaled up).
 
 ---
 
-## 8. Phase G — Implementation Governance (how teams stay aligned)
+## 8. Phase G: Implementation Governance (how teams stay aligned)
 
 - **Architecture Contract** signed by each executing team, binding them to the
   §1 principles and the target measures. Non-conformance is raised to the ARB.
@@ -263,12 +263,12 @@ scaled up).
   "no authorization reads a header"). These make architectural principles
   *executable*, not aspirational.
 - **Dispensations:** any deviation is a time-boxed, ARB-approved dispensation
-  with a remediation date — never a silent exception (mirrors how REM-022's
+  with a remediation date, never a silent exception (mirrors how REM-022's
   closure deviation was recorded rather than hidden).
 
 ---
 
-## 9. Phase H — Architecture Change Management
+## 9. Phase H: Architecture Change Management
 
 - **Change drivers:** new oracle families, new regulation, new tool classes,
   incidents. **Envelope/schema and policy-bundle versioning** are the
@@ -299,7 +299,7 @@ without an artifact).
 
 ---
 
-## 12. RACI — distributing responsibility across teams
+## 12. RACI, distributing responsibility across teams
 
 Legend: **R** responsible (executes), **A** accountable (one owner),
 **C** consulted, **I** informed.
@@ -325,7 +325,7 @@ Legend: **R** responsible (executes), **A** accountable (one owner),
 *architecture* (that it is coherent and delivered); individual capability
 owners are accountable for their *slice* (e.g. Security owns identity/RBAC
 outcomes, Assurance/DPO owns durable audit and the compliance pack). Exactly
-one **A** per row — that is the enterprise expectation.
+one **A** per row: that is the enterprise expectation.
 
 ---
 
@@ -333,10 +333,10 @@ one **A** per row — that is the enterprise expectation.
 
 | Enterprise need | In REMORA today | To build (REM) |
 |---|---|---|
-| Deterministic PDP | ✅ `RemoraDecisionEngine` | — |
+| Deterministic PDP | ✅ `RemoraDecisionEngine` |, |
 | Canonical decision contract | ✅ `DecisionEnvelope` v2 | schema governance |
 | Claim/requirement traceability | ✅ claim-provenance gate | scale to platform |
-| Deny-by-default incl. unknown action type | ✅ (security audit A-2) | — |
+| Deny-by-default incl. unknown action type | ✅ (security audit A-2) |, |
 | Identity bound at auth | ✅ (A-1) | OIDC/JWT, rotation (WP1) |
 | Full-args binding | ✅ `tool_call_hash` (A-5) | recompute-at-execute (WP2) |
 | Mandatory PEP | ⚠ library + hook only | **REM-024 (WP2)** |
@@ -348,7 +348,7 @@ one **A** per row — that is the enterprise expectation.
 **Bottom line for the accountable owner:** the intellectual core (deterministic
 governance, the envelope contract, claim discipline) is in place and is the
 hard part to get right. The enterprise programme is predominantly *platform and
-assurance engineering* — mandatory enforcement placement, durable audit,
-tenancy, resilience, supply chain — distributed across the four team types
+assurance engineering*, mandatory enforcement placement, durable audit,
+tenancy, resilience, supply chain, distributed across the four team types
 above, sequenced through transition architectures T1→T3, and held together by
 the Architecture Contract and automated fitness functions.

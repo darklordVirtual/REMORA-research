@@ -1,6 +1,6 @@
 ---
 id: nist_ai_rmf_summary
-title: NIST AI Risk Management Framework (AI RMF 1.0) — REMORA Summary
+title: NIST AI Risk Management Framework (AI RMF 1.0), REMORA Summary
 source: NIST AI RMF 1.0 + Generative AI Profile (NIST AI 600-1)
 source_url: https://www.nist.gov/itl/ai-risk-management-framework
 version_or_accessed_date: AI RMF 1.0 (January 2023), NIST AI 600-1 (July 2024)
@@ -12,10 +12,10 @@ intended_use: EvidenceProvider retrieval, policy gate rules, audit evidence trai
 
 NIST AI RMF defines a framework for managing AI risk across four core functions:
 
-- **GOVERN** — establish policies, roles, oversight, accountability
-- **MAP** — identify and categorize AI risk context
-- **MEASURE** — analyze and assess risks using metrics and testing
-- **MANAGE** — prioritize and treat identified risks
+- **GOVERN**, establish policies, roles, oversight, accountability
+- **MAP**, identify and categorize AI risk context
+- **MEASURE**, analyze and assess risks using metrics and testing
+- **MANAGE**, prioritize and treat identified risks
 
 The Generative AI Profile (NIST AI 600-1) extends this with 12 GenAI-specific risks:
 CBRN information, confabulation, data privacy, data poisoning, homogeneity,

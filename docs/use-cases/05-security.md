@@ -1,20 +1,20 @@
-# Security Research — Vulnerability Validation
+# Security Research: Vulnerability Validation
 
 > ⚠️ **Scope: illustrative scenario, not a deployment result.** REMORA is a
-> research-grade governance overlay in **SHADOW_ONLY** mode — it is not
+> research-grade governance overlay in **SHADOW_ONLY** mode, it is not
 > production-certified and has not been deployed in the sector below. The
 > walkthrough and any numbers in it are **illustrative** unless they link to a
 > committed artifact in `results/` or `artifacts/`; they are not measured
 > outcomes. REMORA governs whether a proposed **action** may proceed
 > (ACCEPT/VERIFY/ABSTAIN/ESCALATE); it does not certify truth and is not a
-> fact-checker. **ETR** ("Effective Truth Rate" — `remora/scoring.py`) is an *illustrative* narrative
-> score in these documents only — it is **not** one of REMORA's canonical
+> fact-checker. **ETR** ("Effective Truth Rate", `remora/scoring.py`) is an *illustrative* narrative
+> score in these documents only, it is **not** one of REMORA's canonical
 > outputs and appears in no claim in `docs/assurance/claim_register_v1.yaml`.
 > See the [claim register](../assurance/claim_register_v1.yaml) and
 > [evidence summary](../02-evidence-and-claims.md) for governed claims.
 
 > **Who this is for:** Security researchers, penetration testers, bug bounty hunters,
-> and security engineering teams — particularly in combination with the GO-STAR platform.
+> and security engineering teams: particularly in combination with the GO-STAR platform.
 
 ---
 
@@ -24,7 +24,7 @@ A security research platform scans an open-source library and produces **147 pot
 
 The problem: most of them are not real vulnerabilities.
 
-Security researchers typically spend 80–90 % of their time eliminating false positives —
+Security researchers typically spend 80–90 % of their time eliminating false positives, 
 chasing alerts that sound alarming but turn out to be harmless code patterns, test files,
 or theoretical issues that are not actually reachable by an attacker.
 
@@ -36,12 +36,12 @@ or theoretical issues that are not actually reachable by an attacker.
 
 In a typical automated security scan:
 
-- Static analysis flags every dangerous function call — including ones in test files, example code, and unreachable paths
+- Static analysis flags every dangerous function call, including ones in test files, example code, and unreachable paths
 - Machine learning models generate alerts based on pattern similarity, not actual exploitability
 - A researcher must manually investigate each one
 - At €50–150/hour for expert time, 135 false positives = €6,750–20,000 in wasted effort
 
-**The question is not "is this code dangerous?" — it is "can an attacker actually reach this code?"**
+**The question is not "is this code dangerous?", it is "can an attacker actually reach this code?"**
 
 ---
 
@@ -49,10 +49,10 @@ In a typical automated security scan:
 
 GO-STAR finds the candidates. REMORA verifies them.
 
-**Stage 1 — Static discovery (GO-STAR)**
+**Stage 1, Static discovery (GO-STAR)**
 Semgrep, CodeQL, and taint analysis identify 147 potential paths from user input to dangerous operations.
 
-**Stage 2 — False positive screen (REMORA)**
+**Stage 2, False positive screen (REMORA)**
 REMORA asks three independent oracles: *"Is this a false positive?"*
 Each oracle reasons from a different angle:
 - Is the symbol in a test file or production code?
@@ -62,14 +62,14 @@ Each oracle reasons from a different angle:
 If all three agree it is a false positive with high confidence, it is filtered out.
 If any oracle disagrees or confidence is low, the finding is kept for deeper analysis.
 
-**Stage 3 — Exploitability scoring (REMORA)**
+**Stage 3, Exploitability scoring (REMORA)**
 For surviving candidates: *"Can an attacker actually exploit this?"*
 REMORA's exploitability oracle checks:
 - Is there a confirmed source-to-sink taint path?
 - Is the source attacker-controlled?
 - Does the sink have a meaningful impact?
 
-**Stage 4 — Evidence fusion (REMORA ETR)**
+**Stage 4, Evidence fusion (REMORA ETR)**
 REMORA's Effective Truth Rate gate requires:
 - Confirmed taint path (source → sink)
 - Oracle consensus on exploitability
@@ -111,7 +111,7 @@ From the GO-STAR + REMORA integration (JWT authentication bypass, N=75 scan):
 | litellm ui_sso.py:3714 | LOW CONFIDENCE | MEDIUM | Flagged for human review |
 
 REMORA correctly identified 4 out of 5 jwt_auth_bypass findings as false positives through
-code analysis — without running any exploit code. This demonstrates that the system can
+code analysis, without running any exploit code. This demonstrates that the system can
 distinguish between code that *looks* dangerous and code that *is* dangerous.
 
 ---

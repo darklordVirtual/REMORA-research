@@ -2,9 +2,9 @@
 
 **Version:** 1.0  
 **Date:** 2026-06-30  
-**Gate:** REM-021 (Independent human review — required before leaving SHADOW_ONLY)  
+**Gate:** REM-021 (Independent human review, required before leaving SHADOW_ONLY)  
 **Status:** NOT_STARTED  
-**Contact:** Stian Skogbrott — support@luftfiber.no
+**Contact:** Stian Skogbrott, support@luftfiber.no
 
 This document is the external reviewer package for REM-021. It defines scope,
 questions to answer, the scorecard, conflict-of-interest requirements, and
@@ -145,7 +145,7 @@ source trustworthy and not author-controlled at evaluation time?
 legitimately excluded? Does the rationale hold under scrutiny?
 
 **C3.** Is the VERIFY floor policy change (for risk_tier=high/critical)
-conservative by construction — i.e., can it only decrease false accepts,
+conservative by construction, i.e., can it only decrease false accepts,
 never increase them?
 
 **C4.** Does `results/false_accept_regression_v1.json` match the stated

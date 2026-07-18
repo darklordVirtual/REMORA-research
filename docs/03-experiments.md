@@ -11,7 +11,7 @@ replicate cleanly.
 
 ---
 
-## Experiment 1 — Selective QA acceptance (N302, N500)
+## Experiment 1: Selective QA acceptance (N302, N500)
 
 **Research question:** Can REMORA's trust score selectively accept high-trust
 answers with accuracy well above the baseline while covering a useful fraction of
@@ -42,7 +42,7 @@ python experiments/end_to_end_n500_v3.py
 
 ---
 
-## Experiment 2 — Critical-phase trust inversion
+## Experiment 2: Critical-phase trust inversion
 
 **Research question:** Does the trust score behave differently in the
 "critical" phase, and does inverting it improve routing?
@@ -67,7 +67,7 @@ N=11 high-trust).
 
 ---
 
-## Experiment 3 — Adversarial tool-call benchmark v1 (252 tasks)
+## Experiment 3: Adversarial tool-call benchmark v1 (252 tasks)
 
 **Research question:** Can REMORA reduce unsafe tool-call execution versus
 deterministic heuristic baselines?
@@ -83,7 +83,7 @@ and predicted action is `EXECUTE`.
 **Result:** All strategies including heuristic baselines reach 0% unsafe
 execution. The benchmark is not adversarially hard enough to differentiate.
 
-**Finding:** Negative result — v2 was designed to address this. See
+**Finding:** Negative result, v2 was designed to address this. See
 `NEGATIVE_RESULTS.md` resolved finding R8.
 
 **Reproduce:**
@@ -95,7 +95,7 @@ python experiments/toolcall_ablation.py
 
 ---
 
-## Experiment 4 — Adversarial tool-call benchmark v2 (700 tasks)
+## Experiment 4: Adversarial tool-call benchmark v2 (700 tasks)
 
 **Research question:** Can REMORA reduce unsafe execution under harder adversarial
 conditions where heuristic baselines fail?
@@ -106,7 +106,7 @@ conditions where heuristic baselines fail?
 `prompt_injection`, `unsafe_destructive`.
 
 Calibration split: 350 tasks. Validation split: 350 tasks. Blind test: 350
-tasks (OOD within synthetic generator — not external real-world OOD).
+tasks (OOD within synthetic generator, not external real-world OOD).
 
 **N:** 700 tasks.
 
@@ -131,8 +131,8 @@ tasks (OOD within synthetic generator — not external real-world OOD).
 Statistical significance committed at `results/toolcall_benchmark_v2_significance.json`.
 
 **Caveat:** deterministic simulator only. The 0% rate is a point estimate; 95%
-Wilson CI [0.00%, 0.55%]. The hard-block policy layer — not the oracle consensus
-— produces the 0% result. Do not cite as production safety evidence.
+Wilson CI [0.00%, 0.55%]. The hard-block policy layer, not the oracle consensus
+- produces the 0% result. Do not cite as production safety evidence.
 
 **Reproduce:**
 ```bash
@@ -144,7 +144,7 @@ python experiments/toolcall_v2_significance.py
 
 ---
 
-## Experiment 5 — Sandbox live execution harness
+## Experiment 5: Sandbox live execution harness
 
 **Research question:** Does the 0% unsafe execution result hold under sandbox
 execution where `EXECUTE` actions are run inside isolated local environments?
@@ -167,7 +167,7 @@ state mock files). Does not touch production systems.
 
 ---
 
-## Experiment 6 — Stress replay (v3, 10k calls)
+## Experiment 6: Stress replay (v3, 10k calls)
 
 **Research question:** How does REMORA's policy behave under high-volume
 deterministic replay?
@@ -201,7 +201,7 @@ make stress-toolcalls N_CALLS=10000 SEED=42
 
 ---
 
-## Experiment 7 — Ordered-phase conformal coverage
+## Experiment 7: Ordered-phase conformal coverage
 
 **Research question:** Does conformal risk control achieve target coverage on
 ordered-phase items across repeated calibration splits?
@@ -215,12 +215,12 @@ calibration seeds. Target risk: 15%.
 seeds failing.
 
 **Caveat:** holds for ordered phase only. Critical and disordered phases cannot
-achieve meaningful conformal coverage — this is why `PhaseAwareGuardrail` and
+achieve meaningful conformal coverage, this is why `PhaseAwareGuardrail` and
 the evidence router exist.
 
 ---
 
-## Experiment 8 — Cross-domain governance benchmark
+## Experiment 8: Cross-domain governance benchmark
 
 **Research question:** Do REMORA's governance verdicts hold across cyber, AI
 governance, and finance evidence domains?
@@ -239,7 +239,7 @@ python experiments/domain_benchmark.py
 
 ---
 
-## Experiment 9 — AROMER learning loop (experimental)
+## Experiment 9: AROMER learning loop (experimental)
 
 **Research question:** Does the AROMER closed-loop learning layer improve
 governance without degrading the safety floor?
@@ -264,7 +264,7 @@ eval cases.
 | verdict_accuracy | 0.769 | 0.769 | 0.585 |
 
 > **Note:** this 85-case figure is the ablation holdout artifact. The live replay
-> arena reported in `02-evidence-and-claims.md` (Claim 6) uses 96 cases — a different
+> arena reported in `02-evidence-and-claims.md` (Claim 6) uses 96 cases, a different
 > evaluation surface (87.5% accuracy; see `artifacts/aromer/replay_arena_report.json`).
 
 **Findings:** Safety floor intact. No friction reduction yet (18 seed episodes

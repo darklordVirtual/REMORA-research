@@ -1,4 +1,4 @@
-# Intern rapport: Menneskelig forfatterskapsbevis — REMORA
+# Intern rapport: Menneskelig forfatterskapsbevis: REMORA
 
 > *This document is intentionally in Norwegian: it is the author's first-person authorship evidence record, dated 2026-06-28, preserved in the language it was written in.*
 
@@ -9,7 +9,7 @@ forfatterskapet mot påstanden om at prosjektet er «AI-generert».
 
 ---
 
-## Steg 1 — Git-historikk: Iterative beslutninger over tid
+## Steg 1: Git-historikk: Iterative beslutninger over tid
 
 **Kilde:** `git log --all --oneline`
 
@@ -28,7 +28,7 @@ forfatterskapet mot påstanden om at prosjektet er «AI-generert».
 | `refactor` | 3 |
 
 834 commits over 40 dager tilsvarer gjennomsnittlig **20,9 commits per dag**.
-Dette er ikke et mønster som oppstår ved å akseptere AI-generert output — det
+Dette er ikke et mønster som oppstår ved å akseptere AI-generert output, det
 er et mønster av løpende iterasjon, feilretting og designvalg.
 
 ### Bevis på menneskelige arkitekturbeslutninger
@@ -62,7 +62,7 @@ En AI som genererer output alene produserer ikke disse mønstrene.
 
 ---
 
-## Steg 2 — NEGATIVE_RESULTS.md: Preserverte feil og begrensninger
+## Steg 2: NEGATIVE_RESULTS.md: Preserverte feil og begrensninger
 
 **Kilde:** `NEGATIVE_RESULTS.md`
 
@@ -78,11 +78,11 @@ resolved findings og en sammendragstabell:
 | §3 | Entropy bruker token-fingerprint, ikke ekte Semantic Entropy (DLL-blokkering) | **Aktiv (Gap 4)** |
 | §4 | TRAINED_SHADOW_ONLY via world-model seeding; full sertifisering utsatt | Løst i §11 |
 | §5 | benign_review_rate window-distorsjon under world-model seeding | Løst |
-| §6 | Sekundær seeding-perturbation — targeted high-friction seeding | Løst |
-| §7 | Window-rotation flaskehals — adapt-sykluser genererer ikke /decide-episoder | Løst |
+| §6 | Sekundær seeding-perturbation, targeted high-friction seeding | Løst |
+| §7 | Window-rotation flaskehals, adapt-sykluser genererer ikke /decide-episoder | Løst |
 | §8 | Ekstern adversarial eval: FA=30.7% under nøytral metadata (Phase 2) | Løst: FA=22.2% |
 | §9 | Harmful seeding → T2-regresjon: TRAINED→CAPABLE (2026-06-27) | Løst: §11 |
-| §10 | brr=7.5% stabilt likevektspunkt — CAPABLE-tak | Løst: §11 |
+| §10 | brr=7.5% stabilt likevektspunkt, CAPABLE-tak | Løst: §11 |
 | §11 | Organisk TRAINED-recovery bekreftet (2026-06-28 00:36 UTC+2) | **Milestone** |
 | §12 | Organisk post-peak T2-nedgang (AII 0.844→0.804) | Dokumentert |
 | §13 | TRAINED→CAPABLE regresjon (~13:00 UTC) og organisk recovery (~15:53 UTC) | **Dokumentert komplett** |
@@ -110,7 +110,7 @@ AI-verktøy.
 
 ---
 
-## Steg 3 — Claim Register: Menneskelig skjønn i evidenshierarki
+## Steg 3: Claim Register: Menneskelig skjønn i evidenshierarki
 
 **Kilde:** `docs/claim_register.md` + `docs/thermodynamics/claim_ledger.yaml`
 
@@ -130,15 +130,15 @@ De fire nivåene i claim-registeret er **ikke** det et AI-verktøy designer av s
 selv. De er et bevisst metodisk valg forfatteren tok tidlig i prosjektet og
 konsekvent håndhevet:
 
-1. **Skillet mellom «simulator_only» og «internally_supported»** — REMORA
+1. **Skillet mellom «simulator_only» og «internally_supported»**, REMORA
    merker toolcall-resultater som `simulator_only`, ikke som produksjonsresultater.
    Dette er et eksplisitt valg om hva prosjektet kan og ikke kan påstå.
 
-2. **«Requires external replication» er synlig, ikke skjult** — 7 claims er
+2. **«Requires external replication» er synlig, ikke skjult**, 7 claims er
    eksplisitt merket som ikke eksternt replikert. Disse fjernes ikke fra
    dokumentasjonen; de er en første-klasses kategori.
 
-3. **Claim wording guard** — registeret inneholder en eksplisitt liste over
+3. **Claim wording guard**, registeret inneholder en eksplisitt liste over
    forbudte formuleringer («absolute safety assurance», «production-certified
    safety», «independent validation without a replication pointer»). Denne
    listen finnes fordi forfatteren la den til etter å ha identifisert risikoen
@@ -155,7 +155,7 @@ beslutningene er menneskelige.
 
 ---
 
-## Steg 4 — Artefakter og tester: Uavhengig evidensbase
+## Steg 4: Artefakter og tester: Uavhengig evidensbase
 
 **Kilde:** `artifacts/`, `tests/`
 
@@ -213,7 +213,7 @@ alle resultater fra scratch med `docker compose run --rm remora make test`.
 
 ---
 
-## Steg 5 — Tre produksjonsgater: Konservativt menneskelig skjønn
+## Steg 5: Tre produksjonsgater: Konservativt menneskelig skjønn
 
 **Kilde:** `docs/aromer/architecture.md`, `NEGATIVE_RESULTS.md`, `paper/remora_paper.md § F.7`
 
@@ -252,11 +252,11 @@ beslutning.
 
 | Steg | Bevis for menneskelig forfatterskap |
 |---|---|
-| 1 — Git-historikk | 834 commits over 40 dager; fix=181 > feat=151 (mer feilretting enn ny kode); design-pivots; aktiv overclaim-korrigering |
-| 2 — Negative resultater | 13 seksjonerte negative funn; Gap 2 bevart som aktiv; §13 regresjon og recovery fullstendig dokumentert |
-| 3 — Claim register | 25 kategoriserte claims; 4-nivås evidenshierarki; wording guard; 7 claims eksplisitt merket som eksternt ikke-replikert |
-| 4 — Artefakter og tester | 111 artefaktfiler; 1712 testfunksjoner; 3081 passerende; deterministisk reproduserbar |
-| 5 — Produksjonsgater | 3 gjenværende gates; SHADOW_ONLY på tross av sterke resultater; `policy_relaxation_allowed = false` |
+| 1, Git-historikk | 834 commits over 40 dager; fix=181 > feat=151 (mer feilretting enn ny kode); design-pivots; aktiv overclaim-korrigering |
+| 2, Negative resultater | 13 seksjonerte negative funn; Gap 2 bevart som aktiv; §13 regresjon og recovery fullstendig dokumentert |
+| 3, Claim register | 25 kategoriserte claims; 4-nivås evidenshierarki; wording guard; 7 claims eksplisitt merket som eksternt ikke-replikert |
+| 4, Artefakter og tester | 111 artefaktfiler; 1712 testfunksjoner; 3081 passerende; deterministisk reproduserbar |
+| 5, Produksjonsgater | 3 gjenværende gates; SHADOW_ONLY på tross av sterke resultater; `policy_relaxation_allowed = false` |
 
 ### Svar på kritikken «AI laget REMORA»
 
@@ -269,7 +269,7 @@ Den korrekte beskrivelsen er:
 > som bevares (inkludert negative funn) og hva som nedgraderes (overclaiming).
 > Ansvaret for alt innhold i dette prosjektet tilhører den menneskelige forfatteren.
 
-Beviset for dette er ikke påstand — det er 834 commits, 13 negative resultater,
+Beviset for dette er ikke påstand, det er 834 commits, 13 negative resultater,
 25 kategoriserte claims, 111 artefaktfiler, 1712 tester, og tre eksplisitte
 gjenværende gates som holder systemet tilbake fra deployment til tross for sterke interne resultater.
 

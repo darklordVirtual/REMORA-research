@@ -51,7 +51,7 @@ python experiments/agentharm/inspect_tools_probe.py
 
 `inspect_tools_probe.py` writes `results/agentharm/tool_probe.json` with the
 field `tools_beyond_submit_exposed`. If this is `false`, the current run is
-intent-gating only — no tool-interception claims may be made.
+intent-gating only: no tool-interception claims may be made.
 
 ```bash
 # 2. Baseline-only pilot (small --limit). Must pass before full matrix.
@@ -134,7 +134,7 @@ intent-gating, not tool-call interception.
 - Any external-guardrail comparison without full baseline, benign split,
   harmful split, probe, and scoring artifacts.
 - Any statement citing recall > 0.852 / precision > 0.974 / FPR < 0.023 as
-  REMORA results — those are external reference numbers.
+  REMORA results: those are external reference numbers.
 
 The full decision rule is in → [05-claim-hygiene.md](05-claim-hygiene.md).
 

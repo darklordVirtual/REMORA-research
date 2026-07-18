@@ -1,6 +1,6 @@
 ---
 id: owasp_llm_top10_policy_map
-title: OWASP Top 10 for LLM Applications — REMORA Policy Map
+title: OWASP Top 10 for LLM Applications, REMORA Policy Map
 source: OWASP Top 10 for LLM Applications v1.1 + GenAI Security Project
 source_url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
 version_or_accessed_date: v1.1 (2023), GenAI Profile (2024)

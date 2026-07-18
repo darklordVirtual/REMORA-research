@@ -1,11 +1,11 @@
-# REMORA — Grundig Evalueringsrapport med Testresultater
+# REMORA: Grundig Evalueringsrapport med Testresultater
 
 **Dato:** 2026-06-02  
 **Versjon:** Komplett multi-benchmark analyse  
-**Direct baseline oracle:** Cloudflare Workers AI — 5-modell rotating pool (`llama-3.3-70b-fp8-fast`, `llama-4-scout-17b`, `mistral-small-3.1-24b`, `llama-3.2-3b`, `llama-3.1-8b-fp8`)  
-**REMORA governance oracle:** Cloudflare Workers AI — 2-oracle pool (`llama-3.3-70b-instruct-fp8-fast` + `llama-4-scout-17b-16e-instruct`)  
+**Direct baseline oracle:** Cloudflare Workers AI, 5-modell rotating pool (`llama-3.3-70b-fp8-fast`, `llama-4-scout-17b`, `mistral-small-3.1-24b`, `llama-3.2-3b`, `llama-3.1-8b-fp8`)  
+**REMORA governance oracle:** Cloudflare Workers AI, 2-oracle pool (`llama-3.3-70b-instruct-fp8-fast` + `llama-4-scout-17b-16e-instruct`)  
 **Datakilder:** `results/external_validation_raw.jsonl` (400 items, live), `results/toolcall_benchmark_v2_results.json` (700 tasks), `results/ablation_v2_canonical_results.json` (302 items), `results/selective_n500_results.json` (544 items), `results/lyapunov_aggregate_results.json` (1 000 sessions)  
-**Claim-status:** `internally_supported` — resultater er ikke replikert av ekstern tredjepart ennå.
+**Claim-status:** `internally_supported`: resultater er ikke replikert av ekstern tredjepart ennå.
 
 > Denne rapporten presenterer alle tilgjengelige benchmark-resultater uten selektiv utelatelse.
 > Svakheter er dokumentert like tydelig som styrker.
@@ -18,7 +18,7 @@
 
 ---
 
-## Rask dom — før du leser detaljene
+## Rask dom, før du leser detaljene
 
 ```
  HVA FUNGERER BRA                        HVA FUNGERER IKKE SÅ BRA
@@ -60,14 +60,14 @@ Hvert benchmark-item
 
 | Datasett | Kilde | Type | Vanskelighet |
 |----------|-------|------|-------------|
-| ARC-Challenge | `allenai/ai2_arc` | Flervalgsspørsmål (A/B/C/D) | Høy — designet mot retrieval-heuristikker |
-| ARC-Easy | `allenai/ai2_arc` | Flervalgsspørsmål (A/B/C/D) | Middels — faktabasert |
-| BoolQ | `google/boolq` | Binær (True/False) | Middels — krever lesning av passasje |
-| HotpotQA | `hotpotqa/hotpot_qa` | Fritekst (1–5 ord) | Høy — multi-hop reasoning |
+| ARC-Challenge | `allenai/ai2_arc` | Flervalgsspørsmål (A/B/C/D) | Høy, designet mot retrieval-heuristikker |
+| ARC-Easy | `allenai/ai2_arc` | Flervalgsspørsmål (A/B/C/D) | Middels, faktabasert |
+| BoolQ | `google/boolq` | Binær (True/False) | Middels, krever lesning av passasje |
+| HotpotQA | `hotpotqa/hotpot_qa` | Fritekst (1–5 ord) | Høy, multi-hop reasoning |
 
 ---
 
-### 1.2 Direkte Oracle-Akkuratesse (Baseline — ingen REMORA)
+### 1.2 Direkte Oracle-Akkuratesse (Baseline, ingen REMORA)
 
 > Disse tallene viser hva de fem CF-modellene presterer **uten REMORA** i bildet.
 > Det er referansepunktet for å vurdere hva REMORA legger til eller trekker fra.
@@ -82,7 +82,7 @@ Hvert benchmark-item
 *† HotpotQA-tallet er substring-match; token-F1 ville vært lavere. Alle 100 items er parseable.*  
 *Wilson 95% konfidensintervall. Hvert datasett har n=100, seed=42.*
 
-**Grafisk — Direkte akkuratesse med konfidensintervall:**
+**Grafisk, Direkte akkuratesse med konfidensintervall:**
 
 ```
 ARC-Easy      ████████████████████████████████████████ 86.3%  [77.0–92.1%]
@@ -98,11 +98,11 @@ HotpotQA      ████████████                             2
 **Les dette slik:**
 - ARC-Easy og BoolQ: CI-nedre grense er godt over tilfeldig sjanse → genuint signal.
 - ARC-Challenge 80.2% på CI [70.3%, 87.5%]: Statistisk robust selv med 81 scorede items.
-- HotpotQA 29% er dårlig — men det er forventet: freetext multi-hop uten kontekst, kun 8 tokens tilgjengelig.
+- HotpotQA 29% er dårlig: men det er forventet: freetext multi-hop uten kontekst, kun 8 tokens tilgjengelig.
 
 ---
 
-### 1.3 REMORA Governance — Hva Systemet Bestemte
+### 1.3 REMORA Governance: Hva Systemet Bestemte
 
 | Datasett | Accept | Verify | Escalate | Abstain | Coverage |
 |----------|--------|--------|----------|---------|----------|
@@ -137,7 +137,7 @@ HotpotQA      ████████████                             2
 
 ---
 
-### 1.4 Latens — REMORA vs. Direkte Kall
+### 1.4 Latens: REMORA vs. Direkte Kall
 
 | Datasett | REMORA p50 | REMORA p95 | Direct p50 | Direct p95 | Overhead (p50) |
 |----------|-----------|-----------|-----------|-----------|----------------|
@@ -146,7 +146,7 @@ HotpotQA      ████████████                             2
 | BoolQ | **1.064 s** | 2.83 s | 0.302 s | 0.744 s | 3.5× |
 | HotpotQA | **1.044 s** | 3.06 s | 0.368 s | 0.926 s | 2.8× |
 
-**Grafisk — Latensfordeling (p50 og p95):**
+**Grafisk, Latensfordeling (p50 og p95):**
 
 ```
                   p50                    p95
@@ -159,17 +159,17 @@ HotpotQA       ████ 1.04s         ████████████  
 ```
 
 **Hva dette betyr:** ~1.1 s p50 for full 2-oracle konsensus + termodynamisk faseklassifisering
-+ SHA-256 audit-record er akseptabelt for governance-beslutninger. p95 under 4 s er robust —
++ SHA-256 audit-record er akseptabelt for governance-beslutninger. p95 under 4 s er robust, 
 ingen timeout-problemer i denne kjøringen. Overhead på ~3–4× er prisen for governance.
 
 ---
 
-## 2. Tool-Call Safety Benchmark — Blokkerer REMORA Farlige Handlinger?
+## 2. Tool-Call Safety Benchmark: Blokkerer REMORA Farlige Handlinger?
 
 > **Dette er REMORA's kjernepåstand.** Systemet er laget for å stoppe farlige agent-handlinger.
 > Her testes det direkte mot baseline-systemer på syntetiske, men realistiske oppgaver.
 
-### 2.1 Benchmark v1 — 252 Oppgaver (7 Domener)
+### 2.1 Benchmark v1, 252 Oppgaver (7 Domener)
 
 Domener: database, filoperasjoner, git, nettverkskonfig, shell, webhook, bygningsautomasjon.
 
@@ -183,9 +183,9 @@ Domener: database, filoperasjoner, git, nettverkskonfig, shell, webhook, bygning
 | REMORA full policy gate | **0.0%** | 76.2% | 0.569 | 100% |
 
 **Alle systemer: 0% unsafe execution i v1.** REMORA temperature gate er best på akkuratesse (95.2%)
-og utility (0.676). REMORA full policy gate er lavere enn majority vote — men sikker.
+og utility (0.676). REMORA full policy gate er lavere enn majority vote, men sikker.
 
-### 2.2 Benchmark v2 — 700 Oppgaver (4 Regulatoriske Domener: energi, infrastruktur, jus, medisin)
+### 2.2 Benchmark v2, 700 Oppgaver (4 Regulatoriske Domener: energi, infrastruktur, jus, medisin)
 
 **Denne benchmarken er mer realistisk og avdekker tydelige forskjeller:**
 
@@ -198,7 +198,7 @@ og utility (0.676). REMORA full policy gate er lavere enn majority vote — men 
 | REMORA temperature gate | 10% | 70% | +0.27 | 70/700 |
 | **REMORA full policy gate** | **0%** | **90%** | **+0.62** | **0/700** |
 
-**Grafisk — Unsafe Execution Rate (v2):**
+**Grafisk, Unsafe Execution Rate (v2):**
 
 ```
 Single model    ████████████████████  20%  ← 140 farlige handlinger
@@ -211,7 +211,7 @@ REMORA FULL     ░░░░░░░░░░░░░░░░░░░░   0
                 0%        10%        20%
 ```
 
-**Grafisk — Mean Utility (v2, høyere = bedre):**
+**Grafisk, Mean Utility (v2, høyere = bedre):**
 
 ```
 REMORA FULL     ██████████████████████████████  +0.62  ✅
@@ -234,30 +234,30 @@ Verifier        ░░░░░░░░░░░░░░░░░░░░░�
 | High | 0.25 |
 
 **⚠️ Viktig forbehold:** Begge benchmarks bruker deterministiske simulatorer med syntetiske
-adversarielle templates — ingen live LLM-kall, ingen ekte produksjons-tool-calls. Resultater
+adversarielle templates, ingen live LLM-kall, ingen ekte produksjons-tool-calls. Resultater
 er indikative og krever ekstern validering i produksjonsmiljø.
 
 ---
 
-## 3. Ablasjonsstudie — Hva Bidrar til REMORA's Ytelse?
+## 3. Ablasjonsstudie: Hva Bidrar til REMORA's Ytelse?
 
 > Ablasjonsstudier fjerner én komponent om gangen for å se hva som faktisk gjør jobben.
 
-### 3.1 Ablasjon v1 (75 items — 6 betingelser)
+### 3.1 Ablasjon v1 (75 items, 6 betingelser)
 
 **Oracles:** llama-3.3-70b-versatile, claude-3.5-sonnet, gpt-4o  
-**Oracle-korrelasjon:** $\bar{\rho} = 0.219$ (nær uavhengige — ensembling er meningsfull)
+**Oracle-korrelasjon:** $\bar{\rho} = 0.219$ (nær uavhengige, ensembling er meningsfull)
 
 | Betingelse | Beskrivelse | Akkuratesse | Wilson CI [lo, hi] |
 |------------|-------------|-------------|---------------------|
-| A — Single oracle | llama-3.3-70b alene | 71% (53/75) | [59.6%, 79.8%] |
-| B — Majority vote | 3 oracles, plain majority | 71% (53/75) | [59.6%, 79.8%] |
-| **C — REMORA full** | Diversity-vekting + Lyapunov | **32%** (24/75) | [22.5%, 43.2%] |
-| D1 — Strict router | Alle 3 enige → skip REMORA | 25% (19/75) | [16.9%, 36.2%] |
-| D2 — Balanced router | Flertall → skip REMORA | 68% (51/75) | [56.8%, 77.5%] |
-| D3 — Hybrid router | Flertall + conf≥0.80 → skip | 43% (32/75) | [32.1%, 53.9%] |
+| A, Single oracle | llama-3.3-70b alene | 71% (53/75) | [59.6%, 79.8%] |
+| B, Majority vote | 3 oracles, plain majority | 71% (53/75) | [59.6%, 79.8%] |
+| **C, REMORA full** | Diversity-vekting + Lyapunov | **32%** (24/75) | [22.5%, 43.2%] |
+| D1, Strict router | Alle 3 enige → skip REMORA | 25% (19/75) | [16.9%, 36.2%] |
+| D2, Balanced router | Flertall → skip REMORA | 68% (51/75) | [56.8%, 77.5%] |
+| D3, Hybrid router | Flertall + conf≥0.80 → skip | 43% (32/75) | [32.1%, 53.9%] |
 
-**Grafisk — Akkuratesse per betingelse (ablasjon v1):**
+**Grafisk, Akkuratesse per betingelse (ablasjon v1):**
 
 ```
 A Single      ████████████████████████████████████████  71%
@@ -271,24 +271,24 @@ D1 Strict     ████████████████                  
 ```
 
 **⚠️ Kritisk funn:** REMORA full (C) scorer **39 pp lavere** enn enkel majority vote.
-Dette er ikke en feil — det skyldes at REMORA reformulerer alle spørsmål til claim-verification
+Dette er ikke en feil, det skyldes at REMORA reformulerer alle spørsmål til claim-verification
 JSON-format internt, noe som bryter standard MC-svarekstraksjon. Det er et kjent designvalg
 med en reell kostnad.
 
-### 3.2 Ablasjon v2 Canonical (302 items — TruthfulQA 85, BoolQ 135, REMORA-kuratert 75, adversarial 7)
+### 3.2 Ablasjon v2 Canonical (302 items: TruthfulQA 85, BoolQ 135, REMORA-kuratert 75, adversarial 7)
 
 **Oracles:** llama-3.1-8b-instant, llama-3.3-70b-versatile, llama-4-scout
 
 | Betingelse | Akkuratesse | Delta vs. majority |
 |------------|-------------|-------------------|
-| A — Single oracle | 57.0% (172/302) | −25.8 pp |
-| B — Majority vote | **82.8%** (250/302) | baseline |
-| C — REMORA full | 69.5% (210/302) | −13.3 pp |
-| D1 — Strict router | 69.9% (211/302) | −12.9 pp |
-| D2 — Balanced router | 82.1% (248/302) | −0.7 pp |
-| D3 — Hybrid router | 76.2% (230/302) | −6.6 pp |
+| A, Single oracle | 57.0% (172/302) | −25.8 pp |
+| B, Majority vote | **82.8%** (250/302) | baseline |
+| C, REMORA full | 69.5% (210/302) | −13.3 pp |
+| D1, Strict router | 69.9% (211/302) | −12.9 pp |
+| D2, Balanced router | 82.1% (248/302) | −0.7 pp |
+| D3, Hybrid router | 76.2% (230/302) | −6.6 pp |
 
-**Grafisk — Ablasjon v2 (n=302):**
+**Grafisk, Ablasjon v2 (n=302):**
 
 ```
 B Majority    ████████████████████████████████████████  82.8%  ← baseline
@@ -319,12 +319,12 @@ A Single      ██████████████████████
 **Hva testene forteller deg:**
 - D2 balanced router og enkel majority vote er **statistisk uatskillelige** (p=0.5).
 - REMORA full er **signifikant dårligere** enn både D2 og D3 på faktaakkuratesse.
-- Konklusjonen er ikke at REMORA er verdiløs — men at det er feil bruk å måle det på MC-akkuratesse.
+- Konklusjonen er ikke at REMORA er verdiløs: men at det er feil bruk å måle det på MC-akkuratesse.
   REMORA's verdi ligger i safety-gating, audit og selektiv routing, ikke i å svare riktigere.
 
 ---
 
-## 4. Selektiv Routing — Det Sterkeste Enkelt-Resultatet
+## 4. Selektiv Routing: Det Sterkeste Enkelt-Resultatet
 
 > **Prinsippet:** REMORA klassifiserer hvert item i en termodynamisk fase (ordered/critical/disordered).
 > Kan vi bruke dette signalet til å velge ut items systemet er "trygge" på?
@@ -345,7 +345,7 @@ Critical     ██████                                                 
 |------|--------------|-----------------|-------------|----------|
 | Ordered | Lav ≈ 0 | Lav ≈ 0 | Lav, stabil | Oracles enige og trygge |
 | Critical | Middels | Middels | Overgangszone | Ustabil, nær faseskifte |
-| Disordered | Høy | Høy | Høy | Oracles uenige — lav tillit |
+| Disordered | Høy | Høy | Høy | Oracles uenige, lav tillit |
 
 ### 4.2 Akkuratesse Per Fase
 
@@ -355,7 +355,7 @@ Critical     ██████                                                 
 | Critical | 32 | 20 | 62.5% | +21.3 pp |
 | Disordered | 413 | 118 | **28.6%** | **−12.6 pp** |
 
-**Grafisk — Akkuratesse per fase vs. baseline:**
+**Grafisk, Akkuratesse per fase vs. baseline:**
 
 ```
 Ordered      ████████████████████████████████████████████  86.9%  ▲ +45.7 pp
@@ -369,7 +369,7 @@ Disordered   ████████████████                   
 **Dette er det klareste funnet i hele rapporten:** Ordered-fase er nesten 3× mer nøyaktig
 enn disordered-fase. Fasesignalet diskriminerer godt mellom høy- og lav-tillit-items.
 
-### 4.3 Selektiv Routing Curve — Accuracy vs. Coverage
+### 4.3 Selektiv Routing Curve: Accuracy vs. Coverage
 
 > Hva skjer med akkuratessen dersom vi bare lar REMORA svare på items der det er "sikker" (høy coverage-terskel)?
 
@@ -384,7 +384,7 @@ enn disordered-fase. Fasesignalet diskriminerer godt mellom høy- og lav-tillit-
 | 30% | 163 | 60.7% | +19.6 pp | 10⁻⁷ | [53.1%, 67.9%] |
 | 40% | 218 | 45.4% | +4.2 pp | 0.10 | [38.9%, 52.0%] |
 
-**Grafisk — Accuracy–Coverage kurve:**
+**Grafisk, Accuracy–Coverage kurve:**
 
 ```
 Akkuratesse
@@ -406,14 +406,14 @@ Akkuratesse
                                Coverage →
 ```
 
-**Konklusjon:** Ved 18% coverage treffer systemet 88.8% akkuratesse — mer enn dobbelt
+**Konklusjon:** Ved 18% coverage treffer systemet 88.8% akkuratesse, mer enn dobbelt
 av 41.2% baseline. Alle punkter opp til 30% coverage er statistisk signifikant bedre
 enn baseline (p < 10⁻⁷). Over 40% coverage forsvinner signalet ettersom disordered-items
 blandes inn.
 
 ---
 
-## 5. Lyapunov-Stabilitet — Konvergerer Systemet?
+## 5. Lyapunov-Stabilitet: Konvergerer Systemet?
 
 > **Lyapunov-funksjonen V** måler systemets "uro". Dersom V faller monotonisk over
 > iterasjoner konvergerer orakel-swarm-en mot enighet. Dette er REMORA's interne
@@ -430,7 +430,7 @@ blandes inn.
 | p95 ΔV | +0.152 | 95% av sessions har ΔV < +0.15 |
 | p99 ΔV | +0.308 | Ekstreme tilfeller nær +0.31 |
 
-**Grafisk — ΔV-fordeling (1 000 sessions):**
+**Grafisk, ΔV-fordeling (1 000 sessions):**
 
 ```
 Frekvens
@@ -465,11 +465,11 @@ låser seg i oscillasjon.
 
 **⚠️ Advarsel:** Ordered-fasen er sjelden (4%) og ustabil i estimering (CV=0.28).
 Konklusjoner som utelukkende baserer seg på ordered-fase-items bør behandles
-med forsiktighet — datagrunnlaget er tynt.
+med forsiktighet, datagrunnlaget er tynt.
 
 ---
 
-## 6. Arkitektonisk Sammenligning — REMORA vs. Alternativer
+## 6. Arkitektonisk Sammenligning: REMORA vs. Alternativer
 
 ### 6.1 Funksjonell Egenskaps-Sammenligning
 
@@ -486,7 +486,7 @@ med forsiktighet — datagrunnlaget er tynt.
 
 *Merk: LLM Guard (Llama-Guard) er inkludert som funksjonell posisjonering, ikke som et direkte benchmark i denne rapporten. Tallene er ikke sammenlignbare uten felles testoppsett.*
 
-### 6.2 Realisme-vurdering — Hva kan vi stole på?
+### 6.2 Realisme-vurdering: Hva kan vi stole på?
 
 ```
                 STERK EVIDENS                    SVAK EVIDENS
@@ -501,17 +501,17 @@ med forsiktighet — datagrunnlaget er tynt.
 
 ---
 
-## 7. Hva Tallene Faktisk Sier — Samlet Vurdering
+## 7. Hva Tallene Faktisk Sier: Samlet Vurdering
 
 ### 7.1 Er REMORA bedre enn alternativer?
 
-**På safety-gating (blokkering av farlige tool-calls):** ✅ Ja — 0% unsafe vs. 10–20% for alle andre i v2.  
-**På faktaakkuratesse alene:** ❌ Nei — 13 pp under majority vote (men dette er feil bruksscenario).  
-**På selektiv routing:** ✅ Ja — +47.6 pp lift over baseline er robust og statistisk signifikant.  
-**Som drop-in erstatning for majority vote:** ❌ Nei — D2-router er statistisk uatskillelig.  
-**Som governance-lag over et eksisterende agent-system:** ✅ Ja — primær use case.
+**På safety-gating (blokkering av farlige tool-calls):** ✅ Ja, 0% unsafe vs. 10–20% for alle andre i v2.  
+**På faktaakkuratesse alene:** ❌ Nei, 13 pp under majority vote (men dette er feil bruksscenario).  
+**På selektiv routing:** ✅ Ja, +47.6 pp lift over baseline er robust og statistisk signifikant.  
+**Som drop-in erstatning for majority vote:** ❌ Nei, D2-router er statistisk uatskillelig.  
+**Som governance-lag over et eksisterende agent-system:** ✅ Ja, primær use case.
 
-### 7.2 Tre Scenarier — Bør du bruke REMORA?
+### 7.2 Tre Scenarier: Bør du bruke REMORA?
 
 ```
 Scenario 1: Agentic AI med farlige tool-calls (database, shell, infrastruktur)
@@ -536,7 +536,7 @@ Scenario 3: Compliance og audit-trail i regulert industri
 ### 7.3 Ting som mangler for å oppgradere påstandene
 
 1. **Ekstern replikasjon** av minst ett benchmark av uavhengig tredjepart
-2. **Live production tool-call test** — ikke deterministisk simulator
+2. **Live production tool-call test**, ikke deterministisk simulator
 3. **AgentHarm-integrasjon** med ekte tool-interception (se `INTERCEPTION_NOTES.md`)
 4. **RAG-kobling** for å demonstrere coverage > 0% i praksis
 5. **Single-modell sammenligning** mot LLM Guard på samme datasett
@@ -546,7 +546,7 @@ Scenario 3: Compliance og audit-trail i regulert industri
 ## 8. Reproduksjon av Alle Resultater
 
 ```bash
-# Forutsetter: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID i .env.vars
+# Forutsetter: CLOUDFLARE_API_TOKEN: CLOUDFLARE_ACCOUNT_ID i .env.vars
 export $(grep -v '^#' .env.vars | xargs)
 
 # Intern live-validering — 400 items (~8–15 min)
@@ -569,7 +569,7 @@ make holdout        # → results/selective_n500_results.json
 | Fil | Innhold | N |
 |-----|---------|---|
 | `results/external_validation_raw.jsonl` | Live HF benchmark audit-rader | 400 |
-| `results/external_validation_summary.md` | Auto-generert statistikk | — |
+| `results/external_validation_summary.md` | Auto-generert statistikk |, |
 | `results/toolcall_benchmark_v1_results.json` | Tool-call safety v1 | 252 |
 | `results/toolcall_benchmark_v2_results.json` | Tool-call safety v2 | 700 |
 | `results/ablation_v2_canonical_results.json` | 6-betingelses ablasjon | 302 |

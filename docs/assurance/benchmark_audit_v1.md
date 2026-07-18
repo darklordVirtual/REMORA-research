@@ -11,7 +11,7 @@
 
 Two test failures were diagnosed and fixed:
 
-### Fix 1 — `test_learning_ablation::TestProfileCArtifactLock::test_profile_c_reproduces_committed_artifact`
+### Fix 1, `test_learning_ablation::TestProfileCArtifactLock::test_profile_c_reproduces_committed_artifact`
 
 **Root cause:** Commit `3c94c6b` updated `artifacts/aromer_learning_ablation_v2.json` to reflect an 88-case arena (`n_eval_cases=88`, `profile_c.false_block_rate=0.0217`) that does not exist on disk. The arena on disk has 85 cases (40 harmful / 45 benign) in 13 non-excluded categories. Profile C produces `false_block_rate=0.0222` against the 85-case arena.
 
@@ -32,7 +32,7 @@ The 0.0005 difference is not floating-point noise. It reflects a different denom
 
 Success criterion: **PASS** (C reduces review_friction by 11.1 pp while holding safety floor).
 
-### Fix 2 — `test_shadow_replay_cli_out_dir_writes_expected_files`
+### Fix 2, `test_shadow_replay_cli_out_dir_writes_expected_files`
 
 **Root cause:** `scripts/shadow_replay.py` imports `from remora.shadow.replay import replay_action_log` at module level. The test invokes the script as a subprocess with `cwd=<repo_root>`, but `remora` is installed in editable mode pointing to a different path (`REMORA-research-verify`). When the script runs as a subprocess, Python's path does not include the repo root, so the import fails with `ModuleNotFoundError: No module named 'remora'`.
 
@@ -44,7 +44,7 @@ Success criterion: **PASS** (C reduces review_friction by 11.1 pp while holding 
 
 ## 1. Leakage Audit
 
-### M1 — `is_unsafe_if_executed` label leakage (resolved)
+### M1, `is_unsafe_if_executed` label leakage (resolved)
 
 The primary leakage risk is documented as M1 in `remediation_register.yaml` and `baseline_snapshot.md`. Prior to 2026-06-28, `remora_gate.py:169` accessed `task.is_unsafe_if_executed` when `use_contradiction_flags=True`. This field is derived from the evaluation truth label, constituting direct label leakage into the gate.
 
@@ -56,9 +56,9 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml` and 
 
 **Finding:** FAR=0.0 is sustained in both the leaky (`use_contradiction_flags=True`) and clean (`use_contradiction_flags=False`) conditions. The leakage was not load-bearing for the primary safety claim. See artifact `results/toolcall_m1_clean_signal.json`.
 
-**Residual leakage risk:** The toolcall benchmark's structural flags (forbidden tools, tainted arguments) are correlated with harmfulness by construction — this is noted as a benchmark design issue in CLAIM-001's caveat: "if all harmful tasks have at least one detectable signal by construction, the result may document a tautology rather than generalization." This is an acknowledged, documented limitation; it does not constitute label leakage in the strict sense.
+**Residual leakage risk:** The toolcall benchmark's structural flags (forbidden tools, tainted arguments) are correlated with harmfulness by construction: this is noted as a benchmark design issue in CLAIM-001's caveat: "if all harmful tasks have at least one detectable signal by construction, the result may document a tautology rather than generalization." This is an acknowledged, documented limitation; it does not constitute label leakage in the strict sense.
 
-**Learning ablation — no leakage risk:** Profile C is evaluated after seed loading and one `adapt()` cycle on a temp store. The arena cases used for evaluation are never passed to `adapt()`. The `can_train=False` flag on arena cases (from `Episode` provenance) ensures the adaptation does not train on evaluation data. The code path in `run_profile_c` evaluates cases only after the adapt cycle, not during it.
+**Learning ablation: no leakage risk:** Profile C is evaluated after seed loading and one `adapt()` cycle on a temp store. The arena cases used for evaluation are never passed to `adapt()`. The `can_train=False` flag on arena cases (from `Episode` provenance) ensures the adaptation does not train on evaluation data. The code path in `run_profile_c` evaluates cases only after the adapt cycle, not during it.
 
 ---
 
@@ -74,7 +74,7 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml` and 
 
 - **Split:** 80/20 stratified by source, seed=42. Training split: N=436; held-out split: N=108.
 - **Threshold lock:** τ* = 0.2032 selected on training split, locked before holdout was touched (documented in `docs/assurance/statistical_analysis_plan.md` §1). No re-optimisation on holdout.
-- **Held-out result:** N_accepted=25 on held-out split, accuracy=88%. Wilson CI [70.0%, 95.8%] is wide (25.8 pp). This is a **directional observation only** — the SAP labels it `[POST-HOC]` and requires N_accepted >= 100 for generalization claims.
+- **Held-out result:** N_accepted=25 on held-out split, accuracy=88%. Wilson CI [70.0%, 95.8%] is wide (25.8 pp). This is a **directional observation only**: the SAP labels it `[POST-HOC]` and requires N_accepted >= 100 for generalization claims.
 - **Split label:** `CLAIM-004` in `claim_register_v1.yaml` correctly describes this as a held-out split result with the CI and sample-size caveat.
 
 ### AROMER Learning Ablation Arena (N=85)
@@ -98,14 +98,14 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml` and 
 | Toolcall blind v3 | 700 | 560 | FAR=0.0% | Wilson [0.00%, 0.55%] |
 | AgentHarm external | 208 | 208 | FAR=0.0% | Wilson [0.00%, 1.81%] |
 | False-accept regression | 167 | 167 | FAR=0.0% | Wilson [0.00%, 2.22%] |
-| Selective held-out | 25 | — | Accuracy=88.0% | Wilson [70.0%, 95.8%] |
+| Selective held-out | 25 |, | Accuracy=88.0% | Wilson [70.0%, 95.8%] |
 | AROMER arena (Profile C) | 85 | 40 | intercept=100% | Wilson [91.2%, 100%] |
 
 **Validity notes:**
 
 - FAR=0 CIs are mechanically correct but the toolcall and AgentHarm CIs (0.55%, 1.81%) rely on the benchmark being adversarially complete (no gap category). This is not guaranteed for synthetic benchmarks.
 - The selective held-out N=25 produces a CI wide enough (25.8 pp) that no generalization claim is warranted. The SAP correctly categorizes this as `[POST-HOC]`.
-- AROMER arena: correct_intercept_rate=100% (40/40 harmful blocked). Wilson CI lower bound 91.2% — this is the honest floor on the 40-case harmful subset, not a claim over all possible harmful actions.
+- AROMER arena: correct_intercept_rate=100% (40/40 harmful blocked). Wilson CI lower bound 91.2%: this is the honest floor on the 40-case harmful subset, not a claim over all possible harmful actions.
 
 ---
 
@@ -113,17 +113,17 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml` and 
 
 ### Ceiling effects
 
-**Toolcall v2 / blind v3:** FAR=0.0 (0 false accepts from 560 harmful). This is a ceiling on the safety metric. It cannot be used to compare variants of the gate — all variants that reach 0% FAR are indistinguishable on this axis. The review-friction / utility axis (0.62) is the differentiating metric.
+**Toolcall v2 / blind v3:** FAR=0.0 (0 false accepts from 560 harmful). This is a ceiling on the safety metric. It cannot be used to compare variants of the gate: all variants that reach 0% FAR are indistinguishable on this axis. The review-friction / utility axis (0.62) is the differentiating metric.
 
-**AgentHarm external:** FAR=0.0 (208/208 blocked). The caveats in `CLAIM-002` note: "Stage 1 hard-block policy invariants account for this result. The multi-oracle consensus machinery contributes VERIFY/ABSTAIN routing quality only." The full-block of benign variants (FBR=100%) is a ceiling that shows the current gate is too conservative for AgentHarm's benign variants — but the FBR is expected given the harm_category label similarity between harmful and benign variants in that dataset.
+**AgentHarm external:** FAR=0.0 (208/208 blocked). The caveats in `CLAIM-002` note: "Stage 1 hard-block policy invariants account for this result. The multi-oracle consensus machinery contributes VERIFY/ABSTAIN routing quality only." The full-block of benign variants (FBR=100%) is a ceiling that shows the current gate is too conservative for AgentHarm's benign variants, but the FBR is expected given the harm_category label similarity between harmful and benign variants in that dataset.
 
-**AROMER learning ablation:** correct_intercept_rate=100% across all three profiles (A, B, C). This means the AROMER learning signal cannot be differentiated on intercept rate — the ceiling was already hit by the static REMORA engine. Profile C's real improvement (−11.1 pp review friction, +5.9 pp verdict accuracy) is on the utility side, not the safety side.
+**AROMER learning ablation:** correct_intercept_rate=100% across all three profiles (A, B, C). This means the AROMER learning signal cannot be differentiated on intercept rate: the ceiling was already hit by the static REMORA engine. Profile C's real improvement (−11.1 pp review friction, +5.9 pp verdict accuracy) is on the utility side, not the safety side.
 
 ### Weak baselines
 
 **Toolcall v2 baselines:** The comparison baselines (`single_model_heuristic`, `majority_vote_heuristic`, `severity_heuristic`) are synthetic rule-based heuristics, not actual deployed systems. Their FAR values (10–30%) are derived from the same deterministic simulation, not from real LLM-based gate behavior. This is a known and documented limitation (CLAIM-001 caveat: "Benchmark is synthetic and adversarial patterns are designed in-distribution").
 
-**LLM baselines pilot (N=100):** `results/toolcall_llm_baselines_pilot_n100.json` exists as a partial remediation (REM-010). This is a pilot — the full LLM baseline integration is marked `IN_PROGRESS` in `remediation_register.yaml`.
+**LLM baselines pilot (N=100):** `results/toolcall_llm_baselines_pilot_n100.json` exists as a partial remediation (REM-010). This is a pilot: the full LLM baseline integration is marked `IN_PROGRESS` in `remediation_register.yaml`.
 
 **Recommendation:** The primary strength of CLAIM-001 rests on the Stage 1 structural hard-blocks (forbidden-tool, tainted-argument, schema-valid), not on comparison to these baselines. Claims about the gate outperforming baselines must be scoped to the synthetic baseline regime.
 
@@ -135,7 +135,7 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml` and 
 
 - The AROMER learning ablation's Profile C is evaluated on arena cases that were never passed to `adapt()`. The seed episodes are authored separately from the arena. Code inspection of `run_profile_c()` confirms: `aromer.adapt()` runs before the arena loop, not inside it.
 - The toolcall benchmarks use evaluation artifacts (`tasks.json` / `labels.json`) that are separate from the gate implementation. The gate has no access to `labels.json` at evaluation time (blind v3 protocol).
-- The held-out split for selective prediction is touched exactly once — at evaluation time, after the threshold τ* was locked on the training split.
+- The held-out split for selective prediction is touched exactly once: at evaluation time, after the threshold τ* was locked on the training split.
 
 **Note on synthetic arena construction:** The learning ablation arena cases were designed by the system authors after the gate was implemented. While this does not constitute circular evaluation (the arena never feeds back into the gate), it does mean the arena case difficulty was calibrated during framework development. This is a design-bias risk, distinct from data leakage.
 
@@ -203,7 +203,7 @@ The root-cause of Fix 1 is that `n_eval_cases` in the v2 artifact had drifted to
 
 3. **Selective prediction generalization (CLAIM-004):** N_accepted=25 yields a CI [70.0%, 95.8%] too wide to establish generalization. The SAP requires N_accepted >= 100 from an independently collected dataset before this claim can be upgraded.
 
-4. **AROMER arena adversarial_hard exclusion:** The 8 adversarial_hard cases are evaluated separately from the learning ablation. Their results are not included in any committed summary artifact for the ablation — they would need a dedicated artifact if published separately.
+4. **AROMER arena adversarial_hard exclusion:** The 8 adversarial_hard cases are evaluated separately from the learning ablation. Their results are not included in any committed summary artifact for the ablation: they would need a dedicated artifact if published separately.
 
 5. **Arena case construction bias:** The 85 learning ablation cases were authored after the REMORA gate was implemented. The difficulty calibration (what makes a case ambiguous vs clear) was influenced by gate behavior during development. This is a structural design-bias risk that cannot be eliminated post-hoc; it should be disclosed in any publication.
 
@@ -214,8 +214,8 @@ The root-cause of Fix 1 is that `n_eval_cases` in the v2 artifact had drifted to
 | Finding | Severity | Status |
 |---------|----------|--------|
 | M1 label leakage (`is_unsafe_if_executed`) | Critical | Fixed (2026-06-28, pre-audit) |
-| Arena/artifact case-count drift (88 vs 85) | High | Fixed (2026-06-30, this audit — artifact regenerated) |
-| shadow_replay.py ModuleNotFoundError in subprocess | High | Fixed (2026-06-30, this audit — sys.path added) |
+| Arena/artifact case-count drift (88 vs 85) | High | Fixed (2026-06-30, this audit, artifact regenerated) |
+| shadow_replay.py ModuleNotFoundError in subprocess | High | Fixed (2026-06-30, this audit, sys.path added) |
 | Selective prediction N_accepted=25 too small for generalization | Medium | Documented (SAP, CLAIM-004 caveat); remediation requires larger dataset |
 | LLM baselines incomplete (pilot only) | Medium | In progress (REM-010) |
 | Thermodynamic eval artifact lacks git_commit | Low | Documented (artifact_manifest_v1.md gap list) |

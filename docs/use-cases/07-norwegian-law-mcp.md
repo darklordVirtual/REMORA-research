@@ -1,14 +1,14 @@
-# Norwegian Law — Verified Legal Research via MCP
+# Norwegian Law: Verified Legal Research via MCP
 
 > ⚠️ **Scope: illustrative scenario, not a deployment result.** REMORA is a
-> research-grade governance overlay in **SHADOW_ONLY** mode — it is not
+> research-grade governance overlay in **SHADOW_ONLY** mode, it is not
 > production-certified and has not been deployed in the sector below. The
 > walkthrough and any numbers in it are **illustrative** unless they link to a
 > committed artifact in `results/` or `artifacts/`; they are not measured
 > outcomes. REMORA governs whether a proposed **action** may proceed
 > (ACCEPT/VERIFY/ABSTAIN/ESCALATE); it does not certify truth and is not a
-> fact-checker. **ETR** ("Effective Truth Rate" — `remora/scoring.py`) is an *illustrative* narrative
-> score in these documents only — it is **not** one of REMORA's canonical
+> fact-checker. **ETR** ("Effective Truth Rate", `remora/scoring.py`) is an *illustrative* narrative
+> score in these documents only, it is **not** one of REMORA's canonical
 > outputs and appears in no claim in `docs/assurance/claim_register_v1.yaml`.
 > See the [claim register](../assurance/claim_register_v1.yaml) and
 > [evidence summary](../02-evidence-and-claims.md) for governed claims.
@@ -20,8 +20,8 @@
 
 ## The scenario
 
-A user is working in Claude Desktop. They receive a legal document — a debt
-collection notice, a contract, or a public administration memo — and want to
+A user is working in Claude Desktop. They receive a legal document, a debt
+collection notice, a contract, or a public administration memo, and want to
 know whether it cites real Norwegian law, and whether the legal claims hold up.
 
 Without leaving the AI assistant, they can run a three-step verification:
@@ -43,9 +43,9 @@ and a law-search bridge.
 Norwegian document intelligence platform. It is not part of this repository.
 
 DCE maintains a private knowledge base of Norwegian legal data:
-- **Norwegian statute law** — all current regulations, semantically indexed
+- **Norwegian statute law**, all current regulations, semantically indexed
   with multilingual embeddings (bge-m3, 1024-dim) in a Cloudflare Vectorize index
-- **Legal intelligence** — Høyesterett (Supreme Court) decisions, Finansklagenemnda
+- **Legal intelligence**, Høyesterett (Supreme Court) decisions, Finansklagenemnda
   complaints, Datatilsynet decisions, Finanstilsynet supervision cases, parliamentary
   preparatory works (forarbeider), and NPE patient injury cases
 
@@ -73,7 +73,7 @@ Kravet er på vegne av Elkjøp Norge AS.
 
 ---
 
-### Step 1 — `remora_verify_legal_citations`
+### Step 1, `remora_verify_legal_citations`
 
 Extracts citations from the document and checks each against the DCE knowledge base.
 
@@ -86,11 +86,11 @@ Tool call: remora_verify_legal_citations({
 Result: No explicit court citations found in this document.
 ```
 
-No fabricated case references — this is a clean document.
+No fabricated case references: this is a clean document.
 
 ---
 
-### Step 2 — `remora_norwegian_law_search`
+### Step 2, `remora_norwegian_law_search`
 
 Looks up what Norwegian law says about the relevant topic.
 
@@ -115,7 +115,7 @@ The statute corpus confirms there are regulated maximum rates for debt collectio
 
 ---
 
-### Step 3 — `remora_legal_analysis`
+### Step 3, `remora_legal_analysis`
 
 Combines RAG retrieval with three-oracle consensus to assess the legal question.
 
@@ -179,7 +179,7 @@ remora_verify_legal_citations({
 STATUS: WARNING — one or more citations are suspicious or unverifiable
 ```
 
-The parametric LLMs alone confirm all three as valid with 100 % confidence —
+The parametric LLMs alone confirm all three as valid with 100 % confidence, 
 because they pattern-match the citation format from training data.
 **Only the deterministic database lookup catches the hallucination.**
 
@@ -193,7 +193,7 @@ Full documented analysis: [06-public-administration-hallucination.md](06-public-
   The DCE index covers current regulations. Historical versions and repealed
   laws may not be present.
 - `remora_verify_legal_citations` checks whether a citation appears in the
-  DCE knowledge base. Absence from DCE does not mean the citation is fake —
+  DCE knowledge base. Absence from DCE does not mean the citation is fake, 
   it means it could not be verified here. **Always confirm at lovdata.no
   for binding conclusions.**
 - The three-oracle legal analysis (`remora_legal_analysis`) uses general-purpose

@@ -1,10 +1,10 @@
 ---
 id: kubernetes_admission_control_summary
-title: Kubernetes Admission Control — Analogy for REMORA Action Gating
+title: Kubernetes Admission Control, Analogy for REMORA Action Gating
 source: Kubernetes Admission Controllers Reference
 source_url: https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/
 version_or_accessed_date: Kubernetes v1.29+ (accessed 2024)
-license_note: CC BY 4.0 — Creative Commons Attribution 4.0
+license_note: CC BY 4.0, Creative Commons Attribution 4.0
 intended_use: Architectural analogy, policy rule design for IaC/K8s scenarios
 ---
 

@@ -1,7 +1,7 @@
 # REMORA RBAC Access Control Policy v1
 
 **Status:** Active  
-**Gate:** REM-022 (P3 — production deployment gate)  
+**Gate:** REM-022 (P3, production deployment gate)  
 **Date:** 2026-06-30  
 **Scope:** Signing keys, AROMER D1 database, production API bearer tokens, worker deployment
 
@@ -11,8 +11,8 @@
 
 | Asset | Location | Risk if compromised |
 |-------|----------|---------------------|
-| `REMORA_PDP_SIGNING_KEY` | Environment variable (server) | Token forgery — PEP accepts unsigned or forged decisions |
-| `REMORA_ENVELOPE_SIGNING_KEY` | Environment variable (server) | Envelope hash-chain forgery — audit trail tampered undetected |
+| `REMORA_PDP_SIGNING_KEY` | Environment variable (server) | Token forgery, PEP accepts unsigned or forged decisions |
+| `REMORA_ENVELOPE_SIGNING_KEY` | Environment variable (server) | Envelope hash-chain forgery, audit trail tampered undetected |
 | `REMORA_API_BEARER_TOKEN` / `REMORA_API_TOKENS` | Environment variable (server) | Unauthorized API access |
 | AROMER D1 database (`b91e1f0b-e2bd-4a12-9150-cda2048e508b`) | Cloudflare D1 (aromer worker binding) | Episode tampering, world model poisoning, AII manipulation |
 | AROMER worker (wrangler deploy) | Cloudflare account | Malicious worker code deployed to production |
@@ -27,22 +27,22 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 | Role | assess | evidence | execute | rerun | read | review | follow_up |
 |------|--------|----------|---------|-------|------|--------|-----------|
 | admin | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| operator | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
-| reviewer | — | — | — | — | ✓ | ✓ | ✓ |
-| domain_expert | — | — | — | — | ✓ | ✓ | — |
-| senior_authority | — | — | — | — | ✓ | ✓ | — |
-| soc_analyst | — | — | — | — | ✓ | ✓ | — |
-| legal_counsel | — | — | — | — | ✓ | ✓ | — |
-| viewer | — | — | — | — | ✓ | — | — |
+| operator | ✓ | ✓ | ✓ | ✓ | ✓ | (|) |
+| reviewer | (|) | (|) | ✓ | ✓ | ✓ |
+| domain_expert | (|) | (|) | ✓ | ✓ |, |
+| senior_authority | (|) | (|) | ✓ | ✓ |, |
+| soc_analyst | (|) | (|) | ✓ | ✓ |, |
+| legal_counsel | (|) | (|) | ✓ | ✓ |, |
+| viewer | (|) | (|) | ✓ | (|) |
 
 **Capability definitions:**
-- `assess` — submit a governance request (`POST /v1/assess`)
-- `evidence` — attach external evidence (`POST /v1/evidence`)
-- `rerun` — replay a request deterministically (`POST /v1/rerun`)
-- `read` — read envelopes and audit records (`GET /v1/envelope/*`, `GET /v1/audit/*`)
-- `review` — submit human review (`POST /v1/review`)
-- `execute` — execute an approved review item, consuming a one-time grant (`POST /v1/execution/execute`); granted to admin and operator only
-- `follow_up` — add follow-up information (`POST /v1/follow-up`)
+- `assess`, submit a governance request (`POST /v1/assess`)
+- `evidence`, attach external evidence (`POST /v1/evidence`)
+- `rerun`, replay a request deterministically (`POST /v1/rerun`)
+- `read`, read envelopes and audit records (`GET /v1/envelope/*`, `GET /v1/audit/*`)
+- `review`, submit human review (`POST /v1/review`)
+- `execute`, execute an approved review item, consuming a one-time grant (`POST /v1/execution/execute`); granted to admin and operator only
+- `follow_up`, add follow-up information (`POST /v1/follow-up`)
 
 (`assess` also gates `POST /v1/execution/assess`; `review` gates `POST /v1/execution/approve`.)
 
@@ -50,7 +50,7 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 
 ---
 
-## 3. Key Management — Current State
+## 3. Key Management: Current State
 
 ### 3.1 REMORA_PDP_SIGNING_KEY
 
@@ -59,7 +59,7 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 - **Algorithm:** HMAC-SHA256 over canonical JSON payload (sorted keys, no whitespace).
 - **Implemented in:** `remora/enforcement/token.py`
 - **If absent:** Token is issued UNSIGNED. `EnforcementGate(strict=True)` rejects all unsigned tokens. `EnforcementGate(strict=False)` logs a warning and allows (dev/test only).
-- **Gap (acknowledged):** No KMS/HSM integration. Key is a plaintext env var. Rotation requires a server restart. Formal rotation cadence: not yet defined.
+- **Gap (acknowledged):** No KMS/HSM integration. Key is a plaintext env var. Rotation requires a server restart. Formal rotation cadence, not yet defined.
 
 ### 3.2 REMORA_ENVELOPE_SIGNING_KEY
 
@@ -71,8 +71,8 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 
 ### 3.3 API Bearer Tokens
 
-- **Format (single-tenant):** `REMORA_API_BEARER_TOKEN=<secret>` — grants the role specified by `REMORA_API_DEFAULT_ROLE`.
-- **Format (multi-tenant):** `REMORA_API_TOKENS={"<token>": {"tenant": "<id>", "role": "<role>"}}` — per-token tenant and role binding.
+- **Format (single-tenant):** `REMORA_API_BEARER_TOKEN=<secret>`: grants the role specified by `REMORA_API_DEFAULT_ROLE`.
+- **Format (multi-tenant):** `REMORA_API_TOKENS={"<token>": {"tenant": "<id>", "role": "<role>"}}`: per-token tenant and role binding.
 - **Implemented in:** `servers/api.py:_auth_token_data()`
 - **Revocation:** Remove the token from `REMORA_API_TOKENS` and restart the server. No hot revocation mechanism in v1.
 - **Gap (acknowledged):** No token expiry enforcement in the bearer layer (envelope token has expiry; bearer token does not). Revocation requires server restart.
@@ -115,7 +115,7 @@ All deployments: `cd workers/<name> && npx wrangler deploy`. Requires `CLOUDFLAR
 | API bearer tokens | Per-tenant, on personnel change or suspected compromise | Remove old token from `REMORA_API_TOKENS`, add new token, restart server. Notify affected tenant. |
 | CF API token (wrangler deploy) | Every 180 days or on team change | Regenerate in Cloudflare dashboard. Update CI/CD secrets. |
 
-**Key generation:** `python -c "import secrets; print(secrets.token_hex(32))"` — produces 256-bit hex key.
+**Key generation:** `python -c "import secrets; print(secrets.token_hex(32))"`: produces 256-bit hex key.
 
 ---
 
@@ -134,11 +134,11 @@ All deployments: `cd workers/<name> && npx wrangler deploy`. Requires `CLOUDFLAR
 
 The following are documented as future work; they do not block REM-022 closure because this policy establishes the current control state and rotation procedure:
 
-1. **KMS/HSM integration** — signing keys are plaintext env vars. HSM or cloud KMS (AWS KMS, GCP Cloud KMS, Cloudflare KMS) is the production target.
-2. **RFC 3161 timestamp binding** — envelope signatures lack third-party timestamp authority.
-3. **Bearer token expiry** — no automatic expiry on the bearer token layer (only on the inner PolicyDecisionToken).
-4. **CI/CD-only wrangler deploy** — no Cloudflare Access rule enforcing pipeline-only deploys.
-5. **OIDC approver binding** — reviewer identity in the `AuditBlock` is not verified against an OIDC token.
+1. **KMS/HSM integration**: signing keys are plaintext env vars. HSM or cloud KMS (AWS KMS, GCP Cloud KMS, Cloudflare KMS) is the production target.
+2. **RFC 3161 timestamp binding**: envelope signatures lack third-party timestamp authority.
+3. **Bearer token expiry**: no automatic expiry on the bearer token layer (only on the inner PolicyDecisionToken).
+4. **CI/CD-only wrangler deploy**: no Cloudflare Access rule enforcing pipeline-only deploys.
+5. **OIDC approver binding**: reviewer identity in the `AuditBlock` is not verified against an OIDC token.
 
 These gaps are consistent with TRL 3–4 (SHADOW_ONLY deployment). They must be resolved before production certification.
 

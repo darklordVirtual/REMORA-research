@@ -1,4 +1,4 @@
-# AI Governance Evidence Pack — v1
+# AI Governance Evidence Pack, v1
 
 Public REMORA evidence corpus for AI/ML governance triage.  Covers OWASP LLM
 Top 10, MITRE ATLAS, EU AI Act, and NIST AI RMF.  No proprietary model
@@ -9,7 +9,7 @@ evaluation tools or scanner internals are included.
 AI systems fail in ways that require domain-specific governance decisions:
 
 - A prompt injection attack on a production chatbot is not the same as a
-  software vulnerability — it has no CVE, but it has a confirmed OWASP LLM
+  software vulnerability, it has no CVE, but it has a confirmed OWASP LLM
   attack pattern and an exploitability signal.
 - An EU AI Act prohibited use case (real-time biometric surveillance) requires
   immediate escalation regardless of attack probability.
@@ -55,16 +55,16 @@ field semantics:
 The `AIGovernanceEvidenceProvider.triage()` method applies these rules in
 order:
 
-1. **Prohibited** — `kev=true` (EU AI Act Art.5) → ESCALATE
-2. **Known attack on production** — KNOWN_ATTACK_PATTERN classification
+1. **Prohibited**, `kev=true` (EU AI Act Art.5) → ESCALATE
+2. **Known attack on production**, KNOWN_ATTACK_PATTERN classification
    AND `in_production=True` AND exact identifier match → ESCALATE
-3. **High-priority confirmed risk** — severity high/critical AND risk_priority
+3. **High-priority confirmed risk**, severity high/critical AND risk_priority
    ≥ 0.80 AND exact match → ESCALATE
-4. **Report ready** — confidence ≥ 0.68 AND exact match AND tool_signals ≥ 2
+4. **Report ready**, confidence ≥ 0.68 AND exact match AND tool_signals ≥ 2
    → REPORT_READY
-5. **Likely false positive** — confidence ≤ 0.22 AND contradiction ≥ 0.35
+5. **Likely false positive**, confidence ≤ 0.22 AND contradiction ≥ 0.35
    → LIKELY_FALSE_POSITIVE
-6. **Default** — NEEDS_REVIEW
+6. **Default**, NEEDS_REVIEW
 
 ## Quick Start
 

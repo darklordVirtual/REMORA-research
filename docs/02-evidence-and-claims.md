@@ -3,7 +3,7 @@
 Every headline claim, mapped to its evidence, the artifact on disk, the caveat
 that keeps it honest, and how to reproduce it. This is the page to send a
 skeptical reviewer. It exists because, in governance, a claim without an artifact
-is a liability — see `CLAUDE.md` and `docs/05-claim-hygiene.md`.
+is a liability: see `CLAUDE.md` and `docs/05-claim-hygiene.md`.
 
 **Reading rule:** the caveat is part of the claim. Quote the caveat with the
 number, or do not quote the number.
@@ -27,7 +27,7 @@ below names the PDF, verify against the .md, which supersedes it.
 - **Artifact:** `paper/remora_paper.pdf` §9.2 (Table: tool-call benchmark);
   tool-call result artifacts under `artifacts/` / `results/`.
 - **Caveat:** 0% is a point estimate. The honest statement is a 95% Wilson
-  confidence interval of **[0.00%, 0.55%]** — "at most ~1 in 180," not "never."
+  confidence interval of **[0.00%, 0.55%]**, "at most ~1 in 180," not "never."
   The benchmark is a deterministic simulator (no real shell/network/db
   mutations) with synthetic adversarial patterns.
 - **Important architectural caveat:** the hard-block policy rules alone produce
@@ -48,7 +48,7 @@ below names the PDF, verify against the .md, which supersedes it.
   rate; Wilson CI [70.0%, 95.8%] lies entirely above the 46.3% holdout baseline.
   (In-sample optimum: 88.78% at 18% coverage, +47.6 pp.)
 - **Artifact:** `paper/remora_paper.pdf` §8; `results/selective_n500_holdout_results.json`.
-- **Caveat:** `N_accepted = 25` — the Wilson CI [70.0%, 95.8%] is wide. The
+- **Caveat:** `N_accepted = 25`, the Wilson CI [70.0%, 95.8%] is wide. The
   lower bound of 70.0% is the scientifically honest floor for this claim. It is an
   out-of-sample *directional confirmation* of the operating point, not a tight
   accuracy guarantee. Quote the CI, not just the point estimate.
@@ -57,7 +57,7 @@ below names the PDF, verify against the .md, which supersedes it.
 
 ### 3. The critical-phase trust inversion
 - **Claim:** in the hardest ("critical") cases, the trust score anti-correlates
-  with correctness — low-trust items 71.4% correct (N=21), high-trust 27.3%
+  with correctness, low-trust items 71.4% correct (N=21), high-trust 27.3%
   (N=11).
 - **Evidence:** measured on real-oracle critical items; naive conformal at a 5%
   risk target collapses to 100% observed risk / 0 coverage in this regime. REMORA
@@ -138,5 +138,5 @@ pointer to the implementing file and each number an `artifact:` pointer.
 ## Standing invitation
 If you can break a claim, reproduce a different number, or show a caveat is
 understated, open an issue with the "external-review" template. Negative findings
-are first-class here — see `NEGATIVE_RESULTS.md` and
+are first-class here, see `NEGATIVE_RESULTS.md` and
 → [04-negative-results-detail.md](04-negative-results-detail.md).

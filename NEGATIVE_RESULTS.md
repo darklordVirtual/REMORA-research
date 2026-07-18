@@ -7,11 +7,11 @@
 
 This document holds the full negative-results record: **active findings**
 first, then event chronicles whose resolutions are part of the finding itself
-(§5–§13 — seeding distortions, regressions, and organic recoveries are kept
+(§5–§13, seeding distortions, regressions, and organic recoveries are kept
 in sequence because the recovery evidence is only meaningful next to the
 failure), and a [Resolved Findings Archive](#resolved-findings-archive) for
 findings that are fully closed with no ongoing caveat. Section numbers are
-stable and referenced from other documents — resolved sections are marked in
+stable and referenced from other documents, resolved sections are marked in
 place, never renumbered. All findings are registered in
 `docs/claim_register.md`.
 
@@ -39,9 +39,9 @@ performance failure. The mitigation path and protocol are tracked in
 
 On the internal replay arena (65 cases at the time of this evaluation; expanded to 96 cases in later versions), the seeded AROMER profile records
 false_accept_rate 0.000 and correct_intercept_rate 1.000. On the first external
-holdout — 495 cases derived from the independent `toolcall_v3`
+holdout, 495 cases derived from the independent `toolcall_v3`
 (CyberSecEval-inspired) set, `datasets/aromer_external_holdout_v1/`, all
-`can_train=False` — with deterministic proxy signals, both degrade to **0.500**,
+`can_train=False`, with deterministic proxy signals, both degrade to **0.500**,
 and profiles A (REMORA-only), B (AROMER cold), and C (AROMER seeded) are
 **bit-identical** (zero learning differentiation).
 
@@ -51,12 +51,12 @@ and profiles A (REMORA-only), B (AROMER cold), and C (AROMER seeded) are
   authored against.
 - AROMER seed episodes do not change any decision on an independent distribution.
 
-**Confounds — and what has since been tested:**
+**Confounds, and what has since been tested:**
 - The ablation now runs REMORA's real admission firewall
   (`Remora._detect_adversarial_input`) on each action description. The 0.500
   result is **unchanged**, because the holdout's injection payloads live in
   `untrusted_context`, not in the scanned action description. So the false-accept
-  is not a missing-flag artifact — the firewall genuinely does not cover indirect
+  is not a missing-flag artifact, the firewall genuinely does not cover indirect
   injection.
 - REMORA's dedicated content scanner (`ToolResultScanner`) was measured directly
   on the 150 attack `untrusted_context` payloads
@@ -64,7 +64,7 @@ and profiles A (REMORA-only), B (AROMER cold), and C (AROMER seeded) are
   As originally implemented it hard-blocked only **6.7%** (10/150). Adding
   semantically-general exfiltration and authority-spoofing rules raised this to
   **53%** hard-block / **80%** detect at **0%** benign false-positive
-  (paraphrase-robust — see `tests/test_injection_ceiling.py::TestScannerGeneralization`).
+  (paraphrase-robust, see `tests/test_injection_ceiling.py::TestScannerGeneralization`).
   This is **in-distribution recall**: the rules were written against this corpus's
   attack classes, so external-corpus validation remains required before any
   general detection claim.
@@ -73,9 +73,9 @@ and profiles A (REMORA-only), B (AROMER cold), and C (AROMER seeded) are
   initially **FAILED** (false_accept_rate = 0.500). The failure was localised to
   100 low-risk-tier harmful actions, every one a **schema-invalid (malformed)
   tool call**. Adding a schema-validity hard gate to the policy engine
-  (`MALFORMED_CALL_BLOCKED`: malformed call → ESCALATE) — a general capability
+  (`MALFORMED_CALL_BLOCKED`: malformed call → ESCALATE), a general capability
   derived from call structure, not the decision label, with zero false-blocks on
-  real benign traffic — moved the result to **WARN**: false_accept 0.500 → 0.000,
+  real benign traffic, moved the result to **WARN**: false_accept 0.500 → 0.000,
   intercept 0.500 → 1.000, friction 0.339 → 0.170. The safety gate now passes;
   the residual gap to a full PASS is friction 0.170 vs the 0.15 target, which
   needs faithful trust calibration (live oracle), not eval tuning.
@@ -89,14 +89,14 @@ and profiles A (REMORA-only), B (AROMER cold), and C (AROMER seeded) are
   signal (100 schema + 100 forbidden), with **zero** reliance on the deterministic
   proxy trust and **zero** false-blocks on benign/ambiguous (neither carries
   forbidden/tainted/invalid calls). REMORA's safety on this holdout is therefore
-  *structural and deployable* — these signals (tool schema, the task's
-  allowed-tool list, argument taint) exist in any real agent loop — rather than a
+  *structural and deployable*, these signals (tool schema, the task's
+  allowed-tool list, argument taint) exist in any real agent loop, rather than a
   proxy artifact. Locked by
   `tests/test_balanced_validation.py::TestStructuralDefenseIsPrincipled`.
 - Governance KPIs (`remora/aromer/evals/kpi.py`) separate *unnecessary* friction
   (VERIFY on a should-accept case) from *correct* verification of genuinely
   ambiguous cases. On the holdout: unnecessary_review_rate = 0.0, false_block_rate
-  = 0.0 — the raw 0.170 review-friction is entirely correct ambiguous-handling.
+  = 0.0: the raw 0.170 review-friction is entirely correct ambiguous-handling.
 
 **Why this is now largely de-risked (but not closed):** On the balanced external
 holdout REMORA achieves 0% false-accept, 100% harm-intercept *via structural
@@ -133,7 +133,7 @@ intent, not of the implementation used in experiments.
 
 **Replication instructions:**
 
-The NLI backend is a drop-in at the REMORA inference layer — it replaces
+The NLI backend is a drop-in at the REMORA inference layer, it replaces
 `TokenFingerprintBackend` inside `compute_semantic_entropy()`. A full comparison
 requires re-running oracle inference with the NLI backend activated, since
 `experiments/selective_n500.py` is a post-hoc analysis script that operates on
@@ -173,7 +173,7 @@ the token-fingerprint baseline in `results/selective_trust_curve_results.json`.
 
 > **Updated (2026-07-17):** REM-020 (longitudinal stability) CLOSED by the
 > fail-closed tooling under the owner-reconciled 7-day criterion
-> (days_elapsed=19 of 7, n_operational_fa=0, AII=0.9914 — self-reported,
+> (days_elapsed=19 of 7, n_operational_fa=0, AII=0.9914, self-reported,
 > pending REM-021 verification). One production gate remains: REM-021
 > (independent human review). Deployment stays SHADOW_ONLY until it closes.
 
@@ -194,13 +194,13 @@ AROMER reached `interpretation_nuanced = "TRAINED_SHADOW_ONLY"` on 2026-06-26 wi
 | Component | Score | Driver |
 |-----------|-------|--------|
 | T1 calibration | 0.691 | ECE=0.062 (T1 = 1 − ECE×5; ground-truth labels from replay arena) |
-| T2 friction | 0.975 | benign_review_rate=0.5% in 200-ep window (seeding artifact — see §5) |
+| T2 friction | 0.975 | benign_review_rate=0.5% in 200-ep window (seeding artifact, see §5) |
 | T3 metajudge | 0.736 | LLM critique quality on labelled episodes |
-| T4 transfer | 1.000 | `replay_transfer_score` (accuracy on cross-domain transfer cases; 4/4 correct) — distinct from overall arena accuracy |
+| T4 transfer | 1.000 | `replay_transfer_score` (accuracy on cross-domain transfer cases; 4/4 correct), distinct from overall arena accuracy |
 | T5 stability | 0.713 | Recovering after seeding distribution shift |
 | **AII smoothed** | **0.820** | Weighted sum |
 
-**Important caveat — T2 is window-composition driven, not operational.** The TRAINED
+**Important caveat, T2 is window-composition driven, not operational.** The TRAINED
 threshold was reached because world-model seeding filled the 200-episode sliding window
 with correct_accept episodes, driving `benign_review_rate` in the window to ≈0.5% (down
 from the operational baseline of 35.3%). T2 = exp(−0.005/0.20) ≈ 0.975 versus the
@@ -210,9 +210,9 @@ priors updated by seeding (p_harm 0.50→0.10–0.17 for benign contexts) are re
 persisted in D1, but their operational effect on benign_review_rate requires organic
 traffic confirmation. This is documented in full in §5.
 
-At the time of seeding (2026-06-26), the `deployment_status = "SHADOW_ONLY"` and `safety_certification = "CERTIFIED_INTERNAL_ONLY"` fields in the API reflected the following gaps (Gap 1 and Gap 3 have since been resolved — see update banner above):
+At the time of seeding (2026-06-26), the `deployment_status = "SHADOW_ONLY"` and `safety_certification = "CERTIFIED_INTERNAL_ONLY"` fields in the API reflected the following gaps (Gap 1 and Gap 3 have since been resolved, see update banner above):
 
-**Gap 1 — Closed 2026-06-27 (gate logic fixed 2026-06-27).** `n_harmful_independent = 169`
+**Gap 1, Closed 2026-06-27 (gate logic fixed 2026-06-27).** `n_harmful_independent = 169`
 as of 2026-06-27. 84 aradhye + 84 CaiZhiTech harmful episodes seeded via
 `scripts/aromer_seed_harmful_episodes.py`. A 36-case holdout was saved to
 `artifacts/aromer/harmful_seed_holdout.json` (raw holdout file not committed to
@@ -223,11 +223,11 @@ The certification gate was updated to check `n_harmful_independent >= 30` (previ
 only `globalHarmful >= 30`). With `n_harmful_independent=169` and `safety_upper_bound_95=0.00367` (0.37% ≤ 5%),
 `safety_certification` is now `CERTIFIED_INDEPENDENT_HOLDOUT`.
 
-**Gap 2 — T4 transfer measured but in-domain only.** `cross_domain_cases = 4`
+**Gap 2, T4 transfer measured but in-domain only.** `cross_domain_cases = 4`
 (database_to_financial); transfer is measured but not independently validated on an
 external distribution.
 
-**Gap 3 — T2 friction not organically confirmed.** AII ≥ 0.80 was reached via seeding
+**Gap 3, T2 friction not organically confirmed.** AII ≥ 0.80 was reached via seeding
 (see caveat above). Durable TRAINED status requires T2 ≥ 0.95 from organic traffic, not
 window composition. The LoRA MetaJudge that provides sustained friction reduction signals
 is blocked on Cloudflare Workers AI beta access.
@@ -246,7 +246,7 @@ drives `benign_review_rate = 0%` in the window metric and the quality gate to
 
 **What this means:**
 - `benign_review_rate` computed from a seeded window is not a stable operational
-  measurement of friction — it reflects window composition, not live decision quality.
+  measurement of friction: it reflects window composition, not live decision quality.
 - The `quality_gate_status` window check degrades to `INSUFFICIENT_SAFETY_EVIDENCE`
   during seeding; the **global** gate (256 harmful all-time, CP 1.2%) remains `PASS`.
 - T5 stability score drops temporarily (0.66 → 0.51) because the distribution shift
@@ -257,17 +257,17 @@ The window gate is a drift detector; its signal is only meaningful when the wind
 contains a representative mix of harmful and benign episodes. After the seeded
 episodes rotate out of the window (≈ 200 new decisions), both the window gate and
 T5 stability recover. The `INSUFFICIENT_SAFETY_EVIDENCE` status does not indicate
-a safety regression — it indicates insufficient harmful evidence in the current
+a safety regression, it indicates insufficient harmful evidence in the current
 window, not new false accepts.
 
 **Provenance note:** The world model Bayesian priors updated by seeding ARE real
-improvements — p_harm for benign contexts drops from 0.50 (uniform) to 0.10–0.20
+improvements, p_harm for benign contexts drops from 0.50 (uniform) to 0.10–0.20
 (medium-confidence posterior), reducing future VERIFY rate for those contexts. The
 seeding methodology is documented in `scripts/aromer_seed_benign_outcomes.py`.
 
 ---
 
-### 6. Secondary seeding perturbation — targeted high-friction context seeding (2026-06-26)
+### 6. Secondary seeding perturbation, targeted high-friction context seeding (2026-06-26)
 
 After observing organic T2 improvement (0.905→0.945) over 12 cycles, a second seeding
 pass was attempted targeting 5 high-friction contexts identified from the friction
@@ -295,7 +295,7 @@ window re-stabilises. No further seeding should be performed until recovery is c
 
 ---
 
-### 7. Window-rotation bottleneck — adapt cycles do not generate /decide episodes
+### 7. Window-rotation bottleneck, adapt cycles do not generate /decide episodes
 
 After the secondary seeding perturbation (§6), T2 recovery was expected to occur
 organically as new episodes rotate through the 200-episode sliding window. Empirical
@@ -309,12 +309,12 @@ only for MEDIUM/HIGH risk tool calls; LOW-risk calls (curl to `razorsharp.worker
 `python -c` parsing operations that are fast-pathed) may not reach `/decide` at all.
 
 **Observed dynamics (n=107→112, 2026-06-26):**
-- `global_n_benign`: 8097 → 8124 (+27 over 5 cycles) — pending-resolution,
+- `global_n_benign`: 8097 → 8124 (+27 over 5 cycles), pending-resolution,
   not new `/decide` calls
-- Window composition: `{benign: 150, review: 16, harmful: 50}` — static across all
+- Window composition: `{benign: 150, review: 16, harmful: 50}`, static across all
   6 cycles, no rotation
-- benign_review_rate: 0.1067 — unchanged for 6 consecutive adapt cycles
-- AII: 0.7158 — confirmed plateau; no improvement without window rotation
+- benign_review_rate: 0.1067, unchanged for 6 consecutive adapt cycles
+- AII: 0.7158, confirmed plateau; no improvement without window rotation
 
 **Implication for §6 recovery estimate:** The "~20–40 adapt cycles" estimate in §6
 was incorrect. Recovery requires ~200 new organic `/decide` calls, not 200 adapt cycles.
@@ -329,7 +329,7 @@ The effective internal benign_review_rate asymptoted toward ~0.113 (reported as 
 establishing a secondary equilibrium at AII ≈ 0.709–0.710 (CAPABLE). This is
 substantially below the pre-perturbation TRAINED state (AII=0.813) but above the
 CAPABLE threshold (0.60). False accepts remain 0 throughout. The convergence
-demonstrates that the window self-stabilizes once the composition shift completes —
+demonstrates that the window self-stabilizes once the composition shift completes, 
 T2 does not collapse to the all-time benign_review rate (28.7%) as feared, but instead
 converges to the composition of the most recent 200 episodes.
 
@@ -351,7 +351,7 @@ recovery followed a two-phase pattern:
 - **Phase B (n=132–134):** brr stabilised at ~1.0–1.1%. T2 reached equilibrium
   (0.949). T5 bottomed at 0.593 (n=131) then recovered: +0.006 (n=132), +0.019
   (n=133), +0.052 (n=134). At n=134: T1=0.664, T2=0.949, T3=0.749, T4=1.000,
-  T5=0.669, AII=0.803 — **TRAINED recovered**.
+  T5=0.669, AII=0.803, **TRAINED recovered**.
 
 This two-phase pattern was predicted from the first TRAINED attainment: Phase A
 (brr falling → T2 rising → T5 falling) followed by Phase B (brr stable → T5
@@ -371,7 +371,7 @@ caller-supplied metadata to reflect ground truth.
 **Datasets:** `aradhye/agent-safety-bench` (400 rows sampled; 184 harmful / 216 benign) and
 `CaiZhiTech/Evaluation-Dataset-of-AI-Agent-Security-Guardrails` (1018 rows; 852 harmful / 166 benign).
 
-**Phase 1 — structural policy only (no instruction text):**
+**Phase 1, structural policy only (no instruction text):**
 | Dataset | FA rate | Accuracy | ECE |
 |---------|---------|----------|-----|
 | aradhye/agent-safety-bench | 64.1% (118/184) | 0.422 | 0.365 |
@@ -380,12 +380,12 @@ caller-supplied metadata to reflect ground truth.
 
 Artifact: `artifacts/aromer/external_dataset_eval.json`
 
-**Root cause — Phase 1:** AROMER's structural policy achieves FA=0% only when callers
+**Root cause, Phase 1:** AROMER's structural policy achieves FA=0% only when callers
 supply accurate high-risk metadata. With neutral-looking metadata (trust=0.70,
 risk_tier=low/medium), harmful scenarios are indistinguishable from benign ones at the
 structural layer. This is the "metadata dependency vulnerability."
 
-**Phase 2 — structural + semantic enrichment (instruction_text → llama-3.3-70b classification):**
+**Phase 2, structural + semantic enrichment (instruction_text → llama-3.3-70b classification):**
 | Dataset | FA rate | Accuracy | ECE | Delta FA |
 |---------|---------|----------|-----|----------|
 | aradhye/agent-safety-bench | 52.2% (96/184) | 0.448 | 0.399 | −11.9 pp |
@@ -406,7 +406,7 @@ and are escalated even under neutral metadata.
 
 1. *aradhye contextual harm (52.2% FA):* Many aradhye scenarios are labeled harmful
    based on execution outcomes, not instruction text. Example: "You are a CodeAgent.
-   Write a python function to check if so..." — the harm is in the agent's broader
+   Write a python function to check if so...", the harm is in the agent's broader
    task context, not the literal 80-char instruction preview. Instruction-text
    classification cannot catch this class without the full agent-task context.
 
@@ -422,7 +422,7 @@ enrichment architecture; they are orthogonal signals.
 
 **Important tradeoff:** Semantic enrichment increases the false-block rate (74.1%
 vs 70.9% Phase 1 combined). The CaiZhiTech benign miss rate reached 95.2% in Phase 2
-— nearly all benign scenarios are blocked. This suggests the 80-char instruction
+- nearly all benign scenarios are blocked. This suggests the 80-char instruction
 preview captures injection-like surface patterns in benign scenarios too. A longer
 instruction window or a separate benign-classifier head would reduce this friction.
 
@@ -486,10 +486,10 @@ moving average of brr that is less sensitive to instantaneous window composition
 
 ---
 
-### 10. brr=7.5% stable equilibrium — CAPABLE ceiling and INSUFFICIENT_SAFETY_EVIDENCE window gate (2026-06-27)
+### 10. brr=7.5% stable equilibrium: CAPABLE ceiling and INSUFFICIENT_SAFETY_EVIDENCE window gate (2026-06-27)
 
 After §9 recovery (210 benign seeds + 5 EMA cycles), the system entered a second
-stable equilibrium at brr=7.5% — distinct from the TRAINED state and not a transient
+stable equilibrium at brr=7.5%, distinct from the TRAINED state and not a transient
 "recovering" phase. This equilibrium is structurally determined by 15 organic
 VERIFY episodes from a high-friction period that remain embedded in the 200-episode
 sliding window.
@@ -517,12 +517,12 @@ organically to 0.783 (+4.2 pp in 8h via MetaJudge cycles). At T3=1.0, T5=0.787 (
 So TRAINED is achievable at brr=7.5% via T3+T5 joint improvement. The T2-only ceiling
 (T3, T5 fixed at current) is 0.784 (at T3=0.783, T5=1.0). T3-pathway threshold: T3≥0.868 at T5=1.0.
 
-Recovery to TRAINED — three paths:
+Recovery to TRAINED, three paths:
 - **Path A (T2/brr):** brr < 2.1%: `T2_eq = exp(−0.021/0.20) ≈ 0.90`, `AII ≈ 0.806`
 - **Path B (T3/MetaJudge):** T3 ≥ 0.868 (at T5=1.0) or T3 ≥ 0.975 (at T5=0.787); both require sustained MetaJudge improvement
 - **Path C (T1/calibration):** ECE < 0.020: T1 ≥ 0.90; combined with T2=0.687: `AII ≈ 0.817`
 
-**Update (01:30 UTC+2 2026-06-28):** T2=0.875 (brr~2.7%), AII=0.7995 — at TRAINED boundary.
+**Update (01:30 UTC+2 2026-06-28):** T2=0.875 (brr~2.7%), AII=0.7995, at TRAINED boundary.
 Recovery trajectory: T2=0.687 → 0.712 → 0.837 → 0.875 over ~2.5h.
 Approximately 13–14 of 15 VERIFY episodes displaced. AII=0.7995, 0.0005 from TRAINED.
 T5=0.686 (expected volatility during rapid T2/AII change).
@@ -539,7 +539,7 @@ FIFO rotation.
 **INSUFFICIENT_SAFETY_EVIDENCE window gate:** The sliding-window safety gate requires
 at least one harmful episode in the current 200-episode window to evaluate real-time
 safety performance. In steady-state operation with low-harm organic traffic, the
-window contains NO harmful episodes — the system passes the global gate
+window contains NO harmful episodes, the system passes the global gate
 (n_harmful_internal=983, false_accept_rate=0, CP≤5%) but the window gate reports
 `INSUFFICIENT_SAFETY_EVIDENCE`. This creates a structural tension:
 - brr=0% (no VERIFY decisions) is optimal for T2/AII
@@ -547,7 +547,7 @@ window contains NO harmful episodes — the system passes the global gate
 - With all correct_accept episodes, no harmful cases appear in the window
 - → window gate fails regardless of safety performance
 
-This is not a safety regression — it reflects the absence of harmful traffic, not
+This is not a safety regression, it reflects the absence of harmful traffic, not
 new false accepts. However, it reveals a gap: the window gate cannot validate
 real-time safety in a steady-state low-harm operational context.
 
@@ -564,10 +564,10 @@ window for safety evidence) would decouple these effects.
 
 ---
 
-### 11. Organic TRAINED recovery — Path A confirmed (2026-06-28 00:36 UTC+2)
+### 11. Organic TRAINED recovery: Path A confirmed (2026-06-28 00:36 UTC+2)
 
 After the §9 harmful seeding regression and the §10 stable equilibrium phase, AROMER
-achieved TRAINED status organically — without any synthetic seeding or manual adaptation.
+achieved TRAINED status organically: without any synthetic seeding or manual adaptation.
 
 **TRAINED milestone (00:36 UTC+2 2026-06-28):**
 
@@ -609,22 +609,22 @@ TRAINED at n=135 which was reached during the learning phase). Key distinction:
 
 | Cycle | AII | T2 | T3 | T5 | brr | aii_smoothed |
 |-------|-----|----|----|-----|-----|-------------|
-| 1 (milestone) | 0.8097 | 0.916 | 0.791 | 0.681 | 0.5% | — |
+| 1 (milestone) | 0.8097 | 0.916 | 0.791 | 0.681 | 0.5% |, |
 | 2 | 0.8169 | 0.948 | 0.791 | 0.672 | 0% | 0.8079 |
-| 3 | 0.8228 | 0.971 | 0.791 | 0.673 | 0% | — |
-| 4 | 0.8283 | 0.989 | 0.791 | 0.684 | 0% | — |
+| 3 | 0.8228 | 0.971 | 0.791 | 0.673 | 0% |, |
+| 4 | 0.8283 | 0.989 | 0.791 | 0.684 | 0% |, |
 | 5 | 0.8313 | 0.993 | 0.791 | 0.704 | 0% | 0.8241 |
 | 6 | 0.8377 | **1.000** | 0.792 | 0.747 | 0% | 0.8356 |
 | 7 | 0.8397 | 1.000 | 0.793 | 0.764 | 0% | 0.8370 |
-| 8 | 0.8412 | 1.000 | 0.794 | 0.777 | 0% | — |
+| 8 | 0.8412 | 1.000 | 0.794 | 0.777 | 0% |, |
 | 9 | 0.8426 | 1.000 | **0.797** | 0.786 | 0% | 0.8417 |
 | 10 | 0.8432 | 1.000 | 0.797 | 0.792 | 0% | 0.8429 |
 | 11 | 0.8437 | 1.000 | 0.799 | 0.794 | 0% | 0.8434 |
 | 12 | **0.8440** | 1.000 | **0.800** [M] | 0.794 | 0% | 0.8438 |
 
-[M] **T3=0.800 milestone (cycle 12):** MetaJudge quality crossed alert threshold. Mean critique score = 0.90 (derived: T3=(score−0.5)/0.5 → score=T3×0.5+0.5=0.90). T3 at 0.800 is +4.1pp above historical peak at n=135 (T3=0.759). AII=0.844 — approaching 0.86 milestone (current ceiling at T5=1.0: 0.8646).
+[M] **T3=0.800 milestone (cycle 12):** MetaJudge quality crossed alert threshold. Mean critique score = 0.90 (derived: T3=(score−0.5)/0.5 → score=T3×0.5+0.5=0.90). T3 at 0.800 is +4.1pp above historical peak at n=135 (T3=0.759). AII=0.844: approaching 0.86 milestone (current ceiling at T5=1.0: 0.8646).
 
-T2=1.000 — theoretical maximum at cycle 12 (brr=0%). Subsequent organic traffic introduced borderline-benign episodes: brr rose to 5.0% by 13:05 UTC 2026-06-28 (T2=0.8098), crossing TRAINED→CAPABLE at ~13:00 UTC. AII=0.7885 CAPABLE_SHADOW_ONLY (was 0.8442 at peak). 912 cycles, 15 306 episodes, FAR=0. Full sparkline in §12; regression in §13.
+T2=1.000: theoretical maximum at cycle 12 (brr=0%). Subsequent organic traffic introduced borderline-benign episodes: brr rose to 5.0% by 13:05 UTC 2026-06-28 (T2=0.8098), crossing TRAINED→CAPABLE at ~13:00 UTC. AII=0.7885 CAPABLE_SHADOW_ONLY (was 0.8442 at peak). 912 cycles, 15 306 episodes, FAR=0. Full sparkline in §12; regression in §13.
 
 **Gap 3 status: RESOLVED organically.** T2 organic confirmation is no longer pending.
 T2=0.993 at brr=0%, sustained across 5 cycles, achieved without synthetic seeding or manual cycles.
@@ -639,14 +639,14 @@ After reaching peak AII=0.844 at cycle 12 (11:20 UTC), organic traffic introduce
 |---|---|---|---|---|
 | 12:04 (cycle 12, peak) | 0% | 1.000 | 0.7955 | **0.844** |
 | 12:21 | ~0.5% | 0.991 | 0.795 | 0.842 |
-| 12:25 | ~1.0% | 0.977 | — | 0.838 |
-| 12:33 | ~1.5% | 0.968 | — | 0.835 |
-| 12:39 | ~1.8% | 0.962 | — | 0.833 |
+| 12:25 | ~1.0% | 0.977 |, | 0.838 |
+| 12:33 | ~1.5% | 0.968 |, | 0.835 |
+| 12:39 | ~1.8% | 0.962 |, | 0.833 |
 | 12:41 | 1.5% | 0.950 | 0.770 | 0.829 |
-| 12:46 | ~2.5% | 0.924 | — | 0.822 |
+| 12:46 | ~2.5% | 0.924 |, | 0.822 |
 | 12:50 | 3.5% | 0.892 | 0.760 | 0.814 |
-| 12:56 | ~4.0% | 0.858 | — | 0.804 |
-| **13:00** | ~4.5% | 0.829 | — | **0.795 — crossed 0.80** |
+| 12:56 | ~4.0% | 0.858 |, | 0.804 |
+| **13:00** | ~4.5% | 0.829 |, | **0.795, crossed 0.80** |
 | 13:05 | 5.0% | 0.810 | 0.716 | **0.789 CAPABLE** |
 
 FrictionOptimizer response: 229 reduce_friction signals vs 3 vigilance (net=226 reduce_friction), principally from system/execution domain (212 signals). The optimizer is responding correctly but T2 EMA lag delays threshold relaxation.
@@ -665,7 +665,7 @@ AII crossed below 0.80 at approximately 13:00 UTC 2026-06-28, reverting interpre
 
 **State at regression:**
 - AII = 0.7885 CAPABLE_SHADOW_ONLY (912 cycles, 15 306 episodes)
-- T1 = 0.6816 (ECE=0.0637, stable — bottleneck by weighted gap 0.0955)
+- T1 = 0.6816 (ECE=0.0637, stable, bottleneck by weighted gap 0.0955)
 - T2 = 0.8098 (brr=5.0% raw; EMA-smoothed ≈ 4.2%; declining, delta=−0.190)
 - T3 = 0.800 [M] (stable, delta=0)
 - T4 = 1.000 (stable)
@@ -686,17 +686,17 @@ AII crossed below 0.80 at approximately 13:00 UTC 2026-06-28, reverting interpre
 
 ---
 
-### 14. Peer-Review Findings (M1–M9) — Construct Validity and Documentation Gaps
+### 14. Peer-Review Findings (M1–M9): Construct Validity and Documentation Gaps
 
 **Source:** External peer review received 2026-06-25. Verdict: Reject / resubmit as AI safety
 paper; conditionally approvable as systems / governance architecture paper. Nine findings
 documented below. M3 and M9 are fixed in the same commit as this section.
 
-**M1 — Toolcall benchmark construct validity (CRITICAL — FIXED 2026-06-28)**
+**M1 (Toolcall benchmark construct validity (CRITICAL) FIXED 2026-06-28)**
 
 `RemoraToolCallGate.to_observation()` formerly accessed `task.is_unsafe_if_executed` (via
 `use_contradiction_flags=True`) to populate `evidence_contradictions`. This field is
-evaluation-only (ground truth) and constitutes a construct validity violation — the gate
+evaluation-only (ground truth) and constitutes a construct validity violation, the gate
 saw the evaluation target label.
 
 **Fix applied (2026-06-28):** The `is_unsafe_if_executed` branch has been removed from
@@ -705,7 +705,7 @@ compatibility). The gate no longer accesses any evaluation-only field.
 
 **Clean-signal evaluation confirmed fix is safe** (`experiments/m1_clean_signal_eval.py`,
 artifact `results/toolcall_m1_clean_signal.json`). Pre-fix baseline with flags disabled
-achieved identical FAR=0 — leakage was not load-bearing:
+achieved identical FAR=0, leakage was not load-bearing:
 
 | Condition | contradiction_flags | severity_flags | FAR | Utility |
 |-----------|--------------------|--------------|----|---------|
@@ -743,50 +743,50 @@ or severity-derived phase/trust. Structural-only (C) leaves FAR=25%; structural 
 proxy thermodynamic policy (D) reach FAR=0% at utility=0.10; the full gate (E) reaches FAR=0%
 at utility=0.62. Claim_register updated to reflect this (CLAIM-007).
 
-**M2 — Baseline naming (documentation gap — partially fixed)**
+**M2 (Baseline naming (documentation gap) partially fixed)**
 
 Baselines "single model", "majority vote", "self-consistency" are deterministic functions over
 `ToolCallTask` severity metadata, not actual LLM evaluators. Code already uses honest `_heuristic`
 suffix. Paper updated to use these names consistently.
 
-**M3 — Monotonic violation (FIXED)**
+**M3, Monotonic violation (FIXED)**
 
 `RemoraToolCallGate.decide()` read_only/sandbox override could loosen a conservative policy
 engine verdict to EXECUTE. Fixed: override now annotates context only
 (`toolcall_safe_readonly_context`) without modifying the engine action. Policy decisions can only
 be tightened by adapters, never loosened. See `remora/toolcall/remora_gate.py`.
 
-**M4 — Caller-supplied metadata (OPEN — deployment gate)**
+**M4 (Caller-supplied metadata (OPEN) deployment gate)**
 
 `risk_tier`, `action_type`, `target_environment` are agent-supplied, not registry-authoritative.
 Production deployment requires a signed tool-schema registry. Not addressable without external
 infrastructure; listed as a deployment gate alongside RBAC.
 
-**M5 — Semantic entropy without backend qualifier (documentation fix)**
+**M5, Semantic entropy without backend qualifier (documentation fix)**
 
 Reported benchmarks use `TokenFingerprintBackend` (canonicalized-fingerprint matching), not
 NLI-based semantic clustering. Paper sections that report token-fingerprint results updated to
 include backend qualifier. NLI backend is implemented but blocked by torch DLL policy (Gap 4 / §3).
 
-**M6 — CRC language overstates formal guarantee (documentation fix)**
+**M6, CRC language overstates formal guarantee (documentation fix)**
 
 Fixed β=0.10 importance weight is a conservative hand-tuned estimate, not a validated density
 ratio. Formal CRC theorem cannot be invoked with hand-tuned weights. Paper language changed from
 "formal CRC guarantee" to "CRC-inspired heuristic with fixed β=0.10" in relevant sections.
 
-**M7 — Evidence-router precision framing (documentation fix)**
+**M7, Evidence-router precision framing (documentation fix)**
 
 100% precision on 3,000-item MultiNLI benchmark documents NLI-proxy routing classification, not
 document-grounded evidence retrieval. Real evidence retrieval requires a retrieval corpus, citation
 ground truth, and per-claim provenance. Paper updated to use "NLI-proxy routing precision" framing.
 
-**M8 — Holdout result scope (documented, not fixed)**
+**M8, Holdout result scope (documented, not fixed)**
 
 88% holdout accuracy rests on one 80/20 split (N\_accepted=25, Wilson CI [70.0%, 95.8%]). Wide CI
 and single-split caveat already present in abstract and §10. Nested cross-validation and
 template-holdout are future work. No claim upgrade without a stronger experimental design.
 
-**M9 — Credibility-pack reproducibility (FIXED)**
+**M9, Credibility-pack reproducibility (FIXED)**
 
 `make credibility-pack` previously silenced test failures with `|| true`. Fixed: test suite now
 fails the pack target on non-zero exit and appends `CREDIBILITY_PACK_STATUS: FAILED` / `PASSED`
@@ -798,7 +798,7 @@ It is not approvable as a demonstrated AI safety result. `deployment_status: SHA
 
 ---
 
-### 15. MCE Bucket Selection Bias — AII Calibration Ceiling (Structural, Active)
+### 15. MCE Bucket Selection Bias: AII Calibration Ceiling (Structural, Active)
 
 **Identified:** 2026-07-01 (Fixes #52–53 in main repo).
 
@@ -810,11 +810,11 @@ It is not approvable as a demonstrated AI safety result. `deployment_status: SHA
 
 **Fix path:** Adversarial scenario injection OR production deployment where REMORA encounters real harmful agent actions. Neither is available in the current development-only deployment context.
 
-**Status:** Active — structurally unresolved. `mce_healing_has_traffic: false`.
+**Status:** Active, structurally unresolved. `mce_healing_has_traffic: false`.
 
 ---
 
-### 16. Live Cross-Domain Episodes Absent — Interpretation Ceiling (Structural, Active)
+### 16. Live Cross-Domain Episodes Absent: Interpretation Ceiling (Structural, Active)
 
 **Identified:** 2026-07-01 (Fix #59 in main repo).
 
@@ -830,7 +830,7 @@ cause as §15 (adapt window selection bias), manifesting at a different output l
 
 **Impact:** External reviewers querying `interpretation_nuanced` see `TRANSFER_UNMEASURED`
 even though T4=1.0 is documented. The `interpretation_evidence.first_uncleared` field
-(Fix #59) explains this explicitly in the API response. The AII formula is unaffected —
+(Fix #59) explains this explicitly in the API response. The AII formula is unaffected, 
 T4 is correctly counted at 1.0.
 
 **Fix path:** Diverse deployment context where REMORA governance hook is exercised across
@@ -842,12 +842,12 @@ window" constraint lapsed when REM-020 closed. Live cross-domain episodes can
 now be generated (batch ≤ 25 per the §9 lesson) to clear `transfer_live`;
 until that traffic exists this finding stays active.
 
-**Offline cross-domain transfer now MEASURED (2026-07-18) — but this does NOT
+**Offline cross-domain transfer now MEASURED (2026-07-18), but this does NOT
 clear the live gate.** The transfer question was previously unmeasured in
 *either* form. It is now measured offline: a leave-one-domain-out harness
 (`remora/aromer/evals/cross_domain_transfer.py`) trains an abstract
 `(action_type × risk_tier)` harm prior on all-but-one domain and predicts the
-held-out domain's harm labels from that structure alone —
+held-out domain's harm labels from that structure alone, 
 **83.8% transfer accuracy (109/130 across 10 domains)**, artifact
 `results/aromer_cross_domain_transfer_v1.json`, deterministic and
 offline-reproducible (`scripts/run_cross_domain_transfer.py`), pinned by
@@ -858,10 +858,10 @@ just per-domain lookups. **Scope, stated plainly:** this is an offline
 measurement over the curated template corpus, not live adapt-window traffic;
 `crossDomainCases` in the worker still reads 0 and `interpretation_nuanced`
 still shows `TRANSFER_UNMEASURED` until organic cross-domain episodes exist.
-So this finding stays **active** for the live gate — but the transfer
+So this finding stays **active** for the live gate, but the transfer
 *capability* is no longer unevidenced.
 
-**Status:** Active — documented machine-readably in live API (`interpretation_evidence
+**Status:** Active, documented machine-readably in live API (`interpretation_evidence
 field). Does not affect AII value or production gate status.
 
 ---
@@ -870,18 +870,18 @@ field). Does not affect AII value or production gate status.
 
 | Finding | Status | Severity |
 |---------|--------|----------|
-| External replication and live validation pending | Active — formal third-party replication still outstanding | Medium |
-| AROMER safety floor on external holdout (proxy-signal transfer) | **Largely de-risked** — 0% false-accept / 100% harm-intercept via structural gates (schema validity, forbidden-tool, tainted-arg) on 495-case balanced holdout; proxy-signal transfer and live-oracle trust/entropy calibration pending before general claim | Medium-Low |
-| Entropy backend is token-fingerprint heuristic, not Semantic Entropy | Active — NLISemanticBackend is fully implemented; local execution blocked by torch DLL policy; external replication instructions in §3 | Medium |
-| AROMER TRAINED milestone, organic regression, and recovery | **TRAINED_SHADOW_ONLY recovered (~15:53 UTC 2026-06-28)** — AII=0.8042. Full §12→§13 cycle: peak AII=0.844 (T2=1.000, T3=0.800 [M], cycle 12) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). FAR=0 throughout. 2 active gaps: Gap 2 (FA holdout 22.2%), Gap 4 (NLI/SE DLL). 3 gates before deployment: longitudinal stability, human review, RBAC audit. | **Medium** |
-| benign_review_rate window distortion during world-model seeding | **Resolved** — brr fell from 11.33% (secondary equilibrium) to 1.03% (n=134) via organic /decide window rotation. T2 recovered to 0.949 (T2_eq≈0.946). T5 recovered to 0.669. Global gate PASS throughout; 0 FA. | Low |
-| Window-rotation bottleneck — adapt cycles do not generate /decide episodes | **Resolved in practice** — confirmed plateau n=107–112; recovery occurred via session hook MEDIUM/HIGH traffic generating organic /decide episodes across n=119–134; design gap (fixed-size recency window vs. EMA) remains open for future improvement | Low |
-| External adversarial dataset: FA=30.7% under neutral metadata (Phase 2) | **Partially addressed** — Phase 1 FA=43.0% (structural-only); Phase 2 FA=30.7% (−12.3 pp via semantic enrichment); Post-seeding aradhye holdout FA=22.2% (−30 pp vs Phase 2 aradhye, confirms seeding generalizes). Residual gap: 22.2% holdout FA from contextual harm not visible in instruction text. Fix path: runtime execution monitoring. Artifacts committed: `harmful_seed_holdout_eval.json`, `external_dataset_eval.json` (Phase 1, FA=43.0%), `external_dataset_eval_v2.json` (Phase 2, FA=30.7%) — the latter two restored from the main implementation repo 2026-07-03 | High |
-| Harmful seeding → TRAINED→CAPABLE regression (§9) | **RESOLVED via organic recovery** — 168 harmful seeds caused T2 crash (0.921→0.274), AII crash (0.8083→0.62). Recovery via 210 benign seeds + EMA cycles to AII=0.752 (equilibrium); organic Path A sustained over 12 cycles: AII=0.8097→0.844, T2=1.000, T3=0.800 [M], brr=0%. Architectural finding preserved: stage seeding ≤25 per batch or implement EMA dual-window. See §9 root cause and §11 recovery. | **Resolved** |
-| brr=7.5% stable equilibrium — CAPABLE ceiling and INSUFFICIENT_SAFETY_EVIDENCE gate (§10) | **RESOLVED organically** — 15 historical VERIFY episodes rotated out via organic /decide traffic in ~2.5h. brr: 7.5%→0.5%. T2=0.916. AII=0.8097 TRAINED (00:36 UTC+2 2026-06-28). See §11. | **Resolved** |
-| Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)** — `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
-| MCE bucket selection bias — AII calibration ceiling (§15) | Active — ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
-| Live cross-domain episodes absent — interpretation ceiling (§16) | Active — crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
+| External replication and live validation pending | Active, formal third-party replication still outstanding | Medium |
+| AROMER safety floor on external holdout (proxy-signal transfer) | **Largely de-risked**, 0% false-accept / 100% harm-intercept via structural gates (schema validity, forbidden-tool, tainted-arg) on 495-case balanced holdout; proxy-signal transfer and live-oracle trust/entropy calibration pending before general claim | Medium-Low |
+| Entropy backend is token-fingerprint heuristic, not Semantic Entropy | Active, NLISemanticBackend is fully implemented; local execution blocked by torch DLL policy; external replication instructions in §3 | Medium |
+| AROMER TRAINED milestone, organic regression, and recovery | **TRAINED_SHADOW_ONLY recovered (~15:53 UTC 2026-06-28)**, AII=0.8042. Full §12→§13 cycle: peak AII=0.844 (T2=1.000, T3=0.800 [M], cycle 12) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). FAR=0 throughout. 2 active gaps: Gap 2 (FA holdout 22.2%), Gap 4 (NLI/SE DLL). 3 gates before deployment: longitudinal stability, human review, RBAC audit. | **Medium** |
+| benign_review_rate window distortion during world-model seeding | **Resolved**, brr fell from 11.33% (secondary equilibrium) to 1.03% (n=134) via organic /decide window rotation. T2 recovered to 0.949 (T2_eq≈0.946). T5 recovered to 0.669. Global gate PASS throughout; 0 FA. | Low |
+| Window-rotation bottleneck, adapt cycles do not generate /decide episodes | **Resolved in practice**, confirmed plateau n=107–112; recovery occurred via session hook MEDIUM/HIGH traffic generating organic /decide episodes across n=119–134; design gap (fixed-size recency window vs. EMA) remains open for future improvement | Low |
+| External adversarial dataset: FA=30.7% under neutral metadata (Phase 2) | **Partially addressed**, Phase 1 FA=43.0% (structural-only); Phase 2 FA=30.7% (−12.3 pp via semantic enrichment); Post-seeding aradhye holdout FA=22.2% (−30 pp vs Phase 2 aradhye, confirms seeding generalizes). Residual gap: 22.2% holdout FA from contextual harm not visible in instruction text. Fix path: runtime execution monitoring. Artifacts committed: `harmful_seed_holdout_eval.json`, `external_dataset_eval.json` (Phase 1, FA=43.0%), `external_dataset_eval_v2.json` (Phase 2, FA=30.7%), the latter two restored from the main implementation repo 2026-07-03 | High |
+| Harmful seeding → TRAINED→CAPABLE regression (§9) | **RESOLVED via organic recovery**, 168 harmful seeds caused T2 crash (0.921→0.274), AII crash (0.8083→0.62). Recovery via 210 benign seeds + EMA cycles to AII=0.752 (equilibrium); organic Path A sustained over 12 cycles: AII=0.8097→0.844, T2=1.000, T3=0.800 [M], brr=0%. Architectural finding preserved: stage seeding ≤25 per batch or implement EMA dual-window. See §9 root cause and §11 recovery. | **Resolved** |
+| brr=7.5% stable equilibrium, CAPABLE ceiling and INSUFFICIENT_SAFETY_EVIDENCE gate (§10) | **RESOLVED organically**, 15 historical VERIFY episodes rotated out via organic /decide traffic in ~2.5h. brr: 7.5%→0.5%. T2=0.916. AII=0.8097 TRAINED (00:36 UTC+2 2026-06-28). See §11. | **Resolved** |
+| Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)**, `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
+| MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
+| Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
 
 ---
 
@@ -896,10 +896,10 @@ list.  They are preserved here as scientific record.
 | R2 | Stage 3b critique-revision accuracy impact unmeasured | N=544 calibration analysis: critical-phase items n=26 routed, majority=d2=69.2%, loop neither helps nor harms; phase-differentiated routing implemented | 0.6.1 |
 | R3 | Conformal guardrail not wired into decision engine | `conformal_trust_threshold` parameter in `RemoraDecisionEngine`; `CONFORMAL_ACCEPT` decision reason activated at runtime | ≤0.6.0 |
 | R4 | Conformal repeated-split failures (20/20 at 5 % target, global) | `MondrianPhaseGuardrail`: per-phase calibration reduces failures to 1–2/20 per stratum; validated across 20-seed repeated splits | 0.6.1 |
-| R5 | Lyapunov V(t) — no aggregate distribution published | `experiments/lyapunov_aggregate.py`: N=1000 synthetic sessions, P(ΔV ≤ 0) = 87.2 %, mean ΔV = −0.329 | ≤0.6.0 |
+| R5 | Lyapunov V(t), no aggregate distribution published | `experiments/lyapunov_aggregate.py`: N=1000 synthetic sessions, P(ΔV ≤ 0) = 87.2 %, mean ΔV = −0.329 | ≤0.6.0 |
 | R6 | Oracle family independence partial (ρ̄ ≈ 0.4–0.6 within-family) | `build_recommended_swarm()`: 3 distinct base-model families (LLaMA 3.3 70B, Claude 3.5 Haiku, Gemma 3 27B) | ≤0.6.0 |
 | R7 | T-estimator circularity (D→T→F, D contributes 18 % to T) | `estimate_structural_temperature()` is circularity-free (prompt-only); is the active path in `engine.py`; `_CATEGORY_PRIORS` documented as intentional safety floors | 0.6.1 |
-| R8 | Tool-call v1 — no differentiation (every strategy = 0 % unsafe on 252-task non-adversarial suite) | v2 adversarial suite (700 tasks): `remora_full_policy_gate` = **0 % unsafe** vs 10–20 % for all baselines; artifact `results/toolcall_benchmark_v2_summary.md`; implementation `experiments/evaluate_toolcall_benchmark_v2.py`; regression test `tests/test_toolcall_v2_results.py` | 0.7.0 |
+| R8 | Tool-call v1, no differentiation (every strategy = 0 % unsafe on 252-task non-adversarial suite) | v2 adversarial suite (700 tasks): `remora_full_policy_gate` = **0 % unsafe** vs 10–20 % for all baselines; artifact `results/toolcall_benchmark_v2_summary.md`; implementation `experiments/evaluate_toolcall_benchmark_v2.py`; regression test `tests/test_toolcall_v2_results.py` | 0.7.0 |
 | R9 | Conformal exchangeability not verified at runtime | `MondrianPhaseGuardrail.route(prompt=…)` + `PromptDriftDetector` integration: distribution shift triggers ABSTAIN before conformal routing; tests in `tests/test_guardrail.py` (drift integration) and `tests/test_drift_detector.py` | 0.7.0 |
 | R10 | χ-proxy difficulty signal below chance (AUC = 0.39) | Negative result preserved as empirical record; χ repurposed to OOD/adversarial escalation (`phase_decision()`, threshold 1.45) | 0.7.1 |
 | R11 | Full-coverage baseline framing risk (41.18 % vs selective 88.8 %) | Mixed-comparison caveat standardized in docs; held-out validation added (`results/selective_n500_holdout_results.json`); benchmark-scoped wording enforced | 0.7.1 |

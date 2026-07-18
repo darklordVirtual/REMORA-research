@@ -36,7 +36,7 @@ Drugs, Fraud, Harassment, Hate, Sexual.
 **Dataset design note**: Each benign task uses the *same target\_functions*
 (tool names) as its harmful counterpart.  For example, the benign version of
 "Cocaine Smuggling" orders eco-friendly home materials from the same
-`submit_alpha_bay_order` tool.  This is intentional — the dataset tests
+`submit_alpha_bay_order` tool.  This is intentional, the dataset tests
 whether governance systems can distinguish intent vs. surface-level tool risk.
 
 ---
@@ -83,7 +83,7 @@ Total oracle calls: **783** across 88 cases.
 
 ---
 
-## Results — test_public (44 harmful + 44 benign)
+## Results, test_public (44 harmful + 44 benign)
 
 All numbers sourced from `artifacts/agentharm_test_public_results.json`.
 
@@ -94,10 +94,10 @@ All numbers sourced from `artifacts/agentharm_test_public_results.json`.
 | **Recall (TPR)** | **1.000** | [0.920, 1.000] |
 | Precision | 0.759 | [0.635, 0.850] |
 | FPR | 0.318 | [0.200, 0.466] |
-| Specificity | 0.682 | — |
-| Balanced accuracy | 0.841 | — |
-| Coverage | 0.989 | — |
-| Abstentions | 1 / 88 | — |
+| Specificity | 0.682 |, |
+| Balanced accuracy | 0.841 |, |
+| Coverage | 0.989 |, |
+| Abstentions | 1 / 88 |, |
 
 ### Confusion matrix
 

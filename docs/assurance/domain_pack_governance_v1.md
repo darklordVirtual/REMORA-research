@@ -1,7 +1,7 @@
 # REMORA Domain Pack Governance v1
 
 **Date:** 2026-06-30
-**Status:** DRAFT — not yet reviewed
+**Status:** DRAFT, not yet reviewed
 **Author:** Agent E (RAG / Evidence Provenance Audit)
 **Replaces:** none (first version)
 
@@ -33,7 +33,7 @@ but vary in RAG chunk coverage and evidence backing.
 
 ### 2.1 Database operations (`database`)
 
-- **Policy rules:** `docs/policy_cookbook/database.md` — covers SELECT, UPDATE,
+- **Policy rules:** `docs/policy_cookbook/database.md`, covers SELECT, UPDATE,
   DELETE, DROP, schema migration, and export scenarios across dev, staging, and
   production environments.
 - **RAG chunk coverage:** The seed corpus includes general knowledge chunks in the
@@ -47,7 +47,7 @@ but vary in RAG chunk coverage and evidence backing.
 
 ### 2.2 Cloud operations (`cloud_ops`)
 
-- **Policy rules:** `docs/policy_cookbook/cloud_ops.md` — covers metrics reads,
+- **Policy rules:** `docs/policy_cookbook/cloud_ops.md`, covers metrics reads,
   IAM changes, secret rotation, Terraform plan/apply/destroy.
 - **RAG chunk coverage:** No cloud-operations-specific corpus (cloud provider
   documentation, NIST cloud guidance, CIS benchmarks) is documented as ingested.
@@ -56,7 +56,7 @@ but vary in RAG chunk coverage and evidence backing.
 
 ### 2.3 Cybersecurity triage (`cyber`)
 
-- **Policy rules:** `docs/policy_cookbook/cyber.md` — covers CISA KEV matches,
+- **Policy rules:** `docs/policy_cookbook/cyber.md`, covers CISA KEV matches,
   EPSS-scored CVEs, CWE findings, credential exposure, prompt injection, and
   exploit payload requests.
 - **RAG chunk coverage:** The `specialised` domain in the seed corpus includes
@@ -77,10 +77,10 @@ have no policy cookbook page, no RAG chunks, and no evidence pack:
 
 | Domain | Risk Relevance | Notes |
 |--------|---------------|-------|
-| **Operational Technology (OT)** | Critical — ICS/SCADA systems; errors are potentially irreversible and safety-affecting | No policy rules, no RAG corpus, no evaluation set. IEC 62443 and NERC CIP references absent. |
-| **Energy sector** | High — grid management, energy trading, regulatory compliance | Use-case page `docs/use-cases/04-energy.md` exists but no policy cookbook, no corpus. |
-| **Telecommunications** | High — network configuration, service disruption risk | No representation anywhere in the repository. |
-| **Cybersecurity (structured intelligence)** | High — addressed in cyber.md but incomplete | CISA KEV / EPSS / NVD integration not implemented. |
+| **Operational Technology (OT)** | Critical, ICS/SCADA systems; errors are potentially irreversible and safety-affecting | No policy rules, no RAG corpus, no evaluation set. IEC 62443 and NERC CIP references absent. |
+| **Energy sector** | High, grid management, energy trading, regulatory compliance | Use-case page `docs/use-cases/04-energy.md` exists but no policy cookbook, no corpus. |
+| **Telecommunications** | High, network configuration, service disruption risk | No representation anywhere in the repository. |
+| **Cybersecurity (structured intelligence)** | High, addressed in cyber.md but incomplete | CISA KEV / EPSS / NVD integration not implemented. |
 
 These gaps mean REMORA cannot retrieve domain-specific evidence for OT, energy,
 or telecom agent actions. The RAG oracle will return `answer: null, confidence: 0.0`
@@ -183,7 +183,7 @@ When a source document is revised (e.g., a standard update):
 
 1. Ingest the new version with an incremented `chunk_index` range and updated `source` string.
 2. Tag the old chunks with `retired: true` in D1 (`remora-rag-meta` database) using a
-   targeted UPDATE statement — old chunk vector IDs remain in Vectorize but receive a
+   targeted UPDATE statement, old chunk vector IDs remain in Vectorize but receive a
    `retired=true` metadata flag that excludes them from production queries.
 3. Update the domain pack version number in the policy cookbook page.
 4. Commit a changelog entry to `docs/assurance/domain_pack_changelog.md`.
@@ -277,18 +277,18 @@ Each state transition requires a committed artifact:
 
 Based on the gap analysis in §3 and the risk profile of each domain:
 
-1. **OT / ICS** — highest consequence; create before any OT-adjacent deployment.
+1. **OT / ICS**: highest consequence; create before any OT-adjacent deployment.
    Proposed primary sources: IEC 62443 series, NIST SP 800-82 Rev 3, NERC CIP standards.
 
-2. **Energy sector** — existing use-case page provides a starting point.
+2. **Energy sector**: existing use-case page provides a starting point.
    Proposed primary sources: ENTSO-E operational guidelines, national grid operator
    operating procedures (public portions), IEA energy security frameworks.
 
-3. **Telecommunications** — no existing content; treat as greenfield.
+3. **Telecommunications**: no existing content; treat as greenfield.
    Proposed primary sources: ITU-T recommendations (public), 3GPP security specifications,
    ETSI NFVI security guidance.
 
-4. **Cybersecurity intelligence** (extending `cyber.md`) — partial coverage exists.
+4. **Cybersecurity intelligence** (extending `cyber.md`), partial coverage exists.
    Proposed additions: CISA KEV catalog, EPSS feed (daily snapshot), MITRE ATT&CK
    (public), NVD CVE summaries.
 

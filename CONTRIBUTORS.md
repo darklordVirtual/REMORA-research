@@ -14,12 +14,12 @@ nature of that contribution to make it auditable and defensible.
 
 REMORA is a research-grade governance overlay for autonomous AI actions. The
 author designed, assembled, and validated the system from the ground up. This
-was not a matter of prompting an AI tool and accepting its output — it was a
+was not a matter of prompting an AI tool and accepting its output, it was a
 directed research and engineering project in which the author:
 
-**Originated the research problem.** The question — how do we decide whether
+**Originated the research problem.** The question, how do we decide whether
 an autonomous agent action is safe to execute, and how do we maintain an
-auditable record of that decision — was the author's starting point.
+auditable record of that decision: was the author's starting point.
 
 **Designed the governance architecture.** The five-stage cascade pipeline,
 the thermodynamic phase model (mapping agent uncertainty to physical
@@ -78,7 +78,7 @@ In summary:
 ## Acknowledgement of Human Authorship in the Context of AI Safety Research
 
 REMORA is an AI safety project. It governs AI agent actions. That its own
-development involved AI assistance is not a contradiction — it is consistent
+development involved AI assistance is not a contradiction, it is consistent
 with the project's thesis: AI tools are useful and should be used, but they
 require governance, human oversight, and evidence-backed claims.
 

@@ -23,7 +23,7 @@ When an autonomous AI agent proposes an action, REMORA operates as an **action-g
 
 The thermodynamic layer (Shannon entropy *H*, dissensus *D*, effective temperature *T*, and proxy *F(T) = λD − TH*) is used as a research routing abstraction inside this control flow, not as a claim of literal physics.
 
-**It applies control-theoretic abstractions — a Lyapunov-style stability monitor and a free-energy routing signal — to language-model consensus.**
+**It applies control-theoretic abstractions, a Lyapunov-style stability monitor and a free-energy routing signal, to language-model consensus.**
 
 **REMORA Shadow Mode enables counterfactual governance replay: existing agent action logs can be evaluated without production blocking, producing measurable safety, utility, escalation, policy-compliance, and audit-completeness metrics.**
 
@@ -33,8 +33,8 @@ The thermodynamic layer (Shannon entropy *H*, dissensus *D*, effective temperatu
 
 | Metric | Result | Evidence |
 |--------|--------|---------|
-| Selective accuracy — **held-out** | **88.0 %** at 23.2 % coverage | τ\* locked from training; N\_accepted = 25; Wilson CI [70 %, 96 %]; *p* = 1.45 × 10⁻⁵ |
-| Selective accuracy — in-sample | 88.8 % at 18 % coverage | N = 544; CI [81 %, 94 %]; in-sample optimum |
+| Selective accuracy, **held-out** | **88.0 %** at 23.2 % coverage | τ\* locked from training; N\_accepted = 25; Wilson CI [70 %, 96 %]; *p* = 1.45 × 10⁻⁵ |
+| Selective accuracy, in-sample | 88.8 % at 18 % coverage | N = 544; CI [81 %, 94 %]; in-sample optimum |
 | Ordered-phase accuracy | **86.9 %** | N = 99 ordered-phase items; full benchmark |
 | Unsafe tool-call execution | **0.0 %** | Deterministic synthetic dry-run benchmark (700 adversarial tasks), full policy gate (0/700; Wilson upper 0.55 %); not a production guarantee |
 | Ordered-phase conformal coverage | **99.9 %** | 0/20 seed failures at 15 % risk target |
@@ -162,13 +162,13 @@ Metrics reported per baseline:
 
 | # | Contribution | Validation |
 |---|-------------|-----------|
-| **C1** | **Thermodynamic phase classifier** — Helmholtz free energy *F(T) = λD − TH* and order parameter *η* as LLM uncertainty routing signals; three-phase accuracy profile 86.9 % / 62.5 % / 28.6 % | N = 544 benchmark |
-| **C2** | **Lyapunov session monitor** — *V(t) = H + λD* as a control-theoretic stability indicator for multi-turn agentic sessions; algebraically equal to *F(T = −1)* — the free energy at inverted temperature | 1,000-session simulation |
-| **C3** | **Diversity-weighted multi-oracle consensus** — rolling pairwise ρ-matrix; inverse-correlation diversity weights; formal tie detection with automatic VERIFY routing; thread-safe observer | Functional + unit tests |
-| **C4** | **5-stage adaptive cascade** — FastGate → ConsensusGate → VerifierGate → CritiqueRevision (Constitutional AI loop) → SelfConsistency; short-circuits on first confident stage; hard oracle-budget cap | 700-task adversarial benchmark |
-| **C5** | **Mondrian phase-stratified conformal prediction** — per-phase coverage guarantees conditional on phase stratum; 99.9 % ordered-phase coverage at 15 % risk target (0/20 seed failures) | Repeated-splits study, 20 seeds |
-| **C6** | **Policy engine with hard-block precedence** — ACCEPT/VERIFY/ABSTAIN/ESCALATE; hard blocks evaluated before all thermodynamic paths; OPA/Rego adapter for enterprise policy-as-code; fail-closed on critical risk | 0 % unsafe execution in deterministic dry-run tool-call benchmark (v2) |
-| **C7** | **Held-out selective-prediction validation** — stratified 80/20 split; τ\* locked from training set; 88.0 % holdout accuracy (−0.78 pp vs in-sample) confirms result is not a threshold-selection artefact | `scripts/selective_n500_holdout.py` |
+| **C1** | **Thermodynamic phase classifier**, Helmholtz free energy *F(T) = λD − TH* and order parameter *η* as LLM uncertainty routing signals; three-phase accuracy profile 86.9 % / 62.5 % / 28.6 % | N = 544 benchmark |
+| **C2** | **Lyapunov session monitor**, *V(t) = H + λD* as a control-theoretic stability indicator for multi-turn agentic sessions; algebraically equal to *F(T = −1)*, the free energy at inverted temperature | 1,000-session simulation |
+| **C3** | **Diversity-weighted multi-oracle consensus**, rolling pairwise ρ-matrix; inverse-correlation diversity weights; formal tie detection with automatic VERIFY routing; thread-safe observer | Functional + unit tests |
+| **C4** | **5-stage adaptive cascade**, FastGate → ConsensusGate → VerifierGate → CritiqueRevision (Constitutional AI loop) → SelfConsistency; short-circuits on first confident stage; hard oracle-budget cap | 700-task adversarial benchmark |
+| **C5** | **Mondrian phase-stratified conformal prediction**, per-phase coverage guarantees conditional on phase stratum; 99.9 % ordered-phase coverage at 15 % risk target (0/20 seed failures) | Repeated-splits study, 20 seeds |
+| **C6** | **Policy engine with hard-block precedence**, ACCEPT/VERIFY/ABSTAIN/ESCALATE; hard blocks evaluated before all thermodynamic paths; OPA/Rego adapter for enterprise policy-as-code; fail-closed on critical risk | 0 % unsafe execution in deterministic dry-run tool-call benchmark (v2) |
+| **C7** | **Held-out selective-prediction validation**, stratified 80/20 split; τ\* locked from training set; 88.0 % holdout accuracy (−0.78 pp vs in-sample) confirms result is not a threshold-selection artefact | `scripts/selective_n500_holdout.py` |
 
 [→ Full contribution statements with scope and limitations](CONTRIBUTIONS.md) · [→ Claim ledger with evidence mapping](paper/claim_ledger.md)
 
@@ -176,7 +176,7 @@ Metrics reported per baseline:
 
 ## How It Works
 
-Three independent LLM oracles answer the same question simultaneously. Their vote distribution determines the routing phase — each phase has a distinct, empirically measured accuracy profile:
+Three independent LLM oracles answer the same question simultaneously. Their vote distribution determines the routing phase, each phase has a distinct, empirically measured accuracy profile:
 
 ```mermaid
 graph LR
@@ -192,7 +192,7 @@ graph LR
 - **Critical phase** (*T* ≈ *T*ᶜ): partial consensus → evidence router invoked; human verification
 - **Disordered phase** (high *T*): oracle split → abstain or escalate to human
 
-Hard policy blocks (adversarial detection, critical risk tier, counterfactual failure) are checked **before** any thermodynamic routing — a high-confidence oracle swarm cannot bypass a hard safety constraint.
+Hard policy blocks (adversarial detection, critical risk tier, counterfactual failure) are checked **before** any thermodynamic routing: a high-confidence oracle swarm cannot bypass a hard safety constraint.
 
 The cascade short-circuits on the first high-confidence stage: **one oracle call** for easy questions, **up to sixteen** for contested ones. *V(t)* tracks whether the session is converging or drifting across all tool calls.
 
@@ -219,17 +219,17 @@ uvicorn servers.api:app --host 0.0.0.0 --port 8000
 
 Endpoints:
 
-- `POST /v1/assess` — run governance decision and return DecisionEnvelope payload
-- `GET /v1/policy/version` — return active policy version plus policy/profile/schema hashes
-- `POST /v1/evidence` — attach tenant-scoped evidence to an existing request id
-- `POST /v1/rerun` — replay a stored request with persisted evidence context
-- `GET /v1/envelope/{request_id}` — fetch stored envelope for the tenant
-- `GET /v1/audit/{request_id}` — fetch stored audit metadata for the tenant
-- `POST /v1/review` — submit human review decision (`approved` / `rejected` / `needs_more_evidence`)
-- `POST /v1/follow-up` — submit follow-up action (`evidence_request`, `override_request`, `manual_escalation`, `incident`)
-- `GET /v1/metrics` — JSON operational metrics
-- `GET /metrics` — Prometheus text exposition format
-- `GET /v1/health` — liveness probe
+- `POST /v1/assess`, run governance decision and return DecisionEnvelope payload
+- `GET /v1/policy/version`, return active policy version plus policy/profile/schema hashes
+- `POST /v1/evidence`, attach tenant-scoped evidence to an existing request id
+- `POST /v1/rerun`, replay a stored request with persisted evidence context
+- `GET /v1/envelope/{request_id}`, fetch stored envelope for the tenant
+- `GET /v1/audit/{request_id}`, fetch stored audit metadata for the tenant
+- `POST /v1/review`, submit human review decision (`approved` / `rejected` / `needs_more_evidence`)
+- `POST /v1/follow-up`, submit follow-up action (`evidence_request`, `override_request`, `manual_escalation`, `incident`)
+- `GET /v1/metrics`, JSON operational metrics
+- `GET /metrics`, Prometheus text exposition format
+- `GET /v1/health`, liveness probe
 
 Tenant scope and persistence:
 
@@ -300,18 +300,18 @@ engine = RemoraDecisionEngine(conformal_trust_threshold=report.threshold)
 
 ## Core Architectural Patterns
 
-### 1 — Entropy-weighted consensus, not a vote count
+### 1: Entropy-weighted consensus, not a vote count
 
-Raw majority voting is brittle at the boundary (2-1 vs 3-0 splits). REMORA characterizes oracle agreement using entropy *H*, dissensus *D*, and an effective temperature *T* — the same mathematical structure as Helmholtz free energy in statistical mechanics:
+Raw majority voting is brittle at the boundary (2-1 vs 3-0 splits). REMORA characterizes oracle agreement using entropy *H*, dissensus *D*, and an effective temperature *T*, the same mathematical structure as Helmholtz free energy in statistical mechanics:
 
 ```
 F(T) = λ·D − T·H
 ```
 
-where `D` is oracle dissensus, `H` is Shannon entropy of the vote distribution, and `T` is an effective *question temperature* estimated from observable signals. The trust score integrates the thermodynamic phase, a candidate hallucination-bound proxy, and a fragility penalty — a continuous research signal instead of a discrete vote.
+where `D` is oracle dissensus, `H` is Shannon entropy of the vote distribution, and `T` is an effective *question temperature* estimated from observable signals. The trust score integrates the thermodynamic phase, a candidate hallucination-bound proxy, and a fragility penalty: a continuous research signal instead of a discrete vote.
 
 <details>
-<summary><strong>The physics and math — free energy, entropy, phase transitions</strong></summary>
+<summary><strong>The physics and math, free energy, entropy, phase transitions</strong></summary>
 
 #### Why thermodynamic physics?
 
@@ -338,29 +338,29 @@ The analogy to AI oracle voting is direct: each oracle's answer is a "spin state
 
 The question temperature T is estimated from a weighted combination of observable signals.
 
-> **Note (legacy formula — see [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md)):** The formula below is from an earlier estimation path that included dissensus *D* with an 18 % weight, creating a partial circular dependency (D ↔ T). The runtime engine uses `estimate_structural_temperature()` instead, which is computed purely from prompt-compression ratio and domain prior — no oracle responses involved. The formula is retained here for documentation purposes only.
+> **Note (legacy formula: see [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md)):** The formula below is from an earlier estimation path that included dissensus *D* with an 18 % weight, creating a partial circular dependency (D ↔ T). The runtime engine uses `estimate_structural_temperature()` instead, which is computed purely from prompt-compression ratio and domain prior, no oracle responses involved. The formula is retained here for documentation purposes only.
 
 ```
 [legacy] T = 0.30·H + 0.20·(4σ²) + 0.10·log₂(k_eff) + 0.22·Δconf + 0.18·D + 0.08·ρ̄ + 0.02
 ```
 
-- **H** — entropy of the vote distribution
-- **σ²** — variance of individual oracle confidence scores
-- **k_eff = exp(H)** — effective number of competing answers
-- **Δconf = 1 − mean_conf** — confidence deficit
-- **D** — dissensus
-- **ρ̄** — mean inter-oracle correlation (correlation pressure prior)
+- **H**, entropy of the vote distribution
+- **σ²**, variance of individual oracle confidence scores
+- **k_eff = exp(H)**, effective number of competing answers
+- **Δconf = 1 − mean_conf**, confidence deficit
+- **D**, dissensus
+- **ρ̄**, mean inter-oracle correlation (correlation pressure prior)
 
 #### Free energy
 
 `F(T) = λ·D − T·H` is the direct analog of Helmholtz free energy `F = U − TS`:
 
-- λ·D plays the role of **internal energy U** — the cost of disagreement
-- H plays the role of **entropy S** — disorder in the vote distribution
+- λ·D plays the role of **internal energy U**, the cost of disagreement
+- H plays the role of **entropy S**, disorder in the vote distribution
 - T is the **effective temperature**
 
-At low T (ordered phase): F is dominated by λ·D — the system strongly prefers consensus.
-At high T (disordered phase): the entropy term T·H dominates — the system tolerates disorder.
+At low T (ordered phase): F is dominated by λ·D: the system strongly prefers consensus.
+At high T (disordered phase): the entropy term T·H dominates: the system tolerates disorder.
 The free energy landscape reveals the **critical temperature** T_c as the inflection point.
 
 #### Phase classification
@@ -379,15 +379,15 @@ Default calibration: δ = 0.15, η_min = 0.5.
 trust = phase_weight × (1 − P_false) × (1 − fragility_penalty)
 ```
 
-**Hallucination-bound proxy** — implemented candidate upper-bound heuristic for false-consensus probability in a correlated oracle pool:
+**Hallucination-bound proxy**, implemented candidate upper-bound heuristic for false-consensus probability in a correlated oracle pool:
 
 ```
 P_false ≤ [ ε² + ρ̄·ε·(1−ε) ]^(n/2)
 ```
 
-where ε is the individual oracle error rate, ρ̄ is inter-oracle correlation (used as a calibration prior of 0.15 in the default configuration — not empirically measured for the current model versions; see [Resolved Archive R6](NEGATIVE_RESULTS.md#resolved-findings-archive) in NEGATIVE_RESULTS.md), and n is the number of oracles. This proxy is designed to be more conservative than independent-oracle formulas because it accounts for correlated failures. It is an implemented research heuristic, tested empirically; it is not currently validated as a universal theorem or empirical law.
+where ε is the individual oracle error rate, ρ̄ is inter-oracle correlation (used as a calibration prior of 0.15 in the default configuration, not empirically measured for the current model versions; see [Resolved Archive R6](NEGATIVE_RESULTS.md#resolved-findings-archive) in NEGATIVE_RESULTS.md), and n is the number of oracles. This proxy is designed to be more conservative than independent-oracle formulas because it accounts for correlated failures. It is an implemented research heuristic, tested empirically; it is not currently validated as a universal theorem or empirical law.
 
-#### Critical exponent — analogy note
+#### Critical exponent, analogy note
 
 **Illustrative analogy only.** The 2D Potts model on a spatial lattice at thermal equilibrium yields susceptibility exponents γ = 7/4, 13/9, 7/6 for k = 2, 3, 4 answer states. These values are presented as background context for the phase-transition analogy. LLM oracle votes do not live on a 2D spatial lattice, have no spatial topology, and are not at thermodynamic equilibrium. The Potts scaling exponents are **not** claimed to govern LLM consensus behaviour. The thermodynamic framing is a design metaphor grounded in shared mathematical structure (entropy, dissensus, free energy); it is not a claim that LLM voting literally obeys Potts-model physics.
 
@@ -395,12 +395,12 @@ where ε is the individual oracle error rate, ρ̄ is inter-oracle correlation (
 
 ---
 
-### 2 — Abstention as a first-class outcome
+### 2: Abstention as a first-class outcome
 
 Systems that cannot say *I don't know* are not safe for autonomous operation. REMORA treats `ABSTAIN` and `ESCALATE` as valid terminal states. When three independent oracles disagree severely (trust < 0.12), forcing an answer is worse than deferring to a human.
 
 <details>
-<summary><strong>Why the 0.12 threshold is evidence-informed — not arbitrary</strong></summary>
+<summary><strong>Why the 0.12 threshold is evidence-informed, not arbitrary</strong></summary>
 
 The threshold trust < 0.12 is an evidence-informed research heuristic derived from the current hallucination-bound proxy and benchmark calibration. It should not be cited as a proven universal threshold.
 
@@ -416,17 +416,17 @@ At this point, the expected accuracy of a forced majority-vote answer falls belo
 trust ≈ 0.1 × (1 − 0.12) × (1 − fragility) ≈ 0.08–0.12
 ```
 
-**Internal benchmark observation:** questions with trust < 0.12 achieved **28.6% accuracy** on the N=500 benchmark — well below even a random-guess baseline of 50% for binary questions. Under this benchmark, abstaining and escalating is better than forcing an answer in this regime.
+**Internal benchmark observation:** questions with trust < 0.12 achieved **28.6% accuracy** on the N=500 benchmark: well below even a random-guess baseline of 50% for binary questions. Under this benchmark, abstaining and escalating is better than forcing an answer in this regime.
 
-The `ABSTAIN` verdict at ConsensusGate (Stage 2) is final and does not propagate to further stages — there is no recovery path once three independent oracles are this severely split.
+The `ABSTAIN` verdict at ConsensusGate (Stage 2) is final and does not propagate to further stages: there is no recovery path once three independent oracles are this severely split.
 
 </details>
 
 ---
 
-### 3 — Six-stage adaptive cascade
+### 3: Six-stage adaptive cascade
 
-The cascade short-circuits the moment a stage reaches high-confidence — **one oracle call for an easy question**, up to sixteen for a contested one. Stage 3b implements the **Constitutional AI critique-revision loop**: the judge's critique is fed back to a revision oracle that produces an improved answer, re-judged independently. Stage 6 (MoA Synth) aggregates the full oracle pool into a single synthesised answer when no earlier stage produces a confident accept.
+The cascade short-circuits the moment a stage reaches high-confidence, **one oracle call for an easy question**, up to sixteen for a contested one. Stage 3b implements the **Constitutional AI critique-revision loop**: the judge's critique is fed back to a revision oracle that produces an improved answer, re-judged independently. Stage 6 (MoA Synth) aggregates the full oracle pool into a single synthesised answer when no earlier stage produces a confident accept.
 
 <details>
 <summary><strong>Stage-by-stage breakdown, cost model, and budget control</strong></summary>
@@ -437,16 +437,16 @@ The cascade is ordered by cost, not by capability:
 
 | Stage | Oracle calls | Short-circuit condition | Approx. cost |
 |-------|:-----------:|------------------------|:------------:|
-| 1 — FastGate | 1 | Verbalized confidence ≥ 0.90 | ~$0.001 |
-| 2 — ConsensusGate | 3 | Trust ≥ 0.65 (ACCEPT) or < 0.12 (ABSTAIN) | ~$0.003 |
-| 3 — VerifierGate | 1 | Judge: SUPPORTED ≥ 0.70 or REFUTED | ~$0.001 |
-| 3b — CritiqueRevision | 2–4 | Revised answer supported or refuted | ~$0.004 |
-| 4 — SelfConsistency | 7 | Always terminal | ~$0.007 |
-| 6 — MoA Synth | 1 | Synthesis oracle aggregates pool → single answer | ~$0.001 |
+| 1, FastGate | 1 | Verbalized confidence ≥ 0.90 | ~$0.001 |
+| 2, ConsensusGate | 3 | Trust ≥ 0.65 (ACCEPT) or < 0.12 (ABSTAIN) | ~$0.003 |
+| 3, VerifierGate | 1 | Judge: SUPPORTED ≥ 0.70 or REFUTED | ~$0.001 |
+| 3b, CritiqueRevision | 2–4 | Revised answer supported or refuted | ~$0.004 |
+| 4, SelfConsistency | 7 | Always terminal | ~$0.007 |
+| 6, MoA Synth | 1 | Synthesis oracle aggregates pool → single answer | ~$0.001 |
 
-**Maximum: 16 oracle calls, ~$0.016 per question.** A hard `budget_oracle_calls` cap halts at any stage and returns `VERIFY` — preserving the best answer seen so far.
+**Maximum: 16 oracle calls, ~$0.016 per question.** A hard `budget_oracle_calls` cap halts at any stage and returns `VERIFY`: preserving the best answer seen so far.
 
-#### Stage 3b — Constitutional AI pattern
+#### Stage 3b: Constitutional AI pattern
 
 1. LLM judge produces a **structured critique** (not a binary signal) of the consensus answer
 2. Revision oracle receives: original question + challenged answer + specific critique text
@@ -470,21 +470,21 @@ where σ is the sigmoid function and (a, b) are fit by maximum likelihood on a l
 
 ---
 
-### 4 — Lyapunov stability indicator for agent sessions
+### 4: Lyapunov stability indicator for agent sessions
 
-For long-running agents, REMORA tracks `V(t) = H(t) + λ·D(t)` across every tool call. A **non-increasing V trajectory is a Lyapunov-style stability indicator** that oracle disagreement and entropy are not growing across the session. It monitors a specific, well-defined signal — not a general guarantee of agent correctness.
+For long-running agents, REMORA tracks `V(t) = H(t) + λ·D(t)` across every tool call. A **non-increasing V trajectory is a Lyapunov-style stability indicator** that oracle disagreement and entropy are not growing across the session. It monitors a specific, well-defined signal, not a general guarantee of agent correctness.
 
 <details>
 <summary><strong>The Lyapunov stability theorem and how it applies</strong></summary>
 
-#### Lyapunov stability — the theorem
+#### Lyapunov stability, the theorem
 
 A function V: ℝⁿ → ℝ certifies the stability of a dynamical system if:
 1. **V(x) ≥ 0** for all x (positive semi-definite)
 2. **V(0) = 0** (zero at equilibrium)
 3. **ΔV(t) = V(t) − V(t−1) ≤ 0** along trajectories (non-increasing)
 
-If these hold, the system cannot drift away from the equilibrium — it is Lyapunov-stable.
+If these hold, the system cannot drift away from the equilibrium, it is Lyapunov-stable.
 
 #### REMORA's session Lyapunov function
 
@@ -496,7 +496,7 @@ where H(t) is the Shannon entropy of the oracle vote distribution at tool call t
 
 **Properties:**
 - V(t) ≥ 0 always (entropy and dissensus are non-negative)
-- V(t) = 0 iff H = 0 and D = 0 — unanimous, entropy-free consensus
+- V(t) = 0 iff H = 0 and D = 0, unanimous, entropy-free consensus
 - ΔV ≤ 0 across a session means oracle uncertainty is not growing
 
 A non-increasing sequence V(0) ≥ V(1) ≥ … ≥ V(n) is a **formal monitor** confirming the Claude Code session has not drifted toward increasing oracle disagreement or entropy. It certifies this specific trajectory property, not general session safety.
@@ -509,7 +509,7 @@ V is algebraically identical to the free energy evaluated at the **inverted temp
 V = H + λ·D = λ·D − (−1)·H = F(T = −1)
 ```
 
-In the free energy F(T) = λ·D − T·H, entropy enters with sign −T: at positive temperature, entropy is "forgiven" (disorder is thermally tolerated). At T = −1, entropy is **penalised** — the system strictly prefers ordered states. This is the property required for a Lyapunov function: any increase in entropy counts against stability.
+In the free energy F(T) = λ·D − T·H, entropy enters with sign −T: at positive temperature, entropy is "forgiven" (disorder is thermally tolerated). At T = −1, entropy is **penalised**: the system strictly prefers ordered states. This is the property required for a Lyapunov function: any increase in entropy counts against stability.
 
 The two objects play different roles:
 - **F(T)** is the analysis tool: its landscape reveals the phase structure as T varies
@@ -532,14 +532,14 @@ The two objects play different roles:
 
 ---
 
-### 5 — Runtime safety substrate for Claude Code
+### 5: Runtime safety substrate for Claude Code
 
 The PreToolUse hook intercepts every Claude Code tool call before it executes. Three independent checks run sequentially: local risk classification and intent-drift detection complete in milliseconds; Phase 3 REMORA consensus adds a network round-trip. Destructive patterns (`rm -rf`, `--force`, `drop table`) block locally before any network call.
 
 <details>
 <summary><strong>Risk classification, intent drift formula, and confidence calibration</strong></summary>
 
-#### Phase 1 — Risk classification (deterministic, local)
+#### Phase 1: Risk classification (deterministic, local)
 
 Pattern matching against regex tables in `remora/agent_hook/risk_classifier.py`. Four tiers:
 
@@ -550,7 +550,7 @@ Pattern matching against regex tables in `remora/agent_hook/risk_classifier.py`.
 | MEDIUM | `git push`, `wrangler deploy`, source file edits | Oracle verify + fail-open on error |
 | LOW | `echo`, `ls`, `grep`, `cat`, read-only operations | Allow immediately, record V(t) |
 
-#### Phase 2 — Intent drift detection
+#### Phase 2: Intent drift detection
 
 Measures lexical distance between the anchored session goal and the proposed action:
 
@@ -572,7 +572,7 @@ Thresholds: warn at drift ≥ 0.75; block at drift ≥ 0.92.
 
 Set your session anchor with `python scripts/remora_anchor.py "your goal here"`.
 
-#### Phase 3 — Oracle consensus
+#### Phase 3: Oracle consensus
 
 The 5-stage REMORA cascade is invoked, constructing the claim *"this tool call is consistent with the session goal and poses no undue risk."* The oracle response determines whether the action is allowed or blocked.
 
@@ -602,27 +602,27 @@ Selecting only answers with non-conformity score ≥ τ guarantees ≤ α fracti
 
 All metrics are reproducible from committed artifacts and tests. See [Reproducing Results](#reproducing-results).
 
-### Selective acceptance — N=302 and N=500
+### Selective acceptance: N=302 and N=500
 
 Selective routing accepts only the top-N% most agreed-upon answers. The accuracy gain over full-coverage majority voting is large and statistically significant.
 
-The label `N500` is historical — the benchmark artifact currently contains **544 questions**.
+The label `N500` is historical: the benchmark artifact currently contains **544 questions**.
 
 ![Selective trust accuracy by coverage threshold](docs/figures/selective_trust_comparison.png)
 
 **N=302:** Single model **57.0%** · majority vote **82.8%** · REMORA selective (top 25%) **94.7%** (+11.9 pp).
 Significance: one-sided binomial p = 0.0018; 2,000-iteration bootstrap confirms positive lift.
-Benchmark composition: TruthfulQA (85) · BoolQ (135) · REMORA-curated (75, author-assembled — independent curation not claimed) · adversarial-curated (7) = 302 items. The 7-item adversarial subset (2.3% of N=302) is too small for adversarial robustness conclusions; it establishes category coverage only.
+Benchmark composition: TruthfulQA (85) · BoolQ (135) · REMORA-curated (75, author-assembled: independent curation not claimed) · adversarial-curated (7) = 302 items. The 7-item adversarial subset (2.3% of N=302) is too small for adversarial robustness conclusions; it establishes category coverage only.
 
 **N=500 (544 questions):** Full-coverage majority baseline **41.18%** → top 18% accepted at **88.8%**.
 
-> **Mixed-comparison note:** The +47.6 pp figure compares an 18%-coverage selective result against a full-coverage baseline — not equivalent coverage levels. This is explicitly a cross-comparison and is preserved in [NEGATIVE_RESULTS Resolved Archive R11](NEGATIVE_RESULTS.md#resolved-findings-archive).
+> **Mixed-comparison note:** The +47.6 pp figure compares an 18%-coverage selective result against a full-coverage baseline, not equivalent coverage levels. This is explicitly a cross-comparison and is preserved in [NEGATIVE_RESULTS Resolved Archive R11](NEGATIVE_RESULTS.md#resolved-findings-archive).
 
 > **Held-out validation (resolved):** τ\* = 0.203 was selected on the 80% training split (436 items, seed = 42, stratified by source) and locked before evaluating on the 108-item holdout. Result: **88.0% accuracy at 23.2% holdout coverage** (22/25 correct, all ordered-phase; Wilson CI [70.0%, 95.8%], *p* = 1.45 × 10⁻⁵). The held-out figure is within 0.78 pp of the in-sample result, confirming the threshold is not a selection artefact. Artifact: [`results/selective_n500_holdout_results.json`](results/selective_n500_holdout_results.json) · Script: [`scripts/selective_n500_holdout.py`](scripts/selective_n500_holdout.py).
 
 **Thermodynamic phase accuracy on N=500:**
 
-![Phase accuracy — ordered vs critical vs disordered](docs/figures/phase_accuracy.png)
+![Phase accuracy, ordered vs critical vs disordered](docs/figures/phase_accuracy.png)
 
 Phase classification directly predicts reliability: ordered → **86.9%** accurate; disordered → **28.6%** accurate.
 
@@ -671,20 +671,20 @@ Split-conformal risk control on the N=302 benchmark (181-item calibration set, 1
 
 **Artifact:** `results/conformal_guardrail_holdout.json`
 
-### Tool-call safety — v1 (252 tasks) and v2 (700 tasks)
+### Tool-call safety, v1 (252 tasks) and v2 (700 tasks)
 
-**v1 (252 tasks)** — a baseline dry-run harness covering standard safe/unsafe categories. All strategies reach zero unsafe execution. v1 does not demonstrate unsafe-execution reduction because all baselines are already at zero — that differentiation requires the adversarial v2 suite.
+**v1 (252 tasks)**: a baseline dry-run harness covering standard safe/unsafe categories. All strategies reach zero unsafe execution. v1 does not demonstrate unsafe-execution reduction because all baselines are already at zero, that differentiation requires the adversarial v2 suite.
 
 ![Tool-call v1](docs/figures/toolcall_v1_comparison.png)
 
 `remora_temperature_gate_heuristic` achieves highest v1 accuracy (mean utility 0.6762, accuracy 0.9524).
 `remora_full_policy_gate` achieves mean utility 0.5690, accuracy 0.7619 on v1.
 
-**v2 (700 tasks)** — adversarial suite with: safe-looking dangerous prompts, conflicting intent, regulated-domain ambiguity, prompt-injection payloads, and explicit destructive requests. All decisions are deterministic heuristic replay — no live LLM calls required.
+**v2 (700 tasks)**: adversarial suite with: safe-looking dangerous prompts, conflicting intent, regulated-domain ambiguity, prompt-injection payloads, and explicit destructive requests. All decisions are deterministic heuristic replay, no live LLM calls required.
 
 ![Tool-call v2 benchmark](docs/figures/toolcall_v2_combined.png)
 
-`remora_full_policy_gate` reduces unsafe execution to **0.0000** in this controlled deterministic simulator — the only tested strategy to reach zero across all 700 synthetic tasks — while achieving accuracy 0.9000 and mean utility 0.6200. This result is benchmark-scoped and not a production safety guarantee.
+`remora_full_policy_gate` reduces unsafe execution to **0.0000** in this controlled deterministic simulator, the only tested strategy to reach zero across all 700 synthetic tasks, while achieving accuracy 0.9000 and mean utility 0.6200. This result is benchmark-scoped and not a production safety guarantee.
 
 | Strategy | Unsafe rate | Mean utility | Accuracy |
 |----------|------------:|-------------:|---------:|
@@ -785,7 +785,7 @@ flowchart LR
 
 ---
 
-## Agent Hook — Runtime Safety for Claude Code
+## Agent Hook: Runtime Safety for Claude Code
 
 ```mermaid
 flowchart TD
@@ -824,7 +824,7 @@ flowchart TD
 }
 ```
 
-> **Windows:** use forward slashes — `python C:/Users/YourName/REMORA/scripts/remora_hook.py`
+> **Windows:** use forward slashes, `python C:/Users/YourName/REMORA/scripts/remora_hook.py`
 
 **Intent anchor:**
 
@@ -869,9 +869,9 @@ demo value.
 
 Full reference: [`docs/mcp-integration.md`](docs/mcp-integration.md)
 
-### RAG oracle — curated domain knowledge improves coverage
+### RAG oracle, curated domain knowledge improves coverage
 
-`remora_rag_query` and `remora_rag_search` draw from a corpus you control. Out of the box the corpus contains 93 general-knowledge chunks. **The more domain-specific the corpus, the higher REMORA's precision coverage in that domain** — the evidence router routes critical-phase items to ESCALATE only when no grounded evidence is found; a curated corpus reduces those escalations.
+`remora_rag_query` and `remora_rag_search` draw from a corpus you control. Out of the box the corpus contains 93 general-knowledge chunks. **The more domain-specific the corpus, the higher REMORA's precision coverage in that domain**: the evidence router routes critical-phase items to ESCALATE only when no grounded evidence is found; a curated corpus reduces those escalations.
 
 Ingest domain documents with:
 
@@ -904,7 +904,7 @@ Full sector documentation: [`enterprise/sector-use-cases.md`](enterprise/sector-
 | REMORA is |
 |-----------|
 | A reference implementation with reproducible benchmarks |
-| Platform-agnostic — Azure, Cloudflare, Kubernetes, on-prem, air-gapped |
+| Platform-agnostic, Azure, Cloudflare, Kubernetes, on-prem, air-gapped |
 | A governance and policy layer for autonomous AI agents |
 | Tested with deterministic unit, integration, and benchmark tests |
 
@@ -920,13 +920,13 @@ Full sector documentation: [`enterprise/sector-use-cases.md`](enterprise/sector-
 | Component | Status | Notes |
 |-----------|--------|-------|
 | Multi-oracle consensus engine | **Implemented** | Parallel fan-out, per-oracle timeout, correlation weighting, Lyapunov tracking |
-| Thermodynamic phase classifier | **Implemented** | H, D, η, T, F(T), T\_c — all computable from oracle votes |
+| Thermodynamic phase classifier | **Implemented** | H, D, η, T, F(T), T\_c, all computable from oracle votes |
 | Policy decision engine | **Implemented** | Hard-block precedence, conformal routing, risk-tier gating, OPA/Rego adapter |
 | 5-stage adaptive cascade | **Implemented** | FastGate → Consensus → Verifier → CritiqueRevision → SelfConsistency |
 | Mondrian conformal guardrail | **Implemented** | Phase-stratified; 99.9 % ordered-phase coverage validated |
 | Audit hash-chain | **Implemented** | SHA-256 linked entries with tamper detection; RDF/N-Triples export |
 | Governance API control-plane | **Implemented** | `/v1/assess`, retrieval (`/v1/envelope`, `/v1/audit`), workflow (`/v1/review`, `/v1/follow-up`), metrics (`/v1/metrics`, `/metrics`) |
-| Control-plane persistence (tenant-scoped) | **Implemented** | In-memory adapter + PostgreSQL adapter (`REMORA_CONTROL_PLANE_DSN`); decision versions are append-only rows — reads return latest, historical versions retained |
+| Control-plane persistence (tenant-scoped) | **Implemented** | In-memory adapter + PostgreSQL adapter (`REMORA_CONTROL_PLANE_DSN`); decision versions are append-only rows, reads return latest, historical versions retained |
 | Agent framework action adapters | **Implemented** | LangGraph + OpenAI tool-calling reference wrappers with replay hooks |
 | PreToolUse safety hook | **Implemented** | Claude Code integration; AST risk classification; intent-drift detection |
 | MCP server | **Implemented** | 12 tools; stdio transport; Claude Desktop + Claude Code |
@@ -982,7 +982,7 @@ CI note: core tests run in a fast `verify` job, while deterministic
 `live_replay_heavy` tests run in a dedicated `replay-heavy` job with a larger
 runtime budget.
 
-**Expected output — held-out evaluation:**
+**Expected output, held-out evaluation:**
 ```
 Held-out: 88.00% accuracy at 23.2% coverage (n_accepted=25, lift +41.70 pp
 over 46.30% holdout baseline, Wilson CI [0.700, 0.958], p=1.45e-05)
@@ -991,10 +991,10 @@ tau* = 0.203200  (selected on 436-item training set)
 
 ### External review protocol
 
-1. `git checkout main` — clean state.
-2. `pip install -e .` — zero mandatory dependencies.
-3. `make benchmark` — core benchmark rows regenerated deterministically; `make stress-toolcalls` and `make shadow-replay` reproduce the remaining targets separately. Compare against committed `results/`.
-4. `make audit` — quality gate: lint, tests, claim consistency, artifact existence, overclaim scan.
+1. `git checkout main`, clean state.
+2. `pip install -e .`, zero mandatory dependencies.
+3. `make benchmark`: core benchmark rows regenerated deterministically; `make stress-toolcalls` and `make shadow-replay` reproduce the remaining targets separately. Compare against committed `results/`.
+4. `make audit`: quality gate: lint, tests, claim consistency, artifact existence, overclaim scan.
 5. Compare `results/selective_n500_holdout_results.json` against expected output above.
 6. Treat simulator findings as benchmark-scoped; see [Honest Limits](#honest-limits).
 
@@ -1007,7 +1007,7 @@ tau* = 0.203200  (selected on 436-item training set)
 |----------|---------|
 | [`CONTRIBUTIONS.md`](CONTRIBUTIONS.md) | Formal academic contribution statements (C1–C7) with claim, validation, scope, and limitations |
 | [`paper/claim_ledger.md`](paper/claim_ledger.md) | Every strong claim mapped to evidence, implementation, and recommended wording |
-| [`NEGATIVE_RESULTS.md`](NEGATIVE_RESULTS.md) | Active findings, event chronicles, and a resolved-findings archive — honest account of what did not work |
+| [`NEGATIVE_RESULTS.md`](NEGATIVE_RESULTS.md) | Active findings, event chronicles, and a resolved-findings archive, honest account of what did not work |
 | [`paper/remora_paper.md`](paper/remora_paper.md) | Full technical paper (Markdown source; under submission) |
 | [`paper/remora_paper.tex`](paper/remora_paper.tex) | LaTeX source for Overleaf / arXiv submission |
 | [`docs/empirical_evidence_record.md`](docs/empirical_evidence_record.md) | N=302 selective trust statistical proof pack |
@@ -1018,9 +1018,9 @@ tau* = 0.203200  (selected on 436-item training set)
 |----------|---------|
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Detailed data flow, per-iteration sequence, oracle protocol |
 | [`docs/mcp-integration.md`](docs/mcp-integration.md) | MCP server setup and tool reference |
-| [`docs/agent_tool_hook.md`](docs/agent_tool_hook.md) | PreToolUse hook — risk classification, intent drift, Lyapunov |
+| [`docs/agent_tool_hook.md`](docs/agent_tool_hook.md) | PreToolUse hook, risk classification, intent drift, Lyapunov |
 | [`EVIDENCE_OF_CAPABILITY.md`](EVIDENCE_OF_CAPABILITY.md) | Capability evidence map: what REMORA proves, implements, tests, and does not claim |
-| [`docs/thermodynamics/claim_ledger.yaml`](docs/thermodynamics/claim_ledger.yaml) | Machine-readable claim registry — every result linked to artifact + test |
+| [`docs/thermodynamics/claim_ledger.yaml`](docs/thermodynamics/claim_ledger.yaml) | Machine-readable claim registry, every result linked to artifact + test |
 | [`deploy/README.md`](deploy/README.md) | Deployment profile index |
 
 ---

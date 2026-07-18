@@ -1,9 +1,9 @@
-# REMORA Reference Architecture — Policy-Governed Agent Assurance Control Plane
+# REMORA Reference Architecture: Policy-Governed Agent Assurance Control Plane
 
 **Positioning statement:** REMORA is a reference architecture and executable
 reference implementation for a policy-governed agent assurance control plane.
 It is not an agent platform, not a data platform, and not a finished security
-product. It defines — and implements, at research grade — the layer that sits
+product. It defines (and implements, at research grade) the layer that sits
 *between* an agent platform and the systems agents act on.
 
 **Maturity:** research-grade, `SHADOW_ONLY`. See
@@ -21,17 +21,17 @@ Agent platforms answer *how agents reason and act*. Enterprise operators of
 agent fleets must additionally answer, before any action reaches a real
 system:
 
-1. **Authorization on the execution path** — is *this* action, with *these*
+1. **Authorization on the execution path**, is *this* action, with *these*
    arguments, in *this* environment, permitted right now? Per-tool access
    control is insufficient: each step can be individually permitted while the
    combination is not.
-2. **Uncertainty-aware autonomy** — how confident is the system, and does
+2. **Uncertainty-aware autonomy**, how confident is the system, and does
    that confidence level justify autonomous execution, or does it require
    verification, abstention, or a human?
-3. **Delegated authority** — which capabilities were actually delegated to
-   the acting agent, by whom, and can that be verified at request time —
+3. **Delegated authority**, which capabilities were actually delegated to
+   the acting agent, by whom, and can that be verified at request time, 
    including when the requester is another organisation's agent?
-4. **Evidence and accountability** — when the action is later disputed, can
+4. **Evidence and accountability**, when the action is later disputed, can
    the operator replay the exact policy, evidence, and decision path that
    authorized it?
 
@@ -146,7 +146,7 @@ tests assert that removing any single guard breaks a named test.
 
 The four actions define the autonomy boundary per action, not per agent: the
 same agent can be autonomous on telemetry reads, review-gated on work-order
-proposals, and hard-blocked on actuation — in one policy evaluation pass.
+proposals, and hard-blocked on actuation: in one policy evaluation pass.
 `scripts/demo_industrial_maintenance.py` demonstrates exactly this boundary
 against the real engine, pinned by `tests/test_demo_industrial_maintenance.py`.
 
@@ -162,11 +162,11 @@ Rego policy without redeploying application code.
 Three mechanisms keep this delegation safe:
 
 1. **Full-contract export.** `OPAContext` exports every observation field the
-   decision path reads — including all security hard-block signals — enforced
+   decision path reads (including all security hard-block signals) enforced
    structurally by `tests/test_opa_parity.py` (the test scans the engine
    source for field accesses; a new guard on an unexported field fails CI).
 2. **Runtime monotonicity floor, in two tiers.** Every OPA result is floored
-   by `hard_guard_floor()` (all risk tiers) — and on high/critical risk the
+   by `hard_guard_floor()` (all risk tiers), and on high/critical risk the
    *entire* Python decision, including conditional gates like the
    production-write matrix and missing-rollback checks, is a monotone floor.
    An external policy can therefore only relax decisions in the low/medium
@@ -193,18 +193,18 @@ defines the signed governance envelope REMORA expects alongside any
 cross-boundary agent request:
 
 - **Identity + accountability**: agent id/version, issuing organisation, and
-  the organisation *accountable* for the agent — verification fails closed
+  the organisation *accountable* for the agent, verification fails closed
   without accountability.
 - **Delegation chain with capability attenuation and per-link attestation**:
   each link may only narrow the scope it received (strict subset semantics;
   wildcards rejected) and carries its own signature and key id (`kid`)
-  verified against a key registry — the envelope issuer alone cannot
+  verified against a key registry, the envelope issuer alone cannot
   fabricate the delegation history, and removing a key from the registry
   revokes every dependent chain. The requested action must fall inside the
   final attenuated scope.
 - **Audience, replay, and argument binding**: a mandatory audience (the
   intended verifier), a per-envelope nonce checked via a caller-supplied
-  replay guard, and an optional binding to the canonical tool-call hash —
+  replay guard, and an optional binding to the canonical tool-call hash, 
   the same envelope cannot authorise a different verifier, a replayed
   request, or a different argument payload.
 - **Policy + evidence binding**: the policy version evaluated and
@@ -212,7 +212,7 @@ cross-boundary agent request:
   be replayed against the exact artifacts.
 - **Integrity**: HMAC-SHA256 over canonical serialisation, same discipline as
   the PDP→PEP token; every verification failure is reported (complete defect
-  set, not first-failure), and malformed input — bad timestamps, bad JSON —
+  set, not first-failure), and malformed input, bad timestamps, bad JSON, 
   is a failure code, never an exception or a pass. The symmetric-key layer
   is a stated reference-implementation scope; the module documents the
   asymmetric (JWS + published keys + rotation) production path.
@@ -225,21 +225,21 @@ This is the request-side complement to the decision plane: delegation answers
 ## 6. Evidence and audit plane
 
 - **DecisionEnvelope** (`remora/governance/envelope.py`): the canonical,
-  signed, versioned governance record per decision — kept contract-stable
+  signed, versioned governance record per decision, kept contract-stable
   (`schemas/decision_envelope_schema.yaml`).
 - **Hash-chained audit** (`remora/governance/audit_chain.py`): tamper-evident
-  (not tamper-proof — see Limitations) decision history. **Precision (external
+  (not tamper-proof, see Limitations) decision history. **Precision (external
   review, updated 2026-07-18):** the atomic per-tenant chain (REM-034, DONE)
   covers `previous_hash`, tenant, sequence and timestamp inside `entry_hash`,
   with an atomic append (fork-free) and a `verify()` that also checks the HMAC
-  signature — available on `/v1/execution/*` via `TenantAuditChain` and the
+  signature, available on `/v1/execution/*` via `TenantAuditChain` and the
   durable `SQLiteTenantChain` / `PostgresTenantChain` adapters. The legacy
   `/v1/assess` path still produces individually-signed predecessor-reference
   records until migrated onto this chain; a deployment relying on the REST
   audit path must configure a durable adapter (`REMORA_CHAIN_DB` /
   `REMORA_PG_DSN`).
 - **Graph export**: audit records export to RDF/N-Triples with per-tenant URI
-  namespaces, SPARQL-queryable — `agent → decision → outcome` joins the
+  namespaces, SPARQL-queryable, `agent → decision → outcome` joins the
   operator's knowledge-graph tooling instead of living in a proprietary log
   format.
 - **Enforcement binding**: `canonical_tool_call_hash` binds decisions to the
@@ -253,12 +253,12 @@ This is the request-side complement to the decision plane: delegation answers
 `remora/observability/otel.py` emits spans per governed action with two
 attribute families:
 
-- **`gen_ai.*`** — OTel GenAI semantic conventions
+- **`gen_ai.*`**, OTel GenAI semantic conventions
   (`gen_ai.operation.name`, `gen_ai.tool.name`, `gen_ai.tool.call.id`,
   `gen_ai.agent.id`, `gen_ai.conversation.id`), so REMORA spans correlate
   with any other GenAI-instrumented component in the same distributed trace
   without custom configuration.
-- **`remora.*`** — governance signals with no semconv equivalent (phase,
+- **`remora.*`**, governance signals with no semconv equivalent (phase,
   entropy, dissensus, decision, policy version, decision source,
   human-review flag).
 
@@ -292,13 +292,13 @@ boundaries are explicit:
 - **Tamper-evident, not tamper-proof.** The audit chain detects modification;
   preventing it requires external WORM storage, out of scope here.
 - **Integration adapters are reference-grade.** The OPA, OTel, RDF, and MCP
-  integrations are working reference implementations with tests — not
+  integrations are working reference implementations with tests, not
   hardened connectors for any specific enterprise data platform, workflow
   system, or OT gateway. Site adapters are deliberately thin: the contract
   surface (`PolicyObservation` in, `DecisionEnvelope` out) is the stable part.
 
-**How far each mechanism is actually wired** — library, reference path,
-API path, atomic persistence, production enforcement — is recorded per
+**How far each mechanism is actually wired**, library, reference path,
+API path, atomic persistence, production enforcement, is recorded per
 capability in the machine-readable
 [`assurance/capability_register_v1.yaml`](assurance/capability_register_v1.yaml)
 (CI-validated; narrative documents must not claim beyond it). Nothing is
@@ -307,14 +307,14 @@ production-enforced or externally verified while deployment is SHADOW_ONLY.
 Partition behavior and approval-freshness semantics (what stops when a link
 goes down; when a human approval expires or is invalidated by a changed
 world) are specified in
-[`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md) —
+[`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md), 
 implemented (REM-032/REM-033): degradation ladder with tamper-evident
 transition log, production hook profile, review-queue TTL, and the approval
 freshness contract with an execution-time re-gate.
 
 Full inventory of caveats and negative results:
 [NEGATIVE_RESULTS.md](../NEGATIVE_RESULTS.md),
-[README — Limitations](../README.md#limitations).
+[README, Limitations](../README.md#limitations).
 
 ---
 
@@ -330,27 +330,27 @@ Full inventory of caveats and negative results:
 | Decision record | JSON Schema | `schemas/decision_envelope_schema.yaml` |
 
 The control plane holds no opinion about which agent framework, model
-vendor, or data platform sits above or below it — every integration point is
+vendor, or data platform sits above or below it, every integration point is
 one of these open contracts.
 
 ---
 
 ## 10. Adoption path (shadow-first)
 
-1. **Weeks 0–4 — Shadow.** Feed real agent action logs through
+1. **Weeks 0–4, Shadow.** Feed real agent action logs through
    `scripts/shadow_replay.py`. Output: counterfactual governance deltas
    (what would have been blocked/reviewed), calibration data, and a concrete
-   friction estimate — with zero impact on the running system.
-2. **Weeks 4–8 — Policy fitting.** Encode the operator's actual autonomy
+   friction estimate: with zero impact on the running system.
+2. **Weeks 4–8, Policy fitting.** Encode the operator's actual autonomy
    rules (risk tiers, forbidden capabilities, environment matrices) as
    Rego + engine configuration; validate with the conformance harness and
    the operator's own replayed logs.
-3. **Weeks 8–12 — Gated enforcement.** Enforce on one low-consequence,
+3. **Weeks 8–12, Gated enforcement.** Enforce on one low-consequence,
    high-volume action class first (e.g. recommendation writes), with the
    documented mode-degradation path (full governance → hard-blocks-only)
    and independent review of the deployment (the REM-021 gate) as the
    promotion criterion.
 
 Each phase produces artifacts (decision envelopes, replay reports, conformance
-results) that the next phase's go/no-go decision is made against — the same
+results) that the next phase's go/no-go decision is made against, the same
 evidence discipline this repository applies to itself.

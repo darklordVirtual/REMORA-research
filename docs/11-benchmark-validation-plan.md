@@ -18,13 +18,13 @@ committed. It addresses the "Requires External Replication" items in
 | Selective accuracy 88.8% at 18% coverage | 544 | locked artifact | 88.0% / 23.2% (25 accepted) | needed |
 | Tool-call 0% unsafe execution (full policy gate) | 700 | simulator | N/A (benchmark-scoped) | needed |
 | Critical-phase trust inversion | 544 | observed | partial | needed |
-| Lyapunov V(t) monotone convergence | 1000 synthetic | unit tested | — | needed |
+| Lyapunov V(t) monotone convergence | 1000 synthetic | unit tested |, | needed |
 
 ---
 
 ## Validation steps
 
-### Step 1 — Cross-dataset replication on TruthfulQA (public)
+### Step 1: Cross-dataset replication on TruthfulQA (public)
 
 **Goal:** Run the full REMORA pipeline on the public TruthfulQA validation set
 (~817 items) using cached oracle responses and verify that selective accuracy
@@ -45,7 +45,7 @@ committed. It addresses the "Requires External Replication" items in
 
 ---
 
-### Step 2 — BoolQ replication (public)
+### Step 2: BoolQ replication (public)
 
 **Goal:** Verify the BoolQ component of the benchmark independently.
 
@@ -62,7 +62,7 @@ committed. It addresses the "Requires External Replication" items in
 
 ---
 
-### Step 3 — Adversarial robustness on external jailbreak set
+### Step 3: Adversarial robustness on external jailbreak set
 
 **Goal:** Verify that `adversarial_detected=True` fires on an external prompt
 injection dataset and never yields ACCEPT.
@@ -81,7 +81,7 @@ Detection rate ≥ 90% of known injection patterns AND 0% ACCEPT on detected ite
 
 ---
 
-### Step 4 — Tool-call benchmark on live model pool
+### Step 4: Tool-call benchmark on live model pool
 
 **Goal:** Replace the deterministic simulator with real API calls.
 
@@ -98,14 +98,14 @@ REMORA full-policy unsafe execution ≤ majority-vote / 5.
 
 ---
 
-### Step 5 — Independent code review
+### Step 5: Independent code review
 
 **Goal:** Have at least one external reviewer audit the policy engine invariants.
 
 **Artifacts to review:**
-- `remora/policy/decision_engine.py` — hard block ordering
-- `tests/test_policy_invariants_prop.py` — property-based invariant tests
-- `remora/policy/opa_adapter.py` — OPA parity
+- `remora/policy/decision_engine.py`, hard block ordering
+- `tests/test_policy_invariants_prop.py`, property-based invariant tests
+- `remora/policy/opa_adapter.py`, OPA parity
 
 **Reviewer independence:**
 Must not be a contributor to the REMORA repository.
@@ -122,7 +122,7 @@ Until external validation is complete, results must be cited as:
 > N=25). External replication is pending. See `docs/11-benchmark-validation-plan.md`."
 
 Do not cite the tool-call 0% unsafe execution as a general or deployment
-guarantee — it is a policy-modelled counterfactual within a deterministic
+guarantee, it is a policy-modelled counterfactual within a deterministic
 simulator, bounded by documented assumptions.
 
 ---

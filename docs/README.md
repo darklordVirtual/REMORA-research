@@ -1,7 +1,7 @@
 # REMORA Documentation Index
 
 The single, complete documentation index: **every file under `docs/` is listed
-here individually** (enforced by `tests/test_docs_index_coverage.py` — adding a
+here individually** (enforced by `tests/test_docs_index_coverage.py`, adding a
 document without indexing it fails CI). Gate status lives in one place only:
 [`assurance/release_gates.md`](assurance/release_gates.md). Anything under
 [Archive](#archive-do-not-cite) is historical and must not be cited as current.
@@ -10,11 +10,11 @@ document without indexing it fails CI). Gate status lives in one place only:
 
 | Audience | Read |
 |---|---|
-| Architect / technical reviewer | [`reference_architecture.md`](reference_architecture.md) — the assurance control plane, plane by plane, with code pointers |
+| Architect / technical reviewer | [`reference_architecture.md`](reference_architecture.md), the assurance control plane, plane by plane, with code pointers |
 | Executive / non-technical | [`executive_onepager.md`](executive_onepager.md) · [`plain_language_overview.md`](plain_language_overview.md) |
-| Reproducing results | [`06-reproducibility.md`](06-reproducibility.md) — clone-and-run instructions |
+| Reproducing results | [`06-reproducibility.md`](06-reproducibility.md), clone-and-run instructions |
 | Auditing claims | [`02-evidence-and-claims.md`](02-evidence-and-claims.md) · [`claim_register.md`](claim_register.md) · [`../NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md) |
-| Understanding the whole hardening arc | [`assurance/development_review_log_v1.md`](assurance/development_review_log_v1.md) — engineering & review log |
+| Understanding the whole hardening arc | [`assurance/development_review_log_v1.md`](assurance/development_review_log_v1.md), engineering & review log |
 
 ## Core series (the numbered narrative)
 
@@ -43,11 +43,11 @@ document without indexing it fails CI). Gate status lives in one place only:
 | [`remora_architecture.html`](remora_architecture.html) | Architecture infographic (HTML asset) |
 | [`decision_envelope_audit.md`](decision_envelope_audit.md) | DecisionEnvelope audit semantics |
 | [`nested_governance.md`](nested_governance.md) | Nested governance layers and governance forgetting |
-| [`thermodynamic_abs.md`](thermodynamic_abs.md) | Trajectory braking heuristic — including what V(t) does NOT certify |
+| [`thermodynamic_abs.md`](thermodynamic_abs.md) | Trajectory braking heuristic, including what V(t) does NOT certify |
 
 ## Assurance and governance (`assurance/`)
 
-**Live status surfaces** — everything else defers to these:
+**Live status surfaces**, everything else defers to these:
 
 | File | Purpose |
 |---|---|
@@ -78,7 +78,7 @@ Process, audits, and specifications:
 | [`assurance/domain_pack_governance_v1.md`](assurance/domain_pack_governance_v1.md) | Domain-pack governance rules |
 | [`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md) | Partition + stale-approval resilience: design + implementation (REM-032/033 DONE) |
 | [`assurance/capability_register_v1.yaml`](assurance/capability_register_v1.yaml) | Machine-readable wiring-status register (six-level ladder; CI-validated) |
-| [`assurance/development_review_log_v1.md`](assurance/development_review_log_v1.md) | Engineering & review log — the whole hardening arc, artifact-linked (start here for the story) |
+| [`assurance/development_review_log_v1.md`](assurance/development_review_log_v1.md) | Engineering & review log, the whole hardening arc, artifact-linked (start here for the story) |
 
 Historical snapshots (banner-marked, preserved unedited):
 
@@ -141,7 +141,7 @@ Experiment deep-dives and thermodynamics method docs:
 
 ## AROMER (experimental learning layer)
 
-AROMER metrics are not evidence for the core governance engine — see README
+AROMER metrics are not evidence for the core governance engine, see README
 Limitations.
 
 | File | Purpose |
@@ -172,7 +172,7 @@ Limitations.
 
 ## Use cases (sector scenarios)
 
-Illustrative unless artifact-linked — see the banner in each file.
+Illustrative unless artifact-linked: see the banner in each file.
 
 | File | Sector |
 |---|---|
@@ -195,7 +195,7 @@ Illustrative unless artifact-linked — see the banner in each file.
 | [`research/misspecification_aware_governance.md`](research/misspecification_aware_governance.md) | Misspecification-aware governance |
 | [`research/policy_generalization_risk.md`](research/policy_generalization_risk.md) | Policy generalization risk |
 | [`causal_policy_explanations.md`](causal_policy_explanations.md) | Causal policy explanations (PS/PN) |
-| [`theoretical_foundations_proposals_v1.md`](theoretical_foundations_proposals_v1.md) | PROPOSED formal frameworks — roadmap, not implemented claims |
+| [`theoretical_foundations_proposals_v1.md`](theoretical_foundations_proposals_v1.md) | PROPOSED formal frameworks, roadmap, not implemented claims |
 | [`related_work.md`](related_work.md) | Forwarding stub → [`09-related-work.md`](09-related-work.md) |
 
 ## Meta
@@ -232,4 +232,4 @@ registers; current metrics → repository README). Dated snapshots carry a
 `HISTORICAL SNAPSHOT` banner and are never edited. Duplicate topics resolve to
 the numbered series as canonical; loose-file stubs forward to them so older
 links and tooling paths keep resolving. Every new document must be added to
-this index — `tests/test_docs_index_coverage.py` fails CI otherwise.
+this index, `tests/test_docs_index_coverage.py` fails CI otherwise.

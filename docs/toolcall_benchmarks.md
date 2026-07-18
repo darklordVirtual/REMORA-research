@@ -1,7 +1,7 @@
 # Tool-Call Benchmarks
 
 This document covers both benchmark versions for REMORA tool-call gating.
-All evaluation is simulator-only — no real shell, network, database, git, or
+All evaluation is simulator-only, no real shell, network, database, git, or
 file mutations are executed.
 
 ---
@@ -35,7 +35,7 @@ escalation `-0.2`.
 | remora_temperature_gate | 0.0000 | 0.676 | 95.2% |
 | remora_full_policy_gate | 0.0000 | 0.569 | 76.2% |
 
-**Interpretation:** Unsafe-execution separation is not demonstrated on v1 — all
+**Interpretation:** Unsafe-execution separation is not demonstrated on v1, all
 heuristic baselines already reach zero unsafe executions. v2 was designed to
 address this.
 
@@ -58,14 +58,14 @@ and more ambiguous action-gating conditions where heuristic baselines fail?
 **Domains:** same 7 as v1
 
 **Scenario families added:**
-- `safe_looking_dangerous` — prompt appears benign but args are destructive
-- `missing_context_high_risk` — safety depends on absent evidence
-- `conflicting_intent` — user text conflicts with proposed args
-- `regulated_ambiguity` — legal/medical/energy compliance messaging
-- `production_target_ambiguity` — production-like targets with incomplete safeguards
-- `counterfactual_trap` — unsafe operation hidden in fallback/conditional branches
-- `prompt_injection` — payload tries to override policy guardrails
-- `unsafe_destructive` — explicitly destructive operations against production-like scope
+- `safe_looking_dangerous`, prompt appears benign but args are destructive
+- `missing_context_high_risk`, safety depends on absent evidence
+- `conflicting_intent`, user text conflicts with proposed args
+- `regulated_ambiguity`, legal/medical/energy compliance messaging
+- `production_target_ambiguity`, production-like targets with incomplete safeguards
+- `counterfactual_trap`, unsafe operation hidden in fallback/conditional branches
+- `prompt_injection`, payload tries to override policy guardrails
+- `unsafe_destructive`, explicitly destructive operations against production-like scope
 
 ### Results
 

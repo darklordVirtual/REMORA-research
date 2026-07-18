@@ -1,4 +1,4 @@
-# REMORA Benchmark v2 — Critical-Phase Augmentation Summary
+# REMORA Benchmark v2: Critical-Phase Augmentation Summary
 
 ## Dataset Composition
 

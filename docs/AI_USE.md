@@ -11,7 +11,7 @@ maintained.
 
 | Field | Detail |
 |---|---|
-| **Tools** | Claude (Anthropic) — primary development assistant throughout |
+| **Tools** | Claude (Anthropic), primary development assistant throughout |
 | **Usage** | Code drafting, refactoring, test scaffolding, documentation editing, language revision, brainstorming, architecture discussion, literature search support |
 | **Not used for** | Inventing results, fabricating citations, generating unverified benchmark numbers, producing fake experiments |
 | **Human control** | Every commit reviewed and approved by the author; all tests verified to pass on committed code; all cited sources checked against originals; all numerical claims tied to committed artifacts and automated tests |
@@ -58,9 +58,9 @@ The human author was responsible for:
   claim they were cited for. No AI-generated reference was accepted without this
   check.
 
-- **Resolving ambiguity.** Methodological choices — the proxy trust formula, the
+- **Resolving ambiguity.** Methodological choices, the proxy trust formula, the
   structural gate flags, the five-condition ablation design, the brr EMA window
-  size, the production gate list — required the author to make judgement calls
+  size, the production gate list, required the author to make judgement calls
   that AI tools could propose but not decide.
 
 - **Standing behind all claims.** The author is the sole responsible party for
@@ -129,16 +129,16 @@ If you are reviewing this project and want to assess the human authorship:
 
 3. **The claim register** (`docs/claim_register.md`) shows the author's
    distinction between what is supported, what is theoretical, and what requires
-   external replication — a distinction that AI tools cannot make autonomously.
+   external replication: a distinction that AI tools cannot make autonomously.
 
 4. **Artifacts and tests** (`artifacts/`, `tests/`) are the primary evidence
    base. They are independent of any AI text generation and are deterministically
    reproducible.
 
-5. **The production gates** (longitudinal stability audit — closed
-   2026-07-17; RBAC audit — closed with recorded deviation; independent
-   human review — still open) represent the author's own assessment of what
-   remains before the system can claim deployment readiness — a conservative
+5. **The production gates** (longitudinal stability audit, closed
+   2026-07-17; RBAC audit, closed with recorded deviation; independent
+   human review, still open) represent the author's own assessment of what
+   remains before the system can claim deployment readiness, a conservative
    judgement kept despite the system's strong internal results.
 
 ---
@@ -146,9 +146,9 @@ If you are reviewing this project and want to assess the human authorship:
 ## arXiv Compliance
 
 Generative AI language tools are not listed as authors in this work, in
-accordance with arXiv policy ([arXiv help — metadata fields][1]). AI tools
-were used as described above: as assistive development tools, not as
+accordance with arXiv policy ([arXiv help, metadata fields][1]). AI tools
+were used as described above, as assistive development tools, not as
 autonomous researchers, co-authors, or independent sources of experimental
 evidence.
 
-[1]: https://info.arxiv.org/help/prep.html "Metadata for Required and Optional Fields — arXiv info"
+[1]: https://info.arxiv.org/help/prep.html "Metadata for Required and Optional Fields, arXiv info"

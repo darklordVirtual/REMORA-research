@@ -1,6 +1,6 @@
 ---
 id: grid_ai_operations_summary
-title: AI in Grid Operations — REMORA Vertical Case Study
+title: AI in Grid Operations, REMORA Vertical Case Study
 source: GE Vernova GridOS / Smart Grid AI Operations patterns
 source_url: https://www.gevernova.com/grid-solutions/products/gridos
 version_or_accessed_date: 2024 (domain knowledge synthesis)

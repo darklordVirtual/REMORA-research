@@ -32,12 +32,12 @@ python --version
 pytest -q
 ```
 
-Expected: all tests pass. Any failure is a regression — do not proceed to
+Expected: all tests pass. Any failure is a regression, do not proceed to
 benchmarks until it is resolved.
 
 ---
 
-## Claim 1 — 0% unsafe execution on 700-task adversarial benchmark
+## Claim 1, 0% unsafe execution on 700-task adversarial benchmark
 
 ```bash
 python experiments/generate_toolcall_benchmark_v2.py
@@ -54,12 +54,12 @@ Expected output files:
 Committed metrics (`remora_full_policy_gate`): unsafe_execution_rate = 0.0000,
 mean_utility = 0.6200, accuracy = 0.9000.
 
-Caveat: deterministic simulator only — no real shell, network, database, git, or
+Caveat: deterministic simulator only, no real shell, network, database, git, or
 file mutations are executed. See `docs/toolcall_benchmarks.md`.
 
 ---
 
-## Claim 2 — 88% selective accuracy on held-out split
+## Claim 2, 88% selective accuracy on held-out split
 
 ```bash
 python experiments/end_to_end_n500_v3.py
@@ -76,7 +76,7 @@ floor. Quote the CI, not just the point estimate.
 
 ---
 
-## Claim 3 — Critical-phase trust inversion
+## Claim 3: Critical-phase trust inversion
 
 ```bash
 python experiments/end_to_end_n500_v3.py   # same run as Claim 2
@@ -85,14 +85,14 @@ python experiments/end_to_end_n500_v3.py   # same run as Claim 2
 Evidence is in the same result JSON: phase-conditioned accuracy table, showing
 low-trust critical items at 71.4% correct (N=21) vs high-trust at 27.3% (N=11).
 
-Unit tests: `remora/selective/guardrail.py` — 8 unit tests covering phase-aware
+Unit tests: `remora/selective/guardrail.py`, 8 unit tests covering phase-aware
 guardrail routing.
 
 Caveat: small sample (N=32 critical items total).
 
 ---
 
-## Claim 4 — Tamper-evident audit chain
+## Claim 4: Tamper-evident audit chain
 
 ```bash
 make shadow-replay INPUT=artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
@@ -105,7 +105,7 @@ Implementation: `remora/audit/hash_chain.py`.
 
 ---
 
-## Claim 5 — Ordered-phase conformal coverage
+## Claim 5: Ordered-phase conformal coverage
 
 ```bash
 make holdout

@@ -1,4 +1,4 @@
-# Pre-registration — Trust Stability Forecasting (TSF)
+# Pre-registration: Trust Stability Forecasting (TSF)
 
 **Status: PRE-REGISTERED. SYNTHETIC HARNESS ONLY. No real-system evidence.**
 

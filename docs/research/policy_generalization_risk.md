@@ -1,13 +1,13 @@
 # Policy Generalization Risk
 
 Status: research-grade, deterministic, heuristic. Not production-certified.
-LDT-*inspired* — this is not Logical Decision Theory; there are no logical
+LDT-*inspired*, this is not Logical Decision Theory; there are no logical
 counterfactuals, only a conservative projection.
 
 ## Core question
 
-> If REMORA ACCEPTed this class of action repeatedly — across similar agents,
-> tenants, and future cases — would that standing policy remain safe?
+> If REMORA ACCEPTed this class of action repeatedly, across similar agents,
+> tenants, and future cases, would that standing policy remain safe?
 
 Approving one DNS edit is a decision about an action. Auto-approving DNS edits
 is a decision about a *policy*, and the policy's risk is not the sum of its
@@ -51,7 +51,7 @@ class-based component.
 
 - REMORA is stateless: repetition counts must come from the caller (session
   store, AROMER episodic memory, or fleet telemetry). Garbage counts in,
-  garbage projection out — though the strengthen-only merge means a missing
+  garbage projection out, though the strengthen-only merge means a missing
   count can only under-detect repetition, never weaken other gates.
 - Class taxonomy is coarse; two "write" actions may generalize very
   differently.

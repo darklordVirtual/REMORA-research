@@ -14,7 +14,7 @@
 Evaluating a single tool call in isolation ("is this request safe?") misses
 threats that accumulate across a multi-step session. This component tracks a
 session-level scalar `V(t)` (defined below) and, when it rises too fast,
-raises the trust threshold a marginal action must clear — pushing borderline
+raises the trust threshold a marginal action must clear, pushing borderline
 ACCEPTs toward VERIFY. It is a monitor plus a threshold penalty, nothing more.
 
 ## The "boiled frog" pattern
@@ -33,7 +33,7 @@ The session monitor tracks the scalar
 V(t) = H(t) + λ · D(t)
 ```
 
-named a "Lyapunov value" by analogy only — it is not shown to be a Lyapunov
+named a "Lyapunov value" by analogy only, it is not shown to be a Lyapunov
 function of any dynamical system and certifies nothing (see
 `remora/lyapunov.py` docstring and paper §10.4, where 12.8% of trajectories
 have ΔV > 0). The braking signal is the step-to-step change
@@ -49,7 +49,7 @@ score is raised by a penalty that grows with the excess:
 Penalty = min(β · (dV − τ_activation), MaxPenalty)
 ```
 
-The penalty scales with the rate of increase of `V` — a heuristic linear
+The penalty scales with the rate of increase of `V`, a heuristic linear
 response with a cap, not a derived control law. Raising the required trust
 score downgrades marginal ACCEPT states to VERIFY, so the agent is stopped
 for human validation on the basis of its session trajectory rather than any
@@ -61,6 +61,6 @@ single action.
 - Tests: `tests/test_thermodynamic_braking.py`
 
 Zero extra dependencies; integrates with the existing threshold configuration.
-No claim is made that this prevents any specific class of attack — it is a
+No claim is made that this prevents any specific class of attack, it is a
 conservative session-level heuristic whose parameters (`τ_activation`, `β`,
 `MaxPenalty`) are tuned, not derived.

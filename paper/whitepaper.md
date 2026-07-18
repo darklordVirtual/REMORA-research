@@ -1,6 +1,6 @@
 # REMORA: A Nested Governance Control Plane for Agentic AI
 
-> ⚠️ **SUPERSEDED — legacy snapshot (June 2026).** This technical report is
+> ⚠️ **SUPERSEDED, legacy snapshot (June 2026).** This technical report is
 > **not** the canonical paper. The current, continuously-corrected paper is
 > [`paper/remora_paper.md`](remora_paper.md); it supersedes this document on
 > every point of conflict (numbers, claims, caveats, architecture framing).
@@ -239,7 +239,7 @@ The benchmark domains are:
 
 No production system is mutated by these tests.
 
-## 3.5 Human Review, Follow-up Requests, and Operational Closure
+## 3.5 Human Review: Follow-up Requests, and Operational Closure
 
 The control-room frontend demonstrates a richer review state than a binary
 approve/reject workflow. When REMORA cannot safely approve or reject a proposed
@@ -577,7 +577,7 @@ This is the strongest current tool-call result. It supports the claim that, in
 this deterministic simulator, REMORA can reduce unsafe execution while
 preserving useful task completion. However, both the baselines and the REMORA
 policy gate are deterministic heuristic classifiers replaying pre-labelled
-tasks — not live LLM calls. The "0% unsafe execution" figure is a
+tasks, not live LLM calls. The "0% unsafe execution" figure is a
 benchmark-scoped simulator result, not a measured outcome from a live
 production deployment. Generalisation to real agent deployments with live model
 calls is not claimed.
@@ -692,7 +692,7 @@ F.6–F.7 for the full recovery trajectory, organic TRAINED confirmation, and ou
 
 Interpretation:
 
-These are measurement-integrity results, not learning-performance claims. At v0.2.0 deployment, AII was in the LEARNING band (smoothed 0.532); it has since reached TRAINED (AII=0.844, aii_smoothed=0.8442, 12+ organic cycles — see Post-v0.2.0 trajectory above). No external validation of the adaptive layer has been conducted.
+These are measurement-integrity results, not learning-performance claims. At v0.2.0 deployment, AII was in the LEARNING band (smoothed 0.532); it has since reached TRAINED (AII=0.844, aii_smoothed=0.8442, 12+ organic cycles: see Post-v0.2.0 trajectory above). No external validation of the adaptive layer has been conducted.
 
 ---
 

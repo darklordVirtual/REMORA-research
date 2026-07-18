@@ -1,10 +1,10 @@
 # REMORA RBAC Design v1
 
-**Status:** Design document for REM-022 — the gate closed 2026-06-30 **with recorded deviation** (unmet DONE criteria tracked as REM-023; see §closure note at the end of this document)
+**Status:** Design document for REM-022, the gate closed 2026-06-30 **with recorded deviation** (unmet DONE criteria tracked as REM-023; see §closure note at the end of this document)
 **Date:** 2026-06-30
 **Author:** Agent D (security/RBAC audit)
 **Scope:** `darklordVirtual/REMORA-research` at commit `2cd573d` (master branch)
-**Related gates:** REM-022 (DONE with recorded deviation, 2026-06-30) and REM-023 (follow-through, IN_PROGRESS) — the RBAC audit is a required production deployment gate
+**Related gates:** REM-022 (DONE with recorded deviation, 2026-06-30) and REM-023 (follow-through, IN_PROGRESS), the RBAC audit is a required production deployment gate
 
 **IMPORTANT:** This document describes the RBAC design that REMORA needs; the
 implemented subset and the deviation from this design's own DONE criteria are
@@ -22,9 +22,9 @@ requirements are described per resource; implementation status is noted honestly
 
 | Key | Environment variable | Used in | Current control |
 |-----|---------------------|---------|-----------------|
-| PDP signing key | `REMORA_PDP_SIGNING_KEY` | `remora/enforcement/token.py` — signs PolicyDecisionTokens | Environment variable; no documented access list or rotation policy |
-| Envelope signing key | `REMORA_ENVELOPE_SIGNING_KEY` | `servers/api.py:462` — signs audit envelope hashes | Environment variable; same gap |
-| Audit anchor key | `REMORA_AUDIT_ANCHOR_KEY` | `remora/audit/anchor.py:61` — signs daily Merkle root anchors | Environment variable; same gap |
+| PDP signing key | `REMORA_PDP_SIGNING_KEY` | `remora/enforcement/token.py`, signs PolicyDecisionTokens | Environment variable; no documented access list or rotation policy |
+| Envelope signing key | `REMORA_ENVELOPE_SIGNING_KEY` | `servers/api.py:462`, signs audit envelope hashes | Environment variable; same gap |
+| Audit anchor key | `REMORA_AUDIT_ANCHOR_KEY` | `remora/audit/anchor.py:61`, signs daily Merkle root anchors | Environment variable; same gap |
 
 All three keys are HMAC-SHA256 secret keys. The paper (`paper/remora_paper.md:209`) explicitly
 acknowledges: "RBAC on the signing key, KMS/HSM key management, and process-boundary token
@@ -166,7 +166,7 @@ must be enforced at the SQL level (tenant_id column present in schema; used in q
 
 **Current state:** `CLOUDFLARE_API_TOKEN` in GitHub Secrets is the sole access control.
 The workflow `deploy-aromer-worker.yml` runs on `push: branches: [main]` and
-`workflow_dispatch` — the latter allows any repository collaborator with write access
+`workflow_dispatch`, the latter allows any repository collaborator with write access
 to trigger a deploy without additional approval.
 
 **Gap:** No GitHub environment with required reviewers is configured for production deploys.
@@ -258,7 +258,7 @@ a Cloudflare API token scoped to specific account/zone/Workers permissions.
 
 **Required for regulated deployments:** An external append-only log (Cloudflare R2 WORM
 bucket, AWS S3 Object Lock, or equivalent) that receives each audit record at write time.
-The D1 hash chain provides tamper evidence but not tamper prevention — a compromised
+The D1 hash chain provides tamper evidence but not tamper prevention, a compromised
 `CONTROL_SECRET` allows D1 UPDATE operations.
 
 **Code reference:** `docs/security/pre-deployment-review.md §5`, `docs/08-security.md`.
@@ -306,9 +306,9 @@ acceptance criteria.
 | 5 | Create GitHub environment `production` with required reviewers | GitHub repository settings |
 | 6 | Deprecate single-token auth mode or harden header trust | Code change in `servers/api.py` |
 | 7 | Document D1 row-level tenant isolation verification | Test or audit artifact |
-| 8 | Create test: no cross-tenant data leakage via API | ✅ DONE 2026-07-03 — `tests/test_rbac_isolation.py` |
-| 9 | Enumerate admin permissions (remove wildcard) | ✅ DONE 2026-07-03 — explicit set in `servers/api.py` + both `risk-profiles.yaml`; `"*"` branch removed; `default_role` admin→viewer |
-| 10 | External review of this RBAC design | OPEN — folded into REM-021 |
+| 8 | Create test: no cross-tenant data leakage via API | ✅ DONE 2026-07-03, `tests/test_rbac_isolation.py` |
+| 9 | Enumerate admin permissions (remove wildcard) | ✅ DONE 2026-07-03, explicit set in `servers/api.py` + both `risk-profiles.yaml`; `"*"` branch removed; `default_role` admin→viewer |
+| 10 | External review of this RBAC design | OPEN, folded into REM-021 |
 
 REM-022 is DONE when: all steps above have artifacts committed, an external reviewer
 has confirmed the design, and the artifact is at `docs/assurance/rbac_policy_v1.md`
@@ -342,4 +342,4 @@ between current implementation and that target, grounded in actual code.
 
 | Version | Date | Change |
 |---------|------|--------|
-| v1 | 2026-06-30 | Initial draft — Agent D assurance campaign Wave 1 |
+| v1 | 2026-06-30 | Initial draft, Agent D assurance campaign Wave 1 |

@@ -5,7 +5,7 @@
 
 This document records the benchmark-v2 metrics for the REMORA tool-call gating
 evaluation under harder, more ambiguous action-gating conditions. All evaluation
-is simulator-only — no real shell, network, database, git, or file mutations are
+is simulator-only, no real shell, network, database, git, or file mutations are
 executed.
 
 ## Committed metrics (remora_full_policy_gate)

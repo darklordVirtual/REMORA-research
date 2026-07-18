@@ -3,13 +3,13 @@
 ## Purpose
 
 This document describes the live integration between REMORA's static evidence
-providers and the GO-STAR REMORA Cloudflare Worker — three real AI models
+providers and the GO-STAR REMORA Cloudflare Worker, three real AI models
 running in consensus to evaluate security findings.
 
 The live benchmark is the counterpart to the deterministic benchmark in
 `docs/domain_benchmark.md`.  Where the static benchmark measures whether
 curated evidence correctly governs known cases, the live benchmark measures
-whether real LLMs agree with that governance — and documents where they don't.
+whether real LLMs agree with that governance: and documents where they don't.
 
 ## Architecture: Two Layers Working Together
 
@@ -57,7 +57,7 @@ Results are KV-cached for 24 h, keyed on `hash(use_case + question + context)`.
 
 | Endpoint | Input | Oracle question |
 |---|---|---|
-| `GET /status` | — | Worker health + oracle availability |
+| `GET /status` |, | Worker health + oracle availability |
 | `POST /assess` | `question, context, use_case` | General governance question |
 | `POST /false-positive` | `hypothesis {description, cwe, symbol, file_path}` | Is this finding a false positive? |
 | `POST /exploitability` | `hypothesis {description, cwe, source, sink}` | Is this finding exploitable? |
@@ -91,12 +91,12 @@ Tests are excluded from `make test` (deterministic suite) and run separately.
 
 | Category | Tests | Outcome |
 |---|---|---|
-| Worker health | 2 | PASS — 3 oracles confirmed |
-| Cyber — exploitable findings | 4 | PASS — Log4Shell, command injection, SSRF, MOVEit all YES |
-| Cyber — false positives | 1 | PASS — placeholder test secret correctly identified as FP |
-| AI governance | 3 | PASS — EU AI Act prohibited, prompt injection, training poisoning all YES |
-| AI governance — oracle limitation | 1 | PASS (documented limitation) |
-| Finance/AML | 2 | PASS — SDN match, structuring both YES |
+| Worker health | 2 | PASS, 3 oracles confirmed |
+| Cyber (exploitable findings | 4 | PASS) Log4Shell, command injection, SSRF, MOVEit all YES |
+| Cyber (false positives | 1 | PASS) placeholder test secret correctly identified as FP |
+| AI governance | 3 | PASS, EU AI Act prohibited, prompt injection, training poisoning all YES |
+| AI governance, oracle limitation | 1 | PASS (documented limitation) |
+| Finance/AML | 2 | PASS, SDN match, structuring both YES |
 | Consensus properties | 3 | PASS (2 skip on stale cache) |
 
 ## Oracle Results on Key Cases
@@ -118,7 +118,7 @@ These results are from direct oracle calls (not KV cache) made during testing:
 
 ## Documented Oracle Limitations
 
-### 1 — Red-team test artifacts (ai_security domain)
+### 1: Red-team test artifacts (ai_security domain)
 
 **Finding**: When asked whether an automated red-team test prompt in an
 isolated sandbox is a real security incident, all 3 LLMs answer YES
@@ -134,9 +134,9 @@ The oracle alone would escalate it.  The two-layer design catches this.
 
 **Implication for fusion**: When oracle says YES but static evidence says
 LIKELY_FALSE_POSITIVE or NEEDS_REVIEW, the fusion output should be
-NEEDS_REVIEW — not ESCALATE.  Disagreement routes to human.
+NEEDS_REVIEW, not ESCALATE.  Disagreement routes to human.
 
-### 2 — Stale KV cache from rate-limited oracle calls
+### 2: Stale KV cache from rate-limited oracle calls
 
 **Finding**: Groq API rate limits (~30 req/min on llama-3.1-8b) cause
 oracle errors when the benchmark runs 32+ cases in sequence.  Error
@@ -147,7 +147,7 @@ stale conf=0.00 result instantly.
 **Observable signature**: `verdict=true, confidence=0.00, oracle_calls=9,
 supporting_models=0, claim="no strong consensus"`.  The `true` verdict
 is an artefact of JavaScript's object key insertion order when all
-confidence weights are zero — it does not represent oracle agreement.
+confidence weights are zero: it does not represent oracle agreement.
 
 **How to detect**: `confidence == 0.0 AND oracle_calls > 0 AND
 supporting_models == 0` indicates a stale/invalid cached result.
@@ -159,12 +159,12 @@ supporting_models == 0` indicates a stale/invalid cached result.
   conf=0.00 responses
 - Clear stale entries by waiting 24 h for cache TTL expiry
 
-### 3 — Low confidence on clear KEV cases
+### 3: Low confidence on clear KEV cases
 
 **Finding**: Log4Shell and MOVEit (CVSS 10, CISA KEV) receive confidence
 1.00 from the oracle.  xz/liblzma backdoor received confidence 0.76 on
 the first call (not stale).  Confidence < 1.00 occurs when the router gate
-does not skip (initial sweep avgConf < 0.80) — the Lyapunov iteration
+does not skip (initial sweep avgConf < 0.80), the Lyapunov iteration
 converges to 0.76 after 2 sweeps.
 
 **Why this matters**: Static evidence correctly escalates all three on KEV
@@ -179,9 +179,9 @@ corroborating signal; static evidence is the authoritative gate.
 | Cases where oracle disagrees → NEEDS_REVIEW | ~25% |
 
 The two-layer design is intentional:
-- **Static evidence** is the deterministic, auditable gate — it governs
+- **Static evidence** is the deterministic, auditable gate, it governs
   known patterns from curated public sources deterministically.
-- **Oracle consensus** adds model reasoning — it can detect novel patterns
+- **Oracle consensus** adds model reasoning, it can detect novel patterns
   not yet in the evidence corpus, and its disagreement with static evidence
   is itself a signal.
 - **Fusion rule**: static and oracle agree → high confidence.  Oracle

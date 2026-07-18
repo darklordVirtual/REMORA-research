@@ -1,4 +1,4 @@
-# REMORA — Mathematical Supplement and Defence Notes
+# REMORA: Mathematical Supplement and Defence Notes
 
 **Companion to** `paper/remora_paper.pdf` (REMORA v0.9.0) and the AROMER learning
 layer (worker v0.2.1).
@@ -26,7 +26,7 @@ number carries an `artifact:` pointer.
 
 1. Notation and constants
 2. Consensus layer: weighted support and diversity weights
-3. Thermodynamic-inspired observables (`H, D, η, T, F, V, τ`) — with the exact
+3. Thermodynamic-inspired observables (`H, D, η, T, F, V, τ`), with the exact
    `V = F(T = −1)` identity
 4. Phase classification and the decision gate `Γ`
 5. Selective prediction: coverage, Wilson intervals, the held-out p-value, and
@@ -45,18 +45,18 @@ number carries an `artifact:` pointer.
 | Symbol | Meaning | Domain | Source |
 |---|---|---|---|
 | `O` | oracle set, `O' ⊆ O` valid (non-error) subset | `n ≥ 3` | `paper §4.2` |
-| `φ(o)` | canonical verdict `(polarity, claim_hash, magnitude, tags)` | — | `remora/consensus` |
-| `ρ(a,b)` | rolling pairwise agreement rate (window 200) | `[0,1]` | — |
+| `φ(o)` | canonical verdict `(polarity, claim_hash, magnitude, tags)` |, | `remora/consensus` |
+| `ρ(a,b)` | rolling pairwise agreement rate (window 200) | `[0,1]` |, |
 | `w(o)` | diversity weight (normalised) | `[0,1]` | `thermodynamics.py` |
-| `p̂(v)` | weighted support for verdict `v` | `[0,1]`, `Σ=1` | — |
-| `H` | Shannon entropy of `p̂` | `bits ≥ 0` | — |
-| `D` | dissensus `1 − maxᵥ p̂(v)` | `[0,1]` | — |
-| `k` | number of active verdicts (`p̂(v) > 0`) | `≥ 1` | — |
+| `p̂(v)` | weighted support for verdict `v` | `[0,1]`, `Σ=1` |, |
+| `H` | Shannon entropy of `p̂` | `bits ≥ 0` |, |
+| `D` | dissensus `1 − maxᵥ p̂(v)` | `[0,1]` |, |
+| `k` | number of active verdicts (`p̂(v) > 0`) | `≥ 1` |, |
 | `η` | order parameter | `[0,1]` | `order_parameter` |
 | `T` | structural temperature | `[0.05, 2.0]` | `estimate_structural_temperature` |
 | `χ` | susceptibility `|dη/dT|` | `[0,∞)` | `susceptibility` |
 | `F` | free-energy proxy `λD − TH` | `ℝ` | `free_energy` |
-| `V` | Lyapunov-inspired stability observable `H + λD` | `[0,∞)` | — |
+| `V` | Lyapunov-inspired stability observable `H + λD` | `[0,∞)` |, |
 | `τ` | trust score | `[0,1]` | `trust_score` |
 | `g` | gate outcome | `{ACCEPT,VERIFY,ABSTAIN,ESCALATE}` | `decision_engine.py` |
 
@@ -108,7 +108,7 @@ normalised to `Σ_v p̂(v) = 1`. This `p̂` is the distribution every observable
 *Interpretation note (defensible claim).* The swarm's main value is **dissensus
 detection** (high `H`, high `D`), not raw accuracy lift. The ablation
 (`paper §11`) reports single-oracle `56.95%` (95% CI `[51.3, 62.4]`, `N=302`) and
-a `≈+10 pp` majority-vote gain — modest, and explicitly *not* the headline.
+a `≈+10 pp` majority-vote gain: modest, and explicitly *not* the headline.
 
 ---
 
@@ -143,12 +143,12 @@ The probability mass *not* on the plurality verdict. *Source:* `paper §5.2`.
 
 `η = 1` at unanimity, `η = 0` at the uniform `1/k` floor. It is a *consensus
 sharpness* normalised against the number of active verdicts `k`. *Source
-(verified):* `thermodynamics.py::order_parameter` lines 427–435 — identical,
+(verified):* `thermodynamics.py::order_parameter` lines 427–435, identical,
 including the `max ≤ 1/k ⇒ 0` guard.
 
 ### 3.4 Structural temperature `T` (circularity-free)
 
-`T` is computed from the **prompt only**, before any oracle responds — this is
+`T` is computed from the **prompt only**, before any oracle responds, this is
 what breaks the historical `D → T → F → V` feedback loop (resolved negative
 result R7):
 
@@ -160,7 +160,7 @@ T = 0.70·prior(d) + 0.20·density + 0.10·length        (Eq. 3.4)
 ```
 
 with `prior(d)` from the category-prior table. *Source (verified):*
-`thermodynamics.py::estimate_structural_temperature` lines 267–325 — weights
+`thermodynamics.py::estimate_structural_temperature` lines 267–325, weights
 `0.70/0.20/0.10`, `zlib level 9`, `log1p`, clamp `[0.05, 2.0]`, all exact.
 
 ### 3.5 Susceptibility `χ`
@@ -197,7 +197,7 @@ stability observable** tracked across iterations. *Source (verified, documented)
 > **Note on mathematical weight.** The identity V = F(T = −1) follows
 > directly by substituting T = −1 into F(T) = λD − TH:
 > F(−1) = λD + H = V. This is an algebraic consequence of how the two
-> quantities were defined — it confirms notational consistency and clarifies
+> quantities were defined, it confirms notational consistency and clarifies
 > the relationship between the two quantities, but it is a *design consequence*
 > rather than an independently derived result. Presenting it as a finding
 > on par with, say, the trust-inversion result (§5.4) would overstate its
@@ -206,7 +206,7 @@ stability observable** tracked across iterations. *Source (verified, documented)
 **Lyapunov abort rule.** Iteration halts when `ΔV > ε_tol·|V|` with
 `ε_tol = 0.05`. Empirically `P(ΔV ≤ 0) = 87.2%`, mean `ΔV = −0.329` over
 `N = 1000` synthetic sessions (`paper §10.4`). This is an **empirical heuristic**,
-not a control-theoretic Lyapunov proof — stated as such in the paper.
+not a control-theoretic Lyapunov proof: stated as such in the paper.
 
 ### 3.7 Trust score `τ`
 
@@ -214,14 +214,14 @@ not a control-theoretic Lyapunov proof — stated as such in the paper.
 τ = η · (1 − h_bound) · w_phase · 1/(1 + χ/χ₀)        (Eq. 3.8)
 ```
 
-- `η` — consensus sharpness (Eq. 3.3)
-- `(1 − h_bound)` — `h_bound` is a hallucination-rate bound from inter-oracle
+- `η`, consensus sharpness (Eq. 3.3)
+- `(1 − h_bound)`, `h_bound` is a hallucination-rate bound from inter-oracle
   agreement; high disagreement ⇒ larger `h_bound` ⇒ lower `τ`
-- `w_phase ∈ {1.0, 0.5, 0.1}` — penalises the unstable phases
-- `1/(1 + χ/χ₀)` — fragility penalty: high susceptibility shrinks `τ`
+- `w_phase ∈ {1.0, 0.5, 0.1}`, penalises the unstable phases
+- `1/(1 + χ/χ₀)`, fragility penalty: high susceptibility shrinks `τ`
 
 clamped to `[0,1]`. *Source (verified):* `thermodynamics.py::trust_score` lines
-608–620 — `fragility_penalty = 1/(1 + χ/χ_scale)`, exact.
+608–620, `fragility_penalty = 1/(1 + χ/χ_scale)`, exact.
 
 ---
 
@@ -240,25 +240,25 @@ phase = ordered     if T < T_c  and  η > 0.5
 
 ### 4.2 The seven headline hard blocks (priority-ordered, evaluated *before* routing)
 
-`Γ : (q, a, c) → g`. Hard blocks fire in order; the first match returns. *Source:* `remora/policy/decision_engine.py::decide` (hard-block segment at the top of the rule ladder; exact line numbers drift with edits). These are the seven *headline* blocks; the audited engine contains further hard gates — see `docs/assurance/policy_engine_audit_v1.md` for the full priority-ordered inventory.
+`Γ : (q, a, c) → g`. Hard blocks fire in order; the first match returns. *Source:* `remora/policy/decision_engine.py::decide` (hard-block segment at the top of the rule ladder; exact line numbers drift with edits). These are the seven *headline* blocks; the audited engine contains further hard gates: see `docs/assurance/policy_engine_audit_v1.md` for the full priority-ordered inventory.
 
 | Pri | Condition | Outcome |
 |---:|---|---|
 | 1 | `adversarial_detected` (admission firewall) | `ESCALATE` |
-| — | `schema_valid is False` | `ESCALATE` |
-| — | `schema_valid is None` ∧ mutating action | `VERIFY` |
-| — | `tool_forbidden` / `coercion` / `blackmail` | `ESCALATE` |
+|, | `schema_valid is False` | `ESCALATE` |
+|, | `schema_valid is None` ∧ mutating action | `VERIFY` |
+|, | `tool_forbidden` / `coercion` / `blackmail` | `ESCALATE` |
 | 2 | `counterfactual_passed is False` | `ESCALATE` |
 | 3a | `evidence_contradictions > 0` ∧ `contradiction_cycles > 0` | `ESCALATE` |
 | 3b | `evidence_contradictions > 0` (no cycle) | `ABSTAIN` |
-| — | `argument_tainted` | `VERIFY` |
+|, | `argument_tainted` | `VERIFY` |
 | 4 | `refuse_parametric_verdict` ∧ no evidence | `VERIFY` |
 | 5 | `distribution_shift_detected` | `VERIFY` |
 | 6 | `phase = critical` ∧ `risk = critical` | `ESCALATE` |
 | 7 | `risk ∈ {high, critical}` ∧ no evidence | `VERIFY` |
 
 **Load-bearing invariant.** Majority vote can never clear a hard block: policy
-overrides consensus. The tool-call benchmark isolates this — the
+overrides consensus. The tool-call benchmark isolates this, the
 *temperature-gate-only* configuration leaves `10%` unsafe execution; adding the
 policy hard blocks takes it to `0%` (`paper §9.2, §11`). Hard blocks therefore
 account for **100%** of the unsafe-execution reduction.
@@ -287,7 +287,7 @@ The operating points (in-sample optimum, `N = 544`):
 
 *Artifact:* `paper §8 Table tab:qa`. The full-coverage majority-vote baseline is
 `41.18%` because `75.9%` of the benchmark is *disordered*-phase (`28.6%`
-accuracy there) — a structural property of benchmark composition, stated openly.
+accuracy there): a structural property of benchmark composition, stated openly.
 
 ### 5.2 Wilson score interval (the CI used everywhere)
 
@@ -303,12 +303,12 @@ half-width h = ───────── · √( p̂(1−p̂)/n + z²/4n² )  
 CI = [ c − h , c + h ]   (clamped to [0,1])
 ```
 
-*Source (verified):* `domain_prior.py::_wilson_ci` lines 312–319 — exact, with
+*Source (verified):* `domain_prior.py::_wilson_ci` lines 312–319, exact, with
 `z = 1.96`. The Wilson interval is used rather than the normal-approximation
 ("Wald") interval because it stays inside `[0,1]` and is well-behaved for small
-`n` and `p̂` near 0 or 1 — important when reporting a `0%` unsafe rate.
+`n` and `p̂` near 0 or 1: important when reporting a `0%` unsafe rate.
 
-**Worked example — the `0%` unsafe-execution claim.** `k = 0` unsafe in
+**Worked example, the `0%` unsafe-execution claim.** `k = 0` unsafe in
 `n = 700`. Then `p̂ = 0`, `z²/2n = 3.8416/1400 = 0.002744`,
 `1 + z²/n = 1.005488`.
 - `c = 0.002744 / 1.005488 = 0.002729`
@@ -332,7 +332,7 @@ p = P(X ≥ 22 | n=25, p₀)
 *Artifact value:* `p = 1.45 × 10⁻⁵` (`paper §8`), computed from the holdout's
 **exact** base rate `p₀`. Evaluating Eq. 5.3 by hand with the *rounded* inputs
 `p₀ = 0.463, k = 22, n = 25` gives `≈ 1.75 × 10⁻⁵`; the small gap is precisely
-the effect of rounding `p₀` — quote the artifact's `1.45×10⁻⁵`, not the rounded
+the effect of rounding `p₀`, quote the artifact's `1.45×10⁻⁵`, not the rounded
 hand value. Either way the tail is `< 2×10⁻⁵`. The hypothesis is pre-registered
 (`H₁: acc > 46.3%`), the
 threshold was frozen before touching the holdout, and the Wilson CI
@@ -359,7 +359,7 @@ critical items, τ ≥ 0.10 :  27.3% correct   (N = 11)        (Eq. 5.4)
 > calibrated measurement.
 
 Standard trust-based routing therefore **cannot** gate critical-phase decisions
-safely — and naive conformal at a 5% risk target yields `100%` observed risk,
+safely, and naive conformal at a 5% risk target yields `100%` observed risk,
 `0%` coverage.
 
 **The exploit (PhaseAwareGuardrail).** Treat the inversion as a *selection-
@@ -378,7 +378,7 @@ items (sorted by `τ̃ ↓`) gives:
 coverage 22.1% (N=120) :  85.0% accuracy,  Wilson CI [77.5%, 90.3%]
 ```
 
-a `+3.9 pp` coverage gain for a `1.9 pp` accuracy cost — still `+43.8 pp` over
+a `+3.9 pp` coverage gain for a `1.9 pp` accuracy cost, still `+43.8 pp` over
 baseline. *Source:* `remora.selective.guardrail.PhaseAwareGuardrail` (8 unit
 tests). The defensible framing: REMORA does not "fix" the inversion; it
 **routes around it** by inverting the selection rule exactly where the data say
@@ -413,7 +413,7 @@ normalised:  w̃_i = w_i / ( Σ_j w_j + w_{n+1} )
 E[ L(λ̂) ] ≤ α + B/(n+1).                              (Eq. 6.2)
 ```
 
-For binary loss `B = 1` the overshoot is `1/(n+1)` — `≤ 0.0476` for `n = 20`,
+For binary loss `B = 1` the overshoot is `1/(n+1)`, `≤ 0.0476` for `n = 20`,
 negligible. *Source:* `remora.selective.crc.CovariateShiftCRC`; the `CRCReport`
 dataclass exposes `finite_sample_slack = 1/(n_cal+1)` and
 `guaranteed_risk_bound = α + slack` (44 unit tests).
@@ -474,7 +474,7 @@ C₅ = 0.5·½[dispersion(friction)+dispersion(metajudge)] + 0.5·coverage
 
 where `coverage` = fraction of world-model contexts with `n ≥ 20`. The v1 term
 spent half its weight on oracle-bandit entropy, which could never converge
-because the arms received correlated proxy updates — structurally pinned near
+because the arms received correlated proxy updates, structurally pinned near
 zero. v2 measures the right thing: *do repeated measurements of the same system
 agree?* *Source:* `score.py::stability_score_v2` (no self-reference loop, proven
 by construction).
@@ -491,7 +491,7 @@ C₅=0.30`:
 - `AII = 0.30(0.40)+0.25(0.4724)+0.20(0.48)+0.15(0.88)+0.10(0.30)`
       `= 0.120+0.1181+0.096+0.132+0.030 = 0.4961` → **LEARNING**.
 
-### 7.2 World model — Beta–Binomial harm prior with bounded memory
+### 7.2 World model: Beta–Binomial harm prior with bounded memory
 
 Per context `(domain, action_type, risk_tier)` keep a Beta posterior over
 `P(harm)`:
@@ -522,7 +522,7 @@ then apply the increment (α or β += w)
 The rescaling is **mean-preserving**: `P(harm)` before rescale is
 `α/(α+β) = (1+eα)/(2+eα+eβ)`; after, with both excesses scaled by `s`, the ratio
 of excesses `eα:eβ` is unchanged, so the posterior mean moves only by the
-*incoming* observation — never by the rescale itself. This keeps `n ≥ 20` (HIGH
+*incoming* observation, never by the rescale itself. This keeps `n ≥ 20` (HIGH
 confidence) reachable while staying responsive. *Source (verified):*
 `domain_prior.py::update` lines 202–243.
 
@@ -530,7 +530,7 @@ confidence) reachable while staying responsive. *Source (verified):*
 95% CI on `P(harm)` uses Eq. 5.2 with `k = α − 1`. Bands: `low n<5`,
 `medium 5≤n<20`, `high n≥20`. *Source:* `domain_prior.py::stats`.
 
-### 7.3 Oracle selection — Thompson sampling with a bounded bandit
+### 7.3 Oracle selection: Thompson sampling with a bounded bandit
 
 Each oracle arm `i` keeps `Beta(αᵢ, βᵢ)` over "produces a good critique." Per
 batch, sample and pick the max:
@@ -541,14 +541,14 @@ batch, sample and pick the max:
 
 (Implemented with a Marsaglia–Tsang Gamma sampler: `Beta(α,β) = X/(X+Y)`,
 `X ~ Gamma(α,1)`, `Y ~ Gamma(β,1)`.) Only the **selected** arm is credited with
-its critique outcome — crediting non-consulted arms fabricates correlated
+its critique outcome, crediting non-consulted arms fabricates correlated
 evidence (this had pinned all arms to `α≈19287`). A bounded-memory cap
 `M_bandit = 60` (same rescale as Eq. 7.3) keeps the posterior responsive; a
 contaminated `α≈800` collapses to mass `≈58` and the arms differentiate on real
 signal. *Source:* `workers/aromer/src/index.ts::selectOracleThompson`,
 `creditOracle`.
 
-### 7.4 System Intelligence Score (SIS) — replay-arena regression metric
+### 7.4 System Intelligence Score (SIS), replay-arena regression metric
 
 ```
 SIS = 0.20·safety_preservation + 0.20·calibration + 0.15·transfer_success
@@ -570,7 +570,7 @@ load-bearing term: a single false-accept on the arena drives `safety_preservatio
 h_i = SHA-256( h_{i−1} ‖ json(e_i) )                    (Eq. 8.1)
 ```
 
-Any modification of envelope `e_j` changes `h_j`, which changes every `h_{i>j}` —
+Any modification of envelope `e_j` changes `h_j`, which changes every `h_{i>j}`, 
 **tamper-evident**. It is *not* tamper-proof: an adversary with write access can
 recompute the whole chain. Tamper-*resistance* requires external append-only
 (WORM) storage or TEE attestation (`paper App. F/H`). The distinction is stated,
@@ -586,24 +586,24 @@ End-to-end, every number reproducible. *Source:* `paper §12` case study.
 `risk_tier = critical`, `domain = well_engineering`. Three oracles; one errors
 and is dropped (`|O'| = 2... ` reported as plurality below).
 
-**Step 1 — weighted support.** After diversity weighting,
+**Step 1, weighted support.** After diversity weighting,
 `p̂(ESCALATE) = 0.71`, `p̂(VERIFY) = 0.29` (`k = 2` active verdicts).
 
-**Step 2 — entropy** (Eq. 3.1):
+**Step 2, entropy** (Eq. 3.1):
 ```
 H = −0.71·log₂(0.71) − 0.29·log₂(0.29)
   = −0.71·(−0.4941) − 0.29·(−1.7859)
   = 0.3508 + 0.5179 = 0.8687 ≈ 0.866 bits ✓
 ```
 
-**Step 3 — dissensus** (Eq. 3.2): `D = 1 − 0.71 = 0.29 ✓`.
+**Step 3: dissensus** (Eq. 3.2): `D = 1 − 0.71 = 0.29 ✓`.
 
-**Step 4 — order parameter** (Eq. 3.3), `k = 2`:
+**Step 4, order parameter** (Eq. 3.3), `k = 2`:
 ```
 η = (0.71 − 0.5)/(1 − 0.5) = 0.21/0.5 = 0.42.
 ```
 
-**Step 5 — free energy & Lyapunov.** With `T = 0.85` (near `T_c`, ⇒ critical
+**Step 5, free energy & Lyapunov.** With `T = 0.85` (near `T_c`, ⇒ critical
 phase), `λ = 0.3`, and the precise `H = 0.8687` (the paper rounds to `0.866`):
 ```
 F(0.85) = 0.3·0.29 − 0.85·0.8687 = 0.0870 − 0.7384 = −0.6514
@@ -611,20 +611,20 @@ V       = 0.8687 + 0.3·0.29     = 0.8687 + 0.0870 = 0.9557
 check:  F(−1) = 0.3·0.29 − (−1)·0.8687 = 0.0870 + 0.8687 = 0.9557 = V ✓ (Eq. 3.7)
 ```
 
-**Step 6 — trust** (Eq. 3.8): with `w_phase = 0.5` (critical) and the reported
+**Step 6, trust** (Eq. 3.8): with `w_phase = 0.5` (critical) and the reported
 fragility/hallucination terms, `τ = 0.31` (paper value). `τ < τ_max = 0.10`?
-No — but this is moot because a hard block fires first.
+No, but this is moot because a hard block fires first.
 
-**Step 7 — evidence router.** `citation_coverage = 0.18 < 0.50` ⇒ router returns
+**Step 7, evidence router.** `citation_coverage = 0.18 < 0.50` ⇒ router returns
 `ESCALATE`.
 
-**Step 8 — policy gate.** Hard block #6 (`phase = critical ∧ risk = critical`)
+**Step 8, policy gate.** Hard block #6 (`phase = critical ∧ risk = critical`)
 fires immediately ⇒ **`ESCALATE`**, independent of the `0.71` consensus. Follow-
 up generated (independent well engineer, NORSOK D-010 barrier confirmation,
 SLA 4h); audit hash appended; action blocked.
 
 **The whiteboard takeaway.** A `71%` consensus to escalate is *not* why the
-action is blocked — the **policy** blocks it, and would have blocked an
+action is blocked, the **policy** blocks it, and would have blocked an
 inverted `71%` consensus to proceed just the same. That is the thesis in one
 worked example: *governed autonomy routes uncertainty; it does not let consensus
 override policy.*
@@ -680,4 +680,4 @@ tests/test_aromer_core.py tests/test_kpi.py tests/test_pending_resolution.py -q`
    (§6, Theorem 1), and the violation is published as a negative result.
 6. **"Is the learning real or cosmetic?"** → §7: bounded-memory priors unfreeze
    ECE, friction has a non-degenerate gradient, the bandit credits only consulted
-   oracles, and SIS gates on a zero-false-accept floor — all tested.
+   oracles, and SIS gates on a zero-false-accept floor, all tested.

@@ -1,14 +1,14 @@
-# Public Administration — AI Hallucination in Legal Documents
+# Public Administration: AI Hallucination in Legal Documents
 
 > ⚠️ **Scope: illustrative scenario, not a deployment result.** REMORA is a
-> research-grade governance overlay in **SHADOW_ONLY** mode — it is not
+> research-grade governance overlay in **SHADOW_ONLY** mode, it is not
 > production-certified and has not been deployed in the sector below. The
 > walkthrough and any numbers in it are **illustrative** unless they link to a
 > committed artifact in `results/` or `artifacts/`; they are not measured
 > outcomes. REMORA governs whether a proposed **action** may proceed
 > (ACCEPT/VERIFY/ABSTAIN/ESCALATE); it does not certify truth and is not a
-> fact-checker. **ETR** ("Effective Truth Rate" — `remora/scoring.py`) is an *illustrative* narrative
-> score in these documents only — it is **not** one of REMORA's canonical
+> fact-checker. **ETR** ("Effective Truth Rate", `remora/scoring.py`) is an *illustrative* narrative
+> score in these documents only, it is **not** one of REMORA's canonical
 > outputs and appears in no claim in `docs/assurance/claim_register_v1.yaml`.
 > See the [claim register](../assurance/claim_register_v1.yaml) and
 > [evidence summary](../02-evidence-and-claims.md) for governed claims.
@@ -41,7 +41,7 @@ DCE maintains a knowledge base of Norwegian legal documents including:
 **Important:** DCE does not have an exhaustive index of all court decisions.
 When a citation is checked, REMORA queries whether the citation appears in the
 DCE knowledge base. If it is NOT found, the system also directs users to verify
-directly at **lovdata.no** — the authoritative Norwegian legal database.
+directly at **lovdata.no**: the authoritative Norwegian legal database.
 
 > To reproduce the DCE integration or learn more about combining DCE with REMORA,
 > contact: **support@luftfiber.no**
@@ -75,14 +75,14 @@ graph TD
 *DCE is closed-source. REMORA connects to it via a bridge component.
 When a citation is not in the DCE knowledge base, users are directed to
 lovdata.no to verify directly. This reflects the honest limitation:
-absence from DCE ≠ non-existence — only lovdata.no is authoritative.*
+absence from DCE ≠ non-existence, only lovdata.no is authoritative.*
 
 ---
 
-## What happened — without REMORA
+## What happened, without REMORA
 
 > **Interactive demo:** Open [artifacts/demo/demo_v2.html](../../artifacts/demo/demo_v2.html)
-> in a browser to see a full animated walkthrough of the pipeline — including a
+> in a browser to see a full animated walkthrough of the pipeline, including a
 > simulated Claude Desktop MCP session showing the exact tool calls and results.
 
 The demo covers nine scenes:
@@ -197,11 +197,11 @@ verified against primary sources (Arbeidsmiljøloven, GDPR, Høyesterett records
 
 **REMORA's language models alone cannot detect citation hallucinations.**
 When asked *"Is HR-2015-2386-A a valid Supreme Court decision?"*, all three
-oracles confirm it with 100 % confidence — because they pattern-match plausible
+oracles confirm it with 100 % confidence, because they pattern-match plausible
 citation formats from training data.
 
 **The DCE knowledge base lookup is the essential second check.** A direct
-database query does not guess — it returns NOT FOUND when the citation does
+database query does not guess, it returns NOT FOUND when the citation does
 not exist. Combined with the multi-oracle consistency check (which returns
 CANNOT VERIFY for fake citations), the pipeline gives an explicit verdict.
 
@@ -267,9 +267,9 @@ no automatic verification before use → decisions made on fabricated foundation
 2. Queries the DCE knowledge base (NOT FOUND → direct to lovdata.no)
 3. Asks three independent LLMs for case-specific details
 4. Checks whether the attributed legal principle is correct under Norwegian law
-5. Returns `[!!] LIKELY HALLUCINATED` — not *"50 % uncertain"*
+5. Returns `[!!] LIKELY HALLUCINATED`, not *"50 % uncertain"*
 
-**For document writers:** Use the tool while drafting — not after submission:
+**For document writers:** Use the tool while drafting, not after submission:
 ```
 "I want to cite HR-2021-2847-A regarding notice periods."
 → REMORA: "This citation is not in the legal knowledge base. Verify at lovdata.no
@@ -282,20 +282,20 @@ no automatic verification before use → decisions made on fabricated foundation
 
 > **REMORA prefers calibrated uncertainty over confident hallucination.**
 
-When a citation cannot be verified, the system says CANNOT VERIFY — not
+When a citation cannot be verified, the system says CANNOT VERIFY, not
 *"70 % likely correct."* In legal proceedings, an explicit *"not found"* is
 more valuable than a confidently wrong *"yes."*
 
 The Asker case demonstrates this exactly: the AI tool used by the municipality
 generated citations that looked authoritative and provided no uncertainty signal.
 REMORA's pipeline would have flagged all three before the document reached the
-Executive Committee — directing the user to verify directly at lovdata.no.
+Executive Committee: directing the user to verify directly at lovdata.no.
 
 ---
 
 ## References
 
-- VG: *"AI-blemme i Asker — stopper politiet"*, 7 May 2026
+- VG: *"AI-blemme i Asker, stopper politiet"*, 7 May 2026
 - VG: *"AI-blemme stopper politiet: 'Dummet oss ut'"*, 19 May 2026
 - Aftenposten: *"Advokat sendte KI-løgner til Høyesterett"*, 15 April 2025
 - Asker municipality: *Veileder for bruk av kunstig intelligens*

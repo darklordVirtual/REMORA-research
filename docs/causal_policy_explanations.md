@@ -80,7 +80,7 @@ included when citing any finding externally.
 > after this change would increase by X%."
 
 World causality requires a validated Structural Causal Model (SCM) for the
-domain — including real-world interventional distributions, not just policy
+domain, including real-world interventional distributions, not just policy
 signal mappings. REMORA's `CausalDecisionModel` is a *partially specified*
 causal model in the sense of Bjøru (2026) §5: it captures the concepts and
 their approximate policy-level consequences, bounded by explicit assumptions.
@@ -96,17 +96,17 @@ An **actionable policy requirement** is an operational condition that:
 3. That field override removes a blocking `DecisionReason`
 
 **Actionable (can be intervened on):**
-- `approved_change_window` — requires completing a formal change-window approval
-- `dual_control_verified` — requires a second human operator to attest
-- `rollback_plan_verified` — requires a rollback plan to be written and reviewed
-- `source_provenance_verified` — requires auditing the argument-provenance chain
+- `approved_change_window`, requires completing a formal change-window approval
+- `dual_control_verified`, requires a second human operator to attest
+- `rollback_plan_verified`, requires a rollback plan to be written and reviewed
+- `source_provenance_verified`, requires auditing the argument-provenance chain
 
 **Non-actionable (cannot be intervened on):**
-- `trust_score` — computed by the oracle ensemble; cannot be set
-- Entropy H and dissensus D — computed from oracle response distributions
-- `risk_tier` — derived signal; the *concept* `approved_change_window` may reduce
+- `trust_score`, computed by the oracle ensemble; cannot be set
+- Entropy H and dissensus D, computed from oracle response distributions
+- `risk_tier`, derived signal; the *concept* `approved_change_window` may reduce
   effective risk tier as a consequence, but risk_tier itself is not directly settable
-- Oracle disagreement and Lyapunov V(t) — runtime telemetry, not controllable
+- Oracle disagreement and Lyapunov V(t), runtime telemetry, not controllable
 
 ---
 
@@ -122,7 +122,7 @@ one of:
   + `phase="ordered"` or `trust_score >= 0.72`
 
 **Causal explanation:** direct_policy_causes is the accept reason (e.g.
-`EVIDENCE_SUPPORTED`). actionable_requirements is empty — no changes needed.
+`EVIDENCE_SUPPORTED`). actionable_requirements is empty, no changes needed.
 
 ### VERIFY
 
@@ -144,7 +144,7 @@ No accept path matched and no hard block fired. System is uncertain.
 - `phase="disordered"` with no evidence
 - `trust_score < 0.2` with no evidence
 
-actionable_requirements may be empty — the uncertainty is systemic, not
+actionable_requirements may be empty, the uncertainty is systemic, not
 removable by a single concept change.
 
 ### ESCALATE

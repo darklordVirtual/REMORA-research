@@ -112,4 +112,4 @@ The Cloudflare Sandbox SDK (Workers Paid / Enterprise) provides a MicroVM runtim
 enabled = true
 ```
 
-This is not required for MVP — the control plane Worker logic runs fully on the free Workers plan.
+This is not required for MVP: the control plane Worker logic runs fully on the free Workers plan.

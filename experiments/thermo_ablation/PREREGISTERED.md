@@ -1,4 +1,4 @@
-# Pre-registration — Thermodynamic-control ablation
+# Pre-registration: Thermodynamic-control ablation
 
 **Status: PRE-REGISTERED. No live runs have been executed. No results exist yet.**
 

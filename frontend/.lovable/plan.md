@@ -1,4 +1,4 @@
-# REMORA — Enterprise Frontend Plan
+# REMORA: Enterprise Frontend Plan
 
 A minimalist, professional marketing/research site for the REMORA governed agentic AI reference architecture, targeting enterprise & governance audiences (CISO, AI risk, infra leads).
 
@@ -30,7 +30,7 @@ Each route gets its own `head()` with unique title/description/og tags.
 - H1 (serif): "A governance control plane for agentic AI."
 - Sub: one-sentence thesis from the whitepaper.
 - Decision-state row: ACCEPT / VERIFY / ABSTAIN / ESCALATE as mono chips with one-line definitions.
-- Architecture diagram (SVG, hand-built — Input → Oracle pool → Canonicalize → Consensus → Uncertainty → Policy gate → Decision, with Evidence + Audit branches).
+- Architecture diagram (SVG, hand-built, Input → Oracle pool → Canonicalize → Consensus → Uncertainty → Policy gate → Decision, with Evidence + Audit branches).
 - Three pillars: Selective reliability · Safe tool execution · Auditable decisions.
 - Evidence-scope disclosure block (boxed, muted) reproducing the audit warning.
 - Footer with citations link, repo head `5e051b9`, prepared-for line.
@@ -44,7 +44,7 @@ Each route gets its own `head()` with unique title/description/og tags.
 **Evidence (`/evidence`)**
 
 - Benchmark tables (full-coverage QA N=302 / N=544, tool-call safety v2).
-- Calibration & negative-results section — explicit about what REMORA is _not_.
+- Calibration & negative-results section: explicit about what REMORA is _not_.
 
 **Governance (`/governance`)**
 
@@ -57,23 +57,23 @@ Each route gets its own `head()` with unique title/description/og tags.
 
 ## Component inventory
 
-- `SiteHeader` — wordmark "REMORA", thin nav, version pill.
-- `SiteFooter` — citations, repo head, prepared-for, evidence-scope note.
-- `SectionLabel` — small-caps numbered label.
-- `DecisionChip` — mono chip for ACCEPT/VERIFY/ABSTAIN/ESCALATE with semantic color tokens.
-- `ArchitectureDiagram` — inline SVG, responsive.
-- `EvidenceTable` — minimal hairline table with column alignment for numerics.
-- `Callout` — boxed muted block for warnings / audit notes.
-- `Citation` — inline `[Sx]` with hover tooltip.
+- `SiteHeader`: wordmark "REMORA", thin nav, version pill.
+- `SiteFooter`: citations, repo head, prepared-for, evidence-scope note.
+- `SectionLabel`, small-caps numbered label.
+- `DecisionChip`: mono chip for ACCEPT/VERIFY/ABSTAIN/ESCALATE with semantic color tokens.
+- `ArchitectureDiagram`, inline SVG, responsive.
+- `EvidenceTable`: minimal hairline table with column alignment for numerics.
+- `Callout`: boxed muted block for warnings / audit notes.
+- `Citation`: inline `[Sx]` with hover tooltip.
 
 ## Technical details
 
 - TanStack Start routes under `src/routes/` (flat dot convention). One route file per page; each sets unique `head()` meta including og:title / og:description.
-- Design tokens defined in `src/styles.css` only — semantic vars (`--background`, `--foreground`, `--accent`, `--muted`, `--border`, decision-state colors). All component styling via Tailwind utilities bound to tokens; no hardcoded hex in components.
+- Design tokens defined in `src/styles.css` only: semantic vars (`--background`, `--foreground`, `--accent`, `--muted`, `--border`, decision-state colors). All component styling via Tailwind utilities bound to tokens; no hardcoded hex in components.
 - Fonts loaded via Google Fonts `<link>` in `__root.tsx` head (or self-hosted later).
 - SVG diagrams authored by hand (no chart library needed).
 - Whitepaper content stored as typed TS data modules in `src/content/whitepaper.ts` (sections, tables, citations) so routes can reuse it.
-- No backend / Lovable Cloud needed for v1 — pure presentation.
+- No backend / Lovable Cloud needed for v1, pure presentation.
 - Replace placeholder `src/routes/index.tsx` content.
 
 ## Out of scope (v1)

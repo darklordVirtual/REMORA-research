@@ -136,7 +136,7 @@ dataset that was not designed or curated by the REMORA project.
 > not present in training corpus. Artifact: results/..."
 
 **Typical REMORA examples:**
-- FAR=0% on AgentHarm (arxiv:2410.09024, ai-safety-institute, N=208) — REM-014
+- FAR=0% on AgentHarm (arxiv:2410.09024, ai-safety-institute, N=208), REM-014
   (`results/external_benchmark_agentharm_v1.json`)
 
 **Promotion path:** Promote to `independently_replicated` when a party external

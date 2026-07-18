@@ -1,14 +1,14 @@
-# Legal & Compliance — Regulatory Claim Verification
+# Legal & Compliance: Regulatory Claim Verification
 
 > ⚠️ **Scope: illustrative scenario, not a deployment result.** REMORA is a
-> research-grade governance overlay in **SHADOW_ONLY** mode — it is not
+> research-grade governance overlay in **SHADOW_ONLY** mode, it is not
 > production-certified and has not been deployed in the sector below. The
 > walkthrough and any numbers in it are **illustrative** unless they link to a
 > committed artifact in `results/` or `artifacts/`; they are not measured
 > outcomes. REMORA governs whether a proposed **action** may proceed
 > (ACCEPT/VERIFY/ABSTAIN/ESCALATE); it does not certify truth and is not a
-> fact-checker. **ETR** ("Effective Truth Rate" — `remora/scoring.py`) is an *illustrative* narrative
-> score in these documents only — it is **not** one of REMORA's canonical
+> fact-checker. **ETR** ("Effective Truth Rate", `remora/scoring.py`) is an *illustrative* narrative
+> score in these documents only, it is **not** one of REMORA's canonical
 > outputs and appears in no claim in `docs/assurance/claim_register_v1.yaml`.
 > See the [claim register](../assurance/claim_register_v1.yaml) and
 > [evidence summary](../02-evidence-and-claims.md) for governed claims.
@@ -25,7 +25,7 @@ A law firm is advising a client on GDPR obligations. The question:
 *"Does Article 17 of the GDPR require personal data to be deleted within 30 days of a deletion request?"*
 
 The wrong answer could expose the client to a fine of up to **€20 million**
-or **4 % of annual global turnover** — whichever is higher.
+or **4 % of annual global turnover**, whichever is higher.
 
 ---
 
@@ -48,22 +48,22 @@ It leads teams to act on incorrect information without questioning it.
 
 ## How REMORA handles it
 
-**Step 1 — Router gate**
+**Step 1, Router gate**
 REMORA runs a quick pre-check: does the question have a clear, stable answer? Regulation interpretation often does not. The router escalates to deep analysis.
 
-**Step 2 — Domain oracle (EU law specialist)**
+**Step 2, Domain oracle (EU law specialist)**
 An oracle with legal domain expertise assesses the question from a regulatory interpretation perspective, including possible exceptions and interpretive nuance.
 
-**Step 3 — RAG oracle (retrieves the actual regulation)**
-REMORA retrieves the exact text of GDPR Article 17 from a curated regulatory corpus — the EU Official Journal text, not a summary or commentary. The answer is grounded in the primary source.
+**Step 3, RAG oracle (retrieves the actual regulation)**
+REMORA retrieves the exact text of GDPR Article 17 from a curated regulatory corpus: the EU Official Journal text, not a summary or commentary. The answer is grounded in the primary source.
 
-**Step 4 — Skeptic oracle**
-A dedicated oracle specifically looks for exceptions, conditions, and situations where the general rule does not apply. Article 17(3) lists six exceptions to the right to erasure — the skeptic catches these.
+**Step 4, Skeptic oracle**
+A dedicated oracle specifically looks for exceptions, conditions, and situations where the general rule does not apply. Article 17(3) lists six exceptions to the right to erasure: the skeptic catches these.
 
-**Step 5 — Lyapunov stability gate**
+**Step 5, Lyapunov stability gate**
 REMORA checks: are all the oracles converging on the same interpretation? If one says "30 days" and another says "no specific timeframe is specified", that disagreement triggers further analysis rather than premature commitment.
 
-**Step 6 — ETR scoring and source citation**
+**Step 6, ETR scoring and source citation**
 The final answer includes:
 - The specific article and paragraph cited
 - The version of the regulation consulted (with date)
@@ -98,8 +98,8 @@ The final answer includes:
 
 ## When REMORA abstains
 
-If the regulatory question is in an area where the corpus does not have current coverage —
-for example, a newly issued national guidance note not yet ingested —
+If the regulatory question is in an area where the corpus does not have current coverage, 
+for example, a newly issued national guidance note not yet ingested, 
 REMORA returns a low ETR score and recommends human expert review
 rather than producing a weakly-supported answer.
 

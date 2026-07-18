@@ -4,7 +4,7 @@ This document maps the canonical `DecisionEnvelope` contract, the
 `PolicyObservation` input, the decision engine, the Oracle ABC, adapters, the
 enforcement (PDP/PEP) library, and the MCP tool surface. **Implementation
 source is authoritative**; every signature below is verified against source by
-`tests/test_api_reference_doc.py` — if this document drifts from the code, CI
+`tests/test_api_reference_doc.py`, if this document drifts from the code, CI
 fails.
 
 → [01-architecture.md](01-architecture.md) for how these interfaces fit together.
@@ -12,7 +12,7 @@ fails.
 
 ---
 
-## DecisionEnvelope — canonical governance contract
+## DecisionEnvelope, canonical governance contract
 
 `DecisionEnvelope` (`remora/governance/envelope.py`) is the canonical v2
 decision record: a nested, immutable, JSON-serialisable structure. Do not add
@@ -33,7 +33,7 @@ blocks without updating the envelope hash and schema.
 Serialise with `envelope.to_dict()`. The audit hash chain
 (`remora/audit/hash_chain.py`, class `HashChain`) links records as
 `hᵢ = SHA-256(hᵢ₋₁ ‖ record_json)`; modification of a past record breaks all
-subsequent hashes. This is tamper-*evidence*, not tamper-prevention — see the
+subsequent hashes. This is tamper-*evidence*, not tamper-prevention, see the
 limitations section of README.md.
 
 Note: the flat per-decision record used in result files
@@ -42,11 +42,11 @@ documented in [06-reproducibility.md](06-reproducibility.md), not this envelope.
 
 ---
 
-## PolicyObservation — input contract
+## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
 with 57 fields; **all fields except `question` are optional and
-caller-populated** — REMORA is stateless and performs no detection itself
+caller-populated**, REMORA is stateless and performs no detection itself
 (the engine treats `None` as "unknown, not safe"). Selected fields by group:
 
 | Group | Fields (selection) |
@@ -58,10 +58,10 @@ caller-populated** — REMORA is stateless and performs no detection itself
 | Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected` |
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
-| Binding | `tool_call_hash` — SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
+| Binding | `tool_call_hash`, SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
 
 Construct from a dict with `PolicyObservation.from_json_record(record)`
-(unknown keys are ignored — misspelled safety flags therefore silently default
+(unknown keys are ignored, misspelled safety flags therefore silently default
 to their permissive value; validate producer-side).
 
 ---
@@ -89,7 +89,7 @@ fields: `action`, `reasons`, `risk_estimate`, `confidence`, `coverage_policy`,
 Hard-block invariants run with absolute precedence before any probabilistic
 routing; the machine-checkable invariant list is `CORE_INVARIANTS` in
 `remora/policy/invariants.py`. `explain()` returns a `PolicyTrace` whose rule
-ladder mirrors `decide()` rule-for-rule — parity is enforced by
+ladder mirrors `decide()` rule-for-rule, parity is enforced by
 `tests/test_explain_decide_parity.py`. The default (bare) constructor leaves
 all calibrated ACCEPT paths inert; ACCEPTs then come only from the
 evidence-supported and ordered-high-trust paths.
@@ -152,7 +152,7 @@ wrapped = oai.intercept_tool_call(...)  # OpenAI-shaped convenience wrapper
 ```
 
 `AsyncLocalGateway.execute_gated(...)` raises `PermissionError` for non-ACCEPT
-outcomes — this adapter layer is the actual runtime blocking path.
+outcomes: this adapter layer is the actual runtime blocking path.
 
 ---
 
@@ -176,14 +176,14 @@ verifies the signature, expiry, max age and audience, and atomically consumes
 the `jti` so a token can authorise exactly one execution.
 
 **Integration status (SHADOW_ONLY):** the PDP→PEP token flow is wired into the
-live app via the execution API — `POST /v1/execution/assess` issues a
+live app via the execution API, `POST /v1/execution/assess` issues a
 short-lived signed token on ACCEPT, and `POST /v1/execution/execute` re-gates
 the fresh observation and consumes a one-time grant through the gate. The
 `jti`-consumption store is in-process (durable multi-node consumption is a
 deployment concern). See `servers/execution_api.py` and
 `docs/assurance/capability_register_v1.yaml` CAP-003 (WIRED_API_PATH).
 
-### Execution state machine — `servers/execution_api.py` (`/v1/execution/*`)
+### Execution state machine, `servers/execution_api.py` (`/v1/execution/*`)
 
 The end-to-end path (REM-035): `POST /assess` (issues an ACCEPT token or
 enqueues a review item), `POST /approve` (records the authenticated principal;
@@ -195,16 +195,16 @@ one-time grant), `GET /audit/verify` (recomputes the per-tenant chain). RBAC:
 
 ### Governance modules (library)
 
-- `remora/governance/tenant_chain.py` — `TenantAuditChain` (in-process) and the
+- `remora/governance/tenant_chain.py`, `TenantAuditChain` (in-process) and the
   durable `SQLiteTenantChain` / `PostgresTenantChain` adapters (REM-034):
   `entry_hash` covers previous-hash, tenant, sequence and timestamp;
   `append()` is atomic; `verify()` recomputes and checks the HMAC signature.
-- `remora/governance/review_queue.py` — `ReviewQueue`: enqueue (VERIFY/ESCALATE
+- `remora/governance/review_queue.py`, `ReviewQueue`: enqueue (VERIFY/ESCALATE
   only), TTL→ABSTAIN, mandatory-expiry approvals, execution-time re-gate
   (only ACCEPT/VERIFY execute), all transitions hash-chained.
-- `remora/governance/degradation.py` — `DegradationRecorder` (G0–G4 ladder with
+- `remora/governance/degradation.py`, `DegradationRecorder` (G0–G4 ladder with
   tamper-evident transitions) and `g4_refuses()`.
-- `remora/governance/a2a_envelope.py` — `A2AGovernanceEnvelope`, `RegisteredKey`
+- `remora/governance/a2a_envelope.py`, `A2AGovernanceEnvelope`, `RegisteredKey`
   (principal-bound per-link keys), `sign_delegation_link()`.
 
 Wiring status per module is authoritative in
@@ -212,7 +212,7 @@ Wiring status per module is authoritative in
 
 ---
 
-## Safety — adversarial detection
+## Safety, adversarial detection
 
 `remora/safety/adversarial.py`:
 
@@ -224,7 +224,7 @@ flagged: bool = detect_adversarial(text)
 
 Returns a plain `bool` (pattern-based heuristic). It covers the action
 description text only; it does not cover untrusted payloads inside tool
-results — an active gap documented in `NEGATIVE_RESULTS.md`.
+results: an active gap documented in `NEGATIVE_RESULTS.md`.
 
 ---
 

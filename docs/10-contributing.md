@@ -24,7 +24,7 @@ Every claim must include:
 2. Add a test in `tests/` with at least one negative case.
 3. Run `make test` and confirm all tests pass.
 4. Update `docs/07-api-reference.md` with the new interface.
-5. Add any new public API surface to the `Oracle` ABC — see `remora/core.py`.
+5. Add any new public API surface to the `Oracle` ABC, see `remora/core.py`.
 
 ## Negative results
 
@@ -55,7 +55,7 @@ Open an issue with the "external-review" template (`docs/external-review.md`). P
 - the claim being tested,
 - the exact reproduce command,
 - the artifact you compared against,
-- your result (even if it matches — positive replications are also valuable).
+- your result (even if it matches: positive replications are also valuable).
 
 Negative findings are explicitly welcome and will not be suppressed.
 

@@ -42,7 +42,7 @@ Paper-safe contribution statement:
    affected assets, irreversibility, downstream effects, and a coarse expected
    loss. See `causal_consequence_gating.md`.
 5. **Policy-generalization risk** (`policy_generalization.py`): the
-   standing-policy question — would repeatedly ACCEPTing this class of action
+   standing-policy question, would repeatedly ACCEPTing this class of action
    remain safe fleet-wide? See `policy_generalization_risk.md`.
 6. **Strengthen-only merge** (`enrichment.py`): the enriched observation only
    ever raises risk floats, lowers confidence floats, raises tiers, and ORs
@@ -69,7 +69,7 @@ Paper-safe contribution statement:
 ## Why pre-policy enrichment matters
 
 The decision engine already has conservative gates for misspecification,
-session risk, and policy generalization — but those gates key on observation
+session risk, and policy generalization, but those gates key on observation
 fields that, before this layer, only diligent callers populated. A caller that
 labels `DROP TABLE users` as `action_type="read", risk_tier="low"` (whether
 maliciously or through integration bugs) presented the engine with an
@@ -90,7 +90,7 @@ still do.
 ## Relationship to decision-theoretic inspiration
 
 - **Infra-Bayesian inspiration:** treating the caller-supplied metadata as one
-  hypothesis in a credal set rather than the truth — acting on the worst
+  hypothesis in a credal set rather than the truth, acting on the worst
   plausible reading (label vs inferred semantics) rather than the most
   convenient one. The layer is *not* infra-Bayesianism: there is no convex set
   of priors, no Knightian update rule; only a deterministic worst-case merge.
@@ -129,12 +129,12 @@ ACCEPT / VERIFY / ABSTAIN / ESCALATE
 
 ## Validation
 
-- `tests/governance_intelligence/` — unit and integration tests per module.
-- `tests/policy/test_governance_intelligence_never_weakens_policy.py` — grid
+- `tests/governance_intelligence/`: unit and integration tests per module.
+- `tests/policy/test_governance_intelligence_never_weakens_policy.py`, grid
   property test: enrichment never converts a non-ACCEPT into an ACCEPT and
   never clears hard-block flags.
 - `benchmarks/governance_intelligence/` + 
-  `experiments/evaluate_governance_intelligence.py` — 50-task offline routing
+  `experiments/evaluate_governance_intelligence.py`, 50-task offline routing
   benchmark with a fail-hard gate on unsafe accepts and blocked legitimate
   reads.
 

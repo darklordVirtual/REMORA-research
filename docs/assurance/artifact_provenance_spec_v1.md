@@ -1,7 +1,7 @@
 # REMORA Artifact Provenance Specification v1
 
 **Date:** 2026-06-30
-**Status:** DRAFT — not yet reviewed
+**Status:** DRAFT, not yet reviewed
 **Author:** Agent E (RAG / Evidence Provenance Audit)
 **Replaces:** none (first version)
 
@@ -29,15 +29,15 @@ Five representative result files were inspected:
 
 | Field | Present | Value |
 |-------|---------|-------|
-| Schema identifier | No | — |
-| Commit hash | No | — |
-| Timestamp | No | — |
-| Script | No | — |
-| n_samples | Yes (implicit: `n_seeds=20`) | — |
+| Schema identifier | No |, |
+| Commit hash | No |, |
+| Timestamp | No |, |
+| Script | No |, |
+| n_samples | Yes (implicit: `n_seeds=20`) |, |
 | Split description | Partial (`notes` field) | "benchmark-locked; exchangeability assumed..." |
-| Model version | No | — |
-| Jurisdiction | No | — |
-| Reviewed_at | No | — |
+| Model version | No |, |
+| Jurisdiction | No |, |
+| Reviewed_at | No |, |
 
 **Provenance grade: POOR.** No schema, commit, or timestamp. Split methodology described
 only in a `notes` string.
@@ -48,16 +48,16 @@ only in a `notes` string.
 |-------|---------|-------|
 | Schema identifier | Yes | `"schema": "external_benchmark_agentharm_v1"` |
 | Commit hash | Yes | `"current_system_commit": "483d1b0"` |
-| Timestamp | No (top-level) | — |
-| Script | No | — |
+| Timestamp | No (top-level) |, |
+| Script | No |, |
 | n_samples | Yes | `n_total=416, n_harmful=208, n_benign=208` |
 | Benchmark name | Yes | `"ai-safety-institute/AgentHarm"` |
 | Benchmark arXiv | Yes | `"benchmark_arxiv": "2410.09024"` |
 | Worker endpoint | Yes | `"worker": "https://aromer.razorsharp.workers.dev"` |
 | Dry run flag | Yes | `"dry_run": false` |
-| Model version | No | — |
-| Jurisdiction | No | — |
-| Reviewed_at | No | — |
+| Model version | No |, |
+| Jurisdiction | No |, |
+| Reviewed_at | No |, |
 
 **Provenance grade: GOOD.** Schema, commit hash, benchmark reference all present.
 Missing: generation timestamp, model versions used, and reviewer sign-off.
@@ -68,13 +68,13 @@ Missing: generation timestamp, model versions used, and reviewer sign-off.
 |-------|---------|-------|
 | Schema identifier | Yes | `"schema": "false_accept_regression_v1"` |
 | Commit hash | Yes | `"current_system_commit": "27fe2a112f6..."` (full SHA) |
-| Timestamp | No | — |
-| Script | No | — |
+| Timestamp | No |, |
+| Script | No |, |
 | n_samples | Yes | `n_scenarios=167` |
 | Gate result | Yes | `"gate": "PASS"` |
-| Model version | No | — |
-| Jurisdiction | No | — |
-| Reviewed_at | No | — |
+| Model version | No |, |
+| Jurisdiction | No |, |
+| Reviewed_at | No |, |
 
 **Provenance grade: FAIR.** Schema and full commit hash present. Missing: timestamp,
 producing script, model versions.
@@ -84,13 +84,13 @@ producing script, model versions.
 | Field | Present | Value |
 |-------|---------|-------|
 | Schema identifier | Yes | `"schema_version": "llm_baselines_v1"` |
-| Commit hash | No | — |
+| Commit hash | No |, |
 | Timestamp | Yes | `"generated_at": "2026-06-28T22:00:46.200863+00:00"` |
 | Model | Yes | `"model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"` |
 | n_samples | Yes | `"n_tasks": 100` |
 | Benchmark | Yes | `"benchmark": "toolcall_blind_v3"` |
-| Jurisdiction | No | — |
-| Reviewed_at | No | — |
+| Jurisdiction | No |, |
+| Reviewed_at | No |, |
 
 **Provenance grade: FAIR.** Good model versioning and timestamp. Missing: commit hash
 and producing script.
@@ -100,15 +100,15 @@ and producing script.
 | Field | Present | Value |
 |-------|---------|-------|
 | Schema identifier | No (uses `"benchmark"`) | `"benchmark": "toolcall_blind_v3"` |
-| Commit hash | No | — |
+| Commit hash | No |, |
 | Timestamp | Yes | `"timestamp": "2026-06-28T21:17:36.562393+00:00"` |
-| Script | No | — |
+| Script | No |, |
 | Protocol | Yes | `"protocol"` field with blinding description |
 | Gate | Yes | `"gate": "RemoraToolCallGate (default)"` |
 | n_samples | Yes | `n_tasks=700` |
-| Model version | No | — |
-| Jurisdiction | No | — |
-| Reviewed_at | No | — |
+| Model version | No |, |
+| Jurisdiction | No |, |
+| Reviewed_at | No |, |
 
 **Provenance grade: FAIR.** Protocol description and timestamp present. Missing:
 commit hash, model versions, producing script.
@@ -237,7 +237,7 @@ additionalProperties: true
 
 This schema is stored at `schemas/result_provenance_schema.yaml`. Test coverage
 is provided by `tests/test_artifact_provenance.py` (to be created as part of
-remediation — see §6).
+remediation, see §6).
 
 ---
 
@@ -438,7 +438,7 @@ field is required. The following conventions apply:
 | Multi-jurisdiction | `"MULTI:<ISO1>,<ISO2>"` |
 | Not applicable | `null` |
 
-Jurisdiction is informational — it does not affect REMORA's gating logic directly,
+Jurisdiction is informational, it does not affect REMORA's gating logic directly,
 but it is required for external reviewers to assess whether the evaluation set is
 appropriate for the claimed domain.
 

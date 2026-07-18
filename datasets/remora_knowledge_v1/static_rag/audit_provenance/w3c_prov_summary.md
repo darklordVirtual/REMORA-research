@@ -1,16 +1,16 @@
 ---
 id: w3c_prov_summary
-title: W3C PROV — Provenance Model for REMORA DecisionEnvelope
+title: W3C PROV, Provenance Model for REMORA DecisionEnvelope
 source: W3C PROV-DM, PROV-O, PROV-N
 source_url: https://www.w3.org/TR/prov-overview/
 version_or_accessed_date: W3C Recommendation April 2013 (stable)
-license_note: W3C Document License — free to use with attribution
+license_note: W3C Document License, free to use with attribution
 intended_use: Audit trail design, DecisionEnvelope provenance mapping
 ---
 
 ## 1. What this source says
 
-W3C PROV defines a model for representing provenance — information about the history
+W3C PROV defines a model for representing provenance, information about the history
 and origin of data and processes. Core concepts:
 
 - **Entity**: A physical or digital thing (e.g., an agent action, a decision)
