@@ -129,6 +129,23 @@ def sign_delegation_link(link: DelegationLink, *, key: bytes, kid: str) -> Deleg
 
 
 @dataclass(frozen=True)
+class RegisteredKey:
+    """A key-registry entry binding key material to a principal.
+
+    A bare ``kid -> key`` mapping proves only that *some* registered key
+    signed a link - not that the key belongs to the identity the link names
+    as delegator. Binding the principal into the registry entry closes that
+    gap: verification rejects a link whose ``delegator`` differs from the
+    registered principal of the signing key, and revocation is an explicit
+    flag rather than silent removal.
+    """
+
+    key: bytes
+    principal: str
+    revoked: bool = False
+
+
+@dataclass(frozen=True)
 class VerificationResult:
     valid: bool
     failures: tuple[str, ...]
@@ -228,7 +245,7 @@ class A2AGovernanceEnvelope:
         now: datetime | None = None,
         expected_audience: str | None = None,
         expected_tool_call_hash: str | None = None,
-        link_keys: dict[str, bytes] | None = None,
+        link_keys: "dict[str, RegisteredKey] | None" = None,
         replay_guard: "Callable[[str], bool] | None" = None,
     ) -> VerificationResult:
         """Verify integrity, accountability, and delegation attenuation.
@@ -246,12 +263,14 @@ class A2AGovernanceEnvelope:
             Canonical hash of the tool call actually being authorised. When
             given, the envelope must be bound to exactly that hash.
         link_keys:
-            ``kid`` → key registry for per-link signature verification. When
-            given, every delegation link must carry a valid signature from a
-            registered key — removing a key from the registry revokes every
-            chain that depends on it. When omitted, link signatures are not
-            checked (envelope-level integrity only) — pass a registry in any
-            cross-organisation deployment.
+            ``kid`` → :class:`RegisteredKey` registry for per-link signature
+            verification. When given, every delegation link must carry a
+            valid signature from a registered, non-revoked key whose bound
+            ``principal`` equals the link's ``delegator`` — a valid internal
+            key cannot sign a link claiming to be issued by someone else.
+            When omitted, link signatures are not checked (envelope-level
+            integrity only) — pass a registry in any cross-organisation
+            deployment.
         replay_guard:
             Callable returning True if this nonce has been seen before.
             The caller owns nonce persistence (REMORA is stateless).
@@ -274,27 +293,41 @@ class A2AGovernanceEnvelope:
             failures.append(f"unsupported_protocol:{self.protocol}")
 
         # 3. Accountability — issuer and responsible org are mandatory.
-        if not self.identity.agent_id.strip():
+        # Non-string values are malformed-field failures, never exceptions.
+        def _field(value: object, field: str) -> str | None:
+            """Return the stripped string, or record a failure and None."""
+            if not isinstance(value, str):
+                failures.append(f"malformed_field:{field}")
+                return None
+            return value.strip()
+
+        agent_id = _field(self.identity.agent_id, "agent_id")
+        if agent_id == "":
             failures.append("missing_agent_id")
-        if not self.identity.issuer_org.strip():
+        issuer = _field(self.identity.issuer_org, "issuer_org")
+        if issuer == "":
             failures.append("missing_issuer_org")
-        if not self.identity.responsible_org.strip():
+        responsible = _field(self.identity.responsible_org, "responsible_org")
+        if responsible == "":
             failures.append("missing_responsible_org")
 
         # 4. Policy binding.
-        if not self.policy_version.strip():
+        policy = _field(self.policy_version, "policy_version")
+        if policy == "":
             failures.append("missing_policy_version")
 
         # 5. Audience — envelope must name its verifier, and match it.
-        if not self.audience.strip():
+        audience = _field(self.audience, "audience")
+        if audience == "":
             failures.append("missing_audience")
-        elif expected_audience is not None and self.audience != expected_audience:
+        elif audience and expected_audience is not None and self.audience != expected_audience:
             failures.append("audience_mismatch")
 
         # 6. Replay protection.
-        if not self.nonce.strip():
+        nonce = _field(self.nonce, "nonce")
+        if nonce == "":
             failures.append("missing_nonce")
-        elif replay_guard is not None and replay_guard(self.nonce):
+        elif nonce and replay_guard is not None and replay_guard(self.nonce):
             failures.append("replay_detected")
 
         # 7. Argument binding — the envelope authorises exactly one payload.
@@ -330,6 +363,11 @@ class A2AGovernanceEnvelope:
             elif expires <= now_dt:
                 failures.append("envelope_expired")
         for i, link in enumerate(self.delegation_chain):
+            link_issued = _parse_iso_or_none(link.issued_at)
+            if link_issued is None:
+                failures.append(f"malformed_timestamp:delegation_link_issued_at:{i}")
+            elif (link_issued - now_dt).total_seconds() > self.CLOCK_SKEW_SECONDS:
+                failures.append(f"delegation_link_issued_in_future:{i}")
             if link.expires_at is not None:
                 link_expires = _parse_iso_or_none(link.expires_at)
                 if link_expires is None:
@@ -353,15 +391,25 @@ class A2AGovernanceEnvelope:
                 if not link.kid or not link.signature:
                     failures.append(f"unsigned_delegation_link:{i}")
                 elif link.kid not in link_keys:
-                    # Key absent from the registry — unknown or revoked.
                     failures.append(f"unknown_or_revoked_kid_at_link:{i}:{link.kid}")
                 else:
-                    unsigned = dataclass_replace(link, signature="")
-                    expected = hmac.new(
-                        link_keys[link.kid], unsigned.signable_payload(), hashlib.sha256
-                    ).hexdigest()
-                    if not hmac.compare_digest(expected, link.signature):
-                        failures.append(f"link_signature_mismatch:{i}")
+                    registered = link_keys[link.kid]
+                    if registered.revoked:
+                        failures.append(f"revoked_kid_at_link:{i}:{link.kid}")
+                    elif registered.principal != link.delegator:
+                        # The signing key is valid but belongs to a different
+                        # principal than the link claims as delegator.
+                        failures.append(
+                            f"kid_principal_mismatch_at_link:{i}:"
+                            f"{link.kid}!={link.delegator}"
+                        )
+                    else:
+                        unsigned = dataclass_replace(link, signature="")
+                        expected = hmac.new(
+                            registered.key, unsigned.signable_payload(), hashlib.sha256
+                        ).hexdigest()
+                        if not hmac.compare_digest(expected, link.signature):
+                            failures.append(f"link_signature_mismatch:{i}")
             if not link.scope:
                 failures.append(f"empty_scope_at_link:{i}")
             if any("*" in capability for capability in link.scope):
@@ -412,13 +460,47 @@ class A2AGovernanceEnvelope:
             data = json.loads(raw)
             if not isinstance(data, dict):
                 raise TypeError("top-level value must be an object")
-            identity = AgentIdentity(**data.pop("identity"))
+
+            def _require_str_list(value: object, field: str) -> list:
+                # A string is iterable and would silently become a tuple of
+                # single characters - reject anything that is not a real list
+                # of strings.
+                if not isinstance(value, list):
+                    raise TypeError(
+                        f"{field} must be a list, got {type(value).__name__}"
+                    )
+                if not all(isinstance(v, str) for v in value):
+                    raise TypeError(f"{field} must contain only strings")
+                return value
+
+            identity_data = data.pop("identity")
+            if not isinstance(identity_data, dict):
+                raise TypeError("identity must be an object")
+            for key in ("agent_id", "agent_version", "issuer_org", "responsible_org"):
+                if not isinstance(identity_data.get(key), str):
+                    raise TypeError(f"identity.{key} must be a string")
+            identity = AgentIdentity(**identity_data)
+
+            chain_data = data.pop("delegation_chain")
+            if not isinstance(chain_data, list):
+                raise TypeError("delegation_chain must be a list")
             chain = tuple(
-                DelegationLink(**{**link, "scope": tuple(link["scope"])})
-                for link in data.pop("delegation_chain")
+                DelegationLink(**{
+                    **link,
+                    "scope": tuple(_require_str_list(link.get("scope"), "link.scope")),
+                })
+                for link in chain_data
             )
-            data["requested_scope"] = tuple(data.get("requested_scope") or ())
-            data["evidence_refs"] = tuple(data.get("evidence_refs") or ())
+            data["requested_scope"] = tuple(
+                _require_str_list(data.get("requested_scope") or [], "requested_scope")
+            )
+            data["evidence_refs"] = tuple(
+                _require_str_list(data.get("evidence_refs") or [], "evidence_refs")
+            )
+            for key in ("envelope_id", "protocol", "policy_version",
+                        "issued_at", "audience", "nonce"):
+                if key in data and not isinstance(data[key], str):
+                    raise TypeError(f"{key} must be a string")
             return cls(identity=identity, delegation_chain=chain, **data)
         except (TypeError, KeyError, AttributeError, json.JSONDecodeError) as exc:
             raise ValueError(f"malformed_envelope:{exc}") from exc

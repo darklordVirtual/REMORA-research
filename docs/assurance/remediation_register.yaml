@@ -325,13 +325,20 @@ items:
     artifacts:
       - results/longitudinal_stability_v1.json
     notes: >
-      CLOSED 2026-07-17. Owner decision the same day resolved the recorded
-        criterion conflict in favour of this repo's 7-day definition; the
-        main repo's closure tooling and tests were updated to match, and the
-        gate was then closed by scripts/close_rem020.py --close (fail-closed):
+      CLOSED 2026-07-17 — INTERNALLY ATTESTED, REM-021 VERIFICATION REQUIRED.
+        Owner decision the same day resolved the recorded criterion conflict
+        by REVERTING to the original pre-registered 7-day definition (created
+        2026-06-29; the 2026-06-30 "0.43d/7d" elevation row evidences it
+        predates the 30-day variant of 2026-07-02) — not by lowering a target
+        post hoc. Closed by scripts/close_rem020.py --close (fail-closed):
         days_elapsed=19 of 7 required, n_operational_fa=0, AII=0.9914,
-        artifact status=PASS. Self-reported values; REM-021 independent
-        verification still required. SHADOW_ONLY until REM-021 closes.
+        artifact status=PASS.
+      EVIDENCE FORM: the committed artifact attests the live worker's day
+        counter and current values; it does not contain the full 7-day time
+        series (worker query history ~168 cycles / ~0.58 days; the complete
+        series lives in the worker's D1 longitudinal store). Independent
+        reproduction of the window from D1 is in scope for REM-021.
+        SHADOW_ONLY until REM-021 closes.
       This repo's canonical criterion (reaffirmed by the hostile-review stale
         sweep 2026-07-03, enforced by scripts/check_claim_provenance.py):
         AII (EMA-smoothed) >= 0.80 with FAR = 0.0% for 7 calendar days from

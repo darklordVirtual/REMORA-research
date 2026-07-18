@@ -51,15 +51,31 @@ from remora.governance.a2a_envelope import (  # noqa: E402
     A2AGovernanceEnvelope,
     AgentIdentity,
     DelegationLink,
+    RegisteredKey,
     sign_delegation_link,
 )
 from remora.policy import PolicyObservation, RemoraDecisionEngine  # noqa: E402
+from remora.policy.observation import canonical_tool_call_hash  # noqa: E402
 
 # Demo-fixed keys (this is a dry run — in production these come from key
 # management, and the HMAC layer is replaced by asymmetric signatures).
 ENVELOPE_KEY = b"demo-envelope-key"
 COE_KEY, ORCH_KEY = b"demo-coe-key", b"demo-orchestrator-key"
-LINK_KEYS = {"coe-2026": COE_KEY, "orch-2026": ORCH_KEY}
+# kid -> RegisteredKey binds key material to a principal: a valid registered
+# key cannot sign a link claiming a different delegator.
+LINK_KEYS = {
+    "coe-2026": RegisteredKey(key=COE_KEY, principal="operator-coe"),
+    "orch-2026": RegisteredKey(key=ORCH_KEY, principal="agent://orchestrator/01"),
+}
+
+# Replay guard: the verifier remembers seen nonces (caller-owned state).
+_SEEN_NONCES: set[str] = set()
+
+
+def _replay_guard(nonce: str) -> bool:
+    seen = nonce in _SEEN_NONCES
+    _SEEN_NONCES.add(nonce)
+    return seen
 
 AGENT_ID = "agent://maintenance-planner/07"
 AUDIENCE = "control-plane://operator-remora"
@@ -69,8 +85,9 @@ AUDIENCE = "control-plane://operator-remora"
 DELEGATED_SCOPE = ("telemetry:read", "docs:read", "workorder:propose_change")
 
 
-def issue_envelope(capability: str) -> A2AGovernanceEnvelope:
-    """Issue the agent's delegation envelope for one requested capability."""
+def issue_envelope(capability: str, tool_call_hash: str | None = None) -> A2AGovernanceEnvelope:
+    """Issue the agent's delegation envelope for one requested capability,
+    bound to the exact tool-call payload it authorises."""
     from datetime import datetime, timezone
 
     now = datetime.now(timezone.utc).isoformat()
@@ -106,24 +123,30 @@ def issue_envelope(capability: str) -> A2AGovernanceEnvelope:
         requested_scope=(capability,),
         policy_version="RemoraDecisionEngine-v3",
         audience=AUDIENCE,
+        tool_call_hash=tool_call_hash,
         signing_key=ENVELOPE_KEY,
     )
 
 
-def delegation_check(capability: str) -> tuple[bool, tuple[str, ...]]:
-    """Verify the A2A envelope for a capability.
+def delegation_check(
+    capability: str, tool_call_hash: str,
+) -> tuple[bool, tuple[str, ...], A2AGovernanceEnvelope]:
+    """Verify the A2A envelope for a capability, bound to the exact payload.
 
-    Returns (tool_forbidden, failures): a request outside the verified
-    effective scope — or any verification failure — sets the forbidden-tool
+    Returns (tool_forbidden, failures, envelope): a request outside the
+    verified effective scope — or any verification failure, including a
+    payload-binding mismatch or nonce replay — sets the forbidden-tool
     signal, which the engine hard-escalates. Fail closed.
     """
-    envelope = issue_envelope(capability)
+    envelope = issue_envelope(capability, tool_call_hash=tool_call_hash)
     result = envelope.verify(
         signing_key=ENVELOPE_KEY,
         expected_audience=AUDIENCE,
         link_keys=LINK_KEYS,
+        expected_tool_call_hash=tool_call_hash,
+        replay_guard=_replay_guard,
     )
-    return (not result.valid), result.failures
+    return (not result.valid), result.failures, envelope
 
 
 @dataclass(frozen=True)
@@ -145,13 +168,23 @@ def build_actions() -> list[ProposedAction]:
     """
 
     def action(label: str, narrative: str, capability: str,
-               **obs_fields) -> ProposedAction:
-        tool_forbidden, failures = delegation_check(capability)
+               tool: str, tool_args: dict, **obs_fields) -> ProposedAction:
+        # Bind the delegation envelope to the exact payload — the same hash the
+        # enforcement gate recomputes immediately before execution.
+        payload_hash = canonical_tool_call_hash(
+            name=tool, arguments=tool_args,
+            target=obs_fields.get("target_environment"),
+        )
+        tool_forbidden, failures, _envelope = delegation_check(capability, payload_hash)
         return ProposedAction(
             label=label,
             narrative=narrative,
             capability=capability,
-            observation=PolicyObservation(tool_forbidden=tool_forbidden, **obs_fields),
+            observation=PolicyObservation(
+                tool_forbidden=tool_forbidden,
+                tool_call_hash=payload_hash,
+                **obs_fields,
+            ),
             delegation_failures=failures,
         )
 
@@ -160,6 +193,8 @@ def build_actions() -> list[ProposedAction]:
             "read_vibration_telemetry",
             "Read 24h vibration trend for pump P-3101A",
             "telemetry:read",
+            tool="read_telemetry",
+            tool_args={"asset": "P-3101A", "signal": "vibration", "window": "24h"},
             question="read_telemetry(asset=P-3101A, signal=vibration, window=24h)",
             phase="ordered", trust_score=0.91,
             evidence_action="answer", evidence_confidence=0.94,
@@ -171,6 +206,8 @@ def build_actions() -> list[ProposedAction]:
             "read_equipment_history",
             "Retrieve maintenance history and last overhaul report",
             "docs:read",
+            tool="read_documents",
+            tool_args={"asset": "P-3101A", "type": "maintenance_history"},
             question="read_documents(asset=P-3101A, type=maintenance_history)",
             phase="ordered", trust_score=0.88,
             evidence_action="answer", evidence_confidence=0.90,
@@ -183,6 +220,10 @@ def build_actions() -> list[ProposedAction]:
             "Propose advancing the bearing-replacement work order by 3 weeks "
             "based on vibration trend + history",
             "workorder:propose_change",
+            tool="update_work_order",
+            tool_args={"order": "WO-88231", "action": "reschedule",
+                       "new_date": "advance_3_weeks",
+                       "justification": "vibration_trend"},
             question=(
                 "update_work_order(order=WO-88231, action=reschedule, "
                 "new_date=advance_3_weeks, justification=vibration_trend)"
@@ -201,6 +242,11 @@ def build_actions() -> list[ProposedAction]:
             "Same work-order proposal, but the overhaul report contradicts "
             "the vibration interpretation",
             "workorder:propose_change",
+            tool="update_work_order",
+            tool_args={"order": "WO-88231", "action": "reschedule",
+                       "new_date": "advance_3_weeks",
+                       "justification": "vibration_trend",
+                       "evidence_state": "contradicted"},
             question=(
                 "update_work_order(order=WO-88231, action=reschedule, "
                 "new_date=advance_3_weeks, justification=vibration_trend)"
@@ -218,6 +264,8 @@ def build_actions() -> list[ProposedAction]:
             "direct_ot_actuation",
             "Directly reduce pump speed via the control system",
             "ot:set_pump_speed",   # never delegated → envelope verify fails
+            tool="set_pump_speed",
+            tool_args={"asset": "P-3101A", "target_rpm": 2400},
             question="set_pump_speed(asset=P-3101A, target_rpm=2400)",
             phase="ordered", trust_score=0.93,   # confidence is irrelevant:
             evidence_action="answer",            # authority was never granted
@@ -262,6 +310,39 @@ def main() -> int:
     print("- Direct OT actuation fails A2A scope verification (the capability was never")
     print("  delegated); that failure feeds tool_forbidden and the engine hard-ESCALATEs.")
     print("  Analysis confidence cannot buy actuation authority.")
+
+    # -- Replay and payload-binding demonstration ------------------------------
+    print("-" * width)
+    print("Replay/binding checks (same telemetry envelope, attacked two ways):")
+    telemetry_hash = canonical_tool_call_hash(
+        name="read_telemetry",
+        arguments={"asset": "P-3101A", "signal": "vibration", "window": "24h"},
+        target="prod",
+    )
+    envelope = issue_envelope("telemetry:read", tool_call_hash=telemetry_hash)
+    first = envelope.verify(
+        signing_key=ENVELOPE_KEY, expected_audience=AUDIENCE,
+        link_keys=LINK_KEYS, expected_tool_call_hash=telemetry_hash,
+        replay_guard=_replay_guard,
+    )
+    replayed = envelope.verify(
+        signing_key=ENVELOPE_KEY, expected_audience=AUDIENCE,
+        link_keys=LINK_KEYS, expected_tool_call_hash=telemetry_hash,
+        replay_guard=_replay_guard,
+    )
+    other_payload = canonical_tool_call_hash(
+        name="read_telemetry",
+        arguments={"asset": "P-9999Z", "signal": "vibration", "window": "24h"},
+        target="prod",
+    )
+    rebound = envelope.verify(
+        signing_key=ENVELOPE_KEY, expected_audience=AUDIENCE,
+        link_keys=LINK_KEYS, expected_tool_call_hash=other_payload,
+    )
+    print(f"  first use              : {'VALID' if first.valid else first.failures}")
+    print(f"  replayed (same nonce)  : {'VALID' if replayed.valid else ', '.join(replayed.failures)}")
+    print(f"  different payload hash : {'VALID' if rebound.valid else ', '.join(rebound.failures)}")
+    print("  One envelope authorises one payload, once.")
     return 0
 
 

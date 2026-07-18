@@ -358,9 +358,12 @@ def test_from_json_fails_closed_on_malformed_input() -> None:
 
 
 def test_link_registry_verifies_signed_chain() -> None:
-    from remora.governance.a2a_envelope import sign_delegation_link
+    from remora.governance.a2a_envelope import RegisteredKey, sign_delegation_link
     coe_key, orch_key = b"coe-key", b"orchestrator-key"
-    registry = {"coe-2026": coe_key, "orch-2026": orch_key}
+    registry = {
+        "coe-2026": RegisteredKey(key=coe_key, principal="operator-coe"),
+        "orch-2026": RegisteredKey(key=orch_key, principal="agent://orchestrator/01"),
+    }
     root, hop = _chain()
     chain = (
         sign_delegation_link(root, key=coe_key, kid="coe-2026"),
@@ -372,8 +375,11 @@ def test_link_registry_verifies_signed_chain() -> None:
 
 
 def test_forged_link_signature_is_rejected() -> None:
-    from remora.governance.a2a_envelope import sign_delegation_link
-    registry = {"coe-2026": b"coe-key", "orch-2026": b"orchestrator-key"}
+    from remora.governance.a2a_envelope import RegisteredKey, sign_delegation_link
+    registry = {
+        "coe-2026": RegisteredKey(key=b"coe-key", principal="operator-coe"),
+        "orch-2026": RegisteredKey(key=b"orchestrator-key", principal="agent://orchestrator/01"),
+    }
     root, hop = _chain()
     chain = (
         sign_delegation_link(root, key=b"coe-key", kid="coe-2026"),
@@ -387,27 +393,135 @@ def test_forged_link_signature_is_rejected() -> None:
 
 
 def test_revoked_kid_invalidates_chain() -> None:
-    from remora.governance.a2a_envelope import sign_delegation_link
+    from remora.governance.a2a_envelope import RegisteredKey, sign_delegation_link
     root, hop = _chain()
     chain = (
         sign_delegation_link(root, key=b"coe-key", kid="coe-2026"),
         sign_delegation_link(hop, key=b"orchestrator-key", kid="orch-2026"),
     )
     env = _issue(delegation_chain=chain)
-    # Registry without orch-2026 — revoked.
+    # Absent from registry entirely -> unknown/revoked.
     result = env.verify(
-        signing_key=KEY, now=NOW, link_keys={"coe-2026": b"coe-key"}
+        signing_key=KEY, now=NOW,
+        link_keys={"coe-2026": RegisteredKey(key=b"coe-key", principal="operator-coe")},
     )
     assert not result.valid
     assert any(
         f.startswith("unknown_or_revoked_kid_at_link:1") for f in result.failures
     )
+    # Present but explicitly revoked -> revoked failure code.
+    result2 = env.verify(
+        signing_key=KEY, now=NOW,
+        link_keys={
+            "coe-2026": RegisteredKey(key=b"coe-key", principal="operator-coe"),
+            "orch-2026": RegisteredKey(
+                key=b"orchestrator-key", principal="agent://orchestrator/01",
+                revoked=True,
+            ),
+        },
+    )
+    assert not result2.valid
+    assert any(f.startswith("revoked_kid_at_link:1") for f in result2.failures)
 
 
 def test_unsigned_links_rejected_when_registry_supplied() -> None:
+    from remora.governance.a2a_envelope import RegisteredKey
     env = _issue()  # links carry no signatures
     result = env.verify(
-        signing_key=KEY, now=NOW, link_keys={"coe-2026": b"coe-key"}
+        signing_key=KEY, now=NOW,
+        link_keys={"coe-2026": RegisteredKey(key=b"coe-key", principal="operator-coe")},
     )
     assert not result.valid
     assert "unsigned_delegation_link:0" in result.failures
+
+
+# ---------------------------------------------------------------------------
+# Hardening round 2: principal binding, strict parsing, link timestamps
+# ---------------------------------------------------------------------------
+
+def test_valid_key_wrong_principal_is_rejected() -> None:
+    """P1 review finding: a registered key must not be able to sign a link
+    that names a different principal as delegator."""
+    from remora.governance.a2a_envelope import RegisteredKey, sign_delegation_link
+    root, hop = _chain()
+    chain = (
+        sign_delegation_link(root, key=b"coe-key", kid="coe-2026"),
+        # The attacker holds a valid registered key ("attacker-2026") and uses
+        # it to sign a link claiming the orchestrator as delegator:
+        sign_delegation_link(hop, key=b"attacker-key", kid="attacker-2026"),
+    )
+    registry = {
+        "coe-2026": RegisteredKey(key=b"coe-key", principal="operator-coe"),
+        "attacker-2026": RegisteredKey(key=b"attacker-key", principal="agent://attacker/66"),
+    }
+    env = _issue(delegation_chain=chain)
+    result = env.verify(signing_key=KEY, now=NOW, link_keys=registry)
+    assert not result.valid
+    assert any(
+        f.startswith("kid_principal_mismatch_at_link:1") for f in result.failures
+    )
+
+
+def test_string_requested_scope_is_rejected_by_parser() -> None:
+    """P2 review finding: a string must not silently become a tuple of
+    single characters."""
+    import json as _json
+    import pytest
+    env = _issue()
+    data = _json.loads(env.to_json())
+    data["requested_scope"] = "workorder:propose_change"  # str, not list
+    with pytest.raises(ValueError, match="malformed_envelope:"):
+        A2AGovernanceEnvelope.from_json(_json.dumps(data))
+
+
+def test_numeric_identity_field_is_rejected_by_parser() -> None:
+    import json as _json
+    import pytest
+    env = _issue()
+    data = _json.loads(env.to_json())
+    data["identity"]["responsible_org"] = 12345
+    with pytest.raises(ValueError, match="malformed_envelope:"):
+        A2AGovernanceEnvelope.from_json(_json.dumps(data))
+
+
+def test_non_string_field_is_failure_not_exception_in_verify() -> None:
+    """Directly constructed envelopes with wrong types fail closed."""
+    env = _issue(identity=_identity(responsible_org=None))
+    result = env.verify(signing_key=KEY, now=NOW)
+    assert not result.valid
+    assert "malformed_field:responsible_org" in result.failures
+
+
+def test_link_issued_in_future_is_rejected() -> None:
+    chain = (
+        DelegationLink(
+            delegator="operator-coe",
+            delegatee="agent://maintenance-planner/07",
+            scope=("workorder:read",),
+            issued_at=(NOW + timedelta(hours=3)).isoformat(),
+        ),
+    )
+    env = _issue(delegation_chain=chain, requested_scope=("workorder:read",))
+    result = env.verify(signing_key=KEY, now=NOW)
+    assert not result.valid
+    assert any(
+        f.startswith("delegation_link_issued_in_future:0") for f in result.failures
+    )
+
+
+def test_malformed_link_issued_at_is_failure_not_exception() -> None:
+    chain = (
+        DelegationLink(
+            delegator="operator-coe",
+            delegatee="agent://maintenance-planner/07",
+            scope=("workorder:read",),
+            issued_at="not-a-date",
+        ),
+    )
+    env = _issue(delegation_chain=chain, requested_scope=("workorder:read",))
+    result = env.verify(signing_key=KEY, now=NOW)
+    assert not result.valid
+    assert any(
+        f.startswith("malformed_timestamp:delegation_link_issued_at:0")
+        for f in result.failures
+    )

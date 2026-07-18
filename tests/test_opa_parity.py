@@ -348,3 +348,36 @@ def test_high_risk_opa_tighten_still_respected() -> None:
         report, _ = adapter.evaluate(obs)
     assert report.action == DecisionAction.ESCALATE
     assert report.source_of_decision == "opa"
+
+
+def test_unnormalised_risk_tier_cannot_bypass_engine_floor() -> None:
+    """P1 review finding: ' HIGH ' (whitespace/case) must trigger the same
+    full-engine floor as 'high' — adapter uses the engine's normaliser."""
+    obs = PolicyObservation(
+        question="apply work order", risk_tier="  HIGH  ",
+        action_type="production_write", target_environment="prod",
+        schema_valid=True, trust_score=0.95, phase="ordered",
+        evidence_action="answer", evidence_confidence=0.9,
+    )
+    adapter = _adapter_with_opa_response("accept")
+    with adapter._urlopen_patch:
+        report, _ = adapter.evaluate(obs)
+    assert report.action != DecisionAction.ACCEPT
+    assert report.source_of_decision == "opa_engine_floor"
+
+
+def test_malformed_opa_response_fails_closed() -> None:
+    """P1 review finding: valid JSON that is not an object (list/string) must
+    route into the controlled fallback path, never raise AttributeError."""
+    for payload in (b'[]', b'"accept"', b'{"result": "accept"}', b'{"result": [1]}'):
+        obs = PolicyObservation(question="rotate key", risk_tier="critical",
+                                action_type="permission_change")
+        adapter = OPAAdapter(opa_url="http://opa.test:8181")
+        response = mock.MagicMock()
+        response.read.return_value = payload
+        response.__enter__ = lambda self: self
+        response.__exit__ = lambda self, *a: False
+        with mock.patch("urllib.request.urlopen", return_value=response):
+            report, fallback_used = adapter.evaluate(obs)
+        assert fallback_used, payload
+        assert report.action in {DecisionAction.ESCALATE, DecisionAction.VERIFY}, payload

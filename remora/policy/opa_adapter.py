@@ -270,14 +270,21 @@ class OPAAdapter:
             )
             with urllib.request.urlopen(req, timeout=self.timeout_seconds) as resp:
                 body = json.loads(resp.read().decode("utf-8"))
+            # Fail closed on structurally malformed responses: valid JSON that
+            # is not an object (list, string, number) must not raise an
+            # uncaught AttributeError — route into the outage/fallback path.
+            if not isinstance(body, dict):
+                raise ValueError(f"OPA response is not an object: {type(body).__name__}")
             result = body.get("result") or {}
+            if not isinstance(result, dict):
+                raise ValueError(f"OPA result is not an object: {type(result).__name__}")
             report = self._opa_result_to_report(result, obs)
             return self._apply_decision_floor(report, obs), False
         except (urllib.error.URLError, OSError, KeyError, ValueError):
             pass
 
-        risk_tier = (obs.risk_tier or "").lower()
-        if risk_tier in self._fail_closed_risk_tiers:
+        from remora.policy.decision_engine import _normalize_risk_tier
+        if _normalize_risk_tier(obs.risk_tier) in self._fail_closed_risk_tiers:
             return self._fail_closed_on_opa_outage(obs), True
 
         report = self._python_fallback(obs)
@@ -317,7 +324,10 @@ class OPAAdapter:
         """
         from dataclasses import replace as _replace
 
-        from remora.policy.decision_engine import hard_guard_floor
+        from remora.policy.decision_engine import (
+            _normalize_risk_tier,
+            hard_guard_floor,
+        )
 
         floor = hard_guard_floor(obs)
         floor_action: DecisionAction | None = floor[0] if floor else None
@@ -325,7 +335,9 @@ class OPAAdapter:
         floor_reasons: tuple = (floor[1],) if floor else ()
         floor_source = "opa_hard_guard_floor"
 
-        risk_tier = (obs.risk_tier or "").lower()
+        # Same fail-closed normalisation as the engine: strips whitespace and
+        # maps unknown values to "unknown", so ' HIGH ' cannot bypass the floor.
+        risk_tier = _normalize_risk_tier(obs.risk_tier)
         if risk_tier in self._fail_closed_risk_tiers:
             engine_report = self._python_fallback(obs)
             if (
@@ -349,7 +361,7 @@ class OPAAdapter:
             evidence_required=True,
             human_review_required=(
                 floor_action in {DecisionAction.ESCALATE, DecisionAction.VERIFY}
-                or obs.risk_tier == "critical"
+                or risk_tier == "critical"
             ),
             source_of_decision=floor_source,
             explanation=(
@@ -364,7 +376,8 @@ class OPAAdapter:
 
     def _fail_closed_on_opa_outage(self, obs: PolicyObservation) -> DecisionReport:
         """Conservative fail-closed path for high-stakes OPA outages."""
-        critical = (obs.risk_tier or "").lower() == "critical"
+        from remora.policy.decision_engine import _normalize_risk_tier
+        critical = _normalize_risk_tier(obs.risk_tier) == "critical"
         action = DecisionAction.ESCALATE if critical else DecisionAction.VERIFY
         return DecisionReport(
             action=action,
@@ -421,7 +434,7 @@ class OPAAdapter:
             # or any critical-risk observation — not only ESCALATE.
             human_review_required=(
                 action in {DecisionAction.ESCALATE, DecisionAction.VERIFY}
-                or obs.risk_tier == "critical"
+                or _normalize_tier_for_review(obs.risk_tier) == "critical"
             ),
             audit_root=obs.assurance_root,
             explanation=result.get(
@@ -431,6 +444,12 @@ class OPAAdapter:
             source_of_decision="opa",
             policy_version=result.get("policy_version", "opa-remora-v1"),
         )
+
+
+def _normalize_tier_for_review(tier: str | None) -> str:
+    """Engine-identical risk-tier normalisation (strip + validate)."""
+    from remora.policy.decision_engine import _normalize_risk_tier
+    return _normalize_risk_tier(tier)
 
 
 # ---------------------------------------------------------------------------

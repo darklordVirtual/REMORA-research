@@ -87,16 +87,20 @@ def test_tool_forbidden_comes_from_a2a_verification_not_hardcoding() -> None:
     )
     assert "tool_forbidden=True" not in src  # no hardcoded flag anywhere
     assert "A2AGovernanceEnvelope" in src
-    forbidden, failures = demo.delegation_check("ot:set_pump_speed")
+    dummy_hash = "a" * 64
+    forbidden, failures, _env = demo.delegation_check("ot:set_pump_speed", dummy_hash)
     assert forbidden
     assert any(f.startswith("scope_exceeds_delegation") for f in failures)
-    allowed, no_failures = demo.delegation_check("workorder:propose_change")
+    allowed, no_failures, _env2 = demo.delegation_check(
+        "workorder:propose_change", dummy_hash
+    )
     assert not allowed
     assert no_failures == ()
 
 
 def test_delegation_chain_is_per_link_signed_and_verified() -> None:
-    """The demo verifies against a key registry: forging a link breaks it."""
+    """The demo verifies against a principal-bound key registry."""
+    from remora.governance.a2a_envelope import RegisteredKey
     envelope = demo.issue_envelope("telemetry:read")
     good = envelope.verify(
         signing_key=demo.ENVELOPE_KEY,
@@ -104,13 +108,28 @@ def test_delegation_chain_is_per_link_signed_and_verified() -> None:
         link_keys=demo.LINK_KEYS,
     )
     assert good.valid, good.failures
-    # Without the registry key for the second hop, the chain is revoked.
+    # Without the registry entry for the second hop, the chain is revoked.
     partial = envelope.verify(
         signing_key=demo.ENVELOPE_KEY,
         expected_audience=demo.AUDIENCE,
-        link_keys={"coe-2026": demo.COE_KEY},
+        link_keys={"coe-2026": RegisteredKey(key=demo.COE_KEY, principal="operator-coe")},
     )
     assert not partial.valid
+
+
+def test_demo_envelopes_are_payload_bound_with_replay_protection(capsys) -> None:
+    """P2 review finding: the demo must bind envelopes to the exact payload
+    hash and demonstrate replay rejection — verified by running main()."""
+    demo._SEEN_NONCES.clear()
+    assert demo.main() == 0
+    out = capsys.readouterr().out
+    assert "replay_detected" in out
+    assert "tool_call_binding_mismatch" in out
+    # Every action's observation carries the canonical payload hash.
+    demo._SEEN_NONCES.clear()
+    for action in demo.build_actions():
+        assert action.observation.tool_call_hash is not None
+        assert len(action.observation.tool_call_hash) == 64
 
 
 def test_workorder_review_comes_from_policy_matrix_not_taint() -> None:
@@ -123,6 +142,7 @@ def test_workorder_review_comes_from_policy_matrix_not_taint() -> None:
 
 
 def test_demo_main_runs_and_exits_zero(capsys) -> None:
+    demo._SEEN_NONCES.clear()
     assert demo.main() == 0
     out = capsys.readouterr().out
     assert "ESCALATE" in out
