@@ -269,9 +269,20 @@ class ReviewQueue:
         if now >= approval.expires_at:
             item.status = ItemStatus.PENDING
             item.approval = None
+            # Re-entering the queue must grant a FRESH review window: the
+            # original deadline may itself have passed while approved, and a
+            # stale deadline would immediately expire the item to ABSTAIN.
+            old_deadline = item.queue_deadline
+            item.enqueued_at = now
+            item.queue_deadline = now + self._default_queue_ttl
             self._log.append(
                 "approval_expired",
-                {"item_id": item_id, "expired_at": approval.expires_at.isoformat()},
+                {
+                    "item_id": item_id,
+                    "expired_at": approval.expires_at.isoformat(),
+                    "old_queue_deadline": old_deadline.isoformat(),
+                    "new_queue_deadline": item.queue_deadline.isoformat(),
+                },
             )
             return ExecutionOutcome(
                 ExecutionDecision.APPROVAL_EXPIRED,

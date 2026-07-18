@@ -26,18 +26,25 @@ from remora.enforcement.token import _compute_signature, _canonical_payload
 
 
 TEST_KEY = "test-pdp-signing-key-rem013"
-FIXED_TIME = "2026-06-28T03:00:00Z"
+# Tokens now carry a mandatory signed expiry (default TTL 300s), so issuance
+# time must be "now" for same-run verification to succeed.
+from datetime import datetime, timedelta, timezone as _tz
+
+_NOW_DT = datetime.now(_tz.utc)
+FIXED_TIME = _NOW_DT.isoformat()
+FIXED_EXPIRY = (_NOW_DT + timedelta(seconds=300)).isoformat()
 
 
 def _issue_with_key(action: str, obs_hash: str = "abc123", req_id: str = "req-1") -> PolicyDecisionToken:
     """Issue a properly signed token using the test key."""
-    payload = _canonical_payload(action, obs_hash, req_id, FIXED_TIME)
+    payload = _canonical_payload(action, obs_hash, req_id, FIXED_TIME, FIXED_EXPIRY)
     sig = _compute_signature(payload, TEST_KEY.encode())
     return PolicyDecisionToken(
         action=action,
         observation_hash=obs_hash,
         request_id=req_id,
         issued_at=FIXED_TIME,
+        expires_at=FIXED_EXPIRY,
         signature=sig,
         is_signed=True,
     )

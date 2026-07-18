@@ -52,14 +52,24 @@ class EnforcementGate:
     """
 
     ACCEPT_ACTIONS = frozenset({"accept"})
+    # Reject tokens whose issued_at is unreasonably old even if the signed
+    # expiry is still in the future (defence in depth against long-TTL issuance).
+    MAX_TOKEN_AGE_SECONDS = 3600
 
-    def __init__(self, strict: bool = True) -> None:
+    def __init__(self, strict: bool = True, audience: str = "") -> None:
         self.strict = strict
+        self.audience = audience
+        # One-time consumption: jti values this PEP has already executed on.
+        import threading
+        self._consumed: set[str] = set()
+        self._consume_lock = threading.Lock()
 
     def check(
         self,
         token: PolicyDecisionToken,
         expected_observation_hash: str | None = None,
+        consume: bool = False,
+        now: str | None = None,
     ) -> EnforcementResult:
         """Check whether the token authorizes execution.
 
@@ -73,7 +83,7 @@ class EnforcementGate:
             the decision is ACCEPT.
         """
         # Verify signature
-        vr: TokenVerificationResult = token.verify(expected_observation_hash)
+        vr: TokenVerificationResult = token.verify(expected_observation_hash, now=now)
 
         if not vr.verified:
             if not token.is_signed and not self.strict:
@@ -92,8 +102,59 @@ class EnforcementGate:
                     strict_mode=self.strict,
                 )
 
+        # Audience binding: a gate configured with an audience only honours
+        # tokens addressed to it.
+        if self.audience and token.audience != self.audience:
+            return EnforcementResult(
+                allowed=False,
+                action=token.action,
+                token_verified=True,
+                reason="audience_mismatch",
+                strict_mode=self.strict,
+            )
+
+        # Maximum token age from issued_at (independent of the signed expiry).
+        from datetime import datetime, timezone
+        try:
+            issued = datetime.fromisoformat(token.issued_at.replace("Z", "+00:00"))
+            current = (
+                datetime.fromisoformat(now.replace("Z", "+00:00"))
+                if now is not None else datetime.now(timezone.utc)
+            )
+            if (current - issued).total_seconds() > self.MAX_TOKEN_AGE_SECONDS:
+                return EnforcementResult(
+                    allowed=False,
+                    action=token.action,
+                    token_verified=True,
+                    reason="token_too_old",
+                    strict_mode=self.strict,
+                )
+        except ValueError:
+            return EnforcementResult(
+                allowed=False,
+                action=token.action,
+                token_verified=True,
+                reason="issued_at_unparseable",
+                strict_mode=self.strict,
+            )
+
         allowed = token.action in self.ACCEPT_ACTIONS
         reason = "accept" if allowed else f"decision_{token.action}_not_accept"
+
+        # One-time consumption (atomic check-and-consume under the lock):
+        # a jti this gate has executed on can never authorise again.
+        if token.jti:
+            with self._consume_lock:
+                if token.jti in self._consumed:
+                    return EnforcementResult(
+                        allowed=False,
+                        action=token.action,
+                        token_verified=True,
+                        reason="token_already_consumed",
+                        strict_mode=self.strict,
+                    )
+                if allowed and consume:
+                    self._consumed.add(token.jti)
 
         return EnforcementResult(
             allowed=allowed,
@@ -114,7 +175,8 @@ class EnforcementGate:
         Raises:
             PermissionError: if the token is invalid or the decision is not ACCEPT.
         """
-        result = self.check(token, expected_observation_hash)
+        # The execution path always consumes: one grant, one execution.
+        result = self.check(token, expected_observation_hash, consume=True)
         if not result.allowed:
             raise PermissionError(
                 f"EnforcementGate: execution blocked. "

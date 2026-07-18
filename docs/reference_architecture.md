@@ -228,7 +228,13 @@ This is the request-side complement to the decision plane: delegation answers
   signed, versioned governance record per decision — kept contract-stable
   (`schemas/decision_envelope_schema.yaml`).
 - **Hash-chained audit** (`remora/governance/audit_chain.py`): tamper-evident
-  (not tamper-proof — see Limitations) decision history.
+  (not tamper-proof — see Limitations) decision history. **Precision (external
+  review):** the full-chain property holds for the library chain; records
+  produced through the REST layer are *individually signed records with
+  predecessor references* — the envelope hash does not yet cover
+  `previous_hash`, and predecessor lookup is not atomic, so concurrent writes
+  can fork. Atomic per-tenant chaining is tracked as REM-034 and must land
+  before any enforcement deployment relies on the REST audit path.
 - **Graph export**: audit records export to RDF/N-Triples with per-tenant URI
   namespaces, SPARQL-queryable — `agent → decision → outcome` joins the
   operator's knowledge-graph tooling instead of living in a proprietary log

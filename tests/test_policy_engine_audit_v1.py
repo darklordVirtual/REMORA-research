@@ -332,29 +332,29 @@ class TestTokenObservationHashBinding:
         token_a = PolicyDecisionToken.issue("accept", hash_a, "req-a", "2026-06-30T00:00:00Z")
 
         # Token issued for obs_a must fail when checked against obs_b's hash
-        result = token_a.verify(observation_hash=hash_b)
+        result = token_a.verify(observation_hash=hash_b, now="2026-06-30T00:01:00Z")
         assert not result.verified
         assert result.reason == "observation_hash_mismatch"
 
-    def test_same_observation_hash_reuse_is_possible(self, monkeypatch) -> None:
-        """F-2 documented gap: token for obs_a still passes when re-checked against obs_a's hash."""
+    def test_replay_is_blocked_by_pep_consumption(self, monkeypatch) -> None:
+        """F-2 CLOSED: verify() is stateless by design, but the PEP consumes
+        each jti atomically — a second execution attempt with the same token
+        is rejected."""
         monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "audit-test-key")
+        from remora.enforcement.gate import EnforcementGate
         from remora.enforcement.token import PolicyDecisionToken, _hash_observation
 
         obs = _obs(phase="ordered", trust_score=0.9, risk_tier="low")
         obs_hash = _hash_observation(obs)
         token = PolicyDecisionToken.issue("accept", obs_hash, "req-1", "2026-06-30T00:00:00Z")
+        now = "2026-06-30T00:01:00Z"
 
-        # First use
-        result1 = token.verify(observation_hash=obs_hash)
-        assert result1.verified
-
-        # Second use (replay) — still passes because no nonce/TTL
-        result2 = token.verify(observation_hash=obs_hash)
-        assert result2.verified, (
-            "F-2: token replay for same observation is not blocked (no TTL/nonce). "
-            "This is a documented gap requiring a nonce store."
-        )
+        gate = EnforcementGate(strict=True)
+        first = gate.check(token, obs_hash, consume=True, now=now)
+        assert first.allowed
+        second = gate.check(token, obs_hash, consume=True, now=now)
+        assert not second.allowed
+        assert second.reason == "token_already_consumed"
 
 
 # ---------------------------------------------------------------------------

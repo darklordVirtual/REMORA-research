@@ -39,6 +39,12 @@ from typing import Any
 
 _ENV_KEY = "REMORA_PDP_SIGNING_KEY"
 
+# Every token now carries a signed expiry (review finding: replayable
+# no-expiry tokens). Default TTL when the issuer does not set one; hard cap
+# on any explicit expiry.
+DEFAULT_TOKEN_TTL_SECONDS = 300
+MAX_TOKEN_TTL_SECONDS = 86400
+
 
 def _get_signing_key() -> bytes | None:
     val = os.environ.get(_ENV_KEY, "").strip()
@@ -51,6 +57,8 @@ def _canonical_payload(
     request_id: str,
     issued_at: str,
     expires_at: str | None = None,
+    jti: str = "",
+    audience: str = "",
 ) -> bytes:
     """Stable canonical serialization for signing (sorted keys, no whitespace).
 
@@ -66,6 +74,10 @@ def _canonical_payload(
     }
     if expires_at is not None:
         payload["expires_at"] = expires_at
+    if jti:
+        payload["jti"] = jti
+    if audience:
+        payload["audience"] = audience
     return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
 
 
@@ -109,6 +121,9 @@ class PolicyDecisionToken:
     signature: str
     is_signed: bool
     expires_at: str | None = None
+    # One-time-use id (consumed atomically by the PEP) and intended verifier.
+    jti: str = ""
+    audience: str = ""
 
     @classmethod
     def issue(
@@ -118,6 +133,7 @@ class PolicyDecisionToken:
         request_id: str,
         issued_at: str,
         expires_at: str | None = None,
+        audience: str = "",
     ) -> "PolicyDecisionToken":
         """Issue a signed (or unsigned) PolicyDecisionToken from the PDP.
 
@@ -129,10 +145,30 @@ class PolicyDecisionToken:
             expires_at: Optional UTC ISO-8601 expiry; signed into the payload
                 when set, so it cannot be stripped or extended post-issuance.
         """
+        from datetime import datetime, timedelta
+
+        import uuid as _uuid
+
+        issued_dt = datetime.fromisoformat(issued_at.replace("Z", "+00:00"))
+        if expires_at is None:
+            # Expiry is mandatory (closes the legacy no-expiry replay window):
+            # compute the default TTL when the issuer does not set one.
+            expires_at = (
+                issued_dt + timedelta(seconds=DEFAULT_TOKEN_TTL_SECONDS)
+            ).isoformat()
+        else:
+            expiry_dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+            ttl = (expiry_dt - issued_dt).total_seconds()
+            if ttl <= 0 or ttl > MAX_TOKEN_TTL_SECONDS:
+                raise ValueError(
+                    f"token TTL must be in (0, {MAX_TOKEN_TTL_SECONDS}] seconds, got {ttl}"
+                )
+        jti = str(_uuid.uuid4())
         key = _get_signing_key()
         if key:
             payload = _canonical_payload(
-                action, observation_hash, request_id, issued_at, expires_at
+                action, observation_hash, request_id, issued_at, expires_at,
+                jti, audience,
             )
             sig = _compute_signature(payload, key)
             return cls(
@@ -143,6 +179,8 @@ class PolicyDecisionToken:
                 signature=sig,
                 is_signed=True,
                 expires_at=expires_at,
+                jti=jti,
+                audience=audience,
             )
         return cls(
             action=action,
@@ -152,6 +190,8 @@ class PolicyDecisionToken:
             signature="",
             is_signed=False,
             expires_at=expires_at,
+            jti=jti,
+            audience=audience,
         )
 
     def verify(
@@ -186,7 +226,7 @@ class PolicyDecisionToken:
 
         payload = _canonical_payload(
             self.action, self.observation_hash, self.request_id, self.issued_at,
-            self.expires_at,
+            self.expires_at, self.jti, self.audience,
         )
         expected = _compute_signature(payload, key)
         sig_ok = hmac.compare_digest(expected, self.signature)
@@ -198,6 +238,14 @@ class PolicyDecisionToken:
                 is_signed=True,
             )
 
+        if self.expires_at is None:
+            # Mandatory-expiry policy: legacy no-expiry tokens are rejected
+            # outright (audit finding F-2 / replay review finding).
+            return TokenVerificationResult(
+                verified=False,
+                reason="missing_expiry",
+                is_signed=True,
+            )
         if self.expires_at is not None:
             from datetime import datetime, timezone
 
@@ -235,14 +283,31 @@ class PolicyDecisionToken:
         )
 
     def to_dict(self) -> dict[str, Any]:
+        """Complete serialisation — every signed field round-trips."""
         return {
             "action": self.action,
             "observation_hash": self.observation_hash,
             "request_id": self.request_id,
             "issued_at": self.issued_at,
+            "expires_at": self.expires_at,
+            "jti": self.jti,
+            "audience": self.audience,
             "signature": self.signature,
             "is_signed": self.is_signed,
         }
+
+    _FIELDS = frozenset({
+        "action", "observation_hash", "request_id", "issued_at",
+        "expires_at", "jti", "audience", "signature", "is_signed",
+    })
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "PolicyDecisionToken":
+        """Reconstruct a token; unknown keys are rejected (fail closed)."""
+        unknown = set(data) - cls._FIELDS
+        if unknown:
+            raise ValueError(f"unknown token fields: {sorted(unknown)}")
+        return cls(**data)
 
 
 @dataclass(frozen=True)

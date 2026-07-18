@@ -146,7 +146,9 @@ def test_expiry_cannot_be_stripped(signing_key) -> None:
     stripped = dataclasses.replace(token, expires_at=None)
     result = stripped.verify(now="2026-07-02T10:00:01+00:00")
     assert not result.verified
-    assert result.reason == "signature_invalid"
+    # The signed payload covers the expiry, so stripping it breaks the
+    # signature; the mandatory-expiry check is defence in depth behind it.
+    assert result.reason in {"signature_invalid", "missing_expiry"}
 
 
 def test_expiry_cannot_be_extended(signing_key) -> None:
@@ -159,18 +161,39 @@ def test_expiry_cannot_be_extended(signing_key) -> None:
     assert result.reason == "signature_invalid"
 
 
-def test_legacy_token_without_expiry_still_verifies(signing_key) -> None:
-    """Backward compatibility: tokens issued without expires_at verify as before."""
-    token = _issue(expires_at=None)
-    result = token.verify(now="2030-01-01T00:00:00+00:00")
-    assert result.verified
+def test_no_expiry_tokens_no_longer_exist(signing_key) -> None:
+    """F-2 CLOSED: issue() always sets a signed expiry (default TTL), and a
+    token whose expiry was stripped is rejected outright."""
+    import dataclasses
+
+    token = _issue(expires_at=None)  # default TTL applied at issue
+    assert token.expires_at is not None
+    assert token.verify(now="2026-07-02T10:01:00+00:00").verified
+    # Far-future verification fails: the default TTL has long passed.
+    late = token.verify(now="2030-01-01T00:00:00+00:00")
+    assert not late.verified
+    assert late.reason == "token_expired"
+    # A hand-crafted no-expiry token is rejected before signature evaluation.
+    stripped = dataclasses.replace(token, expires_at=None)
+    result = stripped.verify(now="2026-07-02T10:00:01+00:00")
+    assert not result.verified
+    assert result.reason in {"signature_invalid", "missing_expiry"}
 
 
 def test_unparseable_expiry_rejected(signing_key) -> None:
-    token = _issue(expires_at="not-a-timestamp")
-    result = token.verify(now="2026-07-02T10:00:00+00:00")
+    import dataclasses
+
+    import pytest
+
+    # Issue-time validation refuses an unparseable expiry outright...
+    with pytest.raises(ValueError):
+        _issue(expires_at="not-a-timestamp")
+    # ...and a token tampered to carry one is rejected at verify time.
+    token = _issue(expires_at="2026-07-02T10:05:00+00:00")
+    tampered = dataclasses.replace(token, expires_at="not-a-timestamp")
+    result = tampered.verify(now="2026-07-02T10:00:00+00:00")
     assert not result.verified
-    assert result.reason == "expiry_unparseable"
+    assert result.reason in {"expiry_unparseable", "signature_invalid"}
 
 
 def test_zulu_suffix_supported(signing_key) -> None:

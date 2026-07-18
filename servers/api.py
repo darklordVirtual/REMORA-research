@@ -827,7 +827,10 @@ def _load_token_table() -> dict[str, tuple[str, str]]:
     raw = os.getenv("REMORA_API_TOKENS", "").strip()
     if not raw:
         return {}
-    _VALID_ROLES_SET = {"admin", "operator", "auditor", "viewer"}
+    # Single authoritative role vocabulary: the capability matrix. Every
+    # documented role is provisionable; nothing outside it authenticates
+    # (review finding: parser/matrix drift, incl. a permissionless "auditor").
+    _VALID_ROLES_SET = frozenset(_BUILTIN_ROLE_PERMISSIONS)
     try:
         table = json.loads(raw)
         if not isinstance(table, dict):
@@ -840,6 +843,9 @@ def _load_token_table() -> dict[str, tuple[str, str]]:
                 raise ValueError(f"token entry must be an object, got {v!r}")
             tenant = str(v.get("tenant", "")).strip()
             role   = str(v.get("role",   "")).strip().lower()
+            actor  = str(v.get("actor_id", "")).strip()
+            if actor:
+                _TOKEN_ACTOR_IDS[token] = actor
             if not tenant:
                 raise ValueError(f"token {token!r}: 'tenant' must be non-empty")
             if role not in _VALID_ROLES_SET:
@@ -855,6 +861,29 @@ def _load_token_table() -> dict[str, tuple[str, str]]:
         ) from exc
 
 _TOKEN_TABLE = _load_token_table()
+
+
+# Optional credential -> human/service principal mapping (from REMORA_API_TOKENS
+# "actor_id" entries). Audit identity NEVER comes from client-controlled fields.
+_TOKEN_ACTOR_IDS: dict[str, str] = {}
+
+
+def _authenticated_principal(request: Request) -> str:
+    """Audit identity for the presented credential (never from the body).
+
+    Returns the provisioned actor_id when the token table declares one,
+    otherwise a stable credential fingerprint. Non-repudiation: the value is
+    derived from what was authenticated, so an authorised caller cannot
+    write someone else's name into the audit trail.
+    """
+    import hashlib as _hashlib
+    auth = request.headers.get("Authorization", "")
+    bearer = auth.removeprefix("Bearer ").strip()
+    if bearer and bearer in _TOKEN_ACTOR_IDS:
+        return _TOKEN_ACTOR_IDS[bearer]
+    if bearer:
+        return "cred-" + _hashlib.sha256(bearer.encode("utf-8")).hexdigest()[:12]
+    return "dev-anonymous"
 
 
 def _authenticate(request: Request) -> tuple[str, str]:
@@ -1324,13 +1353,22 @@ def review(req: ReviewRequest, request: Request) -> dict:
         review_requirements=review_requirements,
     )
 
+    # Audit identity comes from the authenticated credential, never the body
+    # (review finding: self-declared reviewer identity breaks non-repudiation).
+    principal = _authenticated_principal(request)
+    reason = req.reason
+    if req.reviewer_id and req.reviewer_id != principal:
+        reason = (
+            f"{req.reason} [on_behalf_of={req.reviewer_id} "
+            "(client-declared, unverified)]"
+        )
     _CONTROL_PLANE_STORE.create_review(
         ReviewRecord(
             request_id=req.request_id,
             tenant_id=tenant_id,
-            reviewer_id=req.reviewer_id,
+            reviewer_id=principal,
             decision=req.decision,
-            reason=req.reason,
+            reason=reason,
             evidence_refs=req.evidence_refs,
             created_at=utc_now_iso(),
         )
