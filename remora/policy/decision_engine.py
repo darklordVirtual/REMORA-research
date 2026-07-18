@@ -27,6 +27,8 @@ from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
 from remora.policy.trap_classifier import (
     TRAP_ESCALATE_THRESHOLD,
     TRAP_VERIFY_THRESHOLD,
+)
+from remora.policy.trap_classifier import (
     score as trap_score,
 )
 
@@ -268,7 +270,7 @@ class RemoraDecisionEngine:
     # Primary API
     # ------------------------------------------------------------------
 
-    def decide(self, obs: PolicyObservation) -> DecisionReport:  # noqa: C901
+    def decide(self, obs: PolicyObservation) -> DecisionReport:
         """Gate a proposed action and return an authoritative DecisionReport."""
         # ── FAIL-CLOSED NORMALISATION ────────────────────────────────────────
         # Normalise risk_tier, action_type, and target_environment before any

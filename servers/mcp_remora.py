@@ -44,12 +44,12 @@ import json
 import logging
 import os
 import re
+import ssl
 import subprocess
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-import ssl
 from pathlib import Path
 
 logging.basicConfig(level=logging.ERROR, stream=sys.stderr)
@@ -1158,8 +1158,8 @@ def handle_remora_verify_legal_citations(args: dict) -> str:
         # Step 1: Check DCE D1 database
         db_result = _post(LAW_SEARCH_WORKER + "/verify-citation", {"citation": cit}, timeout=15)
         db_verdict  = db_result.get("verdict", "ERROR")
-        _found_d1   = db_result.get("found_in_d1", False)  # noqa: F841
-        _db_note    = db_result.get("note", "")  # noqa: F841
+        _found_d1   = db_result.get("found_in_d1", False)
+        _db_note    = db_result.get("note", "")
         d1_snippets = db_result.get("d1_matches", [])
 
         if db_verdict == "FOUND_IN_DATABASE":
@@ -1565,9 +1565,10 @@ def handle_remora_session_status(args: dict) -> str:
         sys.path.insert(0, _REPO)
 
     try:
-        from remora.agent_hook.lyapunov_tracker import LyapunovTracker
-        from remora.agent_hook.intent_anchor import IntentAnchor
         from pathlib import Path
+
+        from remora.agent_hook.intent_anchor import IntentAnchor
+        from remora.agent_hook.lyapunov_tracker import LyapunovTracker
     except ImportError as e:
         return f"Error: agent_hook module not available — {e}"
 

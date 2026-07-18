@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-
 FeedbackQuality = Literal["unknown", "low", "medium", "high"]
 ManagerTone = Literal["unknown", "supportive", "neutral", "curt", "hostile"]
 AutonomyLevel = Literal["unknown", "low", "medium", "high"]

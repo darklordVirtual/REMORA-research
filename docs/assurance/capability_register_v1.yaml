@@ -58,13 +58,13 @@ capabilities:
 
   - id: CAP-005
     name: "Audit chain (hash-chained decision history)"
-    status: WIRED_API_PATH
+    status: PERSISTED_ATOMIC
     evidence:
       - remora/governance/audit_chain.py
       - remora/governance/tenant_chain.py
       - servers/execution_api.py
       - tests/test_execution_api.py
-    caveat: "Atomic fork-free per-tenant chain on /v1/execution/* (in-process; Postgres DDL shipped); the legacy /v1/assess path keeps predecessor-reference records until migrated."
+    caveat: "PERSISTED_ATOMIC when REMORA_CHAIN_DB (SQLite, restart-proven) or REMORA_PG_DSN (Postgres FOR UPDATE) is configured; default in-process. Queue/jti stores remain in-process; legacy /v1/assess unmigrated."
 
   - id: CAP-006
     name: "A2A delegation envelope (principal-bound keys, attenuation, replay, payload binding)"

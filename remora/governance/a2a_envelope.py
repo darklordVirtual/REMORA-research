@@ -63,10 +63,10 @@ import hmac
 import json
 import os
 import uuid
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from dataclasses import replace as dataclass_replace
-from datetime import datetime, timezone
-from typing import Callable
+from datetime import UTC, datetime, timezone
 
 PROTOCOL_VERSION = "remora-a2a-governance/v1"
 _ENV_KEY = "REMORA_A2A_SIGNING_KEY"
@@ -78,7 +78,7 @@ def _get_signing_key() -> bytes | None:
 
 
 def _utcnow_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 @dataclass(frozen=True)
@@ -245,8 +245,8 @@ class A2AGovernanceEnvelope:
         now: datetime | None = None,
         expected_audience: str | None = None,
         expected_tool_call_hash: str | None = None,
-        link_keys: "dict[str, RegisteredKey] | None" = None,
-        replay_guard: "Callable[[str], bool] | None" = None,
+        link_keys: dict[str, RegisteredKey] | None = None,
+        replay_guard: Callable[[str], bool] | None = None,
     ) -> VerificationResult:
         """Verify integrity, accountability, and delegation attenuation.
 
@@ -352,7 +352,7 @@ class A2AGovernanceEnvelope:
                 failures.append(f"scope_exceeds_delegation:{','.join(sorted(excess))}")
 
         # 10. Timestamps — malformed values are failures, never exceptions.
-        now_dt = now or datetime.now(timezone.utc)
+        now_dt = now or datetime.now(UTC)
         issued = _parse_iso_or_none(self.issued_at)
         if issued is None:
             failures.append("malformed_timestamp:issued_at")
@@ -388,7 +388,7 @@ class A2AGovernanceEnvelope:
         return VerificationResult(valid=not failures, failures=tuple(failures))
 
     def _verify_delegation_chain(
-        self, link_keys: "dict[str, RegisteredKey] | None" = None
+        self, link_keys: dict[str, RegisteredKey] | None = None
     ) -> list[str]:
         failures: list[str] = []
         if not self.delegation_chain:
@@ -540,5 +540,5 @@ def _parse_iso_or_none(value: str) -> datetime | None:
     except (ValueError, TypeError):
         return None
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     return dt

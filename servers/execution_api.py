@@ -14,7 +14,7 @@ enforcement gate consumes — no summary-hash shortcut.
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
@@ -37,7 +37,27 @@ PEP_AUDIENCE = "pep://remora-execution"
 EXECUTION_TOKEN_TTL_SECONDS = 300
 
 _ENGINE = RemoraDecisionEngine()
-_CHAIN = TenantAuditChain()
+
+
+def _build_chain():
+    """Durable chain when configured (REM-034): REMORA_PG_DSN -> Postgres,
+    REMORA_CHAIN_DB -> SQLite file; otherwise the in-process reference."""
+    import os as _os
+
+    from remora.governance.tenant_chain import (
+        PostgresTenantChain,
+        SQLiteTenantChain,
+    )
+    dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+    if dsn:
+        return PostgresTenantChain(dsn)
+    db = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    if db:
+        return SQLiteTenantChain(db)
+    return TenantAuditChain()
+
+
+_CHAIN = _build_chain()
 _GATE = EnforcementGate(strict=True, audience=PEP_AUDIENCE)
 _QUEUES: dict[str, ReviewQueue] = {}
 # item_id -> (tenant, ToolCallRequest fields) so execute() can rebuild hashes.
@@ -101,7 +121,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     api_mod._require_tenant_capability(role, tenant, "assess")
     obs = _observation(req, tenant)
     report = _ENGINE.decide(obs)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     record: dict[str, Any] = {
         "event": "assessed",
         "actor": principal,
@@ -228,7 +248,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         "detail": outcome.detail,
     }
     if outcome.decision is ExecutionDecision.EXECUTE:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         token = PolicyDecisionToken.issue(
             action="accept",
             observation_hash=fresh_obs.tool_call_hash or "",

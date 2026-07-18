@@ -14,10 +14,11 @@ collapsing into chaos.
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 from remora.lyapunov import LyapunovState
+
 
 @dataclass(frozen=True)
 class BrakingResult:

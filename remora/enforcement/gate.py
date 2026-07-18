@@ -19,8 +19,10 @@ Enforcement levels:
 from __future__ import annotations
 
 import warnings
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from datetime import UTC
+from typing import Any
 
 from remora.enforcement.token import PolicyDecisionToken, TokenVerificationResult
 
@@ -119,7 +121,7 @@ class EnforcementGate:
             issued = datetime.fromisoformat(token.issued_at.replace("Z", "+00:00"))
             current = (
                 datetime.fromisoformat(now.replace("Z", "+00:00"))
-                if now is not None else datetime.now(timezone.utc)
+                if now is not None else datetime.now(UTC)
             )
             if (current - issued).total_seconds() > self.MAX_TOKEN_AGE_SECONDS:
                 return EnforcementResult(

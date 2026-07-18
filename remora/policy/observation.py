@@ -166,7 +166,7 @@ class PolicyObservation:
     # True → explicitly validated against schema.
     # Default is None (unknown) — True is only appropriate when a real schema
     # validator has been executed against the tool call's arguments.
-    schema_valid: Optional[bool] = None
+    schema_valid: bool | None = None
     # The proposed tool is on the task's own forbidden-tool list → hard ESCALATE.
     tool_forbidden: bool = False
     # The call's arguments derive from untrusted input → never auto-accept (VERIFY).

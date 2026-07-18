@@ -35,6 +35,7 @@ import hmac
 import json
 import os
 from dataclasses import dataclass
+from datetime import UTC
 from typing import Any
 
 _ENV_KEY = "REMORA_PDP_SIGNING_KEY"
@@ -134,7 +135,7 @@ class PolicyDecisionToken:
         issued_at: str,
         expires_at: str | None = None,
         audience: str = "",
-    ) -> "PolicyDecisionToken":
+    ) -> PolicyDecisionToken:
         """Issue a signed (or unsigned) PolicyDecisionToken from the PDP.
 
         Args:
@@ -145,9 +146,8 @@ class PolicyDecisionToken:
             expires_at: Optional UTC ISO-8601 expiry; signed into the payload
                 when set, so it cannot be stripped or extended post-issuance.
         """
-        from datetime import datetime, timedelta
-
         import uuid as _uuid
+        from datetime import datetime, timedelta
 
         issued_dt = datetime.fromisoformat(issued_at.replace("Z", "+00:00"))
         if expires_at is None:
@@ -198,7 +198,7 @@ class PolicyDecisionToken:
         self,
         observation_hash: str | None = None,
         now: str | None = None,
-    ) -> "TokenVerificationResult":
+    ) -> TokenVerificationResult:
         """Verify this token's signature, expiry, and optionally the observation hash.
 
         Args:
@@ -254,7 +254,7 @@ class PolicyDecisionToken:
                 current = (
                     datetime.fromisoformat(now.replace("Z", "+00:00"))
                     if now is not None
-                    else datetime.now(timezone.utc)
+                    else datetime.now(UTC)
                 )
             except ValueError:
                 return TokenVerificationResult(
@@ -302,7 +302,7 @@ class PolicyDecisionToken:
     })
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "PolicyDecisionToken":
+    def from_dict(cls, data: dict[str, Any]) -> PolicyDecisionToken:
         """Reconstruct a token; unknown keys are rejected (fail closed)."""
         unknown = set(data) - cls._FIELDS
         if unknown:

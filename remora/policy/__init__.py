@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
-from remora.policy.decision_engine import RemoraDecisionEngine
 
 
 def enrich_then_decide(obs: PolicyObservation, **kwargs: Any):
@@ -21,10 +21,10 @@ def enrich_then_decide(obs: PolicyObservation, **kwargs: Any):
 
 
 __all__ = [
-    "PolicyObservation",
     "DecisionAction",
     "DecisionReason",
     "DecisionReport",
+    "PolicyObservation",
     "RemoraDecisionEngine",
     "enrich_then_decide",
 ]

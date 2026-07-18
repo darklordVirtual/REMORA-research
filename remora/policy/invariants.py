@@ -80,12 +80,11 @@ Extending
 from __future__ import annotations
 
 import abc
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReport
-
 
 # ---------------------------------------------------------------------------
 # Result type

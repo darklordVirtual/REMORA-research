@@ -600,13 +600,16 @@ items:
       sequence assignment and insert atomically under one lock (fork-free
       proven by a 100-append barrier race test); per-tenant verify() at
       export/startup plus a /v1/execution/audit/verify endpoint; optional
-      HMAC per entry. The Postgres discipline (per-tenant head row,
-      SELECT FOR UPDATE, unique (tenant_id, sequence_no)) ships as
-      POSTGRES_DDL with the adapter contract documented. CAVEAT: the
-      in-process reference store is atomic but not durable; a deployment
-      must implement the shipped DDL contract for persistence. The legacy
-      /v1/assess path keeps its predecessor-reference records until
-      migrated onto this chain.
+      HMAC per entry. DURABLE ADAPTERS (2026-07-18): SQLiteTenantChain
+      (single-node; BEGIN IMMEDIATE makes predecessor-read + insert one
+      exclusive transaction — restart-survival and 40-append fork-free
+      race proven in tests) and PostgresTenantChain (implements
+      POSTGRES_DDL with SELECT FOR UPDATE on the per-tenant head row;
+      contract test runs when REMORA_PG_DSN is set, skipped otherwise).
+      The execution API selects the durable chain via REMORA_PG_DSN or
+      REMORA_CHAIN_DB. Remaining out of scope here: durable review-queue
+      and jti-consumption stores; legacy /v1/assess keeps its
+      predecessor-reference records until migrated.
 
   - id: REM-035
     section: "review-2026-07-18 P1/P2"
@@ -657,7 +660,7 @@ items:
     section: "review-2026-07-18 CI"
     title: "CI reproducibility and stricter gates"
     gate: P4
-    status: NOT_STARTED
+    status: IN_PROGRESS
     artifacts: []
     notes: >
       External review finding: frontend build uses npm install (lockfile
@@ -668,3 +671,7 @@ items:
       (uv.lock or pip-compile --generate-hashes); coverage >= 85 percent
       for policy/enforcement/governance/storage; extended ruff rule sets
       (B, S, I, UP, RUF); mutation coverage as a measured gate.
+      PROGRESS 2026-07-18: 73 extended-rule (I/UP/B/RUF) autofixes applied
+      across policy/enforcement/governance/servers; enabling the rule sets
+      as a CI gate awaits the ~25 remaining manual fixes. The npm/coverage/
+      hash-lock items require a Linux environment.

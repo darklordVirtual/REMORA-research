@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Literal
 
-
 RetentionClass = Literal["short", "medium", "long", "permanent"]
 RiskLevel = Literal["low", "medium", "high", "critical"]
 GovernanceRoute = Literal["ACCEPT", "VERIFY", "ABSTAIN", "ESCALATE"]

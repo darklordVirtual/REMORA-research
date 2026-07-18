@@ -28,11 +28,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from remora.policy.decision_engine import (
     _MUTATING_TYPES,
@@ -131,7 +132,7 @@ class ChainedEventLog:
     ) -> None:
         self._events: list[ChainedEvent] = []
         self._sink = sink
-        self._now_fn = now_fn or (lambda: datetime.now(timezone.utc))
+        self._now_fn = now_fn or (lambda: datetime.now(UTC))
 
     @property
     def events(self) -> tuple[ChainedEvent, ...]:

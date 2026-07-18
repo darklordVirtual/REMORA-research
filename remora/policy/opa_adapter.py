@@ -54,7 +54,6 @@ from typing import Any
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
 
-
 # PolicyObservation fields that are deliberately NOT exported to OPA.
 # These are audit/correlation metadata with no role in policy evaluation.
 # tests/test_opa_parity.py enforces that every field the decision path reads

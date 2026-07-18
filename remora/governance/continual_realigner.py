@@ -3,8 +3,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from remora.governance.drift_monitor import AgentBehaviorSnapshot, DriftMonitor, DriftReport, GovernanceAction
-from remora.governance.memory_gate import MemoryGate, MemoryGateDecision, MemoryWriteRequest
+from remora.governance.drift_monitor import (
+    AgentBehaviorSnapshot,
+    DriftMonitor,
+    DriftReport,
+    GovernanceAction,
+)
+from remora.governance.memory_gate import (
+    MemoryGate,
+    MemoryGateDecision,
+    MemoryWriteRequest,
+)
 from remora.governance.persona_baseline import PersonaBaseline
 from remora.governance.work_context import WorkContext
 

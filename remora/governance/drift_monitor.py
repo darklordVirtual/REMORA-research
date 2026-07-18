@@ -6,7 +6,6 @@ from typing import Any, Literal
 from remora.governance.persona_baseline import PersonaBaseline
 from remora.governance.work_context import WorkContext
 
-
 GovernanceAction = Literal["ACCEPT", "VERIFY", "ABSTAIN", "ESCALATE"]
 DriftPhase = Literal["ordered", "critical", "disordered"]
 SignalSeverity = Literal["stable", "watch", "critical"]

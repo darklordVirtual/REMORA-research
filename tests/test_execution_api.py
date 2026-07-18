@@ -213,3 +213,65 @@ def test_approve_passes_item_risk_tier_to_profile_resolution(client, monkeypatch
     item_id = client.post("/v1/execution/assess", json=PROD_WRITE).json()["review_item_id"]
     client.post("/v1/execution/approve", json={"item_id": item_id})
     assert seen["risk_tier"] == "high"
+
+
+def test_sqlite_chain_is_durable_atomic_and_fork_free(tmp_path) -> None:
+    """REM-034 durable adapter: same contract, survives 'restart', and 40
+    racing appends across two connections-per-thread serialise fork-free."""
+    from remora.governance.tenant_chain import SQLiteTenantChain
+
+    db = str(tmp_path / "chain.db")
+    chain = SQLiteTenantChain(db)
+    chain.append("acme", {"event": "a"})
+    chain.append("acme", {"event": "b"})
+    # Restart: a NEW adapter instance sees the same verified chain.
+    reopened = SQLiteTenantChain(db)
+    assert len(reopened.entries("acme")) == 2
+    ok, problems = reopened.verify("acme")
+    assert ok, problems
+    # Concurrency: BEGIN IMMEDIATE serialises predecessor read + insert.
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    barrier = threading.Barrier(8)
+
+    def hammer(i: int) -> None:
+        local = SQLiteTenantChain(db)
+        barrier.wait(timeout=10)
+        for j in range(5):
+            local.append("acme", {"event": f"{i}-{j}"})
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for f in [pool.submit(hammer, i) for i in range(8)]:
+            f.result(timeout=60)
+    final = SQLiteTenantChain(db)
+    entries = final.entries("acme")
+    assert len(entries) == 42
+    assert [e.sequence_no for e in entries] == list(range(42))
+    ok, problems = final.verify("acme")
+    assert ok, problems
+
+
+def test_execution_api_uses_durable_chain_when_configured(tmp_path, monkeypatch) -> None:
+    import servers.execution_api as exec_mod
+    from remora.governance.tenant_chain import SQLiteTenantChain
+
+    monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "exec.db"))
+    chain = exec_mod._build_chain()
+    assert isinstance(chain, SQLiteTenantChain)
+    monkeypatch.delenv("REMORA_CHAIN_DB")
+    assert isinstance(exec_mod._build_chain(), TenantAuditChain)
+
+
+@pytest.mark.skipif("not __import__('os').environ.get('REMORA_PG_DSN')",
+                    reason="REMORA_PG_DSN not set — Postgres contract test skipped")
+def test_postgres_chain_contract() -> None:
+    import os
+
+    from remora.governance.tenant_chain import PostgresTenantChain
+
+    chain = PostgresTenantChain(os.environ["REMORA_PG_DSN"])
+    entry = chain.append("contract-test", {"event": "pg"})
+    assert entry.sequence_no >= 0
+    ok, problems = chain.verify("contract-test")
+    assert ok, problems

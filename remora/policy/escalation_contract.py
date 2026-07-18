@@ -41,7 +41,6 @@ from typing import Any
 
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
 
-
 # ---------------------------------------------------------------------------
 # Routing hint table
 # ---------------------------------------------------------------------------
@@ -315,7 +314,7 @@ def build_escalation_payload(
     return EscalationPayload(
         id=str(uuid.uuid4()),
         schema_version="escalation-v1",
-        timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
         prompt=obs.question,
         trigger=trigger,
         action=report.action.value,

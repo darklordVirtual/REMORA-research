@@ -36,10 +36,10 @@ above are storage-invariant.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from enum import Enum
-from typing import Callable
 
 from remora.governance.degradation import ChainedEvent, ChainedEventLog
 from remora.policy.decision_engine import RemoraDecisionEngine
@@ -126,7 +126,7 @@ class ReviewQueue:
         default_queue_ttl: timedelta = DEFAULT_QUEUE_TTL,
     ) -> None:
         self._engine = engine or RemoraDecisionEngine()
-        self._now_fn = now_fn or (lambda: datetime.now(timezone.utc))
+        self._now_fn = now_fn or (lambda: datetime.now(UTC))
         self._default_queue_ttl = default_queue_ttl
         self._items: dict[str, PendingReview] = {}
         self._log = ChainedEventLog(sink=sink, now_fn=self._now_fn)

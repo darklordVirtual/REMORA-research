@@ -4,7 +4,6 @@ import hashlib
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-
 PatternType = Literal[
     "model_domain_failure",
     "critical_disagreement",

@@ -38,14 +38,14 @@ Design notes
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import importlib.metadata
+import json
 import logging
 import os
 import time
 import uuid
-import hmac
-import json
-import hashlib
 from pathlib import Path
 from typing import Any, Literal, Optional
 
@@ -74,9 +74,20 @@ except importlib.metadata.PackageNotFoundError:
 
 # FastAPI is an optional dependency — gate the import.
 try:
-    from fastapi import FastAPI, HTTPException, Request  # type: ignore[import-not-found]
-    from fastapi.responses import JSONResponse, PlainTextResponse  # type: ignore[import-not-found]
-    from pydantic import BaseModel, Field, field_validator  # type: ignore[import-not-found]
+    from fastapi import (  # type: ignore[import-not-found]
+        FastAPI,
+        HTTPException,
+        Request,
+    )
+    from fastapi.responses import (  # type: ignore[import-not-found]
+        JSONResponse,
+        PlainTextResponse,
+    )
+    from pydantic import (  # type: ignore[import-not-found]
+        BaseModel,
+        Field,
+        field_validator,
+    )
 except ImportError as _e:  # pragma: no cover
     raise ImportError(
         "FastAPI is not installed. Run: pip install 'fastapi[all]'"
@@ -150,10 +161,6 @@ def _safe_error_response(exc: Exception, status_code: int = 500) -> JSONResponse
         },
     )
 
-from remora.genome import Genome
-from remora.engine import Remora
-from remora.oracles.mock import MockOracle
-from remora.evidence import StaticJsonlEvidenceProvider
 from remora.adapters.storage import (
     ControlPlaneStore,
     EvidenceRecord,
@@ -163,7 +170,11 @@ from remora.adapters.storage import (
     ReviewRecord,
 )
 from remora.adapters.storage.control_plane import utc_now_iso
+from remora.engine import Remora
+from remora.evidence import StaticJsonlEvidenceProvider
+from remora.genome import Genome
 from remora.observability import get_remora_tracer
+from remora.oracles.mock import MockOracle
 from remora.policy.report import DecisionReport
 
 # ---------------------------------------------------------------------------
@@ -680,11 +691,11 @@ def _enforce_review_approval_role(
 
 class AssessRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=4096)
-    context: Optional[str] = Field(None, max_length=16384)
-    domain: Optional[str] = Field(None, max_length=128)
-    risk_tier: Optional[str] = Field(None, pattern=r"^(low|medium|high|critical)$")
-    action_type: Optional[str] = Field(None, max_length=128)
-    target_environment: Optional[str] = Field(None, max_length=128)
+    context: str | None = Field(None, max_length=16384)
+    domain: str | None = Field(None, max_length=128)
+    risk_tier: str | None = Field(None, pattern=r"^(low|medium|high|critical)$")
+    action_type: str | None = Field(None, max_length=128)
+    target_environment: str | None = Field(None, max_length=128)
 
     @field_validator("question")
     @classmethod
@@ -697,14 +708,14 @@ class AssessRequest(BaseModel):
 class PolicyDecision(BaseModel):
     action: str
     reasons: list[str]
-    risk_estimate: Optional[float]
-    confidence: Optional[float]
+    risk_estimate: float | None
+    confidence: float | None
     human_review_required: bool
     evidence_required: bool
     explanation: str
     source_of_decision: str
     policy_version: str
-    in_sample_calibration_warning: Optional[str]
+    in_sample_calibration_warning: str | None
     fallback_used: bool
 
 
@@ -743,14 +754,14 @@ class FollowUpRequest(BaseModel):
     request_id: str = Field(..., min_length=8, max_length=128)
     follow_up_type: Literal["evidence_request", "override_request", "manual_escalation", "incident"]
     payload: dict[str, Any] = Field(default_factory=dict)
-    requested_by: Optional[str] = Field(None, max_length=128)
+    requested_by: str | None = Field(None, max_length=128)
 
 
 class EvidenceRequest(BaseModel):
     request_id: str = Field(..., min_length=8, max_length=128)
     evidence_type: str = Field(..., min_length=1, max_length=128)
     payload: dict[str, Any] = Field(default_factory=dict)
-    submitted_by: Optional[str] = Field(None, max_length=128)
+    submitted_by: str | None = Field(None, max_length=128)
 
 
 class RerunRequest(BaseModel):
@@ -1647,6 +1658,6 @@ def rerun(req: RerunRequest, request: Request) -> dict:
 
 # REM-035: end-to-end execution state machine (assess -> review -> re-gate
 # -> one-time grant -> PEP consume), wired as a first-class API path.
-from servers.execution_api import router as _execution_router  # noqa: E402
+from servers.execution_api import router as _execution_router
 
 app.include_router(_execution_router)

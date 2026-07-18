@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -157,14 +157,14 @@ class DecisionEnvelope:
     # Optional causal explanation — populated by generate_explanation() when
     # the caller requests a policy-only counterfactual analysis.
     # decision_scope is always "policy_only"; see remora.causal.explanation.
-    causal_explanation: "CausalExplanation | None" = None
+    causal_explanation: CausalExplanation | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Serialise to a plain JSON-compatible dict."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> "DecisionEnvelope":
+    def from_dict(cls, d: dict[str, Any]) -> DecisionEnvelope:
         """Deserialise from a plain dict (minimal — no deep validation)."""
         return cls(
             request=RequestBlock(**d["request"]),

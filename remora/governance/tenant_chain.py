@@ -31,9 +31,10 @@ import hmac
 import json
 import os
 import threading
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from typing import Any, Callable
+from datetime import UTC, datetime, timezone
+from typing import Any
 
 _GENESIS = "0" * 64
 _ENV_KEY = "REMORA_AUDIT_SIGNING_KEY"
@@ -104,7 +105,7 @@ class TenantAuditChain:
     def __init__(self, now_fn: Callable[[], datetime] | None = None) -> None:
         self._entries: dict[str, list[ChainEntry]] = {}
         self._lock = threading.Lock()
-        self._now_fn = now_fn or (lambda: datetime.now(timezone.utc))
+        self._now_fn = now_fn or (lambda: datetime.now(UTC))
 
     def append(self, tenant_id: str, payload: dict[str, Any]) -> ChainEntry:
         """Atomic read-predecessor + insert: fork-free by construction."""
@@ -164,3 +165,166 @@ class TenantAuditChain:
         report = {t: self.verify(t)[1] for t in list(self._entries)}
         report = {t: p for t, p in report.items() if p}
         return (not report, report)
+
+
+# ---------------------------------------------------------------------------
+# Durable adapters (REM-034 completion)
+# ---------------------------------------------------------------------------
+
+_SQLITE_DDL = """
+CREATE TABLE IF NOT EXISTS tenant_chain_entry (
+    tenant_id     TEXT    NOT NULL,
+    sequence_no   INTEGER NOT NULL,
+    timestamp     TEXT    NOT NULL,
+    payload       TEXT    NOT NULL,
+    previous_hash TEXT    NOT NULL,
+    entry_hash    TEXT    NOT NULL,
+    signature     TEXT    NOT NULL DEFAULT '',
+    PRIMARY KEY (tenant_id, sequence_no)
+);
+"""
+
+
+def _verify_generic(chain, tenant_id: str) -> tuple[bool, list[str]]:
+    problems: list[str] = []
+    previous_hash = _GENESIS
+    for i, e in enumerate(chain.entries(tenant_id)):
+        if e.sequence_no != i:
+            problems.append(f"sequence_gap_at:{i}")
+        if e.previous_hash != previous_hash:
+            problems.append(f"chain_break_at:{i}")
+        if compute_entry_hash(e.previous_hash, e.payload, e.tenant_id,
+                              e.sequence_no, e.timestamp) != e.entry_hash:
+            problems.append(f"hash_mismatch_at:{i}")
+        previous_hash = e.entry_hash
+    return (not problems, problems)
+
+
+class SQLiteTenantChain:
+    """Durable single-node adapter: same hash contract, atomic via
+    ``BEGIN IMMEDIATE`` (the write lock covers predecessor read + insert),
+    so concurrent appends serialise and can never fork. Survives restart."""
+
+    def __init__(self, db_path: str, now_fn: Callable[[], datetime] | None = None) -> None:
+        self._db_path = db_path
+        self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self._local = threading.local()
+        self._conn().executescript(_SQLITE_DDL)
+
+    def _conn(self):
+        import sqlite3
+
+        conn = getattr(self._local, "conn", None)
+        if conn is None:
+            conn = sqlite3.connect(self._db_path, timeout=30, isolation_level=None)
+            self._local.conn = conn
+        return conn
+
+    def append(self, tenant_id: str, payload: dict[str, Any]) -> ChainEntry:
+        conn = self._conn()
+        conn.execute("BEGIN IMMEDIATE")  # exclusive write txn: read+insert atomic
+        try:
+            row = conn.execute(
+                "SELECT entry_hash, sequence_no FROM tenant_chain_entry "
+                "WHERE tenant_id = ? ORDER BY sequence_no DESC LIMIT 1",
+                (tenant_id,),
+            ).fetchone()
+            previous_hash, sequence_no = (row[0], row[1] + 1) if row else (_GENESIS, 0)
+            timestamp = self._now_fn().isoformat()
+            entry_hash = compute_entry_hash(
+                previous_hash, payload, tenant_id, sequence_no, timestamp
+            )
+            key = os.environ.get(_ENV_KEY, "").strip().encode()
+            signature = (
+                hmac.new(key, entry_hash.encode(), hashlib.sha256).hexdigest()
+                if key else ""
+            )
+            conn.execute(
+                "INSERT INTO tenant_chain_entry VALUES (?,?,?,?,?,?,?)",
+                (tenant_id, sequence_no, timestamp, _canonical(payload),
+                 previous_hash, entry_hash, signature),
+            )
+            conn.execute("COMMIT")
+        except BaseException:
+            conn.execute("ROLLBACK")
+            raise
+        return ChainEntry(tenant_id, sequence_no, timestamp, payload,
+                          previous_hash, entry_hash, signature)
+
+    def entries(self, tenant_id: str) -> tuple[ChainEntry, ...]:
+        rows = self._conn().execute(
+            "SELECT tenant_id, sequence_no, timestamp, payload, previous_hash, "
+            "entry_hash, signature FROM tenant_chain_entry WHERE tenant_id = ? "
+            "ORDER BY sequence_no", (tenant_id,),
+        ).fetchall()
+        return tuple(
+            ChainEntry(r[0], r[1], r[2], json.loads(r[3]), r[4], r[5], r[6])
+            for r in rows
+        )
+
+    def verify(self, tenant_id: str) -> tuple[bool, list[str]]:
+        return _verify_generic(self, tenant_id)
+
+
+class PostgresTenantChain:
+    """Multi-node durable adapter: implements the POSTGRES_DDL contract with
+    ``SELECT ... FOR UPDATE`` on the per-tenant head row inside one
+    transaction. Requires ``psycopg`` and a DSN; contract-tested when
+    REMORA_PG_DSN is set (skipped otherwise)."""
+
+    def __init__(self, dsn: str, now_fn: Callable[[], datetime] | None = None) -> None:
+        import psycopg  # type: ignore[import-not-found]
+
+        self._psycopg = psycopg
+        self._dsn = dsn
+        self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        with psycopg.connect(dsn) as conn:
+            conn.execute(POSTGRES_DDL)
+            conn.commit()
+
+    def append(self, tenant_id: str, payload: dict[str, Any]) -> ChainEntry:
+        with self._psycopg.connect(self._dsn) as conn:
+            with conn.transaction():
+                conn.execute(
+                    "INSERT INTO tenant_chain_head VALUES (%s, %s, -1) "
+                    "ON CONFLICT (tenant_id) DO NOTHING", (tenant_id, _GENESIS),
+                )
+                row = conn.execute(
+                    "SELECT head_hash, head_sequence FROM tenant_chain_head "
+                    "WHERE tenant_id = %s FOR UPDATE", (tenant_id,),
+                ).fetchone()
+                previous_hash, sequence_no = row[0], row[1] + 1
+                timestamp = self._now_fn().isoformat()
+                entry_hash = compute_entry_hash(
+                    previous_hash, payload, tenant_id, sequence_no, timestamp
+                )
+                conn.execute(
+                    "INSERT INTO tenant_chain_entry "
+                    "(tenant_id, sequence_no, timestamp, payload, previous_hash, "
+                    "entry_hash) VALUES (%s,%s,%s,%s,%s,%s)",
+                    (tenant_id, sequence_no, timestamp, _canonical(payload),
+                     previous_hash, entry_hash),
+                )
+                conn.execute(
+                    "UPDATE tenant_chain_head SET head_hash=%s, head_sequence=%s "
+                    "WHERE tenant_id=%s", (entry_hash, sequence_no, tenant_id),
+                )
+        return ChainEntry(tenant_id, sequence_no, timestamp, payload,
+                          previous_hash, entry_hash, "")
+
+    def entries(self, tenant_id: str) -> tuple[ChainEntry, ...]:
+        with self._psycopg.connect(self._dsn) as conn:
+            rows = conn.execute(
+                "SELECT tenant_id, sequence_no, timestamp, payload, "
+                "previous_hash, entry_hash, signature FROM tenant_chain_entry "
+                "WHERE tenant_id = %s ORDER BY sequence_no", (tenant_id,),
+            ).fetchall()
+        return tuple(
+            ChainEntry(r[0], r[1], r[2],
+                       r[3] if isinstance(r[3], dict) else json.loads(r[3]),
+                       r[4], r[5], r[6] or "")
+            for r in rows
+        )
+
+    def verify(self, tenant_id: str) -> tuple[bool, list[str]]:
+        return _verify_generic(self, tenant_id)

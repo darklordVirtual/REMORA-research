@@ -33,8 +33,8 @@ are identical (no randomness or timestamps in the hash input).
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 # Source files whose content determines the governance outcome.
 # Paths are relative to the repository root (the parent of the ``remora`` package).

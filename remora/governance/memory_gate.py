@@ -4,7 +4,6 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-
 MemoryAction = Literal["APPROVE", "REVIEW", "BLOCK"]
 MemoryCategory = Literal[
     "task_strategy",
