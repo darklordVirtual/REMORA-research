@@ -126,11 +126,11 @@ class DomainHarmPrior:
 
     def adjust_trust(
         self,
-        trust_score: float,
+        trust_score: float | None,
         domain: str,
         action_type: str,
         risk_tier: str,
-    ) -> float:
+    ) -> float | None:
         """Return trust adjusted by the learned harm prior — bidirectionally.
 
         This is the lever that lets AROMER change behaviour over time:
@@ -351,7 +351,10 @@ class DomainHarmPrior:
         return f"{domain}:{action_type}:{risk_tier}"
 
     def _load(self) -> None:
-        self._shadow_log: list[dict[str, Any]] = []
+        from collections import deque
+        # Bounded: shadow-mode decide() appends on every call and the log
+        # is diagnostic-only; cap it so it cannot grow without limit.
+        self._shadow_log: deque = deque(maxlen=1000)
         if self.path.exists():
             try:
                 self._priors = json.loads(self.path.read_text(encoding="utf-8"))
