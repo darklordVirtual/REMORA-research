@@ -70,7 +70,7 @@
 \title{REMORA: A Policy-Gated Multi-Oracle\\Assurance Architecture for Agentic AI}
 
 % Paper version — keep in lockstep with the repository release tag.
-\newcommand{\paperversion}{v0.9.0}
+\newcommand{\paperversion}{Preprint (package version 0.9.0; no tagged release)}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -538,7 +538,7 @@ to a missing policy engine.
 The policy engine is only as honest as the metadata it is given: an
 integration bug, or a compromised agent, can label a destructive
 action as a low-risk read and present the gate with nothing to fire
-on. Added in release \paperversion, the \emph{Governance Intelligence
+on. Added at package version 0.9.0 (this repository has no tagged releases), the \emph{Governance Intelligence
 Layer} (\path{remora/governance_intelligence/}) closes this gap with
 an opt-in, fully deterministic enrichment stage that runs before any
 policy rule (no LLM calls): (1)~fail-closed normalization of
