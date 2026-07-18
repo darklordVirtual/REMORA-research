@@ -227,7 +227,7 @@ Full negative results and documented gaps: [NEGATIVE_RESULTS.md](NEGATIVE_RESULT
 AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's **experimental** closed-loop learning layer — adaptive calibration research layered on top of the governance control plane. Nothing in the control plane depends on it, and its metrics are not evidence for the core governance system (see Limitations above). It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII) — a weighted composite of five diagnostic dimensions. Status is updated every 6 hours by automated GitHub Actions telemetry.
 
 <!-- LIVE_STATUS_START -->
-> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-07-18T00:40Z
+> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-07-18T06:45Z
 
 | Metric | Value | Status |
 |--------|-------|--------|
