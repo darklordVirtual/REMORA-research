@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-fastapi = pytest.importorskip("fastapi")
+pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
 from remora.governance.tenant_chain import TenantAuditChain  # noqa: E402

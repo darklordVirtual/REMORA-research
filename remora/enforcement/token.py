@@ -247,7 +247,7 @@ class PolicyDecisionToken:
                 is_signed=True,
             )
         if self.expires_at is not None:
-            from datetime import datetime, timezone
+            from datetime import datetime
 
             try:
                 expiry = datetime.fromisoformat(self.expires_at.replace("Z", "+00:00"))

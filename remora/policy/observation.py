@@ -35,7 +35,7 @@ from __future__ import annotations
 import hashlib
 import json as _json
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 
 def _canonical_json(data: Any) -> str:

@@ -47,7 +47,7 @@ import os
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 logger = logging.getLogger("remora.api")
 

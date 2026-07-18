@@ -33,7 +33,7 @@ import os
 import threading
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 _GENESIS = "0" * 64

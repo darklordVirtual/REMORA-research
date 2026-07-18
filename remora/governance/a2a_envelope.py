@@ -66,7 +66,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from dataclasses import replace as dataclass_replace
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 
 PROTOCOL_VERSION = "remora-a2a-governance/v1"
 _ENV_KEY = "REMORA_A2A_SIGNING_KEY"

@@ -116,7 +116,7 @@ class EnforcementGate:
             )
 
         # Maximum token age from issued_at (independent of the signed expiry).
-        from datetime import datetime, timezone
+        from datetime import datetime
         try:
             issued = datetime.fromisoformat(token.issued_at.replace("Z", "+00:00"))
             current = (

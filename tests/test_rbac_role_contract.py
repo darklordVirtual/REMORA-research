@@ -88,7 +88,7 @@ def test_execution_endpoints_enforce_capabilities(monkeypatch) -> None:
     """Review-7 P1: a viewer must not reach assess/execute; audit needs read."""
     import pytest as _pytest
 
-    fastapi = _pytest.importorskip("fastapi")
+    _pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
     monkeypatch.setenv("REMORA_ENV", "development")
