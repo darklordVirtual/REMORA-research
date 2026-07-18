@@ -381,3 +381,76 @@ def test_malformed_opa_response_fails_closed() -> None:
             report, fallback_used = adapter.evaluate(obs)
         assert fallback_used, payload
         assert report.action in {DecisionAction.ESCALATE, DecisionAction.VERIFY}, payload
+
+
+def test_unknown_risk_tier_is_floored_by_full_engine() -> None:
+    """Round-4 P1: 'high_risk' normalises to unknown — the engine's
+    fail-closed unknown-tier rule (VERIFY for mutating/production) must be a
+    monotone floor over a permissive OPA policy."""
+    obs = PolicyObservation(
+        question="apply work order", risk_tier="high_risk",  # unrecognised
+        action_type="production_write", target_environment="prod",
+        schema_valid=True, trust_score=0.95, phase="ordered",
+        evidence_action="answer", evidence_confidence=0.9,
+    )
+    engine_action = RemoraDecisionEngine().decide(obs).action
+    assert engine_action != DecisionAction.ACCEPT  # precondition sanity
+    adapter = _adapter_with_opa_response("accept")
+    with adapter._urlopen_patch:
+        report, fallback_used = adapter.evaluate(obs)
+    assert not fallback_used
+    assert _SEVERITY[report.action] >= _SEVERITY[engine_action]
+    assert report.source_of_decision == "opa_engine_floor"
+
+
+def test_opa_receives_normalised_observation() -> None:
+    """Round-4 P1: OPA must see the same normalised values the engine uses —
+    ' PROD ' and 'Production_Write' must not mean different things to the
+    two evaluators."""
+    captured: dict = {}
+
+    class _CapturingResponse:
+        def read(self):
+            return json.dumps({"result": {"action": "abstain", "reasons": []}}).encode()
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def _capture_urlopen(req, timeout=None):
+        captured["input"] = json.loads(req.data.decode())["input"]
+        return _CapturingResponse()
+
+    obs = PolicyObservation(
+        question="x", risk_tier="  HIGH  ",
+        action_type="  Production_Write  ", target_environment=" PROD ",
+    )
+    adapter = OPAAdapter(opa_url="http://opa.test:8181")
+    with mock.patch("urllib.request.urlopen", side_effect=_capture_urlopen):
+        adapter.evaluate(obs)
+    assert captured["input"]["risk_tier"] == "high"
+    assert captured["input"]["action_type"] == "production_write"
+    assert captured["input"]["target_environment"] == "prod"
+
+
+def test_wrong_typed_opa_result_fields_fail_closed() -> None:
+    """Round-4 P2: wrong-typed result fields (string reasons, list
+    explanation, boolean risk_estimate) must route to controlled fallback."""
+    bad_results = [
+        {"action": ["accept"], "reasons": []},
+        {"action": "accept", "reasons": "conformal_accept"},
+        {"action": "accept", "reasons": [1, 2]},
+        {"action": "accept", "reasons": [], "risk_estimate": True},
+        {"action": "accept", "reasons": [], "explanation": ["a", "b"]},
+        {"action": "accept", "reasons": [], "policy_version": 3},
+    ]
+    for bad in bad_results:
+        obs = PolicyObservation(question="rotate key", risk_tier="critical",
+                                action_type="permission_change")
+        adapter = OPAAdapter(opa_url="http://opa.test:8181")
+        response = mock.MagicMock()
+        response.read.return_value = json.dumps({"result": bad}).encode()
+        response.__enter__ = lambda self: self
+        response.__exit__ = lambda self, *a: False
+        with mock.patch("urllib.request.urlopen", return_value=response):
+            report, fallback_used = adapter.evaluate(obs)
+        assert fallback_used, bad
+        assert report.action in {DecisionAction.ESCALATE, DecisionAction.VERIFY}, bad

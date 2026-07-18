@@ -258,7 +258,14 @@ class OPAAdapter:
         fallback_used : bool
             ``True`` when the Python engine was used because OPA was unavailable.
         """
-        ctx = export_opa_context(obs)
+        # Normalise the observation exactly as the engine does before any
+        # rule evaluation (risk_tier -> known-or-unknown, action_type and
+        # target_environment lower/stripped). OPA and the Python engine must
+        # see the same values: exporting raw strings would let ' PROD ' or
+        # 'Production_Write' mean different things to the two evaluators.
+        from remora.policy.decision_engine import _normalize_observation
+        norm_obs = _normalize_observation(obs)
+        ctx = export_opa_context(norm_obs)
         payload = json.dumps(ctx.to_opa_input()).encode("utf-8")
 
         try:
@@ -279,7 +286,7 @@ class OPAAdapter:
             if not isinstance(result, dict):
                 raise ValueError(f"OPA result is not an object: {type(result).__name__}")
             report = self._opa_result_to_report(result, obs)
-            return self._apply_decision_floor(report, obs), False
+            return self._apply_decision_floor(report, norm_obs, raw_obs=obs), False
         except (urllib.error.URLError, OSError, KeyError, ValueError):
             pass
 
@@ -303,7 +310,10 @@ class OPAAdapter:
     }
 
     def _apply_decision_floor(
-        self, report: DecisionReport, obs: PolicyObservation
+        self,
+        report: DecisionReport,
+        obs: PolicyObservation,
+        raw_obs: PolicyObservation | None = None,
     ) -> DecisionReport:
         """Enforce decision monotonicity over an OPA result, in two tiers.
 
@@ -311,12 +321,18 @@ class OPAAdapter:
            same function the engine's own decide() uses as its first stage,
            so this cannot drift from engine behaviour. A Rego policy that
            predates a security signal can tighten but never loosen.
-        2. **Full-engine floor (high/critical risk):** for the fail-closed
-           risk tiers, the *entire* Python decision — including conditional
-           gates such as the production-write matrix, missing rollback,
-           oracle quorum, and misspecification checks — is a monotone floor.
-           An external policy may therefore only relax decisions in the
-           low/medium band; on high/critical risk it can only tighten.
+        2. **Full-engine floor (high/critical/unknown risk):** for the
+           fail-closed risk tiers — and for observations whose risk tier
+           normalises to "unknown", because the engine's own fail-closed rule
+           routes unknown-tier mutating/production actions to VERIFY — the
+           *entire* Python decision (production-write matrix, missing
+           rollback, oracle quorum, misspecification checks, unknown-tier
+           flooring) is a monotone floor. An external policy may therefore
+           only relax decisions in the known low/medium band; everywhere
+           else it can only tighten.
+
+        ``obs`` must already be engine-normalised; ``raw_obs`` (if given) is
+        what audit consumers see as the original observation.
 
         If the OPA action is at least as severe as the applicable floor, the
         OPA result stands unchanged. Otherwise the floor wins and the
@@ -336,9 +352,12 @@ class OPAAdapter:
         floor_source = "opa_hard_guard_floor"
 
         # Same fail-closed normalisation as the engine: strips whitespace and
-        # maps unknown values to "unknown", so ' HIGH ' cannot bypass the floor.
+        # maps unknown values to "unknown", so ' HIGH ' cannot bypass the
+        # floor. "unknown" itself is a floored tier: the engine has an
+        # explicit fail-closed rule for unrecognised tiers, and a permissive
+        # OPA policy must not be able to relax it.
         risk_tier = _normalize_risk_tier(obs.risk_tier)
-        if risk_tier in self._fail_closed_risk_tiers:
+        if risk_tier in self._fail_closed_risk_tiers or risk_tier == "unknown":
             engine_report = self._python_fallback(obs)
             if (
                 floor_action is None
@@ -407,15 +426,43 @@ class OPAAdapter:
     def _opa_result_to_report(
         self, result: dict[str, Any], obs: PolicyObservation
     ) -> DecisionReport:
-        """Map an OPA result dict back to a ``DecisionReport``."""
-        action_str = result.get("action", "abstain")
+        """Map an OPA result dict back to a ``DecisionReport``.
+
+        The result fields are schema-validated: wrong-typed fields raise
+        ``ValueError``, which the caller's guarded block routes into the
+        controlled fallback path (fail closed). Unknown-but-well-typed
+        values still degrade safely (unknown action -> ABSTAIN, unknown
+        reason strings skipped).
+        """
+        action_raw = result.get("action", "abstain")
+        if not isinstance(action_raw, str):
+            raise ValueError(f"OPA action must be a string, got {type(action_raw).__name__}")
         try:
-            action = DecisionAction(action_str)
+            action = DecisionAction(action_raw)
         except ValueError:
             action = DecisionAction.ABSTAIN
 
+        reasons_raw = result.get("reasons")
+        if reasons_raw is None:
+            reasons_raw = []
+        # A bare string would iterate character by character — reject it.
+        if not isinstance(reasons_raw, list):
+            raise ValueError(f"OPA reasons must be a list, got {type(reasons_raw).__name__}")
+        for field_name in ("risk_estimate", "confidence"):
+            value = result.get(field_name)
+            if value is not None and (
+                isinstance(value, bool) or not isinstance(value, (int, float))
+            ):
+                raise ValueError(f"OPA {field_name} must be a number or null")
+        for field_name in ("explanation", "policy_version"):
+            value = result.get(field_name)
+            if value is not None and not isinstance(value, str):
+                raise ValueError(f"OPA {field_name} must be a string")
+
         reasons: list[DecisionReason] = []
-        for r in result.get("reasons") or []:
+        for r in reasons_raw:
+            if not isinstance(r, str):
+                raise ValueError("OPA reasons must contain only strings")
             try:
                 reasons.append(DecisionReason(r))
             except ValueError:

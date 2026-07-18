@@ -323,12 +323,14 @@ class A2AGovernanceEnvelope:
         elif audience and expected_audience is not None and self.audience != expected_audience:
             failures.append("audience_mismatch")
 
-        # 6. Replay protection.
+        # 6. Replay protection — presence only, here. The guard itself is
+        # consulted LAST (below), and only for an otherwise-valid envelope:
+        # consulting it earlier would let an attacker consume a victim's
+        # nonce with a tampered envelope (signature invalid, nonce burned),
+        # turning the replay guard into a denial-of-service primitive.
         nonce = _field(self.nonce, "nonce")
         if nonce == "":
             failures.append("missing_nonce")
-        elif nonce and replay_guard is not None and replay_guard(self.nonce):
-            failures.append("replay_detected")
 
         # 7. Argument binding — the envelope authorises exactly one payload.
         if expected_tool_call_hash is not None:
@@ -375,10 +377,18 @@ class A2AGovernanceEnvelope:
                 elif link_expires <= now_dt:
                     failures.append(f"delegation_link_expired:{i}")
 
+        # 10b. Replay guard — the ONLY stateful check, run last and only when
+        # every stateless check passed, so invalid envelopes cannot consume a
+        # nonce. Callers should implement the guard as an atomic
+        # check-and-consume.
+        if not failures and nonce and replay_guard is not None:
+            if replay_guard(self.nonce):
+                failures.append("replay_detected")
+
         return VerificationResult(valid=not failures, failures=tuple(failures))
 
     def _verify_delegation_chain(
-        self, link_keys: dict[str, bytes] | None = None
+        self, link_keys: "dict[str, RegisteredKey] | None" = None
     ) -> list[str]:
         failures: list[str] = []
         if not self.delegation_chain:
@@ -484,6 +494,17 @@ class A2AGovernanceEnvelope:
             chain_data = data.pop("delegation_chain")
             if not isinstance(chain_data, list):
                 raise TypeError("delegation_chain must be a list")
+            for link in chain_data:
+                if not isinstance(link, dict):
+                    raise TypeError("delegation link must be an object")
+                for key in ("delegator", "delegatee", "issued_at"):
+                    if not isinstance(link.get(key), str):
+                        raise TypeError(f"link.{key} must be a string")
+                for key in ("expires_at", "kid"):
+                    if key in link and link[key] is not None and not isinstance(link[key], str):
+                        raise TypeError(f"link.{key} must be a string or null")
+                if "signature" in link and not isinstance(link["signature"], str):
+                    raise TypeError("link.signature must be a string")
             chain = tuple(
                 DelegationLink(**{
                     **link,
@@ -498,9 +519,15 @@ class A2AGovernanceEnvelope:
                 _require_str_list(data.get("evidence_refs") or [], "evidence_refs")
             )
             for key in ("envelope_id", "protocol", "policy_version",
-                        "issued_at", "audience", "nonce"):
+                        "issued_at", "audience", "nonce", "signature"):
                 if key in data and not isinstance(data[key], str):
                     raise TypeError(f"{key} must be a string")
+            for key in ("expires_at", "decision_ref", "tool_call_hash",
+                        "display_name"):
+                if key in data and data[key] is not None and not isinstance(data[key], str):
+                    raise TypeError(f"{key} must be a string or null")
+            if "is_signed" in data and not isinstance(data["is_signed"], bool):
+                raise TypeError("is_signed must be a boolean")
             return cls(identity=identity, delegation_chain=chain, **data)
         except (TypeError, KeyError, AttributeError, json.JSONDecodeError) as exc:
             raise ValueError(f"malformed_envelope:{exc}") from exc

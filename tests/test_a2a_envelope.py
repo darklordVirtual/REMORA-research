@@ -525,3 +525,62 @@ def test_malformed_link_issued_at_is_failure_not_exception() -> None:
         f.startswith("malformed_timestamp:delegation_link_issued_at:0")
         for f in result.failures
     )
+
+
+# ---------------------------------------------------------------------------
+# Hardening round 4: nonce consumption semantics + parser crypto fields
+# ---------------------------------------------------------------------------
+
+def test_invalid_envelope_does_not_consume_nonce() -> None:
+    """Round-4 P1/P2: a tampered envelope carrying a victim's nonce must NOT
+    burn it — otherwise the replay guard becomes a DoS primitive."""
+    env = _issue()
+    seen: set[str] = set()
+
+    def guard(nonce: str) -> bool:
+        replayed = nonce in seen
+        seen.add(nonce)
+        return replayed
+
+    # Attacker tampers the envelope (breaks the signature) but keeps the nonce.
+    data = json.loads(env.to_json())
+    data["requested_scope"] = ["workorder:read", "ot:actuate_valve"]
+    tampered = A2AGovernanceEnvelope.from_json(json.dumps(data))
+    attack = tampered.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    assert not attack.valid
+    assert "replay_detected" not in attack.failures
+    assert env.nonce not in seen  # nonce NOT consumed by the invalid envelope
+
+    # The legitimate envelope still verifies afterwards.
+    legit = env.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    assert legit.valid, legit.failures
+    # ...and a genuine replay is still caught.
+    replayed = env.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    assert not replayed.valid
+    assert "replay_detected" in replayed.failures
+
+
+def test_parser_rejects_wrong_typed_crypto_fields() -> None:
+    """Round-4 P2: signature/is_signed/tool_call_hash/link crypto fields are
+    validated at parse time, not first inside verification."""
+    import pytest
+    env = _issue()
+    base = json.loads(env.to_json())
+    mutations = [
+        ("signature", 12345),
+        ("is_signed", "yes"),
+        ("tool_call_hash", 999),
+        ("expires_at", 17),
+    ]
+    for field_name, bad_value in mutations:
+        data = json.loads(json.dumps(base))
+        data[field_name] = bad_value
+        with pytest.raises(ValueError, match="malformed_envelope:"):
+            A2AGovernanceEnvelope.from_json(json.dumps(data))
+    # Link-level crypto fields
+    for field_name, bad_value in [("signature", 1), ("kid", 2),
+                                  ("delegator", None), ("delegatee", 3)]:
+        data = json.loads(json.dumps(base))
+        data["delegation_chain"][0][field_name] = bad_value
+        with pytest.raises(ValueError, match="malformed_envelope:"):
+            A2AGovernanceEnvelope.from_json(json.dumps(data))
