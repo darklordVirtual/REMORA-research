@@ -1,0 +1,19 @@
+{
+  "schema": "test_attestation_v1",
+  "repository": "darklordVirtual/REMORA-research",
+  "current_system_commit": "ba6fabee63390d3e0f9f7dd8bc3daa4e252e8b21",
+  "git_dirty_worktree": false,
+  "generated_at": "2026-07-20T13:11:42.111156+00:00",
+  "command": "python -m pytest tests/ -q",
+  "python_version": "3.14.0",
+  "pytest_version": "8.4.2",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "dependency_lock_sha256_lf": "6a9433dd901dff00ba064446a83e132173eced409bfbdef148bbfb455ce0b80c",
+  "tests_passed": 3550,
+  "tests_failed": 0,
+  "tests_skipped": 6,
+  "tests_deselected": 36,
+  "pytest_exit_code": 0,
+  "summary_line": "3550 passed, 6 skipped, 36 deselected in 32.50s",
+  "gate": "PASS"
+}
