@@ -62,6 +62,9 @@ Process, audits, and specifications:
 
 | File | Purpose |
 |---|---|
+| [`assurance/assurance_case_v1.md`](assurance/assurance_case_v1.md) | Structured safety argument (GSN / Assurance 2.0): goals → controls → evidence → defeaters |
+| [`assurance/human_oversight_operations_v1.md`](assurance/human_oversight_operations_v1.md) | Operational human-oversight design (SLA, escalation taxonomy, alarm-fatigue, on-call); extends REM-021 |
+| [`assurance/aromer_memory_governance_v1.md`](assurance/aromer_memory_governance_v1.md) | AROMER memory-governance policy (write/quarantine/delete lifecycle) |
 | [`assurance/evidence_levels.md`](assurance/evidence_levels.md) | Evidence-level taxonomy (theoretical → externally_validated) |
 | [`assurance/statistical_analysis_plan.md`](assurance/statistical_analysis_plan.md) | Pre-registered statistical analysis plan |
 | [`assurance/reproducibility_scorecard_v1.md`](assurance/reproducibility_scorecard_v1.md) | Reproducibility scorecard |
@@ -101,6 +104,7 @@ Compliance mappings:
 | File | Purpose |
 |---|---|
 | [`governance/nist_ai_rmf_mapping.md`](governance/nist_ai_rmf_mapping.md) | NIST AI RMF control mapping |
+| [`governance/eu_ai_act_nsm_mapping.md`](governance/eu_ai_act_nsm_mapping.md) | EU AI Act (Reg 2024/1689) + NSM Grunnprinsipper control mapping |
 | [`security/owasp_genai_mapping.md`](security/owasp_genai_mapping.md) | OWASP GenAI threat mapping |
 | [`security/pre-deployment-review.md`](security/pre-deployment-review.md) | Pre-deployment security review checklist |
 | [`enterprise/togaf-enterprise-rollout-plan.md`](enterprise/togaf-enterprise-rollout-plan.md) | TOGAF-structured enterprise rollout plan |

@@ -3,7 +3,7 @@
 # Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility) → P4 (hardening/roadmap)
 
 schema_version: "1"
-last_updated: "2026-07-20T00:00Z"
+last_updated: "2026-07-20T12:00Z"
 
 items:
   - id: REM-001
@@ -675,6 +675,111 @@ items:
       across policy/enforcement/governance/servers; enabling the rule sets
       as a CI gate awaits the ~25 remaining manual fixes. The npm/coverage/
       hash-lock items require a Linux environment.
+
+  # Assurance-polish wave (2026-07-20): compendium audit items P3-P8.
+  # Governance/evidence artifacts are DONE deliverables; the code-level
+  # enforcement they surface stays open with explicit DONE criteria.
+
+  - id: REM-040
+    section: "compendium-audit P3"
+    title: "Assurance case (GSN / Assurance 2.0 with defeaters)"
+    gate: P1
+    status: DONE
+    completed: "2026-07-20"
+    artifacts:
+      - docs/assurance/assurance_case_v1.md
+    notes: >
+      Structured safety argument binding the top-level goal to sub-goals mapped
+      to the compendium's four runtime-governance capabilities (stop, constrain,
+      escalate, explain) plus evidence discipline; each sub-goal cites real
+      controls and claim IDs, and a defeater register (D-1..D-9) records every
+      open doubt with its tracking item. Classifies REMORA honestly as a
+      *control* argument (not inability / trustworthiness / external credit).
+      Living document with change gates; freshness enforced by
+      scripts/check_claim_provenance.py.
+
+  - id: REM-041
+    section: "compendium-audit P6"
+    title: "EU AI Act + NSM Grunnprinsipper control mapping"
+    gate: P1
+    status: DONE
+    completed: "2026-07-20"
+    artifacts:
+      - docs/governance/eu_ai_act_nsm_mapping.md
+    notes: >
+      Maps existing REMORA controls (verified paths) to AI Act arts.
+      9/10/11+Annex IV/12/13/14/15/17/27/73 and to NSM's four functions
+      (identifisere / beskytte / opprettholde / haandtere), following the
+      build-once-map-to-every-regime principle so this doc, the NIST RMF map,
+      and the OWASP GenAI map are views on one control set. Gaps (DPIA/FRIA,
+      intended-use, fairness, enforced retention, KMS/OIDC/TSA, operational
+      oversight, interception) cross-referenced to REM-021/025/030/031/042.
+      Timeline flagged as politically movable; explicitly not legal advice.
+
+  - id: REM-042
+    section: "compendium-audit P4"
+    title: "Operational human-oversight (SLA, taxonomy, alarm-fatigue, on-call, routing)"
+    gate: P3
+    status: IN_PROGRESS
+    artifacts:
+      - docs/assurance/human_oversight_operations_v1.md
+    notes: >
+      DESIGN DELIVERED 2026-07-20: the operational-oversight design doc
+      specifies oversight as designed work across pre-control / co-planning /
+      real-time monitoring / post-control, with a reviewer RACI, an escalation
+      severity taxonomy, and alarm-fatigue measures — extending REM-021 (whose
+      scope is a one-off methodology review only). IMPLEMENTATION OPEN. DONE
+      when: (1) the review queue is durable and severity-ordered; (2)
+      time-to-review / time-to-approve are measured against per-severity targets
+      and alertable; (3) escalation events carry severity and route to a named
+      role; (4) an on-call/coverage mechanism pages on Sev-1; (5) reviewer
+      identity is bound to a federated IdP (OIDC, also REM-022 Section 8).
+      Current queue is in-memory; routing is design-only in
+      artifacts/credibility-pack/policy-model.md.
+
+  - id: REM-043
+    section: "compendium-audit P7"
+    title: "AROMER memory governance: quarantine, retention/deletion, mutation audit"
+    gate: P3
+    status: IN_PROGRESS
+    artifacts:
+      - docs/assurance/aromer_memory_governance_v1.md
+    notes: >
+      POLICY DELIVERED 2026-07-20: memory-governance policy treats AROMER's
+      world-model priors and episodic store as governance objects with a
+      write/store/retrieve/execute/share/delete lifecycle, documenting what is
+      enforced today (evidence-mass cap _MAX_EVIDENCE=200, shadow-log deque,
+      max_loaded, weak/strong label weights, critique modulation, TTL
+      relabelling, holdout segregation) vs what is MISSING. ENFORCEMENT OPEN.
+      DONE when: (1) an ingestion anomaly gate + schema-enforced provenance
+      columns exist; (2) a real quarantine state is honoured on retrieve/adapt
+      and the documented corpus_excluded filter is wired into code + tests in
+      THIS repo (currently documentation-only, no implementation here); (3) a
+      configurable retention window + deletion/erasure path exists; (4) an
+      append-only, hash-chained before/after mutation audit exists; (5) personal
+      data flow through memory is mapped (feeds REM-031 DPIA).
+
+  - id: REM-044
+    section: "compendium-audit P5 / K13-4"
+    title: "Path-level (trajectory) governance policies"
+    gate: P4
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      The compendium requires policies expressed over execution PATHS (sequences
+      of states and actions), not single tool calls — e.g. "never external
+      communication or mutation after contact with untrusted content" — a rule
+      that does not exist at the call level. REMORA today gates each proposed
+      call independently; the Lyapunov session tracker
+      (remora/agent_hook/lyapunov_tracker.py) and drift monitor
+      (remora/governance/drift_monitor.py) provide trajectory awareness but do
+      not enforce path-level invariants, and the injection defence is keyword
+      based (surface-derived, evadable by rewording; disclosed in the
+      CLAIM-001 caveat). DONE when a taint/trajectory policy engine tracks
+      untrusted-content contact across a session and blocks subsequent
+      external-mutation actions, with tests and a documented evaluation.
+      Deliberately NOT partially built: a half-enforced path policy would read
+      as more than it is. Design only until scoped.
 
   - id: REM-038
     section: "review-2026-07-20 #1/#2"
