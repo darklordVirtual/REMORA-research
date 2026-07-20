@@ -1,5 +1,10 @@
 # Simulated Hostile Review v1 — Readiness Gaps for a Physics/XAI/Ethics Reviewer
 
+> **HISTORICAL SNAPSHOT (2026-07-02/03 findings register).** Preserved
+> verbatim; do not cite OPEN statuses here as current. See the reconciliation
+> note below and the live status surfaces (`release_gates.md`,
+> `remediation_register.yaml`).
+
 > **RECONCILIATION NOTE (2026-07-17).** This is a findings register from the
 > 2026-07-02/03 hostile-review round, preserved verbatim (it quotes defects
 > deliberately and is excluded from stale-string scanning). Several items

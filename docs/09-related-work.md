@@ -184,12 +184,16 @@ Relevant ideas:
 
 How REMORA uses this:
 
-- `enterprise/policy_as_code_example.yaml`
-- `enterprise/audit-ledger-schema.sql`
-- `enterprise/human-approval-workflow.md`
-- `enterprise/production-readiness.md`
-- `enterprise/observability.md`
-- `docs/enterprise_control_plane.md`
+- policy-as-code: `remora/policy/opa_adapter.py` (OPA/Rego delegation with
+  monotone hard-guard floor),
+- role and authority boundaries: RBAC in `servers/api.py`,
+- human approval workflows: `remora/governance/review_queue.py`,
+- audit ledgers: `remora/governance/audit_chain.py`,
+- rollout reference: `docs/enterprise/togaf-enterprise-rollout-plan.md`,
+  runnable example `examples/enterprise_demo.py`.
+
+The wiring status of each is tracked machine-readably in
+[`assurance/capability_register_v1.yaml`](assurance/capability_register_v1.yaml).
 
 Boundary:
 

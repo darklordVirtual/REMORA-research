@@ -163,10 +163,23 @@ jobs:
 
       - name: Documentation-governance gate
         # Registers parse and are internally consistent, document register
-        # covers docs/ exactly, canonical topics unique, release-profile
-        # declaration matches the profile computed from register state,
-        # README stays under its line budget.
+        # covers docs/ + paper/ + root docs exactly, canonical topics come
+        # from the controlled registry, historical docs carry a banner,
+        # release-profile declaration matches the profile computed from
+        # register state, README stays under its line budget.
         run: python scripts/check_document_governance.py
+
+      - name: Generated-doc drift (text generators)
+        # A generated document that no longer matches its source is a silent
+        # drift. These generators are stdlib/PyYAML-only, so they run in this
+        # lightweight job. Figure/PDF generators are non-deterministic and are
+        # not diffed. The remora-dependent failure_analysis generator is diffed
+        # in quality-gates.yml (full deps).
+        run: |
+          python scripts/generate_research_control_matrix.py --check
+          python scripts/generate_readme_status.py --check
+          python scripts/generate_results_snapshot.py
+          git diff --exit-code -- docs/results_snapshot.md artifacts/benchmark_summary.json
 
   lockfile-check:
     name: Lockfile integrity

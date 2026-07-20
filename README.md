@@ -17,34 +17,21 @@ Architecture bounded by documented assumptions. Results are from controlled expe
 
 ---
 
-## At a Glance
+## Status
 
-**The problem.** Autonomous agents are being wired to tools that mutate real systems — networks, buildings, databases, customer records. Model alignment alone does not give an operator a policy-controlled, auditable answer to "may this specific action execute, here, now?", and post-hoc review cannot stop a bad action before it runs.
+<!-- BEGIN GENERATED: status — source: assurance registers, via scripts/generate_readme_status.py --check. DO NOT EDIT. -->
+**Deployment profile:** `SHADOW_PILOT` (= `SHADOW_ONLY`) — recomputed from the capability and remediation registers by CI; a profile cannot be raised by editing prose.
 
-**What has been developed.** A pre-execution governance layer: deterministic hard-block policy invariants first, then multi-oracle consensus, evidence verification, and trust/conformal routing, producing ACCEPT / VERIFY / ABSTAIN / ESCALATE with a hash-chained `DecisionEnvelope` per decision. Enforcement building blocks — signed decision tokens, execution leases bound to the exact tool call, and an approval queue with execution-time re-gating — make non-accepted outcomes technically unexecutable at the dispatcher (library level today; see *What remains*).
+**To reach `CONTROLLED_PILOT`, still open:** REM-021, REM-023.
 
-**Research foundation.** Selective prediction and abstention, conformal risk control, semantic-entropy-style uncertainty (all reported results use the token-fingerprint backend, not the NLI backend — see Limitations), multi-oracle dissensus and phase analysis, and causal post-hoc explanation (Bjøru 2026). Positioning and derivations: [paper/remora_paper.md](paper/remora_paper.md).
+**Capabilities:** 6 of 12 wired to the API path or deeper ([wiring register](docs/assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](docs/assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](docs/assurance/release_profiles_v1.yaml).
+<!-- END GENERATED: status -->
 
-**Empirically documented.** Zero false accepts on AgentHarm's 208 external harmful scenarios (Wilson 95% CI [0.00%, 1.81%]) — bought at 100% false-block on benign variants, so it documents a safety floor, not a calibrated discriminator; zero false accepts on the internal N=167 regression corpus; 88.0% held-out selective accuracy over only 25 accepted items (CI [70.0%, 95.8%]). Every number's caveat is part of the claim — see [Evidence Summary](#evidence-summary) and [docs/02-evidence-and-claims.md](docs/02-evidence-and-claims.md).
+Shadow-mode research only; not certified for production. What remains open, in one place: [docs/assurance/remediation_register.yaml](docs/assurance/remediation_register.yaml).
 
-**What remains.** Independent human review (REM-021) and external replication have not started. Enforcement is not yet deployment-integrated in front of real tool credentials (REM-024, in progress), durable audit anchoring (REM-025) and independently verified tool interception (REM-030) are open. Shadow-mode research only. Authoritative register: [docs/assurance/remediation_register.yaml](docs/assurance/remediation_register.yaml).
+## Research foundation
 
----
-
-## Causal explanation: from Bjøru (2026) to tested code
-
-REMORA operationalizes a full concept-based causal-explanation layer, not a citation. The chain is short and every link is on disk:
-
-**Bjøru (2026) concept-based causal XAI → `CausalDecisionModel` → per-concept PS/PN scores → minimal contrastive concept-intervention → recurring-blocker attribution over shadow-mode logs → tested implementation → bounded to policy causality.**
-
-| Research basis | Operationalized as | Code | Tests |
-|---|---|---|---|
-| Bjøru (2026) §3 — concept-based, externally-causal XAI | `CausalDecisionModel` over operational concepts, not raw features | `remora/causal/schema.py` | `tests/test_causal.py` |
-| Bjøru Paper IV §4.2.2–§4.2.3 — Probability of Sufficiency / Necessity | Per-concept PS/PN attribution of a blocking verdict | `remora/causal/search.py` | `tests/test_causal_search_attribution.py` |
-| Bjøru Paper IV §4.2.4 — contrastive explanation search | Minimal actionable concept-intervention set that flips the verdict | `remora/causal/search.py` | `tests/test_causal_search_attribution.py` |
-| Bjøru Paper IV §4.2.1 — global explanation by dataset averaging | Recurring-blocker attribution across a log of decisions | `remora/causal/attribution.py` | `tests/test_causal_search_attribution.py` |
-
-The result is carried on `DecisionEnvelope.causal_explanation` (`remora/causal/explanation.py`) and documented in [docs/causal_policy_explanations.md](docs/causal_policy_explanations.md). **Boundary:** this is policy causality only — REMORA explains why its own policy decided as it did and which operational changes would change that decision; it makes no real-world causal-effect or safety claim, and the counterfactuals are evaluated against the policy model, not the world. Positioning in the literature: [docs/09-related-work.md §9](docs/09-related-work.md).
+Every research line REMORA builds on maps to a concrete control, code file, and test in the machine-checked [research-control matrix](docs/research/research_control_matrix.generated.md) — for example Bjøru (2026) concept-based causal XAI → `CausalDecisionModel` → per-concept Probability of Sufficiency/Necessity and a minimal contrastive intervention (`remora/causal/`, `tests/test_causal_search_attribution.py`), bounded to policy causality. Literature positioning: [docs/09-related-work.md](docs/09-related-work.md); derivations: [paper/remora_paper.md](paper/remora_paper.md).
 
 ---
 
@@ -63,30 +50,15 @@ python scripts/demo_industrial_maintenance.py
 The governance concept is demonstrated in a concrete dry-run scenario: an AI assistant proposes lighting adjustments across all floors of a commercial building, and REMORA evaluates each floor-level command independently against occupancy state and the active energy policy: before any command is sent. The demo drives the **real `RemoraDecisionEngine`**: each floor becomes a `PolicyObservation` (occupancy sensing is the caller-supplied evidence layer), and the decisions and reason codes below are the engine's actual output, REMORA's canonical ACCEPT/VERIFY/ABSTAIN/ESCALATE outcomes.
 
 ```bash
-python scripts/demo_building_lights.py
+python scripts/demo_building_lights.py   # dry run; no live command is sent
 ```
 
-```
-REMORA building-light action-gating dry run (real RemoraDecisionEngine)
-==========================================================================================
-Request: Turn on all lights on all 8 floors.
-Safety model: No live building automation command is sent.
-Policy: Occupied floors may execute; empty floors must not be activated without evidence.
+Request: turn on all lights on all 8 floors. The engine decides per floor (real `RemoraDecisionEngine` output):
 
-Floor   Occupancy                         Motion age   Decision  Engine reason codes
-------------------------------------------------------------------------------------------
-1       12 persons, open office           active       ACCEPT    evidence_supported
-2       8 persons, meetings active        active       ACCEPT    evidence_supported
-3       15 persons, development team      active       ACCEPT    evidence_supported
-4       6 persons, finance                active       ACCEPT    evidence_supported
-5       3 persons, management             active       ACCEPT    evidence_supported
-6       empty                             47 min       ABSTAIN   disordered_no_evidence
-7       empty                             131 min      ABSTAIN   disordered_no_evidence
-8       1 person, conference room         active       ACCEPT    evidence_supported
-------------------------------------------------------------------------------------------
-EXECUTE dry-run command: lights_on(floors=[1, 2, 3, 4, 5, 8])
-BLOCKED dry-run command: lights_on(floors=[6, 7])
-```
+| Floors | Occupancy | Engine decision | Reason code |
+|--------|-----------|-----------------|-------------|
+| 1–5, 8 | occupied (active motion) | **ACCEPT** | `evidence_supported` |
+| 6, 7 | empty (47 / 131 min idle) | **ABSTAIN** | `disordered_no_evidence` |
 
 REMORA does not treat the user request as a single all-or-nothing action. It decomposes the tool call by zone, evaluates each floor-level command independently against occupancy context and the active energy policy, and blocks the subset that conflicts: while allowing the compliant subset to proceed. Empty floors ABSTAIN via the engine's deny-by-default path (`disordered_no_evidence`): absence of occupancy evidence blocks activation. This per-zone governance model extends directly to HVAC scheduling, ventilation setpoints, energy load management, and any domain where a single agent command maps to multiple physical sub-actions with differing risk profiles.
 

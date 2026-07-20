@@ -46,7 +46,23 @@ ALLOWED_STATUSES = {
     "canonical", "generated", "supporting", "proposal", "historical", "superseded",
 }
 GOVERNED_SUFFIXES = {".md", ".html", ".yaml", ".yml", ".json"}
-README_LINE_CAP = 400
+# Root-level knowledge documents governed alongside docs/. Build/config files
+# (Makefile, pyproject.toml, requirements-lock.txt, .gitignore) and the LICENSE
+# text are intentionally excluded — they are not narrative knowledge documents.
+ROOT_DOCS = (
+    "README.md",
+    "ARCHITECTURE.md",
+    "NEGATIVE_RESULTS.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "CONTRIBUTORS.md",
+    "CLAUDE.md",
+    "EVIDENCE_OF_CAPABILITY.md",
+    "NOTICE",
+)
+# Markers that satisfy the historical-banner requirement (case-insensitive).
+HISTORICAL_MARKERS = ("historical", "archived", "snapshot", "superseded", "do not cite")
+README_LINE_CAP = 300
 
 
 def _load(path: Path):
@@ -54,18 +70,26 @@ def _load(path: Path):
         return yaml.safe_load(f)
 
 
-def _tracked_docs() -> list[str]:
-    out = subprocess.run(
-        ["git", "ls-files", "docs/"],
+def _git_ls(pathspec: str) -> list[str]:
+    return subprocess.run(
+        ["git", "ls-files", pathspec],
         capture_output=True, text=True, cwd=ROOT, check=True,
-    ).stdout
-    files = []
-    for line in out.splitlines():
+    ).stdout.splitlines()
+
+
+def _tracked_docs() -> list[str]:
+    """Governed knowledge documents: docs/ (minus figures/) + paper/*.md +
+    an explicit root-doc allowlist."""
+    files: set[str] = set()
+    for line in _git_ls("docs/") + _git_ls("paper/"):
         p = line.strip()
         if not p or p.startswith("docs/figures/"):
             continue
         if Path(p).suffix.lower() in GOVERNED_SUFFIXES:
-            files.append(p)
+            files.add(p)
+    for p in ROOT_DOCS:
+        if (ROOT / p).exists():
+            files.add(p)
     return sorted(files)
 
 
@@ -86,6 +110,11 @@ def check_document_register(errors: list[str]) -> None:
     for p in sorted(registered - set(tracked)):
         errors.append(f"document-register: entry for missing/untracked file: {p}")
 
+    # Controlled topic registry: canonical documents may only claim a topic
+    # declared here, so near-duplicate free-text topics (architecture vs
+    # architecture-narrative vs reference-architecture) cannot proliferate.
+    registered_topics = set(reg.get("topics", []))
+
     topics: dict[str, str] = {}
     for e in entries:
         path, status = e.get("path", "?"), e.get("status")
@@ -96,6 +125,11 @@ def check_document_register(errors: list[str]) -> None:
             topic = e.get("topic")
             if not topic:
                 errors.append(f"document-register: {path}: canonical without topic")
+            elif registered_topics and topic not in registered_topics:
+                errors.append(
+                    f"document-register: {path}: topic {topic!r} is not in the "
+                    f"controlled `topics:` registry"
+                )
             elif topic in topics:
                 errors.append(
                     f"document-register: topic {topic!r} claimed by both "
@@ -103,6 +137,17 @@ def check_document_register(errors: list[str]) -> None:
                 )
             else:
                 topics[topic] = path
+        if status == "historical":
+            if (ROOT / path).exists():
+                head = "\n".join(
+                    (ROOT / path).read_text(encoding="utf-8", errors="ignore")
+                    .splitlines()[:15]
+                ).lower()
+                if not any(m in head for m in HISTORICAL_MARKERS):
+                    errors.append(
+                        f"document-register: historical {path} lacks a banner in "
+                        f"its first 15 lines (one of {sorted(HISTORICAL_MARKERS)})"
+                    )
         if status == "superseded":
             successor = e.get("superseded_by")
             if not successor or not (ROOT / successor).exists():

@@ -5,6 +5,20 @@
 > remains OPEN, the system does not ship until all P0 release blockers are
 > DONE.
 
+> **Authority within the documentation model.** This document is the gate
+> *register and decision history* (what each gate means, when it changed, and
+> why). It is **not** the machine source of gate status: individual REM
+> statuses are held machine-readably in
+> [`remediation_register.yaml`](remediation_register.yaml), and overall
+> deployment maturity is **recomputed** from the registers into a profile by
+> `scripts/check_document_governance.py` — see
+> [`release_profiles_v1.yaml`](release_profiles_v1.yaml) (the authoritative
+> maturity model). The status columns below mirror the remediation register;
+> if they ever disagree, the register wins and this table is the bug. Hierarchy:
+> `remediation_register.yaml` (REM status) → `release_profiles_v1.yaml`
+> (computed maturity) → this file (human-readable gate register + history) →
+> the README status block (generated).
+
 ## Hard release blockers (must all be DONE before v1.0)
 
 | ID | Gate | Status | What "DONE" means |

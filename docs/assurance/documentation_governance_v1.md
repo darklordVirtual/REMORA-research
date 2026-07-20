@@ -20,24 +20,36 @@ knowledge model.
 |---|---|
 | Claims (numeric, with evidence levels) | [`claim_register_v1.yaml`](claim_register_v1.yaml) |
 | Capability wiring status (six-level ladder) | [`capability_register_v1.yaml`](capability_register_v1.yaml) |
-| Remediation items and gates | [`remediation_register.yaml`](remediation_register.yaml) |
-| Release gates (narrative + elevation record) | [`release_gates.md`](release_gates.md) |
-| Deployment-readiness profiles | [`release_profiles_v1.yaml`](release_profiles_v1.yaml) |
+| Remediation items and gate status | [`remediation_register.yaml`](remediation_register.yaml) |
+| Deployment maturity (computed profile) | [`release_profiles_v1.yaml`](release_profiles_v1.yaml) |
+| Gate register + decision history | [`release_gates.md`](release_gates.md) |
+| Research → control → code → test chain | [`../research/research_control_matrix_v1.yaml`](../research/research_control_matrix_v1.yaml) |
 | Document governance status | [`document_register_v1.yaml`](document_register_v1.yaml) |
 | Result artifact hashes | [`artifact_manifest_v1.md`](artifact_manifest_v1.md) |
 | Navigation | [`../README.md`](../README.md) (docs index, CI-enforced coverage) |
 
 Narrative documents explain; they are never authoritative for statuses,
-numbers, or maturity. Where a narrative document repeats a register fact, the
-existing gates bind it (claim anchors via `check_claim_provenance.py`, README
-claims via `check_readme_claims.py`, capability claims via the register's
-"narrative documents must not claim a stronger status" rule).
+numbers, or maturity. The one document that holds status in prose —
+`release_gates.md` — is explicitly subordinate: its REM columns *mirror*
+`remediation_register.yaml` (the machine source) and it declares so in its own
+Authority note; the computed maturity profile is recomputed from the registers,
+never read from that table. Hierarchy: `remediation_register.yaml` →
+`release_profiles_v1.yaml` (computed) → `release_gates.md` (register + history)
+→ the README status block (generated). Where a narrative document repeats a
+register fact, the existing gates bind it (claim anchors via
+`check_claim_provenance.py`, README claims via `check_readme_claims.py`,
+capability claims via the register's "narrative documents must not claim a
+stronger status" rule, and the README status block via
+`generate_readme_status.py --check`).
 
 ## 2. Document classification
 
-Every tracked file under `docs/` (excluding `figures/` assets) has exactly
-one entry in [`document_register_v1.yaml`](document_register_v1.yaml) with
-one of six statuses:
+Every tracked knowledge document — everything under `docs/` (excluding
+`figures/` assets) and `paper/`, plus a root-document allowlist (README,
+ARCHITECTURE, NEGATIVE_RESULTS, SECURITY, CONTRIBUTING, CONTRIBUTORS, CLAUDE,
+EVIDENCE_OF_CAPABILITY, NOTICE) — has exactly one entry in
+[`document_register_v1.yaml`](document_register_v1.yaml) with one of six
+statuses:
 
 | Status | Meaning | Extra obligations |
 |---|---|---|
@@ -71,26 +83,38 @@ because `CONTROLLED_PILOT` requires REM-021 (independent review) per
 
 The `documentation-governance` gate checks:
 
-1. Document-register coverage is exact (no unregistered files, no ghost
-   entries, no duplicates).
+1. Document-register coverage is exact across `docs/` + `paper/` + the
+   root-doc allowlist (no unregistered files, no ghost entries, no
+   duplicates).
 2. Statuses are from the enum; `superseded` entries name an existing
    successor and the stub points to it; `generated` entries name an existing
-   generator.
-3. At most one `canonical` document per topic.
+   generator; `historical` entries carry a banner in their first 15 lines.
+3. Canonical topics come from the controlled `topics:` registry, and at most
+   one `canonical` document claims each topic (this closes the free-text
+   topic-fragmentation gap: a new architecture doc cannot invent a fourth
+   architecture topic without a deliberate registry edit).
 4. `CAP-*` / `REM-*` / `CLAIM-*` ids are unique within their registers, and
    the registers parse as strict YAML (this gate found and fixed five
    invalid-YAML entries in the remediation register on its first run).
 5. Release-profile requirements reference only existing ids and ladder
    levels, and declared `current_profile` equals the computed profile.
-6. `README.md` stays under 400 lines — surfacing something new in the README
+6. `README.md` stays under 300 lines — surfacing something new in the README
    has an enforced cost; detail belongs in `docs/`.
+
+A **generated-doc drift** step then regenerates every text generator and fails
+on any diff: `research_control_matrix.generated.md`
+(`generate_research_control_matrix.py --check`), the README status block
+(`generate_readme_status.py --check`), and `results_snapshot.md`; the
+remora-dependent `failure_analysis.md` is diffed in `quality-gates.yml`. A
+committed generated document can no longer go stale silently.
 
 Pre-existing gates complete the picture: index coverage
 (`tests/test_docs_index_coverage.py`), link integrity
 (`scripts/_check_links.py`), claim anchors and artifact existence
 (`check_claim_provenance.py`, `check_artifacts_exist.py`), README claims
 (`check_readme_claims.py`), capability-register structure
-(`tests/test_capability_register.py`).
+(`tests/test_capability_register.py`), research-matrix path integrity
+(`tests/test_research_control_matrix.py`).
 
 ## 5. Change control (going-forward convention)
 
@@ -120,12 +144,19 @@ load-bearing cases mechanical (profiles, claims, capability language).
   convention in §5 captures the same information as dated, commit-bound
   notes; a structured retrofit can follow when the git history is mined for
   real dates.
-- **Generated README/status pages**: the README's numeric claims are already
-  bound to registers via claim anchors; full generation is a pipeline change
-  deferred until the register schema stabilises.
+- **Full README generation**: the load-bearing status (deployment profile,
+  open gates, capability count) is now a generated, `--check`-guarded block,
+  and the numeric claims are bound via claim anchors. Generating the *entire*
+  README (prose included) is deliberately not done — the narrative is
+  hand-written for readability; only the drift-prone facts are generated.
 - **Approval workflow for status changes**: single-maintainer repository;
   CODEOWNERS routes register changes for review the day a second reviewer
   exists (REM-021).
+- **MkDocs site, split human-index/generated-catalog, per-release
+  documentation manifests**: a presentation-plane program (the `docs` extra
+  already declares `mkdocs-material`, but no site config exists). Deferred as
+  a separate body of work; the register can generate MkDocs navigation when
+  that is taken on.
 
 ## 7. The ambition
 

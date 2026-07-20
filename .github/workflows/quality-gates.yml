@@ -53,6 +53,17 @@ jobs:
       - name: Generate canonical results snapshot
         run: python scripts/generate_results_snapshot.py
 
+      - name: Generated-doc drift (full-deps generators)
+        # The v2 failure analysis imports remora.*, so it needs the installed
+        # package (present in this job). A committed generated doc that no
+        # longer matches its source fails here. The text-only generators are
+        # additionally checked in ci.yml's documentation-governance job.
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python experiments/toolcall_v2_failure_analysis.py
+          git diff --exit-code -- docs/failure_analysis.md results/toolcall_benchmark_v2_failures.json
+
       - name: Verify claim consistency
         run: python scripts/check_claim_consistency.py
 
