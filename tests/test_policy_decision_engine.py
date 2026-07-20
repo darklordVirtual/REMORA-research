@@ -331,6 +331,38 @@ def test_low_trust_abstain(engine: RemoraDecisionEngine) -> None:
     assert DecisionReason.LOW_TRUST in report.reasons
 
 
+def test_zero_trust_score_triggers_low_trust_reason(engine: RemoraDecisionEngine) -> None:
+    """trust_score=0.0 is the lowest possible trust and must carry LOW_TRUST.
+
+    Regression: `(obs.trust_score or 1.0)` treated 0.0 as falsy and replaced it
+    with 1.0, so the LOW_TRUST reason code was silently lost (the action still
+    ended at ABSTAIN, but via DEFAULT_SAFE_ABSTAIN — misleading for audit).
+    """
+    obs = PolicyObservation(question="q", trust_score=0.0)
+    report = engine.decide(obs)
+    assert report.action == DecisionAction.ABSTAIN
+    assert DecisionReason.LOW_TRUST in report.reasons
+
+
+def test_missing_trust_score_does_not_trigger_low_trust(engine: RemoraDecisionEngine) -> None:
+    """trust_score=None means 'no trust signal', not 'low trust'."""
+    obs = PolicyObservation(question="q", trust_score=None)
+    report = engine.decide(obs)
+    assert report.action == DecisionAction.ABSTAIN
+    assert DecisionReason.LOW_TRUST not in report.reasons
+
+
+def test_explain_low_trust_rule_matches_decide_for_zero_trust(
+    engine: RemoraDecisionEngine,
+) -> None:
+    """explain() mirrors decide() for the zero-trust boundary (parity guard)."""
+    obs = PolicyObservation(question="q", trust_score=0.0)
+    trace = engine.explain(obs)
+    fired = {s.rule: s.triggered for s in trace.rule_evaluations}
+    assert fired.get("low_trust_abstain") is True
+    assert trace.action == "abstain"
+
+
 def test_require_rag_no_evidence_verify(engine: RemoraDecisionEngine) -> None:
     """require_rag=True and evidence_action=None → VERIFY."""
     obs = PolicyObservation(question="q", require_rag=True, evidence_action=None)

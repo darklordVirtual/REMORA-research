@@ -626,7 +626,13 @@ class RemoraDecisionEngine:
             reasons.append(DecisionReason.DISORDERED_NO_EVIDENCE)
             return self._build(DecisionAction.ABSTAIN, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
-        if (obs.trust_score or 1.0) < 0.2 and obs.evidence_action != "answer":
+        # trust_score=0.0 is a real (minimal) trust signal and must fire this
+        # rule; only a missing signal (None) falls through to the default.
+        if (
+            obs.trust_score is not None
+            and obs.trust_score < 0.2
+            and obs.evidence_action != "answer"
+        ):
             reasons.append(DecisionReason.LOW_TRUST)
             return self._build(DecisionAction.ABSTAIN, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
@@ -990,7 +996,9 @@ class RemoraDecisionEngine:
           "ABSTAIN")
 
         r("low_trust_abstain",
-          (obs.trust_score or 1.0) < 0.2 and obs.evidence_action != "answer",
+          obs.trust_score is not None
+          and obs.trust_score < 0.2
+          and obs.evidence_action != "answer",
           f"trust={obs.trust_score}",
           "ABSTAIN")
 
