@@ -148,36 +148,26 @@ def test_project_license_references_are_apache_not_mit() -> None:
     assert offenders == []
 
 
-def test_commercial_license_boundary_is_documented() -> None:
-    """Keep the open-core and enterprise licensing boundary visible."""
-    required_files = [
-        ROOT / "NOTICE",
+def test_licensing_is_plain_apache_without_commercial_boundary_docs() -> None:
+    """Licensing surface is a single Apache-2.0 grant plus a minimal NOTICE.
+
+    The former ENTERPRISE_LICENSE.md / TRADEMARKS.md open-core boundary was
+    deliberately removed (owner decision, 2026-07-20): the commercial-boundary
+    documents overstated the project's posture for a research repository.
+    """
+    removed_files = [
         ROOT / "TRADEMARKS.md",
         ROOT / "ENTERPRISE_LICENSE.md",
     ]
-    for path in required_files:
-        assert path.exists(), path
+    for path in removed_files:
+        assert not path.exists(), f"{path} was deliberately removed; do not reintroduce"
 
-    joined = "\n".join(path.read_text(encoding="utf-8") for path in required_files)
-    for required in [
-        "Stian Skogbrott",
-        "Luftfiber AS",
-        "Apache-2.0",
-        "AROMER",
-        "hosted",
-        "managed",
-        "separate written enterprise agreement",
-        "brand",
-        "support",
-        "certification",
-        "compliance",
-        "pro layer",
-        "GO-STAR",
-        "law search",
-        "DCE",
-        "proprietary",
-    ]:
-        assert required in joined
+    notice = (ROOT / "NOTICE").read_text(encoding="utf-8")
+    assert "Apache License" in notice
+    assert "Stian Skogbrott" in notice
+    assert "Luftfiber AS" in notice
+    for overreach in ["enterprise agreement", "trademark", "proprietary"]:
+        assert overreach not in notice.lower(), f"NOTICE must stay minimal: {overreach!r}"
 
 
 def test_decision_envelope_audit_hash_semantics_are_documented() -> None:
