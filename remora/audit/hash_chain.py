@@ -127,7 +127,7 @@ class AuditHashChain:
         # in-memory chain had no concurrency control). This makes the in-process
         # chain linear under threads; a multi-process / durable deployment must
         # additionally use a transactional per-tenant sequence — see
-        # docs/assurance/external_security_audit_v1.md.
+        # docs/assurance/ai_assisted_adversarial_security_review_v1.md.
         self._lock = threading.Lock()
 
     def append(

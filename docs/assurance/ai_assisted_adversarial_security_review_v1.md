@@ -1,8 +1,13 @@
-# External Security & Enterprise-Readiness Audit: Findings & Disposition v1
+# AI-Assisted Adversarial Security Review: Findings & Disposition v1
+
+> **Renamed 2026-07-20** from `external_security_audit_v1.md`: the source is an
+> AI-assisted internal review (ChatGPT), not an independent external audit, and
+> the filename should not suggest otherwise. "Independent" and "external audit"
+> are reserved for a named third party that signs its report (REM-021).
 
 **Status:** INTERNAL: findings register + disposition. Nothing here is a claim.
 **Date:** 2026-07-03
-**Source:** External static architecture/source audit (ChatGPT), scoping REMORA
+**Source:** AI-assisted static architecture/source review (ChatGPT), scoping REMORA
 as a *research prototype and assurance framework, not a production enterprise
 control plane*. The audit's classification is accepted; this document records
 each concrete finding, its **independent verification against the actual

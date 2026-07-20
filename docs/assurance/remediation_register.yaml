@@ -426,7 +426,7 @@ items:
       (REM-021). Code/test criteria (steps 8 & 9) are complete.
 
   # External security audit remediation (2026-07-03).
-  # Full disposition: docs/assurance/external_security_audit_v1.md.
+  # Full disposition: docs/assurance/ai_assisted_adversarial_security_review_v1.md.
   # Code defects A-1..A-6 are FIXED there; platform items below are the honest
   # "not a production enterprise control plane" boundary.
 
@@ -434,9 +434,25 @@ items:
     section: "security-audit B"
     title: "Mandatory fail-closed policy enforcement point (PEP)"
     gate: P3
-    status: NOT_STARTED
-    artifacts: []
+    status: IN_PROGRESS
+    artifacts:
+      - remora/enforcement/lease.py
+      - tests/test_execution_lease.py
     notes: >
+      PROGRESS 2026-07-20: library-level ExecutionLease + GovernedToolDispatcher
+      implemented (remora/enforcement/lease.py). The lease is HMAC-signed over
+      the full REM-024 binding set (tenant, actor, tool, canonical full-args
+      hash, target environment, policy bundle hash, single-use nonce, expiry
+      default 120 s); issuance raises LeaseRefused for any non-accept decision,
+      and the dispatcher — which holds the tool callables, not the agent —
+      recomputes the canonical args hash immediately before execution and
+      consumes the nonce atomically. 22 tests, including a refusal matrix
+      covering replay, expiry, not-before, per-field tampering, argument
+      mutation, tenant/env/tool mismatch, unsigned, and stale policy bundle,
+      plus happy-path and serialization coverage. REMAINING before DONE: durable
+      multi-process nonce/lease storage (REM-025 overlap), deployment
+      integration where the dispatcher fronts real downstream credentials, and
+      external interception validation (REM-030, REM-021).
       Enforcement is not yet inseparable from tool execution: the local hook is
       optional and the signed-token PDP/PEP boundary (REM-013) is a library, not
       an integrated dispatcher. In-repo building blocks exist: opt-in hook

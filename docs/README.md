@@ -76,7 +76,7 @@ Process, audits, and specifications:
 | [`assurance/policy_engine_audit_v1.md`](assurance/policy_engine_audit_v1.md) | Policy engine audit record |
 | [`assurance/rbac_policy_v1.md`](assurance/rbac_policy_v1.md) | RBAC policy (REM-022 artifact) |
 | [`assurance/rbac_design_v1.md`](assurance/rbac_design_v1.md) | RBAC design incl. the recorded closure deviation (REM-023) |
-| [`assurance/external_security_audit_v1.md`](assurance/external_security_audit_v1.md) | External security audit disposition (2026-07-03) |
+| [`assurance/ai_assisted_adversarial_security_review_v1.md`](assurance/ai_assisted_adversarial_security_review_v1.md) | AI-assisted adversarial security review disposition (2026-07-03; renamed 2026-07-20, formerly "external security audit") |
 | [`assurance/red_team_plan_v1.md`](assurance/red_team_plan_v1.md) | Red-team plan |
 | [`assurance/independent_review_protocol_v1.md`](assurance/independent_review_protocol_v1.md) | REM-021 independent-review protocol |
 | [`assurance/domain_pack_governance_v1.md`](assurance/domain_pack_governance_v1.md) | Domain-pack governance rules |

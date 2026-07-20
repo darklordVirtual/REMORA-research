@@ -17,6 +17,20 @@ Architecture bounded by documented assumptions. Results are from controlled expe
 
 ---
 
+## At a Glance
+
+**The problem.** Autonomous agents are being wired to tools that mutate real systems — networks, buildings, databases, customer records. Model alignment alone does not give an operator a policy-controlled, auditable answer to "may this specific action execute, here, now?", and post-hoc review cannot stop a bad action before it runs.
+
+**What has been developed.** A pre-execution governance layer: deterministic hard-block policy invariants first, then multi-oracle consensus, evidence verification, and trust/conformal routing, producing ACCEPT / VERIFY / ABSTAIN / ESCALATE with a hash-chained `DecisionEnvelope` per decision. Enforcement building blocks — signed decision tokens, execution leases bound to the exact tool call, and an approval queue with execution-time re-gating — make non-accepted outcomes technically unexecutable at the dispatcher (library level today; see *What remains*).
+
+**Research foundation.** Selective prediction and abstention, conformal risk control, semantic-entropy-style uncertainty (all reported results use the token-fingerprint backend, not the NLI backend — see Limitations), multi-oracle dissensus and phase analysis, and causal post-hoc explanation (Bjøru 2026). Positioning and derivations: [paper/remora_paper.md](paper/remora_paper.md).
+
+**Empirically documented.** Zero false accepts on AgentHarm's 208 external harmful scenarios (Wilson 95% CI [0.00%, 1.81%]) — bought at 100% false-block on benign variants, so it documents a safety floor, not a calibrated discriminator; zero false accepts on the internal N=167 regression corpus; 88.0% held-out selective accuracy over only 25 accepted items (CI [70.0%, 95.8%]). Every number's caveat is part of the claim — see [Evidence Summary](#evidence-summary) and [docs/02-evidence-and-claims.md](docs/02-evidence-and-claims.md).
+
+**What remains.** Independent human review (REM-021) and external replication have not started. Enforcement is not yet deployment-integrated in front of real tool credentials (REM-024, in progress), durable audit anchoring (REM-025) and independently verified tool interception (REM-030) are open. Shadow-mode research only. Authoritative register: [docs/assurance/remediation_register.yaml](docs/assurance/remediation_register.yaml).
+
+---
+
 ## Industrial Maintenance Demo
 
 An RCA-style maintenance agent investigates pump vibration and proposes actions of escalating consequence. The demo drives the full chain end to end: a per-link-signed **A2A delegation envelope is actually verified** for each requested capability, the verification outcome feeds the observation, and the **real `RemoraDecisionEngine`** decides. Telemetry reads **ACCEPT**; the work-order proposal routes to **VERIFY** via the explicit production-write policy matrix (human approval before any business-system write); contradicting evidence **ABSTAIN**s; and direct equipment actuation fails delegation-scope verification: the failure sets the forbidden-tool signal and the engine hard-**ESCALATE**s. Analysis confidence cannot buy actuation authority that was never delegated. Outcomes are pinned by `tests/test_demo_industrial_maintenance.py`.
@@ -236,22 +250,9 @@ Full negative results and documented gaps: [NEGATIVE_RESULTS.md](NEGATIVE_RESULT
 > **Cross-domain transfer (measured 2026-07-19).** AROMER's abstract harm prior transfers across domains it never trained on at **83.8% accuracy** (leave-one-domain-out, 109/130 over 10 domains): `results/aromer_cross_domain_transfer_v1.json`, reproduce with `python scripts/run_cross_domain_transfer.py`. This evidences the transfer *capability* offline; it does not clear the live worker's transfer gate (see [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §16).
 
 
-AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's **experimental** closed-loop learning layer: adaptive calibration research layered on top of the governance control plane. Nothing in the control plane depends on it, and its metrics are not evidence for the core governance system (see Limitations above). It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII), a weighted composite of five diagnostic dimensions. Status is updated every 6 hours by automated GitHub Actions telemetry.
+AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's **experimental** closed-loop learning layer: adaptive calibration research layered on top of the governance control plane. Nothing in the control plane depends on it, and its metrics are not evidence for the core governance system (see Limitations above). It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII), a weighted composite of five diagnostic dimensions.
 
-<!-- LIVE_STATUS_START -->
-> **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: 2026-07-20T12:49Z
-
-| Metric | Value | Status |
-|--------|-------|--------|
-| Autonomous Intelligence Index (AII, EMA) | 0.9914 | TRAINED |
-| False accept rate (FAR) | 0.0% | Zero |
-| Deployment mode | SHADOW_ONLY | Research only |
-| T1 Calibration (ECE = 0.0057) | 0.9715 | Active |
-| T2 Friction suppression | 1.0000 | Active |
-| T3 MetaJudge quality | 1.0000 | Milestone |
-| T4 Transfer score | 1.0000 | Max |
-| T5 Stability | 1.0000 | Active |
-<!-- LIVE_STATUS_END -->
+As of 2026-07-20, master no longer carries telemetry commits: the 6-hourly status workflow publishes `telemetry/aromer_live_status.md` / `.json` to a dedicated `telemetry` branch instead (the branch is created by the workflow's first run after this change). Static reference snapshot (2026-07-18T18:23Z): AII (EMA) 0.9914 = TRAINED, FAR 0.0%, deployment mode SHADOW_ONLY.
 
 AII bands (labeled threshold crossings of a composite index, not physical phase transitions): WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28, regressed to CAPABLE for some hours the same day, and recovered organically ([NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§13); it has held TRAINED since. One production deployment gate remains open before use outside shadow-mode research: REM-021 (independent human review). REM-020 (longitudinal stability, 7-day criterion from 2026-06-28) was closed 2026-07-17 via the fail-closed closure tooling; REM-022 (RBAC audit) is DONE with recorded deviation (follow-through: REM-023). See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
 

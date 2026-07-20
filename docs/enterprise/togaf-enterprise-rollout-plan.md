@@ -11,7 +11,7 @@ architecture to complementary delivery teams.
 (`RemoraDecisionEngine`), the `DecisionEnvelope` contract, policy-as-code,
 the claim-provenance discipline, and the open remediation items (REM-013,
 REM-020…REM-031) as the concrete backlog. See
-`docs/assurance/external_security_audit_v1.md` and
+`docs/assurance/ai_assisted_adversarial_security_review_v1.md` and
 `docs/assurance/remediation_register.yaml`.
 
 ---

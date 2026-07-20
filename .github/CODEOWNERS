@@ -1,0 +1,21 @@
+# CODEOWNERS — review routing for security-critical paths.
+#
+# REMORA is a single-maintainer project today, so every entry resolves to the
+# same owner. The explicit entries below are not redundant: they mark the
+# surfaces whose changes must always get maintainer review (policy invariants,
+# enforcement, governance contracts, API servers, schemas, CI, and the
+# assurance register), and they give this file a structure that is ready for a
+# second reviewer once independent review is in place (REM-021 in
+# docs/assurance/remediation_register.yaml).
+
+# Default owner for everything in the repository.
+* @darklordVirtual
+
+# Security-critical surfaces.
+/remora/policy/ @darklordVirtual
+/remora/enforcement/ @darklordVirtual
+/remora/governance/ @darklordVirtual
+/servers/ @darklordVirtual
+/schemas/ @darklordVirtual
+/.github/ @darklordVirtual
+/docs/assurance/ @darklordVirtual
