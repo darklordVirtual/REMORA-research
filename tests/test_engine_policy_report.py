@@ -518,6 +518,22 @@ def test_report_envelope_sets_blocked_action_for_escalate() -> None:
     assert "Ignore previous instructions" in env.gate.blocked_action
 
 
+def test_report_envelope_blocked_action_matches_execution_authorization() -> None:
+    """blocked_action is populated iff the outcome does not authorize execution.
+
+    VERIFY also means do-not-execute; a null blocked_action on any non-accept
+    outcome makes the envelope export misleading for SIEM/UI consumers
+    (2026-07-20 review, adapter audit contract)."""
+    engine = _make_engine()
+    rep = engine.report(_make_state(question="test?"))
+    env = rep["envelope"]
+
+    if env.gate.outcome == "accept":
+        assert env.gate.blocked_action is None
+    else:
+        assert env.gate.blocked_action is not None
+
+
 def test_report_uses_custom_evidence_provider_signal_source() -> None:
     """Custom evidence provider should propagate signal_source into policy observation."""
 

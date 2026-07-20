@@ -165,7 +165,7 @@ def _make_envelope(sc: Scenario, action: str, reasons: tuple, hash_val: str) -> 
         ),
         gate=GateBlock(
             outcome=action,
-            blocked_action=sc.question[:60] if action in ("escalate", "abstain") else None,
+            blocked_action=sc.question[:60] if action != "accept" else None,
             allowed_next_steps=["human_review"] if action in ("escalate", "verify") else [],
         ),
         audit=AuditBlock(

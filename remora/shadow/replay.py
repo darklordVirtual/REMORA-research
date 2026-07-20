@@ -226,7 +226,7 @@ def _build_envelope(
         ),
         gate=GateBlock(
             outcome=gate_outcome,
-            blocked_action=action_text[:500] if gate_outcome in {"escalate", "abstain"} else None,
+            blocked_action=action_text[:500] if gate_outcome != "accept" else None,
             allowed_next_steps=["human_review"] if dec.human_review_required else [],
         ),
         reviewer_context=ReviewerContextBlock(

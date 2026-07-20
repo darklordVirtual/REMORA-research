@@ -83,6 +83,15 @@ def test_shadow_replay_generates_delta_report_and_envelopes(tmp_path: Path) -> N
         lines = [line for line in f if line.strip()]
     assert len(lines) == 3
 
+    # blocked_action iff execution is not authorized (accept ⇔ null).
+    for line in lines:
+        env = json.loads(line)
+        gate = env["gate"]
+        if gate["outcome"] == "accept":
+            assert gate["blocked_action"] is None
+        else:
+            assert gate["blocked_action"], gate
+
     with open(audit_out) as f:
         audit_lines = [line for line in f if line.strip()]
     assert len(audit_lines) == 3

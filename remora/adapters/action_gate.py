@@ -32,6 +32,7 @@ from remora.governance.envelope import (
     GateBlock,
     RequestBlock,
 )
+from remora.policy.observation import canonical_tool_call_hash
 
 
 # ---------------------------------------------------------------------------
@@ -83,14 +84,23 @@ def _build_envelope(
     result: GatewayResult,
     policy_version: str,
 ) -> DecisionEnvelope:
-    payload = {
+    # The request identity binds the FULL governance context, not just the
+    # action payload: the same tool call assessed in staging vs production, or
+    # under a different risk classification, is a different governance event
+    # and must not collide on one request_id.
+    identity_payload = {
         "action_name": action_name,
         "action_args": action_args,
         "proposed_by": proposed_by,
         "context": context,
+        "domain": domain,
+        "risk_tier": risk_tier,
+        "action_type": action_type,
+        "target_environment": target_environment,
     }
-    question = f"Assess action execution safety: {json.dumps(payload, sort_keys=True)}"
+    question = f"Assess action execution safety: {json.dumps(identity_payload, sort_keys=True)}"
     request_id = hashlib.sha256(question.encode()).hexdigest()[:16]
+    tenant = str(context.get("tenant_id") or "") if isinstance(context, dict) else ""
     return DecisionEnvelope(
         request=RequestBlock(
             request_id=request_id,
@@ -108,7 +118,9 @@ def _build_envelope(
         ),
         gate=GateBlock(
             outcome=result.action,
-            blocked_action=action_name if result.action in {"abstain", "escalate"} else None,
+            # blocked_action iff execution is not authorized: VERIFY is just as
+            # unexecutable as abstain/escalate (should_execute requires accept).
+            blocked_action=action_name if result.action != "accept" else None,
             allowed_next_steps=["human_review"] if result.human_review_required else [],
         ),
         audit=AuditBlock(
@@ -116,6 +128,13 @@ def _build_envelope(
             hash=result.state_hash,
             previous_hash=None,
             signature=None,
+            tenant_id=tenant or None,
+            tool_args_hash=canonical_tool_call_hash(
+                name=action_name,
+                arguments=action_args,
+                tenant=tenant,
+                target=target_environment,
+            ),
         ),
     )
 

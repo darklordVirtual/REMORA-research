@@ -110,8 +110,14 @@ class AuditBlock:
     tenant_id:           Tenant the decision belongs to.
     actor_identity:      Caller/service-principal from X-Remora-Actor header.
     policy_bundle_hash:  SHA-256 composite of active policy files.
-    tool_args_hash:      SHA-256 of (proposed_action, action_type) — proves what was
-                         assessed without storing the full action text in the hash-chain.
+    tool_args_hash:      Binding hash of the assessed action. The preimage is
+                         producer-specific: the /v1/assess API (question-based,
+                         no tool arguments available) writes SHA-256 of
+                         (proposed_action, action_type); the action-gate
+                         adapters write canonical_tool_call_hash(name, full
+                         args, tenant, target) — the same preimage the
+                         execution API and ExecutionLease enforce. Verifiers
+                         must key the recompute on the producing path.
     data_classification: e.g. "confidential", "restricted" (set by integration layer).
     retention_policy:    e.g. "7y", "legal_hold" (set by integration layer).
 

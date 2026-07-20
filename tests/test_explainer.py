@@ -66,6 +66,28 @@ class TestDecisionExplainer:
         narrative = explainer.explain(_envelope(outcome="ABSTAINED"))
         assert "blocked" in narrative.summary.lower() or "declined" in narrative.summary.lower()
 
+    def test_verify_narrative_says_withheld_not_blocked(self):
+        """VERIFY carries blocked_action but is pending review, not blocked."""
+        explainer = DecisionExplainer()
+        env = _envelope(outcome="verify")
+        env = DecisionEnvelope(
+            request=env.request,
+            assessment=env.assessment,
+            gate=GateBlock(
+                outcome="verify",
+                blocked_action="transfer_funds",
+                allowed_next_steps=["human_review"],
+            ),
+            reviewer_context=env.reviewer_context,
+            follow_up=env.follow_up,
+            history=env.history,
+            audit=env.audit,
+        )
+        narrative = explainer.explain(env)
+        texts = " ".join(s.text for s in narrative.sections)
+        assert "withheld pending verification" in texts
+        assert "was blocked" not in texts
+
     def test_missing_data_section(self):
         explainer = DecisionExplainer()
         narrative = explainer.explain(_envelope(missing=["bank_verification", "kyc_status"]))

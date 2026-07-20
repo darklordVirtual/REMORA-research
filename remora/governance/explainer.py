@@ -118,11 +118,20 @@ class DecisionExplainer:
 
         # 3. Gate decision
         gate = envelope.gate
+        _is_verify = (gate.outcome or "").lower().startswith("verif")
         gate_section = NarrativeSection(
             heading="The decision",
             text=(
                 f"Outcome: {gate.outcome}."
-                + (f" The action '{gate.blocked_action}' was blocked." if gate.blocked_action else "")
+                + (
+                    (
+                        f" The action '{gate.blocked_action}' is withheld pending verification."
+                        if _is_verify
+                        else f" The action '{gate.blocked_action}' was blocked."
+                    )
+                    if gate.blocked_action
+                    else ""
+                )
                 + (f" Allowed next steps: {', '.join(gate.allowed_next_steps)}." if gate.allowed_next_steps else "")
             ),
             source_fields=["gate.outcome", "gate.blocked_action", "gate.allowed_next_steps"],

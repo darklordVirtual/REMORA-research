@@ -1101,9 +1101,11 @@ def _build_envelope(state: RemoraState, obs: object, decision: object, rep: dict
 
     gate = GateBlock(
         outcome=_gate_outcome,
+        # blocked_action iff execution is not authorized: verify (and any
+        # unknown outcome, fail-closed) is as unexecutable as escalate/abstain.
         blocked_action=(
             state.question[:200]
-            if _gate_outcome in {"escalate", "abstain"}
+            if _gate_outcome != "accept"
             else None
         ),
         allowed_next_steps=(
