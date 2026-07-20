@@ -1,88 +1,102 @@
 {
   "benchmark": "toolcall_benchmark_v2",
   "n_tasks": 700,
+  "n_template_clusters": 70,
+  "effective_sample_note": "700 tasks are 70 unique templates x 10 cosmetic variants; a deterministic gate decides identically within a template, so the effective sample size is ~70. All CIs and p-values below use cluster-level (template-level) resampling.",
+  "remora_unsafe_rate": {
+    "task_level_point_estimate": 0.0,
+    "unsafe_template_clusters": 0,
+    "n_template_clusters": 70,
+    "cluster_level_wilson_ci95": [
+      0.0,
+      0.05202487486728348
+    ]
+  },
   "comparison_target": "remora_full_policy_gate",
   "method": {
-    "unsafe_delta": "paired bootstrap mean CI + sign-flip permutation p-value",
-    "utility_delta": "paired bootstrap mean CI + sign-flip permutation p-value",
+    "unsafe_delta": "cluster bootstrap mean CI + cluster sign-flip permutation p-value",
+    "utility_delta": "cluster bootstrap mean CI + cluster sign-flip permutation p-value",
+    "cluster_definition": "domain x scenario_family template (n=70)",
     "n_bootstrap": 5000,
     "n_permutations": 10000
   },
   "comparisons": {
     "single_model_heuristic": {
-      "unsafe_execution_rate_delta_baseline_minus_remora": 0.2,
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.014285714285714285,
       "unsafe_rate_delta_ci95": [
-        0.17142857142857143,
-        0.22857142857142856
+        0.0,
+        0.04285714285714286
       ],
-      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
-      "utility_delta_remora_minus_baseline": 0.87,
+      "unsafe_rate_delta_pvalue_one_sided": 0.5006499350064993,
+      "utility_delta_remora_minus_baseline": 0.4557142857142857,
       "utility_delta_ci95": [
-        0.7999999999999985,
-        0.9401428571428595
+        0.35999999999999976,
+        0.5614285714285716
       ],
       "utility_delta_pvalue_one_sided": 9.999000099990002e-05
     },
     "majority_vote_heuristic": {
-      "unsafe_execution_rate_delta_baseline_minus_remora": 0.1,
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.014285714285714285,
       "unsafe_rate_delta_ci95": [
-        0.07857142857142857,
-        0.12285714285714286
+        0.0,
+        0.04285714285714286
       ],
-      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
-      "utility_delta_remora_minus_baseline": 0.62,
+      "unsafe_rate_delta_pvalue_one_sided": 0.5006499350064993,
+      "utility_delta_remora_minus_baseline": 0.4557142857142857,
       "utility_delta_ci95": [
-        0.5625714285714244,
-        0.676857142857138
+        0.35999999999999976,
+        0.5614285714285716
       ],
       "utility_delta_pvalue_one_sided": 9.999000099990002e-05
     },
     "self_consistency_heuristic": {
-      "unsafe_execution_rate_delta_baseline_minus_remora": 0.1,
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.014285714285714285,
       "unsafe_rate_delta_ci95": [
-        0.07857142857142857,
-        0.12285714285714286
+        0.0,
+        0.04285714285714286
       ],
-      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
-      "utility_delta_remora_minus_baseline": 0.62,
+      "unsafe_rate_delta_pvalue_one_sided": 0.5006499350064993,
+      "utility_delta_remora_minus_baseline": 0.4557142857142857,
       "utility_delta_ci95": [
-        0.5625714285714244,
-        0.676857142857138
+        0.35999999999999976,
+        0.5614285714285716
       ],
       "utility_delta_pvalue_one_sided": 9.999000099990002e-05
     },
     "verifier_heuristic": {
-      "unsafe_execution_rate_delta_baseline_minus_remora": 0.2,
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.014285714285714285,
       "unsafe_rate_delta_ci95": [
-        0.17142857142857143,
-        0.22857142857142856
+        0.0,
+        0.04285714285714286
       ],
-      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
-      "utility_delta_remora_minus_baseline": 0.87,
+      "unsafe_rate_delta_pvalue_one_sided": 0.5006499350064993,
+      "utility_delta_remora_minus_baseline": 0.4557142857142857,
       "utility_delta_ci95": [
-        0.7999999999999985,
-        0.9401428571428595
+        0.35999999999999976,
+        0.5614285714285716
       ],
       "utility_delta_pvalue_one_sided": 9.999000099990002e-05
     },
     "remora_temperature_gate_heuristic": {
-      "unsafe_execution_rate_delta_baseline_minus_remora": 0.1,
+      "unsafe_execution_rate_delta_baseline_minus_remora": 0.014285714285714285,
       "unsafe_rate_delta_ci95": [
-        0.07857142857142857,
-        0.12285714285714286
+        0.0,
+        0.04285714285714286
       ],
-      "unsafe_rate_delta_pvalue_one_sided": 9.999000099990002e-05,
-      "utility_delta_remora_minus_baseline": 0.35,
+      "unsafe_rate_delta_pvalue_one_sided": 0.5006499350064993,
+      "utility_delta_remora_minus_baseline": 0.25857142857142856,
       "utility_delta_ci95": [
-        0.28971428571428487,
-        0.41271428571428453
+        0.15428571428571425,
+        0.37142857142857144
       ],
       "utility_delta_pvalue_one_sided": 9.999000099990002e-05
     }
   },
   "limitations": [
-    "Inference is benchmark-scoped and assumes tasks are exchangeable samples from this synthetic benchmark.",
+    "Inference is benchmark-scoped and assumes template clusters are exchangeable samples from this synthetic benchmark.",
+    "Effective sample size is the 70 unique templates, not the 700 task instances.",
     "No live LLM trajectories or production tool calls are included.",
-    "Synthetic templates may induce optimistic or pessimistic bias for specific gating heuristics."
+    "Synthetic templates may induce optimistic or pessimistic bias for specific gating heuristics.",
+    "Platform-fact context values (target_environment, blast_radius, authz_verified, evidence_complete) are simulator-declared."
   ]
 }

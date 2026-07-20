@@ -40,11 +40,14 @@ permission**, not truth.
 **The safety floor is carried by the deterministic Stage-1 policy layer, not by
 the probabilistic consensus / thermodynamic / Lyapunov machinery.**
 
-On the 700-task adversarial tool-call benchmark (a deterministic simulator), the
-uncertainty signal alone was not sufficient: the temperature-gate-only
-configuration still left ~10% of unsafe actions executing. Adding the hard-block
-policy rules closed unsafe execution to 0% (Wilson CI [0.00%, 0.55%]). The
-hard-block rules account for **100%** of that reduction.
+On the 700-task adversarial tool-call benchmark (a deterministic simulator;
+70 unique templates × 10 cosmetic variants, effective N = 70), the
+temperature-gate-only configuration leaves 1.4% of unsafe actions executing
+under the leakage-free input contract (2026-07-20 re-run); the hard-block
+policy rules close unsafe execution to 0% (cluster-level Wilson CI
+[0.0%, 5.2%]). The unsafe-rate delta vs. baselines is not statistically
+significant at the template-cluster level (p = 0.50); the gate's significant
+advantage on this benchmark is decision utility and routing accuracy.
 
 The consensus, entropy/dissensus, thermodynamic-phase, and Lyapunov components do
 **not** contribute to the unsafe-execution safety floor. What they contribute is

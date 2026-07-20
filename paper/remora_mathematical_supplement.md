@@ -308,16 +308,23 @@ CI = [ c − h , c + h ]   (clamped to [0,1])
 ("Wald") interval because it stays inside `[0,1]` and is well-behaved for small
 `n` and `p̂` near 0 or 1: important when reporting a `0%` unsafe rate.
 
-**Worked example, the `0%` unsafe-execution claim.** `k = 0` unsafe in
-`n = 700`. Then `p̂ = 0`, `z²/2n = 3.8416/1400 = 0.002744`,
-`1 + z²/n = 1.005488`.
-- `c = 0.002744 / 1.005488 = 0.002729`
-- inside the root: `0 + z²/4n² = 3.8416 / 1{,}960{,}000 = 1.9600×10⁻⁶`,
-  `√ = 0.0014`; times `z/(1+z²/n) = 1.96/1.005488 = 1.9493` ⇒ `h = 0.002729`
-- `CI = [0, 0.005457] = [0.00%, 0.55%]`
+**Worked example, the `0%` unsafe-execution claim.** The 700 benchmark tasks
+are 70 unique templates × 10 cosmetic variants; a deterministic gate decides
+identically within a template, so the correct unit of inference is the
+template cluster and `n = 70` (2026-07-20 correction; the earlier edition of
+this supplement used `n = 700`, which treated near-duplicates as independent
+samples and understated the interval by an order of magnitude). `k = 0`
+unsafe clusters in `n = 70`. Then `p̂ = 0`, `z²/2n = 3.8416/140 = 0.027440`,
+`1 + z²/n = 1.054880`.
+- `c = 0.027440 / 1.054880 = 0.026013`
+- inside the root: `0 + z²/4n² = 3.8416 / 19{,}600 = 1.9600×10⁻⁴`,
+  `√ = 0.0140`; times `z/(1+z²/n) = 1.96/1.054880 = 1.8580` ⇒ `h = 0.026013`
+- `CI = [0, 0.052025] = [0.0%, 5.2%]`
 
-matching the abstract's `[0.00%, 0.55%]`. A `0%` point estimate is therefore
-defended as "at most `0.55%` at 95% confidence," not as a literal guarantee.
+matching the abstract's `[0.0%, 5.2%]`. A `0%` point estimate is therefore
+defended as "at most `5.2%` at 95% confidence," not as a literal guarantee.
+For reference, the superseded task-level computation gave `[0.00%, 0.55%]`;
+do not quote it.
 
 ### 5.3 The held-out p-value (one-sided binomial)
 
@@ -640,8 +647,8 @@ these independently; it transcribes them.
 |---|---|---|
 | Selective accuracy @ 18% cov (in-sample) | 88.78%, +47.6 pp | `paper §8 tab:qa` |
 | Held-out selective accuracy | 88.0% @ 23.2% cov, `p=1.45e-5` | `paper §8`; locked `τ*=0.2032` |
-| Unsafe execution (tool-call, full policy) | 0%, Wilson CI [0.00%, 0.55%] | `paper §9.2 tab:toolcall`, `N=700` |
-| Mean utility (full policy vs baselines) | 0.62 vs ≤0.00 | `paper §9.2` |
+| Unsafe execution (tool-call, full policy) | 0%, cluster-level Wilson CI [0.0%, 5.2%] | `paper §9.2 tab:toolcall`, `N=700` tasks, effective N=70 templates |
+| Mean utility (full policy vs baselines) | 0.62 vs 0.16 | `paper §9.2` (2026-07-20 leakage-free re-run) |
 | Critical-phase trust inversion | 71.4% (τ<0.10) vs 27.3% (τ≥0.10) | `paper §6.1, §13`, `N=32` |
 | Ordered-phase conformal coverage | 99.9%, 0/20 seed failures | `paper §9.3 tab:mondrian` |
 | Evidence router (MultiNLI) | 38.5% resolution, 100% accept-precision | `paper §9.5`, `N=3000` |
@@ -670,8 +677,11 @@ tests/test_aromer_core.py tests/test_kpi.py tests/test_pending_resolution.py -q`
    analogy.
 2. **"88.8% is cherry-picked in-sample."** → The locked-threshold held-out test
    gives 88.0% with `p = 1.45×10⁻⁵` (§5.3); threshold frozen before holdout.
-3. **"0% unsafe is just a small sample."** → Reported as Wilson CI `[0, 0.55%]`
-   (§5.2), and attributed mechanistically to hard blocks (100% of the reduction).
+3. **"0% unsafe is just a small sample."** → Agreed — and quantified honestly:
+   effective N is 70 template clusters, and the claim is reported as a
+   cluster-level Wilson CI `[0, 5.2%]` (§5.2). The unsafe-rate delta vs.
+   baselines is not statistically significant (p=0.50); the statistically
+   supported advantages are utility and accuracy.
 4. **"Trust scoring is unreliable."** → *Agreed, and measured*: §5.4 documents
    the inversion as a negative result and §5.4 routes around it rather than
    hiding it.

@@ -32,8 +32,8 @@
       "use_severity_flags": false,
       "false_accept_rate": 0.0,
       "unsafe_execution_rate": 0.0,
-      "mean_utility": 0.62,
-      "accuracy": 0.9,
+      "mean_utility": 0.5828571428571429,
+      "accuracy": 0.8714285714285714,
       "escalate_rate": 0.6,
       "verify_rate": 0.3,
       "n_tasks": 700,
@@ -41,7 +41,7 @@
     }
   },
   "leakage_delta": 0.0,
-  "finding": "M1 LEAKAGE NOT LOAD-BEARING \u2014 clean FAR=0; structural context gates (injection/approval/conflict) alone are sufficient for FAR=0; is_unsafe_if_executed access via contradiction flags is redundant for the benchmark's safety guarantee",
+  "finding": "M1 LEAKAGE NOT LOAD-BEARING \u2014 clean FAR=0; surface-derived detectors (injection/intent-conflict/fallback) plus platform-fact gates alone are sufficient for FAR=0; is_unsafe_if_executed access via contradiction flags is redundant for the benchmark's safety guarantee",
   "interpretation": "If FAR is identical under LEAKY and CLEAN, the contradiction flags do not affect the safety outcome on this benchmark \u2014 the structural gates (context overrides) catch all harmful tasks independently of the label. The M1 documentation remains valid (the leakage exists in the code) but its effect on the reported metric is zero.",
   "limitations": [
     "Deterministic simulator benchmark \u2014 all decisions are computed from task metadata.",
@@ -49,5 +49,5 @@
     "use_severity_flags controls severity-driven routing; severity correlates with harmfulness but is a legitimate metadata field in real deployments.",
     "External replication with withheld labels required for definitive M1 resolution."
   ],
-  "timestamp": "2026-06-28T20:44:52.991491+00:00"
+  "timestamp": "2026-07-20T00:44:47.855862+00:00"
 }

@@ -23,6 +23,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from remora.aromer.world_model.domain_prior import DomainHarmPrior, _MAX_EVIDENCE
 
 
@@ -30,6 +32,7 @@ def _prior(tmp_path: Path) -> DomainHarmPrior:
     return DomainHarmPrior(path=tmp_path / "world_model.json", shadow_mode=False)
 
 
+@pytest.mark.slow
 class TestBoundedMass:
     def test_mass_never_exceeds_cap(self, tmp_path: Path):
         wm = _prior(tmp_path)

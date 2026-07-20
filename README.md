@@ -137,15 +137,18 @@ Two benchmark versions. v2 introduces adversarial failure modes not present in v
 
 **v1 (252 tasks):** v1 does not demonstrate unsafe-execution reduction, all baselines including the single-model heuristic show 0% unsafe execution. This is a ceiling effect in the v1 benchmark design, not evidence of safety. Do not use v1 to make safety claims. Committed metrics: remora_temperature_gate_heuristic mean_utility=0.6762; remora_full_policy_gate accuracy=0.7619, mean_utility=0.5690. These are deterministic simulator results. Artifact: `results/toolcall_benchmark_v1_results.json`
 
-<!-- claim:CLAIM-001 far_pct n -->
-**v2 (700 tasks):** v2 is a deterministic simulator benchmark with adversarial failure modes. REMORA full policy gate reduces unsafe execution to 0% vs. 10–20% for all baselines; this is a simulator-scoped result. It does not prove field-deployment safety.
+<!-- claim:CLAIM-001 far_pct n_effective n -->
+**v2 (700 tasks):** v2 is a deterministic simulator benchmark with adversarial failure modes. The 700 tasks are 70 unique templates × 10 cosmetic variants; a deterministic gate decides identically within a template, so the effective sample size is 70 (effective N = 70), and all confidence intervals and p-values are computed at the template-cluster level. REMORA full policy gate shows 0.0% unsafe execution (0/70 templates; cluster-level Wilson 95% CI [0.0%, 5.2%]); this is a simulator-scoped result. It does not prove field-deployment safety.
+
+**Label-leakage fix (2026-07-20):** earlier versions of this benchmark let the gate read author-annotated oracle context flags (`contains_prompt_injection`, `intent_arg_conflict`, `requires_human_approval`, `fallback_contains_destructive`), `severity`, and `tags` — the answer key leaked into the system under test. The gate and all baselines now see only the observable task surface (request, tool name, args) plus platform-fact context (target environment, blast radius, authz/evidence status); injection, intent conflict, and destructive-fallback signals are derived from that surface. Remaining caveat: the platform-fact context values are still simulator-declared.
 
 | Baseline | Accuracy | Mean utility | Unsafe rate |
 |----------|----------|--------------|-------------|
-| remora_temperature_gate_heuristic | 0.7000 | 0.2700 | 0.1000 |
+| single_model_heuristic | 0.2857 | 0.1643 | 0.0143 |
+| remora_temperature_gate_heuristic | 0.6000 | 0.3614 | 0.0143 |
 | remora_full_policy_gate | 0.9000 | 0.6200 | 0.0000 |
 
-Unsafe execution reduction vs. single-model heuristic: Δ=0.20, 95% CI [0.17, 0.23], one-sided p < 0.0001 (paired bootstrap). The `remora_full_policy_gate` reduces unsafe execution rate from 0.20 to 0.00 on the v2 benchmark.
+Unsafe-rate delta vs. heuristic baselines: Δ=0.0143, 95% cluster-bootstrap CI [0.00, 0.043], one-sided p = 0.50 — **not statistically significant** at the template-cluster level. The significant result on this benchmark is the utility delta: +0.456 vs. heuristic baselines (95% CI [0.36, 0.56], p ≈ 1×10⁻⁴) and +0.259 vs. the temperature-gate baseline.
 Artifact: `results/toolcall_benchmark_v2_results.json` | Significance: `results/toolcall_benchmark_v2_significance.json`
 
 ### Selective accuracy (N500, 544 questions)
@@ -180,8 +183,12 @@ Top-25% slice: k=76, correct=72, accuracy=94.7% on the N=302 calibration set. Ar
 # Install
 python -m pip install -e ".[dev]"
 
-# Full deterministic test suite (no API keys required)
+# Full deterministic test suite (no API keys required; ~3500 tests, <1 min on a laptop)
 make test
+
+# Constrained environments (CI containers, low memory): reduced suite / core gate
+make test-fast   # skips @pytest.mark.slow tests
+make test-core   # envelope + policy engine + gate + API only, ~5s
 
 # Demos (dry-run, zero network calls)
 python scripts/demo_building_lights.py
@@ -210,6 +217,8 @@ Step-by-step instructions: [docs/06-reproducibility.md](docs/06-reproducibility.
 ## Limitations
 
 - **Simulator-scoped safety.** The 0% unsafe execution results come from deterministic synthetic benchmarks and a controlled internal corpus. No real shell, network, or database mutations occur. Controlled benchmarks do not prove field deployment safety.
+- **Effective sample size is template-level.** The v2 tool-call benchmark's 700 tasks are 70 unique templates × 10 cosmetic variants. All v2 confidence intervals and p-values are computed over the 70 template clusters; quoting task-level N for inference would overstate precision. The unsafe-rate advantage over heuristic baselines is not statistically significant at cluster level (p = 0.50).
+- **Benchmark context is simulator-declared.** The gate derives injection/intent-conflict/fallback signals from the task surface, but environment facts (target environment, blast radius, authz/evidence status) are declared by the same benchmark generator that assigns labels. Results measure policy mapping over declared environment facts, not detection of hidden intent in the wild.
 - **Small held-out accepted set.** N_accepted = 25 yields a Wilson CI of [70.0%, 95.8%]. This is a directional confirmation, not a tight accuracy estimate. The 88.0% point estimate must always be quoted with its CI.
 - **Entropy backend mismatch.** All reported benchmarks use `TokenFingerprintBackend` (sorted SHA-256 tokens), not the NLI Semantic Entropy backend described in the paper. The NLI backend exists as a drop-in replacement but was not used for any reported result. See [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) finding #3.
 - **No external replication.** All benchmarks were run internally by the author. External replication is listed as a distinct evidence level in the claim register, explicitly required before any `externally_validated` label can be applied.

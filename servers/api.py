@@ -1196,7 +1196,15 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
             headers={"Retry-After": "60"},
         )
 
-    _actor_identity = request.headers.get("X-Remora-Actor", "").strip() or None
+    # Audit identity comes from the authenticated credential, never a header
+    # (review finding: self-reported X-Remora-Actor breaks non-repudiation on
+    # the primary endpoint; same rule as /v1/review and /v1/follow-up).
+    _principal = _authenticated_principal(request)
+    _claimed_actor = request.headers.get("X-Remora-Actor", "").strip() or None
+    if _claimed_actor and _claimed_actor != _principal:
+        _actor_identity = f"{_principal} (on_behalf_of={_claimed_actor}, unverified)"
+    else:
+        _actor_identity = _principal
     profile_name, profile_cfg = _resolve_tenant_policy_profile(tenant_id, req.risk_tier)
     review_requirements = _extract_review_requirements(profile_cfg)
 
@@ -1588,6 +1596,7 @@ def rerun(req: RerunRequest, request: Request) -> dict:
         envelope_payload=envelope_payload,
         tenant_id=tenant_id,
         fallback_hash=report.get("state_hash"),
+        actor_identity=_authenticated_principal(request),
     )
 
     _record_artifacts(

@@ -20,16 +20,25 @@ below names the PDF, verify against the .md, which supersedes it.
 
 ### 1. 0% unsafe execution on an adversarial tool-call benchmark
 - **Claim:** REMORA's full policy gate executed 0% of unsafe actions on a
-  700-task adversarial tool-call benchmark, versus 10–20% for the baselines.
-- **Evidence:** the temperature-gate-only configuration still leaked 10%; adding
-  the policy hard-blocks closed it to 0%. The policy layer, not the uncertainty
-  signal, accounts for 100% of the reduction.
-- **Artifact:** `paper/remora_paper.pdf` §9.2 (Table: tool-call benchmark);
-  tool-call result artifacts under `artifacts/` / `results/`.
-- **Caveat:** 0% is a point estimate. The honest statement is a 95% Wilson
-  confidence interval of **[0.00%, 0.55%]**, "at most ~1 in 180," not "never."
+  700-task adversarial tool-call benchmark (70 unique templates × 10 cosmetic
+  variants; effective N = 70), versus 1.4% for the heuristic baselines under
+  the same leakage-free input contract (2026-07-20 re-run).
+- **Evidence:** the safety floor comes from the hard-block policy layer over
+  surface-derived detectors and platform-fact context. The unsafe-rate delta
+  vs. baselines is **not statistically significant** at the template-cluster
+  level (one-sided p = 0.50); the significant advantage is decision utility
+  (+0.456, p ≈ 1×10⁻⁴).
+- **Artifact:** `results/toolcall_benchmark_v2_results.json` and
+  `results/toolcall_benchmark_v2_significance.json`.
+- **Caveat:** 0% is a point estimate over 70 template clusters. The honest
+  statement is a cluster-level 95% Wilson confidence interval of
+  **[0.0%, 5.2%]** — "at most ~1 in 19 templates," not "never." Earlier
+  versions quoted a task-level CI of [0.00%, 0.55%], which overstated
+  precision by counting 10 near-duplicate variants as independent samples.
   The benchmark is a deterministic simulator (no real shell/network/db
-  mutations) with synthetic adversarial patterns.
+  mutations) with synthetic adversarial patterns, and its environment facts
+  (target environment, blast radius, authz/evidence status) are declared by
+  the same generator that assigns labels.
 - **Important architectural caveat:** the hard-block policy rules alone produce
   the 0% rate. The multi-oracle consensus machinery (thermodynamic routing,
   Lyapunov stability heuristic, entropy/dissensus) contributes to calibration

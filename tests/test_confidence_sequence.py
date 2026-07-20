@@ -82,6 +82,7 @@ def test_input_validation() -> None:
 # The property that matters: time-uniform validity under monitoring
 # ---------------------------------------------------------------------------
 
+@pytest.mark.slow
 def test_time_uniform_coverage_under_continuous_monitoring() -> None:
     """The true rate must stay below the bound at EVERY step of a monitored
     trajectory, with failure probability ≤ alpha over the whole horizon.

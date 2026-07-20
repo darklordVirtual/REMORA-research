@@ -3,7 +3,7 @@
 # Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility) → P4 (hardening/roadmap)
 
 schema_version: "1"
-last_updated: "2026-07-17T12:10Z"
+last_updated: "2026-07-20T00:00Z"
 
 items:
   - id: REM-001
@@ -675,3 +675,56 @@ items:
       across policy/enforcement/governance/servers; enabling the rule sets
       as a CI gate awaits the ~25 remaining manual fixes. The npm/coverage/
       hash-lock items require a Linux environment.
+
+  - id: REM-038
+    section: "review-2026-07-20 #1/#2"
+    title: "Benchmark v2 second leakage class removed + cluster-level inference"
+    gate: P0
+    status: DONE
+    completed: "2026-07-20"
+    artifacts:
+      - remora/toolcall/remora_gate.py
+      - remora/toolcall/baselines.py
+      - scripts/check_no_evaluation_leakage.py
+      - tests/test_remora_toolcall_gate_v2.py
+      - experiments/toolcall_v2_significance.py
+      - results/toolcall_benchmark_v2_results.json
+      - results/toolcall_benchmark_v2_significance.json
+    notes: >
+      External review finding #1: the gate read author-annotated oracle context
+      flags (contains_prompt_injection, intent_arg_conflict,
+      requires_human_approval, fallback_contains_destructive), task.severity,
+      and task.tags - the same leakage class as M1/REM-001. Finding #2: the 700
+      tasks are 70 templates x 10 cosmetic variants, so task-level CIs and
+      paired resampling overstated precision (~10x). FIX: gate and baselines
+      restricted to the observable task surface + platform-fact context with
+      surface-derived detectors (shared derive_risk_level); AST detector
+      forbidden-field list extended with the five oracle context keys; mutation
+      tests assert decision invariance under oracle-flag/severity/tags
+      mutation; all inference moved to template-cluster level (n=70).
+      RESULT: gate FAR=0 unchanged (cluster Wilson CI [0.0%, 5.2%]); baselines
+      improved 10-20% -> 1.4%; the unsafe-rate delta claim is WITHDRAWN as not
+      significant (p=0.50); utility delta +0.456 (p~1e-4) stands. See
+      NEGATIVE_RESULTS.md §17 and SAP §8 deviation D-3. Residual: platform-fact
+      context is simulator-declared; external replication (REM-021/§1) remains
+      the definitive resolution.
+
+  - id: REM-039
+    section: "review-2026-07-20 #3"
+    title: "Credential-derived actor identity on /v1/assess and /v1/rerun"
+    gate: P0
+    status: DONE
+    completed: "2026-07-20"
+    artifacts:
+      - servers/api.py
+      - tests/test_api_server.py
+    notes: >
+      External review finding #3: /v1/assess wrote the self-reported
+      X-Remora-Actor header into the envelope audit via _finalize_envelope_audit,
+      undermining non-repudiation on the primary endpoint (already fixed on
+      /v1/review and /v1/follow-up). FIX: actor_identity is now
+      _authenticated_principal(request) (credential-derived); a differing
+      X-Remora-Actor header is recorded only as an unverified on_behalf_of
+      annotation. /v1/rerun, which recorded no actor at all, now records the
+      authenticated principal. Tests assert the header alone can never become
+      the audit identity.

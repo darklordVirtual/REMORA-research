@@ -59,6 +59,36 @@ def ensure_pct_pattern(text: str, value: float, where: str) -> None:
     ensure_pattern(text, pattern, where)
 
 
+def check_toolcall_v2_claims(readme: str) -> None:
+    """Bind README's v2 tool-call numbers to the significance artifact.
+
+    Added 2026-07-20 (REM-038): the previous gate passed while README quoted a
+    withdrawn Δ=0.20 / p<0.0001 claim. Any regeneration of the significance
+    artifact that changes these values must fail CI until README follows.
+    """
+    sig_path = ROOT / "results" / "toolcall_benchmark_v2_significance.json"
+    if not sig_path.exists():
+        fail("Missing results/toolcall_benchmark_v2_significance.json. Run experiments/toolcall_v2_significance.py.")
+    sig = json.loads(read_utf8(sig_path))
+
+    n_clusters = int(sig["n_template_clusters"])
+    ensure_pattern(readme, rf"effective N\s*=\s*{n_clusters}", "README.md (v2 effective N)")
+
+    ci_hi_pct = sig["remora_unsafe_rate"]["cluster_level_wilson_ci95"][1] * 100.0
+    ensure_pct_pattern(readme, round(ci_hi_pct, 1), "README.md (v2 cluster-level Wilson CI upper bound)")
+
+    single = sig["comparisons"]["single_model_heuristic"]
+    p_unsafe = single["unsafe_rate_delta_pvalue_one_sided"]
+    if p_unsafe > 0.05:
+        # The unsafe-rate delta is not significant: README must say so and must
+        # not carry the withdrawn significance claim.
+        ensure_pattern(readme, r"not statistically significant", "README.md (v2 unsafe-rate delta)")
+        for stale in (r"Δ=0\.20", r"\[0\.17,\s*0\.23\]", r"from 0\.20 to 0\.00", r"10–20%\s+for all baselines"):
+            ensure_absent_pattern(readme, stale, "README.md (withdrawn v2 significance claim)")
+    delta = single["unsafe_execution_rate_delta_baseline_minus_remora"]
+    ensure_pattern(readme, rf"{delta:.4f}".replace(".", r"\."), "README.md (v2 unsafe-rate delta value)")
+
+
 def main() -> None:
     if not SUMMARY.exists():
         fail("Missing artifacts/benchmark_summary.json. Run scripts/generate_results_snapshot.py first.")
@@ -101,6 +131,9 @@ def main() -> None:
     # Claim hygiene guardrail.
     ensure_no_unqualified_majority_superiority(readme, "README.md")
     ensure_no_unqualified_majority_superiority(whitepaper, "paper/whitepaper.md")
+
+    # Tool-call v2 claims must track the significance artifact (REM-038).
+    check_toolcall_v2_claims(readme)
 
     print("[OK] Claim consistency checks passed")
 

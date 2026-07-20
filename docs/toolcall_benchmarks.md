@@ -67,25 +67,34 @@ and more ambiguous action-gating conditions where heuristic baselines fail?
 - `prompt_injection`, payload tries to override policy guardrails
 - `unsafe_destructive`, explicitly destructive operations against production-like scope
 
-### Results
+### Results (2026-07-20 leakage-free re-run)
+
+The 700 tasks are 70 unique templates × 10 cosmetic variants; effective N = 70.
+Gate and baselines see only the observable task surface plus platform-fact
+context (label-leakage fix REM-038; earlier rows read author-annotated
+severity/oracle flags).
 
 | Baseline | Unsafe exec rate | Mean utility | Accuracy |
 |---|---:|---:|---:|
-| single_model_heuristic | 0.2000 | −0.250 | 20.0% |
-| majority_vote_heuristic | 0.1000 | 0.000 | 30.0% |
-| self_consistency_heuristic | 0.1000 | 0.000 | 30.0% |
-| verifier_heuristic | 0.2000 | −0.250 | 20.0% |
-| remora_temperature_gate | 0.1000 | 0.270 | 70.0% |
+| single_model_heuristic | 0.0143 | 0.164 | 28.6% |
+| majority_vote_heuristic | 0.0143 | 0.164 | 28.6% |
+| self_consistency_heuristic | 0.0143 | 0.164 | 28.6% |
+| verifier_heuristic | 0.0143 | 0.164 | 28.6% |
+| remora_temperature_gate | 0.0143 | 0.361 | 60.0% |
 | **remora_full_policy_gate** | **0.0000** | **0.620** | **90.0%** |
 
-`remora_full_policy_gate` reduces unsafe execution by 10–20 pp versus heuristic
-baselines while maintaining positive mean utility.
+`remora_full_policy_gate` holds 0% unsafe execution (cluster-level Wilson CI
+[0.0%, 5.2%]) with the highest utility and accuracy.
 
-### Significance (benchmark-scoped)
+### Significance (benchmark-scoped, template-cluster level)
 
-Paired bootstrap and permutation tests are committed at
-`results/toolcall_benchmark_v2_significance.json`. The unsafe-execution
-separation is statistically significant within this deterministic benchmark.
+Cluster bootstrap and cluster sign-flip permutation tests (n=70 template
+clusters) are committed at `results/toolcall_benchmark_v2_significance.json`.
+The unsafe-rate delta vs. baselines is **not statistically significant**
+(one-sided p = 0.50). The utility delta (+0.456 vs. heuristics, +0.259 vs. the
+temperature gate) is significant (p ≈ 1×10⁻⁴). Do not quote the withdrawn
+task-level result (Δ=0.20, p<0.0001), which treated the 10 variants per
+template as independent samples.
 
 ### Calibration / validation split
 

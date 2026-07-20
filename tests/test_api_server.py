@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib
 
 import pytest
@@ -811,8 +812,42 @@ def test_assess_populates_enterprise_audit_fields(monkeypatch: pytest.MonkeyPatc
     assert audit["schema_version"] == "2"
     assert audit["timestamp_utc"] is not None and "T" in audit["timestamp_utc"]
     assert audit["tenant_id"] == "tenant-ent"
-    assert audit["actor_identity"] == "svc-ci@example.com"
+    # Identity is credential-derived; the self-reported header is recorded
+    # only as an unverified on_behalf_of annotation (non-repudiation).
+    expected_principal = "cred-" + hashlib.sha256(b"test-token").hexdigest()[:12]
+    assert audit["actor_identity"] == (
+        f"{expected_principal} (on_behalf_of=svc-ci@example.com, unverified)"
+    )
     assert audit["policy_bundle_hash"] is not None and audit["policy_bundle_hash"].startswith("sha256:")
+
+
+def test_assess_actor_identity_cannot_be_spoofed_via_header(monkeypatch: pytest.MonkeyPatch) -> None:
+    """X-Remora-Actor must never become the audit identity on its own."""
+    api = _load_api_module(monkeypatch, token="test-token")
+    client = TestClient(api.app)
+
+    resp = client.post(
+        "/v1/assess",
+        json={"question": "Read replica lag status?", "risk_tier": "low"},
+        headers={
+            "Authorization": "Bearer test-token",
+            "X-Remora-Actor": "ceo@example.com",
+        },
+    )
+    assert resp.status_code == 200
+    actor = resp.json()["envelope"]["audit"]["actor_identity"]
+    expected_principal = "cred-" + hashlib.sha256(b"test-token").hexdigest()[:12]
+    assert actor.startswith(expected_principal)
+    assert "unverified" in actor
+
+    # Without the header, the audit identity is exactly the principal.
+    resp2 = client.post(
+        "/v1/assess",
+        json={"question": "Read replica lag status?", "risk_tier": "low"},
+        headers={"Authorization": "Bearer test-token"},
+    )
+    assert resp2.status_code == 200
+    assert resp2.json()["envelope"]["audit"]["actor_identity"] == expected_principal
 
 
 def test_assess_envelope_conforms_to_schema_with_enterprise_fields(monkeypatch: pytest.MonkeyPatch) -> None:

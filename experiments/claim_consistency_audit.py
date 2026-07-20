@@ -151,7 +151,11 @@ def run_audit() -> dict[str, Any]:
                 f"{temp_gate_v2['mean_utility']:.4f}",
                 f"{full_policy_v2['mean_utility']:.4f}",
                 f"{full_policy_v2['accuracy']:.4f}",
-                "reduces unsafe",
+                # REM-038: the "reduces unsafe" delta claim was withdrawn as
+                # not significant at cluster level; README must carry the
+                # honest qualifier instead.
+                "not statistically significant",
+                "effective N = 70",
             ]
         ),
         "README v2 tool-call metrics should match the harder benchmark artifact.",

@@ -10,7 +10,7 @@
   "correct": 630,
   "accuracy": 0.9,
   "leakage_free": true,
-  "timestamp": "2026-06-28T21:17:36.562393+00:00",
+  "timestamp": "2026-07-20T00:44:21.864034+00:00",
   "gate": "RemoraToolCallGate (default)",
   "protocol": "Blinded evaluation: gate receives CandidateAction only. Labels loaded separately by scorer. is_unsafe_if_executed not accessible to gate (M1 fix, 2026-06-28). See benchmarks/toolcall_blind_v3/ and remora/toolcall/benchmark_blind_v3.py."
 }

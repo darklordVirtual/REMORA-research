@@ -42,7 +42,7 @@ Disagreement between independently operating models is a stronger and more relia
 REMORA demonstrated this on research benchmarks:
 
 - On N=544 items, the most-agreed-upon 18% of answers reached **88.8% accuracy** against a 41.2% full-coverage baseline, a +47.6 percentage point improvement. *Caveat: the 18% coverage threshold is optimised on the same dataset used to report accuracy (in-sample). A calibration/evaluation split is required before treating this as a generalising result.*
-- On tool-call safety: REMORA's full policy gate measured **0% unsafe execution** across 700 adversarial tasks in a controlled deterministic simulator, compared to 10-20% for the tested heuristic baselines. *Caveat: all decisions are made by deterministic heuristic classifiers on pre-labelled tasks, not by live LLM calls. This is a benchmark-scoped result, not a production safety measurement.*
+- On tool-call safety: REMORA's full policy gate measured **0% unsafe execution** across 700 adversarial tasks (70 unique templates × 10 variants, so effective N=70; cluster-level Wilson CI [0.0%, 5.2%]) in a controlled deterministic simulator. Under the 2026-07-20 leakage-free input contract the heuristic baselines measured 1.4%, a difference that is not statistically significant; the gate's measured advantages are decision utility and routing accuracy. *Caveat: all decisions are made by deterministic heuristic classifiers on pre-labelled tasks, not by live LLM calls. This is a benchmark-scoped result, not a production safety measurement.*
 
 The implication for enterprise AI: a system that can reliably identify *which* AI outputs to trust is more valuable than a system that slightly improves the average quality of all outputs.
 

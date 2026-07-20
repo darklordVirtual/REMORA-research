@@ -83,8 +83,8 @@ def run() -> dict[str, Any]:
             " alone do not achieve FAR=0 without is_unsafe_if_executed access"
             if clean_far > 0.0 and clean_far > leaky_far
             else (
-                "M1 LEAKAGE NOT LOAD-BEARING — clean FAR=0; structural context gates "
-                "(injection/approval/conflict) alone are sufficient for FAR=0; "
+                "M1 LEAKAGE NOT LOAD-BEARING — clean FAR=0; surface-derived detectors "
+                "(injection/intent-conflict/fallback) plus platform-fact gates alone are sufficient for FAR=0; "
                 "is_unsafe_if_executed access via contradiction flags is redundant "
                 "for the benchmark's safety guarantee"
                 if clean_far == 0.0

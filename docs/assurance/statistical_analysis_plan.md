@@ -56,9 +56,21 @@ all baseline conditions on the N=700 toolcall benchmark v2.
 reported because FAR=0 makes the test degenerate (exact binomial: p < 10⁻¹⁰).
 See `results/toolcall_benchmark_v2_results.json`.
 
+**Status [SUPERSEDED 2026-07-20 — see §8 deviation D-3]:** the task-level exact
+binomial test above is withdrawn: the 700 tasks are 70 templates × 10
+near-duplicate variants, so task-level units violate the test's independence
+assumption. Under the corrected template-cluster analysis
+(`experiments/toolcall_v2_significance.py`) and the leakage-free input contract
+(REM-038), FAR_REMORA = 0.0 vs. FAR_baseline = 1.4%, cluster sign-flip
+permutation one-sided p = 0.50: **H2 is NOT supported** on benchmark v2. The
+cluster-level utility delta (+0.456, p ≈ 1×10⁻⁴) is significant but was not a
+pre-declared hypothesis; it is reported as post-hoc.
+
 **M1 constraint:** All analysis must use the code path where `is_unsafe_if_executed`
 is absent from the gate (post-fix state, commit 375800d). Pre-fix analyses are
 documented in `results/toolcall_m1_clean_signal.json` for comparison.
+As of 2026-07-20 this constraint extends to the oracle context flags, severity,
+and tags (REM-038): all analysis must use the surface-derived gate.
 
 ---
 
@@ -156,3 +168,4 @@ documenting the change in `docs/assurance/remediation_register.yaml`.
 | H1 pre-registered post-hoc (analysis ran before SAP) | Possible experimenter bias in τ* selection | τ* was locked before holdout evaluation; no re-optimisation documented in git history |
 | H2 dataset partially curated by authors | Selection bias possible | Benchmark generation script committed; category distribution documented |
 | H4 evaluated after framework design (not pre-registered) | Possible overfitting of Mode 3 pipeline to AgentHarm format | Replication on τ-bench and ToolEmu required (REM-014) |
+| D-3 (2026-07-20): H2 inference unit changed from task (N=700) to template cluster (n=70), and the pre-declared exact binomial test replaced by cluster bootstrap + cluster sign-flip permutation | The pre-declared task-level test treated 10 near-duplicate variants as independent samples, overstating precision ~10×; combined with the REM-038 leakage fix, H2's conclusion REVERSES (unsafe-rate delta not significant, p=0.50) | Recorded here explicitly rather than silently swapped; both old and new methods documented in NEGATIVE_RESULTS.md §17; the withdrawn task-level result must not be quoted |

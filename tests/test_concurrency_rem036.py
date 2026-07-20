@@ -13,6 +13,8 @@ from __future__ import annotations
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
+import pytest
+
 from remora.correlation import CorrelationMatrix
 from remora.engine import Remora
 from remora.genome import Genome
@@ -84,6 +86,7 @@ def test_stop_event_is_created_per_fanout() -> None:
     assert second is not first
 
 
+@pytest.mark.slow
 def test_correlation_matrix_concurrent_observe_and_rho() -> None:
     """100 threads hammer observe() while rho()/rho_matrix() read: no
     exceptions, and every read stays a valid agreement rate in [0, 1]."""

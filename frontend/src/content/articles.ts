@@ -91,7 +91,7 @@ export const ARTICLES: Article[] = [
       { t: "h2", text: "Policy overrides consensus" },
       {
         t: "p",
-        text: "REMORA evaluates a set of hard policy blocks before any routing logic runs. If a block fires — an adversarial pattern, a critical-risk action in an unstable regime, a missing evidence requirement — the action is escalated regardless of how confident the model consensus was. A confident, wrong majority cannot push an unsafe action through. In an adversarial 700-task tool-call benchmark, this took unsafe execution from 10–20% (across baselines) to 0% (Wilson 95% confidence interval [0.00%, 0.55%]); the policy hard-blocks accounted for the entire reduction.",
+        text: "REMORA evaluates a set of hard policy blocks before any routing logic runs. If a block fires — an adversarial pattern, a critical-risk action in an unstable regime, a missing evidence requirement — the action is escalated regardless of how confident the model consensus was. A confident, wrong majority cannot push an unsafe action through. In an adversarial 700-task tool-call benchmark (70 unique templates × 10 variants, effective N=70), the full policy gate holds unsafe execution at 0% (cluster-level Wilson 95% CI [0.0%, 5.2%]); under the 2026-07-20 leakage-free input contract, baselines show 1.4%, a delta that is not statistically significant — the gate's measured advantages are decision utility and routing accuracy.",
       },
       {
         t: "p",

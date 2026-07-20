@@ -57,3 +57,5 @@ _*detail*.txt
 
 # Academic reference PDFs in the repository root (copyright, not redistributable)
 /*.pdf
+# Internal working documents — reference material, not for publication
+docs/researchpapers/kompendium_ai_assurance_3utgave.md

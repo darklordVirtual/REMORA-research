@@ -866,6 +866,68 @@ field). Does not affect AII value or production gate status.
 
 ---
 
+### 17. Benchmark v2 label leakage (second class) and overstated effective N (2026-07-20)
+
+**Identified:** 2026-07-20, external code review.
+
+**Summary:** Two defects invalidated the headline framing of the v2 tool-call
+benchmark result as previously quoted:
+
+1. **Oracle-flag leakage (same class as M1).** The gate's `_context_override`
+   read `contains_prompt_injection`, `intent_arg_conflict`,
+   `requires_human_approval`, and `fallback_contains_destructive` directly from
+   `task.context` — booleans hand-set by the same author, in the same file, as
+   the `unsafe` labels. The gate also read author-annotated `task.severity` and
+   `task.tags` (including ground-truth-adjacent labels like `missing_evidence`
+   and `safe_looking_dangerous`, which entered the keyword matcher via
+   `_text()`). The M1 fix (§14) removed `is_unsafe_if_executed` but missed this
+   second instance of the same leakage class. The 0% result therefore largely
+   measured whether if-statements matched the labels they were written against.
+   The heuristic baselines shared the `severity` leak.
+
+2. **Effective N was ~70, not 700.** `generate_benchmark_v2(repeats=10)`
+   produces 70 unique templates × 10 variants that differ only in a flavor
+   string and an args integer. A deterministic gate decides identically on all
+   10 copies. The previously quoted task-level Wilson CI [0.00%, 0.55%] and the
+   paired bootstrap/permutation over 700 "samples" (Δ=0.20, CI [0.17, 0.23],
+   p<0.0001) treated near-duplicates as independent and overstated precision by
+   roughly an order of magnitude.
+
+**Fix (2026-07-20):**
+- Gate and all baselines now consume only the observable task surface
+  (`user_request`, `proposed_tool_name`, `proposed_tool_args`) plus
+  platform-fact context (`target_environment`, `blast_radius`,
+  `authz_verified`, `evidence_complete`, `regulatory_domain`,
+  `data_sensitivity`). Injection, intent/argument conflict, and
+  destructive-fallback signals are derived from that surface; a shared
+  `derive_risk_level()` replaces `severity` for gate and baselines alike.
+- `scripts/check_no_evaluation_leakage.py` forbidden-field list extended with
+  the five oracle context keys; mutation tests
+  (`tests/test_remora_toolcall_gate_v2.py`) assert decisions are invariant to
+  flipping every oracle flag, flipping severity, and dropping all tags.
+- All statistical inference moved to the template-cluster level (n=70):
+  cluster bootstrap, cluster sign-flip permutation, cluster-level Wilson CI
+  (`experiments/toolcall_v2_significance.py`).
+
+**Post-fix results (all toolcall v2/v3/M1 artifacts regenerated):**
+- Gate: unchanged on-benchmark — 0% unsafe (0/70 clusters), accuracy 0.90,
+  utility 0.62. Cluster-level Wilson CI [0.0%, 5.2%].
+- Baselines: improved from 10–20% to **1.4%** unsafe under the leakage-free
+  contract. The unsafe-rate delta vs. baselines is **no longer statistically
+  significant** (cluster-level one-sided p=0.50). The claim "reduces unsafe
+  execution from 10–20% to 0%" is withdrawn. The statistically supported
+  advantages on this benchmark are utility (+0.456, p≈1×10⁻⁴) and accuracy.
+
+**What remains honest to say:** the full policy gate holds 0% unsafe execution
+under an input contract that no longer includes the answer key, with a
+cluster-level CI of [0.0%, 5.2%]. **Residual caveat:** platform-fact context
+values are still declared by the same generator that assigns labels; results
+measure policy mapping over declared environment facts plus surface-derived
+detectors, not detection of hidden intent. External replication (finding §1)
+remains the definitive resolution.
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -882,6 +944,7 @@ field). Does not affect AII value or production gate status.
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)**, `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
 | MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
+| Benchmark v2 oracle-flag/severity/tags leakage + effective N ~70 not 700 (§17) | **Fixed (2026-07-20)**: gate and baselines restricted to observable surface + platform facts; cluster-level inference (n=70); "0% vs 10–20%" claim withdrawn — baselines now 1.4%, unsafe-rate delta not significant (p=0.50); FAR=0 unchanged, CI [0.0%, 5.2%]; residual: platform facts simulator-declared | **High (was inflating headline claim)** |
 
 ---
 

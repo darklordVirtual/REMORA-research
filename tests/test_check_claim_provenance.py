@@ -80,9 +80,13 @@ def test_parse_register_real_file() -> None:
     by_id = {c["id"]: c for c in claims}
     assert by_id["CLAIM-001"]["artifact"] == [
         "results/toolcall_benchmark_v2_results.json",
+        "results/toolcall_benchmark_v2_significance.json",
         "results/toolcall_blind_v3_results.json",
         "results/toolcall_m1_clean_signal.json",
     ]
+    # REM-038: effective-N and cluster-level CI must be in the register.
+    assert by_id["CLAIM-001"]["metrics"]["n_effective"] == 70
+    assert by_id["CLAIM-001"]["metrics"]["far_ci_high_pct"] == 5.2
     assert by_id["CLAIM-002"]["metrics"]["fbr_pct"] == 100.0
     assert by_id["CLAIM-004"]["metrics"]["accuracy_pct"] == 88.0
     assert by_id["CLAIM-006"]["n"] is None

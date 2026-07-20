@@ -60,7 +60,7 @@ and are populated by the API layer via `_finalize_envelope_audit`:
 | `schema_version` | `str` | API (`"2"`) | explicit envelope schema version for long-term audit compatibility |
 | `timestamp_utc` | `str \| None` | API (UTC ISO-8601) | Decision timestamp |
 | `tenant_id` | `str \| None` | API (from auth) | Tenant the decision belongs to |
-| `actor_identity` | `str \| None` | API (`X-Remora-Actor` header) | Caller/service principal identity |
+| `actor_identity` | `str \| None` | API (credential-derived principal) | Non-repudiable identity from the authenticated bearer token (provisioned `actor_id` or credential fingerprint). A differing self-reported `X-Remora-Actor` header is recorded only as an `on_behalf_of=…, unverified` annotation — it can never become the identity itself (REM-039, 2026-07-20) |
 | `policy_bundle_hash` | `str \| None` | API (`_policy_component_hashes()`) | Composite SHA-256 of active policy bundle |
 | `policy_version` | `str` | Policy engine | Semver string from `RemoraDecisionEngine` |
 | `hash` | `str \| None` | API (`_finalize_envelope_audit`) | SHA-256 of the compact safety-relevant fields |

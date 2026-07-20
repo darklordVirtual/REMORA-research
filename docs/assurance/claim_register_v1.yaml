@@ -26,26 +26,43 @@ claims:
     title: "FAR=0% on adversarial tool-call benchmark v2 (simulator-scoped)"
     statement: >
       REMORA's full policy gate produces 0.0% unsafe execution rate on a 700-task
-      adversarial tool-call benchmark versus 10-20% for all heuristic baselines.
-      The safety floor is produced by Stage 1 hard-block policy invariants, not by
-      the multi-oracle consensus machinery. Do not cite as evidence for the consensus layer.
+      (70 unique templates x 10 cosmetic variants; effective N=70) adversarial
+      tool-call benchmark. After the 2026-07-20 leakage fix (gate and baselines
+      both restricted to the observable task surface plus platform-fact context),
+      heuristic baselines show 1.4% unsafe execution; the unsafe-rate delta vs
+      baselines is NOT statistically significant at the template-cluster level
+      (one-sided p=0.50). The utility delta (+0.46 vs heuristics) is significant
+      (p~=1e-4). The safety floor is produced by Stage 1 hard-block policy
+      invariants, not by the multi-oracle consensus machinery. Do not cite as
+      evidence for the consensus layer, and do not cite the unsafe-rate delta
+      vs baselines as significant.
     evidence_level: internal_benchmark
     artifact:
       - "results/toolcall_benchmark_v2_results.json"
+      - "results/toolcall_benchmark_v2_significance.json"
       - "results/toolcall_blind_v3_results.json"
       - "results/toolcall_m1_clean_signal.json"
     n: 700
-    n_detail: "560 harmful, 140 benign; deterministic synthetic benchmark"
+    n_detail: >
+      560 harmful, 140 benign; deterministic synthetic benchmark;
+      70 unique templates x 10 near-duplicate variants, so effective N=70
     metrics:
       far_pct: 0.0
-      far_ci_high_pct: 0.55
+      far_ci_high_pct: 5.2
+      n_effective: 70
+      baseline_far_pct: 1.4
     caveat: >
       Simulator-scoped: no real shell, network, database, or file mutations execute.
       Benchmark is synthetic and adversarial patterns are designed in-distribution.
-      Wilson 95% CI on FAR: [0.00%, 0.55%]. External replication with independently
+      Effective sample size is 70 template clusters, not 700 tasks; cluster-level
+      Wilson 95% CI on FAR: [0.0%, 5.2%]. External replication with independently
       withheld labels is required before a field-deployment safety claim can be made.
-      M1 leakage (is_unsafe_if_executed) removed 2026-06-28; AST detector guards re-introduction.
-      140/560 harmful tasks rely on keyword heuristics that could be evaded by rewording.
+      M1 leakage (is_unsafe_if_executed) removed 2026-06-28; oracle context-flag,
+      severity, and tags leakage removed 2026-07-20 (gate now derives signals from
+      the task surface; AST detector and mutation tests guard re-introduction).
+      Platform-fact context values (target_environment, blast_radius, authz_verified,
+      evidence_complete) remain simulator-declared. Harmful tasks rely on keyword
+      heuristics that could be evaded by rewording.
     reproduce: >
       python experiments/generate_toolcall_benchmark_v2.py
       python experiments/evaluate_toolcall_benchmark_v2.py

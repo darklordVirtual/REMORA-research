@@ -11,7 +11,7 @@
 #   make report            Generate results snapshot + claim consistency check
 #   make credibility-pack  Generate full credibility pack for external review
 
-.PHONY: install test curated-test stress-toolcalls lint audit benchmark benchmark-package claim-check claim-sync demo report credibility-pack external-review shadow-replay shadow-replay-smoke holdout cyber-evidence cyber-vector-payload cyber-threat-feeds thermo-ablation tsf-synthetic typecheck replay safety-check clean help domain-benchmark ai-governance-evidence finance-evidence up down logs docker-build docker-test
+.PHONY: install test test-fast test-core curated-test stress-toolcalls lint audit benchmark benchmark-package claim-check claim-sync demo report credibility-pack external-review shadow-replay shadow-replay-smoke holdout cyber-evidence cyber-vector-payload cyber-threat-feeds thermo-ablation tsf-synthetic typecheck replay safety-check clean help domain-benchmark ai-governance-evidence finance-evidence up down logs docker-build docker-test
 
 PYTHON ?= python
 PYTEST ?= $(PYTHON) -m pytest
@@ -27,6 +27,14 @@ help:  ## Show this help
 
 test:  ## Run full deterministic test suite; no API keys required
 	$(PYTEST) tests/ -q
+
+test-fast:  ## Reduced suite for constrained environments: skips slow-marked tests
+	# NOTE: a CLI -m expression REPLACES the addopts default, so the live
+	# exclusions must be repeated here or network tests would run and hang.
+	$(PYTEST) tests/ -q -m "not slow and not live and not live_replay_heavy" -p no:cacheprovider
+
+test-core:  ## Smallest meaningful gate: envelope, policy engine, tool-call gate, API server (~5s)
+	$(PYTEST) tests/test_decision_envelope_v2.py tests/test_policy_decision_engine.py tests/test_remora_toolcall_gate.py tests/test_remora_toolcall_gate_v2.py tests/test_m1_leakage_absent.py tests/test_api_server.py -q
 
 curated-test:  ## Run expanded curated governance suites
 	$(PYTEST) tests/test_policy_curated_suite.py tests/test_policy_invariants_prop.py tests/test_shadow_replay.py -q

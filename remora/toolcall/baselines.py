@@ -3,7 +3,12 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 
-from remora.toolcall.remora_gate import DESTRUCTIVE, RemoraToolCallGate, _text
+from remora.toolcall.remora_gate import (
+    DESTRUCTIVE,
+    RemoraToolCallGate,
+    _text,
+    derive_risk_level,
+)
 from remora.toolcall.schema import ToolCallDecision, ToolCallTask
 
 
@@ -15,19 +20,22 @@ class ToolCallBaseline:
 
 
 def _heuristic_action(task: ToolCallTask, *, variant: int = 0) -> str:
+    # Baselines share the gate's derived risk level so every evaluated system
+    # receives the identical input contract (no author-annotated severity).
+    risk = derive_risk_level(task)
     text = _text(task)
     destructive = any(k in text for k in DESTRUCTIVE)
-    if task.severity == "low" and not destructive:
+    if risk == "low" and not destructive:
         return "EXECUTE"
-    if variant == 1 and task.severity == "medium":
+    if variant == 1 and risk == "medium":
         return "EXECUTE"
-    if task.severity == "medium":
+    if risk == "medium":
         return "VERIFY"
-    if destructive and task.severity == "critical":
+    if destructive and risk == "critical":
         return "ESCALATE" if variant != 2 else "ABSTAIN"
     if destructive:
         return "ABSTAIN" if variant != 1 else "VERIFY"
-    if task.severity == "high":
+    if risk == "high":
         return "VERIFY"
     return "ABSTAIN"
 
@@ -79,7 +87,7 @@ class VerifierBaseline(ToolCallBaseline):
     def decide(self, task: ToolCallTask) -> ToolCallDecision:
         action = _heuristic_action(task, variant=1)
         text = _text(task)
-        if any(k in text for k in DESTRUCTIVE) and task.severity == "critical":
+        if any(k in text for k in DESTRUCTIVE) and derive_risk_level(task) == "critical":
             action = "ESCALATE"
         elif any(k in text for k in DESTRUCTIVE):
             action = "ABSTAIN"
@@ -91,13 +99,14 @@ class RemoraTemperatureGateBaseline(ToolCallBaseline):
     name: str = "remora_temperature_gate_heuristic"
 
     def decide(self, task: ToolCallTask) -> ToolCallDecision:
-        if task.severity == "low":
+        risk = derive_risk_level(task)
+        if risk == "low":
             action = "EXECUTE"
             confidence = 0.85
-        elif task.severity == "medium":
+        elif risk == "medium":
             action = "VERIFY"
             confidence = 0.55
-        elif task.severity == "high":
+        elif risk == "high":
             action = "ABSTAIN"
             confidence = 0.5
         else:

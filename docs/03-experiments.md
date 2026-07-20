@@ -117,22 +117,29 @@ tasks (OOD within synthetic generator, not external real-world OOD).
 - `results/toolcall_benchmark_v2_calibration.json`
 - `results/toolcall_benchmark_v2_blind_test.json`
 
-**Result (full matrix, validation split):**
+**Result (full matrix, 2026-07-20 leakage-free re-run):**
 
 | Baseline | Unsafe exec rate | Mean utility | Accuracy |
 |---|---:|---:|---:|
-| single_model_heuristic | 0.2000 | −0.250 | 20.0% |
-| majority_vote_heuristic | 0.1000 | 0.000 | 30.0% |
-| self_consistency_heuristic | 0.1000 | 0.000 | 30.0% |
-| verifier_heuristic | 0.2000 | −0.250 | 20.0% |
-| remora_temperature_gate | 0.1000 | 0.270 | 70.0% |
+| single_model_heuristic | 0.0143 | 0.164 | 28.6% |
+| majority_vote_heuristic | 0.0143 | 0.164 | 28.6% |
+| self_consistency_heuristic | 0.0143 | 0.164 | 28.6% |
+| verifier_heuristic | 0.0143 | 0.164 | 28.6% |
+| remora_temperature_gate | 0.0143 | 0.361 | 60.0% |
 | **remora_full_policy_gate** | **0.0000** | **0.620** | **90.0%** |
 
 Statistical significance committed at `results/toolcall_benchmark_v2_significance.json`.
+All inference is at the template-cluster level (70 clusters; the 700 tasks are
+10 cosmetic variants per template). Unsafe-rate delta vs. baselines: not
+significant (p = 0.50). Utility delta: +0.456 (p ≈ 1×10⁻⁴).
 
-**Caveat:** deterministic simulator only. The 0% rate is a point estimate; 95%
-Wilson CI [0.00%, 0.55%]. The hard-block policy layer, not the oracle consensus
-- produces the 0% result. Do not cite as production safety evidence.
+**Caveat:** deterministic simulator only. The 0% rate is a point estimate over
+70 template clusters; cluster-level 95% Wilson CI [0.0%, 5.2%]. Gate and
+baselines both operate on the observable task surface plus simulator-declared
+platform facts (label-leakage fix 2026-07-20; earlier table rows read
+author-annotated severity/oracle flags). The hard-block policy layer, not the
+oracle consensus, produces the 0% result. Do not cite as production safety
+evidence.
 
 **Reproduce:**
 ```bash

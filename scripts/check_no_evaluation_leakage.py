@@ -38,6 +38,14 @@ FORBIDDEN_RUNTIME_FIELDS = {
     "reward",
     "utility_label",
     "hidden_adversarial_category",
+    # Oracle-judgment context keys: booleans hand-set by the benchmark author
+    # in the same file as the label (2026-07 review finding #1). The gate must
+    # derive these signals from the task surface, never read them.
+    "contains_prompt_injection",
+    "intent_arg_conflict",
+    "requires_human_approval",
+    "fallback_contains_destructive",
+    "compliance_uncertain",
 }
 
 # Files where these fields ARE allowed (evaluators, scorers, test fixtures).
