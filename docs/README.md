@@ -58,6 +58,9 @@ document without indexing it fails CI). Gate status lives in one place only:
 | [`assurance/claim_register_v1.yaml`](assurance/claim_register_v1.yaml) | Machine-readable claim register |
 | [`claim_register.md`](claim_register.md) | Claim register (narrative form) |
 | [`claim_evidence_matrix.md`](claim_evidence_matrix.md) | Claim → evidence matrix |
+| [`assurance/document_register_v1.yaml`](assurance/document_register_v1.yaml) | Document register: governance status (canonical/generated/supporting/proposal/historical/superseded) for every docs/ file, CI-enforced |
+| [`assurance/release_profiles_v1.yaml`](assurance/release_profiles_v1.yaml) | Machine-checkable deployment-readiness profiles; declared profile CI-validated against register state |
+| [`assurance/documentation_governance_v1.md`](assurance/documentation_governance_v1.md) | Documentation-governance policy: one source of truth per data type, classification, change control |
 
 Process, audits, and specifications:
 

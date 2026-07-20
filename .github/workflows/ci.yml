@@ -142,6 +142,32 @@ jobs:
             exit 1
           fi
 
+  documentation-governance:
+    name: Documentation governance (registers, profiles, README budget)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML (version-locked via lockfile constraints)
+        run: |
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install pyyaml -c /tmp/constraints.txt
+
+      - name: Documentation-governance gate
+        # Registers parse and are internally consistent, document register
+        # covers docs/ exactly, canonical topics unique, release-profile
+        # declaration matches the profile computed from register state,
+        # README stays under its line budget.
+        run: python scripts/check_document_governance.py
+
   lockfile-check:
     name: Lockfile integrity
     runs-on: ubuntu-latest

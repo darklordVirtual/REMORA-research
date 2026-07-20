@@ -44,7 +44,7 @@ items:
     artifacts:
       - remora/policy/decision_engine.py
       - tests/test_decision_monotonicity.py
-    notes: M3a: EXECUTE < VERIFY < ABSTAIN < ESCALATE enforced in engine.
+    notes: "M3a: EXECUTE < VERIFY < ABSTAIN < ESCALATE enforced in engine."
 
   - id: REM-004
     section: "§0"
@@ -54,7 +54,7 @@ items:
     completed: "2026-06-28"
     artifacts:
       - Makefile
-    notes: M9: Removed || true from benchmark targets; all failures surface as non-zero exit.
+    notes: "M9: Removed || true from benchmark targets; all failures surface as non-zero exit."
 
   - id: REM-005
     section: "§8.1"
@@ -65,7 +65,7 @@ items:
     artifacts:
       - paper/remora_paper.md
       - remora/semantic_entropy.py
-    notes: M5: NLI-proxy routing described correctly; not claimed as full SE.
+    notes: "M5: NLI-proxy routing described correctly; not claimed as full SE."
 
   - id: REM-006
     section: "§8.2"
@@ -75,7 +75,7 @@ items:
     completed: "2026-06-28"
     artifacts:
       - paper/remora_paper.md
-    notes: M6: 'CRC-inspired heuristic' not 'CRC guarantee'; caveat added.
+    notes: "M6: 'CRC-inspired heuristic' not 'CRC guarantee'; caveat added."
 
   - id: REM-007
     section: "§8"
@@ -85,7 +85,7 @@ items:
     completed: "2026-06-28"
     artifacts:
       - paper/remora_paper.md
-    notes: M7: 'NLI-proxy' language used throughout; not claimed as validated NLI.
+    notes: "M7: 'NLI-proxy' language used throughout; not claimed as validated NLI."
 
   - id: REM-008
     section: "§2"

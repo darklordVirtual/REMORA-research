@@ -1,0 +1,362 @@
+# REMORA Document Register v1
+# Single machine-readable source of truth for the GOVERNANCE STATUS of every
+# tracked documentation file under docs/ (figures/ assets excluded).
+# Validated by scripts/check_document_governance.py (CI gate) and
+# tests/test_document_governance.py.
+#
+# Statuses:
+#   canonical  - the single authoritative document for its topic (topic unique)
+#   generated  - produced by a script; edit the generator, not the file
+#   supporting - explanatory/narrative; must not contradict canonical sources
+#   proposal   - proposed/roadmap content; not implemented claims
+#   historical - dated snapshot preserved unedited; must not be cited as current
+#   superseded - kept so old links resolve; superseded_by names the successor
+#
+# Scope note (v1): governs docs/ only. Root documents (README.md,
+# ARCHITECTURE.md, NEGATIVE_RESULTS.md, ...) are governed by their own gates
+# (scripts/check_readme_claims.py, tests/test_review_readiness_docs.py).
+# Navigation lives in docs/README.md (index, CI-enforced); this register holds
+# governance status only — one source of truth per data type.
+
+schema_version: "1"
+updated: "2026-07-20"
+default_owner: "Stian Skogbrott"
+
+documents:
+  # ── Index ────────────────────────────────────────────────────────────────
+  - path: docs/README.md
+    status: canonical
+    topic: docs-index
+
+  # ── Core numbered series (canonical per docs/README.md conventions) ──────
+  - path: docs/01-architecture.md
+    status: canonical
+    topic: architecture-narrative
+  - path: docs/02-evidence-and-claims.md
+    status: canonical
+    topic: evidence-and-claims
+  - path: docs/03-experiments.md
+    status: canonical
+    topic: experiments
+  - path: docs/04-negative-results-detail.md
+    status: canonical
+    topic: negative-results-detail
+  - path: docs/05-claim-hygiene.md
+    status: canonical
+    topic: claim-hygiene
+  - path: docs/06-reproducibility.md
+    status: canonical
+    topic: reproducibility-guide
+  - path: docs/07-api-reference.md
+    status: canonical
+    topic: api-reference
+  - path: docs/08-security.md
+    status: canonical
+    topic: security-properties
+  - path: docs/09-related-work.md
+    status: canonical
+    topic: related-work
+  - path: docs/10-contributing.md
+    status: canonical
+    topic: contributing
+  - path: docs/11-benchmark-validation-plan.md
+    status: canonical
+    topic: benchmark-validation-plan
+  - path: docs/12-agentharm-validation.md
+    status: canonical
+    topic: agentharm-validation
+
+  # ── Architecture ─────────────────────────────────────────────────────────
+  - path: docs/reference_architecture.md
+    status: canonical
+    topic: reference-architecture
+  - path: docs/architecture_risk_register.md
+    status: supporting
+  - path: docs/remora_architecture.html
+    status: supporting
+  - path: docs/decision_envelope_audit.md
+    status: supporting
+  - path: docs/causal_policy_explanations.md
+    status: supporting
+  - path: docs/failure_analysis.md
+    status: generated
+    generated_by: experiments/toolcall_v2_failure_analysis.py
+  - path: docs/nested_governance.md
+    status: supporting
+  - path: docs/thermodynamic_abs.md
+    status: supporting
+
+  # ── Assurance: live status surfaces (canonical) ──────────────────────────
+  - path: docs/assurance/release_gates.md
+    status: canonical
+    topic: release-gates
+  - path: docs/assurance/remediation_register.yaml
+    status: canonical
+    topic: remediation-register
+  - path: docs/assurance/claim_register_v1.yaml
+    status: canonical
+    topic: claim-register-machine
+  - path: docs/claim_register.md
+    status: canonical
+    topic: claim-register-narrative
+  - path: docs/assurance/capability_register_v1.yaml
+    status: canonical
+    topic: capability-register
+  - path: docs/assurance/document_register_v1.yaml
+    status: canonical
+    topic: document-register
+  - path: docs/assurance/release_profiles_v1.yaml
+    status: canonical
+    topic: release-profiles
+  - path: docs/assurance/documentation_governance_v1.md
+    status: canonical
+    topic: documentation-governance
+  - path: docs/assurance/artifact_manifest_v1.md
+    status: canonical
+    topic: artifact-manifest
+  - path: docs/assurance/assurance_case_v1.md
+    status: canonical
+    topic: assurance-case
+  - path: docs/claim_evidence_matrix.md
+    status: supporting
+
+  # ── Assurance: process, audits, specifications (supporting) ─────────────
+  - path: docs/assurance/ai_assisted_adversarial_security_review_v1.md
+    status: supporting
+  - path: docs/assurance/aromer_memory_governance_v1.md
+    status: supporting
+  - path: docs/assurance/artifact_provenance_spec_v1.md
+    status: supporting
+  - path: docs/assurance/benchmark_audit_v1.md
+    status: supporting
+  - path: docs/assurance/claim_provenance_gate.md
+    status: supporting
+  - path: docs/assurance/claim_provenance_baseline.json
+    status: supporting
+  - path: docs/assurance/development_review_log_v1.md
+    status: supporting
+  - path: docs/assurance/domain_pack_governance_v1.md
+    status: supporting
+  - path: docs/assurance/evidence_levels.md
+    status: canonical
+    topic: evidence-levels
+  - path: docs/assurance/human_oversight_operations_v1.md
+    status: supporting
+  - path: docs/assurance/independent_review_protocol_v1.md
+    status: supporting
+  - path: docs/assurance/policy_engine_audit_v1.md
+    status: supporting
+  - path: docs/assurance/rbac_design_v1.md
+    status: supporting
+  - path: docs/assurance/rbac_policy_v1.md
+    status: supporting
+  - path: docs/assurance/red_team_plan_v1.md
+    status: supporting
+  - path: docs/assurance/reproducibility_scorecard_v1.md
+    status: supporting
+  - path: docs/assurance/resilience_plan_v1.md
+    status: supporting
+  - path: docs/assurance/statistical_analysis_plan.md
+    status: supporting
+
+  # ── Assurance: historical snapshots (banner-marked, never edited) ────────
+  - path: docs/assurance/baseline_snapshot.md
+    status: historical
+  - path: docs/assurance/operation_baseline_2026_06_30.md
+    status: historical
+  - path: docs/assurance/operation_master_plan_v1.md
+    status: historical
+  - path: docs/assurance/paper_alignment_2026-06-30.md
+    status: historical
+  - path: docs/assurance/product_strategy_v1.md
+    status: historical
+  - path: docs/assurance/simulated_hostile_review_v1.md
+    status: historical
+  - path: docs/assurance/threat_model_v1.md
+    status: historical
+  - path: docs/researchpapers/analysis_notes_2026-06-30.md
+    status: historical
+  - path: docs/researchpapers/analysis_notes_ood_2026-06-30.md
+    status: historical
+
+  # ── Compliance mappings ──────────────────────────────────────────────────
+  - path: docs/governance/eu_ai_act_nsm_mapping.md
+    status: supporting
+  - path: docs/governance/nist_ai_rmf_mapping.md
+    status: supporting
+  - path: docs/security/owasp_genai_mapping.md
+    status: supporting
+  - path: docs/security/pre-deployment-review.md
+    status: supporting
+  - path: docs/enterprise/togaf-enterprise-rollout-plan.md
+    status: supporting
+
+  # ── Evidence and benchmarks ──────────────────────────────────────────────
+  - path: docs/empirical_evidence_record.md
+    status: supporting
+  - path: docs/results_snapshot.md
+    status: generated
+    generated_by: scripts/generate_results_snapshot.py
+  - path: docs/toolcall_benchmarks.md
+    status: supporting
+  - path: docs/toolcall_consensus_benchmark_v2.md
+    status: supporting
+  - path: docs/agentharm_live_benchmark.md
+    status: supporting
+  - path: docs/agentharm_trimode_benchmark.md
+    status: supporting
+  - path: docs/claim_hygiene.md
+    status: superseded
+    superseded_by: docs/05-claim-hygiene.md
+  - path: docs/domain_benchmark.md
+    status: supporting
+  - path: docs/live_benchmark.md
+    status: supporting
+  - path: docs/stat_tests.md
+    status: supporting
+  - path: docs/credibility_pack_repro.md
+    status: supporting
+  - path: docs/reproducibility.md
+    status: supporting
+  - path: docs/EXTERNAL_VALIDATION_PLAN.md
+    status: supporting
+  - path: docs/external-review.md
+    status: supporting
+  - path: docs/review_checklist.md
+    status: supporting
+  - path: docs/external_validation_report_template.md
+    status: supporting
+  - path: docs/benchmark_validation_plan.md
+    status: superseded
+    superseded_by: docs/11-benchmark-validation-plan.md
+
+  # ── Experiments and thermodynamics ───────────────────────────────────────
+  - path: docs/experiments/experiment3_phase_transition_study.md
+    status: supporting
+  - path: docs/experiments/experiment4_susceptibility_validation.md
+    status: supporting
+  - path: docs/experiments/experiment5_chi_iteration_utility.md
+    status: supporting
+  - path: docs/thermodynamics/README.md
+    status: supporting
+  - path: docs/thermodynamics/claim_ledger.yaml
+    status: supporting
+  - path: docs/thermodynamics/limitations.md
+    status: supporting
+  - path: docs/thermodynamics/runtime_policy.md
+    status: supporting
+  - path: docs/thermodynamics/temperature_estimator.md
+    status: supporting
+  - path: docs/claims/thermodynamics_claims.yaml
+    status: supporting
+
+  # ── AROMER ───────────────────────────────────────────────────────────────
+  - path: docs/quickstart_aromer.md
+    status: supporting
+  - path: docs/aromer_learning_evidence_v1.md
+    status: historical
+  - path: docs/REMORA_AROMER_MASTER_DOCUMENT.md
+    status: canonical
+    topic: aromer-reference
+  - path: docs/REMORA_AROMER_FINAL_REPORT.md
+    status: historical
+
+  # ── Integrations and operations ──────────────────────────────────────────
+  - path: docs/mcp-integration.md
+    status: supporting
+  - path: docs/agent_tool_hook.md
+    status: supporting
+  - path: docs/rag_oracle.md
+    status: supporting
+  - path: docs/cloudflare_workers_ai.md
+    status: supporting
+  - path: docs/knowledge_domains.md
+    status: supporting
+  - path: docs/cyber_evidence_layer.md
+    status: supporting
+  - path: docs/go_star_bridge.md
+    status: supporting
+  - path: docs/gostar_integration.md
+    status: supporting
+  - path: docs/deployment/azure-reference-architecture.md
+    status: supporting
+  - path: docs/deployment/onprem-airgapped.md
+    status: supporting
+  - path: docs/policy_cookbook/README.md
+    status: supporting
+  - path: docs/policy_cookbook/cloud_ops.md
+    status: supporting
+  - path: docs/policy_cookbook/cyber.md
+    status: supporting
+  - path: docs/policy_cookbook/database.md
+    status: supporting
+
+  # ── Use cases ────────────────────────────────────────────────────────────
+  - path: docs/use-cases/README.md
+    status: supporting
+  - path: docs/use-cases/01-healthcare.md
+    status: supporting
+  - path: docs/use-cases/02-legal-compliance.md
+    status: supporting
+  - path: docs/use-cases/03-financial.md
+    status: supporting
+  - path: docs/use-cases/04-energy.md
+    status: supporting
+  - path: docs/use-cases/05-security.md
+    status: supporting
+  - path: docs/use-cases/06-public-administration-hallucination.md
+    status: supporting
+  - path: docs/use-cases/07-norwegian-law-mcp.md
+    status: supporting
+  - path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
+    status: supporting
+
+  # ── Research notes and proposals ─────────────────────────────────────────
+  - path: docs/research/causal_consequence_gating.md
+    status: proposal
+  - path: docs/research/governance_intelligence_layer.md
+    status: proposal
+  - path: docs/research/misspecification_aware_governance.md
+    status: proposal
+  - path: docs/research/policy_generalization_risk.md
+    status: proposal
+  - path: docs/theoretical_foundations_proposals_v1.md
+    status: proposal
+
+  # ── Meta ─────────────────────────────────────────────────────────────────
+  - path: docs/AI_USE.md
+    status: supporting
+  - path: docs/authorship_evidence_report.md
+    status: supporting
+  - path: docs/executive_onepager.md
+    status: supporting
+  - path: docs/plain_language_overview.md
+    status: supporting
+
+  # ── Forwarding stubs (superseded, kept so old links resolve) ─────────────
+  - path: docs/related_work.md
+    status: superseded
+    superseded_by: docs/09-related-work.md
+
+  # ── Archive (do not cite) ────────────────────────────────────────────────
+  - path: docs/archive/academic_evaluation_legacy_2026-05-20.md
+    status: historical
+  - path: docs/archive/analysis_report_legacy_2026-05-20.md
+    status: historical
+  - path: docs/archive/DOCUMENTATION_DRIFT_REPORT.md
+    status: historical
+  - path: docs/archive/external_review_round2_plan.md
+    status: historical
+  - path: docs/archive/review_round2_closure.md
+    status: historical
+  - path: docs/archive/toolcall_consensus_benchmark_v1.md
+    status: superseded
+    superseded_by: docs/toolcall_consensus_benchmark_v2.md
+  - path: docs/archive/remora_infographic_v3_dark.html
+    status: historical
+  - path: docs/archive/legacy/agent_governance.md
+    status: historical
+  - path: docs/archive/legacy/causality.md
+    status: historical
+  - path: docs/archive/legacy/selective_trust_curve_proof.md
+    status: historical

@@ -1,0 +1,124 @@
+# REMORA Release Profiles v1
+# Machine-readable deployment-readiness profiles. Replaces the diffuse notion
+# of "production ready" with five cumulative profiles, each with explicit,
+# machine-checkable requirements against the capability register
+# (capability_register_v1.yaml, six-level ladder) and the remediation register
+# (remediation_register.yaml, REM statuses).
+#
+# The DECLARED current_profile below is validated by
+# scripts/check_document_governance.py: CI recomputes the highest profile
+# whose full (cumulative) requirement set is satisfied by the two registers
+# and fails if the declaration drifts. A profile can therefore not be claimed
+# by editing prose — only by changing register state backed by evidence.
+#
+# Authority note: requirements follow this repository's own gate semantics
+# (docs/assurance/release_gates.md): leaving SHADOW_ONLY — i.e. ANY
+# enforcement, including a controlled pilot — requires every production
+# deployment gate including REM-021 (independent human review). Generic
+# maturity templates that defer independent review to full production are
+# deliberately not followed here.
+
+schema_version: "1"
+updated: "2026-07-20"
+
+# Cumulative capability ladder (from capability_register_v1.yaml).
+capability_ladder:
+  - IMPLEMENTED_LIBRARY
+  - WIRED_REFERENCE_PATH
+  - WIRED_API_PATH
+  - PERSISTED_ATOMIC
+  - ENFORCED_PRODUCTION
+  - EXTERNALLY_VERIFIED
+
+# A REM item counts as satisfied when its status starts with one of these.
+rem_satisfied_prefixes:
+  - DONE
+  - CLOSED
+
+# Declared current profile — CI-validated against the computed profile.
+# SHADOW_PILOT corresponds to deployment_status = SHADOW_ONLY: shadow-mode
+# operation on real logs is permitted; no enforcement is.
+current_profile: SHADOW_PILOT
+deployment_status_equivalent: SHADOW_ONLY
+
+profiles:
+  - name: RESEARCH_REFERENCE
+    order: 1
+    description: >
+      Reading, reproducing, and building on the repository as research:
+      benchmarks reproduce deterministically and the two hard safety gates
+      (external benchmark, historical-regression proof) are closed.
+    requires:
+      rem_done:
+        - REM-014
+        - REM-019
+      capabilities: {}
+
+  - name: SHADOW_PILOT
+    order: 2
+    includes: RESEARCH_REFERENCE
+    description: >
+      Shadow-mode deployment on real agent action logs: decisions, envelopes,
+      and counterfactual deltas are produced with zero enforcement. Requires
+      the decision path on the API, an atomically persisted audit chain, and
+      telemetry instrumentation.
+    requires:
+      rem_done: []
+      capabilities:
+        CAP-001: WIRED_API_PATH
+        CAP-005: PERSISTED_ATOMIC
+        CAP-011: IMPLEMENTED_LIBRARY
+
+  - name: CONTROLLED_PILOT
+    order: 3
+    includes: SHADOW_PILOT
+    description: >
+      First enforcement on a low-consequence, high-volume action class with a
+      human approval on every non-accept outcome. This is "leaving
+      SHADOW_ONLY", so every production deployment gate in release_gates.md
+      applies — including independent human review (REM-021).
+    requires:
+      rem_done:
+        - REM-020
+        - REM-021
+        - REM-022
+        - REM-023
+      capabilities:
+        CAP-003: WIRED_API_PATH
+        CAP-004: WIRED_API_PATH
+        CAP-007: WIRED_API_PATH
+        CAP-008: WIRED_REFERENCE_PATH
+        CAP-009: WIRED_API_PATH
+
+  - name: LIMITED_ENFORCEMENT
+    order: 4
+    includes: CONTROLLED_PILOT
+    description: >
+      Enforcement on defined action classes without per-action human approval:
+      the PEP (token + lease + payload binding) fronts real tool credentials
+      in deployment, the review queue is durably persisted, and tool
+      interception is independently validated.
+    requires:
+      rem_done:
+        - REM-024
+        - REM-030
+      capabilities:
+        CAP-003: ENFORCED_PRODUCTION
+        CAP-004: ENFORCED_PRODUCTION
+        CAP-007: PERSISTED_ATOMIC
+
+  - name: PRODUCTION
+    order: 5
+    includes: LIMITED_ENFORCEMENT
+    description: >
+      General production operation. Every remediation item gated P0-P3 is
+      closed, durable audit anchoring and the compliance evidence pack exist,
+      and the decision engine is externally verified.
+    requires:
+      rem_done:
+        - REM-025
+        - REM-031
+      all_rem_items_with_gate_at_most: P3
+      capabilities:
+        CAP-001: EXTERNALLY_VERIFIED
+        CAP-005: ENFORCED_PRODUCTION
