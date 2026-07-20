@@ -18,12 +18,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile LaTeX → PDF
-        uses: xu-cheng/latex-action@v3
+        uses: xu-cheng/latex-action@e2f99d4b3685b0da93f97e1b86ad8fab81105098 # v3
         with:
           root_file: remora_paper.tex
           working_directory: paper
@@ -35,7 +35,9 @@ jobs:
       # unbreakable tokens). Prevents shipping a PDF with column overflow.
       - name: Check column/margin overflow
         run: |
-          python -m pip install --quiet pymupdf
+          # Pinned to the exact version resolved from
+          # https://pypi.org/pypi/pymupdf/json on 2026-07-20.
+          python -m pip install --quiet pymupdf==1.28.0
           python scripts/check_paper_overflow.py paper/remora_paper.pdf
 
       # Only master owns the committed PDF. Branch runs (workflow_dispatch)
@@ -45,7 +47,7 @@ jobs:
       # master-branch run committed right after the previous merge.
       - name: Commit PDF
         if: github.ref == 'refs/heads/master'
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
         with:
           commit_message: "ci: compile remora_paper.pdf from LaTeX source [skip ci]"
           file_pattern: paper/remora_paper.pdf

@@ -1,5 +1,9 @@
 name: Update AROMER Live Status
 
+# Publishes live AROMER telemetry to the dedicated `telemetry` branch instead
+# of committing to master. The workflow never touches README.md; consumers read
+# telemetry/aromer_live_status.{json,md} from the `telemetry` branch.
+
 on:
   schedule:
     - cron: '0 */6 * * *'
@@ -12,14 +16,14 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Fetch AROMER intelligence and update README
+      - name: Fetch AROMER intelligence and render telemetry files
         run: |
+          mkdir -p telemetry
           python3 << 'PYEOF'
           import urllib.request
           import json
-          import re
           from datetime import datetime, timezone
 
           url = "https://aromer.razorsharp.workers.dev/intelligence"
@@ -30,6 +34,11 @@ jobs:
           except Exception as e:
               print(f"ERROR: failed to fetch AROMER status: {e}")
               raise SystemExit(1)
+
+          # Raw JSON snapshot, exactly as fetched.
+          with open("telemetry/aromer_live_status.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, indent=2)
+              f.write("\n")
 
           current = data.get("current", {})
           aii = data.get("aii_smoothed") or current.get("aii", 0.0)
@@ -44,13 +53,8 @@ jobs:
           deployment = data.get("deployment_status", "SHADOW_ONLY")
           ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
 
-          def t_label(val, milestone):
-              if val is None:
-                  return "—"
-              if val >= milestone:
-                  return "Active" if milestone < 1.0 else "Max"
-              return "Bottleneck"
-
+          # Rendered table (float-format sanitization preserved: metric values
+          # are always emitted via fixed :.4f / :.1% formatting, never raw).
           section = f"""<!-- LIVE_STATUS_START -->
           > **Live AROMER telemetry** — updated every 6 hours by GitHub Actions. Last update: {ts}
 
@@ -70,28 +74,23 @@ jobs:
           lines = section.split("\n")
           dedented = "\n".join(line.lstrip("          ") if line.startswith("          ") else line for line in lines)
 
-          with open("README.md", "r", encoding="utf-8") as f:
-              content = f.read()
+          with open("telemetry/aromer_live_status.md", "w", encoding="utf-8") as f:
+              f.write(dedented.strip() + "\n")
 
-          pattern = r"<!-- LIVE_STATUS_START -->.*?<!-- LIVE_STATUS_END -->"
-          new_content = re.sub(pattern, dedented.strip(), content, flags=re.DOTALL)
-
-          if new_content == content:
-              print("README unchanged — status section not found or content identical.")
-          else:
-              with open("README.md", "w", encoding="utf-8") as f:
-                  f.write(new_content)
-              print(f"Updated: AII={aii:.4f} ({interpretation}), FAR={far:.1%}, T1={t1:.4f}, ECE={ece:.4f}")
+          print(f"Wrote telemetry: AII={aii:.4f} ({interpretation}), FAR={far:.1%}, T1={t1:.4f}, ECE={ece:.4f}")
           PYEOF
 
-      - name: Commit if changed
+      - name: Publish to telemetry branch (never master)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet README.md; then
-            echo "No changes to commit."
+          # Detached commit: telemetry is force-pushed to its own branch so the
+          # bot never rewrites master history and never touches README.md.
+          git checkout --detach
+          git add telemetry/aromer_live_status.json telemetry/aromer_live_status.md
+          if git diff --staged --quiet; then
+            echo "No telemetry changes to publish."
           else
-            git add README.md
-            git commit -m "chore: update AROMER live status [ci skip]"
-            git push
+            git commit -m "chore(telemetry): update AROMER live status [ci skip]"
+            git push origin +HEAD:telemetry
           fi

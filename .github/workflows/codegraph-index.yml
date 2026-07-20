@@ -35,17 +35,20 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
 
       - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '20'
 
       - name: Install CodeGraph
-        run: npm install -g @colbymchenry/codegraph@latest
+        # Pinned: resolved via https://registry.npmjs.org/@colbymchenry/codegraph/latest
+        # on 2026-07-20. This job runs with Cloudflare secrets — never float
+        # third-party code here.
+        run: npm install -g @colbymchenry/codegraph@1.4.1
 
       - name: Index repository
         run: codegraph init . && codegraph index .
@@ -71,9 +74,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p /tmp/cg-upload
-          gh api repos/darklordVirtual/codegraph/contents/cloudflare/scripts/upload-to-d1.mjs \
+          # Pinned to the codegraph repo HEAD commit resolved via
+          # `git ls-remote https://github.com/darklordVirtual/codegraph HEAD`
+          # on 2026-07-20 — this script runs with Cloudflare secrets, so it
+          # must not float with the remote default branch.
+          CG_REF="3b7522e05c6f62f4b2bbc506707a336f8c633e03"
+          gh api "repos/darklordVirtual/codegraph/contents/cloudflare/scripts/upload-to-d1.mjs?ref=${CG_REF}" \
             --jq '.content' | base64 -d > /tmp/cg-upload/upload-to-d1.mjs
-          gh api repos/darklordVirtual/codegraph/contents/cloudflare/scripts/package.json \
+          gh api "repos/darklordVirtual/codegraph/contents/cloudflare/scripts/package.json?ref=${CG_REF}" \
             --jq '.content' | base64 -d > /tmp/cg-upload/package.json
           cd /tmp/cg-upload && npm install --production
 

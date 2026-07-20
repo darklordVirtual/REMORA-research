@@ -6,7 +6,7 @@ name: Sync papers to R2
 
 "on":
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - "paper/remora_paper.pdf"
       - "docs/whitepaper/REMORA_Enterprise_Whitepaper.pdf"
@@ -25,16 +25,16 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
 
       - name: Upload research paper to R2
         run: >-
-          npx --yes wrangler@4 r2 object put
+          npx --yes wrangler@4.112.0 r2 object put
           remora-artifacts/papers/remora_paper.pdf
           --file paper/remora_paper.pdf
           --content-type application/pdf
@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload enterprise whitepaper to R2
         run: >-
-          npx --yes wrangler@4 r2 object put
+          npx --yes wrangler@4.112.0 r2 object put
           remora-artifacts/papers/REMORA_Enterprise_Whitepaper.pdf
           --file docs/whitepaper/REMORA_Enterprise_Whitepaper.pdf
           --content-type application/pdf

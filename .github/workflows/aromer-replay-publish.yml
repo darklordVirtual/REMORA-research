@@ -31,10 +31,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
           cache: "pip"
@@ -42,7 +42,11 @@ jobs:
       - name: Install package
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          # Constraints (-c) = version pinning from requirements-lock.txt; the
+          # extras drive what gets installed. Filter out -e/comment lines that
+          # pip rejects in a constraints file.
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e ".[dev]" -c /tmp/constraints.txt
 
       - name: Run replay arena and publish measured transfer score
         env:
@@ -57,7 +61,7 @@ jobs:
 
       - name: Upload replay artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: aromer-replay-report
           path: artifacts/aromer/replay_arena_report.json
