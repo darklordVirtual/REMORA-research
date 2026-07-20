@@ -22,18 +22,31 @@ Deployment pattern:
     3. Token passed to PEP layer (may cross process/network boundary)
     4. PEP verifies and enforces: gate.enforce(token, execute_fn)
 
-INTEGRATION STATUS: this package is a library plus its test suite
-    The PDP/PEP token flow is wired into the execution API
-    (servers/execution_api.py, /v1/execution/*); see capability_register CAP-003.
-issues or verifies tokens yet. The deployment pattern above is prescriptive,
-not a description of current wiring — actual runtime blocking happens in
-remora/adapters/action_gate.py, which calls the PDP directly. This is
+INTEGRATION STATUS: this package is a library plus its test suite. The
+PDP/PEP token flow is wired into the execution API (servers/execution_api.py,
+/v1/execution/*); see capability_register CAP-003. Outside that API path the
+deployment pattern above is prescriptive, not a description of current
+wiring — remora/adapters/action_gate.py calls the PDP directly. This is
 consistent with deployment_status=SHADOW_ONLY (ARCHITECTURE.md §10); do not
-cite this package as evidence of integrated enforcement.
+cite this package as evidence of integrated, unbypassable enforcement.
 
-See docs/assurance/remediation_register.yaml REM-013.
+ExecutionLease + GovernedToolDispatcher (lease.py) extend the token pattern
+with the full REM-024 binding set (tenant, actor, tool, canonical args hash,
+environment, policy bundle, nonce, expiry) and a tool proxy that refuses
+execution without a valid lease. Library-level; REM-024 remains open until it
+fronts real tool credentials in deployment.
+
+See docs/assurance/remediation_register.yaml REM-013 and REM-024.
 """
 from remora.enforcement.gate import EnforcementGate, EnforcementResult
+from remora.enforcement.lease import (
+    DispatchResult,
+    ExecutionLease,
+    GovernedToolDispatcher,
+    LeaseRefused,
+    LeaseVerificationResult,
+    NonceLedger,
+)
 from remora.enforcement.token import (
     PolicyDecisionToken,
     TokenVerificationResult,
@@ -41,8 +54,14 @@ from remora.enforcement.token import (
 )
 
 __all__ = [
+    "DispatchResult",
     "EnforcementGate",
     "EnforcementResult",
+    "ExecutionLease",
+    "GovernedToolDispatcher",
+    "LeaseRefused",
+    "LeaseVerificationResult",
+    "NonceLedger",
     "PolicyDecisionToken",
     "TokenVerificationResult",
     "_hash_observation",

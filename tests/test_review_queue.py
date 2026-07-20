@@ -173,6 +173,23 @@ def test_changed_payload_is_refused_by_binding() -> None:
     assert queue.execute(item.item_id, obs).decision is ExecutionDecision.EXECUTE
 
 
+def test_missing_tool_call_hash_refuses_binding_fail_closed() -> None:
+    """Two hashless observations must never satisfy the payload binding.
+
+    Regression (2026-07-20 review): `approval.tool_call_hash ==
+    fresh.tool_call_hash` held when BOTH were None, so an approval created
+    from a hash-less observation would bind to ANY hash-less payload —
+    a fail-open edge in an otherwise fail-closed contract.
+    """
+    queue, _ = _queue()
+    item = queue.enqueue(_obs(tool_call_hash=None), DecisionAction.VERIFY)
+    queue.approve(item.item_id, approver="ops", approval_ttl=timedelta(minutes=15))
+    outcome = queue.execute(item.item_id, _obs(tool_call_hash=None))
+    assert outcome.decision is ExecutionDecision.BINDING_REFUSED
+    assert queue.events[-1].kind == "binding_refused"
+    assert queue.events[-1].payload.get("reason") == "missing_tool_call_hash"
+
+
 def test_executing_unapproved_item_raises() -> None:
     queue, _ = _queue()
     item = queue.enqueue(_obs(), DecisionAction.VERIFY)

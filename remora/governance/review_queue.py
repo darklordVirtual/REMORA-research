@@ -317,6 +317,23 @@ class ReviewQueue:
             )
 
         # 4b. Payload binding — the approval authorises exactly one payload.
+        # A missing hash on either side is a refusal, never a match: two
+        # hash-less observations must not bind (fail closed).
+        if not approval.tool_call_hash or not fresh_observation.tool_call_hash:
+            self._log.append(
+                "binding_refused",
+                {
+                    "item_id": item_id,
+                    "approved_hash": approval.tool_call_hash,
+                    "presented_hash": fresh_observation.tool_call_hash,
+                    "reason": "missing_tool_call_hash",
+                },
+            )
+            return ExecutionOutcome(
+                ExecutionDecision.BINDING_REFUSED,
+                None,
+                "tool-call hash missing on approval or presented payload",
+            )
         if approval.tool_call_hash != fresh_observation.tool_call_hash:
             self._log.append(
                 "binding_refused",
