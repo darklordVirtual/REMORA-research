@@ -63,6 +63,43 @@ def test_implemented_lines_have_tests() -> None:
             assert e.get("tests"), f"{e['id']} is implemented_and_tested but lists no tests"
 
 
+def test_in_code_citations_are_present_in_the_cited_code() -> None:
+    """Every entry that claims an in-code citation must have its anchor
+    (author/arXiv id) verbatim in one of its code files — the mapping is exact,
+    not merely plausible."""
+    for e in _data()["entries"]:
+        if not e.get("in_code_citation"):
+            continue
+        anchor = e.get("citation_anchor")
+        assert anchor, f"{e['id']}: in_code_citation without citation_anchor"
+        hit = any(
+            (ROOT / p).exists() and anchor in (ROOT / p).read_text(encoding="utf-8", errors="ignore")
+            for p in e["code"]
+        )
+        assert hit, f"{e['id']}: anchor {anchor!r} not found in {e['code']}"
+
+
+def test_anchor_drift_is_rejected() -> None:
+    """The validator must FAIL when a citation anchor is not in the code —
+    a citation-binding gate that cannot fail would be decoration."""
+    mod = _load_module()
+    data = _data()
+    # Corrupt the first in-code-cited entry's anchor to something absent.
+    for e in data["entries"]:
+        if e.get("in_code_citation"):
+            e["citation_anchor"] = "NoSuchAuthorXYZ"
+            break
+    errors = mod.validate(data)
+    assert any("not found in any code file" in err for err in errors), errors
+
+
+def test_no_named_paper_line_claims_in_code_citation() -> None:
+    """Idea-family lines must not silently claim an in-code citation."""
+    for e in _data()["entries"]:
+        if not e.get("in_code_citation"):
+            assert "citation_anchor" not in e, f"{e['id']}: idea-family line must not set citation_anchor"
+
+
 def test_covers_related_work_sections() -> None:
     """One matrix entry per numbered section of the related-work doc."""
     related = (ROOT / "docs" / "09-related-work.md").read_text(encoding="utf-8")

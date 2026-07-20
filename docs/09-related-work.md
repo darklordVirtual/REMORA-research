@@ -23,24 +23,33 @@ Boundary:
 - REMORA reports benchmark-scoped selective trust results.
 - It does not claim universal out-of-distribution safety guarantees.
 
-## 2. Conformal Risk Control
+## 2. Conformal Risk Control and Anytime-Valid Inference
 
 Relevant ideas:
 
 - split-conformal calibration,
-- finite-sample guarantees under exchangeability,
-- repeated-split robustness checks.
+- finite-sample guarantees under exchangeability (Conformal Risk Control,
+  Angelopoulos et al. 2022),
+- repeated-split robustness checks,
+- time-uniform (anytime-valid) confidence sequences that stay valid under
+  optional stopping (Howard et al. 2021; Ramdas et al. 2023) — a distinct,
+  sequential-monitoring cousin of conformal risk control.
 
 How REMORA uses this:
 
-- conformal thresholding for accept/verify/abstain routing,
+- conformal thresholding for accept/verify/abstain routing (`remora/selective/crc.py`),
 - explicit repeated-split artifacts,
-- claim-ledger entries that record failed and mixed robustness results.
+- claim-ledger entries that record failed and mixed robustness results,
+- a confidence sequence (`remora/selective/confidence_sequence.py`) for
+  continuous false-accept-rate monitoring without inflating the guarantee by
+  "peeking" (REM-020 / CLAIM-011).
 
 Boundary:
 
 - REMORA treats conformal results as exchangeability-dependent.
 - Repeated-split failures are preserved as negative evidence.
+- The confidence-sequence bound is conservative and valid only under its
+  stated Beta-binomial mixture assumptions.
 
 ## 3. Self-Consistency: Debate, and Cross-Model Verification
 

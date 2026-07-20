@@ -21,10 +21,11 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | RES-007 | Statistical-physics control signals (entropy, phase, Lyapunov) | `phase_classification`, `thermodynamic_braking` | `implemented_and_tested` |
 | RES-008 | Nested learning, context flow, continuum memory | `context_flow_governance`, `governed_memory_layers`, `reviewed_policy_proposals` | `implemented_and_tested` |
 | RES-009 | Enterprise AI governance and audit | `enterprise_rollout_reference` | `reference_design` |
+| RES-010 | Anytime-valid confidence sequences (optional-stopping-safe monitoring) | `continuous_far_monitoring` | `implemented_and_tested` |
 
 ## RES-001 — Causal post-hoc explainability and concept interventions
 
-- **Source:** Bjøru, A. R. (2026). Causal Post-hoc Explainable AI (PhD thesis), NTNU.
+- **Source:** Bjøru, A. R. (2026). Causal Post-hoc Explainable AI (PhD thesis), NTNU. (cited in code; anchor `Bjøru` — CI-verified)
   - Paper IV §3 (concept-based externally-causal XAI)
   - Paper IV §4.2.1 (global explanation by dataset averaging)
   - Paper IV §4.2.2-§4.2.3 (Probability of Sufficiency / Necessity)
@@ -42,7 +43,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 
 ## RES-002 — Selective prediction and abstention
 
-- **Source:** Idea family (no single named source in-repo): selective classification / reject option, risk-coverage curves, calibrated abstention.
+- **Source:** Idea family (no single named source in-repo): selective classification / reject option, risk-coverage curves, calibrated abstention. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
 - **Concepts:** selective_classification, reject_option, risk_coverage_curve, calibrated_abstention
 - **REMORA controls:** phase_aware_guardrail, selective_routing
 - **Code:** `remora/selective/guardrail.py`, `remora/selective/conformal.py`, `remora/selective/risk_coverage.py`
@@ -54,12 +55,12 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 
 ## RES-003 — Conformal risk control
 
-- **Source:** Angelopoulos, A. N., Bates, S., Fisch, A., Lei, L., & Schuster, T. (2022). Conformal risk control. arXiv:2208.02814.
+- **Source:** Angelopoulos, A. N., Bates, S., Fisch, A., Lei, L., & Schuster, T. (2022). Conformal risk control. arXiv:2208.02814. (cited in code; anchor `Angelopoulos` — CI-verified)
   - Theorem 1 (referenced in remora/selective/crc.py)
 - **Concepts:** split_conformal_calibration, finite_sample_risk_control, repeated_split_robustness
 - **REMORA controls:** conformal_thresholding
-- **Code:** `remora/selective/crc.py`, `remora/selective/binomial_bounds.py`, `remora/selective/confidence_sequence.py`
-- **Tests:** `tests/test_crc.py`, `tests/test_conformal_repeated_splits.py`, `tests/test_confidence_sequence.py`
+- **Code:** `remora/selective/crc.py`, `remora/selective/binomial_bounds.py`
+- **Tests:** `tests/test_crc.py`, `tests/test_conformal_repeated_splits.py`, `tests/test_binomial_bounds.py`
 - **Evidence:** Repeated-split robustness artifacts and negative results preserved in the claim ledger; treated as exchangeability-dependent.
 - **Maturity:** `implemented_and_tested`
 - **Scope boundary:** Guarantees hold under exchangeability; repeated-split failures are recorded as negative evidence, not hidden.
@@ -67,7 +68,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 
 ## RES-004 — Multi-oracle consensus and cross-model verification
 
-- **Source:** Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents.
+- **Source:** Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents. (cited in code; anchor `Wang et al.` — CI-verified)
   - cited at remora/cascade/stages.py (self-consistency, mixture-of-agents synthesizer)
 - **Concepts:** self_consistency_sampling, verifier_model, cross_model_dissensus, multi_agent_debate
 - **REMORA controls:** multi_oracle_consensus, independent_verifier_gate
@@ -80,7 +81,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 
 ## RES-005 — Tool-use safety and agent guardrails
 
-- **Source:** Idea family (no single named source in-repo): tool-invocation safety, dry-run/sandboxed evaluation, critical-action routing, prompt-injection benchmarks.
+- **Source:** Idea family (no single named source in-repo): tool-invocation safety, dry-run/sandboxed evaluation, critical-action routing, prompt-injection benchmarks. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
 - **Concepts:** tool_invocation_safety, dry_run_sandbox, critical_action_routing
 - **REMORA controls:** toolcall_gate, action_type_mapping
 - **Code:** `remora/toolcall/remora_gate.py`, `remora/toolcall/schema.py`, `remora/toolcall/scoring.py`
@@ -92,7 +93,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 
 ## RES-006 — Evidence grounding and retrieval-augmented verification
 
-- **Source:** Idea family (no single named source in-repo): RAG evidence lookup, source reliability, per-claim support/contradiction, NLI-style verification.
+- **Source:** Idea family (no single named source in-repo): RAG evidence lookup, source reliability, per-claim support/contradiction, NLI-style verification. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
 - **Concepts:** retrieval_augmented_verification, per_claim_support_contradiction, nli_style_entailment
 - **REMORA controls:** evidence_verifier
 - **Code:** `remora/oracles/evidence_v3.py`, `remora/oracles/evidence_verifier.py`
@@ -104,7 +105,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 
 ## RES-007 — Statistical-physics control signals (entropy, phase, Lyapunov)
 
-- **Source:** Generic statistical-physics constructs (q-state Potts model, Gibbs/Boltzmann distribution, Lyapunov objective) used as operational analogy.
+- **Source:** Generic statistical-physics constructs (q-state Potts model, Gibbs/Boltzmann distribution, Lyapunov objective) used as operational analogy. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
 - **Concepts:** entropy_order_parameter, phase_regime_classification, lyapunov_stability
 - **REMORA controls:** phase_classification, thermodynamic_braking
 - **Code:** `remora/statphys/potts.py`, `remora/thermodynamics.py`, `remora/policy/thermodynamic_braking.py`
@@ -116,7 +117,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 
 ## RES-008 — Nested learning, context flow, continuum memory
 
-- **Source:** Behrouz, Razaviyayn, Zhong & Mirrokni, Nested Learning: The Illusion of Deep Learning Architecture (https://abehrouz.github.io/files/NL.pdf); Google Research blog, 2025-11-07.
+- **Source:** Behrouz, Razaviyayn, Zhong & Mirrokni, Nested Learning: The Illusion of Deep Learning Architecture (https://abehrouz.github.io/files/NL.pdf); Google Research blog, 2025-11-07. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
 - **Concepts:** nested_learning, context_flow, continuum_memory, governed_self_modification
 - **REMORA controls:** context_flow_governance, governed_memory_layers, reviewed_policy_proposals
 - **Code:** `remora/governance/context_flow.py`, `remora/governance/memory_layers.py`, `remora/governance/nested_governance.py`
@@ -128,7 +129,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 
 ## RES-009 — Enterprise AI governance and audit
 
-- **Source:** Idea family (no single named source in-repo): policy-as-code, role/authority boundaries, human-approval workflows, audit ledgers, fail-closed deployment.
+- **Source:** Idea family (no single named source in-repo): policy-as-code, role/authority boundaries, human-approval workflows, audit ledgers, fail-closed deployment. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
 - **Concepts:** policy_as_code, human_approval_workflow, audit_ledger, fail_closed_deployment
 - **REMORA controls:** enterprise_rollout_reference
 - **Code:** `docs/enterprise/togaf-enterprise-rollout-plan.md`, `examples/enterprise_demo.py`
@@ -137,3 +138,18 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - **Maturity:** `reference_design`
 - **Scope boundary:** Reference/design grade: not a production-certified enterprise product; must be validated in the target organization before enforcement.
 - **Literature:** docs/09-related-work.md §8
+
+## RES-010 — Anytime-valid confidence sequences (optional-stopping-safe monitoring)
+
+- **Source:** Howard, S. R., Ramdas, A., McAuliffe, J. & Sekhon, J. (2021). Time-uniform, nonparametric, nonasymptotic confidence sequences. (cited in code; anchor `Howard` — CI-verified)
+  - Conjugate-mixture (Beta-binomial) supermartingale; Ville's inequality (cited in remora/selective/confidence_sequence.py)
+  - builds on: Ramdas, Grünwald, Vovk & Shafer (2023). Game-theoretic statistics and safe anytime-valid inference. Statistical Science 38(4).
+  - builds on: Waudby-Smith & Ramdas (2024). Estimating means of bounded random variables.
+- **Concepts:** time_uniform_confidence_sequence, anytime_valid_inference, optional_stopping_safety
+- **REMORA controls:** continuous_far_monitoring
+- **Code:** `remora/selective/confidence_sequence.py`
+- **Tests:** `tests/test_confidence_sequence.py`
+- **Evidence:** Used by REM-020 to monitor the operational false-accept rate continuously without inflating the coverage guarantee under optional stopping (peeking); supplementary anytime-valid FAR bound in results/far_confidence_sequence_v1.json (CLAIM-011).
+- **Maturity:** `implemented_and_tested`
+- **Scope boundary:** A time-uniform Bernoulli-rate bound, distinct from the split-conformal risk control of RES-003; conservative by construction and valid only under the stated Beta-binomial mixture assumptions.
+- **Literature:** docs/09-related-work.md §2

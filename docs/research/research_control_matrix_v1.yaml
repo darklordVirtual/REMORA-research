@@ -14,6 +14,20 @@
 # maturity vocabulary:
 #   implemented_and_tested - a REMORA module implements the idea, with tests
 #   reference_design       - documented/exemplified only (no dedicated module)
+#
+# Citation binding (keeps the mapping exact, not merely plausible):
+#   in_code_citation: true  -> the source is cited inside the code itself, and
+#     `citation_anchor` (an author surname / arXiv id) MUST appear verbatim in
+#     at least one of the entry's `code` files. CI fails if it does not, so a
+#     citation cannot drift away from the code that implements it.
+#   in_code_citation: false -> an idea-family or generic-construct line with no
+#     single named source cited in code; the attribution lives in the narrative
+#     companion docs/09-related-work.md, not in a code docstring.
+#
+# Scope: this matrix maps the research lines REMORA actually implements, with
+# code + tests on disk. It is deliberately NOT a map of the entire literature
+# landscape (that broader catalogue is a separate local working document);
+# adding a line here requires real, verified code and tests.
 
 schema_version: "1"
 updated: "2026-07-21"
@@ -55,6 +69,8 @@ entries:
     maturity: implemented_and_tested
     scope_boundary: "Policy causality only: counterfactuals evaluated against the policy model, not the world. No real-world causal-effect or safety claim."
     related_work_section: "docs/09-related-work.md §9"
+    in_code_citation: true
+    citation_anchor: "Bjøru"
 
   - id: RES-002
     title: "Selective prediction and abstention"
@@ -81,6 +97,7 @@ entries:
     maturity: implemented_and_tested
     scope_boundary: "Benchmark-scoped selective trust; no universal out-of-distribution safety guarantee."
     related_work_section: "docs/09-related-work.md §1"
+    in_code_citation: false
 
   - id: RES-003
     title: "Conformal risk control"
@@ -97,15 +114,16 @@ entries:
     code:
       - remora/selective/crc.py
       - remora/selective/binomial_bounds.py
-      - remora/selective/confidence_sequence.py
     tests:
       - tests/test_crc.py
       - tests/test_conformal_repeated_splits.py
-      - tests/test_confidence_sequence.py
+      - tests/test_binomial_bounds.py
     evidence: "Repeated-split robustness artifacts and negative results preserved in the claim ledger; treated as exchangeability-dependent."
     maturity: implemented_and_tested
     scope_boundary: "Guarantees hold under exchangeability; repeated-split failures are recorded as negative evidence, not hidden."
     related_work_section: "docs/09-related-work.md §2"
+    in_code_citation: true
+    citation_anchor: "Angelopoulos"
 
   - id: RES-004
     title: "Multi-oracle consensus and cross-model verification"
@@ -133,6 +151,8 @@ entries:
     maturity: implemented_and_tested
     scope_boundary: "Consensus is not treated as truth; it is one input among evidence, policy, risk, and audit."
     related_work_section: "docs/09-related-work.md §3"
+    in_code_citation: true
+    citation_anchor: "Wang et al."
 
   - id: RES-005
     title: "Tool-use safety and agent guardrails"
@@ -158,6 +178,7 @@ entries:
     maturity: implemented_and_tested
     scope_boundary: "v2 provides deterministic adversarial evidence, not production proof; live validation is a separate requirement."
     related_work_section: "docs/09-related-work.md §4"
+    in_code_citation: false
 
   - id: RES-006
     title: "Evidence grounding and retrieval-augmented verification"
@@ -180,6 +201,7 @@ entries:
     maturity: implemented_and_tested
     scope_boundary: "Default verifier is lexical plus simple contradiction signals; semantic-entailment quality is not demonstrated by committed artifacts."
     related_work_section: "docs/09-related-work.md §5"
+    in_code_citation: false
 
   - id: RES-007
     title: "Statistical-physics control signals (entropy, phase, Lyapunov)"
@@ -205,6 +227,7 @@ entries:
     maturity: implemented_and_tested
     scope_boundary: "Physics language is an operational analogy and feature family; some theoretical claims remain not-demonstrated or explicitly negative in the claim ledger."
     related_work_section: "docs/09-related-work.md §6"
+    in_code_citation: false
 
   - id: RES-008
     title: "Nested learning, context flow, continuum memory"
@@ -232,6 +255,7 @@ entries:
     maturity: implemented_and_tested
     scope_boundary: "Does not implement the Hope architecture, does not train foundation models, does not claim to solve catastrophic forgetting."
     related_work_section: "docs/09-related-work.md §7"
+    in_code_citation: false
 
   - id: RES-009
     title: "Enterprise AI governance and audit"
@@ -253,3 +277,30 @@ entries:
     maturity: reference_design
     scope_boundary: "Reference/design grade: not a production-certified enterprise product; must be validated in the target organization before enforcement."
     related_work_section: "docs/09-related-work.md §8"
+    in_code_citation: false
+
+  - id: RES-010
+    title: "Anytime-valid confidence sequences (optional-stopping-safe monitoring)"
+    source:
+      citation: "Howard, S. R., Ramdas, A., McAuliffe, J. & Sekhon, J. (2021). Time-uniform, nonparametric, nonasymptotic confidence sequences."
+      sections:
+        - "Conjugate-mixture (Beta-binomial) supermartingale; Ville's inequality (cited in remora/selective/confidence_sequence.py)"
+      builds_on:
+        - "Ramdas, Grünwald, Vovk & Shafer (2023). Game-theoretic statistics and safe anytime-valid inference. Statistical Science 38(4)."
+        - "Waudby-Smith & Ramdas (2024). Estimating means of bounded random variables."
+    concepts:
+      - time_uniform_confidence_sequence
+      - anytime_valid_inference
+      - optional_stopping_safety
+    controls:
+      - continuous_far_monitoring
+    code:
+      - remora/selective/confidence_sequence.py
+    tests:
+      - tests/test_confidence_sequence.py
+    evidence: "Used by REM-020 to monitor the operational false-accept rate continuously without inflating the coverage guarantee under optional stopping (peeking); supplementary anytime-valid FAR bound in results/far_confidence_sequence_v1.json (CLAIM-011)."
+    maturity: implemented_and_tested
+    scope_boundary: "A time-uniform Bernoulli-rate bound, distinct from the split-conformal risk control of RES-003; conservative by construction and valid only under the stated Beta-binomial mixture assumptions."
+    related_work_section: "docs/09-related-work.md §2"
+    in_code_citation: true
+    citation_anchor: "Howard"

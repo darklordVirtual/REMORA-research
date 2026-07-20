@@ -28,6 +28,7 @@ OUTPUT = ROOT / "docs" / "research" / "research_control_matrix.generated.md"
 REQUIRED_FIELDS = (
     "id", "title", "source", "concepts", "controls", "code", "tests",
     "evidence", "maturity", "scope_boundary", "related_work_section",
+    "in_code_citation",
 )
 
 
@@ -49,9 +50,31 @@ def validate(data: dict) -> list[str]:
                 errors.append(f"{eid}: missing required field {field!r}")
         if e.get("maturity") not in levels:
             errors.append(f"{eid}: maturity {e.get('maturity')!r} not in maturity_levels")
-        for path in list(e.get("code", []) or []) + list(e.get("tests", []) or []):
+        code_paths = list(e.get("code", []) or [])
+        for path in code_paths + list(e.get("tests", []) or []):
             if not (ROOT / path).exists():
                 errors.append(f"{eid}: referenced path does not exist: {path}")
+        # Citation binding: when the entry claims an in-code citation, the
+        # anchor (author surname / arXiv id) must actually appear in one of the
+        # cited code files. This makes the research->code citation drift-proof.
+        if e.get("in_code_citation"):
+            anchor = e.get("citation_anchor")
+            if not anchor:
+                errors.append(f"{eid}: in_code_citation is true but citation_anchor is missing")
+            else:
+                found = False
+                for path in code_paths:
+                    p = ROOT / path
+                    if p.exists() and anchor in p.read_text(encoding="utf-8", errors="ignore"):
+                        found = True
+                        break
+                if not found:
+                    errors.append(
+                        f"{eid}: citation_anchor {anchor!r} not found in any code "
+                        f"file — citation and code have drifted apart"
+                    )
+        elif e.get("citation_anchor"):
+            errors.append(f"{eid}: citation_anchor set but in_code_citation is false")
     for dup in sorted({i for i in ids if ids.count(i) > 1}):
         errors.append(f"duplicate entry id: {dup}")
     return errors
@@ -90,7 +113,11 @@ def render(data: dict) -> str:
     for e in data["entries"]:
         lines.append(f"## {e['id']} — {e['title']}")
         lines.append("")
-        lines.append(f"- **Source:** {e['source']['citation']}")
+        if e.get("in_code_citation"):
+            cite_note = f" (cited in code; anchor `{e['citation_anchor']}` — CI-verified)"
+        else:
+            cite_note = " (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)"
+        lines.append(f"- **Source:** {e['source']['citation']}{cite_note}")
         for s in e["source"].get("sections", []) or []:
             lines.append(f"  - {s}")
         for b in e["source"].get("builds_on", []) or []:
