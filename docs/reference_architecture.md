@@ -88,6 +88,13 @@ replayable audit). Each plane is independently implemented and testable.
         │     — gen_ai.* + remora.*        remora.* attributes;  │
         │       spans; RDF export for      hash-chained audit;   │
         │       graph-native audit         SPARQL-queryable      │
+        │                                                        │
+        │  9. Causal explanation         CausalDecisionModel +   │
+        │     — which policy conditions    PS/PN + minimal        │
+        │       caused the verdict;        contrastive search;    │
+        │       minimal actionable         remora/causal/         │
+        │       interventions; recurring   (policy causality      │
+        │       blockers over logs         only)                  │
         └───────────────────────────┬────────────────────────────┘
                                     │
                      ACCEPT │ VERIFY │ ABSTAIN │ ESCALATE
@@ -97,7 +104,7 @@ replayable audit). Each plane is independently implemented and testable.
             inside the control plane)
 ```
 
-Two properties hold across all eight elements:
+Two properties hold across all nine elements:
 
 - **Fail-closed everywhere.** Missing signals degrade the decision toward
   review, never toward execution: unknown risk tier → VERIFY, unvalidated
@@ -245,6 +252,18 @@ This is the request-side complement to the decision plane: delegation answers
 - **Enforcement binding**: `canonical_tool_call_hash` binds decisions to the
   *full* argument payload; the enforcement gate recomputes it immediately
   before execution and refuses on mismatch (TOCTOU protection).
+- **Causal explanation** (`remora/causal/`): an optional, policy-causal
+  explanation carried on `DecisionEnvelope.causal_explanation`. It reports
+  which policy rules caused the verdict, the minimal set of actionable
+  operational concepts that would change it (per-concept Probability of
+  Sufficiency / Necessity plus a minimal contrastive search), and — across a
+  log of decisions — which blockers recur most (global concept attribution).
+  It operationalises Bjøru's (2026) concept-based causal XAI over high-level
+  operational concepts (`decision_scope="policy_only"`); see
+  [causal_policy_explanations.md](causal_policy_explanations.md) and
+  [09-related-work.md §9](09-related-work.md). This is an explanation layer
+  over the decision, not a real-world causal-effect claim: the counterfactuals
+  are evaluated against the policy model, not the world.
 
 ---
 

@@ -31,6 +31,23 @@ Architecture bounded by documented assumptions. Results are from controlled expe
 
 ---
 
+## Causal explanation: from Bjøru (2026) to tested code
+
+REMORA operationalizes a full concept-based causal-explanation layer, not a citation. The chain is short and every link is on disk:
+
+**Bjøru (2026) concept-based causal XAI → `CausalDecisionModel` → per-concept PS/PN scores → minimal contrastive concept-intervention → recurring-blocker attribution over shadow-mode logs → tested implementation → bounded to policy causality.**
+
+| Research basis | Operationalized as | Code | Tests |
+|---|---|---|---|
+| Bjøru (2026) §3 — concept-based, externally-causal XAI | `CausalDecisionModel` over operational concepts, not raw features | `remora/causal/schema.py` | `tests/test_causal.py` |
+| Bjøru Paper IV §4.2.2–§4.2.3 — Probability of Sufficiency / Necessity | Per-concept PS/PN attribution of a blocking verdict | `remora/causal/search.py` | `tests/test_causal_search_attribution.py` |
+| Bjøru Paper IV §4.2.4 — contrastive explanation search | Minimal actionable concept-intervention set that flips the verdict | `remora/causal/search.py` | `tests/test_causal_search_attribution.py` |
+| Bjøru Paper IV §4.2.1 — global explanation by dataset averaging | Recurring-blocker attribution across a log of decisions | `remora/causal/attribution.py` | `tests/test_causal_search_attribution.py` |
+
+The result is carried on `DecisionEnvelope.causal_explanation` (`remora/causal/explanation.py`) and documented in [docs/causal_policy_explanations.md](docs/causal_policy_explanations.md). **Boundary:** this is policy causality only — REMORA explains why its own policy decided as it did and which operational changes would change that decision; it makes no real-world causal-effect or safety claim, and the counterfactuals are evaluated against the policy model, not the world. Positioning in the literature: [docs/09-related-work.md §9](docs/09-related-work.md).
+
+---
+
 ## Industrial Maintenance Demo
 
 An RCA-style maintenance agent investigates pump vibration and proposes actions of escalating consequence. The demo drives the full chain end to end: a per-link-signed **A2A delegation envelope is actually verified** for each requested capability, the verification outcome feeds the observation, and the **real `RemoraDecisionEngine`** decides. Telemetry reads **ACCEPT**; the work-order proposal routes to **VERIFY** via the explicit production-write policy matrix (human approval before any business-system write); contradicting evidence **ABSTAIN**s; and direct equipment actuation fails delegation-scope verification: the failure sets the forbidden-tool signal and the engine hard-**ESCALATE**s. Analysis confidence cannot buy actuation authority that was never delegated. Outcomes are pinned by `tests/test_demo_industrial_maintenance.py`.

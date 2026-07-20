@@ -197,6 +197,46 @@ Boundary:
 - The repository provides a research-grade prototype and architecture pack that
   must be validated in the target organization before enforcement.
 
+## 9. Causal Post-hoc Explainability and Concept Interventions
+
+Primary source:
+
+- Bjøru, A. R. (2026). *Causal Post-hoc Explainable AI* (PhD thesis), NTNU.
+  Paper IV: externally-causal, concept-based XAI; Probability of Sufficiency
+  and Necessity; contrastive explanation search. Builds on Pearl (2009,
+  *Causality*, ch. 9) and Galhotra, Pradhan & Salimi (SIGMOD 2021).
+
+Relevant ideas:
+
+- externally-causal, concept-based explanation over high-level operational
+  concepts rather than raw model features,
+- Probability of Sufficiency (PS) and Probability of Necessity (PN) as
+  per-concept attribution,
+- minimal contrastive explanations: the smallest intervention set that flips
+  the outcome,
+- global explanation by averaging per-instance scores across a dataset.
+
+How REMORA uses this:
+
+- `remora/causal/schema.py` — `CausalDecisionModel` over operational concepts,
+  bounded to `decision_scope="policy_only"` (Bjøru §3),
+- `remora/causal/search.py` — per-concept PS/PN scoring and the minimal
+  contrastive concept-intervention search (Paper IV §4.2.2–§4.2.4),
+- `remora/causal/attribution.py` — global concept attribution over a log of
+  policy decisions (Paper IV §4.2.1, §4.2.3),
+- `remora/causal/explanation.py` — the `CausalExplanation` carried on
+  `DecisionEnvelope.causal_explanation`,
+- tests: `tests/test_causal.py`, `tests/test_causal_search_attribution.py`
+  (PS/PN ∈ {0, 1}, minimality, verdict-change, global mean-PS ordering),
+- narrative: [`causal_policy_explanations.md`](causal_policy_explanations.md).
+
+Boundary:
+
+- REMORA explains **policy causality only**: why its own policy decided as it
+  did, and which operational conditions would change that decision.
+- It makes no claim about real-world cause and effect and no safety guarantee.
+- The counterfactuals are evaluated against the policy model, not the world.
+
 ## Positioning Statement
 
 REMORA is a nested governance control plane for long-running agentic AI:
