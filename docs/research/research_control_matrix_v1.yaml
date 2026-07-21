@@ -28,6 +28,22 @@
 # code + tests on disk. It is deliberately NOT a map of the entire literature
 # landscape (that broader catalogue is a separate local working document);
 # adding a line here requires real, verified code and tests.
+#
+# Landscape crosswalk (added 2026-07-21): the broader catalogue is the local-only
+# AI-assurance compendium docs/researchpapers/kompendium_ai_assurance_3utgave.md
+# (gitignored, ~201 works). Two optional fields make the relationship to that
+# landscape explicit WITHOUT turning it into an implementation claim:
+#   compendium_refs: [ids]  -> the compendium work-ids this line draws on. These
+#     are reference pointers, not code citations: validated locally when the
+#     compendium file is present (a listed id must appear in it) and SKIPPED in
+#     CI where the gitignored file is absent. Presence here never implies the
+#     work is implemented — only that it informs the line.
+#   compendium_note: "..."  -> used when a line has no anchor in the local
+#     landscape, to state honestly WHY (e.g. its sources sit outside the
+#     compendium's scope) instead of leaving the gap unexplained.
+# The top-level `landscape:` block below records which whole areas of the
+# compendium REMORA deliberately does NOT implement, and why — so the boundary
+# is documented, not invisible.
 
 schema_version: "1"
 updated: "2026-07-21"
@@ -71,6 +87,8 @@ entries:
     related_work_section: "docs/09-related-work.md §9"
     in_code_citation: true
     citation_anchor: "Bjøru"
+    compendium_refs: []
+    compendium_note: "No anchor in the local compendium: its interpretability chapter covers mechanistic interpretability (superposition, monosemanticity, circuit tracing), not causal post-hoc concept XAI. This line's sources (Bjøru 2026; Pearl; Galhotra et al.) sit outside the compendium's scope."
 
   - id: RES-002
     title: "Selective prediction and abstention"
@@ -98,6 +116,10 @@ entries:
     scope_boundary: "Benchmark-scoped selective trust; no universal out-of-distribution safety guarantee."
     related_work_section: "docs/09-related-work.md §1"
     in_code_citation: false
+    compendium_refs:
+      - selective-2017
+      - gentle-conformal-2021
+      - ltt-2021
 
   - id: RES-003
     title: "Conformal risk control"
@@ -124,6 +146,9 @@ entries:
     related_work_section: "docs/09-related-work.md §2"
     in_code_citation: true
     citation_anchor: "Angelopoulos"
+    compendium_refs:
+      - conformal-risk-2022
+      - ltt-2021
 
   - id: RES-004
     title: "Multi-oracle consensus and cross-model verification"
@@ -153,6 +178,9 @@ entries:
     related_work_section: "docs/09-related-work.md §3"
     in_code_citation: true
     citation_anchor: "Wang et al."
+    compendium_refs:
+      - llm-uq-survey-2023
+    compendium_note: "Weak landscape anchor: the compendium treats cross-model consistency/verification only via the confidence-and-calibration survey (llm-uq-survey-2023); the specific self-consistency and mixture-of-agents sources this line cites are not catalogued there."
 
   - id: RES-005
     title: "Tool-use safety and agent guardrails"
@@ -179,6 +207,11 @@ entries:
     scope_boundary: "v2 provides deterministic adversarial evidence, not production proof; live validation is a separate requirement."
     related_work_section: "docs/09-related-work.md §4"
     in_code_citation: false
+    compendium_refs:
+      - agentharm-2024
+      - agentdojo-2024
+      - injecagent-2024
+      - agent-safety-bench-2024
 
   - id: RES-006
     title: "Evidence grounding and retrieval-augmented verification"
@@ -202,6 +235,9 @@ entries:
     scope_boundary: "Default verifier is lexical plus simple contradiction signals; semantic-entailment quality is not demonstrated by committed artifacts."
     related_work_section: "docs/09-related-work.md §5"
     in_code_citation: false
+    compendium_refs:
+      - rag-2020
+      - self-rag-2023
 
   - id: RES-007
     title: "Statistical-physics control signals (entropy, phase, Lyapunov)"
@@ -228,6 +264,8 @@ entries:
     scope_boundary: "Physics language is an operational analogy and feature family; some theoretical claims remain not-demonstrated or explicitly negative in the claim ledger."
     related_work_section: "docs/09-related-work.md §6"
     in_code_citation: false
+    compendium_refs: []
+    compendium_note: "No anchor in the local compendium: the statistical-physics control signals (q-state Potts, Gibbs/Boltzmann, Lyapunov) are used as an operational analogy specific to REMORA and are not a catalogued research area in the assurance landscape."
 
   - id: RES-008
     title: "Nested learning, context flow, continuum memory"
@@ -256,6 +294,8 @@ entries:
     scope_boundary: "Does not implement the Hope architecture, does not train foundation models, does not claim to solve catastrophic forgetting."
     related_work_section: "docs/09-related-work.md §7"
     in_code_citation: false
+    compendium_refs: []
+    compendium_note: "No anchor in the local compendium: the Nested Learning source (Behrouz et al., 2025) is newer than / outside the compendium's catalogue. REMORA implements only the governance framing (context-flow, reviewed memory layers), not the architecture itself."
 
   - id: RES-009
     title: "Enterprise AI governance and audit"
@@ -278,6 +318,13 @@ entries:
     scope_boundary: "Reference/design grade: not a production-certified enterprise product; must be validated in the target organization before enforcement."
     related_work_section: "docs/09-related-work.md §8"
     in_code_citation: false
+    compendium_refs:
+      - nist-ai-rmf-2023
+      - iso-42001-2023
+      - eu-ai-act-2024
+      - governing-agents-2023
+      - visibility-agents-2024
+      - infra-agents-2025
 
   - id: RES-010
     title: "Anytime-valid confidence sequences (optional-stopping-safe monitoring)"
@@ -304,3 +351,36 @@ entries:
     related_work_section: "docs/09-related-work.md §2"
     in_code_citation: true
     citation_anchor: "Howard"
+    compendium_refs:
+      - confidence-seq-2021
+      - game-theoretic-stat-2023
+
+# ── Landscape coverage ──────────────────────────────────────────────────────
+# Whole areas of the local AI-assurance compendium that REMORA deliberately does
+# NOT implement as controls. Recording them here makes the scope boundary
+# explicit and auditable: "not mapped" is a documented decision, not an oversight.
+# These are honest boundaries, not roadmap promises.
+landscape:
+  source: "docs/researchpapers/kompendium_ai_assurance_3utgave.md"
+  source_status: "local-only working document (gitignored, not published; ~201 works, 2. edition figure). compendium_refs are validated against this file when present locally and skipped in CI where it is absent."
+  not_implemented:
+    - theme: "Formal methods, neural-network verification, guaranteed-safe AI"
+      compendium_chapter: "Ch. 8 (formal methods, verification, guaranteed safety)"
+      representative_refs: [reluplex-2017, shielding-2018, guaranteed-safe-2024]
+      reason: "REMORA verifies its policy layer by tests and deterministic invariants, not by formal proof. Neural-network verification and proof-carrying guarantees are out of scope; the safety floor is a policy property, not a proved model property."
+    - theme: "Provenance, workload identity, software supply chain"
+      compendium_chapter: "Ch. 7 (provenance, identity, supply chain)"
+      representative_refs: [slsa-v1, in-toto-2019, spiffe-spec, c2pa-spec]
+      reason: "REMORA provides a tamper-evident DecisionEnvelope hash chain, not SBOM/ML-BOM, artifact signing, or SPIFFE-style workload identity. Supply-chain and identity attestation are assumed to be provided by the host environment."
+    - theme: "Fairness, differential privacy, training-data protection"
+      compendium_chapter: "Ch. 9 (fairness, privacy, data protection)"
+      representative_refs: [dp-sgd-2016, membership-inference-2017, gdpr-2016]
+      reason: "REMORA governs execution permission at inference time, not model training. Differential privacy, membership-inference defence, and fairness-metric selection are out of scope; the governed agent's model is treated as given."
+    - theme: "MLOps, distributed-systems foundations, production drift"
+      compendium_chapter: "Ch. 6 (MLOps, system design, production operations)"
+      representative_refs: [sculley-debt-2015, mlops-2022, sre-2016]
+      reason: "REMORA is a pre-execution governance overlay, not an MLOps platform. Data pipelines, SRE error budgets, and deployment infrastructure are the host's responsibility; REMORA consumes them rather than providing them."
+    - theme: "Mechanistic interpretability (model-internal feature analysis)"
+      compendium_chapter: "Ch. 2 (interpretability subset)"
+      representative_refs: [monosemanticity-2023, scaling-monosem-2024, biology-of-llm-2025]
+      reason: "REMORA's causal explanation (RES-001) is post-hoc over the policy model, not model-internal feature/circuit analysis. Mechanistic interpretability of the governed model is out of scope."

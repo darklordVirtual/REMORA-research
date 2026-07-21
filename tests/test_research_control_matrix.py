@@ -100,6 +100,44 @@ def test_no_named_paper_line_claims_in_code_citation() -> None:
             assert "citation_anchor" not in e, f"{e['id']}: idea-family line must not set citation_anchor"
 
 
+def test_compendium_refs_are_wellformed() -> None:
+    """Every compendium ref (per-line + landscape) must be a lowercase-hyphen id;
+    the landscape scope-boundary entries must carry theme/chapter/reason."""
+    mod = _load_module()
+    data = _data()
+    for e in data["entries"]:
+        refs = e.get("compendium_refs")
+        assert refs is None or isinstance(refs, list), e["id"]
+        for r in refs or []:
+            assert mod._REF_RE.fullmatch(r), f"{e['id']}: malformed ref {r!r}"
+    for area in (data.get("landscape") or {}).get("not_implemented", []):
+        for field in ("theme", "compendium_chapter", "reason"):
+            assert area.get(field), f"landscape area missing {field}"
+
+
+def test_malformed_compendium_ref_is_rejected() -> None:
+    """The crosswalk validator must refuse a malformed ref id — pattern check
+    runs with or without the local compendium."""
+    mod = _load_module()
+    data = _data()
+    data["entries"][0].setdefault("compendium_refs", []).append("Bad_ID")
+    assert any("malformed" in e for e in mod.validate(data))
+
+
+def test_compendium_ref_drift_is_rejected_when_landscape_present() -> None:
+    """When the local compendium is present, a ref that is not in it must fail —
+    the crosswalk cannot drift from the landscape. Skipped in CI where the
+    gitignored compendium is absent (the check is a local drift-guard)."""
+    import pytest
+
+    mod = _load_module()
+    if not mod.COMPENDIUM.exists():
+        pytest.skip("local compendium absent (expected in CI)")
+    data = _data()
+    data["entries"][0].setdefault("compendium_refs", []).append("no-such-work-9999")
+    assert any("no-such-work-9999" in e and "drifted" in e for e in mod.validate(data))
+
+
 def test_covers_related_work_sections() -> None:
     """One matrix entry per numbered section of the related-work doc."""
     related = (ROOT / "docs" / "09-related-work.md").read_text(encoding="utf-8")

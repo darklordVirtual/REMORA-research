@@ -16,6 +16,7 @@ or if any referenced path is missing (used by CI and the test suite).
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -24,6 +25,11 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 REGISTER = ROOT / "docs" / "research" / "research_control_matrix_v1.yaml"
 OUTPUT = ROOT / "docs" / "research" / "research_control_matrix.generated.md"
+# Local-only landscape catalogue (gitignored). compendium_refs are validated
+# against it WHEN PRESENT and skipped where it is absent (CI), so the check is
+# a local drift-guard, never a hard CI dependency on an unpublished file.
+COMPENDIUM = ROOT / "docs" / "researchpapers" / "kompendium_ai_assurance_3utgave.md"
+_REF_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
 
 REQUIRED_FIELDS = (
     "id", "title", "source", "concepts", "controls", "code", "tests",
@@ -77,6 +83,48 @@ def validate(data: dict) -> list[str]:
             errors.append(f"{eid}: citation_anchor set but in_code_citation is false")
     for dup in sorted({i for i in ids if ids.count(i) > 1}):
         errors.append(f"duplicate entry id: {dup}")
+    errors.extend(_validate_landscape(data))
+    return errors
+
+
+def _validate_landscape(data: dict) -> list[str]:
+    """Check the compendium crosswalk. Ref ids must be well-formed, and every id
+    (per-line compendium_refs + landscape representative_refs) must actually
+    appear in the local compendium — but ONLY when that gitignored file is
+    present. In CI, where it is absent, this validation is skipped so the matrix
+    never hard-depends on an unpublished document."""
+    errors: list[str] = []
+
+    def _check_ids(refs, where: str) -> None:
+        for r in refs or []:
+            if not isinstance(r, str) or not _REF_RE.fullmatch(r):
+                errors.append(f"{where}: malformed compendium ref {r!r}")
+
+    all_refs: set[str] = set()
+    for e in data.get("entries", []):
+        refs = e.get("compendium_refs")
+        if refs is not None and not isinstance(refs, list):
+            errors.append(f"{e.get('id')}: compendium_refs must be a list")
+            continue
+        _check_ids(refs, f"{e.get('id')} compendium_refs")
+        all_refs.update(refs or [])
+
+    landscape = data.get("landscape") or {}
+    for i, area in enumerate(landscape.get("not_implemented", []) or []):
+        for field in ("theme", "compendium_chapter", "reason"):
+            if not area.get(field):
+                errors.append(f"landscape.not_implemented[{i}]: missing {field!r}")
+        _check_ids(area.get("representative_refs"), f"landscape.not_implemented[{i}]")
+        all_refs.update(area.get("representative_refs") or [])
+
+    if COMPENDIUM.exists():
+        text = COMPENDIUM.read_text(encoding="utf-8", errors="ignore")
+        for r in sorted(all_refs):
+            if r not in text:
+                errors.append(
+                    f"compendium ref {r!r} not found in {COMPENDIUM.name} — the "
+                    f"crosswalk has drifted from the local landscape"
+                )
     return errors
 
 
@@ -105,8 +153,6 @@ def _reverse_indexes(entries: list[dict]) -> list[str]:
     """Bidirectional lookups: start from a code file, a control, or a claim and
     find the research line(s) that justify it. Derived entirely from the
     register, so these tables cannot drift from the forward mapping above."""
-    import re as _re
-
     lines: list[str] = []
 
     # Code file -> research lines
@@ -144,7 +190,7 @@ def _reverse_indexes(entries: list[dict]) -> list[str]:
     # Claim -> research lines (claims referenced in the evidence text)
     claim_to_res: dict[str, list[str]] = {}
     for e in entries:
-        for cid in sorted(set(_re.findall(r"CLAIM-\d+", e.get("evidence", "") or ""))):
+        for cid in sorted(set(re.findall(r"CLAIM-\d+", e.get("evidence", "") or ""))):
             claim_to_res.setdefault(cid, []).append(e["id"])
     if claim_to_res:
         lines.append("## Reverse index: claim → research")
@@ -162,6 +208,69 @@ def _reverse_indexes(entries: list[dict]) -> list[str]:
             lines.append(f"| {cid} | {res} |")
         lines.append("")
 
+    return lines
+
+
+def _landscape_line(e: dict) -> str:
+    """One-line landscape anchor for an entry: its compendium refs, else the
+    honest note about why the line has no anchor in the local landscape."""
+    refs = e.get("compendium_refs") or []
+    if refs:
+        rendered = ", ".join(f"`{r}`" for r in refs)
+        note = e.get("compendium_note")
+        return f"{rendered}" + (f" — {note}" if note else "")
+    note = e.get("compendium_note")
+    return note or "— (not anchored in the local landscape)"
+
+
+def _landscape_coverage(data: dict) -> list[str]:
+    """Appendix: compendium work -> research line (reverse crosswalk) and the
+    areas of the landscape REMORA deliberately does not implement."""
+    landscape = data.get("landscape") or {}
+    lines: list[str] = []
+    lines.append("## Research landscape coverage")
+    lines.append("")
+    lines.append(
+        "Crosswalk to the broader AI-assurance landscape "
+        f"(`{landscape.get('source', '—')}`). "
+        f"{landscape.get('source_status', '')} These are reference pointers, "
+        "**not** implementation claims — a work appearing here means it informs a "
+        "line, not that REMORA implements it."
+    )
+    lines.append("")
+
+    ref_to_res: dict[str, list[str]] = {}
+    for e in data["entries"]:
+        for r in e.get("compendium_refs") or []:
+            ref_to_res.setdefault(r, []).append(e["id"])
+    if ref_to_res:
+        lines.append("### Compendium work → REMORA research line")
+        lines.append("")
+        lines.append("| Compendium id | Research line(s) |")
+        lines.append("|---------------|------------------|")
+        for r in sorted(ref_to_res):
+            lines.append(f"| `{r}` | {', '.join(sorted(set(ref_to_res[r])))} |")
+        lines.append("")
+
+    not_impl = landscape.get("not_implemented") or []
+    if not_impl:
+        lines.append("### Deliberately not implemented (scope boundaries)")
+        lines.append("")
+        lines.append(
+            "Whole areas of the landscape REMORA does not implement as controls, "
+            "recorded so the boundary is explicit and auditable rather than an "
+            "unstated gap. These are boundaries, not roadmap promises."
+        )
+        lines.append("")
+        lines.append("| Area | Compendium chapter | Representative works | Why REMORA does not implement it |")
+        lines.append("|------|--------------------|----------------------|----------------------------------|")
+        for a in not_impl:
+            reps = ", ".join(f"`{r}`" for r in a.get("representative_refs", []) or []) or "—"
+            lines.append(
+                f"| {a.get('theme', '—')} | {a.get('compendium_chapter', '—')} | "
+                f"{reps} | {a.get('reason', '—')} |"
+            )
+        lines.append("")
     return lines
 
 
@@ -219,8 +328,10 @@ def render(data: dict) -> str:
         lines.append(f"- **Maturity:** `{e['maturity']}`")
         lines.append(f"- **Scope boundary:** {e['scope_boundary']}")
         lines.append(f"- **Literature:** {_lit_link(e['related_work_section'])}")
+        lines.append(f"- **Landscape (local compendium):** {_landscape_line(e)}")
         lines.append("")
     lines.extend(_reverse_indexes(data["entries"]))
+    lines.extend(_landscape_coverage(data))
     return "\n".join(lines).rstrip() + "\n"
 
 
