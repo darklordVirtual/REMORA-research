@@ -19,7 +19,10 @@ with the registers as the single sources of truth:
      level is on the capability ladder, and the DECLARED current_profile
      equals the profile recomputed from the capability and remediation
      registers. A profile cannot be claimed by editing prose.
-  6. README budget — README.md stays under a line cap so "surface one more
+  6. Release-gates table — every REM status row in release_gates.md mirrors
+     the status held in remediation_register.yaml; the human-readable gate
+     register cannot drift from the machine source.
+  7. README budget — README.md stays under a line cap so "surface one more
      thing in the README" has an enforced cost.
 
 Exit codes: 0 = all checks pass, 1 = violations (listed on stderr).
@@ -37,6 +40,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 DOC_REGISTER = ROOT / "docs" / "assurance" / "document_register_v1.yaml"
+RELEASE_GATES = ROOT / "docs" / "assurance" / "release_gates.md"
 CAP_REGISTER = ROOT / "docs" / "assurance" / "capability_register_v1.yaml"
 REM_REGISTER = ROOT / "docs" / "assurance" / "remediation_register.yaml"
 CLAIM_REGISTER = ROOT / "docs" / "assurance" / "claim_register_v1.yaml"
@@ -308,6 +312,56 @@ def check_release_profiles(errors: list[str]) -> None:
         )
 
 
+def _norm_status(s: str) -> str:
+    """Collapse a status token/cell to comparable letters (drops markdown,
+    spaces, underscores, punctuation, case): 'NOT STARTED' == 'NOT_STARTED'."""
+    return re.sub(r"[^A-Z0-9]", "", s.upper())
+
+
+def check_release_gates_table(errors: list[str]) -> None:
+    """release_gates.md is the human-readable gate register; its Status column is
+    a *mirror* of remediation_register.yaml (the machine source). Parse every
+    table row whose first cell is a REM id and assert its Status cell states the
+    register's status, so the mirror cannot silently drift. History/prose tables
+    (Date-keyed elevation log, AII-range table) are skipped: their first cell is
+    not a REM id."""
+    if not RELEASE_GATES.exists():
+        errors.append("release-gates: docs/assurance/release_gates.md is missing")
+        return
+    rems = _rem_statuses()
+    checked = 0
+    for line in RELEASE_GATES.read_text(encoding="utf-8").splitlines():
+        if not line.lstrip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 3:
+            continue
+        rid_match = re.fullmatch(r"\**\s*(REM-\d+)\s*\**", cells[0])
+        if not rid_match:
+            continue
+        rid = rid_match.group(1)
+        status_cell = cells[2]
+        if rid not in rems:
+            errors.append(
+                f"release-gates: row for {rid} has no entry in "
+                f"remediation_register.yaml"
+            )
+            continue
+        want = _norm_status(rems[rid])
+        if want not in _norm_status(status_cell):
+            errors.append(
+                f"release-gates: {rid} Status cell {status_cell!r} does not "
+                f"state the register status {rems[rid]!r} — the table has "
+                f"drifted from remediation_register.yaml (the register wins)"
+            )
+        checked += 1
+    if checked == 0:
+        errors.append(
+            "release-gates: no REM status rows found to verify — the table "
+            "structure changed; update check_release_gates_table"
+        )
+
+
 def check_readme_budget(errors: list[str]) -> None:
     n = len((ROOT / "README.md").read_text(encoding="utf-8").splitlines())
     if n > README_LINE_CAP:
@@ -322,6 +376,7 @@ def main() -> int:
     check_document_register(errors)
     check_register_id_uniqueness(errors)
     check_release_profiles(errors)
+    check_release_gates_table(errors)
     check_readme_budget(errors)
     if errors:
         for e in errors:

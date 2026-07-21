@@ -103,6 +103,43 @@ def test_superseded_without_successor_is_refused(tmp_path: Path) -> None:
     assert any("superseded_by" in e for e in errors)
 
 
+def test_release_gates_table_drift_is_refused(tmp_path: Path) -> None:
+    """A Status cell that contradicts remediation_register.yaml must fail.
+
+    REM-021 is NOT_STARTED in the register; a table row claiming it DONE is
+    exactly the mirror-drift this gate exists to catch."""
+    mod = _load_module()
+    gates = tmp_path / "release_gates.md"
+    gates.write_text(
+        "| ID | Gate | Status | What DONE means |\n"
+        "|----|------|--------|-----------------|\n"
+        "| REM-021 | Independent human review | **DONE** | ... |\n",
+        encoding="utf-8",
+    )
+    mod.RELEASE_GATES = gates
+    errors: list[str] = []
+    mod.check_release_gates_table(errors)
+    assert any("REM-021" in e and "drifted" in e for e in errors), errors
+
+
+def test_release_gates_table_accepts_matching_status(tmp_path: Path) -> None:
+    """The mirror passes when the cell states the register status, tolerating
+    surrounding prose and 'NOT STARTED' vs 'NOT_STARTED' spelling."""
+    mod = _load_module()
+    gates = tmp_path / "release_gates.md"
+    gates.write_text(
+        "| ID | Gate | Status | What DONE means |\n"
+        "|----|------|--------|-----------------|\n"
+        "| REM-021 | Independent human review | **NOT STARTED** | ... |\n"
+        "| REM-023 | RBAC follow-through | **IN_PROGRESS** (folded into REM-021) | ... |\n",
+        encoding="utf-8",
+    )
+    mod.RELEASE_GATES = gates
+    errors: list[str] = []
+    mod.check_release_gates_table(errors)
+    assert errors == [], errors
+
+
 def test_declared_current_profile_is_shadow_pilot() -> None:
     """Pin the honest current state: SHADOW_PILOT (= SHADOW_ONLY).
 
