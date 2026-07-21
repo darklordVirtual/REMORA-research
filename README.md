@@ -45,24 +45,7 @@ python scripts/demo_industrial_maintenance.py
 
 ---
 
-## Building Automation Demo
-
-The governance concept is demonstrated in a concrete dry-run scenario: an AI assistant proposes lighting adjustments across all floors of a commercial building, and REMORA evaluates each floor-level command independently against occupancy state and the active energy policy: before any command is sent. The demo drives the **real `RemoraDecisionEngine`**: each floor becomes a `PolicyObservation` (occupancy sensing is the caller-supplied evidence layer), and the decisions and reason codes below are the engine's actual output, REMORA's canonical ACCEPT/VERIFY/ABSTAIN/ESCALATE outcomes.
-
-```bash
-python scripts/demo_building_lights.py   # dry run; no live command is sent
-```
-
-Request: turn on all lights on all 8 floors. The engine decides per floor (real `RemoraDecisionEngine` output):
-
-| Floors | Occupancy | Engine decision | Reason code |
-|--------|-----------|-----------------|-------------|
-| 1–5, 8 | occupied (active motion) | **ACCEPT** | `evidence_supported` |
-| 6, 7 | empty (47 / 131 min idle) | **ABSTAIN** | `disordered_no_evidence` |
-
-REMORA does not treat the user request as a single all-or-nothing action. It decomposes the tool call by zone, evaluates each floor-level command independently against occupancy context and the active energy policy, and blocks the subset that conflicts: while allowing the compliant subset to proceed. Empty floors ABSTAIN via the engine's deny-by-default path (`disordered_no_evidence`): absence of occupancy evidence blocks activation. This per-zone governance model extends directly to HVAC scheduling, ventilation setpoints, energy load management, and any domain where a single agent command maps to multiple physical sub-actions with differing risk profiles.
-
-Related energy-domain use case (different scenario, diagnostic Q&A): [docs/use-cases/04-energy.md](docs/use-cases/04-energy.md)
+**More worked scenarios:** per-zone building-automation governance (one agent command → many physical sub-actions, blocked/allowed per zone) is in [docs/use-cases/building-automation.md](docs/use-cases/building-automation.md); the full domain catalogue is under [docs/use-cases/](docs/use-cases/README.md).
 
 ---
 
@@ -226,7 +209,7 @@ Step-by-step instructions: [docs/06-reproducibility.md](docs/06-reproducibility.
 - **Entropy backend mismatch.** All reported benchmarks use `TokenFingerprintBackend` (sorted SHA-256 tokens), not the NLI Semantic Entropy backend described in the paper. The NLI backend exists as a drop-in replacement but was not used for any reported result. See [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) finding #3.
 - **No external replication.** All benchmarks were run internally by the author. External replication is listed as a distinct evidence level in the claim register, explicitly required before any `externally_validated` label can be applied.
 - **AROMER is experimental.** The closed-loop learning layer has no external validation. Episode labels are partly self-labeled by the system. Do not cite AROMER AII numbers as evidence for the core governance system.
-- **One production gate remains open.** REM-021 (independent human review) is not started and blocks exit from shadow mode. REM-020 (longitudinal stability, 7-day criterion) is DONE as an *internal attestation* (2026-07-17, fail-closed tooling; the owner decision reverted to the original pre-registered 7-day criterion, not a post-hoc lowering: see the gate register). The committed artifact attests the live counter, not a full 7-day time series, so REM-021 must verify it independently against the worker's longitudinal store. REM-022 (RBAC audit) is DONE 2026-06-30 **with recorded deviation**, unmet closure criteria are tracked as REM-023 (isolation test and admin-wildcard removal complete 2026-07-03; external confirmation folded into REM-021). The system may not be used outside shadow-mode research until all gates are satisfied. See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
+- **Shadow-mode exit is gated, and which gates are open is tracked centrally — not asserted here.** The authoritative open-gate list is the generated [Status](#status) block above (recomputed from the registers, so this prose cannot drift from it); what each gate requires and its full closure history are in [docs/assurance/release_gates.md](docs/assurance/release_gates.md). One caveat is about *evidence quality* rather than gate count and belongs in the claim record: the longitudinal-stability closure is an **internal attestation** of the live worker's counters, not an independently reproduced 7-day time series — independent verification is itself one of the still-open gates. The system may not be used outside shadow-mode research until the registers show every gate satisfied.
 - **Tamper-evident, not tamper-proof.** The hash chain detects modification after the fact. Preventing tampering requires external append-only (WORM) storage not included in this implementation.
 - **Not a replacement for domain authority.** REMORA governs execution permission, not truth. It does not make models truthful and is not a universal AI safety solution.
 
@@ -241,9 +224,9 @@ Full negative results and documented gaps: [NEGATIVE_RESULTS.md](NEGATIVE_RESULT
 
 AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's **experimental** closed-loop learning layer: adaptive calibration research layered on top of the governance control plane. Nothing in the control plane depends on it, and its metrics are not evidence for the core governance system (see Limitations above). It continuously adapts internal thresholds based on observed outcomes and reports an Autonomous Intelligence Index (AII), a weighted composite of five diagnostic dimensions.
 
-As of 2026-07-20, master no longer carries telemetry commits: the 6-hourly status workflow publishes `telemetry/aromer_live_status.md` / `.json` to a dedicated `telemetry` branch instead (the branch is created by the workflow's first run after this change). Static reference snapshot (2026-07-18T18:23Z): AII (EMA) 0.9914 = TRAINED, FAR 0.0%, deployment mode SHADOW_ONLY.
+Live telemetry is published off `master` (the 6-hourly status workflow writes `telemetry/aromer_live_status.md` / `.json` to a dedicated `telemetry` branch). Static reference snapshot (2026-07-18T18:23Z): AII (EMA) 0.9914 = TRAINED, FAR 0.0%, deployment mode SHADOW_ONLY. AII bands (labeled threshold crossings of a composite index, not physical phase transitions): WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**; the system reached TRAINED on 2026-06-28, briefly regressed to CAPABLE the same day, and recovered organically ([NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§13), holding TRAINED since.
 
-AII bands (labeled threshold crossings of a composite index, not physical phase transitions): WARMUP (< 0.40) → LEARNING (0.40–0.60) → CAPABLE (0.60–0.80) → **TRAINED (≥ 0.80)**. The system reached TRAINED status on 2026-06-28, regressed to CAPABLE for some hours the same day, and recovered organically ([NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§13); it has held TRAINED since. One production deployment gate remains open before use outside shadow-mode research: REM-021 (independent human review). REM-020 (longitudinal stability, 7-day criterion from 2026-06-28) was closed 2026-07-17 via the fail-closed closure tooling; REM-022 (RBAC audit) is DONE with recorded deviation (follow-through: REM-023). See [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
+Deployment gating is governed centrally, not from this section: the open gates before any use outside shadow-mode research are in the generated [Status](#status) block above, with detail and history in [docs/assurance/release_gates.md](docs/assurance/release_gates.md).
 
 ---
 

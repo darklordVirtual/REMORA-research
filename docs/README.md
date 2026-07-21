@@ -194,6 +194,7 @@ Illustrative unless artifact-linked: see the banner in each file.
 | [`use-cases/05-security.md`](use-cases/05-security.md) | Security operations |
 | [`use-cases/06-public-administration-hallucination.md`](use-cases/06-public-administration-hallucination.md) | Public administration (Norwegian-law content by design) |
 | [`use-cases/07-norwegian-law-mcp.md`](use-cases/07-norwegian-law-mcp.md) | Norwegian law via MCP (Norwegian content by design) |
+| [`use-cases/building-automation.md`](use-cases/building-automation.md) | Building automation (per-zone lighting; moved out of README 2026-07-21) |
 | [`use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md`](use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md) | Thermodynamics evidence status (cross-reference) |
 
 ## Research notes and proposals

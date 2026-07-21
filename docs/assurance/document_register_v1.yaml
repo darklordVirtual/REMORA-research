@@ -1,6 +1,12 @@
 # REMORA Document Register v1
 # Single machine-readable source of truth for the GOVERNANCE STATUS of every
-# tracked documentation file under docs/ (figures/ assets excluded).
+# tracked knowledge document under docs/ (figures/ assets excluded), paper/,
+# and an explicit root-document allowlist (README.md, ARCHITECTURE.md,
+# NEGATIVE_RESULTS.md, SECURITY.md, CONTRIBUTING.md, CONTRIBUTORS.md, CLAUDE.md,
+# EVIDENCE_OF_CAPABILITY.md, NOTICE). The exact coverage set is computed by
+# scripts/check_document_governance.py (`git ls-files` over docs/ + paper/ plus
+# the ROOT_DOCS allowlist); CI fails if register entries and tracked files do
+# not match exactly.
 # Validated by scripts/check_document_governance.py (CI gate) and
 # tests/test_document_governance.py.
 #
@@ -12,11 +18,13 @@
 #   historical - dated snapshot preserved unedited; must not be cited as current
 #   superseded - kept so old links resolve; superseded_by names the successor
 #
-# Scope note (v1): governs docs/ only. Root documents (README.md,
-# ARCHITECTURE.md, NEGATIVE_RESULTS.md, ...) are governed by their own gates
-# (scripts/check_readme_claims.py, tests/test_review_readiness_docs.py).
-# Navigation lives in docs/README.md (index, CI-enforced); this register holds
-# governance status only — one source of truth per data type.
+# Scope note (v1): this register governs the GOVERNANCE STATUS (one status per
+# file) of docs/ + paper/ + the root-document allowlist above. Content-level
+# gates still apply on top of it and are not duplicated here: README/root claims
+# via scripts/check_readme_claims.py and tests/test_review_readiness_docs.py,
+# numeric claims via scripts/check_claim_consistency.py. Navigation lives in
+# docs/README.md (index, CI-enforced); this register holds governance status
+# only — one source of truth per data type.
 
 schema_version: "1"
 updated: "2026-07-21"
@@ -394,6 +402,8 @@ documents:
   - path: docs/use-cases/06-public-administration-hallucination.md
     status: supporting
   - path: docs/use-cases/07-norwegian-law-mcp.md
+    status: supporting
+  - path: docs/use-cases/building-automation.md
     status: supporting
   - path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
     status: supporting

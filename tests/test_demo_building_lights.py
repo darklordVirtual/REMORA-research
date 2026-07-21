@@ -56,13 +56,16 @@ def test_empty_floor_abstains_deny_by_default() -> None:
     assert any(r.value == "disordered_no_evidence" for r in report.reasons)
 
 
-def test_readme_transcript_matches_engine_outcomes() -> None:
-    """README's demo table must show the outcomes the engine actually returns."""
+def test_docs_transcript_matches_engine_outcomes() -> None:
+    """The published demo table must show the outcomes the engine actually
+    returns. The transcript moved from README.md to the use-case doc on
+    2026-07-21 (README slimming); the binding follows it."""
     from remora.policy import RemoraDecisionEngine
 
     engine = RemoraDecisionEngine()
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    demo_section = readme.split("## Building Automation Demo", 1)[1].split("\n## ", 1)[0]
+    demo_section = (
+        ROOT / "docs" / "use-cases" / "building-automation.md"
+    ).read_text(encoding="utf-8")
     for context in demo.FLOORS:
         expected = engine.decide(demo.observation_for(context)).action.value.upper()
         assert expected in demo_section
