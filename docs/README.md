@@ -67,6 +67,7 @@ Process, audits, and specifications:
 | File | Purpose |
 |---|---|
 | [`assurance/assurance_case_v1.md`](assurance/assurance_case_v1.md) | Structured safety argument (GSN / Assurance 2.0): goals → controls → evidence → defeaters |
+| [`assurance/best_practice_gap_audit_v1.md`](assurance/best_practice_gap_audit_v1.md) | Roadmap: REMORA graded against the AI-assurance compendium's control stack (implemented / partial / gap / out-of-scope) |
 | [`assurance/human_oversight_operations_v1.md`](assurance/human_oversight_operations_v1.md) | Operational human-oversight design (SLA, escalation taxonomy, alarm-fatigue, on-call); extends REM-021 |
 | [`assurance/aromer_memory_governance_v1.md`](assurance/aromer_memory_governance_v1.md) | AROMER memory-governance policy (write/quarantine/delete lifecycle) |
 | [`assurance/evidence_levels.md`](assurance/evidence_levels.md) | Evidence-level taxonomy (theoretical → externally_validated) |

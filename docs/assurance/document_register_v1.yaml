@@ -235,6 +235,8 @@ documents:
   - path: docs/assurance/evidence_levels.md
     status: canonical
     topic: evidence-levels
+  - path: docs/assurance/best_practice_gap_audit_v1.md
+    status: proposal
   - path: docs/assurance/human_oversight_operations_v1.md
     status: supporting
   - path: docs/assurance/independent_review_protocol_v1.md
