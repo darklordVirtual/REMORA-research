@@ -80,6 +80,91 @@ def validate(data: dict) -> list[str]:
     return errors
 
 
+def _rel(path: str) -> str:
+    """Link target for a repo-root-relative path, from the generated file's
+    location (docs/research/). Paths are validated to exist, so the link always
+    resolves."""
+    return "../../" + path
+
+
+def _code_link(path: str) -> str:
+    return f"[`{path}`]({_rel(path)})"
+
+
+def _lit_link(section: str) -> str:
+    """Render 'docs/09-related-work.md §9' with the doc path linked."""
+    parts = section.split(" ", 1)
+    path, rest = parts[0], (parts[1] if len(parts) > 1 else "")
+    if path.startswith("docs/") and (ROOT / path).exists():
+        linked = f"[{path}]({_rel(path)})"
+        return f"{linked} {rest}".rstrip()
+    return section
+
+
+def _reverse_indexes(entries: list[dict]) -> list[str]:
+    """Bidirectional lookups: start from a code file, a control, or a claim and
+    find the research line(s) that justify it. Derived entirely from the
+    register, so these tables cannot drift from the forward mapping above."""
+    import re as _re
+
+    lines: list[str] = []
+
+    # Code file -> research lines
+    code_to_res: dict[str, list[str]] = {}
+    for e in entries:
+        for p in e.get("code", []) or []:
+            code_to_res.setdefault(p, []).append(e["id"])
+    lines.append("## Reverse index: code → research")
+    lines.append("")
+    lines.append("| Code file | Research line(s) |")
+    lines.append("|-----------|------------------|")
+    for p in sorted(code_to_res):
+        res = ", ".join(sorted(set(code_to_res[p])))
+        lines.append(f"| {_code_link(p)} | {res} |")
+    lines.append("")
+
+    # Control -> research lines (+ code)
+    control_to: dict[str, tuple[set[str], set[str]]] = {}
+    for e in entries:
+        for c in e.get("controls", []) or []:
+            res, code = control_to.setdefault(c, (set(), set()))
+            res.add(e["id"])
+            code.update(e.get("code", []) or [])
+    lines.append("## Reverse index: control → research → code")
+    lines.append("")
+    lines.append("| Control | Research line(s) | Code |")
+    lines.append("|---------|------------------|------|")
+    for c in sorted(control_to):
+        res, code = control_to[c]
+        res_s = ", ".join(sorted(res))
+        code_s = ", ".join(_code_link(p) for p in sorted(code))
+        lines.append(f"| `{c}` | {res_s} | {code_s} |")
+    lines.append("")
+
+    # Claim -> research lines (claims referenced in the evidence text)
+    claim_to_res: dict[str, list[str]] = {}
+    for e in entries:
+        for cid in sorted(set(_re.findall(r"CLAIM-\d+", e.get("evidence", "") or ""))):
+            claim_to_res.setdefault(cid, []).append(e["id"])
+    if claim_to_res:
+        lines.append("## Reverse index: claim → research")
+        lines.append("")
+        lines.append(
+            "Claims named in a research line's evidence. Not every line cites a "
+            "claim id in prose; absence here does not mean absence of evidence "
+            "(see each line's **Evidence** field above)."
+        )
+        lines.append("")
+        lines.append("| Claim | Research line(s) |")
+        lines.append("|-------|------------------|")
+        for cid in sorted(claim_to_res):
+            res = ", ".join(sorted(set(claim_to_res[cid])))
+            lines.append(f"| {cid} | {res} |")
+        lines.append("")
+
+    return lines
+
+
 def render(data: dict) -> str:
     lines: list[str] = []
     lines.append("<!-- GENERATED FILE — DO NOT EDIT.")
@@ -124,16 +209,18 @@ def render(data: dict) -> str:
             lines.append(f"  - builds on: {b}")
         lines.append(f"- **Concepts:** {', '.join(e['concepts'])}")
         lines.append(f"- **REMORA controls:** {', '.join(e['controls'])}")
-        lines.append("- **Code:** " + ", ".join(f"`{p}`" for p in e["code"]))
+        lines.append("- **Code:** " + ", ".join(_code_link(p) for p in e["code"]))
         tests = e.get("tests") or []
         lines.append(
-            "- **Tests:** " + (", ".join(f"`{p}`" for p in tests) if tests else "—")
+            "- **Tests:** "
+            + (", ".join(_code_link(p) for p in tests) if tests else "—")
         )
         lines.append(f"- **Evidence:** {e['evidence']}")
         lines.append(f"- **Maturity:** `{e['maturity']}`")
         lines.append(f"- **Scope boundary:** {e['scope_boundary']}")
-        lines.append(f"- **Literature:** {e['related_work_section']}")
+        lines.append(f"- **Literature:** {_lit_link(e['related_work_section'])}")
         lines.append("")
+    lines.extend(_reverse_indexes(data["entries"]))
     return "\n".join(lines).rstrip() + "\n"
 
 
