@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use REMORA in your research, please cite this repository."
+title: "REMORA: a research-grade governance overlay for autonomous AI actions"
+abstract: >-
+  REMORA decides whether an autonomous agent action is accepted, verified,
+  abstained, or escalated, based on uncertainty, evidence, policy, auditability,
+  and human review. This repository holds its research artifacts, benchmarks,
+  claim register, and reproducibility tooling.
+authors:
+  - family-names: "Skogbrott"
+    given-names: "Stian"
+repository-code: "https://github.com/darklordVirtual/REMORA-research"
+license: Apache-2.0
+type: software
+keywords:
+  - "AI governance"
+  - "AI assurance"
+  - "agent safety"
+  - "selective prediction"
+  - "conformal risk control"
