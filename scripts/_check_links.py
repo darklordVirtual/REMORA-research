@@ -27,7 +27,12 @@ ROOT = Path(".")
 # Roots to scan. README.md is included explicitly (resolved relative to ROOT,
 # preserving the original behaviour); docs/ and artifacts/ are scanned wholesale.
 SCAN_DIRS = ["docs", "artifacts"]
-EXCLUDE_PARTS = {".git", "node_modules"}
+# governance-benchmark-pack is a byte-identical snapshot bundle (P0-1): it copies
+# repo files verbatim, so their root-relative links resolve at the canonical
+# source location, not from inside the bundle. Validating them here would flag
+# every copied link as broken, so the bundle is excluded (its files are checked
+# in their canonical location).
+EXCLUDE_PARTS = {".git", "node_modules", "governance-benchmark-pack"}
 
 # [text](href) with badge-aware text (one level of nested brackets) and a
 # whitespace/paren-free destination.
