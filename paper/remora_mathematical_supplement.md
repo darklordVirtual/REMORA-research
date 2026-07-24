@@ -423,7 +423,7 @@ E[ L(λ̂) ] ≤ α + B/(n+1).                              (Eq. 6.2)
 For binary loss `B = 1` the overshoot is `1/(n+1)`, `≤ 0.0476` for `n = 20`,
 negligible. *Source:* `remora.selective.crc.CovariateShiftCRC`; the `CRCReport`
 dataclass exposes `finite_sample_slack = 1/(n_cal+1)` and
-`guaranteed_risk_bound = α + slack` (44 unit tests).
+`nominal_risk_bound = α + slack` (renamed from `guaranteed_risk_bound`: nominal target, not a formal guarantee under the fixed-β phase-heuristic weights; 44 unit tests).
 
 **Worked slack.** Calibration set `n = 99` (ordered items), `α = 0.15`:
 `slack = 1/100 = 0.01`, so the guaranteed risk bound is `0.16`. You can write on

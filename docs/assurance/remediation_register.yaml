@@ -876,6 +876,34 @@ items:
       authenticated principal. Tests assert the header alone can never become
       the audit identity.
 
+  - id: REM-046
+    section: "external-paper-review-2026-07-24"
+    title: "Paper-to-code fidelity: implemented vs integrated vs deployed"
+    gate: P2
+    status: IN_PROGRESS
+    artifacts:
+      - paper/remora_paper.tex
+      - paper/remora_paper.md
+    notes: >
+      External paper review (adversarial, paper-to-code) found the manuscript
+      treating implemented modules as integrated runtime capabilities.
+      FIXED 2026-07-25: publication-blocking tool-call headline replaced with
+      the claim-register numbers (effective N=70 clusters, cluster Wilson
+      [0.0%,5.2%], baselines 1.4%, FAR delta not significant p=0.50, unsafe
+      ACCEPTANCE wording) in abstract/results/conclusion of the .tex (the .md
+      was already remediated but the .tex had drifted); OPA described as
+      adapter-not-wired; PVD renamed "PVD-inspired offline agreement score"
+      with the correct Kirchner et al. citation; CRC fields renamed
+      (nominal_risk_bound, holdout_risk) and the formal-guarantee language
+      removed for heuristic weights; correlation-window per-request caveat;
+      signed-record and immutability language made conditional/precise;
+      "deployable operating point" downgraded; implementation tables gained
+      an Integrated-in-/v1/assess column; undefined fig/sec references fixed.
+      REMAINING before DONE: full three-way restructuring (core runtime vs
+      research extensions vs deployment roadmap as separate diagrams), a
+      re-render + proofread of the compiled PDF, and binding every remaining
+      paper number to claim-register anchors.
+
   - id: REM-045
     section: "external-review-2026-07-24 F-05"
     title: "Installable distribution matches the documented deployment"

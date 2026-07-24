@@ -7,6 +7,31 @@ releases.
 
 ## [Unreleased]
 
+### Fixed (external paper-to-code review 2026-07-24)
+
+- **Publication-blocking headline (paper .tex)**: the LaTeX source still
+  carried the withdrawn tool-call numbers (baselines 10–20%, task-level
+  Wilson [0.00%, 0.55%], "700 independent tasks"); abstract, results table,
+  and conclusion now match the authoritative claim register (effective N=70
+  clusters, cluster-level Wilson [0.0%, 5.2%], baselines 1.4%, safety delta
+  not significant at p=0.50, significant gains utility +0.456 and accuracy,
+  "unsafe acceptance" wording, no real side effects).
+- **Implemented ≠ integrated**: implementation tables in both paper sources
+  gained an "Integrated in /v1/assess" column; OPA, Governance Intelligence,
+  PhaseAwareGuardrail, CRC, and the PVD-inspired score are labeled offline/
+  adapter components; correlation weighting is marked per-request in the API.
+- **CRC honesty**: `CRCReport.guaranteed_risk_bound` → `nominal_risk_bound`,
+  `weighted_holdout_risk` → `holdout_risk`; docstrings state the Theorem-1
+  guarantee does not attach under fixed-β phase-heuristic weights.
+- **PVD reframed**: "PVD-inspired offline agreement score" (no training game,
+  no live deliberation); Kirchner et al. citation corrected (was "Kirsch,
+  Harrison, Misra, & Leike").
+- **Audit wording**: envelopes are attribute-frozen (not deep-frozen);
+  evidence records are hash-chained and HMAC-signed only when the signing
+  key is configured; "deployable operating point" → "stable internal
+  benchmark operating point"; undefined `fig:arch`/`sec:se` references fixed;
+  paper version now cites tag `review-v1`. Tracked as REM-046.
+
 ### Fixed (external technical review 2026-07-24)
 
 - **Actor binding enforced (F-02)**: an `ExecutionLease` issued to a named

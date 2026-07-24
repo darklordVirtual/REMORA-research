@@ -1,6 +1,6 @@
-# Author: Stian Skogbrott
+﻿# Author: Stian Skogbrott
 # License: Apache-2.0
-"""Tests for remora.selective.crc â€” Conformal Risk Control under Covariate Shift.
+"""Tests for remora.selective.crc Ã¢â‚¬â€ Conformal Risk Control under Covariate Shift.
 
 Covers:
   - weighted_conformal_threshold: edge cases, uniform weights, importance weighting,
@@ -10,7 +10,7 @@ Covers:
   - crc_risk_bound: formula verification
 
 Mathematical guarantee (Angelopoulos et al. 2022, Theorem 1):
-  E[L(Î»Ì‚)] â‰¤ target_risk + 1 / (n_calibration + 1)
+  E[L(ÃŽÂ»ÃŒâ€š)] Ã¢â€°Â¤ target_risk + 1 / (n_calibration + 1)
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ from remora.selective.conformal import UNATTAINABLE_THRESHOLD
 
 
 # ---------------------------------------------------------------------------
-# weighted_conformal_threshold â€” edge cases
+# weighted_conformal_threshold Ã¢â‚¬â€ edge cases
 # ---------------------------------------------------------------------------
 
 
@@ -64,22 +64,22 @@ def test_wrong_weights_length_raises():
 
 
 # ---------------------------------------------------------------------------
-# weighted_conformal_threshold â€” uniform weights (standard conformal baseline)
+# weighted_conformal_threshold Ã¢â‚¬â€ uniform weights (standard conformal baseline)
 # ---------------------------------------------------------------------------
 
 
 def test_uniform_weights_all_correct():
-    """All correct predictions â†’ any threshold at or below min score is valid."""
+    """All correct predictions Ã¢â€ â€™ any threshold at or below min score is valid."""
     scores = [0.9, 0.8, 0.7, 0.6]
     labels = [True, True, True, True]
     threshold = weighted_conformal_threshold(scores, labels, target_risk=0.05)
-    # No wrong predictions, so risk = 0 â‰¤ 0.05; threshold should be a valid score
+    # No wrong predictions, so risk = 0 Ã¢â€°Â¤ 0.05; threshold should be a valid score
     assert threshold != UNATTAINABLE_THRESHOLD
     assert threshold >= 0.0
 
 
 def test_uniform_weights_all_wrong():
-    """All wrong predictions â†’ risk â‰¥ 1.0 at every threshold â†’ unattainable."""
+    """All wrong predictions Ã¢â€ â€™ risk Ã¢â€°Â¥ 1.0 at every threshold Ã¢â€ â€™ unattainable."""
     scores = [0.9, 0.8, 0.7]
     labels = [False, False, False]
     threshold = weighted_conformal_threshold(scores, labels, target_risk=0.05)
@@ -115,12 +115,12 @@ def test_uniform_risk_zero_target():
 
 
 # ---------------------------------------------------------------------------
-# weighted_conformal_threshold â€” importance weighting
+# weighted_conformal_threshold Ã¢â‚¬â€ importance weighting
 # ---------------------------------------------------------------------------
 
 
 def test_importance_weights_down_weight_wrong():
-    """Down-weighting wrong items makes higher risk appear lower â†’ looser threshold."""
+    """Down-weighting wrong items makes higher risk appear lower Ã¢â€ â€™ looser threshold."""
     scores = [0.9, 0.8, 0.7]
     labels = [True, False, True]
 
@@ -135,7 +135,7 @@ def test_importance_weights_down_weight_wrong():
 
 
 def test_importance_weights_up_weight_wrong():
-    """Up-weighting wrong items â†’ stricter threshold."""
+    """Up-weighting wrong items Ã¢â€ â€™ stricter threshold."""
     scores = [0.9, 0.8, 0.7]
     labels = [True, False, True]
 
@@ -145,7 +145,7 @@ def test_importance_weights_up_weight_wrong():
     threshold_upweighted = weighted_conformal_threshold(
         scores, labels, weights=[1.0, 100.0, 1.0], target_risk=0.40
     )
-    # Up-weighting the wrong item â†’ either unattainable or threshold â‰¥ uniform
+    # Up-weighting the wrong item Ã¢â€ â€™ either unattainable or threshold Ã¢â€°Â¥ uniform
     assert (
         threshold_upweighted >= threshold_uniform
         or threshold_upweighted == UNATTAINABLE_THRESHOLD
@@ -162,12 +162,12 @@ def test_negative_weights_clamped_to_zero():
 
 
 # ---------------------------------------------------------------------------
-# weighted_conformal_threshold â€” tied scores
+# weighted_conformal_threshold Ã¢â‚¬â€ tied scores
 # ---------------------------------------------------------------------------
 
 
 def test_tied_scores_all_correct():
-    """Tied scores, all correct â†’ threshold should equal the tied score."""
+    """Tied scores, all correct Ã¢â€ â€™ threshold should equal the tied score."""
     scores = [0.8, 0.8, 0.8]
     labels = [True, True, True]
     threshold = weighted_conformal_threshold(scores, labels, target_risk=0.05)
@@ -176,7 +176,7 @@ def test_tied_scores_all_correct():
 
 def test_tied_scores_mixed():
     """Tied scores with one wrong item: risk = 1/3 at that tier.
-    If target_risk â‰¥ 1/3, the threshold should be set at 0.8.
+    If target_risk Ã¢â€°Â¥ 1/3, the threshold should be set at 0.8.
     """
     scores = [0.8, 0.8, 0.8]
     labels = [True, True, False]
@@ -192,24 +192,24 @@ def test_tied_scores_mixed():
 
 def test_tied_scores_committed_atomically():
     """All items at the same score are consumed before a threshold is committed."""
-    # Score 0.9: 2 correct, 1 wrong â†’ risk = 1/3 at this tier
-    # Score 0.5: 1 correct â†’ if we could split, we'd prefer 0.9-only
+    # Score 0.9: 2 correct, 1 wrong Ã¢â€ â€™ risk = 1/3 at this tier
+    # Score 0.5: 1 correct Ã¢â€ â€™ if we could split, we'd prefer 0.9-only
     # But all 0.9 items are in the same block, so risk = 1/3 for block
     scores = [0.9, 0.9, 0.9, 0.5]
     labels = [True, True, False, True]
     threshold = weighted_conformal_threshold(scores, labels, target_risk=0.30)
-    # With risk=1/3â‰ˆ0.333 > 0.30 at the 0.9 block alone,
-    # only the 0.5 block (1 correct, 0 wrong â†’ risk=0) satisfies the target
+    # With risk=1/3Ã¢â€°Ë†0.333 > 0.30 at the 0.9 block alone,
+    # only the 0.5 block (1 correct, 0 wrong Ã¢â€ â€™ risk=0) satisfies the target
     # But risk is computed cumulatively, so when 0.5 is added: 2/4 correct... wait
     # Actually: sorted desc by score, accumulate. At block {0.9,0.9,0.9}: 2 correct,
-    # 1 wrong â†’ weighted_risk = 1/3 > 0.30. At block {0.5}: accumulated = 4 items,
-    # 3 correct, 1 wrong â†’ risk = 1/4 = 0.25 â‰¤ 0.30.
+    # 1 wrong Ã¢â€ â€™ weighted_risk = 1/3 > 0.30. At block {0.5}: accumulated = 4 items,
+    # 3 correct, 1 wrong Ã¢â€ â€™ risk = 1/4 = 0.25 Ã¢â€°Â¤ 0.30.
     # So threshold should be 0.5 (the lowest score that satisfies the risk)
     assert threshold == pytest.approx(0.5)
 
 
 # ---------------------------------------------------------------------------
-# CovariateShiftCRC â€” fit and route
+# CovariateShiftCRC Ã¢â‚¬â€ fit and route
 # ---------------------------------------------------------------------------
 
 
@@ -219,7 +219,7 @@ def _make_data(n: int, accuracy: float, seed: int = 42):
     rng = random.Random(seed)
     scores = [round(rng.uniform(0.3, 1.0), 3) for _ in range(n)]
     labels = [rng.random() < accuracy for _ in range(n)]
-    # Sort so higher score â†’ more likely correct
+    # Sort so higher score Ã¢â€ â€™ more likely correct
     pairs = sorted(zip(scores, labels), key=lambda x: x[0], reverse=True)
     halfway = len(pairs) // 2
     for i in range(halfway):
@@ -247,7 +247,7 @@ def test_fit_report_fields_consistent():
     assert report.n_calibration == pytest.approx(round(100 * 0.7), abs=1)
     assert 0.0 < report.total_weight <= report.n_calibration
     assert report.finite_sample_slack == pytest.approx(1.0 / (report.n_calibration + 1))
-    assert report.guaranteed_risk_bound == pytest.approx(
+    assert report.nominal_risk_bound == pytest.approx(
         report.target_risk + report.finite_sample_slack
     )
 
@@ -261,13 +261,13 @@ def test_fit_report_holdout_coverage_in_unit_interval():
 
 def test_fit_no_items_accepted():
     """If threshold is unattainable, coverage=0 and holdout_risk=None."""
-    # All wrong predictions â†’ no threshold achieves 5% risk
+    # All wrong predictions Ã¢â€ â€™ no threshold achieves 5% risk
     scores = [0.9, 0.8, 0.7, 0.6, 0.5]
     labels = [False] * 5
     crc = CovariateShiftCRC(target_risk=0.05, seed=0)
     report = crc.fit(scores, labels)
     assert report.threshold == UNATTAINABLE_THRESHOLD
-    assert report.weighted_holdout_risk is None
+    assert report.holdout_risk is None
     assert report.holdout_coverage == 0.0
 
 
@@ -277,8 +277,8 @@ def test_fit_empty_input():
     assert report.threshold == UNATTAINABLE_THRESHOLD
     assert report.n_calibration == 0
     assert report.n_test == 0
-    assert report.weighted_holdout_risk is None
-    assert report.guaranteed_risk_bound == crc.target_risk + 1.0
+    assert report.holdout_risk is None
+    assert report.nominal_risk_bound == crc.target_risk + 1.0
 
 
 def test_route_accept_above_threshold():
@@ -318,7 +318,7 @@ def test_threshold_property_after_fit():
 
 
 # ---------------------------------------------------------------------------
-# CovariateShiftCRC â€” phase importance weighting
+# CovariateShiftCRC Ã¢â‚¬â€ phase importance weighting
 # ---------------------------------------------------------------------------
 
 
@@ -376,12 +376,12 @@ def test_mismatched_phases_raises():
 
 
 # ---------------------------------------------------------------------------
-# CovariateShiftCRC â€” finite-sample slack (Theorem 1 guarantee)
+# CovariateShiftCRC Ã¢â‚¬â€ finite-sample slack (Theorem 1 guarantee)
 # ---------------------------------------------------------------------------
 
 
 def test_finite_sample_slack_decreases_with_n():
-    """Larger calibration set â†’ smaller finite-sample slack."""
+    """Larger calibration set Ã¢â€ â€™ smaller finite-sample slack."""
     scores_small, labels_small = _make_data(20, 0.90, seed=0)
     scores_large, labels_large = _make_data(200, 0.90, seed=1)
 
@@ -394,23 +394,23 @@ def test_finite_sample_slack_decreases_with_n():
     assert report_small.finite_sample_slack > report_large.finite_sample_slack
 
 
-def test_guaranteed_risk_bound_formula():
-    """guaranteed_risk_bound must equal target_risk + 1/(n_cal+1)."""
+def test_nominal_risk_bound_formula():
+    """nominal_risk_bound must equal target_risk + 1/(n_cal+1)."""
     scores, labels = _make_data(100, 0.90, seed=5)
     for alpha in [0.05, 0.10, 0.20]:
         crc = CovariateShiftCRC(target_risk=alpha, seed=0)
         r = crc.fit(scores, labels)
         expected_slack = 1.0 / (r.n_calibration + 1)
         assert r.finite_sample_slack == pytest.approx(expected_slack, rel=1e-9)
-        assert r.guaranteed_risk_bound == pytest.approx(alpha + expected_slack, rel=1e-9)
+        assert r.nominal_risk_bound == pytest.approx(alpha + expected_slack, rel=1e-9)
 
 
-def test_guaranteed_risk_bound_is_conservative():
-    """Formal bound must always be â‰¥ target_risk."""
+def test_nominal_risk_bound_is_conservative():
+    """Formal bound must always be Ã¢â€°Â¥ target_risk."""
     scores, labels = _make_data(50, 0.85, seed=9)
     crc = CovariateShiftCRC(target_risk=0.10, seed=0)
     report = crc.fit(scores, labels)
-    assert report.guaranteed_risk_bound >= report.target_risk
+    assert report.nominal_risk_bound >= report.target_risk
 
 
 # ---------------------------------------------------------------------------
@@ -451,36 +451,36 @@ def test_phase_weights_length():
 
 
 # ---------------------------------------------------------------------------
-# crc_risk_bound â€” formula verification
+# crc_risk_bound Ã¢â‚¬â€ formula verification
 # ---------------------------------------------------------------------------
 
 
 def test_crc_risk_bound_n_19():
-    """n=19 â†’ slack = 1/20 = 0.05 (5 pp)."""
+    """n=19 Ã¢â€ â€™ slack = 1/20 = 0.05 (5 pp)."""
     bound = crc_risk_bound(19, target_risk=0.05)
     assert bound == pytest.approx(0.05 + 1 / 20, rel=1e-9)
 
 
 def test_crc_risk_bound_n_99():
-    """n=99 â†’ slack = 1/100 = 0.01 (1 pp)."""
+    """n=99 Ã¢â€ â€™ slack = 1/100 = 0.01 (1 pp)."""
     bound = crc_risk_bound(99, target_risk=0.05)
     assert bound == pytest.approx(0.05 + 0.01, rel=1e-9)
 
 
 def test_crc_risk_bound_decreasing_in_n():
-    """Larger n â†’ tighter bound."""
+    """Larger n Ã¢â€ â€™ tighter bound."""
     bounds = [crc_risk_bound(n, 0.05) for n in [9, 19, 49, 99, 199]]
     assert bounds == sorted(bounds, reverse=True)
 
 
 def test_crc_risk_bound_monotone_in_alpha():
-    """Higher target_risk â†’ higher bound."""
+    """Higher target_risk Ã¢â€ â€™ higher bound."""
     bounds = [crc_risk_bound(50, alpha) for alpha in [0.01, 0.05, 0.10, 0.20]]
     assert bounds == sorted(bounds)
 
 
 def test_crc_risk_bound_n_zero():
-    """n=0 â†’ slack = 1.0 (maximum uncertainty)."""
+    """n=0 Ã¢â€ â€™ slack = 1.0 (maximum uncertainty)."""
     bound = crc_risk_bound(0, target_risk=0.05)
     assert bound == pytest.approx(1.05)
 

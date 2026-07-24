@@ -2,7 +2,7 @@
 
 **Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA](https://github.com/darklordVirtual/REMORA)
 
-*Paper version v0.9.0, June 2026, versioned in lockstep with the repository release tag.*
+*Paper version v0.9.0, versioned in lockstep with the repository review tag (current: `review-v1`).*
 
 ---
 
@@ -127,7 +127,7 @@ with the following properties:
 1. **Safety-first:** Hard policy violations map to ESCALATE regardless of consensus.
 2. **Calibration-aware:** The system has measurable uncertainty about its own decisions, and abstains when uncertainty exceeds a threshold.
 3. **Evidence-sensitive:** In high-uncertainty regions, external evidence can resolve ambiguity (evidence-accept) or contradict the oracle consensus (abstain/escalate).
-4. **Auditable:** Every invocation of $\Gamma$ produces a signed evidence record suitable for regulatory review.
+4. **Auditable:** Every invocation of $\Gamma$ produces a hash-chained evidence record suitable for regulatory review (HMAC-signed when `REMORA_ENVELOPE_SIGNING_KEY` is configured).
 5. **Conservative by default:** When any required component fails or is unavailable, the system fails closed toward VERIFY or ESCALATE depending on risk tier.
 
 This is not a question of *accuracy*, REMORA does not know whether action $a$ is correct. It is a question of *assurance conditions*: whether the conditions that would justify autonomous execution of $a$ are verifiably met.
@@ -333,7 +333,7 @@ The following seven conditions are evaluated before any consensus-based routing.
 
 **Table 3: Policy Hard Blocks.**
 
-The adversarial firewall checks for injection patterns in the prompt (e.g., "ignore previous instructions", "exfiltrate", "drop table", "sudo rm"). The OPA/Rego adapter is queried first; if unavailable, the Python fallback engine applies the same rules and flags `fallback_used = True` in the envelope.
+The adversarial firewall checks for injection patterns in the prompt (e.g., "ignore previous instructions", "exfiltrate", "drop table", "sudo rm"). An OPA/Rego adapter with Python fallback is implemented and parity-tested (`fallback_used = True` is flagged in the envelope when the fallback engine decides), but the reference API currently invokes the Python policy engine directly; OPA remains an integration option and production dependency.
 
 ### 6.3 Policy-as-Code Integration
 
@@ -398,12 +398,12 @@ $$\mathbb{E}[L(\hat{\lambda})] \lesssim \alpha + \frac{1}{n+1} \quad \text{(CRC-
 
 Empirically: for binary 0/1 loss, overshoot is at most $1/(n+1)$ (5 pp for $n=19$, 1 pp for $n=99$) across 20 repeated splits on the synthetic Lyapunov benchmark. To invoke the formal theorem, β must be estimated from held-out calibration density ratios.
 
-Implementation: `remora.selective.crc.CovariateShiftCRC.fit(scores, labels, phases, target_phase)` returns a `CRCReport` with `finite_sample_slack` ($= 1/(n_{\text{cal}}+1)$) and `guaranteed_risk_bound` ($= \alpha + \text{slack}$; note: label reflects heuristic target, not formal CRC guarantee when β is fixed). Tested: 44 unit tests covering edge cases, tied-score atomicity, phase-weight algebra, and Theorem 1 slack.
+Implementation: `remora.selective.crc.CovariateShiftCRC.fit(scores, labels, phases, target_phase)` returns a `CRCReport` with `finite_sample_slack` ($= 1/(n_{\text{cal}}+1)$), `nominal_risk_bound` ($= \alpha + \text{slack}$; renamed from `guaranteed_risk_bound` — a nominal target, not a formal CRC guarantee when β is a fixed heuristic), and `holdout_risk` (renamed from `weighted_holdout_risk`; the holdout risk is an unweighted count). Tested: 44 unit tests covering edge cases, tied-score atomicity, phase-weight algebra, and Theorem 1 slack. This module is an offline research component, not invoked by the reference API.
 
 
-### 7.3 Prover-Verifier Deliberation for Critical-Phase Routing
+### 7.3 PVD-Inspired Offline Agreement Score for Critical-Phase Routing
 
-Kirsch et al. (2024) showed that prover-verifier games produce more legible and reliable LLM outputs. REMORA adapts this protocol to its offline multi-oracle setting without additional API calls.
+Kirchner et al. (2024) trained prover-verifier games that produce more legible and reliable LLM outputs. REMORA does **not** implement that training game: the component here is a PVD-*inspired* offline agreement score over already-produced oracle responses (default backend: token-fingerprint equality, not NLI), with no model training, live interaction, or additional API calls, and it is not invoked by the reference API.
 
 **Protocol:**
 1. **Cluster** oracle responses via Semantic Entropy clustering (Kuhn et al., 2023; Farquhar et al., 2024), producing semantic equivalence classes sorted by mass. *(In all reported benchmarks, the `TokenFingerprintBackend` heuristic is used rather than the `NLISemanticBackend`; the two may cluster differently for paraphrases with no shared tokens. The `NLISemanticBackend` is fully implemented as a drop-in alternative using cross-encoder entailment but has not been activated for any reported result, see NEGATIVE_RESULTS.md §3 for analysis and replication instructions.)*
@@ -661,7 +661,7 @@ The trust-only baseline (all critical items escalated, no evidence routing) achi
 | 15% | Critical | 64.5% | 0.9% | 4/20 |
 | 15% | Disordered | 78.6% | 0.2% | 2/20 |
 
-Ordered-phase conformal achieves 99.9% coverage with 0/20 seed failures at the 15% risk target, a deployable operating point. Critical and disordered phases cannot achieve meaningful coverage via conformal calibration alone; this is a documented limitation driving the evidence router design.
+Ordered-phase conformal achieves 99.9% coverage with 0/20 seed failures at the 15% risk target — a stable internal benchmark operating point (the N=2,161 dataset is augmented and includes calibrated-simulation critical items; this is not evidence of deployability under production distribution shift). Critical and disordered phases cannot achieve meaningful coverage via conformal calibration alone; this is a documented limitation driving the evidence router design.
 
 ### 10.7 External Validity: AgentHarm Benchmark (N=88)
 
@@ -1167,10 +1167,10 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 | Symbol | Definition | Notes |
 |--------|-----------|-------|
-| $\mathcal{O}$ | Oracle set $\{o_1, \ldots, o_n\}$ | $n \geq 3$ distinct model families |
+| $\mathcal{O}$ | Oracle set $\{o_1, \ldots, o_n\}$ | $n \geq 2$ configured endpoints (design intent: $\geq 3$ distinct families; experiments use 3 Llama variants) |
 | $\mathcal{O}'$ | Valid oracle set after failure filtering | $\mathcal{O}' \subseteq \mathcal{O}$ |
 | $\phi(o)$ | Canonical verdict for oracle $o$ | (polarity, claim_hash, magnitude, tags) |
-| $\rho(a, b)$ | Rolling pairwise agreement rate | Window size 200 |
+| $\rho(a, b)$ | Rolling pairwise agreement rate | Window size 200 (persists per engine instance; the reference API builds a fresh engine per request) |
 | $w(o)$ | Diversity weight for oracle $o$ | $\propto (1 + \sum_{j \neq o} \rho(o,j))^{-1}$ |
 | $\hat{p}(v)$ | Weighted support for verdict $v$ | $\sum_o w(o) \cdot \mathbf{1}[\phi(o)=v]$, normalized |
 | $H$ | Shannon entropy of $\hat{p}$ | $-\sum_v \hat{p}(v) \log_2 \hat{p}(v)$ bits |
@@ -1370,28 +1370,39 @@ Output: gate_decision g, explanation r, envelope D
 
 **Table 10: Implementation Status**
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Multi-oracle fan-out (ThreadPoolExecutor) | Implemented | Sequential fallback on RuntimeError |
-| Canonical verdict extraction (φ) | Implemented | NFKC normalization, claim hash |
-| Correlation-aware weighting | Implemented | Rolling 200-sample window |
-| Entropy H, Dissensus D | Implemented | Shannon entropy, 1−max(p̂) |
-| Structural temperature T | Implemented | Prompt-only, circularity-free |
-| Order parameter η | Implemented | Normalized consensus |
-| Trust score τ | Implemented | Phase-weighted, fragility penalty |
-| Lyapunov V(t) tracking | Implemented | Abort on ΔV > ε|V| |
-| Phase classification | Implemented | Ordered/critical/disordered |
-| Phase-sensitive routing | Implemented | Per-phase thresholds |
-| Evidence router (oracle-proxy signal) | Implemented | Proxy, not live retrieval |
-| Evidence router (semantic BM25/NLI) | Planned | Pluggable interface ready |
-| Policy decision engine (7 hard blocks) | Implemented | Priority-ordered |
-| OPA/Rego adapter | Partial | Python fallback when OPA unavailable |
-| DecisionEnvelope v2 | Implemented | All blocks in frozen dataclass |
-| SHA-256 audit hash-chain | Implemented | Tamper-detecting, not tamper-proof |
-| Human review workflow (data structures) | Implemented | UI demo only; no production integration |
-| External WORM audit storage | Planned | Required for tamper-proof audit |
-| CMMS/WIMS integration connectors | Planned | Webhook contract defined |
-| Zero-knowledge assurance proofs | Planned | Stubbed, not implemented |
+Status vocabulary (external paper review 2026-07-24): *Integrated* = invoked by
+the primary `/v1/assess` path; *Offline* = implemented and evaluated with
+committed artifacts but NOT invoked by the primary API; *Adapter* = implemented
+and parity-tested, available as an integration option; *Planned* = not
+implemented.
+
+| Component | Implemented | Integrated in `/v1/assess` | Notes |
+|-----------|-------------|---------------------------|-------|
+| Multi-oracle fan-out (ThreadPoolExecutor) | Yes | Yes | Sequential fallback on RuntimeError |
+| Canonical verdict extraction (φ) | Yes | Yes | NFKC normalization, claim hash |
+| Correlation-aware weighting | Yes | Per-request only | Rolling 200-window persists per engine instance; API builds a fresh engine per request |
+| Entropy H, Dissensus D | Yes | Yes | Shannon entropy, 1−max(p̂) |
+| Structural temperature T | Yes | Yes | Prompt-only, circularity-free |
+| Order parameter η | Yes | Yes | Normalized consensus |
+| Trust score τ | Yes | Yes | Phase-weighted, fragility penalty |
+| Lyapunov V(t) tracking | Yes | Yes | Abort on ΔV > ε|V| |
+| Phase classification | Yes | Yes | Ordered/critical/disordered |
+| Phase-sensitive routing | Yes | Yes | Per-phase thresholds |
+| Evidence router (oracle-proxy signal) | Yes | Yes | Proxy, not live retrieval |
+| Evidence router (semantic BM25/NLI) | Planned | No | Pluggable interface ready |
+| Policy decision engine (7 hard blocks) | Yes | Yes | Priority-ordered, Python engine |
+| OPA/Rego adapter | Adapter | No | Parity-tested; API calls the Python engine directly |
+| Governance Intelligence pre-policy enrichment | Offline | No | Optional helper + 50-task benchmark |
+| `PhaseAwareGuardrail` | Offline | No | Committed N=544 artifact |
+| Covariate-shift CRC (`CovariateShiftCRC`) | Offline | No | Nominal bound under heuristic weights |
+| PVD-inspired agreement score | Offline | No | Post-hoc heuristic, no training game |
+| DecisionEnvelope v2 | Yes | Yes | Attribute-frozen; nested collections not deep-frozen |
+| SHA-256 audit hash-chain | Yes | Yes (API layer) | Tamper-detecting; HMAC only with signing key |
+| Execution grant path (`/v1/execution/*`) | Yes | Separate router | Consumes grant; does NOT invoke tools (PEP dispatcher not wired) |
+| Human review workflow (data structures) | Yes | Partial | UI demo only; no production integration |
+| External WORM audit storage | Planned | No | Required for tamper-proof audit |
+| CMMS/WIMS integration connectors | Planned | No | Webhook contract defined |
+| Zero-knowledge assurance proofs | Planned | No | Stubbed, not implemented |
 
 ---
 

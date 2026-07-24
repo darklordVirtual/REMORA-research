@@ -186,9 +186,12 @@ class CRCReport:
         Calibrated threshold ``λ̂``.
     target_risk:
         Requested risk bound ``α``.
-    weighted_holdout_risk:
-        Weighted empirical risk on the held-out test set, or ``None`` if no
-        items were accepted.
+    holdout_risk:
+        Empirical risk on the held-out test set (unweighted count of wrong
+        accepts over accepts), or ``None`` if no items were accepted.
+        Renamed from ``weighted_holdout_risk`` (external paper review
+        2026-07-24): test-set importance weights were never applied, so the
+        old name overstated the computation.
     holdout_coverage:
         Fraction of test items accepted (coverage at ``λ̂``).
     n_calibration:
@@ -200,19 +203,26 @@ class CRCReport:
     finite_sample_slack:
         Upper bound ``1 / (n_calibration + 1)`` on the expected overshoot
         above ``target_risk`` (from Theorem 1 of Angelopoulos et al. 2022).
-    guaranteed_risk_bound:
-        ``target_risk + finite_sample_slack`` — the formal expected risk bound.
+    nominal_risk_bound:
+        ``target_risk + finite_sample_slack``. Renamed from
+        ``guaranteed_risk_bound`` (external paper review 2026-07-24): the
+        Theorem-1 expected-risk guarantee requires correctly specified
+        importance weights (a known/estimated density ratio, Tibshirani et
+        al. 2019); the default phase-heuristic weights (1.0 match / β
+        mismatch) do not satisfy that condition, so this value is a nominal
+        target, not a formal guarantee, unless the caller supplies valid
+        density-ratio weights.
     """
 
     threshold: float
     target_risk: float
-    weighted_holdout_risk: float | None
+    holdout_risk: float | None
     holdout_coverage: float
     n_calibration: int
     n_test: int
     total_weight: float
     finite_sample_slack: float
-    guaranteed_risk_bound: float
+    nominal_risk_bound: float
 
 
 # ---------------------------------------------------------------------------
@@ -291,13 +301,13 @@ class CovariateShiftCRC:
             return CRCReport(
                 threshold=UNATTAINABLE_THRESHOLD,
                 target_risk=self.target_risk,
-                weighted_holdout_risk=None,
+                holdout_risk=None,
                 holdout_coverage=0.0,
                 n_calibration=0,
                 n_test=0,
                 total_weight=0.0,
                 finite_sample_slack=1.0,
-                guaranteed_risk_bound=self.target_risk + 1.0,
+                nominal_risk_bound=self.target_risk + 1.0,
             )
 
         # Build per-item importance weights
@@ -329,14 +339,16 @@ class CovariateShiftCRC:
         )
         self._fitted = True
 
-        # Holdout evaluation
+        # Holdout evaluation. Plain (unweighted) empirical risk: test-set
+        # importance weights are deliberately NOT applied here, and the
+        # field name says so (external paper review 2026-07-24).
         holdout_coverage = coverage_at_threshold(test_scores, self._threshold)
         accepted = [(s, y) for s, y in zip(test_scores, test_labels) if s >= self._threshold]
         if accepted:
             wrong = sum(1 for _, y in accepted if not y)
-            weighted_holdout_risk: float | None = wrong / len(accepted)
+            holdout_risk: float | None = wrong / len(accepted)
         else:
-            weighted_holdout_risk = None
+            holdout_risk = None
 
         n_cal = len(cal_scores)
         slack = 1.0 / (n_cal + 1)
@@ -344,13 +356,16 @@ class CovariateShiftCRC:
         return CRCReport(
             threshold=self._threshold,
             target_risk=self.target_risk,
-            weighted_holdout_risk=weighted_holdout_risk,
+            holdout_risk=holdout_risk,
             holdout_coverage=holdout_coverage,
             n_calibration=n_cal,
             n_test=len(test_idx),
             total_weight=sum(cal_weights),
             finite_sample_slack=slack,
-            guaranteed_risk_bound=self.target_risk + slack,
+            # Nominal (not guaranteed): the phase-heuristic weights are not a
+            # density ratio, so the Theorem-1 expected-risk guarantee does not
+            # attach unless the caller supplies valid likelihood-ratio weights.
+            nominal_risk_bound=self.target_risk + slack,
         )
 
     @property
