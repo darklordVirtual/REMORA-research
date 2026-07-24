@@ -104,7 +104,7 @@ Input contract to the decision engine. Key fields: `trust_score`, `phase` (order
 **File:** `remora/governance/envelope.py`  
 **Class:** `DecisionEnvelope`
 
-The canonical governance contract. Immutable frozen dataclass. Sub-blocks:
+The canonical governance contract. Frozen dataclass (attribute-immutable; nested collections are not deep-frozen). Sub-blocks:
 
 | Block | Purpose |
 |---|---|
@@ -632,7 +632,7 @@ Enterprise framing is documented in `enterprise/remora-control-plane.md` as arch
 |---|---|
 | AROMER | Autonomous Risk-Oriented Meta-Evaluator and Reasoner. EXPERIMENTAL learning plugin for REMORA. |
 | blocked_recall | Fraction of harmful cases routed to ESCALATE or VERIFY. Distinct from ESCALATE recall. |
-| DecisionEnvelope | The canonical, immutable governance contract produced per action decision. |
+| DecisionEnvelope | The canonical, attribute-immutable governance contract produced per action decision. |
 | DomainHarmPrior | Bayesian Beta prior over P(harm | domain, action_type, risk_tier). Core of AROMER world model. |
 | EpisodeFactory | 65 curated test cases for AROMER replay benchmark validation. |
 | EpisodicStore | JSONL-based persistent memory of governance decisions and their observed outcomes. |

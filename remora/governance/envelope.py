@@ -145,7 +145,9 @@ class AuditBlock:
 class DecisionEnvelope:
     """Top-level v2 envelope — the canonical decision contract.
 
-    All sub-blocks are immutable and JSON-serialisable.
+    All sub-blocks are frozen dataclasses (attribute-immutable) and
+    JSON-serialisable; their list/dict fields are not deep-frozen, so treat them
+    as read-only.
     """
 
     request: RequestBlock

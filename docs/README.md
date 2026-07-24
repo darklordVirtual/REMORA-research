@@ -35,10 +35,15 @@ document without indexing it fails CI). Gate status lives in one place only:
 
 ## Architecture
 
+**Canonical architecture:** [`../ARCHITECTURE.md`](../ARCHITECTURE.md) is the single
+authoritative architecture reference. [`01-architecture.md`](01-architecture.md) is the
+end-to-end narrative and [`reference_architecture.md`](reference_architecture.md) details
+the assurance control plane; both defer to `../ARCHITECTURE.md`.
+
 | File | Purpose |
 |---|---|
-| [`reference_architecture.md`](reference_architecture.md) | Assurance control plane reference architecture (README "start here") |
-| [`../ARCHITECTURE.md`](../ARCHITECTURE.md) | Canonical top-level architecture reference (repo root) |
+| [`../ARCHITECTURE.md`](../ARCHITECTURE.md) | **Canonical** top-level architecture reference (repo root) |
+| [`reference_architecture.md`](reference_architecture.md) | Assurance control plane detail (README "start here"); defers to `../ARCHITECTURE.md` |
 | [`architecture_risk_register.md`](architecture_risk_register.md) | Architecture risk register |
 | [`remora_architecture.html`](remora_architecture.html) | Architecture infographic (HTML asset) |
 | [`decision_envelope_audit.md`](decision_envelope_audit.md) | DecisionEnvelope audit semantics |

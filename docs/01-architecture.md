@@ -1,5 +1,10 @@
 # How does REMORA work end to end?
 
+> **Canonical architecture reference:** [`../ARCHITECTURE.md`](../ARCHITECTURE.md).
+> This page is the end-to-end narrative; [`reference_architecture.md`](reference_architecture.md)
+> details the assurance control plane. All three defer to `../ARCHITECTURE.md` for
+> the authoritative component and data-flow description.
+
 The system turns AI reliability into a routing problem: accept what is strong,
 verify what is uncertain, abstain when trust is too low, escalate what is too
 risky, and never let agent memory or tool calls drift outside their authority
@@ -15,25 +20,30 @@ produces in benchmarks.
 
 ```mermaid
 flowchart TD
-    A[Agent action / question] --> B[Stage 1: Hard-block policy invariants]
+    A[Agent action / question] --> B[Stage 1: Admission check\nadversarial / coercion firewall]
     B --> C[Stage 2: Multi-oracle consensus\nEntropy H, dissensus D, phase]
-    C --> D[Stage 3: Evidence verification\nRAG / cyber / finance / AI-governance]
-    D --> E[Stage 4: Trust + conformal routing\nPhaseAwareGuardrail, CRC]
+    C --> D[Stage 3: Evidence enrichment\nRAG / cyber / finance / AI-governance]
+    D --> E[Stage 4: Policy decision\nhard guards → conditional guards → trust + conformal routing]
     E --> F{Decision}
     F -->|ACCEPT| G[Execute / answer]
     F -->|VERIFY| H[Seek additional evidence]
     F -->|ABSTAIN| I[Refuse — trust too low]
     F -->|ESCALATE| J[Human review]
-    G --> K[Stage 5: DecisionEnvelope + hash chain audit]
+    G --> K[Stage 5: DecisionEnvelope + audit block]
     H --> K
     I --> K
     J --> K
 ```
 
-Stage 1 always runs first. Hard-block policy rules are deterministic and cannot
-be overridden by any probabilistic oracle result. This is why the 0% unsafe
-execution claim is an architectural property of the policy layer, not of the
-consensus machinery: see `02-evidence-and-claims.md` §1 architectural caveat.
+The admission check (Stage 1) screens for adversarial and coercion patterns
+before any oracle call. The remaining deterministic hard guards (schema,
+forbidden-tool, tainted-argument, contradicting-evidence, counterfactual,
+production-write) run first *inside* the policy decision (Stage 4) with absolute
+priority — no probabilistic oracle result can override a hard block — even though
+that decision is evaluated after the consensus and evidence machinery. This is
+why the 0% unsafe execution claim is an architectural property of the policy
+layer, not of the consensus machinery: see `02-evidence-and-claims.md` §1
+architectural caveat.
 
 ---
 
@@ -49,7 +59,7 @@ consensus machinery: see `02-evidence-and-claims.md` §1 architectural caveat.
 | `remora/selective/conformal.py` | Split-conformal threshold calibration | `conformal_threshold()` |
 | `remora/selective/crc.py` | Conformal risk control under shift | `CovariateShiftCRC` |
 | `remora/lyapunov.py` | Session stability V(t) = H + λD (heuristic observable) | `LyapunovController` |
-| `remora/audit/hash_chain.py` | SHA-256 hash-chain audit trail | `HashChain` |
+| `remora/audit/hash_chain.py` | SHA-256 hash-chain audit trail | `AuditHashChain` |
 | `remora/governance/nested_governance.py` | Nested memory layers + forgetting | `NestedGovernance` |
 | `remora/safety/` | Adversarial detection, file-risk classification | `remora/safety/adversarial.py` |
 | `remora/toolcall/` | Tool-call schema validation and gating | `remora/toolcall/remora_gate.py` |
@@ -65,8 +75,8 @@ Oracle A (LLaMA 3.3 70B)  ─┐
 Oracle B (Claude 3.5 Haiku) ├─► ConsensusGate ─► PolicyObservation ─► RemoraDecisionEngine
 Oracle C (Gemma 3 27B)     ─┘        │                                         │
                                       │                                         │
-                              Entropy H, Dissensus D,                    Hard blocks run first
-                              Temperature T, Phase                        (policy invariants)
+                              Entropy H, Dissensus D,                    Hard guards first
+                              Temperature T, Phase                        (within decide())
                               (ordered / critical / disordered)
 ```
 

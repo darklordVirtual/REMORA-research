@@ -68,7 +68,7 @@ def main() -> None:
     readme = read(README)
 
     # -- 1. Six-stage cascade --------------------------------------------------
-    if "six-stage" in readme.lower() or "6" in readme:
+    if "six-stage" in readme.lower() or "6-stage" in readme.lower():
         from remora.cascade.result import CascadeStage
         n_stages = len(list(CascadeStage))
         if n_stages < 6:

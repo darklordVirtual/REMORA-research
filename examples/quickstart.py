@@ -188,7 +188,7 @@ def run(*, fast: bool = False, no_color: bool = False) -> None:
     if console:
         console.print()
         console.print(Panel(
-            "[bold cyan]REMORA[/bold cyan]  [dim]v0.7.1[/dim]\n"
+            "[bold cyan]REMORA[/bold cyan]  [dim]v0.9.0[/dim]\n"
             "[white]Policy-gated multi-oracle governance for autonomous AI[/white]\n\n"
             "[dim]Thermodynamic phase classifier  ·  Lyapunov session monitor  ·  SHA-256 audit chain[/dim]\n"
             "[dim]Zero API keys — fully local, fully reproducible[/dim]",
@@ -197,7 +197,7 @@ def run(*, fast: bool = False, no_color: bool = False) -> None:
         console.print()
     else:
         print("\n" + "=" * 72)
-        print("  REMORA v0.7.1 — Policy-Gated Multi-Oracle Governance")
+        print("  REMORA v0.9.0 — Policy-Gated Governance (policy-engine demo, illustrative signals)")
         print("=" * 72 + "\n")
 
     results: list[dict[str, Any]] = []

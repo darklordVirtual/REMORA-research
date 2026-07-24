@@ -61,17 +61,20 @@ distinct artifacts. See `docs/02-evidence-and-claims.md` §1 and
 
 ## 3. The five-stage pipeline
 
-A proposed action passes through five stages. **Stage 1 always runs first and its
-hard-block invariants cannot be overridden by any probabilistic score**, a
-confident, wrong majority cannot push an unsafe action through.
+A proposed action passes through five stages. An adversarial/coercion **admission
+firewall runs first**, before any oracle call; the remaining deterministic
+hard-block invariants are then evaluated with **absolute priority inside the
+policy decision (Stage 4)**. A confident, wrong majority cannot push an unsafe
+action through: a hard block outranks any probabilistic score, regardless of when
+in the pipeline it is evaluated.
 
 ```mermaid
 flowchart TD
     ACT["Proposed agent action\n(tool call + args + risk_tier / action_type / env)"] --> S1
 
-    S1["Stage 1 — Hard-block policy invariants\nremora/policy/decision_engine.py\nadmission / schema / forbidden-tool / tainted-arg /\nproduction-write / coercion gates — deterministic, first"]
-    S1 -->|"hard block fires"| ESC["ESCALATE / ABSTAIN\n(cannot be overridden)"]
-    S1 -->|"passes hard gates"| S2
+    S1["Stage 1 — Admission firewall\nremora/engine.py + remora/safety/\nadversarial / coercion text detection — deterministic, pre-oracle"]
+    S1 -->|"adversarial / coercion detected"| ESC["ESCALATE / ABSTAIN\n(cannot be overridden)"]
+    S1 -->|"passes admission"| S2
 
     S2["Stage 2 — Multi-oracle consensus\nremora/engine.py + remora/correlation.py\nthermodynamic phase: entropy H, dissensus D, trust;\ncorrelation-aware diversity weighting"]
     S2 --> S3
@@ -79,25 +82,27 @@ flowchart TD
     S3["Stage 3 — Evidence verification\nremora/oracles/evidence_verifier.py, evidence_v2/v3\nsource-anchored support / contradiction (lexical)"]
     S3 --> S4
 
-    S4["Stage 4 — Trust / conformal selective routing\nremora/selective/ (PhaseAwareGuardrail, CRC, conformal)\nphase-aware accept / verify / abstain thresholds"]
+    S4["Stage 4 — Policy decision\nremora/policy/decision_engine.py + remora/selective/\nhard guards first (schema / forbidden-tool / tainted-arg /\nproduction-write / contradiction / counterfactual),\nthen conditional guards, then trust / conformal routing"]
+    S4 -->|"hard block fires"| ESC
     S4 --> DEC{"Decision"}
 
     DEC -->|"assurance met"| ACCEPT["ACCEPT"]
     DEC -->|"needs validation"| VERIFY["VERIFY"]
     DEC -->|"too uncertain"| ABSTAIN["ABSTAIN"]
-    DEC -->|"critical / adversarial"| ESC
 
-    ACCEPT & VERIFY & ABSTAIN & ESC --> S5["Stage 5 — Hash-chain audit\nremora/governance/envelope.py + remora/audit/hash_chain.py\nDecisionEnvelope, hᵢ = SHA-256(hᵢ₋₁ ‖ envelope)"]
+    ACCEPT & VERIFY & ABSTAIN & ESC --> S5["Stage 5 — Hash-chain audit\nremora/governance/envelope.py + remora/audit/hash_chain.py\nDecisionEnvelope; atomic per-tenant chain on the /v1/execution path"]
     S5 --> OUT["Audit chain + shadow-replay log"]
 ```
 
 **Stage summary:**
 
-1. **Hard-block policy invariants** (`remora/policy`), deterministic gates that
-   run before any vote is tallied. Adversarial input, malformed calls, forbidden
-   tools, coercion/blackmail patterns, tainted arguments, and production-write
-   without safeguards route straight to ESCALATE/ABSTAIN. This is the safety
-   floor of §2.
+1. **Admission firewall** (`remora/engine.py`, `remora/safety`), a deterministic
+   adversarial/coercion text check that runs *before* any oracle call and routes
+   detected attacks straight to ESCALATE/ABSTAIN. The remaining hard-block
+   invariants (malformed calls, forbidden tools, tainted arguments, production-write
+   without safeguards, contradicting evidence, counterfactual failure) are enforced
+   with absolute priority inside the Stage 4 policy decision (`remora/policy`).
+   Together these are the safety floor of §2.
 2. **Multi-oracle consensus** (`remora/engine.py`, `remora/correlation.py`,
    `remora/thermodynamics`), several oracle backends answer; a thermodynamic
    *phase* (ordered / critical / disordered) is derived from entropy `H`,
@@ -109,11 +114,13 @@ flowchart TD
    whether cited sources support or contradict the candidate. Relation detection
    is lexical (token overlap + negation heuristic), pluggable for a future NLI
    upgrade.
-4. **Trust / conformal selective routing** (`remora/selective`), the
+4. **Policy decision** (`remora/policy/decision_engine.py`, `remora/selective`),
+   `RemoraDecisionEngine.decide()` runs the hard-block-first ladder, then the
    `PhaseAwareGuardrail`, conformal risk control (`conformal.py`), and the
    weight-corrected CRC (`crc.py`) map the phase and trust state to
    accept/verify/abstain, with phase-specific thresholds (the critical phase is
-   handled by score inversion, see §8).
+   handled by score inversion, see §8). Hard guards evaluated here have absolute
+   priority over the routing signals.
 5. **Hash-chain audit** (`remora/governance/envelope.py`,
    `remora/audit/hash_chain.py`), the decision is written as a
    `DecisionEnvelope` and hash-chained. The record is **tamper-evident**, not

@@ -33,8 +33,15 @@ def test_architecture_doc_exists() -> None:
 def test_architecture_uses_current_governance_framing() -> None:
     text = _arch_text().lower()
     assert "governance overlay" in text, "ARCHITECTURE.md must frame REMORA as a governance overlay"
-    assert "hard-block policy invariants" in text, (
-        "ARCHITECTURE.md must describe the Stage-1 hard-block policy layer"
+    assert "hard-block invariants" in text or "hard guards" in text, (
+        "ARCHITECTURE.md must describe the hard-block/hard-guard safety layer"
+    )
+    # Corrected framing (external-review finding): hard guards have absolute
+    # priority inside the policy decision, not necessarily temporal precedence
+    # over the oracle fan-out. Guard against regressing to a "runs first" claim.
+    assert "absolute priority" in text, (
+        "ARCHITECTURE.md must frame hard guards as having absolute priority in the "
+        "policy decision (they are not evaluated before the oracle calls)"
     )
     # The four canonical outcomes.
     for outcome in ("ACCEPT", "VERIFY", "ABSTAIN", "ESCALATE"):

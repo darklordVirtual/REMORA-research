@@ -446,7 +446,7 @@ The remaining 61.5% of critical-phase items receive ESCALATE, which is the corre
 
 ### 8.1 DecisionEnvelope v2
 
-Every gate invocation produces a `DecisionEnvelope` (a serializable, immutable dataclass) with the following top-level blocks:
+Every gate invocation produces a `DecisionEnvelope` (a serializable, frozen dataclass; attribute-immutable, nested collections not deep-frozen) with the following top-level blocks:
 
 | Block | Contents |
 |-------|----------|

@@ -9,7 +9,7 @@ REMORA is a pre-execution governance overlay for AI agents operating in environm
 | **ABSTAIN** | Trust too low to decide; action blocked |
 | **ESCALATE** | Risk exceeds autonomous authority; routed to human review |
 
-Every decision is logged in an immutable `DecisionEnvelope` carrying a SHA-256 tamper-evident hash chain, a policy version stamp, and a complete audit trail. The architecture is designed to remain conservative under uncertainty: when evidence is insufficient, REMORA errs toward ABSTAIN or ESCALATE rather than ACCEPT, and requires human approval before acting beyond its confidence boundary.
+Every decision produces a versioned `DecisionEnvelope` with a policy version stamp and a structured audit block. On the `/v1/execution/*` path with a persistence adapter configured (`REMORA_CHAIN_DB` or `REMORA_PG_DSN`), envelopes are appended to a per-tenant, SHA-256 tamper-evident audit chain; the default in-process library path and legacy `/v1/assess` do not yet provide that persistence guarantee. The architecture is designed to remain conservative under uncertainty: when evidence is insufficient, REMORA errs toward ABSTAIN or ESCALATE rather than ACCEPT, and requires human approval before acting beyond its confidence boundary.
 
 Architecture bounded by documented assumptions. Results are from controlled experiments and internal benchmarks; external replication is pending. See the [Limitations](#limitations) section before drawing deployment conclusions.
 
@@ -51,26 +51,26 @@ python scripts/demo_industrial_maintenance.py
 
 ## Architecture
 
-The pipeline runs synchronously before any action executes. Stage 1 always runs first.
+The pipeline runs synchronously before any action executes: a deterministic admission check runs first, then the consensus and evidence machinery, then the policy decision — inside which deterministic hard guards are evaluated, with absolute priority, before any uncertainty-based routing.
 
 ```mermaid
 flowchart TD
-    A[Agent action] --> B[Stage 1: Hard-block policy invariants]
-    B --> C[Stage 2: Multi-oracle consensus\nEntropy H, dissensus D, phase]
-    C --> D[Stage 3: Evidence verification\nRAG / domain / cyber / finance]
-    D --> E[Stage 4: Trust + conformal routing\nPhaseAwareGuardrail, CRC]
-    E --> F{Decision}
+    A[Agent action] --> B[Admission check\nadversarial / coercion firewall]
+    B --> C[Multi-oracle consensus\nEntropy H, dissensus D, phase]
+    C --> D[Evidence enrichment\nRAG / domain / cyber / finance]
+    D --> E[Policy decision\nhard guards → conditional guards → trust + conformal routing]
+    E --> F{Outcome}
     F -->|ACCEPT| G[Execute]
     F -->|VERIFY| H[Hold for validation]
     F -->|ABSTAIN| I[Block — trust too low]
     F -->|ESCALATE| J[Human review]
-    G --> K[Stage 5: DecisionEnvelope + hash chain audit]
+    G --> K[DecisionEnvelope + audit block]
     H --> K
     I --> K
     J --> K
 ```
 
-**Stage 1 is deterministic and cannot be overridden by any probabilistic oracle result.** Hard-block policy invariants are evaluated before the consensus machinery runs. This is the architectural reason the zero-false-accept safety result is a property of the policy layer: the multi-oracle consensus machinery governs VERIFY/ABSTAIN routing quality, not the safety floor. These are distinct claims and must not be conflated.
+**Hard guards are deterministic and have absolute priority: no probabilistic oracle result can override a hard block.** They are evaluated first *inside* `RemoraDecisionEngine.decide()`, which runs after the consensus and evidence machinery — priority over the oracle result, not temporal precedence over the oracle calls. (Only the adversarial/coercion admission check runs before the oracles.) This is the architectural reason the zero-false-accept safety result is a property of the policy layer: the multi-oracle consensus machinery governs VERIFY/ABSTAIN routing quality, not the safety floor. These are distinct claims and must not be conflated.
 
 Full architecture detail: [docs/01-architecture.md](docs/01-architecture.md) | API reference: [docs/07-api-reference.md](docs/07-api-reference.md)
 
@@ -87,7 +87,7 @@ All claims are bounded by documented assumptions. External replication is pendin
 
 **Intent-gating, not interception:** this result routes the agent's *proposed* action to VERIFY/ESCALATE; true tool-call interception is unverified (`experiments/agentharm/INTERCEPTION_NOTES.md`). It demonstrates routing accuracy, not execution prevention, as the paper abstract states.
 
-**Architectural caveat:** Stage 1 hard-block policy invariants account for this result. The multi-oracle consensus machinery contributes VERIFY/ABSTAIN routing quality but does not drive the safety floor. Do not cite this result as evidence for the consensus layer.
+**Architectural caveat:** the policy layer's deterministic guards and risk-tier routing account for this result. The multi-oracle consensus machinery contributes VERIFY/ABSTAIN routing quality but does not drive the safety floor. Do not cite this result as evidence for the consensus layer.
 
 Artifact: `results/external_benchmark_agentharm_v1.json` | Gate: REM-014 (PASS)
 

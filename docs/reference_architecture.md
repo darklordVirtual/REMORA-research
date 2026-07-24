@@ -1,5 +1,9 @@
 # REMORA Reference Architecture: Policy-Governed Agent Assurance Control Plane
 
+> **Canonical architecture reference:** [`../ARCHITECTURE.md`](../ARCHITECTURE.md).
+> This document details the assurance control plane specifically; the end-to-end
+> narrative is [`01-architecture.md`](01-architecture.md).
+
 **Positioning statement:** REMORA is a reference architecture and executable
 reference implementation for a policy-governed agent assurance control plane.
 It is not an agent platform, not a data platform, and not a finished security

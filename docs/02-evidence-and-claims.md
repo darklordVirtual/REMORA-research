@@ -78,9 +78,14 @@ below names the PDF, verify against the .md, which supersedes it.
   `remora/selective/guardrail.py` (8 unit tests).
 
 ### 4. Tamper-evident audit chain
-- **Claim:** every decision is recorded in an immutable `DecisionEnvelope` and
-  hash-chained (`hᵢ = SHA-256(hᵢ₋₁ ‖ envelope)`); any modification breaks the chain.
-- **Evidence:** `remora/audit/hash_chain.py`; replay reconstructs the chain.
+- **Claim:** every decision is recorded in a frozen `DecisionEnvelope`. On the
+  `/v1/execution/*` path with a persistence adapter (`REMORA_CHAIN_DB` /
+  `REMORA_PG_DSN`), envelopes are hash-chained per tenant
+  (`hᵢ = SHA-256(hᵢ₋₁ ‖ envelope)`) so any modification breaks the chain; the
+  default in-process library path and legacy `/v1/assess` are not chain-persisted.
+- **Evidence:** `remora/governance/audit_chain.py`, `remora/governance/tenant_chain.py`
+  (atomic per-tenant chain); `remora/audit/hash_chain.py` (hash primitive); replay
+  reconstructs the chain.
 - **Artifact:** `paper/remora_paper.pdf` §7.2; shadow-replay produces output
   on demand via `make shadow-replay` (output directory not committed).
 - **Caveat:** tamper-**evident**, not tamper-**proof**. Preventing tampering needs

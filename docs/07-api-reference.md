@@ -15,7 +15,7 @@ fails.
 ## DecisionEnvelope, canonical governance contract
 
 `DecisionEnvelope` (`remora/governance/envelope.py`) is the canonical v2
-decision record: a nested, immutable, JSON-serialisable structure. Do not add
+decision record: a nested, JSON-serialisable structure of frozen dataclasses (attribute-immutable; nested list/dict fields are not deep-frozen). Do not add
 blocks without updating the envelope hash and schema.
 
 | Block | Contents |
@@ -31,7 +31,7 @@ blocks without updating the envelope hash and schema.
 | `causal_explanation` | Optional policy-only what-if analysis (`decision_scope="policy_only"`) |
 
 Serialise with `envelope.to_dict()`. The audit hash chain
-(`remora/audit/hash_chain.py`, class `HashChain`) links records as
+(`remora/audit/hash_chain.py`, class `AuditHashChain`) links records as
 `hᵢ = SHA-256(hᵢ₋₁ ‖ record_json)`; modification of a past record breaks all
 subsequent hashes. This is tamper-*evidence*, not tamper-prevention, see the
 limitations section of README.md.
