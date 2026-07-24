@@ -62,3 +62,6 @@ docs/researchpapers/kompendium_ai_assurance_3utgave.md
 
 # MkDocs build output
 /site/
+
+# Root-level scratch/extraction files (working notes, not for the repo)
+/_*.txt

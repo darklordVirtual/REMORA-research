@@ -39,7 +39,6 @@ These are expected to remain in regular use.
   - `generate_results_snapshot.py`
   - `generate_usecase_visuals.py`
   - `generate_asker_visual.py`
-  - `generate_demo_gif.py`
 - Runtime and integration tooling:
   - `remora_hook.py`
   - `remora_anchor.py`
@@ -52,7 +51,6 @@ These are expected to remain in regular use.
   - `demo.py`
   - `demo_building_lights.py`
   - `demo_norwegian_law.py`
-  - `capture_demo.py`
   - `demo_future_concept.py` (experimental)
 
 ## Maintenance / One-Off Patch Scripts

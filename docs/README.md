@@ -228,7 +228,7 @@ evidence, and should not be cited as such:
 
 | Path | What it is |
 |---|---|
-| `artifacts/use-cases/` | Demo screenshots and a walkthrough GIF (illustration, not benchmark output) |
+| `artifacts/use-cases/` | Demo screenshots for the use-case docs (illustration, not benchmark output) |
 | `frontend/` (incl. `.lovable/`) | Control-room UI scaffolding (Lovable / dev tooling) |
 
 Evidence lives under [Evidence and benchmarks](#evidence-and-benchmarks), the
