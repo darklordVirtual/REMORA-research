@@ -28,6 +28,24 @@ def _prior() -> DomainHarmPrior:
     return p
 
 
+def test_transfer_harness_is_in_memory(monkeypatch) -> None:
+    """Regression guard (CI red on Linux): the leave-one-domain-out harness must
+    run fully in memory. It previously constructed each fold prior with the
+    sentinel path ``/dev/null-not-persisted``, which is writable on Windows but
+    raises PermissionError under ``/dev`` on Linux. The harness must never
+    persist a prior to disk."""
+    import remora.aromer.world_model.domain_prior as dp
+
+    writes: list[str] = []
+    monkeypatch.setattr(dp.Path, "write_text", lambda self, *a, **k: writes.append(str(self)))
+    episodes = [
+        TransferEpisode("database", "destructive_write", "critical", True),
+        TransferEpisode("medical", "destructive_write", "critical", True),
+    ] * 4
+    run_cross_domain_transfer(episodes)
+    assert writes == [], f"cross-domain transfer persisted a prior to disk: {writes}"
+
+
 def test_abstract_prior_is_domain_agnostic() -> None:
     p = _prior()
     # Learn "destructive_write/critical is harmful" from database only.

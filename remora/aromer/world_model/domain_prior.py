@@ -109,9 +109,14 @@ class DomainHarmPrior:
         path: str | Path | None = None,
         *,
         shadow_mode: bool = False,
+        persist: bool = True,
     ) -> None:
         self.path = Path(path) if path else _DEFAULT_MODEL_PATH
         self.shadow_mode = shadow_mode
+        # persist=False keeps the model fully in memory (no disk read/write) —
+        # used by the leave-one-domain-out transfer harness so a fold never
+        # writes a throwaway prior to disk (was the /dev/null-not-persisted bug).
+        self._persist = persist
         self._priors: dict[str, dict[str, float]] = {}
         self._load()
 
@@ -355,6 +360,8 @@ class DomainHarmPrior:
         # Bounded: shadow-mode decide() appends on every call and the log
         # is diagnostic-only; cap it so it cannot grow without limit.
         self._shadow_log: deque = deque(maxlen=1000)
+        if not self._persist:
+            return
         if self.path.exists():
             try:
                 self._priors = json.loads(self.path.read_text(encoding="utf-8"))
@@ -362,6 +369,8 @@ class DomainHarmPrior:
                 self._priors = {}
 
     def _save(self) -> None:
+        if not self._persist:
+            return
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(self._priors, indent=2), encoding="utf-8")
 

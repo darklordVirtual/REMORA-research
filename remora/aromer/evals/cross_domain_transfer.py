@@ -113,8 +113,7 @@ def _evaluate_fold(
 ) -> FoldResult:
     """Train the abstract prior on every domain except ``target``; predict
     ``target``'s episodes from the resulting domain-agnostic structure."""
-    prior = DomainHarmPrior(path="/dev/null-not-persisted")
-    prior._priors = {}  # fresh in-memory model; never touch disk
+    prior = DomainHarmPrior(persist=False)  # fresh in-memory model; never touches disk
     n_source_updates = 0
     for ep in episodes:
         if ep.domain == target:
