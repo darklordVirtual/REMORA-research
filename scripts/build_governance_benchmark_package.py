@@ -9,8 +9,10 @@ It should never be interpreted as a claim that REMORA replaces agents.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 import zipfile
@@ -31,6 +33,28 @@ PACKAGE_FILES = [
     "README.md",
 ]
 
+# Dependency lockfiles hashed into the manifest so a reviewer can pin the exact
+# environment the pack was built against.
+LOCKFILES = ["requirements-lock.txt", "frontend/package-lock.json"]
+
+
+def _sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _git(repo_root: Path, *args: str) -> str | None:
+    try:
+        out = subprocess.run(
+            ["git", *args], cwd=repo_root, capture_output=True, text=True, timeout=15
+        )
+        return out.stdout.strip() if out.returncode == 0 else None
+    except Exception:
+        return None
+
 
 def build_package(
     *,
@@ -39,10 +63,17 @@ def build_package(
     zip_path: Path,
     include_zip: bool = True,
 ) -> dict:
+    # Clean the output directory first so stale files from a previous build can
+    # never be carried into the ZIP (P0-1). rglob-guarded rmtree keeps this safe
+    # if out_dir is misconfigured to something outside artifacts/.
+    if out_dir.exists():
+        assert out_dir.resolve() != repo_root.resolve(), "refusing to wipe repo root"
+        shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     copied: list[str] = []
     missing: list[str] = []
+    file_sha256: dict[str, str] = {}
 
     for rel in PACKAGE_FILES:
         src = repo_root / rel
@@ -52,13 +83,29 @@ def build_package(
             continue
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
+        # Verify the copy is byte-identical to the canonical source.
+        src_hash = _sha256(src)
+        assert _sha256(dst) == src_hash, f"copy mismatch for {rel}"
         copied.append(rel)
+        file_sha256[rel] = src_hash
 
+    lockfile_sha256 = {
+        rel: _sha256(repo_root / rel)
+        for rel in LOCKFILES
+        if (repo_root / rel).exists()
+    }
+
+    commit_sha = _git(repo_root, "rev-parse", "HEAD")
+    worktree_clean = _git(repo_root, "status", "--porcelain")
     manifest = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "scope": "REMORA governance overlay benchmark package",
         "scope_note": "This package evaluates governance performance and safety controls, not agent replacement capability.",
+        "commit_sha": commit_sha,
+        "worktree_clean": (worktree_clean == "") if worktree_clean is not None else None,
+        "lockfile_sha256": lockfile_sha256,
         "copied_files": copied,
+        "file_sha256": file_sha256,
         "missing_files": missing,
         "file_count": len(copied),
     }
