@@ -1,28 +1,41 @@
 {
   "schema_version": "critical_trust_split_v1",
   "input_artifact": "results/thermodynamic_eval_n500_calibrated_results.json",
-  "split_rule": "Critical-phase items split at the median critical-phase trust_score (low = trust < median, high = trust >= median). No tuned parameter.",
-  "median_critical_trust": 0.0434,
+  "split_rule": "Critical-phase items split at the tau = 0.1 groupthink boundary (low = trust < boundary, high = trust >= boundary). This is the paper's documented operating point, not a parameter tuned to the labels.",
+  "tau_groupthink_boundary": 0.1,
   "n_critical": 32,
   "aggregate_correct": 20,
-  "aggregate_accuracy": 0.625,
+  "aggregate_accuracy_pct": 62.5,
   "low_trust_bucket": {
-    "n": 15,
-    "correct": 12,
-    "accuracy": 0.8
+    "n": 21,
+    "correct": 16,
+    "accuracy_pct": 76.2,
+    "wilson_ci_95_pct": [
+      54.9,
+      89.4
+    ]
   },
   "high_trust_bucket": {
-    "n": 17,
-    "correct": 8,
-    "accuracy": 0.4706
+    "n": 11,
+    "correct": 4,
+    "accuracy_pct": 36.4,
+    "wilson_ci_95_pct": [
+      15.2,
+      64.6
+    ]
   },
   "trust_inversion_present": true,
-  "accuracy_delta_low_minus_high": 0.3294,
+  "accuracy_delta_pct_low_minus_high": 39.8,
+  "quartile_view": {
+    "q_size": 8,
+    "q1_low_trust_accuracy_pct": 75.0,
+    "q4_high_trust_accuracy_pct": 50.0
+  },
   "consistency_check": {
     "sum_of_bucket_correct": 20,
     "matches_aggregate": true
   },
-  "supersedes": "The earlier uncommitted low-trust 71.4% (N=21) / high-trust 27.3% (N=11) figures, whose bucket correct counts (15 + 3 = 18) were inconsistent with the committed 20/32 critical aggregate. This artifact is the reproducible replacement (CAB-04).",
+  "supersedes": "The earlier uncommitted low-trust 71.4% (N=21) / high-trust 27.3% (N=11) percentages, whose bucket correct counts (15 + 3 = 18) were inconsistent with the committed 20/32 critical aggregate. Sample sizes are unchanged (N=21 / N=11); only the percentages are corrected to their reproducible values (CAB-04).",
   "limitations": [
     "Small sample: 32 critical items total; treat as a directional finding.",
     "Correctness label is majority_correct from the committed N500 artifact."

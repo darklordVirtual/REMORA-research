@@ -117,7 +117,7 @@ achieves 88.8\% selective accuracy at 18\% coverage (majority-vote
 full-coverage baseline: 41.18\%; $+47.6$\,pp lift; in-sample optimum).
 Exploiting a preliminary critical-phase trust inversion observation ($N=32$ real-oracle
 critical items; low-$\tau$
-critical items achieve 71.4\% accuracy vs.\ 27.3\% for high-$\tau$),
+critical items achieve 76.2\% accuracy vs.\ 36.4\% for high-$\tau$),
 a \texttt{PhaseAwareGuardrail} with inverted-score selection extends coverage
 to 22.1\% at 85.0\% accuracy ($+43.8$\,pp lift; $N=120$; Wilson~CI [77.5\%,
 90.3\%])---a $+3.9$\,pp coverage gain with only $1.9$\,pp accuracy cost.
@@ -609,7 +609,7 @@ routing cannot safely gate critical-phase decisions.
 
 The inversion is a \emph{selection criterion reversal}, not an
 accuracy problem.  Items with $\tau < 0.10$ in the critical phase
-achieve 71.4\% accuracy ($N=21$) vs.\ 27.3\% for high-$\tau$
+achieve 76.2\% accuracy ($N=21$) vs.\ 36.4\% for high-$\tau$
 critical items ($N=11$).  A \texttt{PhaseAwareGuardrail} exploits
 this by applying an inverted score $\tilde{\tau} = 1 - \tau$ for
 critical-phase items, then calibrating a conformal threshold on

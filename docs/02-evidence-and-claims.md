@@ -66,7 +66,7 @@ below names the PDF, verify against the .md, which supersedes it.
 
 ### 3. The critical-phase trust inversion
 - **Claim:** in the hardest ("critical") cases, the trust score anti-correlates
-  with correctness, low-trust items 71.4% correct (N=21), high-trust 27.3%
+  with correctness, low-trust items 76.2% correct (N=21), high-trust 36.4%
   (N=11).
 - **Evidence:** measured on real-oracle critical items; naive conformal at a 5%
   risk target collapses to 100% observed risk / 0 coverage in this regime. REMORA

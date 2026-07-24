@@ -352,15 +352,15 @@ threshold test**, so it is not merely an in-sample fit.
 In the **critical** phase, higher `τ` *anticorrelates* with correctness:
 
 ```
-critical items, τ < 0.10 :  71.4% correct   (N = 21)
-critical items, τ ≥ 0.10 :  27.3% correct   (N = 11)        (Eq. 5.4)
+critical items, τ < 0.10 :  76.2% correct   (N = 21)
+critical items, τ ≥ 0.10 :  36.4% correct   (N = 11)        (Eq. 5.4)
 ```
 
 (*Artifact:* `paper §6.1, §13`; `N = 32` real-oracle critical items.)
 
 > **Caveat on sample size.** With N=21 low-trust and N=11 high-trust critical
-> items, the 95% Wilson CIs on 71.4% and 27.3% are both wide (roughly
-> [49%, 87%] and [8%, 60%] respectively). The directional finding is clear
+> items, the 95% Wilson CIs on 76.2% and 36.4% are both wide (roughly
+> [55%, 89%] and [15%, 65%] respectively). The directional finding is clear
 > and motivates the routing design, but the precise values should not be
 > treated as stable estimates. The result is a *design motivator*, not a
 > calibrated measurement.
@@ -649,7 +649,7 @@ these independently; it transcribes them.
 | Held-out selective accuracy | 88.0% @ 23.2% cov, `p=1.45e-5` | `paper §8`; locked `τ*=0.2032` |
 | Unsafe execution (tool-call, full policy) | 0%, cluster-level Wilson CI [0.0%, 5.2%] | `paper §9.2 tab:toolcall`, `N=700` tasks, effective N=70 templates |
 | Mean utility (full policy vs baselines) | 0.62 vs 0.16 | `paper §9.2` (2026-07-20 leakage-free re-run) |
-| Critical-phase trust inversion | 71.4% (τ<0.10) vs 27.3% (τ≥0.10) | `paper §6.1, §13`, `N=32` |
+| Critical-phase trust inversion | 76.2% (τ<0.10) vs 36.4% (τ≥0.10) | `paper §6.1, §13`, `N=32` |
 | Ordered-phase conformal coverage | 99.9%, 0/20 seed failures | `paper §9.3 tab:mondrian` |
 | Evidence router (MultiNLI) | 38.5% resolution, 100% accept-precision | `paper §9.5`, `N=3000` |
 | Lyapunov `P(ΔV ≤ 0)` | 87.2%, mean ΔV −0.329 | `paper §10.4`, `N=1000` |

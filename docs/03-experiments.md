@@ -58,8 +58,8 @@ N=11 high-trust).
 **Artifact:** `paper/remora_paper.pdf` §6.1, §13; `NEGATIVE_RESULTS.md`.
 
 **Result:**
-- Low-trust critical items: 71.4% correct (N=21).
-- High-trust critical items: 27.3% correct (N=11).
+- Low-trust critical items: 76.2% correct (N=21).
+- High-trust critical items: 36.4% correct (N=11).
 - Naive conformal at 5% risk target: 100% observed risk / 0 coverage in critical
   phase.
 

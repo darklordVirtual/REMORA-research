@@ -82,13 +82,13 @@ floor. Quote the CI, not just the point estimate.
 python experiments/end_to_end_n500_v3.py   # in-sample full-dataset eval
 ```
 
-The critical-phase trust-inversion split (low-trust critical items 71.4% correct,
-N=21, vs high-trust 27.3%, N=11) is a documented negative result; see
-`NEGATIVE_RESULTS.md` and `paper/remora_paper.md`. NOTE: the per-item τ-split
-artifact behind this exact split is not committed to this repo, so treat the
-split as a directional finding pending that artifact (the committed
-`results/selective_n500_results.json` records the aggregate critical bucket as
-20/32 correct).
+The critical-phase trust-inversion split (low-trust critical items 76.2% correct,
+N=21, vs high-trust 36.4%, N=11) is a documented negative result; see
+`NEGATIVE_RESULTS.md` and `paper/remora_paper.md`. The per-item split is committed as
+`results/critical_trust_split_v1.json` (reproduce with
+`python scripts/compute_critical_trust_split.py`), computed at the τ=0.10
+groupthink boundary from the N500 thermodynamic artifact; its buckets sum to
+the committed aggregate of 20/32 correct. Small sample (N=32); a directional finding.
 
 Unit tests: `remora/selective/guardrail.py`, 8 unit tests covering phase-aware
 guardrail routing.

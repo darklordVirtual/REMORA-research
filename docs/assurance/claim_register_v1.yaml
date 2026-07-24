@@ -155,22 +155,23 @@ claims:
     title: "Critical-phase trust inversion (negative result)"
     statement: >
       On N=32 critical-phase items, trust anti-correlates with correctness.
-      Low-trust items: 71.4% correct (N=21). High-trust items: 27.3% correct (N=11).
+      Low-trust items: 76.2% correct (N=21). High-trust items: 36.4% correct (N=11).
     evidence_level: internal_benchmark
     artifact:
+      - "results/critical_trust_split_v1.json"
       - "results/selective_n500_results.json"
       - "NEGATIVE_RESULTS.md"
     n: 32
     n_detail: "32 critical-phase items from N=544 benchmark"
     metrics:
-      low_trust_correct_pct: 71.4
-      high_trust_correct_pct: 27.3
+      low_trust_correct_pct: 76.2
+      high_trust_correct_pct: 36.4
     caveat: >
       Small sample (N=32). Published as a negative result requiring further investigation.
       REMORA routes around this failure mode via PhaseAwareGuardrail. Do not cite as
       evidence of general trust calibration quality.
     reproduce: >
-      python experiments/end_to_end_n500_v3.py
+      python scripts/compute_critical_trust_split.py
       See NEGATIVE_RESULTS.md section 14 (M8)
 
   - id: CLAIM-006

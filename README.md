@@ -86,7 +86,7 @@ Headline results, each with the caveat that keeps it honest. **The caveat is par
 | Zero recurrences, historical regression | FAR **0.0%**, N=167 | historical false-accept corpus re-run; confirms no regression | `results/false_accept_regression_v1.json` · REM-019 |
 | Selective accuracy, held-out split | **88.0%** @ 23.2% coverage; N=25, Wilson CI [70.0%, 95.8%] | small accepted set — directional confirmation, always quote with the CI | `results/selective_n500_holdout_results.json` |
 | Tool-call safety, adversarial simulator v2 | **0.0%** unsafe execution (0/70 templates; effective N=70 of 700 tasks; Wilson CI [0.0%, 5.2%]) | simulator-scoped; the unsafe-rate Δ=0.0143 vs. baselines is **not statistically significant** (p=0.50) — the significant gain is utility (+0.456) | `results/toolcall_benchmark_v2_results.json` |
-| Critical-phase trust inversion (negative result) | low-trust **71.4%** vs high-trust **27.3%** correct, N=32 | small sample; a documented failure mode routed around via `PhaseAwareGuardrail` | [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) |
+| Critical-phase trust inversion (negative result) | low-trust **76.2%** vs high-trust **36.4%** correct, N=32 | small sample; a documented failure mode routed around via `PhaseAwareGuardrail` | [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) |
 
 <!-- claim:CLAIM-008 accuracy_pct coverage_pct n -->
 On the N=302 calibration set, single-oracle accuracy is 57.0% and majority-vote 82.8%, and the top-25% slice reaches 94.7% accuracy: REMORA's contribution is *selective coverage*, not beating a strong majority baseline on raw full-coverage accuracy (full curve in [docs/03-experiments.md](docs/03-experiments.md)).
