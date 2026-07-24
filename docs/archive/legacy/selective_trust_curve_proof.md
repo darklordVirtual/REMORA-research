@@ -4,8 +4,8 @@
 
 
 **Status:** statistically significant on canonical N=302 benchmark.
-**Reproducer:** [experiments/selective_trust_curve.py](../../experiments/selective_trust_curve.py)
-**Artifact:** [results/selective_trust_curve_results.json](../../results/selective_trust_curve_results.json)
+**Reproducer:** [experiments/selective_trust_curve.py](../../../experiments/selective_trust_curve.py)
+**Artifact:** [results/selective_trust_curve_results.json](../../../results/selective_trust_curve_results.json)
 
 ## Claim
 

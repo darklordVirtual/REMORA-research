@@ -135,17 +135,17 @@ The goal is not to replace AI infrastructure. The goal is to make it governable.
 
 ## Related Documents
 
-- [`enterprise/remora-control-plane.md`](remora-control-plane.md), multi-tenant deployment model
+- `enterprise/remora-control-plane.md`, multi-tenant deployment model
 - [`enterprise/policy-model.md`](policy-model.md), risk tiers and decision outcomes
 - [`enterprise/risk-profiles.yaml`](risk-profiles.yaml), machine-readable profile configuration
-- [`enterprise/policy_as_code_example.yaml`](policy_as_code_example.yaml) - concrete fail-closed policy-as-code example
-- [`enterprise/nested_governance_layers.yaml`](nested_governance_layers.yaml) - multi-frequency memory and governance layers
+- `enterprise/policy_as_code_example.yaml` - concrete fail-closed policy-as-code example
+- `enterprise/nested_governance_layers.yaml` - multi-frequency memory and governance layers
 - [`enterprise/threat-model.md`](threat-model.md) - threat model and security controls
-- [`enterprise/production-readiness.md`](production-readiness.md) - production readiness gates
-- [`enterprise/deployment-runbook.md`](deployment-runbook.md) - secure deployment and operations runbook
-- [`enterprise/observability.md`](observability.md) - SLOs, safety metrics, and alerts
-- [`enterprise/human-approval-workflow.md`](human-approval-workflow.md) - approval workflow and authority boundaries
-- [`enterprise/integration-patterns.md`](integration-patterns.md), enterprise stack integration
-- [`enterprise/audit-ledger-schema.sql`](audit-ledger-schema.sql), audit trail schema
-- [`enterprise/sector-use-cases.md`](sector-use-cases.md), domain-specific use cases
-- [`enterprise/executive-brief.md`](executive-brief.md), strategic positioning
+- `enterprise/production-readiness.md` - production readiness gates
+- `enterprise/deployment-runbook.md` - secure deployment and operations runbook
+- `enterprise/observability.md` - SLOs, safety metrics, and alerts
+- `enterprise/human-approval-workflow.md` - approval workflow and authority boundaries
+- `enterprise/integration-patterns.md`, enterprise stack integration
+- `enterprise/audit-ledger-schema.sql`, audit trail schema
+- `enterprise/sector-use-cases.md`, domain-specific use cases
+- `enterprise/executive-brief.md`, strategic positioning

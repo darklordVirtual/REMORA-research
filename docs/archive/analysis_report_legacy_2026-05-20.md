@@ -17,7 +17,7 @@ On the external TruthfulQA benchmark, consensus-based systems hit a ceiling at *
 
 ## Figure 1: Accuracy Across All Conditions
 
-![Figure 1: Accuracy comparison](../artifacts/figures/fig1_accuracy_comparison.png)
+![Figure 1: Accuracy comparison](../../artifacts/figures/fig1_accuracy_comparison.png)
 
 **Interpretation:** Conditions D2 and D3 (REMORA with adaptive router gate) match majority voting at 96.0 % on the curated benchmark. On the extended benchmark (N=125), the generalisation gap is visible: accuracy drops from 96.0 % to 89.6 % when external TruthfulQA questions are added. This drop is consistent across all conditions, confirming it reflects task difficulty rather than overfitting to the curated set.
 
@@ -25,7 +25,7 @@ On the external TruthfulQA benchmark, consensus-based systems hit a ceiling at *
 
 ## Figure 2: Effective Truth Rate Decomposition
 
-![Figure 2: ETR decomposition](../artifacts/figures/fig2_etr_decomposition.png)
+![Figure 2: ETR decomposition](../../artifacts/figures/fig2_etr_decomposition.png)
 
 **Interpretation:** ETR reveals what accuracy hides. Condition C (full REMORA, no routing) achieves 77.6 % accuracy but only **16.8 % ETR** — most correct answers are weakly grounded. D2 achieves 89.6 % accuracy and **63.2 % ETR**, a 26 pp calibration gap: 33 items are correct but not oracle-consistent, meaning the system gave the right answer without meeting the consensus threshold. D3 (HYBRID) closes this gap partially (60.0 % ETR, 24 consensus-gap items) because it routes more items to full Lyapunov iteration, producing better-calibrated verdicts.
 
@@ -35,7 +35,7 @@ On the external TruthfulQA benchmark, consensus-based systems hit a ceiling at *
 
 ## Figure 3: Generalisation Analysis by Source
 
-![Figure 3: Per-source generalisation](../artifacts/figures/fig3_per_source_generalisation.png)
+![Figure 3: Per-source generalisation](../../artifacts/figures/fig3_per_source_generalisation.png)
 
 **Interpretation:** The generalisation gap is stark on **TruthfulQA** (designed to defeat consensus): single oracle (84 %) outperforms majority/REMORA (79 %) because these questions are specifically crafted so that the most commonly held belief is wrong. Any majority-based system will fail on them. This finding directly motivates the **RAG oracle** with orthogonal failure modes: retrieval from authoritative sources is not subject to the same training-data bias that makes LLMs converge on wrong answers.
 
@@ -45,7 +45,7 @@ On the curated benchmark and adversarial items, D2 maintains 96 % and 86 % respe
 
 ## Figure 4: Calibration Curves
 
-![Figure 4: Reliability diagram](../artifacts/figures/fig4_reliability_diagram.png)
+![Figure 4: Reliability diagram](../../artifacts/figures/fig4_reliability_diagram.png)
 
 **Interpretation:** A perfectly calibrated system lies on the diagonal: when it says 80 % confident, it should be correct 80 % of the time. The Expected Calibration Error (ECE) measures average deviation from perfect calibration. Lower ECE = better calibration. D3 HYBRID shows the best calibration because full REMORA iteration (engaged for 7 % of items) produces high-confidence verdicts that are well-supported — the items it escalates are genuinely uncertain, and the Lyapunov iteration resolves them.
 
@@ -53,7 +53,7 @@ On the curated benchmark and adversarial items, D2 maintains 96 % and 86 % respe
 
 ## Figure 5: Oracle Independence
 
-![Figure 5: Oracle correlation](../artifacts/figures/fig5_oracle_correlation.png)
+![Figure 5: Oracle correlation](../../artifacts/figures/fig5_oracle_correlation.png)
 
 **Interpretation:** The measured inter-oracle correlation ρ̄ = 0.236 confirms that the three LLaMA models behave as approximately independent sensors. O1 (8B) shows the lowest correlation with both larger models (0.175, 0.215), receiving the highest diversity weight (0.352) — despite being the smallest model. This demonstrates that **parameter count does not determine oracle diversity**: the 8B model brings different training-data coverage than the 70B model, which is exactly what diversity weighting exploits.
 
@@ -63,7 +63,7 @@ The effective number of independent opinions is $n_{eff} = n / (1 + (n-1) \cdot 
 
 ## Figure 6: Router Gate Analysis
 
-![Figure 6: Router gate analysis](../artifacts/figures/fig6_router_gate.png)
+![Figure 6: Router gate analysis](../../artifacts/figures/fig6_router_gate.png)
 
 **Interpretation:** The router gate's precision is demonstrated by comparing routed vs. escalated accuracy. For D3 (HYBRID), the 5 items routed to full REMORA iteration (where oracle confidence < 0.80) achieve **100 % accuracy** — the gate correctly identifies exactly those items where deeper analysis adds value. For D1 (STRICT, requiring unanimity), 19 items are escalated and achieve only **68.4 %** — forcing REMORA on items where oracles outright disagree does not help. **Low oracle confidence** is the correct activation criterion, not oracle disagreement.
 
@@ -71,7 +71,7 @@ The effective number of independent opinions is $n_{eff} = n / (1 + (n-1) \cdot 
 
 ## Figure 7: Literature Comparison
 
-![Figure 7: Literature comparison](../artifacts/figures/fig7_literature_comparison.png)
+![Figure 7: Literature comparison](../../artifacts/figures/fig7_literature_comparison.png)
 
 **Interpretation:** REMORA sits at the top of the performance range on comparable yes/no factuality tasks. The single GPT-3.5 baseline from Lin et al. (2022) scores 58.5 % on TruthfulQA (original paper, zero-shot). Our Llama 70b single oracle achieves 89.6 % on the N=125 benchmark, reflecting task differences and model improvements since 2022. The multiagent debate baseline (Du et al., 2023) at ~76 % reflects results on factuality tasks where debate without structured stopping criteria can introduce noise — similar to REMORA Condition C (77.6 %) without the router gate.
 
@@ -81,7 +81,7 @@ The effective number of independent opinions is $n_{eff} = n / (1 + (n-1) \cdot 
 
 ## Figure 8: Multi-Metric Scorecard
 
-![Figure 8: Multi-metric scorecard](../artifacts/figures/fig8_scorecard.png)
+![Figure 8: Multi-metric scorecard](../../artifacts/figures/fig8_scorecard.png)
 
 **Summary table:**
 
@@ -116,7 +116,7 @@ D2 (REMORA + Router BALANCED) is the **Pareto-optimal** choice: best accuracy, b
 
 ### Figure 9: The Performance Inversion (Accuracy vs. Over-Analysis)
 
-![Figure 9: The Paradox of Strong Oracles](../artifacts/figures/fig9_paradox_strong_oracles.png)
+![Figure 9: The Paradox of Strong Oracles](../../artifacts/figures/fig9_paradox_strong_oracles.png)
 
 **Interpretation:** This phase of the evaluation uncovers what we call *The Paradox of Strong Oracles*. When upgrading to the world's most capable foundation models, unweighted majority voting (Condition B) immediately yields a massive **96.0 % accuracy** factually due to their vast inherent knowledge. However, when we route these top-tier models exclusively through native Topological Data Analysis and Causal Stress Testing without a preliminary gate (Condition C), accuracy paradoxically **drops to 89.3 %**. 
 
@@ -126,7 +126,7 @@ D2 (REMORA + Router BALANCED) is the **Pareto-optimal** choice: best accuracy, b
 
 ### Figure 10: The D2 Router Gate as the Ultimate Optimizer
 
-![Figure 10: D2 Routing Optimization](../artifacts/figures/fig10_d2_routing_optimization.png)
+![Figure 10: D2 Routing Optimization](../../artifacts/figures/fig10_d2_routing_optimization.png)
 
 **Interpretation:** If native iteration (Condition C) over-analyzes, how do we harness the power safely? The **D2 BALANCED** condition uses the Router Gate to intercept the query *before* deep iteration. If the heterogeneous swarm cleanly agrees (which it does ~96 % of the time), we output the answer immediately via the **fast path**, generating a ZKP-trace to prove consensus. REMORA only engages its heavy topologic and causal machinery for the remaining queries where the titans *genuinely* disagree. 
 
@@ -145,7 +145,7 @@ D2 (REMORA + Router BALANCED) is the **Pareto-optimal** choice: best accuracy, b
 
 The latest canonical snapshot on the N=302 external benchmark gives REMORA an **innovation factor of 87.0 / 100**, currently classified as a **breakthrough candidate** rather than a fully closed breakthrough claim.
 
-![Figure 11: Innovation factor and uniqueness scorecard](../artifacts/figures/fig11_innovation_factor.png)
+![Figure 11: Innovation factor and uniqueness scorecard](../../artifacts/figures/fig11_innovation_factor.png)
 
 **Interpretation:** The strongest verified signal is not raw accuracy leadership alone, but the combination of **calibration lift**, **competitive accuracy**, and a system architecture that can already absorb Cloudflare's evidence-grounded oracle stack. D2 BALANCED remains only **0.7 percentage points** behind majority voting on N=302 accuracy, but it improves ETR by **30.5 percentage points** relative to full REMORA. That means REMORA's strongest unique contribution is not simply "more correct answers"; it is **better-governed correctness**. In other words, the system is most distinctive where correctness must also be justified, routed, and measured.
 
@@ -155,7 +155,7 @@ The latest canonical snapshot on the N=302 external benchmark gives REMORA an **
 
 ### Figure 12: Gap Analysis Toward a Strong Breakthrough Claim
 
-![Figure 12: Gap analysis roadmap](../artifacts/figures/fig12_gap_analysis_roadmap.png)
+![Figure 12: Gap analysis roadmap](../../artifacts/figures/fig12_gap_analysis_roadmap.png)
 
 **Interpretation:** The current gap is no longer conceptual; it is empirical. Four concrete items still separate REMORA from a stronger breakthrough claim:
 
@@ -231,7 +231,7 @@ The implementation work has started, but the strongest v4 claims are **not yet e
 
 ### First Prototype Readout on N=302
 
-The first benchmark-layer thermodynamic evaluation has now been run against the canonical N=302 benchmark using cached pre-sweeps and the canonical [results/ablation_v2_results.json](../results/ablation_v2_results.json) comparison set. The output is stored in [results/thermodynamic_eval_results.json](../results/thermodynamic_eval_results.json).
+The first benchmark-layer thermodynamic evaluation has now been run against the canonical N=302 benchmark using cached pre-sweeps and the canonical [results/ablation_v2_results.json](../../results/ablation_v2_results.json) comparison set. The output is stored in [results/thermodynamic_eval_results.json](../../results/thermodynamic_eval_results.json).
 
 After calibrating the temperature and trust model to avoid degenerate zero-temperature unanimity, the current prototype now produces a non-trivial phase split.
 
@@ -275,7 +275,7 @@ A dedicated Cloudflare ablation script has been added in [experiments/ablation_c
 
 Because the full N=302 Cloudflare live run is slow against the public deployed Worker, a completed **stratified smoke benchmark** was run first on **N=12** items (3 per source). That run is not large enough for headline claims, but it is sufficient to establish whether the current deployed Cloudflare stack looks competitive or not.
 
-![Figure 13: Cloudflare smoke benchmark](../artifacts/figures/fig13_cloudflare_smoke_benchmark.png)
+![Figure 13: Cloudflare smoke benchmark](../../artifacts/figures/fig13_cloudflare_smoke_benchmark.png)
 
 **Smoke benchmark results (N=12 stratified):**
 

@@ -3,8 +3,7 @@
 > **HISTORICAL SNAPSHOT (2026-06-30).** Gate statuses, metrics, and plans in this
 > document reflect the state on its date and are intentionally preserved
 > unedited. For current gate status see
-> [`docs/assurance/release_gates.md`](
-> ../assurance/release_gates.md); for current metrics see the repository README.
+> [`docs/assurance/release_gates.md`](../assurance/release_gates.md); for current metrics see the repository README.
 
 
 **Covers:**

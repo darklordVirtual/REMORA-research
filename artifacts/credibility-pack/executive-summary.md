@@ -153,21 +153,21 @@ REMORA addresses this problem at the architectural level, not at the model level
 
 | Document | Purpose |
 |---|---|
-| [`enterprise/architecture.md`](architecture.md) | Full control plane architecture and circuit breaker analogy |
-| [`enterprise/remora-control-plane.md`](remora-control-plane.md) | Multi-tenant deployment model and maturity roadmap |
+| [`enterprise/architecture.md`](../../ARCHITECTURE.md) | Full control plane architecture and circuit breaker analogy |
+| `enterprise/remora-control-plane.md` | Multi-tenant deployment model and maturity roadmap |
 | [`enterprise/policy-model.md`](policy-model.md) | Risk tiers, decision outcomes, policy-as-code |
 | [`enterprise/risk-profiles.yaml`](risk-profiles.yaml) | Machine-readable risk profile configuration |
-| [`enterprise/policy_as_code_example.yaml`](policy_as_code_example.yaml) | Concrete fail-closed policy example |
-| [`enterprise/nested_governance_layers.yaml`](nested_governance_layers.yaml) | Multi-frequency memory and governance layers |
+| `enterprise/policy_as_code_example.yaml` | Concrete fail-closed policy example |
+| `enterprise/nested_governance_layers.yaml` | Multi-frequency memory and governance layers |
 | [`enterprise/threat-model.md`](threat-model.md) | Threat model and security controls |
-| [`enterprise/production-readiness.md`](production-readiness.md) | Production readiness gates and rollout stages |
-| [`enterprise/deployment-runbook.md`](deployment-runbook.md) | Secure deployment, scaling, rollback, and operations runbook |
-| [`enterprise/observability.md`](observability.md) | Safety metrics, SLOs, alerts, and continuous evaluation |
-| [`enterprise/human-approval-workflow.md`](human-approval-workflow.md) | Human approval state model and authority boundaries |
-| [`enterprise/industrial-use-case.md`](industrial-use-case.md) | Generic industrial maintenance recommendation gate |
-| [`enterprise/integration-patterns.md`](integration-patterns.md) | Integration with enterprise systems (ITSM, CMMS, SIEM, OT) |
-| [`enterprise/sector-use-cases.md`](sector-use-cases.md) | Domain-specific use cases across energy, HSE, cyber, procurement, legal |
-| [`enterprise/audit-ledger-schema.sql`](audit-ledger-schema.sql) | Audit trail schema (PostgreSQL) |
+| `enterprise/production-readiness.md` | Production readiness gates and rollout stages |
+| `enterprise/deployment-runbook.md` | Secure deployment, scaling, rollback, and operations runbook |
+| `enterprise/observability.md` | Safety metrics, SLOs, alerts, and continuous evaluation |
+| `enterprise/human-approval-workflow.md` | Human approval state model and authority boundaries |
+| `enterprise/industrial-use-case.md` | Generic industrial maintenance recommendation gate |
+| `enterprise/integration-patterns.md` | Integration with enterprise systems (ITSM, CMMS, SIEM, OT) |
+| `enterprise/sector-use-cases.md` | Domain-specific use cases across energy, HSE, cyber, procurement, legal |
+| `enterprise/audit-ledger-schema.sql` | Audit trail schema (PostgreSQL) |
 | [`README.md`](../README.md) | Technical architecture and benchmark results |
-| [`ARCHITECTURE.md`](../ARCHITECTURE.md) | Detailed data flow and per-iteration sequence |
-| [`paper/whitepaper.md`](../paper/whitepaper.md) | Full technical paper |
+| [`ARCHITECTURE.md`](../../ARCHITECTURE.md) | Detailed data flow and per-iteration sequence |
+| [`paper/whitepaper.md`](../../paper/whitepaper.md) | Full technical paper |

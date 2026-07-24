@@ -2,12 +2,11 @@
 
 **AI action governance and safety control layer for autonomous systems**
 
-[![Quality Gates](https://github.com/darklordVirtual/REMORA/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA/actions/workflows/quality-gates.yml) [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0) [![Paper](https://img.shields.io/badge/paper-preprint-blue)](paper/remora_paper.md) [![arXiv](https://img.shields.io/badge/arXiv-under%20submission-b31b1b)](paper/remora_paper.tex) [![v0.7.1](https://img.shields.io/badge/version-0.7.1-green)](pyproject.toml)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
-[![OpenTelemetry](https://img.shields.io/badge/OTel-ready-blue)](deploy/docker-compose/otel-collector-config.yaml)
-[![Works with LangGraph](https://img.shields.io/badge/works%20with-LangGraph-orange)](examples/langgraph_integration.py)
-[![Works with OpenAI](https://img.shields.io/badge/works%20with-OpenAI%20tools-green)](examples/openai_tool_calling.py)
-[![Works with MCP](https://img.shields.io/badge/works%20with-MCP-blueviolet)](servers/mcp_remora.py)
+[![Quality Gates](https://github.com/darklordVirtual/REMORA/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA/actions/workflows/quality-gates.yml) [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0) [![Paper](https://img.shields.io/badge/paper-preprint-blue)](../../paper/remora_paper.md) [![arXiv](https://img.shields.io/badge/arXiv-under%20submission-b31b1b)](../../paper/remora_paper.tex) [![v0.7.1](https://img.shields.io/badge/version-0.7.1-green)](../../pyproject.toml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](../../pyproject.toml)
+[![Works with LangGraph](https://img.shields.io/badge/works%20with-LangGraph-orange)](../../examples/langgraph_integration.py)
+[![Works with OpenAI](https://img.shields.io/badge/works%20with-OpenAI%20tools-green)](../../examples/openai_tool_calling.py)
+[![Works with MCP](https://img.shields.io/badge/works%20with-MCP-blueviolet)](../../servers/mcp_remora.py)
 
 ```
 Oracle A ──┐
@@ -114,7 +113,7 @@ result  = gateway.assess_sync(question="Deploy to prod?", risk_tier="high")
 print(result.action)   # "accept" | "verify" | "abstain" | "escalate"
 ```
 
-See [`examples/`](examples/) for full runnable demos.
+See [`examples/`](../../examples) for full runnable demos.
 
 ---
 
@@ -170,7 +169,7 @@ Metrics reported per baseline:
 | **C6** | **Policy engine with hard-block precedence**, ACCEPT/VERIFY/ABSTAIN/ESCALATE; hard blocks evaluated before all thermodynamic paths; OPA/Rego adapter for enterprise policy-as-code; fail-closed on critical risk | 0 % unsafe execution in deterministic dry-run tool-call benchmark (v2) |
 | **C7** | **Held-out selective-prediction validation**, stratified 80/20 split; τ\* locked from training set; 88.0 % holdout accuracy (−0.78 pp vs in-sample) confirms result is not a threshold-selection artefact | `scripts/selective_n500_holdout.py` |
 
-[→ Full contribution statements with scope and limitations](CONTRIBUTIONS.md) · [→ Claim ledger with evidence mapping](paper/claim_ledger.md)
+[→ Claim ledger with evidence mapping](../../paper/claim_ledger.md)
 
 ---
 
@@ -608,7 +607,7 @@ Selective routing accepts only the top-N% most agreed-upon answers. The accuracy
 
 The label `N500` is historical: the benchmark artifact currently contains **544 questions**.
 
-![Selective trust accuracy by coverage threshold](docs/figures/selective_trust_comparison.png)
+![Selective trust accuracy by coverage threshold](../../docs/figures/selective_trust_comparison.png)
 
 **N=302:** Single model **57.0%** · majority vote **82.8%** · REMORA selective (top 25%) **94.7%** (+11.9 pp).
 Significance: one-sided binomial p = 0.0018; 2,000-iteration bootstrap confirms positive lift.
@@ -618,11 +617,11 @@ Benchmark composition: TruthfulQA (85) · BoolQ (135) · REMORA-curated (75, aut
 
 > **Mixed-comparison note:** The +47.6 pp figure compares an 18%-coverage selective result against a full-coverage baseline, not equivalent coverage levels. This is explicitly a cross-comparison and is preserved in [NEGATIVE_RESULTS Resolved Archive R11](NEGATIVE_RESULTS.md#resolved-findings-archive).
 
-> **Held-out validation (resolved):** τ\* = 0.203 was selected on the 80% training split (436 items, seed = 42, stratified by source) and locked before evaluating on the 108-item holdout. Result: **88.0% accuracy at 23.2% holdout coverage** (22/25 correct, all ordered-phase; Wilson CI [70.0%, 95.8%], *p* = 1.45 × 10⁻⁵). The held-out figure is within 0.78 pp of the in-sample result, confirming the threshold is not a selection artefact. Artifact: [`results/selective_n500_holdout_results.json`](results/selective_n500_holdout_results.json) · Script: [`scripts/selective_n500_holdout.py`](scripts/selective_n500_holdout.py).
+> **Held-out validation (resolved):** τ\* = 0.203 was selected on the 80% training split (436 items, seed = 42, stratified by source) and locked before evaluating on the 108-item holdout. Result: **88.0% accuracy at 23.2% holdout coverage** (22/25 correct, all ordered-phase; Wilson CI [70.0%, 95.8%], *p* = 1.45 × 10⁻⁵). The held-out figure is within 0.78 pp of the in-sample result, confirming the threshold is not a selection artefact. Artifact: [`results/selective_n500_holdout_results.json`](../../results/selective_n500_holdout_results.json) · Script: [`scripts/selective_n500_holdout.py`](../../scripts/selective_n500_holdout.py).
 
 **Thermodynamic phase accuracy on N=500:**
 
-![Phase accuracy, ordered vs critical vs disordered](docs/figures/phase_accuracy.png)
+![Phase accuracy, ordered vs critical vs disordered](../../docs/figures/phase_accuracy.png)
 
 Phase classification directly predicts reliability: ordered → **86.9%** accurate; disordered → **28.6%** accurate.
 
@@ -675,14 +674,14 @@ Split-conformal risk control on the N=302 benchmark (181-item calibration set, 1
 
 **v1 (252 tasks)**: a baseline dry-run harness covering standard safe/unsafe categories. All strategies reach zero unsafe execution. v1 does not demonstrate unsafe-execution reduction because all baselines are already at zero, that differentiation requires the adversarial v2 suite.
 
-![Tool-call v1](docs/figures/toolcall_v1_comparison.png)
+![Tool-call v1](../../docs/figures/toolcall_v1_comparison.png)
 
 `remora_temperature_gate_heuristic` achieves highest v1 accuracy (mean utility 0.6762, accuracy 0.9524).
 `remora_full_policy_gate` achieves mean utility 0.5690, accuracy 0.7619 on v1.
 
 **v2 (700 tasks)**: adversarial suite with: safe-looking dangerous prompts, conflicting intent, regulated-domain ambiguity, prompt-injection payloads, and explicit destructive requests. All decisions are deterministic heuristic replay, no live LLM calls required.
 
-![Tool-call v2 benchmark](docs/figures/toolcall_v2_combined.png)
+![Tool-call v2 benchmark](../../docs/figures/toolcall_v2_combined.png)
 
 `remora_full_policy_gate` reduces unsafe execution to **0.0000** in this controlled deterministic simulator, the only tested strategy to reach zero across all 700 synthetic tasks, while achieving accuracy 0.9000 and mean utility 0.6200. This result is benchmark-scoped and not a production safety guarantee.
 
@@ -867,7 +866,7 @@ demo value.
 | `agent_execute_tool` | Run a tool through the policy gate with D1 audit |
 | `agent_audit_log` | Inspect the audit trail for an agent session |
 
-Full reference: [`docs/mcp-integration.md`](docs/mcp-integration.md)
+Full reference: [`docs/mcp-integration.md`](../../docs/mcp-integration.md)
 
 ### RAG oracle, curated domain knowledge improves coverage
 
@@ -894,8 +893,6 @@ Recommended strategy: ingest the regulatory texts, standards, internal policies,
 | **Compliance:** AI interprets new regulation | Single-model output treated as authoritative | 3-model consensus + evidence → **accept** only if grounded |
 | **Cybersecurity:** AI triages incident | AI assigns "low" to disguised high-severity event | Disordered phase → **escalate** instead of auto-close |
 | **Agentic:** AI agent drafts client email | Sent with unchecked content | Trust < 0.65 threshold → **block** until verified |
-
-Full sector documentation: [`enterprise/sector-use-cases.md`](enterprise/sector-use-cases.md)
 
 ---
 
@@ -945,11 +942,8 @@ REMORA is platform-agnostic. It runs on Azure, Cloudflare, Kubernetes, Docker, o
 
 | Profile | Directory | Best for |
 |---------|-----------|----------|
-| Docker Compose | [`deploy/docker-compose/`](deploy/docker-compose/) | Local development, CI, single-server |
-| Kubernetes | [`deploy/kubernetes/`](deploy/kubernetes/) | Production (AKS, EKS, GKE, on-prem K8s) |
-| Azure | [`docs/deployment/azure-reference-architecture.md`](docs/deployment/azure-reference-architecture.md) | Azure-native enterprise |
-| On-premises | [`docs/deployment/onprem-airgapped.md`](docs/deployment/onprem-airgapped.md) | Air-gapped, hybrid, data-sovereign |
-| Cloudflare | [`deploy/cloudflare/`](deploy/cloudflare/) | Edge deployment (optional) |
+| Azure | [`docs/deployment/azure-reference-architecture.md`](../../docs/deployment/azure-reference-architecture.md) | Azure-native enterprise |
+| On-premises | [`docs/deployment/onprem-airgapped.md`](../../docs/deployment/onprem-airgapped.md) | Air-gapped, hybrid, data-sovereign |
 
 | Integration | Adapters |
 |-------------|---------|
@@ -1005,39 +999,20 @@ tau* = 0.203200  (selected on 436-item training set)
 **Research:**
 | Document | Purpose |
 |----------|---------|
-| [`CONTRIBUTIONS.md`](CONTRIBUTIONS.md) | Formal academic contribution statements (C1–C7) with claim, validation, scope, and limitations |
-| [`paper/claim_ledger.md`](paper/claim_ledger.md) | Every strong claim mapped to evidence, implementation, and recommended wording |
+| [`paper/claim_ledger.md`](../../paper/claim_ledger.md) | Every strong claim mapped to evidence, implementation, and recommended wording |
 | [`NEGATIVE_RESULTS.md`](NEGATIVE_RESULTS.md) | Active findings, event chronicles, and a resolved-findings archive, honest account of what did not work |
-| [`paper/remora_paper.md`](paper/remora_paper.md) | Full technical paper (Markdown source; under submission) |
-| [`paper/remora_paper.tex`](paper/remora_paper.tex) | LaTeX source for Overleaf / arXiv submission |
-| [`docs/empirical_evidence_record.md`](docs/empirical_evidence_record.md) | N=302 selective trust statistical proof pack |
-| [`CODEGRAPH.md`](CODEGRAPH.md) | Canonical codegraph scope for Codespaces, Claude Code, and local Codex |
+| [`paper/remora_paper.md`](../../paper/remora_paper.md) | Full technical paper (Markdown source; under submission) |
+| [`paper/remora_paper.tex`](../../paper/remora_paper.tex) | LaTeX source for Overleaf / arXiv submission |
+| [`docs/empirical_evidence_record.md`](../../docs/empirical_evidence_record.md) | N=302 selective trust statistical proof pack |
 
 **Engineering:**
 | Document | Purpose |
 |----------|---------|
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Detailed data flow, per-iteration sequence, oracle protocol |
-| [`docs/mcp-integration.md`](docs/mcp-integration.md) | MCP server setup and tool reference |
-| [`docs/agent_tool_hook.md`](docs/agent_tool_hook.md) | PreToolUse hook, risk classification, intent drift, Lyapunov |
-| [`EVIDENCE_OF_CAPABILITY.md`](EVIDENCE_OF_CAPABILITY.md) | Capability evidence map: what REMORA proves, implements, tests, and does not claim |
-| [`docs/thermodynamics/claim_ledger.yaml`](docs/thermodynamics/claim_ledger.yaml) | Machine-readable claim registry, every result linked to artifact + test |
-| [`deploy/README.md`](deploy/README.md) | Deployment profile index |
-
----
-
-## Enterprise Catalog
-
-| Document | Purpose |
-|----------|---------|
-| [`enterprise/executive-brief.md`](enterprise/executive-brief.md) | Strategic positioning |
-| [`enterprise/remora-control-plane.md`](enterprise/remora-control-plane.md) | Multi-tenant deployment and maturity roadmap |
-| [`enterprise/policy-model.md`](enterprise/policy-model.md) | Risk tiers, decision outcomes, policy-as-code |
-| [`enterprise/audit-ledger-schema.sql`](enterprise/audit-ledger-schema.sql) | Audit trail schema (PostgreSQL) with RLS and retention |
-| [`enterprise/production-readiness.md`](enterprise/production-readiness.md) | Production readiness gates and rollout stages |
-| [`enterprise/deployment-runbook.md`](enterprise/deployment-runbook.md) | Deployment, scaling, rollback, and operations |
-| [`enterprise/observability.md`](enterprise/observability.md) | SLOs, safety metrics, alerts, continuous evaluation |
-| [`enterprise/tool-governance.md`](enterprise/tool-governance.md) | Tool risk tiers, gated execution, MFA/step-up auth, zero-trust credentials, prompt injection policy |
-| [`enterprise/integration-patterns.md`](enterprise/integration-patterns.md) | ITSM, CMMS, SIEM, OT/SCADA, data platform integration |
+| [`ARCHITECTURE.md`](../../ARCHITECTURE.md) | Detailed data flow, per-iteration sequence, oracle protocol |
+| [`docs/mcp-integration.md`](../../docs/mcp-integration.md) | MCP server setup and tool reference |
+| [`docs/agent_tool_hook.md`](../../docs/agent_tool_hook.md) | PreToolUse hook, risk classification, intent drift, Lyapunov |
+| [`EVIDENCE_OF_CAPABILITY.md`](../../EVIDENCE_OF_CAPABILITY.md) | Capability evidence map: what REMORA proves, implements, tests, and does not claim |
+| [`docs/thermodynamics/claim_ledger.yaml`](../../docs/thermodynamics/claim_ledger.yaml) | Machine-readable claim registry, every result linked to artifact + test |
 
 ---
 

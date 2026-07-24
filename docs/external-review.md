@@ -40,7 +40,7 @@ Negative findings are first-class here. See `NEGATIVE_RESULTS.md`.
 ### Research replication path (is the result real?)
 1. Read `paper/remora_paper.pdf` and `paper/remora_mathematical_supplement.md`.
 2. Regenerate the deterministic benchmarks (no API keys needed) per
-   `docs/reproducibility.md` and `docs/review_checklist.md`.
+   `docs/06-reproducibility.md` and `docs/review_checklist.md`.
 3. For live-oracle results, set `GROQ_API_KEY` and re-run; note that oracle model
    versions drift.
 4. Report any divergence between the artifact and your run.

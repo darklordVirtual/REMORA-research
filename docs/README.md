@@ -219,6 +219,20 @@ Illustrative unless artifact-linked: see the banner in each file.
 | [`authorship_evidence_report.md`](authorship_evidence_report.md) | Authorship evidence record (intentionally in Norwegian) |
 | `figures/` | 12 PNG figure assets for the evidence docs |
 
+## Non-evidence material (outside `docs/`)
+
+Some repository directories are outreach, demo, or UI assets, not research
+evidence, and should not be cited as such:
+
+| Path | What it is |
+|---|---|
+| `artifacts/linkedin/` | LinkedIn insight graphics (outreach visuals) |
+| `artifacts/use-cases/` | Demo screenshots and a walkthrough GIF (illustration, not benchmark output) |
+| `frontend/` (incl. `.lovable/`) | Control-room UI scaffolding (Lovable / dev tooling) |
+
+Evidence lives under [Evidence and benchmarks](#evidence-and-benchmarks), the
+claim registers, and the `results/` benchmark outputs referenced there.
+
 ## Archive (do not cite)
 
 Superseded documents preserved as record; every file carries an ARCHIVED
