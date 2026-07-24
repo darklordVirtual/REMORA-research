@@ -94,8 +94,12 @@ claims:
       triggers same risk_tier mapping). FAR=0.0% is the hard safety floor; FBR documents friction.
       Gate: REM-014 PASS. Benchmark is intent-gating; tool-call interception is not verified.
     reproduce: >
-      python scripts/run_agentharm_benchmark.py --split test_public
-      Artifact: results/external_benchmark_agentharm_v1.json
+      IMPORTED HISTORICAL RESULT. Produced in the REMORA main implementation repo
+      (commit 483d1b0, experiments/agentharm/score_guardrail.py) and copied here for
+      public verifiability; NOT regenerated from this repository.
+      scripts/run_agentharm_benchmark.py here implements a different intent-gating
+      protocol and yields a different artifact. Validate the imported artifact
+      structurally: python -m pytest tests/test_rem014_external_benchmark.py -m rem014_gate
 
   - id: CLAIM-003
     title: "FAR=0% on historical regression corpus (N=167)"

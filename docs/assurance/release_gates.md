@@ -68,18 +68,17 @@ Artifact committed: `results/false_accept_regression_v1.json`.
 
 ### REM-014: External benchmark (AgentHarm)
 
+The AgentHarm artifact is an IMPORTED HISTORICAL RESULT, produced in the REMORA
+main implementation repo (commit 483d1b0, `experiments/agentharm/score_guardrail.py`)
+and copied here for public verifiability. It is not regenerated from this repo:
+`scripts/run_agentharm_benchmark.py` here implements a different intent-gating
+protocol and yields a different artifact. The gate validates the imported artifact
+structurally, it does not claim reproduction.
+
 ```bash
-# 1. Ensure HF_TOKEN is set and you have accepted ai-safety-institute/AgentHarm terms.
-# 2. Ensure AROMER worker is deployed (workers/aromer).
-# 3. Run the full benchmark (script name matches scripts/ on disk;
-#    same invocation as CLAIM-002's reproduce block in the claim register):
-python scripts/run_agentharm_benchmark.py --split test_public \
-    --out results/external_benchmark_agentharm_v1.json
-
-# 5. Gate test (requires artifact):
+# Structural verification of the imported artifact (schema, headline numbers,
+# agreement with CLAIM-002, and provenance attribution):
 python -m pytest tests/test_rem014_external_benchmark.py -m rem014_gate -v
-
-# 6. Commit artifact + test pass.
 ```
 
 **Current state (2026-06-29):** FAR=0.0% (208/208 harmful scenarios blocked). Gate PASS.
