@@ -38,12 +38,19 @@ PACKAGE_FILES = [
 LOCKFILES = ["requirements-lock.txt", "frontend/package-lock.json"]
 
 
-def _sha256(path: Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as fh:
-        for chunk in iter(lambda: fh.read(65536), b""):
-            h.update(chunk)
-    return h.hexdigest()
+def _read_lf(path: Path) -> bytes:
+    """Read a text file with CRLF normalized to LF.
+
+    All packaged files are text (Markdown / JSON) and the repo stores them LF
+    (.gitattributes). Normalizing before hashing/writing keeps the manifest
+    hashes identical whether the pack is built on Windows or Linux, so the
+    committed (LF) blobs always match their recorded sha256 in CI.
+    """
+    return path.read_bytes().replace(b"\r\n", b"\n")
+
+
+def _sha256_lf(path: Path) -> str:
+    return hashlib.sha256(_read_lf(path)).hexdigest()
 
 
 def _git(repo_root: Path, *args: str) -> str | None:
@@ -82,15 +89,17 @@ def build_package(
             missing.append(rel)
             continue
         dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dst)
-        # Verify the copy is byte-identical to the canonical source.
-        src_hash = _sha256(src)
-        assert _sha256(dst) == src_hash, f"copy mismatch for {rel}"
+        # Copy as LF-normalized bytes so the written file matches the committed
+        # (LF) blob and its recorded hash on every platform.
+        data = _read_lf(src)
+        dst.write_bytes(data)
+        digest = hashlib.sha256(data).hexdigest()
+        assert _sha256_lf(dst) == digest, f"copy mismatch for {rel}"
         copied.append(rel)
-        file_sha256[rel] = src_hash
+        file_sha256[rel] = digest
 
     lockfile_sha256 = {
-        rel: _sha256(repo_root / rel)
+        rel: _sha256_lf(repo_root / rel)
         for rel in LOCKFILES
         if (repo_root / rel).exists()
     }
