@@ -66,7 +66,7 @@ The reviewer should read the following documents before beginning:
 | Evidence and claims | docs/02-evidence-and-claims.md | Headline claims with artifact pointers |
 | Claim register (human) | docs/claim_register.md | Full claim taxonomy and evidence levels |
 | Claim register (machine) | docs/assurance/claim_register_v1.yaml | Machine-readable claim status |
-| Claim hygiene rules | docs/claim_hygiene.md | What REMORA may and may not claim |
+| Claim hygiene rules | docs/05-claim-hygiene.md | What REMORA may and may not claim |
 | Negative results | NEGATIVE_RESULTS.md | All documented failures and gaps |
 | Release gates | docs/assurance/release_gates.md | P0 safety gates and deployment gates |
 | Remediation register | docs/assurance/remediation_register.yaml | All resolved and open items |

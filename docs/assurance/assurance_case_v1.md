@@ -173,7 +173,7 @@ Recording them is the point — none of these are hidden.
 | D-6 | Selective-prediction evidence is thin: CLAIM-004 rests on a single 80/20 split (N_accepted=25, wide CI); CLAIM-008 is a calibration-set upper bound; both use the token-fingerprint entropy backend, not the NLI Semantic Entropy backend the paper describes | selective claims | Open; disclosed | NEGATIVE_RESULTS §3, §14/M8 |
 | D-7 | Audit chain is tamper-evident, not tamper-proof (local HMAC only; no KMS/HSM, RFC 3161, WORM, OIDC approver binding) | G5 | Open; roadmap | REM-025 (KMS/RFC3161/WORM), REM-042/REM-022 §8 (OIDC) |
 | D-8 | AROMER metadata dependency: structural FAR=0% only holds when callers supply accurate high-risk metadata; under neutral metadata FA=30.7% on external datasets | AROMER (CLAIM-009) | Open; disclosed negative result | NEGATIVE_RESULTS §2, §8 |
-| D-9 | No claim reaches `independently_replicated` or above; all benchmarks run internally by the author | all | Open; the definitive gap | NEGATIVE_RESULTS §1, `docs/benchmark_validation_plan.md` |
+| D-9 | No claim reaches `independently_replicated` or above; all benchmarks run internally by the author | all | Open; the definitive gap | NEGATIVE_RESULTS §1, `docs/11-benchmark-validation-plan.md` |
 
 ## 5. Claim-to-evidence index
 

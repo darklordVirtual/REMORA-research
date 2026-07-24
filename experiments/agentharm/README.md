@@ -70,5 +70,5 @@ forbids headline claims.
 
 ## Claims
 
-Read `docs/claim_hygiene.md` before writing anything into README, paper, badges,
+Read `docs/05-claim-hygiene.md` before writing anything into README, paper, badges,
 or public summaries.

@@ -11,7 +11,7 @@ Regenerate all five:
 python scripts/gen_knowledge_domains.py
 ```
 
-Per `docs/claim_hygiene.md`, every number below is computed by the code and
+Per `docs/05-claim-hygiene.md`, every number below is computed by the code and
 written to the cited artifact; an invariant breach is written with
 `status: "invalid"` and the generator exits non-zero. These are demonstrations
 of each technique on **committed, synthetic fixtures**, not validated external

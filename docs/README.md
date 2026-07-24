@@ -129,7 +129,6 @@ Compliance mappings:
 | [`toolcall_consensus_benchmark_v2.md`](toolcall_consensus_benchmark_v2.md) | Tool-call consensus benchmark v2 (current) |
 | [`agentharm_live_benchmark.md`](agentharm_live_benchmark.md) | AgentHarm live-oracle benchmark |
 | [`agentharm_trimode_benchmark.md`](agentharm_trimode_benchmark.md) | AgentHarm three-mode benchmark |
-| [`claim_hygiene.md`](claim_hygiene.md) | Forwarding stub → [`05-claim-hygiene.md`](05-claim-hygiene.md) |
 | [`domain_benchmark.md`](domain_benchmark.md) | Cross-domain benchmark |
 | [`live_benchmark.md`](live_benchmark.md) | Live oracle benchmark |
 | [`stat_tests.md`](stat_tests.md) | Statistical test inventory |
@@ -139,7 +138,6 @@ Compliance mappings:
 | [`external-review.md`](external-review.md) | External review quickstart |
 | [`review_checklist.md`](review_checklist.md) | External reviewer checklist |
 | [`external_validation_report_template.md`](external_validation_report_template.md) | Report template for external validators |
-| [`benchmark_validation_plan.md`](benchmark_validation_plan.md) | Forwarding stub → [`11-benchmark-validation-plan.md`](11-benchmark-validation-plan.md) |
 
 Experiment deep-dives and thermodynamics method docs:
 
@@ -214,7 +212,6 @@ Illustrative unless artifact-linked: see the banner in each file.
 | [`research/research_control_matrix_v1.yaml`](research/research_control_matrix_v1.yaml) | Research-control matrix (source): research source → control → code → test → maturity → boundary, per research line (CI-verified paths) |
 | [`research/research_control_matrix.generated.md`](research/research_control_matrix.generated.md) | Research-control matrix (rendered; generated from the YAML, do not edit) |
 | [`theoretical_foundations_proposals_v1.md`](theoretical_foundations_proposals_v1.md) | PROPOSED formal frameworks, roadmap, not implemented claims |
-| [`related_work.md`](related_work.md) | Forwarding stub → [`09-related-work.md`](09-related-work.md) |
 
 ## Meta
 

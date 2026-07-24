@@ -23,5 +23,5 @@ a committed result artifact on disk, quoted with its sample size, confidence
 interval, and scope caveat; negative results and caveats must never be
 removed. The decision rule is in
 [docs/05-claim-hygiene.md](docs/05-claim-hygiene.md) (canonical;
-`docs/claim_hygiene.md` is a redirect stub kept for older links), and the
+`docs/05-claim-hygiene.md` is a redirect stub kept for older links), and the
 working agreement is in [CLAUDE.md](CLAUDE.md).

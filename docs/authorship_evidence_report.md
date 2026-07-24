@@ -48,7 +48,7 @@ Commits der forfatteren aktivt fjernet eller nedgraderte for sterke påstander:
 
 | Commit | Hva ble korrigert |
 |---|---|
-| `docs: surface citation gaps in claim_hygiene.md and paper References — Liang 2023, El-Yaniv & Wiener 2010, Koshiyama 2022 need full entries before submission` | Identifiserte og flagget manglende kildeoppføringer i stedet for å la dem stå |
+| `docs: surface citation gaps in 05-claim-hygiene.md and paper References — Liang 2023, El-Yaniv & Wiener 2010, Koshiyama 2022 need full entries before submission` | Identifiserte og flagget manglende kildeoppføringer i stedet for å la dem stå |
 | `docs(paper): qualify conformal coverage result with dataset scope in figures.md` | La til datasett-scoping til et resultat som fremsto for generelt |
 | `docs(holdout): qualify 65-case replay_arena reference as historical in holdout README` | Korrigerte stale referanse til å markere den som historisk |
 | `fix(docs): correct stale T4 description in NEGATIVE_RESULTS and paper F.3` | Rettet faktafeil i T4-formelbeskrivelse på tvers av tre filer |

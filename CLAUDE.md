@@ -15,7 +15,7 @@ safety-guaranteeing.
 
 - No invented results. Do not write numbers into README, paper, badges, or
   abstracts unless the exact result artifact exists on disk.
-- No claims without artifacts. See `docs/claim_hygiene.md` for the decision rule.
+- No claims without artifacts. See `docs/05-claim-hygiene.md` for the decision rule.
 - Do not tune on test data.
 - Do not silently skip failures. Surface them with non-zero exits or explicit
   `status:invalid` / `status:skipped` artifacts.

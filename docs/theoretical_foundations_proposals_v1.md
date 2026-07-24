@@ -2,7 +2,7 @@
 
 **Status:** PROPOSED / NOT_IMPLEMENTED, every item in this document is
 roadmap. Nothing here is a claim about the current system. Per
-`docs/claim_hygiene.md`, no item may be described as a REMORA capability
+`docs/05-claim-hygiene.md`, no item may be described as a REMORA capability
 until its acceptance artifact (defined per proposal below) exists on disk.
 
 **Date:** 2026-07-02

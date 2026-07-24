@@ -313,7 +313,7 @@ make cyber-evidence
 
 ## Claim Hygiene
 
-Per `docs/claim_hygiene.md`:
+Per `docs/05-claim-hygiene.md`:
 
 - Numbers in this document are derived from `artifacts/domain_benchmark_results.json`.
 - The benchmark is deterministic.  Running `make domain-benchmark` must

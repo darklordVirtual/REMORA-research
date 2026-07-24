@@ -990,10 +990,10 @@ python experiments/lyapunov_aggregate.py
 - `results/rag_critical_router_v1_results.json`, Evidence router metrics
 - `results/lyapunov_aggregate_results.json`, Lyapunov stability (N=1000)
 - `results/mondrian_v2_repeated_splits.json`, Conformal coverage (N=2161)
-- `artifacts/agentharm_trimode_results.json`, AgentHarm pilot results (intent-gating scope; see §10.7 and `docs/claim_hygiene.md`)
+- `artifacts/agentharm_trimode_results.json`, AgentHarm pilot results (intent-gating scope; see §10.7 and `docs/05-claim-hygiene.md`)
 - `artifacts/governance_intelligence/evaluation_results.json`, Governance Intelligence layer benchmark (§6.4; 50 tasks, 10 categories)
 - `artifacts/domain_benchmark_results.json`, Cross-domain evidence benchmark N=36 (§10.8)
-- `results/agentharm/guardrail_scores.json`, AgentHarm evaluation status (`status:skipped`; full pipeline not run, see `docs/claim_hygiene.md`; the `results/agentharm/` paths are produced only by a live run and are not committed, the directory does not exist in this repo)
+- `results/agentharm/guardrail_scores.json`, AgentHarm evaluation status (`status:skipped`; full pipeline not run, see `docs/05-claim-hygiene.md`; the `results/agentharm/` paths are produced only by a live run and are not committed, the directory does not exist in this repo)
 - `results/agentharm/tool_probe.json`, Tool interception probe (`status:skipped`; `inspect_tools_probe.py` not run, condition 4 of claim hygiene not met; not committed)
 - `results/agentharm/mode_metadata.jsonl`, Mode degradation metadata (`status:skipped`; condition 5 not met; not committed)
 - `docs/assurance/remediation_register.yaml`, Assurance remediation register (REM-001 through REM-018); all P0 items DONE

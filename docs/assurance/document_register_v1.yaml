@@ -302,9 +302,6 @@ documents:
     status: supporting
   - path: docs/agentharm_trimode_benchmark.md
     status: supporting
-  - path: docs/claim_hygiene.md
-    status: superseded
-    superseded_by: docs/05-claim-hygiene.md
   - path: docs/domain_benchmark.md
     status: supporting
   - path: docs/live_benchmark.md
@@ -323,11 +320,6 @@ documents:
     status: supporting
   - path: docs/external_validation_report_template.md
     status: supporting
-  - path: docs/benchmark_validation_plan.md
-    status: superseded
-    superseded_by: docs/11-benchmark-validation-plan.md
-
-  # ── Experiments and thermodynamics ───────────────────────────────────────
   - path: docs/experiments/experiment3_phase_transition_study.md
     status: supporting
   - path: docs/experiments/experiment4_susceptibility_validation.md
@@ -439,11 +431,6 @@ documents:
     status: supporting
 
   # ── Forwarding stubs (superseded, kept so old links resolve) ─────────────
-  - path: docs/related_work.md
-    status: superseded
-    superseded_by: docs/09-related-work.md
-
-  # ── Archive (do not cite) ────────────────────────────────────────────────
   - path: docs/archive/academic_evaluation_legacy_2026-05-20.md
     status: historical
   - path: docs/archive/analysis_report_legacy_2026-05-20.md

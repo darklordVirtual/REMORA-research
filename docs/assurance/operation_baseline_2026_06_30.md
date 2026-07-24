@@ -209,7 +209,7 @@ The following deliverables from the campaign brief do NOT exist yet:
 
 ## 10. Claim Hygiene Summary
 
-Per `docs/claim_hygiene.md` and `docs/05-claim-hygiene.md`:
+Per `docs/05-claim-hygiene.md` and `docs/05-claim-hygiene.md`:
 
 **Claims that must carry caveats (enforced by test or document):**
 

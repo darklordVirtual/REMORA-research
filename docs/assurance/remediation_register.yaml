@@ -368,7 +368,7 @@ items:
         2. PDP/PEP separation (remora/enforcement/) — token binding, fail-closed behavior.
         3. REM-019 regression proof — corpus construction, 2 exclusions, VERIFY floor.
         4. REM-014 AgentHarm benchmark — dataset selection, mapping, FAR=0.0% result.
-        5. Claim hygiene — docs/claim_hygiene.md compliance across README and paper.
+        5. Claim hygiene — docs/05-claim-hygiene.md compliance across README and paper.
       Artifact to commit when closed: docs/assurance/independent_review_v1.md.
         Must include: reviewer name/affiliation, scope covered, findings, verdict.
 

@@ -31,7 +31,7 @@ benchmark-scoped caveats, but independent external replication remains pending.
 
 **Why this remains active:** This is a research-governance gap, not a hidden
 performance failure. The mitigation path and protocol are tracked in
-`docs/benchmark_validation_plan.md`.
+`docs/11-benchmark-validation-plan.md`.
 
 ---
 

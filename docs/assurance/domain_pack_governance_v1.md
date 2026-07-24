@@ -297,7 +297,7 @@ Based on the gap analysis in §3 and the risk profile of each domain:
 ## 10. Constraints and Hard Limits
 
 - Domain pack claims follow the same claim hygiene rules as all REMORA claims
-  (`docs/claim_hygiene.md`): no result is claimed without a committed artifact.
+  (`docs/05-claim-hygiene.md`): no result is claimed without a committed artifact.
 - Domain-specific RAG chunks are not substitutes for external validation; they provide
   retrieval signal, not certification.
 - A domain pack does NOT override the REMORA hard-block rules (permanent ESCALATE

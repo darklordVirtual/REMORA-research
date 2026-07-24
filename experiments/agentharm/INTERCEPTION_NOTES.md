@@ -62,4 +62,4 @@ Forbidden now:
 - Any external-guardrail comparison without full baseline, benign split,
   harmful split, probe, and scoring artifacts.
 
-See `docs/claim_hygiene.md`.
+See `docs/05-claim-hygiene.md`.
