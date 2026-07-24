@@ -342,7 +342,7 @@ precision, restoring accuracy to 75%.
 > **Reproducibility note, DCE:** The +50 pp DCE lift requires the
 > Norwegian inkassolov Vectorize index. Offline calibration constants used
 > here: `coverage = 0.88`, `precision = 0.94`. See
-> `docs/deployment/cloudflare-vectorize.md` for index setup.
+> (Cloudflare Vectorize index setup is Cloudflare-specific).
 
 ---
 

@@ -310,7 +310,7 @@ cannot improve on already-perfect selective slices.
 
 > **Reproducibility, DCE:** This result requires the Norwegian inkassolov
 > Cloudflare Vectorize index. Offline constants: `coverage=0.88`,
-> `precision=0.94`. See `docs/deployment/cloudflare-vectorize.md`.
+> `precision=0.94`. Cloudflare Vectorize index (setup is Cloudflare-specific).
 
 ### Figure XII.D: Multi-signal ranking comparison (N=544)
 
@@ -353,7 +353,7 @@ Vectorize oracle runs. To reproduce with the live oracle:
 ```bash
 export CLOUDFLARE_ACCOUNT_ID=<your-id>
 export CLOUDFLARE_API_TOKEN=<your-token>
-# Populate Vectorize indices — see docs/deployment/cloudflare-vectorize.md
+# Populate Vectorize indices (Cloudflare Vectorize; setup is Cloudflare-specific)
 python -m remora.oracles.rag --eval
 ```
 

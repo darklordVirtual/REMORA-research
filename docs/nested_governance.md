@@ -61,7 +61,7 @@ L3 Policy Memory
    |
    v
 L4 Audit Memory
-   - immutable decision ledger
+   - tamper-evident decision ledger
    - model outputs
    - scores
    - approvals
@@ -178,7 +178,7 @@ redact": because the act of summarisation can leak structure and content.
 | Query cache | Cloudflare KV (`REMORA_RAG_CACHE`) | Key includes `clearance:groups:tenant` partition |
 | Identity/roles | JWT claims (Entra ID / Keycloak / custom OIDC) | Validated at Python layer before oracle is called |
 | Tool call policy | `enterprise/policy_as_code_example.yaml` | Governed change, not writable by agent |
-| Audit events | Append-only audit ledger | Immutable; retention permanent |
+| Audit events | Append-only audit ledger | Tamper-evident (hash-chained), not tamper-proof; retention per policy |
 
 ### Implementation: RAG (optional extension)
 

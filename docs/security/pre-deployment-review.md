@@ -43,7 +43,7 @@
 | `/ingest` body: `content`, `source`, `domain` | Passed to AI model | ⚠️ No max-length guard, add `content.slice(0, 50_000)` before embedding |
 | SQL queries (D1 bindings) | All parameterised via `.bind()` | ✅ No SQL injection risk |
 | `store_artifact` key | Written to R2, path traversal risk | ⚠️ Validate key matches `[a-zA-Z0-9/_\-\.]+` before write |
-| Shell commands in agent_hook | AST-primary, regex fallback | ✅ See `remora/agent_hook.py` |
+| Shell commands in agent_hook | AST-primary, regex fallback | ✅ See `remora/agent_hook/shell_ast.py` |
 
 ---
 

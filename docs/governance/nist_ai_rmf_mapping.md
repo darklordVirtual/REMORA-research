@@ -1,12 +1,17 @@
 # REMORA × NIST AI Risk Management Framework (AI RMF 1.0) Mapping
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 **Status:** internal mapping, not independently audited.
 **Reference:** NIST AI RMF 1.0 (January 2023).
 **Companion documents:**
 - [`enterprise/governance-model.md`](../../artifacts/credibility-pack/policy-model.md)
 - [`enterprise/human-approval-workflow.md`](../01-architecture.md)
 - [`enterprise/observability.md`](../reference_architecture.md)
-- [`enterprise/threat-model.md`](../../artifacts/credibility-pack/threat-model.md)
+- [`artifacts/credibility-pack/threat-model.md`](../../artifacts/credibility-pack/threat-model.md)
 
 The [NIST AI Risk Management Framework](https://www.nist.gov/artificial-intelligence)
 organises AI risk into four functions: **Govern, Map, Measure, Manage**.
@@ -22,8 +27,8 @@ are in place before deployment.
 
 | AI RMF Sub-category | REMORA Implementation | Status |
 |---|---|---|
-| GV-1 Policies defined | `enterprise/policy-model.md` + `enterprise/policy_as_code_example.yaml` | Implemented |
-| GV-1 Risk appetite documented | `enterprise/risk-profiles.yaml`, LOW / MEDIUM / HIGH / CRITICAL tiers | Implemented |
+| GV-1 Policies defined | `artifacts/credibility-pack/policy-model.md` + `enterprise/policy_as_code_example.yaml` | Implemented |
+| GV-1 Risk appetite documented | `schemas/risk-profiles.yaml`, LOW / MEDIUM / HIGH / CRITICAL tiers | Implemented |
 | GV-2 Roles & accountability | `enterprise/human-approval-workflow.md`, RBAC, two-person rule for critical actions | Implemented (design) |
 | GV-3 Organisational culture | Not a codebase concern, requires deployer commitment | N/A |
 | GV-4 Team practices | `enterprise/deployment-runbook.md`, `enterprise/production-readiness.md` | Implemented |
@@ -45,7 +50,7 @@ and risk categories relevant to each use case.
 | MP-1 System purpose documented | `README.md`, `docs/plain_language_overview.md`, `paper/remora_paper.md` | Implemented |
 | MP-2 Intended users / stakeholders | `enterprise/sector-use-cases.md`, `docs/use-cases/` | Implemented |
 | MP-3 AI system type categorised | Multi-oracle consensus system with selective abstention; not a training pipeline | Documented |
-| MP-4 Risk categories identified | `enterprise/threat-model.md`, five primary threat categories | Implemented |
+| MP-4 Risk categories identified | `artifacts/credibility-pack/threat-model.md`, five primary threat categories | Implemented |
 | MP-5 Failure modes documented | `NEGATIVE_RESULTS.md`, archived failure modes + active external-validation gap with mitigation path | Implemented |
 | MP-5 Sociotechnical impacts | `enterprise/sector-use-cases.md`, healthcare, legal, finance sectors | Partial |
 | MP-6 Benefits identified | `enterprise/executive-brief.md`, `EVIDENCE_OF_CAPABILITY.md` | Implemented |
@@ -86,7 +91,7 @@ response, and continuous improvement.
 
 | AI RMF Sub-category | REMORA Implementation | Status |
 |---|---|---|
-| MG-1 Risk treatment decisions | `enterprise/risk-profiles.yaml`, per-tier treatment (monitor / escalate / block) | Implemented |
+| MG-1 Risk treatment decisions | `schemas/risk-profiles.yaml`, per-tier treatment (monitor / escalate / block) | Implemented |
 | MG-2 Residual risks documented | `docs/claim_register.md §Requires External Replication` | Implemented |
 | MG-2 Incident response | `enterprise/deployment-runbook.md §Incident Response` | Partial |
 | MG-3 Feedback loops | `remora/adaptation/`, continual re-alignment of oracle weights | Implemented |
@@ -107,7 +112,7 @@ response, and continuous improvement.
 
 3. **Append-only audit ledger**, Every oracle call, policy decision, and
    human approval is written to the audit ledger (`enterprise/audit-ledger-schema.sql`),
-   creating an immutable accountability chain.
+   creating a tamper-evident (hash-chained) accountability record; true immutability requires external append-only/WORM storage, a deployment requirement not provided by this implementation (see README 'Tamper-evident, not tamper-proof').
 
 4. **Thermodynamic drift detection**, The Lyapunov function `V(t)` in
    `remora/lyapunov.py` detects when an agent is drifting out of safe

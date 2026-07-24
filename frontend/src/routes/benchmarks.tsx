@@ -425,7 +425,7 @@ function useGithubRuns() {
   const load = useCallback(async () => {
     try {
       const response = await fetch(
-        "https://api.github.com/repos/darklordVirtual/REMORA/actions/runs?branch=main&per_page=12",
+        "https://api.github.com/repos/darklordVirtual/REMORA-research/actions/runs?branch=main&per_page=12",
       );
       if (!response.ok) throw new Error(`GitHub returned ${response.status}`);
       const payload = (await response.json()) as { workflow_runs?: GithubRun[] };

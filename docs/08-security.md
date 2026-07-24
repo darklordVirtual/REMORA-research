@@ -1,11 +1,16 @@
 # What are the security properties and known gaps?
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 This document covers the threat model, OWASP GenAI Top 10 mapping, and the
 pre-deployment checklist. Status: internal mapping, not externally audited.
 
 Companion documents:
-- `enterprise/threat-model.md`, full threat narrative and controls
-- `enterprise/policy-model.md`, OPA policy gates
+- `artifacts/credibility-pack/threat-model.md`, full threat narrative and controls
+- `artifacts/credibility-pack/policy-model.md`, OPA policy gates
 - `docs/security/owasp_genai_mapping.md`, source for the mapping table below
 
 → [01-architecture.md](01-architecture.md) for architectural context.
@@ -36,14 +41,14 @@ not prevent host-level attacks, model extraction, or infrastructure compromise.
 | OWASP Risk | Controls implemented | Status | Known gap |
 |---|---|---|---|
 | LLM01 Prompt Injection | PreToolUse hook AST guard (`remora/agent_hook/`), retrieved text treated as data, injection-indicator escalation, audit log of detection | Partial | No semantic NLI injection detection yet |
-| LLM02 Insecure Output | Tool-call schema validation (`remora/toolcall/`), allowlist-only tool execution (`enterprise/risk-profiles.yaml`), dry-run simulation | Implemented for tool calls | No HTML-output escaping (integrator responsibility for rendered output) |
+| LLM02 Insecure Output | Tool-call schema validation (`remora/toolcall/`), allowlist-only tool execution (`schemas/risk-profiles.yaml`), dry-run simulation | Implemented for tool calls | No HTML-output escaping (integrator responsibility for rendered output) |
 | LLM03 Training Data Poisoning | Multi-oracle consensus (3 independent families), `OracleDiversityTracker` (warns at ρ > 0.60), independent judge verification (Stage 3) | Partial | No corpus poisoning detection in retrieval store |
 | LLM04 Model DoS | `budget_oracle_calls` hard cap, stage short-circuit on terminal verdict, tenant isolation (infra-level) | Budget cap implemented | Tenant isolation is infrastructure-level |
 | LLM05 Supply Chain | Pure Python core, pinned `pyproject.toml` deps, signed artifacts, deterministic locked benchmarks | Implemented at code level | Infra signing is deployer responsibility |
 | LLM06 Sensitive Disclosure | Secret-pattern detection in file risk classifier (`remora/safety/`), context isolation, audit redaction runbook | Partial | No PII detection in free-form model output |
-| LLM07 Insecure Plugin | Policy gate + OPA (`remora/policy/`), risk-profile allowlist, default-deny on missing policy | Implemented |, |
-| LLM08 Excessive Agency | Autonomy degradation (`remora/governance/`), human approval workflow (`enterprise/human-approval-workflow.md`), `ESCALATE` on high uncertainty, Lyapunov V(t) drift detection | Implemented |, |
-| LLM09 Overreliance | Selective abstention, Platt-scaled confidence calibration, uncertainty decomposition (epistemic vs aleatoric), explicit `VERIFY` verdict | Implemented |, |
+| LLM07 Insecure Plugin | Policy gate + OPA (`remora/policy/`), risk-profile allowlist, default-deny on missing policy | Implemented | — |
+| LLM08 Excessive Agency | Autonomy degradation (`remora/governance/`), human approval workflow (`enterprise/human-approval-workflow.md`), `ESCALATE` on high uncertainty, Lyapunov V(t) drift detection | Implemented | — |
+| LLM09 Overreliance | Selective abstention, Platt-scaled confidence calibration, uncertainty decomposition (epistemic vs aleatoric), explicit `VERIFY` verdict | Implemented | — |
 | LLM10 Model Theft | System prompt isolation (programmatic construction, not user-accessible), audit trail (question hash logged by default) | Application-layer only | Model extraction protection is inference-infrastructure responsibility |
 
 **Overall posture:** REMORA addresses 8/10 OWASP GenAI risks at the application

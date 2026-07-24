@@ -58,7 +58,7 @@ Every quantitative claim in this repository links to a committed result
 artifact, negative results are published (`NEGATIVE_RESULTS.md`), and CI
 enforces claim-artifact consistency. Key artifact-backed results: zero unsafe
 executions on the blinded internal benchmark
-(`results/toolcall_blind_v3_results.json`, N=700) and on an independent
+(`results/toolcall_blind_v3_results.json`, N=700 tasks = 70 template clusters × 10 cosmetic variants; inference is at the 70-cluster level) and on an independent
 external harmful-scenario dataset
 (`results/external_benchmark_agentharm_v1.json`, n=208), both
 benchmark-scoped, neither a field-deployment claim.

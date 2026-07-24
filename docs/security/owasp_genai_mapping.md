@@ -1,9 +1,14 @@
 # REMORA × OWASP GenAI Top 10 Security Mapping
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 **Status:** internal mapping, not externally audited.
 **Companion documents:**
-- [`enterprise/threat-model.md`](../../artifacts/credibility-pack/threat-model.md), full threat narrative and controls
-- [`enterprise/policy-model.md`](../../artifacts/credibility-pack/policy-model.md), OPA policy gates
+- [`artifacts/credibility-pack/threat-model.md`](../../artifacts/credibility-pack/threat-model.md), full threat narrative and controls
+- [`artifacts/credibility-pack/policy-model.md`](../../artifacts/credibility-pack/policy-model.md), OPA policy gates
 - [`remora/agent_hook/`](../../remora/agent_hook/), runtime hook implementation
 
 The [OWASP Top 10 for Large Language Model Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
@@ -21,9 +26,9 @@ the model to ignore policy, exfiltrate data, or execute harmful actions.
 
 | Control | Implementation | Test |
 |---|---|---|
-| PreToolUse hook AST guard | `remora/agent_hook/hook.py`, `remora/safety/`, blocks shell injection patterns before execution | `tests/test_agent_hook.py`, `tests/test_shell_ast.py` |
+| PreToolUse hook AST guard | `remora/agent_hook/shell_ast.py`, `remora/safety/`, blocks shell injection patterns before execution | `tests/test_agent_hook.py`, `tests/test_shell_ast.py` |
 | Retrieved text treated as data, not instruction | `ConsensusGate` prompt construction separates context from instructions | `tests/test_cascade.py` |
-| Injection-indicator escalation | `enterprise/threat-model.md §1`, escalate on detected patterns for medium+ tiers | `tests/test_toolcall_v2_results.py` |
+| Injection-indicator escalation | `artifacts/credibility-pack/threat-model.md §1`, escalate on detected patterns for medium+ tiers | `tests/test_toolcall_v2_results.py` |
 | Audit log of detection | Injection pattern stored in audit ledger | `enterprise/audit-ledger-schema.sql` |
 
 **Gap:** REMORA does not yet run a dedicated NLI/semantic entailment model to
@@ -40,8 +45,8 @@ SQL queries, shell commands, or rendered HTML.
 | Control | Implementation | Test |
 |---|---|---|
 | Tool-call schema validation | `remora/toolcall/`, `remora/policy/`, validates tool args against JSON schema before execution | `tests/test_toolcall_v2_results.py` |
-| Allowlist-only tool execution | `enterprise/risk-profiles.yaml` defines per-tier permitted tools | `tests/test_toolcall_v2_results.py` |
-| Dry-run simulation before mutable actions | `enterprise/threat-model.md §3` | `tests/test_agent_hook.py` |
+| Allowlist-only tool execution | `schemas/risk-profiles.yaml` defines per-tier permitted tools | `tests/test_toolcall_v2_results.py` |
+| Dry-run simulation before mutable actions | `artifacts/credibility-pack/threat-model.md §3` | `tests/test_agent_hook.py` |
 
 **Gap:** No HTML-output escaping layer yet; REMORA is an API/agent system,
 not a web renderer, but downstream rendering must be handled by the integrator.
@@ -110,8 +115,8 @@ a dedicated NER/PII classifier at the output layer.
 | Control | Implementation | Test |
 |---|---|---|
 | Policy gate + OPA | `remora/policy/`, all tool calls evaluated against OPA policy before execution | `enterprise/policy_as_code_example.yaml` |
-| Risk-profile allowlist | `enterprise/risk-profiles.yaml` defines per-tier allowed tool actions | N/A |
-| Default-deny | `enterprise/threat-model.md`, `ABSTAIN` on missing policy | N/A |
+| Risk-profile allowlist | `schemas/risk-profiles.yaml` defines per-tier allowed tool actions | N/A |
+| Default-deny | `artifacts/credibility-pack/threat-model.md`, `ABSTAIN` on missing policy | N/A |
 
 ---
 

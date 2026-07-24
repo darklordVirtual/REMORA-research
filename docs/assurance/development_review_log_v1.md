@@ -114,7 +114,7 @@ safety-critical codebase's process to behave.
    were corrected, and the title page now states content-date vs compile-date
    explicitly so a reviewer checking PDF metadata is never misled.
 
-5. **Claims are machine-checked against artifacts.** `make check-claims` and
+5. **Claims are machine-checked against artifacts.** `make claim-check` and
    the CI claim-provenance gate fail the build if a number appears without its
    backing artifact. The capability register's `SHADOW_ONLY` invariant is a
    test: nothing can silently claim production or external-verification status.

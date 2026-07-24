@@ -204,7 +204,7 @@ Ordered by leverage. Each item names what it unlocks and what it needs.
 9. **Independent reproduction.** Hand the credibility pack to a third party and
    record the result (closes `NEGATIVE_RESULTS.md` Finding #1).
 10. **Operational hardening.** RBAC, human-approval workflow, incident handling,
-    and the observability stack already scaffolded in `deploy/docker-compose/`.
+    and the container image built from `artifacts/docker/Dockerfile`.
 
 **The single most valuable next action:** Tier-1 item 1 or 2, both convert
 already-built, internally-clean results into externally-defensible claims, which is

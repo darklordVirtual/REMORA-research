@@ -37,7 +37,7 @@ permission**, not truth.
 
 ## 2. The canonical research claim (stated honestly)
 
-**The safety floor is carried by the deterministic Stage-1 policy layer, not by
+**The safety floor is carried by the deterministic hard-block policy layer, not by
 the probabilistic consensus / thermodynamic / Lyapunov machinery.**
 
 On the 700-task adversarial tool-call benchmark (a deterministic simulator;
@@ -137,7 +137,7 @@ flowchart TD
 | **Governance envelope** | `remora/governance/envelope.py` | `DecisionEnvelope` (v2) + `AuditBlock`, the canonical governance contract |
 | **Cascade pipeline** | `remora/cascade/` | staged execution: `FastGate` → `ConsensusGate` → `VerifierGate` → `CritiqueRevisionGate` → `SelfConsistencyGate` → `MixtureOfAgentsSynth` (see §5) |
 | **Consensus core** | `remora/engine.py`, `remora/correlation.py` | multi-oracle consensus loop; rolling correlation matrix and diversity weights |
-| **Uncertainty observables** | `remora/thermodynamics/`, `remora/statphys/` | entropy `H`, dissensus `D`, value `V` as an uncertainty-routing metaphor (not physics) |
+| **Uncertainty observables** | `remora/thermodynamics.py`, `remora/statphys/` | entropy `H`, dissensus `D`, value `V` as an uncertainty-routing metaphor (not physics) |
 | **Selective prediction** | `remora/selective/` | `conformal.py`, `crc.py` (weight-corrected slack), `pvd.py`, `guardrail.py` (`PhaseAwareGuardrail`), `drift_detector.py` |
 | **Oracles (pluggable)** | `remora/oracles/` | interchangeable backends, see §6 |
 | **Audit chain** | `remora/audit/hash_chain.py` | SHA-256 hash chain; tamper-**evident** |
@@ -145,6 +145,8 @@ flowchart TD
 | **MCP server** | `servers/mcp_remora.py` | Model Context Protocol tool suite (`remora_verify_claim`, `remora_analyze_document`, `remora_rag_query`, `remora_norwegian_law_search`, `agent_start_session`, `agent_execute_tool`, `remora_session_status`, …) |
 | **Edge workers** | `workers/` | `agent-control`, `rag-oracle`, `law-search`, `aromer` (see §5.4) |
 | **Learning overlay** | `remora/aromer/` | AROMER, experimental, shadow-only (see §5.5) |
+
+## 5. Component subsystems in detail
 
 ### 5.1 Cascade Pipeline (`remora/cascade/`)
 
@@ -226,7 +228,7 @@ an external append-only (WORM) store as a deployment dependency.
 | `pvd.py` | Prover-Verifier Deliberation, semantic-entropy clustering of oracle responses blended with a verifier confidence signal (no LLM calls; deliberation rounds are simulated) |
 | `binomial_bounds.py` | Clopper–Pearson / binomial upper confidence bounds on empirical risk |
 
-### 5.4 Interfaces: API: MCP, and edge workers
+### 5.4 Interfaces: API, MCP, and edge workers
 
 - **`servers/api.py`**, FastAPI governance gateway.
 - **`servers/mcp_remora.py`**, MCP server exposing REMORA as a tool suite to
@@ -237,7 +239,7 @@ an external append-only (WORM) store as a deployment dependency.
 
   | Worker | Directory | Primary endpoints |
   |---|---|---|
-  | `agent-control` | `workers/agent-control/` | `POST /decide`, `POST /tool-call`, `GET /audit` (auth), `GET /status` |
+  | `agent-control` | `workers/agent-control/` | `POST /execute`, `POST /sessions`, `DELETE /sessions/:id`, `GET /audit` (auth), `GET /status` |
   | `rag-oracle` | `workers/rag-oracle/` | `POST /query`, `POST /ingest` (auth) |
   | `law-search` | `workers/law-search/` | `POST /search` |
   | `aromer` | `workers/aromer/` | AROMER learning-loop endpoints (`/decide`, `/adapt`, `/outcome`, `/log`, `/intelligence`) |

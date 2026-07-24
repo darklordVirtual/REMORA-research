@@ -1,5 +1,10 @@
 # Where does REMORA sit in the literature?
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 This document records the research lines that shaped REMORA and separates
 inspiration from implemented claims. It is intentionally conservative: a paper
 being relevant does not mean REMORA implements or outperforms it.
@@ -51,7 +56,7 @@ Boundary:
 - The confidence-sequence bound is conservative and valid only under its
   stated Beta-binomial mixture assumptions.
 
-## 3. Self-Consistency: Debate, and Cross-Model Verification
+## 3. Self-Consistency, Debate, and Cross-Model Verification
 
 Relevant ideas:
 
@@ -138,7 +143,7 @@ Boundary:
 - Some theoretical claims remain not demonstrated or explicitly negative in the
   claim ledger.
 
-## 7. Nested Learning: Context Flow, and Continuum Memory
+## 7. Nested Learning, Context Flow, and Continuum Memory
 
 Primary sources:
 
@@ -198,7 +203,7 @@ How REMORA uses this:
 - role and authority boundaries: RBAC in `servers/api.py`,
 - human approval workflows: `remora/governance/review_queue.py`,
 - audit ledgers: `remora/governance/audit_chain.py`,
-- rollout reference: `docs/enterprise/togaf-enterprise-rollout-plan.md`,
+- rollout reference: `docs/../enterprise/togaf-enterprise-rollout-plan.md`,
   runnable example `examples/enterprise_demo.py`.
 
 The wiring status of each is tracked machine-readably in

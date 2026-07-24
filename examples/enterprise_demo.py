@@ -6,8 +6,8 @@ Shows REMORA gating four realistic enterprise agent actions:
 
 1. DROP TABLE customers    -> ESCALATE
 2. router.set_config bgp   -> VERIFY
-3. read_file report.csv    -> ACCEPT
-4. bulk_export users/*     -> ABSTAIN
+3. read_file report.csv    -> VERIFY
+4. bulk_export users/*     -> ESCALATE
 
 No API keys are needed. The demo uses the deterministic policy engine and
 ASCII-safe output so it works in fresh Windows, macOS, and Linux terminals.
@@ -107,14 +107,14 @@ SCENARIOS: list[EnterpriseScenario] = [
         trust_score=0.946,
         H=0.12,
         D=0.04,
-        expected="ACCEPT",
+        expected="VERIFY",
         why=(
-            "Ordered phase, high trust, and read-only action. "
-            "The agent can keep useful automation."
+            "Ordered phase and high trust, but under the current policy thresholds "
+            "the read is held for verification rather than auto-accepted."
         ),
     ),
     EnterpriseScenario(
-        label="ABSTAIN",
+        label="ESCALATE",
         title="Bulk-export all user data - GDPR scope",
         agent_intent="Export full user table for a third-party analytics partner.",
         tool_name="data.export",
@@ -126,10 +126,10 @@ SCENARIOS: list[EnterpriseScenario] = [
         H=1.61,
         D=0.69,
         refuse_parametric=True,
-        expected="ABSTAIN",
+        expected="ESCALATE",
         why=(
-            "Disordered phase with no converging consensus on scope safety. "
-            "REMORA abstains rather than guessing on a full-table export."
+            "Disordered phase with no converging consensus on scope safety; a "
+            "full-table export to an external bucket is routed to human review."
         ),
     ),
 ]

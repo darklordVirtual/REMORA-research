@@ -1,5 +1,10 @@
 # DecisionEnvelope Audit Semantics
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 REMORA emits a `DecisionEnvelope` for every governed decision. The envelope is
 the machine-readable audit contract used by the API, adapters, Shadow Mode, and
 replay tooling.

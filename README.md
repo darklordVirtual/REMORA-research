@@ -29,7 +29,7 @@ Architecture bounded by documented assumptions. Results are from controlled expe
 
 Shadow-mode research only; not certified for production. What remains open, in one place: [docs/assurance/remediation_register.yaml](docs/assurance/remediation_register.yaml).
 
-## Research foundation
+## Research Foundation
 
 Every research line REMORA builds on maps to a concrete control, code file, and test in the machine-checked [research-control matrix](docs/research/research_control_matrix.generated.md) — for example Bjøru (2026) concept-based causal XAI → `CausalDecisionModel` → per-concept Probability of Sufficiency/Necessity and a minimal contrastive intervention (`remora/causal/`, `tests/test_causal_search_attribution.py`), bounded to policy causality. Literature positioning: [docs/09-related-work.md](docs/09-related-work.md); derivations: [paper/remora_paper.md](paper/remora_paper.md).
 
@@ -106,7 +106,7 @@ N_accepted = 25; Wilson CI [70.0%, 95.8%]; one-sided p = 1.45×10⁻⁵ vs. 46.3
 
 **Read as directional confirmation, not a tight accuracy estimate.** The CI is wide because N_accepted = 25. The 88.0% point estimate must always be quoted with its CI. The lower bound of 70.0% is the honest floor.
 
-Artifact: `artifacts/benchmark_n500_locked.json`
+Artifact: `results/selective_n500_holdout_results.json`
 
 ### Critical-phase trust inversion (negative result)
 
@@ -148,7 +148,7 @@ The label `N500` is historical; the current artifact evaluates 544 questions. Ba
 | 18% | 98 | 87 | 88.8% |
 | 20% | 109 | 94 | 86.2% |
 
-Best operating point (18% coverage, k=98): accuracy 88.8%, Wilson CI [81.0%, 93.6%]. Artifact: `artifacts/benchmark_n500_locked.json`
+Best operating point (18% coverage, k=98): accuracy 88.8%, Wilson CI [81.0%, 93.6%]. Artifact: `results/selective_n500_results.json` (The Evidence-Summary headline — 88.0% @ 23.2% coverage, N_accepted=25 — is the locked-threshold held-out result; this 88.8% @ 18% is the best point of the full 544-question coverage sweep. Same locked dataset, different scopes.)
 
 ### Selective trust curve (N=302, neg_temperature signal)
 

@@ -182,7 +182,7 @@ def _make_envelope(sc: Scenario, action: str, reasons: tuple, hash_val: str) -> 
 # ---------------------------------------------------------------------------
 
 def run(*, fast: bool = False, no_color: bool = False) -> None:
-    console = Console(highlight=False, no_color=no_color) if _RICH else None
+    console = Console(highlight=False) if (_RICH and not no_color) else None
     engine  = RemoraDecisionEngine()
 
     if console:
@@ -263,7 +263,7 @@ def run(*, fast: bool = False, no_color: bool = False) -> None:
         else:
             print(f"\n── {i + 1}/{len(SCENARIOS)}  {sc.name}  ({sc.risk_tier})")
             print(f"   Proposed:  {sc.question[:72]}")
-            print(f"   Outcome:   {emoji} {lbl}")
+            print(f"   Outcome:   {lbl}")
             print(f"   Trust:     {sc.trust_score:.0%}  H={sc.H:.2f}  D={sc.D:.2f}  phase={sc.phase}")
             print(f"   Hash:      {h[:32]}…")
 

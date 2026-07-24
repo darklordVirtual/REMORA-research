@@ -60,7 +60,7 @@ architectural caveat.
 | `remora/selective/crc.py` | Conformal risk control under shift | `CovariateShiftCRC` |
 | `remora/lyapunov.py` | Session stability V(t) = H + λD (heuristic observable) | `LyapunovController` |
 | `remora/audit/hash_chain.py` | SHA-256 hash-chain audit trail | `AuditHashChain` |
-| `remora/governance/nested_governance.py` | Nested memory layers + forgetting | `NestedGovernance` |
+| `remora/governance/nested_governance.py` | Nested memory layers + forgetting | `NestedGovernanceModel` |
 | `remora/safety/` | Adversarial detection, file-risk classification | `remora/safety/adversarial.py` |
 | `remora/toolcall/` | Tool-call schema validation and gating | `remora/toolcall/remora_gate.py` |
 | `remora/aromer/` | Closed-loop learning layer (EXPERIMENTAL) | `remora/aromer/orchestrator.py` |

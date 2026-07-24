@@ -1,5 +1,10 @@
 # REMORA External Review Checklist
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 ## Scope
 
 Use this checklist for academic review, security-oriented technical review, and
@@ -125,9 +130,9 @@ Round-2 execution plan reference:
 ## Enterprise Catalog Review
 
 1. Confirm `enterprise/` directory contains all 15+ architecture and design documents.
-2. Confirm `enterprise/risk-profiles.yaml` and `enterprise/policy_as_code_example.yaml` are valid YAML.
+2. Confirm `schemas/risk-profiles.yaml` and `enterprise/policy_as_code_example.yaml` are valid YAML.
 3. Confirm `enterprise/audit-ledger-schema.sql` contains row-level security and immutability rules.
-4. Confirm `enterprise/threat-model.md`, `enterprise/production-readiness.md`, `enterprise/deployment-runbook.md` exist and are non-empty.
+4. Confirm `artifacts/credibility-pack/threat-model.md`, `enterprise/production-readiness.md`, `enterprise/deployment-runbook.md` exist and are non-empty.
 5. Confirm `enterprise/executive-brief.md` "Current state" table accurately reflects completed vs. designed vs. not-built items.
 6. Confirm `paper/future_state.md` speculative disclaimer is present at the top of the file.
 
@@ -149,7 +154,7 @@ Round-2 execution plan reference:
 
 1. Confirm all critical/high findings have owner and due date.
 2. Confirm residual-risk ledger entries are recorded and accepted explicitly.
-3. Confirm closure note is published (`docs/review_round2_closure.md`).
+3. Confirm closure note is published (`docs/archive/review_round2_closure.md`).
 
 ## Commercial Diligence Readiness
 

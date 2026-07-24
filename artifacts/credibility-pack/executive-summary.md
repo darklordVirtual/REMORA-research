@@ -1,5 +1,10 @@
 # REMORA: Executive Brief
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 ## The strategic problem
 
 Enterprise AI adoption is accelerating. The governance infrastructure for it is not.
@@ -120,10 +125,10 @@ What is complete and tested:
 | AROMER closed-loop learning (AII intelligence index, MetaJudge, world model, Thompson-bandit oracle selection) | Complete, experimental. Current AII=0.9922 TRAINED (adapt_cycles=1814+; ECE=0.0052 structural ceiling, MCE bucket selection bias; T1=0.9741, T2=T3=T4=T5=1.000; FAR=0; theoretical ceiling reached 2026-07-01). One production gate remains: REM-021 (REM-020 closed 2026-07-17 under the 7-day criterion; self-reported values pending REM-021 verification). See `NEGATIVE_RESULTS.md §15` and `docs/REMORA_AROMER_MASTER_DOCUMENT.md`. |
 | Cloudflare Workers (RAG, law search, agent control, AROMER) | Complete |
 | Audit ledger schema | Designed (enterprise/audit-ledger-schema.sql) |
-| Risk profiles (machine-readable) | Designed (enterprise/risk-profiles.yaml) |
+| Risk profiles (machine-readable) | Designed (schemas/risk-profiles.yaml) |
 | Policy-as-code example | Designed (enterprise/policy_as_code_example.yaml) |
 | Nested governance layer policy | Designed (enterprise/nested_governance_layers.yaml) |
-| Threat model | Designed (enterprise/threat-model.md) |
+| Threat model | Designed (artifacts/credibility-pack/threat-model.md) |
 | Production readiness plan | Designed (enterprise/production-readiness.md) |
 | Secure deployment runbook | Designed (enterprise/deployment-runbook.md) |
 | Observability and SLO model | Designed (enterprise/observability.md) |
@@ -155,11 +160,11 @@ REMORA addresses this problem at the architectural level, not at the model level
 |---|---|
 | [`enterprise/architecture.md`](../../ARCHITECTURE.md) | Full control plane architecture and circuit breaker analogy |
 | `enterprise/remora-control-plane.md` | Multi-tenant deployment model and maturity roadmap |
-| [`enterprise/policy-model.md`](policy-model.md) | Risk tiers, decision outcomes, policy-as-code |
-| [`enterprise/risk-profiles.yaml`](risk-profiles.yaml) | Machine-readable risk profile configuration |
+| [`artifacts/credibility-pack/policy-model.md`](policy-model.md) | Risk tiers, decision outcomes, policy-as-code |
+| [`schemas/risk-profiles.yaml`](risk-profiles.yaml) | Machine-readable risk profile configuration |
 | `enterprise/policy_as_code_example.yaml` | Concrete fail-closed policy example |
 | `enterprise/nested_governance_layers.yaml` | Multi-frequency memory and governance layers |
-| [`enterprise/threat-model.md`](threat-model.md) | Threat model and security controls |
+| [`artifacts/credibility-pack/threat-model.md`](threat-model.md) | Threat model and security controls |
 | `enterprise/production-readiness.md` | Production readiness gates and rollout stages |
 | `enterprise/deployment-runbook.md` | Secure deployment, scaling, rollback, and operations runbook |
 | `enterprise/observability.md` | Safety metrics, SLOs, alerts, and continuous evaluation |

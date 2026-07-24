@@ -2,7 +2,7 @@
 
 **AI action governance and safety control layer for autonomous systems**
 
-[![Quality Gates](https://github.com/darklordVirtual/REMORA/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA/actions/workflows/quality-gates.yml) [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0) [![Paper](https://img.shields.io/badge/paper-preprint-blue)](../../paper/remora_paper.md) [![arXiv](https://img.shields.io/badge/arXiv-under%20submission-b31b1b)](../../paper/remora_paper.tex) [![v0.7.1](https://img.shields.io/badge/version-0.7.1-green)](../../pyproject.toml)
+[![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0) [![Paper](https://img.shields.io/badge/paper-preprint-blue)](../../paper/remora_paper.md) [![arXiv](https://img.shields.io/badge/arXiv-under%20submission-b31b1b)](../../paper/remora_paper.tex) [![v0.9.0](https://img.shields.io/badge/version-0.9.0-green)](../../pyproject.toml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](../../pyproject.toml)
 [![Works with LangGraph](https://img.shields.io/badge/works%20with-LangGraph-orange)](../../examples/langgraph_integration.py)
 [![Works with OpenAI](https://img.shields.io/badge/works%20with-OpenAI%20tools-green)](../../examples/openai_tool_calling.py)
@@ -62,7 +62,7 @@ make test
 make curated-test
 
 # ── Full observability stack (OTel + Prometheus + Grafana) ────────
-docker compose -f deploy/docker-compose/docker-compose.yml up
+# container image: docker build -f artifacts/docker/Dockerfile -t remora:local .
 # → Grafana at http://localhost:3000  (admin / remora)
 # → REMORA API at http://localhost:8080/v1/health
 ```
@@ -1034,7 +1034,7 @@ If you use REMORA in research, please cite the preprint and the software:
 **Software:**
 ```bibtex
 @software{skogbrott2026remora_sw,
-  title   = {{REMORA} v0.7.1: AI action governance for agentic {AI}},
+  title   = {{REMORA} v0.9.0: AI action governance for agentic {AI}},
   author  = {Skogbrott, Stian},
   year    = {2026},
   url     = {https://github.com/darklordVirtual/REMORA},

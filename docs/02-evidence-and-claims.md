@@ -96,8 +96,8 @@ below names the PDF, verify against the .md, which supersedes it.
 - **Claim:** 99.9% coverage at a 15% risk target on ordered-phase items, 0 of 20
   calibration seeds failing.
 - **Artifact:** `paper/remora_paper.pdf` §9.3 (Mondrian table);
-  `results/mondrian_repeated_splits_results.json`,
-  `results/conformal_repeated_splits.json`.
+  `results/mondrian_v2_repeated_splits.json` (v2, 2161 items: 99.85% ordered-phase
+  coverage, 0 of 20 seeds failing at the 15% risk target).
 - **Caveat:** holds for the **ordered** phase only; critical and disordered phases
   cannot achieve meaningful conformal coverage (this is why the evidence router
   and `PhaseAwareGuardrail` exist).

@@ -62,7 +62,7 @@ file mutations are executed. See `docs/toolcall_benchmarks.md`.
 ## Claim 2, 88% selective accuracy on held-out split
 
 ```bash
-python experiments/end_to_end_n500_v3.py
+make holdout   # python scripts/selective_n500_holdout.py
 ```
 
 Expected output files:
@@ -79,11 +79,16 @@ floor. Quote the CI, not just the point estimate.
 ## Claim 3: Critical-phase trust inversion
 
 ```bash
-python experiments/end_to_end_n500_v3.py   # same run as Claim 2
+python experiments/end_to_end_n500_v3.py   # in-sample full-dataset eval
 ```
 
-Evidence is in the same result JSON: phase-conditioned accuracy table, showing
-low-trust critical items at 71.4% correct (N=21) vs high-trust at 27.3% (N=11).
+The critical-phase trust-inversion split (low-trust critical items 71.4% correct,
+N=21, vs high-trust 27.3%, N=11) is a documented negative result; see
+`NEGATIVE_RESULTS.md` and `paper/remora_paper.md`. NOTE: the per-item τ-split
+artifact behind this exact split is not committed to this repo, so treat the
+split as a directional finding pending that artifact (the committed
+`results/selective_n500_results.json` records the aggregate critical bucket as
+20/32 correct).
 
 Unit tests: `remora/selective/guardrail.py`, 8 unit tests covering phase-aware
 guardrail routing.
@@ -108,11 +113,13 @@ Implementation: `remora/audit/hash_chain.py`.
 ## Claim 5: Ordered-phase conformal coverage
 
 ```bash
-make holdout
+python experiments/mondrian_repeated_splits.py
 ```
 
-Expected: `paper/remora_paper.pdf` §9.3 Mondrian table values, 99.9% coverage
-at 15% risk target on ordered-phase items, 0 of 20 calibration seeds failing.
+Expected: repeated-splits Mondrian conformal coverage per phase. The committed
+99.9% / 0-of-20 ordered-phase figure at the 15% risk target is in
+`results/mondrian_v2_repeated_splits.json` (v2, 2161 items); the script above
+reproduces the repeated-splits methodology (see `paper/remora_paper.md` §9.3).
 
 ---
 

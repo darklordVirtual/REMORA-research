@@ -112,7 +112,7 @@ cat artifacts/aromer_learning_ablation_v1.json | jq .
 
 - `remora/aromer/seeds/`, 18 seed episode JSONL files
 - `remora/aromer/evals/learning_ablation.py`, ablation harness
-- `remora/decision_envelope.py`, DecisionEnvelope contract
+- `remora/governance/envelope.py`, DecisionEnvelope contract
 - `experiments/agentharm/README.md`, external validation roadmap
 
 ---

@@ -660,16 +660,13 @@ claims:
   toolcall_v2_unsafe_execution_reduction:
     status: supported
     wording: |
-      Under toolcall_benchmark_v2, remora_full_policy_gate reports
-      unsafe_execution_rate = 0.0000, while heuristic baselines are higher:
-        - single_model_heuristic: 0.2000
-        - majority_vote_heuristic: 0.1000
-        - self_consistency_heuristic: 0.1000
-        - verifier_heuristic: 0.2000
-        - remora_temperature_gate_heuristic: 0.1000
-      This corresponds to a measured unsafe-rate reduction of 10.0 to
-      20.0 percentage points versus these baselines on this deterministic
-      benchmark.
+      Under toolcall_benchmark_v2 (leakage-free 2026-07-20 re-run),
+      remora_full_policy_gate reports unsafe_execution_rate = 0.0000; all
+      heuristic baselines report 0.0143 (10 of 700 tasks = 1 of 70 template
+      clusters). This is a ~1.4 percentage-point unsafe-rate reduction that is
+      NOT statistically significant at the template-cluster level (one-sided
+      p = 0.50); the statistically supported advantage of the full gate on this
+      benchmark is decision utility, not the unsafe-rate delta.
     artifact: results/toolcall_benchmark_v2_results.json
     test: tests/test_toolcall_v2_results.py
     limitations: |
@@ -731,16 +728,13 @@ claims:
   toolcall_unsafe_execution_reduction_v2_significance:
     status: supported
     wording: |
-      Paired bootstrap and sign-flip permutation analysis on v2 reports
-      positive unsafe-rate deltas (baseline - remora) for every heuristic
-      baseline:
-        - single_model_heuristic: +0.2000, CI95 [0.1714, 0.2286], p=9.999e-05
-        - majority_vote_heuristic: +0.1000, CI95 [0.0786, 0.1229], p=9.999e-05
-        - self_consistency_heuristic: +0.1000, CI95 [0.0786, 0.1229], p=9.999e-05
-        - verifier_heuristic: +0.2000, CI95 [0.1714, 0.2286], p=9.999e-05
-        - remora_temperature_gate_heuristic: +0.1000, CI95 [0.0786, 0.1229], p=9.999e-05
-      Utility deltas (remora - baseline) are also positive for all baselines in
-      this deterministic benchmark artifact.
+      Paired bootstrap / sign-flip permutation analysis on v2 (leakage-free
+      2026-07-20 re-run): the unsafe-rate delta (baseline - remora) is +0.0143
+      for every heuristic baseline, CI95 [0.0, 0.0429], one-sided p = 0.50 —
+      NOT statistically significant (WITHDRAWN as a safety-delta claim). The
+      statistically supported result is the UTILITY delta (remora - baseline):
+      +0.456, CI95 [0.36, 0.56], p = 9.999e-05 (and +0.259 vs the temperature
+      gate).
     artifact: results/toolcall_benchmark_v2_significance.json
     test: tests/test_toolcall_v2_significance.py
     limitations: |
@@ -752,13 +746,14 @@ claims:
   toolcall_v2_ablation:
     status: supported
     wording: |
-      In v2 ablation, disabling hard blocks increases unsafe
-      execution and lowers utility:
-        - remora_without_hard_blocks: unsafe_execution_rate=0.0857,
-          mean_utility=0.0286, accuracy=0.3000
+      In v2 ablation (leakage-free 2026-07-20 re-run):
+        - remora_without_hard_blocks: unsafe_execution_rate=0.0000,
+          mean_utility=0.2000, accuracy=0.3000
         - remora_full: unsafe_execution_rate=0.0000,
           mean_utility=0.6200, accuracy=0.9000
-      On this benchmark, hard-block safety controls dominate the measured gain.
+      Both configurations reach 0% unsafe execution on this artifact, so the
+      measured effect of the hard-block layer here is on decision utility and
+      accuracy, not on the unsafe-execution rate.
     artifact: results/toolcall_benchmark_v2_ablation.json
     test: tests/test_remora_toolcall_gate_v2.py
     limitations: |

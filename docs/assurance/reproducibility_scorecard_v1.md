@@ -142,7 +142,7 @@ Gaps: `thermodynamic_eval_n500_calibrated_results.json` (349 KB, 2026-06-09) doe
 
 6. **Generate a minimal SBOM** using `pip-licenses` or `cyclonedx-bom` for the `[dev]` extra. This is low effort and satisfies external review requirements.
 
-7. **Pin base Docker image by digest** in `deploy/docker-compose/Dockerfile` (e.g., `python:3.12-slim@sha256:...`).
+7. **Pin base Docker image by digest** in `artifacts/docker/Dockerfile` (e.g., `python:3.12-slim@sha256:...`).
 
 ### P3: Low priority (research-grade, future work)
 

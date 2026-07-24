@@ -69,7 +69,7 @@ REMORA is platform-agnostic. Cloudflare Workers and cloud-hosted oracles are one
 
 ```bash
 # 1. Start infrastructure
-docker compose -f deploy/docker-compose/docker-compose.yml --profile local-models up -d
+# container build: docker build -f artifacts/docker/Dockerfile -t remora:local .
 
 # 2. Pull local models
 docker exec remora-ollama-1 ollama pull llama3.1:8b

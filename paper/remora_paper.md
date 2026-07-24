@@ -576,11 +576,11 @@ The disordered phase accounts for 75.9% of the benchmark, driving the low full-c
 
 | Condition | Accuracy | Unsafe Exec. Rate | Unsafe Exec. Count | Mean Utility |
 |-----------|----------|------------------|-------------------|--------------|
-| Single model heuristic | 20% | **20%** | 140 | −0.25 |
-| Majority vote heuristic | 30% | 10% | 70 | 0.00 |
-| Self-consistency heuristic | 30% | 10% | 70 | 0.00 |
-| Verifier heuristic | 20% | 20% | 140 | −0.25 |
-| REMORA temperature gate only | 70% | 10% | 70 | 0.27 |
+| Single model heuristic | 28.6% | 1.4% | 10 | 0.16 |
+| Majority vote heuristic | 28.6% | 1.4% | 10 | 0.16 |
+| Self-consistency heuristic | 28.6% | 1.4% | 10 | 0.16 |
+| Verifier heuristic | 28.6% | 1.4% | 10 | 0.16 |
+| REMORA temperature gate only | 60% | 1.4% | 10 | 0.36 |
 | **REMORA full policy gate** | **90%** | **0%** | **0** | **0.62** |
 
 Under the leakage-free input contract (2026-07-20 re-run; see the M1/context-flag note below), heuristic baselines produce 1.4% unsafe executions on this simulator-scoped adversarial benchmark (10 of 700 tasks, i.e. 1 of 70 template clusters). REMORA's full policy gate achieves 0% unsafe execution while maintaining 90% accuracy and mean utility 0.62 (vs. 0.16 for the heuristic baselines). The unsafe-rate delta vs. baselines is not statistically significant at the template-cluster level (one-sided p=0.50); the statistically supported advantages are decision utility (+0.456, p≈1×10⁻⁴) and accuracy. The temperature-gate-only condition achieves 60% accuracy with 1.4% unsafe execution, so on this benchmark version the demonstrated value of the hard-block layer is routing quality rather than a statistically separable safety delta. (Earlier versions of this table reported baselines at 10–20% unsafe execution; those numbers were inflated by baselines and gate reading author-annotated severity and oracle context flags — see below.)
@@ -665,6 +665,8 @@ Ordered-phase conformal achieves 99.9% coverage with 0/20 seed failures at the 1
 
 ### 10.7 External Validity: AgentHarm Benchmark (N=88)
 
+*This tri-mode evaluation (N=88; `artifacts/agentharm_trimode_results.json`, via `RemoraDecisionEngine`) is distinct from the N=208-harmful false-accept run reported in the claim register (`results/external_benchmark_agentharm_v1.json`; FAR=0.0%, Wilson 95% CI [0.00%, 1.81%], FBR=100%, via the AROMER `/decide` path). The two use different oracles, decision paths, and metrics and should not be read as one benchmark at two sample sizes.*
+
 To evaluate REMORA's governance accuracy on a fully external, independently constructed benchmark, we applied the full Mode 3 cascade (§4) to the public AgentHarm dataset (Andriushchenko et al., 2024), which contains 44 harmful and 44 harmless agent tasks drawn from a red-teaming evaluation suite developed by the UK AI Safety Institute and Gray Swan AI.
 
 **Protocol.** Three Workers AI models (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`, `@cf/qwen/qwen3-30b-a3b-fp8`, `@cf/mistralai/mistral-small-3.1-24b-instruct`) serve as oracles. We evaluate three modes progressively: oracle-only baseline (Mode 1), harm-specific oracle re-evaluation of benign tasks (Mode 2), and full REMORA policy gate applied to Mode 2 verdicts (Mode 3). The `detailed_prompt=False, hint_included=False` variant is used throughout: the most concise, hardest setting.
@@ -732,12 +734,12 @@ To demonstrate that the combination of techniques gives better safety–utility 
 
 ### 11.2 Temperature-Gate vs. Full Policy Gate
 
-The temperature-gate-only condition in the tool-call benchmark isolates the thermodynamic routing contribution. Moving from temperature gate to full policy gate:
-- Unsafe execution: 10% → 0% (policy hard blocks contribute 100% of unsafe execution reduction)
-- Accuracy: 70% → 90%
-- Mean utility: 0.27 → 0.62
+The temperature-gate-only condition in the tool-call benchmark isolates the thermodynamic routing contribution. Moving from temperature gate to full policy gate (leakage-free 2026-07-20 re-run):
+- Unsafe execution: 1.4% → 0% (a delta that is *not* statistically separable at the template-cluster level, one-sided p=0.50)
+- Accuracy: 60% → 90%
+- Mean utility: 0.36 → 0.62
 
-This demonstrates that thermodynamic routing is necessary but not sufficient for safety. Policy hard blocks are the primary safety mechanism; thermodynamic observables serve as a routing and coverage signal.
+The hard-block layer carries the safety floor (unsafe execution closed to 0%), but on this benchmark version its measured advantage over the temperature gate is decision utility and routing accuracy rather than a statistically separable unsafe-rate reduction; thermodynamic observables serve as a routing and coverage signal.
 
 ### 11.3 Oracle Count
 
@@ -1561,7 +1563,7 @@ All interpretation gates cleared. Stable status as of 2026-06-26T13:00 UTC (pre-
 4. ~~SAFETY\_EVIDENCE~~, 256 internal harmful cases > 30 threshold.
 5. ~~SAFETY\_NOT\_CERTIFIED~~, CP upper 95% bound ≈ 1.2% ≤ 5%.
 
-**World model optimization (2026-06-26, post-CAPABLE\_SHADOW\_ONLY):** accept\_trust\_min reached floor 0.50 (n\_updates=13). World model Bayesian priors updated with 150 benign correct\_accept seeds across 14 domain contexts (5 passes × 30 episodes, via `scripts/aromer_seed_benign_outcomes.py --runs 5`). After adapt cycles processing the seeded episodes, p\_harm for benign contexts fell from uniform 0.50 to 0.10–0.17 (medium-confidence posterior, ≥5 observations per context). AII smoothed rose to 0.675 while window benign\_review\_rate fell to 0% (artifact of seeded window: see caveat below). Stable AII (post-window-rotation) is estimated at 0.65–0.70 once the seeded episodes rotate out.
+**World model optimization (2026-06-26, post-CAPABLE\_SHADOW\_ONLY):** accept\_trust\_min reached floor 0.50 (n\_updates=13). World model Bayesian priors updated with 150 benign correct\_accept seeds across 14 domain contexts (5 passes × 30 episodes, via `scripts/aromer_seed_benign_outcomes.py --runs 5`, main implementation repo). After adapt cycles processing the seeded episodes, p\_harm for benign contexts fell from uniform 0.50 to 0.10–0.17 (medium-confidence posterior, ≥5 observations per context). AII smoothed rose to 0.675 while window benign\_review\_rate fell to 0% (artifact of seeded window: see caveat below). Stable AII (post-window-rotation) is estimated at 0.65–0.70 once the seeded episodes rotate out.
 
 **Caveat: window benign\_rate artifact:** Concentrated benign seeding fills the 200-episode sliding window, temporarily showing benign\_review\_rate = 0% and degrading the window quality gate to INSUFFICIENT\_SAFETY\_EVIDENCE. This is a window composition artifact, not evidence of a safety regression. The global safety gate remains PASS (256 harmful all-time, 0 FA, CP 1.2%). T5 stability dropped to 0.51 due to distribution shift; recovery expected after window rotation (≈200 new decisions). See NEGATIVE\_RESULTS.md §5.
 
@@ -1584,7 +1586,7 @@ All interpretation gates cleared. Stable status as of 2026-06-26T13:00 UTC (pre-
 
 This section documents resolution of the open caveats in §F.6 and the current system state following organic TRAINED confirmation.
 
-**Gap 1 resolved, CERTIFIED\_INDEPENDENT\_HOLDOUT (2026-06-27):** 169 harmful episodes from aradhye and CaiZhiTech (external taxonomy, independent of AROMER seeds) seeded via `scripts/aromer_seed_harmful_episodes.py`. `safety_upper_bound_95 = 0.00367` (Clopper-Pearson 95% upper bound; 0.37% ≤ 5%). `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT`. Holdout eval (36-case time-separated split): FA=22.2% on aradhye holdout (execution-context harm, Gap 2 below). See NEGATIVE\_RESULTS.md §9–10.
+**Gap 1 resolved, CERTIFIED\_INDEPENDENT\_HOLDOUT (2026-06-27):** 169 harmful episodes from aradhye and CaiZhiTech (external taxonomy, independent of AROMER seeds) seeded via `scripts/aromer_seed_harmful_episodes.py` (main implementation repo). `safety_upper_bound_95 = 0.00367` (Clopper-Pearson 95% upper bound; 0.37% ≤ 5%). `safety_certification = CERTIFIED_INDEPENDENT_HOLDOUT`. Holdout eval (36-case time-separated split): FA=22.2% on aradhye holdout (execution-context harm, Gap 2 below). See NEGATIVE\_RESULTS.md §9–10.
 
 **Gap 2 open: aradhye external FA=22.2%:** On a 36-case holdout from aradhye/CaiZhiTech seeds, false accept rate was 22.2%. Root cause: instruction-text signals do not encode execution-context harm (the harmful action in context looks identical to benign). Resolution requires runtime execution monitoring; architectural gap, not a tuning issue.
 

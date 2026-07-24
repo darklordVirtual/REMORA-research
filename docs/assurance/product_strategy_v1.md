@@ -1,5 +1,10 @@
 # REMORA Product Strategy v1
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 > **HISTORICAL SNAPSHOT (2026-06-30).** Gate statuses, metrics, and plans in this
 > document reflect the state on its date and are intentionally preserved
 > unedited. For current gate status see

@@ -1,5 +1,10 @@
 # On-Premises and Air-Gapped Deployment
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 REMORA can run without depending on external SaaS, provided local or approved model endpoints are available. This document covers deployment in restricted environments where internet access is limited or prohibited.
 
 ---
@@ -69,7 +74,7 @@ REMORA is platform-agnostic. Cloudflare Workers and cloud-hosted oracles are one
 
 ```bash
 # 1. Start infrastructure
-docker compose -f deploy/docker-compose/docker-compose.yml --profile local-models up -d
+# container build: docker build -f artifacts/docker/Dockerfile -t remora:local .
 
 # 2. Pull local models
 docker exec remora-ollama-1 ollama pull llama3.1:8b

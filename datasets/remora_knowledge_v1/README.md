@@ -162,8 +162,6 @@ python datasets/remora_knowledge_v1/scripts/validate_knowledge_dataset.py
 ### Run shadow replay
 
 ```bash
-make shadow-replay-knowledge
-# or:
 python scripts/shadow_replay.py \
   --input datasets/remora_knowledge_v1/replay_logs/shadow_replay_demo.jsonl
 ```
@@ -171,8 +169,6 @@ python scripts/shadow_replay.py \
 ### Ingest live feeds
 
 ```bash
-make ingest-live-feeds
-# or individually:
 python datasets/remora_knowledge_v1/scripts/ingest_cisa_kev.py --dry-run
 python datasets/remora_knowledge_v1/scripts/ingest_nvd.py --kev --dry-run
 python datasets/remora_knowledge_v1/scripts/ingest_epss.py --epss-gt 0.7 --dry-run

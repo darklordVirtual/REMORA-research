@@ -8,7 +8,7 @@ until its acceptance artifact (defined per proposal below) exists on disk.
 **Date:** 2026-07-02
 **Context:** REMORA currently imports two formal frameworks: Lyapunov
 stability tracking (`remora/policy/thermodynamic_braking.py`, paper §6) and
-thermodynamic-style uncertainty observables (`remora/thermodynamics/`, 
+thermodynamic-style uncertainty observables (`remora/thermodynamics.py`, 
 explicitly scoped as "an uncertainty-routing metaphor, not physics",
 ARCHITECTURE.md). The 2026-06-25 external peer review was skeptical of
 metaphor-dressing; the lesson encoded here is that **each theory import must

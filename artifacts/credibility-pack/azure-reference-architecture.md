@@ -1,5 +1,10 @@
 # Azure Reference Architecture
 
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 REMORA on Azure: mapping each component to the appropriate Azure service for enterprise deployment in regulated environments.
 
 ---
