@@ -781,7 +781,8 @@ model calls).
 
 The router evaluates a five-field \texttt{EvidenceSignal}
 with fields (\texttt{evidence\_strength}, \texttt{contradiction\_score},
-\texttt{citation\_coverage}, \texttt{cross\_evidence\_consistency},
+\texttt{citation\_coverage},
+\texttt{cross\_evidence\_\allowbreak consistency},
 \texttt{source\_reliability}):
 
 \begin{enumerate}[leftmargin=*,label=\arabic*.]
@@ -931,6 +932,7 @@ items ($\tau < 0.10$, inverted-score selection, $+43.8$\,pp lift; Wilson~CI [77.
 \centering\small
 \caption{Tool-call benchmark, leakage-remediated 2026-07-20: REMORA vs
 baselines (700 rows; effective $N=70$ template clusters).}
+\fitcolumn{%
 \begin{tabular}{@{}lccc@{}}
 \toprule
 Condition & Acc. & Unsafe acc. & Utility \\
@@ -942,7 +944,7 @@ Verifier heuristic         & 28.6\% & 1.4\% & 0.16 \\
 REMORA temp. gate only     & 60\%   & 1.4\% & 0.36 \\
 \textbf{REMORA full policy}& \textbf{90\%} & \textbf{0\%} & \textbf{0.62} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \label{tab:toolcall}
 \end{table}
 
