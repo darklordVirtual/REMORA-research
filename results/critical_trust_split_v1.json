@@ -1,0 +1,30 @@
+{
+  "schema_version": "critical_trust_split_v1",
+  "input_artifact": "results/thermodynamic_eval_n500_calibrated_results.json",
+  "split_rule": "Critical-phase items split at the median critical-phase trust_score (low = trust < median, high = trust >= median). No tuned parameter.",
+  "median_critical_trust": 0.0434,
+  "n_critical": 32,
+  "aggregate_correct": 20,
+  "aggregate_accuracy": 0.625,
+  "low_trust_bucket": {
+    "n": 15,
+    "correct": 12,
+    "accuracy": 0.8
+  },
+  "high_trust_bucket": {
+    "n": 17,
+    "correct": 8,
+    "accuracy": 0.4706
+  },
+  "trust_inversion_present": true,
+  "accuracy_delta_low_minus_high": 0.3294,
+  "consistency_check": {
+    "sum_of_bucket_correct": 20,
+    "matches_aggregate": true
+  },
+  "supersedes": "The earlier uncommitted low-trust 71.4% (N=21) / high-trust 27.3% (N=11) figures, whose bucket correct counts (15 + 3 = 18) were inconsistent with the committed 20/32 critical aggregate. This artifact is the reproducible replacement (CAB-04).",
+  "limitations": [
+    "Small sample: 32 critical items total; treat as a directional finding.",
+    "Correctness label is majority_correct from the committed N500 artifact."
+  ]
+}
