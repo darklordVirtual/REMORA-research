@@ -20,6 +20,7 @@ survive unnoticed.
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import platform
@@ -50,8 +51,24 @@ def _git(*args: str) -> str:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Generate a commit-bound test attestation")
+    parser.add_argument(
+        "--require-clean",
+        action="store_true",
+        help="Refuse to attest (exit 2) if the worktree is dirty. Use in CI so a "
+             "review attestation can only be produced from a clean checkout.",
+    )
+    args = parser.parse_args()
+
     commit = _git("rev-parse", "HEAD")
     dirty = bool(_git("status", "--porcelain"))
+    if args.require_clean and dirty:
+        print(
+            "ERROR: --require-clean set but the worktree is dirty; refusing to "
+            "produce a review attestation from an uncommitted state.",
+            file=sys.stderr,
+        )
+        return 2
     lock_bytes = (ROOT / "requirements-lock.txt").read_bytes().replace(b"\r\n", b"\n")
     lock_hash = hashlib.sha256(lock_bytes).hexdigest()
     generated_at = datetime.now(UTC).isoformat()
