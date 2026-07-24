@@ -1,0 +1,36 @@
+# Enforce LF line endings for all text files so Windows checkouts (core.autocrlf)
+# and the Linux CI runners agree byte-for-byte. Without this, prettier/eslint and
+# other line-ending-sensitive tools report phantom CRLF diffs locally that do not
+# exist in CI (or vice versa). All committed text blobs are already LF; this keeps
+# them that way regardless of the contributor's platform.
+* text=auto eol=lf
+
+# Shell scripts must stay LF even on Windows (they run on Linux CI / containers).
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Windows batch/PowerShell scripts keep CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets: never touch line endings, never diff as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.mp4 binary
+*.mov binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary
+*.gz binary
+*.whl binary
+*.parquet binary
+*.pt binary
+*.onnx binary
