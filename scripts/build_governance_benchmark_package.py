@@ -96,13 +96,21 @@ def build_package(
     }
 
     commit_sha = _git(repo_root, "rev-parse", "HEAD")
-    worktree_clean = _git(repo_root, "status", "--porcelain")
+    # "clean" means the SOURCE tree is clean; the pack output itself is always
+    # rewritten by this build, so exclude it from the check.
+    status = _git(repo_root, "status", "--porcelain")
+    if status is None:
+        source_clean: bool | None = None
+    else:
+        dirty = [ln for ln in status.splitlines()
+                 if "governance-benchmark-pack" not in ln]
+        source_clean = len(dirty) == 0
     manifest = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "scope": "REMORA governance overlay benchmark package",
         "scope_note": "This package evaluates governance performance and safety controls, not agent replacement capability.",
         "commit_sha": commit_sha,
-        "worktree_clean": (worktree_clean == "") if worktree_clean is not None else None,
+        "worktree_clean": source_clean,
         "lockfile_sha256": lockfile_sha256,
         "copied_files": copied,
         "file_sha256": file_sha256,
