@@ -13,7 +13,7 @@ explicitly scoped as "an uncertainty-routing metaphor, not physics",
 ARCHITECTURE.md). The 2026-06-25 external peer review was skeptical of
 metaphor-dressing; the lesson encoded here is that **each theory import must
 land as a falsifiable artifact (a test, a bound in a JSON, a gate), not as
-paper vocabulary**. This document evaluates ten candidate imports against
+paper vocabulary**. This document evaluates twelve candidate imports against
 that bar.
 
 **Evaluation dimensions per proposal:**
@@ -41,6 +41,8 @@ that bar.
 | 8 | Adaptive conformal inference | `remora/selective/` under drift | Coverage guarantees under distribution shift | Medium | **P3** |
 | 9 | Ruin theory | Session cumulative-risk gate | Probabilistic bound for the "boiling frog" gate | Medium | **P3** |
 | 10 | Prover–verifier games / debate | `remora/selective/pvd.py` | Defines what real deliberation would require | High (research) | **P4** |
+| 11 | Value of information as the VERIFY-vs-ABSTAIN criterion | VERIFY/ABSTAIN branch of `decision_engine.py`; evidence router; AROMER oracle selection | Formalizes an implicit routing heuristic as one falsifiable criterion (VOI > 0) | Low (retrospective) / High (live gate) | **P2** |
+| 12 | Optimal stopping (Bellman recursion) for the verification loop | VERIFY / sequential oracle loop; complements `confidence_sequence.py` (#1) | Cost-optimal stopping layer atop the fixed VERIFY rule | Medium/High | **P3** |
 
 P1 = recommend implementing next; P2 = low-cost reframing of existing
 mechanisms, batchable; P3 = worthwhile if the relevant component becomes
@@ -544,6 +546,218 @@ stratum comparing PVD v2 against the existing routing.
 
 ---
 
+## 11. Value of information as the VERIFY-vs-ABSTAIN criterion, **P2**
+
+**Problem being solved.** `remora/policy/decision_engine.py` routes between
+VERIFY and ABSTAIN with a priority rule-cascade, not a trust threshold: VERIFY
+fires on specific *resolvable* signals (`SCHEMA_UNVERIFIED_VERIFY`,
+`THERMO_REQUIRE_EVIDENCE`, `CRITICAL_PHASE`, `SESSION_RISK_VERIFY`, and a dozen
+siblings) and ABSTAIN is the safe fall-through (`DISORDERED_NO_EVIDENCE`,
+`LOW_TRUST`, and finally `DEFAULT_SAFE_ABSTAIN`). Operationally this already
+approximates "verify when a verification would change the decision, abstain
+when nothing productive is available," but the criterion is *implicit*,
+spread across ~20 hand-ordered rules, so it is neither stated as one
+principle nor falsifiable as one.
+
+**The theory.** Value of information (VOI). For each available verification
+action a_v ∈ {fetch an authoritative source, validate the schema, run a
+read-only preflight, consult an extra oracle family, request human sign-off},
+define
+  VOI(a_v) = R_now − E[R | after a_v] − C(a_v),
+where R is expected decision risk (probability of a wrong ACCEPT weighted by
+its cost) and C(a_v) the cost of running a_v. The decision-theoretic rule is
+then VERIFY iff max_a VOI(a) > 0 (some affordable verification is expected to
+reduce risk by more than it costs) and ABSTAIN iff max_a VOI(a) ≤ 0 (no
+productive or affordable verification path exists, so fall through to the safe
+default). This is the classical value-of-information calculation: expected
+value of perfect/sample information in Raiffa & Schlaifer (1961), Howard's
+(1966) information value theory, and Lindley's (1956) Bayesian measure of the
+information provided by an experiment. Russell & Wefald (1991) apply exactly
+this object to the metareasoning question "is it worth computing or checking
+more before acting?", the meta-level analogue of REMORA's VERIFY/ABSTAIN
+split, and Krause & Guestrin (2009) characterize the complexity and
+near-optimal selection of information-gathering actions.
+
+**Plugs into.**
+- The VERIFY/ABSTAIN branch of `remora/policy/decision_engine.py`: the
+  cascade's VERIFY returns and its terminal `DEFAULT_SAFE_ABSTAIN`
+  fall-through are, respectively, the max_a VOI > 0 and max_a VOI ≤ 0 regions.
+  The proposal *names* that criterion over the existing ladder; it does not
+  replace the working safety floor.
+- `remora/evidence/evidence_router.py` (`CriticalEvidenceRouter`): choosing
+  among evidence-accept / abstain / escalate given evidence quality is a
+  per-action VOI comparison (strong evidence → large risk reduction;
+  conflicting or absent evidence → none), so its accept/contradiction/
+  coverage thresholds are an implicit VOI boundary that can be stated as one.
+- AROMER's verification-action selection, the OracleBandit surfaced through
+  `remora/aromer/integration/bridge.py` (`select_oracles`) and called from
+  `remora/aromer/orchestrator.py`: "which oracle family to consult next" is a
+  choice of the argmax-VOI action, giving the bandit an explicit objective
+  rather than an implicit ranking.
+
+**What it buys.** Converts an implicit routing heuristic into a single
+explicit, falsifiable criterion: VERIFY-vs-ABSTAIN is not "mid trust vs low
+trust" but "an affordable verification exists that would change the decision
+vs it does not." This gives a principled, per-action reason for each split
+that is more precise than a trust threshold, and, crucially, a *measurable*
+target (realized risk reduction) against which the cascade's implicit boundary
+can be audited retrospectively.
+
+**Literature.**
+- Lindley, D. V. (1956). On a measure of the information provided by an experiment. *Annals of Mathematical Statistics* 27(4).
+- Raiffa, H. & Schlaifer, R. (1961). *Applied Statistical Decision Theory.* Harvard University Graduate School of Business Administration.
+- Howard, R. A. (1966). Information value theory. *IEEE Transactions on Systems Science and Cybernetics* 2(1).
+- Russell, S. & Wefald, E. (1991). Principles of metareasoning. *Artificial Intelligence* 49(1-3).
+- Krause, A. & Guestrin, C. (2009). Optimal value of information in graphical models. *Journal of Artificial Intelligence Research* 35.
+
+**Cost.** Low for the retrospective measurement: the Stage-1 engine is
+deterministic, so it can be replayed offline over the locked benchmark and the
+resulting VERIFY/ABSTAIN decisions paired with ground truth, no engine change
+and no new dependencies. Medium/high for a *live* VOI gate: that needs a
+calibrated P(error | x) and a validated risk-reduction model E[R | after a_v],
+neither of which the stateless engine currently holds.
+
+**Risk.** Overclaim. VOI presupposes a calibrated risk model and P(error | x),
+both caller-supplied; if the information-value estimator is not validated the
+criterion is decoration, a relabelled trust threshold in decision-theoretic
+costume. The retrospective artifact must therefore report *realized* VOI
+against benchmark ground truth, not a self-consistent model estimate, and the
+live gate stays PROPOSED until that estimator is validated (the same
+discipline proposal 9 imposes on its ruin bound). The formalization also must
+not be read as changing the tested cascade: it describes what the ladder
+already does, it does not touch the safety floor.
+
+**Acceptance artifact.** `results/voi_retrospective_v1.json`: a retrospective
+VOI evaluation on the committed benchmark. Replay the deterministic engine
+offline over `artifacts/benchmark_n500_locked.json` (544 items with
+`ground_truth`, `source_confidence`, `is_adversarial`), and for each item the
+cascade routed to VERIFY estimate, from the recorded outcome and the
+committed per-action risk breakdown (`risk_by_action` in
+`results/end_to_end_n500_v3.json`), whether the available verification
+actually reduced realized decision risk (positive realized VOI: the
+verification would have flipped a wrong ACCEPT, or confirmed a correct one at
+less cost than the error it averts). Report the aggregate fraction of VERIFY
+decisions with positive realized VOI, and the fraction of ABSTAIN
+fall-throughs where no available action had positive VOI, stating the decision
+rule explicitly as max_a VOI(a) > 0. Registered at `theoretical` evidence
+level (CLAIM-style, supplementary in `release_gates.md`); the engine criterion
+is unchanged pending owner sign-off.
+
+---
+
+## 12. Optimal stopping (Bellman recursion) for the verification loop, **P3**
+
+**Problem being solved.** Every VERIFY the cascade emits is really the
+decision to *pay for one more verification step*, an oracle round, a
+re-check, a human touch, in the hope the added evidence resolves the
+item. The engine already makes this call, but with a fixed rule:
+`remora/policy/decision_engine.py` fires VERIFY on specific resolvable
+signals (tainted argument, schema-unverified write, partial oracle
+quorum, credal interval genuinely wide from oracle disagreement,
+`session_cumulative_risk > 0.80`) and lets ABSTAIN be the safe
+fall-through. What is *implicit* and untested is the cost-benefit
+judgment underneath, whether the expected uncertainty reduction from
+another step is worth its oracle cost and latency. This proposal
+formalizes that judgment so it becomes falsifiable, without touching the
+deterministic safety floor.
+
+**The theory.** Optimal stopping (Wald 1947; Chow, Robbins & Siegmund
+1971; Peskir & Shiryaev 2006) treats "act now vs. gather more
+information" as a sequential decision problem solved by a Bellman
+recursion (Bellman 1957; Bayesian sequential form in DeGroot 1970):
+
+  V(s) = min{ L_accept(s), L_abstain(s), C_verify + E[V(s') | s] }
+
+where s is the current evidence/uncertainty state of an item under
+verification, L_accept and L_abstain are the terminal losses of
+committing now (an unsafe accept, or the friction of routing to a
+human), C_verify is the cost + latency of one more verification step,
+and E[V(s') | s] is the expected continuation value after that step. The
+optimal policy *stops* (accepts or abstains) when a terminal loss beats
+the continuation value and *continues* (VERIFY) otherwise, an
+optimal-stopping boundary in state space. Wald & Wolfowitz (1948) proved
+the sequential-probability-ratio test optimal in exactly this
+cost-vs-error sense; in the partially observed case a verification step
+is precisely an information-gathering action in a POMDP (Kaelbling,
+Littman & Cassandra 1998).
+
+This is the *complement* of proposal 1. Confidence sequences
+(`remora/selective/confidence_sequence.py`, IMPLEMENTED) give a
+*statistically* valid stopping boundary, when it is safe to stop
+monitoring under continuous peeking. Optimal stopping gives the
+*economically* valid boundary, when it is cost-optimal to stop paying
+for evidence. Value of information (proposal 11, its sibling in this
+batch) is the one-step (myopic) special case: VOI scores the marginal
+next step, whereas the Bellman recursion scores the whole remaining
+sequence of steps.
+
+**Plugs into.**
+- The sequential oracle-consultation / VERIFY loop: the repeated
+  `remora/policy/decision_engine.py` `decide()` invocations as evidence
+  accrues across an episode. VERIFY is the "continue" action; ACCEPT and
+  the `DEFAULT_SAFE_ABSTAIN` fall-through are the two "stop" actions.
+  The Bellman policy would live in the caller/AROMER loop that decides
+  whether to re-consult, never inside the deterministic ladder, which
+  stays the safety floor.
+- `remora/selective/confidence_sequence.py`: the statistical stopping
+  boundary (#1) and the cost-optimal stopping boundary stack, stop when
+  *either* it is statistically safe to stop or further evidence is not
+  worth its price.
+- AROMER's episode corpus (`artifacts/aromer_train_episodes.jsonl`,
+  `artifacts/aromer_holdout_episodes.jsonl`, accessed via
+  `remora/aromer/experience/store.py`): supplies the transition model
+  E[V(s') | s], how the recorded uncertainty features (`trust_score`,
+  `entropy_H`, `dissensus_D`) actually evolve after a verification step,
+  estimated offline from recorded episodes.
+
+**What it buys.** An explicit, tunable, auditable policy that trades
+oracle cost, latency, residual risk, expected uncertainty reduction, and
+remaining verification budget against one another, replacing a fixed
+"these signals → VERIFY" rule with a decision that can be measured and
+defended. It also yields a principled stopping rule for *how many*
+verification rounds an item warrants before a forced ABSTAIN, which the
+current cascade leaves entirely to the caller.
+
+**Literature.**
+- Bellman, R. (1957). *Dynamic Programming.* Princeton University Press.
+- Wald, A. (1947). *Sequential Analysis.* Wiley.
+- Wald, A. & Wolfowitz, J. (1948). Optimum character of the sequential probability ratio test. *Annals of Mathematical Statistics* 19(3).
+- Chow, Y. S., Robbins, H. & Siegmund, D. (1971). *Great Expectations: The Theory of Optimal Stopping.* Houghton Mifflin.
+- DeGroot, M. H. (1970). *Optimal Statistical Decisions.* McGraw-Hill.
+- Peskir, G. & Shiryaev, A. N. (2006). *Optimal Stopping and Free-Boundary Problems.* Birkhäuser.
+- Kaelbling, L. P., Littman, M. L. & Cassandra, A. R. (1998). Planning and acting in partially observable stochastic domains. *Artificial Intelligence* 101(1-2).
+
+**Cost.** Medium/High. The Bellman recursion itself is standard, but it
+needs a transition model E[V(s') | s] that does not exist yet. It is
+estimable *offline* from the AROMER episode corpus (fit how the
+uncertainty features move after a verification step); the offline policy
+is then tractable by backward induction over a discretized state. The
+online problem, updating the policy live as the transition model drifts,
+is materially harder and stays out of scope until the sequential
+verification loop is load-bearing. Hence P3.
+
+**Risk.** High for overclaim. "Optimal" is optimal *only* with respect
+to the assumed loss constants (C_verify, L_accept, L_abstain) and the
+estimated transition model, both of which are caller/AROMER-supplied,
+this must be stated wherever the word "optimal" appears. This is the
+proposal most exposed to metaphor-inflation after ruin theory (#9): a
+Bellman recursion over an unvalidated transition model is decoration. Do
+not import the vocabulary before the transition model is fitted and its
+predictive accuracy on held-out episodes is reported.
+
+**Acceptance artifact.** `results/optimal_stopping_policy_v1.json`: an
+offline optimal-stopping policy computed by backward induction on a
+transition model fitted to `artifacts/aromer_train_episodes.jsonl`,
+evaluated on the disjoint `artifacts/aromer_holdout_episodes.jsonl`,
+plus a head-to-head against the current VERIFY heuristic on the
+committed corpus, reporting whether the Bellman policy *Pareto-improves*
+verification cost (oracle rounds spent) against safety (false-accept /
+missed-escalation rate). No claim is made unless the artifact shows a
+Pareto improvement, and the transition-model fit quality on holdout is
+reported alongside it.
+
+---
+
 ## Cross-cutting recommendations
 
 1. **Sequencing.** Implement #1 (confidence sequences) first, it fixes an
@@ -552,7 +766,12 @@ stratum comparing PVD v2 against the existing routing.
    pure legitimacy gains). #2 (barrier certificate) is the highest-prestige
    item and should target the next paper revision. #3 requires only the
    per-item oracle records already on disk. #8/#9/#10 wait until their
-   component is load-bearing.
+   component is load-bearing. #11 (value of information) and #12
+   (optimal stopping) are a matched pair that formalizes the
+   VERIFY/ABSTAIN split: #11 is the myopic one-step special case and can
+   land retrospectively on the committed benchmark, whereas #12 is the
+   sequential generalization that waits until the multi-round
+   verification loop is load-bearing.
 2. **Claim hygiene.** Each adoption gets a claim-register entry at
    `theoretical` evidence level on merge, promotable only per
    `evidence_levels.md` rules. The acceptance artifacts above are the
