@@ -37,7 +37,6 @@ These are expected to remain in regular use.
   - `generate_n1000_figures.py`
   - `generate_readme_figures.py`
   - `generate_results_snapshot.py`
-  - `generate_linkedin_visuals.py`
   - `generate_usecase_visuals.py`
   - `generate_asker_visual.py`
   - `generate_demo_gif.py`

@@ -231,7 +231,6 @@ evidence, and should not be cited as such:
 
 | Path | What it is |
 |---|---|
-| `artifacts/linkedin/` | LinkedIn insight graphics (outreach visuals) |
 | `artifacts/use-cases/` | Demo screenshots and a walkthrough GIF (illustration, not benchmark output) |
 | `frontend/` (incl. `.lovable/`) | Control-room UI scaffolding (Lovable / dev tooling) |
 
