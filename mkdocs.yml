@@ -1,0 +1,75 @@
+site_name: REMORA
+site_description: Policy-Gated Governance for Operational AI Agents
+site_author: Stian Skogbrott
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+# Internal link integrity is enforced repo-wide by scripts/_check_links.py, which
+# resolves links relative to each file across README + docs/ + artifacts/. MkDocs
+# only renders the site here, so its link validators are relaxed to avoid double
+# duty (many docs intentionally link to repo-root files outside docs_dir).
+validation:
+  nav:
+    omitted_files: ignore
+    not_found: ignore
+    absolute_links: ignore
+  links:
+    not_found: ignore
+    anchors: ignore
+    absolute_links: ignore
+    unrecognized_links: ignore
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home: README.md
+  - Getting started:
+      - Executive one-pager: executive_onepager.md
+      - Reproduce results: 06-reproducibility.md
+  - Concepts:
+      - Architecture (end to end): 01-architecture.md
+      - Reference architecture: reference_architecture.md
+      - Evidence and claims: 02-evidence-and-claims.md
+      - Negative results (detail): 04-negative-results-detail.md
+      - Claim hygiene: 05-claim-hygiene.md
+  - Reference:
+      - API reference: 07-api-reference.md
+      - Security: 08-security.md
+      - Related work: 09-related-work.md
+      - Benchmark validation plan: 11-benchmark-validation-plan.md
+  - Assurance:
+      - Development & review log: assurance/development_review_log_v1.md
+      - Release gates: assurance/release_gates.md
+      - Threat model: assurance/threat_model_v1.md
