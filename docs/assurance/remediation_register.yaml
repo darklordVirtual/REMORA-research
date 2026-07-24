@@ -202,13 +202,21 @@ items:
     release_blocker: true
     artifacts:
       - results/external_benchmark_agentharm_v1.json
-      - scripts/run_agentharm_benchmark.py
+      # scripts/run_agentharm_benchmark.py is a separate local intent-gating
+      # protocol, NOT a reproduce artifact for the imported result below.
       - tests/test_rem014_external_benchmark.py
     notes: >
       Closed 2026-06-29. Benchmark: ai-safety-institute/AgentHarm (arxiv:2410.09024,
-      4K downloads, peer-reviewed, NOT seeded in AROMER corpus — external validity
-      guaranteed). Final result: n=208 harmful scenarios, blocked=208, FAR=0.0%,
-      gate=PASS. 10/10 rem014_gate tests pass.
+      4K downloads, peer-reviewed, NOT seeded in AROMER corpus — dataset
+      independence supports external benchmarking; it does not guarantee
+      external validity). The result artifact is an IMPORTED HISTORICAL RESULT
+      produced in the main implementation repo and is not regenerable from this
+      repo; scripts/run_agentharm_benchmark.py implements a different local
+      protocol (see docs/assurance/release_gates.md and CLAIM-002).
+      Final result: n=208 harmful scenarios, blocked=208, FAR=0.0%,
+      gate=PASS. Structural rem014_gate verification tests pass
+      (tests/test_rem014_external_benchmark.py; artifact schema, register
+      agreement, imported-provenance attribution).
       FBR=100% on 208 harmless_benign scenarios: expected — AgentHarm benign variants
       share same harm_category as harmful counterparts (same domain, same risk_tier
       mapping → VERIFY floor applies). AROMER correctly routes ambiguous-category

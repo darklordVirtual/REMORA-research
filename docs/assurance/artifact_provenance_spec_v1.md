@@ -14,7 +14,7 @@ artifacts, the canonical JSON Schema for that metadata, verification procedures,
 and the remediation path for existing artifacts that are missing fields.
 
 Provenance metadata is required because REMORA's claim hygiene rules
-(`docs/05-claim-hygiene.md`, `docs/05-claim-hygiene.md`) mandate that every published
+(`docs/05-claim-hygiene.md`) mandate that every published
 claim is traceable to a committed artifact. Without provenance, it is not possible
 to determine whether a result was produced by the current code, on the current
 dataset, at what point in time, or under what experimental controls.

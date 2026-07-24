@@ -22,6 +22,5 @@ number added to the README, the paper, or any claim document must be backed by
 a committed result artifact on disk, quoted with its sample size, confidence
 interval, and scope caveat; negative results and caveats must never be
 removed. The decision rule is in
-[docs/05-claim-hygiene.md](docs/05-claim-hygiene.md) (canonical;
-`docs/05-claim-hygiene.md` is a redirect stub kept for older links), and the
+[docs/05-claim-hygiene.md](docs/05-claim-hygiene.md) (canonical), and the
 working agreement is in [CLAUDE.md](CLAUDE.md).

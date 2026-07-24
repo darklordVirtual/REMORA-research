@@ -1,5 +1,7 @@
-# REMORA v4 Claim Ledger
-# Single source of truth for what is and is not claimed.
+# REMORA v4 Thermodynamics Claim Ledger
+# Authoritative register for thermodynamics sub-claims only.
+# Overall claim authority: docs/assurance/claim_register_v1.yaml (the single
+# authoritative claim register); this file never overrides it.
 # Every claim must have: status, wording, evidence artifact, test file.
 #
 # Status values:

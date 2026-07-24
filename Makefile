@@ -230,6 +230,7 @@ credibility-pack:  ## Refresh the curated credibility pack's generated companion
 	$(PYTEST) tests/ -q --tb=short > $(PACK_DIR)/test-report.txt 2>&1 && echo "CREDIBILITY_PACK_STATUS: PASSED" >> $(PACK_DIR)/test-report.txt || (echo "CREDIBILITY_PACK_STATUS: FAILED - tests failed, pack is invalid" >> $(PACK_DIR)/test-report.txt && exit 1)
 	@echo "Test report written to $(PACK_DIR)/test-report.txt"
 	@cp artifacts/benchmark_summary.json $(PACK_DIR)/benchmark-results.json 2>/dev/null || ($(PYTHON) scripts/generate_results_snapshot.py && cp artifacts/benchmark_summary.json $(PACK_DIR)/benchmark-results.json)
+	@cp docs/assurance/claim_register_v1.yaml $(PACK_DIR)/claim-register.yaml
 	@cp docs/thermodynamics/claim_ledger.yaml $(PACK_DIR)/claim-ledger.yaml
 	@echo "Credibility pack refreshed at $(PACK_DIR)/ (curated content maintained in place)"
 	@echo "Contents:"

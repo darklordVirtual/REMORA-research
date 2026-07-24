@@ -454,4 +454,4 @@ Concrete numbers per release in:
 
 ## Claim Registry
 
-See `docs/thermodynamics/claim_ledger.yaml` for the machine-readable claim status table. The ledger maps each claim to its status, evidence artifact, and test file. It is the single source of truth for what is and is not claimed.
+The single authoritative claim register is `docs/assurance/claim_register_v1.yaml`. For the thermodynamics sub-claims covered by this record, see `docs/thermodynamics/claim_ledger.yaml`: it maps each thermodynamics sub-claim to its status, evidence artifact, and test file, and governs those sub-claims only.

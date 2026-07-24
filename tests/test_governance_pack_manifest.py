@@ -33,7 +33,13 @@ def _manifest() -> dict:
 
 def test_manifest_has_provenance_fields() -> None:
     m = _manifest()
-    assert m.get("commit_sha") is None or re.fullmatch(r"[0-9a-f]{40}", m["commit_sha"])
+    # A committed pack necessarily records the commit BEFORE the one that
+    # contains it (a commit cannot embed its own SHA), so head-equality is
+    # enforced in CI (.github/workflows/attestation.yml), not here. But the
+    # SHA must always be a real commit hash, never absent.
+    assert re.fullmatch(r"[0-9a-f]{40}", m.get("commit_sha") or ""), (
+        "manifest.json must record the full 40-hex commit_sha of the build"
+    )
     assert "worktree_clean" in m
     assert isinstance(m.get("lockfile_sha256"), dict) and m["lockfile_sha256"]
     assert isinstance(m.get("file_sha256"), dict)

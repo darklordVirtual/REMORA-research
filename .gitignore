@@ -17,6 +17,12 @@ build/
 # Smoke-test scratch artifacts (kept under results/ during development)
 results/_smoke_*.json
 
+# Test attestation is generated per-commit (CI review-* tags or locally via
+# scripts/generate_test_attestation.py); a committed copy is stale by
+# construction. See artifacts/credibility-pack/ATTESTATION.md.
+artifacts/credibility-pack/test-attestation.json
+artifacts/credibility-pack/test-report.txt
+
 # Node / wrangler — node_modules is installed by CI (npm install), never committed
 node_modules/
 frontend/node_modules/

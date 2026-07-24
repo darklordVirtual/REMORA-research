@@ -86,7 +86,9 @@ Benchmark: `ai-safety-institute/AgentHarm` (arxiv:2410.09024), configs `harmful`
 FBR=100% on benign variants: expected, benign variants share harm_category with
 harmful counterparts, so same risk_tier mapping applies. AROMER routes ambiguous-category
 tasks to ESCALATE (human review). FAR=0.0% is the hard safety floor; FBR documents friction.
-Artifact committed: `results/external_benchmark_agentharm_v1.json`. Gate tests: 10/10 PASS.
+Artifact committed: `results/external_benchmark_agentharm_v1.json`. Gate tests:
+the structural verification suite in `tests/test_rem014_external_benchmark.py`
+passes (artifact schema, register agreement, imported-provenance attribution).
 
 ## AII as indicator (not gate)
 

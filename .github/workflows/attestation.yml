@@ -1,9 +1,12 @@
 name: Review Attestation
 
-# Produces a commit-bound test attestation for external-review handoff, generated
-# on a CLEAN CI checkout (not by hand). Triggered on review tags and manual
-# dispatch rather than every push, since it re-runs the full deterministic suite
-# to bind a green result to an exact commit SHA (P0-6).
+# Produces the SHA-bound external-review handoff for a review tag, generated
+# on a CLEAN CI checkout (not by hand): commit-bound test attestation,
+# governance benchmark pack, and credibility pack, all built from and verified
+# against the same commit, uploaded as ONE artifact (P0-6 + REM-021 handoff).
+# Triggered on review tags and manual dispatch rather than every push, since
+# it re-runs the full deterministic suite to bind a green result to an exact
+# commit SHA.
 on:
   push:
     tags:
@@ -16,9 +19,9 @@ permissions:
 
 jobs:
   attest:
-    name: Generate review attestation
+    name: Generate SHA-bound review handoff
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -37,12 +40,77 @@ jobs:
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal,api]" -c /tmp/constraints.txt
 
+      - name: Remove any stale attestation files from the checkout
+        # Guards against stale-green: if the generator dies before writing
+        # (dirty-tree refusal, install failure, crash), no leftover PASS files
+        # can be uploaded by the always() step below — if-no-files-found: error
+        # then fails the upload instead. Attestation files are gitignored and
+        # never committed (see artifacts/credibility-pack/ATTESTATION.md), so
+        # this is a belt-and-suspenders no-op on a clean checkout.
+        run: |
+          rm -f artifacts/credibility-pack/test-attestation.json
+          rm -f artifacts/credibility-pack/test-report.txt
+
       - name: Generate attestation (fails if worktree dirty or suite not green)
         # --require-clean refuses to attest from an uncommitted state; the CI
         # checkout is clean, so a green run binds the result to this exact SHA.
+        # A red suite still writes gate: FAIL files, which always() uploads so
+        # the failure is inspectable — never a stale PASS.
         run: python scripts/generate_test_attestation.py --require-clean
 
+      - name: Build governance benchmark package (manifest bound to this SHA)
+        # Runs after the attestation so the generator's clean-tree check sees
+        # the untouched checkout; the pack build rewrites its own output dir.
+        run: python scripts/build_governance_benchmark_package.py
+
+      - name: Verify handoff is bound to this exact commit
+        # The committed pack manifest necessarily records the previous commit
+        # (a commit cannot contain its own SHA); the CI-built pack is the
+        # authoritative one and MUST match github.sha exactly.
+        run: |
+          python - <<'EOF'
+          import json, os, sys
+
+          sha = os.environ["GITHUB_SHA"]
+          problems = []
+
+          m = json.load(open("artifacts/governance-benchmark-pack/manifest.json"))
+          if m.get("commit_sha") != sha:
+              problems.append(f"manifest commit_sha {m.get('commit_sha')} != github.sha {sha}")
+          if m.get("worktree_clean") is not True:
+              problems.append(f"manifest worktree_clean is {m.get('worktree_clean')}, expected true")
+          if m.get("missing_files"):
+              problems.append(f"pack build missing files: {m['missing_files']}")
+
+          a = json.load(open("artifacts/credibility-pack/test-attestation.json"))
+          if a.get("current_system_commit") != sha:
+              problems.append(f"attestation commit {a.get('current_system_commit')} != github.sha {sha}")
+          if a.get("git_dirty_worktree"):
+              problems.append("attestation was generated from a dirty worktree")
+          if a.get("gate") != "PASS":
+              problems.append(f"attestation gate is {a.get('gate')}, expected PASS")
+
+          for p in problems:
+              print(f"ERROR: {p}", file=sys.stderr)
+          sys.exit(1 if problems else 0)
+          EOF
+
+      - name: Upload SHA-bound review handoff bundle
+        # Success-only: this single artifact (code SHA + governance pack +
+        # credibility pack + attestation) is the formal REM-021 handoff.
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: remora-review-handoff-${{ github.sha }}
+          path: |
+            artifacts/governance-benchmark-pack
+            artifacts/governance-benchmark-pack.zip
+            artifacts/credibility-pack
+          if-no-files-found: error
+
       - name: Upload review attestation artifact
+        # always(): on a red suite this uploads the freshly written gate: FAIL
+        # attestation (never a stale PASS — see the rm step above); if the
+        # generator died before writing, if-no-files-found: error fails here.
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

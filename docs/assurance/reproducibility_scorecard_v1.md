@@ -116,7 +116,7 @@ Gaps: `thermodynamic_eval_n500_calibrated_results.json` (349 KB, 2026-06-09) doe
 
 ## 5. Test Suite Reproducibility
 
-- **3,500+ tests collected** (2026-07-20 revision; the exact commit-bound count, pass/skip/deselect split, and environment live in `artifacts/credibility-pack/test-attestation.json`).
+- **3,500+ tests collected** (2026-07-20 revision; the exact commit-bound count, pass/skip/deselect split, and environment live in the `test-attestation.json` produced by the `Review Attestation` workflow on each `review-*` tag — see `artifacts/credibility-pack/ATTESTATION.md`; it is regenerated per commit, not committed).
 - **`make test`** (`pytest tests/ -q`) requires no API keys, no network access.
 - **Determinism**: random seeds are pinned (`seed=42`) in all benchmark scripts.
 - **`live` and `live_replay_heavy` markers** gate network-dependent tests; excluded by default in `pyproject.toml` `addopts`.
