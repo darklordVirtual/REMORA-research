@@ -27,6 +27,7 @@ AFTER_EXPIRY = "2026-07-20T13:30:00+00:00"
 TOOL = "unifi_set_vlan"
 ARGS = {"site": "hq", "vlan_id": 42, "ports": ["eth0", "eth1"]}
 TENANT = "luftfiber"
+ACTOR = "agent-7"
 TARGET = "production"
 BUNDLE = "sha256:policybundle01"
 
@@ -95,7 +96,8 @@ def test_valid_lease_dispatches_exactly_once() -> None:
     d = _dispatcher()
     lease = _issue()
     out = d.dispatch(
-        lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY
+        lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY,
+        actor_identity=ACTOR,
     )
     assert out.executed is True
     assert out.refusal_reason is None
@@ -103,7 +105,8 @@ def test_valid_lease_dispatches_exactly_once() -> None:
     assert d._test_calls == [ARGS]
 
     replay = d.dispatch(
-        lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY
+        lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY,
+        actor_identity=ACTOR,
     )
     assert replay.executed is False
     assert replay.refusal_reason == "nonce_already_consumed"
@@ -139,14 +142,15 @@ def test_future_dated_lease_is_not_yet_valid() -> None:
     d = _dispatcher()
     future = _issue(issued_at="2026-07-20T22:00:00+00:00")  # 10 h ahead of 'now'
     out = d.dispatch(
-        future, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY
+        future, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY,
+        actor_identity=ACTOR,
     )
     assert out.executed is False
     assert out.refusal_reason == "lease_not_yet_valid"
     # Inside its declared window the same lease works.
     ok = d.dispatch(
         future, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET,
-        now="2026-07-20T22:01:00+00:00",
+        now="2026-07-20T22:01:00+00:00", actor_identity=ACTOR,
     )
     assert ok.executed is True
 
@@ -156,7 +160,8 @@ def test_mutated_arguments_refused() -> None:
     d = _dispatcher()
     mutated = {**ARGS, "ports": ["eth0", "eth1", "uplink"]}
     out = d.dispatch(
-        _issue(), TOOL, mutated, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY
+        _issue(), TOOL, mutated, tenant_id=TENANT, target_environment=TARGET,
+        now=BEFORE_EXPIRY, actor_identity=ACTOR,
     )
     assert out.executed is False
     assert out.refusal_reason == "tool_args_hash_mismatch"
@@ -171,7 +176,10 @@ def test_mutated_arguments_refused() -> None:
 )
 def test_context_mismatch_refused(kwargs: dict, reason: str) -> None:
     d = _dispatcher()
-    call = dict(tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY)
+    call = dict(
+        tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY,
+        actor_identity=ACTOR,
+    )
     call.update(kwargs)
     out = d.dispatch(_issue(), TOOL, ARGS, **call)
     assert out.executed is False
@@ -193,7 +201,8 @@ def test_policy_bundle_mismatch_refused() -> None:
     d = _dispatcher()
     stale = _issue(policy_bundle_hash="sha256:stale-bundle")
     out = d.dispatch(
-        stale, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY
+        stale, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY,
+        actor_identity=ACTOR,
     )
     assert out.executed is False
     assert out.refusal_reason == "policy_bundle_mismatch"
@@ -254,7 +263,8 @@ def test_unsigned_lease_refused(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "unit-test-lease-key")
     d = _dispatcher()
     out = d.dispatch(
-        unsigned, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY
+        unsigned, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET, now=BEFORE_EXPIRY,
+        actor_identity=ACTOR,
     )
     assert out.executed is False
     assert out.refusal_reason == "lease_not_signed"
@@ -267,7 +277,7 @@ def test_pdp_key_fallback_signs_lease(monkeypatch: pytest.MonkeyPatch) -> None:
     assert lease.is_signed is True
     res = lease.verify(
         tool_name=TOOL, arguments=ARGS, tenant_id=TENANT,
-        target_environment=TARGET, now=BEFORE_EXPIRY,
+        target_environment=TARGET, now=BEFORE_EXPIRY, actor_identity=ACTOR,
     )
     assert res.verified
 
@@ -276,11 +286,52 @@ def test_unparseable_expiry_fails_closed() -> None:
     lease = dataclasses.replace(_issue(), expires_at="not-a-timestamp")
     res = lease.verify(
         tool_name=TOOL, arguments=ARGS, tenant_id=TENANT,
-        target_environment=TARGET, now=BEFORE_EXPIRY,
+        target_environment=TARGET, now=BEFORE_EXPIRY, actor_identity=ACTOR,
     )
     assert res.verified is False
     # Tampered expiry breaks the signature before expiry parsing is reached.
     assert res.reason in {"signature_invalid", "expiry_unparseable"}
+
+
+# ── Actor binding (external review 2026-07-24, F-02) ──────────────────────
+
+
+def test_stolen_lease_refused_for_different_actor() -> None:
+    """A lease issued to actor-A must not execute for any other caller.
+
+    Regression: actor_identity was signed but never enforced at dispatch,
+    so a stolen lease worked for any caller with matching tenant/tool/args."""
+    d = _dispatcher()
+    out = d.dispatch(
+        _issue(), TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET,
+        now=BEFORE_EXPIRY, actor_identity="attacker-9",
+    )
+    assert out.executed is False
+    assert out.refusal_reason == "actor_identity_mismatch"
+
+
+def test_actor_bound_lease_requires_an_actor_identity() -> None:
+    """Presenting an actor-bound lease with no authenticated identity fails
+    closed — dispatch without actor context must never execute it."""
+    d = _dispatcher()
+    out = d.dispatch(
+        _issue(), TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET,
+        now=BEFORE_EXPIRY,
+    )
+    assert out.executed is False
+    assert out.refusal_reason == "actor_identity_required"
+
+
+def test_actorless_lease_dispatches_without_actor_context() -> None:
+    """A lease issued with an empty actor_identity carries no actor binding;
+    the remaining binding set (tenant, tool, args, environment) still holds."""
+    d = _dispatcher()
+    lease = _issue(actor_identity="")
+    out = d.dispatch(
+        lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET,
+        now=BEFORE_EXPIRY,
+    )
+    assert out.executed is True
 
 
 # ── Serialization ──────────────────────────────────────────────────────────

@@ -40,7 +40,7 @@ flowchart TD
     C --> D[Evidence enrichment\nRAG / domain / cyber / finance]
     D --> E[Policy decision\nhard guards → conditional guards → trust + conformal routing]
     E --> F{Outcome}
-    F -->|ACCEPT| G[Execute]
+    F -->|ACCEPT| G["Execute — caller-integrated PEP\n(dispatcher not wired into the API; REM-024)"]
     F -->|VERIFY| H[Hold for validation]
     F -->|ABSTAIN| I[Block — trust too low]
     F -->|ESCALATE| J[Human review]
@@ -49,6 +49,8 @@ flowchart TD
     I --> K
     J --> K
 ```
+
+**"Execute" is the caller's step, not REMORA's.** REMORA returns the decision plus a signed one-time authorization (token/lease); the `GovernedToolDispatcher` PEP that would hold the tool credentials and make enforcement inseparable from execution is a library component, not wired into the API path — the `/v1/execution/execute` endpoint consumes the grant without invoking a tool (REM-024/REM-030 in `docs/assurance/remediation_register.yaml`). Until a deployment integrates the dispatcher in front of its tools, REMORA is an advisory + audit layer, not a bypass-proof enforcement boundary.
 
 **Hard guards are deterministic and have absolute priority: no probabilistic oracle result can override a hard block.** They run first *inside* `RemoraDecisionEngine.decide()`, which runs after the consensus and evidence machinery — priority over the oracle result, not temporal precedence over the oracle calls. This is why the zero-false-accept safety result is a property of the policy layer, not of the consensus machinery; the two are distinct claims.
 

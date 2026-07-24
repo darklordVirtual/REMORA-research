@@ -277,6 +277,26 @@ def test_postgres_chain_contract() -> None:
     assert ok, problems
 
 
+@pytest.mark.skipif("not __import__('os').environ.get('REMORA_PG_DSN')",
+                    reason="REMORA_PG_DSN not set — Postgres contract test skipped")
+def test_postgres_chain_signs_entries_when_key_configured(monkeypatch) -> None:
+    """External review 2026-07-24, F-04: the Postgres append path never wrote
+    an HMAC signature, so _verify_generic reported signature_missing for every
+    entry once REMORA_AUDIT_SIGNING_KEY was set. Same contract as SQLite."""
+    import os
+    import uuid
+
+    from remora.governance.tenant_chain import PostgresTenantChain
+
+    monkeypatch.setenv("REMORA_AUDIT_SIGNING_KEY", "pg-contract-sign-key")
+    chain = PostgresTenantChain(os.environ["REMORA_PG_DSN"])
+    tenant = f"contract-sign-{uuid.uuid4().hex[:12]}"  # fresh, unsigned-free tenant
+    entry = chain.append(tenant, {"event": "pg-signed"})
+    assert entry.signature, "Postgres append must sign when the key is configured"
+    ok, problems = chain.verify(tenant)
+    assert ok, problems
+
+
 def test_durable_chain_signature_tamper_is_detected(tmp_path, monkeypatch) -> None:
     """Review finding: _verify_generic must validate the HMAC signature, so a
     tamper-with-rehash on the durable path is caught."""

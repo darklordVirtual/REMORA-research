@@ -30,7 +30,14 @@ from remora.policy.adaptive_thresholds import (
 
 import time
 
-_DEFAULT_BRIDGE_STATE = Path.home() / ".aromer" / "bridge_state.json"
+def _default_bridge_state() -> Path:
+    """Resolved at instantiation, never at import (external review 2026-07-24,
+    F-10). REMORA_AROMER_HOME overrides the state directory."""
+    import os
+
+    override = os.environ.get("REMORA_AROMER_HOME", "").strip()
+    base = Path(override) if override else Path.home() / ".aromer"
+    return base / "bridge_state.json"
 
 # Thresholds that AROMER manages
 _MANAGED_THRESHOLDS = {
@@ -89,7 +96,7 @@ class AromerAdapterBridge:
             relaxation_rate=0.03,
         )
         self._bandit   = OracleBandit(_ORACLE_POOL)
-        self._state_path = Path(state_path) if state_path else _DEFAULT_BRIDGE_STATE
+        self._state_path = Path(state_path) if state_path else _default_bridge_state()
         self._n_episodes = 0
         # Friction optimizer proposals file; defaults to repo artifacts/ directory
         if proposals_path is not None:

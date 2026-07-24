@@ -186,10 +186,19 @@ class ExecutionLease:
         target_environment: str,
         now: str | None = None,
         expected_policy_bundle_hash: str | None = None,
+        actor_identity: str | None = None,
     ) -> LeaseVerificationResult:
         """Verify signature, expiry, and the full binding against a concrete call.
 
         Every check fails closed; the first failed check names the reason.
+
+        ``actor_identity`` is the authenticated identity of the caller
+        presenting the lease. A lease issued to a named actor is enforced:
+        presenting it without an actor identity, or with a different one,
+        is refused. The identity string must come from an authenticated
+        transport context, never from the request body; transport-anchored
+        workload identity (credential/key ID binding) is REM-024 residual
+        scope.
         """
         key = _get_signing_key()
         if not key:
@@ -220,6 +229,17 @@ class ExecutionLease:
             return LeaseVerificationResult(False, "tool_name_mismatch")
         if tenant_id != self.tenant_id:
             return LeaseVerificationResult(False, "tenant_mismatch")
+        # Actor binding: a lease issued to a named actor may only be used by
+        # that actor. actor_identity was previously signed audit metadata but
+        # never enforced at dispatch (external review 2026-07-24, F-02); a
+        # stolen lease was usable by any caller with matching tenant/tool/args.
+        if self.actor_identity:
+            if actor_identity is None:
+                return LeaseVerificationResult(False, "actor_identity_required")
+            if not hmac.compare_digest(
+                actor_identity.encode(), self.actor_identity.encode()
+            ):
+                return LeaseVerificationResult(False, "actor_identity_mismatch")
         if (target_environment or "") != self.target_environment:
             return LeaseVerificationResult(False, "target_environment_mismatch")
         recomputed = canonical_tool_call_hash(
@@ -319,8 +339,15 @@ class GovernedToolDispatcher:
         tenant_id: str = "",
         target_environment: str | None = None,
         now: str | None = None,
+        actor_identity: str | None = None,
     ) -> DispatchResult:
-        """Execute ``tool_name`` iff the lease covers this exact call."""
+        """Execute ``tool_name`` iff the lease covers this exact call.
+
+        ``actor_identity`` must be the AUTHENTICATED identity of the caller
+        (transport/session context), never taken from the payload the agent
+        controls. A lease issued to a named actor refuses to dispatch without
+        a matching identity.
+        """
         if lease is None:
             return DispatchResult(executed=False, refusal_reason="missing_lease")
         fn = self._tools.get(tool_name)
@@ -333,6 +360,7 @@ class GovernedToolDispatcher:
             target_environment=target_environment or "",
             now=now,
             expected_policy_bundle_hash=self._expected_bundle,
+            actor_identity=actor_identity,
         )
         if not verdict.verified:
             return DispatchResult(executed=False, refusal_reason=verdict.reason)

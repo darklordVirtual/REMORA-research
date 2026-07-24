@@ -7,6 +7,33 @@ releases.
 
 ## [Unreleased]
 
+### Fixed (external technical review 2026-07-24)
+
+- **Actor binding enforced (F-02)**: an `ExecutionLease` issued to a named
+  actor now refuses to verify/dispatch without a matching authenticated
+  identity (`actor_identity_required` / `actor_identity_mismatch`);
+  previously the actor was signed audit metadata a stolen lease ignored.
+- **Token not-before (F-03)**: `PolicyDecisionToken.verify()` rejects tokens
+  whose `issued_at` lies in the future (`token_not_yet_valid`), closing the
+  path where a future-dated five-minute token was accepted for ~30 days.
+- **Postgres audit signatures (F-04)**: `PostgresTenantChain.append()` now
+  writes the HMAC signature in the same transaction, matching the SQLite
+  contract; previously every entry verified as `signature_missing` once
+  `REMORA_AUDIT_SIGNING_KEY` was configured.
+- **Request-ID collisions (F-08)**: `/v1/assess` and `/v1/rerun` IDs use a
+  uuid4 suffix instead of monotonic-milliseconds modulo 1e6 (repeated every
+  ~16.7 minutes and could interleave audit records).
+- **AROMER state path (F-10)**: default `~/.aromer` paths are resolved at
+  instantiation with a `REMORA_AROMER_HOME` override, so locked-down homes
+  no longer break the default-configured store/bridge.
+- **Register honesty (F-09, F-01, F-05)**: REM-015 retitled to "captured
+  development environment snapshot" (its old title promised uv.lock/SBOM/
+  digests its own notes denied — REM-027 stays the only supply-chain gate);
+  REM-035 now states that `/v1/execution/execute` consumes the grant without
+  invoking a tool; new REM-045 records that the built wheel omits `servers/`
+  and the Postgres drivers; the README architecture diagram marks "Execute"
+  as the caller's step pending PEP integration.
+
 ### Fixed (REM-021 handoff consolidation)
 
 - **Source-of-truth scoping completed**: the thermodynamics ledger

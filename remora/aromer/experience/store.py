@@ -25,7 +25,15 @@ from remora.aromer.experience.episode import (
     OutcomeType,
 )
 
-_DEFAULT_STORE_PATH = Path.home() / ".aromer" / "episodes.jsonl"
+def _default_store_path() -> Path:
+    """Resolved at instantiation, never at import: a locked-down or read-only
+    home must not affect module import (external review 2026-07-24, F-10).
+    REMORA_AROMER_HOME overrides the state directory."""
+    import os
+
+    override = os.environ.get("REMORA_AROMER_HOME", "").strip()
+    base = Path(override) if override else Path.home() / ".aromer"
+    return base / "episodes.jsonl"
 
 # TTL-based pending resolution (mirrored by the worker's resolvePendingEpisodes).
 # Presumed-benign labels use the weak 0.25 weight class — the same class as
@@ -59,7 +67,7 @@ class EpisodicStore:
         *,
         max_loaded: int = 10_000,
     ) -> None:
-        self.path = Path(path) if path is not None else _DEFAULT_STORE_PATH
+        self.path = Path(path) if path is not None else _default_store_path()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.max_loaded = max_loaded
         self._episodes: list[Episode] = []

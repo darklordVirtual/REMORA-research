@@ -50,6 +50,30 @@ def test_excessive_ttl_is_rejected_at_issue() -> None:
         _issue(expires_at=ISSUED)  # zero/negative TTL
 
 
+def test_future_dated_token_is_not_yet_valid() -> None:
+    """External review 2026-07-24, F-03: a nominal five-minute token whose
+    issued_at lies 30 days in the future was accepted by a strict gate NOW
+    (its age was negative, so the max-age check passed, and verify() had no
+    not-before). The token must be valid only inside [issued_at, expires_at)."""
+    future_issue = (NOW + timedelta(days=30)).isoformat()
+    token = _issue(
+        issued_at=future_issue,
+        expires_at=(NOW + timedelta(days=30, minutes=5)).isoformat(),
+    )
+    res = token.verify(now=ISSUED)
+    assert res.verified is False
+    assert res.reason == "token_not_yet_valid"
+
+    gate = EnforcementGate(strict=True)
+    out = gate.check(token, now=ISSUED)
+    assert out.allowed is False
+    assert "token_not_yet_valid" in out.reason
+
+    # Inside its declared window the same token verifies.
+    inside = (NOW + timedelta(days=30, minutes=1)).isoformat()
+    assert token.verify(now=inside).verified
+
+
 def test_serialisation_round_trips_all_signed_fields() -> None:
     token = _issue(audience="pep://ot-gateway")
     restored = PolicyDecisionToken.from_dict(token.to_dict())

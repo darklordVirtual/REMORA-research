@@ -254,7 +254,7 @@ items:
 
   - id: REM-015
     section: "§11"
-    title: "Locked environment (uv.lock / SBOM / Docker digests)"
+    title: "Captured development environment snapshot (pip freeze)"
     gate: P3
     status: DONE
     completed: "2026-06-29"
@@ -262,12 +262,14 @@ items:
       - requirements-lock.txt
       - pyproject.toml
     notes: >
-      requirements-lock.txt committed (pip freeze, 267 packages, Python 3.14.0).
-      pyproject.toml updated with Python 3.14 classifier.
-      Full uv.lock not generated: project has no declared dependencies (extras-only);
-      pip freeze captures the full installed dev environment including transitive deps.
-      Docker digests and full SPDX/CycloneDX SBOM remain future work (out of scope
-      for research-grade reproducibility gate).
+      Retitled 2026-07-25 (external review F-09): the original title
+      "Locked environment (uv.lock / SBOM / Docker digests)" contradicted its
+      own closure notes, which state that no uv.lock, SBOM, or Docker digests
+      exist. What IS done: requirements-lock.txt committed (pip freeze, 267
+      packages, Python 3.14.0, no hashes) and the Python 3.14 classifier in
+      pyproject.toml — a captured development snapshot, not a locked supply
+      chain. Hash-verified lock, SBOM, digests, and provenance are REM-027
+      scope, which remains the single supply-chain closure and is NOT_STARTED.
 
   - id: REM-016
     section: "§2"
@@ -457,10 +459,19 @@ items:
       consumes the nonce atomically. 22 tests, including a refusal matrix
       covering replay, expiry, not-before, per-field tampering, argument
       mutation, tenant/env/tool mismatch, unsigned, and stale policy bundle,
-      plus happy-path and serialization coverage. REMAINING before DONE: durable
-      multi-process nonce/lease storage (REM-025 overlap), deployment
-      integration where the dispatcher fronts real downstream credentials, and
-      external interception validation (REM-030, REM-021).
+      plus happy-path and serialization coverage.
+      PROGRESS 2026-07-25 (external review F-02): actor_identity is now
+      ENFORCED at verify/dispatch, not just signed metadata — an actor-bound
+      lease refuses to dispatch without a matching authenticated identity
+      (actor_identity_required / actor_identity_mismatch, constant-time
+      compare). The identity string must come from an authenticated transport
+      context; cryptographic workload identity (credential/key ID binding)
+      remains open. REMAINING before DONE: transport-anchored actor identity,
+      mandatory policy-bundle hash in a production profile (F-07: the
+      dispatcher's expected_policy_bundle_hash defaults to None, so freshness
+      is opt-in), durable multi-process nonce/lease storage (REM-025 overlap),
+      deployment integration where the dispatcher fronts real downstream
+      credentials, and external interception validation (REM-030, REM-021).
       Enforcement is not yet inseparable from tool execution: the local hook is
       optional and the signed-token PDP/PEP boundary (REM-013) is a library, not
       an integrated dispatcher. In-repo building blocks exist: opt-in hook
@@ -659,7 +670,14 @@ items:
       store are in-process; durable multi-process deployment requires the
       REM-034 DDL adapter and an external jti store. The legacy
       /v1/assess+/v1/review endpoints remain for compatibility and do not
-      issue grants.
+      issue grants. SCOPE CAVEAT (external review 2026-07-24, F-01): the
+      /v1/execution/execute endpoint re-gates, consumes the one-time grant,
+      and audits — it does NOT invoke a tool. GovernedToolDispatcher (which
+      holds the tool callables) is not wired into this API path, so the
+      authorization is consumed without a bound side effect; the atomic
+      authorize+execute operation against real adapters is REM-024/REM-030
+      scope. "End-to-end" here means the decision state machine, not effect
+      delivery.
 
   - id: REM-036
     section: "review-2026-07-18 P2"
@@ -857,3 +875,21 @@ items:
       annotation. /v1/rerun, which recorded no actor at all, now records the
       authenticated principal. Tests assert the header alone can never become
       the audit identity.
+
+  - id: REM-045
+    section: "external-review-2026-07-24 F-05"
+    title: "Installable distribution matches the documented deployment"
+    gate: P2
+    status: NOT_STARTED
+    artifacts: []
+    notes: >
+      External review F-05: the wheel built from this repo contains only the
+      remora/ package — not servers/ (the documented API deployment is
+      "uvicorn servers.api:app"), not the root schemas/. The api extra
+      installs fastapi/uvicorn but neither Postgres driver the runtime paths
+      import (psycopg2 in control-plane storage, psycopg in the tenant audit
+      chain), so a wheel-only install cannot run the documented server or
+      durable storage. DONE when either servers/ ships as an installable
+      package (entry point + package data) or a separate remora-api
+      distribution exists, DB drivers are declared in the relevant extras,
+      and CI smoke-tests the installed wheel from an empty directory.

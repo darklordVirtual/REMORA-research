@@ -314,19 +314,29 @@ class PostgresTenantChain:
                 entry_hash = compute_entry_hash(
                     previous_hash, payload, tenant_id, sequence_no, timestamp
                 )
+                # HMAC in the same transaction as the insert — previously the
+                # Postgres path never wrote a signature, so _verify_generic
+                # reported signature_missing for every entry once
+                # REMORA_AUDIT_SIGNING_KEY was configured (external review
+                # 2026-07-24, F-04). Same contract as the SQLite path.
+                key = os.environ.get(_ENV_KEY, "").strip().encode()
+                signature = (
+                    hmac.new(key, entry_hash.encode(), hashlib.sha256).hexdigest()
+                    if key else ""
+                )
                 conn.execute(
                     "INSERT INTO tenant_chain_entry "
                     "(tenant_id, sequence_no, timestamp, payload, previous_hash, "
-                    "entry_hash) VALUES (%s,%s,%s,%s,%s,%s)",
+                    "entry_hash, signature) VALUES (%s,%s,%s,%s,%s,%s,%s)",
                     (tenant_id, sequence_no, timestamp, _canonical(payload),
-                     previous_hash, entry_hash),
+                     previous_hash, entry_hash, signature),
                 )
                 conn.execute(
                     "UPDATE tenant_chain_head SET head_hash=%s, head_sequence=%s "
                     "WHERE tenant_id=%s", (entry_hash, sequence_no, tenant_id),
                 )
         return ChainEntry(tenant_id, sequence_no, timestamp, payload,
-                          previous_hash, entry_hash, "")
+                          previous_hash, entry_hash, signature)
 
     def entries(self, tenant_id: str) -> tuple[ChainEntry, ...]:
         with self._psycopg.connect(self._dsn) as conn:

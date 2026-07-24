@@ -250,6 +250,7 @@ class PolicyDecisionToken:
             from datetime import datetime
 
             try:
+                issued = datetime.fromisoformat(self.issued_at.replace("Z", "+00:00"))
                 expiry = datetime.fromisoformat(self.expires_at.replace("Z", "+00:00"))
                 current = (
                     datetime.fromisoformat(now.replace("Z", "+00:00"))
@@ -260,6 +261,8 @@ class PolicyDecisionToken:
                 # cannot raise TypeError on comparison (fail-closed: an
                 # unparseable/ambiguous time must yield verified=False, never
                 # an uncaught exception).
+                if issued.tzinfo is None:
+                    issued = issued.replace(tzinfo=UTC)
                 if expiry.tzinfo is None:
                     expiry = expiry.replace(tzinfo=UTC)
                 if current.tzinfo is None:
@@ -268,6 +271,17 @@ class PolicyDecisionToken:
                 return TokenVerificationResult(
                     verified=False,
                     reason="expiry_unparseable",
+                    is_signed=True,
+                )
+            # Not-before: a future-dated issued_at must not mint a token whose
+            # real usable lifetime exceeds the TTL cap (clock-skewed or
+            # malicious issuer input). Same invariant as ExecutionLease
+            # (external review 2026-07-24, F-03): the token is valid only
+            # inside [issued_at, expires_at).
+            if current < issued:
+                return TokenVerificationResult(
+                    verified=False,
+                    reason="token_not_yet_valid",
                     is_signed=True,
                 )
             if current >= expiry:

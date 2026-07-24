@@ -188,6 +188,16 @@ def _tmp_store() -> EpisodicStore:
     return EpisodicStore(tmp)
 
 
+def test_default_store_path_honours_aromer_home(tmp_path, monkeypatch):
+    """External review 2026-07-24, F-10: the default state path must be
+    resolved at instantiation and overridable, so a locked-down home neither
+    breaks import nor forces writes into ~/.aromer."""
+    monkeypatch.setenv("REMORA_AROMER_HOME", str(tmp_path))
+    store = EpisodicStore()
+    assert store.path == tmp_path / "episodes.jsonl"
+    assert store.path.parent.exists()
+
+
 def test_store_record_and_retrieve():
     store = _tmp_store()
     ep = Episode("cyber", "high", "execution", "critical", 0.5, 0.7, 0.4, "ESCALATE", 0.9)
