@@ -89,7 +89,9 @@ Avoid wording that implies:
 ## Claim Taxonomy
 
 Claim classes used across README, whitepaper, and claim ledger. The source of
-truth for individual claim status is `docs/thermodynamics/claim_ledger.yaml`.
+truth for overall claim status is `docs/assurance/claim_register_v1.yaml`;
+`docs/thermodynamics/claim_ledger.yaml` governs thermodynamics sub-claim
+status only.
 
 | Class | Definition | Typical Evidence | Promotion Rule |
 |---|---|---|---|
