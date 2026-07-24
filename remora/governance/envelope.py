@@ -108,7 +108,11 @@ class AuditBlock:
     schema_version:      Envelope schema version (always "2" for v2 envelopes).
     timestamp_utc:       UTC ISO-8601 decision timestamp (server clock; not RFC 3161).
     tenant_id:           Tenant the decision belongs to.
-    actor_identity:      Caller/service-principal from X-Remora-Actor header.
+    actor_identity:      Credential-derived caller principal (REM-039): the API
+                         sets _authenticated_principal(request), never the
+                         self-reported X-Remora-Actor header — a differing
+                         header is recorded only as an unverified
+                         on_behalf_of annotation inside this field.
     policy_bundle_hash:  SHA-256 composite of active policy files.
     tool_args_hash:      Binding hash of the assessed action. The preimage is
                          producer-specific: the /v1/assess API (question-based,
