@@ -1,13 +1,15 @@
 # REMORA Claim Register
 
-This register is a human-readable companion to
-`docs/thermodynamics/claim_ledger.yaml`. It separates claims by evidence level
+This register is a human-readable companion to the authoritative
+machine-readable register `docs/assurance/claim_register_v1.yaml`. It separates
+claims by evidence level
 so reviewers can see what is strongly supported, what is theoretical, what is
 internally observed, and what still requires outside replication.
 The claims are scoped to REMORA as a governance overlay around agent actions, not as an agent-replacement claim.
 
-The machine-readable claim ledger remains the source of truth for individual
-claim status, artifact paths, test paths, and limitations.
+The authoritative machine-readable register `docs/assurance/claim_register_v1.yaml`
+is the source of truth for individual claim status, artifact paths, test paths, and
+limitations.
 
 ## Evidence Levels
 
@@ -130,7 +132,8 @@ traceable and falsifiable.
 
 **Consistency rules:**
 
-1. `docs/thermodynamics/claim_ledger.yaml` is source of truth.
+1. `docs/assurance/claim_register_v1.yaml` is the source of truth for overall claim
+   status; `docs/thermodynamics/claim_ledger.yaml` governs thermodynamics sub-claims only.
 2. README and whitepaper must not use stronger wording than claim ledger.
 3. `experiments/verify_thermo_claims.py` must check every claim marked `supported`.
 4. Candidate bounds must explicitly separate assumptions from observations.

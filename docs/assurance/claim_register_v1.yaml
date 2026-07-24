@@ -1,6 +1,8 @@
 ---
 # REMORA Machine-Readable Claim Register v1
-# Source of truth: docs/claim_register.md (human-readable companion)
+# Source of truth: THIS FILE is the single authoritative claim register.
+# docs/claim_register.md is a human-readable companion view; docs/thermodynamics/claim_ledger.yaml
+# governs thermodynamics sub-claims only, never overall claim status.
 # Evidence level taxonomy: docs/assurance/evidence_levels.md
 # Generated: 2026-06-30
 # Version: 1
