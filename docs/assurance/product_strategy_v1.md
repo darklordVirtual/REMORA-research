@@ -15,7 +15,7 @@
 **Status:** Pre-commercial. Research-grade system. Three production gates open.
 **Author:** Assurance campaign — Agent H analysis, 2026-06-30
 **References:** `README.md`, `docs/02-evidence-and-claims.md`, `NEGATIVE_RESULTS.md`,
-`docs/architecture_risk_register.md`, `artifacts/credibility-pack/executive-summary.md`,
+`docs/methods/architecture_risk_register.md`, `artifacts/credibility-pack/executive-summary.md`,
 `docs/governance/nist_ai_rmf_mapping.md`
 
 ---
@@ -455,7 +455,7 @@ required (noted in pre-deployment review checklist).
 
 ## 5. Risk Register Contribution — Strategic Risks
 
-The architecture risk register (`docs/architecture_risk_register.md`) covers technical
+The architecture risk register (`docs/methods/architecture_risk_register.md`) covers technical
 risks. This section documents strategic risks not already in the technical register.
 
 ### SR-1 — Market Timing Risk

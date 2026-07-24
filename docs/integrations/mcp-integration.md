@@ -398,7 +398,7 @@ remora_verify_legal_citations({
 → HR-2022-9999-A  NOT FOUND         CANNOT_VERIFY         → LIKELY HALLUCINATED
 ```
 
-See [use case 06](use-cases/06-public-administration-hallucination.md) for a
+See [use case 06](../use-cases/06-public-administration-hallucination.md) for a
 full documented real-world example (Asker municipality, May 2026).
 
 ---
@@ -524,7 +524,7 @@ a false-positive filter: three independent oracles assess each candidate finding
 before it enters the human review queue. This reduces false positives from ~92 %
 to substantially lower without running any exploit code.
 
-See [use case 05](use-cases/05-security.md) for details.
+See [use case 05](../use-cases/05-security.md) for details.
 
 ### Building your own extension
 

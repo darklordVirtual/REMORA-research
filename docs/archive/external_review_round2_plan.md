@@ -37,7 +37,7 @@ Deliver these artifacts as a single handoff set:
 2. `artifacts/governance-benchmark-pack.zip`
 3. `artifacts/credibility-pack/`
 4. `docs/external_review_round2_plan.md`
-5. `docs/review_checklist.md`
+5. `docs/validation/review_checklist.md`
 6. `EXTERNAL_REVIEW_REMORA.md`
 
 ## 5. Required Command Transcript

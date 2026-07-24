@@ -13,7 +13,7 @@ This is the canonical evidence record for REMORA v4 selective-consensus claims. 
 Scope note: this document does not claim production tool-call safety. Tool-call
 results are benchmark-scoped and documented in
 `docs/archive/toolcall_consensus_benchmark_v1.md` (v1, archived) and
-`docs/toolcall_consensus_benchmark_v2.md` (current, harder deterministic v2).
+`docs/benchmarks/toolcall_consensus_benchmark_v2.md` (current, harder deterministic v2).
 
 This document presents proofs that together constitute the REMORA v4 contribution:
 
@@ -266,7 +266,7 @@ from live Cloudflare Vectorize runs. See reproducibility caveat below.
 
 ### Figure XII.A: N=544 selective trust, with and without RAG oracle
 
-![N=544 selective trust curve with and without RAG](figures/fig_n1000_a_selective_trust.png)
+![N=544 selective trust curve with and without RAG](../figures/fig_n1000_a_selective_trust.png)
 
 The no-RAG curve (blue) peaks at **88.8% precision at 18% coverage** then
 collapses to 30% at 60% coverage. The +RAG curve (orange dashed) remains stable
@@ -279,7 +279,7 @@ the collapse by answering items where the LLM ensemble abstains.
 
 ### Figure XII.B: Dataset scale extension: N=544 → N=1000
 
-![N=1000 scale extension and RAG boost](figures/fig_n1000_b_n1000_extension.png)
+![N=1000 scale extension and RAG boost](../figures/fig_n1000_b_n1000_extension.png)
 
 **Left panel:** N=544 (calibrated, real data) vs N=1000 (+ 456 synthetic items
 drawn from the same thermodynamic distribution). The shape of the no-RAG curve
@@ -292,7 +292,7 @@ N=1000 curve which falls to 30% at 60% coverage.
 
 ### Figure XII.C: Per-domain accuracy at 18% coverage
 
-![Per-domain accuracy at 18% coverage](figures/fig_n1000_c_domain_breakdown.png)
+![Per-domain accuracy at 18% coverage](../figures/fig_n1000_c_domain_breakdown.png)
 
 Grey bars: full-dataset baseline. Blue: selective top-18% without RAG.
 Orange: selective top-18% with RAG. Annotations are RAG lift in pp.
@@ -314,7 +314,7 @@ cannot improve on already-perfect selective slices.
 
 ### Figure XII.D: Multi-signal ranking comparison (N=544)
 
-![Multi-signal comparison N=544](figures/fig_n1000_d_multi_signal.png)
+![Multi-signal comparison N=544](../figures/fig_n1000_d_multi_signal.png)
 
 Four ranking signals compared on the N=544 benchmark at all coverage levels:
 

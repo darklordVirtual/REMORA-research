@@ -7,7 +7,7 @@ Why this exists
 The 65-case ``replay_arena`` is an *internal* smoke test: its cases share the
 (domain, action_type, risk_tier) taxonomy that AROMER's synthetic seeds were
 authored against, so coverage gains on it are an instrumentation check rather
-than evidence of transferable learning (see ``docs/aromer_learning_evidence_v1.md``).
+than evidence of transferable learning (see ``docs/aromer/aromer_learning_evidence_v1.md``).
 
 This module builds a *claim-grade* holdout from ``data/toolcall_v3/`` — 725
 CyberSecEval-inspired tool-call cases with ground-truth policy decisions. That

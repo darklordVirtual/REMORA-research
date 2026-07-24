@@ -51,7 +51,7 @@ Round-2 execution plan reference:
 3. Confirm all baselines are explicitly heuristic and deterministic.
 4. Confirm benchmark limitations are explicit in:
    - `results/toolcall_benchmark_v1_results.json`
-   - `docs/toolcall_consensus_benchmark_v2.md`
+   - `docs/benchmarks/toolcall_consensus_benchmark_v2.md`
    - `README.md`
 
 ## Shadow Replay Overlay Review
@@ -111,7 +111,7 @@ Round-2 execution plan reference:
 1. Confirm `EvidenceVerifierProtocol` exists and default verifier is lexical.
 2. Confirm no semantic-entailment claim is made without implementation.
 3. Confirm custom verifier behavior is tested.
-4. Confirm `docs/gostar_integration.md` states that GO-STAR scanner internals
+4. Confirm `docs/integrations/gostar_integration.md` states that GO-STAR scanner internals
    are closed-source and that public REMORA claims cover only the bridge
    contract and tests.
 
@@ -146,7 +146,7 @@ Round-2 execution plan reference:
 3. Ensure limitations are concrete, not generic.
 4. Confirm `docs/figures/` contains all 7 benchmark PNG files.
 5. Confirm `ARCHITECTURE.md` Cascade Pipeline section is present and accurate.
-6. Confirm `docs/architecture_risk_register.md` covers live evidence quality,
+6. Confirm `docs/methods/architecture_risk_register.md` covers live evidence quality,
    oracle-swarm cost/latency, canonicalization brittleness, correlated oracle
    failure, and simulator-scoped tool-call safety.
 

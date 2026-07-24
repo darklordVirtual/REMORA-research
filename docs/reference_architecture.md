@@ -264,7 +264,7 @@ This is the request-side complement to the decision plane: delegation answers
   log of decisions — which blockers recur most (global concept attribution).
   It operationalises Bjøru's (2026) concept-based causal XAI over high-level
   operational concepts (`decision_scope="policy_only"`); see
-  [causal_policy_explanations.md](causal_policy_explanations.md) and
+  [causal_policy_explanations.md](evidence/causal_policy_explanations.md) and
   [09-related-work.md §9](09-related-work.md). This is an explanation layer
   over the decision, not a real-world causal-effect claim: the counterfactuals
   are evaluated against the policy model, not the world.

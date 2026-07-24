@@ -51,7 +51,7 @@ Never use:
 
 ## External review
 
-Open an issue with the "external-review" template (`docs/external-review.md`). Provide:
+Open an issue with the "external-review" template (`docs/validation/external-review.md`). Provide:
 - the claim being tested,
 - the exact reproduce command,
 - the artifact you compared against,

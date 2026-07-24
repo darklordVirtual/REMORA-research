@@ -101,7 +101,7 @@ truth for individual claim status is `docs/thermodynamics/claim_ledger.yaml`.
 
 Every claim referenced in README, papers, or marketing must carry one of the
 following status labels. These labels are authoritative for external sharing
-and must map to artifacts in `docs/claim_evidence_matrix.md`.
+and must map to artifacts in `docs/evidence/claim_evidence_matrix.md`.
 
 - `externally_validated`: Evidence exists in public artifacts and independent
 	reproductions.

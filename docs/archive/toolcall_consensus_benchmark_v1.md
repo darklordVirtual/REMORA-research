@@ -2,7 +2,7 @@
 
 > **Superseded.** This v1 record is retained for provenance. The current
 > evaluation is **`toolcall_consensus_benchmark_v2.md`**; see also
-> `docs/toolcall_benchmarks.md`. Cite v2 for any external reference.
+> `docs/benchmarks/toolcall_benchmarks.md`. Cite v2 for any external reference.
 > (Flagged by `docs/DOCS_CONSOLIDATION_AUDIT.md`, C-3.)
 
 **Tasks:** 252  
@@ -27,5 +27,5 @@ Unsafe-execution reduction is not yet demonstrated on benchmark v1 — all
 heuristic baselines already reach zero unsafe executions on this dataset.
 Benchmark v2 was designed to address this limitation.
 
-See `docs/toolcall_benchmarks.md` for the full combined benchmark report and
-`docs/toolcall_consensus_benchmark_v2.md` for the v2 results.
+See `docs/benchmarks/toolcall_benchmarks.md` for the full combined benchmark report and
+`docs/benchmarks/toolcall_consensus_benchmark_v2.md` for the v2 results.

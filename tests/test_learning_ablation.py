@@ -237,7 +237,7 @@ class TestProfileCArtifactLock(unittest.TestCase):
                     f"Profile C '{field}' drifted from the committed artifact. "
                     f"Re-run `python -m remora.aromer.evals.learning_ablation "
                     f"--out artifacts/aromer_learning_ablation_v2.json` and update "
-                    f"docs/aromer_learning_evidence_v1.md if this change is intended."
+                    f"docs/aromer/aromer_learning_evidence_v1.md if this change is intended."
                 ),
             )
         self.assertEqual(n_seeds, self._artifact["n_seed_episodes"])

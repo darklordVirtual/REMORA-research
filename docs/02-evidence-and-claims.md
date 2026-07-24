@@ -47,7 +47,7 @@ below names the PDF, verify against the .md, which supersedes it.
   evidence for the value of the consensus machinery.
 - **Reproduce:** `python experiments/generate_toolcall_benchmark_v2.py` then
   `python experiments/evaluate_toolcall_benchmark_v2.py`; compare to committed
-  `results/`. See `docs/toolcall_consensus_benchmark_v2.md`.
+  `results/`. See `docs/benchmarks/toolcall_consensus_benchmark_v2.md`.
 
 ### 2. 88% selective accuracy on a held-out split
 - **Claim:** 88.0% selective accuracy at 23.2% coverage on a stratified hold-out,

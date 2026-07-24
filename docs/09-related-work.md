@@ -246,7 +246,7 @@ How REMORA uses this:
   `DecisionEnvelope.causal_explanation`,
 - tests: `tests/test_causal.py`, `tests/test_causal_search_attribution.py`
   (PS/PN ∈ {0, 1}, minimality, verdict-change, global mean-PS ordering),
-- narrative: [`causal_policy_explanations.md`](causal_policy_explanations.md).
+- narrative: [`causal_policy_explanations.md`](evidence/causal_policy_explanations.md).
 
 Boundary:
 

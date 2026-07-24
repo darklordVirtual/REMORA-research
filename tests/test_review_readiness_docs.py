@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_agent_hook_docs_do_not_cite_canonical_v_value() -> None:
-    text = (ROOT / "docs" / "agent_tool_hook.md").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "integrations" / "agent_tool_hook.md").read_text(encoding="utf-8")
     assert "not a canonical benchmark score" in text
     assert "Do not cite a single `V(t)` value" in text
     assert "1.3941" not in text
@@ -171,7 +171,7 @@ def test_licensing_is_plain_apache_without_commercial_boundary_docs() -> None:
 
 
 def test_decision_envelope_audit_hash_semantics_are_documented() -> None:
-    text = (ROOT / "docs" / "decision_envelope_audit.md").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "evidence" / "decision_envelope_audit.md").read_text(encoding="utf-8")
     for required in [
         "Compact safety hash",
         "Full replay hash-chain",

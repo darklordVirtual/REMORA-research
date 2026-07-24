@@ -146,7 +146,7 @@ Cloudflare services are accelerators, not hard requirements.
 
 ## Known architectural risks
 
-From `docs/architecture_risk_register.md`:
+From `docs/methods/architecture_risk_register.md`:
 
 | Risk | Current status | Next acceptance gate |
 |---|---|---|

@@ -80,7 +80,7 @@ Deliver at minimum:
 - `artifacts/credibility-pack/`
 - `docs/archive/external_review_round2_plan.md`
 - `docs/archive/review_round2_closure.md`
-- `docs/EXTERNAL_VALIDATION_PLAN.md`
+- `docs/validation/EXTERNAL_VALIDATION_PLAN.md`
 
 ## 7. Reporting Template
 

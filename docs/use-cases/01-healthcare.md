@@ -105,4 +105,4 @@ Its value is in making the AI's reasoning transparent and checkable,
 not in automating clinical decisions without human oversight.
 
 *For technical details, see [`remora/oracles/cloudflare_rag.py`](../../remora/oracles/cloudflare_rag.py)
-and the [RAG oracle documentation](../rag_oracle.md).*
+and the [RAG oracle documentation](../integrations/rag_oracle.md).*

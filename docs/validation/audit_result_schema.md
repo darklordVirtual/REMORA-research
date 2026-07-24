@@ -35,5 +35,5 @@ Storage and signing
 
 Repro Command Example
 ---------------------
-See `docs/EXTERNAL_VALIDATION_PLAN.md` (Section 4, Validation Procedure) for example commands. Always include
+See `docs/validation/EXTERNAL_VALIDATION_PLAN.md` (Section 4, Validation Procedure) for example commands. Always include
 the exact `git rev-parse HEAD` and `python --version` in the summary.

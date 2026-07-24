@@ -11,7 +11,7 @@
 > listed as OPEN below have since been fixed — including the non-canonical
 > AROMER/AII expansions and the "three production gates" phrasing — and
 > `docs/breakthrough_proof.md` was renamed to
-> `docs/empirical_evidence_record.md` (2026-07-17). Do not treat OPEN
+> `docs/evidence/empirical_evidence_record.md` (2026-07-17). Do not treat OPEN
 > statuses in this document as current; the live status surface is
 > `release_gates.md` + `remediation_register.yaml`.
 
@@ -172,7 +172,7 @@ so at every citation site (same treatment as CLAIM-009).
    clamps don't bind — not a sensitivity), *and* χ has AUC 0.39 (below
    chance, §13.2) yet still multiplies the headline trust score. Compute by
    actual perturbation, or remove χ from τ, or show the ablation that keeps it.
-6. **Vocabulary slippage in secondary docs:** `docs/thermodynamic_abs.md`
+6. **Vocabulary slippage in secondary docs:** `docs/methods/thermodynamic_abs.md`
    ("continuous thermodynamic trajectory", "proportionally scalar",
    "Gold Standard … proven in test boundaries" — no disclaimer),
    README "phase transitions" for AII threshold crossings, abstract
@@ -243,7 +243,7 @@ so at every citation site (same treatment as CLAIM-009).
     `make rem020-check`); `paper/hf_dataset_card.md` 2026-07-07;
     `paper/remora_mathematical_supplement.md` still presents "the seven hard
     blocks" as complete with a hardcoded line-range pointer;
-    `docs/REMORA_AROMER_MASTER_DOCUMENT.md` has a **third** AROMER expansion
+    `docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md` has a **third** AROMER expansion
     ("Autonomous REMORA Orchestrator, Meta-Emergent Reasoner"); register
     CLAIM-006 caveat still says "Three production gates remain" (REM-022 is
     DONE, and REM-023 now exists); register header still stamped 2026-06-30;

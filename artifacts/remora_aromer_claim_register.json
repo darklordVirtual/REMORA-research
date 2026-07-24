@@ -102,7 +102,7 @@
     {
       "claim_id": "CLAIM-007",
       "claim_text": "Cross-domain benchmark: overall precision=1.000, escalation_recall=1.000 on 32 cases.",
-      "source_file": "README.md (AROMER section) and docs/domain_benchmark.md",
+      "source_file": "README.md (AROMER section) and docs/benchmarks/domain_benchmark.md",
       "status": "PARTIAL",
       "evidence": [
         {
@@ -302,7 +302,7 @@
     {
       "claim_id": "CLAIM-019",
       "claim_text": "The GO-STAR bridge stores only SHA-256 hash of artifacts, never exploit payloads.",
-      "source_file": "docs/go_star_bridge.md",
+      "source_file": "docs/integrations/go_star_bridge.md",
       "status": "VERIFIED",
       "evidence": [
         {
@@ -412,7 +412,7 @@
     {
       "claim_id": "CLAIM-026",
       "claim_text": "Mode 3 meets all three benchmark goals (recall>=0.95, FPR<0.10, coverage>=0.95) under the blocked definition.",
-      "source_file": "docs/agentharm_trimode_benchmark.md",
+      "source_file": "docs/benchmarks/agentharm_trimode_benchmark.md",
       "status": "PARTIAL",
       "evidence": [
         {

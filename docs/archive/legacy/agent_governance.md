@@ -141,5 +141,5 @@ Examples of allowed proposals:
 - Signal thresholds require domain calibration before production enforcement.
 - These are structural controls, not a proof that future agents will remain aligned.
 
-See also: [`docs/nested_governance.md`](../../nested_governance.md),
+See also: [`docs/methods/nested_governance.md`](../../methods/nested_governance.md),
 [`ARCHITECTURE.md`](../../../ARCHITECTURE.md#remora-governance).

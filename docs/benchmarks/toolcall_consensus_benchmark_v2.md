@@ -26,4 +26,4 @@ Pre-fix numbers (baselines 0.1–0.2 unsafe) were inflated by author-annotated
 severity/oracle-flag reads and must not be quoted. Statistics:
 `results/toolcall_benchmark_v2_significance.json`.
 
-See `docs/toolcall_benchmarks.md` for the full combined benchmark report.
+See `docs/benchmarks/toolcall_benchmarks.md` for the full combined benchmark report.

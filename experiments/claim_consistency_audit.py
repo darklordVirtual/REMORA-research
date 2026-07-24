@@ -8,7 +8,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parent.parent
 README_PATH = REPO_ROOT / "README.md"
 TOOLCALL_DOC_PATH = REPO_ROOT / "docs" / "archive" / "toolcall_consensus_benchmark_v1.md"
-TOOLCALL_DOC_V2_PATH = REPO_ROOT / "docs" / "toolcall_consensus_benchmark_v2.md"
+TOOLCALL_DOC_V2_PATH = REPO_ROOT / "docs" / "benchmarks" / "toolcall_consensus_benchmark_v2.md"
 ARCH_PATH = REPO_ROOT / "ARCHITECTURE.md"
 BENCH_DOC_PATH = REPO_ROOT / "docs" / "03-experiments.md"
 

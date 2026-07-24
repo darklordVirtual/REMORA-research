@@ -145,4 +145,4 @@ triage (`remora/evidence/cyber.py`, `datasets/cyber_evidence_v1/`). It provides:
 
 What this layer does not claim: it is not a full vulnerability database, not
 scanner accuracy evidence, does not prove GO-STAR performance, and does not
-auto-update policy. See `docs/cyber_evidence_layer.md`.
+auto-update policy. See `docs/integrations/cyber_evidence_layer.md`.

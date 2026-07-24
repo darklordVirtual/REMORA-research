@@ -216,7 +216,7 @@ after the first run.
 
 The AgentHarm trimode benchmark uses the **live Workers AI oracle** (3 LLM models).
 For the separate cross-domain static evidence benchmark (32 cases, see
-`docs/domain_benchmark.md`), the deterministic static evidence provider achieves
+`docs/benchmarks/domain_benchmark.md`), the deterministic static evidence provider achieves
 precision=1.000. However, running the same cases through the **live oracle alone**
 (without static evidence) shows much lower directional precision:
 ai_governance=0.250, finance=0.250 (see `artifacts/live_benchmark_results.json`).

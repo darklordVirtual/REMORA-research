@@ -140,7 +140,7 @@ def main() -> None:
     }
 
     out_json = ROOT / "results" / "stat_tests.json"
-    out_md = ROOT / "docs" / "stat_tests.md"
+    out_md = ROOT / "docs" / "benchmarks" / "stat_tests.md"
     out_json.write_text(json.dumps(report, indent=2) + "\n")
     out_md.write_text(render_markdown(report))
     print(f"Wrote {out_json} and {out_md}")

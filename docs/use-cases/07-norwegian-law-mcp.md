@@ -206,5 +206,5 @@ Full documented analysis: [06-public-administration-hallucination.md](06-public-
 
 - MCP server: `servers/mcp_remora.py`
 - Law-search bridge: `workers/law-search/src/index.ts`
-- MCP integration guide: [`docs/mcp-integration.md`](../mcp-integration.md)
+- MCP integration guide: [`docs/integrations/mcp-integration.md`](../integrations/mcp-integration.md)
 - Full public administration case: [`docs/use-cases/06-public-administration-hallucination.md`](06-public-administration-hallucination.md)

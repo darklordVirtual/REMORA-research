@@ -127,7 +127,7 @@
         "Agent trust built through verified episodic history"
       ],
       "aromer_rule": "Nested agent governance (agent-in-agent): each level must have REMORA coverage. No autonomy laundering.",
-      "reference": "docs/nested_governance.md"
+      "reference": "docs/methods/nested_governance.md"
     }
   },
   {

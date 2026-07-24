@@ -7,7 +7,7 @@ providers and the GO-STAR REMORA Cloudflare Worker, three real AI models
 running in consensus to evaluate security findings.
 
 The live benchmark is the counterpart to the deterministic benchmark in
-`docs/domain_benchmark.md`.  Where the static benchmark measures whether
+`docs/benchmarks/domain_benchmark.md`.  Where the static benchmark measures whether
 curated evidence correctly governs known cases, the live benchmark measures
 whether real LLMs agree with that governance: and documents where they don't.
 

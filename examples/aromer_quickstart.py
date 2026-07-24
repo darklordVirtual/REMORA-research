@@ -7,7 +7,7 @@ Demonstrates the closed loop:
     decide → record ground truth → adapt → inspect what was learned
 
 No API keys, no network: MetaJudge is disabled and the episodic store is
-written to a temp directory. See docs/quickstart_aromer.md for the live-worker
+written to a temp directory. See docs/aromer/quickstart_aromer.md for the live-worker
 path (AII, /intelligence, replay publishing).
 
 Run:
@@ -83,7 +83,7 @@ def main() -> int:
         if not isinstance(value, (dict, list)):
             print(f"  {key}: {value}")
 
-    print("\nDone. Next steps: docs/quickstart_aromer.md")
+    print("\nDone. Next steps: docs/aromer/quickstart_aromer.md")
     return 0
 
 

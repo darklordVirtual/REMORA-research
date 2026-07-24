@@ -9,7 +9,7 @@
 **Companion documents:**
 - [`artifacts/credibility-pack/threat-model.md`](../../artifacts/credibility-pack/threat-model.md), full threat narrative and controls
 - [`artifacts/credibility-pack/policy-model.md`](../../artifacts/credibility-pack/policy-model.md), OPA policy gates
-- [`remora/agent_hook/`](../../remora/agent_hook/), runtime hook implementation
+- [`remora/agent_hook/`](../../remora/agent_hook), runtime hook implementation
 
 The [OWASP Top 10 for Large Language Model Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
 defines the current reference standard for LLM application risks.

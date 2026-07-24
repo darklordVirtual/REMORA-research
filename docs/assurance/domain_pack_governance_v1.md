@@ -62,7 +62,7 @@ but vary in RAG chunk coverage and evidence backing.
 - **RAG chunk coverage:** The `specialised` domain in the seed corpus includes
   ISO/IEC 27001:2022 and GDPR text. CISA KEV catalog, EPSS data, and NVD CVE
   entries are not documented as ingested.
-- **Evidence:** `docs/cyber_evidence_layer.md` references cybersecurity-specific
+- **Evidence:** `docs/integrations/cyber_evidence_layer.md` references cybersecurity-specific
   evidence. AROMER external benchmark (`results/external_benchmark_agentharm_v1.json`)
   includes cybersecurity-adjacent harm categories.
 - **Gap:** CISA KEV, NVD, EPSS, and threat intelligence feeds are not in the

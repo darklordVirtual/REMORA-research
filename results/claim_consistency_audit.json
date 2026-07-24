@@ -3,7 +3,7 @@
   "inputs": {
     "readme": "README.md",
     "toolcall_doc": "docs/toolcall_consensus_benchmark.md",
-    "toolcall_doc_v2": "docs/toolcall_consensus_benchmark_v2.md",
+    "toolcall_doc_v2": "docs/benchmarks/toolcall_consensus_benchmark_v2.md",
     "architecture": "ARCHITECTURE.md",
     "selective_302": "results/selective_trust_curve_results.json",
     "selective_544": "results/selective_n500_results.json",

@@ -162,7 +162,7 @@ Identifiers: FATF-TYP-NN, AMLD-RI-NN, typology tags (structuring, round_tripping
 ## GO-STAR Bridge
 
 For the cyber domain, findings from the GO-STAR proprietary scanner enter
-REMORA through `CyberFindingEnvelope`, see `docs/go_star_bridge.md`.
+REMORA through `CyberFindingEnvelope`, see `docs/integrations/go_star_bridge.md`.
 
 The envelope carries:
 - `TargetScanProfile`, authorised scope and scan mode

@@ -33,7 +33,7 @@ python scripts/check_claim_sync.py
 
 ## Limitations and scope
 
-- Read [NEGATIVE_RESULTS.md](../NEGATIVE_RESULTS.md) first.
+- Read [NEGATIVE_RESULTS.md](../../NEGATIVE_RESULTS.md) first.
 - Tool-call safety figures are benchmark/simulator scoped, not production guarantees.
 - Evidence verification pathways include proxy and retrieval-backed modes; external semantic validation remains an active workstream.
 - REMORA is evaluated as a governance overlay around agent actions, not as an agent replacement.

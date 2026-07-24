@@ -292,7 +292,7 @@ in `experiments/selective_n1000.py`).
 
 ### Selective trust curve: N=544 calibrated benchmark
 
-![Selective trust curve N=544 with and without RAG oracle](figures/fig_n1000_a_selective_trust.png)
+![Selective trust curve N=544 with and without RAG oracle](../figures/fig_n1000_a_selective_trust.png)
 
 **How to read this chart:**
 The x-axis is *coverage*, the fraction of incoming queries REMORA chooses to
@@ -317,7 +317,7 @@ Shaded bands are 95% Wilson confidence intervals.
 
 ### Per-domain accuracy at 18% coverage
 
-![Per-domain accuracy at 18% coverage, no-RAG vs +RAG](figures/fig_n1000_c_domain_breakdown.png)
+![Per-domain accuracy at 18% coverage, no-RAG vs +RAG](../figures/fig_n1000_c_domain_breakdown.png)
 
 **How to read this chart:**
 Each cluster of three bars is one domain. Grey = full-dataset baseline.

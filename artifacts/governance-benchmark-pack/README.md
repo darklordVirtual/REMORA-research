@@ -657,7 +657,7 @@ Baseline accuracy (full coverage, N=500): **41.18%**
 
 </details>
 
-**Artifacts:** `results/bootstrap_trust_curve_results.json` · `results/end_to_end_n500_v3.json` · `docs/empirical_evidence_record.md`
+**Artifacts:** `results/bootstrap_trust_curve_results.json` · `results/end_to_end_n500_v3.json` · `docs/evidence/empirical_evidence_record.md`
 
 ### Risk-calibrated guardrail (conformal prediction)
 
@@ -866,7 +866,7 @@ demo value.
 | `agent_execute_tool` | Run a tool through the policy gate with D1 audit |
 | `agent_audit_log` | Inspect the audit trail for an agent session |
 
-Full reference: [`docs/mcp-integration.md`](../../docs/mcp-integration.md)
+Full reference: [`docs/integrations/mcp-integration.md`](../../docs/integrations/mcp-integration.md)
 
 ### RAG oracle, curated domain knowledge improves coverage
 
@@ -1003,14 +1003,14 @@ tau* = 0.203200  (selected on 436-item training set)
 | [`NEGATIVE_RESULTS.md`](NEGATIVE_RESULTS.md) | Active findings, event chronicles, and a resolved-findings archive, honest account of what did not work |
 | [`paper/remora_paper.md`](../../paper/remora_paper.md) | Full technical paper (Markdown source; under submission) |
 | [`paper/remora_paper.tex`](../../paper/remora_paper.tex) | LaTeX source for Overleaf / arXiv submission |
-| [`docs/empirical_evidence_record.md`](../../docs/empirical_evidence_record.md) | N=302 selective trust statistical proof pack |
+| [`docs/evidence/empirical_evidence_record.md`](../../docs/evidence/empirical_evidence_record.md) | N=302 selective trust statistical proof pack |
 
 **Engineering:**
 | Document | Purpose |
 |----------|---------|
 | [`ARCHITECTURE.md`](../../ARCHITECTURE.md) | Detailed data flow, per-iteration sequence, oracle protocol |
-| [`docs/mcp-integration.md`](../../docs/mcp-integration.md) | MCP server setup and tool reference |
-| [`docs/agent_tool_hook.md`](../../docs/agent_tool_hook.md) | PreToolUse hook, risk classification, intent drift, Lyapunov |
+| [`docs/integrations/mcp-integration.md`](../../docs/integrations/mcp-integration.md) | MCP server setup and tool reference |
+| [`docs/integrations/agent_tool_hook.md`](../../docs/integrations/agent_tool_hook.md) | PreToolUse hook, risk classification, intent drift, Lyapunov |
 | [`EVIDENCE_OF_CAPABILITY.md`](../../EVIDENCE_OF_CAPABILITY.md) | Capability evidence map: what REMORA proves, implements, tests, and does not claim |
 | [`docs/thermodynamics/claim_ledger.yaml`](../../docs/thermodynamics/claim_ledger.yaml) | Machine-readable claim registry, every result linked to artifact + test |
 

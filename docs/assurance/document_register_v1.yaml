@@ -165,20 +165,20 @@ documents:
   - path: docs/reference_architecture.md
     status: canonical
     topic: reference-architecture
-  - path: docs/architecture_risk_register.md
+  - path: docs/methods/architecture_risk_register.md
     status: supporting
   - path: docs/remora_architecture.html
     status: supporting
-  - path: docs/decision_envelope_audit.md
+  - path: docs/evidence/decision_envelope_audit.md
     status: supporting
-  - path: docs/causal_policy_explanations.md
+  - path: docs/evidence/causal_policy_explanations.md
     status: supporting
   - path: docs/failure_analysis.md
     status: generated
     generated_by: experiments/toolcall_v2_failure_analysis.py
-  - path: docs/nested_governance.md
+  - path: docs/methods/nested_governance.md
     status: supporting
-  - path: docs/thermodynamic_abs.md
+  - path: docs/methods/thermodynamic_abs.md
     status: supporting
 
   # ── Assurance: live status surfaces (canonical) ──────────────────────────
@@ -212,7 +212,7 @@ documents:
   - path: docs/assurance/assurance_case_v1.md
     status: canonical
     topic: assurance-case
-  - path: docs/claim_evidence_matrix.md
+  - path: docs/evidence/claim_evidence_matrix.md
     status: supporting
 
   # ── Assurance: process, audits, specifications (supporting) ─────────────
@@ -289,36 +289,36 @@ documents:
     status: supporting
 
   # ── Evidence and benchmarks ──────────────────────────────────────────────
-  - path: docs/empirical_evidence_record.md
+  - path: docs/evidence/empirical_evidence_record.md
     status: supporting
   - path: docs/results_snapshot.md
     status: generated
     generated_by: scripts/generate_results_snapshot.py
-  - path: docs/toolcall_benchmarks.md
+  - path: docs/benchmarks/toolcall_benchmarks.md
     status: supporting
-  - path: docs/toolcall_consensus_benchmark_v2.md
+  - path: docs/benchmarks/toolcall_consensus_benchmark_v2.md
     status: supporting
-  - path: docs/agentharm_live_benchmark.md
+  - path: docs/benchmarks/agentharm_live_benchmark.md
     status: supporting
-  - path: docs/agentharm_trimode_benchmark.md
+  - path: docs/benchmarks/agentharm_trimode_benchmark.md
     status: supporting
-  - path: docs/domain_benchmark.md
+  - path: docs/benchmarks/domain_benchmark.md
     status: supporting
-  - path: docs/live_benchmark.md
+  - path: docs/benchmarks/live_benchmark.md
     status: supporting
-  - path: docs/stat_tests.md
+  - path: docs/benchmarks/stat_tests.md
     status: supporting
-  - path: docs/credibility_pack_repro.md
+  - path: docs/validation/credibility_pack_repro.md
     status: supporting
-  - path: docs/reproducibility.md
+  - path: docs/validation/audit_result_schema.md
     status: supporting
-  - path: docs/EXTERNAL_VALIDATION_PLAN.md
+  - path: docs/validation/EXTERNAL_VALIDATION_PLAN.md
     status: supporting
-  - path: docs/external-review.md
+  - path: docs/validation/external-review.md
     status: supporting
-  - path: docs/review_checklist.md
+  - path: docs/validation/review_checklist.md
     status: supporting
-  - path: docs/external_validation_report_template.md
+  - path: docs/validation/external_validation_report_template.md
     status: supporting
   - path: docs/experiments/experiment3_phase_transition_study.md
     status: supporting
@@ -340,32 +340,32 @@ documents:
     status: supporting
 
   # ── AROMER ───────────────────────────────────────────────────────────────
-  - path: docs/quickstart_aromer.md
+  - path: docs/aromer/quickstart_aromer.md
     status: supporting
-  - path: docs/aromer_learning_evidence_v1.md
+  - path: docs/aromer/aromer_learning_evidence_v1.md
     status: historical
-  - path: docs/REMORA_AROMER_MASTER_DOCUMENT.md
+  - path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
     status: canonical
     topic: aromer-reference
-  - path: docs/REMORA_AROMER_FINAL_REPORT.md
+  - path: docs/aromer/REMORA_AROMER_FINAL_REPORT.md
     status: historical
 
   # ── Integrations and operations ──────────────────────────────────────────
-  - path: docs/mcp-integration.md
+  - path: docs/integrations/mcp-integration.md
     status: supporting
-  - path: docs/agent_tool_hook.md
+  - path: docs/integrations/agent_tool_hook.md
     status: supporting
-  - path: docs/rag_oracle.md
+  - path: docs/integrations/rag_oracle.md
     status: supporting
-  - path: docs/cloudflare_workers_ai.md
+  - path: docs/integrations/cloudflare_workers_ai.md
     status: supporting
-  - path: docs/knowledge_domains.md
+  - path: docs/integrations/knowledge_domains.md
     status: supporting
-  - path: docs/cyber_evidence_layer.md
+  - path: docs/integrations/cyber_evidence_layer.md
     status: supporting
-  - path: docs/go_star_bridge.md
+  - path: docs/integrations/go_star_bridge.md
     status: supporting
-  - path: docs/gostar_integration.md
+  - path: docs/integrations/gostar_integration.md
     status: supporting
   - path: docs/deployment/azure-reference-architecture.md
     status: supporting
@@ -417,13 +417,13 @@ documents:
   - path: docs/research/research_control_matrix.generated.md
     status: generated
     generated_by: scripts/generate_research_control_matrix.py
-  - path: docs/theoretical_foundations_proposals_v1.md
+  - path: docs/methods/theoretical_foundations_proposals_v1.md
     status: proposal
 
   # ── Meta ─────────────────────────────────────────────────────────────────
   - path: docs/AI_USE.md
     status: supporting
-  - path: docs/authorship_evidence_report.md
+  - path: docs/evidence/authorship_evidence_report.md
     status: supporting
   - path: docs/executive_onepager.md
     status: supporting
@@ -443,7 +443,7 @@ documents:
     status: historical
   - path: docs/archive/toolcall_consensus_benchmark_v1.md
     status: superseded
-    superseded_by: docs/toolcall_consensus_benchmark_v2.md
+    superseded_by: docs/benchmarks/toolcall_consensus_benchmark_v2.md
   - path: docs/archive/remora_infographic_v3_dark.html
     status: historical
   - path: docs/archive/legacy/agent_governance.md

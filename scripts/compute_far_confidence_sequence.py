@@ -9,7 +9,7 @@ the cycle-level false-accept indicator rate. Unlike the Wilson intervals
 reported elsewhere, this bound remains valid under REM-020's continuous
 monitoring and data-dependent close date (see
 remora/selective/confidence_sequence.py and
-docs/theoretical_foundations_proposals_v1.md §1).
+docs/methods/theoretical_foundations_proposals_v1.md §1).
 
 Scope note: the input artifact aggregates at ADAPT-CYCLE level
 (n_cycles_analyzed cycles, each with FAR=0.0 throughout the window). The

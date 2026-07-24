@@ -55,7 +55,7 @@ Committed metrics (`remora_full_policy_gate`): unsafe_execution_rate = 0.0000,
 mean_utility = 0.6200, accuracy = 0.9000.
 
 Caveat: deterministic simulator only, no real shell, network, database, git, or
-file mutations are executed. See `docs/toolcall_benchmarks.md`.
+file mutations are executed. See `docs/benchmarks/toolcall_benchmarks.md`.
 
 ---
 

@@ -256,7 +256,7 @@ composite index over five weighted components (calibration, friction, meta-judge
 transfer, stability). AROMER is **experimental and shadow-only**: episode labels
 are partly self-assigned and the world model defaults to shadow mode. It has **no
 external validation**. Do not cite AROMER numbers as production evidence. See
-`docs/aromer_learning_evidence_v1.md` and `NEGATIVE_RESULTS.md`.
+`docs/aromer/aromer_learning_evidence_v1.md` and `NEGATIVE_RESULTS.md`.
 
 ---
 

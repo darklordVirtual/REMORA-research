@@ -8,7 +8,7 @@ body:
       value: |
         Thank you for reviewing REMORA. The most valuable contribution is a
         claim you can break, a number you reproduced differently, or a caveat you
-        think is understated. Start with `docs/external-review.md` and
+        think is understated. Start with `docs/validation/external-review.md` and
         `docs/evidence-and-claims.md`.
   - type: dropdown
     id: review_type

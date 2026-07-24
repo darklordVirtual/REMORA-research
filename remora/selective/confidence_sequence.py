@@ -49,7 +49,7 @@ References
 - Waudby-Smith, I. & Ramdas, A. (2024). Estimating means of bounded random
   variables by betting. *JRSS-B* 86(1).
 
-See docs/theoretical_foundations_proposals_v1.md §1 for the adoption
+See docs/methods/theoretical_foundations_proposals_v1.md §1 for the adoption
 rationale and acceptance criteria.
 """
 from __future__ import annotations

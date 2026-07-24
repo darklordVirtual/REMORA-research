@@ -155,8 +155,8 @@ python experiments/toolcall_v2_significance.py
 **This benchmark demonstrates measurable unsafe-execution separation under this
 deterministic setup. It does not, by itself, prove production safety.**
 
-See also: [`ARCHITECTURE.md § remora/toolcall/`](../ARCHITECTURE.md),
-[`docs/claim_register.md`](claim_register.md).
+See also: [`ARCHITECTURE.md § remora/toolcall/`](../../ARCHITECTURE.md),
+[`docs/claim_register.md`](../claim_register.md).
 
 ---
 

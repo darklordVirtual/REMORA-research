@@ -87,9 +87,9 @@ Each use case document covers:
 
 Technical readers can find the underlying code and research in:
 - [`paper/remora_paper.md`](../../paper/remora_paper.md), full academic treatment (canonical)
-- [`remora/`](../../remora/), the implementation
-- [`results/`](../../results/), all experimental data
-- [`docs/mcp-integration.md`](../mcp-integration.md), MCP server, all 14 tools, and extension model
+- [`remora/`](../../remora), the implementation
+- [`results/`](../../results), all experimental data
+- [`docs/integrations/mcp-integration.md`](../integrations/mcp-integration.md), MCP server, all 14 tools, and extension model
 
 ---
 
