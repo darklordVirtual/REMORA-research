@@ -10,18 +10,10 @@ export const REMORA_URLS = {
 export type Verdict = "VERIFIED" | "CONTRADICTED" | "SUSPICIOUS" | "UNCERTAIN";
 
 export type ToolName =
-  | "remora_verify_claim"
-  | "dce_search_law"
-  | "store_artifact"
-  | "audit_decision";
+  "remora_verify_claim" | "dce_search_law" | "store_artifact" | "audit_decision";
 
 export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+  string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 export type ExecuteResponse = {
   tool: ToolName;

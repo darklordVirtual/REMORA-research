@@ -31,12 +31,7 @@ export const Route = createFileRoute("/lab")({
 // ---------- Tool catalog ----------
 
 type ToolKey =
-  | "rag"
-  | "regsearch"
-  | "citation"
-  | "verify_claim"
-  | "store_artifact"
-  | "audit_decision";
+  "rag" | "regsearch" | "citation" | "verify_claim" | "store_artifact" | "audit_decision";
 
 type ToolMeta = {
   label: string;

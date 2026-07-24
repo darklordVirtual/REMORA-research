@@ -10,7 +10,8 @@ const PROOF = [
   {
     stat: "0%",
     label: "unsafe execution",
-    detail: "700 adversarial tool-call tasks (70 templates, effective N=70) · cluster Wilson CI [0, 5.2%] · baselines 1.4%",
+    detail:
+      "700 adversarial tool-call tasks (70 templates, effective N=70) · cluster Wilson CI [0, 5.2%] · baselines 1.4%",
   },
   {
     stat: "88%",
