@@ -281,3 +281,45 @@ abstaining with insufficient training data.
 **Caveat:** EXPERIMENTAL. Labels are partly self-labeled. The world model
 defaults to shadow mode. Not externally validated. Do not cite AROMER numbers
 as production evidence. See `04-negative-results-detail.md` §2.
+
+
+---
+
+## Canonical committed metrics (machine-checked)
+
+These headline numbers are bound to their committed artifacts by
+`experiments/claim_consistency_audit.py`; any artifact change that moves a value
+fails CI until this section is updated to follow it. (This block is the machine
+source of truth relocated out of the README so the README stays an entry page.)
+
+### Selective QA (N500 / N302)
+
+The label `N500` is historical; the current artifact evaluates 544 questions.
+Baseline majority accuracy 41.18% (`results/selective_n500_results.json`).
+Coverage sweep (`neg_temperature` signal):
+
+| Coverage | k | Correct | Accuracy |
+|----------|---|---------|----------|
+| 10% | 54 | 44 | 81.5% |
+| 15% | 82 | 71 | 86.6% |
+| 18% | 98 | 87 | 88.8% |
+| 20% | 109 | 94 | 86.2% |
+
+On the N=302 calibration set, the top-25% slice is k=76, correct=72,
+accuracy 94.7% (`results/selective_trust_curve_results.json`).
+
+### Tool-call safety (v1 / v2)
+
+v1 (252 tasks): v1 does not demonstrate unsafe-execution reduction — a ceiling
+effect in the benchmark design, not a safety result. Committed metrics:
+`remora_temperature_gate_heuristic` mean_utility 0.6762;
+`remora_full_policy_gate` mean_utility 0.5690, accuracy 0.7619
+(`results/toolcall_benchmark_v1_results.json`).
+
+v2 (700 tasks; effective N = 70): committed metrics
+`remora_temperature_gate_heuristic` mean_utility 0.3614;
+`remora_full_policy_gate` mean_utility 0.6200, accuracy 0.9000. The unsafe-rate
+delta vs. heuristic baselines is not statistically significant at the
+template-cluster level (p = 0.50); the significant advantage is decision utility
+(`results/toolcall_benchmark_v2_results.json`,
+`results/toolcall_benchmark_v2_significance.json`).

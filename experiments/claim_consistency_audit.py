@@ -10,6 +10,7 @@ README_PATH = REPO_ROOT / "README.md"
 TOOLCALL_DOC_PATH = REPO_ROOT / "docs" / "archive" / "toolcall_consensus_benchmark_v1.md"
 TOOLCALL_DOC_V2_PATH = REPO_ROOT / "docs" / "toolcall_consensus_benchmark_v2.md"
 ARCH_PATH = REPO_ROOT / "ARCHITECTURE.md"
+BENCH_DOC_PATH = REPO_ROOT / "docs" / "03-experiments.md"
 
 SELECTIVE_302_PATH = REPO_ROOT / "results" / "selective_trust_curve_results.json"
 SELECTIVE_544_PATH = REPO_ROOT / "results" / "selective_n500_results.json"
@@ -44,7 +45,9 @@ def _rel(path: Path) -> str:
 
 
 def run_audit() -> dict[str, Any]:
-    readme = _read(README_PATH)
+    # Benchmark detail was relocated from the README to docs/03-experiments.md;
+    # the machine-bound checks below now read it there (README stays an entry page).
+    readme = _read(BENCH_DOC_PATH)
     toolcall_doc = _read(TOOLCALL_DOC_PATH)
     toolcall_doc_v2 = _read(TOOLCALL_DOC_V2_PATH)
     architecture = _read(ARCH_PATH)
@@ -85,12 +88,12 @@ def run_audit() -> dict[str, Any]:
     add_check(
         "readme_n500_label_544",
         _contains(readme, "544 questions"),
-        "README should explicitly state that Result 2 evaluates 544 questions.",
+        "docs/03-experiments.md should explicitly state that the selective result evaluates 544 questions.",
     )
     add_check(
         "readme_n500_historical_note",
         _contains(readme, "The label `N500` is historical"),
-        "README should clarify that N500 is a historical label.",
+        "docs/03-experiments.md should clarify that N500 is a historical label.",
     )
     add_check(
         "readme_result1_25pct",
@@ -102,7 +105,7 @@ def run_audit() -> dict[str, Any]:
                 f"{row_302_25['accuracy'] * 100:.1f}%",
             ]
         ),
-        "README Result 1 top-25% row should match selective_trust_curve_results.json (neg_temperature).",
+        "docs/03-experiments.md top-25% row should match selective_trust_curve_results.json (neg_temperature).",
     )
     add_check(
         "readme_result2_rows",
@@ -117,12 +120,12 @@ def run_audit() -> dict[str, Any]:
                 f"{selective_544['baseline_accuracy'] * 100:.2f}%",
             ]
         ),
-        "README Result 2 rows should match selective_n500_results.json (neg_temperature).",
+        "docs/03-experiments.md coverage rows should match selective_n500_results.json (neg_temperature).",
     )
     add_check(
         "readme_toolcall_task_counts",
         _contains(readme, f"v1 ({toolcall['n_tasks']} tasks)") and _contains(readme, f"v2 ({toolcall_v2['n_tasks']} tasks)"),
-        "README tool-call section should match v1 and v2 benchmark task counts.",
+        "docs/03-experiments.md tool-call section should match v1 and v2 benchmark task counts.",
     )
 
     full_policy = toolcall["baselines"]["remora_full_policy_gate"]
@@ -138,7 +141,7 @@ def run_audit() -> dict[str, Any]:
                 "v1 does not demonstrate unsafe-execution reduction",
             ]
         ),
-        "README v1 tool-call metrics and negative finding statement should match the artifact.",
+        "docs/03-experiments.md v1 tool-call metrics and negative finding statement should match the artifact.",
     )
 
     full_policy_v2 = toolcall_v2["baselines"]["remora_full_policy_gate"]
@@ -158,14 +161,14 @@ def run_audit() -> dict[str, Any]:
                 "effective N = 70",
             ]
         ),
-        "README v2 tool-call metrics should match the harder benchmark artifact.",
+        "docs/03-experiments.md v2 tool-call metrics should match the harder benchmark artifact.",
     )
 
     single_v2_sig = toolcall_v2_sig["comparisons"]["single_model_heuristic"]
     add_check(
         "readme_toolcall_v2_significance_reference",
         _contains(readme, "toolcall_benchmark_v2_significance.json"),
-        "README should reference the v2 significance artifact.",
+        "docs/03-experiments.md should reference the v2 significance artifact.",
     )
 
     add_check(
@@ -205,7 +208,7 @@ def run_audit() -> dict[str, Any]:
     audit = {
         "audit_version": "claim_consistency_audit_v2",
         "inputs": {
-            "readme": _rel(README_PATH),
+            "benchmark_doc": _rel(BENCH_DOC_PATH),
             "toolcall_doc": _rel(TOOLCALL_DOC_PATH),
             "toolcall_doc_v2": _rel(TOOLCALL_DOC_V2_PATH),
             "architecture": _rel(ARCH_PATH),
