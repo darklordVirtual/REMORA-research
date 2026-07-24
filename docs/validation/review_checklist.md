@@ -129,12 +129,15 @@ Round-2 execution plan reference:
 
 ## Enterprise Catalog Review
 
-1. Confirm `enterprise/` directory contains all 15+ architecture and design documents.
-2. Confirm `schemas/risk-profiles.yaml` and `enterprise/policy_as_code_example.yaml` are valid YAML.
-3. Confirm `enterprise/audit-ledger-schema.sql` contains row-level security and immutability rules.
-4. Confirm `artifacts/credibility-pack/threat-model.md`, `enterprise/production-readiness.md`, `enterprise/deployment-runbook.md` exist and are non-empty.
-5. Confirm `enterprise/executive-brief.md` "Current state" table accurately reflects completed vs. designed vs. not-built items.
-6. Confirm `paper/future_state.md` speculative disclaimer is present at the top of the file.
+The `enterprise/*` paths referenced throughout the documentation are
+design-reference artifacts maintained in the enterprise edition / main
+implementation repo (see the note at the top of this file). They are
+intentionally NOT present in this research repository, so there is no
+`enterprise/` catalog to review here. Reviewers should instead confirm that:
+
+1. Every doc that cites an `enterprise/*` path presents it as a design
+   reference (with the disclaimer), never as a shipped artifact in this repo.
+2. `paper/future_state.md` carries its speculative disclaimer at the top.
 
 ## Documentation Quality
 

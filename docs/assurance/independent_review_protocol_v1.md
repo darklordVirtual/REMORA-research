@@ -108,8 +108,11 @@ followed by supporting evidence or a finding description.
 ESCALATE > ABSTAIN > VERIFY > ACCEPT? Specifically, can any adapter or
 downstream code reduce an ESCALATE to VERIFY or ACCEPT?
 
-**A2.** Does Stage 1 (hard-block policy invariants) execute before Stage 2
-(multi-oracle consensus) in all code paths, including edge cases?
+**A2.** Can any multi-oracle consensus, evidence, or adapter result override
+or downgrade a hard-block outcome? The safety property is decision priority,
+not temporal execution order: `hard_guard_floor()` results must not be
+weakened by any consensus, evidence, or adapter path. See
+`tests/test_explain_decide_parity.py` and the OPA-adapter monotonicity floor.
 
 **A3.** Is `schema_valid=None` treated as "unknown" (not "safe") for all
 mutating actions? Does a None schema_valid block the ACCEPT path?
