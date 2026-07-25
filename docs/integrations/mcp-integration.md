@@ -516,7 +516,7 @@ access, contact **support@luftfiber.no**.
 
 ### GO-STAR: Security Research Platform
 
-GO-STAR is a separate open-source security research platform. It is not part
+GO-STAR is a separate security research platform. It is not part
 of this repository, but integrates with REMORA for vulnerability validation.
 
 When GO-STAR produces security findings, REMORA (`remora_verify_claim`) acts as
