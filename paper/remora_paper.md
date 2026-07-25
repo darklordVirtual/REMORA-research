@@ -1027,7 +1027,7 @@ The broader thesis, that modern agentic AI requires an explicit uncertainty rout
 
 ## Acknowledgements
 
-Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), TruthfulQA (Lin et al., 2022), MultiNLI (Williams et al., 2018), ARC-Challenge, and MMLU-Pro. Oracle inference via Groq API. Policy evaluation via Open Policy Agent (Apache 2.0). The authors thank all reviewers who identified scope corrections and limitations documented in NEGATIVE_RESULTS.md.
+Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), TruthfulQA (Lin et al., 2022), MultiNLI (Williams et al., 2018), ARC-Challenge, and MMLU-Pro. Oracle inference via Groq API. Policy evaluation via Open Policy Agent (Apache 2.0). The authors thank all reviewers who identified scope corrections and limitations documented in NEGATIVE_RESULTS.md. We thank contributor Erlend Barli (github.com/erlendbarli) for contributions to the project (see CONTRIBUTORS.md).
 
 ---
 

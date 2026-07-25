@@ -28,12 +28,10 @@ from remora.aromer.experience.episode import (
 def _default_store_path() -> Path:
     """Resolved at instantiation, never at import: a locked-down or read-only
     home must not affect module import (external review 2026-07-24, F-10).
-    REMORA_AROMER_HOME overrides the state directory."""
-    import os
+    REMORA_AROMER_HOME overrides the state directory (see state_paths)."""
+    from remora.aromer.state_paths import default_state_path
 
-    override = os.environ.get("REMORA_AROMER_HOME", "").strip()
-    base = Path(override) if override else Path.home() / ".aromer"
-    return base / "episodes.jsonl"
+    return default_state_path("episodes.jsonl")
 
 # TTL-based pending resolution (mirrored by the worker's resolvePendingEpisodes).
 # Presumed-benign labels use the weak 0.25 weight class — the same class as

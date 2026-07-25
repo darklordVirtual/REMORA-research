@@ -198,6 +198,36 @@ def test_default_store_path_honours_aromer_home(tmp_path, monkeypatch):
     assert store.path.parent.exists()
 
 
+def test_full_aromer_persistence_graph_honours_aromer_home(tmp_path, monkeypatch):
+    """F-10 completion (re-review 2026-07-25): EVERY AROMER default state path
+    — not only the episodic store — must resolve under REMORA_AROMER_HOME at
+    instantiation time. The first fix missed DomainHarmPrior (module-level
+    Path.home()), the seed loader, the promotion ledger, and the friction
+    optimizer, which broke the quickstart in read-only-home runtimes."""
+    monkeypatch.setenv("REMORA_AROMER_HOME", str(tmp_path))
+
+    from remora.aromer.experience.promotion_gate import MemoryPromotionGate
+    from remora.aromer.integration.bridge import _default_bridge_state
+    from remora.aromer.learning.friction_optimizer import load_episode_critiques
+    from remora.aromer.state_paths import aromer_home, default_state_path
+    from remora.aromer.world_model.domain_prior import DomainHarmPrior
+
+    assert aromer_home() == tmp_path
+
+    prior = DomainHarmPrior()
+    assert prior.path == tmp_path / "world_model.json"
+    prior.update("cyber", "execution", "high", harm_occurred=True)
+    assert prior.path.exists(), "world model must persist under the override"
+
+    gate = MemoryPromotionGate()
+    assert gate._ledger_path == tmp_path / "promotion_ledger.json"
+
+    assert _default_bridge_state() == tmp_path / "bridge_state.json"
+    assert default_state_path("episodes.jsonl") == tmp_path / "episodes.jsonl"
+    # Friction optimizer reads the store default under the override (empty ok).
+    assert load_episode_critiques() == []
+
+
 def test_store_record_and_retrieve():
     store = _tmp_store()
     ep = Episode("cyber", "high", "execution", "critical", 0.5, 0.7, 0.4, "ESCALATE", 0.9)

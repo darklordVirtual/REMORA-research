@@ -899,10 +899,24 @@ items:
       signed-record and immutability language made conditional/precise;
       "deployable operating point" downgraded; implementation tables gained
       an Integrated-in-/v1/assess column; undefined fig/sec references fixed.
+      PROGRESS 2026-07-25 (second paper review round): h_bound reframed as a
+      heuristic false-consensus risk proxy (q^{n/2}, rho clamp 0.49, may
+      understate correlated failure); chi OOD use marked exploratory (live
+      variant near-constant unless clamps bind; AUC 0.39 as difficulty
+      predictor); "Seven hard blocks" -> seven HEADLINE controls with pointer
+      to the full priority-ordered gate inventory in decision_engine.py;
+      lambda=0.3 documented as paper config vs library default
+      lambda_dissensus=1.0; both "no tagged release" leftovers fixed; and a
+      stale-claim CI guard added (tests/test_paper_no_stale_claims.py) that
+      fails if superseded values (0.55, 10-20% outside withdrawal context,
+      Kirsch attribution, "queried first", "deployable operating point",
+      "hallucination-rate bound") re-enter either paper source.
       REMAINING before DONE: full three-way restructuring (core runtime vs
       research extensions vs deployment roadmap as separate diagrams), a
-      re-render + proofread of the compiled PDF, and binding every remaining
-      paper number to claim-register anchors.
+      re-render + proofread of the compiled PDF, binding every remaining
+      paper number to claim-register anchors, and a short PDP/PEP section
+      update covering the 2026-07-25 enforcement hardening (actor binding,
+      not-before, Postgres HMAC) so the paper catches up with the code.
 
   - id: REM-045
     section: "external-review-2026-07-24 F-05"

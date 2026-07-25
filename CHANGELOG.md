@@ -7,6 +7,29 @@ releases.
 
 ## [Unreleased]
 
+### Fixed (review round 3, 2026-07-25)
+
+- **F-10 completed**: ALL AROMER default state paths now resolve through
+  `remora/aromer/state_paths.py` at call time with `REMORA_AROMER_HOME`
+  override — including `DomainHarmPrior` (previously a module-level
+  `Path.home()`), the seed loader, the promotion ledger, and the friction
+  optimizer; a new test exercises the full persistence graph under the
+  override (fixes the four read-only-home failures the re-review found).
+- **Paper honesty (second round)**: `h_bound` reframed as a heuristic
+  false-consensus risk proxy (not a mathematical bound); χ OOD use marked
+  exploratory; "Seven hard blocks" → seven headline controls with a pointer
+  to the full gate inventory; λ=0.3 documented as paper config vs library
+  default 1.0; remaining "no tagged release" text fixed.
+- **Stale-claim CI guard**: `tests/test_paper_no_stale_claims.py` fails if
+  superseded values or withdrawn formulations re-enter either paper source
+  (caught one live leftover on its first run).
+- **Postgres operational evidence**: new CI job runs the DSN-gated tenant-
+  chain contract tests (including the F-04 HMAC signing test) against a real
+  postgres:16 service and fails if they skip.
+- **Request IDs**: full uuid4 hex suffix (was 12 hex chars).
+- **Contributors**: Erlend Barli (erlendbarli) added to CONTRIBUTORS.md and
+  the paper acknowledgements.
+
 ### Fixed (external paper-to-code review 2026-07-24)
 
 - **Publication-blocking headline (paper .tex)**: the LaTeX source still

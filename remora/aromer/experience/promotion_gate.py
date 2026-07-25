@@ -166,9 +166,11 @@ class MemoryPromotionGate:
         ledger_path: str | Path | None = None,
     ) -> None:
         self._store = store
+        from remora.aromer.state_paths import default_state_path
+
         self._ledger_path = (
             Path(ledger_path) if ledger_path
-            else Path.home() / ".aromer" / "promotion_ledger.json"
+            else default_state_path("promotion_ledger.json")
         )
         self._ledger_path.parent.mkdir(parents=True, exist_ok=True)
         self._ledger: dict[str, PromotionRecord] = {}

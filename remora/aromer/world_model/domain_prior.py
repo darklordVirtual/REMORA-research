@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from remora.aromer.experience.episode import DecisionQuality
 
-_DEFAULT_MODEL_PATH = Path.home() / ".aromer" / "world_model.json"
+from remora.aromer.state_paths import default_state_path
 _SENSITIVITY  = 0.20   # max trust adjustment magnitude (±20%)
 _ALPHA_INIT   = 1.0    # uniform prior
 _BETA_INIT    = 1.0
@@ -111,7 +111,8 @@ class DomainHarmPrior:
         shadow_mode: bool = False,
         persist: bool = True,
     ) -> None:
-        self.path = Path(path) if path else _DEFAULT_MODEL_PATH
+        # Resolved at instantiation via state_paths (REMORA_AROMER_HOME aware).
+        self.path = Path(path) if path else default_state_path("world_model.json")
         self.shadow_mode = shadow_mode
         # persist=False keeps the model fully in memory (no disk read/write) —
         # used by the leave-one-domain-out transfer harness so a fold never

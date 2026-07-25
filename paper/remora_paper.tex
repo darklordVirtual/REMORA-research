@@ -376,8 +376,13 @@ five-field \texttt{EvidenceSignal} and returns one of:
 pluggable but not live (\S\ref{sec:evidence}).
 
 \paragraph{Stage 6: Policy Engine.}
-Seven hard blocks are evaluated in priority order before any routing
-logic. An OPA/Rego adapter with Python fallback is implemented and
+Seven \emph{headline} policy controls are evaluated in priority order
+before any routing logic; the shipped engine's complete priority-ordered
+gate inventory is larger (schema, forbidden-tool, coercion, tainted-argument,
+rollback, production-write, quorum, trap-detection, session/fleet-risk
+gates, among others) and is maintained in
+\path{remora/policy/decision_engine.py}, with \texttt{hard\_guard\_floor()}
+as the single deterministic floor no probabilistic result can override. An OPA/Rego adapter with Python fallback is implemented and
 parity-tested, but the reference API invokes the Python policy engine
 directly; OPA remains an integration option and production dependency
 (fail closed either way). Gate outcome $g$ is assigned.
@@ -459,7 +464,10 @@ Iteration halts when $\Delta V > \epsilon_{\text{tol}} \cdot |V|$
 ($\epsilon_{\text{tol}} = 0.05$). Across 1,000 synthetic sessions,
 $P(\Delta V \leq 0) = 87.2\%$, mean $\Delta V = -0.329$.
 This is an empirical heuristic metric, not a formal control-theoretic Lyapunov
-proof.
+proof. Configuration note: $\lambda = 0.3$ is the paper/benchmark
+configuration; the standalone library default is
+\texttt{lambda\_dissensus = 1.0}, and other engine configurations may use
+other values.
 
 \textbf{Trust score:}
 \begin{equation}
@@ -467,10 +475,15 @@ proof.
            \cdot w_{\text{phase}}
            \cdot \left(1 + \frac{\chi}{\chi_0}\right)^{-1}
 \end{equation}
-where $h_{\text{bound}}$ is a hallucination-rate bound from
-inter-oracle agreement, $w_{\text{phase}} \in \{1.0, 0.5, 0.1\}$
-for ordered/critical/disordered, and $\chi$ is susceptibility
-(repurposed as OOD detector; \S\ref{sec:negative}).
+where $h_{\text{bound}}$ is a \emph{heuristic false-consensus risk proxy}
+from inter-oracle agreement --- the implementation uses $q^{n/2}$ (not the
+proven exponent) and clamps $\rho$ at $0.49$, so it can understate
+correlated-failure risk and must not be cited as a mathematical bound ---
+$w_{\text{phase}} \in \{1.0, 0.5, 0.1\}$
+for ordered/critical/disordered, and $\chi$ is susceptibility. As a
+standalone difficulty predictor $\chi$ failed (AUC $=0.39$, below chance;
+\S\ref{sec:negative}); its live variant is near-constant unless internal
+clamps bind, and its OOD use is exploratory, not a demonstrated detector.
 
 \subsection{Phase Classification}
 
@@ -558,7 +571,7 @@ to a missing policy engine.
 The policy engine is only as honest as the metadata it is given: an
 integration bug, or a compromised agent, can label a destructive
 action as a low-risk read and present the gate with nothing to fire
-on. Added at package version 0.9.0 (this repository has no tagged releases), the \emph{Governance Intelligence
+on. Added at package version 0.9.0 (repository tag \texttt{review-v1}), the \emph{Governance Intelligence
 Layer} (\path{remora/governance_intelligence/}) closes this gap with
 an opt-in, fully deterministic enrichment stage that runs before any
 policy rule (no LLM calls): (1)~fail-closed normalization of
@@ -1083,7 +1096,7 @@ Full documentation is in \texttt{NEGATIVE\_RESULTS.md}.
 \toprule
 Finding & Sev. & Status & Mitigation \\
 \midrule
-$\chi$-proxy AUC = 0.39 & Med & Docum. & Repurposed as OOD \\
+$\chi$-proxy AUC = 0.39 & Med & Docum. & Exploratory OOD use \\
 $T$--$D$ circularity & Med & Resolv. & Structural $T$ \\
 Crit.-phase anticorr. & High & Active & Evidence router \\
 Full-cov. acc. weak & Med & Active & Selective prediction \\
@@ -1098,7 +1111,8 @@ Audit not tamper-proof & Med & By des. & WORM storage \\
 
 \paragraph{$\chi$-proxy failure.}
 Susceptibility $\chi$ as standalone difficulty predictor: AUC = 0.39
-on $N=302$ items---below chance. Repurposed as OOD detector:
+on $N=302$ items---below chance. Exploratory OOD use (not a demonstrated
+detector; the live variant is near-constant unless internal clamps bind):
 $\chi > 1.45$ (97th percentile) $\Rightarrow$ \textsc{Escalate} with
 \texttt{escalate\_adversarial}.
 
@@ -1229,7 +1243,9 @@ Benchmarks use publicly available datasets (BoolQ, TruthfulQA, MultiNLI,
 ARC-Challenge, MMLU-Pro). Oracle inference via Groq API. Open Policy Agent
 used under Apache 2.0 license. Negative results documented in full in
 \texttt{NEGATIVE\_RESULTS.md}; the authors thank all reviewers who pointed
-out scope corrections and limitations.
+out scope corrections and limitations. We thank contributor Erlend Barli
+(\texttt{github.com/erlendbarli}) for contributions to the project
+(see \texttt{CONTRIBUTORS.md}).
 
 % =====================================================================
 \bibliographystyle{plainnat}
@@ -1402,9 +1418,9 @@ $T$ & Structural temperature & $[0.05, 2.0]$ \\
 $T_c$ & Critical temperature & calibrated \\
 $\chi$ & Susceptibility & $[0, \infty)$ \\
 $F$ & Free-energy proxy & $\mathbb{R}$ \\
-$\lambda$ & Coupling constant & 0.3 \\
+$\lambda$ & Coupling constant & 0.3 (paper config; library default 1.0) \\
 $\trust$ & Trust score & $[0,1]$ \\
-$h_{\rm bound}$ & Hallucination bound & $[0,1]$ \\
+$h_{\rm bound}$ & Heuristic false-consensus risk proxy & $[0,1]$ \\
 $w_{\rm phase}$ & Phase weight & $\{1.0, 0.5, 0.1\}$ \\
 $V(t)$ & Lyapunov-inspired heuristic stability observable & $[0,\infty)$ \\
 $g$ & Gate outcome & ACCEPT/VERIFY/ABS./ESC. \\
@@ -1454,7 +1470,7 @@ Correlation weighting & Yes & Per-request & Fresh engine per API request \\
 $H$, $D$, $\eta$, $T$, $F$, $\trust$ & Yes & Yes & \texttt{thermodynamics.py} \\
 $V(t)$ Lyapunov tracking & Yes & Yes & Abort on $\Delta V$ \\
 Phase classification & Yes & Yes & 3-class \\
-Policy engine (7 hard blocks) & Yes & Yes & Python engine \\
+Policy engine (7 headline controls) & Yes & Yes & Full gate inventory in code \\
 OPA/Rego adapter & Adapter & No & API calls Python engine directly \\
 Governance Intelligence & Offline & No & Optional pre-policy helper \\
 \texttt{PhaseAwareGuardrail} & Offline & No & Committed $N=544$ artifact \\

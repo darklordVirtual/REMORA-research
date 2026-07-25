@@ -83,9 +83,10 @@ class OptimizationReport:
 
 def load_episode_critiques(episode_store_path: pathlib.Path | None = None) -> list[dict[str, Any]]:
     """Load episodes that have structured MetaJudge critique_text (v2 schema)."""
-    # Try local JSONL store
-    default_path = pathlib.Path.home() / ".aromer" / "episodes.jsonl"
-    path = episode_store_path or default_path
+    # Try local JSONL store (REMORA_AROMER_HOME aware, resolved at call time)
+    from remora.aromer.state_paths import default_state_path
+
+    path = episode_store_path or default_state_path("episodes.jsonl")
     episodes = []
     if path.exists():
         for line in path.read_text(encoding="utf-8", errors="replace").splitlines():

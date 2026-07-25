@@ -536,7 +536,9 @@ def load_seeds(
     if world_model_path is not None:
         wm_path = Path(world_model_path)
     else:
-        wm_path = Path.home() / ".aromer" / "world_model.json"
+        from remora.aromer.state_paths import default_state_path
+
+        wm_path = default_state_path("world_model.json")
 
     world_model_data: dict[str, dict[str, float]] = {}
     if wm_path.exists():

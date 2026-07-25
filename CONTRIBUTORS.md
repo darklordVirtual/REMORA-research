@@ -5,8 +5,14 @@
 **Stian** (darklordVirtual)
 Contact: support@luftfiber.no
 
-REMORA is the work of a single human author. The following describes the
-nature of that contribution to make it auditable and defensible.
+REMORA's research problem, architecture, experiments, and claims are the work
+of a single primary human author; additional contributors are listed below.
+The following describes the nature of the author's contribution to make it
+auditable and defensible.
+
+## Contributors
+
+- **Erlend Barli** ([erlendbarli](https://github.com/erlendbarli))
 
 ---
 

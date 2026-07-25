@@ -32,12 +32,10 @@ import time
 
 def _default_bridge_state() -> Path:
     """Resolved at instantiation, never at import (external review 2026-07-24,
-    F-10). REMORA_AROMER_HOME overrides the state directory."""
-    import os
+    F-10). REMORA_AROMER_HOME overrides the state directory (see state_paths)."""
+    from remora.aromer.state_paths import default_state_path
 
-    override = os.environ.get("REMORA_AROMER_HOME", "").strip()
-    base = Path(override) if override else Path.home() / ".aromer"
-    return base / "bridge_state.json"
+    return default_state_path("bridge_state.json")
 
 # Thresholds that AROMER manages
 _MANAGED_THRESHOLDS = {

@@ -1243,7 +1243,7 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
     # modulo suffix repeated every ~16.7 minutes, so an identical question
     # could collide and interleave evidence/review/audit records under one
     # request_id (external review 2026-07-24, F-08).
-    request_id = f"{q_hash}-{uuid.uuid4().hex[:12]}"
+    request_id = f"{q_hash}-{uuid.uuid4().hex}"
     env = report.get("envelope")
     if env is not None and hasattr(env, "to_dict"):
         envelope_payload = env.to_dict()
@@ -1583,7 +1583,7 @@ def rerun(req: RerunRequest, request: Request) -> dict:
     elapsed_ms = round((time.monotonic() - t0) * 1000, 1)
     q_hash = hashlib.sha256(replay_request.question.encode()).hexdigest()[:16]
     # Same collision-free construction as the assess path (F-08).
-    rerun_request_id = f"{q_hash}-rerun-{uuid.uuid4().hex[:12]}"
+    rerun_request_id = f"{q_hash}-rerun-{uuid.uuid4().hex}"
 
     env = report.get("envelope")
     if env is not None and hasattr(env, "to_dict"):
