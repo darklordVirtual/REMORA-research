@@ -462,9 +462,12 @@ def _process_golden_episodes(
         return
 
     if episodes_path is None:
-        # Use default path
-        from pathlib import Path as _P
-        episodes_path = _P.home() / ".aromer" / "episodes.jsonl"
+        # REMORA_AROMER_HOME-aware default (external review R3-02: this
+        # helper previously fell back to Path.home() and bypassed the
+        # override even when every other component honoured it).
+        from remora.aromer.state_paths import default_state_path
+
+        episodes_path = default_state_path("episodes.jsonl")
 
     episodes_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -516,7 +519,8 @@ def load_seeds(
     ----------
     seed_dir:          Directory containing seed files.
     world_model_path:  Path for DomainHarmPrior JSON. Default: ~/.aromer/world_model.json
-    episodes_path:     Path for EpisodicStore JSONL. Default: ~/.aromer/episodes.jsonl
+    episodes_path:     Path for EpisodicStore JSONL. Default:
+                       $REMORA_AROMER_HOME/episodes.jsonl (or ~/.aromer/episodes.jsonl)
     dry_run:           Validate and report without writing.
     shadow_mode:       Compute but do not commit world model changes (monitoring only).
     out:               If set, write the import report JSON to this path.
@@ -586,6 +590,15 @@ def load_seeds(
             print(f"[seed-loader] Processing {fname} ...")
         _process_seed_file(fpath, world_model_data, report, dry_run or shadow_mode)
 
+    # Resolve the episodes path ONCE, override-aware, and pass a concrete
+    # path to both golden-episode calls (external review R3-02: passing None
+    # through previously let the helper fall back to Path.home()).
+    from remora.aromer.state_paths import default_state_path
+
+    resolved_episodes_path = (
+        Path(episodes_path) if episodes_path else default_state_path("episodes.jsonl")
+    )
+
     # Golden episodes — v0.1 tool-risk pack
     ep_file = seed_dir / "10_golden_episodes.seed.jsonl"
     if ep_file.exists():
@@ -595,7 +608,7 @@ def load_seeds(
             ep_file,
             report,
             dry_run or shadow_mode,
-            Path(episodes_path) if episodes_path else None,
+            resolved_episodes_path,
         )
     else:
         report.errors.append("Golden episodes file not found: 10_golden_episodes.seed.jsonl")
@@ -609,7 +622,7 @@ def load_seeds(
             cog_ep_file,
             report,
             dry_run or shadow_mode,
-            Path(episodes_path) if episodes_path else None,
+            resolved_episodes_path,
         )
     else:
         report.errors.append("Cognitive golden episodes file not found: 22_golden_cognitive_episodes.seed.jsonl")

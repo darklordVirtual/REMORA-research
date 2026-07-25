@@ -677,13 +677,13 @@ due to the trust-score inversion documented above.  Empirically,
 applying standard conformal to critical-phase items yields 100\%
 observed risk and zero coverage.
 
-REMORA resolves this with \textbf{Conformal Risk Control} (CRC,
-\cite{angelopoulos2022crc}), an importance-weighted extension of
-split-conformal prediction to general monotone loss functions and
-covariate-shifted test distributions.  Each calibration item $i$
+REMORA addresses this with a \textbf{weighted empirical selective
+router} \emph{inspired by} Conformal Risk Control (CRC,
+\cite{angelopoulos2022crc}) but --- important --- \emph{not
+implementing the CRC procedure} (see below).  Each calibration item $i$
 receives an importance weight $w_i = p_{\text{test}}(x_i) /
 p_{\text{cal}}(x_i)$.  For REMORA's phase shift, we use the
-conservative estimate
+hand-tuned estimate
 
 \begin{equation}
   w_i = \begin{cases} 1.0 & \text{if phase}(i) = p_{\text{test}} \\
@@ -692,37 +692,44 @@ conservative estimate
   \label{eq:phase_weights}
 \end{equation}
 
-The CRC threshold $\hat{\lambda}$ is the smallest value such that the
-weighted empirical risk $\bar{L}(\lambda) = \sum_i \tilde{w}_i
-\ell_i(\lambda) \leq \alpha$, where
-$\tilde{w}_i = w_i / (\sum_j w_j + w_{n+1})$ are the normalised
-importance weights.
+The selector picks the \emph{smallest} threshold $\hat{\lambda}$ (i.e.\
+maximum coverage) such that the weighted empirical risk
+$\bar{L}(\lambda) = \sum_i \tilde{w}_i \ell_i(\lambda) \leq \alpha$,
+with $\tilde{w}_i = w_i / \sum_j w_j$ normalised over the calibration
+items.
 
-\begin{theorem}[CRC Guarantee, Angelopoulos et al.\ 2022]
+\begin{theorem}[CRC Guarantee, Angelopoulos et al.\ 2022 --- stated for
+context; not instantiated by the implementation]
 For any monotone loss $\ell : [0,1] \to [0,B]$, target risk
 $\alpha \in (0,B)$, and correctly-specified importance weights:
 \[
   \mathbb{E}[L(\hat{\lambda})] \leq \alpha + \frac{B}{n+1}
 \]
-where $n$ is the calibration set size.  For binary (0/1) loss $B=1$,
-the overshoot is bounded by $1/(n+1)$ --- negligible for $n \geq 20$.
+where $n$ is the calibration set size.
 \end{theorem}
 
-REMORA implements a CRC-inspired weighted selector in
-\path{remora.selective.crc.CovariateShiftCRC}
-with a \texttt{fit(scores, labels, phases, target\_phase)} interface
+\textbf{Non-applicability.} The implemented selector does not
+instantiate this theorem, for two structural reasons no weight
+specification can repair (external review R3-01): (a)~its threshold
+rule applies the raw constraint $\bar{L}(\lambda) \leq \alpha$ with no
+$B/(n+1)$ finite-sample term and no test-point weight $w_{n+1}$;
+(b)~the controlled quantity --- the conditional error rate among
+accepted items --- is not monotone in $\lambda$, so Theorem~1 does not
+attach even with valid density-ratio weights. In addition,
+$\beta = 0.10$ is a hand-tuned constant, not a density ratio
+(Tibshirani et al.\ 2019). All quality evidence for this component is
+empirical (repeated-split holdout results).
+
+The component is implemented as
+\path{remora.selective.crc.WeightedEmpiricalSelectiveRouter}
+(formerly \texttt{CovariateShiftCRC}, retained as an alias) with a
+\texttt{fit(scores, labels, phases, target\_phase)} interface
 compatible with \texttt{ConformalPhaseGuardrail}.  A \texttt{CRCReport}
-dataclass exposes \texttt{finite\_sample\_slack} ($= 1/(n_{\text{cal}}+1)$),
-\texttt{nominal\_risk\_bound} ($= \alpha + \text{slack}$), and
-\texttt{holdout\_risk} (unweighted holdout count) for transparent
-reporting. The theorem's guarantee requires correctly specified
-importance weights (a known or estimated density ratio,
-Tibshirani et al.\ 2019); the default phase-heuristic weights
-($1.0$ on phase match, $\beta = 0.10$ otherwise) do not satisfy that
-condition, so \texttt{nominal\_risk\_bound} is a nominal target, not a
-formal guarantee, for the reported configuration. The module is fully
-tested (44 unit tests covering edge cases, tied-score atomicity,
-phase-weight algebra, and Theorem 1 finite-sample slack) and is an
+dataclass exposes \texttt{finite\_sample\_slack} ($= 1/(n_{\text{cal}}+1)$)
+and \texttt{nominal\_risk\_bound} ($= \alpha + \text{slack}$) as
+informational reference values (not applicable bounds), plus
+\texttt{holdout\_risk} (plain unweighted holdout count). The module is
+fully tested (45 unit tests) and is an
 offline research component, not invoked by the reference API.
 
 

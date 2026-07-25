@@ -215,8 +215,9 @@ not a control-theoretic Lyapunov proof: stated as such in the paper.
 ```
 
 - `η`, consensus sharpness (Eq. 3.3)
-- `(1 − h_bound)`, `h_bound` is a hallucination-rate bound from inter-oracle
-  agreement; high disagreement ⇒ larger `h_bound` ⇒ lower `τ`
+- `(1 − h_bound)`, `h_bound` is a heuristic false-consensus risk proxy from
+  inter-oracle agreement (uses `q^{n/2}` with `ρ` clamped at 0.49; not a
+  mathematical bound); high disagreement ⇒ larger `h_bound` ⇒ lower `τ`
 - `w_phase ∈ {1.0, 0.5, 0.1}`, penalises the unstable phases
 - `1/(1 + χ/χ₀)`, fragility penalty: high susceptibility shrinks `τ`
 
@@ -413,22 +414,31 @@ normalised:  w̃_i = w_i / ( Σ_j w_j + w_{n+1} )
 **Threshold.** `λ̂` is the smallest `λ` such that the weighted empirical risk
 `L̄(λ) = Σ_i w̃_i · ℓ_i(λ) ≤ α`.
 
-**Theorem 1 (CRC guarantee).** For any monotone loss `ℓ : [0,1] → [0,B]`, target
+**Theorem 1 (CRC guarantee — stated for context, NOT instantiated by the
+implementation).** For any monotone loss `ℓ : [0,1] → [0,B]`, target
 `α ∈ (0,B)`, and correctly specified weights,
 
 ```
 E[ L(λ̂) ] ≤ α + B/(n+1).                              (Eq. 6.2)
 ```
 
-For binary loss `B = 1` the overshoot is `1/(n+1)`, `≤ 0.0476` for `n = 20`,
-negligible. *Source:* `remora.selective.crc.CovariateShiftCRC`; the `CRCReport`
-dataclass exposes `finite_sample_slack = 1/(n_cal+1)` and
-`nominal_risk_bound = α + slack` (renamed from `guaranteed_risk_bound`: nominal target, not a formal guarantee under the fixed-β phase-heuristic weights; 44 unit tests).
+**Non-applicability (R3-01).** The implemented selector
+(`remora.selective.crc.WeightedEmpiricalSelectiveRouter`, formerly
+`CovariateShiftCRC`) does NOT instantiate this theorem, for two structural
+reasons: (a) its threshold rule applies the raw constraint `L̄(λ) ≤ α` with no
+`B/(n+1)` finite-sample term and no test-point weight `w_{n+1}`; (b) the
+controlled quantity is the conditional error rate among accepted items, which
+is not monotone in `λ`, so Theorem 1 does not attach even with valid
+density-ratio weights. The `CRCReport` fields `finite_sample_slack = 1/(n_cal+1)`
+and `nominal_risk_bound = α + slack` are informational reference values for
+comparison with the CRC literature, not applicable bounds. All reported
+results for this component are empirical holdout results (44 unit tests).
 
-**Worked slack.** Calibration set `n = 99` (ordered items), `α = 0.15`:
-`slack = 1/100 = 0.01`, so the guaranteed risk bound is `0.16`. You can write on
-the board: *"with 99 calibration points at a 15% target, observed risk is
-provably `≤ 16%`."*
+**Worked slack (illustrative only).** Calibration set `n = 99`, `α = 0.15`:
+`slack = 1/100 = 0.01`, giving a nominal reference value of `0.16`. Do NOT
+present this as a proven bound for the implemented selector — per the
+non-applicability note above, no such bound attaches; the defensible statement
+is the empirical repeated-split holdout result.
 
 ---
 
@@ -685,9 +695,10 @@ tests/test_aromer_core.py tests/test_kpi.py tests/test_pending_resolution.py -q`
 4. **"Trust scoring is unreliable."** → *Agreed, and measured*: §5.4 documents
    the inversion as a negative result and §5.4 routes around it rather than
    hiding it.
-5. **"Conformal assumes exchangeability you violate."** → Correct; that is why
-   the critical phase uses importance-weighted CRC with a finite-sample bound
-   (§6, Theorem 1), and the violation is published as a negative result.
+5. **"Conformal assumes exchangeability you violate."** → Correct; the
+   violation is published as a negative result, and the critical phase uses
+   an importance-weighted EMPIRICAL selective router (§6) — not a
+   theorem-carrying CRC procedure; see the §6 non-applicability note.
 6. **"Is the learning real or cosmetic?"** → §7: bounded-memory priors unfreeze
    ECE, friction has a non-degenerate gradient, the bandit credits only consulted
    oracles, and SIS gates on a zero-false-accept floor, all tested.

@@ -25,6 +25,7 @@ from remora.selective.gainability import GainabilityClassifier, extract_features
 from remora.selective.crc import (
     CRCReport,
     CovariateShiftCRC,
+    WeightedEmpiricalSelectiveRouter,
     crc_risk_bound,
     phase_importance_weights,
     weighted_conformal_threshold,
@@ -53,6 +54,7 @@ __all__ = [
     "PhaseAwareGuardrail",
     "CRCReport",
     "CovariateShiftCRC",
+    "WeightedEmpiricalSelectiveRouter",
     "crc_risk_bound",
     "phase_importance_weights",
     "weighted_conformal_threshold",

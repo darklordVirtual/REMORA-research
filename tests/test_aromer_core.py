@@ -228,6 +228,26 @@ def test_full_aromer_persistence_graph_honours_aromer_home(tmp_path, monkeypatch
     assert load_episode_critiques() == []
 
 
+def test_seed_import_honours_aromer_home_end_to_end(tmp_path, monkeypatch):
+    """R3-02: load_seeds() previously passed episodes_path=None through, and
+    the golden-episode helper fell back to Path.home()/.aromer — bypassing
+    REMORA_AROMER_HOME. A real seed import must write ONLY under the override."""
+    from pathlib import Path
+
+    from remora.aromer.seeds.load_aromer_seeds import load_seeds
+
+    override = tmp_path / "override"
+    monkeypatch.setenv("REMORA_AROMER_HOME", str(override))
+
+    seed_dir = Path(__file__).resolve().parents[1] / "remora" / "aromer" / "seeds"
+    report = load_seeds(seed_dir, verbose=False)
+
+    assert report.golden_episodes_loaded > 0, "seed import must load golden episodes"
+    episodes = override / "episodes.jsonl"
+    assert episodes.exists(), "golden episodes must land under REMORA_AROMER_HOME"
+    assert (override / "world_model.json").exists()
+
+
 def test_store_record_and_retrieve():
     store = _tmp_store()
     ep = Episode("cyber", "high", "execution", "critical", 0.5, 0.7, 0.4, "ESCALATE", 0.9)

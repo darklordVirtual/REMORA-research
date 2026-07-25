@@ -7,6 +7,24 @@ releases.
 
 ## [Unreleased]
 
+### Fixed (review round 3b, 2026-07-25)
+
+- **R3-01**: the selective-risk component no longer claims the CRC theorem.
+  `CovariateShiftCRC` → `WeightedEmpiricalSelectiveRouter` (alias kept); code
+  and all three paper sources state why Theorem 1 cannot attach (threshold
+  rule omits the B/(n+1) term; accepted-conditional loss is not monotone);
+  `finite_sample_slack`/`nominal_risk_bound` are documented as informational
+  reference values only. All evidence for the component is empirical.
+- **R3-02**: `load_seeds()` resolves the episodes path once via
+  `REMORA_AROMER_HOME`-aware `state_paths` and passes a concrete path to both
+  golden-episode calls; the `Path.home()` fallback is gone. New end-to-end
+  test imports the real seed packs under an override home.
+- **R3-03**: the stale-claim guard now also scans
+  `remora_mathematical_supplement.md`; the supplement's "hallucination-rate
+  bound" wording is fixed to the false-consensus-proxy framing, its worked
+  CRC example is marked illustrative-only, and the main paper's threshold
+  direction ("minimises accepted items") is corrected to maximum coverage.
+
 ### Fixed (review round 3, 2026-07-25)
 
 - **F-10 completed**: ALL AROMER default state paths now resolve through

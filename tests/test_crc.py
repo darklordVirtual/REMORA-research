@@ -5,7 +5,7 @@
 Covers:
   - weighted_conformal_threshold: edge cases, uniform weights, importance weighting,
     tied scores, risk bounds
-  - CovariateShiftCRC: fit/route, phase weighting, CRCReport fields, finite-sample slack
+  - WeightedEmpiricalSelectiveRouter: fit/route, phase weighting, CRCReport fields, finite-sample slack
   - phase_importance_weights: in-distribution vs off-distribution
   - crc_risk_bound: formula verification
 
@@ -19,7 +19,7 @@ import pytest
 
 from remora.selective.crc import (
     CRCReport,
-    CovariateShiftCRC,
+    WeightedEmpiricalSelectiveRouter,
     crc_risk_bound,
     phase_importance_weights,
     weighted_conformal_threshold,
@@ -209,7 +209,7 @@ def test_tied_scores_committed_atomically():
 
 
 # ---------------------------------------------------------------------------
-# CovariateShiftCRC Ã¢â‚¬â€ fit and route
+# WeightedEmpiricalSelectiveRouter Ã¢â‚¬â€ fit and route
 # ---------------------------------------------------------------------------
 
 
@@ -232,14 +232,14 @@ def _make_data(n: int, accuracy: float, seed: int = 42):
 
 def test_fit_returns_crcreport():
     scores, labels = _make_data(50, 0.85)
-    crc = CovariateShiftCRC(target_risk=0.05, seed=0)
+    crc = WeightedEmpiricalSelectiveRouter(target_risk=0.05, seed=0)
     report = crc.fit(scores, labels)
     assert isinstance(report, CRCReport)
 
 
 def test_fit_report_fields_consistent():
     scores, labels = _make_data(100, 0.90)
-    crc = CovariateShiftCRC(target_risk=0.10, cal_fraction=0.7, seed=1)
+    crc = WeightedEmpiricalSelectiveRouter(target_risk=0.10, cal_fraction=0.7, seed=1)
     report = crc.fit(scores, labels)
 
     assert report.target_risk == pytest.approx(0.10)
@@ -254,7 +254,7 @@ def test_fit_report_fields_consistent():
 
 def test_fit_report_holdout_coverage_in_unit_interval():
     scores, labels = _make_data(80, 0.80)
-    crc = CovariateShiftCRC(target_risk=0.10, seed=2)
+    crc = WeightedEmpiricalSelectiveRouter(target_risk=0.10, seed=2)
     report = crc.fit(scores, labels)
     assert 0.0 <= report.holdout_coverage <= 1.0
 
@@ -264,7 +264,7 @@ def test_fit_no_items_accepted():
     # All wrong predictions Ã¢â€ â€™ no threshold achieves 5% risk
     scores = [0.9, 0.8, 0.7, 0.6, 0.5]
     labels = [False] * 5
-    crc = CovariateShiftCRC(target_risk=0.05, seed=0)
+    crc = WeightedEmpiricalSelectiveRouter(target_risk=0.05, seed=0)
     report = crc.fit(scores, labels)
     assert report.threshold == UNATTAINABLE_THRESHOLD
     assert report.holdout_risk is None
@@ -272,7 +272,7 @@ def test_fit_no_items_accepted():
 
 
 def test_fit_empty_input():
-    crc = CovariateShiftCRC(seed=0)
+    crc = WeightedEmpiricalSelectiveRouter(seed=0)
     report = crc.fit([], [])
     assert report.threshold == UNATTAINABLE_THRESHOLD
     assert report.n_calibration == 0
@@ -283,7 +283,7 @@ def test_fit_empty_input():
 
 def test_route_accept_above_threshold():
     scores, labels = _make_data(100, 0.95)
-    crc = CovariateShiftCRC(target_risk=0.10, seed=0)
+    crc = WeightedEmpiricalSelectiveRouter(target_risk=0.10, seed=0)
     report = crc.fit(scores, labels)
     if report.threshold != UNATTAINABLE_THRESHOLD:
         assert crc.route(report.threshold + 0.01) is True
@@ -292,33 +292,33 @@ def test_route_accept_above_threshold():
 
 def test_route_abstain_below_threshold():
     scores, labels = _make_data(100, 0.95)
-    crc = CovariateShiftCRC(target_risk=0.10, seed=0)
+    crc = WeightedEmpiricalSelectiveRouter(target_risk=0.10, seed=0)
     report = crc.fit(scores, labels)
     if report.threshold != UNATTAINABLE_THRESHOLD and report.threshold > 0.0:
         assert crc.route(report.threshold - 0.01) is False
 
 
 def test_route_unfitted_raises():
-    crc = CovariateShiftCRC()
+    crc = WeightedEmpiricalSelectiveRouter()
     with pytest.raises(RuntimeError, match="fitted"):
         crc.route(0.5)
 
 
 def test_threshold_property_unfitted_raises():
-    crc = CovariateShiftCRC()
+    crc = WeightedEmpiricalSelectiveRouter()
     with pytest.raises(RuntimeError, match="fitted"):
         _ = crc.threshold
 
 
 def test_threshold_property_after_fit():
     scores, labels = _make_data(60, 0.85)
-    crc = CovariateShiftCRC(seed=0)
+    crc = WeightedEmpiricalSelectiveRouter(seed=0)
     report = crc.fit(scores, labels)
     assert crc.threshold == report.threshold
 
 
 # ---------------------------------------------------------------------------
-# CovariateShiftCRC Ã¢â‚¬â€ phase importance weighting
+# WeightedEmpiricalSelectiveRouter Ã¢â‚¬â€ phase importance weighting
 # ---------------------------------------------------------------------------
 
 
@@ -332,13 +332,13 @@ def test_phase_weights_applied_correctly():
     scores = [0.8] * 20
     labels = [True] * 10 + [False] * 10
 
-    crc_ordered = CovariateShiftCRC(
+    crc_ordered = WeightedEmpiricalSelectiveRouter(
         target_risk=0.10, cal_fraction=1.0, off_distribution_weight=0.10, seed=0
     )
     report_ordered = crc_ordered.fit(scores, labels, phases=phases, target_phase="ordered")
     assert report_ordered.threshold != UNATTAINABLE_THRESHOLD
 
-    crc_critical = CovariateShiftCRC(
+    crc_critical = WeightedEmpiricalSelectiveRouter(
         target_risk=0.10, cal_fraction=1.0, off_distribution_weight=0.10, seed=0
     )
     report_critical = crc_critical.fit(scores, labels, phases=phases, target_phase="critical")
@@ -350,7 +350,7 @@ def test_phase_weights_total_weight_matches():
     n = 50
     phases = ["ordered"] * 25 + ["critical"] * 25
     scores, labels = _make_data(n, 0.90, seed=7)
-    crc = CovariateShiftCRC(
+    crc = WeightedEmpiricalSelectiveRouter(
         target_risk=0.10, cal_fraction=0.6, off_distribution_weight=0.20, seed=0
     )
     report = crc.fit(scores, labels, phases=phases, target_phase="ordered")
@@ -362,7 +362,7 @@ def test_phase_weights_total_weight_matches():
 def test_no_phase_arg_uses_unit_weights():
     """Without phases/target_phase, behaviour matches uniform-weight CRC."""
     scores, labels = _make_data(60, 0.85, seed=3)
-    crc_no_phase = CovariateShiftCRC(target_risk=0.10, seed=42)
+    crc_no_phase = WeightedEmpiricalSelectiveRouter(target_risk=0.10, seed=42)
     report_no_phase = crc_no_phase.fit(scores, labels)
     # total_weight = n_calibration (all weights=1)
     assert report_no_phase.total_weight == pytest.approx(report_no_phase.n_calibration)
@@ -370,13 +370,13 @@ def test_no_phase_arg_uses_unit_weights():
 
 def test_mismatched_phases_raises():
     scores, labels = _make_data(30, 0.85)
-    crc = CovariateShiftCRC()
+    crc = WeightedEmpiricalSelectiveRouter()
     with pytest.raises(ValueError, match="same length"):
         crc.fit(scores, labels, phases=["ordered"] * 10)
 
 
 # ---------------------------------------------------------------------------
-# CovariateShiftCRC Ã¢â‚¬â€ finite-sample slack (Theorem 1 guarantee)
+# WeightedEmpiricalSelectiveRouter Ã¢â‚¬â€ finite-sample slack (Theorem 1 guarantee)
 # ---------------------------------------------------------------------------
 
 
@@ -385,8 +385,8 @@ def test_finite_sample_slack_decreases_with_n():
     scores_small, labels_small = _make_data(20, 0.90, seed=0)
     scores_large, labels_large = _make_data(200, 0.90, seed=1)
 
-    crc_small = CovariateShiftCRC(target_risk=0.05, seed=0)
-    crc_large = CovariateShiftCRC(target_risk=0.05, seed=0)
+    crc_small = WeightedEmpiricalSelectiveRouter(target_risk=0.05, seed=0)
+    crc_large = WeightedEmpiricalSelectiveRouter(target_risk=0.05, seed=0)
 
     report_small = crc_small.fit(scores_small, labels_small)
     report_large = crc_large.fit(scores_large, labels_large)
@@ -398,7 +398,7 @@ def test_nominal_risk_bound_formula():
     """nominal_risk_bound must equal target_risk + 1/(n_cal+1)."""
     scores, labels = _make_data(100, 0.90, seed=5)
     for alpha in [0.05, 0.10, 0.20]:
-        crc = CovariateShiftCRC(target_risk=alpha, seed=0)
+        crc = WeightedEmpiricalSelectiveRouter(target_risk=alpha, seed=0)
         r = crc.fit(scores, labels)
         expected_slack = 1.0 / (r.n_calibration + 1)
         assert r.finite_sample_slack == pytest.approx(expected_slack, rel=1e-9)
@@ -408,7 +408,7 @@ def test_nominal_risk_bound_formula():
 def test_nominal_risk_bound_is_conservative():
     """Formal bound must always be Ã¢â€°Â¥ target_risk."""
     scores, labels = _make_data(50, 0.85, seed=9)
-    crc = CovariateShiftCRC(target_risk=0.10, seed=0)
+    crc = WeightedEmpiricalSelectiveRouter(target_risk=0.10, seed=0)
     report = crc.fit(scores, labels)
     assert report.nominal_risk_bound >= report.target_risk
 
@@ -491,12 +491,19 @@ def test_crc_risk_bound_n_zero():
 
 
 def test_import_from_selective():
-    """CovariateShiftCRC and helpers must be importable from remora.selective."""
+    """WeightedEmpiricalSelectiveRouter and helpers must be importable from remora.selective."""
     from remora.selective import (  # noqa: F401
-        CovariateShiftCRC,
+        WeightedEmpiricalSelectiveRouter,
         CRCReport,
         crc_risk_bound,
         phase_importance_weights,
         weighted_conformal_threshold,
     )
 
+
+
+def test_covariate_shift_crc_alias_preserved():
+    """R3-01 rename: the historical name must stay importable as an alias."""
+    from remora.selective.crc import CovariateShiftCRC
+
+    assert CovariateShiftCRC is WeightedEmpiricalSelectiveRouter

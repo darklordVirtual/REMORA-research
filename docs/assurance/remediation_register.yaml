@@ -911,6 +911,15 @@ items:
       fails if superseded values (0.55, 10-20% outside withdrawal context,
       Kirsch attribution, "queried first", "deployable operating point",
       "hallucination-rate bound") re-enter either paper source.
+      PROGRESS 2026-07-25 (round-3 review): CRC theorem-coupling removed
+      entirely (R3-01) — the component is renamed
+      WeightedEmpiricalSelectiveRouter (CovariateShiftCRC alias kept), its
+      module/function docs state the two structural reasons Theorem 1 does
+      not attach (no B/(n+1) term in selection; accepted-conditional loss is
+      not monotone), and tex/md/supplement all carry the non-applicability
+      note; supplement h_bound wording fixed and the supplement added to the
+      stale-claim guard (R3-03); md threshold direction corrected (smallest
+      lambda = maximum coverage).
       REMAINING before DONE: full three-way restructuring (core runtime vs
       research extensions vs deployment roadmap as separate diagrams), a
       re-render + proofread of the compiled PDF, binding every remaining

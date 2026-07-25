@@ -57,7 +57,7 @@ architectural caveat.
 | `remora/cascade/` | Multi-oracle cascade + consensus | `remora/cascade/stages.py` |
 | `remora/selective/guardrail.py` | Phase-aware trust routing | `PhaseAwareGuardrail` |
 | `remora/selective/conformal.py` | Split-conformal threshold calibration | `conformal_threshold()` |
-| `remora/selective/crc.py` | Conformal risk control under shift | `CovariateShiftCRC` |
+| `remora/selective/crc.py` | Weighted empirical selective router (CRC-inspired; no theorem guarantee) | `WeightedEmpiricalSelectiveRouter` |
 | `remora/lyapunov.py` | Session stability V(t) = H + λD (heuristic observable) | `LyapunovController` |
 | `remora/audit/hash_chain.py` | SHA-256 hash-chain audit trail | `AuditHashChain` |
 | `remora/governance/nested_governance.py` | Nested memory layers + forgetting | `NestedGovernanceModel` |

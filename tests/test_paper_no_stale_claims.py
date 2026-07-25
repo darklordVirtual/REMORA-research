@@ -14,13 +14,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TEX = ROOT / "paper" / "remora_paper.tex"
 MD = ROOT / "paper" / "remora_paper.md"
+SUPPLEMENT = ROOT / "paper" / "remora_mathematical_supplement.md"
 
 # Superseded values / withdrawn formulations. Each entry: (pattern,
 # allowed_contexts) — a line containing the pattern is only permitted when at
 # least one allowed-context substring appears on the same line (used for the
 # historical footnotes that explain WHY the old numbers were withdrawn).
 FORBIDDEN: list[tuple[str, tuple[str, ...]]] = [
-    ("0.55", ()),                         # withdrawn task-level Wilson upper bound
+    # Withdrawn task-level Wilson upper bound; permitted only on lines that
+    # explicitly mark it superseded/withdrawn.
+    ("0.55", ("superseded", "withdrawn")),
     ("[0.00\\%, 0.55\\%]", ()),
     # Withdrawn baseline range. Permitted ONLY on lines that explain the
     # withdrawal (the historical footnote / leakage narrative); any line
@@ -58,5 +61,15 @@ def test_md_source_has_no_superseded_claims() -> None:
     offenders = _offending_lines(MD)
     assert not offenders, (
         "superseded claims re-entered the markdown paper source:\n"
+        + "\n".join(offenders)
+    )
+
+
+def test_supplement_has_no_superseded_claims() -> None:
+    """R3-03: the mathematical supplement is public-facing paper material and
+    must obey the same stale-claim rules as the main paper sources."""
+    offenders = _offending_lines(SUPPLEMENT)
+    assert not offenders, (
+        "superseded claims re-entered the mathematical supplement:\n"
         + "\n".join(offenders)
     )

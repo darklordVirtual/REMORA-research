@@ -1,72 +1,41 @@
 # Author: Stian Skogbrott
 # License: Apache-2.0
-"""Conformal Risk Control (CRC) under covariate shift for REMORA.
+"""Weighted empirical selective router (CRC-inspired, NOT a CRC procedure).
 
-Implements the Conformal Risk Control framework of Angelopoulos, Bates,
-Fisch, Lei & Schuster (2022) arXiv:2208.02814 — a finite-sample extension of
-split-conformal prediction to general monotone loss functions and covariate-
-shifted test distributions.
+External review R3-01 (2026-07-25): this module previously presented itself
+as an implementation of Conformal Risk Control (Angelopoulos, Bates, Fisch,
+Lei & Schuster 2022, arXiv:2208.02814). It is not, for two structural
+reasons, and no wording about weights can repair them:
 
-Background
-----------
-Standard split-conformal prediction (Vovk et al.) requires that calibration
-and test samples are *exchangeable* — i.e. drawn i.i.d. from the same
-distribution.  This assumption is violated in REMORA's critical phase: the
-joint distribution (score, correctness) differs structurally between ordered-
-and critical-phase items due to the trust-score inversion documented in §7 of
-the paper.  Standard Mondrian conformal calibration fails here (observed risk
-100%, coverage → 0%).
+1. **The threshold rule omits the finite-sample term.** CRC selects
+   ``λ̂ = inf{λ : (n/(n+1))·R̂_n(λ) + B/(n+1) ≤ α}``. This selector uses the
+   raw weighted empirical constraint ``L̄(λ) ≤ α`` with no ``B/(n+1)``
+   correction and no test-point weight ``w_{n+1}`` in the normalisation, so
+   it can commit thresholds the CRC procedure would reject.
+2. **The selective loss is not monotone.** The controlled quantity here is
+   the conditional error rate among ACCEPTED items, which can move in either
+   direction as ``λ`` changes. Theorem 1 requires a per-example loss that is
+   non-increasing in ``λ``; it does not attach to this loss even with
+   correctly specified density-ratio weights.
 
-CRC resolves this by weighting each calibration item by its importance weight::
+What this module actually is: a deterministic, importance-weighted empirical
+threshold selector — pick the smallest ``λ`` (maximum coverage) whose
+weighted empirical error among accepted calibration items stays at or below
+``α``, evaluate on a held-out split, and report the plain holdout risk.
+Phase weights (1.0 on target-phase match, ``β = 0.10`` otherwise) are a
+hand-tuned heuristic, not a density ratio. All quality evidence for this
+component is EMPIRICAL (repeated-split holdout results in the committed
+artifacts); no distribution-free guarantee is claimed.
 
-    w̃_i = w_i / (∑_{j=1}^n w_j + w_{n+1})
+``CRCReport.finite_sample_slack`` and ``nominal_risk_bound`` are retained as
+informational reference values for comparison with the CRC literature; they
+are NOT applicable bounds for this selector.
 
-where ``w_i = p_test(x_i) / p_cal(x_i)`` is the density ratio between the
-target test distribution and the calibration distribution.  The threshold is::
+Naming: the primary class is :class:`WeightedEmpiricalSelectiveRouter`;
+``CovariateShiftCRC`` remains as a backward-compatible alias (the historical
+name appears in committed artifacts and earlier documents).
 
-    λ̂ = inf{ λ : L̄(λ) ≤ α }
-
-where ``L̄(λ) = ∑_i w̃_i · ℓ_i(λ)`` is the weighted empirical risk.
-
-Guarantee (Theorem 1, Angelopoulos et al. 2022)
------------------------------------------------
-For any monotone loss ``ℓ : [0,1] → [0, B]``, target risk ``α ∈ (0, B)``,
-and correctly-specified importance weights::
-
-    E[L(λ̂)] ≤ α + B / (n + 1)
-
-where ``n`` is the calibration set size and the expectation is over the
-randomness in the calibration split.  For binary (0/1) loss ``B = 1``, so the
-overshoot is bounded by ``1 / (n + 1)`` — negligible for ``n ≥ 20``.
-
-REMORA Integration
-------------------
-The primary use case is phase-conditional risk control:
-
-* **Ordered phase** uses standard (unit-weight) conformal calibration.
-* **Critical phase** uses CRC with phase-density importance weights, giving
-  a formal error-rate guarantee even though the calibration data (ordered
-  items) has a different score–correctness relationship than the target
-  (critical items).
-
-Importance weights for phase shift
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-When target phase ≠ calibration phase, the importance weight for a calibration
-item from phase ``p_cal`` evaluated at target phase ``p_test`` is::
-
-    w_i = P(phase = p_test | τ_i) / P(phase = p_cal | τ_i)
-
-In practice, REMORA uses a simplified estimate::
-
-    w_i = { 1           if phase(i) = p_test
-           { β           if phase(i) ≠ p_test  (default β = 0.10)
-
-This is a conservative (not likelihood-ratio-optimal) estimate that ensures
-the CRC guarantee holds with the wrong-direction bias absorbed into the
-``1/(n+1)`` slack.
-
-Reference
----------
+Reference (for the framework this is inspired by, not implementing):
 Angelopoulos, A. N., Bates, S., Fisch, A., Lei, L., & Schuster, T. (2022).
 Conformal risk control. *arXiv:2208.02814*.
 """
@@ -89,15 +58,20 @@ def weighted_conformal_threshold(
     weights: Sequence[float] | None = None,
     target_risk: float = 0.05,
 ) -> float:
-    """Importance-weighted conformal risk control threshold.
+    """Importance-weighted EMPIRICAL selective threshold (not CRC).
 
-    Finds the smallest threshold ``λ`` such that the weighted empirical risk
-    ``L̄(λ) ≤ α``, where::
+    Finds the smallest threshold ``λ`` (i.e. maximum coverage) such that the
+    weighted empirical risk ``L̄(λ) ≤ α``, where::
 
         L̄(λ) = ∑_i w̃_i · ℓ_i(λ),  w̃_i = w_i / ∑_j w_j
 
     and ``ℓ_i(λ) = 1{score_i < λ ∧ label_i = False} / 1{score_i ≥ λ}``
     is the miscoverage indicator for item ``i`` at threshold ``λ``.
+
+    This is NOT the CRC selection rule: it applies the raw constraint
+    ``L̄(λ) ≤ α`` with no ``B/(n+1)`` finite-sample term and no test-point
+    weight, and the accepted-conditional loss is not monotone in ``λ`` (see
+    the module docstring). Treat the output as an empirical operating point.
 
     Parameters
     ----------
@@ -125,9 +99,11 @@ def weighted_conformal_threshold(
     * Under uniform weights this reduces exactly to
       :func:`~remora.selective.conformal.conformal_threshold`.
 
-    Guarantee (Angelopoulos et al. 2022, Theorem 1)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ``E[L(λ̂)] ≤ α + 1/(n + 1)``  for correctly-specified weights.
+    Non-applicability of Theorem 1 (Angelopoulos et al. 2022)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    The theorem's ``E[L(λ̂)] ≤ α + B/(n + 1)`` bound does NOT apply here:
+    the selection rule above lacks the ``B/(n+1)`` term and the loss is not
+    monotone. Reported results for this selector are empirical only.
     """
     if len(scores) != len(labels):
         raise ValueError("scores and labels must have equal length")
@@ -178,7 +154,7 @@ def weighted_conformal_threshold(
 
 @dataclass(frozen=True)
 class CRCReport:
-    """Summary metrics from :class:`CovariateShiftCRC` calibration.
+    """Summary metrics from :class:`WeightedEmpiricalSelectiveRouter` calibration.
 
     Attributes
     ----------
@@ -231,23 +207,27 @@ class CRCReport:
 
 
 @dataclass
-class CovariateShiftCRC:
-    """Conformal Risk Control guardrail for covariate-shifted test distributions.
+class WeightedEmpiricalSelectiveRouter:
+    """Weighted empirical selective router for phase-shifted test slices.
 
-    Calibrates a threshold using importance-weighted CRC (Angelopoulos et al.,
-    2022) and exposes a ``route()`` method compatible with
+    Calibrates an importance-weighted EMPIRICAL threshold (see the module
+    docstring: this is not the CRC procedure and carries no distribution-free
+    guarantee) and exposes a ``route()`` method compatible with
     :class:`~remora.selective.guardrail.ConformalPhaseGuardrail`.
+
+    Renamed from ``CovariateShiftCRC`` (external review R3-01, 2026-07-25);
+    the old name remains available as an alias.
 
     Parameters
     ----------
     target_risk:
-        Target error rate ``α`` for accepted items.  Default 0.05 (5%).
+        Target empirical error rate ``α`` for accepted items. Default 0.05.
     cal_fraction:
         Fraction of data used for calibration (remainder is test).
     off_distribution_weight:
-        Importance weight ``β`` assigned to calibration items from a phase
-        different from the target phase (default 0.10 = conservative
-        down-weighting of cross-phase items).
+        Heuristic weight ``β`` assigned to calibration items from a phase
+        different from the target phase (default 0.10; hand-tuned, not a
+        density ratio).
     seed:
         RNG seed for the calibration/test split.
     """
@@ -267,7 +247,7 @@ class CovariateShiftCRC:
         phases: Sequence[str] | None = None,
         target_phase: str | None = None,
     ) -> CRCReport:
-        """Fit CRC threshold with optional phase-importance weighting.
+        """Fit the empirical threshold with optional phase-importance weighting.
 
         Parameters
         ----------
@@ -372,14 +352,19 @@ class CovariateShiftCRC:
     def threshold(self) -> float:
         """Calibrated threshold (post-fit)."""
         if not self._fitted:
-            raise RuntimeError("CovariateShiftCRC must be fitted before use.")
+            raise RuntimeError("WeightedEmpiricalSelectiveRouter must be fitted before use.")
         return self._threshold
 
     def route(self, score: float) -> bool:
-        """Return True (ACCEPT) if *score* meets the CRC threshold."""
+        """Return True (ACCEPT) if *score* meets the calibrated threshold."""
         if not self._fitted:
-            raise RuntimeError("CovariateShiftCRC must be fitted before use.")
+            raise RuntimeError("WeightedEmpiricalSelectiveRouter must be fitted before use.")
         return float(score) >= self._threshold
+
+
+# Backward-compatible alias: the historical name appears in committed
+# artifacts, earlier paper versions, and downstream imports (R3-01 rename).
+CovariateShiftCRC = WeightedEmpiricalSelectiveRouter
 
 
 # ---------------------------------------------------------------------------
