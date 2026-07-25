@@ -88,7 +88,8 @@ Process, audits, and specifications:
 | [`assurance/rbac_design_v1.md`](assurance/rbac_design_v1.md) | RBAC design incl. the recorded closure deviation (REM-023) |
 | [`assurance/ai_assisted_adversarial_security_review_v1.md`](assurance/ai_assisted_adversarial_security_review_v1.md) | AI-assisted adversarial security review disposition (2026-07-03; renamed 2026-07-20, formerly "external security audit") |
 | [`assurance/red_team_plan_v1.md`](assurance/red_team_plan_v1.md) | Red-team plan |
-| [`assurance/independent_review_protocol_v1.md`](assurance/independent_review_protocol_v1.md) | REM-021 independent-review protocol |
+| [`assurance/external_review_panel_v1.md`](assurance/external_review_panel_v1.md) | Canonical competence, code-scope and sign-off matrix for the multidisciplinary external review panel |
+| [`assurance/independent_review_protocol_v1.md`](assurance/independent_review_protocol_v1.md) | REM-021 review questions and scorecard; panel composition is governed by the external-review panel matrix |
 | [`assurance/domain_pack_governance_v1.md`](assurance/domain_pack_governance_v1.md) | Domain-pack governance rules |
 | [`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md) | Partition + stale-approval resilience: design + implementation (REM-032/033 DONE) |
 | [`assurance/capability_register_v1.yaml`](assurance/capability_register_v1.yaml) | Machine-readable wiring-status register (six-level ladder; CI-validated) |
