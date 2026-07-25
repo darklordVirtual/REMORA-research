@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Check structural flag coverage of harmful benchmark tasks for M1 analysis."""
 from __future__ import annotations
 import json

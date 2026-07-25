@@ -7,12 +7,12 @@ export function SiteFooter() {
         <div>
           <div className="font-serif text-lg">{META.name}</div>
           <p className="mt-2 text-muted-foreground max-w-xs">
-            Open-source pre-execution governance for AI agent actions.
+            Source-available pre-execution governance for AI agent actions.
           </p>
         </div>
         <div className="font-mono text-xs text-muted-foreground space-y-1">
           <div>release · {META.version}</div>
-          <div>Apache-2.0 · open source</div>
+          <div>BUSL-1.1 · source-available · commercial license required for commercial use</div>
         </div>
         <div className="text-xs text-muted-foreground md:text-right">
           © {new Date().getFullYear()} REMORA Research. All claims scoped to inspected evidence.

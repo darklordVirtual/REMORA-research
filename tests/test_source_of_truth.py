@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Single source of truth for claims (P0-5).
 
 docs/assurance/claim_register_v1.yaml is the one authoritative claim register.

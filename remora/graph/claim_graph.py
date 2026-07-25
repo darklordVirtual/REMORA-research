@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Semantic claim graph + true Betti numbers via cycle-space dimension.
 
 For an undirected graph with C connected components, V vertices, E edges, the

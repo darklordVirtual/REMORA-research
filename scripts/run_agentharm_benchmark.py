@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REMORA x AgentHarm Live Oracle Benchmark
 
 Evaluates REMORA's three-model Workers AI governance decisions against the

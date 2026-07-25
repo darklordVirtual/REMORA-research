@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for remora.engine — Remora class integration with mock oracles."""
 import pytest
 from remora.engine import Remora, RemoraState

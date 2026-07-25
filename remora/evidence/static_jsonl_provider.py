@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """StaticJsonlEvidenceProvider — retrieval-backed evidence from curated JSONL.
 
 Loads ``datasets/remora_knowledge_v1/evidence_packs/evidence_objects.jsonl``

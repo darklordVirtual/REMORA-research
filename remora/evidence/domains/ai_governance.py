@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AI/ML governance evidence provider for REMORA.
 
 Covers the OWASP LLM Top 10, MITRE ATLAS, EU AI Act risk categories, and

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for PR 3: engine.report() wires v0.9 governance fields.
 
 The audit found that misspecification, coercion, rollback, and session/fleet

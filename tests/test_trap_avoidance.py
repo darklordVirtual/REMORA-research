@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for the trap avoidance classifier and its integration with the engine."""
 from __future__ import annotations
 

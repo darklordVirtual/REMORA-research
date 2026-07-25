@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Policy engine assurance audit tests — Agent A findings (2026-06-30).
 
 Tests corresponding to the threat model and findings documented in

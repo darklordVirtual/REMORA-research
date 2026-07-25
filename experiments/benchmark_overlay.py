@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Benchmark overlay harness with baseline comparison.
 
 PR-10: Runs REMORA against a benchmark dataset and computes coverage,

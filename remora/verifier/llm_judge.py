@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """LLM-as-judge verifier for REMORA.
 
 Replaces the purely lexical EvidenceVerifier with an oracle that reasons about

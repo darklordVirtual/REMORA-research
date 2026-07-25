@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Conformal phase guardrail — holdout evaluation.
 
 Loads (trust_score, is_correct) pairs from a results JSON, fits the

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Generate N=1000 selective trust figures with RAG coverage comparison.
 
 Produces four plots:

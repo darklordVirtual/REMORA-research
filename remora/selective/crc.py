@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Weighted empirical selective router (CRC-inspired, NOT a CRC procedure).
 
 External review R3-01 (2026-07-25): this module previously presented itself

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """JSONL audit adapter — hash-linked append-only audit trail.
 
 Suitable for development, testing, and air-gapped environments

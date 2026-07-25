@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for MixtureOfAgentsSynth stage in remora.cascade.stages.
 
 Uses MockOracle — no API keys required.

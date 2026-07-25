@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Structural tests for the AROMER external holdout builder.
 
 These tests lock the *dataset's* invariants — determinism, holdout discipline,

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Disk-based response cache for REMORA oracles."""
 from __future__ import annotations
 import hashlib

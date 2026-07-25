@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Pytest collection guards for network-dependent tests.
 
 Live tests (``@pytest.mark.live`` / ``@pytest.mark.live_replay_heavy``) reach a

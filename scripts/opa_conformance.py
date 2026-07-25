@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Golden conformance check: Python decision engine vs OPA/Rego policy.
 
 Evaluates a deterministic golden observation set through both the Python

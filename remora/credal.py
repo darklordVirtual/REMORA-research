@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Credal Risk Envelope — interval-valued harm and utility estimates for REMORA.
 
 Instead of a single point-estimate ``risk_estimate``, a ``CredalEnvelope``

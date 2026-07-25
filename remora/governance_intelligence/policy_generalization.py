@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """LDT-*inspired* policy-generalization risk.
 
 Asks the standing-policy question: *if REMORA ACCEPTed this class of action

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Platt scaling for REMORA trust scores.
 
 Platt scaling (J. Platt, 1999) fits a logistic regression

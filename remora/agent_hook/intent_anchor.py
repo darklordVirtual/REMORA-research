@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Session intent anchoring for governed agent tool calls."""
 from __future__ import annotations
 

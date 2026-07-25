@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """GO-STAR cybersecurity integration for REMORA governance.
 
 This module bridges GO-STAR's vulnerability research pipeline into

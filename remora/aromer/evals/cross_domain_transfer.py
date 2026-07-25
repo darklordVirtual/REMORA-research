@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Cross-domain transfer evaluation for the AROMER world model (§16).
 
 The `transfer_unmeasured` interpretation ceiling exists because AROMER's

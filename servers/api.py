@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REMORA REST API gateway — OpenAPI/FastAPI prototype.
 
 Endpoints
@@ -188,8 +188,9 @@ app = FastAPI(
         "Provides structured ACCEPT / VERIFY / ABSTAIN / ESCALATE decisions."
     ),
     version=_PACKAGE_VERSION,
-    license_info={"name": "Apache-2.0", "url": "https://www.apache.org/licenses/LICENSE-2.0"},
-    contact={"name": "Stian Skogbrott"},
+    license_info={"name": "Business Source License 1.1", "identifier": "BUSL-1.1"},
+    contact={"name": "REMORA Commercial Licensing (Licensor: Stian Skogbrott)",
+             "email": "support@luftfiber.no"},
 )
 
 

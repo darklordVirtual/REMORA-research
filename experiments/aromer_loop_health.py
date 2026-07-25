@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER learning-loop health report.
 
 Pulls the live ``/intelligence`` history, applies the tested reference

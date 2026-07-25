@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REMORA — Robust Entropy-Minimizing Oracle Reasoning Architecture.
 
 Governance overlay for autonomous AI agents. Gate every agent action through
@@ -55,10 +55,10 @@ from importlib.metadata import PackageNotFoundError, version
 try:
     __version__ = version("remora")
 except PackageNotFoundError:
-    __version__ = "0.9.0-dev"
+    __version__ = "0.10.0-dev"
 
 __author__ = "Stian Skogbrott"
-__license__ = "Apache-2.0"
+__license__ = "BUSL-1.1"
 
 # ---------------------------------------------------------------------------
 # Core engine

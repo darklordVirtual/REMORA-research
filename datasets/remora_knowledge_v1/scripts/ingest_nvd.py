@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Author: Stian Skogbrott  |  License: Apache-2.0
+# Author: Stian Skogbrott  |  SPDX-License-Identifier: BUSL-1.1
 """Ingest CVE data from NVD CVE API 2.0 and normalize to REMORA evidence JSONL.
 
 Usage:

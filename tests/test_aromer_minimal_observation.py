@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Regression: the AROMER loop must work for minimal observations.
 
 Two live-path crashes were found via examples/aromer_quickstart.py:

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """
 Generate artifacts/toolcall_benchmark_v1.json with 240 deterministic seed tasks.
 Run: python scripts/gen_toolcall_benchmark.py

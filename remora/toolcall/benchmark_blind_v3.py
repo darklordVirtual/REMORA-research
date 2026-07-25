@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Blinded benchmark v3 loader with enforced evaluator truth separation.
 
 Implements intern_forbedring.txt §3 (REM-009): separated CandidateAction and

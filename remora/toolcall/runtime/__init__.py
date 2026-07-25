@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Runtime-safe sub-package for remora.toolcall.
 
 Contains only types and functions that are safe for policy gates to use.

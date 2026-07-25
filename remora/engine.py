@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Multi-oracle consensus engine for REMORA."""
 from __future__ import annotations
 import hashlib

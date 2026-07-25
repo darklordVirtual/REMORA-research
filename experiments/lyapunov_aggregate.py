@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Lyapunov aggregate distribution — 1 000-session stability simulation.
 
 Addresses NEGATIVE_RESULTS.md §6: *"The claim that V always decreases is

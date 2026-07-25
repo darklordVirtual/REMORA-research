@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Documentation-consistency guard (external-review readiness).
 
 An external technical review flagged architecture-narrative drift: the root

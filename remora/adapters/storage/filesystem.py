@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Filesystem storage adapter — default for development and on-premises deployment."""
 from __future__ import annotations
 

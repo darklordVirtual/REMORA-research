@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """EvidenceOracleV3 — per-claim evidence table with lexical scoring.
 
 Stronger interface than EvidenceOracleV2:

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """LLM-backed toolcall baselines using Groq API (REM-010).
 
 Implements intern_forbedring.txt §4 (REM-010): real LLM-output baselines

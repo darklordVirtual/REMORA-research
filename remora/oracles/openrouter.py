@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """OpenRouter oracle (access to many free and paid models).
 
 Get an API key at https://openrouter.ai.

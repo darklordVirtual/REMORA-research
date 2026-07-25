@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Platt scaling calibration for verbalized confidence scores.
 
 Maps raw verbalized confidence (poorly calibrated) to calibrated P(correct)

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for fail-closed normalization of risk_tier / action_type / target_environment.
 
 PR 1: Unknown or absent context fields must never silently bypass safety gates.

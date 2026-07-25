@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Reference action-gate adapters for agent frameworks.
 
 These wrappers keep REMORA as a governance overlay in front of tool execution.

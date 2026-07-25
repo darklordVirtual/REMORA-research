@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Documentation-governance gate tests.
 
 The live repository must pass the gate, and the gate must actually refuse

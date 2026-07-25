@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Thermodynamic Anti-Lock Braking System (ABS) for Agentic AI.
 
 This module provides a dynamic risk penalizer that evaluates the running

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Regression tests for the injection-ceiling measurement.
 
 Locks REMORA's measured ceiling against indirect prompt injection so the number

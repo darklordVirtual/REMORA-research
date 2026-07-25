@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REM-034/035 acceptance: atomic tenant chain + end-to-end execution API."""
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Check script metadata and basic source hygiene for files under scripts/.
 
 This checker enforces lightweight repository conventions:
@@ -45,12 +45,18 @@ def check_file(path: Path) -> list[str]:
     lines = text.splitlines()
 
     author_count = sum(1 for line in lines if line.startswith("# Author:"))
-    license_count = sum(1 for line in lines if line.startswith("# License:"))
+    # BUSL-1.1 migration (2026-07-25): the license header is now the SPDX
+    # form. Accept it anywhere on a comment line (some files use the
+    # "# Author: ...  |  SPDX-..." pipe form).
+    license_count = sum(
+        1 for line in lines
+        if line.startswith("#") and "SPDX-License-Identifier:" in line
+    )
 
     if author_count == 0:
         issues.append("missing '# Author:' header")
     if license_count == 0:
-        issues.append("missing '# License:' header")
+        issues.append("missing '# SPDX-License-Identifier:' header")
 
     if not has_top_docstring(lines):
         issues.append("missing top-level module docstring (within first 30 lines)")

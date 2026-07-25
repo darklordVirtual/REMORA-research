@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Reviewer pack integrity (P0-1).
 
 The committed governance benchmark pack must carry provenance (commit SHA,

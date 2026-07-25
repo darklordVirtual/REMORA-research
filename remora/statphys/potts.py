@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Potts-model approximation for multi-verdict consensus systems.
 
 Physical analogy

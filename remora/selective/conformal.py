@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Split-conformal calibration for selective prediction.
 
 Implements the calibration leg of split-conformal risk control:

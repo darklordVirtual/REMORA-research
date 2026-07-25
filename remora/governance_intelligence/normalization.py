@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Fail-closed normalisation of caller-supplied action metadata.
 
 Design rule: **unknown is not safe**. Missing, empty, or unrecognised values

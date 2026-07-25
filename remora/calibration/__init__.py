@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Calibration helpers for REMORA trust scores."""
 
 from remora.calibration.trust_calibrator import (

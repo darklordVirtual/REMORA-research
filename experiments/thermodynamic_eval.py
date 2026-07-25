@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 #!/usr/bin/env python3
 """Evaluate thermodynamic phase predictions against canonical N=302 results.
 

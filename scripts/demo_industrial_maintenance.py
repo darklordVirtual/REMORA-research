@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Deterministic REMORA dry-run demo: governing an industrial maintenance agent.
 
 Scenario: a root-cause-analysis agent has investigated abnormal vibration on a

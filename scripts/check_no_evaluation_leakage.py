@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AST-based evaluator leakage detector.
 
 Fails CI if runtime/policy packages reference evaluation-only fields.

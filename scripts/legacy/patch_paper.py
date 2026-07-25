@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Patch remora_paper.tex to add phase-aware operating point."""
 
 with open('paper/remora_paper.tex', encoding='utf-8') as f:

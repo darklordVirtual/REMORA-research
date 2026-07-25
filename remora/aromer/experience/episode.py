@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER Episode — the atomic unit of experience.
 
 Every governance decision produces one Episode.  When the ground truth is

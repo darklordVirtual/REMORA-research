@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Replay N500 backfill items through EvidenceOracleV2 and report accuracy.
 
 The existing backfill JSON is expected to contain per-item: question (string),

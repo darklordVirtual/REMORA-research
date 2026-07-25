@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Semantic Entropy (SE) for REMORA oracle responses.
 
 Implements the Semantic Entropy framework of Kuhn, Gal & Farquhar (2023),

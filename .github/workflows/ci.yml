@@ -217,6 +217,9 @@ jobs:
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install pyyaml -c /tmp/constraints.txt
 
+      - name: License policy gate (BUSL-1.1, no Apache drift)
+        run: python scripts/check_license_policy.py
+
       - name: Documentation-governance gate
         # Registers parse and are internally consistent, document register
         # covers docs/ + paper/ + root docs exactly, canonical topics come

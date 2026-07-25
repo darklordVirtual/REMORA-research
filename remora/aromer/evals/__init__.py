@@ -1,3 +1,3 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER evals — Replay Arena, Episode Factory, A/B harness, SIS."""

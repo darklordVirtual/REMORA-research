@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Deterministic evaluation harness for claim-grounded answering systems.
 
 Scores a committed system-under-test against a fixed gold standard: micro-averaged

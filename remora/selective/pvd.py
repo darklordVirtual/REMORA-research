@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Prover-Verifier Deliberation (PVD) for critical-phase routing.
 
 Implements a lightweight PVD protocol inspired by Kirsch et al. (2024)

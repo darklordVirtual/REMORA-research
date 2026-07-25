@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Regression: world-model priors must have bounded evidence mass.
 
 v0.1 analysis (live worker, 2026-06): domain priors accumulated unbounded

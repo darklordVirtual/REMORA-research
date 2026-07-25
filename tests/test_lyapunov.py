@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for remora.lyapunov — V function and abort controller."""
 from remora.lyapunov import (
     LyapunovController,

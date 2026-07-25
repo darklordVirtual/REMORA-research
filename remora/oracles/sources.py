@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Source primitives for evidence-anchored answering.
 
 Domain reliability is a coarse, transparent heuristic — extend via

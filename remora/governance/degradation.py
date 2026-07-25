@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Degradation ladder G0–G4 with tamper-evident recorded mode transitions.
 
 Implements REM-032 (design: ``docs/assurance/resilience_plan_v1.md`` §1–2).

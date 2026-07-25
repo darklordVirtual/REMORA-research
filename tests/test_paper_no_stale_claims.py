@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Paper sources must never re-acquire superseded claims (REM-046).
 
 External reviews 2026-07-24/25 found the LaTeX source publishing withdrawn

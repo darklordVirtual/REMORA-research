@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Fix two failing tests in tests/test_crc.py."""
 with open('tests/test_crc.py', encoding='utf-8') as f:
     lines = f.readlines()

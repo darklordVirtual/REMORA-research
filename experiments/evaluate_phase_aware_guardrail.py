@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Evaluate PhaseAwareGuardrail on the canonical N=544 benchmark.
 
 Produces results/phase_aware_guardrail_n544_results.json with:

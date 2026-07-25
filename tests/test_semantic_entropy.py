@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for remora.semantic_entropy — SE clustering and entropy computation.
 
 All tests use the TokenFingerprintBackend (no external model required) and

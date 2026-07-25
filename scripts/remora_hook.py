@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REMORA pre-tool-use hook for governed agent runtimes.
 
 The script reads a hook payload from stdin and exits with:

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Oracle diversity analysis and diversity-aware swarm selection.
 
 The standard REMORA hallucination-risk formula assumes mean inter-oracle

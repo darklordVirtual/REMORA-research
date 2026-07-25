@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Cross-domain transfer (§16): the abstract prior generalises across domains,
 and the leave-one-domain-out harness measures it honestly."""
 from __future__ import annotations

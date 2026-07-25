@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Standard benchmark sets drawn from well-known public evaluation suites.
 
 This module provides curated binary (true/false) polarity items from four

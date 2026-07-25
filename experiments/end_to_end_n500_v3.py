@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """End-to-end N500 policy evaluation (v3) — aggregate metrics from stored artifacts.
 
 Loads ``results/thermodynamic_eval_n500_calibrated_results.json`` (544 items),

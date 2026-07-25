@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """CLAIM-005 backing artifact: the critical-phase trust split at the tau=0.10
 groupthink boundary is reproducible, shows the inversion, and is consistent with
 the committed 20/32 critical aggregate."""

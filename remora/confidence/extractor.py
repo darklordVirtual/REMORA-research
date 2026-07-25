@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Verbalized confidence extraction from free-text model responses.
 
 Models express confidence in three forms:

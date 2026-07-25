@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Modular domain evidence providers for REMORA governance.
 
 Each domain provider follows the same interface as CyberEvidenceProvider:

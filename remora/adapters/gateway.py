@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Agent framework adapter gateway — Protocol-based integration interface.
 
 PR-9: Defines a ``RemoraGateway`` Protocol so any agent framework

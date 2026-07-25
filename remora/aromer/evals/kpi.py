@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Governance KPIs that separate *correct* verification from *unnecessary* friction.
 
 The raw `review_friction = benign_review / n_benign` metric is misleading: it

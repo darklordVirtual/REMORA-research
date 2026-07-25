@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REM-014 structural verifier for the imported AgentHarm benchmark (P0-2).
 
 The AgentHarm artifact (CLAIM-002) was produced in the REMORA main implementation

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER A/B/C/D Test Runner — controlled comparison across seed configurations.
 
 Conditions

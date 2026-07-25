@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REM-032 acceptance tests: degradation ladder G0–G4 with recorded,
 tamper-evident mode transitions, and the G4 action policy."""
 from __future__ import annotations

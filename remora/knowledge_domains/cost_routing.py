@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Cost-aware routing: the cheapest model that still clears each request's floor.
 
 REMORA calls models (embeddings, rerankers, generation) for oracle-backed modes;

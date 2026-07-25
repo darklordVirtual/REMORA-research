@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER Seed Loader — bootstrap world model and episodic store from pre-seeded priors.
 
 IMPORTANT: Preseed ≠ truth. Seeds are hypotheses with provenance, weight, confidence

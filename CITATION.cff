@@ -10,7 +10,7 @@ authors:
   - family-names: "Skogbrott"
     given-names: "Stian"
 repository-code: "https://github.com/darklordVirtual/REMORA-research"
-license: Apache-2.0
+license: BUSL-1.1
 type: software
 keywords:
   - "AI governance"

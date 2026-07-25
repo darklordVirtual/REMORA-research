@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Review findings: mandatory token expiry, jti one-time consumption,
 audience binding, max token age, and lossless serialisation."""
 from __future__ import annotations

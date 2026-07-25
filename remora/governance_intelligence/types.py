@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Dataclasses for the Governance Intelligence Layer.
 
 All types are frozen, deterministic value objects. They carry *signals*, not

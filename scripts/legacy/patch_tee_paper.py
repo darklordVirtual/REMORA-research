@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Add TEE Audit Protocol section to paper (tex and md).
 
 TEE = Trusted Execution Environment (AMD SEV-SNP / Intel SGX / NVIDIA HCC).

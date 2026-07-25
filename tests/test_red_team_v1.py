@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Red-team regression tests — Agent F adversarial evaluation plan v1.
 
 Reference: docs/assurance/red_team_plan_v1.md

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Scan documentation and code docstrings for forbidden overclaim language.
 
 "World-class evidence" means knowing exactly what you have NOT proven.

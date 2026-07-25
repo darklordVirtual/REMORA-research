@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """M1 clean-signal evaluation: measure FAR without label leakage.
 
 M1 (peer-review finding): RemoraToolCallGate.to_observation() accesses

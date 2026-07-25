@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Cloudflare Workers AI oracle (supports native Fine-tunes/LoRA).
 
 Allows using native Cloudflare models (@cf/meta/...) and custom LoRAs

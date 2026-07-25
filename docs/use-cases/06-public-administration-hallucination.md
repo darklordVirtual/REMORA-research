@@ -23,7 +23,7 @@
 
 This use case demonstrates two complementary systems working together.
 
-**REMORA** (this repository) is an open-source multi-oracle AI consensus engine.
+**REMORA** (this repository) is a source-available multi-oracle AI consensus engine.
 It queries three independent language models, measures their agreement, and uses a
 Lyapunov stability function to determine when the answer is trustworthy.
 REMORA's parametric language models have no access to Norwegian legal databases.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER episode recorder — Claude Code PreToolUse hook.
 
 Reads a tool-call payload from stdin, infers domain/action_type/risk,

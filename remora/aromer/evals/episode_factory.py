@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER Episode Factory — generates structured evaluation episodes.
 
 Produces the Replay Arena JSONL files consumed by replay_runner.py and

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """GainabilityClassifier — predict when REMORA can recover from a wrong majority.
 
 Inputs: REMORA observables (trust_score, order_parameter, susceptibility,

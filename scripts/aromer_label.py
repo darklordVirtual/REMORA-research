@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Label pending AROMER episodes with ground truth.
 
 After the PreToolUse recorder hook captures real tool calls, an operator

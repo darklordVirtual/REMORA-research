@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Cyber evidence provider for REMORA.
 
 This module is a public REMORA evidence layer for cybersecurity triage. It is

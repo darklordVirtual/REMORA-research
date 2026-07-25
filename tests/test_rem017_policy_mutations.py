@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Mutation-detecting tests for remora/policy/decision_engine.py (REM-017).
 
 Each test is designed to FAIL if a specific mutation is introduced to the policy

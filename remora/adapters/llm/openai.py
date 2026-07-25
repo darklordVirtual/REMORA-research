@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """OpenAI API adapter for REMORA.
 
 Connects to the standard OpenAI API (api.openai.com).

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Identity adapters — platform-agnostic authentication and authorisation."""
 from __future__ import annotations
 

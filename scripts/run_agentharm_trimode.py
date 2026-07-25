@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REMORA x AgentHarm — Three-Mode Governance Benchmark
 
 Three escalating configurations against AgentHarm (arXiv:2410.09024).

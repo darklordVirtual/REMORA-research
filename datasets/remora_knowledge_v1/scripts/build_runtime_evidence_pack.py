@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Build runtime evidence pack by merging base pack and normalized live feeds.
 
 This script is intended for scheduled daily ingestion workflows:

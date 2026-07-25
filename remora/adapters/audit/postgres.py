@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """PostgreSQL audit adapter — production-grade append-only audit trail.
 
 Uses the schema defined in enterprise/audit-ledger-schema.sql.

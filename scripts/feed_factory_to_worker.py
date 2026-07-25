@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Feed Episode Factory cases to the live AROMER Worker.
 
 Each factory episode has a fixed expected_truth (benign/harmful) and

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Generate visual diagrams for REMORA use case documentation."""
 from __future__ import annotations
 from pathlib import Path

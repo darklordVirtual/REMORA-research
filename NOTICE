@@ -1,7 +1,21 @@
 REMORA
-Copyright 2026 Luftfiber AS and Stian Skogbrott
 
-REMORA is authored and maintained by Stian Skogbrott for Luftfiber AS.
+Copyright (C) 2026 Stian Skogbrott.
+All rights reserved except as expressly granted under the applicable
+REMORA license.
 
-The REMORA code in this repository is licensed under the Apache License,
-Version 2.0. See LICENSE.
+REMORA versions beginning with version 0.10.0 are made available under
+the Business Source License 1.1 (see LICENSE) or, by separate written
+agreement, under the REMORA Commercial License. No commercial use is
+permitted without a commercial license from the Licensor,
+Stian Skogbrott. Contact: support@luftfiber.no
+
+Historical REMORA versions prior to 0.10.0 remain available under the
+license terms they were actually distributed with; no new grants are
+made under those historical terms.
+
+Third-party components and materials remain governed by their respective
+licenses and notices. See THIRD_PARTY_NOTICES.md.
+
+REMORA names, logos and certification marks are not licensed for product
+branding except by separate written permission. See TRADEMARKS.md.

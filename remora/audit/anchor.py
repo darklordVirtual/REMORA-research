@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Audit root anchoring prototype.
 
 PR-11: Provides cryptographic anchoring of REMORA decision audit trails

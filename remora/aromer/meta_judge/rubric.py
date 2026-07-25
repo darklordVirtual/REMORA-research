@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER MetaJudge Structured Rubric — multi-dimensional critique scoring.
 
 Upgrades the MetaJudge from a single score to a structured rubric:

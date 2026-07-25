@@ -5,6 +5,26 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project is
 research-grade software; version tags mark review handoffs, not production
 releases.
 
+## [0.10.0] - 2026-07-25
+
+### Licensing
+
+- Changed the license for new REMORA versions to the Business Source
+  License 1.1 (source-available). Licensor: Stian Skogbrott. No commercial
+  use is permitted without a separate REMORA Commercial License and
+  compensation agreed with the Licensor.
+- Change Date 2030-07-25; Change License GNU GPL v2.0 or later (BSL's
+  covenant requires a GPL-compatible change license).
+- Added `LICENSING.md`, `COMMERCIAL_LICENSE.md`, `COPYRIGHT.md`,
+  `TRADEMARKS.md`, `THIRD_PARTY_NOTICES.md`, and `LICENSES/BUSL-1.1.txt`;
+  rewrote `NOTICE`; migrated ~400 source headers to
+  `SPDX-License-Identifier: BUSL-1.1`.
+- Historical versions prior to 0.10.0 keep the license terms they were
+  actually distributed with; no new grants are made under those terms.
+- Added `scripts/check_license_policy.py` as a CI gate against Apache
+  metadata drift, and a contribution-licensing/CLA section to the
+  contributing docs.
+
 ## [Unreleased]
 
 ### Fixed (review round 3b, 2026-07-25)

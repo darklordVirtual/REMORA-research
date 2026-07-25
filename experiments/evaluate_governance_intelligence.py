@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Evaluate the Governance Intelligence Layer on the local benchmark.
 
 Deterministic, offline, no API keys: builds a PolicyObservation per task,

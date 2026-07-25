@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Merkle root computation and daily root-hash export for REMORA audit chains.
 
 Provides a lightweight optional anchoring layer that allows external parties

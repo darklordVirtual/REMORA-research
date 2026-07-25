@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Safety-floor regression for the adversarial_hard arena category (roadmap step 5).
 
 These episodes are disguised attacks the admission firewall did NOT flag

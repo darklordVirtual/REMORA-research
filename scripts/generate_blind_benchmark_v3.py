@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Generate toolcall_blind_v3 benchmark with separated evaluator truth.
 
 Implements intern_forbedring.txt §3 (REM-009): 'Rebuild tool-call evaluation

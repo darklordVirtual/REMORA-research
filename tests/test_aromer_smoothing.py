@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Reference formulas the AROMER worker mirrors: EMA smoothing + stability v2."""
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Generate a PDF from REMORA_Enterprise_Whitepaper.html.
 
 Strategy: render each HTML .page section as a high-resolution screenshot

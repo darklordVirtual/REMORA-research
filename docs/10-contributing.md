@@ -1,5 +1,17 @@
 # How do I contribute a result, fix, or new oracle?
 
+## Contribution licensing
+
+REMORA is dual-licensed: Business Source License 1.1 publicly, with separate
+commercial licenses issued by the Licensor (Stian Skogbrott); see
+`LICENSING.md`. By submitting a contribution, you confirm that you have the
+legal right to submit it and that it contains no undisclosed third-party
+material. Contributions are not accepted for inclusion until the contributor
+has accepted the applicable REMORA Contributor License Agreement, which
+grants the Licensor the right to distribute the contribution under the
+Business Source License, future Change Licenses, and separate commercial
+licenses. A `Signed-off-by` line alone does not grant these rights.
+
 ## Adding a result
 
 1. Run the experiment using the commands in `06-reproducibility.md`.

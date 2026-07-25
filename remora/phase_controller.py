@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Phase-aware consensus control built on the thermodynamic pre-sweep state."""
 from __future__ import annotations
 

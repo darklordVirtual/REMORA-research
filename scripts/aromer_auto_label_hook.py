@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER auto-label — Claude Code PostToolUse hook.
 
 Runs after every tool call.  Reads the last recorded episode ID from

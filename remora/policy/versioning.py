@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Policy bundle hash utility for REMORA audit chain population.
 
 Computes a deterministic SHA-256 composite hash over the policy-critical Python

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Ollama local oracle (completely free, no API key required).
 
 Install: https://ollama.com

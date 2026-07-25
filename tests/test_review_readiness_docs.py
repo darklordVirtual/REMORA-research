@@ -148,26 +148,41 @@ def test_project_license_references_are_apache_not_mit() -> None:
     assert offenders == []
 
 
-def test_licensing_is_plain_apache_without_commercial_boundary_docs() -> None:
-    """Licensing surface is a single Apache-2.0 grant plus a minimal NOTICE.
+def test_licensing_is_bsl_with_commercial_boundary_docs() -> None:
+    """Licensing surface is BUSL-1.1 plus a REMORA Commercial License boundary.
 
-    The former ENTERPRISE_LICENSE.md / TRADEMARKS.md open-core boundary was
-    deliberately removed (owner decision, 2026-07-20): the commercial-boundary
-    documents overstated the project's posture for a research repository.
+    History: the former open-core boundary docs were removed 2026-07-20 as
+    overreach for a plain-Apache research repository. On 2026-07-25 the owner
+    reversed that posture: the project moved to Business Source License 1.1
+    with commercial licensing (Licensor: Stian Skogbrott), which REQUIRES the
+    boundary documents. This test enforces the new surface; the enforcement
+    direction of its predecessor test was deliberately inverted.
     """
-    removed_files = [
+    required_files = [
+        ROOT / "LICENSE",
+        ROOT / "LICENSING.md",
+        ROOT / "COMMERCIAL_LICENSE.md",
+        ROOT / "COPYRIGHT.md",
         ROOT / "TRADEMARKS.md",
-        ROOT / "ENTERPRISE_LICENSE.md",
+        ROOT / "THIRD_PARTY_NOTICES.md",
     ]
-    for path in removed_files:
-        assert not path.exists(), f"{path} was deliberately removed; do not reintroduce"
+    for path in required_files:
+        assert path.exists(), f"{path.name} is required by the BSL licensing model"
+
+    license_text = (ROOT / "LICENSE").read_text(encoding="utf-8")
+    assert "Business Source License 1.1" in license_text
+    assert "Stian Skogbrott" in license_text
+    assert "Additional Use Grant" in license_text
+    assert "Apache" not in license_text
 
     notice = (ROOT / "NOTICE").read_text(encoding="utf-8")
-    assert "Apache License" in notice
+    assert "Business Source License 1.1" in notice
     assert "Stian Skogbrott" in notice
-    assert "Luftfiber AS" in notice
-    for overreach in ["enterprise agreement", "trademark", "proprietary"]:
-        assert overreach not in notice.lower(), f"NOTICE must stay minimal: {overreach!r}"
+    assert "permitted without a commercial license from the Licensor" in notice
+
+    # The informational commercial overview must never read as a grant.
+    commercial = (ROOT / "COMMERCIAL_LICENSE.md").read_text(encoding="utf-8")
+    assert "not itself a commercial software" in commercial
 
 
 def test_decision_envelope_audit_hash_semantics_are_documented() -> None:

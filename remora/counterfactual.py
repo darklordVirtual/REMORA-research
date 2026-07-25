@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Canonical counterfactual stress-testing helpers for REMORA.
 
 This module centralizes the claim-type-aware counterfactual logic that used to
