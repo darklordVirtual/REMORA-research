@@ -1068,6 +1068,12 @@ class RemoraDecisionEngine:
                     else (obs.trust_score if obs.trust_score is not None else (obs.weighted_support or 0.5))
                 )
             risk_estimate: float | None = 1.0 - base
+        # NOTE (external review 2026-07-25): the non-ACCEPT risk_estimate values
+        # below are RELATIVE decision labels for ordering/telemetry, NOT
+        # calibrated error probabilities. VERIFY=0.3 marks "hold for review",
+        # ESCALATE=1.0 marks a hard/policy failure, ABSTAIN=None means "no
+        # estimate offered". Do not consume them as probabilities; the only
+        # calibrated quantity is the ACCEPT-path 1.0-base above.
         elif action == DecisionAction.VERIFY:
             risk_estimate = 0.3
         elif action == DecisionAction.ABSTAIN:
