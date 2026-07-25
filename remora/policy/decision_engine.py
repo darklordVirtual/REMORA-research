@@ -38,6 +38,53 @@ from remora.policy.trap_classifier import (
 # but fewer than this number of oracles responded, route to human review.
 MIN_REQUIRED_ORACLE_VOTES: int = 2
 
+# ---------------------------------------------------------------------------
+# Decision thresholds: CALIBRATED vs HEURISTIC (external review, Grok 3.3/4.3)
+# ---------------------------------------------------------------------------
+#
+# CALIBRATED thresholds are derived from a committed result artifact and are
+# INJECTED into the engine at construction, never hard-coded here:
+#   * temperature_threshold        — in-sample optimum T*≈0.1972 at 18% coverage
+#                                     (remora/policy/calibration.py; N=500
+#                                     artifact). Passed via __init__.
+#   * conformal_trust_threshold    — offline conformal calibration, loaded from
+#     / conformal_phase_thresholds   a GuardrailReport artifact (NOT the eval
+#                                     set). Passed via __init__.
+# Also calibrated and named at their point of definition:
+#   * TRAP_ESCALATE/VERIFY_THRESHOLD (remora/policy/trap_classifier.py)
+#   * MINIMAX_ESCALATE_THRESHOLD     (remora/credal.py)
+#
+# HEURISTIC thresholds below are HAND-TUNED conservative constants. They are
+# NOT derived from any artifact and MUST NOT be cited as calibrated. They are
+# named here (rather than left inline) so their provenance is explicit and a
+# single edit changes both decide() and explain(). Each errs toward VERIFY/
+# ESCALATE (more human review), consistent with the fail-closed posture.
+
+# Trust bar for the ordered-phase high-trust ACCEPT and the evidence-supported
+# ACCEPT (coincides with the AROMER-recommended value but is not artifact-fit).
+ORDERED_HIGH_TRUST_MIN: float = 0.72
+# Evidence-verifier confidence required before an evidence-supported ACCEPT.
+EVIDENCE_CONFIDENCE_MIN: float = 0.7
+# Trust below which a non-answer routes to ABSTAIN.
+LOW_TRUST_ABSTAIN_MAX: float = 0.2
+# Credal ambiguity width required (with minimax) before escalating — guards
+# against escalating low-trust zero-H/D observations.
+MINIMAX_AMBIGUITY_WIDTH_MIN: float = 0.15
+# Production-env confidence below which a non-read action verifies.
+ENV_CONFIDENCE_MIN: float = 0.80
+# Classification-confidence below which a non-read action verifies.
+CLASSIFICATION_CONFIDENCE_MIN: float = 0.60
+# Model-misspecification risk above which a non-read action verifies.
+MISSPECIFICATION_RISK_MAX: float = 0.60
+# Session cumulative-risk above which the "boiling frog" gate verifies.
+SESSION_CUMULATIVE_RISK_MAX: float = 0.80
+# Session action-count above which the flood gate verifies.
+SESSION_ACTION_COUNT_MAX: int = 100
+# Fleet-scale policy-generalization risk above which the gate verifies.
+POLICY_GENERALIZATION_RISK_MAX: float = 0.70
+# Repeat-count of a similar action above which the flood gate verifies.
+SIMILAR_ACTION_FLOOD_MAX: int = 50
+
 # Action types that are inherently safe to classify conservatively.
 # Misspecification gates skip these to avoid blocking obviously read-only actions.
 _READ_ONLY_TYPES: frozenset[str] = frozenset({
@@ -320,7 +367,8 @@ _CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
     _ConditionalGate(
         "minimax_gate", DecisionReason.MINIMAX_ESCALATE,
         lambda e, o, c, t: DecisionAction.ESCALATE
-        if (c.minimax_should_escalate(MINIMAX_ESCALATE_THRESHOLD) and c.ambiguity_width >= 0.15) else None,
+        if (c.minimax_should_escalate(MINIMAX_ESCALATE_THRESHOLD)
+            and c.ambiguity_width >= MINIMAX_AMBIGUITY_WIDTH_MIN) else None,
         "ESCALATE",
         lambda o, c, t: (
             f"worst_case_loss={c.worst_case_loss:.4f}, "
@@ -364,7 +412,7 @@ _CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
         lambda e, o, c, t: DecisionAction.VERIFY
         if (o.target_environment in _PROD_ENVS
             and o.environment_confidence is not None
-            and o.environment_confidence < 0.80
+            and o.environment_confidence < ENV_CONFIDENCE_MIN
             and o.action_type not in _READ_ONLY_TYPES) else None,
         "VERIFY",
         lambda o, c, t: f"target_environment={o.target_environment!r}, env_confidence={o.environment_confidence}",
@@ -389,7 +437,7 @@ _CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
         "low_classification_conf", DecisionReason.LOW_CLASSIFICATION_CONF,
         lambda e, o, c, t: DecisionAction.VERIFY
         if (o.classification_confidence is not None
-            and o.classification_confidence < 0.60
+            and o.classification_confidence < CLASSIFICATION_CONFIDENCE_MIN
             and o.action_type not in _READ_ONLY_TYPES) else None,
         "VERIFY",
         lambda o, c, t: f"classification_confidence={o.classification_confidence}, action_type={o.action_type!r}",
@@ -398,7 +446,7 @@ _CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
         "misspecification_verify", DecisionReason.MISSPECIFICATION_VERIFY,
         lambda e, o, c, t: DecisionAction.VERIFY
         if (o.model_misspecification_risk is not None
-            and o.model_misspecification_risk > 0.60
+            and o.model_misspecification_risk > MISSPECIFICATION_RISK_MAX
             and o.action_type not in _READ_ONLY_TYPES) else None,
         "VERIFY",
         lambda o, c, t: f"model_misspecification_risk={o.model_misspecification_risk}, action_type={o.action_type!r}",
@@ -406,14 +454,16 @@ _CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
     _ConditionalGate(
         "session_risk_verify", DecisionReason.SESSION_RISK_VERIFY,
         lambda e, o, c, t: DecisionAction.VERIFY
-        if (o.session_cumulative_risk is not None and o.session_cumulative_risk > 0.80) else None,
+        if (o.session_cumulative_risk is not None
+            and o.session_cumulative_risk > SESSION_CUMULATIVE_RISK_MAX) else None,
         "VERIFY",
         lambda o, c, t: f"session_cumulative_risk={o.session_cumulative_risk}",
     ),
     _ConditionalGate(
         "session_flood_verify", DecisionReason.SESSION_FLOOD_VERIFY,
         lambda e, o, c, t: DecisionAction.VERIFY
-        if (o.session_action_count is not None and o.session_action_count > 100) else None,
+        if (o.session_action_count is not None
+            and o.session_action_count > SESSION_ACTION_COUNT_MAX) else None,
         "VERIFY",
         lambda o, c, t: f"session_action_count={o.session_action_count}",
     ),
@@ -427,14 +477,16 @@ _CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
     _ConditionalGate(
         "policy_generalization_verify", DecisionReason.POLICY_GENERALIZATION_VERIFY,
         lambda e, o, c, t: DecisionAction.VERIFY
-        if (o.policy_generalization_risk is not None and o.policy_generalization_risk > 0.70) else None,
+        if (o.policy_generalization_risk is not None
+            and o.policy_generalization_risk > POLICY_GENERALIZATION_RISK_MAX) else None,
         "VERIFY",
         lambda o, c, t: f"policy_generalization_risk={o.policy_generalization_risk}",
     ),
     _ConditionalGate(
         "similar_action_flood_verify", DecisionReason.SIMILAR_ACTION_FLOOD_VERIFY,
         lambda e, o, c, t: DecisionAction.VERIFY
-        if (o.similar_action_seen_count is not None and o.similar_action_seen_count > 50) else None,
+        if (o.similar_action_seen_count is not None
+            and o.similar_action_seen_count > SIMILAR_ACTION_FLOOD_MAX) else None,
         "VERIFY",
         lambda o, c, t: f"similar_action_seen_count={o.similar_action_seen_count}",
     ),
@@ -662,12 +714,12 @@ class RemoraDecisionEngine:
         if (
             obs.evidence_action in ("answer", "evidence_accept")
             and obs.evidence_confidence is not None
-            and obs.evidence_confidence >= 0.7
+            and obs.evidence_confidence >= EVIDENCE_CONFIDENCE_MIN
             and not (obs.evidence_contradictions or 0)
             and obs.counterfactual_passed is not False
         ):
             reasons.append(DecisionReason.EVIDENCE_SUPPORTED)
-            if obs.phase == "ordered" or (obs.trust_score or 0) >= 0.72:
+            if obs.phase == "ordered" or (obs.trust_score or 0) >= ORDERED_HIGH_TRUST_MIN:
                 return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
             reasons.append(DecisionReason.CRITICAL_PHASE)
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
@@ -683,7 +735,7 @@ class RemoraDecisionEngine:
         )
         if (
             obs.phase == "ordered"
-            and _effective_trust >= 0.72
+            and _effective_trust >= ORDERED_HIGH_TRUST_MIN
             and obs.counterfactual_passed is not False
             and not (obs.evidence_contradictions or 0)
         ):
@@ -699,9 +751,9 @@ class RemoraDecisionEngine:
         # falling through to ABSTAIN.  The disagreement warrants human review.
         if (
             obs.phase == "ordered"
-            and (obs.trust_score or 0) >= 0.72
+            and (obs.trust_score or 0) >= ORDERED_HIGH_TRUST_MIN
             and _credal.adjusted_trust is not None
-            and _credal.adjusted_trust < 0.72
+            and _credal.adjusted_trust < ORDERED_HIGH_TRUST_MIN
             and obs.counterfactual_passed is not False
             and not (obs.evidence_contradictions or 0)
         ):
@@ -730,7 +782,7 @@ class RemoraDecisionEngine:
         # rule; only a missing signal (None) falls through to the default.
         if (
             obs.trust_score is not None
-            and obs.trust_score < 0.2
+            and obs.trust_score < LOW_TRUST_ABSTAIN_MAX
             and obs.evidence_action != "answer"
         ):
             reasons.append(DecisionReason.LOW_TRUST)
@@ -889,13 +941,13 @@ class RemoraDecisionEngine:
         ev_accept = (
             obs.evidence_action in ("answer", "evidence_accept")
             and obs.evidence_confidence is not None
-            and obs.evidence_confidence >= 0.7
+            and obs.evidence_confidence >= EVIDENCE_CONFIDENCE_MIN
             and not contradictions
             and obs.counterfactual_passed is not False
         )
         ev_outcome = (
             "ACCEPT"
-            if (obs.phase == "ordered" or (obs.trust_score or 0) >= 0.72)
+            if (obs.phase == "ordered" or (obs.trust_score or 0) >= ORDERED_HIGH_TRUST_MIN)
             else "VERIFY"
         )
         r("evidence_supported_accept",
@@ -911,7 +963,7 @@ class RemoraDecisionEngine:
         )
         ordered_trust = (
             obs.phase == "ordered"
-            and _effective_trust >= 0.72
+            and _effective_trust >= ORDERED_HIGH_TRUST_MIN
             and obs.counterfactual_passed is not False
             and not contradictions
         )
@@ -923,9 +975,9 @@ class RemoraDecisionEngine:
 
         r("ambiguity_penalty_verify",
           obs.phase == "ordered"
-          and (obs.trust_score or 0) >= 0.72
+          and (obs.trust_score or 0) >= ORDERED_HIGH_TRUST_MIN
           and _explain_credal.adjusted_trust is not None
-          and _explain_credal.adjusted_trust < 0.72
+          and _explain_credal.adjusted_trust < ORDERED_HIGH_TRUST_MIN
           and obs.counterfactual_passed is not False
           and not contradictions,
           f"trust={obs.trust_score}, "
@@ -954,7 +1006,7 @@ class RemoraDecisionEngine:
 
         r("low_trust_abstain",
           obs.trust_score is not None
-          and obs.trust_score < 0.2
+          and obs.trust_score < LOW_TRUST_ABSTAIN_MAX
           and obs.evidence_action != "answer",
           f"trust={obs.trust_score}",
           "ABSTAIN")

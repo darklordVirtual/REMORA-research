@@ -27,6 +27,21 @@ releases.
 
 ## [Unreleased]
 
+### Changed (Grok review P1 — calibrated vs heuristic thresholds, 2026-07-25)
+
+- The hand-tuned decision thresholds (ordered-high-trust 0.72, evidence
+  confidence 0.7, low-trust 0.2, minimax ambiguity width 0.15, env/session
+  0.80, classification/misspecification 0.60, session count 100, policy
+  generalization 0.70, similar-action flood 50) were promoted from inline
+  magic numbers to named module constants in `remora/policy/decision_engine.py`
+  under an explicit HEURISTIC section, with a header that separates them from
+  the CALIBRATED thresholds (temperature T*≈0.1972, conformal) which remain
+  constructor-injected from committed artifacts and are never hard-coded.
+  Each heuristic constant is documented as hand-tuned and NOT artifact-backed
+  (claim hygiene). Values are unchanged; `tests/test_policy_threshold_constants.py`
+  pins each to its historical value and asserts the calibrated thresholds stay
+  injection-only.
+
 ### Changed (Grok review P1 — decide/explain single source, 2026-07-25)
 
 - The 25 uniform conditional policy gates (between the hard-guard floor and
