@@ -202,6 +202,258 @@ class PolicyTrace:
 
 
 # ---------------------------------------------------------------------------
+# Conditional-gate inventory (single source of truth for decide + explain)
+# ---------------------------------------------------------------------------
+#
+# The uniform conditional gates that run AFTER the hard-guard floor and BEFORE
+# the schema/ACCEPT-tail logic used to be encoded twice: as if/return in
+# decide() and as a hand-maintained r(...) mirror in explain(). Adding a gate
+# in one place and forgetting the other let the audit trace drift from the
+# decision (Grok review P1, 2026-07-25). They now live here once; decide()
+# returns on the first gate whose ``evaluate`` yields an action, and explain()
+# records every gate. Each ``evaluate`` is self-contained (does not rely on an
+# earlier gate having returned), so the same predicate is correct for both the
+# first-match decision and the record-all trace.
+#
+# NOT included here (deliberately kept literal): the hard-guard floor (already
+# centralised in hard_guard_floor()), the two-phase schema-unverified handling
+# (its reason is appended before the floor return but VERIFY is returned late),
+# the unknown-action-type floor, and the ACCEPT/VERIFY/ABSTAIN tail (which has
+# ambiguity-penalty side-reasons and engine-config-dependent branches).
+
+from collections.abc import Callable  # noqa: E402
+
+
+@dataclass(frozen=True)
+class _ConditionalGate:
+    """One conditional policy gate, shared by decide() and explain().
+
+    evaluate:   returns the DecisionAction to take when the gate fires, else
+                None. This is the single source of "does it fire, and to what".
+    idle_label: the trace outcome label shown when the gate is NOT triggered
+                (a constant for fixed-outcome gates; "NONE" for the dynamic
+                production-write gate). When triggered, the label is derived
+                from the evaluated action, so the trace output is unchanged.
+    describe:   the human-readable condition string for the audit trace.
+    """
+
+    name: str
+    reason: DecisionReason
+    evaluate: Callable[["RemoraDecisionEngine", PolicyObservation, "CredalEnvelope", float], DecisionAction | None]
+    idle_label: str
+    describe: Callable[[PolicyObservation, "CredalEnvelope", float], str]
+
+    def outcome_label(self, action: DecisionAction | None) -> str:
+        return action.value.upper() if action is not None else self.idle_label
+
+
+_CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
+    _ConditionalGate(
+        "refuse_parametric", DecisionReason.THERMO_REQUIRE_EVIDENCE,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.refuse_parametric_verdict and o.evidence_action != "answer") else None,
+        "VERIFY",
+        lambda o, c, t: f"refuse_parametric={o.refuse_parametric_verdict}, evidence_action={o.evidence_action!r}",
+    ),
+    _ConditionalGate(
+        "distribution_shift", DecisionReason.DISTRIBUTION_SHIFT,
+        lambda e, o, c, t: DecisionAction.VERIFY if o.distribution_shift_detected else None,
+        "VERIFY",
+        lambda o, c, t: f"distribution_shift_detected={o.distribution_shift_detected}",
+    ),
+    _ConditionalGate(
+        "critical_phase_critical_risk", DecisionReason.CRITICAL_PHASE,
+        lambda e, o, c, t: DecisionAction.ESCALATE
+        if (o.phase == "critical" and o.risk_tier == "critical") else None,
+        "ESCALATE",
+        lambda o, c, t: f"phase={o.phase!r}, risk_tier={o.risk_tier!r}",
+    ),
+    _ConditionalGate(
+        "rollback_unavailable", DecisionReason.ROLLBACK_UNAVAILABLE,
+        lambda e, o, c, t: DecisionAction.ESCALATE
+        if (o.rollback_available is False and o.risk_tier in ("high", "critical")) else None,
+        "ESCALATE",
+        lambda o, c, t: f"rollback_available={o.rollback_available!r}, risk_tier={o.risk_tier!r}",
+    ),
+    _ConditionalGate(
+        "state_transition_uncertain", DecisionReason.STATE_TRANSITION_UNCERTAIN,
+        lambda e, o, c, t: DecisionAction.ESCALATE
+        if (o.state_transition_uncertain and o.risk_tier in ("high", "critical")) else None,
+        "ESCALATE",
+        lambda o, c, t: f"state_transition_uncertain={o.state_transition_uncertain}, risk_tier={o.risk_tier!r}",
+    ),
+    _ConditionalGate(
+        "production_write_high_or_critical", DecisionReason.EVIDENCE_INSUFFICIENT,
+        lambda e, o, c, t: e._production_write_outcome(o),
+        "NONE",
+        lambda o, c, t: (
+            f"action_type={o.action_type!r}, "
+            f"target_environment={o.target_environment!r}, "
+            f"risk_tier={o.risk_tier!r}"
+        ),
+    ),
+    _ConditionalGate(
+        "high_risk_no_evidence", DecisionReason.EVIDENCE_INSUFFICIENT,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.risk_tier in ("high", "critical") and o.evidence_action is None) else None,
+        "VERIFY",
+        lambda o, c, t: f"risk_tier={o.risk_tier!r}, evidence_action=None",
+    ),
+    _ConditionalGate(
+        "critical_risk_hard_verify", DecisionReason.EVIDENCE_INSUFFICIENT,
+        lambda e, o, c, t: DecisionAction.VERIFY if o.risk_tier == "critical" else None,
+        "VERIFY",
+        lambda o, c, t: f"risk_tier={o.risk_tier!r}",
+    ),
+    _ConditionalGate(
+        "oracle_quorum_gate", DecisionReason.INSUFFICIENT_ORACLE_VOTES,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if ((o.valid_oracle_count > 0 or o.oracle_failures > 0)
+            and o.valid_oracle_count < MIN_REQUIRED_ORACLE_VOTES) else None,
+        "VERIFY",
+        lambda o, c, t: (
+            f"valid_oracle_count={o.valid_oracle_count}, "
+            f"oracle_failures={o.oracle_failures}, "
+            f"min_required={MIN_REQUIRED_ORACLE_VOTES}"
+        ),
+    ),
+    _ConditionalGate(
+        "minimax_gate", DecisionReason.MINIMAX_ESCALATE,
+        lambda e, o, c, t: DecisionAction.ESCALATE
+        if (c.minimax_should_escalate(MINIMAX_ESCALATE_THRESHOLD) and c.ambiguity_width >= 0.15) else None,
+        "ESCALATE",
+        lambda o, c, t: (
+            f"worst_case_loss={c.worst_case_loss:.4f}, "
+            f"ambiguity_width={c.ambiguity_width:.4f}, "
+            f"threshold={MINIMAX_ESCALATE_THRESHOLD}"
+        ),
+    ),
+    _ConditionalGate(
+        "trap_escalate", DecisionReason.TRAP_ESCALATE,
+        lambda e, o, c, t: DecisionAction.ESCALATE if t >= TRAP_ESCALATE_THRESHOLD else None,
+        "ESCALATE",
+        lambda o, c, t: f"trap_score={t:.4f}, threshold={TRAP_ESCALATE_THRESHOLD}",
+    ),
+    _ConditionalGate(
+        "trap_verify", DecisionReason.TRAP_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (TRAP_VERIFY_THRESHOLD <= t < TRAP_ESCALATE_THRESHOLD) else None,
+        "VERIFY",
+        lambda o, c, t: f"trap_score={t:.4f}, [{TRAP_VERIFY_THRESHOLD}, {TRAP_ESCALATE_THRESHOLD})",
+    ),
+    _ConditionalGate(
+        "unknown_risk_tier_verify", DecisionReason.UNKNOWN_RISK_TIER_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.risk_tier == "unknown"
+            and ((o.action_type or "") in _MUTATING_TYPES
+                 or (o.target_environment or "") in _PROD_ENVS)) else None,
+        "VERIFY",
+        lambda o, c, t: (
+            f"risk_tier={o.risk_tier!r}, action_type={o.action_type!r}, "
+            f"target_environment={o.target_environment!r}"
+        ),
+    ),
+    _ConditionalGate(
+        "env_mismatch_escalate", DecisionReason.ENV_MISMATCH_ESCALATE,
+        lambda e, o, c, t: DecisionAction.ESCALATE if o.environment_mismatch_detected else None,
+        "ESCALATE",
+        lambda o, c, t: f"environment_mismatch_detected={o.environment_mismatch_detected}",
+    ),
+    _ConditionalGate(
+        "env_confidence_verify", DecisionReason.ENV_CONFIDENCE_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.target_environment in _PROD_ENVS
+            and o.environment_confidence is not None
+            and o.environment_confidence < 0.80
+            and o.action_type not in _READ_ONLY_TYPES) else None,
+        "VERIFY",
+        lambda o, c, t: f"target_environment={o.target_environment!r}, env_confidence={o.environment_confidence}",
+    ),
+    _ConditionalGate(
+        "critical_alternative", DecisionReason.CRITICAL_ALTERNATIVE,
+        lambda e, o, c, t: DecisionAction.ESCALATE
+        if (o.classification_alternatives and any(
+            a in _CRITICAL_ALT_TYPES for a in o.classification_alternatives)) else None,
+        "ESCALATE",
+        lambda o, c, t: f"classification_alternatives={o.classification_alternatives!r}",
+    ),
+    _ConditionalGate(
+        "high_risk_alternative", DecisionReason.HIGH_RISK_ALTERNATIVE,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.classification_alternatives and any(
+            a in _HIGH_RISK_ALT_TYPES for a in o.classification_alternatives)) else None,
+        "VERIFY",
+        lambda o, c, t: f"classification_alternatives={o.classification_alternatives!r}",
+    ),
+    _ConditionalGate(
+        "low_classification_conf", DecisionReason.LOW_CLASSIFICATION_CONF,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.classification_confidence is not None
+            and o.classification_confidence < 0.60
+            and o.action_type not in _READ_ONLY_TYPES) else None,
+        "VERIFY",
+        lambda o, c, t: f"classification_confidence={o.classification_confidence}, action_type={o.action_type!r}",
+    ),
+    _ConditionalGate(
+        "misspecification_verify", DecisionReason.MISSPECIFICATION_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.model_misspecification_risk is not None
+            and o.model_misspecification_risk > 0.60
+            and o.action_type not in _READ_ONLY_TYPES) else None,
+        "VERIFY",
+        lambda o, c, t: f"model_misspecification_risk={o.model_misspecification_risk}, action_type={o.action_type!r}",
+    ),
+    _ConditionalGate(
+        "session_risk_verify", DecisionReason.SESSION_RISK_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.session_cumulative_risk is not None and o.session_cumulative_risk > 0.80) else None,
+        "VERIFY",
+        lambda o, c, t: f"session_cumulative_risk={o.session_cumulative_risk}",
+    ),
+    _ConditionalGate(
+        "session_flood_verify", DecisionReason.SESSION_FLOOD_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.session_action_count is not None and o.session_action_count > 100) else None,
+        "VERIFY",
+        lambda o, c, t: f"session_action_count={o.session_action_count}",
+    ),
+    _ConditionalGate(
+        "fleet_systemic_verify", DecisionReason.FLEET_SYSTEMIC_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if o.fleet_level_effect in ("systemic", "critical_mass") else None,
+        "VERIFY",
+        lambda o, c, t: f"fleet_level_effect={o.fleet_level_effect!r}",
+    ),
+    _ConditionalGate(
+        "policy_generalization_verify", DecisionReason.POLICY_GENERALIZATION_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.policy_generalization_risk is not None and o.policy_generalization_risk > 0.70) else None,
+        "VERIFY",
+        lambda o, c, t: f"policy_generalization_risk={o.policy_generalization_risk}",
+    ),
+    _ConditionalGate(
+        "similar_action_flood_verify", DecisionReason.SIMILAR_ACTION_FLOOD_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.similar_action_seen_count is not None and o.similar_action_seen_count > 50) else None,
+        "VERIFY",
+        lambda o, c, t: f"similar_action_seen_count={o.similar_action_seen_count}",
+    ),
+    _ConditionalGate(
+        "counterfactual_unknown_verify", DecisionReason.COUNTERFACTUAL_UNKNOWN_VERIFY,
+        lambda e, o, c, t: DecisionAction.VERIFY
+        if (o.risk_tier in ("high", "critical")
+            and o.evidence_action in ("answer", "evidence_accept")
+            and o.counterfactual_passed is None) else None,
+        "VERIFY",
+        lambda o, c, t: (
+            f"risk_tier={o.risk_tier!r}, evidence_action={o.evidence_action!r}, "
+            f"counterfactual_passed={o.counterfactual_passed}"
+        ),
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
 # Engine
 # ---------------------------------------------------------------------------
 
@@ -323,172 +575,20 @@ class RemoraDecisionEngine:
             reasons.append(_floor[1])
             return self._build(_floor[0], reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
-        if obs.refuse_parametric_verdict and obs.evidence_action != "answer":
-            reasons.append(DecisionReason.THERMO_REQUIRE_EVIDENCE)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.distribution_shift_detected:
-            reasons.append(DecisionReason.DISTRIBUTION_SHIFT)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.phase == "critical" and obs.risk_tier == "critical":
-            reasons.append(DecisionReason.CRITICAL_PHASE)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # Early misspecification hard blocks — placed before evidence gates so that
-        # rollback-unavailable and state-transition-uncertain signals on high/critical
-        # risk tiers always escalate even when evidence_action is absent.
-        if obs.rollback_available is False and obs.risk_tier in ("high", "critical"):
-            reasons.append(DecisionReason.ROLLBACK_UNAVAILABLE)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.state_transition_uncertain and obs.risk_tier in ("high", "critical"):
-            reasons.append(DecisionReason.STATE_TRANSITION_UNCERTAIN)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        prod_write_action = self._production_write_outcome(obs)
-        if prod_write_action is not None:
-            reasons.append(DecisionReason.EVIDENCE_INSUFFICIENT)
-            return self._build(prod_write_action, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.risk_tier in ("high", "critical") and obs.evidence_action is None:
-            reasons.append(DecisionReason.EVIDENCE_INSUFFICIENT)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.risk_tier == "critical":
-            reasons.append(DecisionReason.EVIDENCE_INSUFFICIENT)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # ── ORACLE QUORUM GATE ───────────────────────────────────────────────
-        # Route to human review when oracle consultation was attempted but fewer
-        # than MIN_REQUIRED_ORACLE_VOTES independent oracles responded. A partial
-        # oracle pool (1 of 3 responding) provides no meaningful consensus signal
-        # and cannot be distinguished from a degraded or compromised oracle pool.
-        _oracle_attempted = obs.valid_oracle_count > 0 or obs.oracle_failures > 0
-        if _oracle_attempted and obs.valid_oracle_count < MIN_REQUIRED_ORACLE_VOTES:
-            reasons.append(DecisionReason.INSUFFICIENT_ORACLE_VOTES)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # ── MINIMAX GATE ─────────────────────────────────────────────────────
-        # Escalate when worst-case loss exceeds threshold AND the credal interval
-        # is genuinely wide (ambiguity_width >= 0.15) due to oracle disagreement.
-        # The width guard prevents escalating on low-trust observations with
-        # zero H/D — those are handled correctly by existing ABSTAIN paths.
-        if _credal.minimax_should_escalate(MINIMAX_ESCALATE_THRESHOLD) and _credal.ambiguity_width >= 0.15:
-            reasons.append(DecisionReason.MINIMAX_ESCALATE)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # ── TRAP GATE ────────────────────────────────────────────────────────
-        # Block or hold irreversible/high-impact actions not caught by the
-        # production-write matrix (e.g. disable_security, dns_change, bulk_delete).
-        if _trap >= TRAP_ESCALATE_THRESHOLD:
-            reasons.append(DecisionReason.TRAP_ESCALATE)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-        if _trap >= TRAP_VERIFY_THRESHOLD:
-            reasons.append(DecisionReason.TRAP_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # ── UNKNOWN RISK TIER GATE ───────────────────────────────────────────
-        # Actions whose risk tier is absent, a typo, or otherwise unrecognised
-        # must not silently reach ACCEPT for explicitly mutating or production-
-        # targeting actions.  Actions with an unrecognised/absent action_type are
-        # NOT flagged (we can't know if they're mutating), but production-env
-        # targeting is always flagged regardless of action_type.
-        if obs.risk_tier == "unknown":
-            _action_norm = obs.action_type or ""
-            _env_norm = obs.target_environment or ""
-            if _action_norm in _MUTATING_TYPES or _env_norm in _PROD_ENVS:
-                reasons.append(DecisionReason.UNKNOWN_RISK_TIER_VERIFY)
-                return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # ── MISSPECIFICATION GATES ───────────────────────────────────────────
-        # P1: Environment misspecification
-        if obs.environment_mismatch_detected:
-            reasons.append(DecisionReason.ENV_MISMATCH_ESCALATE)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if (
-            obs.target_environment in _PROD_ENVS
-            and obs.environment_confidence is not None
-            and obs.environment_confidence < 0.80
-            and obs.action_type not in _READ_ONLY_TYPES
-        ):
-            reasons.append(DecisionReason.ENV_CONFIDENCE_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # P2: Alternative classification
-        if obs.classification_alternatives and any(
-            a in _CRITICAL_ALT_TYPES for a in obs.classification_alternatives
-        ):
-            reasons.append(DecisionReason.CRITICAL_ALTERNATIVE)
-            return self._build(DecisionAction.ESCALATE, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if obs.classification_alternatives and any(
-            a in _HIGH_RISK_ALT_TYPES for a in obs.classification_alternatives
-        ):
-            reasons.append(DecisionReason.HIGH_RISK_ALTERNATIVE)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if (
-            obs.classification_confidence is not None
-            and obs.classification_confidence < 0.60
-            and obs.action_type not in _READ_ONLY_TYPES
-        ):
-            reasons.append(DecisionReason.LOW_CLASSIFICATION_CONF)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # P3: Misspecification guard
-        if (
-            obs.model_misspecification_risk is not None
-            and obs.model_misspecification_risk > 0.60
-            and obs.action_type not in _READ_ONLY_TYPES
-        ):
-            reasons.append(DecisionReason.MISSPECIFICATION_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # ── SESSION SEQUENTIAL RISK GATE ────────────────────────────────────
-        # Guards against "boiling frog" attacks: individually low-risk actions
-        # that accumulate into a critical session-level threat.
-        if (obs.session_cumulative_risk is not None
-                and obs.session_cumulative_risk > 0.80):
-            reasons.append(DecisionReason.SESSION_RISK_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if (obs.session_action_count is not None
-                and obs.session_action_count > 100):
-            reasons.append(DecisionReason.SESSION_FLOOD_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # ── POLICY GENERALIZATION GATE ───────────────────────────────────────
-        # Guards against fleet-scale risk: an action safe for one agent may be
-        # dangerous when the same policy fires across many agents or repeated cases.
-        if obs.fleet_level_effect in ("systemic", "critical_mass"):
-            reasons.append(DecisionReason.FLEET_SYSTEMIC_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if (obs.policy_generalization_risk is not None
-                and obs.policy_generalization_risk > 0.70):
-            reasons.append(DecisionReason.POLICY_GENERALIZATION_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        if (obs.similar_action_seen_count is not None
-                and obs.similar_action_seen_count > 50):
-            reasons.append(DecisionReason.SIMILAR_ACTION_FLOOD_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
-
-        # ── GAP A+C: EVIDENCE BYPASS WITH INCOMPLETE PIPELINE ───────────────
-        # For high/critical risk where evidence_action is set (bypassing the
-        # evidence-insufficient gate), the counterfactual gate MUST have run.
-        # counterfactual_passed=None means the test was not executed — this is
-        # unknown, not safe.  Also covers evidence_contradictions=None (the
-        # contradiction-check pipeline did not run) for the same risk tiers.
-        if (
-            obs.risk_tier in ("high", "critical")
-            and obs.evidence_action in ("answer", "evidence_accept")
-            and obs.counterfactual_passed is None
-        ):
-            reasons.append(DecisionReason.COUNTERFACTUAL_UNKNOWN_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+        # ── CONDITIONAL GATES (single source: _CONDITIONAL_GATES) ───────────
+        # These uniform gates run after the hard-guard floor and before the
+        # schema/ACCEPT-tail logic. First gate whose evaluate() yields an action
+        # wins. The same ordered inventory backs explain(), so the audit trace
+        # can never drift from the decision (Grok review P1). Each gate's reason
+        # semantics and comments live at the _CONDITIONAL_GATES definition above:
+        # rollback/state-transition escalate before the evidence gates; the
+        # oracle-quorum, minimax, trap, unknown-risk-tier, misspecification,
+        # session, and fleet/generalization gates follow in priority order.
+        for _gate in _CONDITIONAL_GATES:
+            _outcome = _gate.evaluate(self, obs, _credal, _trap)
+            if _outcome is not None:
+                reasons.append(_gate.reason)
+                return self._build(_outcome, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── SCHEMA UNVERIFIED FLOOR ─────────────────────────────────────────
         # All higher-priority ESCALATE/VERIFY paths (adversarial, malformed,
@@ -716,163 +816,20 @@ class RemoraDecisionEngine:
           f"argument_tainted={obs.argument_tainted}",
           "VERIFY")
 
-        r("refuse_parametric",
-          bool(obs.refuse_parametric_verdict and obs.evidence_action != "answer"),
-          f"refuse_parametric={obs.refuse_parametric_verdict}, evidence_action={obs.evidence_action!r}",
-          "VERIFY")
-
-        r("distribution_shift",
-          obs.distribution_shift_detected,
-          f"distribution_shift_detected={obs.distribution_shift_detected}",
-          "VERIFY")
-
-        r("critical_phase_critical_risk",
-          obs.phase == "critical" and obs.risk_tier == "critical",
-          f"phase={obs.phase!r}, risk_tier={obs.risk_tier!r}",
-          "ESCALATE")
-
-        r("rollback_unavailable",
-          obs.rollback_available is False and obs.risk_tier in ("high", "critical"),
-          f"rollback_available={obs.rollback_available!r}, risk_tier={obs.risk_tier!r}",
-          "ESCALATE")
-
-        r("state_transition_uncertain",
-          obs.state_transition_uncertain and obs.risk_tier in ("high", "critical"),
-          f"state_transition_uncertain={obs.state_transition_uncertain}, risk_tier={obs.risk_tier!r}",
-          "ESCALATE")
-
-        write_action = self._production_write_outcome(obs)
-        write_outcome = write_action.value.upper() if write_action is not None else "NONE"
-        r(
-            "production_write_high_or_critical",
-            write_action is not None,
-            (
-                f"action_type={obs.action_type!r}, "
-                f"target_environment={obs.target_environment!r}, "
-                f"risk_tier={obs.risk_tier!r}"
-            ),
-            write_outcome,
-        )
-
-        r("high_risk_no_evidence",
-          obs.risk_tier in ("high", "critical") and obs.evidence_action is None,
-          f"risk_tier={obs.risk_tier!r}, evidence_action=None",
-          "VERIFY")
-
-        r("critical_risk_hard_verify",
-          obs.risk_tier == "critical",
-          f"risk_tier={obs.risk_tier!r}",
-          "VERIFY")
-
-        _oracle_attempted = obs.valid_oracle_count > 0 or obs.oracle_failures > 0
-        r("oracle_quorum_gate",
-          _oracle_attempted and obs.valid_oracle_count < MIN_REQUIRED_ORACLE_VOTES,
-          f"valid_oracle_count={obs.valid_oracle_count}, "
-          f"oracle_failures={obs.oracle_failures}, "
-          f"min_required={MIN_REQUIRED_ORACLE_VOTES}",
-          "VERIFY")
-
+        # ── CONDITIONAL GATES (single source: _CONDITIONAL_GATES) ───────────
+        # Record every conditional gate from the same ordered inventory decide()
+        # returns on. Because each gate's evaluate() is self-contained, the row
+        # a gate produces here is exactly the outcome decide() would take were
+        # this the first gate to fire — so the trace can never drift from the
+        # decision (Grok review P1).
         _explain_credal = compute_from_obs(obs)
         _explain_trap   = trap_score(obs)
-
-        r("minimax_gate",
-          _explain_credal.minimax_should_escalate(MINIMAX_ESCALATE_THRESHOLD)
-          and _explain_credal.ambiguity_width >= 0.15,
-          f"worst_case_loss={_explain_credal.worst_case_loss:.4f}, "
-          f"ambiguity_width={_explain_credal.ambiguity_width:.4f}, "
-          f"threshold={MINIMAX_ESCALATE_THRESHOLD}",
-          "ESCALATE")
-
-        r("trap_escalate",
-          _explain_trap >= TRAP_ESCALATE_THRESHOLD,
-          f"trap_score={_explain_trap:.4f}, threshold={TRAP_ESCALATE_THRESHOLD}",
-          "ESCALATE")
-
-        r("trap_verify",
-          TRAP_VERIFY_THRESHOLD <= _explain_trap < TRAP_ESCALATE_THRESHOLD,
-          f"trap_score={_explain_trap:.4f}, "
-          f"[{TRAP_VERIFY_THRESHOLD}, {TRAP_ESCALATE_THRESHOLD})",
-          "VERIFY")
-
-        r("unknown_risk_tier_verify",
-          obs.risk_tier == "unknown"
-          and ((obs.action_type or "") in _MUTATING_TYPES
-               or (obs.target_environment or "") in _PROD_ENVS),
-          f"risk_tier={obs.risk_tier!r}, action_type={obs.action_type!r}, "
-          f"target_environment={obs.target_environment!r}",
-          "VERIFY")
-
-        r("env_mismatch_escalate",
-          obs.environment_mismatch_detected,
-          f"environment_mismatch_detected={obs.environment_mismatch_detected}",
-          "ESCALATE")
-
-        r("env_confidence_verify",
-          (obs.target_environment in _PROD_ENVS
-           and obs.environment_confidence is not None
-           and obs.environment_confidence < 0.80
-           and obs.action_type not in _READ_ONLY_TYPES),
-          f"target_environment={obs.target_environment!r}, env_confidence={obs.environment_confidence}",
-          "VERIFY")
-
-        r("critical_alternative",
-          bool(obs.classification_alternatives and any(
-              a in _CRITICAL_ALT_TYPES for a in obs.classification_alternatives)),
-          f"classification_alternatives={obs.classification_alternatives!r}",
-          "ESCALATE")
-
-        r("high_risk_alternative",
-          bool(obs.classification_alternatives and any(
-              a in _HIGH_RISK_ALT_TYPES for a in obs.classification_alternatives)),
-          f"classification_alternatives={obs.classification_alternatives!r}",
-          "VERIFY")
-
-        r("low_classification_conf",
-          (obs.classification_confidence is not None
-           and obs.classification_confidence < 0.60
-           and obs.action_type not in _READ_ONLY_TYPES),
-          f"classification_confidence={obs.classification_confidence}, action_type={obs.action_type!r}",
-          "VERIFY")
-
-        r("misspecification_verify",
-          (obs.model_misspecification_risk is not None
-           and obs.model_misspecification_risk > 0.60
-           and obs.action_type not in _READ_ONLY_TYPES),
-          f"model_misspecification_risk={obs.model_misspecification_risk}, action_type={obs.action_type!r}",
-          "VERIFY")
-
-        r("session_risk_verify",
-          obs.session_cumulative_risk is not None and obs.session_cumulative_risk > 0.80,
-          f"session_cumulative_risk={obs.session_cumulative_risk}",
-          "VERIFY")
-
-        r("session_flood_verify",
-          obs.session_action_count is not None and obs.session_action_count > 100,
-          f"session_action_count={obs.session_action_count}",
-          "VERIFY")
-
-        r("fleet_systemic_verify",
-          obs.fleet_level_effect in ("systemic", "critical_mass"),
-          f"fleet_level_effect={obs.fleet_level_effect!r}",
-          "VERIFY")
-
-        r("policy_generalization_verify",
-          obs.policy_generalization_risk is not None and obs.policy_generalization_risk > 0.70,
-          f"policy_generalization_risk={obs.policy_generalization_risk}",
-          "VERIFY")
-
-        r("similar_action_flood_verify",
-          obs.similar_action_seen_count is not None and obs.similar_action_seen_count > 50,
-          f"similar_action_seen_count={obs.similar_action_seen_count}",
-          "VERIFY")
-
-        r("counterfactual_unknown_verify",
-          obs.risk_tier in ("high", "critical")
-          and obs.evidence_action in ("answer", "evidence_accept")
-          and obs.counterfactual_passed is None,
-          f"risk_tier={obs.risk_tier!r}, evidence_action={obs.evidence_action!r}, "
-          f"counterfactual_passed={obs.counterfactual_passed}",
-          "VERIFY")
+        for _gate in _CONDITIONAL_GATES:
+            _gate_action = _gate.evaluate(self, obs, _explain_credal, _explain_trap)
+            r(_gate.name,
+              _gate_action is not None,
+              _gate.describe(obs, _explain_credal, _explain_trap),
+              _gate.outcome_label(_gate_action))
 
         _schema_unverified_mutating = (
             obs.schema_valid is None and (obs.action_type or "") in _MUTATING_TYPES

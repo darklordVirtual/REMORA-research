@@ -27,6 +27,21 @@ releases.
 
 ## [Unreleased]
 
+### Changed (Grok review P1 — decide/explain single source, 2026-07-25)
+
+- The 25 uniform conditional policy gates (between the hard-guard floor and
+  the ACCEPT tail) now live once in `_CONDITIONAL_GATES`;
+  `RemoraDecisionEngine.decide()` returns on the first gate that fires and
+  `explain()` records every gate from the same ordered inventory, so the audit
+  trace can no longer drift from the decision when a gate is added. Behaviour
+  is unchanged (each gate's predicate is self-contained). New
+  `tests/test_decide_explain_single_source.py` locks decide/explain agreement
+  across a broad battery. The hard-guard floor (already centralised in
+  `hard_guard_floor()`), the two-phase schema-unverified handling, and the
+  ACCEPT/VERIFY/ABSTAIN tail remain literal. Also documented that the
+  non-ACCEPT `risk_estimate` values are relative labels, not calibrated
+  probabilities (Grok review 4.4).
+
 ### Fixed (review round 3b, 2026-07-25)
 
 - **R3-01**: the selective-risk component no longer claims the CRC theorem.
