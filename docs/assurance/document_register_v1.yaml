@@ -27,7 +27,7 @@
 # only — one source of truth per data type.
 
 schema_version: "1"
-updated: "2026-07-21"
+updated: "2026-07-25"
 default_owner: "Stian Skogbrott"
 
 # Controlled topic registry. A canonical document may only claim a topic that
@@ -66,6 +66,7 @@ topics:
   - documentation-governance
   - artifact-manifest
   - assurance-case
+  - external-review-panel
   - evidence-levels
   - aromer-reference
   - paper-canonical
@@ -212,6 +213,9 @@ documents:
   - path: docs/assurance/assurance_case_v1.md
     status: canonical
     topic: assurance-case
+  - path: docs/assurance/external_review_panel_v1.md
+    status: canonical
+    topic: external-review-panel
   - path: docs/evidence/claim_evidence_matrix.md
     status: supporting
 
