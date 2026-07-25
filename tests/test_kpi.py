@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for governance KPIs — especially the separation of unnecessary friction
 from correct verification of genuinely-ambiguous cases."""
 from __future__ import annotations

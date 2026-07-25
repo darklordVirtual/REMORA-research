@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """GO-STAR → REMORA finding bridge types.
 
 These types form the authorised boundary between GO-STAR's proprietary scanner

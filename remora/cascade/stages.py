@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Individual stage implementations for the REMORA cascade pipeline.
 
 Each stage receives the question, optional context, and whatever

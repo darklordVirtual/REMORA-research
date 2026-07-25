@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Cross-tool-call Lyapunov tracking for local agent sessions."""
 from __future__ import annotations
 

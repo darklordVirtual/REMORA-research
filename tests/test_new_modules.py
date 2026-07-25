@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for new REMORA modules:
   - RemoraAuditChain (governance/audit_chain.py)
   - GovernanceInvariants (policy/invariants.py)

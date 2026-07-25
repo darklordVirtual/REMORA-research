@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for blinded benchmark v3 separation invariants.
 
 Implements intern_forbedring.txt §3 (REM-009) test requirements:

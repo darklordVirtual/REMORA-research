@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """A domain ontology for claims, and a validator that a register conforms.
 
 An assurance system needs a shared, machine-readable vocabulary: what evidence

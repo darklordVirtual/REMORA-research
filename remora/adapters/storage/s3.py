@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """S3-compatible storage adapter — AWS S3, MinIO, Cloudflare R2.
 
 Requirements:

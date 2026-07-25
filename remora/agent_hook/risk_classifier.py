@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Deterministic risk classification for agent tool calls.
 
 The classifier is intentionally conservative and dependency-free. It does not

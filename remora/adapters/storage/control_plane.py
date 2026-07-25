@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Control-plane persistence adapters for REMORA API.
 
 Provides tenant-scoped storage for decision envelopes, audit records,

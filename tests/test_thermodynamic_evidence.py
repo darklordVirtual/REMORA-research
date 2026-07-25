@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Executable evidence tests for the central findings in REMORA_v4_Thermodynamics_Findings.docx.
 
 OVERVIEW

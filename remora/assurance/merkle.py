@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Binary SHA-256 Merkle tree with inclusion proofs.
 
 Padding rule: odd levels duplicate the last node (Bitcoin-style). Hashes are

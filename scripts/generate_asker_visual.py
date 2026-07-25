@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """
 Generate the Asker kommune AI hallucination case visual.
 Real case documented in VG 7. mai 2026 and Aftenposten April 2025.

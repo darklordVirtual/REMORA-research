@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for the A2A governance envelope: identity, delegation attenuation,
 policy/evidence binding, and fail-closed verification."""
 from __future__ import annotations

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Extended 75-item benchmark dataset for REMORA research (25 items × 3 domains).
 
 All items are in Norwegian by design — the extended benchmark targets Norwegian-language

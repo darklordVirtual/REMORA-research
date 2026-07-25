@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Run the REAL Python replay arena and publish the result to the AROMER worker.
 
 Closes the transfer-score provenance gap: the AROMER worker's AII transfer

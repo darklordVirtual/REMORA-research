@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Causal-consequence signals: blast radius, irreversibility, expected loss."""
 from __future__ import annotations
 

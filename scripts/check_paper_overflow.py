@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Geometric overflow guard for the two-column paper PDF.
 
 Flags words that protrude into the page margin or cross the inter-column

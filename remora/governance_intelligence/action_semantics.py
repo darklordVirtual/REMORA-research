@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Deterministic action-semantics extraction from natural-language action text.
 
 Dependency-free, no LLM calls. A fixed table of compiled regex patterns maps

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Genome: evolvable hyperparameter container for a REMORA instance."""
 from __future__ import annotations
 from dataclasses import dataclass

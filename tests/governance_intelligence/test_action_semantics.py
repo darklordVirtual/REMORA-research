@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Action-semantics extraction: deterministic, conservative, dependency-free."""
 from __future__ import annotations
 

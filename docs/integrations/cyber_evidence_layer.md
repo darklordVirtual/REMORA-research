@@ -56,7 +56,7 @@ findings into this public REMORA boundary. The boundary remains:
 candidate finding -> CyberEvidenceProvider -> REMORA governance verdict
 ```
 
-This keeps the open-source REMORA project useful and reviewable while leaving
+This keeps the source-available REMORA project useful and reviewable while leaving
 commercial scanner capability outside the public repository.
 
 ## Retrieval Model

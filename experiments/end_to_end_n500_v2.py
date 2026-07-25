@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """End-to-end N500 evaluation with the new stack enabled.
 
 Loads the locked N500 benchmark, runs REMORA with:

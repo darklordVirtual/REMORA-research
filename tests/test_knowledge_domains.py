@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Knowledge-domain modules: deterministic logic + artifact agreement.
 
 Per docs/claim_hygiene.md, every number a doc states must be computed here and

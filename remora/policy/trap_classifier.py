@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Trap Avoidance — classify proposed actions by irreversibility and impact.
 
 A "trap" is an action that, if executed incorrectly, is difficult or impossible

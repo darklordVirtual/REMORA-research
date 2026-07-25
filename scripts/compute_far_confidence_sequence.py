@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Compute the anytime-valid FA-rate bound for REM-020 monitoring.
 
 Reads the committed longitudinal stability artifact and emits a companion

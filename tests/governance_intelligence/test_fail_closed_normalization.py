@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Fail-closed normalization: unknown is explicit and never coerced to safe."""
 from __future__ import annotations
 

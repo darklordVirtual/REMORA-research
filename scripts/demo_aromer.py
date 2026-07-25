@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER end-to-end demo — verbose output showing every component live.
 
 Runs a full simulation: governance decisions → outcome recording →

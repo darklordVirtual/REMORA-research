@@ -620,7 +620,7 @@ The repository demonstrates:
 - A benchmark methodology for evaluating action governance
 - An experimental learning loop (AROMER) that accumulates real governance episodes
 
-GO-STAR is described in the repository as a commercial extension that supplies cyber security findings into the REMORA evidence boundary via the `CyberFindingEnvelope` bridge. GO-STAR internals are proprietary; only the public bridge interface is open-sourced.
+GO-STAR is described in the repository as a commercial extension that supplies cyber security findings into the REMORA evidence boundary via the `CyberFindingEnvelope` bridge. GO-STAR internals are proprietary; only the public bridge interface is source-available.
 
 Enterprise framing is documented in `enterprise/remora-control-plane.md` as architectural positioning, not as evidence of a deployed enterprise product.
 

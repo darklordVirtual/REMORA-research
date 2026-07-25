@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Evaluate RemoraToolCallGate on the blinded benchmark v3.
 
 Implements REM-009: primary gate evaluation using the separated CandidateAction /

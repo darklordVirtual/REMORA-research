@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tenant-isolation invariant for a shared, multi-tenant assurance service.
 
 In a service that mirrors many customers' registers, tenant A must never read

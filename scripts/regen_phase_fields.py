@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Regenerate phase fields for the broken calibrated result file.
 
 Root cause: fingerprint-key consensus collapsed eta to 0 for all RAG items.

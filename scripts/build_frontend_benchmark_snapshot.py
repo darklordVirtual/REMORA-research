@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Build the frontend benchmark snapshot from committed result artifacts.
 
 The frontend cannot import files outside its own project root in Vite builds.

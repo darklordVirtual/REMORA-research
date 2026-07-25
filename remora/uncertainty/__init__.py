@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Uncertainty decomposition utilities for REMORA."""
 
 from remora.uncertainty.decompose import (

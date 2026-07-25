@@ -1,9 +1,9 @@
 {
-  "created_at": "2026-07-24T23:01:01.608230+00:00",
+  "created_at": "2026-07-25T00:47:20.071927+00:00",
   "scope": "REMORA governance overlay benchmark package",
   "scope_note": "This package evaluates governance performance and safety controls, not agent replacement capability.",
-  "commit_sha": "84b9079e2541f24f9891f5536941298b97bbdf99",
-  "worktree_clean": true,
+  "commit_sha": "1cb991e17a5f9207022e95a0ceb23a5cc850da41",
+  "worktree_clean": false,
   "lockfile_sha256": {
     "requirements-lock.txt": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
     "frontend/package-lock.json": "b8038531f61b441bb63a3e4aa35cdc2c636ba78c85b6b939cf8cc9f0873b5d8f"
@@ -28,7 +28,7 @@
     "docs/results_snapshot.md": "05e0c17a32155854702a455f895a43d83f444c027624e53f300a338776aa4234",
     "docs/claim_register.md": "1edd998ec61aa16d9c18dfbab4b790a3c88192035b879755d7232cf35cd4bfad",
     "NEGATIVE_RESULTS.md": "082fc276604a9f442f4c271189737498c6c6b0d9bacb2ac9c9a7c7e1ec654d9d",
-    "README.md": "6885dec6e420e58ff3455849f4a129863d66eab66b5f7b22d2b94076daf1dd80"
+    "README.md": "d5ad20b04b0f3e0333dcd7f63cc01f4626b087bc5e0005b552c6b849a63316c0"
   },
   "missing_files": [],
   "file_count": 9

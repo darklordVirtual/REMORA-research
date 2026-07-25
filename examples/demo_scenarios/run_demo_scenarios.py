@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Run the bundled demo scenarios through REMORA and print the verdicts.
 
 The 60-second developer demo (docs/demo-strategy.md, concept #2): feed three

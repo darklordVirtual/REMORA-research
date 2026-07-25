@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """The documentation index must be complete and coherent — enforced, not hoped.
 
 Two invariants:

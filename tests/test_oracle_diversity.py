@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for remora.oracles.diversity — oracle diversity tracker and swarm selection."""
 from __future__ import annotations
 

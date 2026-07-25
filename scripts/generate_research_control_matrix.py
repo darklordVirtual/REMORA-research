@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Render the research-control matrix from its register.
 
 Reads docs/research/research_control_matrix_v1.yaml and writes the human view

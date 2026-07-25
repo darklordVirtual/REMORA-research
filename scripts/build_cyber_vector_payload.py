@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Build a vector-store payload from cyber_evidence_v1.
 
 The output is deterministic JSONL with separate text and metadata fields.

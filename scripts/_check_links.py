@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Check internal markdown links across README.md, docs/, and artifacts/.
 
 Each link's target is resolved relative to the file that contains it (not the

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Safety property: governance intelligence enrichment never weakens policy.
 
 Two invariants over a deterministic grid of observations:

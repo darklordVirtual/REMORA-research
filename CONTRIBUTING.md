@@ -24,3 +24,24 @@ interval, and scope caveat; negative results and caveats must never be
 removed. The decision rule is in
 [docs/05-claim-hygiene.md](docs/05-claim-hygiene.md) (canonical), and the
 working agreement is in [CLAUDE.md](CLAUDE.md).
+
+## Contribution licensing
+
+REMORA is dual-licensed: Business Source License 1.1 publicly, with
+separate commercial licenses issued by the Licensor (Stian Skogbrott).
+See [LICENSING.md](LICENSING.md).
+
+By submitting a contribution, you confirm that you have the legal right
+to submit it and that it contains no undisclosed third-party material.
+
+Contributions are not accepted for inclusion in the dual-licensed
+REMORA codebase until the contributor has accepted the applicable
+REMORA Contributor License Agreement. The CLA grants the REMORA
+Licensor the right to distribute the contribution under:
+
+- the Business Source License;
+- future Change Licenses;
+- separate commercial licenses.
+
+A `Signed-off-by` line alone does not grant the relicensing rights
+required by the REMORA licensing model.

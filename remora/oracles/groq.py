@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Groq Inference API oracle (free tier).
 
 Get a free API key at https://console.groq.com.

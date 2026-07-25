@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """EnforcementGate — Policy Enforcement Point (PEP) for REMORA.
 
 Implements intern_forbedring.txt §5.A-B (REM-013): the PEP layer verifies

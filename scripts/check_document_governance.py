@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Documentation-governance gate.
 
 Validates that the repository's documentation behaves as a governed system,

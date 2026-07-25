@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for ExecutionLease + GovernedToolDispatcher (REM-024 groundwork).
 
 Every non-accept decision must be technically unexecutable: no lease can be

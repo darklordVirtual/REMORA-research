@@ -34,7 +34,7 @@ Without leaving the AI assistant, they can run a three-step verification:
 
 ## System context: REMORA and DCE
 
-**REMORA** (this repository) is an open-source governance overlay for AI-agent actions; its multi-oracle consensus is one input to that governance, not the product itself.
+**REMORA** (this repository) is a source-available governance overlay for AI-agent actions; its multi-oracle consensus is one input to that governance, not the product itself.
 Its MCP server (`servers/mcp_remora.py`) exposes tools that Claude can call.
 REMORA's Cloudflare Workers provide: consensus scoring, RAG synthesis,
 and a law-search bridge.
@@ -147,7 +147,7 @@ The fee is within the regulated maximum. The notice is lawfully formed.
 | `remora_verify_claim` | None | Quick true/false on a specific legal claim |
 
 Tools marked **DCE** connect to the closed-source DCE knowledge base.
-Tools marked **None** run on REMORA's open-source core workers only.
+Tools marked **None** run on REMORA's source-available core workers only.
 
 ---
 

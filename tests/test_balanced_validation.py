@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for the balanced, gated REMORA validation.
 
 Locks (a) the gate logic and (b) the honest current verdict: the full defense

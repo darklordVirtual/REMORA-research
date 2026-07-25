@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Advanced adversarial input detection for REMORA admission firewall.
 
 Layers (applied in order, fail-fast):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Produce the cross-domain transfer artifact (§16 — measure T4 for real).
 
 Reuses the curated, deterministic episode templates from

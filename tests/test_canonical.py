@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for remora.canonical — the φ canonicalisation function."""
 from remora.canonical import (
     CanonicalVerdict, phi, _coerce_polarity, _claim_hash,

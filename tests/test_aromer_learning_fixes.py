@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Regression tests for the v0.2 learning-loop fixes.
 
 Step 2 — friction smoothing: the AII friction component was computed on a

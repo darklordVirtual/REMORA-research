@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """HTTP client for the GO-STAR REMORA Cloudflare Worker.
 
 The worker runs three AI oracle models in multi-round consensus:

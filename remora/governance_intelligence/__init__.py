@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Governance Intelligence Layer — pre-policy enrichment of agent-action metadata.
 
 Converts raw agent-action metadata into conservative, deterministic governance

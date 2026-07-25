@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Author: Stian Skogbrott  |  License: Apache-2.0
+# Author: Stian Skogbrott  |  SPDX-License-Identifier: BUSL-1.1
 """REMORA x LangGraph ToolNode demo.
 
 No LangGraph dependency is required for this evaluator demo. The `GovernedToolNode`

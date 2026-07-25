@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Azure OpenAI adapter for REMORA.
 
 Connects to Azure-hosted OpenAI models via private endpoint or public endpoint.

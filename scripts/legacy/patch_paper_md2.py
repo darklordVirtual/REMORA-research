@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Patch Section 7.1 in remora_paper.md with PhaseAwareGuardrail details."""
 
 with open('paper/remora_paper.md', encoding='utf-8') as f:

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for remora.correlation — ρ matrix and diversity weights."""
 from remora.canonical import phi
 from remora.correlation import CorrelationMatrix, weighted_consensus

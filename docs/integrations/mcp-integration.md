@@ -21,7 +21,7 @@ Claude Desktop / Claude Code
         │
         │  JSON-RPC over stdio
         ▼
- servers/mcp_remora.py          ← MCP server (open source, this repo)
+ servers/mcp_remora.py          ← MCP server (source-available, this repo)
         │
         ├── go-star-remora.razorsharp.workers.dev      Consensus engine
         │       3 independent LLMs (Groq LLaMA 8B, LLaMA 70B, Mistral 7B)
@@ -481,7 +481,7 @@ Trajectory signal: V(t) non-increasing (heuristic braking signal — not a forma
 
 ## Extensions
 
-REMORA's core components are open source: the MCP server (`servers/mcp_remora.py`),
+REMORA's core components are source-available (BUSL-1.1): the MCP server (`servers/mcp_remora.py`),
 the consensus worker (`workers/rag-oracle/`), and the law-search bridge
 (`workers/law-search/`).
 
@@ -501,7 +501,7 @@ two DCE resources hosted in a private Cloudflare account:
 | `norges-lover-law-index` | Cloudflare Vectorize (1024-dim, bge-m3) | All current Norwegian statutes, semantic index | `remora_norwegian_law_search` |
 | `norges-lover-legal-intel` | Cloudflare D1 | Legal decisions (Høyesterett, Finansklagenemnda, Datatilsynet), preparatory works, citation fragments | `remora_verify_legal_citations` |
 
-The law-search bridge worker (`workers/law-search/`) is open source and its
+The law-search bridge worker (`workers/law-search/`) is source-available and its
 source code is in this repository. What it connects to (the Vectorize index and
 D1 database) is part of DCE and requires access to the DCE Cloudflare account.
 

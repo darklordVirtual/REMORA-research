@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Add new bibliography entries to remora_paper.tex and remora_paper.md."""
 
 NEW_BIBITEMS_TEX = r"""

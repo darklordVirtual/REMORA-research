@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for TTL-based pending-outcome resolution (learning roadmap step 6).
 
 Episodes recorded without a later outcome call stayed ground_truth=UNKNOWN

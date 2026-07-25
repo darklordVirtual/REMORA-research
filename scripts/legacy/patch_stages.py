@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Patch paper Stages 3-4 and method section for Semantic Entropy."""
 
 with open('paper/remora_paper.tex', encoding='utf-8') as f:

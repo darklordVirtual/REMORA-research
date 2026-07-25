@@ -135,4 +135,23 @@ Built with the assistance of generative-AI development tools; no AI output was a
 }
 ```
 
-Apache-2.0 — see [LICENSE](LICENSE) and [docs/10-contributing.md](docs/10-contributing.md). Before contributing: run `make audit`, ensure every claim links to a committed artifact on disk, and do not remove negative results or caveats. Working agreement and claim-hygiene rules: [CLAUDE.md](CLAUDE.md).
+## License
+
+REMORA versions beginning with `v0.10.0` are **source-available under the
+[Business Source License 1.1](LICENSE)** — not open source — or available
+under a separate written [REMORA Commercial License](COMMERCIAL_LICENSE.md).
+The Licensor is Stian Skogbrott; **no commercial use is permitted without a
+commercial license from the Licensor**.
+
+The BSL permits source inspection, modification, redistribution,
+non-production use and the limited non-commercial Production Uses specified
+in its Additional Use Grant. Commercial production use — including internal
+business production, paid consulting, SaaS, API, managed service, OEM,
+embedding, white-label use, resale or commercial redistribution — requires a
+separate commercial agreement. See [LICENSING.md](LICENSING.md) for scope and
+examples; contact: support@luftfiber.no.
+
+Before contributing, see [docs/10-contributing.md](docs/10-contributing.md):
+run `make audit`, ensure every claim links to a committed artifact on disk,
+and do not remove negative results or caveats. Working agreement and
+claim-hygiene rules: [CLAUDE.md](CLAUDE.md).

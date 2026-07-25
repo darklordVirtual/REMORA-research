@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """JWT identity adapter — stateless token validation.
 
 Works with any OIDC-compatible identity provider (Keycloak, Auth0, Entra ID).

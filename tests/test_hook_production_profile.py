@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REM-032 acceptance: the agent hook's G4 behavior per deployment profile.
 
 Production profile: an unreachable control plane (governance mode G4) must

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AML / financial compliance evidence provider for REMORA.
 
 Covers FATF typologies, FinCEN SAR patterns, EU AMLD risk indicators, OFAC

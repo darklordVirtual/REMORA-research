@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for PR 2: None-is-unknown-not-safe.
 
 Three specific gaps from the audit:

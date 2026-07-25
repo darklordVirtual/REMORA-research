@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for api.py version derivation and REMORA_ENV standardisation.
 
 Item 6: api.py version must match pyproject.toml (0.8.0), derived from

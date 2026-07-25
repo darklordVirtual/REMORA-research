@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for the REMORA knowledge dataset structural integrity.
 
 These tests are always runnable — they either test the validator logic

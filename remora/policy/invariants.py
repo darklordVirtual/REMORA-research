@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Machine-verifiable governance invariants for REMORA.
 
 REMORA's safety guarantees are only meaningful if they can be checked

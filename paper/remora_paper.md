@@ -2,7 +2,9 @@
 
 **Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA](https://github.com/darklordVirtual/REMORA)
 
-*Paper version v0.9.0, versioned in lockstep with the repository review tag (current: `review-v1`).*
+*Paper version v0.10.0, versioned in lockstep with the repository review tag (current: `review-v1`).*
+
+*License: this preprint is part of the REMORA Licensed Work under the Business Source License 1.1 (source-available). Commercial use requires a separate REMORA Commercial License from the Licensor, Stian Skogbrott (support@luftfiber.no). Third-party datasets remain under their own terms; see THIRD_PARTY_NOTICES.md.*
 
 ---
 

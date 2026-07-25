@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Cross-domain governance benchmark for REMORA evidence providers.
 
 Benchmark cases are loaded from JSONL.  Each case specifies the exact kwargs

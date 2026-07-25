@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Conformal Risk Control (CRC) under covariate shift for REMORA.
 
 Implements the Conformal Risk Control framework of Angelopoulos, Bates,

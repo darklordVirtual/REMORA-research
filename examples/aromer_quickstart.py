@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER quickstart — the full learning loop in ~60 seconds, fully offline.
 
 Demonstrates the closed loop:

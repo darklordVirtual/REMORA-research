@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REMORA conservative decision engine — maps PolicyObservation → DecisionReport.
 
 Design goals

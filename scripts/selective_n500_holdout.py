@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Held-out evaluation for N500 selective-trust claim.
 
 Performs a stratified 80/20 split on the 544-item N500 calibrated benchmark,

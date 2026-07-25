@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Critical-phase trust-inversion split (backs CLAIM-005).
 
 Deterministic, offline, read-only. Produces the per-bucket artifact that

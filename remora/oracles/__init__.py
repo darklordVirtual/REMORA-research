@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Oracle backends for REMORA."""
 from remora.oracles.groq import GroqOracle
 from remora.oracles.ollama import OllamaOracle

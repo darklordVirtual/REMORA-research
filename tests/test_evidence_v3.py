@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for EvidenceOracleV3.
 
 All tests use synthetic sources so no live network access is required.

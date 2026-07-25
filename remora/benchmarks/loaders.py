@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Standardised benchmark loaders for REMORA evaluation datasets."""
 from __future__ import annotations
 import hashlib

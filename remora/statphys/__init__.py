@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Statistical-physics foundations for multi-oracle consensus.
 
 This package provides a principled mapping between multi-oracle AI

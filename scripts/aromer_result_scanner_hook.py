@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REMORA tool-result content scanner — Claude Code PostToolUse hook.
 
 Intercepts tool results BEFORE they reach the LLM and scans for

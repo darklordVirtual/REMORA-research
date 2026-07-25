@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER World Model — Bayesian domain harm priors with correct weighting.
 
 Key fix from v0.1 analysis:

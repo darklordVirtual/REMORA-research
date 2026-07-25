@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """The capability register is the source of truth for wiring status —
 structurally validated so it cannot rot (external documentation review)."""
 from __future__ import annotations

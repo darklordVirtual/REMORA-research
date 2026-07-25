@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """AROMER Replay Runner — evaluates policy decisions against the Replay Arena.
 
 Runs every episode in the arena through AROMER's policy engine (no API keys

@@ -4,10 +4,19 @@ build-backend = "hatchling.build"
 
 [project]
 name = "remora"
-version = "0.9.0"
+version = "0.10.0"
 description = "Research-grade governance overlay for agentic AI actions with multi-oracle consensus, policy gating, uncertainty routing, and audit-oriented controls"
 readme = "README.md"
-license = { text = "Apache-2.0" }
+# PEP 639 SPDX expression. BUSL-1.1 is source-available, not OSI open source;
+# commercial use requires a separate REMORA Commercial License (LICENSING.md).
+license = "BUSL-1.1"
+license-files = [
+    "LICENSE",
+    "LICENSING.md",
+    "COMMERCIAL_LICENSE.md",
+    "THIRD_PARTY_NOTICES.md",
+    "NOTICE",
+]
 authors = [{ name = "Stian Skogbrott", email = "support@luftfiber.no" }]
 keywords = [
     "agentic-ai", "ai-safety", "ai-governance", "multi-oracle-consensus",
@@ -19,7 +28,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",

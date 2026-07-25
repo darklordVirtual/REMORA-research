@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REM-033 acceptance tests: review-queue TTL → ABSTAIN (REM-032 §2) and the
 approval freshness contract (mandatory bounded expiry, execution-time
 re-gate with monotone severity, recorded invalidation events)."""

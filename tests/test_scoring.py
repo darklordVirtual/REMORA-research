@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for remora.scoring — evaluation metrics."""
 import pytest
 from remora.benchmarks.loaders import BenchmarkItem, GroundTruthType

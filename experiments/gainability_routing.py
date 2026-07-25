@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Train GainabilityClassifier on full_coverage_bound items and report lift.
 
 Lift = (gainable items routed correctly) - (already-correct items mis-routed).

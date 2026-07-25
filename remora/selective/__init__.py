@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Selective prediction and abstention helpers."""
 
 from remora.selective.risk_coverage import (

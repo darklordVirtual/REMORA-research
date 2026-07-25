@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Central resolution of AROMER on-disk state paths (F-10 completion).
 
 Every default is resolved at CALL time, never at module import, and every

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Topological data analysis — legacy fingerprint clustering.
 
 DEPRECATED for research claims. Use `remora.graph.claim_graph.SemanticClaimGraph`

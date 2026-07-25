@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Add CRC subsection to paper markdown (section 7)."""
 
 with open('paper/remora_paper.md', encoding='utf-8') as f:

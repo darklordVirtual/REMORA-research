@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Author: Stian Skogbrott  |  License: Apache-2.0
+# Author: Stian Skogbrott  |  SPDX-License-Identifier: BUSL-1.1
 """REMORA x OpenAI tool-calling demo.
 
 This is a no-key, runnable reproduction of the OpenAI tool-call control flow:

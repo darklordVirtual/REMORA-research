@@ -7,7 +7,7 @@ This folder contains operational scripts for benchmarking, documentation quality
 - All Python scripts must use UTF-8 source encoding.
 - Each script should have:
   - `# Author: Stian Skogbrott`
-  - `# License: Apache-2.0`
+  - `# SPDX-License-Identifier: BUSL-1.1`
   - A module docstring describing purpose and usage.
 - Prefer deterministic outputs for benchmark/report scripts.
 - One-off patch scripts should be treated as maintenance utilities, not runtime dependencies.

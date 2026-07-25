@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Causal-consequence *inspired* gating signals.
 
 Estimates what executing a proposed action is expected to touch: blast radius,

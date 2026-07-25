@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tamper-evident SHA-256 hash chain for REMORA governance decisions.
 
 Every governance decision produces a DecisionEnvelope. This module chains

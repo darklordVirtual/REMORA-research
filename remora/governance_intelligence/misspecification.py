@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Deterministic misspecification-risk inference.
 
 Compares caller-supplied labels against deterministically inferred semantics

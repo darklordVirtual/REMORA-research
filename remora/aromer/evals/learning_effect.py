@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Demonstrate that AROMER's world model produces a measurable, SAFE learning effect.
 
 Background

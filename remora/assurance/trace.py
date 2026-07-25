@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tamper-evident assurance trace for a REMORA run.
 
 NOT zero-knowledge. This is a Merkle-anchored audit log: any single tampered

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Pytest wrapper for the OPA/Rego golden conformance check.
 
 Skips explicitly (with reason) when the ``opa`` binary is not installed —

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Expanded ablation matrix for REMORA.
 
 This script adds stronger controls beyond the default v2 ablation:

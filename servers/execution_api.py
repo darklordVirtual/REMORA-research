@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """End-to-end execution API (REM-035): one authoritative state machine.
 
     PROPOSED --assess--> ACCEPT  -> signed short-lived execution token

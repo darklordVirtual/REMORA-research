@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """REMORA Policy Enforcement Point (PEP) package.
 
 ARCHITECTURAL BOUNDARY (REM-013):

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Mutation tests for M1 label leakage absence.
 
 These tests FAIL if evaluation-only fields re-enter the runtime gate.

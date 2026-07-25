@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Run experimental future-concept components for manual exploratory demos."""
 import sys
 import os

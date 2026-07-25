@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Factory helpers to build oracle swarms for REMORA."""
 from __future__ import annotations
 import os

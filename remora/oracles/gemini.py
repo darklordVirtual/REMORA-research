@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Google Gemini oracle (free tier: 1500 req/day for gemini-1.5-flash).
 
 Get a free API key at https://aistudio.google.com.

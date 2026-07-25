@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Compute true accuracy-coverage Pareto frontier using phase-aware tau sorting."""
 import json
 import numpy as np

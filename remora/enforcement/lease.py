@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """ExecutionLease + GovernedToolDispatcher — REM-024 groundwork.
 
 A short-lived, HMAC-signed execution lease that binds ONE accepted decision to

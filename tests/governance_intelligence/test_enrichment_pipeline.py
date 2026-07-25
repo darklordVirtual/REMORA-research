@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Enrichment pipeline: populates governance fields, strengthens only, never decides."""
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Review queue with TTL expiry and the approval freshness contract.
 
 Implements REM-033 and the review-queue portion of REM-032

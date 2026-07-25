@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Platform-agnostic adapters for REMORA.
 
 REMORA is designed to be deployable on any infrastructure. These adapters

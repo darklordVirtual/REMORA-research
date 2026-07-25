@@ -1,6 +1,6 @@
 export const META = {
   name: "REMORA",
-  version: "v0.9.0",
+  version: "v0.10.0",
   repoHead: "current main branch",
   preparedFor: "Stian Skogbrott / Luftfiber AS",
   tagline: "A Reference Architecture for Governed Agentic AI",

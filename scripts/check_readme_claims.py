@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Verify that structural claims in README.md are backed by real code and tests.
 
 This checker is deliberately narrower than check_claim_consistency.py (which

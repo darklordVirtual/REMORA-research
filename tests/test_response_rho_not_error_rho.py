@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Regression tests for response-correlation vs error-correlation separation."""
 from __future__ import annotations
 

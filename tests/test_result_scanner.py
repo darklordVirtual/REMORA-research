@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Tests for remora.agent_hook.result_scanner module.
 
 Covers ScanVerdict, InjectionSignal, ToolResultEnvelope, and

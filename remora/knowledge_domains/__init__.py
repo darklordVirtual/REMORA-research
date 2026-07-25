@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Knowledge-domain modules: small, deterministic, artifact-backed techniques
 that support REMORA's assurance surface.
 

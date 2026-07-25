@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Evidence-as-a-graph integrity for a claim register.
 
 Claims, artifacts, literature and docs are nodes; binds/backed_by/cites are

@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Risk/coverage selective routing primitives.
 
 The core idea is to sort by confidence and measure empirical risk as coverage

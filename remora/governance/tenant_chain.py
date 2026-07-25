@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Atomic per-tenant audit chain (REM-034).
 
 External review finding: the REST path produced individually signed records

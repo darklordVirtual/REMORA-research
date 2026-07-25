@@ -1,5 +1,5 @@
 # Author: Stian Skogbrott
-# License: Apache-2.0
+# SPDX-License-Identifier: BUSL-1.1
 """Experimental thermodynamic utilities for pre-iteration consensus checks.
 
 These helpers map a pre-sweep consensus snapshot onto a small set of
