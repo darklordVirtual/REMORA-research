@@ -49,5 +49,5 @@ sources:
     url: https://github.com/advisories
     use: Open source package advisory context
 license_notes:
-  dataset: Apache-2.0 for REMORA-authored summaries and examples
+  dataset: BUSL-1.1 for REMORA-authored summaries and examples
   third_party: Respect source-specific licenses and trademarks

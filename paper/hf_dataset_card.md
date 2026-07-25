@@ -1,7 +1,9 @@
 ---
 language:
   - en
-license: apache 2
+license: other
+license_name: busl-1.1
+license_link: https://github.com/darklordVirtual/REMORA-research/blob/master/LICENSE
 tags:
   - ai-safety
   - agent-governance

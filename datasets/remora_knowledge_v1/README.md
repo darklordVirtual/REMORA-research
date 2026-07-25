@@ -227,7 +227,9 @@ The dataset satisfies these structural invariants (verified by `validate_knowled
 
 ## License
 
-Dataset content is Apache-2.0-licensed (same as REMORA).
-Third-party source summaries are derived works for research purposes.  
+REMORA-authored dataset content is licensed BUSL-1.1 (same as REMORA;
+source-available, commercial use requires a REMORA Commercial License).
+Third-party source summaries are derived works for research purposes and
+remain subject to their original source licenses.  
 MITRE ATT&CK® is a trademark of The MITRE Corporation.  
 NIST publications are in the public domain.

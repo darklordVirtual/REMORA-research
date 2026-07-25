@@ -207,7 +207,7 @@
       "evidence": [
         {
           "file": "README.md",
-          "symbol_or_line": "Line 3: 'Research-grade prototype. v0.7.1. Apache-2.0. Not production-certified.'",
+          "symbol_or_line": "Line 3: 'Research-grade prototype. v0.10.0. BUSL-1.1. Not production-certified.'",
           "why_it_matters": "Explicit disclaimer is present and prominent."
         }
       ],

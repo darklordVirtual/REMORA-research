@@ -75,11 +75,11 @@ audit: lint test  ## Full quality gate: lint + tests + all claim consistency che
 	$(PYTHON) scripts/_check_imports.py
 	@echo "\n-- Evaluator leakage gate (M1 assurance) --"
 	$(PYTHON) scripts/check_no_evaluation_leakage.py
-	@echo "\n-- License policy (BUSL-1.1, no Apache drift) --"
+	@echo "\n-- License policy (BUSL-1.1, no legacy-license drift) --"
 	$(PYTHON) scripts/check_license_policy.py
 	@echo "\nFull audit passed. REMORA claims are consistent with code and artifacts."
 
-license-check:  ## Verify BUSL-1.1 licensing surface and absence of Apache drift
+license-check:  ## Verify BUSL-1.1 licensing surface and absence of legacy-license drift
 	$(PYTHON) scripts/check_license_policy.py
 
 # Benchmarks

@@ -21,11 +21,32 @@ releases.
   `SPDX-License-Identifier: BUSL-1.1`.
 - Historical versions prior to 0.10.0 keep the license terms they were
   actually distributed with; no new grants are made under those terms.
-- Added `scripts/check_license_policy.py` as a CI gate against Apache
-  metadata drift, and a contribution-licensing/CLA section to the
-  contributing docs.
+- Added `scripts/check_license_policy.py` as a CI gate against legacy
+  open-source license metadata drift, and a contribution-licensing/CLA
+  section to the contributing docs.
 
 ## [Unreleased]
+
+### Changed (complete Apache-2.0 removal, 2026-07-25)
+
+- Owner decision: remove every REMORA-authored reference to the Apache-2.0
+  license so the whole repository points only to BUSL-1.1 / the REMORA
+  Commercial License. Converted the demo banners, the AROMER master document,
+  the HF dataset card, the knowledge/cyber dataset license notes, the archived
+  infographic, and a claim-register snapshot to BUSL-1.1; dropped the optional
+  "OPA (Apache 2.0)" phrasing from the paper acknowledgements; deleted the
+  now-obsolete `scripts/migrate_license_headers.py`; deleted the
+  `v0.9.0-apache-last` boundary tag; and reworded the enforcement-gate labels
+  to "legacy-license drift".
+- Deliberately KEPT (removing these would misrepresent third parties or break
+  the ban's own enforcement): the third-party upstream license facts in
+  `THIRD_PARTY_NOTICES.md` (OPA and TruthfulQA are genuinely Apache-2.0) and
+  the Kubernetes-docs source license in the knowledge dataset manifest; the
+  "Apache Jena" product name in `rdf_export.py`; Apache-software CVE content in
+  the cyber-evidence dataset; and the Apache SPDX strings inside
+  `scripts/check_license_policy.py`, which names them only to DETECT and forbid
+  them. The license-policy gate confirms no REMORA-authored Apache metadata
+  remains.
 
 ### Changed (Grok review P1 — calibrated vs heuristic thresholds, 2026-07-25)
 

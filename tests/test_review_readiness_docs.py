@@ -78,8 +78,14 @@ def test_evidence_of_capability_states_limits() -> None:
         assert required in text
 
 
-def test_project_license_references_are_apache_not_mit() -> None:
+def test_project_license_references_are_busl_not_mit() -> None:
     """Project-authored license surfaces must not drift back to MIT.
+
+    REMORA's project license is BUSL-1.1 (2026-07-25). This guard catches MIT
+    drift; Apache-header drift is enforced separately by
+    ``scripts/check_license_policy.py``, which correctly allowlists third-party
+    notices, product names (e.g. "Apache Jena"), and CVE dataset content that
+    this simple scanner would false-positive on.
 
     This deliberately does not scan package lockfiles or upstream benchmark
     notices: dependency licenses and source dataset licenses are not REMORA's
@@ -152,7 +158,7 @@ def test_licensing_is_bsl_with_commercial_boundary_docs() -> None:
     """Licensing surface is BUSL-1.1 plus a REMORA Commercial License boundary.
 
     History: the former open-core boundary docs were removed 2026-07-20 as
-    overreach for a plain-Apache research repository. On 2026-07-25 the owner
+    overreach for a permissively-licensed research repository. On 2026-07-25 the owner
     reversed that posture: the project moved to Business Source License 1.1
     with commercial licensing (Licensor: Stian Skogbrott), which REQUIRES the
     boundary documents. This test enforces the new surface; the enforcement

@@ -21,8 +21,10 @@ ROOT = Path(__file__).resolve().parents[1]
 # Files/dirs where Apache header-form strings may legitimately appear.
 ALLOWED_APACHE_PARTS = {"archive", "LICENSES", "node_modules", ".git", ".venv",
                         "dist", "build"}
-ALLOWED_APACHE_FILES = {"THIRD_PARTY_NOTICES.md", "check_license_policy.py",
-                        "migrate_license_headers.py"}
+# Files where Apache strings legitimately appear: THIRD_PARTY_NOTICES documents
+# upstream third-party licenses (OPA, TruthfulQA) that we cannot misrepresent;
+# this checker names the Apache SPDX strings in order to DETECT and forbid them.
+ALLOWED_APACHE_FILES = {"THIRD_PARTY_NOTICES.md", "check_license_policy.py"}
 
 TEXT_SUFFIXES = {
     ".py", ".pyi", ".js", ".jsx", ".ts", ".tsx", ".sh", ".rego",

@@ -1,7 +1,7 @@
 # REMORA + AROMER: Authoritative Technical Reference
 
 **Repository:** `darklordVirtual/REMORA`  
-**Status:** Research-grade prototype, v0.9.0, Apache-2.0 licensed
+**Status:** Research-grade prototype, v0.10.0, BUSL-1.1 (source-available; commercial use requires a REMORA Commercial License)
 **Last verified against commit:** cc567fc  
 **Document updated:** 2026-06-05  
 
@@ -613,7 +613,7 @@ REMORA is designed as a complement to model-level safety work, not a replacement
 
 ## 18. Commercial / Product Positioning
 
-REMORA is published as an Apache-2.0-licensed research prototype. It is **not** a commercial product and makes **no production certification claims**.
+REMORA is published as a source-available research prototype under the Business Source License 1.1 (Licensor: Stian Skogbrott); commercial use requires a separate REMORA Commercial License. It is **not** a commercial product and makes **no production certification claims**.
 
 The repository demonstrates:
 - A governance architecture that can be adopted by agent developers
