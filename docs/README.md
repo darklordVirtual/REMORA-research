@@ -98,16 +98,9 @@ Historical snapshots (banner-marked, preserved unedited):
 
 | File | Snapshot date |
 |---|---|
-| [`assurance/baseline_snapshot.md`](assurance/baseline_snapshot.md) | 2026-06-28 |
-| [`assurance/operation_baseline_2026_06_30.md`](assurance/operation_baseline_2026_06_30.md) | 2026-06-30 |
-| [`assurance/paper_alignment_2026-06-30.md`](assurance/paper_alignment_2026-06-30.md) | 2026-06-30 |
 | [`assurance/operation_master_plan_v1.md`](assurance/operation_master_plan_v1.md) | 2026-06-30 |
-| [`assurance/product_strategy_v1.md`](assurance/product_strategy_v1.md) | 2026-06-30 |
 | [`assurance/threat_model_v1.md`](assurance/threat_model_v1.md) | 2026-06-30 |
 | [`assurance/simulated_hostile_review_v1.md`](assurance/simulated_hostile_review_v1.md) | 2026-07-02/03 findings register (reconciliation note inside) |
-| [`researchpapers/analysis_notes_2026-06-30.md`](researchpapers/analysis_notes_2026-06-30.md) | 2026-06-30 |
-| [`researchpapers/analysis_notes_ood_2026-06-30.md`](researchpapers/analysis_notes_ood_2026-06-30.md) | 2026-06-30 |
-| `researchpapers/kompendium_ai_assurance_3utgave.md` | Internal AI-assurance compendium (3rd ed.), local-only working document (gitignored, not published); reference for repo-vs-best-practice audits |
 
 Compliance mappings:
 
@@ -163,7 +156,6 @@ Limitations.
 | [`quickstart_aromer.md`](aromer/quickstart_aromer.md) | AROMER quickstart |
 | [`aromer_learning_evidence_v1.md`](aromer/aromer_learning_evidence_v1.md) | Learning-effect ablation evidence (historical snapshot) |
 | [`REMORA_AROMER_MASTER_DOCUMENT.md`](aromer/REMORA_AROMER_MASTER_DOCUMENT.md) | Authoritative AROMER technical reference |
-| [`REMORA_AROMER_FINAL_REPORT.md`](aromer/REMORA_AROMER_FINAL_REPORT.md) | Performance/positioning report (historical snapshot) |
 
 ## Integrations and operations
 

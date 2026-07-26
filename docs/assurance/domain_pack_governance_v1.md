@@ -72,7 +72,7 @@ but vary in RAG chunk coverage and evidence backing.
 
 ## 3. Domains Without Domain Packs (Gap Analysis)
 
-Four operational domains identified in `docs/assurance/operation_baseline_2026_06_30.md`
+Four operational domains identified during the Wave 0 operational baseline
 have no policy cookbook page, no RAG chunks, and no evidence pack:
 
 | Domain | Risk Relevance | Notes |

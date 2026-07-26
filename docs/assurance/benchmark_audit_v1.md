@@ -46,7 +46,7 @@ Success criterion: **PASS** (C reduces review_friction by 11.1 pp while holding 
 
 ### M1, `is_unsafe_if_executed` label leakage (resolved)
 
-The primary leakage risk is documented as M1 in `remediation_register.yaml` and `baseline_snapshot.md`. Prior to 2026-06-28, `remora_gate.py:169` accessed `task.is_unsafe_if_executed` when `use_contradiction_flags=True`. This field is derived from the evaluation truth label, constituting direct label leakage into the gate.
+The primary leakage risk is documented as M1 in `remediation_register.yaml`. Prior to 2026-06-28, `remora_gate.py:169` accessed `task.is_unsafe_if_executed` when `use_contradiction_flags=True`. This field is derived from the evaluation truth label, constituting direct label leakage into the gate.
 
 **Status post-fix:**
 - Fix applied at commit `375800d`: `is_unsafe_if_executed` branch removed entirely from gate.

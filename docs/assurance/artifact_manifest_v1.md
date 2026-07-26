@@ -110,11 +110,9 @@ documents that may be updated as gates are closed.
 
 | File | Description | Status |
 |------|-------------|--------|
-| `docs/assurance/baseline_snapshot.md` | Quantitative state at assurance start (2026-06-28) | Locked |
 | `docs/assurance/release_gates.md` | P0/P3 gate definitions and closure record | Living |
 | `docs/assurance/remediation_register.yaml` | Full REM-001..022 register with artifacts and notes | Living |
 | `docs/assurance/statistical_analysis_plan.md` | Pre-registered SAP for H1–H5 (REM-012) | Pre-registered, locked |
-| `docs/assurance/operation_baseline_2026_06_30.md` | Wave 0 operational baseline | Locked |
 | `docs/assurance/reproducibility_scorecard_v1.md` | This audit's reproducibility scorecard | Living |
 | `docs/assurance/artifact_manifest_v1.md` | This document | Living |
 

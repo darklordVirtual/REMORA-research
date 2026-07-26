@@ -257,23 +257,11 @@ documents:
     status: supporting
 
   # ── Assurance: historical snapshots (banner-marked, never edited) ────────
-  - path: docs/assurance/baseline_snapshot.md
-    status: historical
-  - path: docs/assurance/operation_baseline_2026_06_30.md
-    status: historical
   - path: docs/assurance/operation_master_plan_v1.md
-    status: historical
-  - path: docs/assurance/paper_alignment_2026-06-30.md
-    status: historical
-  - path: docs/assurance/product_strategy_v1.md
     status: historical
   - path: docs/assurance/simulated_hostile_review_v1.md
     status: historical
   - path: docs/assurance/threat_model_v1.md
-    status: historical
-  - path: docs/researchpapers/analysis_notes_2026-06-30.md
-    status: historical
-  - path: docs/researchpapers/analysis_notes_ood_2026-06-30.md
     status: historical
 
   # ── Compliance mappings ──────────────────────────────────────────────────
@@ -347,8 +335,6 @@ documents:
   - path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
     status: canonical
     topic: aromer-reference
-  - path: docs/aromer/REMORA_AROMER_FINAL_REPORT.md
-    status: historical
 
   # ── Integrations and operations ──────────────────────────────────────────
   - path: docs/integrations/mcp-integration.md
