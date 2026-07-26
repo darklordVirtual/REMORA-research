@@ -372,7 +372,7 @@ class GovernedToolDispatcher:
             return DispatchResult(executed=False, refusal_reason=verdict.reason)
         if not self._ledger.consume(lease.nonce):
             return DispatchResult(executed=False, refusal_reason="nonce_already_consumed")
-        
+
         # execution
         try:
             res = fn(arguments)

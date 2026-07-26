@@ -56,7 +56,12 @@ safety-check: lint test replay  ## Full safety check: lint + tests + replay aren
 # Audit
 # Invariant: README claims -> importable module -> test exists -> artifact exists.
 
-audit: lint test  ## Full quality gate: lint + tests + all claim consistency checks
+meta-audit:  ## Beviser at audit-gatene fanger seedede brudd
+	$(PYTEST) tests/meta/ -x -q
+
+audit: meta-audit lint test  ## Full quality gate: lint + tests + all claim consistency checks
+	$(PYTHON) scripts/claim_audit.py
+	$(PYTHON) scripts/profile_gate.py
 	@echo "\n-- Claim consistency (numeric benchmarks) --"
 	$(PYTHON) scripts/check_claim_consistency.py
 	@echo "\n-- README structural claims -> code + test --"

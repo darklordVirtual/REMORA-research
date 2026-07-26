@@ -53,17 +53,17 @@ def clopper_pearson_upper(k: int, n: int, alpha: float = 0.05) -> float:
 
     for _ in range(100):
         mid = (lo + hi) / 2.0
-        
+
         # P(X <= k | mid) = 1 - P(X >= k+1 | mid)
         tail_prob_greater_than_k = binomial_tail_prob(k + 1, n, mid)
         prob_less_eq_k = 1.0 - tail_prob_greater_than_k
-        
+
         if prob_less_eq_k < alpha:
             # mid is too large, the probability of <= k is too small
             hi = mid
         else:
             lo = mid
-            
+
         if hi - lo < 1e-10:
             break
 

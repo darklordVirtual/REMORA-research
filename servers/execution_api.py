@@ -338,7 +338,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
             response["review_item_id"] = item.item_id
     entry = _CHAIN.append(tenant, record)
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
-    
+
     if idemp_key:
         _IDEMPOTENCY[idemp_key] = response
     return response

@@ -129,3 +129,11 @@ capabilities:
       - results/aromer_cross_domain_transfer_v1.json
       - tests/test_cross_domain_transfer.py
     caveat: "OFFLINE measurement (leave-one-domain-out over the curated corpus): 83.8% transfer accuracy. NOT the live worker gate — crossDomainCases still reads 0 and interpretation stays TRANSFER_UNMEASURED until organic cross-domain traffic exists (NEGATIVE_RESULTS §16)."
+
+  - id: CAP-META
+    name: "Metatesting of the evidence regime (audit gates are mutation-tested)"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - tests/meta/test_divergence.py
+      - tests/meta/test_register_evidences.py
+    caveat: "Metatest detection logic covers basic claim parsing and basic structural evidence, but does not capture all complex prose statements automatically."
