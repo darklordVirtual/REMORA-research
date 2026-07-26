@@ -1,15 +1,16 @@
 # REMORA Threat Model v1
 
-> **HISTORICAL SNAPSHOT (2026-06-30).** Gate statuses, metrics, and plans in this
-> document reflect the state on its date and are intentionally preserved
-> unedited. For current gate status see
+> **Active security documentation (STRIDE baseline).** This is the current v1
+> threat model. It reflects the architecture as of its authoring; the
+> enforcement/execution layer (PDP/PEP, execution leases, tenant audit chain)
+> added later is tracked in `docs/assurance/remediation_register.yaml`
+> (REM-024/025/030/034) and warrants a v2 refresh. For current gate status see
 > [`docs/assurance/release_gates.md`](release_gates.md); for current metrics see the repository README.
 
 
-**Status:** Draft — initial STRIDE analysis for assurance campaign Wave 1
-**Date:** 2026-06-30
-**Author:** Agent D (security/RBAC audit)
-**Scope:** `darklordVirtual/REMORA-research` at commit `2cd573d` (master branch)
+**Status:** STRIDE baseline — cited as EU AI Act Art. 11 technical documentation
+**Scope:** `darklordVirtual/REMORA-research` (STRIDE analysis of the governance core)
+**Related gates:** REM-021, REM-024, REM-030
 **Related gates:** REM-022 (NOT_STARTED), REM-021 (NOT_STARTED)
 
 This document is grounded exclusively in code and files that exist in the repository.

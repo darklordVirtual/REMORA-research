@@ -88,19 +88,12 @@ Process, audits, and specifications:
 | [`assurance/rbac_design_v1.md`](assurance/rbac_design_v1.md) | RBAC design incl. the recorded closure deviation (REM-023) |
 | [`assurance/ai_assisted_adversarial_security_review_v1.md`](assurance/ai_assisted_adversarial_security_review_v1.md) | AI-assisted adversarial security review disposition (2026-07-03; renamed 2026-07-20, formerly "external security audit") |
 | [`assurance/red_team_plan_v1.md`](assurance/red_team_plan_v1.md) | Red-team plan |
+| [`assurance/threat_model_v1.md`](assurance/threat_model_v1.md) | STRIDE threat model (v1 baseline; EU AI Act Art. 11 technical documentation) |
 | [`assurance/independent_review_protocol_v1.md`](assurance/independent_review_protocol_v1.md) | REM-021 independent-review protocol |
 | [`assurance/domain_pack_governance_v1.md`](assurance/domain_pack_governance_v1.md) | Domain-pack governance rules |
 | [`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md) | Partition + stale-approval resilience: design + implementation (REM-032/033 DONE) |
 | [`assurance/capability_register_v1.yaml`](assurance/capability_register_v1.yaml) | Machine-readable wiring-status register (six-level ladder; CI-validated) |
 | [`assurance/development_review_log_v1.md`](assurance/development_review_log_v1.md) | Engineering & review log, the whole hardening arc, artifact-linked (start here for the story) |
-
-Historical snapshots (banner-marked, preserved unedited):
-
-| File | Snapshot date |
-|---|---|
-| [`assurance/operation_master_plan_v1.md`](assurance/operation_master_plan_v1.md) | 2026-06-30 |
-| [`assurance/threat_model_v1.md`](assurance/threat_model_v1.md) | 2026-06-30 |
-| [`assurance/simulated_hostile_review_v1.md`](assurance/simulated_hostile_review_v1.md) | 2026-07-02/03 findings register (reconciliation note inside) |
 
 Compliance mappings:
 
@@ -154,7 +147,6 @@ Limitations.
 | File | Purpose |
 |---|---|
 | [`quickstart_aromer.md`](aromer/quickstart_aromer.md) | AROMER quickstart |
-| [`aromer_learning_evidence_v1.md`](aromer/aromer_learning_evidence_v1.md) | Learning-effect ablation evidence (historical snapshot) |
 | [`REMORA_AROMER_MASTER_DOCUMENT.md`](aromer/REMORA_AROMER_MASTER_DOCUMENT.md) | Authoritative AROMER technical reference |
 
 ## Integrations and operations

@@ -375,7 +375,6 @@ export const CODEGRAPH_PATHS = [
   'frontend/wrangler.toml',
   'paper/REMORA_governed_agentic_ai_whitepaperv0_6_0.pdf',
   'paper/claim_ledger.md',
-  'paper/code_review_report.md',
   'paper/figures.md',
   'paper/future_state.md',
   'paper/remora_paper.md',

@@ -21,9 +21,10 @@ verification (see below). The audit's high-level scorecard, strong
 deterministic-first policy design, weak runtime-enforcement placement and
 tenant/identity binding: is accurate and not disputed.
 
-Cross-references: `simulated_hostile_review_v1.md` (academic/XAI review, closed
-2026-07-03), `rbac_design_v1.md` + REM-023 (RBAC follow-through), the
-five-wave remediation already completed.
+Cross-references: `rbac_design_v1.md` + REM-023 (RBAC follow-through) and the
+five-wave remediation already completed. (The 2026-07-02/03 hostile-review
+findings register was reconciled into `remediation_register.yaml` and removed
+in the 2026-07-26 docs reduction; git history preserves it.)
 
 ---
 

@@ -113,8 +113,6 @@ documents:
     status: supporting
   - path: paper/future_state.md
     status: proposal
-  - path: paper/code_review_report.md
-    status: historical
   - path: paper/whitepaper.md
     status: historical
 
@@ -256,13 +254,9 @@ documents:
   - path: docs/assurance/statistical_analysis_plan.md
     status: supporting
 
-  # ── Assurance: historical snapshots (banner-marked, never edited) ────────
-  - path: docs/assurance/operation_master_plan_v1.md
-    status: historical
-  - path: docs/assurance/simulated_hostile_review_v1.md
-    status: historical
+  # ── Security: threat model (active) ──────────────────────────────────────
   - path: docs/assurance/threat_model_v1.md
-    status: historical
+    status: supporting
 
   # ── Compliance mappings ──────────────────────────────────────────────────
   - path: docs/governance/eu_ai_act_nsm_mapping.md
@@ -330,8 +324,6 @@ documents:
   # ── AROMER ───────────────────────────────────────────────────────────────
   - path: docs/aromer/quickstart_aromer.md
     status: supporting
-  - path: docs/aromer/aromer_learning_evidence_v1.md
-    status: historical
   - path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
     status: canonical
     topic: aromer-reference

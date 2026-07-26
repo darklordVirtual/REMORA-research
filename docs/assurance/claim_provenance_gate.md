@@ -58,7 +58,7 @@ be deleted once fixed.
   position; a paragraph containing both the old and new value would pass.
 - Evidence-level citation checking only fires where a `CLAIM-###` id and a
   taxonomy term share a line; prose that paraphrases a claim without its id
-  (e.g. `operation_master_plan_v1.md` §5's table) is not covered, add claim
-  ids to such tables to bring them under the gate.
+  (e.g. a status-table paragraph) is not covered; add claim ids to such
+  tables to bring them under the gate.
 - The paper (`paper/remora_paper.md`) is scanned but not yet anchored;
   anchoring its headline numbers is the natural next increment.

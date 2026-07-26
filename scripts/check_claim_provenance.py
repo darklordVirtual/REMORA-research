@@ -89,9 +89,10 @@ STALE_STRINGS = (
     ("Zhang & Lee",
      "citation corrected 2026-07-03: arXiv:2502.11347 is Dong & Wang"),
 )
-STALE_CHECK_EXCLUDE = (
-    "docs/assurance/simulated_hostile_review_v1.md",  # findings register; quotes defects verbatim
-)
+# Docs excluded from the stale-string check (e.g. findings registers that quote
+# defects verbatim). Currently empty — the former excluded findings register
+# was reconciled into remediation_register.yaml and removed in the docs reduction.
+STALE_CHECK_EXCLUDE: tuple[str, ...] = ()
 
 ANCHOR_RE = re.compile(r"<!--\s*claim:(CLAIM-\d{3})((?:\s+[a-z0-9_]+)+)\s*-->")
 CLAIM_ID_RE = re.compile(r"\bCLAIM-\d{3}\b")
