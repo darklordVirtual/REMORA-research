@@ -171,6 +171,7 @@ Illustrative unless artifact-linked: see the banner in each file.
 | File | Sector |
 |---|---|
 | [`use-cases/README.md`](use-cases/README.md) | Sector use cases — concise index (all sectors, illustrative) |
+| [`use-cases/building-automation.md`](use-cases/building-automation.md) | Building automation dry-run demo (transcript verified against the engine by `test_demo_building_lights.py`) |
 | [`use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md`](use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md) | Thermodynamics evidence status (cross-reference) |
 
 ## Research notes and proposals

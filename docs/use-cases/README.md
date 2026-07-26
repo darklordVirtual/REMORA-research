@@ -26,6 +26,8 @@ Brief illustrative scenarios:
 | Public administration | AI hallucination in legal documents | Catches fabricated citations before they enter official documents; ties to Norwegian-law verification |
 | Norwegian law (MCP) | Legal research via the law-search MCP tool | Verifies citations against the Norwegian law corpus; see [MCP integration](../integrations/mcp-integration.md) |
 
-For a concrete dry-run walkthrough of the mechanism, see
-[`../reference_architecture.md`](../reference_architecture.md). Live MCP tool
-behaviour is documented in [`../integrations/mcp-integration.md`](../integrations/mcp-integration.md).
+For a concrete, engine-verified dry-run walkthrough see
+[`building-automation.md`](building-automation.md) (its transcript is checked
+against real engine outcomes by `tests/test_demo_building_lights.py`); the
+canonical mechanism is in [`../reference_architecture.md`](../reference_architecture.md),
+and live MCP tool behaviour in [`../integrations/mcp-integration.md`](../integrations/mcp-integration.md).

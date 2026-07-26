@@ -358,6 +358,8 @@ documents:
   # ── Use cases ────────────────────────────────────────────────────────────
   - path: docs/use-cases/README.md
     status: supporting
+  - path: docs/use-cases/building-automation.md
+    status: supporting
   - path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
     status: supporting
 
