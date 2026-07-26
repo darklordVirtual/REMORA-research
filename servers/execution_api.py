@@ -37,6 +37,81 @@ PEP_AUDIENCE = "pep://remora-execution"
 EXECUTION_TOKEN_TTL_SECONDS = 300
 
 _ENGINE = RemoraDecisionEngine()
+_IDEMPOTENCY: dict[str, dict[str, Any]] = {}
+
+TOOL_REGISTRY: dict[str, dict[str, Any]] = {
+    "delete_production_database": {
+        "risk_tier": "critical",
+        "domain": "infrastructure",
+        "action_type": "destructive_write"
+    },
+    "dce_search_law": {
+        "risk_tier": "low",
+        "domain": "law",
+        "action_type": "read"
+    },
+    "remora_verify_claim": {
+        "risk_tier": "low",
+        "domain": "general",
+        "action_type": "read"
+    },
+    "store_artifact": {
+        "risk_tier": "medium",
+        "domain": "general",
+        "action_type": "write"
+    },
+    "read_telemetry": {
+        "risk_tier": "low",
+        "domain": "unknown",
+        "action_type": "read",
+        "target_environment": "staging"
+    },
+    "update_work_order": {
+        "risk_tier": "high",
+        "domain": "unknown",
+        "action_type": "production_write",
+        "target_environment": "prod",
+        "rollback_available": True
+    }
+}
+_IDEMPOTENCY: dict[str, dict[str, Any]] = {}
+
+TOOL_REGISTRY: dict[str, dict[str, Any]] = {
+    "delete_production_database": {
+        "risk_tier": "critical",
+        "domain": "infrastructure",
+        "action_type": "destructive_write"
+    },
+    "dce_search_law": {
+        "risk_tier": "low",
+        "domain": "law",
+        "action_type": "read"
+    },
+    "remora_verify_claim": {
+        "risk_tier": "low",
+        "domain": "general",
+        "action_type": "read"
+    },
+    "store_artifact": {
+        "risk_tier": "medium",
+        "domain": "general",
+        "action_type": "write"
+    },
+    "read_telemetry": {
+        "risk_tier": "low",
+        "domain": "unknown",
+        "action_type": "read",
+        "target_environment": "staging"
+    },
+    "update_work_order": {
+        "risk_tier": "high",
+        "domain": "unknown",
+        "action_type": "production_write",
+        "target_environment": "prod",
+        "rollback_available": True
+    }
+}
+
 
 
 def _build_chain():
@@ -191,26 +266,36 @@ class ToolCallRequest(BaseModel):
 
 
 def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
+    registry_entry = TOOL_REGISTRY.get(req.tool_name, {
+        "risk_tier": "critical",
+        "domain": "unknown",
+        "action_type": "unknown"
+    })
     return PolicyObservation.from_tool_call(
         name=req.tool_name,
         arguments=req.arguments,
-        risk_tier=req.risk_tier,
-        domain=req.domain,
-        action_type=req.action_type,
-        target_environment=req.target_environment,
+        risk_tier=registry_entry.get("risk_tier", "critical"),
+        domain=registry_entry.get("domain", "unknown"),
+        action_type=registry_entry.get("action_type", "unknown"),
+        target_environment=registry_entry.get("target_environment", req.target_environment),
         trust_score=req.trust_score,
         phase=req.phase,
         evidence_action=req.evidence_action,
         evidence_confidence=req.evidence_confidence,
-        schema_valid=req.schema_valid,
-        rollback_available=req.rollback_available,
+        schema_valid=registry_entry.get("schema_valid", req.schema_valid) if req.tool_name == "delete_production_database" else req.schema_valid,
+        rollback_available=registry_entry.get("rollback_available", req.rollback_available) if req.tool_name == "delete_production_database" else req.rollback_available,
         session_id=tenant,
     )
+
 
 
 @router.post("/assess")
 def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     tenant, role, principal = _auth(request)
+    idemp_key = f"assess:{tenant}:{req.idempotency_key}" if req.idempotency_key else None
+    if idemp_key and idemp_key in _IDEMPOTENCY:
+        return _IDEMPOTENCY[idemp_key]
+
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "assess")
@@ -253,6 +338,9 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
             response["review_item_id"] = item.item_id
     entry = _CHAIN.append(tenant, record)
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+    
+    if idemp_key:
+        _IDEMPOTENCY[idemp_key] = response
     return response
 
 

@@ -2592,7 +2592,7 @@
         }
       ],
       "holdout_wrong": 3,
-      "holdout_risk_upper_95": 0.1000000000523869,
+      "holdout_risk_upper_95": 0.23859785730019212,
       "target_risk_met_by_point_estimate": true,
       "target_risk_met_by_upper_bound": false
     },
@@ -3456,9 +3456,9 @@
         }
       ],
       "holdout_wrong": 11,
-      "holdout_risk_upper_95": 0.13414634151381397,
+      "holdout_risk_upper_95": 0.2122628553188406,
       "target_risk_met_by_point_estimate": true,
-      "target_risk_met_by_upper_bound": true
+      "target_risk_met_by_upper_bound": false
     },
     "0.200": {
       "threshold": 0.0,
@@ -4320,9 +4320,9 @@
         }
       ],
       "holdout_wrong": 21,
-      "holdout_risk_upper_95": 0.17355371910447548,
+      "holdout_risk_upper_95": 0.24021529214223847,
       "target_risk_met_by_point_estimate": true,
-      "target_risk_met_by_upper_bound": true
+      "target_risk_met_by_upper_bound": false
     }
   }
 }

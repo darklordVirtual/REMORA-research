@@ -146,6 +146,14 @@ class AuditBlock:
 
 
 @dataclass(frozen=True)
+class EffectBlock:
+    """Reconstructs decision-to-effect execution state."""
+    executed: bool = False
+    tool_call_hash: str | None = None
+    effect_outcome: str | None = None
+    ledger_entry: dict = field(default_factory=dict)
+
+@dataclass(frozen=True)
 class DecisionEnvelope:
     """Top-level v2 envelope — the canonical decision contract.
 
@@ -166,6 +174,7 @@ class DecisionEnvelope:
         default_factory=PolicyLearningBlock
     )
     audit: AuditBlock = field(default_factory=AuditBlock)
+    effect: EffectBlock = field(default_factory=EffectBlock)
     # Optional causal explanation — populated by generate_explanation() when
     # the caller requests a policy-only counterfactual analysis.
     # decision_scope is always "policy_only"; see remora.causal.explanation.
@@ -191,6 +200,7 @@ class DecisionEnvelope:
                 **d.get("policy_learning", {})
             ),
             audit=AuditBlock(**d.get("audit", {})),
+            effect=EffectBlock(**d.get("effect", {})),
         )
 
     def envelope_hash(self) -> str:

@@ -48,21 +48,22 @@ def clopper_pearson_upper(k: int, n: int, alpha: float = 0.05) -> float:
     if k < 0:
         return 0.0
 
-    # Find p such that binomial_tail_prob(k+1, n, p) = alpha.
-    # binomial_tail_prob(k+1, n, p) is increasing in p.
-    # For p just above k/n the tail prob is close to alpha; for p=1 it's 1.0.
-    lo = k / n if n > 0 else 0.0
+    lo = 0.0
     hi = 1.0
 
-    # Ensure bracket: at lo the tail prob should be <= alpha (or close)
-    # and at hi it should be >= alpha.
     for _ in range(100):
         mid = (lo + hi) / 2.0
-        tail = binomial_tail_prob(k + 1, n, mid)
-        if tail < alpha:
-            lo = mid
-        else:
+        
+        # P(X <= k | mid) = 1 - P(X >= k+1 | mid)
+        tail_prob_greater_than_k = binomial_tail_prob(k + 1, n, mid)
+        prob_less_eq_k = 1.0 - tail_prob_greater_than_k
+        
+        if prob_less_eq_k < alpha:
+            # mid is too large, the probability of <= k is too small
             hi = mid
+        else:
+            lo = mid
+            
         if hi - lo < 1e-10:
             break
 

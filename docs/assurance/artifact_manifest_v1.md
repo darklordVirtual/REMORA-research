@@ -75,11 +75,11 @@ must not change unless the benchmark is re-run under a documented protocol.
 |------|---------|-------------|---------------|-------------|
 | `results/toolcall_blind_v3_results.json` | `145600404ddad70ba2e1302d9ad0e9070f052db4435f35a2ddd442214aa9ec63` | 601 | 2026-07-20 | Blinded benchmark v3: FAR=0.0, N=700 (REM-009; re-issued 2026-07-20, REM-038) |
 | `results/selective_n500_holdout_results.json` | `eedb8d203d65d5a94aa955d319129e9e27e7e5f48cc527fdbb684c3268e0ed29` | 1670 | 2026-06-01T22:40:21 | Held-out selective accuracy: 88% at 23.2% coverage |
-| `results/selective_n500_results.json` | `34fd54479e54437610226452fefb8aab72c7f8cca0aabf8db3c91828c032c12e` | 12725 | 2026-06-09T22:51:30 | Full N=500 selective trust evaluation |
+| `results/selective_n500_results.json` | `ba838b99eeedcbe707d5ebbac5b21dc63edf4f107efaeaaf423ed390b9ecf1fb` | 12725 | 2026-06-09T22:51:30 | Full N=500 selective trust evaluation |
 | `results/thermodynamic_eval_n500_calibrated_results.json` | `ec2eacf7ff6ce4e79467fed2f6f9f5cb103d6b0faaa97eac3c6f45e1bf97cce2` | 349515 | 2026-06-09T22:51:30 | N=500 thermodynamic calibration (data source for holdout) |
 | `results/phase_aware_guardrail_n544_results.json` | `22961a33638e86be925608eb2301f292d61ac79f9d6f3d62e473cce8ef22e77e` | 4488 | 2026-06-09T22:51:30 | Phase-aware conformal guardrail N=544 |
-| `results/conformal_guardrail_holdout.json` | `f9f77b3eace3aacb831a618f8ed50201482d331148663adaab2b8661da8d501d` | 121621 | 2026-06-09T22:51:30 | Conformal guardrail holdout evaluation |
-| `results/conformal_repeated_splits.json` | `044c89b1076bfab05df8574eadd3a58e3e5bf88b83b8f88f7f42b15a041f9300` | 1164 | 2026-06-30T11:21:09 | Conformal repeated-splits robustness check |
+| `results/conformal_guardrail_holdout.json` | `f2544bc587f6a9dcb1ffc8d2b4d76c8f9129440ab299a69322410114c5bfeb50` | 121621 | 2026-06-09T22:51:30 | Conformal guardrail holdout evaluation |
+| `results/conformal_repeated_splits.json` | `8943001fb76811976c973747e93f6a0c7201c5cb1101cc65aac822730a851c4d` | 1164 | 2026-06-30T11:21:09 | Conformal repeated-splits robustness check |
 | `results/toolcall_benchmark_v2_results.json` | `95e92671971e19fb08cee1d7591f759da3d8da848598ec9fe3bf7543a39e5980` | 17444 | 2026-07-20 | Toolcall benchmark v2: FAR=0.0, N=700 (effective N=70; re-issued 2026-07-20, REM-038) |
 | `results/toolcall_llm_baselines_pilot_n100.json` | `a825fd5b3ce36db086b21b72b15d961d3b0e9915d5aab78ae0b539569cdb287a` | 117701 | 2026-06-29T00:07:39 | LLM baselines pilot N=100 (REM-010) |
 | `results/m1_flag_coverage.json` | `b8c57f5b8e02ca39107695396d38bff4733eb469c058b90549d50bc3bf4e7c6d` | 544 | 2026-06-28T22:45:40 | M1 structural/keyword flag coverage on toolcall_blind_v3 |
