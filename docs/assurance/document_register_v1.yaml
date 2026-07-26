@@ -268,9 +268,9 @@ documents:
   path: docs/archive/DOCUMENTATION_DRIFT_REPORT.md
   version: v1
   status: historical
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-025
   path: docs/archive/academic_evaluation_legacy_2026-05-20.md
   version: v1
@@ -282,23 +282,23 @@ documents:
   path: docs/archive/analysis_report_legacy_2026-05-20.md
   version: v1
   status: historical
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-027
   path: docs/archive/external_review_round2_plan.md
   version: v1
   status: historical
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-028
   path: docs/archive/legacy/agent_governance.md
   version: v1
   status: historical
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-029
   path: docs/archive/legacy/causality.md
   version: v1
@@ -310,16 +310,16 @@ documents:
   path: docs/archive/legacy/selective_trust_curve_proof.md
   version: v1
   status: historical
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-031
   path: docs/archive/remora_infographic_v3_dark.html
   version: v1
   status: historical
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-032
   path: docs/archive/review_round2_closure.md
   version: v1
@@ -332,9 +332,9 @@ documents:
   version: v1
   status: superseded
   superseded_by: docs/benchmarks/toolcall_consensus_benchmark_v2.md
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-034
   path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
   version: v1
@@ -428,9 +428,9 @@ documents:
   version: v1
   status: canonical
   topic: claim-register-machine
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-047
   path: docs/assurance/development_review_log_v1.md
   version: v1
@@ -443,9 +443,9 @@ documents:
   version: v1
   status: canonical
   topic: document-register
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-049
   path: docs/assurance/documentation_governance_v1.md
   version: v1
@@ -524,17 +524,17 @@ documents:
   version: v1
   status: canonical
   topic: release-profiles
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-060
   path: docs/assurance/remediation_register.yaml
   version: v1
   status: canonical
   topic: remediation-register
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-061
   path: docs/assurance/reproducibility_scorecard_v1.md
   version: v1
