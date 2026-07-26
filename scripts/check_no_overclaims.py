@@ -40,6 +40,10 @@ SCAN_FILES = [
     ROOT / "enterprise" / "production-readiness.md",
     ROOT / "docs" / "plain_language_overview.md",
     ROOT / "docs" / "evidence" / "empirical_evidence_record.md",
+    ROOT / "frontend" / "src" / "routes" / "index.tsx",
+    ROOT / "frontend" / "src" / "content" / "whitepaper.ts",
+    ROOT / "frontend" / "src" / "features" / "control-room" / "components" / "DecisionPanel.tsx",
+    ROOT / "frontend" / "src" / "features" / "control-room" / "components" / "ApprovalModal.tsx",
 ]
 
 # ---------------------------------------------------------------------------
@@ -84,6 +88,11 @@ FORBIDDEN: list[tuple[str, str, list[str]]] = [
         r"\bzero\s+(?:false\s+positives?|false\s+negatives?|hallucinations?|errors?)\b",
         "absolute zero false positives/negatives/hallucinations claim",
         ["not ", "nearly", "approaching", "target of", "goal of"],
+    ),
+    (
+        r"\bimmutable\s+audit\b",
+        "immutable audit wording",
+        ["not ", "isn't", "is not", "without"],
     ),
 ]
 

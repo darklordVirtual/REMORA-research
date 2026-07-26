@@ -101,6 +101,7 @@ benchmark:  ## Run all deterministic benchmarks; no API keys required
 	$(PYTHON) experiments/toolcall_v2_significance.py
 	$(PYTHON) experiments/toolcall_v2_calibration_blind.py
 	$(PYTHON) experiments/toolcall_v2_failure_analysis.py
+	$(PYTHON) experiments/evaluate_governance_intelligence.py
 	@echo "\nAll benchmarks completed. Results written to results/"
 
 benchmark-package:  ## Build governance benchmark package

@@ -161,7 +161,7 @@ function ApprovalModalRaw({
                   Note: {reviewerNote}
                 </div>
               )}
-              <div className="mt-2">Logged to immutable audit ledger</div>
+              <div className="mt-2">Logged to tamper-evident audit ledger</div>
             </div>
           </div>
         ) : (
@@ -265,7 +265,7 @@ function ApprovalModalRaw({
                     value={reviewerNote}
                     onChange={(e) => setReviewerNote(e.target.value)}
                     rows={3}
-                    placeholder="Add rationale for immutable audit record…"
+                    placeholder="Add rationale for tamper-evident audit record..."
                     className="w-full resize-none bg-muted/10 border border-border/50 px-3 py-2 font-mono text-[11px] text-foreground/80 placeholder:text-muted-foreground/42 focus:outline-none focus:border-foreground/25 leading-relaxed"
                   />
                 </div>

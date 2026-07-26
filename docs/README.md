@@ -1,237 +1,66 @@
-# REMORA Documentation Index
+# REMORA Dokumentasjons-Indeks
 
-The single, complete documentation index: **every file under `docs/` is listed
-here individually** (enforced by `tests/test_docs_index_coverage.py`, adding a
-document without indexing it fails CI). Gate status lives in one place only:
-[`assurance/release_gates.md`](assurance/release_gates.md). Anything under
-[Archive](#archive-do-not-cite) is historical and must not be cited as current.
+Organisert etter lesesti, ikke etter hierarkisk fil-struktur.
 
-## Start here
+### Trase 1: Forsker / Replikatør
+- [paper/remora_paper.md](../paper/remora_paper.md) (Vitenskapelig Whitepaper/Paper)
+- [06-reproducibility.md](06-reproducibility.md) (Reproduksjonsguide)
+- [03-experiments.md](03-experiments.md)
+- [11-benchmark-validation-plan.md](11-benchmark-validation-plan.md)
+- [12-agentharm-validation.md](12-agentharm-validation.md)
+- [benchmarks/README.md](benchmarks/README.md)
+- [benchmarks/stat_tests.md](benchmarks/stat_tests.md)
+- [benchmarks/toolcall_consensus_benchmark_v2.md](benchmarks/toolcall_consensus_benchmark_v2.md)
+- [results/](../results/) 
+- [figures/](figures/)
+- [results_snapshot.md](results_snapshot.md)
+- [04-negative-results-detail.md](04-negative-results-detail.md)
+- [09-related-work.md](09-related-work.md)
+- [claim_register.md](claim_register.md)
+- [AI_USE.md](AI_USE.md)
 
-| Audience | Read |
-|---|---|
-| Architect / technical reviewer | [`reference_architecture.md`](reference_architecture.md), the assurance control plane, plane by plane, with code pointers |
-| Executive / non-technical | [`executive_onepager.md`](executive_onepager.md) · [`plain_language_overview.md`](plain_language_overview.md) |
-| Reproducing results | [`06-reproducibility.md`](06-reproducibility.md), clone-and-run instructions |
-| Auditing claims | [`02-evidence-and-claims.md`](02-evidence-and-claims.md) · [`claim_register.md`](claim_register.md) · [`../NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md) |
-| Understanding the whole hardening arc | [`assurance/development_review_log_v1.md`](assurance/development_review_log_v1.md), engineering & review log |
+### Trase 2: Sikkerhetsreviewer
+- [08-security.md](08-security.md) (Trusselmodell og security)
+- [SECURITY.md](../SECURITY.md) (Vulnerability disclosures)
+- [01-architecture.md](01-architecture.md) (Arch oversikt og audit)
+- [02-evidence-and-claims.md](02-evidence-and-claims.md)
+- [05-claim-hygiene.md](05-claim-hygiene.md)
+- [failure_analysis.md](failure_analysis.md)
 
-## Core series (the numbered narrative)
+### Trase 3: Integrator
+- [README.md](../README.md) (Quickstart)
+- [10-contributing.md](10-contributing.md)
+- [07-api-reference.md](07-api-reference.md) (API guides)
 
-| File | Purpose |
-|---|---|
-| [`01-architecture.md`](01-architecture.md) | How REMORA works end to end |
-| [`02-evidence-and-claims.md`](02-evidence-and-claims.md) | Headline claims and their artifacts |
-| [`03-experiments.md`](03-experiments.md) | Experiment design and outputs (covers experiments 1–2; deep-dives 3–5 below) |
-| [`04-negative-results-detail.md`](04-negative-results-detail.md) | Deep-dive on the three headline research gaps; defers to [`../NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md) |
-| [`05-claim-hygiene.md`](05-claim-hygiene.md) | The decision rule for adding a claim (canonical) |
-| [`06-reproducibility.md`](06-reproducibility.md) | Reproduce everything from scratch |
-| [`07-api-reference.md`](07-api-reference.md) | Public interfaces |
-| [`08-security.md`](08-security.md) | Security properties and gaps |
-| [`09-related-work.md`](09-related-work.md) | Literature positioning (canonical) |
-| [`10-contributing.md`](10-contributing.md) | Contribution guide incl. forbidden claim phrasing |
-| [`11-benchmark-validation-plan.md`](11-benchmark-validation-plan.md) | External validation plan (canonical) |
-| [`12-agentharm-validation.md`](12-agentharm-validation.md) | AgentHarm validation protocol |
-
-## Architecture
-
-**Canonical architecture:** [`../ARCHITECTURE.md`](../ARCHITECTURE.md) is the single
-authoritative architecture reference. [`01-architecture.md`](01-architecture.md) is the
-end-to-end narrative and [`reference_architecture.md`](reference_architecture.md) details
-the assurance control plane; both defer to `../ARCHITECTURE.md`.
-
-| File | Purpose |
-|---|---|
-| [`../ARCHITECTURE.md`](../ARCHITECTURE.md) | **Canonical** top-level architecture reference (repo root) |
-| [`reference_architecture.md`](reference_architecture.md) | Assurance control plane detail (README "start here"); defers to `../ARCHITECTURE.md` |
-| [`architecture_risk_register.md`](methods/architecture_risk_register.md) | Architecture risk register |
-| [`remora_architecture.html`](remora_architecture.html) | Architecture infographic (HTML asset) |
-| [`decision_envelope_audit.md`](evidence/decision_envelope_audit.md) | DecisionEnvelope audit semantics |
-| [`causal_policy_explanations.md`](evidence/causal_policy_explanations.md) | Causal policy explanations (implemented `remora.causal`): PS/PN, minimal contrastive concept interventions, global attribution — carried on `DecisionEnvelope.causal_explanation` |
-| [`failure_analysis.md`](failure_analysis.md) | Generated v2 tool-call failure analysis (regenerated by `experiments/toolcall_v2_failure_analysis.py`) |
-| [`nested_governance.md`](methods/nested_governance.md) | Nested governance layers and governance forgetting |
-| [`thermodynamic_abs.md`](methods/thermodynamic_abs.md) | Trajectory braking heuristic, including what V(t) does NOT certify |
-
-## Assurance and governance (`assurance/`)
-
-**Live status surfaces**, everything else defers to these:
-
-| File | Purpose |
-|---|---|
-| [`assurance/release_gates.md`](assurance/release_gates.md) | Gate register + elevation record (the authoritative gate status) |
-| [`assurance/remediation_register.yaml`](assurance/remediation_register.yaml) | REM-item register with statuses and artifacts |
-| [`assurance/claim_register_v1.yaml`](assurance/claim_register_v1.yaml) | Machine-readable claim register |
-| [`claim_register.md`](claim_register.md) | Claim register (narrative form) |
-| [`claim_evidence_matrix.md`](evidence/claim_evidence_matrix.md) | Claim → evidence matrix |
-| [`assurance/document_register_v1.yaml`](assurance/document_register_v1.yaml) | Document register: governance status (canonical/generated/supporting/proposal/historical/superseded) for every docs/ file, CI-enforced |
-| [`assurance/release_profiles_v1.yaml`](assurance/release_profiles_v1.yaml) | Machine-checkable deployment-readiness profiles; declared profile CI-validated against register state |
-| [`assurance/documentation_governance_v1.md`](assurance/documentation_governance_v1.md) | Documentation-governance policy: one source of truth per data type, classification, change control |
-
-Process, audits, and specifications:
-
-| File | Purpose |
-|---|---|
-| [`assurance/assurance_case_v1.md`](assurance/assurance_case_v1.md) | Structured safety argument (GSN / Assurance 2.0): goals → controls → evidence → defeaters |
-| [`assurance/best_practice_gap_audit_v1.md`](assurance/best_practice_gap_audit_v1.md) | Roadmap: REMORA graded against the AI-assurance compendium's control stack (implemented / partial / gap / out-of-scope) |
-| [`assurance/human_oversight_operations_v1.md`](assurance/human_oversight_operations_v1.md) | Operational human-oversight design (SLA, escalation taxonomy, alarm-fatigue, on-call); extends REM-021 |
-| [`assurance/aromer_memory_governance_v1.md`](assurance/aromer_memory_governance_v1.md) | AROMER memory-governance policy (write/quarantine/delete lifecycle) |
-| [`assurance/evidence_levels.md`](assurance/evidence_levels.md) | Evidence-level taxonomy (theoretical → externally_validated) |
-| [`assurance/statistical_analysis_plan.md`](assurance/statistical_analysis_plan.md) | Pre-registered statistical analysis plan |
-| [`assurance/reproducibility_scorecard_v1.md`](assurance/reproducibility_scorecard_v1.md) | Reproducibility scorecard |
-| [`assurance/claim_provenance_gate.md`](assurance/claim_provenance_gate.md) | Claim-provenance CI gate documentation |
-| [`assurance/claim_provenance_baseline.json`](assurance/claim_provenance_baseline.json) | Baseline for the claim-provenance checker |
-| [`assurance/artifact_manifest_v1.md`](assurance/artifact_manifest_v1.md) | SHA-256 manifest of result artifacts |
-| [`assurance/artifact_provenance_spec_v1.md`](assurance/artifact_provenance_spec_v1.md) | Artifact provenance specification |
-| [`assurance/benchmark_audit_v1.md`](assurance/benchmark_audit_v1.md) | Benchmark audit record |
-| [`assurance/policy_engine_audit_v1.md`](assurance/policy_engine_audit_v1.md) | Policy engine audit record |
-| [`assurance/rbac_policy_v1.md`](assurance/rbac_policy_v1.md) | RBAC policy (REM-022 artifact) |
-| [`assurance/rbac_design_v1.md`](assurance/rbac_design_v1.md) | RBAC design incl. the recorded closure deviation (REM-023) |
-| [`assurance/ai_assisted_adversarial_security_review_v1.md`](assurance/ai_assisted_adversarial_security_review_v1.md) | AI-assisted adversarial security review disposition (2026-07-03; renamed 2026-07-20, formerly "external security audit") |
-| [`assurance/red_team_plan_v1.md`](assurance/red_team_plan_v1.md) | Red-team plan |
-| [`assurance/threat_model_v1.md`](assurance/threat_model_v1.md) | STRIDE threat model (v1 baseline; EU AI Act Art. 11 technical documentation) |
-| [`assurance/independent_review_protocol_v1.md`](assurance/independent_review_protocol_v1.md) | REM-021 independent-review protocol |
-| [`assurance/domain_pack_governance_v1.md`](assurance/domain_pack_governance_v1.md) | Domain-pack governance rules |
-| [`assurance/resilience_plan_v1.md`](assurance/resilience_plan_v1.md) | Partition + stale-approval resilience: design + implementation (REM-032/033 DONE) |
-| [`assurance/capability_register_v1.yaml`](assurance/capability_register_v1.yaml) | Machine-readable wiring-status register (six-level ladder; CI-validated) |
-| [`assurance/development_review_log_v1.md`](assurance/development_review_log_v1.md) | Engineering & review log, the whole hardening arc, artifact-linked (start here for the story) |
-
-Compliance mappings:
-
-| File | Purpose |
-|---|---|
-| [`governance/nist_ai_rmf_mapping.md`](governance/nist_ai_rmf_mapping.md) | NIST AI RMF control mapping |
-| [`governance/eu_ai_act_nsm_mapping.md`](governance/eu_ai_act_nsm_mapping.md) | EU AI Act (Reg 2024/1689) + NSM Grunnprinsipper control mapping |
-| [`security/owasp_genai_mapping.md`](security/owasp_genai_mapping.md) | OWASP GenAI threat mapping |
-| [`security/pre-deployment-review.md`](security/pre-deployment-review.md) | Pre-deployment security review checklist |
-| [`enterprise/togaf-enterprise-rollout-plan.md`](enterprise/togaf-enterprise-rollout-plan.md) | TOGAF-structured enterprise rollout plan |
-
-## Evidence and benchmarks
-
-| File | Purpose |
-|---|---|
-| [`empirical_evidence_record.md`](evidence/empirical_evidence_record.md) | v4 statistical proof pack (N=302 / N=544) |
-| [`results_snapshot.md`](results_snapshot.md) | Canonical results snapshot |
-| [`benchmarks/README.md`](benchmarks/README.md) | Benchmark index (all benchmarks, artifacts, headline results → claim register) |
-| [`toolcall_consensus_benchmark_v2.md`](benchmarks/toolcall_consensus_benchmark_v2.md) | Tool-call consensus benchmark v2 metrics (claim-audited) |
-| [`stat_tests.md`](benchmarks/stat_tests.md) | Statistical significance table (generated) |
-| [`credibility_pack_repro.md`](validation/credibility_pack_repro.md) | Credibility-pack reproduction notes |
-| [`reproducibility.md`](validation/audit_result_schema.md) | Reproducibility/audit schema notes |
-| [`EXTERNAL_VALIDATION_PLAN.md`](validation/EXTERNAL_VALIDATION_PLAN.md) | External validation plan (summary) |
-| [`external-review.md`](validation/external-review.md) | External review quickstart |
-| [`review_checklist.md`](validation/review_checklist.md) | External reviewer checklist |
-| [`external_validation_report_template.md`](validation/external_validation_report_template.md) | Report template for external validators |
-
-Experiment deep-dives and thermodynamics method docs:
-
-| File | Purpose |
-|---|---|
-| [`experiments/experiment3_phase_transition_study.md`](experiments/experiment3_phase_transition_study.md) | Phase-transition study (experiments 1–2 are in [`03-experiments.md`](03-experiments.md)) |
-| [`experiments/experiment4_susceptibility_validation.md`](experiments/experiment4_susceptibility_validation.md) | Susceptibility validation (incl. refuted fragility hypothesis) |
-| [`experiments/experiment5_chi_iteration_utility.md`](experiments/experiment5_chi_iteration_utility.md) | χ iteration-utility study |
-| [`thermodynamics/README.md`](thermodynamics/README.md) | Thermodynamics-method overview |
-| [`thermodynamics/claim_ledger.yaml`](thermodynamics/claim_ledger.yaml) | Machine-readable thermodynamics claim ledger |
-| [`thermodynamics/limitations.md`](thermodynamics/limitations.md) | Explicit limitations of the thermodynamic framing |
-| [`thermodynamics/runtime_policy.md`](thermodynamics/runtime_policy.md) | Runtime policy for thermodynamic signals |
-| [`thermodynamics/temperature_estimator.md`](thermodynamics/temperature_estimator.md) | Temperature estimator (circularity-free) |
-| [`claims/thermodynamics_claims.yaml`](claims/thermodynamics_claims.yaml) | Thermodynamics claims register |
-
-## AROMER (experimental learning layer)
-
-AROMER metrics are not evidence for the core governance engine, see README
-Limitations.
-
-| File | Purpose |
-|---|---|
-| [`quickstart_aromer.md`](aromer/quickstart_aromer.md) | AROMER quickstart |
-| [`REMORA_AROMER_MASTER_DOCUMENT.md`](aromer/REMORA_AROMER_MASTER_DOCUMENT.md) | Authoritative AROMER technical reference |
-
-## Integrations and operations
-
-| File | Purpose |
-|---|---|
-| [`mcp-integration.md`](integrations/mcp-integration.md) | MCP server: all fourteen tools, policy-gated execution |
-| [`agent_tool_hook.md`](integrations/agent_tool_hook.md) | PreToolUse agent hook |
-| [`rag_oracle.md`](integrations/rag_oracle.md) | RAG oracle reference |
-| [`cloudflare_workers_ai.md`](integrations/cloudflare_workers_ai.md) | Workers AI / LoRA configuration |
-| [`knowledge_domains.md`](integrations/knowledge_domains.md) | Knowledge-domain modules |
-| [`cyber_evidence_layer.md`](integrations/cyber_evidence_layer.md) | Cyber evidence layer |
-| [`go_star_bridge.md`](integrations/go_star_bridge.md) | GO-STAR → REMORA bridge (data contract) |
-| [`gostar_integration.md`](integrations/gostar_integration.md) | GO-STAR integration guide |
-| [`deployment/azure-reference-architecture.md`](deployment/azure-reference-architecture.md) | Azure deployment reference |
-| [`deployment/onprem-airgapped.md`](deployment/onprem-airgapped.md) | On-prem / air-gapped deployment |
-| [`policy_cookbook/README.md`](policy_cookbook/README.md) | Policy cookbook overview |
-| [`policy_cookbook/cloud_ops.md`](policy_cookbook/cloud_ops.md) | Policy recipes: cloud operations |
-| [`policy_cookbook/cyber.md`](policy_cookbook/cyber.md) | Policy recipes: cyber |
-| [`policy_cookbook/database.md`](policy_cookbook/database.md) | Policy recipes: database |
-
-## Use cases (sector scenarios)
-
-Illustrative unless artifact-linked: see the banner in each file.
-
-| File | Sector |
-|---|---|
-| [`use-cases/README.md`](use-cases/README.md) | Sector use cases — concise index (all sectors, illustrative) |
-| [`use-cases/building-automation.md`](use-cases/building-automation.md) | Building automation dry-run demo (transcript verified against the engine by `test_demo_building_lights.py`) |
-| [`use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md`](use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md) | Thermodynamics evidence status (cross-reference) |
-
-## Research notes and proposals
-
-| File | Purpose |
-|---|---|
-| [`research/causal_consequence_gating.md`](research/causal_consequence_gating.md) | Causal consequence gating |
-| [`research/governance_intelligence_layer.md`](research/governance_intelligence_layer.md) | Governance intelligence layer |
-| [`research/misspecification_aware_governance.md`](research/misspecification_aware_governance.md) | Misspecification-aware governance |
-| [`research/policy_generalization_risk.md`](research/policy_generalization_risk.md) | Policy generalization risk |
-| [`research/research_control_matrix_v1.yaml`](research/research_control_matrix_v1.yaml) | Research-control matrix (source): research source → control → code → test → maturity → boundary, per research line (CI-verified paths) |
-| [`research/research_control_matrix.generated.md`](research/research_control_matrix.generated.md) | Research-control matrix (rendered; generated from the YAML, do not edit) |
-| [`theoretical_foundations_proposals_v1.md`](methods/theoretical_foundations_proposals_v1.md) | PROPOSED formal frameworks, roadmap, not implemented claims |
-| `researchpapers/kompendium_ai_assurance_3utgave.md` | Internal AI-assurance compendium (3rd ed.); local-only working reference (gitignored, not published), used by the best-practice gap audit |
-
-## Meta
-
-| File | Purpose |
-|---|---|
-| [`AI_USE.md`](AI_USE.md) | AI-assisted development disclosure |
-| [`authorship_evidence_report.md`](evidence/authorship_evidence_report.md) | Authorship evidence record (intentionally in Norwegian) |
-| `figures/` | 12 PNG figure assets for the evidence docs |
-
-## Non-evidence material (outside `docs/`)
-
-Some repository directories are outreach, demo, or UI assets, not research
-evidence, and should not be cited as such:
-
-| Path | What it is |
-|---|---|
-| `artifacts/use-cases/` | Demo screenshots for the use-case docs (illustration, not benchmark output) |
-| `frontend/` (incl. `.lovable/`) | Control-room UI scaffolding (Lovable / dev tooling) |
-
-Evidence lives under [Evidence and benchmarks](#evidence-and-benchmarks), the
-claim registers, and the `results/` benchmark outputs referenced there.
-
-## Archive (do not cite)
-
-Superseded documents preserved as record; every file carries an ARCHIVED
-banner. Archive-internal links may point to deleted legacy artifacts.
-
-| File | What it was |
-|---|---|
-| [`archive/academic_evaluation_legacy_2026-05-20.md`](archive/academic_evaluation_legacy_2026-05-20.md) | Legacy academic evaluation (2026-05-20) |
-| [`archive/analysis_report_legacy_2026-05-20.md`](archive/analysis_report_legacy_2026-05-20.md) | Legacy analysis report (2026-05-20) |
-| [`archive/DOCUMENTATION_DRIFT_REPORT.md`](archive/DOCUMENTATION_DRIFT_REPORT.md) | Closed documentation-drift report |
-| [`archive/external_review_round2_plan.md`](archive/external_review_round2_plan.md) | Closed review-round-2 plan |
-| [`archive/review_round2_closure.md`](archive/review_round2_closure.md) | Review-round-2 closure record |
-| [`archive/toolcall_consensus_benchmark_v1.md`](archive/toolcall_consensus_benchmark_v1.md) | Tool-call benchmark v1 (superseded by v2) |
-| [`archive/remora_infographic_v3_dark.html`](archive/remora_infographic_v3_dark.html) | v3 infographic asset |
-| [`archive/legacy/agent_governance.md`](archive/legacy/agent_governance.md) | Legacy agent-governance notes |
-| [`archive/legacy/causality.md`](archive/legacy/causality.md) | Legacy causality notes |
-| [`archive/legacy/selective_trust_curve_proof.md`](archive/legacy/selective_trust_curve_proof.md) | Legacy selective-trust proof draft |
-
----
-
-**Conventions.** One live status surface per fact (gates →
-[`assurance/release_gates.md`](assurance/release_gates.md); claims → the claim
-registers; current metrics → repository README). Dated snapshots carry a
-`HISTORICAL SNAPSHOT` banner and are never edited. Duplicate topics resolve to
-the numbered series as canonical; loose-file stubs forward to them so older
-links and tooling paths keep resolving. Every new document must be added to
-this index, `tests/test_docs_index_coverage.py` fails CI otherwise.
+### Trase 4: Evaluator / Due Diligence (Level D)
+- [assurance/document_register_v1.yaml](assurance/document_register_v1.yaml) (Registrert Doc Truth)
+- [assurance/claim_register_v1.yaml](assurance/claim_register_v1.yaml) (Kilde)
+- [assurance/remediation_register.yaml](assurance/remediation_register.yaml)
+- [assurance/capability_register_v1.yaml](assurance/capability_register_v1.yaml)
+- [assurance/release_profiles_v1.yaml](assurance/release_profiles_v1.yaml)
+- [assurance/assurance_case_v1.md](assurance/assurance_case_v1.md)
+- [assurance/development_review_log_v1.md](assurance/development_review_log_v1.md)
+- [assurance/evidence_levels.md](assurance/evidence_levels.md)
+- [assurance/artifact_manifest_v1.md](assurance/artifact_manifest_v1.md)
+- [assurance/ai_assisted_adversarial_security_review_v1.md](assurance/ai_assisted_adversarial_security_review_v1.md)
+- [assurance/aromer_memory_governance_v1.md](assurance/aromer_memory_governance_v1.md)
+- [assurance/artifact_provenance_spec_v1.md](assurance/artifact_provenance_spec_v1.md)
+- [assurance/benchmark_audit_v1.md](assurance/benchmark_audit_v1.md)
+- [assurance/best_practice_gap_audit_v1.md](assurance/best_practice_gap_audit_v1.md)
+- [assurance/claim_provenance_baseline.json](assurance/claim_provenance_baseline.json)
+- [assurance/claim_provenance_gate.md](assurance/claim_provenance_gate.md)
+- [assurance/documentation_governance_v1.md](assurance/documentation_governance_v1.md)
+- [assurance/domain_pack_governance_v1.md](assurance/domain_pack_governance_v1.md)
+- [assurance/human_oversight_operations_v1.md](assurance/human_oversight_operations_v1.md)
+- [assurance/independent_review_protocol_v1.md](assurance/independent_review_protocol_v1.md)
+- [assurance/policy_engine_audit_v1.md](assurance/policy_engine_audit_v1.md)
+- [assurance/rbac_design_v1.md](assurance/rbac_design_v1.md)
+- [assurance/rbac_policy_v1.md](assurance/rbac_policy_v1.md)
+- [assurance/red_team_plan_v1.md](assurance/red_team_plan_v1.md)
+- [assurance/release_gates.md](assurance/release_gates.md)
+- [assurance/reproducibility_scorecard_v1.md](assurance/reproducibility_scorecard_v1.md)
+- [assurance/resilience_plan_v1.md](assurance/resilience_plan_v1.md)
+- [assurance/statistical_analysis_plan.md](assurance/statistical_analysis_plan.md)
+- [assurance/threat_model_v1.md](assurance/threat_model_v1.md)
+- [executive_onepager.md](executive_onepager.md)
+- [plain_language_overview.md](plain_language_overview.md)

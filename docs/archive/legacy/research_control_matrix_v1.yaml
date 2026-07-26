@@ -1,0 +1,386 @@
+# REMORA Research Control Matrix v1
+# Single machine-readable source of truth for the chain:
+#   research source -> idea -> REMORA control -> code -> test -> evidence
+#   -> maturity -> scope boundary
+#
+# Every `code` and `tests` path is verified to exist by
+# scripts/generate_research_control_matrix.py --check and
+# tests/test_research_control_matrix.py. The rendered view is
+# docs/research/research_control_matrix.generated.md (regenerated, never
+# hand-edited). This makes the research grounding drift-proof: a moved or
+# deleted module fails CI, and the literature positioning stays in one place
+# (docs/09-related-work.md is the narrative companion, this file is the map).
+#
+# maturity vocabulary:
+#   implemented_and_tested - a REMORA module implements the idea, with tests
+#   reference_design       - documented/exemplified only (no dedicated module)
+#
+# Citation binding (keeps the mapping exact, not merely plausible):
+#   in_code_citation: true  -> the source is cited inside the code itself, and
+#     `citation_anchor` (an author surname / arXiv id) MUST appear verbatim in
+#     at least one of the entry's `code` files. CI fails if it does not, so a
+#     citation cannot drift away from the code that implements it.
+#   in_code_citation: false -> an idea-family or generic-construct line with no
+#     single named source cited in code; the attribution lives in the narrative
+#     companion docs/09-related-work.md, not in a code docstring.
+#
+# Scope: this matrix maps the research lines REMORA actually implements, with
+# code + tests on disk. It is deliberately NOT a map of the entire literature
+# landscape (that broader catalogue is a separate local working document);
+# adding a line here requires real, verified code and tests.
+#
+# Landscape crosswalk (added 2026-07-21): the broader catalogue is the local-only
+# AI-assurance compendium docs/researchpapers/kompendium_ai_assurance_3utgave.md
+# (gitignored, ~201 works). Two optional fields make the relationship to that
+# landscape explicit WITHOUT turning it into an implementation claim:
+#   compendium_refs: [ids]  -> the compendium work-ids this line draws on. These
+#     are reference pointers, not code citations: validated locally when the
+#     compendium file is present (a listed id must appear in it) and SKIPPED in
+#     CI where the gitignored file is absent. Presence here never implies the
+#     work is implemented — only that it informs the line.
+#   compendium_note: "..."  -> used when a line has no anchor in the local
+#     landscape, to state honestly WHY (e.g. its sources sit outside the
+#     compendium's scope) instead of leaving the gap unexplained.
+# The top-level `landscape:` block below records which whole areas of the
+# compendium REMORA deliberately does NOT implement, and why — so the boundary
+# is documented, not invisible.
+
+schema_version: "1"
+updated: "2026-07-21"
+
+maturity_levels:
+  - implemented_and_tested
+  - reference_design
+
+entries:
+  - id: RES-001
+    title: "Causal post-hoc explainability and concept interventions"
+    source:
+      citation: "Bjøru, A. R. (2026). Causal Post-hoc Explainable AI (PhD thesis), NTNU."
+      sections:
+        - "Paper IV §3 (concept-based externally-causal XAI)"
+        - "Paper IV §4.2.1 (global explanation by dataset averaging)"
+        - "Paper IV §4.2.2-§4.2.3 (Probability of Sufficiency / Necessity)"
+        - "Paper IV §4.2.4 (minimal contrastive explanation search)"
+      builds_on:
+        - "Pearl, J. (2009). Causality (2nd ed.), ch. 9 (PS/PN definitions)."
+        - "Galhotra, Pradhan & Salimi (2021), SIGMOD (contrastive explanations)."
+    concepts:
+      - concept_based_external_causal_xai
+      - probability_of_sufficiency
+      - probability_of_necessity
+      - minimal_contrastive_intervention
+      - global_concept_attribution
+    controls:
+      - causal_policy_explanation
+    code:
+      - remora/causal/schema.py
+      - remora/causal/search.py
+      - remora/causal/attribution.py
+      - remora/causal/explanation.py
+    tests:
+      - tests/test_causal.py
+      - tests/test_causal_search_attribution.py
+    evidence: "PS/PN in {0,1}, minimality, verdict-change, and global mean-PS ordering are unit-tested; result carried on DecisionEnvelope.causal_explanation."
+    maturity: implemented_and_tested
+    scope_boundary: "Policy causality only: counterfactuals evaluated against the policy model, not the world. No real-world causal-effect or safety claim."
+    related_work_section: "docs/09-related-work.md §9"
+    in_code_citation: true
+    citation_anchor: "Bjøru"
+    compendium_refs: []
+    compendium_note: "No anchor in the local compendium: its interpretability chapter covers mechanistic interpretability (superposition, monosemanticity, circuit tracing), not causal post-hoc concept XAI. This line's sources (Bjøru 2026; Pearl; Galhotra et al.) sit outside the compendium's scope."
+
+  - id: RES-002
+    title: "Selective prediction and abstention"
+    source:
+      citation: "Idea family (no single named source in-repo): selective classification / reject option, risk-coverage curves, calibrated abstention."
+      sections: []
+    concepts:
+      - selective_classification
+      - reject_option
+      - risk_coverage_curve
+      - calibrated_abstention
+    controls:
+      - phase_aware_guardrail
+      - selective_routing
+    code:
+      - remora/selective/guardrail.py
+      - remora/selective/conformal.py
+      - remora/selective/risk_coverage.py
+    tests:
+      - tests/test_guardrail.py
+      - tests/test_selective_trust_curve.py
+      - tests/test_selective_n500.py
+    evidence: "N302 and N500 selective-acceptance experiments; benchmark-scoped selective-trust results with Wilson CIs."
+    maturity: implemented_and_tested
+    scope_boundary: "Benchmark-scoped selective trust; no universal out-of-distribution safety guarantee."
+    related_work_section: "docs/09-related-work.md §1"
+    in_code_citation: false
+    compendium_refs:
+      - selective-2017
+      - gentle-conformal-2021
+      - ltt-2021
+
+  - id: RES-003
+    title: "Conformal risk control"
+    source:
+      citation: "Angelopoulos, A. N., Bates, S., Fisch, A., Lei, L., & Schuster, T. (2022). Conformal risk control. arXiv:2208.02814."
+      sections:
+        - "Theorem 1 (referenced in remora/selective/crc.py)"
+    concepts:
+      - split_conformal_calibration
+      - finite_sample_risk_control
+      - repeated_split_robustness
+    controls:
+      - conformal_thresholding
+    code:
+      - remora/selective/crc.py
+      - remora/selective/binomial_bounds.py
+    tests:
+      - tests/test_crc.py
+      - tests/test_conformal_repeated_splits.py
+      - tests/test_binomial_bounds.py
+    evidence: "Repeated-split robustness artifacts and negative results preserved in the claim ledger; treated as exchangeability-dependent."
+    maturity: implemented_and_tested
+    scope_boundary: "Guarantees hold under exchangeability; repeated-split failures are recorded as negative evidence, not hidden."
+    related_work_section: "docs/09-related-work.md §2"
+    in_code_citation: true
+    citation_anchor: "Angelopoulos"
+    compendium_refs:
+      - conformal-risk-2022
+      - ltt-2021
+
+  - id: RES-004
+    title: "Multi-oracle consensus and cross-model verification"
+    source:
+      citation: "Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents."
+      sections:
+        - "cited at remora/cascade/stages.py (self-consistency, mixture-of-agents synthesizer)"
+    concepts:
+      - self_consistency_sampling
+      - verifier_model
+      - cross_model_dissensus
+      - multi_agent_debate
+    controls:
+      - multi_oracle_consensus
+      - independent_verifier_gate
+    code:
+      - remora/cascade/stages.py
+      - remora/verifier/llm_judge.py
+      - remora/oracles/diversity.py
+    tests:
+      - tests/test_moa_synthesizer.py
+      - tests/test_llm_judge.py
+      - tests/test_oracle_diversity.py
+    evidence: "Majority, self-consistency, verifier, and REMORA tool-call baselines; consensus combined with evidence, policy, risk, and audit."
+    maturity: implemented_and_tested
+    scope_boundary: "Consensus is not treated as truth; it is one input among evidence, policy, risk, and audit."
+    related_work_section: "docs/09-related-work.md §3"
+    in_code_citation: true
+    citation_anchor: "Wang et al."
+    compendium_refs:
+      - llm-uq-survey-2023
+    compendium_note: "Weak landscape anchor: the compendium treats cross-model consistency/verification only via the confidence-and-calibration survey (llm-uq-survey-2023); the specific self-consistency and mixture-of-agents sources this line cites are not catalogued there."
+
+  - id: RES-005
+    title: "Tool-use safety and agent guardrails"
+    source:
+      citation: "Idea family (no single named source in-repo): tool-invocation safety, dry-run/sandboxed evaluation, critical-action routing, prompt-injection benchmarks."
+      sections: []
+    concepts:
+      - tool_invocation_safety
+      - dry_run_sandbox
+      - critical_action_routing
+    controls:
+      - toolcall_gate
+      - action_type_mapping
+    code:
+      - remora/toolcall/remora_gate.py
+      - remora/toolcall/schema.py
+      - remora/toolcall/scoring.py
+    tests:
+      - tests/test_remora_toolcall_gate.py
+      - tests/test_remora_toolcall_gate_v2.py
+      - tests/test_toolcall_scoring.py
+    evidence: "Deterministic tool-call benchmark v1 (ceiling effect, documented), adversarial v2 (effective N=70, cluster-level CIs)."
+    maturity: implemented_and_tested
+    scope_boundary: "v2 provides deterministic adversarial evidence, not production proof; live validation is a separate requirement."
+    related_work_section: "docs/09-related-work.md §4"
+    in_code_citation: false
+    compendium_refs:
+      - agentharm-2024
+      - agentdojo-2024
+      - injecagent-2024
+      - agent-safety-bench-2024
+
+  - id: RES-006
+    title: "Evidence grounding and retrieval-augmented verification"
+    source:
+      citation: "Idea family (no single named source in-repo): RAG evidence lookup, source reliability, per-claim support/contradiction, NLI-style verification."
+      sections: []
+    concepts:
+      - retrieval_augmented_verification
+      - per_claim_support_contradiction
+      - nli_style_entailment
+    controls:
+      - evidence_verifier
+    code:
+      - remora/oracles/evidence_v3.py
+      - remora/oracles/evidence_verifier.py
+    tests:
+      - tests/test_evidence_v3.py
+      - tests/test_evidence_verifier.py
+    evidence: "Lexical default verifier with a pluggable NLI-style interface; falls back to lexical when no NLI backend is configured."
+    maturity: implemented_and_tested
+    scope_boundary: "Default verifier is lexical plus simple contradiction signals; semantic-entailment quality is not demonstrated by committed artifacts."
+    related_work_section: "docs/09-related-work.md §5"
+    in_code_citation: false
+    compendium_refs:
+      - rag-2020
+      - self-rag-2023
+
+  - id: RES-007
+    title: "Statistical-physics control signals (entropy, phase, Lyapunov)"
+    source:
+      citation: "Generic statistical-physics constructs (q-state Potts model, Gibbs/Boltzmann distribution, Lyapunov objective) used as operational analogy."
+      sections: []
+    concepts:
+      - entropy_order_parameter
+      - phase_regime_classification
+      - lyapunov_stability
+    controls:
+      - phase_classification
+      - thermodynamic_braking
+    code:
+      - remora/statphys/potts.py
+      - remora/thermodynamics.py
+      - remora/policy/thermodynamic_braking.py
+    tests:
+      - tests/test_statphys.py
+      - tests/test_thermodynamics.py
+      - tests/test_thermodynamic_braking.py
+    evidence: "Phase classification (ordered/critical/disordered) and selective-trust routing; explicit caveats (e.g. 'real oracles are not Potts spins')."
+    maturity: implemented_and_tested
+    scope_boundary: "Physics language is an operational analogy and feature family; some theoretical claims remain not-demonstrated or explicitly negative in the claim ledger."
+    related_work_section: "docs/09-related-work.md §6"
+    in_code_citation: false
+    compendium_refs: []
+    compendium_note: "No anchor in the local compendium: the statistical-physics control signals (q-state Potts, Gibbs/Boltzmann, Lyapunov) are used as an operational analogy specific to REMORA and are not a catalogued research area in the assurance landscape."
+
+  - id: RES-008
+    title: "Nested learning, context flow, continuum memory"
+    source:
+      citation: "Behrouz, Razaviyayn, Zhong & Mirrokni, Nested Learning: The Illusion of Deep Learning Architecture (https://abehrouz.github.io/files/NL.pdf); Google Research blog, 2025-11-07."
+      sections: []
+    concepts:
+      - nested_learning
+      - context_flow
+      - continuum_memory
+      - governed_self_modification
+    controls:
+      - context_flow_governance
+      - governed_memory_layers
+      - reviewed_policy_proposals
+    code:
+      - remora/governance/context_flow.py
+      - remora/governance/memory_layers.py
+      - remora/governance/nested_governance.py
+    tests:
+      - tests/test_governance_context_flow.py
+      - tests/test_governance_memory_layers.py
+      - tests/test_nested_governance.py
+    evidence: "Context flow as a governed information stream; update frequency as a policy boundary; self-modification as reviewed policy proposals."
+    maturity: implemented_and_tested
+    scope_boundary: "Does not implement the Hope architecture, does not train foundation models, does not claim to solve catastrophic forgetting."
+    related_work_section: "docs/09-related-work.md §7"
+    in_code_citation: false
+    compendium_refs: []
+    compendium_note: "No anchor in the local compendium: the Nested Learning source (Behrouz et al., 2025) is newer than / outside the compendium's catalogue. REMORA implements only the governance framing (context-flow, reviewed memory layers), not the architecture itself."
+
+  - id: RES-009
+    title: "Enterprise AI governance and audit"
+    source:
+      citation: "Idea family (no single named source in-repo): policy-as-code, role/authority boundaries, human-approval workflows, audit ledgers, fail-closed deployment."
+      sections: []
+    concepts:
+      - policy_as_code
+      - human_approval_workflow
+      - audit_ledger
+      - fail_closed_deployment
+    controls:
+      - enterprise_rollout_reference
+    code:
+      - docs/enterprise/togaf-enterprise-rollout-plan.md
+      - examples/enterprise_demo.py
+    tests: []
+    evidence: "TOGAF-structured rollout plan and a runnable enterprise demo; the governance primitives themselves are tested under RES-001..008 and the capability register."
+    maturity: reference_design
+    scope_boundary: "Reference/design grade: not a production-certified enterprise product; must be validated in the target organization before enforcement."
+    related_work_section: "docs/09-related-work.md §8"
+    in_code_citation: false
+    compendium_refs:
+      - nist-ai-rmf-2023
+      - iso-42001-2023
+      - eu-ai-act-2024
+      - governing-agents-2023
+      - visibility-agents-2024
+      - infra-agents-2025
+
+  - id: RES-010
+    title: "Anytime-valid confidence sequences (optional-stopping-safe monitoring)"
+    source:
+      citation: "Howard, S. R., Ramdas, A., McAuliffe, J. & Sekhon, J. (2021). Time-uniform, nonparametric, nonasymptotic confidence sequences."
+      sections:
+        - "Conjugate-mixture (Beta-binomial) supermartingale; Ville's inequality (cited in remora/selective/confidence_sequence.py)"
+      builds_on:
+        - "Ramdas, Grünwald, Vovk & Shafer (2023). Game-theoretic statistics and safe anytime-valid inference. Statistical Science 38(4)."
+        - "Waudby-Smith & Ramdas (2024). Estimating means of bounded random variables."
+    concepts:
+      - time_uniform_confidence_sequence
+      - anytime_valid_inference
+      - optional_stopping_safety
+    controls:
+      - continuous_far_monitoring
+    code:
+      - remora/selective/confidence_sequence.py
+    tests:
+      - tests/test_confidence_sequence.py
+    evidence: "Used by REM-020 to monitor the operational false-accept rate continuously without inflating the coverage guarantee under optional stopping (peeking); supplementary anytime-valid FAR bound in results/far_confidence_sequence_v1.json (CLAIM-011)."
+    maturity: implemented_and_tested
+    scope_boundary: "A time-uniform Bernoulli-rate bound, distinct from the split-conformal risk control of RES-003; conservative by construction and valid only under the stated Beta-binomial mixture assumptions."
+    related_work_section: "docs/09-related-work.md §2"
+    in_code_citation: true
+    citation_anchor: "Howard"
+    compendium_refs:
+      - confidence-seq-2021
+      - game-theoretic-stat-2023
+
+# ── Landscape coverage ──────────────────────────────────────────────────────
+# Whole areas of the local AI-assurance compendium that REMORA deliberately does
+# NOT implement as controls. Recording them here makes the scope boundary
+# explicit and auditable: "not mapped" is a documented decision, not an oversight.
+# These are honest boundaries, not roadmap promises.
+landscape:
+  source: "docs/researchpapers/kompendium_ai_assurance_3utgave.md"
+  source_status: "local-only working document (gitignored, not published; ~201 works, 2. edition figure). compendium_refs are validated against this file when present locally and skipped in CI where it is absent."
+  not_implemented:
+    - theme: "Formal methods, neural-network verification, guaranteed-safe AI"
+      compendium_chapter: "Ch. 8 (formal methods, verification, guaranteed safety)"
+      representative_refs: [reluplex-2017, shielding-2018, guaranteed-safe-2024]
+      reason: "REMORA verifies its policy layer by tests and deterministic invariants, not by formal proof. Neural-network verification and proof-carrying guarantees are out of scope; the safety floor is a policy property, not a proved model property."
+    - theme: "Provenance, workload identity, software supply chain"
+      compendium_chapter: "Ch. 7 (provenance, identity, supply chain)"
+      representative_refs: [slsa-v1, in-toto-2019, spiffe-spec, c2pa-spec]
+      reason: "REMORA provides a tamper-evident DecisionEnvelope hash chain, not SBOM/ML-BOM, artifact signing, or SPIFFE-style workload identity. Supply-chain and identity attestation are assumed to be provided by the host environment."
+    - theme: "Fairness, differential privacy, training-data protection"
+      compendium_chapter: "Ch. 9 (fairness, privacy, data protection)"
+      representative_refs: [dp-sgd-2016, membership-inference-2017, gdpr-2016]
+      reason: "REMORA governs execution permission at inference time, not model training. Differential privacy, membership-inference defence, and fairness-metric selection are out of scope; the governed agent's model is treated as given."
+    - theme: "MLOps, distributed-systems foundations, production drift"
+      compendium_chapter: "Ch. 6 (MLOps, system design, production operations)"
+      representative_refs: [sculley-debt-2015, mlops-2022, sre-2016]
+      reason: "REMORA is a pre-execution governance overlay, not an MLOps platform. Data pipelines, SRE error budgets, and deployment infrastructure are the host's responsibility; REMORA consumes them rather than providing them."
+    - theme: "Mechanistic interpretability (model-internal feature analysis)"
+      compendium_chapter: "Ch. 2 (interpretability subset)"
+      representative_refs: [monosemanticity-2023, scaling-monosem-2024, biology-of-llm-2025]
+      reason: "REMORA's causal explanation (RES-001) is post-hoc over the policy model, not model-internal feature/circuit analysis. Mechanistic interpretability of the governed model is out of scope."

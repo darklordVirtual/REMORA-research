@@ -66,7 +66,7 @@ function DecisionPanelRaw({
     ESCALATE: [
       "Agent paused — human authority required at this threshold",
       "Work order or notification drafted for responsible engineer",
-      "Immutable audit entry written with blocking reason",
+      "Tamper-evident audit entry written with blocking reason",
       "No autonomous action taken under any circumstances",
     ],
   };
@@ -178,7 +178,7 @@ function DecisionPanelRaw({
               Human approval required
             </div>
             <div className="font-mono text-[11px] text-state-escalate/40 mt-1">
-              Immutable audit hash attached
+              Tamper-evident audit hash attached
             </div>
           </div>
         </div>

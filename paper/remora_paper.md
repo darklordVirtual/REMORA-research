@@ -80,7 +80,7 @@ Guo et al. (2017) showed that modern neural networks are miscalibrated (Guo et a
 
 ### 2.7 AI Governance and Policy-as-Code
 
-Algorithmic-audit scholarship emphasizes the importance of institutionalized third-party oversight and audit-system design (Raji et al., 2022). Raji et al. identify lack of audit data access as "the most significant vulnerability of the current AI audit ecosystem" (§4.3) and propose post-audit transparency registries (§4.5). REMORA's DecisionEnvelope directly addresses the access gap by logging each governance decision with immutable hash-chaining; the Replay Engine instantiates the transparency registry by publishing governance episodes for third-party inspection. Regulatory requirements for high-risk AI systems, including documentation, logging, and human oversight, are grounded separately in the EU AI Act (European Parliament, 2024). Open Policy Agent (OPA) (Styra, 2024) provides a production-grade policy engine using the Rego declarative language. REMORA integrates an OPA adapter, failing closed to a Python fallback when the OPA daemon is unavailable, as a concrete instantiation of policy-as-code for AI decisions.
+Algorithmic-audit scholarship emphasizes the importance of institutionalized third-party oversight and audit-system design (Raji et al., 2022). Raji et al. identify lack of audit data access as "the most significant vulnerability of the current AI audit ecosystem" (§4.3) and propose post-audit transparency registries (§4.5). REMORA's DecisionEnvelope directly addresses the access gap by logging each governance decision with immutable hash-chaining; the Replay Engine instantiates the transparency registry by publishing governance episodes for third-party inspection. Regulatory requirements for high-risk AI systems, including documentation, logging, and human oversight, are grounded separately in the EU AI Act (European Parliament, 2024). Open Policy Agent (OPA) (Styra, 2024) provides a widely used policy engine using the Rego declarative language. REMORA integrates an OPA adapter, failing closed to a Python fallback when the OPA daemon is unavailable, as a concrete instantiation of policy-as-code for AI decisions.
 
 ### 2.8 Assurance Cases
 
@@ -569,6 +569,8 @@ The disordered phase accounts for 75.9% of the benchmark, driving the low full-c
 †Policy gate primarily affects coverage (abstention rate) rather than per-accepted-item accuracy.
 
 **Note:** This is an exploratory ablation; not used as a headline claim. Per-item records are available in `ablation_v2_results.json` for independent verification. Headline claims are restricted to results fully verifiable from top-level artifact keys (see claim ledger).
+
+Canonical benchmark headline snapshot (artifact-bound, one-decimal rendering): A single-oracle accuracy 57.0%, B majority-vote accuracy 82.8%, C REMORA accuracy 69.5%, D2 balanced accuracy 82.1%, D3 hybrid accuracy 76.2%, C ETR 12.9%, D2 ETR 43.4%, D3 ETR 40.7%.
 
 ### 10.3 Tool-Call Benchmark (N=700)
 
@@ -1437,7 +1439,7 @@ implemented.
 | 7 | Does REMORA prevent hallucination? | No. REMORA does not verify the factual content of oracle responses. It measures agreement, uncertainty, and policy conditions. A confident, unanimous hallucination in the ordered phase would receive ACCEPT. REMORA prevents unsafe *execution* decisions when uncertainty or policy conditions are not met; it does not detect *factual errors* per se. |
 | 8 | Is the evidence router actually evidence-based? | In the current implementation, the evidence signal is built from oracle consensus statistics, a proxy. The MultiNLI evaluation measures the routing logic against NLI labels, which is a reasonable proxy for evidence-verification but not equivalent to field evidence or document retrieval. |
 | 9 | What prevents an adversary from injecting the trust score? | The trust score is computed internally from oracle responses; it is not user-supplied. However, an adversary who can influence the oracle responses (e.g., via prompt injection through external data) could manipulate the consensus and thus the trust score. The adversarial firewall catches known injection patterns; sophisticated attacks may bypass it. |
-| 10 | Is this production-ready for safety-critical systems? | No. This is explicitly a research-grade prototype. Production deployment requires: semantic evidence retrieval, WORM audit storage, OPA daemon deployment, domain-authority policy validation, security hardening of the oracle API integration, and formal safety case development under applicable standards. |
+| 10 | Is this deployable today for safety-critical systems? | No. This is explicitly a research-grade prototype. Production deployment requires: semantic evidence retrieval, WORM audit storage, OPA daemon deployment, domain-authority policy validation, security hardening of the oracle API integration, and formal safety case development under applicable standards. |
 
 ---
 

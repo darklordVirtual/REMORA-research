@@ -311,8 +311,8 @@ determinism.  Falls back to sequential execution on error.
         verdicts: list[tuple[str, CanonicalVerdict]] = [
             (r.provider, phi(r.extracted)) for r in valid_responses
         ]
-        rho_bar = self._mean_rho([provider for provider, _ in verdicts])
         self.correlation.observe(verdicts)
+        rho_bar = self._mean_rho([provider for provider, _ in verdicts])
 
         polarity_votes: dict = {}
         confidences: list[float] = []
@@ -1042,7 +1042,7 @@ def _state_hash(state: RemoraState) -> str:
     snap = {"q": state.question, "iter": state.iteration,
         "candidates": sorted(state.candidates.keys()), "falsified": sorted(state.falsified),
         "support": sorted(state.candidate_support.items())}
-    return hashlib.sha256(json.dumps(snap, sort_keys=True).encode()).hexdigest()[:16]
+    return hashlib.sha256(json.dumps(snap, sort_keys=True).encode()).hexdigest()
 
 
 def _build_envelope(state: RemoraState, obs: object, decision: object, rep: dict):

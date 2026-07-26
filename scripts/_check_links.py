@@ -32,7 +32,7 @@ SCAN_DIRS = ["docs", "artifacts"]
 # source location, not from inside the bundle. Validating them here would flag
 # every copied link as broken, so the bundle is excluded (its files are checked
 # in their canonical location).
-EXCLUDE_PARTS = {".git", "node_modules", "governance-benchmark-pack"}
+EXCLUDE_PARTS = {".git", "node_modules", "governance-benchmark-pack", "archive"}
 
 # [text](href) with badge-aware text (one level of nested brackets) and a
 # whitespace/paren-free destination.
