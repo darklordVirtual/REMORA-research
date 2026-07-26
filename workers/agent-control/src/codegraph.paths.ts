@@ -153,7 +153,6 @@ export const CODEGRAPH_PATHS = [
   'docs/thermodynamics/runtime_policy.md',
   'docs/thermodynamics/selective_trust_curve_proof.md',
   'docs/thermodynamics/temperature_estimator.md',
-  'docs/benchmarks/toolcall_benchmarks.md',
   'docs/toolcall_consensus_benchmark.md',
   'docs/benchmarks/toolcall_consensus_benchmark_v2.md',
   'docs/use-cases/01-healthcare.md',
@@ -862,9 +861,5 @@ export const CODEGRAPH_PATHS = [
   'scripts/run_agentharm_trimode.py',
   'workers/aromer/src/index.ts',
   'workers/aromer/wrangler.toml',
-  'docs/benchmarks/agentharm_live_benchmark.md',
-  'docs/benchmarks/agentharm_trimode_benchmark.md',
-  'docs/benchmarks/domain_benchmark.md',
   'docs/integrations/go_star_bridge.md',
-  'docs/benchmarks/live_benchmark.md',
 ] as const;

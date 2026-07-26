@@ -280,20 +280,13 @@ documents:
   - path: docs/results_snapshot.md
     status: generated
     generated_by: scripts/generate_results_snapshot.py
-  - path: docs/benchmarks/toolcall_benchmarks.md
+  - path: docs/benchmarks/README.md
     status: supporting
   - path: docs/benchmarks/toolcall_consensus_benchmark_v2.md
     status: supporting
-  - path: docs/benchmarks/agentharm_live_benchmark.md
-    status: supporting
-  - path: docs/benchmarks/agentharm_trimode_benchmark.md
-    status: supporting
-  - path: docs/benchmarks/domain_benchmark.md
-    status: supporting
-  - path: docs/benchmarks/live_benchmark.md
-    status: supporting
   - path: docs/benchmarks/stat_tests.md
-    status: supporting
+    status: generated
+    generated_by: scripts/statistical_tests.py
   - path: docs/validation/credibility_pack_repro.md
     status: supporting
   - path: docs/validation/audit_result_schema.md

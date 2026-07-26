@@ -111,13 +111,9 @@ Compliance mappings:
 |---|---|
 | [`empirical_evidence_record.md`](evidence/empirical_evidence_record.md) | v4 statistical proof pack (N=302 / N=544) |
 | [`results_snapshot.md`](results_snapshot.md) | Canonical results snapshot |
-| [`toolcall_benchmarks.md`](benchmarks/toolcall_benchmarks.md) | Tool-call benchmark overview |
-| [`toolcall_consensus_benchmark_v2.md`](benchmarks/toolcall_consensus_benchmark_v2.md) | Tool-call consensus benchmark v2 (current) |
-| [`agentharm_live_benchmark.md`](benchmarks/agentharm_live_benchmark.md) | AgentHarm live-oracle benchmark |
-| [`agentharm_trimode_benchmark.md`](benchmarks/agentharm_trimode_benchmark.md) | AgentHarm three-mode benchmark |
-| [`domain_benchmark.md`](benchmarks/domain_benchmark.md) | Cross-domain benchmark |
-| [`live_benchmark.md`](benchmarks/live_benchmark.md) | Live oracle benchmark |
-| [`stat_tests.md`](benchmarks/stat_tests.md) | Statistical test inventory |
+| [`benchmarks/README.md`](benchmarks/README.md) | Benchmark index (all benchmarks, artifacts, headline results → claim register) |
+| [`toolcall_consensus_benchmark_v2.md`](benchmarks/toolcall_consensus_benchmark_v2.md) | Tool-call consensus benchmark v2 metrics (claim-audited) |
+| [`stat_tests.md`](benchmarks/stat_tests.md) | Statistical significance table (generated) |
 | [`credibility_pack_repro.md`](validation/credibility_pack_repro.md) | Credibility-pack reproduction notes |
 | [`reproducibility.md`](validation/audit_result_schema.md) | Reproducibility/audit schema notes |
 | [`EXTERNAL_VALIDATION_PLAN.md`](validation/EXTERNAL_VALIDATION_PLAN.md) | External validation plan (summary) |
