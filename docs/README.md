@@ -170,15 +170,7 @@ Illustrative unless artifact-linked: see the banner in each file.
 
 | File | Sector |
 |---|---|
-| [`use-cases/README.md`](use-cases/README.md) | Overview and shared caveats |
-| [`use-cases/01-healthcare.md`](use-cases/01-healthcare.md) | Healthcare |
-| [`use-cases/02-legal-compliance.md`](use-cases/02-legal-compliance.md) | Legal & compliance |
-| [`use-cases/03-financial.md`](use-cases/03-financial.md) | Financial services |
-| [`use-cases/04-energy.md`](use-cases/04-energy.md) | Energy |
-| [`use-cases/05-security.md`](use-cases/05-security.md) | Security operations |
-| [`use-cases/06-public-administration-hallucination.md`](use-cases/06-public-administration-hallucination.md) | Public administration (Norwegian-law content by design) |
-| [`use-cases/07-norwegian-law-mcp.md`](use-cases/07-norwegian-law-mcp.md) | Norwegian law via MCP (Norwegian content by design) |
-| [`use-cases/building-automation.md`](use-cases/building-automation.md) | Building automation (per-zone lighting; moved out of README 2026-07-21) |
+| [`use-cases/README.md`](use-cases/README.md) | Sector use cases — concise index (all sectors, illustrative) |
 | [`use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md`](use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md) | Thermodynamics evidence status (cross-reference) |
 
 ## Research notes and proposals

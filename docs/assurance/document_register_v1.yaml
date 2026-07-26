@@ -358,22 +358,6 @@ documents:
   # ── Use cases ────────────────────────────────────────────────────────────
   - path: docs/use-cases/README.md
     status: supporting
-  - path: docs/use-cases/01-healthcare.md
-    status: supporting
-  - path: docs/use-cases/02-legal-compliance.md
-    status: supporting
-  - path: docs/use-cases/03-financial.md
-    status: supporting
-  - path: docs/use-cases/04-energy.md
-    status: supporting
-  - path: docs/use-cases/05-security.md
-    status: supporting
-  - path: docs/use-cases/06-public-administration-hallucination.md
-    status: supporting
-  - path: docs/use-cases/07-norwegian-law-mcp.md
-    status: supporting
-  - path: docs/use-cases/building-automation.md
-    status: supporting
   - path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
     status: supporting
 

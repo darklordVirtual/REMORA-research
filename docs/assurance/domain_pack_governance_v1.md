@@ -78,7 +78,7 @@ have no policy cookbook page, no RAG chunks, and no evidence pack:
 | Domain | Risk Relevance | Notes |
 |--------|---------------|-------|
 | **Operational Technology (OT)** | Critical, ICS/SCADA systems; errors are potentially irreversible and safety-affecting | No policy rules, no RAG corpus, no evaluation set. IEC 62443 and NERC CIP references absent. |
-| **Energy sector** | High, grid management, energy trading, regulatory compliance | Use-case page `docs/use-cases/04-energy.md` exists but no policy cookbook, no corpus. |
+| **Energy sector** | High, grid management, energy trading, regulatory compliance | Covered in the use-case index but no policy cookbook, no corpus. |
 | **Telecommunications** | High, network configuration, service disruption risk | No representation anywhere in the repository. |
 | **Cybersecurity (structured intelligence)** | High, addressed in cyber.md but incomplete | CISA KEV / EPSS / NVD integration not implemented. |
 
