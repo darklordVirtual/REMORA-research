@@ -238,24 +238,24 @@ documents:
   version: v1
   status: canonical
   topic: benchmark-validation-plan
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-021
   path: docs/12-agentharm-validation.md
   version: v1
   status: canonical
   topic: agentharm-validation
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-022
   path: docs/AI_USE.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-023
   path: docs/README.md
   version: v1
@@ -406,9 +406,9 @@ documents:
   version: v1
   status: canonical
   topic: capability-register
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-044
   path: docs/assurance/claim_provenance_baseline.json
   version: v1
@@ -466,9 +466,9 @@ documents:
   version: v1
   status: canonical
   topic: evidence-levels
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-052
   path: docs/assurance/human_oversight_operations_v1.md
   version: v1
@@ -487,30 +487,30 @@ documents:
   path: docs/assurance/policy_engine_audit_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-055
   path: docs/assurance/rbac_design_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-056
   path: docs/assurance/rbac_policy_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-057
   path: docs/assurance/red_team_plan_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-058
   path: docs/assurance/release_gates.md
   version: v1
@@ -546,9 +546,9 @@ documents:
   path: docs/assurance/resilience_plan_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-063
   path: docs/assurance/statistical_analysis_plan.md
   version: v1
@@ -604,9 +604,9 @@ documents:
   path: docs/deployment/azure-reference-architecture.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-071
   path: docs/deployment/onprem-airgapped.md
   version: v1
@@ -667,23 +667,23 @@ documents:
   path: docs/experiments/experiment3_phase_transition_study.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-080
   path: docs/experiments/experiment4_susceptibility_validation.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-081
   path: docs/experiments/experiment5_chi_iteration_utility.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-082
   path: docs/failure_analysis.md
   version: v1
@@ -844,30 +844,30 @@ documents:
   path: docs/research/causal_consequence_gating.md
   version: v1
   status: proposal
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-105
   path: docs/research/governance_intelligence_layer.md
   version: v1
   status: proposal
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-106
   path: docs/research/misspecification_aware_governance.md
   version: v1
   status: proposal
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-107
   path: docs/research/policy_generalization_risk.md
   version: v1
   status: proposal
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-108
   path: docs/research/research_control_matrix.generated.md
   version: v1
@@ -938,9 +938,9 @@ documents:
   path: docs/thermodynamics/temperature_estimator.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-118
   path: docs/use-cases/README.md
   version: v1
@@ -952,9 +952,9 @@ documents:
   path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-120
   path: docs/use-cases/building-automation.md
   version: v1
@@ -1015,16 +1015,16 @@ documents:
   path: paper/figures.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-129
   path: paper/future_state.md
   version: v1
   status: proposal
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-130
   path: paper/hf_dataset_card.md
   version: v1

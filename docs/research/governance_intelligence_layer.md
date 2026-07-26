@@ -82,10 +82,10 @@ supplied-lower risk while the reverse never happens.
 A missing risk tier is not evidence of low risk; it is the absence of
 evidence. Under fail-closed normalisation every unknown field is (a) explicit,
 (b) visible in warnings and audit output, and (c) routed conservatively by the
-engine's existing unknown-tier and misspecification gates. The benchmark
-(`benchmarks/governance_intelligence/`) asserts that unknown tier plus
-mutation never reaches ACCEPT, while complete, consistent, low-risk reads
-still do.
+engine's existing unknown-tier and misspecification gates. The 50-task offline
+benchmark (committed result: `artifacts/governance_intelligence/evaluation_results.json`)
+asserts that unknown tier plus mutation never reaches ACCEPT, while complete,
+consistent, low-risk reads still do.
 
 ## Relationship to decision-theoretic inspiration
 
@@ -133,10 +133,11 @@ ACCEPT / VERIFY / ABSTAIN / ESCALATE
 - `tests/policy/test_governance_intelligence_never_weakens_policy.py`, grid
   property test: enrichment never converts a non-ACCEPT into an ACCEPT and
   never clears hard-block flags.
-- `benchmarks/governance_intelligence/` + 
-  `experiments/evaluate_governance_intelligence.py`, 50-task offline routing
-  benchmark with a fail-hard gate on unsafe accepts and blocked legitimate
-  reads.
+- `experiments/evaluate_governance_intelligence.py` + committed result
+  `artifacts/governance_intelligence/evaluation_results.json`, 50-task offline
+  routing benchmark with a fail-hard gate on unsafe accepts and blocked
+  legitimate reads. (The source task set `benchmarks/governance_intelligence/tasks.jsonl`
+  is not committed; regenerating the benchmark requires re-supplying it.)
 
 ## Future work
 

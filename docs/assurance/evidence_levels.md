@@ -137,7 +137,10 @@ dataset that was not designed or curated by the REMORA project.
 
 **Typical REMORA examples:**
 - FAR=0% on AgentHarm (arxiv:2410.09024, ai-safety-institute, N=208), REM-014
-  (`results/external_benchmark_agentharm_v1.json`)
+  (`results/external_benchmark_agentharm_v1.json`). Caveat: this run also
+  false-blocked 208/208 benign scenarios — a high-friction, block-everything
+  result, not a utility-preserving one (see `NEGATIVE_RESULTS.md`). FAR=0% here
+  is necessary but not sufficient evidence.
 
 **Promotion path:** Promote to `independently_replicated` when a party external
 to the REMORA project reproduces the result independently.

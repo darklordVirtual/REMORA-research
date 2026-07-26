@@ -1,8 +1,15 @@
 # Temperature Estimator
 
 This document describes the effective temperature estimation pipeline in
-`remora/thermodynamics.py`. The functions documented here are the primary bridge
-between oracle observations and the thermodynamic phase classifier.
+`remora/thermodynamics.py`. The functions documented here bridge oracle
+observations and the thermodynamic phase classifier.
+
+> **Note (deprecation):** `estimate_temperature()` below is the original
+> post-hoc estimator and is now deprecated in favour of the circularity-free
+> `estimate_structural_temperature()` in the same module;
+> `predict_trust_before_iteration()` prefers the structural path when a prompt
+> is supplied. This document still describes the post-hoc estimator accurately;
+> the structural pipeline is not yet documented here.
 
 ---
 
@@ -21,7 +28,7 @@ for a given oracle configuration.
 
 ## `estimate_temperature()`
 
-**Location:** `remora/thermodynamics.py:111`
+**Location:** `remora/thermodynamics.py:367`
 
 **Signature:**
 
@@ -75,7 +82,7 @@ temperature that scales with how confident and independent the oracles are.
 
 ## `apply_temperature_calibration()`
 
-**Location:** `remora/thermodynamics.py:88`
+**Location:** `remora/thermodynamics.py:93`
 
 **Signature:**
 
@@ -105,7 +112,7 @@ The calibrated temperature is what `classify_phase()` and `trust_score()` receiv
 
 ## `critical_temperature()`
 
-**Location:** `remora/thermodynamics.py:147`
+**Location:** `remora/thermodynamics.py:419`
 
 **Signature:**
 
@@ -134,7 +141,7 @@ possible).
 
 ## Phase classification
 
-`classify_phase()` at `remora/thermodynamics.py:245` maps the calibrated temperature
+`classify_phase()` at `remora/thermodynamics.py:613` maps the calibrated temperature
 and order parameter η into one of three phases:
 
 | Phase | Condition |
@@ -155,7 +162,7 @@ The phase label feeds directly into the policy router:
 
 ## Trust score
 
-`trust_score()` at `remora/thermodynamics.py:265` collapses all thermodynamic
+`trust_score()` at `remora/thermodynamics.py:633` collapses all thermodynamic
 observables into a single scalar in `[0, 1]`:
 
 ```
@@ -175,7 +182,7 @@ where:
 
 ## Free energy
 
-`free_energy()` at `remora/thermodynamics.py:214` computes:
+`free_energy()` at `remora/thermodynamics.py:582` computes:
 
 ```
 F(T) = λD - T·H
@@ -198,7 +205,7 @@ disorder).
 ## Integration point
 
 The full pipeline runs in `predict_trust_before_iteration()` at
-`remora/thermodynamics.py:349`, which accepts raw pre-sweep verdicts and confidences
+`remora/thermodynamics.py:724`, which accepts raw pre-sweep verdicts and confidences
 and returns a `ThermodynamicState` with all observables populated. This is the
 function called by the router when a question arrives.
 

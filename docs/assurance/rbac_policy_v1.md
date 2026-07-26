@@ -27,13 +27,13 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 | Role | assess | evidence | execute | rerun | read | review | follow_up |
 |------|--------|----------|---------|-------|------|--------|-----------|
 | admin | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| operator | ✓ | ✓ | ✓ | ✓ | ✓ | (|) |
-| reviewer | (|) | (|) | ✓ | ✓ | ✓ |
-| domain_expert | (|) | (|) | ✓ | ✓ |, |
-| senior_authority | (|) | (|) | ✓ | ✓ |, |
-| soc_analyst | (|) | (|) | ✓ | ✓ |, |
-| legal_counsel | (|) | (|) | ✓ | ✓ |, |
-| viewer | (|) | (|) | ✓ | (|) |
+| operator | ✓ | ✓ | ✓ | ✓ | ✓ | | |
+| reviewer | | | | | ✓ | ✓ | ✓ |
+| domain_expert | | | | | ✓ | ✓ | |
+| senior_authority | | | | | ✓ | ✓ | |
+| soc_analyst | | | | | ✓ | ✓ | |
+| legal_counsel | | | | | ✓ | ✓ | |
+| viewer | | | | | ✓ | | |
 
 **Capability definitions:**
 - `assess`, submit a governance request (`POST /v1/assess`)
@@ -46,7 +46,7 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 
 (`assess` also gates `POST /v1/execution/assess`; `review` gates `POST /v1/execution/approve`.)
 
-**Role enforcement:** `X-Remora-Role` header is validated against `REMORA_API_TOKENS` tenant map or the builtin table. An empty or missing role grants zero permissions. See `servers/api.py:_require_capability()`.
+**Role enforcement:** `X-Remora-Role` header is validated against `REMORA_API_TOKENS` tenant map or the builtin table. An empty or missing role grants zero permissions. See `servers/api.py:_require_tenant_capability()`.
 
 ---
 
@@ -73,7 +73,7 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 
 - **Format (single-tenant):** `REMORA_API_BEARER_TOKEN=<secret>`: grants the role specified by `REMORA_API_DEFAULT_ROLE`.
 - **Format (multi-tenant):** `REMORA_API_TOKENS={"<token>": {"tenant": "<id>", "role": "<role>"}}`: per-token tenant and role binding.
-- **Implemented in:** `servers/api.py:_auth_token_data()`
+- **Implemented in:** `servers/api.py:_load_token_table()`
 - **Revocation:** Remove the token from `REMORA_API_TOKENS` and restart the server. No hot revocation mechanism in v1.
 - **Gap (acknowledged):** No token expiry enforcement in the bearer layer (envelope token has expiry; bearer token does not). Revocation requires server restart.
 
@@ -87,7 +87,7 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 | Read access | Same: Worker binding only. No external DB client access. |
 | Dev/test | SQLite in-memory or file (`TEST_DB_PATH` env var). Isolated from production D1. |
 | Worker deployment | Requires Cloudflare account API token with `Workers Scripts:Edit` scope. Only humans with CF account access can deploy. |
-| D1 binding name | `DB` (see `workers/aromer/wrangler.toml`) |
+| D1 binding name | `AROMER_DB` (see `workers/aromer/wrangler.toml`) |
 
 **Gap (acknowledged):** No Cloudflare Access rule enforcing that wrangler deploy is only callable from a CI/CD pipeline. A developer with a valid CF API token can deploy directly from a local machine. CI/CD pipeline access restriction is future work.
 
