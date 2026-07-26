@@ -58,13 +58,32 @@ class EnforcementGate:
     # expiry is still in the future (defence in depth against long-TTL issuance).
     MAX_TOKEN_AGE_SECONDS = 3600
 
-    def __init__(self, strict: bool = True, audience: str = "") -> None:
+    def __init__(self, strict: bool = True, audience: str = "", dsn: str = "", db_path: str = "") -> None:
         self.strict = strict
         self.audience = audience
+        self._dsn = dsn
+        self._db_path = db_path
         # One-time consumption: jti values this PEP has already executed on.
         import threading
         self._consumed: set[str] = set()
         self._consume_lock = threading.Lock()
+        self._ensure_table()
+
+    def _ensure_table(self) -> None:
+        if self._dsn:
+            import psycopg  # type: ignore
+            with psycopg.connect(self._dsn) as conn:
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS pep_consumed (jti TEXT PRIMARY KEY, consumed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP)"
+                )
+                conn.commit()
+        elif self._db_path:
+            import sqlite3
+            with sqlite3.connect(self._db_path) as conn:
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS pep_consumed (jti TEXT PRIMARY KEY, consumed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+                )
+                conn.commit()
 
     def check(
         self,
@@ -146,8 +165,18 @@ class EnforcementGate:
         # One-time consumption (atomic check-and-consume under the lock):
         # a jti this gate has executed on can never authorise again.
         if token.jti:
-            with self._consume_lock:
-                if token.jti in self._consumed:
+            if self._dsn:
+                import psycopg  # type: ignore
+                try:
+                    with psycopg.connect(self._dsn) as conn:
+                        if allowed and consume:
+                            with conn.transaction():
+                                conn.execute("INSERT INTO pep_consumed (jti) VALUES (%s)", (token.jti,))
+                        else:
+                            row = conn.execute("SELECT 1 FROM pep_consumed WHERE jti = %s", (token.jti,)).fetchone()
+                            if row:
+                                raise psycopg.IntegrityError()
+                except psycopg.IntegrityError:
                     return EnforcementResult(
                         allowed=False,
                         action=token.action,
@@ -155,8 +184,37 @@ class EnforcementGate:
                         reason="token_already_consumed",
                         strict_mode=self.strict,
                     )
-                if allowed and consume:
-                    self._consumed.add(token.jti)
+            elif self._db_path:
+                import sqlite3
+                try:
+                    with sqlite3.connect(self._db_path) as conn:
+                        if allowed and consume:
+                            conn.execute("INSERT INTO pep_consumed (jti) VALUES (?)", (token.jti,))
+                            conn.commit()
+                        else:
+                            row = conn.execute("SELECT 1 FROM pep_consumed WHERE jti = ?", (token.jti,)).fetchone()
+                            if row:
+                                raise sqlite3.IntegrityError()
+                except sqlite3.IntegrityError:
+                    return EnforcementResult(
+                        allowed=False,
+                        action=token.action,
+                        token_verified=True,
+                        reason="token_already_consumed",
+                        strict_mode=self.strict,
+                    )
+            else:
+                with self._consume_lock:
+                    if token.jti in self._consumed:
+                        return EnforcementResult(
+                            allowed=False,
+                            action=token.action,
+                            token_verified=True,
+                            reason="token_already_consumed",
+                            strict_mode=self.strict,
+                        )
+                    if allowed and consume:
+                        self._consumed.add(token.jti)
 
         return EnforcementResult(
             allowed=allowed,

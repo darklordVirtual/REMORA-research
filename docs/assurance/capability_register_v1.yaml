@@ -60,7 +60,6 @@ capabilities:
     name: "Audit chain (hash-chained decision history)"
     status: PERSISTED_ATOMIC
     evidence:
-      - remora/governance/audit_chain.py
       - remora/governance/tenant_chain.py
       - servers/execution_api.py
       - tests/test_execution_api.py
