@@ -48,9 +48,9 @@ CI when any bound document disagrees with it.
 Known violations are grandfathered in `claim_provenance_baseline.json` with a
 reason and date; they report as WARN and do not fail the gate. Do not add
 entries to avoid fixing new drift, the baseline exists only so the gate could
-be adopted while pre-existing defects (currently: the two missing CLAIM-009
-artifacts) are remediated. The gate reports stale baseline entries so they can
-be deleted once fixed.
+be adopted while pre-existing defects are remediated. It is currently empty
+(the CLAIM-009 artifacts it grandfathered were restored 2026-07-03). The gate
+reports stale baseline entries so they can be deleted once fixed.
 
 ## Known limitations
 

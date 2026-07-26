@@ -75,7 +75,7 @@ below names the PDF, verify against the .md, which supersedes it.
 - **Caveat:** small sample (N=32 critical items total). Published as a **negative
   result**, reported as a directional finding with its N attached, not a constant.
 - **Reproduce:** see the selective-prediction experiments above and
-  `remora/selective/guardrail.py` (8 unit tests).
+  `remora/selective/guardrail.py` (unit-tested in `tests/test_guardrail.py`).
 
 ### 4. Tamper-evident audit chain
 - **Claim:** every decision is recorded in a frozen `DecisionEnvelope`. On the
@@ -105,8 +105,8 @@ below names the PDF, verify against the .md, which supersedes it.
 
 ### 6. AROMER learning loop (experimental)
 - **Claim:** AROMER, the closed-loop learning layer, runs 24/7 and holds 0%
-  false-accepts on its replay arena while learning (87.5% overall accuracy on the
-  96-case arena, untuned; `replay_accuracy=0.875`, `replay_cases=96` per artifact).
+  false-accepts on its replay arena while learning (87.1% overall accuracy on the
+  93-case arena, untuned; `replay_accuracy=0.871`, `replay_cases=93` per artifact).
 - **Artifact:** `scripts/aromer_publish_replay.py`,
   `artifacts/aromer/replay_arena_report.json`; live AII at
   `https://aromer.razorsharp.workers.dev/intelligence`.

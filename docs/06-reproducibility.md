@@ -90,8 +90,8 @@ N=21, vs high-trust 36.4%, N=11) is a documented negative result; see
 groupthink boundary from the N500 thermodynamic artifact; its buckets sum to
 the committed aggregate of 20/32 correct. Small sample (N=32); a directional finding.
 
-Unit tests: `remora/selective/guardrail.py`, 8 unit tests covering phase-aware
-guardrail routing.
+Unit tests: `remora/selective/guardrail.py`, covered by
+`tests/test_guardrail.py` (phase-aware guardrail routing).
 
 Caveat: small sample (N=32 critical items total).
 

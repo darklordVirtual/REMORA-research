@@ -203,7 +203,7 @@ How REMORA uses this:
 - role and authority boundaries: RBAC in `servers/api.py`,
 - human approval workflows: `remora/governance/review_queue.py`,
 - audit ledgers: `remora/governance/audit_chain.py`,
-- rollout reference: `docs/../enterprise/togaf-enterprise-rollout-plan.md`,
+- rollout reference: `enterprise/togaf-enterprise-rollout-plan.md`,
   runnable example `examples/enterprise_demo.py`.
 
 The wiring status of each is tracked machine-readably in

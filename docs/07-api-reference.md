@@ -151,8 +151,10 @@ oai = OpenAIToolCallingAdapter(gateway=gateway)
 wrapped = oai.intercept_tool_call(...)  # OpenAI-shaped convenience wrapper
 ```
 
-`AsyncLocalGateway.execute_gated(...)` raises `PermissionError` for non-ACCEPT
-outcomes: this adapter layer is the actual runtime blocking path.
+`AsyncLocalGateway.assess(...)` returns an `ActionGateResult`; the caller
+enforces the decision by raising `PermissionError` when `result.should_execute`
+is False (see the `remora/adapters/action_gate.py` docstring example). This
+adapter layer is the actual runtime blocking path.
 
 ---
 

@@ -154,18 +154,21 @@ from production queries via the `clearance_level` or `domain` filter.
 
 ### 5.1 Ingestion
 
-Every chunk ingested into the Vectorize knowledge base must carry the following metadata
-fields (enforced by `POST /ingest` in `workers/rag-oracle/src/index.ts`):
+Every chunk ingested into the Vectorize knowledge base carries the following
+metadata fields. `POST /ingest` (`workers/rag-oracle/src/index.ts`, `handleIngest`)
+currently *enforces* only `content`, `source`, and `domain` (rejects on missing);
+the remaining fields are optional with silent defaults. The "Required" column
+below is the target policy, not the current enforcement:
 
-| Field | Required | Description |
+| Field | Required (policy) | Description |
 |-------|----------|-------------|
-| `source` | Yes | Human-readable source identifier (e.g., "IEC 62443-2-1:2010 §4.2.3") |
-| `domain` | Yes | Domain pack identifier (e.g., `ot`, `energy`, `specialised`) |
+| `source` | Yes (enforced) | Human-readable source identifier (e.g., "IEC 62443-2-1:2010 §4.2.3") |
+| `domain` | Yes (enforced) | Domain pack identifier (e.g., `ot`, `energy`, `specialised`) |
 | `title` | Recommended | Document title |
-| `chunk_index` | Yes | Integer position within the source document |
-| `confidence_weight` | Yes | Numeric weight (see §5.2 below) |
+| `chunk_index` | Recommended (defaults 0) | Integer position within the source document |
+| `confidence_weight` | Recommended (defaults 1.0) | Numeric weight (see §5.2 below) |
 | `date_ingested` | Auto | ISO 8601 UTC timestamp set by the Worker |
-| `clearance_level` | Yes | One of: `public`, `internal`, `restricted`, `secret` |
+| `clearance_level` | Recommended (defaults `public`) | One of: `public`, `internal`, `restricted`, `secret` |
 | `tenant_id` | Conditional | Required for multi-tenant deployments |
 
 ### 5.2 Confidence Weight Semantics

@@ -89,31 +89,31 @@ documents:
   version: v1
   status: canonical
   topic: architecture-toplevel
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-002
   path: CLAUDE.md
   version: v1
   status: canonical
   topic: working-agreement
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-003
   path: CONTRIBUTING.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-004
   path: CONTRIBUTORS.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-005
   path: EVIDENCE_OF_CAPABILITY.md
   version: v1
@@ -127,64 +127,64 @@ documents:
   version: v1
   status: canonical
   topic: negative-results
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-007
   path: NOTICE
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-008
   path: README.md
   version: v1
   status: canonical
   topic: project-readme
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-009
   path: SECURITY.md
   version: v1
   status: canonical
   topic: security-policy
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-010
   path: docs/01-architecture.md
   version: v1
   status: canonical
   topic: architecture-narrative
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-011
   path: docs/02-evidence-and-claims.md
   version: v1
   status: canonical
   topic: evidence-and-claims
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-012
   path: docs/03-experiments.md
   version: v1
   status: canonical
   topic: experiments
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-013
   path: docs/04-negative-results-detail.md
   version: v1
   status: canonical
   topic: negative-results-detail
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-014
   path: docs/05-claim-hygiene.md
   version: v1
@@ -198,41 +198,41 @@ documents:
   version: v1
   status: canonical
   topic: reproducibility-guide
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-016
   path: docs/07-api-reference.md
   version: v1
   status: canonical
   topic: api-reference
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-017
   path: docs/08-security.md
   version: v1
   status: canonical
   topic: security-properties
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-018
   path: docs/09-related-work.md
   version: v1
   status: canonical
   topic: related-work
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-019
   path: docs/10-contributing.md
   version: v1
   status: canonical
   topic: contributing
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-020
   path: docs/11-benchmark-validation-plan.md
   version: v1
@@ -261,9 +261,9 @@ documents:
   version: v1
   status: canonical
   topic: docs-index
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-024
   path: docs/archive/DOCUMENTATION_DRIFT_REPORT.md
   version: v1
@@ -354,53 +354,53 @@ documents:
   path: docs/assurance/ai_assisted_adversarial_security_review_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-037
   path: docs/assurance/aromer_memory_governance_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-038
   path: docs/assurance/artifact_manifest_v1.md
   version: v1
   status: canonical
   topic: artifact-manifest
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-039
   path: docs/assurance/artifact_provenance_spec_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-040
   path: docs/assurance/assurance_case_v1.md
   version: v1
   status: canonical
   topic: assurance-case
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-041
   path: docs/assurance/benchmark_audit_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-042
   path: docs/assurance/best_practice_gap_audit_v1.md
   version: v1
   status: proposal
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-043
   path: docs/assurance/capability_register_v1.yaml
   version: v1
@@ -420,9 +420,9 @@ documents:
   path: docs/assurance/claim_provenance_gate.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-046
   path: docs/assurance/claim_register_v1.yaml
   version: v1
@@ -435,9 +435,9 @@ documents:
   path: docs/assurance/development_review_log_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-048
   path: docs/assurance/document_register_v1.yaml
   version: v1
@@ -451,16 +451,16 @@ documents:
   version: v1
   status: canonical
   topic: documentation-governance
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-050
   path: docs/assurance/domain_pack_governance_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-051
   path: docs/assurance/evidence_levels.md
   version: v1
@@ -473,16 +473,16 @@ documents:
   path: docs/assurance/human_oversight_operations_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-053
   path: docs/assurance/independent_review_protocol_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-054
   path: docs/assurance/policy_engine_audit_v1.md
   version: v1
@@ -516,9 +516,9 @@ documents:
   version: v1
   status: canonical
   topic: release-gates
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-059
   path: docs/assurance/release_profiles_v1.yaml
   version: v1
@@ -539,9 +539,9 @@ documents:
   path: docs/assurance/reproducibility_scorecard_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-062
   path: docs/assurance/resilience_plan_v1.md
   version: v1
@@ -553,16 +553,16 @@ documents:
   path: docs/assurance/statistical_analysis_plan.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-064
   path: docs/assurance/threat_model_v1.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-065
   path: docs/benchmarks/README.md
   version: v1
@@ -590,9 +590,9 @@ documents:
   version: v1
   status: canonical
   topic: claim-register-narrative
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-069
   path: docs/claims/thermodynamics_claims.yaml
   version: v1
@@ -660,9 +660,9 @@ documents:
   path: docs/executive_onepager.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-079
   path: docs/experiments/experiment3_phase_transition_study.md
   version: v1
@@ -689,9 +689,9 @@ documents:
   version: v1
   status: generated
   generated_by: experiments/toolcall_v2_failure_analysis.py
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-083
   path: docs/governance/eu_ai_act_nsm_mapping.md
   version: v1
@@ -830,9 +830,9 @@ documents:
   version: v1
   status: canonical
   topic: reference-architecture
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-103
   path: docs/remora_architecture.html
   version: v1
