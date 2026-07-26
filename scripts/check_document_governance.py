@@ -31,6 +31,7 @@ Requires PyYAML (dev extra). Uses `git ls-files` so gitignored local files
 """
 from __future__ import annotations
 
+import datetime
 import re
 import subprocess
 import sys
@@ -49,6 +50,15 @@ PROFILES = ROOT / "docs" / "assurance" / "release_profiles_v1.yaml"
 ALLOWED_STATUSES = {
     "canonical", "generated", "supporting", "proposal", "historical", "superseded",
 }
+# Schema-v2 verification fields.
+ALLOWED_CODE_SYNCED = {"unreviewed", "verified", "mismatch"}
+ALLOWED_VERDICTS = {"pending", "current", "fixed", "consolidate", "stale"}
+DOC_ID_RE = re.compile(r"DOC-\d+")
+VERSION_RE = re.compile(r"v\d+")
+ISO_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+# A document whose content was last verified against code more than this many
+# days ago is WARNed (not failed) as due for re-review.
+STALE_REVIEW_DAYS = 30
 GOVERNED_SUFFIXES = {".md", ".html", ".yaml", ".yml", ".json"}
 # Root-level knowledge documents governed alongside docs/. Build/config files
 # (Makefile, pyproject.toml, requirements-lock.txt, .gitignore) and the LICENSE
@@ -173,6 +183,69 @@ def check_document_register(errors: list[str]) -> None:
                     f"document-register: {path}: generated_by missing or "
                     f"nonexistent ({gen!r})"
                 )
+
+
+def check_document_verification(errors: list[str], warnings: list[str]) -> None:
+    """Schema-v2 verification state: every entry carries a stable DOC id, a
+    version, and an honest content-vs-code review state. The consistency rules
+    below enforce the claim-hygiene invariant that a document may not be marked
+    `verified`/`current`/`fixed` without a real review date behind it — the
+    register cannot claim a document was checked when it was not."""
+    reg = _load(DOC_REGISTER)
+    entries = reg.get("documents", [])
+    today = datetime.date.today()
+
+    doc_ids: list[str] = []
+    for e in entries:
+        path = e.get("path", "?")
+
+        did = e.get("id")
+        if not (isinstance(did, str) and DOC_ID_RE.fullmatch(did)):
+            errors.append(f"document-register: {path}: missing/invalid id {did!r} (want DOC-NNN)")
+        else:
+            doc_ids.append(did)
+
+        ver = e.get("version")
+        if not (isinstance(ver, str) and VERSION_RE.fullmatch(ver)):
+            errors.append(f"document-register: {path}: missing/invalid version {ver!r} (want vN)")
+
+        cs = e.get("code_synced")
+        if cs not in ALLOWED_CODE_SYNCED:
+            errors.append(f"document-register: {path}: code_synced {cs!r} not in {sorted(ALLOWED_CODE_SYNCED)}")
+
+        vd = e.get("verdict")
+        if vd not in ALLOWED_VERDICTS:
+            errors.append(f"document-register: {path}: verdict {vd!r} not in {sorted(ALLOWED_VERDICTS)}")
+
+        lr = e.get("last_reviewed")
+        reviewed_on: datetime.date | None = None
+        if lr is not None:
+            if not (isinstance(lr, (str, datetime.date)) and ISO_DATE_RE.fullmatch(str(lr))):
+                errors.append(f"document-register: {path}: last_reviewed {lr!r} is not an ISO date or null")
+            else:
+                try:
+                    reviewed_on = datetime.date.fromisoformat(str(lr))
+                except ValueError:
+                    errors.append(f"document-register: {path}: last_reviewed {lr!r} is not a valid date")
+
+        # Anti-fake-checked consistency: a verified/current/fixed claim requires
+        # a real review date.
+        if cs == "verified" and reviewed_on is None:
+            errors.append(f"document-register: {path}: code_synced=verified but last_reviewed is null")
+        if vd in {"current", "fixed"} and cs != "verified":
+            errors.append(f"document-register: {path}: verdict={vd} requires code_synced=verified (got {cs!r})")
+
+        # Non-failing review-hygiene signals.
+        if reviewed_on is None:
+            warnings.append(f"document-register: {path}: never audited against code (last_reviewed null)")
+        elif (today - reviewed_on).days > STALE_REVIEW_DAYS:
+            warnings.append(
+                f"document-register: {path}: last_reviewed {lr} is "
+                f"{(today - reviewed_on).days}d old (> {STALE_REVIEW_DAYS}d) — due for re-review"
+            )
+
+    for dup in sorted({i for i in doc_ids if doc_ids.count(i) > 1}):
+        errors.append(f"document-register: duplicate DOC id {dup}")
 
 
 def _collect_ids(data, pattern: re.Pattern) -> list[str]:
@@ -373,11 +446,17 @@ def check_readme_budget(errors: list[str]) -> None:
 
 def main() -> int:
     errors: list[str] = []
+    warnings: list[str] = []
     check_document_register(errors)
+    check_document_verification(errors, warnings)
     check_register_id_uniqueness(errors)
     check_release_profiles(errors)
     check_release_gates_table(errors)
     check_readme_budget(errors)
+    if warnings:
+        for w in warnings:
+            print(f"WARN: {w}", file=sys.stderr)
+        print(f"documentation governance: {len(warnings)} review-hygiene warning(s)", file=sys.stderr)
     if errors:
         for e in errors:
             print(f"ERROR: {e}", file=sys.stderr)

@@ -103,6 +103,69 @@ def test_superseded_without_successor_is_refused(tmp_path: Path) -> None:
     assert any("superseded_by" in e for e in errors)
 
 
+def _verif_reg(tmp_path: Path, entry_lines: str):
+    reg = tmp_path / "docreg.yaml"
+    reg.write_text("documents:\n" + entry_lines, encoding="utf-8")
+    return reg
+
+
+def test_verified_without_review_date_is_refused(tmp_path: Path) -> None:
+    """A document cannot be marked code_synced=verified with no review date —
+    the register must not claim a check that never happened."""
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "    status: supporting\n    last_reviewed: null\n"
+        "    code_synced: verified\n    verdict: pending\n",
+    )
+    errors: list[str] = []
+    mod.check_document_verification(errors, [])
+    assert any("verified but last_reviewed is null" in e for e in errors)
+
+
+def test_current_verdict_requires_verified(tmp_path: Path) -> None:
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "    status: supporting\n    last_reviewed: 2026-07-26\n"
+        "    code_synced: unreviewed\n    verdict: current\n",
+    )
+    errors: list[str] = []
+    mod.check_document_verification(errors, [])
+    assert any("verdict=current requires code_synced=verified" in e for e in errors)
+
+
+def test_missing_verification_fields_are_refused(tmp_path: Path) -> None:
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - path: docs/README.md\n    status: supporting\n",
+    )
+    errors: list[str] = []
+    mod.check_document_verification(errors, [])
+    assert any("missing/invalid id" in e for e in errors)
+    assert any("missing/invalid version" in e for e in errors)
+    assert any("code_synced" in e for e in errors)
+    assert any("verdict" in e for e in errors)
+
+
+def test_unaudited_document_warns_not_fails(tmp_path: Path) -> None:
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "    status: supporting\n    last_reviewed: null\n"
+        "    code_synced: unreviewed\n    verdict: pending\n",
+    )
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_document_verification(errors, warnings)
+    assert errors == []
+    assert any("never audited against code" in w for w in warnings)
+
+
 def test_release_gates_table_drift_is_refused(tmp_path: Path) -> None:
     """A Status cell that contradicts remediation_register.yaml must fail.
 

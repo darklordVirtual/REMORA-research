@@ -1,6 +1,6 @@
-# REMORA Document Register v1
-# Single machine-readable source of truth for the GOVERNANCE STATUS of every
-# tracked knowledge document under docs/ (figures/ assets excluded), paper/,
+# REMORA Document Register v1  (schema v2)
+# Single machine-readable source of truth for the GOVERNANCE STATUS and
+# VERIFICATION STATE of every tracked knowledge document under docs/, paper/,
 # and an explicit root-document allowlist (README.md, ARCHITECTURE.md,
 # NEGATIVE_RESULTS.md, SECURITY.md, CONTRIBUTING.md, CONTRIBUTORS.md, CLAUDE.md,
 # EVIDENCE_OF_CAPABILITY.md, NOTICE). The exact coverage set is computed by
@@ -10,6 +10,28 @@
 # Validated by scripts/check_document_governance.py (CI gate) and
 # tests/test_document_governance.py.
 #
+# Per-entry fields:
+#   id            - DOC-NNN, stable and unique; assigned path-sorted, then
+#                   FROZEN (a new document takes the next free number; ids are
+#                   never renumbered, so external references stay valid).
+#   path          - repository-relative path to the tracked document.
+#   version       - document version (vN); inferred from an _vN filename marker
+#                   where present, else v1. Bump when the document's substance
+#                   changes materially.
+#   status        - governance status (enum below).
+#   topic         - controlled topic (canonical entries only; unique per topic).
+#   generated_by  - producing script (generated entries only).
+#   superseded_by - successor path (superseded entries only).
+#   last_reviewed - ISO date the CONTENT was last verified against the code /
+#                   tests / artifacts it describes. null == never audited; it is
+#                   NOT a claim of correctness. Only stamped when a real review
+#                   happened (see docs/05-claim-hygiene.md).
+#   code_synced   - unreviewed | verified | mismatch. `verified` means the
+#                   claims/paths/APIs in the document were checked against source
+#                   on last_reviewed; `mismatch` means a known drift is recorded
+#                   in verdict/notes and awaits a fix.
+#   verdict       - pending | current | fixed | consolidate | stale.
+#
 # Statuses:
 #   canonical  - the single authoritative document for its topic (topic unique)
 #   generated  - produced by a script; edit the generator, not the file
@@ -18,398 +40,1024 @@
 #   historical - dated snapshot preserved unedited; must not be cited as current
 #   superseded - kept so old links resolve; superseded_by names the successor
 #
-# Scope note (v1): this register governs the GOVERNANCE STATUS (one status per
-# file) of docs/ + paper/ + the root-document allowlist above. Content-level
-# gates still apply on top of it and are not duplicated here: README/root claims
-# via scripts/check_readme_claims.py and tests/test_review_readiness_docs.py,
-# numeric claims via scripts/check_claim_consistency.py. Navigation lives in
-# docs/README.md (index, CI-enforced); this register holds governance status
-# only — one source of truth per data type.
+# Scope note: this register governs GOVERNANCE STATUS and VERIFICATION STATE of
+# docs/ + paper/ + the root-document allowlist above. Content-level gates still
+# apply on top of it (README/root claims, numeric-claim consistency) and are not
+# duplicated here.
 
-schema_version: "1"
-updated: "2026-07-21"
-default_owner: "Stian Skogbrott"
-
-# Controlled topic registry. A canonical document may only claim a topic that
-# appears here; this prevents near-duplicate free-text topics (architecture vs
-# architecture-narrative vs reference-architecture) from proliferating. Adding
-# a new canonical topic is a deliberate edit to this list.
+schema_version: '2'
+updated: '2026-07-26'
+default_owner: Stian Skogbrott
 topics:
-  - docs-index
-  - project-readme
-  - architecture-toplevel
-  - architecture-narrative
-  - reference-architecture
-  - evidence-and-claims
-  - evidence-of-capability
-  - experiments
-  - negative-results
-  - negative-results-detail
-  - claim-hygiene
-  - reproducibility-guide
-  - api-reference
-  - security-properties
-  - security-policy
-  - related-work
-  - research-control-matrix
-  - contributing
-  - working-agreement
-  - benchmark-validation-plan
-  - agentharm-validation
-  - release-gates
-  - remediation-register
-  - claim-register-machine
-  - claim-register-narrative
-  - capability-register
-  - document-register
-  - release-profiles
-  - documentation-governance
-  - artifact-manifest
-  - assurance-case
-  - evidence-levels
-  - aromer-reference
-  - paper-canonical
-
+- docs-index
+- project-readme
+- architecture-toplevel
+- architecture-narrative
+- reference-architecture
+- evidence-and-claims
+- evidence-of-capability
+- experiments
+- negative-results
+- negative-results-detail
+- claim-hygiene
+- reproducibility-guide
+- api-reference
+- security-properties
+- security-policy
+- related-work
+- research-control-matrix
+- contributing
+- working-agreement
+- benchmark-validation-plan
+- agentharm-validation
+- release-gates
+- remediation-register
+- claim-register-machine
+- claim-register-narrative
+- capability-register
+- document-register
+- release-profiles
+- documentation-governance
+- artifact-manifest
+- assurance-case
+- evidence-levels
+- aromer-reference
+- paper-canonical
 documents:
-  # ── Root knowledge documents ─────────────────────────────────────────────
-  - path: README.md
-    status: canonical
-    topic: project-readme
-  - path: ARCHITECTURE.md
-    status: canonical
-    topic: architecture-toplevel
-  - path: NEGATIVE_RESULTS.md
-    status: canonical
-    topic: negative-results
-  - path: EVIDENCE_OF_CAPABILITY.md
-    status: canonical
-    topic: evidence-of-capability
-  - path: SECURITY.md
-    status: canonical
-    topic: security-policy
-  - path: CLAUDE.md
-    status: canonical
-    topic: working-agreement
-  - path: CONTRIBUTING.md
-    status: supporting
-  - path: CONTRIBUTORS.md
-    status: supporting
-  - path: NOTICE
-    status: supporting
-
-  # ── Paper ────────────────────────────────────────────────────────────────
-  - path: paper/remora_paper.md
-    status: canonical
-    topic: paper-canonical
-  - path: paper/remora_mathematical_supplement.md
-    status: supporting
-  - path: paper/claim_ledger.md
-    status: supporting
-  - path: paper/figures.md
-    status: supporting
-  - path: paper/hf_dataset_card.md
-    status: supporting
-  - path: paper/remora_paper_template.md
-    status: supporting
-  - path: paper/future_state.md
-    status: proposal
-  # Active public-facing / frontend whitepaper surface. NOT the canonical
-  # research paper (that is remora_paper.md, which governs on any conflict).
-  # Roadmap: generate from canonical sources or retire to avoid parallel,
-  # divergent claims. Do not archive until frontend/CI/script deps are migrated.
-  - path: paper/whitepaper.md
-    status: supporting
-
-  # ── Index ────────────────────────────────────────────────────────────────
-  - path: docs/README.md
-    status: canonical
-    topic: docs-index
-
-  # ── Core numbered series (canonical per docs/README.md conventions) ──────
-  - path: docs/01-architecture.md
-    status: canonical
-    topic: architecture-narrative
-  - path: docs/02-evidence-and-claims.md
-    status: canonical
-    topic: evidence-and-claims
-  - path: docs/03-experiments.md
-    status: canonical
-    topic: experiments
-  - path: docs/04-negative-results-detail.md
-    status: canonical
-    topic: negative-results-detail
-  - path: docs/05-claim-hygiene.md
-    status: canonical
-    topic: claim-hygiene
-  - path: docs/06-reproducibility.md
-    status: canonical
-    topic: reproducibility-guide
-  - path: docs/07-api-reference.md
-    status: canonical
-    topic: api-reference
-  - path: docs/08-security.md
-    status: canonical
-    topic: security-properties
-  - path: docs/09-related-work.md
-    status: canonical
-    topic: related-work
-  - path: docs/10-contributing.md
-    status: canonical
-    topic: contributing
-  - path: docs/11-benchmark-validation-plan.md
-    status: canonical
-    topic: benchmark-validation-plan
-  - path: docs/12-agentharm-validation.md
-    status: canonical
-    topic: agentharm-validation
-
-  # ── Architecture ─────────────────────────────────────────────────────────
-  - path: docs/reference_architecture.md
-    status: canonical
-    topic: reference-architecture
-  - path: docs/methods/architecture_risk_register.md
-    status: supporting
-  - path: docs/remora_architecture.html
-    status: supporting
-  - path: docs/evidence/decision_envelope_audit.md
-    status: supporting
-  - path: docs/evidence/causal_policy_explanations.md
-    status: supporting
-  - path: docs/failure_analysis.md
-    status: generated
-    generated_by: experiments/toolcall_v2_failure_analysis.py
-  - path: docs/methods/nested_governance.md
-    status: supporting
-  - path: docs/methods/thermodynamic_abs.md
-    status: supporting
-
-  # ── Assurance: live status surfaces (canonical) ──────────────────────────
-  - path: docs/assurance/release_gates.md
-    status: canonical
-    topic: release-gates
-  - path: docs/assurance/remediation_register.yaml
-    status: canonical
-    topic: remediation-register
-  - path: docs/assurance/claim_register_v1.yaml
-    status: canonical
-    topic: claim-register-machine
-  - path: docs/claim_register.md
-    status: canonical
-    topic: claim-register-narrative
-  - path: docs/assurance/capability_register_v1.yaml
-    status: canonical
-    topic: capability-register
-  - path: docs/assurance/document_register_v1.yaml
-    status: canonical
-    topic: document-register
-  - path: docs/assurance/release_profiles_v1.yaml
-    status: canonical
-    topic: release-profiles
-  - path: docs/assurance/documentation_governance_v1.md
-    status: canonical
-    topic: documentation-governance
-  - path: docs/assurance/artifact_manifest_v1.md
-    status: canonical
-    topic: artifact-manifest
-  - path: docs/assurance/assurance_case_v1.md
-    status: canonical
-    topic: assurance-case
-  - path: docs/evidence/claim_evidence_matrix.md
-    status: supporting
-
-  # ── Assurance: process, audits, specifications (supporting) ─────────────
-  - path: docs/assurance/ai_assisted_adversarial_security_review_v1.md
-    status: supporting
-  - path: docs/assurance/aromer_memory_governance_v1.md
-    status: supporting
-  - path: docs/assurance/artifact_provenance_spec_v1.md
-    status: supporting
-  - path: docs/assurance/benchmark_audit_v1.md
-    status: supporting
-  - path: docs/assurance/claim_provenance_gate.md
-    status: supporting
-  - path: docs/assurance/claim_provenance_baseline.json
-    status: supporting
-  - path: docs/assurance/development_review_log_v1.md
-    status: supporting
-  - path: docs/assurance/domain_pack_governance_v1.md
-    status: supporting
-  - path: docs/assurance/evidence_levels.md
-    status: canonical
-    topic: evidence-levels
-  - path: docs/assurance/best_practice_gap_audit_v1.md
-    status: proposal
-  - path: docs/assurance/human_oversight_operations_v1.md
-    status: supporting
-  - path: docs/assurance/independent_review_protocol_v1.md
-    status: supporting
-  - path: docs/assurance/policy_engine_audit_v1.md
-    status: supporting
-  - path: docs/assurance/rbac_design_v1.md
-    status: supporting
-  - path: docs/assurance/rbac_policy_v1.md
-    status: supporting
-  - path: docs/assurance/red_team_plan_v1.md
-    status: supporting
-  - path: docs/assurance/reproducibility_scorecard_v1.md
-    status: supporting
-  - path: docs/assurance/resilience_plan_v1.md
-    status: supporting
-  - path: docs/assurance/statistical_analysis_plan.md
-    status: supporting
-
-  # ── Security: threat model (active) ──────────────────────────────────────
-  - path: docs/assurance/threat_model_v1.md
-    status: supporting
-
-  # ── Compliance mappings ──────────────────────────────────────────────────
-  - path: docs/governance/eu_ai_act_nsm_mapping.md
-    status: supporting
-  - path: docs/governance/nist_ai_rmf_mapping.md
-    status: supporting
-  - path: docs/security/owasp_genai_mapping.md
-    status: supporting
-  - path: docs/security/pre-deployment-review.md
-    status: supporting
-  - path: docs/enterprise/togaf-enterprise-rollout-plan.md
-    status: supporting
-
-  # ── Evidence and benchmarks ──────────────────────────────────────────────
-  - path: docs/evidence/empirical_evidence_record.md
-    status: supporting
-  - path: docs/results_snapshot.md
-    status: generated
-    generated_by: scripts/generate_results_snapshot.py
-  - path: docs/benchmarks/README.md
-    status: supporting
-  - path: docs/benchmarks/toolcall_consensus_benchmark_v2.md
-    status: supporting
-  - path: docs/benchmarks/stat_tests.md
-    status: generated
-    generated_by: scripts/statistical_tests.py
-  - path: docs/validation/credibility_pack_repro.md
-    status: supporting
-  - path: docs/validation/audit_result_schema.md
-    status: supporting
-  - path: docs/validation/EXTERNAL_VALIDATION_PLAN.md
-    status: supporting
-  - path: docs/validation/external-review.md
-    status: supporting
-  - path: docs/validation/review_checklist.md
-    status: supporting
-  - path: docs/validation/external_validation_report_template.md
-    status: supporting
-  - path: docs/experiments/experiment3_phase_transition_study.md
-    status: supporting
-  - path: docs/experiments/experiment4_susceptibility_validation.md
-    status: supporting
-  - path: docs/experiments/experiment5_chi_iteration_utility.md
-    status: supporting
-  - path: docs/thermodynamics/README.md
-    status: supporting
-  - path: docs/thermodynamics/claim_ledger.yaml
-    status: supporting
-  - path: docs/thermodynamics/limitations.md
-    status: supporting
-  - path: docs/thermodynamics/runtime_policy.md
-    status: supporting
-  - path: docs/thermodynamics/temperature_estimator.md
-    status: supporting
-  - path: docs/claims/thermodynamics_claims.yaml
-    status: supporting
-
-  # ── AROMER ───────────────────────────────────────────────────────────────
-  - path: docs/aromer/quickstart_aromer.md
-    status: supporting
-  - path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
-    status: canonical
-    topic: aromer-reference
-
-  # ── Integrations and operations ──────────────────────────────────────────
-  - path: docs/integrations/mcp-integration.md
-    status: supporting
-  - path: docs/integrations/agent_tool_hook.md
-    status: supporting
-  - path: docs/integrations/rag_oracle.md
-    status: supporting
-  - path: docs/integrations/cloudflare_workers_ai.md
-    status: supporting
-  - path: docs/integrations/knowledge_domains.md
-    status: supporting
-  - path: docs/integrations/cyber_evidence_layer.md
-    status: supporting
-  - path: docs/integrations/go_star_bridge.md
-    status: supporting
-  - path: docs/integrations/gostar_integration.md
-    status: supporting
-  - path: docs/deployment/azure-reference-architecture.md
-    status: supporting
-  - path: docs/deployment/onprem-airgapped.md
-    status: supporting
-  - path: docs/policy_cookbook/README.md
-    status: supporting
-  - path: docs/policy_cookbook/cloud_ops.md
-    status: supporting
-  - path: docs/policy_cookbook/cyber.md
-    status: supporting
-  - path: docs/policy_cookbook/database.md
-    status: supporting
-
-  # ── Use cases ────────────────────────────────────────────────────────────
-  - path: docs/use-cases/README.md
-    status: supporting
-  - path: docs/use-cases/building-automation.md
-    status: supporting
-  - path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
-    status: supporting
-
-  # ── Research notes and proposals ─────────────────────────────────────────
-  - path: docs/research/causal_consequence_gating.md
-    status: proposal
-  - path: docs/research/governance_intelligence_layer.md
-    status: proposal
-  - path: docs/research/misspecification_aware_governance.md
-    status: proposal
-  - path: docs/research/policy_generalization_risk.md
-    status: proposal
-  - path: docs/research/research_control_matrix_v1.yaml
-    status: canonical
-    topic: research-control-matrix
-  - path: docs/research/research_control_matrix.generated.md
-    status: generated
-    generated_by: scripts/generate_research_control_matrix.py
-  - path: docs/methods/theoretical_foundations_proposals_v1.md
-    status: proposal
-
-  # ── Meta ─────────────────────────────────────────────────────────────────
-  - path: docs/AI_USE.md
-    status: supporting
-  - path: docs/evidence/authorship_evidence_report.md
-    status: supporting
-  - path: docs/executive_onepager.md
-    status: supporting
-  - path: docs/plain_language_overview.md
-    status: supporting
-
-  # ── Forwarding stubs (superseded, kept so old links resolve) ─────────────
-  - path: docs/archive/academic_evaluation_legacy_2026-05-20.md
-    status: historical
-  - path: docs/archive/analysis_report_legacy_2026-05-20.md
-    status: historical
-  - path: docs/archive/DOCUMENTATION_DRIFT_REPORT.md
-    status: historical
-  - path: docs/archive/external_review_round2_plan.md
-    status: historical
-  - path: docs/archive/review_round2_closure.md
-    status: historical
-  - path: docs/archive/toolcall_consensus_benchmark_v1.md
-    status: superseded
-    superseded_by: docs/benchmarks/toolcall_consensus_benchmark_v2.md
-  - path: docs/archive/remora_infographic_v3_dark.html
-    status: historical
-  - path: docs/archive/legacy/agent_governance.md
-    status: historical
-  - path: docs/archive/legacy/causality.md
-    status: historical
-  - path: docs/archive/legacy/selective_trust_curve_proof.md
-    status: historical
+- id: DOC-001
+  path: ARCHITECTURE.md
+  version: v1
+  status: canonical
+  topic: architecture-toplevel
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-002
+  path: CLAUDE.md
+  version: v1
+  status: canonical
+  topic: working-agreement
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-003
+  path: CONTRIBUTING.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-004
+  path: CONTRIBUTORS.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-005
+  path: EVIDENCE_OF_CAPABILITY.md
+  version: v1
+  status: canonical
+  topic: evidence-of-capability
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-006
+  path: NEGATIVE_RESULTS.md
+  version: v1
+  status: canonical
+  topic: negative-results
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-007
+  path: NOTICE
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-008
+  path: README.md
+  version: v1
+  status: canonical
+  topic: project-readme
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-009
+  path: SECURITY.md
+  version: v1
+  status: canonical
+  topic: security-policy
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-010
+  path: docs/01-architecture.md
+  version: v1
+  status: canonical
+  topic: architecture-narrative
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-011
+  path: docs/02-evidence-and-claims.md
+  version: v1
+  status: canonical
+  topic: evidence-and-claims
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-012
+  path: docs/03-experiments.md
+  version: v1
+  status: canonical
+  topic: experiments
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-013
+  path: docs/04-negative-results-detail.md
+  version: v1
+  status: canonical
+  topic: negative-results-detail
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-014
+  path: docs/05-claim-hygiene.md
+  version: v1
+  status: canonical
+  topic: claim-hygiene
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-015
+  path: docs/06-reproducibility.md
+  version: v1
+  status: canonical
+  topic: reproducibility-guide
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-016
+  path: docs/07-api-reference.md
+  version: v1
+  status: canonical
+  topic: api-reference
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-017
+  path: docs/08-security.md
+  version: v1
+  status: canonical
+  topic: security-properties
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-018
+  path: docs/09-related-work.md
+  version: v1
+  status: canonical
+  topic: related-work
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-019
+  path: docs/10-contributing.md
+  version: v1
+  status: canonical
+  topic: contributing
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-020
+  path: docs/11-benchmark-validation-plan.md
+  version: v1
+  status: canonical
+  topic: benchmark-validation-plan
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-021
+  path: docs/12-agentharm-validation.md
+  version: v1
+  status: canonical
+  topic: agentharm-validation
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-022
+  path: docs/AI_USE.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-023
+  path: docs/README.md
+  version: v1
+  status: canonical
+  topic: docs-index
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-024
+  path: docs/archive/DOCUMENTATION_DRIFT_REPORT.md
+  version: v1
+  status: historical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-025
+  path: docs/archive/academic_evaluation_legacy_2026-05-20.md
+  version: v1
+  status: historical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-026
+  path: docs/archive/analysis_report_legacy_2026-05-20.md
+  version: v1
+  status: historical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-027
+  path: docs/archive/external_review_round2_plan.md
+  version: v1
+  status: historical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-028
+  path: docs/archive/legacy/agent_governance.md
+  version: v1
+  status: historical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-029
+  path: docs/archive/legacy/causality.md
+  version: v1
+  status: historical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-030
+  path: docs/archive/legacy/selective_trust_curve_proof.md
+  version: v1
+  status: historical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-031
+  path: docs/archive/remora_infographic_v3_dark.html
+  version: v1
+  status: historical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-032
+  path: docs/archive/review_round2_closure.md
+  version: v1
+  status: historical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-033
+  path: docs/archive/toolcall_consensus_benchmark_v1.md
+  version: v1
+  status: superseded
+  superseded_by: docs/benchmarks/toolcall_consensus_benchmark_v2.md
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-034
+  path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
+  version: v1
+  status: canonical
+  topic: aromer-reference
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-035
+  path: docs/aromer/quickstart_aromer.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-036
+  path: docs/assurance/ai_assisted_adversarial_security_review_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-037
+  path: docs/assurance/aromer_memory_governance_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-038
+  path: docs/assurance/artifact_manifest_v1.md
+  version: v1
+  status: canonical
+  topic: artifact-manifest
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-039
+  path: docs/assurance/artifact_provenance_spec_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-040
+  path: docs/assurance/assurance_case_v1.md
+  version: v1
+  status: canonical
+  topic: assurance-case
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-041
+  path: docs/assurance/benchmark_audit_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-042
+  path: docs/assurance/best_practice_gap_audit_v1.md
+  version: v1
+  status: proposal
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-043
+  path: docs/assurance/capability_register_v1.yaml
+  version: v1
+  status: canonical
+  topic: capability-register
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-044
+  path: docs/assurance/claim_provenance_baseline.json
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-045
+  path: docs/assurance/claim_provenance_gate.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-046
+  path: docs/assurance/claim_register_v1.yaml
+  version: v1
+  status: canonical
+  topic: claim-register-machine
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-047
+  path: docs/assurance/development_review_log_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-048
+  path: docs/assurance/document_register_v1.yaml
+  version: v1
+  status: canonical
+  topic: document-register
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-049
+  path: docs/assurance/documentation_governance_v1.md
+  version: v1
+  status: canonical
+  topic: documentation-governance
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-050
+  path: docs/assurance/domain_pack_governance_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-051
+  path: docs/assurance/evidence_levels.md
+  version: v1
+  status: canonical
+  topic: evidence-levels
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-052
+  path: docs/assurance/human_oversight_operations_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-053
+  path: docs/assurance/independent_review_protocol_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-054
+  path: docs/assurance/policy_engine_audit_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-055
+  path: docs/assurance/rbac_design_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-056
+  path: docs/assurance/rbac_policy_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-057
+  path: docs/assurance/red_team_plan_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-058
+  path: docs/assurance/release_gates.md
+  version: v1
+  status: canonical
+  topic: release-gates
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-059
+  path: docs/assurance/release_profiles_v1.yaml
+  version: v1
+  status: canonical
+  topic: release-profiles
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-060
+  path: docs/assurance/remediation_register.yaml
+  version: v1
+  status: canonical
+  topic: remediation-register
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-061
+  path: docs/assurance/reproducibility_scorecard_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-062
+  path: docs/assurance/resilience_plan_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-063
+  path: docs/assurance/statistical_analysis_plan.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-064
+  path: docs/assurance/threat_model_v1.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-065
+  path: docs/benchmarks/README.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-066
+  path: docs/benchmarks/stat_tests.md
+  version: v1
+  status: generated
+  generated_by: scripts/statistical_tests.py
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-067
+  path: docs/benchmarks/toolcall_consensus_benchmark_v2.md
+  version: v2
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-068
+  path: docs/claim_register.md
+  version: v1
+  status: canonical
+  topic: claim-register-narrative
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-069
+  path: docs/claims/thermodynamics_claims.yaml
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-070
+  path: docs/deployment/azure-reference-architecture.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-071
+  path: docs/deployment/onprem-airgapped.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-072
+  path: docs/enterprise/togaf-enterprise-rollout-plan.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-073
+  path: docs/evidence/authorship_evidence_report.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-074
+  path: docs/evidence/causal_policy_explanations.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-075
+  path: docs/evidence/claim_evidence_matrix.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-076
+  path: docs/evidence/decision_envelope_audit.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-077
+  path: docs/evidence/empirical_evidence_record.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-078
+  path: docs/executive_onepager.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-079
+  path: docs/experiments/experiment3_phase_transition_study.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-080
+  path: docs/experiments/experiment4_susceptibility_validation.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-081
+  path: docs/experiments/experiment5_chi_iteration_utility.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-082
+  path: docs/failure_analysis.md
+  version: v1
+  status: generated
+  generated_by: experiments/toolcall_v2_failure_analysis.py
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-083
+  path: docs/governance/eu_ai_act_nsm_mapping.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-084
+  path: docs/governance/nist_ai_rmf_mapping.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-085
+  path: docs/integrations/agent_tool_hook.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-086
+  path: docs/integrations/cloudflare_workers_ai.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-087
+  path: docs/integrations/cyber_evidence_layer.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-088
+  path: docs/integrations/go_star_bridge.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-089
+  path: docs/integrations/gostar_integration.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-090
+  path: docs/integrations/knowledge_domains.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-091
+  path: docs/integrations/mcp-integration.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-092
+  path: docs/integrations/rag_oracle.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-093
+  path: docs/methods/architecture_risk_register.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-094
+  path: docs/methods/nested_governance.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-095
+  path: docs/methods/theoretical_foundations_proposals_v1.md
+  version: v1
+  status: proposal
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-096
+  path: docs/methods/thermodynamic_abs.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-097
+  path: docs/plain_language_overview.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-098
+  path: docs/policy_cookbook/README.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-099
+  path: docs/policy_cookbook/cloud_ops.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-100
+  path: docs/policy_cookbook/cyber.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-101
+  path: docs/policy_cookbook/database.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-102
+  path: docs/reference_architecture.md
+  version: v1
+  status: canonical
+  topic: reference-architecture
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-103
+  path: docs/remora_architecture.html
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-104
+  path: docs/research/causal_consequence_gating.md
+  version: v1
+  status: proposal
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-105
+  path: docs/research/governance_intelligence_layer.md
+  version: v1
+  status: proposal
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-106
+  path: docs/research/misspecification_aware_governance.md
+  version: v1
+  status: proposal
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-107
+  path: docs/research/policy_generalization_risk.md
+  version: v1
+  status: proposal
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-108
+  path: docs/research/research_control_matrix.generated.md
+  version: v1
+  status: generated
+  generated_by: scripts/generate_research_control_matrix.py
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-109
+  path: docs/research/research_control_matrix_v1.yaml
+  version: v1
+  status: canonical
+  topic: research-control-matrix
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-110
+  path: docs/results_snapshot.md
+  version: v1
+  status: generated
+  generated_by: scripts/generate_results_snapshot.py
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-111
+  path: docs/security/owasp_genai_mapping.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-112
+  path: docs/security/pre-deployment-review.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-113
+  path: docs/thermodynamics/README.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-114
+  path: docs/thermodynamics/claim_ledger.yaml
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-115
+  path: docs/thermodynamics/limitations.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-116
+  path: docs/thermodynamics/runtime_policy.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-117
+  path: docs/thermodynamics/temperature_estimator.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-118
+  path: docs/use-cases/README.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-119
+  path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-120
+  path: docs/use-cases/building-automation.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-121
+  path: docs/validation/EXTERNAL_VALIDATION_PLAN.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-122
+  path: docs/validation/audit_result_schema.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-123
+  path: docs/validation/credibility_pack_repro.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-124
+  path: docs/validation/external-review.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-125
+  path: docs/validation/external_validation_report_template.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-126
+  path: docs/validation/review_checklist.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-127
+  path: paper/claim_ledger.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-128
+  path: paper/figures.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-129
+  path: paper/future_state.md
+  version: v1
+  status: proposal
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-130
+  path: paper/hf_dataset_card.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-131
+  path: paper/remora_mathematical_supplement.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-132
+  path: paper/remora_paper.md
+  version: v1
+  status: canonical
+  topic: paper-canonical
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-133
+  path: paper/remora_paper_template.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
+- id: DOC-134
+  path: paper/whitepaper.md
+  version: v1
+  status: supporting
+  last_reviewed: null
+  code_synced: unreviewed
+  verdict: pending
