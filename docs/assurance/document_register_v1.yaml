@@ -119,9 +119,9 @@ documents:
   version: v1
   status: canonical
   topic: evidence-of-capability
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-006
   path: NEGATIVE_RESULTS.md
   version: v1
@@ -190,9 +190,9 @@ documents:
   version: v1
   status: canonical
   topic: claim-hygiene
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-015
   path: docs/06-reproducibility.md
   version: v1
@@ -275,9 +275,9 @@ documents:
   path: docs/archive/academic_evaluation_legacy_2026-05-20.md
   version: v1
   status: historical
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-026
   path: docs/archive/analysis_report_legacy_2026-05-20.md
   version: v1
@@ -303,9 +303,9 @@ documents:
   path: docs/archive/legacy/causality.md
   version: v1
   status: historical
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-030
   path: docs/archive/legacy/selective_trust_curve_proof.md
   version: v1
@@ -324,9 +324,9 @@ documents:
   path: docs/archive/review_round2_closure.md
   version: v1
   status: historical
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: current
 - id: DOC-033
   path: docs/archive/toolcall_consensus_benchmark_v1.md
   version: v1
@@ -413,9 +413,9 @@ documents:
   path: docs/assurance/claim_provenance_baseline.json
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-045
   path: docs/assurance/claim_provenance_gate.md
   version: v1
@@ -597,9 +597,9 @@ documents:
   path: docs/claims/thermodynamics_claims.yaml
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-070
   path: docs/deployment/azure-reference-architecture.md
   version: v1
@@ -794,37 +794,37 @@ documents:
   path: docs/plain_language_overview.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-098
   path: docs/policy_cookbook/README.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-099
   path: docs/policy_cookbook/cloud_ops.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-100
   path: docs/policy_cookbook/cyber.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-101
   path: docs/policy_cookbook/database.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-102
   path: docs/reference_architecture.md
   version: v1
@@ -837,9 +837,9 @@ documents:
   path: docs/remora_architecture.html
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-104
   path: docs/research/causal_consequence_gating.md
   version: v1
@@ -889,9 +889,9 @@ documents:
   version: v1
   status: generated
   generated_by: scripts/generate_results_snapshot.py
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-111
   path: docs/security/owasp_genai_mapping.md
   version: v1
@@ -910,9 +910,9 @@ documents:
   path: docs/thermodynamics/README.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: fixed
 - id: DOC-114
   path: docs/thermodynamics/claim_ledger.yaml
   version: v1
@@ -924,16 +924,16 @@ documents:
   path: docs/thermodynamics/limitations.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-116
   path: docs/thermodynamics/runtime_policy.md
   version: v1
   status: supporting
-  last_reviewed: null
-  code_synced: unreviewed
-  verdict: pending
+  last_reviewed: '2026-07-26'
+  code_synced: verified
+  verdict: current
 - id: DOC-117
   path: docs/thermodynamics/temperature_estimator.md
   version: v1
@@ -1051,9 +1051,9 @@ documents:
   path: paper/remora_paper_template.md
   version: v1
   status: supporting
-  last_reviewed: null
+  last_reviewed: '2026-07-26'
   code_synced: unreviewed
-  verdict: pending
+  verdict: stale
 - id: DOC-134
   path: paper/whitepaper.md
   version: v1

@@ -26,7 +26,7 @@ claims:
     status: partially_supported
     wording: weak offline harm predictor, not a validated live fragility law
     tests:
-      - tests/test_thermodynamic_evidence.py::test_empirical_chi_carries_moderate_harm_signal
+      - tests/test_thermodynamic_evidence.py::test_chi_iteration_utility_auroc_is_near_chance
       - tests/test_thermodynamic_evidence.py::test_live_chi_perturbation_pilot_does_not_confirm_fragility_law
     evidence:
       - results/chi_iteration_utility_results.json

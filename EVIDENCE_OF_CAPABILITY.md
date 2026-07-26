@@ -40,8 +40,9 @@ Core implementation areas:
   governance-forgetting metrics, and policy proposal primitives.
 - `remora/theory/`: MaxEnt, joint-convergence, and scaling-analysis modules
   used to document current theoretical assumptions and numerical checks.
-- `enterprise/`: policy-as-code examples, audit schema, threat model,
-  deployment runbooks, observability model, and production-readiness plan.
+- `docs/assurance/`: threat model, red-team plan, RBAC design, assurance case,
+  artifact-provenance spec, evidence-levels taxonomy, and release gates.
+- `docs/enterprise/`: TOGAF enterprise rollout plan.
 
 ## What Is Tested
 

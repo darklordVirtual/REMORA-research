@@ -20,7 +20,7 @@ What is implemented now:
 - Helmholtz-style proxy `F(T) = λD - T·H` in [remora/thermodynamics.py](../../remora/thermodynamics.py)
 - algebraic bridge `V(H,D) = F(T=-1;H,D)` for the historical Lyapunov potential
 - order parameter `η`, susceptibility proxy `χ`, critical-temperature proxy `T_c`
-- phase controller with actions `trust`, `iterate_cautious`, `refuse`, `demand_evidence`
+- phase controller with actions `trust`, `iterate_cautious`, `refuse`, `demand_evidence`, and `escalate_adversarial`
 - engine guardrail that blocks the parametric fast path when evidence is required
 - benchmark policy evaluator in [experiments/thermodynamic_router_eval.py](../../experiments/thermodynamic_router_eval.py) for measuring guardrail coverage, selective accuracy, and error interception
 - empirical N=302 artifacts, calibrated N500 artifacts, plus a live `χ` perturbation pilot
