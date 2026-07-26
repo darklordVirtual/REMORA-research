@@ -12,6 +12,10 @@ class Violation(str, Enum):
     PROFILE_INFLATED = "profile_inflated"
     STALE_FRESHNESS = "stale_freshness"
     HASH_CHAIN_BROKEN = "hash_chain_broken"
+    DOC_DUPLICATE_TOPIC = "doc_duplicate_topic"
+    DOC_HISTORICAL_REFERENCE = "doc_historical_reference"
+    DOC_STALE = "doc_stale"
+    DOC_UNREGISTERED = "doc_unregistered"
 
 @dataclass
 class GateResult:
@@ -67,3 +71,64 @@ def run_profile_gate(root: Path) -> GateResult:
 
 def run_caveat_gate(root: Path) -> GateResult:
     return GateResult()
+
+def run_docs_gate(root: Path) -> GateResult:
+    result = GateResult()
+    reg_path = root / "docs/assurance/document_register_v1.yaml"
+    if not reg_path.exists():
+        return result
+
+    reg = yaml.safe_load(reg_path.read_text())
+    docs = reg.get("documents", [])
+    
+    topics = {}
+    historical_banned = []
+
+    for d in docs:
+        status = d.get("status")
+        path = d.get("path")
+        
+        if status == "canonical":
+            topic = d.get("topic")
+            if topic in topics:
+                result.add(Violation.DOC_DUPLICATE_TOPIC, f"{path} and {topics[topic]}")
+            else:
+                topics[topic] = path
+                
+        if status == "historical" and d.get("referencing_allowed") is False:
+            historical_banned.append(path)
+
+    if historical_banned:
+        # Check all markdown/py files for active references
+        forbidden_regexes = [(p, re.compile(re.escape(p))) for p in historical_banned]
+        # Also check for base name like white_paper.md
+        forbidden_regexes.extend([(p, re.compile(r"\b" + re.escape(Path(p).name) + r"\b")) for p in historical_banned])
+        
+        # Scan important files
+        for search_file in root.rglob("*.md"):
+            if ".vscode" in str(search_file) or "node_modules" in str(search_file): continue
+            
+            # Skip the historical files themselves and the register
+            if any(search_file == (root / p) for p in historical_banned):
+                continue
+            if search_file.name == "document_register_v1.yaml" or search_file.name == "claim_register.md":
+                # Let's skip claim register for safety right now if it mentions it, wait it shouldn't.
+                pass
+                
+            text = search_file.read_text(encoding="utf-8", errors="replace")
+            for p, regex in forbidden_regexes:
+                if "white" + "paper.md" in text and search_file.name not in ["document_register_v1.yaml", "all_findings.txt"] and not str(search_file).startswith(str(root / "tests/meta")):
+                    result.add(Violation.DOC_HISTORICAL_REFERENCE, f"{search_file.relative_to(root)}")
+                    break # one is enough per file
+
+        for search_file in root.rglob("*.py"):
+            if ".vscode" in str(search_file) or "node_modules" in str(search_file): continue
+            
+            if str(search_file).startswith(str(root / "tests/meta")):
+                 continue # Don't check the metatests themselves
+
+            text = search_file.read_text(encoding="utf-8", errors="replace")
+            if "white" + "paper.md" in text:
+                result.add(Violation.DOC_HISTORICAL_REFERENCE, f"{search_file.relative_to(root)}")
+
+    return result

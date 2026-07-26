@@ -1,3 +1,8 @@
+> **NOTICE:** This document is **HISTORICAL** and has been explicitly archived. Referencing this document as truth in any runtime processes, algorithms, papers or claims is strictly prohibited in the active repository.
+
+---
+
+
 # REMORA: A Nested Governance Control Plane for Agentic AI
 
 > ℹ️ **Active public-facing whitepaper — not the canonical research paper.**

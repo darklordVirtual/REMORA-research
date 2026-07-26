@@ -33,7 +33,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 SCAN_FILES = [
     ROOT / "README.md",
-    ROOT / "paper" / "whitepaper.md",
+    ROOT / "paper" / "remora_paper.md",
     ROOT / "CHANGELOG.md",
     ROOT / "enterprise" / "executive-brief.md",
     ROOT / "enterprise" / "sector-use-cases.md",

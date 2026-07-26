@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SUMMARY = ROOT / "artifacts" / "benchmark_summary.json"
 README = ROOT / "README.md"
-WHITEPAPER = ROOT / "paper" / "whitepaper.md"
+WHITEPAPER = ROOT / "paper" / "remora_paper.md"
 RESULTS_SNAPSHOT = ROOT / "docs" / "results_snapshot.md"
 
 
@@ -99,7 +99,7 @@ def main() -> None:
     h = summary["headline"]
 
     readme = read_utf8(README)
-    whitepaper = read_utf8(WHITEPAPER)
+    remora_paper = read_utf8(WHITEPAPER)
     results_snapshot = read_utf8(RESULTS_SNAPSHOT)
 
     # Canonical percentages must appear in technical artifacts.
@@ -115,7 +115,7 @@ def main() -> None:
     ]
     for v in technical_pcts:
         ensure_pct_pattern(results_snapshot, float(v), "docs/results_snapshot.md")
-        ensure_pct_pattern(whitepaper, float(v), "paper/whitepaper.md")
+        ensure_pct_pattern(remora_paper, float(v), "paper/remora_paper.md")
 
     # README is narrative and should include at least baseline anchors from the
     # canonical benchmark, but does not need every ablation percentage.
@@ -125,12 +125,12 @@ def main() -> None:
     # Benchmark size consistency.
     n_items = int(summary["n_items"])
     ensure_pattern(readme, rf"N\s*=\s*{n_items}", "README.md")
-    ensure_pattern(whitepaper, rf"N\s*=\s*{n_items}", "paper/whitepaper.md")
+    ensure_pattern(remora_paper, rf"N\s*=\s*{n_items}", "paper/remora_paper.md")
     ensure_pattern(results_snapshot, rf"N\s*=\s*{n_items}", "docs/results_snapshot.md")
 
     # Claim hygiene guardrail.
     ensure_no_unqualified_majority_superiority(readme, "README.md")
-    ensure_no_unqualified_majority_superiority(whitepaper, "paper/whitepaper.md")
+    ensure_no_unqualified_majority_superiority(remora_paper, "paper/remora_paper.md")
 
     # Tool-call v2 claims must track the significance artifact (REM-038).
     check_toolcall_v2_claims(readme)

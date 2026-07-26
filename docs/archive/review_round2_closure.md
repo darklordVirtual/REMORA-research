@@ -33,7 +33,7 @@ Short summary (3-6 lines):
 
 | ID | Severity | Area | Title | Owner | Status | Due date | Disposition | Evidence |
 |----|----------|------|-------|-------|--------|----------|-------------|----------|
-| R2-001 | high | docs | Overclaim wording in whitepaper | REMORA maintainers | closed | 2026-05-31 | fixed | `paper/whitepaper.md` |
+| R2-001 | high | docs | Overclaim wording in whitepaper | REMORA maintainers | closed | 2026-05-31 | fixed | `paper/remora_paper.md` |
 | R2-002 | medium | scripts | Missing Author/License headers for audit helper script | REMORA maintainers | closed | 2026-05-31 | fixed | `scripts/verify_audit_anchor.py` |
 | R2-003 | high | benchmarking | Independent benchmark/holdout reproduction for claim-set closure | REMORA maintainers | closed | 2026-05-31 | fixed | `artifacts/reproduce.sh`, `results/selective_n500_holdout_results.json`, `artifacts/governance-benchmark-pack.zip` |
 

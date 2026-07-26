@@ -59,7 +59,7 @@ safety-check: lint test replay  ## Full safety check: lint + tests + replay aren
 meta-audit:  ## Beviser at audit-gatene fanger seedede brudd
 	$(PYTEST) tests/meta/ -x -q
 
-audit: meta-audit lint test  ## Full quality gate: lint + tests + all claim consistency checks
+audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + all claim consistency checks
 	$(PYTHON) scripts/claim_audit.py
 	$(PYTHON) scripts/profile_gate.py
 	@echo "\n-- Claim consistency (numeric benchmarks) --"
@@ -279,6 +279,9 @@ verify:
 	python3 -m remora.cli verify
 
 .PHONY: docs docs-serve
+
+render-claims:  ## Render status numbers to prose
+	python scripts/render_claims.py
 
 docs:  ## Build static documentation with mkdocs
 	pip3 install -e ".[docs]" -q
