@@ -137,6 +137,21 @@ def test_current_verdict_requires_verified(tmp_path: Path) -> None:
     assert any("verdict=current requires code_synced=verified" in e for e in errors)
 
 
+def test_historical_current_is_exempt_from_verified_requirement(tmp_path: Path) -> None:
+    """A frozen historical snapshot may be verdict=current (correctly archived)
+    without code_synced=verified — it is not expected to match live code."""
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "    status: historical\n    last_reviewed: 2026-07-26\n"
+        "    code_synced: unreviewed\n    verdict: current\n",
+    )
+    errors: list[str] = []
+    mod.check_document_verification(errors, [])
+    assert not any("requires code_synced=verified" in e for e in errors)
+
+
 def test_missing_verification_fields_are_refused(tmp_path: Path) -> None:
     mod = _load_module()
     mod.DOC_REGISTER = _verif_reg(

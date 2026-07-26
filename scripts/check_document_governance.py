@@ -228,11 +228,15 @@ def check_document_verification(errors: list[str], warnings: list[str]) -> None:
                 except ValueError:
                     errors.append(f"document-register: {path}: last_reviewed {lr!r} is not a valid date")
 
-        # Anti-fake-checked consistency: a verified/current/fixed claim requires
-        # a real review date.
+        # Anti-fake-checked consistency: claiming a document was verified always
+        # requires a real review date, whatever its status.
         if cs == "verified" and reviewed_on is None:
             errors.append(f"document-register: {path}: code_synced=verified but last_reviewed is null")
-        if vd in {"current", "fixed"} and cs != "verified":
+        # verdict current/fixed asserts the LIVE content matches code, so it
+        # requires a code check — except for historical/superseded snapshots,
+        # which are frozen by contract and legitimately describe past state.
+        status = e.get("status")
+        if status not in {"historical", "superseded"} and vd in {"current", "fixed"} and cs != "verified":
             errors.append(f"document-register: {path}: verdict={vd} requires code_synced=verified (got {cs!r})")
 
         # Non-failing review-hygiene signals.
