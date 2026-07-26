@@ -113,8 +113,12 @@ documents:
     status: supporting
   - path: paper/future_state.md
     status: proposal
+  # Active public-facing / frontend whitepaper surface. NOT the canonical
+  # research paper (that is remora_paper.md, which governs on any conflict).
+  # Roadmap: generate from canonical sources or retire to avoid parallel,
+  # divergent claims. Do not archive until frontend/CI/script deps are migrated.
   - path: paper/whitepaper.md
-    status: historical
+    status: supporting
 
   # ── Index ────────────────────────────────────────────────────────────────
   - path: docs/README.md
