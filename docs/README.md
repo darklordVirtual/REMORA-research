@@ -196,6 +196,7 @@ Illustrative unless artifact-linked: see the banner in each file.
 | [`research/research_control_matrix_v1.yaml`](research/research_control_matrix_v1.yaml) | Research-control matrix (source): research source → control → code → test → maturity → boundary, per research line (CI-verified paths) |
 | [`research/research_control_matrix.generated.md`](research/research_control_matrix.generated.md) | Research-control matrix (rendered; generated from the YAML, do not edit) |
 | [`theoretical_foundations_proposals_v1.md`](methods/theoretical_foundations_proposals_v1.md) | PROPOSED formal frameworks, roadmap, not implemented claims |
+| `researchpapers/kompendium_ai_assurance_3utgave.md` | Internal AI-assurance compendium (3rd ed.); local-only working reference (gitignored, not published), used by the best-practice gap audit |
 
 ## Meta
 
