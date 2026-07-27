@@ -281,20 +281,25 @@ def _jsonable(value: Any) -> Any:
 
 
 class ToolCallRequest(BaseModel):
-    """Exact-payload assessment request (review finding: full-args binding)."""
+    """The PROPOSAL only (issue #34 trust boundary; full-args binding kept).
+
+    The request carries what the agent proposes: tool, exact arguments,
+    requested target. Every authoritative safety signal — risk tier,
+    domain, action type, trust, phase, evidence status, schema validity,
+    rollback capability — is derived SERVER-SIDE from the tool registry;
+    the caller can never assert its way to an ACCEPT. The only inbound
+    safety influence permitted is a DOWNGRADE: schema_valid=false or
+    rollback_available=false lowers trust; true/None never raises it.
+    Legacy pre-#34 fields (trust_score, phase, evidence_action,
+    evidence_confidence, risk_tier, domain, action_type) are ignored as
+    unknown extras for wire compatibility.
+    """
 
     tool_name: str = Field(..., min_length=1, max_length=200)
     arguments: dict[str, Any] = Field(default_factory=dict)
-    risk_tier: str | None = None
-    domain: str | None = None
-    action_type: str | None = None
     target_environment: str = "prod"
-    trust_score: float | None = None
-    phase: str | None = None
-    evidence_action: str | None = None
-    evidence_confidence: float | None = None
-    schema_valid: bool | None = None
-    rollback_available: bool | None = None
+    schema_valid: bool | None = None       # only false is honored (downgrade)
+    rollback_available: bool | None = None  # only false is honored (downgrade)
     idempotency_key: str | None = None
 
 
@@ -311,31 +316,39 @@ def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
         domain=registry_entry.get("domain", "unknown"),
         action_type=registry_entry.get("action_type", "unknown"),
         target_environment=registry_entry.get("target_environment", req.target_environment),
-        trust_score=req.trust_score,
-        phase=req.phase,
-        evidence_action=req.evidence_action,
-        evidence_confidence=req.evidence_confidence,
-        # Trust boundary (external review 2026-07-27): a client must never be
-        # able to ELEVATE trust by declaring schema_valid/rollback_available
-        # above what the server-side registry pins — but it must still be able
-        # to LOWER them (rollback_available is partly live world state, and
-        # "world got riskier" signals feed the freshness re-gate). Conservative
-        # None-aware AND: False from either side wins.
-        schema_valid=_conservative_bool(registry_entry.get("schema_valid"), req.schema_valid),
-        rollback_available=_conservative_bool(
+        # Trust boundary (issue #34): the policy-only execution kernel has
+        # no oracle/evidence pipeline, and the CLIENT is never a trust
+        # source — trust, phase and evidence status are unknown here, so
+        # the engine fails toward VERIFY/ABSTAIN. No probabilistic ACCEPT
+        # can fire without these signals; an authoritative server-side
+        # signal source is #35/#39 scope.
+        trust_score=None,
+        phase=None,
+        evidence_action=None,
+        evidence_confidence=None,
+        # Downgrade-only rule (issue #34): the request may LOWER trust
+        # (schema_valid/rollback_available false — "world got riskier"
+        # signals must keep feeding the freshness re-gate) but can never
+        # raise it: request true is IGNORED, including when the registry
+        # pins nothing (previously true passed through on unpinned tools).
+        schema_valid=_downgrade_only_bool(registry_entry.get("schema_valid"), req.schema_valid),
+        rollback_available=_downgrade_only_bool(
             registry_entry.get("rollback_available"), req.rollback_available
         ),
         session_id=tenant,
     )
 
 
-def _conservative_bool(registry_value: bool | None, request_value: bool | None) -> bool | None:
-    """None-aware conservative AND — the registry caps, the request may lower."""
-    if registry_value is None:
-        return request_value
-    if request_value is None:
-        return registry_value
-    return registry_value and request_value
+def _downgrade_only_bool(registry_value: bool | None, request_value: bool | None) -> bool | None:
+    """Issue #34: the request may lower trust, never raise it.
+
+    request False -> False (downgrade honored); anything else -> the
+    registry value unchanged (request True is ignored, unknown stays
+    unknown).
+    """
+    if request_value is False:
+        return False
+    return registry_value
 
 
 
