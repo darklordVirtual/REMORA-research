@@ -16,7 +16,7 @@
 # EXTERNALLY_VERIFIED — deployment_status is SHADOW_ONLY until REM-021.
 
 schema_version: "1"
-updated: "2026-07-19"
+updated: "2026-07-27"
 
 capabilities:
   - id: CAP-001
@@ -129,6 +129,17 @@ capabilities:
       - results/aromer_cross_domain_transfer_v1.json
       - tests/test_cross_domain_transfer.py
     caveat: "OFFLINE measurement (leave-one-domain-out over the curated corpus): 83.8% transfer accuracy. NOT the live worker gate — crossDomainCases still reads 0 and interpretation stays TRANSFER_UNMEASURED until organic cross-domain traffic exists (NEGATIVE_RESULTS §16)."
+
+  - id: CAP-013
+    name: "Governed tool dispatch (lease-bound, app-side credentials, deployment-config registry)"
+    status: WIRED_API_PATH
+    evidence:
+      - remora/enforcement/lease.py
+      - servers/execution_api.py
+      - servers/tool_registry_research.py
+      - tests/test_execution_api.py
+      - tests/test_tool_registry_research.py
+    caveat: "Wired 2026-07-27 (issue #13): /v1/execution/execute dispatches through GovernedToolDispatcher under an ExecutionLease after PEP consume; tool callables come only from REMORA_TOOL_REGISTRY_MODULE (research profile ships side-effect-bounded store_artifact/read_telemetry). Response/audit report the real outcome (tool_execution / tool_executed). Remaining: transport-anchored actor identity, durable multi-process nonce store (REM-025), deployment fronting real downstream credentials, external validation (REM-021/REM-030)."
 
   - id: CAP-META
     name: "Metatesting of the evidence regime (audit gates are mutation-tested)"

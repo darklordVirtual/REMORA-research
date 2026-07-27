@@ -481,6 +481,19 @@ items:
       signed execution leases bound to tenant, tool, canonical args hash, policy
       version, nonce, expiry, and environment, and refuses execution without a
       valid lease. The agent must not hold downstream tool credentials.
+      PROGRESS 2026-07-27 (issue #13, PR #26): the dispatcher IS now wired into
+      the API path — /v1/execution/execute issues an ExecutionLease after PEP
+      consume and dispatches through GovernedToolDispatcher; tool callables
+      register only via the trusted deployment module REMORA_TOOL_REGISTRY_MODULE
+      (research profile: side-effect-bounded store_artifact/read_telemetry in
+      servers/tool_registry_research.py), and response + audit record the real
+      execution outcome. F-07 is closed: expected_policy_bundle_hash is a
+      mandatory constructor argument and ExecutionLease.verify() refuses empty
+      bundle hashes with a constant-time compare (PR #25). REMAINING before
+      DONE: transport-anchored actor identity, durable multi-process
+      nonce/lease storage (REM-025), a deployment where the dispatcher fronts
+      real downstream credentials, and external interception validation
+      (REM-030, REM-021).
 
   - id: REM-025
     section: "security-audit B"
