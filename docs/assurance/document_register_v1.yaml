@@ -1991,6 +1991,17 @@ documents:
   last_reviewed: '2026-07-27'
   audience:
   - researchers
+- id: DOC-283
+  version: v1
+  path: docs/research/benchmark_round_2026_07.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
+  - evaluators
 
 topics:
 - docs_01-architecture_md
