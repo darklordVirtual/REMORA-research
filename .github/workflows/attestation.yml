@@ -98,7 +98,7 @@ jobs:
       - name: Upload SHA-bound review handoff bundle
         # Success-only: this single artifact (code SHA + governance pack +
         # credibility pack + attestation) is the formal REM-021 handoff.
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: remora-review-handoff-${{ github.sha }}
           path: |
@@ -112,7 +112,7 @@ jobs:
         # attestation (never a stale PASS — see the rm step above); if the
         # generator died before writing, if-no-files-found: error fails here.
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: review-test-attestation
           path: |
