@@ -6,11 +6,16 @@
 **Status:** NOT_STARTED  
 **Contact:** Stian Skogbrott, support@luftfiber.no
 
-This document is the external reviewer package for REM-021. It defines scope,
-questions to answer, the scorecard, conflict-of-interest requirements, and
-output artifacts. When an external reviewer completes this protocol, they commit
-their signed report as `docs/assurance/independent_review_v1.md` and REM-021
-closes.
+This document defines the REM-021 review questions and scorecard. Reviewer
+qualification, panel composition, scope ownership, required attacks, and
+profile-specific sign-off are governed by
+[external_review_panel_v1.md](external_review_panel_v1.md).
+
+**Panel rule (2026-07-25):** no single generalist may close REM-021. At minimum,
+the scientific/statistical reviewer (R1), agent-security reviewer (R2), and
+AI-assurance reviewer (R3) must complete their separate mandates. R3 then
+consolidates the signed evidence in
+`docs/assurance/independent_review_v1.md`.
 
 ---
 
@@ -30,26 +35,43 @@ deployment certification. The reviewer does not certify REMORA as production-saf
 they verify that the stated methodology is correctly implemented and the claims
 accurately reflect the evidence.
 
-### Out of scope
+### Out of scope for the consolidated REM-021 verdict
 
-- Live deployment testing (REMORA is SHADOW_ONLY)
-- Cryptographic audit of the hash chain
-- Full code security audit (see REM-022 for RBAC)
-- External replication (re-running experiments from scratch)
-- Review of AROMER learning dynamics beyond what is needed for safety claims
+- Accredited certification or a claim that REMORA is production-certified
+- Legal clearance of BUSL, CLA, third-party materials, or commercial IP (R5)
+- Customer-specific OT/process-safety authorization
+- Approval of a broader deployment profile than the evidence set supports
+- Review of AROMER learning dynamics beyond claims used by the core assurance case
+
+External replication, adversarial enforcement testing, identity/RBAC review,
+and cryptographic-control review are not globally excluded: they are assigned
+to R1, R2, and R3/R4 by the panel matrix.
 
 ---
 
-## 2. Reviewer Eligibility
+## 2. Reviewer Eligibility and Panel Coverage
 
-The reviewer MUST satisfy ALL of the following:
+The minimum REM-021 panel is:
 
-- Not a current or recent (< 12 months) employee, contractor, or collaborator of
-  Stian Skogbrott or Luftfiber AS
-- Not a contributor to this repository (no commits, no PR reviews)
-- Has expertise in at least ONE of: AI safety evaluation, software verification,
-  policy-as-code systems, or statistical methods for ML benchmarks
-- Signs the conflict-of-interest declaration in Section 8 before starting
+| Role | Required qualification | Primary responsibility |
+|---|---|---|
+| R1 — scientific methods/statistics | PhD plus peer-reviewed publication in a relevant statistical/ML-evaluation field | Methods, inference, benchmarks, CRC/PVD status, claim limits |
+| R2 — agent security/production architecture | Senior, documented capability-security, PDP/PEP, identity/replay, distributed-systems, and red-team experience | Enforcement architecture plus executed adversarial tests |
+| R3 — AI assurance/governance | Documented assessor experience with AI risk/governance frameworks and regulated systems | Control-to-evidence traceability and consolidated profile verdict |
+
+R1, R2, and R3 should be different people. Every reviewer must satisfy all of
+the following:
+
+- Not a current or recent (< 12 months) employee, contractor, or collaborator
+  of Stian Skogbrott or Luftfiber AS
+- Not a contributor to this repository (no commits or PR reviews)
+- No financial interest contingent on a positive verdict
+- Role-specific competence documented as required by
+  [external_review_panel_v1.md](external_review_panel_v1.md)
+- Signed conflict-of-interest declaration before starting
+
+R4 (principal software/supply-chain engineer) is required for production
+modening and R5 (license/IP counsel) runs as a separate legal workstream.
 
 ---
 
@@ -220,8 +242,10 @@ Complete this table after answering Section 4 questions.
 
 Choose one:
 
-- **PASS**: All questions answered YES, or PARTIAL with documented minor findings
-  that do not affect safety claims. REM-021 may be closed.
+- **PASS**: All questions in this reviewer's assigned mandate are answered YES,
+  or PARTIAL with documented minor findings that do not affect the approved
+  profile. This passes the individual mandate; REM-021 may close only after
+  all mandatory R1/R2/R3 reports and the consolidated R3 verdict are complete.
 - **CONDITIONAL PASS**: Specific items require author response before close.
   List findings in Section 6.
 - **FAIL**: One or more critical findings that require code or documentation
@@ -246,33 +270,35 @@ Recommendation: [what must change for this finding to be resolved]
 
 ## 7. Scope Limitations
 
-The reviewer acknowledges the following inherent scope limitations:
+Every report must state its own limitations. The following apply to the
+consolidated protocol:
 
-1. **Simulator-scoped benchmarks.** All key benchmarks (`toolcall_benchmark_v2`,
-   `selective_n500`, `selective_trust_curve`) are deterministic synthetic
-   simulations. This review cannot validate field-deployment safety.
-
-2. **No external replication.** The reviewer is assessing methodology and
-   documentation consistency, not independently re-running experiments. Claimed
-   results are taken from committed artifacts; spot-checks against source code
-   are performed but full reproduction is not within scope.
-
-3. **AROMER is not primary scope.** The review covers AROMER claims only
-   to the extent they are cited in README or paper safety claims. Full
-   review of AROMER learning dynamics is out of scope.
-
-4. **No cryptographic audit.** The hash chain and token signing are reviewed
-   for logic correctness but not for cryptographic security (e.g., key
-   management, side-channel resistance).
-
-5. **No RBAC audit.** RBAC is covered by a separate gate (REM-022) and is
-   out of scope for this review.
+1. **Profile-specific conclusion.** Review evidence may support research claims,
+   a controlled pilot, or a narrower capability; it must not be generalized to
+   production certification.
+2. **Imported and simulator-scoped evidence.** Imported/non-reproducible
+   artifacts and synthetic benchmarks must be named explicitly. R1 independently
+   recalculates or reproduces material results where source data and tooling
+   permit.
+3. **Security evidence requires execution.** R2 performs adversarial tests of
+   policy, identity, token/lease, replay, dispatcher, and failure paths. A
+   document-only security opinion cannot pass R2.
+4. **Cryptographic boundary.** R2 reviews protocol use, binding, freshness, key
+   assumptions, and failure behavior; formal cryptanalysis or HSM certification
+   requires separate specialist scope when claimed.
+5. **Production and domain authorization.** A REM-021 pass does not authorize an
+   industrial deployment. Release-profile gates and the customer's independent
+   domain/OT authority still apply.
+6. **Legal scope.** Licensing, chain of title, CLA, datasets, and commercial IP
+   are reviewed separately by R5 legal counsel.
+7. **AROMER scope.** AROMER is reviewed only where its results are used in the
+   core REMORA assurance case or public claims.
 
 ---
 
 ## 8. Conflict-of-Interest Declaration
 
-The reviewer must sign and date this declaration before beginning:
+Every R1/R2/R3 reviewer must sign and date this declaration before beginning:
 
 ---
 
@@ -294,20 +320,42 @@ I, [REVIEWER NAME], declare that:
 
 ---
 
-## 9. Output Artifact
+## 9. Output Artifacts
 
-When complete, the reviewer commits (or provides for committing) their filled-out
-scorecard and findings as:
+Each mandatory reviewer provides a signed report:
 
+```text
+docs/assurance/reviews/
+  r1_scientific_methods_review_v1.md
+  r2_agent_security_red_team_v1.md
+  r3_ai_assurance_review_v1.md
 ```
+
+Production and legal workstreams add:
+
+```text
+docs/assurance/reviews/
+  r4_software_supply_chain_review_v1.md
+  r5_license_ip_opinion_v1.md
+```
+
+R3 consolidates the technical panel in:
+
+```text
 docs/assurance/independent_review_v1.md
 ```
 
-This file MUST include:
-- Completed scorecard (Section 5)
-- All findings (Section 6, even if empty)
-- Signed conflict-of-interest declaration (Section 8)
-- Overall verdict
+The consolidated artifact must include:
 
-Upon commit of this artifact with a PASS or CONDITIONAL PASS verdict (with all
-conditional items resolved), the REMORA team may close REM-021.
+- reviewer identities, qualifications, affiliations, and signed conflict declarations;
+- fixed commit SHA and deployment/configuration evidence set;
+- coverage matrix showing the owner and verdict for every mandatory scope item;
+- links to all role reports, commands, test outputs, and retest evidence;
+- all findings, including dissents and residual risks;
+- explicit release profile: `RESEARCH CLAIMS`, `CONTROLLED_PILOT`,
+  `LIMITED_ENFORCEMENT`, or `PRODUCTION ASSURANCE PACKAGE`;
+- one final verdict: `PASS`, `CONDITIONAL PASS`, or `FAIL`.
+
+REM-021 may close only when the R1/R2/R3 mandates and all REM-021 questions are
+complete, no relevant CRITICAL/MAJOR finding remains open, and the consolidated
+verdict is signed and bound to the reviewed commit.

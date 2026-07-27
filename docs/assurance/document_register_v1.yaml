@@ -529,6 +529,17 @@ documents:
   last_reviewed: '2026-07-26'
   audience:
   - researchers
+- id: DOC-284
+  version: v1
+  path: docs/assurance/external_review_panel_v1.md
+  status: canonical
+  topic: docs_assurance_external_review_panel_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
 - id: DOC-073
   version: v1
   path: docs/assurance/red_team_plan_v1.md
@@ -2076,6 +2087,7 @@ topics:
 - docs_assurance_release_gates_md
 - docs_assurance_policy_engine_audit_v1_md
 - docs_assurance_independent_review_protocol_v1_md
+- docs_assurance_external_review_panel_v1_md
 - docs_assurance_red_team_plan_v1_md
 - docs_assurance_rbac_policy_v1_md
 - docs_assurance_claim_provenance_gate_md

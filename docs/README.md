@@ -53,6 +53,7 @@ Organisert etter lesesti, ikke etter hierarkisk fil-struktur.
 - [assurance/domain_pack_governance_v1.md](assurance/domain_pack_governance_v1.md)
 - [assurance/human_oversight_operations_v1.md](assurance/human_oversight_operations_v1.md)
 - [assurance/independent_review_protocol_v1.md](assurance/independent_review_protocol_v1.md)
+- [assurance/external_review_panel_v1.md](assurance/external_review_panel_v1.md)
 - [assurance/policy_engine_audit_v1.md](assurance/policy_engine_audit_v1.md)
 - [assurance/rbac_design_v1.md](assurance/rbac_design_v1.md)
 - [assurance/rbac_policy_v1.md](assurance/rbac_policy_v1.md)
