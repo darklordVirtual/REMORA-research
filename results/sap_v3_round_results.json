@@ -16,7 +16,7 @@
       0.8235
     ],
     "p0_dev_majority_accuracy": 0.864097,
-    "calibration_sha256": "cba30b97fc5da525ca150c88ce171ac5834b2e9a55a0a90fb2630bcbf4a55378"
+    "calibration_sha256": "24360bae6a7a21287ad024236f3df8cec3103ac0c308d61a6d26b8c4e66ff188"
   },
   "claim_B_risk_control": {
     "neg_temperature": {
@@ -26,6 +26,12 @@
         "risk_bound": 0.99,
         "certified_coverage_riskcal": 0.0,
         "empirical_risk_riskcal": 0.0
+      },
+      "sgr_family_wise_bonferroni3": {
+        "certified": false,
+        "risk_bound": 0.996667,
+        "certified_coverage_riskcal": 0.0,
+        "note": "delta/3 per arm; the marginal per-arm claim above is the pre-registered one, this row answers whether the arm also survives selection-among-three at the same overall level"
       },
       "crc": {
         "certified": true,
@@ -42,15 +48,16 @@
             0.9324
           ]
         },
-        "realized_within_budget_unconditional": false
+        "empirical_test_loss_within_alpha": false,
+        "semantics_note": "CRC guarantees EXPECTED unconditional loss <= alpha for an exchangeable test point (expectation over calibration AND the new point); a finite test sample above alpha is an empirical validation exceedance, NOT by itself evidence against exchangeability or the CRC theorem."
       }
     },
     "calibrated_mean_confidence": {
       "signal": "calibrated_mean_confidence",
       "sgr": {
         "certified": true,
-        "risk_bound": 0.038596,
-        "certified_coverage_riskcal": 0.3162,
+        "risk_bound": 0.038275,
+        "certified_coverage_riskcal": 0.3189,
         "empirical_risk_riskcal": 0.0,
         "test": {
           "n_accepted": 132,
@@ -63,33 +70,40 @@
             0.9741
           ]
         },
-        "realized_within_budget": false
+        "test_point_estimate_within_budget": false
+      },
+      "sgr_family_wise_bonferroni3": {
+        "certified": false,
+        "risk_bound": 0.996667,
+        "certified_coverage_riskcal": 0.0,
+        "note": "delta/3 per arm; the marginal per-arm claim above is the pre-registered one, this row answers whether the arm also survives selection-among-three at the same overall level"
       },
       "crc": {
         "certified": true,
         "criterion": 0.048518,
         "certified_coverage_riskcal": 0.7027,
         "test": {
-          "n_accepted": 247,
-          "errors": 14,
-          "selective_risk": 0.05668,
-          "unconditional_risk": 0.038043,
-          "coverage": 0.6712,
+          "n_accepted": 251,
+          "errors": 16,
+          "selective_risk": 0.063745,
+          "unconditional_risk": 0.043478,
+          "coverage": 0.6821,
           "accuracy_wilson_ci": [
-            0.9071,
-            0.9659
+            0.899,
+            0.9604
           ]
         },
-        "realized_within_budget_unconditional": true
+        "empirical_test_loss_within_alpha": true,
+        "semantics_note": "CRC guarantees EXPECTED unconditional loss <= alpha for an exchangeable test point (expectation over calibration AND the new point); a finite test sample above alpha is an empirical validation exceedance, NOT by itself evidence against exchangeability or the CRC theorem."
       }
     },
     "margin_plus_calibrated_confidence": {
       "signal": "margin_plus_calibrated_confidence",
       "sgr": {
         "certified": true,
-        "risk_bound": 0.0446,
-        "certified_coverage_riskcal": 0.3946,
-        "empirical_risk_riskcal": 0.006849,
+        "risk_bound": 0.044302,
+        "certified_coverage_riskcal": 0.3973,
+        "empirical_risk_riskcal": 0.006803,
         "test": {
           "n_accepted": 161,
           "errors": 8,
@@ -101,7 +115,13 @@
             0.9746
           ]
         },
-        "realized_within_budget": true
+        "test_point_estimate_within_budget": true
+      },
+      "sgr_family_wise_bonferroni3": {
+        "certified": false,
+        "risk_bound": 0.996667,
+        "certified_coverage_riskcal": 0.0,
+        "note": "delta/3 per arm; the marginal per-arm claim above is the pre-registered one, this row answers whether the arm also survives selection-among-three at the same overall level"
       },
       "crc": {
         "certified": true,
@@ -118,28 +138,29 @@
             0.9661
           ]
         },
-        "realized_within_budget_unconditional": true
+        "empirical_test_loss_within_alpha": true,
+        "semantics_note": "CRC guarantees EXPECTED unconditional loss <= alpha for an exchangeable test point (expectation over calibration AND the new point); a finite test sample above alpha is an empirical validation exceedance, NOT by itself evidence against exchangeability or the CRC theorem."
       }
     }
   },
   "claim_A_ranking": {
     "aurc": {
       "neg_temperature": 0.09544,
-      "calibrated_mean_confidence": 0.065674,
-      "margin_plus_calibrated_confidence": 0.066844
+      "calibrated_mean_confidence": 0.066418,
+      "margin_plus_calibrated_confidence": 0.067245
     },
     "temperature_vs_calibrated_confidence": {
-      "delta_aurc": 0.029766,
+      "delta_aurc": 0.029022,
       "bootstrap_ci95": [
-        0.012579,
-        0.051098
+        0.011851,
+        0.050315
       ]
     },
     "temperature_vs_margin_hybrid": {
-      "delta_aurc": 0.028596,
+      "delta_aurc": 0.028195,
       "bootstrap_ci95": [
-        0.012431,
-        0.049982
+        0.011934,
+        0.049595
       ]
     }
   },
@@ -159,5 +180,10 @@
     }
   },
   "secondary": {},
-  "reporting_note": "Guarantee statements must be quoted with loss definition, data distribution, calibration sample, model/policy versions, coverage, and assumptions (SAP v3 \u00a76). SGR zero-coverage is a legitimate outcome. CRC controls expected UNCONDITIONAL loss."
+  "reporting_note": "Guarantee statements must be quoted with loss definition, data distribution, calibration sample, model/policy versions, coverage, and assumptions (SAP v3 \u00a76). SGR zero-coverage is a legitimate outcome. CRC controls expected UNCONDITIONAL loss; a finite test sample above alpha is an empirical validation exceedance, not a proven assumption violation.",
+  "scope_caveats": [
+    "Corpus skew: ~93% BoolQ and ~93% easy-classified items, 2.2% adversarial \u2014 evidence about selective QA on this distribution, NOT about tool execution, production writes, irreversible operations or safety-critical false accepts.",
+    "'Fresh' means unused in REMORA's N544 corpus; BoolQ/TruthfulQA are public datasets and may appear in model pretraining \u2014 these are not necessarily model-unseen items.",
+    "A baseline arm's certification does not trigger SAP v3 \u00a77 engine integration: the integration clause was written for the primary (temperature) arm, which failed. The successful hybrid arm is a promising pre-registered secondary that needs its own frozen confirmation round; see the sgr_family_wise_bonferroni3 rows for whether each arm also survives selection-among-three."
+  ]
 }
