@@ -89,6 +89,49 @@ def check_toolcall_v2_claims(readme: str) -> None:
     ensure_pattern(readme, rf"{delta:.4f}".replace(".", r"\."), "README.md (v2 unsafe-rate delta value)")
 
 
+def check_aromer_replay_claims() -> None:
+    """Bind every AROMER replay-arena number quoted in claim-bearing docs to
+    the artifact of record.
+
+    Added 2026-07-27 (external research audit P0-1): docs quoted 87.5% on a
+    96-case arena while the artifact stored replay_accuracy=0.871 over 93
+    cases — and the (advisory) document gate could not fail on it. Numeric
+    claim/artifact agreement is a HARD check and lives here.
+    """
+    artifact = ROOT / "artifacts" / "aromer" / "replay_arena_report.json"
+    if not artifact.exists():
+        fail("Missing artifacts/aromer/replay_arena_report.json")
+    payload = json.loads(artifact.read_text(encoding="utf-8-sig"))["worker_payload"]
+    acc = float(payload["replay_accuracy"])
+    cases = int(payload["replay_cases"])
+
+    claim_docs = [
+        ROOT / "docs" / "02-evidence-and-claims.md",
+        ROOT / "docs" / "03-experiments.md",
+        ROOT / "docs" / "assurance" / "evidence_levels.md",
+        ROOT / "paper" / "remora_paper.md",
+        ROOT / "paper" / "remora_mathematical_supplement.md",
+        ROOT / "paper" / "hf_dataset_card.md",
+    ]
+    for doc in claim_docs:
+        if not doc.exists():
+            continue
+        text = read_utf8(doc)
+        where = doc.relative_to(ROOT).as_posix()
+        for m in re.finditer(r"replay_accuracy=([0-9.]+)", text):
+            if abs(float(m.group(1)) - acc) > 1e-9:
+                fail(f"{where}: replay_accuracy={m.group(1)} contradicts artifact ({acc})")
+        for m in re.finditer(r"replay_cases=(\d+)", text):
+            if int(m.group(1)) != cases:
+                fail(f"{where}: replay_cases={m.group(1)} contradicts artifact ({cases})")
+        for m in re.finditer(
+            r"(\d+)(?:-case\s+(?:curated\s+)?arena|\s+fixed\s+(?:governance\s+)?cases)",
+            text,
+        ):
+            if int(m.group(1)) != cases:
+                fail(f"{where}: arena case count {m.group(1)} contradicts artifact ({cases})")
+
+
 def main() -> None:
     if not SUMMARY.exists():
         fail("Missing artifacts/benchmark_summary.json. Run scripts/generate_results_snapshot.py first.")
@@ -134,6 +177,9 @@ def main() -> None:
 
     # Tool-call v2 claims must track the significance artifact (REM-038).
     check_toolcall_v2_claims(readme)
+
+    # AROMER replay-arena numbers must track the artifact (audit P0-1).
+    check_aromer_replay_claims()
 
     print("[OK] Claim consistency checks passed")
 

@@ -23,9 +23,15 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 V2_ARTIFACT = REPO_ROOT / "artifacts" / "toolcall_benchmark_v2.json"
 OUT_DIR = REPO_ROOT / "benchmarks" / "toolcall_blind_v3"
 
+# severity/tags removed 2026-07-27 (research audit P0-2): they are author
+# annotations set alongside the labels, not runtime observations, and must
+# not be part of the candidate surface handed to gates or baselines. The
+# currently frozen tasks.json still carries them; they disappear at the next
+# regeneration (which requires a full clean benchmark round — see
+# docs/assurance/rebenchmark_protocol_v1.md).
 CANDIDATE_FIELDS = frozenset({
     "task_id", "domain", "user_request", "proposed_tool_name",
-    "proposed_tool_args", "context", "severity", "tags",
+    "proposed_tool_args", "context",
 })
 
 TRUTH_FIELDS = frozenset({
