@@ -104,6 +104,12 @@ benchmark:  ## Run all deterministic benchmarks; no API keys required
 	$(PYTHON) experiments/evaluate_governance_intelligence.py
 	@echo "\nAll benchmarks completed. Results written to results/"
 
+benchmark-live-round:  ## Live segment of the clean round (GROQ_API_KEY; SAP v2): ablation n500 -> uncalibrated thermo eval -> end-to-end -> holdout, with provenance sidecars
+	$(PYTHON) scripts/run_live_round_2026_07.py
+
+thermo-n500:  ## Regenerate the uncalibrated N500 thermodynamic artifact (GROQ_API_KEY; requires ablation_v2_n500_results.json)
+	$(PYTHON) experiments/thermodynamic_eval.py --benchmark-module remora.benchmarks.extended_v2_n500 --results results/ablation_v2_n500_results.json --output results/thermodynamic_eval_n500_uncalibrated_results.json
+
 benchmark-package:  ## Build governance benchmark package
 	$(PYTHON) scripts/build_governance_benchmark_package.py
 	@echo "\nGovernance benchmark package generated in artifacts/"
