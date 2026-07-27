@@ -211,6 +211,19 @@ raises burns the lease nonce and surfaces as
 `refusal_reason: tool_failed_nonce_burned` in both response and audit record
 (`tool_executed` / `tool_refusal_reason`).
 
+**Execution state machine (external review 2026-07-27):** the re-gate only
+ever AUTHORIZES — `ReviewQueue.execute()` sets the item to `authorized`, and
+`executed` is recorded exclusively by `record_execution_outcome()` after the
+dispatcher confirms the side effect; refusals and raising tools terminate as
+`dispatch_refused` / `dispatch_failed`, so the persisted state never claims
+an execution that did not happen. The audit chain carries a durable
+`execution_authorized` INTENT entry appended before the external side effect
+and an `execution_result` entry after it (linked via `intent_sequence_no`) —
+a crash mid-dispatch leaves an authorization with no matching result, never
+a side effect with no record. Item→tenant bindings and approvals are written
+inside the same durable transaction as the queue state (SQLite/Postgres),
+restart-proven by test.
+
 ### Governance modules (library)
 
 - `remora/governance/tenant_chain.py`, `TenantAuditChain` (in-process) and the
