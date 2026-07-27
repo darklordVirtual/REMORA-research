@@ -194,6 +194,21 @@ one-time grant, then dispatches the tool through the app-lifecycle
 chain). RBAC: `assess`/`execute` capabilities gate assess/execute; `review`
 gates approve; `read` gates audit.
 
+**Trust boundary (issue #34):** the execution request is a PROPOSAL only —
+`tool_name`, exact `arguments`, requested `target_environment` (+
+`idempotency_key`). Every authoritative safety signal (risk tier, domain,
+action type, trust, phase, evidence status, schema validity, rollback
+capability) is derived server-side from the tool registry; the legacy
+client fields (`trust_score`, `phase`, `evidence_action`,
+`evidence_confidence`, `risk_tier`, …) are ignored as unknown extras. The
+only inbound safety influence is a DOWNGRADE: `schema_valid: false` or
+`rollback_available: false` lowers trust ("world got riskier" feeds the
+freshness re-gate); `true` never raises anything, including on tools the
+registry does not pin. Since the policy-only kernel has no oracle or
+evidence pipeline, trust/phase/evidence are unknown at assess time and the
+engine fails toward VERIFY/ABSTAIN — no probabilistic ACCEPT can fire from
+this path (server-side signal sources are #35/#39 scope).
+
 **Tool dispatch (issue #13):** tool callables are registered exclusively via
 trusted deployment configuration — the module named by
 `REMORA_TOOL_REGISTRY_MODULE` must expose

@@ -88,6 +88,10 @@ def client(monkeypatch):
     return TestClient(api_mod.app)
 
 
+# Issue #34 (trust boundary): the payloads deliberately KEEP the legacy
+# client-asserted trust fields (trust_score/phase/evidence_*/risk_tier/...)
+# to prove the API now ignores them — the request is a PROPOSAL, all
+# authoritative signals are server-side.
 LOW_READ = {
     "tool_name": "read_telemetry",
     "arguments": {"asset": "P-1"},
@@ -115,15 +119,65 @@ PROD_WRITE = {
 }
 
 
-def test_accept_path_issues_signed_short_lived_token(client) -> None:
+def test_client_asserted_trust_cannot_buy_accept(client) -> None:
+    """Issue #34: the pre-fix happy path — a client claiming ordered phase,
+    trust 0.92, high-confidence evidence and schema_valid — must NOT yield
+    ACCEPT. With no server-side signals, a low-risk read falls to the safe
+    default (abstain) and no execution token is issued."""
     r = client.post("/v1/execution/assess", json=LOW_READ)
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["decision"] == "accept"
-    token = body["execution_token"]
-    assert token["audience"] == "pep://remora-execution"
-    assert token["expires_at"] is not None and token["jti"]
-    assert body["audit"]["sequence_no"] == 0
+    assert body["decision"] == "abstain", body
+    assert "execution_token" not in body
+
+
+def test_asserted_trust_fields_do_not_change_the_decision(client) -> None:
+    """The decision must be identical with and without the legacy trust
+    fields — they are ignored, not merely discounted."""
+    bare = {
+        "tool_name": "read_telemetry",
+        "arguments": {"asset": "P-1"},
+        "target_environment": "staging",
+    }
+    d_bare = client.post("/v1/execution/assess", json=bare).json()["decision"]
+    d_asserted = client.post("/v1/execution/assess", json=LOW_READ).json()["decision"]
+    assert d_bare == d_asserted
+
+
+def test_request_true_cannot_elevate_unpinned_registry_fields(client) -> None:
+    """Downgrade-only rule: for a tool whose registry entry does not pin
+    rollback_available, a request claiming True must NOT surface as True —
+    it stays unknown. (update_work_order pins True in the registry, so use
+    store_artifact, which pins neither schema_valid nor rollback.)"""
+    import servers.execution_api as exec_mod
+
+    req = exec_mod.ToolCallRequest(
+        tool_name="store_artifact",
+        arguments={"artifact_id": "x", "content": {}},
+        target_environment="staging",
+        schema_valid=True,
+        rollback_available=True,
+    )
+    obs = exec_mod._observation(req, "acme")
+    assert obs.schema_valid is None
+    assert obs.rollback_available is None
+
+
+def test_request_false_still_downgrades(client) -> None:
+    """A request may LOWER trust: rollback_available=False must override the
+    registry's pinned True for update_work_order."""
+    import servers.execution_api as exec_mod
+
+    req = exec_mod.ToolCallRequest(
+        tool_name="update_work_order",
+        arguments={"order": "WO-1", "action": "reschedule"},
+        target_environment="prod",
+        rollback_available=False,
+    )
+    obs = exec_mod._observation(req, "acme")
+    assert obs.rollback_available is False
+    assert obs.trust_score is None and obs.phase is None
+    assert obs.evidence_action is None and obs.evidence_confidence is None
 
 
 def test_full_verify_approve_execute_flow_with_one_time_grant(client) -> None:

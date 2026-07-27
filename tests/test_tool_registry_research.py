@@ -101,13 +101,17 @@ def test_end_to_end_execute_dispatches_research_tool(tmp_path, monkeypatch) -> N
     }
     r = client.post("/v1/execution/assess", json=call)
     assert r.status_code == 200, r.text
+    # Issue #34: the legacy trust fields in `call` are ignored; the write
+    # routes to review via the server-side schema_unverified floor. The
+    # item MUST exist — a silent non-review path would skip the dispatch
+    # assertions below (vacuous test).
     item_id = r.json().get("review_item_id")
-    if item_id:  # verify/escalate path: approve then execute
-        assert client.post("/v1/execution/approve",
-                           json={"item_id": item_id, "approval_ttl_seconds": 900}
-                           ).status_code == 200
-        body = client.post("/v1/execution/execute",
-                           json={"item_id": item_id, "tool_call": call}).json()
-        assert body["outcome"] == "execute", body
-        assert body["tool_execution"]["executed"] is True, body
-        assert (tmp_path / "e2e-research.json").exists()
+    assert item_id, r.json()
+    assert client.post("/v1/execution/approve",
+                       json={"item_id": item_id, "approval_ttl_seconds": 900}
+                       ).status_code == 200
+    body = client.post("/v1/execution/execute",
+                       json={"item_id": item_id, "tool_call": call}).json()
+    assert body["outcome"] == "execute", body
+    assert body["tool_execution"]["executed"] is True, body
+    assert (tmp_path / "e2e-research.json").exists()
