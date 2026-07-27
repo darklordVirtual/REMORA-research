@@ -228,6 +228,11 @@ jobs:
         # register state, README stays under its line budget.
         run: python scripts/check_document_governance.py
 
+      - name: Experiment manifests (lifecycle + provenance coverage)
+        # Malformed manifests fail; missing manifests/sidecars are advisory.
+        # Spec: docs/assurance/experiment_manifest_spec_v1.md
+        run: python scripts/check_experiment_manifests.py
+
       - name: Generated-doc drift (text generators)
         # A generated document that no longer matches its source is a silent
         # drift. These generators are stdlib/PyYAML-only, so they run in this
