@@ -52,6 +52,11 @@ def run(cmd: list[str]) -> int:
 def main() -> int:
     py = sys.executable
 
+    # 0. Preflight — trio liveness + JSON compliance (no benchmark data).
+    if run([py, "scripts/preflight_groq_trio.py"]) != 0:
+        log("FATAL: trio preflight failed; not starting the round")
+        return 1
+
     # 1. Ablation — repeat until it completes (cache makes passes resumable).
     ok = False
     for attempt in range(1, MAX_ABLATION_PASSES + 1):
