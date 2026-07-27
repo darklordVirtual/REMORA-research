@@ -1,0 +1,674 @@
+{
+  "status": "exploratory",
+  "warning": "EXPLORATORY / hypothesis-generating only. Fit on the training split, evaluated once per method on the holdout, but methods and coverage grid were chosen AFTER seeing the round's primary results \u2014 nothing here is confirmatory. Use to pre-register candidates for the next round (SAP v3).",
+  "meta": {
+    "script": "experiments/selection_signal_shootout_2026_07.py",
+    "benchmark_module": "remora.benchmarks.extended_v2_n500",
+    "oracle_source": "offline replay of .remora_cache.json (zero new API calls)",
+    "thermo_source": "thermodynamic_eval_n500_uncalibrated_results.json",
+    "seed": 42,
+    "n_rows": 544,
+    "n_missing_skipped": 0,
+    "split": {
+      "n_train": 436,
+      "n_holdout": 108
+    },
+    "single_model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "single_model_provenance": "fixed a priori by convention (the round's condition-A model), NOT selected on the training split \u2014 SAP v3 must either pre-register the baseline model or freeze a train-split selection before holdout",
+    "train_fit_quantities": [
+      "log_odds_weights (labelled train accuracies)",
+      "one_coin_em weights (UNLABELLED train votes)",
+      "per-signal tau at each coverage target",
+      "SGR/CRC certified thresholds (neg_temperature)"
+    ],
+    "naming_notes": {
+      "log_odds_weighted_nitzan_paroush_inspired": "heuristic log-odds weighting; Nitzan-Paroush optimality assumes conditional independence that correlated LLM errors violate",
+      "one_coin_em_dawid_skene_inspired": "one-coin latent-label EM; NOT full confusion-matrix Dawid-Skene \u2014 this result does not indict the DS family generally"
+    }
+  },
+  "aggregators_holdout": {
+    "majority": {
+      "n": 108,
+      "correct": 94,
+      "accuracy": 0.8704,
+      "wilson_ci": [
+        0.7941,
+        0.9212
+      ]
+    },
+    "best_single": {
+      "n": 108,
+      "correct": 96,
+      "accuracy": 0.8889,
+      "wilson_ci": [
+        0.8158,
+        0.9353
+      ]
+    },
+    "confidence_weighted": {
+      "n": 108,
+      "correct": 97,
+      "accuracy": 0.8981,
+      "wilson_ci": [
+        0.8268,
+        0.9422
+      ]
+    },
+    "log_odds_weighted_nitzan_paroush_inspired": {
+      "n": 108,
+      "correct": 94,
+      "accuracy": 0.8704,
+      "wilson_ci": [
+        0.7941,
+        0.9212
+      ]
+    },
+    "one_coin_em_dawid_skene_inspired": {
+      "n": 108,
+      "correct": 91,
+      "accuracy": 0.8426,
+      "wilson_ci": [
+        0.7623,
+        0.8993
+      ]
+    }
+  },
+  "aggregators_mcnemar_paired": {
+    "majority__vs__best_single": {
+      "a_only": 1,
+      "b_only": 3,
+      "p_two_sided": 0.625
+    },
+    "majority__vs__confidence_weighted": {
+      "a_only": 0,
+      "b_only": 3,
+      "p_two_sided": 0.25
+    },
+    "majority__vs__log_odds_weighted_nitzan_paroush_inspired": {
+      "a_only": 0,
+      "b_only": 0,
+      "p_two_sided": 1.0
+    },
+    "majority__vs__one_coin_em_dawid_skene_inspired": {
+      "a_only": 3,
+      "b_only": 0,
+      "p_two_sided": 0.25
+    },
+    "best_single__vs__confidence_weighted": {
+      "a_only": 1,
+      "b_only": 2,
+      "p_two_sided": 1.0
+    },
+    "best_single__vs__log_odds_weighted_nitzan_paroush_inspired": {
+      "a_only": 3,
+      "b_only": 1,
+      "p_two_sided": 0.625
+    },
+    "best_single__vs__one_coin_em_dawid_skene_inspired": {
+      "a_only": 6,
+      "b_only": 1,
+      "p_two_sided": 0.125
+    },
+    "confidence_weighted__vs__log_odds_weighted_nitzan_paroush_inspired": {
+      "a_only": 3,
+      "b_only": 0,
+      "p_two_sided": 0.25
+    },
+    "confidence_weighted__vs__one_coin_em_dawid_skene_inspired": {
+      "a_only": 6,
+      "b_only": 0,
+      "p_two_sided": 0.03125
+    },
+    "log_odds_weighted_nitzan_paroush_inspired__vs__one_coin_em_dawid_skene_inspired": {
+      "a_only": 3,
+      "b_only": 0,
+      "p_two_sided": 0.25
+    }
+  },
+  "selection_signals_holdout": {
+    "neg_temperature": {
+      "0.1": {
+        "raw": {
+          "n_accepted": 12,
+          "correct": 12,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1111,
+          "wilson_ci": [
+            0.7575,
+            1.0
+          ],
+          "tie_fill_fraction": 0.0833
+        },
+        "tie_broken": {
+          "n_accepted": 12,
+          "correct": 12,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1111,
+          "wilson_ci": [
+            0.7575,
+            1.0
+          ],
+          "tie_fill_fraction": 0.0833
+        }
+      },
+      "0.18": {
+        "raw": {
+          "n_accepted": 18,
+          "correct": 18,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1667,
+          "wilson_ci": [
+            0.8241,
+            1.0
+          ],
+          "tie_fill_fraction": 0.2222
+        },
+        "tie_broken": {
+          "n_accepted": 14,
+          "correct": 14,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1296,
+          "wilson_ci": [
+            0.7847,
+            1.0
+          ],
+          "tie_fill_fraction": 0.0714
+        }
+      },
+      "0.3": {
+        "raw": {
+          "n_accepted": 28,
+          "correct": 28,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.2593,
+          "wilson_ci": [
+            0.8794,
+            1.0
+          ],
+          "tie_fill_fraction": 0.0357
+        },
+        "tie_broken": {
+          "n_accepted": 28,
+          "correct": 28,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.2593,
+          "wilson_ci": [
+            0.8794,
+            1.0
+          ],
+          "tie_fill_fraction": 0.0357
+        }
+      }
+    },
+    "margin": {
+      "0.1": {
+        "raw": {
+          "n_accepted": 38,
+          "correct": 37,
+          "accuracy_accepted": 0.9737,
+          "coverage_achieved": 0.3519,
+          "wilson_ci": [
+            0.865,
+            0.9953
+          ],
+          "tie_fill_fraction": 0.7368
+        },
+        "tie_broken": {
+          "n_accepted": 19,
+          "correct": 19,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1759,
+          "wilson_ci": [
+            0.8318,
+            1.0
+          ],
+          "tie_fill_fraction": 0.4737
+        }
+      },
+      "0.18": {
+        "raw": {
+          "n_accepted": 38,
+          "correct": 37,
+          "accuracy_accepted": 0.9737,
+          "coverage_achieved": 0.3519,
+          "wilson_ci": [
+            0.865,
+            0.9953
+          ],
+          "tie_fill_fraction": 0.7368
+        },
+        "tie_broken": {
+          "n_accepted": 26,
+          "correct": 25,
+          "accuracy_accepted": 0.9615,
+          "coverage_achieved": 0.2407,
+          "wilson_ci": [
+            0.8111,
+            0.9932
+          ],
+          "tie_fill_fraction": 0.6154
+        }
+      },
+      "0.3": {
+        "raw": {
+          "n_accepted": 38,
+          "correct": 37,
+          "accuracy_accepted": 0.9737,
+          "coverage_achieved": 0.3519,
+          "wilson_ci": [
+            0.865,
+            0.9953
+          ],
+          "tie_fill_fraction": 0.7368
+        },
+        "tie_broken": {
+          "n_accepted": 32,
+          "correct": 31,
+          "accuracy_accepted": 0.9688,
+          "coverage_achieved": 0.2963,
+          "wilson_ci": [
+            0.8426,
+            0.9945
+          ],
+          "tie_fill_fraction": 0.6875
+        }
+      }
+    },
+    "mean_confidence": {
+      "0.1": {
+        "raw": {
+          "n_accepted": 41,
+          "correct": 40,
+          "accuracy_accepted": 0.9756,
+          "coverage_achieved": 0.3796,
+          "wilson_ci": [
+            0.874,
+            0.9957
+          ],
+          "tie_fill_fraction": 0.7561
+        },
+        "tie_broken": {
+          "n_accepted": 19,
+          "correct": 19,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1759,
+          "wilson_ci": [
+            0.8318,
+            1.0
+          ],
+          "tie_fill_fraction": 0.4737
+        }
+      },
+      "0.18": {
+        "raw": {
+          "n_accepted": 41,
+          "correct": 40,
+          "accuracy_accepted": 0.9756,
+          "coverage_achieved": 0.3796,
+          "wilson_ci": [
+            0.874,
+            0.9957
+          ],
+          "tie_fill_fraction": 0.7561
+        },
+        "tie_broken": {
+          "n_accepted": 26,
+          "correct": 25,
+          "accuracy_accepted": 0.9615,
+          "coverage_achieved": 0.2407,
+          "wilson_ci": [
+            0.8111,
+            0.9932
+          ],
+          "tie_fill_fraction": 0.6154
+        }
+      },
+      "0.3": {
+        "raw": {
+          "n_accepted": 41,
+          "correct": 40,
+          "accuracy_accepted": 0.9756,
+          "coverage_achieved": 0.3796,
+          "wilson_ci": [
+            0.874,
+            0.9957
+          ],
+          "tie_fill_fraction": 0.7561
+        },
+        "tie_broken": {
+          "n_accepted": 33,
+          "correct": 32,
+          "accuracy_accepted": 0.9697,
+          "coverage_achieved": 0.3056,
+          "wilson_ci": [
+            0.8468,
+            0.9946
+          ],
+          "tie_fill_fraction": 0.697
+        }
+      }
+    },
+    "single_confidence": {
+      "0.1": {
+        "raw": {
+          "n_accepted": 65,
+          "correct": 60,
+          "accuracy_accepted": 0.9231,
+          "coverage_achieved": 0.6019,
+          "wilson_ci": [
+            0.8322,
+            0.9667
+          ],
+          "tie_fill_fraction": 1.0
+        },
+        "tie_broken": {
+          "n_accepted": 20,
+          "correct": 17,
+          "accuracy_accepted": 0.85,
+          "coverage_achieved": 0.1852,
+          "wilson_ci": [
+            0.6396,
+            0.9476
+          ],
+          "tie_fill_fraction": 1.0
+        }
+      },
+      "0.18": {
+        "raw": {
+          "n_accepted": 65,
+          "correct": 60,
+          "accuracy_accepted": 0.9231,
+          "coverage_achieved": 0.6019,
+          "wilson_ci": [
+            0.8322,
+            0.9667
+          ],
+          "tie_fill_fraction": 1.0
+        },
+        "tie_broken": {
+          "n_accepted": 28,
+          "correct": 24,
+          "accuracy_accepted": 0.8571,
+          "coverage_achieved": 0.2593,
+          "wilson_ci": [
+            0.6851,
+            0.943
+          ],
+          "tie_fill_fraction": 1.0
+        }
+      },
+      "0.3": {
+        "raw": {
+          "n_accepted": 65,
+          "correct": 60,
+          "accuracy_accepted": 0.9231,
+          "coverage_achieved": 0.6019,
+          "wilson_ci": [
+            0.8322,
+            0.9667
+          ],
+          "tie_fill_fraction": 1.0
+        },
+        "tie_broken": {
+          "n_accepted": 39,
+          "correct": 35,
+          "accuracy_accepted": 0.8974,
+          "coverage_achieved": 0.3611,
+          "wilson_ci": [
+            0.7642,
+            0.9594
+          ],
+          "tie_fill_fraction": 1.0
+        }
+      }
+    },
+    "trust_score": {
+      "0.1": {
+        "raw": {
+          "n_accepted": 12,
+          "correct": 12,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1111,
+          "wilson_ci": [
+            0.7575,
+            1.0
+          ],
+          "tie_fill_fraction": 0.0833
+        },
+        "tie_broken": {
+          "n_accepted": 12,
+          "correct": 12,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1111,
+          "wilson_ci": [
+            0.7575,
+            1.0
+          ],
+          "tie_fill_fraction": 0.0833
+        }
+      },
+      "0.18": {
+        "raw": {
+          "n_accepted": 25,
+          "correct": 24,
+          "accuracy_accepted": 0.96,
+          "coverage_achieved": 0.2315,
+          "wilson_ci": [
+            0.8046,
+            0.9929
+          ],
+          "tie_fill_fraction": 0.04
+        },
+        "tie_broken": {
+          "n_accepted": 25,
+          "correct": 24,
+          "accuracy_accepted": 0.96,
+          "coverage_achieved": 0.2315,
+          "wilson_ci": [
+            0.8046,
+            0.9929
+          ],
+          "tie_fill_fraction": 0.04
+        }
+      },
+      "0.3": {
+        "raw": {
+          "n_accepted": 36,
+          "correct": 35,
+          "accuracy_accepted": 0.9722,
+          "coverage_achieved": 0.3333,
+          "wilson_ci": [
+            0.8583,
+            0.9951
+          ],
+          "tie_fill_fraction": 0.0278
+        },
+        "tie_broken": {
+          "n_accepted": 35,
+          "correct": 34,
+          "accuracy_accepted": 0.9714,
+          "coverage_achieved": 0.3241,
+          "wilson_ci": [
+            0.8547,
+            0.9949
+          ],
+          "tie_fill_fraction": 0.0286
+        }
+      }
+    },
+    "neg_susceptibility": {
+      "0.1": {
+        "raw": {
+          "n_accepted": 17,
+          "correct": 17,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1574,
+          "wilson_ci": [
+            0.8157,
+            1.0
+          ],
+          "tie_fill_fraction": 0.1765
+        },
+        "tie_broken": {
+          "n_accepted": 16,
+          "correct": 16,
+          "accuracy_accepted": 1.0,
+          "coverage_achieved": 0.1481,
+          "wilson_ci": [
+            0.8064,
+            1.0
+          ],
+          "tie_fill_fraction": 0.125
+        }
+      },
+      "0.18": {
+        "raw": {
+          "n_accepted": 25,
+          "correct": 23,
+          "accuracy_accepted": 0.92,
+          "coverage_achieved": 0.2315,
+          "wilson_ci": [
+            0.7503,
+            0.9778
+          ],
+          "tie_fill_fraction": 0.04
+        },
+        "tie_broken": {
+          "n_accepted": 25,
+          "correct": 23,
+          "accuracy_accepted": 0.92,
+          "coverage_achieved": 0.2315,
+          "wilson_ci": [
+            0.7503,
+            0.9778
+          ],
+          "tie_fill_fraction": 0.04
+        }
+      },
+      "0.3": {
+        "raw": {
+          "n_accepted": 38,
+          "correct": 35,
+          "accuracy_accepted": 0.9211,
+          "coverage_achieved": 0.3519,
+          "wilson_ci": [
+            0.792,
+            0.9728
+          ],
+          "tie_fill_fraction": 0.0263
+        },
+        "tie_broken": {
+          "n_accepted": 38,
+          "correct": 35,
+          "accuracy_accepted": 0.9211,
+          "coverage_achieved": 0.3519,
+          "wilson_ci": [
+            0.792,
+            0.9728
+          ],
+          "tie_fill_fraction": 0.0263
+        }
+      }
+    },
+    "random": {
+      "0.1": {
+        "raw": {
+          "n_accepted": 6,
+          "correct": 5,
+          "accuracy_accepted": 0.8333,
+          "coverage_achieved": 0.0556,
+          "wilson_ci": [
+            0.4365,
+            0.9699
+          ],
+          "tie_fill_fraction": 0.1667
+        },
+        "tie_broken": {
+          "n_accepted": 6,
+          "correct": 5,
+          "accuracy_accepted": 0.8333,
+          "coverage_achieved": 0.0556,
+          "wilson_ci": [
+            0.4365,
+            0.9699
+          ],
+          "tie_fill_fraction": 0.1667
+        }
+      },
+      "0.18": {
+        "raw": {
+          "n_accepted": 12,
+          "correct": 11,
+          "accuracy_accepted": 0.9167,
+          "coverage_achieved": 0.1111,
+          "wilson_ci": [
+            0.6461,
+            0.9851
+          ],
+          "tie_fill_fraction": 0.0833
+        },
+        "tie_broken": {
+          "n_accepted": 12,
+          "correct": 11,
+          "accuracy_accepted": 0.9167,
+          "coverage_achieved": 0.1111,
+          "wilson_ci": [
+            0.6461,
+            0.9851
+          ],
+          "tie_fill_fraction": 0.0833
+        }
+      },
+      "0.3": {
+        "raw": {
+          "n_accepted": 28,
+          "correct": 25,
+          "accuracy_accepted": 0.8929,
+          "coverage_achieved": 0.2593,
+          "wilson_ci": [
+            0.728,
+            0.9629
+          ],
+          "tie_fill_fraction": 0.0357
+        },
+        "tie_broken": {
+          "n_accepted": 28,
+          "correct": 25,
+          "accuracy_accepted": 0.8929,
+          "coverage_achieved": 0.2593,
+          "wilson_ci": [
+            0.728,
+            0.9629
+          ],
+          "tie_fill_fraction": 0.0357
+        }
+      }
+    }
+  },
+  "aurc_holdout": {
+    "neg_temperature": 0.0385,
+    "margin": 0.0397,
+    "mean_confidence": 0.0435,
+    "single_confidence": 0.1012,
+    "trust_score": 0.0687,
+    "neg_susceptibility": 0.1174,
+    "random": 0.1196
+  },
+  "certified_gates_neg_temperature": {
+    "sgr_target5pct_delta10pct": {
+      "certified": false,
+      "procedure": "sgr_binary_search",
+      "best_rejected_bound": 0.99
+    },
+    "crc_alpha5pct": {
+      "certified": true,
+      "procedure": "crc",
+      "train_coverage": 0.5321,
+      "risk_bound": 0.0481,
+      "holdout_n_accepted": 57,
+      "holdout_errors_among_accepted": 2,
+      "holdout_selective_risk": 0.0351,
+      "holdout_coverage": 0.5278
+    }
+  }
+}
