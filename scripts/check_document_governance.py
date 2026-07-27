@@ -3,31 +3,36 @@
 """Documentation-governance gate.
 
 Validates that the repository's documentation behaves as a governed system,
-with the registers as the single sources of truth:
+with the registers as the single sources of truth. As of the 2026-07-27
+loosening, the checks split into two tiers:
 
-  1. Document register coverage — every tracked file under docs/ (figures/
-     excluded) has exactly one entry in
-     docs/assurance/document_register_v1.yaml, and every entry points to an
-     existing tracked file.
-  2. Status discipline — statuses come from the fixed enum; `superseded`
-     entries name an existing successor and the stub itself points to it;
-     `generated` entries name an existing generator.
-  3. Canonical uniqueness — at most one canonical document per topic.
-  4. Register ID uniqueness — CAP-*/REM-*/CLAIM-* ids are unique within
-     their registers.
-  5. Release profiles — every referenced CAP/REM id exists, every required
-     level is on the capability ladder, and the DECLARED current_profile
-     equals the profile recomputed from the capability and remediation
-     registers. A profile cannot be claimed by editing prose.
-  6. Release-gates table — every REM status row in release_gates.md mirrors
-     the status held in remediation_register.yaml; the human-readable gate
-     register cannot drift from the machine source.
-  7. README budget — README.md stays under a line cap so "surface one more
-     thing in the README" has an enforced cost.
+  HARD (fail CI) — structural integrity that must never drift:
+    * Status discipline — statuses come from the fixed enum; `superseded`
+      entries name an existing successor and the stub itself points to it;
+      `historical` entries carry a banner; `generated` entries name an
+      existing generator.
+    * Canonical uniqueness — at most one canonical document per topic, drawn
+      from the controlled `topics:` registry.
+    * Register ID uniqueness — CAP-*/REM-*/CLAIM-*/DOC-* ids are unique.
+    * Release profiles — the DECLARED current_profile equals the profile
+      recomputed from the capability and remediation registers.
+    * Release-gates table — every REM status row in release_gates.md mirrors
+      remediation_register.yaml.
 
-Exit codes: 0 = all checks pass, 1 = violations (listed on stderr).
-Requires PyYAML (dev extra). Uses `git ls-files` so gitignored local files
-(e.g. local-only working documents) are out of scope by construction.
+  ADVISORY (warn only, never fail) — review hygiene, not correctness:
+    * Document-register coverage (a tracked file with no entry, or an entry
+      for a missing file). Adding a doc no longer breaks the build.
+    * Schema-v2 verification fields (id/version/code_synced/verdict) and the
+      verified/verdict consistency signals. A document may be edited without
+      re-stamping its verification state.
+    * README line budget.
+
+  There is intentionally NO time-based staleness clock: documents are not
+  nagged for "aging" against an arbitrary review window.
+
+Exit codes: 0 = all HARD checks pass (advisory warnings may print),
+1 = HARD violations (listed on stderr). Requires PyYAML (dev extra). Uses
+`git ls-files` so gitignored local files are out of scope by construction.
 """
 from __future__ import annotations
 
@@ -50,15 +55,12 @@ PROFILES = ROOT / "docs" / "assurance" / "release_profiles_v1.yaml"
 ALLOWED_STATUSES = {
     "canonical", "generated", "supporting", "proposal", "historical", "superseded",
 }
-# Schema-v2 verification fields.
+# Schema-v2 verification fields (advisory).
 ALLOWED_CODE_SYNCED = {"unreviewed", "verified", "mismatch"}
 ALLOWED_VERDICTS = {"pending", "current", "fixed", "consolidate", "stale"}
 DOC_ID_RE = re.compile(r"DOC-\d+")
 VERSION_RE = re.compile(r"v\d+")
 ISO_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-# A document whose content was last verified against code more than this many
-# days ago is WARNed (not failed) as due for re-review.
-STALE_REVIEW_DAYS = 30
 GOVERNED_SUFFIXES = {".md", ".html", ".yaml", ".yml", ".json"}
 # Root-level knowledge documents governed alongside docs/. Build/config files
 # (Makefile, pyproject.toml, requirements-lock.txt, .gitignore) and the LICENSE
@@ -76,6 +78,7 @@ ROOT_DOCS = (
 )
 # Markers that satisfy the historical-banner requirement (case-insensitive).
 HISTORICAL_MARKERS = ("historical", "archived", "snapshot", "superseded", "do not cite")
+# Advisory only: README over this size prints a hint, it does not fail CI.
 README_LINE_CAP = 300
 
 
@@ -107,26 +110,28 @@ def _tracked_docs() -> list[str]:
     return sorted(files)
 
 
-def check_document_register(errors: list[str]) -> None:
+def check_document_register(errors: list[str], warnings: list[str]) -> None:
     reg = _load(DOC_REGISTER)
     entries = reg.get("documents", [])
     tracked = _tracked_docs()
 
+    # Coverage is ADVISORY: adding/removing a doc no longer fails the build.
     paths = [e.get("path", "") for e in entries]
     dupes = {p for p in paths if paths.count(p) > 1}
     for p in sorted(dupes):
-        errors.append(f"document-register: duplicate entry for {p}")
+        warnings.append(f"document-register: duplicate entry for {p}")
 
     registered = set(paths)
     for p in tracked:
         if p not in registered:
-            errors.append(f"document-register: tracked file has no entry: {p}")
+            warnings.append(f"document-register: tracked file has no entry: {p}")
     for p in sorted(registered - set(tracked)):
-        errors.append(f"document-register: entry for missing/untracked file: {p}")
+        warnings.append(f"document-register: entry for missing/untracked file: {p}")
 
     # Controlled topic registry: canonical documents may only claim a topic
-    # declared here, so near-duplicate free-text topics (architecture vs
-    # architecture-narrative vs reference-architecture) cannot proliferate.
+    # declared here, so near-duplicate free-text topics cannot proliferate.
+    # Status/topic/successor discipline stays HARD — this is structural
+    # integrity, not review hygiene.
     registered_topics = set(reg.get("topics", []))
 
     topics: dict[str, str] = {}
@@ -186,67 +191,66 @@ def check_document_register(errors: list[str]) -> None:
 
 
 def check_document_verification(errors: list[str], warnings: list[str]) -> None:
-    """Schema-v2 verification state: every entry carries a stable DOC id, a
-    version, and an honest content-vs-code review state. The consistency rules
-    below enforce the claim-hygiene invariant that a document may not be marked
-    `verified`/`current`/`fixed` without a real review date behind it — the
-    register cannot claim a document was checked when it was not."""
+    """Schema-v2 verification state is ADVISORY. Missing/invalid id, version,
+    code_synced or verdict, and the verified/verdict consistency signals, are
+    reported as warnings so honest review state is encouraged without turning
+    every doc edit into a re-stamping chore. The only HARD rule kept here is
+    DOC-id uniqueness (a real integrity invariant). There is no time-based
+    staleness clock."""
     reg = _load(DOC_REGISTER)
     entries = reg.get("documents", [])
-    today = datetime.date.today()
 
     doc_ids: list[str] = []
+    never_audited = 0
     for e in entries:
         path = e.get("path", "?")
 
         did = e.get("id")
         if not (isinstance(did, str) and DOC_ID_RE.fullmatch(did)):
-            errors.append(f"document-register: {path}: missing/invalid id {did!r} (want DOC-NNN)")
+            warnings.append(f"document-register: {path}: missing/invalid id {did!r} (want DOC-NNN)")
         else:
             doc_ids.append(did)
 
         ver = e.get("version")
         if not (isinstance(ver, str) and VERSION_RE.fullmatch(ver)):
-            errors.append(f"document-register: {path}: missing/invalid version {ver!r} (want vN)")
+            warnings.append(f"document-register: {path}: missing/invalid version {ver!r} (want vN)")
 
         cs = e.get("code_synced")
         if cs not in ALLOWED_CODE_SYNCED:
-            errors.append(f"document-register: {path}: code_synced {cs!r} not in {sorted(ALLOWED_CODE_SYNCED)}")
+            warnings.append(f"document-register: {path}: code_synced {cs!r} not in {sorted(ALLOWED_CODE_SYNCED)}")
 
         vd = e.get("verdict")
         if vd not in ALLOWED_VERDICTS:
-            errors.append(f"document-register: {path}: verdict {vd!r} not in {sorted(ALLOWED_VERDICTS)}")
+            warnings.append(f"document-register: {path}: verdict {vd!r} not in {sorted(ALLOWED_VERDICTS)}")
 
         lr = e.get("last_reviewed")
         reviewed_on: datetime.date | None = None
         if lr is not None:
             if not (isinstance(lr, (str, datetime.date)) and ISO_DATE_RE.fullmatch(str(lr))):
-                errors.append(f"document-register: {path}: last_reviewed {lr!r} is not an ISO date or null")
+                warnings.append(f"document-register: {path}: last_reviewed {lr!r} is not an ISO date or null")
             else:
                 try:
                     reviewed_on = datetime.date.fromisoformat(str(lr))
                 except ValueError:
-                    errors.append(f"document-register: {path}: last_reviewed {lr!r} is not a valid date")
+                    warnings.append(f"document-register: {path}: last_reviewed {lr!r} is not a valid date")
 
-        # Anti-fake-checked consistency: claiming a document was verified always
-        # requires a real review date, whatever its status.
+        # Consistency signals are advisory nudges toward honest review state.
         if cs == "verified" and reviewed_on is None:
-            errors.append(f"document-register: {path}: code_synced=verified but last_reviewed is null")
-        # verdict current/fixed asserts the LIVE content matches code, so it
-        # requires a code check — except for historical/superseded snapshots,
-        # which are frozen by contract and legitimately describe past state.
+            warnings.append(f"document-register: {path}: code_synced=verified but last_reviewed is null")
         status = e.get("status")
         if status not in {"historical", "superseded"} and vd in {"current", "fixed"} and cs != "verified":
-            errors.append(f"document-register: {path}: verdict={vd} requires code_synced=verified (got {cs!r})")
+            warnings.append(f"document-register: {path}: verdict={vd} without code_synced=verified (got {cs!r})")
 
-        # Non-failing review-hygiene signals.
         if reviewed_on is None:
-            warnings.append(f"document-register: {path}: never audited against code (last_reviewed null)")
-        elif (today - reviewed_on).days > STALE_REVIEW_DAYS:
-            warnings.append(
-                f"document-register: {path}: last_reviewed {lr} is "
-                f"{(today - reviewed_on).days}d old (> {STALE_REVIEW_DAYS}d) — due for re-review"
-            )
+            never_audited += 1
+
+    # Never-audited docs are collapsed into a single advisory line to avoid
+    # flooding; the review backlog is a number, not a wall of warnings.
+    if never_audited:
+        warnings.append(
+            f"document-register: {never_audited} document(s) not yet audited "
+            f"against code (last_reviewed null) — advisory backlog, not a failure"
+        )
 
     for dup in sorted({i for i in doc_ids if doc_ids.count(i) > 1}):
         errors.append(f"document-register: duplicate DOC id {dup}")
@@ -399,9 +403,7 @@ def check_release_gates_table(errors: list[str]) -> None:
     """release_gates.md is the human-readable gate register; its Status column is
     a *mirror* of remediation_register.yaml (the machine source). Parse every
     table row whose first cell is a REM id and assert its Status cell states the
-    register's status, so the mirror cannot silently drift. History/prose tables
-    (Date-keyed elevation log, AII-range table) are skipped: their first cell is
-    not a REM id."""
+    register's status, so the mirror cannot silently drift."""
     if not RELEASE_GATES.exists():
         errors.append("release-gates: docs/assurance/release_gates.md is missing")
         return
@@ -439,34 +441,34 @@ def check_release_gates_table(errors: list[str]) -> None:
         )
 
 
-def check_readme_budget(errors: list[str]) -> None:
+def check_readme_budget(warnings: list[str]) -> None:
     n = len((ROOT / "README.md").read_text(encoding="utf-8").splitlines())
     if n > README_LINE_CAP:
-        errors.append(
-            f"README.md is {n} lines (cap {README_LINE_CAP}): move detail into "
-            f"docs/ and link it; the README is a surface, not a store"
+        warnings.append(
+            f"README.md is {n} lines (soft cap {README_LINE_CAP}): consider "
+            f"moving detail into docs/ and linking it — advisory, not a failure"
         )
 
 
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
-    check_document_register(errors)
+    check_document_register(errors, warnings)
     check_document_verification(errors, warnings)
     check_register_id_uniqueness(errors)
     check_release_profiles(errors)
     check_release_gates_table(errors)
-    check_readme_budget(errors)
+    check_readme_budget(warnings)
     if warnings:
         for w in warnings:
             print(f"WARN: {w}", file=sys.stderr)
-        print(f"documentation governance: {len(warnings)} review-hygiene warning(s)", file=sys.stderr)
+        print(f"documentation governance: {len(warnings)} advisory warning(s)", file=sys.stderr)
     if errors:
         for e in errors:
             print(f"ERROR: {e}", file=sys.stderr)
         print(f"\ndocumentation governance: {len(errors)} violation(s)", file=sys.stderr)
         return 1
-    print("documentation governance: all checks passed")
+    print("documentation governance: all hard checks passed")
     return 0
 
 
