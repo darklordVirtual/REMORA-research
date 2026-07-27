@@ -126,6 +126,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Same hardening as ablation_v2: cp1252 stdout must never kill the run.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
+
     print(f"\nLoading benchmark module {args.benchmark_module} for thermodynamic evaluation...")
     items, meta_map, _ = load_benchmark(args.benchmark_module)
     if args.max_items is not None:

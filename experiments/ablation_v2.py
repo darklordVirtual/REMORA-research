@@ -299,6 +299,12 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Windows cp1252 stdout (console or pipe) cannot encode the box-drawing
+    # section headers; a full live run crashed at the summary stage on this
+    # (2026-07-27). Never let a PRINT kill a finished benchmark run.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
+
     oracle_models, strong_single = BACKENDS[args.backend]
     validate_cross_family(oracle_models)
 
