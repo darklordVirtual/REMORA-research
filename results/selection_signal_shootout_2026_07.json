@@ -1,0 +1,317 @@
+{
+  "status": "exploratory",
+  "warning": "EXPLORATORY / hypothesis-generating only. Fit on the training split, evaluated once per method on the holdout, but methods and coverage grid were chosen AFTER seeing the round's primary results \u2014 nothing here is confirmatory. Use to pre-register candidates for the next round (SAP v3).",
+  "meta": {
+    "script": "experiments/selection_signal_shootout_2026_07.py",
+    "benchmark_module": "remora.benchmarks.extended_v2_n500",
+    "oracle_source": "offline replay of .remora_cache.json (zero new API calls)",
+    "thermo_source": "thermodynamic_eval_n500_uncalibrated_results.json",
+    "seed": 42,
+    "n_rows": 544,
+    "n_missing_skipped": 0,
+    "split": {
+      "n_train": 436,
+      "n_holdout": 108
+    },
+    "single_model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "train_fit_quantities": [
+      "log_odds_weights (labelled train accuracies)",
+      "dawid_skene weights (UNLABELLED train votes)",
+      "per-signal tau at each coverage target"
+    ]
+  },
+  "aggregators_holdout": {
+    "majority": {
+      "n": 108,
+      "correct": 94,
+      "accuracy": 0.8704,
+      "wilson_ci": [
+        0.7941,
+        0.9212
+      ]
+    },
+    "best_single": {
+      "n": 108,
+      "correct": 96,
+      "accuracy": 0.8889,
+      "wilson_ci": [
+        0.8158,
+        0.9353
+      ]
+    },
+    "confidence_weighted": {
+      "n": 108,
+      "correct": 97,
+      "accuracy": 0.8981,
+      "wilson_ci": [
+        0.8268,
+        0.9422
+      ]
+    },
+    "log_odds_weighted": {
+      "n": 108,
+      "correct": 94,
+      "accuracy": 0.8704,
+      "wilson_ci": [
+        0.7941,
+        0.9212
+      ]
+    },
+    "dawid_skene_unsupervised": {
+      "n": 108,
+      "correct": 91,
+      "accuracy": 0.8426,
+      "wilson_ci": [
+        0.7623,
+        0.8993
+      ]
+    }
+  },
+  "selection_signals_holdout": {
+    "neg_temperature": {
+      "0.1": {
+        "tau": -0.4955,
+        "n_accepted": 12,
+        "correct": 12,
+        "accuracy_accepted": 1.0,
+        "coverage_achieved": 0.1111,
+        "wilson_ci": [
+          0.7575,
+          1.0
+        ]
+      },
+      "0.18": {
+        "tau": -0.4991,
+        "n_accepted": 18,
+        "correct": 18,
+        "accuracy_accepted": 1.0,
+        "coverage_achieved": 0.1667,
+        "wilson_ci": [
+          0.8241,
+          1.0
+        ]
+      },
+      "0.3": {
+        "tau": -0.5011,
+        "n_accepted": 28,
+        "correct": 28,
+        "accuracy_accepted": 1.0,
+        "coverage_achieved": 0.2593,
+        "wilson_ci": [
+          0.8794,
+          1.0
+        ]
+      }
+    },
+    "margin": {
+      "0.1": {
+        "tau": 3.000983,
+        "n_accepted": 38,
+        "correct": 37,
+        "accuracy_accepted": 0.9737,
+        "coverage_achieved": 0.3519,
+        "wilson_ci": [
+          0.865,
+          0.9953
+        ]
+      },
+      "0.18": {
+        "tau": 3.000983,
+        "n_accepted": 38,
+        "correct": 37,
+        "accuracy_accepted": 0.9737,
+        "coverage_achieved": 0.3519,
+        "wilson_ci": [
+          0.865,
+          0.9953
+        ]
+      },
+      "0.3": {
+        "tau": 3.000983,
+        "n_accepted": 38,
+        "correct": 37,
+        "accuracy_accepted": 0.9737,
+        "coverage_achieved": 0.3519,
+        "wilson_ci": [
+          0.865,
+          0.9953
+        ]
+      }
+    },
+    "mean_confidence": {
+      "0.1": {
+        "tau": 0.983333,
+        "n_accepted": 41,
+        "correct": 40,
+        "accuracy_accepted": 0.9756,
+        "coverage_achieved": 0.3796,
+        "wilson_ci": [
+          0.874,
+          0.9957
+        ]
+      },
+      "0.18": {
+        "tau": 0.983333,
+        "n_accepted": 41,
+        "correct": 40,
+        "accuracy_accepted": 0.9756,
+        "coverage_achieved": 0.3796,
+        "wilson_ci": [
+          0.874,
+          0.9957
+        ]
+      },
+      "0.3": {
+        "tau": 0.983333,
+        "n_accepted": 41,
+        "correct": 40,
+        "accuracy_accepted": 0.9756,
+        "coverage_achieved": 0.3796,
+        "wilson_ci": [
+          0.874,
+          0.9957
+        ]
+      }
+    },
+    "single_confidence": {
+      "0.1": {
+        "tau": 1.0,
+        "n_accepted": 65,
+        "correct": 60,
+        "accuracy_accepted": 0.9231,
+        "coverage_achieved": 0.6019,
+        "wilson_ci": [
+          0.8322,
+          0.9667
+        ]
+      },
+      "0.18": {
+        "tau": 1.0,
+        "n_accepted": 65,
+        "correct": 60,
+        "accuracy_accepted": 0.9231,
+        "coverage_achieved": 0.6019,
+        "wilson_ci": [
+          0.8322,
+          0.9667
+        ]
+      },
+      "0.3": {
+        "tau": 1.0,
+        "n_accepted": 65,
+        "correct": 60,
+        "accuracy_accepted": 0.9231,
+        "coverage_achieved": 0.6019,
+        "wilson_ci": [
+          0.8322,
+          0.9667
+        ]
+      }
+    },
+    "trust_score": {
+      "0.1": {
+        "tau": 0.1231,
+        "n_accepted": 12,
+        "correct": 12,
+        "accuracy_accepted": 1.0,
+        "coverage_achieved": 0.1111,
+        "wilson_ci": [
+          0.7575,
+          1.0
+        ]
+      },
+      "0.18": {
+        "tau": 0.1138,
+        "n_accepted": 25,
+        "correct": 24,
+        "accuracy_accepted": 0.96,
+        "coverage_achieved": 0.2315,
+        "wilson_ci": [
+          0.8046,
+          0.9929
+        ]
+      },
+      "0.3": {
+        "tau": 0.1026,
+        "n_accepted": 36,
+        "correct": 35,
+        "accuracy_accepted": 0.9722,
+        "coverage_achieved": 0.3333,
+        "wilson_ci": [
+          0.8583,
+          0.9951
+        ]
+      }
+    },
+    "neg_susceptibility": {
+      "0.1": {
+        "tau": -0.015,
+        "n_accepted": 17,
+        "correct": 17,
+        "accuracy_accepted": 1.0,
+        "coverage_achieved": 0.1574,
+        "wilson_ci": [
+          0.8157,
+          1.0
+        ]
+      },
+      "0.18": {
+        "tau": -0.0439,
+        "n_accepted": 25,
+        "correct": 23,
+        "accuracy_accepted": 0.92,
+        "coverage_achieved": 0.2315,
+        "wilson_ci": [
+          0.7503,
+          0.9778
+        ]
+      },
+      "0.3": {
+        "tau": -0.0624,
+        "n_accepted": 38,
+        "correct": 35,
+        "accuracy_accepted": 0.9211,
+        "coverage_achieved": 0.3519,
+        "wilson_ci": [
+          0.792,
+          0.9728
+        ]
+      }
+    },
+    "random": {
+      "0.1": {
+        "tau": 0.905336,
+        "n_accepted": 6,
+        "correct": 5,
+        "accuracy_accepted": 0.8333,
+        "coverage_achieved": 0.0556,
+        "wilson_ci": [
+          0.4365,
+          0.9699
+        ]
+      },
+      "0.18": {
+        "tau": 0.848015,
+        "n_accepted": 12,
+        "correct": 11,
+        "accuracy_accepted": 0.9167,
+        "coverage_achieved": 0.1111,
+        "wilson_ci": [
+          0.6461,
+          0.9851
+        ]
+      },
+      "0.3": {
+        "tau": 0.708785,
+        "n_accepted": 28,
+        "correct": 25,
+        "accuracy_accepted": 0.8929,
+        "coverage_achieved": 0.2593,
+        "wilson_ci": [
+          0.728,
+          0.9629
+        ]
+      }
+    }
+  }
+}

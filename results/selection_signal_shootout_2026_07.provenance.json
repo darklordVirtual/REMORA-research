@@ -1,0 +1,20 @@
+{
+  "schema": "result_provenance_v2",
+  "git_commit": "9eead552d246db00fb80dd4ac775d9b7b0628bd7",
+  "worktree_clean": false,
+  "python_version": "3.14.0",
+  "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
+  "script": "experiments/selection_signal_shootout_2026_07.py",
+  "input_sha256": {
+    "thermo": "5e251481653dfbf6af04790b14f774268debd8c420775ce60a5491e277039039",
+    "cache": "f240fe887c3036e4cb54a13e4c9c11be5322130e7f915fcee53aead038b48ac1"
+  },
+  "random_seeds": [
+    42
+  ],
+  "command": "python experiments/selection_signal_shootout_2026_07.py",
+  "generated_at": "2026-07-27T13:42:06.581224+00:00",
+  "status": "exploratory",
+  "artifact": "selection_signal_shootout_2026_07.json",
+  "artifact_sha256": "ec7e430305adce4505cb2cfa86fc0423e83be38e595c2ac948d1cb31e783fc8e"
+}
