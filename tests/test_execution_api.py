@@ -84,6 +84,7 @@ def client(monkeypatch):
     exec_mod._ITEM_TENANT.clear()
     exec_mod._CHAIN = TenantAuditChain()
     exec_mod._GATE = exec_mod.EnforcementGate(strict=True, audience=exec_mod.PEP_AUDIENCE)
+    exec_mod._reset_tool_dispatcher()
     return TestClient(api_mod.app)
 
 
@@ -146,6 +147,98 @@ def test_full_verify_approve_execute_flow_with_one_time_grant(client) -> None:
     import servers.execution_api as exec_mod
     events = [e.payload["event"] for e in exec_mod._CHAIN.entries("acme")]
     assert events == ["assessed", "approved", "execution_execute"]
+
+
+def _approved_item(client, payload=PROD_WRITE) -> str:
+    item_id = client.post("/v1/execution/assess", json=payload).json()["review_item_id"]
+    client.post("/v1/execution/approve", json={"item_id": item_id, "approval_ttl_seconds": 900})
+    return item_id
+
+
+def test_execute_invokes_registered_tool_via_dispatcher(client, monkeypatch) -> None:
+    """Issue #13: after gate + PEP-consume the API must actually dispatch the
+    tool through the app-lifecycle GovernedToolDispatcher and report the
+    real outcome — never claim execute with no side effect."""
+    import tests.dispatcher_registry_fixture as reg
+
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "exec-api-lease-key")
+    monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "tests.dispatcher_registry_fixture")
+    reg.CALLS.clear()
+    reg.RAISE["update_work_order"] = False
+
+    item_id = _approved_item(client)
+    r = client.post("/v1/execution/execute",
+                    json={"item_id": item_id, "tool_call": PROD_WRITE})
+    body = r.json()
+    assert body["outcome"] == "execute", body
+    assert body["pep"]["allowed"] is True
+    assert body["tool_execution"]["executed"] is True, body
+    assert body["tool_execution"]["result"]["status"] == "rescheduled"
+    assert reg.CALLS == [PROD_WRITE["arguments"]]
+    # The audit record carries the real execution outcome.
+    import servers.execution_api as exec_mod
+    last = exec_mod._CHAIN.entries("acme")[-1]
+    assert last.payload["tool_executed"] is True
+
+
+def test_execute_without_registered_tool_is_explicitly_not_executed(client, monkeypatch) -> None:
+    """Empty registry (research default): the governance verdict may be
+    execute, but tool_execution must say executed=false/unknown_tool."""
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "exec-api-lease-key")
+    monkeypatch.delenv("REMORA_TOOL_REGISTRY_MODULE", raising=False)
+
+    item_id = _approved_item(client)
+    body = client.post("/v1/execution/execute",
+                       json={"item_id": item_id, "tool_call": PROD_WRITE}).json()
+    assert body["outcome"] == "execute"
+    assert body["tool_execution"]["executed"] is False
+    assert body["tool_execution"]["refusal_reason"] == "unknown_tool"
+
+
+def test_execute_without_any_signing_key_fails_closed(client, monkeypatch) -> None:
+    """With no signing keys at all, the strict PEP refuses the unsigned
+    grant and the dispatcher is never reached — nothing executes silently.
+    (REMORA_PDP_SIGNING_KEY is the documented fallback lease key, so the
+    lease path alone cannot be key-less while the PDP path is signed.)"""
+    monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "tests.dispatcher_registry_fixture")
+    import tests.dispatcher_registry_fixture as reg
+    reg.CALLS.clear()
+    reg.RAISE["update_work_order"] = False
+
+    item_id = _approved_item(client)
+    monkeypatch.delenv("REMORA_PDP_SIGNING_KEY", raising=False)
+    monkeypatch.delenv("REMORA_LEASE_SIGNING_KEY", raising=False)
+    body = client.post("/v1/execution/execute",
+                       json={"item_id": item_id, "tool_call": PROD_WRITE}).json()
+    assert body["tool_execution"]["executed"] is False
+    assert body["tool_execution"]["refusal_reason"] == "pep_denied"
+    assert body["pep"]["allowed"] is False
+    assert reg.CALLS == []
+
+
+def test_tool_exception_burns_nonce_and_is_reported(client, monkeypatch) -> None:
+    """A tool that raises must surface as executed=false with the nonce
+    burned (fail-closed), while the audit chain still records the attempt."""
+    import tests.dispatcher_registry_fixture as reg
+
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "exec-api-lease-key")
+    monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "tests.dispatcher_registry_fixture")
+    reg.CALLS.clear()
+    reg.RAISE["update_work_order"] = True
+    try:
+        item_id = _approved_item(client)
+        r = client.post("/v1/execution/execute",
+                        json={"item_id": item_id, "tool_call": PROD_WRITE})
+        assert r.status_code == 200
+        body = r.json()
+        assert body["tool_execution"]["executed"] is False
+        assert body["tool_execution"]["refusal_reason"] == "tool_failed_nonce_burned"
+        import servers.execution_api as exec_mod
+        last = exec_mod._CHAIN.entries("acme")[-1]
+        assert last.payload["tool_executed"] is False
+        assert client.get("/v1/execution/audit/verify").json()["valid"] is True
+    finally:
+        reg.RAISE["update_work_order"] = False
 
 
 def test_riskier_world_invalidates_approval_at_execution(client) -> None:

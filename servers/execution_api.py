@@ -21,6 +21,11 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from remora.enforcement.gate import EnforcementGate
+from remora.enforcement.lease import (
+    ExecutionLease,
+    GovernedToolDispatcher,
+    LeaseRefused,
+)
 from remora.enforcement.token import PolicyDecisionToken
 from remora.governance.review_queue import (
     ExecutionDecision,
@@ -74,44 +79,6 @@ TOOL_REGISTRY: dict[str, dict[str, Any]] = {
         "rollback_available": True
     }
 }
-_IDEMPOTENCY: dict[str, dict[str, Any]] = {}
-
-TOOL_REGISTRY: dict[str, dict[str, Any]] = {
-    "delete_production_database": {
-        "risk_tier": "critical",
-        "domain": "infrastructure",
-        "action_type": "destructive_write"
-    },
-    "dce_search_law": {
-        "risk_tier": "low",
-        "domain": "law",
-        "action_type": "read"
-    },
-    "remora_verify_claim": {
-        "risk_tier": "low",
-        "domain": "general",
-        "action_type": "read"
-    },
-    "store_artifact": {
-        "risk_tier": "medium",
-        "domain": "general",
-        "action_type": "write"
-    },
-    "read_telemetry": {
-        "risk_tier": "low",
-        "domain": "unknown",
-        "action_type": "read",
-        "target_environment": "staging"
-    },
-    "update_work_order": {
-        "risk_tier": "high",
-        "domain": "unknown",
-        "action_type": "production_write",
-        "target_environment": "prod",
-        "rollback_available": True
-    }
-}
-
 
 
 def _build_chain():
@@ -245,6 +212,61 @@ def _queue(tenant: str) -> ReviewQueue:
     if tenant not in _QUEUES:
         _QUEUES[tenant] = ReviewQueue(engine=_ENGINE)
     return _QUEUES[tenant]
+
+
+# ── Governed tool dispatch (issue #13) ─────────────────────────────────────
+#
+# The dispatcher — not the agent — holds the tool callables and any
+# downstream credentials they close over. Tools are registered exclusively
+# through trusted deployment configuration: the module named by
+# REMORA_TOOL_REGISTRY_MODULE must expose
+#
+#     def register_tools(register: Callable[[str, Callable], None]) -> None
+#
+# and is imported once per process at first dispatch. Request payloads can
+# never add or replace callables. With no module configured the registry is
+# empty and every dispatch reports executed=false/unknown_tool — the
+# research-profile default stays side-effect free but is now EXPLICIT about
+# it instead of implying execution.
+
+_DISPATCHER: GovernedToolDispatcher | None = None
+
+
+def _current_policy_bundle_hash() -> str:
+    from servers import api as api_mod
+
+    return api_mod._policy_component_hashes().get("policy_hash") or ""
+
+
+def _tool_dispatcher() -> GovernedToolDispatcher | None:
+    """App-lifecycle dispatcher; None when no policy bundle hash exists."""
+    global _DISPATCHER
+    if _DISPATCHER is None:
+        bundle = _current_policy_bundle_hash()
+        if not bundle:
+            return None
+        dispatcher = GovernedToolDispatcher(expected_policy_bundle_hash=bundle)
+        spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
+        if spec:
+            import importlib
+
+            importlib.import_module(spec).register_tools(dispatcher.register)
+        _DISPATCHER = dispatcher
+    return _DISPATCHER
+
+
+def _reset_tool_dispatcher() -> None:
+    """Test hook: drop the cached dispatcher (e.g. after env changes)."""
+    global _DISPATCHER
+    _DISPATCHER = None
+
+
+def _jsonable(value: Any) -> Any:
+    """Best-effort JSON projection of a tool result for response/audit."""
+    try:
+        return json.loads(json.dumps(value, default=str))
+    except (TypeError, ValueError):
+        return repr(value)
 
 
 class ToolCallRequest(BaseModel):
@@ -450,6 +472,55 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         record["pep_allowed"] = gate_result.allowed
         response["execution_grant"] = token.to_dict()
         response["pep"] = {"allowed": gate_result.allowed, "reason": gate_result.reason}
+
+        # Issue #13: actually dispatch the tool through the governed
+        # dispatcher — the response reports what REALLY happened instead of
+        # implying execution. Every refusal path is explicit and audited.
+        tool_execution: dict[str, Any] = {"executed": False}
+        if not gate_result.allowed:
+            tool_execution["refusal_reason"] = "pep_denied"
+        else:
+            dispatcher = _tool_dispatcher()
+            if dispatcher is None:
+                tool_execution["refusal_reason"] = "policy_bundle_unavailable"
+            else:
+                try:
+                    lease = ExecutionLease.issue(
+                        decision="accept",
+                        tenant_id=tenant,
+                        actor_identity=principal,
+                        tool_name=req.tool_call.tool_name,
+                        arguments=req.tool_call.arguments,
+                        target_environment=req.tool_call.target_environment,
+                        policy_bundle_hash=_current_policy_bundle_hash(),
+                        issued_at=now.isoformat(),
+                    )
+                except (LeaseRefused, ValueError) as exc:
+                    tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
+                else:
+                    try:
+                        dres = dispatcher.dispatch(
+                            lease,
+                            req.tool_call.tool_name,
+                            req.tool_call.arguments,
+                            tenant_id=tenant,
+                            target_environment=req.tool_call.target_environment,
+                            actor_identity=principal,
+                        )
+                    except RuntimeError as exc:
+                        # Tool raised: the nonce is burned, state is unknown.
+                        tool_execution["refusal_reason"] = "tool_failed_nonce_burned"
+                        tool_execution["error"] = str(exc)
+                    else:
+                        tool_execution["executed"] = dres.executed
+                        if dres.executed:
+                            tool_execution["result"] = _jsonable(dres.result)
+                        else:
+                            tool_execution["refusal_reason"] = dres.refusal_reason
+        record["tool_executed"] = tool_execution["executed"]
+        if tool_execution.get("refusal_reason"):
+            record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+        response["tool_execution"] = tool_execution
     entry = _CHAIN.append(tenant, record)
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
     return response
