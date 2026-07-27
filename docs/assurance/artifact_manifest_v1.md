@@ -111,7 +111,7 @@ documents that may be updated as gates are closed.
 | File | Description | Status |
 |------|-------------|--------|
 | `docs/assurance/release_gates.md` | P0/P3 gate definitions and closure record | Living |
-| `docs/assurance/remediation_register.yaml` | Full REM-001..046 register with artifacts and notes | Living |
+| `docs/assurance/remediation_register.yaml` | Full REM-001..022 register with artifacts and notes | Living |
 | `docs/assurance/statistical_analysis_plan.md` | Pre-registered SAP for H1–H5 (REM-012) | Pre-registered, locked |
 | `docs/assurance/reproducibility_scorecard_v1.md` | This audit's reproducibility scorecard | Living |
 | `docs/assurance/artifact_manifest_v1.md` | This document | Living |
