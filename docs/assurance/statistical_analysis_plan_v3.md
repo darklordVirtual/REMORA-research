@@ -1,10 +1,9 @@
-# Statistical Analysis Plan v3 — DRAFT (not yet in force)
+# Statistical Analysis Plan v3 — IN FORCE (round start 2026-07-27)
 
-**Status: DRAFT.** This plan governs the next benchmark round (the
-~1 200-fresh-item power round). It takes force at the commit that starts
-that round; until then it may be revised freely. Once the round's first
-live oracle call is made, changes require a dated deviation row in §8.
-SAP v2 remains the record of the 2026-07 round.
+**Status: IN FORCE** as of the round-start commit on branch
+`round/sap-v3` (2026-07-27). From the round's first live oracle call,
+changes require a dated deviation row in §8. SAP v2 remains the record of
+the 2026-07 N544 round.
 
 Design follows the external statistical review of 2026-07-27 and the
 exploratory analysis in
@@ -20,11 +19,22 @@ paired statistics, and no method chosen after seeing this round's labels.
 
 ## 2. Data
 
-- ~1 200 REAL items (BoolQ + TruthfulQA via the HF loaders), deduplicated
-  by content hash against the 544-item 2026-07 corpus — no reused items.
+- **Corpus (frozen): `remora.benchmarks.sap_v3_n1200`, n = 1231 items**
+  (89 TruthfulQA + 1142 BoolQ), generated 2026-07-27 by
+  `python scripts/build_benchmark.py --preset sap_v3_n1200 --hf-only
+  --exclude-module remora.benchmarks.extended_v2_n500 --seed 20260727
+  --truthfulqa-per-domain 500 --boolq-per-domain 1500` — HF sources only
+  (no curated/adversarial additions), content-hash-deduplicated against
+  the 544-item 2026-07 corpus (296 overlapping items excluded) and
+  near-duplicate-filtered internally (624 removed). Domain skew (83 %
+  general) is accepted and reported; stratification is by SOURCE.
 - Group-aware by content hash throughout; an item's group never straddles
   a split boundary.
-- **Three-way split (seeded, group-aware, stratified by source):**
+- **Round seed: 20260727** (corpus sampling, splits, bootstrap).
+- **Three-way split (seeded, group-aware, stratified by source),
+  implemented as two applications of the group-aware stratified split:
+  stage 1 holdout-fraction 0.60 → development = the 40 % side; stage 2
+  holdout-fraction 0.50 on the remainder → risk-calibration and test:**
   1. **Development** (40 %): define/calibrate signals — temperature
      transformation, per-oracle confidence calibration (isotonic), the
      label-independent tie-breaker. Nothing else sees these labels.
@@ -39,9 +49,14 @@ paired statistics, and no method chosen after seeing this round's labels.
 ## 3. Oracles and aggregation
 
 - Ensemble: the cross-family rule of SAP v2 §2 stands (no two oracles
-  share a weight family; `validate_cross_family` enforced). Provider and
-  exact model ids are frozen in this plan before the round starts, with
-  one documented reserve per slot.
+  share a weight family; `validate_cross_family` enforced). **Frozen for
+  this round (Cloudflare Workers AI, live-verified 2026-07-27):**
+  `@cf/meta/llama-3.3-70b-instruct-fp8-fast` (Meta LLaMA),
+  `@cf/qwen/qwen3-30b-a3b-fp8` (Alibaba Qwen),
+  `@cf/mistralai/mistral-small-3.1-24b-instruct` (Mistral); documented
+  reserve `@cf/openai/gpt-oss-120b` (OpenAI open-weight) if a member is
+  withdrawn mid-round. Sampling temperature 0.3, max_tokens 512, the
+  round's standard verdict-JSON prompt.
 - Baseline single model: pre-registered here (the strongest model of the
   trio by DEVELOPMENT-split accuracy, frozen before risk calibration).
 - Aggregation is tested SEPARATELY from selection (no confounded
@@ -71,16 +86,18 @@ paired statistics, and no method chosen after seeing this round's labels.
   ~0 errors at these settings). If certification fails, the honest result
   is "no autonomous-accept threshold is certifiable at this budget" — the
   system abstains; the budget is not softened after seeing data.
-- **Secondary certification: CRC** on the same split, α = 0.05, over a
-  severity-weighted ACCEPTED-AND-WRONG loss with weights frozen here:
-  1.0 harmful-category error, 0.7 high-severity error, 0.3 other error,
-  0 otherwise (B = 1). NOTE: only the INCREASING component of a severity
-  table is admissible — friction terms (unnecessary VERIFY/ABSTAIN)
-  decrease as acceptance grows, making a combined loss non-monotone in
-  the threshold, and CRC can fail arbitrarily on non-monotone losses.
-  Friction is therefore reported descriptively, never inside the CRC
-  loss. CRC's guarantee is IN EXPECTATION for an exchangeable test item;
-  that semantics is quoted wherever the result is.
+- **Secondary certification: CRC** on the same split, α = 0.05, over the
+  plain 0/1 ACCEPTED-AND-WRONG loss (B = 1). The severity-weighted
+  variant is DEFERRED: this knowledge corpus carries no harm-category
+  annotations, and inventing severity labels post hoc would be exactly
+  the adaptive loss construction CRC forbids. When a harm-annotated
+  corpus exists, only the INCREASING severity component is admissible —
+  friction terms (unnecessary VERIFY/ABSTAIN) decrease as acceptance
+  grows, making a combined loss non-monotone in the threshold, and CRC
+  can fail arbitrarily on non-monotone losses. Friction is reported
+  descriptively, never inside the CRC loss. CRC's guarantee is IN
+  EXPECTATION for an exchangeable test item; that semantics is quoted
+  wherever the result is.
 - Report on the test split: realized conditional and unconditional
   selective risk, certified vs realized coverage, Wilson CIs.
 
