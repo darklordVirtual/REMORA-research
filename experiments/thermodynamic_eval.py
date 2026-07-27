@@ -154,7 +154,12 @@ def main() -> None:
     records = []
     phase_groups: dict[str, list[dict]] = defaultdict(list)
 
-    for item, item_meta in zip(items, meta):
+    import time as _time
+    _t0 = _time.perf_counter()
+    for _i, (item, item_meta) in enumerate(zip(items, meta), 1):
+        if _i % 50 == 0 or _i == len(items):
+            _el = _time.perf_counter() - _t0
+            print(f"    [thermo] {_i}/{len(items)} ({100*_i/len(items):.0f}%)  {_el:.0f}s elapsed", flush=True)
         prompt = build_eval_prompt(item)
         responses = [oracle.ask(prompt) for oracle in cached_oracles]
         verdicts = [(response.provider, phi(response.extracted)) for response in responses]

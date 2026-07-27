@@ -179,13 +179,32 @@ def adversarial_accuracy(results: list[dict]) -> dict:
 
 # ── Condition runners ─────────────────────────────────────────────────────────
 
+def _progress(label: str, done: int, total: int, t0: float) -> None:
+    """One-line progress heartbeat every PROGRESS_EVERY items (and at the end).
+
+    Deliberately plain print (not \\r) so it survives log pipes and CI output.
+    """
+    if done % PROGRESS_EVERY and done != total:
+        return
+    pct = 100 * done / total if total else 100.0
+    elapsed = time.perf_counter() - t0
+    rate = done / elapsed if elapsed > 0 else 0.0
+    eta = (total - done) / rate if rate > 0 else 0.0
+    print(f"    [{label}] {done}/{total} ({pct:.0f}%)  {rate:.1f} items/s  ETA {eta/60:.0f} min", flush=True)
+
+
+PROGRESS_EVERY = 25
+
+
 def run_single_oracle(
     items: list[BenchmarkItem],
     meta: list[dict],
     oracle,
+    label: str = "A_single",
 ) -> list[dict]:
     results = []
-    for item, m in zip(items, meta):
+    t0 = time.perf_counter()
+    for i, (item, m) in enumerate(zip(items, meta), 1):
         resp = oracle.ask(build_eval_prompt(item))
         verdict = phi(resp.extracted)
         results.append({
@@ -195,6 +214,7 @@ def run_single_oracle(
             "expected": item.ground_truth,
             "oracle_calls": 1,
         })
+        _progress(label, i, len(items), t0)
     return results
 
 
@@ -202,10 +222,12 @@ def run_majority(
     items: list[BenchmarkItem],
     meta: list[dict],
     oracles: list,
+    label: str = "B_majority",
 ) -> list[dict]:
     results = []
     correlation = CorrelationMatrix(window_size=500)
-    for item, m in zip(items, meta):
+    t0 = time.perf_counter()
+    for i, (item, m) in enumerate(zip(items, meta), 1):
         prompt = build_eval_prompt(item)
         verdicts = [(o.name, phi(o.ask(prompt).extracted)) for o in oracles]
         correlation.observe(verdicts)
@@ -220,6 +242,7 @@ def run_majority(
             "expected": item.ground_truth,
             "oracle_calls": len(oracles),
         })
+        _progress(label, i, len(items), t0)
     return results
 
 
@@ -228,12 +251,14 @@ def run_remora(
     meta: list[dict],
     oracles: list,
     genome: Genome,
+    label: str = "remora",
 ) -> tuple[list[dict], list[dict]]:
     """Returns (results, reports) — reports used for ETR."""
     correlation = CorrelationMatrix(window_size=500)
     engine = Remora(oracles=oracles, genome=genome, correlation=correlation)
     results, reports = [], []
-    for item, m in zip(items, meta):
+    t0 = time.perf_counter()
+    for i, (item, m) in enumerate(zip(items, meta), 1):
         state = engine.run(item.question, context=item.context)
         report = engine.report(state)
         score = score_one(item, report)
@@ -248,6 +273,7 @@ def run_remora(
             "final_V": report.get("final_V") or 0.0,
         })
         reports.append(report)
+        _progress(label, i, len(items), t0)
     return results, reports
 
 
@@ -329,13 +355,13 @@ def main() -> None:
     for cond, (genome, _) in conditions.items():
         t0 = time.perf_counter()
         if cond == "A_single":
-            res = run_single_oracle(all_items, meta, single)
+            res = run_single_oracle(all_items, meta, single, label=cond)
             rep = [{}] * len(all_items)
         elif cond == "B_majority":
-            res = run_majority(all_items, meta, cached)
+            res = run_majority(all_items, meta, cached, label=cond)
             rep = [{}] * len(all_items)
         else:
-            res, rep = run_remora(all_items, meta, cached, genome)
+            res, rep = run_remora(all_items, meta, cached, genome, label=cond)
         elapsed = time.perf_counter() - t0
 
         n = len(res)
