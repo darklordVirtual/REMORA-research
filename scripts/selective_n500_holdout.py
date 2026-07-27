@@ -1,14 +1,16 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Held-out evaluation for N500 selective-trust claim.
+"""Held-out evaluation for the N544 selective-trust hypothesis (SAP v2 H1').
 
-Performs a stratified 80/20 split on the 544-item N500 calibrated benchmark,
-selects the temperature threshold tau* on the 80% training set (maximising
-selective accuracy), then evaluates on the 20% holdout with tau* LOCKED.
+Performs a group-aware stratified 80/20 split on the 544-item benchmark
+(UNCALIBRATED thermodynamic artifact as primary input), locks the
+temperature threshold tau* on the 80% training split at the pre-registered
+18% coverage target (fixed a priori — nothing is maximised or re-selected),
+then evaluates on the 20% holdout with tau* LOCKED.
 
-This produces an out-of-sample estimate of the selective-trust claim reported
-in §10 of the REMORA paper, validating that the result is not an artefact of
-in-sample threshold selection.
+The confirmatory test is the SAP v2 §4 exact one-sided binomial with
+p0 = majority-vote accuracy on the TRAINING split (never the holdout — the
+null must not be computed from the evaluation sample itself).
 
 Usage
 -----
@@ -32,15 +34,15 @@ OUT_PATH = Path("results/selective_n500_holdout_results.json")
 
 RANDOM_SEED = 42
 HOLDOUT_FRACTION = 0.20
-# HYPERPARAMETER PROVENANCE (research audit P0-5): both SIGNAL and
-# COVERAGE_TARGET were selected from earlier FULL-dataset analysis (§10),
-# so this holdout tests an operating point partially chosen with knowledge
-# of the whole dataset. It is better than in-sample evaluation but NOT a
-# pristine out-of-sample test. A clean re-run must pre-register signal and
-# coverage before labels are opened — see
-# docs/assurance/rebenchmark_protocol_v1.md.
-SIGNAL = "neg_temperature"  # in-sample-derived (see provenance note above)
-COVERAGE_TARGET = 0.18      # in-sample-derived (see provenance note above)
+# HYPERPARAMETER PROVENANCE (SAP v2 §4, 2026-07-27): SIGNAL and
+# COVERAGE_TARGET were chosen from an EARLIER run on the same benchmark
+# corpus, but pre-registered in the committed SAP v2 BEFORE the new
+# cross-family oracle trio produced any output. That prevents tuning
+# against this run's temperatures, but does NOT eliminate possible adaptive
+# overfitting to the reused 544-item corpus — the powered follow-up on
+# ~1200 fresh items is the test that removes that caveat.
+SIGNAL = "neg_temperature"  # pre-registered (SAP v2 §4)
+COVERAGE_TARGET = 0.18      # pre-registered (SAP v2 §4)
 MIN_ACCEPTED = 5            # minimum holdout items to report a meaningful result
 
 
@@ -179,9 +181,17 @@ def select_threshold(
 def evaluate_holdout(
     holdout: list[dict],
     tau_star: float,
-    baseline_acc: float,
+    p0_train_baseline: float,
+    baseline_acc_holdout: float,
 ) -> dict:
-    """Accept holdout items where temperature <= tau* (LOCKED from training set)."""
+    """Accept holdout items where temperature <= tau* (LOCKED from training set).
+
+    The confirmatory exact binomial uses ``p0_train_baseline`` — the
+    majority-vote accuracy on the TRAINING split — as the null, per SAP v2
+    §4 (an external statistics review 2026-07-27 caught this script testing
+    against the holdout's own baseline, which SAP explicitly forbids). The
+    holdout baseline is kept as DESCRIPTIVE context for the lift only.
+    """
     accepted = [it for it in holdout if it["temperature"] <= tau_star]
     n_hold = len(holdout)
     n_accepted = len(accepted)
@@ -200,7 +210,7 @@ def evaluate_holdout(
     acc = correct / n_accepted
     holdout_coverage = n_accepted / n_hold
     ci_lo, ci_hi = _wilson(correct, n_accepted)
-    p_val = _p_value_one_sided(correct, n_accepted, baseline_acc)
+    p_val = _p_value_one_sided(correct, n_accepted, p0_train_baseline)
 
     # Phase composition of accepted holdout items
     phase_counts: dict[str, int] = {}
@@ -215,11 +225,13 @@ def evaluate_holdout(
         "correct": correct,
         "accuracy_holdout": round(acc, 6),
         "coverage_holdout": round(holdout_coverage, 4),
-        "baseline_accuracy_holdout": round(baseline_acc, 6),
-        "lift_pp_holdout": round((acc - baseline_acc) * 100, 4),
+        "p0_train_baseline": round(p0_train_baseline, 6),
+        "baseline_accuracy_holdout": round(baseline_acc_holdout, 6),
+        "lift_pp_vs_holdout_baseline": round((acc - baseline_acc_holdout) * 100, 4),
+        "lift_pp_vs_p0_train": round((acc - p0_train_baseline) * 100, 4),
         "wilson_ci_holdout": [round(ci_lo, 4), round(ci_hi, 4)],
         "p_one_sided_holdout": round(p_val, 8),
-        "ci_above_baseline": ci_lo > baseline_acc,
+        "ci_excludes_p0": ci_lo > p0_train_baseline,
         "phase_composition": phase_counts,
     }
 
@@ -254,23 +266,26 @@ def run(
 
     # Select tau* on training set
     tau_star, train_stats = select_threshold(train)
+    p0_train = train_stats["baseline_accuracy_train"]
 
-    # Evaluate on holdout with locked tau*
-    holdout_stats = evaluate_holdout(holdout, tau_star, baseline_acc_holdout)
+    # Evaluate on holdout with locked tau*; the exact test's null is the
+    # TRAINING-split baseline (SAP v2 §4), never the holdout's own.
+    holdout_stats = evaluate_holdout(holdout, tau_star, p0_train, baseline_acc_holdout)
 
     # Summary string
     if "accuracy_holdout" in holdout_stats:
         acc_h = holdout_stats["accuracy_holdout"]
         cov_h = holdout_stats["coverage_holdout"]
         n_acc = holdout_stats["n_accepted"]
-        lift = holdout_stats["lift_pp_holdout"]
+        lift = holdout_stats["lift_pp_vs_holdout_baseline"]
         ci_lo, ci_hi = holdout_stats["wilson_ci_holdout"]
         p_val = holdout_stats["p_one_sided_holdout"]
         summary = (
             f"Held-out: {acc_h*100:.2f}% accuracy at {cov_h*100:.1f}% coverage "
             f"(n_accepted={n_acc}, lift +{lift:.2f} pp over "
-            f"{baseline_acc_holdout*100:.2f}% holdout baseline, "
-            f"Wilson CI [{ci_lo:.3f}, {ci_hi:.3f}], p={p_val:.2e})"
+            f"{baseline_acc_holdout*100:.2f}% holdout baseline; exact binomial "
+            f"vs p0={p0_train*100:.2f}% train baseline: p={p_val:.2e}, "
+            f"Wilson CI [{ci_lo:.3f}, {ci_hi:.3f}])"
         )
     else:
         summary = holdout_stats.get("warning", "Evaluation failed - see holdout_stats for details.")
@@ -286,9 +301,17 @@ def run(
             "holdout_fraction": holdout_fraction,
             "signal": SIGNAL,
             "hyperparameter_provenance": (
-                "SIGNAL and COVERAGE_TARGET selected from full-dataset "
-                "in-sample analysis; holdout is not pristine out-of-sample "
-                "(SAP deviation D-5)."
+                "SIGNAL and COVERAGE_TARGET were chosen from an earlier run "
+                "on the same 544-item benchmark corpus, but pre-registered "
+                "in SAP v2 BEFORE the new cross-family oracle trio produced "
+                "any output. This prevents tuning against this run's "
+                "temperatures but does not eliminate possible adaptive "
+                "overfitting to the reused corpus."
+            ),
+            "p0_definition": (
+                "exact binomial null p0 = majority-vote accuracy on the "
+                "TRAINING split (SAP v2 s4); holdout baseline reported as "
+                "descriptive context only"
             ),
             "p_value_method": "exact one-sided binomial (math.comb tail sum)",
             "note": (

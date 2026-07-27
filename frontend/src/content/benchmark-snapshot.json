@@ -4395,13 +4395,15 @@
       "holdout_evaluation": {
         "accuracy_holdout": 1.0,
         "baseline_accuracy_holdout": 0.87037,
-        "ci_above_baseline": false,
+        "ci_excludes_p0": false,
         "correct": 18,
         "coverage_holdout": 0.1667,
-        "lift_pp_holdout": 12.963,
+        "lift_pp_vs_holdout_baseline": 12.963,
+        "lift_pp_vs_p0_train": 15.1376,
         "n_accepted": 18,
         "n_holdout": 108,
-        "p_one_sided_holdout": 0.08216252,
+        "p0_train_baseline": 0.848624,
+        "p_one_sided_holdout": 0.05210454,
         "phase_composition": {
           "critical": 10,
           "ordered": 8
@@ -4415,8 +4417,9 @@
       "meta": {
         "data_source": "results/thermodynamic_eval_n500_uncalibrated_results.json",
         "holdout_fraction": 0.2,
-        "hyperparameter_provenance": "SIGNAL and COVERAGE_TARGET selected from full-dataset in-sample analysis; holdout is not pristine out-of-sample (SAP deviation D-5).",
+        "hyperparameter_provenance": "SIGNAL and COVERAGE_TARGET were chosen from an earlier run on the same 544-item benchmark corpus, but pre-registered in SAP v2 BEFORE the new cross-family oracle trio produced any output. This prevents tuning against this run's temperatures but does not eliminate possible adaptive overfitting to the reused corpus.",
         "note": "tau* = 18th-percentile temperature on 80% training split (coverage locked at 0.18, the in-sample optimum); evaluated on 20% holdout with tau* LOCKED (no re-optimisation on holdout).",
+        "p0_definition": "exact binomial null p0 = majority-vote accuracy on the TRAINING split (SAP v2 s4); holdout baseline reported as descriptive context only",
         "p_value_method": "exact one-sided binomial (math.comb tail sum)",
         "random_seed": 42,
         "script": "scripts/selective_n500_holdout.py",
@@ -4426,7 +4429,7 @@
         "n_holdout": 108,
         "n_train": 436
       },
-      "summary": "Held-out: 100.00% accuracy at 16.7% coverage (n_accepted=18, lift +12.96 pp over 87.04% holdout baseline, Wilson CI [0.824, 1.000], p=8.22e-02)",
+      "summary": "Held-out: 100.00% accuracy at 16.7% coverage (n_accepted=18, lift +12.96 pp over 87.04% holdout baseline; exact binomial vs p0=84.86% train baseline: p=5.21e-02, Wilson CI [0.824, 1.000])",
       "training_threshold_selection": {
         "accuracy_train": 0.948718,
         "baseline_accuracy_train": 0.848624,
@@ -5109,11 +5112,11 @@
     }
   },
   "generated_by": "scripts/build_frontend_benchmark_snapshot.py",
-  "snapshot_hash": "ab3eff7a299f4be1a1c02291b864ee1d1b41f888826b31b90c28766d56cafa10",
+  "snapshot_hash": "bcf784bf1fdfdbd7ca162de9bb3b4d1ffd948eb463f9bdb2bf68faec26e1ff61",
   "source_hashes": {
     "results/conformal_guardrail_holdout.json": "04a6c3f7b0bb86c95473e4394a5914cdf07527c765837b4350d710d008d42746",
     "results/end_to_end_n500_v3.json": "91eae8ff1c3baa4950ff09c758aa0b81b1ae2e39d4e664288276d7189dde9f5e",
-    "results/selective_n500_holdout_results.json": "6f3a217c69a5cbd8e4b500e6bbc1091d1a97e429b7efdec0bbf97948024f07e2",
+    "results/selective_n500_holdout_results.json": "bfedbcd6a1ae394e6f780827d13175327a7e8ca8f1a8dd0328bc6c279f2f3c66",
     "results/toolcall_benchmark_v2_results.json": "4b9f2c115309a498cf558b778ed9baaf5375b844348dcdb43359982b7de6b021"
   }
 }

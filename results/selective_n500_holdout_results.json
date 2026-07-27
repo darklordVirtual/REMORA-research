@@ -5,7 +5,8 @@
     "random_seed": 42,
     "holdout_fraction": 0.2,
     "signal": "neg_temperature",
-    "hyperparameter_provenance": "SIGNAL and COVERAGE_TARGET selected from full-dataset in-sample analysis; holdout is not pristine out-of-sample (SAP deviation D-5).",
+    "hyperparameter_provenance": "SIGNAL and COVERAGE_TARGET were chosen from an earlier run on the same 544-item benchmark corpus, but pre-registered in SAP v2 BEFORE the new cross-family oracle trio produced any output. This prevents tuning against this run's temperatures but does not eliminate possible adaptive overfitting to the reused corpus.",
+    "p0_definition": "exact binomial null p0 = majority-vote accuracy on the TRAINING split (SAP v2 s4); holdout baseline reported as descriptive context only",
     "p_value_method": "exact one-sided binomial (math.comb tail sum)",
     "note": "tau* = 18th-percentile temperature on 80% training split (coverage locked at 0.18, the in-sample optimum); evaluated on 20% holdout with tau* LOCKED (no re-optimisation on holdout)."
   },
@@ -46,18 +47,20 @@
     "correct": 18,
     "accuracy_holdout": 1.0,
     "coverage_holdout": 0.1667,
+    "p0_train_baseline": 0.848624,
     "baseline_accuracy_holdout": 0.87037,
-    "lift_pp_holdout": 12.963,
+    "lift_pp_vs_holdout_baseline": 12.963,
+    "lift_pp_vs_p0_train": 15.1376,
     "wilson_ci_holdout": [
       0.8241,
       1.0
     ],
-    "p_one_sided_holdout": 0.08216252,
-    "ci_above_baseline": false,
+    "p_one_sided_holdout": 0.05210454,
+    "ci_excludes_p0": false,
     "phase_composition": {
       "critical": 10,
       "ordered": 8
     }
   },
-  "summary": "Held-out: 100.00% accuracy at 16.7% coverage (n_accepted=18, lift +12.96 pp over 87.04% holdout baseline, Wilson CI [0.824, 1.000], p=8.22e-02)"
+  "summary": "Held-out: 100.00% accuracy at 16.7% coverage (n_accepted=18, lift +12.96 pp over 87.04% holdout baseline; exact binomial vs p0=84.86% train baseline: p=5.21e-02, Wilson CI [0.824, 1.000])"
 }

@@ -133,11 +133,25 @@ accept 18.6 %, verify 32.2 %, abstain 49.3 %, escalate 0 %.
 the training split at the 18th percentile, group-aware 80/20 split seed 42):
 on the 108-item holdout, low-temperature acceptance selected 18 items, all
 18 correct (100 %, Wilson CI [82.4 %, 100 %]) at 16.7 % coverage — +12.96 pp
-over the 87.04 % holdout majority baseline. Exact one-sided binomial
-p = 0.082: **not significant at α = 0.05**, and the CI does not exclude the
-baseline. By the pre-registered reporting rule (N_accepted = 18 < 100) this
-is a directional observation only; the honest path to a powered test
-remains the planned ~1 200-real-item round.
+over the 87.04 % holdout majority baseline (descriptive). The confirmatory
+exact one-sided binomial against the SAP-mandated null
+p₀ = 84.86 % (majority accuracy on the TRAINING split) gives
+**p = 0.052: not significant at α = 0.05**, and the CI does not exclude p₀.
+(An external statistics review caught the script initially testing against
+the holdout's own baseline, p = 0.082, contrary to SAP §4; corrected and
+regenerated before merge — recorded as a §6 deviation.) By the
+pre-registered reporting rule (N_accepted = 18 < 100) this is a directional
+observation only.
+
+Two framing caveats belong next to that number. First, signal and coverage
+were chosen from an earlier run on the **same 544-item corpus**, then
+pre-registered before the new trio produced output — this prevents tuning
+against this run's temperatures but not adaptive overfitting to the reused
+corpus. Second, the ablation table shows a risk–coverage trade-off, but the
+temperature signal's added value over simpler selection baselines
+(single-model confidence, majority margin, entropy) has **not** been
+established — that comparison, at matched coverage, belongs in the powered
+~1 200-real-item round.
 
 ## Where the artifacts live
 

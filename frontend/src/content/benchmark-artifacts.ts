@@ -77,8 +77,10 @@ interface SelectiveN500HoldoutResults {
     correct: number;
     accuracy_holdout: number;
     coverage_holdout: number;
+    p0_train_baseline: number;
     baseline_accuracy_holdout: number;
-    lift_pp_holdout: number;
+    lift_pp_vs_holdout_baseline: number;
+    lift_pp_vs_p0_train: number;
     wilson_ci_holdout: [number, number];
     p_one_sided_holdout: number;
   };
@@ -286,7 +288,7 @@ export function buildBenchmarkDashboard(
         value: formatPercent(holdout.accuracy_holdout),
         detail: `${holdout.correct}/${holdout.n_accepted} accepted at ${formatPercent(
           holdout.coverage_holdout,
-        )} coverage; lift ${formatSignedPoints(holdout.lift_pp_holdout)}.`,
+        )} coverage; lift ${formatSignedPoints(holdout.lift_pp_vs_holdout_baseline)}.`,
         status: "holdout",
         source: ARTIFACT_PATHS.n500Holdout,
       },

@@ -1,6 +1,6 @@
 {
   "schema": "result_provenance_v2",
-  "git_commit": "576ad9f6528c1632a70cc904abe90cf68bf34f16",
+  "git_commit": "2f4a6752e6e1a87bb95733b7bb18e52a64b7f69a",
   "worktree_clean": false,
   "python_version": "3.14.0",
   "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
@@ -12,7 +12,7 @@
     42
   ],
   "command": "python scripts/selective_n500_holdout.py",
-  "generated_at": "2026-07-27T13:20:27.689627+00:00",
+  "generated_at": "2026-07-27T13:28:32.191336+00:00",
   "artifact": "selective_n500_holdout_results.json",
-  "artifact_sha256": "1c311c2855dd0639923df90afa16815528f156d57d39eba128a4ab50f5a7277b"
+  "artifact_sha256": "131be665722ab99b59c95bae47110f67d8a49a7ad5adb24d0525ca1635f2fe4e"
 }
