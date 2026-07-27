@@ -1,7 +1,7 @@
 {
   "meta": {
     "script": "scripts/selective_n500_holdout.py",
-    "data_source": "results\\thermodynamic_eval_n500_uncalibrated_results.json",
+    "data_source": "results/thermodynamic_eval_n500_uncalibrated_results.json",
     "random_seed": 42,
     "holdout_fraction": 0.2,
     "signal": "neg_temperature",

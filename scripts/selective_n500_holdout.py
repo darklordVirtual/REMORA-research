@@ -278,7 +278,10 @@ def run(
     result = {
         "meta": {
             "script": "scripts/selective_n500_holdout.py",
-            "data_source": str(data_path),
+            # POSIX form: str(Path) is backslashed on Windows, which makes
+            # the artifact bytes platform-dependent and broke the frontend
+            # snapshot deep-equal in CI (2026-07-27).
+            "data_source": Path(data_path).as_posix(),
             "random_seed": seed,
             "holdout_fraction": holdout_fraction,
             "signal": SIGNAL,

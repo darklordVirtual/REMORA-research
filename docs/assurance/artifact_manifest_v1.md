@@ -110,7 +110,7 @@ must not change unless the benchmark is re-run under a documented protocol.
 | File | SHA-256 | Size (bytes) | Last modified | Description |
 |------|---------|-------------|---------------|-------------|
 | `results/toolcall_blind_v3_results.json` | `e263a121924c0379eb1483357d7cca8a5fb922322e27630f1f8c27864dd5086c` | 1206 | 2026-07-27 | Blinded benchmark v3: FAR=0.0, N=700, two-phase decide/score (REM-009; re-issued 2026-07-27, clean round) |
-| `results/selective_n500_holdout_results.json` | `c9b71fa0c671fd159702618b64220defbef621ab0af293d69d207bbfa97a7463` | 1937 | 2026-07-27 | Held-out selective accuracy (SAP v2, Workers AI trio): 100% at 16.7% coverage, N_accepted=18, p=0.082 — directional only (re-issued 2026-07-27, clean round) |
+| `results/selective_n500_holdout_results.json` | `7d0c0dc31d54acb9502fcdd3a55ab7059a9c4fe848ec1fe2fb7b47e5c55ca100` | 1936 | 2026-07-27 | Held-out selective accuracy (SAP v2, Workers AI trio): 100% at 16.7% coverage, N_accepted=18, p=0.082 — directional only (re-issued 2026-07-27, clean round) |
 | `results/selective_n500_results.json` | `ba838b99eeedcbe707d5ebbac5b21dc63edf4f107efaeaaf423ed390b9ecf1fb` | 12725 | 2026-06-09T22:51:30 | Full N=500 selective trust evaluation |
 | `results/thermodynamic_eval_n500_calibrated_results.json` | `ec2eacf7ff6ce4e79467fed2f6f9f5cb103d6b0faaa97eac3c6f45e1bf97cce2` | 349515 | 2026-06-09T22:51:30 | N=500 thermodynamic calibration (data source for holdout) |
 | `results/phase_aware_guardrail_n544_results.json` | `22961a33638e86be925608eb2301f292d61ac79f9d6f3d62e473cce8ef22e77e` | 4488 | 2026-06-09T22:51:30 | Phase-aware conformal guardrail N=544 |
