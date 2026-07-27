@@ -104,7 +104,10 @@ benchmark:  ## Run all deterministic benchmarks; no API keys required
 	$(PYTHON) experiments/evaluate_governance_intelligence.py
 	@echo "\nAll benchmarks completed. Results written to results/"
 
-benchmark-live-round:  ## Live segment of the clean round (GROQ_API_KEY; SAP v2): ablation n500 -> uncalibrated thermo eval -> end-to-end -> holdout, with provenance sidecars
+benchmark-deterministic-round:  ## Deterministic segment of the clean round (no API keys; SAP v2): toolcall v2 + significance + calibration + failures + ablation + governance-intelligence + blind v3 two-phase, with provenance sidecars
+	$(PYTHON) scripts/run_deterministic_round_2026_07.py
+
+benchmark-live-round:  ## Live segment of the clean round (GROQ_API_KEY; SAP v2): preflight -> ablation n500 -> uncalibrated thermo eval -> end-to-end -> holdout, with provenance sidecars
 	$(PYTHON) scripts/run_live_round_2026_07.py
 
 thermo-n500:  ## Regenerate the uncalibrated N500 thermodynamic artifact (GROQ_API_KEY; requires ablation_v2_n500_results.json)
