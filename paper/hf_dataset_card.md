@@ -76,9 +76,10 @@ Artifact: `artifacts/domain_benchmark_results.json`
 | REMORA neg-temperature | 18% | **88.78%** | +47.6 pp |
 | REMORA (held-out) | 23.2% | **88.00%** | +41.7 pp |
 
-### Replay Arena (N=96)
+### Replay Arena (N=93)
 
-96 fixed governance cases across 9 categories. Accuracy: **87.5%** (84/96).
+93 fixed governance cases across 14 categories. Accuracy: **87.1%**
+(`replay_accuracy=0.871` per `artifacts/aromer/replay_arena_report.json`).
 False accept rate: **0.0%**. Transfer category accuracy: **100%** (4/4).
 
 ## AROMER: Learning Extension (Experimental)
