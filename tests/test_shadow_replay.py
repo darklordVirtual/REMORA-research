@@ -138,6 +138,71 @@ def test_shadow_replay_baseline_matrix_contains_expected_keys(tmp_path: Path) ->
     }.issubset(keys)
 
 
+_CLEAN_ACCEPT_RECORD = {
+    "question": "Read customer invoice",
+    "domain": "finance",
+    "risk_tier": "low",
+    "action_type": "read",
+    "target_environment": "prod",
+    "phase": "ordered",
+    "trust_score": 0.92,
+    "evidence_action": "answer",
+    "evidence_confidence": 0.91,
+    "evidence_contradictions": 0,
+    "unsafe": False,
+}
+
+
+def test_no_hard_guards_baseline_key_present(tmp_path: Path) -> None:
+    """The counterfactual arm `no_hard_guards` (full engine minus the
+    hard-guard floor) is part of the shadow baseline matrix."""
+    log_path = tmp_path / "arm.jsonl"
+    _write_jsonl(log_path, [dict(_CLEAN_ACCEPT_RECORD)])
+    result = replay_action_log(str(log_path))
+    assert "no_hard_guards" in result.report.baseline_comparison
+
+
+def test_no_hard_guards_isolates_hard_guard_contribution() -> None:
+    """An action the engine would accept, except that a hard guard fires,
+    is ESCALATEd by the full engine but ACCEPTed by the no_hard_guards
+    counterfactual arm — the delta is exactly the hard-guard contribution."""
+    from remora.policy import RemoraDecisionEngine
+    from remora.policy.report import DecisionAction
+    from remora.shadow.replay import _baseline_action, _record_to_observation
+
+    rec = dict(_CLEAN_ACCEPT_RECORD, adversarial_detected=True)
+    obs = _record_to_observation(rec)
+
+    full = RemoraDecisionEngine().decide(obs)
+    assert full.action == DecisionAction.ESCALATE
+
+    assert _baseline_action("no_hard_guards", obs) == DecisionAction.ACCEPT.value
+    # Without the guard trigger the two agree.
+    clean_obs = _record_to_observation(dict(_CLEAN_ACCEPT_RECORD))
+    assert (
+        _baseline_action("no_hard_guards", clean_obs)
+        == RemoraDecisionEngine().decide(clean_obs).action.value
+    )
+
+
+def test_no_hard_guards_still_never_accepts_critical() -> None:
+    """Risk-tier flooring is engine policy, not part of the hard-guard floor:
+    even the counterfactual arm must never autonomously accept a
+    critical-tier action (CRITICAL_NEVER_AUTONOMOUSLY_ACCEPTED holds)."""
+    from remora.policy.report import DecisionAction
+    from remora.shadow.replay import _baseline_action, _record_to_observation
+
+    rec = dict(
+        _CLEAN_ACCEPT_RECORD,
+        risk_tier="critical",
+        phase="critical",
+        action_type="delete",
+        adversarial_detected=True,
+    )
+    obs = _record_to_observation(rec)
+    assert _baseline_action("no_hard_guards", obs) != DecisionAction.ACCEPT.value
+
+
 def test_shadow_replay_unsafe_avoidance_estimate(tmp_path: Path) -> None:
     log_path = tmp_path / "unsafe.jsonl"
     _write_jsonl(

@@ -323,6 +323,15 @@ def _baseline_action(name: str, obs: PolicyObservation) -> str:
             claim_graph_betti_1=None,
         )
         return engine.decide(stripped).action.value
+    if name == "no_hard_guards":
+        # Counterfactual continuation: the full engine on the untouched
+        # observation, minus only the hard-guard floor. The delta against
+        # remora_full_gate isolates exactly what the hard guards contribute.
+        # Risk-tier flooring is engine policy (not part of the floor), so even
+        # this arm never autonomously accepts critical-tier actions. Shadow
+        # analysis only — never an enforcement path.
+        engine = RemoraDecisionEngine()
+        return engine.decide(obs, _skip_hard_floor=True).action.value
     raise ValueError(f"Unknown baseline: {name}")
 
 
@@ -467,6 +476,7 @@ def replay_action_log(
             "single_judge",
             "confidence_threshold",
             "policy_only_gate",
+            "no_hard_guards",
         ]
     }
     _remora_unsafe_accepts = sum(

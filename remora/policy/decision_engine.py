@@ -574,8 +574,19 @@ class RemoraDecisionEngine:
     # Primary API
     # ------------------------------------------------------------------
 
-    def decide(self, obs: PolicyObservation) -> DecisionReport:
-        """Gate a proposed action and return an authoritative DecisionReport."""
+    def decide(
+        self, obs: PolicyObservation, *, _skip_hard_floor: bool = False
+    ) -> DecisionReport:
+        """Gate a proposed action and return an authoritative DecisionReport.
+
+        ``_skip_hard_floor`` is a private ablation hook for shadow-mode
+        counterfactual replay ONLY (the ``no_hard_guards`` baseline arm in
+        ``remora.shadow.replay``): it skips the hard-guard floor while every
+        other stage — including risk-tier flooring, so critical actions are
+        still never autonomously accepted — runs unchanged on the untouched
+        observation. It must never be set on any enforcement path; the
+        authoritative decision semantics are the default.
+        """
         # ── FAIL-CLOSED NORMALISATION ────────────────────────────────────────
         # Normalise risk_tier, action_type, and target_environment before any
         # rule evaluation so that typos, mixed-case strings, or absent values
@@ -602,7 +613,7 @@ class RemoraDecisionEngine:
         # not ESCALATE; both block autonomous execution and set
         # human_review_required.
 
-        _floor = hard_guard_floor(obs)
+        _floor = None if _skip_hard_floor else hard_guard_floor(obs)
 
         # Adversarial and malformed-schema guards fire before the
         # schema-unverified annotation below (preserves reason ordering).
