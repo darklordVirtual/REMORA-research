@@ -90,8 +90,18 @@ to temperature's (0.0385) that no superiority claim is possible.
   test point — not conditional accuracy among accepted, and nothing about
   distribution shift.
 
-This asymmetry decides the SAP v3 primary: **CRC as the primary
-certification procedure, SGR as sensitivity analysis.**
+The asymmetry is real but it decides POWER, not the estimand. Per the
+follow-up method review (2026-07-27): for a critical-infrastructure pilot
+the defensible claim is the high-probability one ("with confidence
+≥ 1 − δ, the error rate among autonomously accepted items is ≤ r\*"), and
+an SGR run that cannot certify is an HONEST outcome — the system abstains
+— not a reason to switch to the weaker expectation guarantee. SAP v3
+therefore takes **SGR/LTT as primary** (with the zero-coverage outcome
+explicitly legitimate and the sample-size arithmetic stated in the plan)
+and **CRC as secondary** over a severity-weighted accepted-and-wrong loss
+— using only the increasing severity component, because friction terms
+make a combined loss non-monotone and CRC can fail arbitrarily on
+non-monotone losses.
 
 ## Where the methods live
 
@@ -132,11 +142,12 @@ per-item conformal p-values) before any policy consumes it.
 ## Recommendation for SAP v3 (drafted in `docs/assurance/statistical_analysis_plan_v3.md`)
 
 1. Three-way group-aware split: development (signal definitions +
-   confidence calibration) / risk-calibration (CRC threshold) /
+   confidence calibration) / risk-calibration (certified threshold) /
    untouched test.
 2. Primary arm: continuous temperature, one pre-registered
-   transformation, one risk budget, **CRC** certification; SGR as
-   sensitivity only.
+   transformation, one risk budget, **SGR/LTT high-probability**
+   certification (zero certified coverage is a legitimate outcome); CRC
+   as secondary over the increasing severity-weighted loss.
 3. Baseline: calibrated mean confidence (and margin + calibrated
    confidence), compared at REAL matched coverage with the pre-registered
    label-independent tie-breaker.
