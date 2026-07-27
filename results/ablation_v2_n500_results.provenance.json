@@ -1,0 +1,16 @@
+{
+  "schema": "result_provenance_v2",
+  "git_commit": "bda2cce4d831cd557df25a234d6f7dfc94681635",
+  "worktree_clean": false,
+  "python_version": "3.14.0",
+  "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
+  "script": "experiments/ablation_v2.py",
+  "input_sha256": {},
+  "random_seeds": [
+    42
+  ],
+  "command": "python experiments/ablation_v2.py --backend cloudflare --benchmark-module remora.benchmarks.extended_v2_n500",
+  "generated_at": "2026-07-27T13:11:14.545720+00:00",
+  "artifact": "ablation_v2_n500_results.json",
+  "artifact_sha256": "adbb5ad5b050b0c25f96a7ce7dfbb9d46fbc80d925de5c317df30a2b6cdc5475"
+}

@@ -34,6 +34,23 @@ Verification performed before re-issuing:
   invariants (`false_accept_rate = 0.0`, `n_harmful = 208`) are unchanged
   between versions. This entry is re-issued under this documented protocol.
 
+## Revision Note (2026-07-27, live segment)
+
+`results/selective_n500_holdout_results.json` is re-issued from the round's
+LIVE segment (SAP v2 §2 amendment: Cloudflare Workers AI cross-family trio;
+run by `scripts/run_live_round_2026_07.py` at `bda2cce`, tag
+`benchmark-round-2026-07-live` lineage). The confirmatory H1′ readout is a
+DIRECTIONAL observation by pre-registration: 18/18 correct on accepted
+holdout items (100 %) at 16.7 % coverage, +12.96 pp over the 87.04 %
+holdout baseline (descriptive); exact binomial against the SAP §4 null
+p₀ = 84.86 % (TRAINING-split majority accuracy) gives p = 0.052 — the
+Wilson CI [0.824, 1.000] does not exclude p₀ and N_accepted < 100, so no
+generalization language is permitted. (Re-issued a second time 2026-07-27:
+an external statistics review caught the initial artifact testing against
+the holdout's own baseline, p = 0.082 — SAP §6 deviation row records the
+correction.) The prior entry (88 % @ 23.2 % coverage) came from the
+retired same-family Groq trio and stays frozen in history.
+
 ## Revision Note (2026-07-27)
 
 Two tool-call entries are re-issued from the 2026-07 clean benchmark round
@@ -97,7 +114,7 @@ must not change unless the benchmark is re-run under a documented protocol.
 | File | SHA-256 | Size (bytes) | Last modified | Description |
 |------|---------|-------------|---------------|-------------|
 | `results/toolcall_blind_v3_results.json` | `e263a121924c0379eb1483357d7cca8a5fb922322e27630f1f8c27864dd5086c` | 1206 | 2026-07-27 | Blinded benchmark v3: FAR=0.0, N=700, two-phase decide/score (REM-009; re-issued 2026-07-27, clean round) |
-| `results/selective_n500_holdout_results.json` | `eedb8d203d65d5a94aa955d319129e9e27e7e5f48cc527fdbb684c3268e0ed29` | 1670 | 2026-06-01T22:40:21 | Held-out selective accuracy: 88% at 23.2% coverage |
+| `results/selective_n500_holdout_results.json` | `3ed9f7d61493fb564574202cb832c64f365b5ec015c509e639db0a0104d28a35` | 2404 | 2026-07-27 | Held-out selective accuracy (SAP v2, Workers AI trio): 100% at 16.7% coverage, N_accepted=18, p=0.052 vs p0=train baseline — directional only (re-issued 2026-07-27, clean round) |
 | `results/selective_n500_results.json` | `ba838b99eeedcbe707d5ebbac5b21dc63edf4f107efaeaaf423ed390b9ecf1fb` | 12725 | 2026-06-09T22:51:30 | Full N=500 selective trust evaluation |
 | `results/thermodynamic_eval_n500_calibrated_results.json` | `ec2eacf7ff6ce4e79467fed2f6f9f5cb103d6b0faaa97eac3c6f45e1bf97cce2` | 349515 | 2026-06-09T22:51:30 | N=500 thermodynamic calibration (data source for holdout) |
 | `results/phase_aware_guardrail_n544_results.json` | `22961a33638e86be925608eb2301f292d61ac79f9d6f3d62e473cce8ef22e77e` | 4488 | 2026-06-09T22:51:30 | Phase-aware conformal guardrail N=544 |
