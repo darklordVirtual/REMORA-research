@@ -10,11 +10,20 @@ import pytest
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _OUTPUT_PATH = _REPO_ROOT / "results" / "end_to_end_n500_v3.json"
+_INPUT_PATH = (
+    _REPO_ROOT / "results" / "thermodynamic_eval_n500_uncalibrated_results.json"
+)
 
 
 @pytest.fixture(scope="module")
 def result() -> dict:
     """Run the v3 experiment once per test session and return the results dict."""
+    if not _INPUT_PATH.exists():
+        pytest.skip(
+            f"{_INPUT_PATH.name} not generated yet — produced by the SAP v2 "
+            "live round (scripts/run_live_round_2026_07.py); explicit "
+            "status:skipped until the round artifact exists"
+        )
     from experiments.end_to_end_n500_v3 import run
 
     return run()
