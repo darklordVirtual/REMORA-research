@@ -63,6 +63,10 @@ PRESETS = {
     "large":    {"truthfulqa_per_domain": 80, "boolq_per_domain": 50},
     "xl":       {"truthfulqa_per_domain": 100, "boolq_per_domain": 70},
     "n500":     {"truthfulqa_per_domain": 100, "boolq_per_domain": 160},
+    # SAP v3 power round: BoolQ+TruthfulQA ONLY (use with --hf-only and
+    # --exclude-module remora.benchmarks.extended_v2_n500). TruthfulQA has
+    # ~817 rows total, so the tqa quota is capped by availability.
+    "sap_v3_n1200": {"truthfulqa_per_domain": 250, "boolq_per_domain": 250},
 }
 
 # -- Data classes --------------------------------------------------------------
@@ -609,6 +613,12 @@ def main() -> None:
                         default=str(ROOT / "artifacts" / "benchmark_stats.json"))
     parser.add_argument("--skip-hf", action="store_true",
                         help="Skip HuggingFace downloads (use only local + adversarial)")
+    parser.add_argument("--hf-only", action="store_true",
+                        help="Use ONLY the HF-derived sources (no curated/adversarial "
+                             "additions) — SAP v3 corpus discipline")
+    parser.add_argument("--exclude-module", type=str, default=None,
+                        help="Import path of an existing benchmark module whose items "
+                             "must be excluded (dedup by question content hash)")
     args = parser.parse_args()
 
     preset = PRESETS[args.preset]
@@ -634,8 +644,27 @@ def main() -> None:
     else:
         print("Skipping HuggingFace downloads (--skip-hf)")
 
-    all_entries += load_remora_curated()
-    all_entries += ADVERSARIAL_ADDITIONS
+    if not args.hf_only:
+        all_entries += load_remora_curated()
+        all_entries += ADVERSARIAL_ADDITIONS
+    else:
+        print("HF-only mode: curated and adversarial additions excluded")
+
+    if args.exclude_module:
+        import importlib
+
+        prior = importlib.import_module(args.exclude_module)
+        prior_hashes = {
+            hashlib.sha256(it["question"].encode()).hexdigest()[:8]
+            for it in getattr(prior, "_ITEMS", [])
+        }
+        before = len(all_entries)
+        all_entries = [
+            e for e in all_entries
+            if hashlib.sha256(e.question.encode()).hexdigest()[:8] not in prior_hashes
+        ]
+        print(f"Excluded {before - len(all_entries)} items overlapping "
+              f"{args.exclude_module} ({len(prior_hashes)} prior content hashes)")
 
     print(f"\nTotal before deduplication: {len(all_entries)}")
     all_entries = deduplicate(all_entries, threshold=0.40)

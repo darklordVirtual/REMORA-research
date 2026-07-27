@@ -1,0 +1,16 @@
+{
+  "schema": "result_provenance_v2",
+  "git_commit": "93f5c3850d807d76e6b632f81bfe8033fdb64205",
+  "worktree_clean": false,
+  "python_version": "3.14.0",
+  "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
+  "script": "experiments/sap_v3_round.py",
+  "input_sha256": {},
+  "random_seeds": [
+    20260727
+  ],
+  "command": "python experiments/sap_v3_round.py collect",
+  "generated_at": "2026-07-27T16:50:42.413416+00:00",
+  "artifact": "sap_v3_collection.json",
+  "artifact_sha256": "e5a8bd59d64d972884f50a42b236e2032e1b04befc76c941ad8bc7d3b49ad106"
+}

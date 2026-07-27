@@ -2026,7 +2026,8 @@ documents:
 - id: DOC-286
   version: v1
   path: docs/assurance/statistical_analysis_plan_v3.md
-  status: proposal
+  status: canonical
+  topic: docs_assurance_statistical_analysis_plan_v3_md
   code_synced: verified
   verdict: current
   last_audited: '2026-07-27'
@@ -2107,6 +2108,7 @@ topics:
 - docs_assurance_release_gates_md
 - docs_assurance_policy_engine_audit_v1_md
 - docs_assurance_independent_review_protocol_v1_md
+- docs_assurance_statistical_analysis_plan_v3_md
 - docs_assurance_external_review_panel_v1_md
 - docs_assurance_red_team_plan_v1_md
 - docs_assurance_rbac_policy_v1_md

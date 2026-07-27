@@ -1,0 +1,20 @@
+{
+  "total": 1231,
+  "by_source": {
+    "truthfulqa": 89,
+    "boolq": 1142
+  },
+  "by_domain": {
+    "general": 1019,
+    "science": 49,
+    "specialised": 163
+  },
+  "by_difficulty": {
+    "hard": 27,
+    "medium": 62,
+    "easy": 1142
+  },
+  "adversarial_fraction": 0.022,
+  "balance": 0.623,
+  "mean_source_confidence": 0.904
+}
