@@ -189,9 +189,27 @@ The end-to-end path (REM-035): `POST /assess` (issues an ACCEPT token or
 enqueues a review item), `POST /approve` (records the authenticated principal;
 mandatory bounded TTL; profile-specific approval role enforced), `POST
 /execute` (re-gates the fresh observation, binds the exact payload, consumes a
-one-time grant), `GET /audit/verify` (recomputes the per-tenant chain). RBAC:
-`assess`/`execute` capabilities gate assess/execute; `review` gates approve;
-`read` gates audit.
+one-time grant, then dispatches the tool through the app-lifecycle
+`GovernedToolDispatcher`), `GET /audit/verify` (recomputes the per-tenant
+chain). RBAC: `assess`/`execute` capabilities gate assess/execute; `review`
+gates approve; `read` gates audit.
+
+**Tool dispatch (issue #13):** tool callables are registered exclusively via
+trusted deployment configuration — the module named by
+`REMORA_TOOL_REGISTRY_MODULE` must expose
+`register_tools(register: Callable[[str, Callable], None])` and is imported
+once per process; request payloads can never add or replace callables, so
+downstream credentials stay app-side. The `/execute` response carries a
+`tool_execution` block (`executed`, and `result` or `refusal_reason`) that
+reports what actually happened; with no module configured the registry is
+empty and every dispatch reports `executed: false` /
+`refusal_reason: unknown_tool` — the research default stays side-effect free
+but says so explicitly. Dispatch happens only after the PEP consumed the
+grant, under an `ExecutionLease` bound to tenant, principal, tool, exact
+arguments, target environment and the current policy-bundle hash; a tool that
+raises burns the lease nonce and surfaces as
+`refusal_reason: tool_failed_nonce_burned` in both response and audit record
+(`tool_executed` / `tool_refusal_reason`).
 
 ### Governance modules (library)
 
