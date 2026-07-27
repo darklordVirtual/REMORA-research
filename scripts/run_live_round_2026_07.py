@@ -18,6 +18,8 @@ Log:   results/live_round_2026_07.log (append)
 """
 from __future__ import annotations
 
+import atexit
+import os
 import subprocess
 import sys
 import time
@@ -54,8 +56,36 @@ def run(cmd: list[str]) -> int:
     return proc.returncode
 
 
+def acquire_lock() -> bool:
+    """Single-runner lock. Two concurrent orchestrators interleave the log,
+    race on results/ artifacts and clobber the shared oracle cache (observed
+    live 2026-07-27: a surviving morning orchestrator finished in parallel
+    with the round's real runner and overwrote its artifacts)."""
+    lock = ROOT / "results" / "live_round_2026_07.lock"
+    if lock.exists():
+        try:
+            pid = int(lock.read_text().strip())
+        except ValueError:
+            pid = None
+        if pid is not None:
+            try:
+                os.kill(pid, 0)  # signal 0 = existence probe
+            except OSError:
+                pass  # stale lock — holder is dead
+            else:
+                log(f"FATAL: another live round is running (pid {pid}, {lock})")
+                return False
+        log("stale lock removed")
+    lock.write_text(str(os.getpid()), encoding="utf-8")
+    atexit.register(lambda: lock.unlink(missing_ok=True))
+    return True
+
+
 def main() -> int:
     py = sys.executable
+
+    if not acquire_lock():
+        return 1
 
     # 0. Preflight — trio liveness + JSON compliance (no benchmark data).
     #    Backend: Cloudflare Workers AI (SAP v2 §2 amendment 2026-07-27).
