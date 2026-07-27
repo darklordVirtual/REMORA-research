@@ -257,6 +257,12 @@ def run(
             "random_seed": seed,
             "holdout_fraction": holdout_fraction,
             "signal": SIGNAL,
+            "hyperparameter_provenance": (
+                "SIGNAL and COVERAGE_TARGET selected from full-dataset "
+                "in-sample analysis; holdout is not pristine out-of-sample "
+                "(SAP deviation D-5)."
+            ),
+            "p_value_method": "exact one-sided binomial (math.comb tail sum)",
             "note": (
                 "tau* = 18th-percentile temperature on 80% training split (coverage locked at 0.18, "
                 "the in-sample optimum); evaluated on 20% holdout with tau* LOCKED "
@@ -279,6 +285,16 @@ def run(
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(result, indent=2))
+
+    # Full provenance sidecar (research audit remedy).
+    from result_provenance import write_sidecar
+    write_sidecar(
+        out_path,
+        script="scripts/selective_n500_holdout.py",
+        inputs={"data": Path(data_path)},
+        random_seeds=[seed],
+        command="python scripts/selective_n500_holdout.py",
+    )
     print(summary)
     print(f"\ntau* = {tau_star:.6f}  (selected on {len(train)}-item training set)")
     print(f"Train selective accuracy: {train_stats['accuracy_train']*100:.2f}% "

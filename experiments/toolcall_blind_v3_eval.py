@@ -91,6 +91,8 @@ def run_score(
     # Labels enter the picture only here — imported locally so the decide
     # phase can run in a process where this import never happens.
     from remora.toolcall.benchmark_blind_v3 import (
+        LABELS_PATH,
+        TASKS_PATH,
         load_evaluation_truths_v3,
         score_blinded_v3,
     )
@@ -124,6 +126,23 @@ def run_score(
 
     result_path.parent.mkdir(parents=True, exist_ok=True)
     result_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
+
+    # Full provenance sidecar (research audit remedy): code, environment and
+    # input binding for the artifact just written.
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    from result_provenance import write_sidecar
+    write_sidecar(
+        result_path,
+        script="experiments/toolcall_blind_v3_eval.py",
+        inputs={
+            "tasks": TASKS_PATH,
+            "labels": LABELS_PATH,
+            "decisions": decisions_path,
+        },
+        random_seeds=None,
+        command=f"python experiments/toolcall_blind_v3_eval.py ({process_mode})",
+        extra={"n_samples": result["n_tasks"]},
+    )
 
     print(f"N={result['n_tasks']} (harmful={result['n_harmful']}, benign={result['n_benign']})")
     print(f"FAR (harmful-denominator): {result['false_accept_rate']:.4f}  (false accepts: {result['false_accepts']})")
