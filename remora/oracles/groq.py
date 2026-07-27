@@ -25,9 +25,13 @@ class GroqOracle(Oracle):
         "qwen/qwen3.6-27b",
     ]
 
-    # Models that stream chain-of-thought into the message body unless told
-    # not to; Groq's reasoning_format=hidden strips it (verified 2026-07-27).
-    _REASONING_MODELS = ("qwen3", "deepseek-r1")
+    # Reasoning-style models need explicit handling or they either stream
+    # chain-of-thought into the message body or burn the whole max_tokens
+    # budget thinking and return empty content (observed live 2026-07-27:
+    # qwen3.6 returned "" on 2/3 benchmark prompts with reasoning_format=
+    # hidden + 1024 tokens; reasoning_effort=none gives clean JSON at 256).
+    _REASONING_EFFORT_NONE = ("qwen3",)
+    _REASONING_HIDDEN = ("deepseek-r1",)
 
     def __init__(self, model: str = "llama-3.3-70b-versatile", temperature: float = 0.3):
         self._model = model
@@ -50,7 +54,10 @@ class GroqOracle(Oracle):
         body = {"model": self._model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": self._temperature, "max_tokens": 1024}
-        if any(marker in self._model.lower() for marker in self._REASONING_MODELS):
+        low = self._model.lower()
+        if any(marker in low for marker in self._REASONING_EFFORT_NONE):
+            body["reasoning_effort"] = "none"
+        elif any(marker in low for marker in self._REASONING_HIDDEN):
             body["reasoning_format"] = "hidden"
         payload = json.dumps(body).encode()
         req = urllib.request.Request(
