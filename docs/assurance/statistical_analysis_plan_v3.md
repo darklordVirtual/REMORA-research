@@ -38,8 +38,10 @@ paired statistics, and no method chosen after seeing this round's labels.
   1. **Development** (40 %): define/calibrate signals — temperature
      transformation, per-oracle confidence calibration (isotonic), the
      label-independent tie-breaker. Nothing else sees these labels.
-  2. **Risk calibration** (30 %): fit the certified thresholds (CRC
-     primary, SGR sensitivity). Never reused for development.
+  2. **Risk calibration** (30 %): fit the certified thresholds (SGR
+     primary, CRC secondary — see §4; a stale "CRC primary" parenthetical
+     survived here into the in-force commit, resolved as §8 D-1). Never
+     reused for development.
   3. **Test** (30 %): untouched until every procedure is frozen; every
      confirmatory number is computed here exactly once.
 - The same development-split calibration may NOT be refit on later splits;
@@ -163,4 +165,6 @@ published unchanged.
 
 | Date | Deviation | Impact | Why |
 |------|-----------|--------|-----|
-| (none — draft) | | | |
+| 2026-07-27 | D-1: internal contradiction found post-start — §2's risk-calibration bullet still said "(CRC primary, SGR sensitivity)" from the pre-revision draft, while §4 explicitly declares SGR/LTT primary. §4 is the operative protocol: the SGR-primary revision (commit 632628d) predates the round-start commit, and the analysis ran SGR-primary | None on results — the analysis followed §4 | Textual leftover from the draft revision; §2 corrected with a pointer to this row |
+| 2026-07-27 | D-2: PAV isotonic calibration had two implementation bugs found by external review AFTER the first analysis pass: order-dependent pooling of tied confidence values, and exact-endpoint queries mapping to the wrong block. Fixed, tests added, analysis REPLAYED from the committed collection artifact (zero new oracle calls) | All confidence-calibrated numbers regenerated; the first-pass artifact is superseded. Temperature's SGR non-certification is independent of the bug and stands | LLM confidences are coarse (many exact ties), so the tie bug hits exactly this data |
+| 2026-07-27 | D-3: family-wise certification reported alongside the marginal per-arm claims — three arms were certified in parallel, so promoting a winning arm is selection-among-three; a Bonferroni δ/3 row per arm is added to the artifact. Engine-integration clause (§7) interpreted strictly: it was written for the PRIMARY (temperature) arm, which failed Claim B — a baseline arm's success does not trigger integration; it earns its own frozen confirmation round | Hybrid-arm language capped at "promising pre-registered secondary"; no engine wiring from this round | Multiplicity and clause-scope points from the post-round external review |

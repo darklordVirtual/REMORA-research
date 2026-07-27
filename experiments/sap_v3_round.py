@@ -30,7 +30,7 @@ import math
 import random
 import sys
 import time
-from bisect import bisect_right
+from bisect import bisect_left
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,29 +76,45 @@ BOOTSTRAP_B = 2000
 def pav_fit(xs: list[float], ys: list[float]) -> tuple[list[float], list[float]]:
     """Isotonic (non-decreasing) fit of y on x via pool-adjacent-violators.
 
-    Returns (x_grid, y_hat) usable with pav_predict. Deterministic; ties in
-    x are pooled by averaging.
+    Identical x values are PRE-AGGREGATED (mean y) before pooling, so the
+    fit is invariant to input order — the external review of 2026-07-27
+    caught the previous per-pair construction leaving tied x values
+    order-dependent (e.g. x=[0.5, 0.5], y=[0, 1] produced two blocks at
+    the same x for one ordering and one pooled block for the other), which
+    matters precisely because LLM self-confidences are coarse (many exact
+    ties at 0.9/0.95/1.0). Returns (x_grid, y_hat) where x_grid holds each
+    block's UPPER x bound, for pav_predict.
     """
     if len(xs) != len(ys) or not xs:
         raise ValueError("pav_fit needs equal-length non-empty inputs")
-    pairs = sorted(zip(xs, ys), key=lambda p: p[0])
-    # blocks: [sum_y, count, x_last]
+    agg: dict[float, list[float]] = {}
+    for x, y in zip(xs, ys):
+        s = agg.setdefault(float(x), [0.0, 0.0])
+        s[0] += float(y)
+        s[1] += 1.0
+    # blocks: [sum_y, count, x_upper]
     blocks: list[list[float]] = []
-    for x, y in pairs:
-        blocks.append([float(y), 1.0, float(x)])
+    for x in sorted(agg):
+        s, c = agg[x]
+        blocks.append([s, c, x])
         while len(blocks) > 1 and blocks[-2][0] / blocks[-2][1] >= blocks[-1][0] / blocks[-1][1]:
-            s, c, _ = blocks.pop()
-            blocks[-1][0] += s
-            blocks[-1][1] += c
-            blocks[-1][2] = max(blocks[-1][2], x)
+            s2, c2, _ = blocks.pop()
+            blocks[-1][0] += s2
+            blocks[-1][1] += c2
+            blocks[-1][2] = x
     grid = [b[2] for b in blocks]
     vals = [b[0] / b[1] for b in blocks]
     return grid, vals
 
 
 def pav_predict(grid: list[float], vals: list[float], x: float) -> float:
-    """Stepwise-constant prediction from a pav_fit result (clamped)."""
-    idx = bisect_right(grid, x)
+    """Stepwise-constant prediction from a pav_fit result (clamped).
+
+    ``grid`` holds block UPPER bounds, so an x exactly equal to a bound
+    belongs to THAT block — bisect_left, not bisect_right (review finding:
+    exact-endpoint queries previously fell into the next block).
+    """
+    idx = bisect_left(grid, x)
     if idx >= len(vals):
         return vals[-1]
     return vals[idx]
@@ -214,10 +230,20 @@ def signals_for(row: dict, calib: dict) -> dict[str, float]:
     }
 
 
+N_ARMS = 3  # temperature + two baselines certified in parallel
+
+
 def _certify_and_test(name: str, riskcal_sv, test_sv, key: str) -> dict:
     scores_cal = [sv[key] + _tie_epsilon(r["item_id"]) for r, sv in riskcal_sv]
     losses_cal = [0 if r["majority_correct"] else 1 for r, _ in riskcal_sv]
     sgr = sgr_threshold(scores_cal, losses_cal, target_risk=TARGET_RISK, delta=DELTA)
+    # Family-wise variant (review 2026-07-27): three arms are certified in
+    # parallel, so promoting the winning arm is a selection among three —
+    # Bonferroni delta/N_ARMS reports whether the arm survives family-wise
+    # error control at the same overall level.
+    sgr_family = sgr_threshold(
+        scores_cal, losses_cal, target_risk=TARGET_RISK, delta=DELTA / N_ARMS
+    )
     crc = crc_threshold(scores_cal, losses_cal, alpha=CRC_ALPHA)
 
     def eval_on_test(threshold: float) -> dict:
@@ -246,10 +272,20 @@ def _certify_and_test(name: str, riskcal_sv, test_sv, key: str) -> dict:
     }
     if sgr.certified:
         block["sgr"]["test"] = eval_on_test(sgr.threshold)
-        block["sgr"]["realized_within_budget"] = (
+        block["sgr"]["test_point_estimate_within_budget"] = (
             block["sgr"]["test"]["selective_risk"] is not None
             and block["sgr"]["test"]["selective_risk"] <= TARGET_RISK
         )
+    block["sgr_family_wise_bonferroni3"] = {
+        "certified": sgr_family.certified,
+        "risk_bound": round(sgr_family.risk_bound, 6),
+        "certified_coverage_riskcal": round(sgr_family.coverage, 4),
+        "note": "delta/3 per arm; the marginal per-arm claim above is the "
+                "pre-registered one, this row answers whether the arm also "
+                "survives selection-among-three at the same overall level",
+    }
+    if sgr_family.certified:
+        block["sgr_family_wise_bonferroni3"]["test"] = eval_on_test(sgr_family.threshold)
     block["crc"] = {
         "certified": crc.certified,
         "criterion": round(crc.risk_bound, 6),
@@ -257,8 +293,16 @@ def _certify_and_test(name: str, riskcal_sv, test_sv, key: str) -> dict:
     }
     if crc.certified:
         block["crc"]["test"] = eval_on_test(crc.threshold)
-        block["crc"]["realized_within_budget_unconditional"] = (
-            block["crc"]["test"]["unconditional_risk"] <= CRC_ALPHA
+        t = block["crc"]["test"]
+        block["crc"]["empirical_test_loss_within_alpha"] = (
+            t["unconditional_risk"] <= CRC_ALPHA
+        )
+        block["crc"]["semantics_note"] = (
+            "CRC guarantees EXPECTED unconditional loss <= alpha for an "
+            "exchangeable test point (expectation over calibration AND the "
+            "new point); a finite test sample above alpha is an empirical "
+            "validation exceedance, NOT by itself evidence against "
+            "exchangeability or the CRC theorem."
         )
     return block
 
@@ -411,8 +455,26 @@ def analyze() -> int:
             "Guarantee statements must be quoted with loss definition, data "
             "distribution, calibration sample, model/policy versions, "
             "coverage, and assumptions (SAP v3 §6). SGR zero-coverage is a "
-            "legitimate outcome. CRC controls expected UNCONDITIONAL loss."
+            "legitimate outcome. CRC controls expected UNCONDITIONAL loss; "
+            "a finite test sample above alpha is an empirical validation "
+            "exceedance, not a proven assumption violation."
         ),
+        "scope_caveats": [
+            "Corpus skew: ~93% BoolQ and ~93% easy-classified items, 2.2% "
+            "adversarial — evidence about selective QA on this "
+            "distribution, NOT about tool execution, production writes, "
+            "irreversible operations or safety-critical false accepts.",
+            "'Fresh' means unused in REMORA's N544 corpus; BoolQ/TruthfulQA "
+            "are public datasets and may appear in model pretraining — "
+            "these are not necessarily model-unseen items.",
+            "A baseline arm's certification does not trigger SAP v3 §7 "
+            "engine integration: the integration clause was written for "
+            "the primary (temperature) arm, which failed. The successful "
+            "hybrid arm is a promising pre-registered secondary that needs "
+            "its own frozen confirmation round; see the "
+            "sgr_family_wise_bonferroni3 rows for whether each arm also "
+            "survives selection-among-three.",
+        ],
     }
     RESULTS_PATH.write_text(json.dumps(out, indent=2), encoding="utf-8")
     from result_provenance import write_sidecar

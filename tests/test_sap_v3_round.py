@@ -34,6 +34,31 @@ def test_pav_rejects_bad_input() -> None:
         pav_fit([], [])
 
 
+def test_pav_ties_pool_regardless_of_input_order() -> None:
+    """Review 2026-07-27: identical x with labels (0,1) previously produced
+    two blocks at the same x while (1,0) pooled — order-dependent. LLM
+    confidences are coarse (many exact ties), so this matters in practice."""
+    a = pav_fit([0.5, 0.5], [0.0, 1.0])
+    b = pav_fit([0.5, 0.5], [1.0, 0.0])
+    assert a == b == ([0.5], [0.5])
+
+
+def test_pav_tie_pooling_with_surrounding_points() -> None:
+    grid_a, vals_a = pav_fit([0.2, 0.5, 0.5, 0.9], [0.0, 1.0, 0.0, 1.0])
+    grid_b, vals_b = pav_fit([0.9, 0.5, 0.2, 0.5], [1.0, 0.0, 0.0, 1.0])
+    assert (grid_a, vals_a) == (grid_b, vals_b)
+    assert vals_a == sorted(vals_a)
+
+
+def test_pav_predict_exact_endpoint_maps_to_own_block() -> None:
+    """grid holds block UPPER bounds: x exactly at a bound belongs to that
+    block (bisect_left), not the next one."""
+    grid, vals = [0.3, 0.7], [0.2, 0.8]
+    assert pav_predict(grid, vals, 0.3) == pytest.approx(0.2)
+    assert pav_predict(grid, vals, 0.30001) == pytest.approx(0.8)
+    assert pav_predict(grid, vals, 0.7) == pytest.approx(0.8)
+
+
 def _rows(n: int = 200) -> list[dict]:
     rows = []
     for i in range(n):
