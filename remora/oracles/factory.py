@@ -22,18 +22,18 @@ def build_mock_swarm(n: int = 3) -> list[Oracle]:
 
 
 def build_groq_swarm() -> list[Oracle]:
-    """Return a 3-oracle Groq swarm (requires GROQ_API_KEY).
+    """Return a 3-oracle CROSS-FAMILY Groq swarm (requires GROQ_API_KEY).
 
-    .. warning::
-        All three models are from the Meta LLaMA family hosted on Groq.
-        Within-family inter-oracle correlation (ρ̄) is likely higher than the
-        0.15 assumed in the hallucination-risk proxy formula, making the
-        effective oracle count closer to 2 than 3.  For genuine diversity,
-        use :func:`build_recommended_swarm` instead.
+    Changed 2026-07-27 (SAP v2): the former all-LLaMA trio is retired —
+    same-family consensus inflates ρ̄ and made the effective oracle count
+    closer to 2 than 3 (and llama-4-scout has been removed from the Groq
+    catalog). The swarm is validated so no two models share a weight family.
     """
-    return [GroqOracle("llama-3.1-8b-instant"),
-            GroqOracle("llama-3.3-70b-versatile"),
-            GroqOracle("meta-llama/llama-4-scout-17b-16e-instruct")]
+    from remora.oracles.families import validate_cross_family
+
+    models = GroqOracle.DEFAULT_MODELS
+    validate_cross_family(models)
+    return [GroqOracle(m) for m in models]
 
 
 def build_cloudflare_swarm(

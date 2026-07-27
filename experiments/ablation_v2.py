@@ -55,11 +55,14 @@ from remora.oracles.groq import GroqOracle
 from remora.persistence import CachedOracle, Store
 from remora.scoring import score_one, _polarity_match, effective_truth_rate
 
-ORACLE_MODELS = [
-    "llama-3.1-8b-instant",
-    "llama-3.3-70b-versatile",
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-]
+# Cross-family trio (SAP v2, 2026-07-27) — validated so no two models share
+# a weight family. The former all-LLaMA trio is retired (same-family
+# correlation; llama-4-scout removed from the Groq catalog). Frozen
+# artifacts generated with the old trio keep their recorded model lists.
+from remora.oracles.families import validate_cross_family  # noqa: E402
+
+ORACLE_MODELS = list(GroqOracle.DEFAULT_MODELS)
+validate_cross_family(ORACLE_MODELS)
 STRONG_SINGLE = "llama-3.3-70b-versatile"
 
 
