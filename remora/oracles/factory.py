@@ -71,10 +71,14 @@ def build_cloudflare_swarm(
 
 def build_mixed_swarm() -> list[Oracle]:
     """Return a highly diverse 3-oracle swarm mixing Groq and OpenRouter models."""
+    from remora.oracles.families import validate_cross_family
+
+    models = ["llama-3.3-70b-versatile", "anthropic/claude-3.5-sonnet", "openai/gpt-4o"]
+    validate_cross_family(models)
     return [
-        GroqOracle("llama-3.3-70b-versatile"),
-        OpenRouterOracle("anthropic/claude-3.5-sonnet"),
-        OpenRouterOracle("openai/gpt-4o")
+        GroqOracle(models[0]),
+        OpenRouterOracle(models[1]),
+        OpenRouterOracle(models[2]),
     ]
 
 
@@ -91,10 +95,14 @@ def build_recommended_swarm() -> list[Oracle]:
     independence assumed by the hallucination-risk proxy formula
     (ρ̄ ≈ 0.15).  Requires GROQ_API_KEY and OPENROUTER_API_KEY.
     """
+    from remora.oracles.families import validate_cross_family
+
+    models = ["llama-3.3-70b-versatile", "anthropic/claude-3.5-haiku", "google/gemma-3-27b-it"]
+    validate_cross_family(models)
     return [
-        GroqOracle("llama-3.3-70b-versatile"),
-        OpenRouterOracle("anthropic/claude-3.5-haiku"),
-        OpenRouterOracle("google/gemma-3-27b-it"),
+        GroqOracle(models[0]),
+        OpenRouterOracle(models[1]),
+        OpenRouterOracle(models[2]),
     ]
 
 def build_swarm(backend: str = "auto") -> list[Oracle]:
