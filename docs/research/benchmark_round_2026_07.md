@@ -81,6 +81,15 @@ state, Python version, dependency-lock hash, input hashes, seeds, command).
   main implementation repo); they are integrity-checked here but not
   reproduced. The toolcall 0 % FAR is simulator-scoped and carried by the
   hard-block policy layer, not by consensus — unchanged this round.
+- **`selective_n1000` is NOT evidence.** That artifact mixes 456 synthetic
+  items drawn from the same distribution and explicitly SIMULATED
+  RAG-oracle numbers (its own docstring says so). Synthetic replication
+  adds N without adding information, so its CIs and p-values are not
+  valid — and its real-data slice shows the selective lift shrinking from
+  +25.5 pp to +1.0 pp at 5 % coverage, which is exactly why this round
+  sticks to directional language. The honest path to N_accepted ≥ 100 is
+  a future round on ~1 200 REAL items (BoolQ/TruthfulQA via the HF
+  loaders) with a pre-registered 50/50 split.
 
 ## Results
 
