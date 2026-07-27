@@ -683,14 +683,21 @@ items:
       store are in-process; durable multi-process deployment requires the
       REM-034 DDL adapter and an external jti store. The legacy
       /v1/assess+/v1/review endpoints remain for compatibility and do not
-      issue grants. SCOPE CAVEAT (external review 2026-07-24, F-01): the
-      /v1/execution/execute endpoint re-gates, consumes the one-time grant,
-      and audits — it does NOT invoke a tool. GovernedToolDispatcher (which
-      holds the tool callables) is not wired into this API path, so the
-      authorization is consumed without a bound side effect; the atomic
-      authorize+execute operation against real adapters is REM-024/REM-030
-      scope. "End-to-end" here means the decision state machine, not effect
-      delivery.
+      issue grants. SCOPE CAVEAT (external review 2026-07-24, F-01,
+      SUPERSEDED — see update below): at that date /v1/execution/execute
+      consumed the grant without invoking a tool.
+      UPDATE 2026-07-27 (issue #13, PRs #26/#28): the dispatcher IS now
+      wired — /execute dispatches through GovernedToolDispatcher under an
+      ExecutionLease after PEP consume, with the AUTHORIZED/EXECUTED/
+      DISPATCH_REFUSED/DISPATCH_FAILED state split, intent/result audit
+      entries around the side effect, and durable approval/binding
+      persistence (SQLite/Postgres, restart-tested). See CAP-013 in the
+      capability register (the wiring source of truth). Remaining effect-
+      delivery scope: durable multi-process nonce ledger (REM-025),
+      deployment fronting real downstream credentials, external
+      interception validation (REM-030/REM-021), and a governed dispatch
+      path for direct-ACCEPT proposals (which currently receive a token
+      but have no dispatch endpoint in this API).
 
   - id: REM-036
     section: "review-2026-07-18 P2"
