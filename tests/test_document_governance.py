@@ -228,6 +228,52 @@ def test_unaudited_documents_warn_not_fail(tmp_path: Path) -> None:
     assert any("not yet audited against code" in w for w in warnings)
 
 
+def test_placeholder_stub_registered_as_live_doc_is_refused(tmp_path: Path) -> None:
+    """A registered live document (canonical/supporting/...) whose content is a
+    bare placeholder stub must fail HARD. Gutting a doc to `# Placeholder`
+    while its register entry still presents it as live documentation is
+    exactly the drift this gate exists to stop (regression: a585202 stubbed
+    53 registered docs and left them stamped canonical/verified)."""
+    mod = _load_module()
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "gutted.md").write_text("# Placeholder\n", encoding="utf-8")
+    reg = tmp_path / "docreg.yaml"
+    reg.write_text(
+        "topics:\n- some-topic\n"
+        "documents:\n"
+        "  - path: docs/gutted.md\n"
+        "    status: canonical\n"
+        "    topic: some-topic\n",
+        encoding="utf-8",
+    )
+    mod.DOC_REGISTER = reg
+    mod.ROOT = tmp_path
+    errors: list[str] = []
+    mod.check_document_register(errors, [])
+    assert any("placeholder" in e.lower() and "docs/gutted.md" in e for e in errors), errors
+
+
+def test_placeholder_check_ignores_real_content(tmp_path: Path) -> None:
+    """A live doc with real content (even short) is not flagged."""
+    mod = _load_module()
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "real.md").write_text(
+        "# Runtime policy\n\nActual documented behavior.\n", encoding="utf-8"
+    )
+    reg = tmp_path / "docreg.yaml"
+    reg.write_text(
+        "topics: []\ndocuments:\n  - path: docs/real.md\n    status: supporting\n",
+        encoding="utf-8",
+    )
+    mod.DOC_REGISTER = reg
+    mod.ROOT = tmp_path
+    errors: list[str] = []
+    mod.check_document_register(errors, [])
+    assert not any("placeholder" in e.lower() for e in errors), errors
+
+
 def test_readme_over_budget_warns_not_fails(tmp_path: Path) -> None:
     """README line budget is advisory."""
     mod = _load_module()
