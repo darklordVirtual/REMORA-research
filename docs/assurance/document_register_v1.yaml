@@ -1961,6 +1961,26 @@ documents:
   last_reviewed: '2026-07-27'
   audience:
   - researchers
+- id: DOC-280
+  version: v1
+  path: docs/assurance/metric_definitions_v1.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
+- id: DOC-281
+  version: v1
+  path: docs/assurance/rebenchmark_protocol_v1.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
 
 topics:
 - docs_01-architecture_md
