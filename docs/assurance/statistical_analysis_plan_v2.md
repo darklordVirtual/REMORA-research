@@ -28,19 +28,35 @@ family.** Enforced in code by `remora/oracles/families.py`
 (`validate_cross_family`, fail-closed on unknown families) — construction
 of a same-family swarm now raises.
 
+**Amendment 2026-07-27 (recorded BEFORE the first live benchmark call —
+no ablation/thermodynamic evaluation had run):** the live segment moves
+from Groq to **Cloudflare Workers AI**. Reason: the Groq free-tier daily
+token quota is shared with the deployed production workers and was
+exhausted on round day (persistent 429, `x-should-retry: false`), and the
+operator directed the round to run on Workers AI. The family rule and
+selection procedure are unchanged.
+
 | Oracle | Model | Family | Host |
 |--------|-------|--------|------|
-| 1 | `llama-3.3-70b-versatile` | Meta LLaMA | Groq |
-| 2 | `openai/gpt-oss-120b` | OpenAI (open-weight) | Groq |
-| 3 | `qwen/qwen3.6-27b` | Alibaba Qwen | Groq |
+| 1 | `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Meta LLaMA | Cloudflare Workers AI |
+| 2 | `@cf/qwen/qwen3-30b-a3b-fp8` | Alibaba Qwen | Cloudflare Workers AI |
+| 3 | `@cf/mistralai/mistral-small-3.1-24b-instruct` | Mistral | Cloudflare Workers AI |
 
-Selection basis (declared before any benchmark evaluation): current Groq
-catalog availability and a 3-prompt JSON-compliance smoke test
-(2026-07-27) — no benchmark items or labels were used to pick models.
-Qwen runs with `reasoning_format=hidden` (chain-of-thought stripped);
-`max_tokens` raised 256→1024 so reasoning-token budgets cannot truncate
-answers. Host is shared (Groq) — family diversity is about weight ancestry,
-not hosting; a hosting outage affects availability, not verdict correlation.
+Selection basis (declared before any benchmark evaluation): Workers AI
+catalog availability (live-verified against the account's model list,
+2026-07-27) and a 3-prompt JSON-compliance smoke test through the same
+prompt template the benchmark uses — no benchmark items or labels were
+used to pick models. All candidates passed 3/3; `@cf/openai/gpt-oss-120b`
+(OpenAI open-weight family) is the documented reserve if a trio member is
+withdrawn mid-round. Host is shared (Cloudflare) — family diversity is
+about weight ancestry, not hosting; a hosting outage affects availability,
+not verdict correlation.
+
+The originally declared Groq trio (`llama-3.3-70b-versatile`,
+`openai/gpt-oss-120b`, `qwen/qwen3.6-27b`; qwen with
+`reasoning_effort=none`, `max_tokens` 256→1024) remains recorded here and
+selectable via `--backend groq` for reproduction attempts; it produced no
+round artifacts.
 
 ## 3. Pipeline under test
 
@@ -109,3 +125,4 @@ nothing about it has been seen.
 |------|-----------|--------|-----|
 | 2026-07-27 | Clarification recorded after round start: with n=544, an 80/20 group split and 18 % coverage, the expected holdout N_accepted is ≈25 — §4's own ≥100 bar for generalization language is structurally unreachable this round | This round's H1′ outcome is reported as a directional observation regardless of p-value; generalization claims require a future round on a larger item pool | The arithmetic was pointed out post-start by review; recording it explicitly prevents the result from being over-quoted |
 | 2026-07-27 | Abstention-aware `selective` block ADDED to every ablation condition (`experiments/ablation_v2.py::selective_metrics`): n_answered, abstained-or-unparsed, coverage, accuracy_answered + Wilson CI. Legacy all-items `accuracy` unchanged | Review found the legacy metric scores abstention identically to a wrong answer (majority vote measured 29 % on yes/no BoolQ — below the 50 % chance floor), structurally penalizing selective conditions against always-answer baselines. Both metrics are now reported; neither replaces the other | Additive reporting fix found after round start but before any round artifact was written; H1′ analysis is untouched |
+| 2026-07-27 | Live-segment provider changed Groq → Cloudflare Workers AI (§2 amendment above); trio re-selected from the Workers AI catalog under the unchanged family rule and smoke-test procedure | None on H1′ or any metric definition: no live benchmark call had been made, so no round artifact reflects the old trio. The deterministic segment (already committed at `2dd7b7c`) uses no live oracles and is unaffected | Groq free-tier daily token quota shared with deployed workers was exhausted (persistent 429); operator directed the round to run on Workers AI |

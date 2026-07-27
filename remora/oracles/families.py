@@ -45,13 +45,28 @@ _PATTERNS: tuple[tuple[str, str], ...] = (
     ("phi-", "microsoft"),
 )
 
-# The pre-registered cross-family trio for the clean round, all hosted on
-# Groq (availability + JSON compliance live-verified 2026-07-27; the old
-# meta-llama/llama-4-scout id is gone from the Groq catalog entirely).
+# The originally pre-registered trio, all hosted on Groq (availability +
+# JSON compliance live-verified 2026-07-27; the old meta-llama/llama-4-scout
+# id is gone from the Groq catalog entirely). Superseded for the live
+# segment by CROSS_FAMILY_CF_MODELS (SAP v2 §2 amendment, 2026-07-27,
+# recorded before the first live benchmark call): the Groq free-tier daily
+# token quota is shared with the deployed workers and was exhausted.
 CROSS_FAMILY_GROQ_MODELS: list[str] = [
     "llama-3.3-70b-versatile",   # Meta LLaMA
     "openai/gpt-oss-120b",       # OpenAI open-weight
     "qwen/qwen3.6-27b",          # Alibaba Qwen
+]
+
+# The Cloudflare Workers AI cross-family trio for the 2026-07 round's live
+# segment. Selection basis (declared before any benchmark evaluation):
+# Workers AI catalog availability + a 3-prompt JSON-compliance smoke test
+# through the same prompt template the benchmark uses (2026-07-27, 3/3 for
+# every candidate; @cf/openai/gpt-oss-120b is the documented reserve for
+# the qwen slot). No benchmark items or labels were used.
+CROSS_FAMILY_CF_MODELS: list[str] = [
+    "@cf/meta/llama-3.3-70b-instruct-fp8-fast",      # Meta LLaMA
+    "@cf/qwen/qwen3-30b-a3b-fp8",                    # Alibaba Qwen
+    "@cf/mistralai/mistral-small-3.1-24b-instruct",  # Mistral
 ]
 
 

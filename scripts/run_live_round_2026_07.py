@@ -34,6 +34,11 @@ LOG = ROOT / "results" / "live_round_2026_07.log"
 
 MAX_ABLATION_PASSES = 12
 
+# SAP v2 §2 amendment (2026-07-27, before the first live benchmark call):
+# the live segment runs on Cloudflare Workers AI — the Groq free-tier daily
+# token quota is shared with the deployed workers and was exhausted.
+BACKEND = "cloudflare"
+
 
 def log(msg: str) -> None:
     line = f"[{time.strftime('%H:%M:%S')}] {msg}"
@@ -53,7 +58,8 @@ def main() -> int:
     py = sys.executable
 
     # 0. Preflight — trio liveness + JSON compliance (no benchmark data).
-    if run([py, "scripts/preflight_groq_trio.py"]) != 0:
+    #    Backend: Cloudflare Workers AI (SAP v2 §2 amendment 2026-07-27).
+    if run([py, "scripts/preflight_trio.py", "--backend", BACKEND]) != 0:
         log("FATAL: trio preflight failed; not starting the round")
         return 1
 
@@ -62,6 +68,7 @@ def main() -> int:
     for attempt in range(1, MAX_ABLATION_PASSES + 1):
         log(f"ablation pass {attempt}/{MAX_ABLATION_PASSES}")
         if run([py, "experiments/ablation_v2.py",
+                "--backend", BACKEND,
                 "--benchmark-module", "remora.benchmarks.extended_v2_n500",
                 "--output", str(ABLATION_OUT)]) == 0:
             ok = True
@@ -91,10 +98,10 @@ def main() -> int:
     #    sampled by the providers and cached in .remora_cache.json).
     write_sidecar(ABLATION_OUT, script="experiments/ablation_v2.py",
                   inputs={}, random_seeds=[42],
-                  command="python experiments/ablation_v2.py --benchmark-module remora.benchmarks.extended_v2_n500")
+                  command=f"python experiments/ablation_v2.py --backend {BACKEND} --benchmark-module remora.benchmarks.extended_v2_n500")
     write_sidecar(THERMO_OUT, script="experiments/thermodynamic_eval.py",
                   inputs={"ablation": ABLATION_OUT}, random_seeds=None,
-                  command="python experiments/thermodynamic_eval.py --benchmark-module remora.benchmarks.extended_v2_n500 (uncalibrated)")
+                  command="python experiments/thermodynamic_eval.py --benchmark-module remora.benchmarks.extended_v2_n500 (uncalibrated; backend from ablation meta)")
     if E2E_OUT.exists():
         write_sidecar(E2E_OUT, script="experiments/end_to_end_n500_v3.py",
                       inputs={"thermo": THERMO_OUT}, random_seeds=None,

@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import time
+import urllib.error
 import urllib.request
 from typing import Optional
 
@@ -45,6 +46,11 @@ class CloudflareOracle(Oracle):
             return f"cf/{base}-lora"
         return f"cf/{base}"
 
+    @property
+    def model_id(self) -> str:
+        """Full model identifier (used for family-diversity validation)."""
+        return self._model
+
     def _call(self, prompt: str) -> tuple[str, float, float]:
         if not self._api_key:
             raise RuntimeError("Cloudflare API token not set. Set CLOUDFLARE_API_TOKEN.")
@@ -75,8 +81,16 @@ class CloudflareOracle(Oracle):
         req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
 
         t0 = time.perf_counter()
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read())
+        for attempt in range(4):
+            try:
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    data = json.loads(resp.read())
+                break
+            except urllib.error.HTTPError as e:
+                # Workers AI returns transient 429/5xx under burst load.
+                if e.code in (429, 500, 502, 503) and attempt < 3:
+                    time.sleep(2 ** (attempt + 1)); continue
+                raise
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
 
