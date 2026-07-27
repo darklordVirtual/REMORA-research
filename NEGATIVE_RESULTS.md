@@ -928,10 +928,49 @@ remains the definitive resolution.
 
 ---
 
+## §18 Consensus temperature failed pre-registered fresh-data confirmation (2026-07-27, SAP v3)
+
+**Finding.** On the pre-registered SAP v3 round — 1231 fresh BoolQ/TruthfulQA
+items deduplicated against the prior 544-item corpus, frozen Workers AI
+cross-family trio, three-way group-aware split (dev 493 / risk-cal 370 /
+test 368, seed 20260727) — the consensus-temperature signal failed every
+pre-registered test:
+
+- **Ranking (Claim A):** test-split AURC 0.0954 vs 0.0664 for a
+  dev-split-calibrated mean-confidence baseline; paired bootstrap delta
+  0.0290, 95 % CI [0.0119, 0.0503] — excludes zero. Temperature ranks
+  significantly worse.
+- **Risk control (Claim B):** SGR (r\*=5 %, δ=0.10) certifies **no**
+  coverage for temperature, while both calibrated-confidence baselines
+  certify marginal per-arm coverage (31.9 % / 39.7 %). Temperature's CRC
+  gate saw an empirical test exceedance (6.5 % unconditional vs α=5 %) — a
+  validation exceedance, not proven assumption violation
+  (P(≥24 errors | p=0.05, n=368) ≈ 11 %).
+
+The exploratory temperature advantage observed on the reused 544-item
+corpus (100 % at 16.7 % coverage, p=0.052 directional; and the shootout's
+AURC 0.0385) did **not transfer** — the pattern is consistent with adaptive
+overfitting to the reused benchmark corpus, which the SAP v3 design was
+built to expose.
+
+**Consequences.** Temperature (and the discrete phase labels, which the
+N544 round already showed helping 0 / hurting 13 items) are demoted to
+diagnostic-grade signals: logged and visualized, never authoritative for
+selection. The evidence-backed direction is calibrated-confidence ranking
+with a separately certified threshold — itself gated on its own frozen
+confirmation round, since no arm survives family-wise Bonferroni-3
+selection (SAP v3 §8 D-3). Claim register: CLAIM-012 (this finding),
+CLAIM-013 (the confidence-side results), CLAIM-004 (downgraded with a
+pointer here). Artifacts: `results/sap_v3_round_results.json`,
+`results/sap_v3_collection.json` (full provenance sidecars).
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
 |---------|--------|----------|
+| Consensus temperature failed pre-registered fresh-data confirmation (§18) | **Active (accepted negative result)**: AURC 0.0954 vs 0.0664 (paired CI excludes zero), zero SGR-certifiable coverage; temperature demoted to diagnostics; confidence-gate promotion awaits its own confirmation round | **High (falsifies the thermodynamic-selection hypothesis)** |
 | External replication and live validation pending | Active, formal third-party replication still outstanding | Medium |
 | AROMER safety floor on external holdout (proxy-signal transfer) | **Largely de-risked**, 0% false-accept / 100% harm-intercept via structural gates (schema validity, forbidden-tool, tainted-arg) on 495-case balanced holdout; proxy-signal transfer and live-oracle trust/entropy calibration pending before general claim | Medium-Low |
 | Entropy backend is token-fingerprint heuristic, not Semantic Entropy | Active, NLISemanticBackend is fully implemented; local execution blocked by torch DLL policy; external replication instructions in §3 | Medium |

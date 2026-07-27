@@ -128,33 +128,41 @@ claims:
       Artifact committed for reference: results/false_accept_regression_v1.json
 
   - id: CLAIM-004
-    title: "88.0% selective accuracy at 23.2% coverage (held-out split)"
+    title: "Temperature-selective holdout: 100% at 16.7% coverage — directional only, later contradicted on fresh data"
     statement: >
-      REMORA selective prediction achieves 88.0% accuracy at 23.2% coverage on a
-      held-out split, with decision threshold locked on the training split. Wilson CI
-      [70.0%, 95.8%]. One-sided binomial p=1.45e-5 vs. 46.3% hold-out base rate.
+      In the SAP v2 clean round (2026-07-27, Workers AI cross-family trio,
+      544 items), temperature-based selective acceptance scored 18/18 correct
+      (100.0%) at 16.7% holdout coverage with tau* locked on the training
+      split. Wilson CI [82.4%, 100.0%]; exact one-sided binomial vs the
+      pre-registered training-split null p0=84.86% gives p=0.052 — NOT
+      significant at alpha=0.05, directional by the pre-registered rule
+      (N_accepted=18 < 100). The SAP v3 fresh-data round subsequently
+      FAILED to confirm the temperature signal (CLAIM-012): do not cite
+      this claim as evidence that temperature generalizes.
     evidence_level: internal_benchmark
     artifact:
       - "results/selective_n500_holdout_results.json"
-      - "artifacts/benchmark_n500_locked.json"
-    n: 25
+    n: 18
     n_detail: >
-      N_accepted=25 on held-out split. Full benchmark N=544 (label 'N500' is historical).
-      Threshold tau*=0.2032 locked on 436-item training split before holdout was touched.
+      N_accepted=18 on the 108-item holdout of the 544-item benchmark
+      (group-aware 80/20 split, seed 42); tau*=0.4991 locked on the
+      436-item training split before the holdout was touched.
     metrics:
-      accuracy_pct: 88.0
-      coverage_pct: 23.2
-      ci_low_pct: 70.0
-      ci_high_pct: 95.8
+      accuracy_pct: 100.0
+      coverage_pct: 16.7
+      ci_low_pct: 82.4
+      ci_high_pct: 100.0
     caveat: >
-      N_accepted=25 yields a wide Wilson CI [70.0%, 95.8%] (CI width 25.8 pp).
-      This is ONE directional held-out observation consistent with no in-sample threshold
-      artefact. It is NOT a tight accuracy estimate and does NOT establish generalization.
-      The lower bound 70.0% is the honest floor; do not cite 88.0% without the CI.
-      SAP label: [POST-HOC]. External replication with N_accepted>=100 required for
-      any generalization claim. See docs/assurance/statistical_analysis_plan.md.
+      Directional observation only: p=0.052 vs the training-split null, the
+      CI does not exclude p0, and N_accepted=18 is far below the
+      pre-registered >=100 bar for generalization language. Superseding
+      evidence: the pre-registered SAP v3 round on 1231 FRESH items
+      (CLAIM-012) found temperature ranks significantly WORSE than a
+      calibrated confidence baseline and certifies no SGR coverage —
+      the signal did not generalize beyond the reused 544-item corpus.
+      Temperature is diagnostics-grade, not an authoritative selector.
     reproduce: >
-      python experiments/end_to_end_n500_v3.py
+      python scripts/selective_n500_holdout.py
       Held-out result artifact: results/selective_n500_holdout_results.json
 
   - id: CLAIM-005
@@ -335,3 +343,85 @@ claims:
       Library: remora/selective/confidence_sequence.py (tests:
       tests/test_confidence_sequence.py, including a seeded demonstration
       that per-step Wilson monitoring violates its nominal level).
+
+  - id: CLAIM-012
+    title: "NEGATIVE: consensus temperature failed pre-registered fresh-data confirmation (SAP v3)"
+    statement: >
+      On the pre-registered SAP v3 round (1231 fresh BoolQ/TruthfulQA items,
+      deduplicated against the prior 544-item corpus; frozen Workers AI
+      cross-family trio; three-way group-aware split dev 493 / risk-cal 370 /
+      test 368, seed 20260727), the consensus-temperature signal FAILED
+      confirmation: test-split AURC 0.0954 vs 0.0664 for a
+      dev-split-calibrated mean-confidence baseline — paired bootstrap delta
+      0.0290 with 95% CI [0.0119, 0.0503], excluding zero (temperature ranks
+      significantly WORSE) — and SGR certification at r*=5%, delta=0.10 found
+      NO certifiable coverage. Temperature's CRC gate (alpha=5%) saw an
+      empirical test exceedance (6.5% unconditional) — a validation
+      exceedance, not proven assumption violation. The exploratory
+      temperature advantage observed on the reused 544-item corpus did not
+      transfer: temperature is demoted to diagnostics and must not be cited
+      as a validated selection signal.
+    evidence_level: internal_benchmark
+    artifact:
+      - "results/sap_v3_round_results.json"
+      - "results/sap_v3_collection.json"
+    n: 1231
+    n_detail: >
+      1231 fresh items (89 TruthfulQA + 1142 BoolQ); confirmatory numbers
+      computed once on the untouched 368-item test split.
+    metrics:
+      temperature_aurc: 0.0954
+      confidence_aurc: 0.0664
+      delta_ci_low: 0.0119
+      delta_ci_high: 0.0503
+    caveat: >
+      Corpus is ~93% BoolQ and ~93% easy-classified with 2.2% adversarial —
+      evidence about selective QA on this distribution, not about tool
+      execution or safety-critical false accepts. "Fresh" means unused in
+      REMORA's prior corpus; the public source datasets may appear in model
+      pretraining. The negative finding is robust to the PAV calibration fix
+      (SAP v3 s8 D-2): temperature's failure is independent of the
+      confidence-calibration code path.
+    reproduce: >
+      python experiments/sap_v3_round.py analyze
+      (replays offline from results/sap_v3_collection.json; zero API calls)
+
+  - id: CLAIM-013
+    title: "Calibrated confidence methods on fresh data: significant aggregation win; marginal per-arm certificates only"
+    statement: >
+      Same SAP v3 round: calibrated confidence-weighted voting scored 87.8%
+      vs 85.1% for unweighted majority on the untouched test split — paired
+      exact McNemar 11-1 discordants, p=0.0064 (significant); vs the
+      dev-selected best single model the difference is directional only
+      (p=0.077). Selection arms: calibrated mean confidence SGR-certified
+      31.9% risk-cal coverage (test point estimate 5.30%) and
+      margin+calibrated-confidence 39.7% (test point 4.97% at 43.8%
+      coverage) — MARGINAL per-arm certificates at 90% confidence. Under
+      family-wise Bonferroni-3 (selection among three parallel arms) NO arm
+      certifies; the hybrid arm is a promising pre-registered secondary that
+      requires its own frozen confirmation round before any engine
+      integration (SAP v3 s8 D-3).
+    evidence_level: internal_benchmark
+    artifact:
+      - "results/sap_v3_round_results.json"
+    n: 368
+    n_detail: >
+      Test split of the 1231-item fresh corpus; certificates fitted on the
+      370-item risk-calibration split; calibration fitted on the 493-item
+      development split only.
+    metrics:
+      cw_accuracy_pct: 87.8
+      majority_accuracy_pct: 85.1
+      mcnemar_p: 0.0064
+      hybrid_certified_coverage_pct: 39.7
+      hybrid_test_risk_pct: 4.97
+    caveat: >
+      The test set alone is not precise enough to establish that the
+      hybrid's true selective risk is below 5% (risk CI roughly 2.5%-9.5%
+      from 8/161); the point estimate met the budget and the risk-cal
+      certificate is valid marginally per arm. No selective statistical
+      gate is integrated into the execution engine from this round. Same
+      corpus-scope caveats as CLAIM-012.
+    reproduce: >
+      python experiments/sap_v3_round.py analyze
+      (replays offline from results/sap_v3_collection.json; zero API calls)
