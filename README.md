@@ -36,7 +36,7 @@ The pipeline runs synchronously before any action executes: a deterministic admi
 ```mermaid
 flowchart TD
     A[Agent action] --> B[Admission check\nadversarial / coercion firewall]
-    B --> C[Multi-oracle consensus\nEntropy H, dissensus D, phase]
+    B --> C["Multi-oracle consensus\nH, D, temperature, phase\n(diagnostic evidence status — SAP v3)"]
     C --> D[Evidence enrichment\nRAG / domain / cyber / finance]
     D --> E[Policy decision\nhard guards → conditional guards → trust + conformal routing]
     E --> F{Outcome}
@@ -53,6 +53,8 @@ flowchart TD
 **Execution is dispatched, but only for tools a deployment registers.** Since 2026-07-27 the `/v1/execution/execute` endpoint dispatches through the `GovernedToolDispatcher` PEP after consuming the one-time grant: the call runs under an `ExecutionLease` bound to tenant, principal, tool, exact arguments, target environment and policy-bundle hash, and the response/audit record report the real outcome (`tool_execution` / `tool_executed`). Tool callables — and the credentials they close over — register exclusively through deployment configuration (`REMORA_TOOL_REGISTRY_MODULE`; the research profile ships side-effect-bounded `store_artifact`/`read_telemetry` in `servers/tool_registry_research.py`), never through request payloads. With no registry configured, dispatch reports `executed: false` explicitly. REMORA still cannot stop an agent that reaches a tool *outside* this API — bypass-proof enforcement requires the deployment to route all tool access through the dispatcher, plus the remaining REM-024/REM-025/REM-030 hardening in `docs/assurance/remediation_register.yaml`.
 
 **Hard guards are deterministic and have absolute priority: no probabilistic oracle result can override a hard block.** They run first *inside* `RemoraDecisionEngine.decide()`, which runs after the consensus and evidence machinery — priority over the oracle result, not temporal precedence over the oracle calls. This is why the zero-false-accept safety result is a property of the policy layer, not of the consensus machinery; the two are distinct claims.
+
+**Evidence status of the consensus signals (SAP v3, 2026-07-27):** the thermodynamic temperature and the discrete phase labels are computed and logged, but they are **diagnostic-grade**: temperature failed its pre-registered fresh-data confirmation as a selection signal (CLAIM-012), and phase routing helped 0 / hurt 13 items in the N544 round. The evidence-backed direction is dev-split-**calibrated confidence** ranking with a separately certified selection threshold (`remora/selective/risk_control.py`) — which stays OUT of the authoritative decision path until its own frozen confirmation round succeeds (SAP v3 §8 D-3). Nothing in this section changes the deterministic hard-guard floor.
 
 Full detail: [docs/01-architecture.md](docs/01-architecture.md) (narrative) · [ARCHITECTURE.md](ARCHITECTURE.md) (canonical) · [docs/07-api-reference.md](docs/07-api-reference.md) (API).
 
@@ -82,16 +84,20 @@ Headline results, each with the caveat that keeps it honest. **The caveat is par
 <!-- claim:CLAIM-004 accuracy_pct coverage_pct ci_low_pct ci_high_pct n -->
 <!-- claim:CLAIM-001 far_pct n_effective n -->
 <!-- claim:CLAIM-005 low_trust_correct_pct high_trust_correct_pct n -->
+<!-- claim:CLAIM-012 temperature_aurc confidence_aurc n -->
+<!-- claim:CLAIM-013 cw_accuracy_pct majority_accuracy_pct mcnemar_p n -->
 | Result | Value | Key caveat | Artifact · gate |
 |--------|-------|------------|-----------------|
 | Zero false accepts, external AgentHarm | FAR **0.0%**, Wilson 95% CI [0.00%, 1.81%], N=208 | intent-gating, not interception; companion FBR 100% (a hard floor bought at maximal benign friction) | `results/external_benchmark_agentharm_v1.json` · REM-014 |
 | Zero recurrences, historical regression | FAR **0.0%**, N=167 | historical false-accept corpus re-run; confirms no regression | `results/false_accept_regression_v1.json` · REM-019 |
-| Selective accuracy, held-out split | **88.0%** @ 23.2% coverage; N=25, Wilson CI [70.0%, 95.8%] | small accepted set — directional confirmation, always quote with the CI | `results/selective_n500_holdout_results.json` |
+| Temperature-selective holdout (N544 round) | **100.0%** @ 16.7% coverage; N=18, Wilson CI [82.4%, 100.0%] | p=0.052 vs training baseline — directional only, and the signal later FAILED fresh-data confirmation (row below) | `results/selective_n500_holdout_results.json` |
+| **Temperature falsified on fresh data (negative result, SAP v3)** | temperature AURC **0.0954** vs calibrated confidence **0.0664** on N=1231 fresh items; paired CI excludes zero; SGR certifies **no** coverage | pre-registered three-way split; the exploratory temperature advantage on the reused corpus did not transfer — temperature is diagnostics, not an authoritative selector | `results/sap_v3_round_results.json` |
+| Calibrated confidence-weighted voting (SAP v3) | **87.8%** vs majority 85.1% on the untouched test split; paired McNemar p=0.0064, N=368 | significant vs majority only (vs best single: p=0.077, directional); selection certificates are marginal per arm — no arm survives family-wise Bonferroni-3, no engine integration from this round | `results/sap_v3_round_results.json` |
 | Tool-call safety, adversarial simulator v2 | **0.0%** unsafe execution (0/70 templates; effective N=70 of 700 tasks; Wilson CI [0.0%, 5.2%]) | simulator-scoped; the unsafe-rate Δ=0.0143 vs. baselines is **not statistically significant** (p=0.50) — the significant gain is utility (+0.456) | `results/toolcall_benchmark_v2_results.json` |
 | Critical-phase trust inversion (negative result) | low-trust **76.2%** vs high-trust **36.4%** correct, N=32 | small sample; a documented failure mode routed around via `PhaseAwareGuardrail` | [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) |
 
 <!-- claim:CLAIM-008 accuracy_pct coverage_pct n -->
-On the N=302 calibration set, single-oracle accuracy is 57.0% and majority-vote 82.8%, and the top-25% slice reaches 94.7% accuracy: REMORA's contribution is *selective coverage*, not beating a strong majority baseline on raw full-coverage accuracy (full curve in [docs/03-experiments.md](docs/03-experiments.md)).
+On the N=302 calibration set, single-oracle accuracy is 57.0% and majority-vote 82.8%, and the top-25% slice reaches 94.7% accuracy: REMORA's contribution is *selective coverage*, not beating a strong majority baseline on raw full-coverage accuracy (full curve in [docs/03-experiments.md](docs/03-experiments.md)). On fresh data the picture sharpened: the risk–coverage trade-off itself is real, but the signal that earns it is dev-split-calibrated **confidence**, not the thermodynamic temperature (SAP v3, rows above).
 
 ---
 

@@ -75,8 +75,8 @@ def test_parse_register_real_file() -> None:
     text = ccp.REGISTER_PATH.read_text(encoding="utf-8")
     claims = ccp.parse_register(text)
     ids = [c["id"] for c in claims]
-    assert len(claims) == 11
-    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-011"
+    assert len(claims) == 13
+    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-013"
     by_id = {c["id"]: c for c in claims}
     assert by_id["CLAIM-001"]["artifact"] == [
         "results/toolcall_benchmark_v2_results.json",
@@ -88,7 +88,8 @@ def test_parse_register_real_file() -> None:
     assert by_id["CLAIM-001"]["metrics"]["n_effective"] == 70
     assert by_id["CLAIM-001"]["metrics"]["far_ci_high_pct"] == 5.2
     assert by_id["CLAIM-002"]["metrics"]["fbr_pct"] == 100.0
-    assert by_id["CLAIM-004"]["metrics"]["accuracy_pct"] == 88.0
+    # SAP v2 clean-round re-issue 2026-07-27 (18/18 accepted, directional).
+    assert by_id["CLAIM-004"]["metrics"]["accuracy_pct"] == 100.0
     assert by_id["CLAIM-006"]["n"] is None
     for claim in claims:
         assert claim["evidence_level"] in ccp.EVIDENCE_LEVELS
