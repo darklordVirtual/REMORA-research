@@ -62,7 +62,16 @@ class ItemStatus(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
     EXPIRED_TO_ABSTAIN = "expired_to_abstain"
+    # External review 2026-07-27: "authorized" and "executed" are distinct
+    # states. execute() only ever AUTHORIZES (fresh re-gate passed, grant may
+    # be consumed); EXECUTED is set exclusively by record_execution_outcome()
+    # after the dispatcher reports a confirmed side effect. Refused/failed
+    # dispatches get their own terminal states so the persisted record never
+    # claims an execution that did not happen.
+    AUTHORIZED = "authorized"
     EXECUTED = "executed"
+    DISPATCH_REFUSED = "dispatch_refused"
+    DISPATCH_FAILED = "dispatch_failed"
 
 
 class ExecutionDecision(str, Enum):
@@ -360,9 +369,9 @@ class ReviewQueue:
             fresh.action in _EXECUTABLE
             and _SEVERITY[fresh.action] <= _SEVERITY[approval.approved_action]
         ):
-            item.status = ItemStatus.EXECUTED
+            item.status = ItemStatus.AUTHORIZED
             self._log.append(
-                "executed",
+                "authorized",
                 {
                     "item_id": item_id,
                     "approved_action": approval.approved_action.value,
@@ -397,3 +406,46 @@ class ReviewQueue:
             "fresh decision is stricter than the approval; approval voided "
             "and item re-queued",
         )
+
+    # ------------------------------------------------------------------
+    # 5. Execution outcome (external review 2026-07-27)
+    # ------------------------------------------------------------------
+
+    def record_execution_outcome(
+        self,
+        item_id: str,
+        *,
+        executed: bool,
+        failed: bool = False,
+        reason: str | None = None,
+    ) -> PendingReview:
+        """Record what actually happened after authorization.
+
+        Only an AUTHORIZED item may receive an outcome. ``executed=True``
+        means the dispatcher confirmed the side effect; otherwise the item
+        terminates as DISPATCH_FAILED (``failed=True``: the tool raised,
+        nonce burned, side-effect state unknown) or DISPATCH_REFUSED (the
+        dispatcher refused before any side effect).
+        """
+        with self._lock:
+            item = self._items[item_id]
+            if item.status is not ItemStatus.AUTHORIZED:
+                raise ValueError(
+                    f"item {item_id} is {item.status.value}, not authorized — "
+                    "an execution outcome requires prior authorization"
+                )
+            if executed:
+                item.status = ItemStatus.EXECUTED
+            elif failed:
+                item.status = ItemStatus.DISPATCH_FAILED
+            else:
+                item.status = ItemStatus.DISPATCH_REFUSED
+            self._log.append(
+                "execution_outcome",
+                {
+                    "item_id": item_id,
+                    "status": item.status.value,
+                    "reason": reason,
+                },
+            )
+            return item

@@ -117,15 +117,51 @@ def test_approval_ttl_is_mandatory_and_bounded() -> None:
 # Execution re-gate (REM-033)
 # ---------------------------------------------------------------------------
 
-def test_fresh_equal_decision_executes() -> None:
+def test_fresh_equal_decision_authorizes_not_executes() -> None:
+    """External review 2026-07-27: execute() only AUTHORIZES; EXECUTED is
+    set exclusively by record_execution_outcome after a confirmed side
+    effect."""
     queue, _ = _queue()
     obs = _obs()
     item = queue.enqueue(obs, DecisionAction.VERIFY)
     queue.approve(item.item_id, approver="ops", approval_ttl=timedelta(minutes=15))
     outcome = queue.execute(item.item_id, obs)   # unchanged world → VERIFY again
     assert outcome.decision is ExecutionDecision.EXECUTE
+    assert item.status is ItemStatus.AUTHORIZED
+    assert queue.events[-1].kind == "authorized"
+
+
+def test_execution_outcome_terminal_states() -> None:
+    def authorized_item(queue):
+        obs = _obs()
+        item = queue.enqueue(obs, DecisionAction.VERIFY)
+        queue.approve(item.item_id, approver="ops", approval_ttl=timedelta(minutes=15))
+        queue.execute(item.item_id, obs)
+        return item
+
+    q1, _ = _queue()
+    item = authorized_item(q1)
+    q1.record_execution_outcome(item.item_id, executed=True)
     assert item.status is ItemStatus.EXECUTED
-    assert queue.events[-1].kind == "executed"
+
+    q2, _ = _queue()
+    item = authorized_item(q2)
+    q2.record_execution_outcome(item.item_id, executed=False, reason="unknown_tool")
+    assert item.status is ItemStatus.DISPATCH_REFUSED
+    assert q2.events[-1].kind == "execution_outcome"
+
+    q3, _ = _queue()
+    item = authorized_item(q3)
+    q3.record_execution_outcome(item.item_id, executed=False, failed=True,
+                                reason="tool_failed_nonce_burned")
+    assert item.status is ItemStatus.DISPATCH_FAILED
+
+
+def test_execution_outcome_requires_prior_authorization() -> None:
+    queue, _ = _queue()
+    item = queue.enqueue(_obs(), DecisionAction.VERIFY)
+    with pytest.raises(ValueError, match="not authorized"):
+        queue.record_execution_outcome(item.item_id, executed=True)
 
 
 def test_fresh_stricter_decision_voids_the_approval() -> None:

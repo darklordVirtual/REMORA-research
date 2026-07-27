@@ -141,12 +141,14 @@ def test_full_verify_approve_execute_flow_with_one_time_grant(client) -> None:
     body = r.json()
     assert body["outcome"] == "execute", body
     assert body["pep"]["allowed"] is True
-    # 4. Audit chain verifies end to end and carries every transition.
+    # 4. Audit chain verifies end to end and carries every transition —
+    # including the intent record written BEFORE any side effect and the
+    # result record written after (external review 2026-07-27).
     r = client.get("/v1/execution/audit/verify")
     assert r.json()["valid"] is True
     import servers.execution_api as exec_mod
     events = [e.payload["event"] for e in exec_mod._CHAIN.entries("acme")]
-    assert events == ["assessed", "approved", "execution_execute"]
+    assert events == ["assessed", "approved", "execution_authorized", "execution_result"]
 
 
 def _approved_item(client, payload=PROD_WRITE) -> str:
@@ -175,10 +177,13 @@ def test_execute_invokes_registered_tool_via_dispatcher(client, monkeypatch) -> 
     assert body["tool_execution"]["executed"] is True, body
     assert body["tool_execution"]["result"]["status"] == "rescheduled"
     assert reg.CALLS == [PROD_WRITE["arguments"]]
-    # The audit record carries the real execution outcome.
+    # The audit record carries the real execution outcome, and the item's
+    # terminal state is EXECUTED only because the side effect was confirmed.
     import servers.execution_api as exec_mod
+    from remora.governance.review_queue import ItemStatus
     last = exec_mod._CHAIN.entries("acme")[-1]
     assert last.payload["tool_executed"] is True
+    assert exec_mod._queue("acme").item(item_id).status is ItemStatus.EXECUTED
 
 
 def test_execute_without_registered_tool_is_explicitly_not_executed(client, monkeypatch) -> None:
@@ -193,6 +198,10 @@ def test_execute_without_registered_tool_is_explicitly_not_executed(client, monk
     assert body["outcome"] == "execute"
     assert body["tool_execution"]["executed"] is False
     assert body["tool_execution"]["refusal_reason"] == "unknown_tool"
+    # The persisted state must NOT claim execution (review finding 1).
+    import servers.execution_api as exec_mod
+    from remora.governance.review_queue import ItemStatus
+    assert exec_mod._queue("acme").item(item_id).status is ItemStatus.DISPATCH_REFUSED
 
 
 def test_execute_without_any_signing_key_fails_closed(client, monkeypatch) -> None:
@@ -234,11 +243,84 @@ def test_tool_exception_burns_nonce_and_is_reported(client, monkeypatch) -> None
         assert body["tool_execution"]["executed"] is False
         assert body["tool_execution"]["refusal_reason"] == "tool_failed_nonce_burned"
         import servers.execution_api as exec_mod
+        from remora.governance.review_queue import ItemStatus
         last = exec_mod._CHAIN.entries("acme")[-1]
         assert last.payload["tool_executed"] is False
+        assert exec_mod._queue("acme").item(item_id).status is ItemStatus.DISPATCH_FAILED
         assert client.get("/v1/execution/audit/verify").json()["valid"] is True
     finally:
         reg.RAISE["update_work_order"] = False
+
+
+def _restart_client(monkeypatch, db_path: str):
+    """Fresh client with SQLite-durable queue state; call again to simulate
+    a process restart (all in-memory module state wiped, DB kept)."""
+    import servers.api as api_mod
+    import servers.execution_api as exec_mod
+
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "exec-api-test-key")
+    monkeypatch.setenv("REMORA_ENV", "development")
+    monkeypatch.setenv("REMORA_CHAIN_DB", db_path)
+    monkeypatch.setattr(api_mod, "_authenticate", lambda request: ("acme", "reviewer"))
+    monkeypatch.setattr(api_mod, "_authenticated_principal", lambda request: "employee-1")
+    monkeypatch.setattr(api_mod, "_require_tenant_capability", lambda role, tenant, cap: None)
+    monkeypatch.setattr(api_mod, "_enforce_review_approval_role", lambda **kwargs: None)
+    exec_mod._QUEUES.clear()
+    exec_mod._ITEM_TENANT.clear()
+    exec_mod._CHAIN = exec_mod._build_chain()
+    exec_mod._GATE = exec_mod.EnforcementGate(
+        strict=True, audience=exec_mod.PEP_AUDIENCE, db_path=db_path
+    )
+    exec_mod._reset_tool_dispatcher()
+    return TestClient(api_mod.app)
+
+
+def test_item_binding_survives_restart_sqlite(tmp_path, monkeypatch) -> None:
+    """Review finding 2a: the item->tenant binding must persist in the SAME
+    transaction as the enqueue, or a restarted process 404s a real item."""
+    db = str(tmp_path / "state.db")
+    client = _restart_client(monkeypatch, db)
+    item_id = client.post("/v1/execution/assess", json=PROD_WRITE).json()["review_item_id"]
+
+    client = _restart_client(monkeypatch, db)  # simulated restart
+    r = client.post("/v1/execution/approve",
+                    json={"item_id": item_id, "approval_ttl_seconds": 900})
+    assert r.status_code == 200, r.text
+
+
+def test_approval_survives_restart_sqlite(tmp_path, monkeypatch) -> None:
+    """Review finding 2b: the approval must be written inside the durable
+    transaction — previously it lived only in process memory and the next
+    transaction's DB load silently discarded it."""
+    db = str(tmp_path / "state.db")
+    client = _restart_client(monkeypatch, db)
+    item_id = client.post("/v1/execution/assess", json=PROD_WRITE).json()["review_item_id"]
+    assert client.post("/v1/execution/approve",
+                       json={"item_id": item_id, "approval_ttl_seconds": 900}
+                       ).status_code == 200
+
+    client = _restart_client(monkeypatch, db)  # simulated restart
+    body = client.post("/v1/execution/execute",
+                       json={"item_id": item_id, "tool_call": PROD_WRITE}).json()
+    assert body["outcome"] == "execute", body
+    # No registry configured: authorized but explicitly not executed.
+    assert body["tool_execution"]["executed"] is False
+    assert body["tool_execution"]["refusal_reason"] == "unknown_tool"
+
+
+def test_approval_is_durable_in_db_mode_same_process(tmp_path, monkeypatch) -> None:
+    """Review finding 2b, same-process variant: even WITHOUT a restart the
+    next transaction reloads queue state from the DB, so an unpersisted
+    approval would be silently discarded before execute."""
+    db = str(tmp_path / "state.db")
+    client = _restart_client(monkeypatch, db)
+    item_id = client.post("/v1/execution/assess", json=PROD_WRITE).json()["review_item_id"]
+    assert client.post("/v1/execution/approve",
+                       json={"item_id": item_id, "approval_ttl_seconds": 900}
+                       ).status_code == 200
+    body = client.post("/v1/execution/execute",
+                       json={"item_id": item_id, "tool_call": PROD_WRITE}).json()
+    assert body["outcome"] == "execute", body
 
 
 def test_riskier_world_invalidates_approval_at_execution(client) -> None:

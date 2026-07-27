@@ -125,8 +125,17 @@ from enum import Enum
 from contextlib import contextmanager
 
 def to_dict(obj):
+    # Recurse into containers: dataclasses.asdict() leaves datetimes and
+    # Enums untouched inside NESTED dataclasses (e.g. PendingReview.approval),
+    # and the previous version never descended into plain dicts — approvals
+    # were unserializable, which went unnoticed exactly because they were
+    # never persisted (external review 2026-07-27, finding 2).
     if dataclasses.is_dataclass(obj):
-        return {k: to_dict(v) for k, v in dataclasses.asdict(obj).items()}
+        obj = dataclasses.asdict(obj)
+    if isinstance(obj, dict):
+        return {k: to_dict(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [to_dict(v) for v in obj]
     if isinstance(obj, datetime):
         return obj.isoformat()
     if isinstance(obj, Enum):
@@ -150,6 +159,8 @@ def from_dict(d, cls):
                 kwargs[k] = PolicyObservation(**v)
             elif 'Approval' in str(field_type) and isinstance(v, dict):
                 v['expires_at'] = datetime.fromisoformat(v['expires_at'])
+                v['issued_at'] = datetime.fromisoformat(v['issued_at'])
+                v['approved_action'] = DecisionAction(v['approved_action'])
                 kwargs[k] = Approval(**v)
             else:
                 kwargs[k] = v
@@ -304,10 +315,27 @@ def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
         phase=req.phase,
         evidence_action=req.evidence_action,
         evidence_confidence=req.evidence_confidence,
-        schema_valid=registry_entry.get("schema_valid", req.schema_valid) if req.tool_name == "delete_production_database" else req.schema_valid,
-        rollback_available=registry_entry.get("rollback_available", req.rollback_available) if req.tool_name == "delete_production_database" else req.rollback_available,
+        # Trust boundary (external review 2026-07-27): a client must never be
+        # able to ELEVATE trust by declaring schema_valid/rollback_available
+        # above what the server-side registry pins — but it must still be able
+        # to LOWER them (rollback_available is partly live world state, and
+        # "world got riskier" signals feed the freshness re-gate). Conservative
+        # None-aware AND: False from either side wins.
+        schema_valid=_conservative_bool(registry_entry.get("schema_valid"), req.schema_valid),
+        rollback_available=_conservative_bool(
+            registry_entry.get("rollback_available"), req.rollback_available
+        ),
         session_id=tenant,
     )
+
+
+def _conservative_bool(registry_value: bool | None, request_value: bool | None) -> bool | None:
+    """None-aware conservative AND — the registry caps, the request may lower."""
+    if registry_value is None:
+        return request_value
+    if request_value is None:
+        return registry_value
+    return registry_value and request_value
 
 
 
@@ -352,10 +380,15 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     else:
         with db_transaction_state(tenant) as q:
             item = q.enqueue(obs, report.action) if report.action in (
-            DecisionAction.VERIFY, DecisionAction.ESCALATE
-        ) else None
+                DecisionAction.VERIFY, DecisionAction.ESCALATE
+            ) else None
+            if item is not None:
+                # Inside the transaction (external review 2026-07-27): the
+                # item->tenant binding must be part of the same durable write
+                # as the item itself, or a restart leaves an item the API
+                # refuses as unknown.
+                _ITEM_TENANT[item.item_id] = tenant
         if item is not None:
-            _ITEM_TENANT[item.item_id] = tenant
             record["review_item_id"] = item.item_id
             response["review_item_id"] = item.item_id
     entry = _CHAIN.append(tenant, record)
@@ -378,14 +411,18 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "review")
-    if _ITEM_TENANT.get(req.item_id) != tenant:
-        raise HTTPException(status_code=404, detail="review item not found")
     # Profile-specific approval role (review-8 finding): a generic reviewer
     # must not approve what the tenant's risk profile reserves for
     # domain_expert/senior_authority. The item's own observation carries the
     # authoritative risk tier; same enforcement path as legacy /v1/review.
+    # The tenant-binding check runs INSIDE the transaction: after a process
+    # restart _ITEM_TENANT is rehydrated from the durable store by the
+    # transaction load, so checking before the load 404s real items
+    # (review finding 2a).
     try:
         with db_transaction_state(tenant) as q:
+            if _ITEM_TENANT.get(req.item_id) != tenant:
+                raise KeyError(req.item_id)
             item = q.item(req.item_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
@@ -400,10 +437,15 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
         review_requirements=api_mod._extract_review_requirements(profile_cfg),
     )
     try:
-        approval = _queue(tenant).approve(
-            req.item_id, approver=principal,
-            approval_ttl=timedelta(seconds=req.approval_ttl_seconds),
-        )
+        # Inside the durable transaction (external review 2026-07-27): the
+        # approval previously mutated only in-process state and was silently
+        # discarded when the next transaction reloaded the queue from the
+        # database — approve->execute was broken in Postgres/SQLite mode.
+        with db_transaction_state(tenant) as q:
+            approval = q.approve(
+                req.item_id, approver=principal,
+                approval_ttl=timedelta(seconds=req.approval_ttl_seconds),
+            )
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     entry = _CHAIN.append(tenant, {
@@ -435,93 +477,132 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
-    if _ITEM_TENANT.get(req.item_id) != tenant:
-        raise HTTPException(status_code=404, detail="review item not found")
     fresh_obs = _observation(req.tool_call, tenant)
     try:
+        # Tenant-binding check inside the transaction: _ITEM_TENANT is
+        # rehydrated from the durable store by the load (review finding 2a).
         with db_transaction_state(tenant) as q:
+            if _ITEM_TENANT.get(req.item_id) != tenant:
+                raise HTTPException(status_code=404, detail="review item not found")
             outcome = q.execute(req.item_id, fresh_obs)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
-    record: dict[str, Any] = {
-        "event": f"execution_{outcome.decision.value}",
-        "actor": principal,
-        "item_id": req.item_id,
-        "tool_call_hash": fresh_obs.tool_call_hash,
-        "detail": outcome.detail,
-    }
     response: dict[str, Any] = {
         "outcome": outcome.decision.value,
         "detail": outcome.detail,
     }
-    if outcome.decision is ExecutionDecision.EXECUTE:
-        now = datetime.now(UTC)
-        token = PolicyDecisionToken.issue(
-            action="accept",
-            observation_hash=fresh_obs.tool_call_hash or "",
-            request_id=f"{tenant}:{req.item_id}",
-            issued_at=now.isoformat(),
-            expires_at=(now + timedelta(seconds=EXECUTION_TOKEN_TTL_SECONDS)).isoformat(),
-            audience=PEP_AUDIENCE,
-        )
-        # PEP consumption happens HERE: the grant is consumed atomically the
-        # moment it is honoured — a re-presented token can never execute twice.
-        gate_result = _GATE.check(token, fresh_obs.tool_call_hash, consume=True)
-        record["grant_jti"] = token.jti
-        record["pep_allowed"] = gate_result.allowed
-        response["execution_grant"] = token.to_dict()
-        response["pep"] = {"allowed": gate_result.allowed, "reason": gate_result.reason}
+    if outcome.decision is not ExecutionDecision.EXECUTE:
+        entry = _CHAIN.append(tenant, {
+            "event": f"execution_{outcome.decision.value}",
+            "actor": principal,
+            "item_id": req.item_id,
+            "tool_call_hash": fresh_obs.tool_call_hash,
+            "detail": outcome.detail,
+        })
+        response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+        return response
 
-        # Issue #13: actually dispatch the tool through the governed
-        # dispatcher — the response reports what REALLY happened instead of
-        # implying execution. Every refusal path is explicit and audited.
-        tool_execution: dict[str, Any] = {"executed": False}
-        if not gate_result.allowed:
-            tool_execution["refusal_reason"] = "pep_denied"
+    # The re-gate only AUTHORIZED the call (persisted above); EXECUTED is
+    # recorded separately after the dispatcher reports what actually
+    # happened (external review 2026-07-27: authorized-for-execution and
+    # actually-executed are distinct states).
+    now = datetime.now(UTC)
+    token = PolicyDecisionToken.issue(
+        action="accept",
+        observation_hash=fresh_obs.tool_call_hash or "",
+        request_id=f"{tenant}:{req.item_id}",
+        issued_at=now.isoformat(),
+        expires_at=(now + timedelta(seconds=EXECUTION_TOKEN_TTL_SECONDS)).isoformat(),
+        audience=PEP_AUDIENCE,
+    )
+    # PEP consumption happens HERE: the grant is consumed atomically the
+    # moment it is honoured — a re-presented token can never execute twice.
+    gate_result = _GATE.check(token, fresh_obs.tool_call_hash, consume=True)
+    response["execution_grant"] = token.to_dict()
+    response["pep"] = {"allowed": gate_result.allowed, "reason": gate_result.reason}
+
+    # Durable INTENT record BEFORE the external side effect: if the process
+    # dies mid-dispatch, the chain shows an authorization with no matching
+    # execution_result — never a real side effect without any record.
+    intent_entry = _CHAIN.append(tenant, {
+        "event": "execution_authorized",
+        "actor": principal,
+        "item_id": req.item_id,
+        "tool_call_hash": fresh_obs.tool_call_hash,
+        "grant_jti": token.jti,
+        "pep_allowed": gate_result.allowed,
+    })
+
+    # Issue #13: actually dispatch the tool through the governed dispatcher —
+    # the response reports what REALLY happened instead of implying
+    # execution. Every refusal path is explicit and audited.
+    tool_execution: dict[str, Any] = {"executed": False}
+    if not gate_result.allowed:
+        tool_execution["refusal_reason"] = "pep_denied"
+    else:
+        dispatcher = _tool_dispatcher()
+        if dispatcher is None:
+            tool_execution["refusal_reason"] = "policy_bundle_unavailable"
         else:
-            dispatcher = _tool_dispatcher()
-            if dispatcher is None:
-                tool_execution["refusal_reason"] = "policy_bundle_unavailable"
+            try:
+                lease = ExecutionLease.issue(
+                    decision="accept",
+                    tenant_id=tenant,
+                    actor_identity=principal,
+                    tool_name=req.tool_call.tool_name,
+                    arguments=req.tool_call.arguments,
+                    target_environment=req.tool_call.target_environment,
+                    policy_bundle_hash=_current_policy_bundle_hash(),
+                    issued_at=now.isoformat(),
+                )
+            except (LeaseRefused, ValueError) as exc:
+                tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
             else:
                 try:
-                    lease = ExecutionLease.issue(
-                        decision="accept",
+                    dres = dispatcher.dispatch(
+                        lease,
+                        req.tool_call.tool_name,
+                        req.tool_call.arguments,
                         tenant_id=tenant,
-                        actor_identity=principal,
-                        tool_name=req.tool_call.tool_name,
-                        arguments=req.tool_call.arguments,
                         target_environment=req.tool_call.target_environment,
-                        policy_bundle_hash=_current_policy_bundle_hash(),
-                        issued_at=now.isoformat(),
+                        actor_identity=principal,
                     )
-                except (LeaseRefused, ValueError) as exc:
-                    tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
+                except RuntimeError as exc:
+                    # Tool raised: the nonce is burned, state is unknown.
+                    tool_execution["refusal_reason"] = "tool_failed_nonce_burned"
+                    tool_execution["error"] = str(exc)
                 else:
-                    try:
-                        dres = dispatcher.dispatch(
-                            lease,
-                            req.tool_call.tool_name,
-                            req.tool_call.arguments,
-                            tenant_id=tenant,
-                            target_environment=req.tool_call.target_environment,
-                            actor_identity=principal,
-                        )
-                    except RuntimeError as exc:
-                        # Tool raised: the nonce is burned, state is unknown.
-                        tool_execution["refusal_reason"] = "tool_failed_nonce_burned"
-                        tool_execution["error"] = str(exc)
+                    tool_execution["executed"] = dres.executed
+                    if dres.executed:
+                        tool_execution["result"] = _jsonable(dres.result)
                     else:
-                        tool_execution["executed"] = dres.executed
-                        if dres.executed:
-                            tool_execution["result"] = _jsonable(dres.result)
-                        else:
-                            tool_execution["refusal_reason"] = dres.refusal_reason
-        record["tool_executed"] = tool_execution["executed"]
-        if tool_execution.get("refusal_reason"):
-            record["tool_refusal_reason"] = tool_execution["refusal_reason"]
-        response["tool_execution"] = tool_execution
-    entry = _CHAIN.append(tenant, record)
+                        tool_execution["refusal_reason"] = dres.refusal_reason
+
+    # Persist the REAL outcome as the item's terminal state (EXECUTED only
+    # after a confirmed side effect; refusals/failures get their own states).
+    with db_transaction_state(tenant) as q:
+        q.record_execution_outcome(
+            req.item_id,
+            executed=tool_execution["executed"],
+            failed=tool_execution.get("refusal_reason") == "tool_failed_nonce_burned",
+            reason=tool_execution.get("refusal_reason"),
+        )
+
+    result_record: dict[str, Any] = {
+        "event": "execution_result",
+        "actor": principal,
+        "item_id": req.item_id,
+        "tool_call_hash": fresh_obs.tool_call_hash,
+        "grant_jti": token.jti,
+        "intent_sequence_no": intent_entry.sequence_no,
+        "tool_executed": tool_execution["executed"],
+    }
+    if tool_execution.get("refusal_reason"):
+        result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    entry = _CHAIN.append(tenant, result_record)
+
+    response["tool_execution"] = tool_execution
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
     return response
 
