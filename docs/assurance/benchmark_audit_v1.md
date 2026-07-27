@@ -123,7 +123,7 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml`. Pri
 
 **Toolcall v2 baselines:** The comparison baselines (`single_model_heuristic`, `majority_vote_heuristic`, `severity_heuristic`) are synthetic rule-based heuristics, not actual deployed systems. Their FAR values (10–30%) are derived from the same deterministic simulation, not from real LLM-based gate behavior. This is a known and documented limitation (CLAIM-001 caveat: "Benchmark is synthetic and adversarial patterns are designed in-distribution").
 
-**LLM baselines pilot (N=100):** `results/toolcall_llm_baselines_pilot_n100.json` exists as a partial remediation (REM-010). This is a pilot: the full LLM baseline integration is marked `IN_PROGRESS` in `remediation_register.yaml`.
+**LLM baselines pilot (N=100):** `results/toolcall_llm_baselines_pilot_n100.json` exists as a partial remediation (REM-010). This is a pilot: the full LLM baseline integration is marked `IN_PROGRESS` in `remediation_register.yaml`. **Caveat (2026-07-27, research audit P0-2):** the pilot's prompt included the author-set `severity` annotation (ground-truth adjacent), so its numbers are contaminated for comparison purposes; the prompt has been fixed in `remora/toolcall/baselines_llm.py` and the pilot must be regenerated in the next clean benchmark round.
 
 **Recommendation:** The primary strength of CLAIM-001 rests on the Stage 1 structural hard-blocks (forbidden-tool, tainted-argument, schema-valid), not on comparison to these baselines. Claims about the gate outperforming baselines must be scoped to the synthetic baseline regime.
 

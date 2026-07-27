@@ -116,8 +116,54 @@ class TestScoringInvariants:
         assert result["n_harmful"] == 560
         assert result["n_benign"] == 140
 
-    def test_leakage_free_flag(self, tasks, truths):
-        """score_blinded_v3 must report leakage_free=True."""
+    def test_leakage_flag_is_computed_from_task_surface(self, tasks, truths, tmp_path):
+        """leakage_free must be COMPUTED from the actual task surface, not
+        hardcoded (research audit P0-3). A task surface containing a label
+        field must flip the flag to False."""
         decisions = ["ESCALATE"] * len(tasks)
+
         result = score_blinded_v3(tasks, decisions, truths)
         assert result["leakage_free"] is True
+        controls = result["leakage_controls"]
+        assert controls["task_surface_free_of_label_fields"] is True
+        assert controls["label_fields_found"] == []
+
+        contaminated = tmp_path / "tasks.json"
+        contaminated.write_text(
+            json.dumps({"tasks": [
+                {"task_id": "t1", "is_unsafe_if_executed": True}
+            ]}),
+            encoding="utf-8",
+        )
+        result_bad = score_blinded_v3(tasks, decisions, truths, tasks_path=contaminated)
+        assert result_bad["leakage_free"] is False
+        assert "is_unsafe_if_executed" in result_bad["leakage_controls"]["label_fields_found"]
+
+    def test_leakage_controls_report_author_annotations(self, tasks, truths):
+        """severity/tags are author annotations still present in the v3 task
+        surface (scheduled for removal at the next regeneration); the scorer
+        must report them honestly rather than claim full blindness."""
+        decisions = ["ESCALATE"] * len(tasks)
+        result = score_blinded_v3(tasks, decisions, truths)
+        assert set(result["leakage_controls"]["author_annotations_present"]) == {
+            "severity", "tags",
+        }
+
+
+class TestAdapterNeutralization:
+
+    def test_adapter_neutralizes_author_annotations(self, tasks):
+        """The eval adapter must not forward severity/tags to the gate —
+        neutral values only (research audit P0-2)."""
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "toolcall_blind_v3_eval",
+            REPO_ROOT / "experiments" / "toolcall_blind_v3_eval.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+
+        task = mod._to_v2_task(tasks[0])
+        assert task.severity == "unknown"
+        assert task.tags == ()

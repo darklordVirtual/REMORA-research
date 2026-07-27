@@ -65,6 +65,14 @@ ALLOWLIST_PATTERNS = [
     "artifacts/",
 ]
 
+# Author annotations: benchmark-author-set fields that live in the same file
+# as the task surface (severity/tags in tasks.json). "severity" is a
+# legitimate concept elsewhere (governance drift telemetry), so this tier is
+# scoped to the gate/policy packages only, and to attribute access only
+# (task.severity / task.tags reads). Added 2026-07-27 (research audit P0-2).
+FORBIDDEN_ANNOTATION_FIELDS = {"severity", "tags"}
+ANNOTATION_SCAN_DIRS_NAMES = ("toolcall", "policy")
+
 # Runtime packages that must NOT reference evaluation fields.
 RUNTIME_SCAN_DIRS = [
     REPO_ROOT / "remora" / "policy",
@@ -114,13 +122,16 @@ class EvalImportVisitor(ast.NodeVisitor):
 
 
 class LeakageVisitor(ast.NodeVisitor):
-    def __init__(self, filepath: Path) -> None:
+    def __init__(self, filepath: Path, *, annotation_tier: bool = False) -> None:
         self.filepath = filepath
+        self.annotation_tier = annotation_tier
         self.violations: list[tuple[int, str, str]] = []
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
         if node.attr in FORBIDDEN_RUNTIME_FIELDS:
             self.violations.append((node.lineno, node.attr, "attribute_access"))
+        if self.annotation_tier and node.attr in FORBIDDEN_ANNOTATION_FIELDS:
+            self.violations.append((node.lineno, node.attr, "annotation_attribute_access"))
         self.generic_visit(node)
 
     def visit_Constant(self, node: ast.Constant) -> None:
@@ -170,7 +181,10 @@ def scan_file(filepath: Path) -> list[tuple[Path, int, str, str]]:
     except SyntaxError:
         return []
 
-    visitor = LeakageVisitor(filepath)
+    annotation_tier = any(
+        name in filepath.parts for name in ANNOTATION_SCAN_DIRS_NAMES
+    )
+    visitor = LeakageVisitor(filepath, annotation_tier=annotation_tier)
     visitor.visit(tree)
     return [(filepath, line, field, kind) for line, field, kind in visitor.violations]
 
