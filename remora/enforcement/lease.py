@@ -363,7 +363,7 @@ class GovernedToolDispatcher:
         verdict = lease.verify(
             tool_name=tool_name, arguments=arguments,
             tenant_id=tenant_id,
-            target_environment=target_environment,
+            target_environment=target_environment or "",
             now=now,
             expected_policy_bundle_hash=self._expected_bundle,
             actor_identity=actor_identity,
