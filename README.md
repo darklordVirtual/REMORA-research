@@ -22,7 +22,7 @@ Every decision produces a versioned `DecisionEnvelope` with a policy-version sta
 
 **To reach `CONTROLLED_PILOT`, still open:** REM-021, REM-023.
 
-**Capabilities:** 6 of 13 wired to the API path or deeper ([wiring register](docs/assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](docs/assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](docs/assurance/release_profiles_v1.yaml).
+**Capabilities:** 7 of 14 wired to the API path or deeper ([wiring register](docs/assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](docs/assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](docs/assurance/release_profiles_v1.yaml).
 <!-- END GENERATED: status -->
 
 Shadow-mode research only; not certified for production. What remains open, in one place: [docs/assurance/remediation_register.yaml](docs/assurance/remediation_register.yaml).
@@ -40,7 +40,7 @@ flowchart TD
     C --> D[Evidence enrichment\nRAG / domain / cyber / finance]
     D --> E[Policy decision\nhard guards → conditional guards → trust + conformal routing]
     E --> F{Outcome}
-    F -->|ACCEPT| G["Execute — caller-integrated PEP\n(dispatcher not wired into the API; REM-024)"]
+    F -->|ACCEPT| G["Execute — GovernedToolDispatcher PEP\n(lease-bound; registry via deployment config)"]
     F -->|VERIFY| H[Hold for validation]
     F -->|ABSTAIN| I[Block — trust too low]
     F -->|ESCALATE| J[Human review]
@@ -50,7 +50,7 @@ flowchart TD
     J --> K
 ```
 
-**"Execute" is the caller's step, not REMORA's.** REMORA returns the decision plus a signed one-time authorization (token/lease); the `GovernedToolDispatcher` PEP that would hold the tool credentials and make enforcement inseparable from execution is a library component, not wired into the API path — the `/v1/execution/execute` endpoint consumes the grant without invoking a tool (REM-024/REM-030 in `docs/assurance/remediation_register.yaml`). Until a deployment integrates the dispatcher in front of its tools, REMORA is an advisory + audit layer, not a bypass-proof enforcement boundary.
+**Execution is dispatched, but only for tools a deployment registers.** Since 2026-07-27 the `/v1/execution/execute` endpoint dispatches through the `GovernedToolDispatcher` PEP after consuming the one-time grant: the call runs under an `ExecutionLease` bound to tenant, principal, tool, exact arguments, target environment and policy-bundle hash, and the response/audit record report the real outcome (`tool_execution` / `tool_executed`). Tool callables — and the credentials they close over — register exclusively through deployment configuration (`REMORA_TOOL_REGISTRY_MODULE`; the research profile ships side-effect-bounded `store_artifact`/`read_telemetry` in `servers/tool_registry_research.py`), never through request payloads. With no registry configured, dispatch reports `executed: false` explicitly. REMORA still cannot stop an agent that reaches a tool *outside* this API — bypass-proof enforcement requires the deployment to route all tool access through the dispatcher, plus the remaining REM-024/REM-025/REM-030 hardening in `docs/assurance/remediation_register.yaml`.
 
 **Hard guards are deterministic and have absolute priority: no probabilistic oracle result can override a hard block.** They run first *inside* `RemoraDecisionEngine.decide()`, which runs after the consensus and evidence machinery — priority over the oracle result, not temporal precedence over the oracle calls. This is why the zero-false-accept safety result is a property of the policy layer, not of the consensus machinery; the two are distinct claims.
 
