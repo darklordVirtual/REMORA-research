@@ -732,10 +732,8 @@ documents:
   path: docs/methods/architecture_risk_register.md
   status: canonical
   topic: docs_methods_architecture_risk_register_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-159
@@ -743,10 +741,8 @@ documents:
   path: docs/use-cases/README.md
   status: canonical
   topic: docs_use-cases_README_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-160
@@ -754,10 +750,8 @@ documents:
   path: docs/policy_cookbook/cyber.md
   status: canonical
   topic: docs_policy_cookbook_cyber_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-161
@@ -765,10 +759,8 @@ documents:
   path: docs/INDEX.md
   status: canonical
   topic: docs_INDEX_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-162
@@ -776,10 +768,8 @@ documents:
   path: docs/governance/eu_ai_act_nsm_mapping.md
   status: canonical
   topic: docs_governance_eu_ai_act_nsm_mapping_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-163
@@ -787,10 +777,8 @@ documents:
   path: docs/research/policy_generalization_risk.md
   status: canonical
   topic: docs_research_policy_generalization_risk_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-164
@@ -798,10 +786,8 @@ documents:
   path: docs/evidence/causal_policy_explanations.md
   status: canonical
   topic: docs_evidence_causal_policy_explanations_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-165
@@ -809,10 +795,8 @@ documents:
   path: docs/integrations/cyber_evidence_layer.md
   status: canonical
   topic: docs_integrations_cyber_evidence_layer_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-166
@@ -820,10 +804,8 @@ documents:
   path: docs/experiments/experiment5_chi_iteration_utility.md
   status: canonical
   topic: docs_experiments_experiment5_chi_iteration_utility_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-167
@@ -831,10 +813,8 @@ documents:
   path: docs/thermodynamics/claim_ledger.yaml
   status: canonical
   topic: docs_thermodynamics_claim_ledger_yaml
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-168
@@ -853,10 +833,8 @@ documents:
   path: docs/validation/external-review.md
   status: canonical
   topic: docs_validation_external-review_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-170
@@ -864,10 +842,8 @@ documents:
   path: docs/validation/audit_result_schema.md
   status: canonical
   topic: docs_validation_audit_result_schema_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-171
@@ -875,10 +851,8 @@ documents:
   path: docs/thermodynamics/temperature_estimator.md
   status: canonical
   topic: docs_thermodynamics_temperature_estimator_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-172
@@ -897,10 +871,8 @@ documents:
   path: docs/thermodynamics/limitations.md
   status: canonical
   topic: docs_thermodynamics_limitations_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-174
@@ -908,10 +880,8 @@ documents:
   path: docs/thermodynamics/runtime_policy.md
   status: canonical
   topic: docs_thermodynamics_runtime_policy_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-175
@@ -919,10 +889,8 @@ documents:
   path: docs/research/misspecification_aware_governance.md
   status: canonical
   topic: docs_research_misspecification_aware_governance_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-176
@@ -930,10 +898,8 @@ documents:
   path: docs/integrations/cloudflare_workers_ai.md
   status: canonical
   topic: docs_integrations_cloudflare_workers_ai_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-177
@@ -941,10 +907,8 @@ documents:
   path: docs/policy_cookbook/README.md
   status: canonical
   topic: docs_policy_cookbook_README_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-178
@@ -952,10 +916,8 @@ documents:
   path: docs/evidence/claim_evidence_matrix.md
   status: canonical
   topic: docs_evidence_claim_evidence_matrix_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-179
@@ -963,10 +925,8 @@ documents:
   path: docs/benchmarks/README.md
   status: canonical
   topic: docs_benchmarks_README_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-180
@@ -974,10 +934,8 @@ documents:
   path: docs/integrations/gostar_integration.md
   status: canonical
   topic: docs_integrations_gostar_integration_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-181
@@ -985,10 +943,8 @@ documents:
   path: docs/claims/thermodynamics_claims.yaml
   status: canonical
   topic: docs_claims_thermodynamics_claims_yaml
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-182
@@ -996,10 +952,8 @@ documents:
   path: docs/enterprise/togaf-enterprise-rollout-plan.md
   status: canonical
   topic: docs_enterprise_togaf-enterprise-rollout-plan_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-183
@@ -1018,10 +972,8 @@ documents:
   path: docs/integrations/mcp-integration.md
   status: canonical
   topic: docs_integrations_mcp-integration_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-185
@@ -1029,10 +981,8 @@ documents:
   path: docs/reference_architecture.md
   status: canonical
   topic: docs_reference_architecture_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-186
@@ -1040,10 +990,8 @@ documents:
   path: docs/experiments/experiment3_phase_transition_study.md
   status: canonical
   topic: docs_experiments_experiment3_phase_transition_study_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-187
@@ -1051,10 +999,8 @@ documents:
   path: docs/policy_cookbook/cloud_ops.md
   status: canonical
   topic: docs_policy_cookbook_cloud_ops_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-188
@@ -1062,10 +1008,8 @@ documents:
   path: docs/benchmarks/stat_tests.md
   status: canonical
   topic: docs_benchmarks_stat_tests_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-189
@@ -1073,10 +1017,8 @@ documents:
   path: docs/security/pre-deployment-review.md
   status: canonical
   topic: docs_security_pre-deployment-review_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-190
@@ -1106,10 +1048,8 @@ documents:
   path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
   status: canonical
   topic: docs_aromer_REMORA_AROMER_MASTER_DOCUMENT_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-193
@@ -1117,10 +1057,8 @@ documents:
   path: docs/evidence/empirical_evidence_record.md
   status: canonical
   topic: docs_evidence_empirical_evidence_record_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-194
@@ -1128,10 +1066,8 @@ documents:
   path: docs/deployment/onprem-airgapped.md
   status: canonical
   topic: docs_deployment_onprem-airgapped_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-195
@@ -1139,10 +1075,8 @@ documents:
   path: docs/methods/nested_governance.md
   status: canonical
   topic: docs_methods_nested_governance_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-196
@@ -1161,10 +1095,8 @@ documents:
   path: docs/evidence/authorship_evidence_report.md
   status: canonical
   topic: docs_evidence_authorship_evidence_report_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-198
@@ -1172,10 +1104,8 @@ documents:
   path: docs/deployment/azure-reference-architecture.md
   status: canonical
   topic: docs_deployment_azure-reference-architecture_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-199
@@ -1183,10 +1113,8 @@ documents:
   path: docs/methods/theoretical_foundations_proposals_v1.md
   status: canonical
   topic: docs_methods_theoretical_foundations_proposals_v1_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-200
@@ -1194,10 +1122,8 @@ documents:
   path: docs/research/governance_intelligence_layer.md
   status: canonical
   topic: docs_research_governance_intelligence_layer_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-201
@@ -1205,10 +1131,8 @@ documents:
   path: docs/validation/review_checklist.md
   status: canonical
   topic: docs_validation_review_checklist_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-202
@@ -1227,10 +1151,8 @@ documents:
   path: docs/governance/nist_ai_rmf_mapping.md
   status: canonical
   topic: docs_governance_nist_ai_rmf_mapping_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-204
@@ -1238,10 +1160,8 @@ documents:
   path: docs/research/causal_consequence_gating.md
   status: canonical
   topic: docs_research_causal_consequence_gating_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-205
@@ -1260,10 +1180,8 @@ documents:
   path: docs/security/owasp_genai_mapping.md
   status: canonical
   topic: docs_security_owasp_genai_mapping_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-207
@@ -1293,10 +1211,8 @@ documents:
   path: docs/experiments/experiment4_susceptibility_validation.md
   status: canonical
   topic: docs_experiments_experiment4_susceptibility_validation_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-210
@@ -1304,10 +1220,8 @@ documents:
   path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
   status: canonical
   topic: docs_use-cases_REMORA_v4_Thermodynamics_Evidence_Status_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-211
@@ -1315,10 +1229,8 @@ documents:
   path: docs/policy_cookbook/database.md
   status: canonical
   topic: docs_policy_cookbook_database_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-212
@@ -1326,10 +1238,8 @@ documents:
   path: docs/thermodynamics/README.md
   status: canonical
   topic: docs_thermodynamics_README_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-213
@@ -1337,10 +1247,8 @@ documents:
   path: docs/integrations/go_star_bridge.md
   status: canonical
   topic: docs_integrations_go_star_bridge_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-214
@@ -1348,10 +1256,8 @@ documents:
   path: docs/methods/thermodynamic_abs.md
   status: canonical
   topic: docs_methods_thermodynamic_abs_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-215
@@ -1359,10 +1265,8 @@ documents:
   path: docs/validation/EXTERNAL_VALIDATION_PLAN.md
   status: canonical
   topic: docs_validation_EXTERNAL_VALIDATION_PLAN_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-216
@@ -1370,10 +1274,8 @@ documents:
   path: docs/integrations/knowledge_domains.md
   status: canonical
   topic: docs_integrations_knowledge_domains_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-217
@@ -1392,10 +1294,8 @@ documents:
   path: docs/aromer/quickstart_aromer.md
   status: canonical
   topic: docs_aromer_quickstart_aromer_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-219
@@ -1403,10 +1303,8 @@ documents:
   path: docs/validation/credibility_pack_repro.md
   status: canonical
   topic: docs_validation_credibility_pack_repro_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-220
@@ -1414,10 +1312,8 @@ documents:
   path: docs/integrations/rag_oracle.md
   status: canonical
   topic: docs_integrations_rag_oracle_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-221
@@ -1425,10 +1321,8 @@ documents:
   path: docs/validation/external_validation_report_template.md
   status: canonical
   topic: docs_validation_external_validation_report_template_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: unreviewed
+  verdict: pending
   audience:
   - researchers
 - id: DOC-222

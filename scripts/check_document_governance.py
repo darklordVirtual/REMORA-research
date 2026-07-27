@@ -78,6 +78,12 @@ ROOT_DOCS = (
 )
 # Markers that satisfy the historical-banner requirement (case-insensitive).
 HISTORICAL_MARKERS = ("historical", "archived", "snapshot", "superseded", "do not cite")
+# Statuses that present a document as live knowledge. A live document whose
+# entire content is a bare placeholder stub is a HARD violation: either the
+# content must be restored or the entry moved to historical/superseded (which
+# carry their own stub semantics).
+LIVE_STATUSES = {"canonical", "generated", "supporting", "proposal"}
+PLACEHOLDER_RE = re.compile(r"^#*\s*placeholder[.!]?\s*$", re.IGNORECASE)
 # Advisory only: README over this size prints a hint, it does not fail CI.
 README_LINE_CAP = 300
 
@@ -156,6 +162,14 @@ def check_document_register(errors: list[str], warnings: list[str]) -> None:
                 )
             else:
                 topics[topic] = path
+        if status in LIVE_STATUSES and (ROOT / path).is_file():
+            body = (ROOT / path).read_text(encoding="utf-8", errors="ignore").strip()
+            if not body or PLACEHOLDER_RE.fullmatch(body):
+                errors.append(
+                    f"document-register: {path}: registered as {status!r} but its "
+                    f"content is a bare placeholder stub — restore the content or "
+                    f"re-register it as historical/superseded"
+                )
         if status == "historical":
             if (ROOT / path).exists():
                 head = "\n".join(
