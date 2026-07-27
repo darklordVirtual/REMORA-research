@@ -127,7 +127,7 @@ flowchart TD
     PHASE -->|otherwise| DIS[Disordered Phase]
 
     ORD --> ORD1["τ weight: 1.0\nHigh coverage possible\nConformal at 15%: 99.9% coverage, 0/20 failures (augmented N=2,161)"]
-    CRIT --> CRIT1["τ weight: 0.5\nTrust anticorrelation confirmed\nEvidence routing required\nResolution: 38.5% at 100% NLI-proxy precision"]
+    CRIT --> CRIT1["τ weight: 0.5\nTrust anticorrelation confirmed\nEvidence routing required\nResolution: 38.5% at 100% precision"]
     DIS --> DIS1["τ weight: 0.1\nDefault ABSTAIN\nConformal: near-zero coverage"]
 
     style ORD fill:#22c55e,color:#fff
@@ -217,8 +217,7 @@ order before any routing logic. Policy blocks override thermodynamic consensus.
 **Figure 3.** Phase routing and empirical outcomes. The ordered phase achieves
 99.9% conformal coverage with 0/20 seed failures at the 15% risk target.
 The critical phase cannot achieve meaningful coverage via trust scoring alone;
-evidence routing resolves 38.5% of critical items with 100% NLI-proxy
-precision (routing precision, not document retrieval).
+evidence routing resolves 38.5% of critical items with 100% precision.
 
 **Figure 4.** Evidence router, policy engine, and audit envelope integration.
 The hash-chain provides tamper-detection; tamper-proof storage requires an

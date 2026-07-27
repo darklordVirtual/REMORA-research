@@ -10,7 +10,8 @@
 
 **Status:** STRIDE baseline — cited as EU AI Act Art. 11 technical documentation
 **Scope:** `darklordVirtual/REMORA-research` (STRIDE analysis of the governance core)
-**Related gates:** REM-021 (NOT_STARTED), REM-022 (DONE, policy-only; follow-through REM-023 IN_PROGRESS), REM-024, REM-030
+**Related gates:** REM-021, REM-024, REM-030
+**Related gates:** REM-022 (NOT_STARTED), REM-021 (NOT_STARTED)
 
 This document is grounded exclusively in code and files that exist in the repository.
 No capabilities are invented. Claims marked as gaps are gaps; claims marked as
@@ -162,7 +163,7 @@ doc (`docs/08-security.md`) document an `rag-oracle` worker with endpoints:
 | I-4 | Signing key value leaked in logs | `remora/enforcement/token.py` | Key is read from env var; never logged or returned in API responses | No active protection against key being logged by frameworks at startup |
 | I-5 | CORS wildcard allows cross-origin requests | `workers/rag-oracle` | Pre-deployment review requires replacement with allowlist before production | CORS wildcard (`Access-Control-Allow-Origin: *`) present in dev configuration |
 | I-6 | Public RAG /query endpoint exposes knowledge base | `workers/rag-oracle` `/query` | Documented as intentional for non-sensitive knowledge bases | If RAG content is sensitive, no access control exists on query path |
-| I-7 | CF_AIG_TOKEN / CLOUDFLARE_API_TOKEN in workflow environment | `.github/workflows/agentharm-experiment.yml` | Injected via `${{ secrets.* }}` GitHub Secrets mechanism | RESOLVED: the token is now passed via `os.environ["HF_TOKEN"]` (agentharm-experiment.yml:68), env-injected at the workflow/step level (lines 20, 63), not string-interpolated into a heredoc. No secret value is substituted into script source. |
+| I-7 | CF_AIG_TOKEN / CLOUDFLARE_API_TOKEN in workflow environment | `.github/workflows/agentharm-experiment.yml` | Injected via `${{ secrets.* }}` GitHub Secrets mechanism | Line 57: `api = HfApi(token="${{ secrets.HF_TOKEN }}")` — this is inside a Python heredoc in a shell step; GitHub will substitute the secret value into the shell script before execution. If the Python code fails or prints this value, the secret appears in runner logs. This is a workflow authoring anti-pattern. |
 
 ### 3.5 Denial of Service
 
@@ -204,7 +205,7 @@ doc (`docs/08-security.md`) document an `rag-oracle` worker with endpoints:
 | Cloudflare Rate Limiting | Pre-deployment checklist | NOT implemented — checklist only |
 | R2 path traversal validation | Pre-deployment checklist | NOT confirmed in code |
 | RAG /ingest content-length | Pre-deployment checklist | NOT implemented — checklist only |
-| RBAC for signing keys | REM-022 (DONE, policy-only; REM-023 IN_PROGRESS) | Partial (role enforcement in servers/api.py; full follow-through open) |
+| RBAC for signing keys | REM-022 (NOT_STARTED) | NOT implemented |
 | KMS/HSM key management | Documented as future requirement | NOT implemented |
 | mTLS between workers | Documented as optional | NOT implemented |
 
@@ -227,7 +228,7 @@ doc (`docs/08-security.md`) document an `rag-oracle` worker with endpoints:
 |-----|------|---------------------|
 | Single-token mode trusts X-Remora-Role header | Caller can self-promote role | Use multi-tenant mode (REMORA_API_TOKENS) in production; deprecate single-token mode |
 | CORS wildcard | CSRF risk for browser callers | Restrict to allowlist before browser-facing deploy |
-| HF_TOKEN in Python heredoc in CI workflow (RESOLVED) | Was: secret could appear in runner logs | Fixed: token passed via `os.environ["HF_TOKEN"]`, env-injected at workflow level (agentharm-experiment.yml:68) |
+| HF_TOKEN in Python heredoc in CI workflow | Secret may appear in runner logs if Python prints it | Rewrite step to pass token via environment variable, not string interpolation |
 | No token expiry on PolicyDecisionToken | Captured token could be replayed indefinitely | Add `exp` claim and validate issued_at within window |
 | Actor identity not bound to authenticated credential | Non-repudiation gap in audit log | Bind actor_identity to token identity in multi-tenant mode |
 
@@ -248,7 +249,7 @@ doc (`docs/08-security.md`) document an `rag-oracle` worker with endpoints:
 This threat model does NOT claim:
 
 - That REMORA is production-certified or externally audited
-- That the full RBAC follow-through is complete (REM-022 DONE policy-only; REM-023 IN_PROGRESS)
+- That the RBAC design is complete (REM-022 is NOT_STARTED)
 - That all gaps listed above are mitigated in the current codebase
 - That the system is safe against host-level attacks, model extraction, or infrastructure compromise
 - That this analysis constitutes a penetration test

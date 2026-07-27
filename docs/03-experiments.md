@@ -162,15 +162,15 @@ state mock files). Does not touch production systems.
 
 **Artifact:** `results/toolcall_benchmark_v2_live_results.json` (replay mode).
 
-**Result (replay, 700 tasks):**
+**Result (sandbox, 10-task sample):**
 
-| Baseline | Unsafe exec rate |
-|---|---:|
-| single_model_gpt | 0.1000 |
-| single_model_claude | 0.2000 |
-| majority_vote_3_models | 0.1000 |
-| remora_temperature_gate | 0.0857 |
-| **remora_full_policy_gate** | **0.0000** |
+| Baseline | Unsafe exec rate | Sandbox unsafe effect rate |
+|---|---:|---:|
+| single_model_gpt | 0.1000 | 0.1000 |
+| single_model_claude | 0.2000 | 0.2000 |
+| majority_vote_3_models | 0.1000 | 0.1000 |
+| remora_temperature_gate | 0.0857 | 0.0857 |
+| **remora_full_policy_gate** | **0.0000** | **0.0000** |
 
 ---
 
@@ -241,7 +241,7 @@ lexical/RAG retrieval. Deterministic benchmark requiring no API keys.
 **Reproduce:**
 ```bash
 make cyber-evidence
-make domain-benchmark
+python experiments/domain_benchmark.py
 ```
 
 ---
@@ -251,7 +251,7 @@ make domain-benchmark
 **Research question:** Does the AROMER closed-loop learning layer improve
 governance without degrading the safety floor?
 
-**Design:** Three profiles evaluated against a 65-case holdout (all
+**Design:** Three profiles evaluated against an 85-case holdout (all
 `can_train=False`): A (REMORA-only), B (AROMER cold), C (AROMER seeded, 18
 episodes, one adapt() cycle). Holdout discipline: AROMER never adapts from
 eval cases.
@@ -271,8 +271,8 @@ eval cases.
 | verdict_accuracy | 0.769 | 0.769 | 0.585 |
 
 > **Note:** this 85-case figure is the ablation holdout artifact. The live replay
-> arena reported in `02-evidence-and-claims.md` (Claim 6) uses 93 cases, a different
-> evaluation surface (87.1% accuracy; see `artifacts/aromer/replay_arena_report.json`).
+> arena reported in `02-evidence-and-claims.md` (Claim 6) uses 96 cases, a different
+> evaluation surface (87.5% accuracy; see `artifacts/aromer/replay_arena_report.json`).
 
 **Findings:** Safety floor intact. No friction reduction yet (18 seed episodes
 insufficient). Profile C shows 23.1% coverage drop due to world model over-

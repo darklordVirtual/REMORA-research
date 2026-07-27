@@ -15,10 +15,10 @@ point of the whole repository, so it is the point of this log too.
 
 | Dimension | State | How to verify |
 |---|---|---|
-| Test suite | 3,610 tests, 0 failing (from 3,301 at the start of the hardening cycle: **+309**) | `pip install -e ".[dev,causal,api]" && make test` |
+| Test suite | 3,514 tests, 0 failing (from 3,301 at the start of the hardening cycle: **+213**) | `pip install -e ".[dev,causal,api]" && make test` |
 | CI | Green on 3 Python versions (3.12/3.13/3.14) + pinned-OPA conformance + claim-provenance gate | GitHub Actions, every push |
-| Result artifacts | 79 committed under `results/`; every headline number is reproducible offline | see §6 |
-| Remediation items | 30 of 46 tracked REM-items DONE; **REM-021 (independent review) is the sole open independent-review gate; REM-023 (RBAC follow-through) is also open** | [`remediation_register.yaml`](remediation_register.yaml) |
+| Result artifacts | 78 committed under `results/`; every headline number is reproducible offline | see §6 |
+| Remediation items | 22 of 30 tracked REM-items DONE; **REM-021 (independent review) is the sole open production gate** | [`remediation_register.yaml`](remediation_register.yaml) |
 | Capability wiring | 12 capabilities on an explicit six-rung ladder; **nothing claims `ENFORCED_PRODUCTION` or `EXTERNALLY_VERIFIED`** (a CI-enforced invariant) | [`capability_register_v1.yaml`](capability_register_v1.yaml), `tests/test_capability_register.py` |
 | Deployment status | `SHADOW_ONLY`, unchanged, by design, until REM-021 closes | [`release_gates.md`](release_gates.md) |
 
