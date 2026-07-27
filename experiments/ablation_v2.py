@@ -106,6 +106,30 @@ def accuracy(results: list[dict]) -> float:
     return sum(1 for r in results if r["correct"]) / len(results) if results else 0.0
 
 
+def selective_metrics(results: list[dict]) -> dict:
+    """Abstention-aware metrics (research review 2026-07-27).
+
+    The legacy `accuracy` counts an abstention (predicted None — a refusal
+    OR an unparseable response) as a wrong answer, which structurally
+    penalizes selective conditions against always-answering baselines
+    (majority vote scored 29% on yes/no BoolQ — below the 50% chance floor,
+    proving the metric artifact). These fields separate the two:
+    abstention is its own category, accuracy is reported among answered
+    items with its own denominator (metric_definitions_v1.md rule 1).
+    """
+    n = len(results)
+    answered = [r for r in results if r.get("predicted") is not None]
+    n_ans = len(answered)
+    n_corr = sum(1 for r in answered if r["correct"])
+    return {
+        "n_answered": n_ans,
+        "n_abstained_or_unparsed": n - n_ans,
+        "coverage": round(n_ans / n, 4) if n else 0.0,
+        "accuracy_answered": round(n_corr / n_ans, 4) if n_ans else None,
+        "ci_95_answered": list(wilson_ci(n_corr, n_ans)) if n_ans else None,
+    }
+
+
 def per_source(results: list[dict]) -> dict:
     by: dict[str, list] = defaultdict(list)
     for r in results:
@@ -359,6 +383,7 @@ def main() -> None:
                 "correct": sum(1 for r in res if r["correct"]),
                 "accuracy": round(accuracy(res), 4),
                 "ci_95": list(wilson_ci(sum(1 for r in res if r["correct"]), len(res))),
+                "selective": selective_metrics(res),
                 "per_source": per_source(res),
                 "per_domain": per_domain(res),
                 "adversarial": adversarial_accuracy(res),

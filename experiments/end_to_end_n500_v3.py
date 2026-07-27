@@ -20,7 +20,9 @@ import random
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
-_INPUT_ARTIFACT = "results/thermodynamic_eval_n500_calibrated_results.json"
+# Clean round 2026-07 (SAP v2): the primary thermodynamic artifact is
+# UNCALIBRATED; the old calibrated artifact stays frozen as historical.
+_INPUT_ARTIFACT = "results/thermodynamic_eval_n500_uncalibrated_results.json"
 _OUTPUT_PATH = _REPO_ROOT / "results" / "end_to_end_n500_v3.json"
 
 

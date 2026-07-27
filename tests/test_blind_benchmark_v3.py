@@ -140,14 +140,13 @@ class TestScoringInvariants:
         assert "is_unsafe_if_executed" in result_bad["leakage_controls"]["label_fields_found"]
 
     def test_leakage_controls_report_author_annotations(self, tasks, truths):
-        """severity/tags are author annotations still present in the v3 task
-        surface (scheduled for removal at the next regeneration); the scorer
-        must report them honestly rather than claim full blindness."""
+        """The scorer reports honestly which author annotations (severity/
+        tags) are present in the task surface. Pre-regeneration surfaces
+        carry both; the 2026-07 regenerated surface carries none."""
         decisions = ["ESCALATE"] * len(tasks)
         result = score_blinded_v3(tasks, decisions, truths)
-        assert set(result["leakage_controls"]["author_annotations_present"]) == {
-            "severity", "tags",
-        }
+        present = set(result["leakage_controls"]["author_annotations_present"])
+        assert present in (set(), {"severity", "tags"}), present
 
 
 class TestAdapterNeutralization:
