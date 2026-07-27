@@ -28,19 +28,37 @@ prediction evaluated among accepted is the majority vote, as in H1'):
   neg_temperature   — the round's pre-registered signal (from the thermo artifact)
   margin            — majority margin (winner votes minus runner-up, tiebreak mean confidence)
   mean_confidence   — mean of the three oracles' self-reported confidences
-  single_confidence — the strongest single model's own confidence
+  single_confidence — the fixed single model's own confidence
   trust_score       — the engine's trust score (thermo artifact)
   neg_susceptibility— negative chi (thermo artifact)
   random            — seeded random ranking (floor)
 
-Aggregators (predict on every answered item; accuracy over the holdout):
-  majority          — unweighted vote (round baseline)
-  best_single       — strongest single model alone
-  confidence_weighted — votes weighted by self-reported confidence
-  log_odds_weighted — Nitzan-Paroush optimal weights w_i = log(a_i/(1-a_i)),
-                      per-oracle accuracies a_i fit on the TRAINING split
-  dawid_skene       — unsupervised EM competence estimation (fit on training
-                      split votes only, no labels)
+Coarse signals (margin, confidences) cannot hit low coverage targets by
+thresholding alone; a LABEL-INDEPENDENT deterministic tie-breaker (hash of
+item_id, scaled to epsilon) is therefore applied to every signal so all of
+them reach every coverage target exactly. Raw natural operating points are
+reported alongside, plus the tie-fill fraction (how much of each accepted
+set was chosen by the tie-breaker rather than the signal) and AURC.
+
+Aggregators (predict on every answered item; accuracy over the holdout,
+compared PAIRWISE with exact McNemar on the discordant items — marginal
+Wilson intervals understate paired designs):
+  majority               — unweighted vote (round baseline)
+  best_single            — the FIXED single model (chosen a priori by
+                           convention: the round's condition-A model, NOT
+                           selected on the training split)
+  confidence_weighted    — votes weighted by self-reported confidence
+  log_odds_weighted      — train-fit log-odds weighted voting, INSPIRED BY
+                           Nitzan-Paroush (their optimality needs
+                           conditional independence, which correlated LLM
+                           errors violate — this is a heuristic here)
+  one_coin_em            — one-coin latent-label EM INSPIRED BY
+                           Dawid-Skene (single symmetric competence per
+                           oracle; NOT full confusion-matrix DS)
+
+Certified-gate demo (exploratory): SGR (Geifman & El-Yaniv Alg. 1) and CRC
+(Angelopoulos et al.) thresholds fit on the training split over
+neg_temperature, realized risk then read off the holdout once.
 
 Usage: python experiments/selection_signal_shootout_2026_07.py
 Output: results/selection_signal_shootout_2026_07.json (+ provenance sidecar)
@@ -64,6 +82,7 @@ from remora.oracles.factory import build_benchmark_oracle  # noqa: E402
 from remora.oracles.families import CROSS_FAMILY_CF_MODELS  # noqa: E402
 from remora.persistence import Store  # noqa: E402
 from remora.scoring import _polarity_match  # noqa: E402
+from remora.selective.risk_control import crc_threshold, sgr_threshold  # noqa: E402
 
 from experiments.ablation_v2 import build_eval_prompt, load_benchmark  # noqa: E402
 from selective_n500_holdout import _wilson, stratified_split  # noqa: E402
@@ -82,6 +101,39 @@ STRONG_SINGLE = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 def _cache_lookup(store: Store, oracle_name: str, prompt: str) -> dict | None:
     key = hashlib.sha256(f"{oracle_name}::{prompt}".encode()).hexdigest()[:32]
     return store.get(key)
+
+
+def _tie_epsilon(item_id: str) -> float:
+    """Deterministic LABEL-INDEPENDENT tie-breaker in [0, 1e-6)."""
+    h = int(hashlib.md5(item_id.encode()).hexdigest()[:8], 16)
+    return (h / 0xFFFFFFFF) * 1e-6
+
+
+def _mcnemar_exact(a_correct: list[bool], b_correct: list[bool]) -> dict:
+    """Exact two-sided McNemar test on the discordant pairs."""
+    b_only = sum(1 for a, b in zip(a_correct, b_correct) if b and not a)
+    a_only = sum(1 for a, b in zip(a_correct, b_correct) if a and not b)
+    n_disc = a_only + b_only
+    if n_disc == 0:
+        return {"a_only": 0, "b_only": 0, "p_two_sided": 1.0}
+    k = min(a_only, b_only)
+    tail = sum(math.comb(n_disc, i) for i in range(0, k + 1)) / (2 ** n_disc)
+    return {
+        "a_only": a_only,
+        "b_only": b_only,
+        "p_two_sided": round(min(1.0, 2 * tail), 6),
+    }
+
+
+def _aurc(ranked_correct: list[bool]) -> float:
+    """Area under the risk-coverage curve (lower is better)."""
+    n = len(ranked_correct)
+    errs = 0
+    area = 0.0
+    for i, ok in enumerate(ranked_correct, 1):
+        errs += 0 if ok else 1
+        area += errs / i
+    return area / n
 
 
 def _confidence(extracted: dict) -> float:
@@ -253,33 +305,52 @@ def main() -> int:
         "ds_weights": fit_dawid_skene(train),
     }
 
-    # Aggregator comparison (all holdout items).
+    # Aggregator comparison (all holdout items) + PAIRED exact McNemar.
     aggregators = {
         "majority": agg_majority,
         "best_single": agg_best_single,
         "confidence_weighted": agg_confidence_weighted,
-        "log_odds_weighted": agg_log_odds,
-        "dawid_skene_unsupervised": agg_dawid_skene,
+        "log_odds_weighted_nitzan_paroush_inspired": agg_log_odds,
+        "one_coin_em_dawid_skene_inspired": agg_dawid_skene,
     }
     agg_results = {}
+    per_item_correct: dict[str, list[bool]] = {}
     print("\n== Aggregators (holdout, n=%d) ==" % len(holdout))
     for name, fn in aggregators.items():
-        correct = sum(
-            1 for r in holdout if _polarity_match(fn(r, ctx), r["ground_truth"])
-        )
-        n = len(holdout)
+        flags = [
+            bool(_polarity_match(fn(r, ctx), r["ground_truth"])) for r in holdout
+        ]
+        per_item_correct[name] = flags
+        correct, n = sum(flags), len(holdout)
         lo, hi = _wilson(correct, n)
         agg_results[name] = {
             "n": n, "correct": correct, "accuracy": round(correct / n, 4),
             "wilson_ci": [round(lo, 4), round(hi, 4)],
         }
-        print(f"  {name:26s} {correct}/{n} = {correct/n:.3f} [{lo:.3f},{hi:.3f}]")
+        print(f"  {name:42s} {correct}/{n} = {correct/n:.3f} [{lo:.3f},{hi:.3f}]")
 
-    # Selection-signal comparison at matched coverage targets.
+    mcnemar = {}
+    names = list(aggregators)
+    print("\n== Paired exact McNemar (discordant items) ==")
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            res = _mcnemar_exact(per_item_correct[a], per_item_correct[b])
+            mcnemar[f"{a}__vs__{b}"] = res
+            print(f"  {a} vs {b}: {a}-only={res['a_only']} {b}-only={res['b_only']} p={res['p_two_sided']}")
+
+    # Selection-signal comparison. Two variants per signal/target:
+    #   raw        — pure thresholding (coarse signals overshoot coverage)
+    #   tie_broken — plus the label-independent hash tie-breaker, which lets
+    #                every signal hit every target coverage exactly; the
+    #                tie_fill share says how much of the accepted set the
+    #                tie-breaker (i.e. chance within the tied group) chose.
     rng = random.Random(SEED)
     train_sig = [(r, signal_values(r, rng, ctx)) for r in train]
     hold_sig = [(r, signal_values(r, rng, ctx)) for r in holdout]
     signal_names = list(train_sig[0][1].keys())
+
+    def tb(row: dict, base: float) -> float:
+        return base + _tie_epsilon(row["item_id"])
 
     sel_results: dict[str, dict] = {s: {} for s in signal_names}
     for cov in COVERAGE_TARGETS:
@@ -287,23 +358,76 @@ def main() -> int:
         print(f"\n== Selection @ coverage target {cov:.2f} "
               f"(tau from train, majority prediction, holdout n={len(holdout)}) ==")
         for s in signal_names:
-            ranked = sorted(train_sig, key=lambda p: p[1][s], reverse=True)
-            tau = ranked[k - 1][1][s]
-            accepted = [r for r, v in hold_sig if v[s] >= tau]
-            n_acc = len(accepted)
-            correct = sum(1 for r in accepted if r["majority_correct"])
-            acc = correct / n_acc if n_acc else None
-            lo, hi = _wilson(correct, n_acc) if n_acc else (0.0, 1.0)
-            sel_results[s][str(cov)] = {
-                "tau": round(tau, 6), "n_accepted": n_acc,
-                "correct": correct,
-                "accuracy_accepted": round(acc, 4) if acc is not None else None,
-                "coverage_achieved": round(n_acc / len(holdout), 4),
-                "wilson_ci": [round(lo, 4), round(hi, 4)],
+            entry: dict = {}
+            for variant in ("raw", "tie_broken"):
+                if variant == "raw":
+                    key = lambda p: p[1][s]  # noqa: E731
+                else:
+                    key = lambda p: tb(p[0], p[1][s])  # noqa: E731
+                ranked = sorted(train_sig, key=key, reverse=True)
+                tau = key(ranked[k - 1])
+                accepted = [(r, v) for r, v in hold_sig if key((r, v)) >= tau]
+                n_acc = len(accepted)
+                correct = sum(1 for r, _ in accepted if r["majority_correct"])
+                acc = correct / n_acc if n_acc else None
+                lo, hi = _wilson(correct, n_acc) if n_acc else (0.0, 1.0)
+                # Tie-fill: accepted items whose RAW value ties the cut
+                # (chosen by the hash, not the signal).
+                raw_tau_floor = min(v[s] for _, v in accepted) if accepted else None
+                tied = sum(1 for _, v in accepted if v[s] == raw_tau_floor) if accepted else 0
+                entry[variant] = {
+                    "n_accepted": n_acc,
+                    "correct": correct,
+                    "accuracy_accepted": round(acc, 4) if acc is not None else None,
+                    "coverage_achieved": round(n_acc / len(holdout), 4),
+                    "wilson_ci": [round(lo, 4), round(hi, 4)],
+                    "tie_fill_fraction": round(tied / n_acc, 4) if n_acc else None,
+                }
+            sel_results[s][str(cov)] = entry
+            r_, t_ = entry["raw"], entry["tie_broken"]
+            print(f"  {s:20s} raw acc={r_['accuracy_accepted']} cov={r_['coverage_achieved']}"
+                  f" | tie-broken acc={t_['accuracy_accepted']} cov={t_['coverage_achieved']}"
+                  f" (tie-fill {t_['tie_fill_fraction']})")
+
+    # AURC over the full holdout ranking (lower = better ranking signal).
+    aurc = {}
+    print("\n== AURC (holdout, lower is better) ==")
+    for s in signal_names:
+        ranked = sorted(hold_sig, key=lambda p: tb(p[0], p[1][s]), reverse=True)
+        aurc[s] = round(_aurc([r["majority_correct"] for r, _ in ranked]), 4)
+        print(f"  {s:20s} {aurc[s]}")
+
+    # Certified-gate demo (exploratory): SGR + CRC on neg_temperature,
+    # calibrated on the TRAIN split, realized risk read off the holdout once.
+    train_scores = [v["neg_temperature"] for _, v in train_sig]
+    train_losses = [0 if r["majority_correct"] else 1 for r, _ in train_sig]
+    certified = {}
+    sgr = sgr_threshold(train_scores, train_losses, target_risk=0.05, delta=0.10)
+    crc = crc_threshold(train_scores, train_losses, alpha=0.05)
+    print("\n== Certified gates on neg_temperature (train-calibrated) ==")
+    for name, res in (("sgr_target5pct_delta10pct", sgr), ("crc_alpha5pct", crc)):
+        if res.certified:
+            acc_items = [r for r, v in hold_sig if v["neg_temperature"] >= res.threshold]
+            n_acc = len(acc_items)
+            errs = sum(1 for r in acc_items if not r["majority_correct"])
+            certified[name] = {
+                "certified": True,
+                "procedure": res.procedure,
+                "train_coverage": round(res.coverage, 4),
+                "risk_bound": round(res.risk_bound, 4),
+                "holdout_n_accepted": n_acc,
+                "holdout_errors_among_accepted": errs,
+                "holdout_selective_risk": round(errs / n_acc, 4) if n_acc else None,
+                "holdout_coverage": round(n_acc / len(holdout), 4),
             }
-            acc_s = f"{acc:.3f}" if acc is not None else "-"
-            print(f"  {s:20s} acc={acc_s} ({correct}/{n_acc}) "
-                  f"cov={n_acc/len(holdout):.2f}")
+            print(f"  {name}: train-cov={res.coverage:.2f} bound={res.risk_bound:.3f} "
+                  f"holdout {errs}/{n_acc} errors @ cov={n_acc/len(holdout):.2f}")
+        else:
+            certified[name] = {
+                "certified": False, "procedure": res.procedure,
+                "best_rejected_bound": round(res.risk_bound, 4),
+            }
+            print(f"  {name}: NOT certifiable (best rejected bound {res.risk_bound:.3f})")
 
     out = {
         "status": "exploratory",
@@ -324,14 +448,36 @@ def main() -> int:
             "n_missing_skipped": missing,
             "split": {"n_train": len(train), "n_holdout": len(holdout)},
             "single_model": STRONG_SINGLE,
+            "single_model_provenance": (
+                "fixed a priori by convention (the round's condition-A "
+                "model), NOT selected on the training split — SAP v3 must "
+                "either pre-register the baseline model or freeze a "
+                "train-split selection before holdout"
+            ),
             "train_fit_quantities": [
                 "log_odds_weights (labelled train accuracies)",
-                "dawid_skene weights (UNLABELLED train votes)",
+                "one_coin_em weights (UNLABELLED train votes)",
                 "per-signal tau at each coverage target",
+                "SGR/CRC certified thresholds (neg_temperature)",
             ],
+            "naming_notes": {
+                "log_odds_weighted_nitzan_paroush_inspired": (
+                    "heuristic log-odds weighting; Nitzan-Paroush "
+                    "optimality assumes conditional independence that "
+                    "correlated LLM errors violate"
+                ),
+                "one_coin_em_dawid_skene_inspired": (
+                    "one-coin latent-label EM; NOT full confusion-matrix "
+                    "Dawid-Skene — this result does not indict the DS "
+                    "family generally"
+                ),
+            },
         },
         "aggregators_holdout": agg_results,
+        "aggregators_mcnemar_paired": mcnemar,
         "selection_signals_holdout": sel_results,
+        "aurc_holdout": aurc,
+        "certified_gates_neg_temperature": certified,
     }
     OUT_PATH.write_text(json.dumps(out, indent=2), encoding="utf-8")
 

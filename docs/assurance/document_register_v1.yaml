@@ -2023,6 +2023,16 @@ documents:
   last_reviewed: '2026-07-27'
   audience:
   - researchers
+- id: DOC-286
+  version: v1
+  path: docs/assurance/statistical_analysis_plan_v3.md
+  status: proposal
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
 
 topics:
 - docs_01-architecture_md

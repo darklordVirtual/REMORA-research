@@ -1,6 +1,6 @@
 {
   "schema": "result_provenance_v2",
-  "git_commit": "9eead552d246db00fb80dd4ac775d9b7b0628bd7",
+  "git_commit": "d572a2562c381fbd77a1b16e489706c339643664",
   "worktree_clean": false,
   "python_version": "3.14.0",
   "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
@@ -13,8 +13,8 @@
     42
   ],
   "command": "python experiments/selection_signal_shootout_2026_07.py",
-  "generated_at": "2026-07-27T13:42:06.581224+00:00",
+  "generated_at": "2026-07-27T14:03:20.210049+00:00",
   "status": "exploratory",
   "artifact": "selection_signal_shootout_2026_07.json",
-  "artifact_sha256": "ec7e430305adce4505cb2cfa86fc0423e83be38e595c2ac948d1cb31e783fc8e"
+  "artifact_sha256": "4d9d61df1c2cc90edc2825107a6ef67c1473d7c8ca8600ed4c95a9bb5cb5172c"
 }
