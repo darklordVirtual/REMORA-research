@@ -2,10 +2,14 @@
 # SPDX-License-Identifier: BUSL-1.1
 """HTTP client for the GO-STAR REMORA Cloudflare Worker.
 
-The worker runs three AI oracle models in multi-round consensus:
-- Groq fast   : llama-3.1-8b-instant
-- Groq strong : llama-3.3-70b-versatile
-- OpenRouter  : mistralai/mistral-7b-instruct
+The worker runs three AI oracle models in multi-round consensus on
+Cloudflare Workers AI (see WORKER_MODELS below for the informational model
+map; the deployed truth lives in the worker's wrangler.toml [vars]). The
+old Groq/OpenRouter trio described here previously was stale. NOTE: the
+deployed wrangler.toml currently disagrees with WORKER_MODELS for
+cf_strong/cf_diverse AND its FAST/DIVERSE pair violates the cross-family
+rule (both meta-llama; remora/oracles/families.py) — reconciling the
+worker deployment is an open item outside the 2026-07 benchmark round.
 
 It is publicly accessible at https://go-star-remora.razorsharp.workers.dev
 and requires no authentication.  Responses are KV-cached for 24 h keyed on

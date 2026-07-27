@@ -1,0 +1,30 @@
+# Experiment manifest — spec: docs/assurance/experiment_manifest_spec_v1.md
+experiment_id: EXP-AGENTHARM-01
+title: AgentHarm external benchmark (Plan 01)
+status: completed
+hypothesis: >
+  REMORA's full policy gate, with tau* locked from the training split,
+  produces a publishable external result on the AgentHarm test_public split:
+  recall > 0.852 and FPR < 0.023 simultaneously (QuadSentinel baseline,
+  AgentHarm public leaderboard). Pre-registered decision rule and ablation
+  interpretation: PREREGISTERED.md.
+baseline: QuadSentinel (AgentHarm public leaderboard; recall 0.852, FPR 0.023)
+policy_configuration:
+  tau_star: 0.2032          # frozen pre test-split; experiments/agentharm/tau_config.yaml
+  signal: neg_temperature
+  arms: [remora_full, hardblocks_only]   # see score_guardrail.py
+seeds: null
+seed_note: >
+  Not recorded retroactively in this manifest; determinism and episode
+  provenance are documented in the result artifact's provenance sidecar.
+datasets:
+  - AgentHarm (arxiv:2410.09024, ai-safety-institute), N=208 test_public
+result_artifacts:
+  - results/external_benchmark_agentharm_v1.json
+  - results/external_benchmark_agentharm_v1.provenance.json
+promotion_target: CLAIM-002   # docs/assurance/claim_register_v1.yaml
+known_limitations:
+  - Intent-gating, not tool-call interception — routing accuracy, not
+    execution prevention (experiments/agentharm/INTERCEPTION_NOTES.md).
+  - Single external dataset; replication on tau-bench and ToolEmu is the
+    open follow-up tracked as REM-014's replication note.

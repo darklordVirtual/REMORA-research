@@ -1,0 +1,439 @@
+AI-ASSISTERT TEKNISK REVIEW  •  LEVEL D
+REMORA Level D
+Samlet, commit-bundet og evidensbasert sluttrapport
+Repository: darklordVirtual/REMORA-research  •  Commit: 3ac282482670b47321dde58d310ca23ee3623112  •  Dato: 26. juli 2026
+SLUTTUTFALL  FAIL_CANDIDATE  •  2 CRITICAL  •  32 MAJOR  •  4 MINOR  •  alle åpne
+Pakken støtter bare den deklarerte grensen SHADOW_PILOT / SHADOW_ONLY. Rapporten er ikke produksjonsautorisasjon, sertifisering, juridisk konklusjon eller menneskelig signatur.
+DOKUMENTKONTROLL
+VERDI
+Snapshot SHA-256
+dc55ac3cb869c3589880777e9ed75aead5ffc57ea225c3b3e0665d059a1190a4
+Manifest
+1 367 filer • SHA-256 8edd69cda79a9c06a96f7901a9b1d96b07ec88bc09e9e3d88d16335b659b933f
+Vurdert mål
+Level D / PRODUCTION evidence-package completeness
+Arbeidsmodus
+Read-only • lokale disposable harnesses • ingen GitHub-skriving
+Innhold
+SEKSJON
+TITTEL
+1
+Beslutning i kortform
+2
+Frosset scope og proveniens
+3
+Metode og bevisregler
+4
+Persona- og kontrollmatrise
+5
+Level-resultater
+6
+Releaseprofilen nekter opprykk
+7
+CRITICAL-funn
+8
+Vitenskap og statistikk — R1
+9
+Sikkerhet og faktisk håndhevingsbane — R2
+10
+Governance og assurance — R3
+11
+Programvare, distribuert tilstand og supply chain — R4
+12
+Kundespesifikk R6/OT
+13
+Cross-artifact consistency — C1
+14
+Defeater-, retest- og syntesekontroll
+15
+Positiv evidens
+16
+Samlet funnregister
+17
+Rest-risiko
+18
+Krav før ny Level D-review
+19
+Menneskelig handoff
+20
+Tillatt og forbudt ekstern ordlyd
+21
+Q1 metareview
+22
+Maskinlesbart sammendrag
+Sluttutfall: FAIL_CANDIDATE. Evidenspakken ved commit 3ac282482670b47321dde58d310ca23ee3623112 oppfyller ikke kravene til en komplett Level D-produksjonspakke. Det sterkeste støttede operative utsagnet er repositoryets eget SHADOW_PILOT / SHADOW_ONLY.
+Denne rapporten er en commit-bundet, read-only og evidensbasert AI-assistert pre-review. Den er ikke produksjonsautorisasjon, sertifisering, samsvarsvurdering, juridisk konklusjon, kundens risikoaksept, menneskelig signatur eller lukking av REM-021.
+1. Beslutning i kortform
+Level D blokkeres uavhengig av hverandre av:
+to reproduserte CRITICAL-sikkerhetsfunn med kontrollerte sideeffekter;
+32 åpne MAJOR-funn på tvers av evidens, metode, sikkerhet, styring, programvare, kundekontekst og konsistens;
+en obligatorisk R6-rolle som er INDETERMINATE fordi kunde, anlegg, prosess, OT-soner, verktøy, konsekvensklasser og kundemyndighet ikke ble levert;
+14 unike åpne produksjonskrav i REM-registeret, fem kapabilitetsgap og 13 uferdige P0–P3-poster;
+manglende varig, delt autorisasjons-/effekt-/audit-tilstand;
+manglende komplett, installerbar og attestert releaseartefakt;
+fravær av remediation-commit og dermed null T1-lukkede funn.
+Repositoryet inneholder mye god forsknings- og referanseimplementasjon, sterke interne tester og uvanlig åpen dokumentasjon av begrensninger. Det endrer ikke Level D-resultatet.
+2. Frosset scope og proveniens
+Felt
+Verdi
+Repository
+darklordVirtual/REMORA-research
+Frosset commit
+3ac282482670b47321dde58d310ca23ee3623112
+Snapshot
+REMORA-research-master.zip
+Snapshot SHA-256
+dc55ac3cb869c3589880777e9ed75aead5ffc57ea225c3b3e0665d059a1190a4
+Filmanifest
+1 367 filer
+Manifest SHA-256
+8edd69cda79a9c06a96f7901a9b1d96b07ec88bc09e9e3d88d16335b659b933f
+Reviewdato
+26. juli 2026
+Nåværende profil
+SHADOW_PILOT / SHADOW_ONLY
+Vurdert mål
+Level D / PRODUCTION evidence-package completeness
+Miljø
+Linux x86_64; Python 3.12.13; Node 24.14.0; npm 11.9.0
+Policy bundle
+NOT_AVAILABLE
+Modell-/konfigurasjonssett
+NOT_AVAILABLE
+Produksjonsverktøy og credential holder
+NOT_AVAILABLE
+Kunde-/site-/OT-kontekst
+NOT_AVAILABLE
+ZIP-filen inneholder ikke .git. Commit-bindingen bygger derfor på anskaffelsestidspunkt og eksakt byte-sammenligning av fem uavhengig endrede filer mot den navngitte GitHub-committen: README.md, paper/remora_paper.md, remora/selective/crc.py, tests/test_paper_no_stale_claims.py og remora/aromer/state_paths.py. Dette er sterk identifikasjon, men ikke en innfødt Git-attestasjon.
+GitHub ble bare lest for denne bindingen. Ingen GitHub-ressurs eller ekstern tjeneste ble endret.
+3. Metode og bevisregler
+Reviewen fulgte det vedlagte REMORA Prompt Pack som bindende styringsdokument. Arbeidsrekkefølgen var P0 → E1 → uavhengige R1/R2/R4 → R3/R6 → C1 → A1 → T1 → P1 → Q1.
+Brukte bevismodi:
+ASSERTED: oppgitt i kildematerialet, men ikke uavhengig bekreftet;
+INSPECTED: kode, dokument eller artefakt lest;
+EXECUTED: eksakt kommando eller test kjørt;
+RECOMPUTED: tall beregnet på nytt fra tilgjengelig lavnivådata;
+ADVERSARIALLY_TESTED: konkret moteksempel/fault/replay forsøkt i disponibelt lokalmiljø;
+NOT_AVAILABLE: nødvendig evidens var ikke levert eller kunne ikke kjøres.
+Alle funn beholder rolle-ID, alvorlighet, status, evidensmodus, kilde, observert/forventet resultat, konsekvens, akseptansekriterier og retestkrav. Ingen CRITICAL eller MAJOR ble nedgradert ved syntese.
+4. Persona- og kontrollmatrise
+Rolle
+Level D-status
+Funn / betydning
+P0 — orkestrering
+PASS_CANDIDATE
+Scope og kjøreplan komplett; ikke produktutfall
+E1 — evidens/proveniens
+FAIL_CANDIDATE
+3 MAJOR, 1 MINOR
+R1 — vitenskap/statistikk
+FAIL_CANDIDATE
+6 MAJOR, 2 MINOR
+R2 — agentisk sikkerhet
+FAIL_CANDIDATE
+2 CRITICAL, 4 MAJOR
+R3 — AI assurance/styring
+FAIL_CANDIDATE
+6 MAJOR
+R4 — programvare/distribuert/supply chain
+FAIL_CANDIDATE
+5 MAJOR
+R6 — kunde/domene/OT
+INDETERMINATE
+1 MAJOR; obligatorisk kontekst mangler
+A1 — defeater hunter
+FAIL_CANDIDATE
+Lastbærende defeaters validert; ingen nye ID-er
+T1 — retest/lukking
+INDETERMINATE
+Ingen remediation-commit; 0 lukket
+C1 — konsistens
+FAIL_CANDIDATE
+7 MAJOR, 1 MINOR
+P1 — panelsyntese
+FAIL_CANDIDATE
+Svakeste-rolle og absolutte gate-regler anvendt
+Q1 — pakkekvalitet
+PASS_CANDIDATE
+Pakken er klar for uavhengig menneskelig review; dette endrer ikke produktutfallet
+R5/Level L var ikke bestilt. C1 identifiserte faktiske konflikter mellom autoritativ BUSL-1.1 og enkelte publikasjoner som sier Apache-2.0; dette må behandles i en separat R5-faktapakke og av kvalifisert rådgiver. Rapporten gir ingen juridisk konklusjon.
+5. Level-resultater
+Nivå
+Utfall
+Avgjørende blokkere
+A — Research claims reviewed
+FAIL_CANDIDATE
+Feil eksakt risikogrense, uunderbygget garantispråk, denominator-/proveniensfeil
+B — Controlled pilot
+FAIL_CANDIDATE
+To CRITICAL R2-funn, REM-021/023 åpne, ubundet deployment/tool surface
+C — Limited enforcement
+FAIL_CANDIDATE
+R2/R4-håndheving og varighet, REM-024/030, R6 indeterminate
+D — Production package
+FAIL_CANDIDATE
+Åpne CRITICAL/MAJOR, uferdige P0–P3, manglende durable state/audit/supply chain/kunde
+L — License/IP
+NOT REVIEWED
+Separat workstream med R5 og kvalifisert counsel
+6. Releaseprofilen nekter opprykk
+Uavhengig rekonstruksjon fra docs/assurance/release_profiles_v1.yaml, remediation_register.yaml og capability_register_v1.yaml bekreftet:
+Profil
+Manglende REM-krav
+Kapabilitetsgap
+Resultat
+RESEARCH_REFERENCE
+0
+0
+Oppfylt
+SHADOW_PILOT
+0
+0
+Oppfylt
+CONTROLLED_PILOT
+2
+0
+REM-021, REM-023
+LIMITED_ENFORCEMENT
+4
+3
+REM-021/023/024/030; CAP-003/004/007
+PRODUCTION
+14 unike
+5
+Uferdige P0–P3 + REM-031; CAP-001/003/004/005/007
+docs/assurance/release_profiles_v1.yaml:38-42 og README.md:21-23 er konsistente med SHADOW_ONLY. Utsagn i docs/assurance/assurance_case_v1.md:8-10, development_review_log_v1.md, evidence_levels.md, paper/hf_dataset_card.md og docs/claim_register.md om at «én production gate» gjenstår, beskriver ikke dagens profilspesifikke avstand til produksjon.
+7. CRITICAL-funn
+R2-2026-001 — Selvoppgitt godkjenning og sideeffekt uten audit
+workers/agent-control/src/index.ts:309-332,363-428 bruker den kallende klientens approved=true som autoritet for store_artifact. Den kontrollerte Node-harnessen observerte ett R2-put. Da audit-innsettingen ble tvunget til å feile, skjedde R2-puttet fortsatt og responsen var HTTP 200 med suksess.
+Konsekvens: En innehaver av det brede control-secretet kan selvautorisere en beskyttet write og produsere en ikke-auditert sideeffekt.
+Akseptanse/retest: Godkjenning må være servereid tilstand fra en separat autentisert og autorisert principal, bundet til tenant, actor, tool, argumenter, miljø, policy, expiry og nonce. Audit-intent og terminal execution-state må være varig og fail-closed/reconcilable. Den opprinnelige harnessen og uavhengige varianter må gi null sideeffekter ved alle ugyldige tilfeller, verifisert av en uavhengig menneskelig R2-reviewer ved den faktiske credential-grensen.
+R2-2026-002 — Klientstyrt risikokontekst gir signert ACCEPT
+servers/execution_api.py:80-113,116-149 tar policybærende felter fra klienten. En autentisert operator sendte delete_production_database med destruktive argumenter, men oppga low/read/staging, høy trust/evidence, gyldig schema og rollback. Resultatet var signert ACCEPT. Samme idempotency key ga to ulike JTI-er, og begge tokenene utløste den kontrollerte PEP-effekten. Ærlig critical/destructive_write/prod ble ESCALATE.
+Konsekvens: En ubetrodd klient/modell kan nedgradere felt som bestemmer det harde policygulvet.
+Akseptanse/retest: Autoritative felter må avledes og attesteres server-side fra versjonerte tool-/risk-registre og autentisert deployment-kontekst. Idempotens må være varig. Original og varierte spoof-/alias-/injection-scenarier må gi ingen signert ACCEPT og null sideeffekter.
+8. Vitenskap og statistikk — R1
+Feil eksakt binomialgrense
+remora/selective/binomial_bounds.py:37-69 løser feil binomialhale. Reberegning ga blant annet:
+Tilfelle
+Repository
+Korrekt ensidig 95 % Clopper–Pearson
+0/10
+0,512 %
+25,887 %
+0/70
+0,073 %
+4,189 %
+0/208
+0,025 %
+1,430 %
+11/82
+13,415 %
+21,226 %
+For 11/82 gjør korreksjonen feltet target_risk_met_by_upper_bound falskt, ikke sant. Eksisterende tester sjekket grov monotoni/positivitet, ikke kjente endepunkter eller dekning.
+Uunderbygget conformal/Mondrian/CRC-garanti
+remora/selective/conformal.py:3-15,57-96 og guardrail-logikken søker en empirisk terskel på kalibreringsdata. Reviewen fant ingen conformal score-quantile, gyldig finite-sample correction, simultaneous correction for adaptivt terskelsøk eller theorem-to-code mapping for conditional accepted-set risk. remora/selective/crc.py:3-40 sier selv at komponenten er en weighted empirical selector uten CRC-garanti, mens paper, supplement og assurance-artefakter fortsatt bruker garantispråk.
+N=169, N=814 og N=36 er blandet
+artifacts/aromer/intelligence_snapshot_2026-07-02.json:43-53 kombinerer n_harmful_independent=169 med 0,367 %. Denne grensen hører til 0/814; korrekt fast-N-grense for 0/169 er 1,757 %. En separat 36-case time-holdout har 8 false accepts, 22,2 %. paper/remora_paper.md:1600-1618 blander populasjonene.
+REM-020 kan ikke reproduseres fra commit
+python scripts/compute_far_confidence_sequence.py feiler med KeyError: 'n_cycles_analyzed'. Den matematiske bibliotekverdien 0/168 → 4,7216 % kan gjenskapes fra summarisk count, men de 168 ordnede observasjonene og antakelser om adaptiv/avhengig trafikk er ikke levert.
+Stale benchmark-audit
+Nåværende claim-register/SAP/significance-artifact bruker 70 template-clustre og rapporterer unsafe-differansen som ikke-signifikant (p≈0,50). docs/assurance/benchmark_audit_v1.md:93-160 beholder N=700-inferens, 10–30 % baseliner og «No discrepancies».
+9. Sikkerhet og faktisk håndhevingsbane — R2
+I tillegg til CRITICAL-funnene:
+/v1/execution/execute i servers/execution_api.py:225-269 forbruker en grant, men kaller ingen GovernedToolDispatcher og utfører intet tool.
+EnforcementGate og NonceLedger lagrer JTI/nonce i prosesslokale sets. To uavhengige instanser godtok samme lease og ga to effekter.
+GovernedToolDispatcher(expected_policy_bundle_hash=None) godtok en lease fra gammel policy; en eksplisitt pinnet dispatcher avviste den.
+En tool-funksjon som registrerte effekt og deretter kastet exception ga én effekt og RuntimeError; nonce var brent, men ingen varig FAILED/UNKNOWN-tilstand fantes.
+Positive motprøver: endrede argumenter, tenant/actor swap, expiry, unsigned og missing lease ga null kontrollerte effekter. Én prosess nekter replay korrekt. Dette er reell lokal sikkerhetsverdi, men ikke distribuert Level D-evidens.
+10. Governance og assurance — R3
+R3 fant seks MAJOR:
+profilnarrativene motsier maskinlesbar release state;
+claim-, capability- og remediation-objekter mangler ansvarlige eiere og/eller statusfelt;
+samme autentiserte admin kunne i en kontrollert TestClient-flyt assess → approve → execute;
+operational oversight, SLA, severity-routing, two-person rule, durable queue og OIDC er helt eller delvis design-only;
+DecisionEnvelope rekonstruerer ikke godkjenning, dispatch, sideeffekt og terminalt resultat;
+NIST/OWASP-mappinger kaller manglende enterprise/*, unwired OPA, supply-chain og two-person-kontroller «Implemented»;
+REM-021-protokollen og evidenstaksonomien er uforenlige, og signerte reviewartefakter mangler.
+docs/assurance/assurance_case_v1.md:168-176 bevarer flere sentrale defeaters åpent. Det er positivt, men en åpen defeater er ikke en lukket produksjonskontroll.
+11. Programvare, distribuert tilstand og supply chain — R4
+Installerbar artefakt
+To lokale wheel-builds var byte-identiske med SHA-256 3663d436b404d9d2d4f90ee146df81a8e27450b10274c1bf02e482642755bea1. Core-importer, CLI og pakkeinterne ressurser virket. Hjulet inneholder imidlertid verken servers/ eller root schemas/; wheel-only python -m uvicorn servers.api:app utenfor checkout feilet med ModuleNotFoundError.
+Distribuert autorisasjon
+Prosesslokale queue-, item-, JTI- og nonce-strukturer gir flere vinnere på tvers av prosesser/replikaer og tapes ved restart. Trådtester dokumenterer bare én prosess.
+Effect/audit-transaksjon
+Queue-status, grantforbruk, audit append og downstream effect er ikke én varig transaksjon. idempotency_key tas imot, men brukes ikke. Det finnes ingen komplett DISPATCHING/SUCCEEDED/FAILED/UNKNOWN-modell med outbox/inbox-reconciliation.
+PostgreSQL og release
+psycopg og psycopg2 brukes i ulike adapters uten deklarert, samlet runtime-extra. Kontrollplanet har ikke real-service kontrakttest; startup-DDL erstatter versjonerte migrasjoner. Level D-pakken mangler hash-verifisert lock, SBOM, SLSA-lignende provenance, distribuert signaturverifikasjon, digest-pinnet base og build-once published-artifact-gate.
+12. Kundespesifikk R6/OT
+R6 må være kundespesifikk og kan ikke utledes av kodebasen. Følgende var NOT_AVAILABLE: kunde, site, asset/process, tool surface, konsekvensklasser, dataklassifisering, operating modes, OT-soner, brukere, credential custody, safe state, manual override, emergency stop, prosedyrer, independent protection layers og ansvarlig kundemyndighet.
+R6 er derfor korrekt INDETERMINATE; fravær av evidens er ikke evidens for fravær av fare.
+13. Cross-artifact consistency — C1
+C1 fant:
+«én gate til produksjon» i aktive dokumenter mot 14 profilspesifikke produksjonsgap;
+paper/whitepaper.md merket historical/do-not-cite, men fortsatt brukt i test, generator, credibility pack, codegraph og frontend som «current technical framing»;
+håndskrevne frontend-benchmarktall med foreldede 20 %/10 % baseliner mot nåværende 1,4 %/1,4 %;
+N=169/N=814/N=36-konflikten i public/assurance-sider;
+dokumentert execution/identity/policy/audit som går lenger enn faktiske paths og skjuler R2 CRITICAL;
+autoritativ BUSL-1.1 mot Apache-2.0 i kanonisk AROMER-dokument og aktiv dataset card;
+assurance/science-status uten current independent retest;
+statiske testtall uten én commit-bundet kilde.
+14. Defeater-, retest- og syntesekontroll
+A1 forsøkte å falsifisere de lastbærende påstandene via implementation/wiring, statistikk/data, adversarial/operasjonell, provenance/staleness, scope/generalization, governance/identity og distributed-state defeaters. De viktigste defeaterne ble validert av eksisterende recomputations og harnesses. A1 opprettet ingen duplikate funn-ID-er; funnene ble routet tilbake til E1/R1–R4/R6/C1.
+T1 klassifiserte først 27 CRITICAL/MAJOR eierrollefunn og utstedte deretter et endelig report-only supplement for de syv C1 MAJOR-funnene da Q1 identifiserte rekkefølgegapet. Den endelige T1-matrisen dekker derfor alle 34 CRITICAL/MAJOR-funn. Ingen hadde en egen remediation-commit. Utfallet ble:
+INDETERMINATE;
+NOT_ELIGIBLE_NO_REMEDIATION_COMMIT;
+0 remediation-bound unchanged retests;
+0 independent variants mot remediation;
+0 lukkede funn.
+P1 anvendte svakeste-obligatoriske-rolle og absolutte Level D-blokkere. En INDETERMINATE R6 kan ikke antas bestått; åpne CRITICAL/MAJOR kan ikke stemmes bort; beståtte interne tester kan ikke erstatte manglende deployment-evidens.
+15. Positiv evidens
+Interne gates for claim consistency, artifacts, overclaims, claim sync, script hygiene, links, evaluation leakage, license policy, provenance og document governance bestod med dokumentert lokal kontekst.
+R1: 138 obligatoriske + 209 utvidede tester bestod.
+R2: 187 tester bestod; to PostgreSQL-tester ble skipped.
+R3: 145 targeted governance-tester bestod; én skipped.
+R4: 149 targeted/API-tester, ruff og scoped mypy bestod.
+Full deterministisk suite: 3 579 passed, 9 failed, 11 skipped, 36 deselected. Seks AROMER-pathfeil bestod etter writable state override; tre governance-tester krevde .git, som manglet i ZIP.
+To lokale wheels var byte-identiske; installert core og CLI virket.
+Signatur, expiry, audience, exact args, tenant, actor og target har gode negative tester i den testede lease-banen.
+SQLite audit chain og single-process replay locks har substansiell støtte.
+Repositoryet oppgir selv SHADOW_ONLY, bevarer negative resultater og lister åpne defeaters.
+Dette viser en omfattende og testet forsknings-/referansebase. Det er ikke det samme som produksjonshåndheving eller ekstern verifikasjon.
+16. Samlet funnregister
+CRITICAL — 2
+R2-2026-001 — Credential-holding Worker: client-declared approval og unaudited effect.
+R2-2026-002 — Caller-controlled policy context gir signert ACCEPT og PEP-effekt.
+MAJOR — 32
+E1-2026-001 — Level D deployment evidence package absent.
+E1-2026-002 — Flere release-relevante resultater kan ikke reproduseres.
+E1-2026-004 — Release provenance og supply-chain-evidens mangler.
+R1-2026-001 — Feil Clopper–Pearson-implementasjon.
+R1-2026-002 — Uunderbygget conformal/Mondrian-garanti.
+R1-2026-003 — CRC-statuskontradiksjon.
+R1-2026-004 — Inkompatible safety-bound-populasjoner.
+R1-2026-005 — REM-020-input ikke reproduserbar.
+R1-2026-006 — Stale N=700 benchmark-audit.
+R2-2026-003 — Main execution API er ikke koblet til dispatcher.
+R2-2026-004 — Replay/approval/idempotency er ikke delt eller varig.
+R2-2026-005 — Aktiv policy freshness er valgfri/ufullstendig.
+R2-2026-006 — Ingen durable FAILED/UNKNOWN-reconciliation.
+R3-2026-001 — Production-gate-narrativ motsier releaseprofil.
+R3-2026-002 — Assurance-objekter mangler ansvarlig eier.
+R3-2026-003 — Operational oversight mangler varighet/SoD.
+R3-2026-004 — DecisionEnvelope rekonstruerer ikke decision-to-effect.
+R3-2026-005 — Standardsmappinger overdriver controls.
+R3-2026-006 — REM-021 closure evidence er inkonsistent/ufullstendig.
+R4-2026-001 — Dokumentert API mangler i installert wheel.
+R4-2026-002 — Replica-lokal replay gir flere vinnere.
+R4-2026-003 — Authorization/effect/audit er ikke atomisk.
+R4-2026-004 — PostgreSQL runtime/migration/contract mangler.
+R4-2026-005 — Level D supply chain/release gates mangler.
+R6-2026-001 — Kundespesifikk Level D/OT-pakke mangler.
+C1-2026-001 — «Én gate» motsier profilspesifikk sannhet.
+C1-2026-002 — Historical whitepaper er aktiv.
+C1-2026-003 — Frontend publiserer stale benchmark truth.
+C1-2026-004 — AROMER N=169/N=814/N=36 blandes.
+C1-2026-005 — Execution/identity/policy/audit-prosa overdriver paths.
+C1-2026-006 — Publikasjoner motsier BUSL-1.1.
+C1-2026-007 — Assurance/science-status uten current retest closure.
+MINOR — 4
+E1-2026-003 — Claim-register freshness-metadata stale.
+R1-2026-007 — Holdout p-value label/reproduce-kommando avviker.
+R1-2026-008 — Uunderbygget PVD calibration assertion.
+C1-2026-008 — Statiske testtall uten shared lifecycle/commit.
+Alle 38 funn er åpne.
+17. Rest-risiko
+uautorisert grant via ubetrodd kontekst eller alternativ credential path;
+self-approved eller unaudited side effect;
+duplikat sideeffekt ved retry, replika eller restart;
+stale policy eller ufullstendig configuration binding;
+ukjent effect outcome ved crash, timeout eller auditfeil;
+feil eller ikke-generaliserbar safety bound;
+simulator/imported/self-reported evidence misforstått som ekstern verifikasjon;
+ikke-installerbar API og uprøvd database lifecycle;
+utleverbar artefakt uten komplett source/dependency/provenance/signature-chain;
+stale maturity-, mapping-, rights- og benchmarkpublikasjoner;
+manglende human SoD, driftseierskap og residual-risk acceptance;
+helt uassessert kunde-, site-, OT- og fysisk konsekvensrisiko.
+18. Krav før ny Level D-review
+Lukk statistiske feil og regenerer alle berørte artefakter/publications fra lavnivådata.
+Gjør policykontekst autoritativ server-side og retest begge R2 CRITICAL ved virkelig credential holder.
+Implementer separat, autentisert approval og reell segregation of duties.
+Implementer delt, varig og atomisk autorisasjons-/idempotency-/execution-/audit-state med failure reconciliation.
+Koble en bounded credential-holding dispatcher og test alle bypass- og no-side-effect paths.
+Gjennomfør multi-process/replika/restart/partition/crash-tester mot real services.
+Lever installerbar wheel/image, deklarerte databaseavhengigheter, versjonerte migrasjoner, backup/restore og published-artifact smoke.
+Lever hash lock, SBOM, provenance, signatur og digest-pinnet build-once release.
+Generer maturity, benchmark, mappings og publication lifecycle fra autoritative, commit-bundne kilder.
+Lever komplett policy/model/tool/identity/deployment-manifest.
+Lever kundespesifikk R6-pakke og kundeeid risikoaksept.
+Oppgi remediation-commit for hvert funn og kjør T1 unchanged/variant/adjacent/artifact-consistency retest.
+19. Menneskelig handoff
+Følgende uavhengige mennesker må fortsatt gjøre arbeidet:
+R1-statistiker/metodereviewer for lavnivårekomputasjon og påstandsspråk;
+R2 agent-security/red-team-reviewer for personlig exploit-retest ved faktisk credential boundary;
+R3 AI assurance/governance-reviewer for eierskap, SoD, mappings, rest-risiko og REM-021;
+R4 software/distributed/supply-chain-reviewer for clean release, durable state og failure testing;
+kundegodkjent R6 domain/OT authority for navngitt deployment;
+evidens-/releaseansvarlig for immutable artifacts og provenance;
+separat R5/counsel for rights-konflikten.
+Ingen AI-rolle kan signere for disse.
+20. Tillatt og forbudt ekstern ordlyd
+Tillatt:
+«En AI-assistert, read-only review av commit 3ac282482670b47321dde58d310ca23ee3623112 ga FAIL_CANDIDATE for REMORA Level D. Levert evidens støtter bare repositoryets deklarerte SHADOW_PILOT/SHADOW_ONLY. Uavhengig kvalifisert menneskelig review, remediation og retest gjenstår.»
+Forbudt:
+production-safe, production-ready, certified, accredited, compliant, externally verified eller legally cleared;
+REM-021 lukket eller uavhengig signert;
+«én gate fra produksjon» uten presis profil og full gapliste;
+zero unsafe/FAR som generell field-safety guarantee;
+generalisering av én kunde/site til andre miljøer.
+21. Q1 metareview
+Endelig Q1 ga PASS_CANDIDATE for reviewpakkens kvalitet og integritet. Dette er utelukkende en vurdering av om pakken er egnet for overlevering til kvalifiserte, uavhengige menneskelige reviewere; det er ikke et produktpass, en produksjonsgodkjenning eller lukking av REM-021. REMORAs Level D-utfall forblir FAIL_CANDIDATE.
+Q1 kontrollerte 20 obligatoriske pakkekrav og bestod alle. Alle 11 oppstrøms rolle-JSON-er kunne parses, P1s register samsvarte eksakt med 2 CRITICAL, 32 MAJOR og 4 MINOR, og T1 dekket alle 34 CRITICAL/MAJOR-funn. Ingen av funnene var lukket eller hadde bestått retest.
+De tre opprinnelige Q1-pakkeavvikene ble lukket før endelig rapport:
+execution-ledgeren har 48 unike poster med kommando eller script, cwd, materiell miljøinformasjon, exit-status, resultat, transkript og SHA-256; 48 av 48 paths og hashes validerte med exit 0;
+endelig C1 kryssleste R3, A1 og T1, mens endelig T1 inkluderte de syv C1 MAJOR-funnene;
+en ren handoff-ekstraksjon verifiserte 1 367 av 1 367 filer, med 0 manglende, 0 endrede og 0 ekstra filer.
+En prøve på 15 høykonsekvens-sitatkjeder ga 15 støttede, 0 ustøttede og 0 fabrikerte referanser. Repository-lokale agentinstrukser og adversarielle teststrenger ble behandlet som upålitelig reviewdata og endret ikke styringsdokumentet. Q1 fant ingen eksponering av live-hemmeligheter, private persondatasett eller skjulte interne prompter. Ingen GitHub- eller andre eksterne skrivehandlinger ble observert i den tilgjengelige reviewevidensen.
+Pakken er dermed READY_FOR_INDEPENDENT_HUMAN_REVIEW, med eksplisitt krav om ny Q1 dersom rapporter, funn, ledger/transkripter, manifest, handoff-snapshot eller policy-, modell-, verktøy-, deployment-, datasett-, kunde- eller releasebinding endres.
+22. Maskinlesbart sammendrag
+{
+  "repository": "darklordVirtual/REMORA-research",
+  "commit_sha": "3ac282482670b47321dde58d310ca23ee3623112",
+  "snapshot_sha256": "dc55ac3cb869c3589880777e9ed75aead5ffc57ea225c3b3e0665d059a1190a4",
+  "review_date": "2026-07-26",
+  "current_profile": "SHADOW_PILOT / SHADOW_ONLY",
+  "requested_level": "D",
+  "level_d_outcome": "FAIL_CANDIDATE",
+  "q1_package_outcome": "PASS_CANDIDATE",
+  "finding_counts": {
+    "CRITICAL": 2,
+    "MAJOR": 32,
+    "MINOR": 4,
+    "all_open": true
+  },
+  "mandatory_role_outcomes": {
+    "E1": "FAIL_CANDIDATE",
+    "R1": "FAIL_CANDIDATE",
+    "R2": "FAIL_CANDIDATE",
+    "R3": "FAIL_CANDIDATE",
+    "R4": "FAIL_CANDIDATE",
+    "R6": "INDETERMINATE",
+    "A1": "FAIL_CANDIDATE",
+    "T1": "INDETERMINATE",
+    "C1": "FAIL_CANDIDATE",
+    "P1": "FAIL_CANDIDATE",
+    "Q1": "PASS_CANDIDATE"
+  },
+  "t1": {
+    "closure_eligibility": "NOT_ELIGIBLE_NO_REMEDIATION_COMMIT",
+    "closed_count": 0
+  },
+  "supported_operational_scope": "SHADOW_PILOT / SHADOW_ONLY only",
+  "policy_bundle_hash": "NOT_AVAILABLE",
+  "model_set": "NOT_AVAILABLE",
+  "production_tool_surface": "NOT_AVAILABLE",
+  "customer_context": "NOT_AVAILABLE",
+  "human_signatures": [],
+  "github_writes": 0
+}

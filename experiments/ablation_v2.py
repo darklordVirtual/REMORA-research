@@ -55,12 +55,26 @@ from remora.oracles.groq import GroqOracle
 from remora.persistence import CachedOracle, Store
 from remora.scoring import score_one, _polarity_match, effective_truth_rate
 
-ORACLE_MODELS = [
-    "llama-3.1-8b-instant",
-    "llama-3.3-70b-versatile",
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-]
-STRONG_SINGLE = "llama-3.3-70b-versatile"
+# Cross-family trios (SAP v2, 2026-07-27) — validated so no two models
+# share a weight family. The former all-LLaMA trio is retired (same-family
+# correlation; llama-4-scout removed from the Groq catalog). Frozen
+# artifacts generated with the old trio keep their recorded model lists.
+# The live segment runs on Cloudflare Workers AI (SAP v2 §2 amendment,
+# 2026-07-27, recorded before the first live benchmark call); the Groq
+# backend remains selectable for reproduction attempts.
+from remora.oracles.families import CROSS_FAMILY_CF_MODELS, validate_cross_family  # noqa: E402
+from remora.oracles.factory import build_benchmark_oracle  # noqa: E402
+
+BACKENDS: dict[str, tuple[list[str], str]] = {
+    # backend -> (consensus trio, strong single-oracle baseline)
+    "groq": (list(GroqOracle.DEFAULT_MODELS), "llama-3.3-70b-versatile"),
+    "cloudflare": (list(CROSS_FAMILY_CF_MODELS), "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+}
+
+# Backwards-compatible module-level defaults (thermodynamic_eval fallback).
+ORACLE_MODELS = BACKENDS["groq"][0]
+validate_cross_family(ORACLE_MODELS)
+STRONG_SINGLE = BACKENDS["groq"][1]
 
 
 def load_benchmark(module_name: str) -> tuple[list[BenchmarkItem], dict[str, dict], str]:
@@ -101,6 +115,30 @@ def wilson_ci(n_correct: int, n: int, z: float = 1.96) -> tuple[float, float]:
 
 def accuracy(results: list[dict]) -> float:
     return sum(1 for r in results if r["correct"]) / len(results) if results else 0.0
+
+
+def selective_metrics(results: list[dict]) -> dict:
+    """Abstention-aware metrics (research review 2026-07-27).
+
+    The legacy `accuracy` counts an abstention (predicted None — a refusal
+    OR an unparseable response) as a wrong answer, which structurally
+    penalizes selective conditions against always-answering baselines
+    (majority vote scored 29% on yes/no BoolQ — below the 50% chance floor,
+    proving the metric artifact). These fields separate the two:
+    abstention is its own category, accuracy is reported among answered
+    items with its own denominator (metric_definitions_v1.md rule 1).
+    """
+    n = len(results)
+    answered = [r for r in results if r.get("predicted") is not None]
+    n_ans = len(answered)
+    n_corr = sum(1 for r in answered if r["correct"])
+    return {
+        "n_answered": n_ans,
+        "n_abstained_or_unparsed": n - n_ans,
+        "coverage": round(n_ans / n, 4) if n else 0.0,
+        "accuracy_answered": round(n_corr / n_ans, 4) if n_ans else None,
+        "ci_95_answered": list(wilson_ci(n_corr, n_ans)) if n_ans else None,
+    }
 
 
 def per_source(results: list[dict]) -> dict:
@@ -227,7 +265,16 @@ def main() -> None:
         default=str(ROOT / "results" / "ablation_v2_results.json"),
         help="Path to the JSON results file",
     )
+    parser.add_argument(
+        "--backend",
+        choices=sorted(BACKENDS),
+        default="groq",
+        help="Oracle hosting backend (the 2026-07 round live segment uses cloudflare)",
+    )
     args = parser.parse_args()
+
+    oracle_models, strong_single = BACKENDS[args.backend]
+    validate_cross_family(oracle_models)
 
     print(f"\nLoading benchmark module {args.benchmark_module}...")
     all_items, meta_map, loader_name = load_benchmark(args.benchmark_module)
@@ -250,11 +297,12 @@ def main() -> None:
     for m in meta: per_bm[m["benchmark"]] += 1
     for bm, n in sorted(per_bm.items()): print(f"  {bm:25s}: {n}")
 
-    # Reuse existing cache — 75-item responses already stored, only new items cost API calls
+    # Reuse existing cache — responses are keyed on oracle name + prompt, so
+    # backends never collide and interrupted passes resume incrementally.
     store = Store(".remora_cache.json")
-    raw_oracles = [GroqOracle(m) for m in ORACLE_MODELS]
+    raw_oracles = [build_benchmark_oracle(args.backend, m) for m in oracle_models]
     cached = [CachedOracle(o, store) for o in raw_oracles]
-    single = CachedOracle(GroqOracle(STRONG_SINGLE), store)
+    single = CachedOracle(build_benchmark_oracle(args.backend, strong_single), store)
 
     base_genome = dict(
         max_iterations=4, max_subquestions=1, converged_threshold=0.72,
@@ -347,8 +395,9 @@ def main() -> None:
             "benchmark_loader": loader_name,
             "n_items": len(all_items),
             "per_benchmark": dict(per_bm),
-            "oracles": ORACLE_MODELS,
-            "single_oracle": STRONG_SINGLE,
+            "backend": args.backend,
+            "oracles": oracle_models,
+            "single_oracle": strong_single,
         },
         "conditions": {
             cond: {
@@ -356,6 +405,7 @@ def main() -> None:
                 "correct": sum(1 for r in res if r["correct"]),
                 "accuracy": round(accuracy(res), 4),
                 "ci_95": list(wilson_ci(sum(1 for r in res if r["correct"]), len(res))),
+                "selective": selective_metrics(res),
                 "per_source": per_source(res),
                 "per_domain": per_domain(res),
                 "adversarial": adversarial_accuracy(res),

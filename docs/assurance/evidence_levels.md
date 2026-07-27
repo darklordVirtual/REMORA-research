@@ -56,7 +56,7 @@ simulation environment. No external dataset; no live model calls.
 
 **Typical REMORA examples:**
 - Building-light demo split-action gating (`scripts/demo_building_lights.py`)
-- AROMER replay arena accuracy (96-case curated arena)
+- AROMER replay arena accuracy (93-case curated arena)
 - AII trajectory during seeding experiments (`NEGATIVE_RESULTS.md §4–§13`)
 
 **Promotion path:** Promote to `internal_benchmark` when the result is locked in

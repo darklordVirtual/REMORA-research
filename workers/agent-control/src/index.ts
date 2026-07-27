@@ -128,7 +128,7 @@ const TOOL_CATALOG = [
     name: "store_artifact",
     description:
       "Store a document, report, or evidence artifact to R2. " +
-      "REQUIRES APPROVAL FLAG — set approved=true only when the user has confirmed. " +
+      "REQUIRES APPROVAL — first submit with no audit_id to get one, then approve via audit_decision. " +
       "Returns the artifact key for future retrieval.",
     parameters: {
       type: "object",
@@ -136,7 +136,7 @@ const TOOL_CATALOG = [
         key:         { type: "string", description: "Storage key / filename (e.g. 'reports/bygg-x-2026-05.md')" },
         content:     { type: "string", description: "Text content to store" },
         content_type:{ type: "string", description: "MIME type (default: text/markdown)" },
-        approved:    { type: "boolean",description: "User has confirmed this write should proceed" },
+        audit_id:    { type: "number",description: "The approved audit_id from the human review" },
       },
       required: ["key", "content"],
     },
@@ -308,16 +308,6 @@ async function runTool(
 
     // ── store_artifact ───────────────────────────────────────────────────────
     case "store_artifact": {
-      if (!input.approved) {
-        return {
-          output: {
-            status:  "APPROVAL_REQUIRED",
-            message: "Set approved=true to confirm storing this artifact.",
-            key:     input.key,
-            size:    typeof input.content === "string" ? input.content.length : 0,
-          },
-        };
-      }
       const content_type = String(input.content_type ?? "text/markdown");
       await env.ARTIFACTS.put(String(input.key), String(input.content), {
         httpMetadata: { contentType: content_type },
@@ -360,10 +350,35 @@ async function runTool(
 
 // ── Request handlers ───────────────────────────────────────────────────────────
 
+async function auditUpdateFinal(
+  db: D1Database,
+  id: number,
+  row: {
+    output_hash?: string;
+    output_preview?: string;
+    duration_ms?: number;
+    upstream_url?: string;
+    verdict?: string;
+    confidence?: number;
+  }
+): Promise<void> {
+  await db.prepare(
+    `UPDATE audit_log SET output_hash=?, output_preview=?, duration_ms=?, upstream_url=?, verdict=?, confidence=? WHERE id=?`
+  ).bind(
+    row.output_hash ?? null,
+    row.output_preview ?? null,
+    row.duration_ms ?? null,
+    row.upstream_url ?? null,
+    row.verdict ?? null,
+    row.confidence ?? null,
+    id
+  ).run();
+}
+
 async function handleExecute(req: Request, env: Env): Promise<Response> {
   let body: ToolInput;
   try {
-    body = await req.json() as ToolInput;
+    body = (await req.json()) as ToolInput;
   } catch {
     return err("Invalid JSON body");
   }
@@ -371,11 +386,57 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
     return err("Required fields: tool, input, session_id");
   }
 
-  const approvalTools = (env.APPROVAL_REQUIRED_TOOLS ?? "").split(",").map(t => t.trim()).filter(Boolean);
+  const approvalTools = (env.APPROVAL_REQUIRED_TOOLS ?? "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
   const approval_required = approvalTools.includes(body.tool) ? 1 : 0;
 
-  const inputStr   = JSON.stringify(body.input);
+  const inputStr = JSON.stringify(body.input);
   const input_hash = await sha256(inputStr);
+
+  const pre_audit_id = await auditInsert(env.AUDIT_DB, {
+    session_id: body.session_id,
+    tool_called: body.tool,
+    input_hash,
+    input_preview: preview(body.input),
+    approval_required,
+  });
+
+  if (!pre_audit_id) {
+    return json({ error: "Audit infrastructure failed" }, 502);
+  }
+
+  if (approval_required === 1) {
+    if (!body.input.audit_id) {
+      return json(
+        {
+          tool: body.tool,
+          success: false,
+          output: {
+            status: "APPROVAL_REQUIRED",
+            message: "Human approval needed via audit_decision.",
+            audit_id: pre_audit_id,
+          },
+          approval_required: true,
+          session_id: body.session_id,
+          audit_id: pre_audit_id,
+        },
+        402
+      );
+    }
+
+    const row = await env.AUDIT_DB.prepare("SELECT approved, input_hash FROM audit_log WHERE id = ?")
+      .bind(body.input.audit_id)
+      .first<{ approved: number; input_hash: string }>();
+
+    if (!row || row.approved !== 1 || row.input_hash !== input_hash) {
+      return json(
+        { error: "UNAUTHORIZED: audit_id not approved or input modified", audit_id: body.input.audit_id },
+        403
+      );
+    }
+  }
 
   const t0 = Date.now();
   let output: unknown;
@@ -386,47 +447,48 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
 
   try {
     const result = await runTool(body.tool, body.input, env);
-    output       = result.output;
-    verdict      = result.verdict;
-    confidence   = result.confidence;
+    output = result.output;
+    verdict = result.verdict;
+    confidence = result.confidence;
     upstream_url = result.upstream_url;
   } catch (e) {
     success = false;
-    output  = { error: e instanceof Error ? e.message : String(e) };
+    output = { error: e instanceof Error ? e.message : String(e) };
   }
 
-  const duration_ms  = Date.now() - t0;
-  const outputStr    = JSON.stringify(output);
-  const output_hash  = await sha256(outputStr);
+  const duration_ms = Date.now() - t0;
+  const outputStr = JSON.stringify(output);
+  const output_hash = await sha256(outputStr);
 
-  const audit_id = await auditInsert(env.AUDIT_DB, {
-    session_id: body.session_id,
-    tool_called: body.tool,
-    input_hash,
-    input_preview:  preview(body.input),
-    output_hash,
-    output_preview: preview(output),
-    duration_ms,
-    upstream_url,
-    approval_required,
-    verdict,
-    confidence,
-  });
+  try {
+    await auditUpdateFinal(env.AUDIT_DB, pre_audit_id, {
+      output_hash,
+      output_preview: preview(output),
+      duration_ms,
+      upstream_url,
+      verdict,
+      confidence,
+    });
+  } catch (e) {
+    console.error("Failed to update final audit state!");
+    // we still return outcome, but note that execution happened
+  }
 
   const result: ToolResult = {
-    tool:       body.tool,
+    tool: body.tool,
     success,
     output,
     verdict,
     confidence,
     duration_ms,
     session_id: body.session_id,
-    audit_id:   audit_id ?? undefined,
+    audit_id: pre_audit_id,
     approval_required: approval_required === 1,
   };
 
   return json(result, success ? 200 : 502);
 }
+
 
 async function handleCreateSession(req: Request, env: Env): Promise<Response> {
   const body = await req.json().catch(() => ({})) as Record<string, unknown>;

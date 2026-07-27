@@ -35,7 +35,7 @@ def test_public_docs_do_not_pin_stale_test_counts() -> None:
     docs = [
         ROOT / "README.md",
         ROOT / "Makefile",
-        ROOT / "paper" / "whitepaper.md",
+        ROOT / "paper" / "remora_paper.md",
         ROOT / "docs" / "deployment" / "onprem-airgapped.md",
     ]
     joined = "\n".join(path.read_text(encoding="utf-8") for path in docs)

@@ -6,14 +6,16 @@
 Usage:
     python scripts/run_llm_baselines_v3.py [--n N] [--out PATH]
 
-Requires: GROQ_API_KEY environment variable.
+Requires: CLOUDFLARE_API_TOKEN (or CF_AIG_TOKEN) + CLOUDFLARE_ACCOUNT_ID —
+the baseline calls Cloudflare Workers AI (the old GROQ_API_KEY note was
+stale; see remora/toolcall/baselines_llm.py).
 
 Output: results/toolcall_llm_baselines_pilot_n100.json (or --out path)
 
 The artifact format:
     {
       "schema_version": "llm_baselines_v1",
-      "model": "llama-3.3-70b-versatile",
+      "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       "n_tasks": 100,
       "benchmark": "toolcall_blind_v3",
       "generated_at": "2026-06-28T...",

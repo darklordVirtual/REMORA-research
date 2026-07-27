@@ -26,13 +26,21 @@ import random
 from collections import defaultdict
 from pathlib import Path
 
-DATA_PATH = Path("results/thermodynamic_eval_n500_calibrated_results.json")
+# Clean round 2026-07 (SAP v2): primary input is the UNCALIBRATED artifact.
+DATA_PATH = Path("results/thermodynamic_eval_n500_uncalibrated_results.json")
 OUT_PATH = Path("results/selective_n500_holdout_results.json")
 
 RANDOM_SEED = 42
 HOLDOUT_FRACTION = 0.20
-SIGNAL = "neg_temperature"  # primary signal identified in in-sample analysis
-COVERAGE_TARGET = 0.18      # in-sample optimal coverage (locked from §10 analysis)
+# HYPERPARAMETER PROVENANCE (research audit P0-5): both SIGNAL and
+# COVERAGE_TARGET were selected from earlier FULL-dataset analysis (§10),
+# so this holdout tests an operating point partially chosen with knowledge
+# of the whole dataset. It is better than in-sample evaluation but NOT a
+# pristine out-of-sample test. A clean re-run must pre-register signal and
+# coverage before labels are opened — see
+# docs/assurance/rebenchmark_protocol_v1.md.
+SIGNAL = "neg_temperature"  # in-sample-derived (see provenance note above)
+COVERAGE_TARGET = 0.18      # in-sample-derived (see provenance note above)
 MIN_ACCEPTED = 5            # minimum holdout items to report a meaningful result
 
 
@@ -51,40 +59,71 @@ def _wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
 
 
 def _p_value_one_sided(k: int, n: int, p0: float) -> float:
-    """One-sided binomial p-value (H1: accuracy > p0) via normal approximation."""
+    """One-sided EXACT binomial p-value: P(X >= k | n, p0) under H0.
+
+    Replaced the normal approximation 2026-07-27 (research audit P0-5): at
+    n≈25 accepted observations the normal approximation is not defensible.
+    Exact tail sum via math.comb — no SciPy dependency needed.
+    """
     if n == 0:
         return 1.0
-    p_hat = k / n
-    se = math.sqrt(p0 * (1 - p0) / n)
-    if se == 0:
-        return 0.0 if p_hat > p0 else 1.0
-    z = (p_hat - p0) / se
-    return 0.5 * math.erfc(z / math.sqrt(2))
+    if p0 <= 0.0:
+        return 0.0 if k > 0 else 1.0
+    if p0 >= 1.0:
+        return 1.0
+    return sum(
+        math.comb(n, i) * (p0 ** i) * ((1.0 - p0) ** (n - i))
+        for i in range(k, n + 1)
+    )
 
 
 # ---------------------------------------------------------------------------
 # Stratified split
 # ---------------------------------------------------------------------------
 
+def _group_key(item: dict) -> str:
+    """Grouping key so duplicate content never straddles the split (SAP v2).
+
+    item_ids carry a content-hash suffix (e.g. tqa_0000_8ed07b14); two items
+    with the same hash are the same underlying content and must land on the
+    same side. Items without a hash suffix group by their full id.
+    """
+    iid = str(item.get("item_id", ""))
+    parts = iid.rsplit("_", 1)
+    if len(parts) == 2 and len(parts[1]) == 8 and all(
+        c in "0123456789abcdef" for c in parts[1]
+    ):
+        return parts[1]
+    return iid or repr(sorted(item.items()))[:64]
+
+
 def stratified_split(
     items: list[dict],
     holdout_fraction: float,
     seed: int,
 ) -> tuple[list[dict], list[dict]]:
-    """Return (train, holdout) split stratified by `benchmark` field."""
+    """Return (train, holdout) split stratified by `benchmark` source and
+    grouped by content hash — group-aware since SAP v2 (2026-07-27), so
+    identical content cannot appear on both sides of the split."""
     rng = random.Random(seed)
-    by_source: dict[str, list[dict]] = defaultdict(list)
+    by_source: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
     for item in items:
         src = item.get("benchmark", "unknown")
-        by_source[src].append(item)
+        by_source[src][_group_key(item)].append(item)
 
     train, holdout = [], []
-    for src, group in sorted(by_source.items()):
-        shuffled = list(group)
-        rng.shuffle(shuffled)
-        n_hold = max(1, round(len(shuffled) * holdout_fraction))
-        holdout.extend(shuffled[:n_hold])
-        train.extend(shuffled[n_hold:])
+    for src, groups in sorted(by_source.items()):
+        group_keys = sorted(groups)
+        rng.shuffle(group_keys)
+        n_items = sum(len(groups[k]) for k in group_keys)
+        target_hold = max(1, round(n_items * holdout_fraction))
+        held = 0
+        for key in group_keys:
+            if held < target_hold:
+                holdout.extend(groups[key])
+                held += len(groups[key])
+            else:
+                train.extend(groups[key])
 
     return train, holdout
 
@@ -243,6 +282,12 @@ def run(
             "random_seed": seed,
             "holdout_fraction": holdout_fraction,
             "signal": SIGNAL,
+            "hyperparameter_provenance": (
+                "SIGNAL and COVERAGE_TARGET selected from full-dataset "
+                "in-sample analysis; holdout is not pristine out-of-sample "
+                "(SAP deviation D-5)."
+            ),
+            "p_value_method": "exact one-sided binomial (math.comb tail sum)",
             "note": (
                 "tau* = 18th-percentile temperature on 80% training split (coverage locked at 0.18, "
                 "the in-sample optimum); evaluated on 20% holdout with tau* LOCKED "
@@ -265,6 +310,16 @@ def run(
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(result, indent=2))
+
+    # Full provenance sidecar (research audit remedy).
+    from result_provenance import write_sidecar
+    write_sidecar(
+        out_path,
+        script="scripts/selective_n500_holdout.py",
+        inputs={"data": Path(data_path)},
+        random_seeds=[seed],
+        command="python scripts/selective_n500_holdout.py",
+    )
     print(summary)
     print(f"\ntau* = {tau_star:.6f}  (selected on {len(train)}-item training set)")
     print(f"Train selective accuracy: {train_stats['accuracy_train']*100:.2f}% "

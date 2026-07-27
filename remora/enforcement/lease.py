@@ -286,6 +286,7 @@ class NonceLedger:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._consumed: set[str] = set()
+        self._failed: dict[str, str] = {}
 
     def consume(self, nonce: str) -> bool:
         """Return True exactly once per nonce; False on any replay."""
@@ -294,6 +295,10 @@ class NonceLedger:
                 return False
             self._consumed.add(nonce)
             return True
+
+    def fail_consume(self, nonce: str, reason: str) -> None:
+        with self._lock:
+            self._failed[nonce] = reason
 
 
 @dataclass(frozen=True)
@@ -318,10 +323,11 @@ class GovernedToolDispatcher:
 
     def __init__(
         self,
-        *,
-        expected_policy_bundle_hash: str | None = None,
+        expected_policy_bundle_hash: str,
         ledger: NonceLedger | None = None,
     ) -> None:
+        if not expected_policy_bundle_hash:
+            raise ValueError("expected_policy_bundle_hash is mandatory to prevent stale policy execution")
         self._tools: dict[str, Callable[[Any], Any]] = {}
         self._expected_bundle = expected_policy_bundle_hash
         self._ledger = ledger or NonceLedger()
@@ -350,12 +356,12 @@ class GovernedToolDispatcher:
         """
         if lease is None:
             return DispatchResult(executed=False, refusal_reason="missing_lease")
-        fn = self._tools.get(tool_name)
-        if fn is None:
+        if tool_name not in self._tools:
             return DispatchResult(executed=False, refusal_reason="unknown_tool")
+
+        fn = self._tools[tool_name]
         verdict = lease.verify(
-            tool_name=tool_name,
-            arguments=arguments,
+            tool_name=tool_name, arguments=arguments,
             tenant_id=tenant_id,
             target_environment=target_environment or "",
             now=now,
@@ -366,7 +372,13 @@ class GovernedToolDispatcher:
             return DispatchResult(executed=False, refusal_reason=verdict.reason)
         if not self._ledger.consume(lease.nonce):
             return DispatchResult(executed=False, refusal_reason="nonce_already_consumed")
-        # The nonce is consumed BEFORE execution: if the tool raises, the lease
-        # is burned and the caller must obtain a fresh accept. Fail closed —
-        # a retry never reuses an authorization whose effect is unknown.
-        return DispatchResult(executed=True, result=fn(arguments))
+
+        # execution
+        try:
+            res = fn(arguments)
+            return DispatchResult(executed=True, result=res)
+        except Exception as e:
+            # write FAILED to ledger
+            if hasattr(self._ledger, "fail_consume"):
+                self._ledger.fail_consume(lease.nonce, str(e))
+            raise RuntimeError(f"Tool execution failed, nonce burned and state unknown/failed: {e}") from e

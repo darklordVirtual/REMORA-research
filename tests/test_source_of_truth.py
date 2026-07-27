@@ -3,7 +3,7 @@
 """Single source of truth for claims (P0-5).
 
 docs/assurance/claim_register_v1.yaml is the one authoritative claim register.
-Narrative docs are companions/views; docs/thermodynamics/claim_ledger.yaml
+Narrative docs are companions/views; docs/archive/legacy/claim_ledger.yaml
 governs thermodynamics sub-claims only. This guard fails if any live doc,
 YAML file, or credibility-pack file declares a different overall authority.
 """
@@ -14,13 +14,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REGISTER = ROOT / "docs" / "assurance" / "claim_register_v1.yaml"
 COMPANION = ROOT / "docs" / "claim_register.md"
-THERMO_LEDGER = ROOT / "docs" / "thermodynamics" / "claim_ledger.yaml"
+THERMO_LEDGER = ROOT / "docs" / "archive" / "legacy" / "claim_ledger.yaml"
 PACK = ROOT / "artifacts" / "credibility-pack"
 
 # Statements that previously made the thermodynamics ledger the overall source
 # of truth. None may reappear in any live doc, YAML, or pack file.
 FORBIDDEN = (
-    "`docs/thermodynamics/claim_ledger.yaml` is source of truth.",
+    "`docs/archive/legacy/claim_ledger.yaml` is source of truth.",
     "Single source of truth for what is and is not claimed",
     "single source of truth for what is and is not claimed",
 )

@@ -56,7 +56,12 @@ safety-check: lint test replay  ## Full safety check: lint + tests + replay aren
 # Audit
 # Invariant: README claims -> importable module -> test exists -> artifact exists.
 
-audit: lint test  ## Full quality gate: lint + tests + all claim consistency checks
+meta-audit:  ## Beviser at audit-gatene fanger seedede brudd
+	$(PYTEST) tests/meta/ -x -q
+
+audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + all claim consistency checks
+	$(PYTHON) scripts/claim_audit.py
+	$(PYTHON) scripts/profile_gate.py
 	@echo "\n-- Claim consistency (numeric benchmarks) --"
 	$(PYTHON) scripts/check_claim_consistency.py
 	@echo "\n-- README structural claims -> code + test --"
@@ -96,7 +101,17 @@ benchmark:  ## Run all deterministic benchmarks; no API keys required
 	$(PYTHON) experiments/toolcall_v2_significance.py
 	$(PYTHON) experiments/toolcall_v2_calibration_blind.py
 	$(PYTHON) experiments/toolcall_v2_failure_analysis.py
+	$(PYTHON) experiments/evaluate_governance_intelligence.py
 	@echo "\nAll benchmarks completed. Results written to results/"
+
+benchmark-deterministic-round:  ## Deterministic segment of the clean round (no API keys; SAP v2): toolcall v2 + significance + calibration + failures + ablation + governance-intelligence + blind v3 two-phase, with provenance sidecars
+	$(PYTHON) scripts/run_deterministic_round_2026_07.py
+
+benchmark-live-round:  ## Live segment of the clean round (GROQ_API_KEY; SAP v2): preflight -> ablation n500 -> uncalibrated thermo eval -> end-to-end -> holdout, with provenance sidecars
+	$(PYTHON) scripts/run_live_round_2026_07.py
+
+thermo-n500:  ## Regenerate the uncalibrated N500 thermodynamic artifact (GROQ_API_KEY; requires ablation_v2_n500_results.json)
+	$(PYTHON) experiments/thermodynamic_eval.py --benchmark-module remora.benchmarks.extended_v2_n500 --results results/ablation_v2_n500_results.json --output results/thermodynamic_eval_n500_uncalibrated_results.json
 
 benchmark-package:  ## Build governance benchmark package
 	$(PYTHON) scripts/build_governance_benchmark_package.py
@@ -274,6 +289,9 @@ verify:
 	python3 -m remora.cli verify
 
 .PHONY: docs docs-serve
+
+render-claims:  ## Render status numbers to prose
+	python scripts/render_claims.py
 
 docs:  ## Build static documentation with mkdocs
 	pip3 install -e ".[docs]" -q

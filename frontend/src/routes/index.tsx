@@ -19,9 +19,9 @@ const PROOF = [
     detail: "locked threshold, out-of-sample · Wilson CI [70.0%, 95.8%] · p = 1.45×10⁻⁵",
   },
   {
-    stat: "99.9%",
-    label: "ordered-phase conformal coverage",
-    detail: "0 of 20 calibration seeds failed",
+    stat: "20/20",
+    label: "ordered-phase calibration seeds passed",
+    detail: "benchmark-scoped seed check, not an external guarantee",
   },
   {
     stat: "SHA-256",
@@ -52,7 +52,7 @@ function LandingPage() {
           </span>
         </div>
         <span className="hidden sm:inline font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60">
-          Policy-as-code · Human-on-the-loop · Immutable Audit
+          Policy-as-code · Human-on-the-loop · Tamper-evident Audit
         </span>
       </header>
 
@@ -68,7 +68,7 @@ function LandingPage() {
             <p className="text-[14px] md:text-[15px] text-foreground/75 leading-relaxed max-w-2xl mx-auto">
               REMORA is an assurance layer for tool-calling AI agents. Before any action runs, it is
               gated to one of four outcomes — with multi-oracle consensus, policy-as-code that
-              overrides a confident-but-wrong majority, and an immutable audit trail. Human
+              overrides a confident-but-wrong majority, and a tamper-evident audit trail. Human
               authority at every safety threshold.
             </p>
           </div>
@@ -207,7 +207,7 @@ function LandingPage() {
           <div className="mt-9 text-center animate-fade-in" style={{ animationDelay: "0.25s" }}>
             <p className="font-mono text-[11px] text-muted-foreground/55">
               Agent proposes action → Multi-oracle consensus → Policy gate → One of four outcomes →
-              Immutable audit · Human-on-the-loop
+              Tamper-evident audit · Human-on-the-loop
             </p>
           </div>
         </div>
@@ -215,7 +215,7 @@ function LandingPage() {
 
       <footer className="shrink-0 px-8 py-4 border-t border-border/30 text-center relative">
         <span className="font-mono text-[10px] text-muted-foreground/55">
-          REMORA — AI Assurance Layer · Policy-as-code · Human-on-the-loop · Immutable Audit ·
+          REMORA — AI Assurance Layer · Policy-as-code · Human-on-the-loop · Tamper-evident Audit ·
           research-grade, honestly scoped
         </span>
       </footer>

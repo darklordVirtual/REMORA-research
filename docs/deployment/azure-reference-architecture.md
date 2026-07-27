@@ -2,6 +2,12 @@
 
 REMORA on Azure: mapping each component to the appropriate Azure service for enterprise deployment in regulated environments.
 
+> **Illustrative reference design.** REMORA is a research-grade governance
+> overlay running in `SHADOW_ONLY` mode; it is **not** currently deployed on
+> Azure and is not production-certified. The services, commands, and cost
+> figures below are a reference mapping for a hypothetical deployment, not a
+> record of a live system.
+
 ---
 
 ## Component Mapping
@@ -33,8 +39,8 @@ REMORA on Azure: mapping each component to the appropriate Azure service for ent
 │  │ (gateway)    │       │  ┌───────────────────────┐  │    │
 │  └──────────────┘       │  │ REMORA Assurance Pod  │  │    │
 │                         │  │ • CascadeEngine       │  │    │
-│                         │  │ • PolicyDecisionEngine│  │    │
-│                         │  │ • ThermodynamicRouter │  │    │
+│                         │  │ • RemoraDecisionEngine│  │    │
+│                         │  │ • ThermodynamicBraking│  │    │
 │                         │  └───────────┬───────────┘  │    │
 │                         └──────────────┼──────────────┘    │
 │                                        │                    │
@@ -160,7 +166,7 @@ For regulated environments (energy, finance, healthcare):
 
 ## Monitoring and SLOs
 
-Deploy the observability stack described in [`enterprise/observability.md`](../reference_architecture.md):
+Deploy the observability stack described in [`reference_architecture.md`](../reference_architecture.md):
 
 | Metric                        | Azure Service              | Alert Threshold    |
 |-------------------------------|----------------------------|--------------------|
@@ -190,6 +196,6 @@ Total dev environment: ~$160/month (excluding LLM usage).
 ## Compliance Notes
 
 - **Data residency:** All REMORA components can be deployed within a single Azure region (e.g., Norway East) to satisfy data sovereignty requirements.
-- **Audit trail:** The audit ledger schema (`enterprise/audit-ledger-schema.sql`) includes row-level security and append-only constraints compatible with Azure SQL.
+- **Audit trail:** The reference audit-ledger schema (row-level security and append-only constraints) is provisioned as part of deployment and is compatible with Azure SQL. REMORA's committed audit mechanism is the hash-chained tenant audit (`remora/audit/`).
 - **Model governance:** Azure OpenAI provides content filtering and usage logging. REMORA adds decision-level audit trails and policy gates on top.
 - **RBAC:** Entra ID roles map to REMORA governance layers: `remora-operator` (runtime), `remora-policy-admin` (policy changes), `remora-auditor` (read-only audit access).

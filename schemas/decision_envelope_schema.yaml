@@ -11,7 +11,8 @@
     "follow_up",
     "history",
     "policy_learning",
-    "audit"
+    "audit",
+    "effect"
   ],
   "additionalProperties": false,
   "properties": {
@@ -137,6 +138,17 @@
     "causal_explanation": {
       "type": ["object", "null"],
       "additionalProperties": true
+    },
+    "effect": {
+      "type": "object",
+      "required": ["executed"],
+      "additionalProperties": false,
+      "properties": {
+        "executed":       { "type": "boolean" },
+        "tool_call_hash": { "type": ["string", "null"] },
+        "effect_outcome": { "type": ["string", "null"] },
+        "ledger_entry":   { "type": "object" }
+      }
     },
     "audit": {
       "type": "object",

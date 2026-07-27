@@ -118,7 +118,7 @@ Two properties hold across all nine elements:
 - **Decision monotonicity.** No adapter, fallback, or external policy can
   downgrade a verdict below the engine's hard-guard floor
   (`remora.policy.decision_engine.hard_guard_floor`). This holds for the
-  Python engine (REM-003 mutation tests), the OPA path
+  Python engine (REM-017 mutation tests), the OPA path
   (`tests/test_opa_parity.py`), and delegation chains (scope can only be
   attenuated, `tests/test_a2a_envelope.py`).
 

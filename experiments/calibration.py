@@ -25,11 +25,12 @@ from remora.genome import Genome, RouterMode
 from remora.persistence import CachedOracle, Store
 from remora.scoring import score_one
 
-ORACLE_MODELS = [
-    "llama-3.1-8b-instant",
-    "llama-3.3-70b-versatile",
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-]
+# Cross-family trio (SAP v2, 2026-07-27); see remora/oracles/families.py.
+from remora.oracles.groq import GroqOracle
+from remora.oracles.families import validate_cross_family
+
+ORACLE_MODELS = list(GroqOracle.DEFAULT_MODELS)
+validate_cross_family(ORACLE_MODELS)
 
 
 def build_eval_prompt(item: BenchmarkItem) -> str:

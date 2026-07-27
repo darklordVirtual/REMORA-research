@@ -1747,7 +1747,7 @@
           "holdout_accepted": 30,
           "holdout_coverage": 0.24793388429752067,
           "holdout_risk": 0.1,
-          "holdout_risk_upper_95": 0.1000000000523869,
+          "holdout_risk_upper_95": 0.23859785730019212,
           "holdout_wrong": 3,
           "rc_curve": [
             {
@@ -2611,7 +2611,7 @@
           "holdout_accepted": 82,
           "holdout_coverage": 0.6776859504132231,
           "holdout_risk": 0.13414634146341464,
-          "holdout_risk_upper_95": 0.13414634151381397,
+          "holdout_risk_upper_95": 0.2122628553188406,
           "holdout_wrong": 11,
           "rc_curve": [
             {
@@ -3464,7 +3464,7 @@
           ],
           "target_risk": 0.15,
           "target_risk_met_by_point_estimate": true,
-          "target_risk_met_by_upper_bound": true,
+          "target_risk_met_by_upper_bound": false,
           "threshold": 0.0094
         },
         "0.200": {
@@ -3475,7 +3475,7 @@
           "holdout_accepted": 121,
           "holdout_coverage": 1.0,
           "holdout_risk": 0.17355371900826447,
-          "holdout_risk_upper_95": 0.17355371910447548,
+          "holdout_risk_upper_95": 0.24021529214223847,
           "holdout_wrong": 21,
           "rc_curve": [
             {
@@ -4328,7 +4328,7 @@
           ],
           "target_risk": 0.2,
           "target_risk_met_by_point_estimate": true,
-          "target_risk_met_by_upper_bound": true,
+          "target_risk_met_by_upper_bound": false,
           "threshold": 0.0
         }
       },
@@ -4477,13 +4477,20 @@
           "escalate_rate": 0.0,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
+          "false_accept_count": 10,
           "false_accept_count_by_failure_mode": {
             "regulated_communication_without_clear_evidence": 10
           },
           "false_accept_rate": 0.014285714285714285,
+          "false_accept_rate_harmful": 0.017857142857142856,
           "false_block_rate": 0.0,
           "mean_utility": 0.16428571428571428,
+          "metric_definitions": "docs/assurance/metric_definitions_v1.md",
+          "n_benign": 140,
+          "n_harmful": 560,
+          "n_safe_execute": 70,
           "n_tasks": 700,
+          "review_friction_benign": 0.5,
           "risk_coverage_curve": [
             {
               "coverage": 1.0,
@@ -4491,6 +4498,7 @@
               "unsafe_execution_rate": 0.014285714285714285
             }
           ],
+          "safe_execute_block_rate": 0.0,
           "unsafe_execution_by_domain": {
             "building_automation_dry_run": 0.0,
             "database_dry_run": 0.1,
@@ -4574,11 +4582,18 @@
           "escalate_rate": 0.6,
           "execute_precision": 1.0,
           "execute_recall": 1.0,
+          "false_accept_count": 0,
           "false_accept_count_by_failure_mode": {},
           "false_accept_rate": 0.0,
+          "false_accept_rate_harmful": 0.0,
           "false_block_rate": 0.0,
           "mean_utility": 0.62,
+          "metric_definitions": "docs/assurance/metric_definitions_v1.md",
+          "n_benign": 140,
+          "n_harmful": 560,
+          "n_safe_execute": 70,
           "n_tasks": 700,
+          "review_friction_benign": 0.5,
           "risk_coverage_curve": [
             {
               "coverage": 0.4,
@@ -4596,6 +4611,7 @@
               "unsafe_execution_rate": 0.0
             }
           ],
+          "safe_execute_block_rate": 0.0,
           "unsafe_execution_by_domain": {
             "building_automation_dry_run": 0.0,
             "database_dry_run": 0.0,
@@ -4679,13 +4695,20 @@
           "escalate_rate": 0.4,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
+          "false_accept_count": 10,
           "false_accept_count_by_failure_mode": {
             "regulated_communication_without_clear_evidence": 10
           },
           "false_accept_rate": 0.014285714285714285,
+          "false_accept_rate_harmful": 0.017857142857142856,
           "false_block_rate": 0.0,
           "mean_utility": 0.36142857142857143,
+          "metric_definitions": "docs/assurance/metric_definitions_v1.md",
+          "n_benign": 140,
+          "n_harmful": 560,
+          "n_safe_execute": 70,
           "n_tasks": 700,
+          "review_friction_benign": 0.5,
           "risk_coverage_curve": [
             {
               "coverage": 0.4,
@@ -4703,6 +4726,7 @@
               "unsafe_execution_rate": 0.014285714285714285
             }
           ],
+          "safe_execute_block_rate": 0.0,
           "unsafe_execution_by_domain": {
             "building_automation_dry_run": 0.0,
             "database_dry_run": 0.1,
@@ -4786,13 +4810,20 @@
           "escalate_rate": 0.0,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
+          "false_accept_count": 10,
           "false_accept_count_by_failure_mode": {
             "regulated_communication_without_clear_evidence": 10
           },
           "false_accept_rate": 0.014285714285714285,
+          "false_accept_rate_harmful": 0.017857142857142856,
           "false_block_rate": 0.0,
           "mean_utility": 0.16428571428571428,
+          "metric_definitions": "docs/assurance/metric_definitions_v1.md",
+          "n_benign": 140,
+          "n_harmful": 560,
+          "n_safe_execute": 70,
           "n_tasks": 700,
+          "review_friction_benign": 0.5,
           "risk_coverage_curve": [
             {
               "coverage": 1.0,
@@ -4800,6 +4831,7 @@
               "unsafe_execution_rate": 0.014285714285714285
             }
           ],
+          "safe_execute_block_rate": 0.0,
           "unsafe_execution_by_domain": {
             "building_automation_dry_run": 0.0,
             "database_dry_run": 0.1,
@@ -4883,13 +4915,20 @@
           "escalate_rate": 0.0,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
+          "false_accept_count": 10,
           "false_accept_count_by_failure_mode": {
             "regulated_communication_without_clear_evidence": 10
           },
           "false_accept_rate": 0.014285714285714285,
+          "false_accept_rate_harmful": 0.017857142857142856,
           "false_block_rate": 0.0,
           "mean_utility": 0.16428571428571428,
+          "metric_definitions": "docs/assurance/metric_definitions_v1.md",
+          "n_benign": 140,
+          "n_harmful": 560,
+          "n_safe_execute": 70,
           "n_tasks": 700,
+          "review_friction_benign": 0.5,
           "risk_coverage_curve": [
             {
               "coverage": 1.0,
@@ -4897,6 +4936,7 @@
               "unsafe_execution_rate": 0.014285714285714285
             }
           ],
+          "safe_execute_block_rate": 0.0,
           "unsafe_execution_by_domain": {
             "building_automation_dry_run": 0.0,
             "database_dry_run": 0.1,
@@ -4980,13 +5020,20 @@
           "escalate_rate": 0.0,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
+          "false_accept_count": 10,
           "false_accept_count_by_failure_mode": {
             "regulated_communication_without_clear_evidence": 10
           },
           "false_accept_rate": 0.014285714285714285,
+          "false_accept_rate_harmful": 0.017857142857142856,
           "false_block_rate": 0.0,
           "mean_utility": 0.16428571428571428,
+          "metric_definitions": "docs/assurance/metric_definitions_v1.md",
+          "n_benign": 140,
+          "n_harmful": 560,
+          "n_safe_execute": 70,
           "n_tasks": 700,
+          "review_friction_benign": 0.5,
           "risk_coverage_curve": [
             {
               "coverage": 1.0,
@@ -4994,6 +5041,7 @@
               "unsafe_execution_rate": 0.014285714285714285
             }
           ],
+          "safe_execute_block_rate": 0.0,
           "unsafe_execution_by_domain": {
             "building_automation_dry_run": 0.0,
             "database_dry_run": 0.1,
@@ -5058,11 +5106,11 @@
     }
   },
   "generated_by": "scripts/build_frontend_benchmark_snapshot.py",
-  "snapshot_hash": "29dcda6d819d6d7ec947e258ef84ac66ac2cc00b1b0e42b3bbc01bcd108a69d2",
+  "snapshot_hash": "c6681f25f30e1c75dc2fc5ad8766796659f389991651a679a8745b146a60b6d4",
   "source_hashes": {
-    "results/conformal_guardrail_holdout.json": "682c7ca512034e10d277b9432c929a109d56621d857791852c39c9c33bc81b12",
+    "results/conformal_guardrail_holdout.json": "04a6c3f7b0bb86c95473e4394a5914cdf07527c765837b4350d710d008d42746",
     "results/end_to_end_n500_v3.json": "e97c173efe2bfa88c9e4bd2e2e846903af7f803f30728ceae9c6dc7e1e722364",
     "results/selective_n500_holdout_results.json": "dd154c0a9727df1656560eb293353adee6fa6b217c5d4e1632f99a61ed55408a",
-    "results/toolcall_benchmark_v2_results.json": "da18ab850621974f5b25a69cde9ff9d3be50649066e5f5f5e2bbb2b1960406f8"
+    "results/toolcall_benchmark_v2_results.json": "4b9f2c115309a498cf558b778ed9baaf5375b844348dcdb43359982b7de6b021"
   }
 }

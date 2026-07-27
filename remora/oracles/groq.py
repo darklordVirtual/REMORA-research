@@ -16,11 +16,22 @@ from remora.core import Oracle
 class GroqOracle(Oracle):
     """Oracle backed by Groq's fast inference API."""
 
+    # Cross-family trio (SAP v2, 2026-07-27). The former all-LLaMA list is
+    # retired: same-family consensus is forbidden, and llama-4-scout no
+    # longer exists in the Groq catalog.
     DEFAULT_MODELS = [
-        "llama-3.1-8b-instant",
         "llama-3.3-70b-versatile",
-        "meta-llama/llama-4-scout-17b-16e-instruct",
+        "openai/gpt-oss-120b",
+        "qwen/qwen3.6-27b",
     ]
+
+    # Reasoning-style models need explicit handling or they either stream
+    # chain-of-thought into the message body or burn the whole max_tokens
+    # budget thinking and return empty content (observed live 2026-07-27:
+    # qwen3.6 returned "" on 2/3 benchmark prompts with reasoning_format=
+    # hidden + 1024 tokens; reasoning_effort=none gives clean JSON at 256).
+    _REASONING_EFFORT_NONE = ("qwen3",)
+    _REASONING_HIDDEN = ("deepseek-r1",)
 
     def __init__(self, model: str = "llama-3.3-70b-versatile", temperature: float = 0.3):
         self._model = model
@@ -32,12 +43,23 @@ class GroqOracle(Oracle):
         parts = self._model.split("/")[-1].split("-")
         return f"groq/{parts[0]}-{parts[-1]}"
 
+    @property
+    def model_id(self) -> str:
+        """Full model identifier (used for family-diversity validation)."""
+        return self._model
+
     def _call(self, prompt: str) -> tuple[str, float, float]:
         if not self._api_key:
             raise RuntimeError("GROQ_API_KEY not set. Export: export GROQ_API_KEY=gsk_...")
-        payload = json.dumps({"model": self._model,
+        body = {"model": self._model,
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": self._temperature, "max_tokens": 256}).encode()
+            "temperature": self._temperature, "max_tokens": 1024}
+        low = self._model.lower()
+        if any(marker in low for marker in self._REASONING_EFFORT_NONE):
+            body["reasoning_effort"] = "none"
+        elif any(marker in low for marker in self._REASONING_HIDDEN):
+            body["reasoning_format"] = "hidden"
+        payload = json.dumps(body).encode()
         req = urllib.request.Request(
             "https://api.groq.com/openai/v1/chat/completions", data=payload,
             headers={"Authorization": f"Bearer {self._api_key}",

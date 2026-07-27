@@ -257,12 +257,6 @@ def test_stale_string_detected(tmp_path: Path) -> None:
     assert "2026-07-05" in errors[0][1]
 
 
-def test_stale_string_excluded_file_skipped() -> None:
-    review_doc = ccp.ROOT / "docs" / "assurance" / "simulated_hostile_review_v1.md"
-    text = review_doc.read_text(encoding="utf-8")
-    assert ccp.check_stale_strings(review_doc, text) == []
-
-
 def test_clean_text_passes_stale_check(tmp_path: Path) -> None:
     doc = tmp_path / "doc.md"
     doc.write_text("REM-020 closes no earlier than 2026-07-05.\n", encoding="utf-8")

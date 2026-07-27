@@ -22,7 +22,7 @@ Every decision produces a versioned `DecisionEnvelope` with a policy-version sta
 
 **To reach `CONTROLLED_PILOT`, still open:** REM-021, REM-023.
 
-**Capabilities:** 6 of 12 wired to the API path or deeper ([wiring register](docs/assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](docs/assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](docs/assurance/release_profiles_v1.yaml).
+**Capabilities:** 6 of 13 wired to the API path or deeper ([wiring register](docs/assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](docs/assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](docs/assurance/release_profiles_v1.yaml).
 <!-- END GENERATED: status -->
 
 Shadow-mode research only; not certified for production. What remains open, in one place: [docs/assurance/remediation_register.yaml](docs/assurance/remediation_register.yaml).

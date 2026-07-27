@@ -34,6 +34,29 @@ Verification performed before re-issuing:
   invariants (`false_accept_rate = 0.0`, `n_harmful = 208`) are unchanged
   between versions. This entry is re-issued under this documented protocol.
 
+## Revision Note (2026-07-27)
+
+Two tool-call entries are re-issued from the 2026-07 clean benchmark round
+(SAP v2; deterministic segment run by
+`scripts/run_deterministic_round_2026_07.py` at tagged commit
+`benchmark-round-2026-07` = `dad285f`, from a clean tree):
+
+- `results/toolcall_benchmark_v2_results.json`: gate invariants unchanged
+  (`remora_full_policy_gate.false_accept_rate = 0.0`, accuracy 0.90,
+  `unsafe_execution_rate = 0.0`, N=700); bytes changed because the engine
+  and policy layer changed after the 2026-07-20 freeze.
+- `results/toolcall_blind_v3_results.json`: FAR=0.0, accuracy 0.90,
+  N=700 — now produced by the two-phase decide/score protocol (audit
+  P0-3): the deciding process never loads labels, `leakage_free` is
+  computed from the regenerated task surface (severity/tags removed,
+  audit P0-2) instead of hardcoded, and the artifact embeds the leakage
+  controls and decision-process metadata (601 → 1206 bytes).
+
+Every re-issued artifact carries a `result_provenance_v2` sidecar bound to
+`dad285f`. Sidecars report `worktree_clean: false` solely because the
+round's own regenerated artifacts were present in the tree when the
+sidecar pass ran after generation; the code tree was clean at round start.
+
 ## Revision Note (2026-07-20)
 
 Three tool-call entries are re-issued after the REM-038 leakage fix
@@ -73,14 +96,14 @@ must not change unless the benchmark is re-run under a documented protocol.
 
 | File | SHA-256 | Size (bytes) | Last modified | Description |
 |------|---------|-------------|---------------|-------------|
-| `results/toolcall_blind_v3_results.json` | `145600404ddad70ba2e1302d9ad0e9070f052db4435f35a2ddd442214aa9ec63` | 601 | 2026-07-20 | Blinded benchmark v3: FAR=0.0, N=700 (REM-009; re-issued 2026-07-20, REM-038) |
+| `results/toolcall_blind_v3_results.json` | `e263a121924c0379eb1483357d7cca8a5fb922322e27630f1f8c27864dd5086c` | 1206 | 2026-07-27 | Blinded benchmark v3: FAR=0.0, N=700, two-phase decide/score (REM-009; re-issued 2026-07-27, clean round) |
 | `results/selective_n500_holdout_results.json` | `eedb8d203d65d5a94aa955d319129e9e27e7e5f48cc527fdbb684c3268e0ed29` | 1670 | 2026-06-01T22:40:21 | Held-out selective accuracy: 88% at 23.2% coverage |
-| `results/selective_n500_results.json` | `34fd54479e54437610226452fefb8aab72c7f8cca0aabf8db3c91828c032c12e` | 12725 | 2026-06-09T22:51:30 | Full N=500 selective trust evaluation |
+| `results/selective_n500_results.json` | `ba838b99eeedcbe707d5ebbac5b21dc63edf4f107efaeaaf423ed390b9ecf1fb` | 12725 | 2026-06-09T22:51:30 | Full N=500 selective trust evaluation |
 | `results/thermodynamic_eval_n500_calibrated_results.json` | `ec2eacf7ff6ce4e79467fed2f6f9f5cb103d6b0faaa97eac3c6f45e1bf97cce2` | 349515 | 2026-06-09T22:51:30 | N=500 thermodynamic calibration (data source for holdout) |
 | `results/phase_aware_guardrail_n544_results.json` | `22961a33638e86be925608eb2301f292d61ac79f9d6f3d62e473cce8ef22e77e` | 4488 | 2026-06-09T22:51:30 | Phase-aware conformal guardrail N=544 |
-| `results/conformal_guardrail_holdout.json` | `f9f77b3eace3aacb831a618f8ed50201482d331148663adaab2b8661da8d501d` | 121621 | 2026-06-09T22:51:30 | Conformal guardrail holdout evaluation |
-| `results/conformal_repeated_splits.json` | `044c89b1076bfab05df8574eadd3a58e3e5bf88b83b8f88f7f42b15a041f9300` | 1164 | 2026-06-30T11:21:09 | Conformal repeated-splits robustness check |
-| `results/toolcall_benchmark_v2_results.json` | `95e92671971e19fb08cee1d7591f759da3d8da848598ec9fe3bf7543a39e5980` | 17444 | 2026-07-20 | Toolcall benchmark v2: FAR=0.0, N=700 (effective N=70; re-issued 2026-07-20, REM-038) |
+| `results/conformal_guardrail_holdout.json` | `f2544bc587f6a9dcb1ffc8d2b4d76c8f9129440ab299a69322410114c5bfeb50` | 121621 | 2026-06-09T22:51:30 | Conformal guardrail holdout evaluation |
+| `results/conformal_repeated_splits.json` | `8943001fb76811976c973747e93f6a0c7201c5cb1101cc65aac822730a851c4d` | 1164 | 2026-06-30T11:21:09 | Conformal repeated-splits robustness check |
+| `results/toolcall_benchmark_v2_results.json` | `f243d475169ff4a534c849ed9e583874028502f77565293eddb504d3a2e5738b` | 19286 | 2026-07-27 | Toolcall benchmark v2: FAR=0.0, N=700 (effective N=70; re-issued 2026-07-27, clean round) |
 | `results/toolcall_llm_baselines_pilot_n100.json` | `a825fd5b3ce36db086b21b72b15d961d3b0e9915d5aab78ae0b539569cdb287a` | 117701 | 2026-06-29T00:07:39 | LLM baselines pilot N=100 (REM-010) |
 | `results/m1_flag_coverage.json` | `b8c57f5b8e02ca39107695396d38bff4733eb469c058b90549d50bc3bf4e7c6d` | 544 | 2026-06-28T22:45:40 | M1 structural/keyword flag coverage on toolcall_blind_v3 |
 | `results/toolcall_m1_clean_signal.json` | `62a497f3483f7375e08ad6fa9f6929c5d0ea7c2556d3f5dd541f76cda533f663` | 2663 | 2026-07-20 | M1 leakage clean-signal evaluation (REM-001; re-issued 2026-07-20, REM-038) |
@@ -110,11 +133,9 @@ documents that may be updated as gates are closed.
 
 | File | Description | Status |
 |------|-------------|--------|
-| `docs/assurance/baseline_snapshot.md` | Quantitative state at assurance start (2026-06-28) | Locked |
 | `docs/assurance/release_gates.md` | P0/P3 gate definitions and closure record | Living |
 | `docs/assurance/remediation_register.yaml` | Full REM-001..022 register with artifacts and notes | Living |
 | `docs/assurance/statistical_analysis_plan.md` | Pre-registered SAP for H1–H5 (REM-012) | Pre-registered, locked |
-| `docs/assurance/operation_baseline_2026_06_30.md` | Wave 0 operational baseline | Locked |
 | `docs/assurance/reproducibility_scorecard_v1.md` | This audit's reproducibility scorecard | Living |
 | `docs/assurance/artifact_manifest_v1.md` | This document | Living |
 

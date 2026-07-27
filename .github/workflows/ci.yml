@@ -53,8 +53,12 @@ jobs:
         run: python -m pytest tests/ -q
 
       - name: Verify zero false-accept rate
-        # Parse the test output: any false_accept > 0 is a hard stop.
-        # This runs the gateway evaluation in-process without external deps.
+        # HONESTY NOTE (research audit, 2026-07-27): this step READS the
+        # frozen result artifacts and asserts their stored FAR field is 0.0.
+        # It does NOT regenerate results with current code — it is a
+        # regression tripwire for the promoted baseline snapshots, not a
+        # reproduction. Regeneration policy: docs/assurance/
+        # rebenchmark_protocol_v1.md.
         run: |
           python - <<'PY'
           import json, pathlib, sys
@@ -228,6 +232,11 @@ jobs:
         # register state, README stays under its line budget.
         run: python scripts/check_document_governance.py
 
+      - name: Experiment manifests (lifecycle + provenance coverage)
+        # Malformed manifests fail; missing manifests/sidecars are advisory.
+        # Spec: docs/assurance/experiment_manifest_spec_v1.md
+        run: python scripts/check_experiment_manifests.py
+
       - name: Generated-doc drift (text generators)
         # A generated document that no longer matches its source is a silent
         # drift. These generators are stdlib/PyYAML-only, so they run in this
@@ -309,6 +318,36 @@ jobs:
                   print(f"MISSING or empty: {p}", file=sys.stderr)
               sys.exit(1)
           print(f"All {len(required)} required artifacts present and non-empty.")
+          PY
+
+      - name: Verify manifest checksums (content integrity)
+        # Research audit 2026-07-27: existence + FAR-field reads are not
+        # integrity. Every artifact row carrying a sha256 in
+        # artifact_manifest_v1.md is now content-verified (LF-normalized,
+        # matching the manifest's hash protocol). An edited artifact can no
+        # longer pass silently.
+        run: |
+          python - <<'PY'
+          import hashlib, pathlib, re, sys
+          text = pathlib.Path("docs/assurance/artifact_manifest_v1.md").read_text(encoding="utf-8")
+          rows = re.findall(r"\|\s*`([^`]+)`\s*\|\s*`([0-9a-f]{64})`\s*\|", text)
+          if len(rows) < 10:
+              print(f"ERROR: only {len(rows)} checksummed rows parsed from manifest — parser drift?", file=sys.stderr)
+              sys.exit(1)
+          errors = []
+          for path, expected in rows:
+              p = pathlib.Path(path)
+              if not p.exists():
+                  errors.append(f"MISSING: {path}")
+                  continue
+              actual = hashlib.sha256(p.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+              if actual != expected:
+                  errors.append(f"CHECKSUM MISMATCH: {path}")
+          if errors:
+              for e in errors:
+                  print(f"ERROR: {e}", file=sys.stderr)
+              sys.exit(1)
+          print(f"Manifest content integrity: {len(rows)} artifacts verified (sha256, LF-normalized)")
           PY
 
       - name: Verify FAR fields in primary artifacts

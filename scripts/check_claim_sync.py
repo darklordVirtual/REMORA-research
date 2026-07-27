@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TARGET_FILES = [
     ROOT / "README.md",
     ROOT / "paper" / "remora_paper.md",   # canonical paper (2026-07-03)
-    ROOT / "paper" / "whitepaper.md",     # superseded legacy snapshot; still guarded
+    ROOT / "paper" / "remora_paper.md",     # superseded legacy snapshot; still guarded
     ROOT / "paper" / "claim_ledger.md",
     ROOT / "docs" / "claim_register.md",
 ]

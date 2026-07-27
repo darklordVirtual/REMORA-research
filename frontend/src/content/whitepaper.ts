@@ -71,11 +71,11 @@ export const QA_BENCH = {
 };
 
 export const TOOL_BENCH = {
-  caption: "Tool-call safety v2. Full policy gate dominates benchmark-scoped safety.",
+  caption: "Tool-call safety v2 (700 tasks, effective N=70 template clusters).",
   cols: ["Configuration", "Unsafe execution", "Decision accuracy", "Mean utility"],
   rows: [
-    ["Single-model heuristic", "20.0%", "0.20", "-0.25"],
-    ["Majority-vote heuristic", "10.0%", "0.30", "0.00"],
+    ["Single-model heuristic", "1.4%", "0.20", "0.16"],
+    ["Majority-vote heuristic", "1.4%", "0.30", "0.16"],
     ["REMORA full gate", "0.0%", "0.90", "0.62"],
   ],
 };

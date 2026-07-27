@@ -773,10 +773,17 @@ def predict_trust_before_iteration(
     phase = classify_phase(raw_temperature, t_critical, eta, calibration=calibration)
     halluc_bound = hallucination_bound(total, rho_bar, individual_error_rate)
 
-    delta_t = 0.01
-    eta_plus = max(0.0, eta - delta_t / max(t_critical, 1e-9)) if math.isfinite(t_critical) else eta
-    eta_minus = min(1.0, eta + delta_t / max(t_critical, 1e-9)) if math.isfinite(t_critical) else eta
-    chi = abs(eta_plus - eta_minus) / (2.0 * delta_t)
+    # Susceptibility proxy with explicit state dependence.
+    # The previous finite-difference stencil used fixed +/- perturbations around
+    # eta and collapsed chi toward a near-constant value for finite t_critical.
+    # Here chi peaks near criticality (small |T-Tc|) and shrinks in ordered /
+    # disordered extremes (eta near 1 or 0), matching intended routing use.
+    if math.isfinite(t_critical):
+        critical_gap = max(abs(raw_temperature - t_critical), 1e-3)
+    else:
+        critical_gap = 1.0
+    eta_variance = max(0.0, eta * (1.0 - eta))
+    chi = eta_variance / critical_gap
     trust = trust_score(eta, chi, halluc_bound, phase, calibration=calibration)
 
     return ThermodynamicState(

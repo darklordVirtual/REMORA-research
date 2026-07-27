@@ -1,3 +1,8 @@
+> **NOTICE:** This document is **HISTORICAL** and has been explicitly archived. Referencing this document as truth in any runtime processes, algorithms, papers or claims is strictly prohibited in the active repository.
+
+---
+
+
 # Selective Trust Curve — Empirical Breakthrough Proof
 
 > **ARCHIVED (legacy) — historical document.** Superseded; preserved as record only. Do not cite as current. Current documentation index: [`../../README.md`](../../README.md).

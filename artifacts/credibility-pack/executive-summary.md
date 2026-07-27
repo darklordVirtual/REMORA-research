@@ -175,4 +175,4 @@ REMORA addresses this problem at the architectural level, not at the model level
 | `enterprise/audit-ledger-schema.sql` | Audit trail schema (PostgreSQL) |
 | [`README.md`](../README.md) | Technical architecture and benchmark results |
 | [`ARCHITECTURE.md`](../../ARCHITECTURE.md) | Detailed data flow and per-iteration sequence |
-| [`paper/whitepaper.md`](../../paper/whitepaper.md) | Full technical paper |
+| [`paper/remora_paper.md`](../../paper/remora_paper.md) | Full technical paper |

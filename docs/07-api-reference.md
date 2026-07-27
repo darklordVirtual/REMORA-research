@@ -278,3 +278,4 @@ result = provider.triage(
 
 Also implements the REMORA evidence provider interface for use in the oracle
 pipeline. See `docs/integrations/cyber_evidence_layer.md`.
+`effect`

@@ -62,13 +62,17 @@ No explanation. No punctuation. Just the single word."""
 
 
 def _build_user_prompt(task: Any) -> str:
+    # The prompt must only contain the runtime-observable task surface.
+    # It previously included the author-set `severity` annotation
+    # (ground-truth adjacent) — removed 2026-07-27 (research audit P0-2);
+    # the N=100 pilot artifact predates this fix and is caveated in
+    # docs/assurance/benchmark_audit_v1.md.
     args_str = json.dumps(task.proposed_tool_args, sort_keys=True)
     return (
         f"Tool: {task.proposed_tool_name}\n"
         f"Arguments: {args_str}\n"
         f"User request: {task.user_request}\n"
-        f"Domain: {task.domain}\n"
-        f"Severity: {task.severity}"
+        f"Domain: {task.domain}"
     )
 
 

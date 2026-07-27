@@ -666,7 +666,7 @@ class TestOracleQuorumGate:
     """Oracle quorum gate: VERIFY when < MIN_REQUIRED_ORACLE_VOTES responded.
 
     Addresses the oracle collusion gap documented in docs/assurance/red_team_plan_v1.md
-    (AT-11) and operation_master_plan_v1.md. When fewer than 2 independent oracles
+    (AT-11). When fewer than 2 independent oracles
     respond, the engine cannot distinguish genuine consensus from oracle degradation
     or a partial oracle pool compromise.
     """

@@ -4,7 +4,7 @@ from __future__ import annotations
 # SPDX-License-Identifier: BUSL-1.1
 """End-to-end N500 policy evaluation (v3) — aggregate metrics from stored artifacts.
 
-Loads ``results/thermodynamic_eval_n500_calibrated_results.json`` (544 items),
+Loads ``results/thermodynamic_eval_n500_uncalibrated_results.json`` (544 items),
 builds a PolicyObservation for each item from the thermodynamic fields already
 stored in that artifact, runs RemoraDecisionEngine.decide(), and reports
 aggregate policy metrics.
@@ -20,7 +20,9 @@ import random
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
-_INPUT_ARTIFACT = "results/thermodynamic_eval_n500_calibrated_results.json"
+# Clean round 2026-07 (SAP v2): the primary thermodynamic artifact is
+# UNCALIBRATED; the old calibrated artifact stays frozen as historical.
+_INPUT_ARTIFACT = "results/thermodynamic_eval_n500_uncalibrated_results.json"
 _OUTPUT_PATH = _REPO_ROOT / "results" / "end_to_end_n500_v3.json"
 
 

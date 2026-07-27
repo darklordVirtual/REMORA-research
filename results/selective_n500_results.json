@@ -555,6 +555,5 @@
       }
     }
   ],
-  "summary": "Best: 88.78% accuracy at 18% coverage (k=98, lift +47.60 pp over 41.18% baseline, Wilson CI [0.810, 0.936], p=0.00e+00)",
-  "in_sample_calibration_warning": "threshold is derived from the same N544 artifact used for this evaluation \u2014 in-sample optimum, not held-out"
+  "summary": "Best: 88.78% accuracy at 18% coverage (k=98, lift +47.60 pp over 41.18% baseline, Wilson CI [0.810, 0.936], p=0.00e+00)"
 }

@@ -190,7 +190,7 @@ def test_envelope_blocks_match() -> None:
     actual = {f.name for f in dataclasses.fields(DecisionEnvelope)}
     expected = {"request", "assessment", "gate", "reviewer_context",
                 "follow_up", "history", "policy_learning", "audit",
-                "causal_explanation"}
+                "causal_explanation", "effect", "effect"}
     assert actual == expected
     for block in expected:
         assert f"`{block}`" in DOC_TEXT

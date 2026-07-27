@@ -37,6 +37,81 @@ PEP_AUDIENCE = "pep://remora-execution"
 EXECUTION_TOKEN_TTL_SECONDS = 300
 
 _ENGINE = RemoraDecisionEngine()
+_IDEMPOTENCY: dict[str, dict[str, Any]] = {}
+
+TOOL_REGISTRY: dict[str, dict[str, Any]] = {
+    "delete_production_database": {
+        "risk_tier": "critical",
+        "domain": "infrastructure",
+        "action_type": "destructive_write"
+    },
+    "dce_search_law": {
+        "risk_tier": "low",
+        "domain": "law",
+        "action_type": "read"
+    },
+    "remora_verify_claim": {
+        "risk_tier": "low",
+        "domain": "general",
+        "action_type": "read"
+    },
+    "store_artifact": {
+        "risk_tier": "medium",
+        "domain": "general",
+        "action_type": "write"
+    },
+    "read_telemetry": {
+        "risk_tier": "low",
+        "domain": "unknown",
+        "action_type": "read",
+        "target_environment": "staging"
+    },
+    "update_work_order": {
+        "risk_tier": "high",
+        "domain": "unknown",
+        "action_type": "production_write",
+        "target_environment": "prod",
+        "rollback_available": True
+    }
+}
+_IDEMPOTENCY: dict[str, dict[str, Any]] = {}
+
+TOOL_REGISTRY: dict[str, dict[str, Any]] = {
+    "delete_production_database": {
+        "risk_tier": "critical",
+        "domain": "infrastructure",
+        "action_type": "destructive_write"
+    },
+    "dce_search_law": {
+        "risk_tier": "low",
+        "domain": "law",
+        "action_type": "read"
+    },
+    "remora_verify_claim": {
+        "risk_tier": "low",
+        "domain": "general",
+        "action_type": "read"
+    },
+    "store_artifact": {
+        "risk_tier": "medium",
+        "domain": "general",
+        "action_type": "write"
+    },
+    "read_telemetry": {
+        "risk_tier": "low",
+        "domain": "unknown",
+        "action_type": "read",
+        "target_environment": "staging"
+    },
+    "update_work_order": {
+        "risk_tier": "high",
+        "domain": "unknown",
+        "action_type": "production_write",
+        "target_environment": "prod",
+        "rollback_available": True
+    }
+}
+
 
 
 def _build_chain():
@@ -58,7 +133,13 @@ def _build_chain():
 
 
 _CHAIN = _build_chain()
-_GATE = EnforcementGate(strict=True, audience=PEP_AUDIENCE)
+import os as _os
+_GATE = EnforcementGate(
+    strict=True,
+    audience=PEP_AUDIENCE,
+    dsn=_os.environ.get("REMORA_PG_DSN", "").strip(),
+    db_path=_os.environ.get("REMORA_CHAIN_DB", "").strip()
+)
 _QUEUES: dict[str, ReviewQueue] = {}
 # item_id -> (tenant, ToolCallRequest fields) so execute() can rebuild hashes.
 _ITEM_TENANT: dict[str, str] = {}
@@ -69,6 +150,95 @@ def _auth(request: Request) -> tuple[str, str, str]:
 
     tenant, role = api_mod._authenticate(request)
     return tenant, role, api_mod._authenticated_principal(request)
+
+
+import json
+import dataclasses
+from enum import Enum
+from contextlib import contextmanager
+
+def to_dict(obj):
+    if dataclasses.is_dataclass(obj):
+        return {k: to_dict(v) for k, v in dataclasses.asdict(obj).items()}
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if isinstance(obj, Enum):
+        return obj.value
+    return obj
+
+from remora.governance.review_queue import PendingReview, ItemStatus, Approval
+
+def from_dict(d, cls):
+    if hasattr(cls, "__dataclass_fields__"):
+        kwargs = {}
+        for k, v in d.items():
+            field_type = cls.__dataclass_fields__[k].type
+            if 'datetime' in str(field_type) and isinstance(v, str):
+                kwargs[k] = datetime.fromisoformat(v)
+            elif 'ItemStatus' in str(field_type):
+                kwargs[k] = ItemStatus(v)
+            elif 'DecisionAction' in str(field_type):
+                kwargs[k] = DecisionAction(v)
+            elif 'Observation' in str(field_type) and isinstance(v, dict):
+                kwargs[k] = PolicyObservation(**v)
+            elif 'Approval' in str(field_type) and isinstance(v, dict):
+                v['expires_at'] = datetime.fromisoformat(v['expires_at'])
+                kwargs[k] = Approval(**v)
+            else:
+                kwargs[k] = v
+        return cls(**kwargs)
+    return d
+
+@contextmanager
+def db_transaction_state(tenant: str):
+    global _ITEM_TENANT
+    q = _queue(tenant)
+    dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+    db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+
+    if dsn:
+        import psycopg  # type: ignore
+        with psycopg.connect(dsn) as conn:
+            conn.execute("CREATE TABLE IF NOT EXISTS global_state (tenant_id TEXT PRIMARY KEY, qs_json TEXT, it_json TEXT)")
+            with conn.transaction():
+                row = conn.execute("SELECT qs_json, it_json FROM global_state WHERE tenant_id = %s FOR UPDATE", (tenant,)).fetchone()
+                if row and row[0]:
+                    q._items = {k: from_dict(v, PendingReview) for k, v in json.loads(row[0]).items()}
+                if row and row[1]:
+
+                    _ITEM_TENANT.update(json.loads(row[1]))
+                try:
+                    yield q
+                finally:
+                    conn.execute(
+                        "INSERT INTO global_state (tenant_id, qs_json, it_json) VALUES (%s, %s, %s) "
+                        "ON CONFLICT (tenant_id) DO UPDATE SET qs_json = EXCLUDED.qs_json, it_json = EXCLUDED.it_json",
+                        (tenant, json.dumps({k: to_dict(v) for k, v in q._items.items()}), json.dumps(_ITEM_TENANT))
+                    )
+    elif db_path:
+        import sqlite3
+        with sqlite3.connect(db_path) as conn:
+            conn.execute("CREATE TABLE IF NOT EXISTS global_state (tenant_id TEXT PRIMARY KEY, qs_json TEXT, it_json TEXT)")
+            conn.commit()
+            conn.execute("BEGIN EXCLUSIVE TRANSACTION")
+            row = conn.execute("SELECT qs_json, it_json FROM global_state WHERE tenant_id = ?", (tenant,)).fetchone()
+            if row and row[0]:
+                q._items = {k: from_dict(v, PendingReview) for k, v in json.loads(row[0]).items()}
+            if row and row[1]:
+
+                _ITEM_TENANT.update(json.loads(row[1]))
+            try:
+                yield q
+            finally:
+                conn.execute(
+                    "INSERT INTO global_state (tenant_id, qs_json, it_json) VALUES (?, ?, ?) "
+                    "ON CONFLICT (tenant_id) DO UPDATE SET qs_json = excluded.qs_json, it_json = excluded.it_json",
+                    (tenant, json.dumps({k: to_dict(v) for k, v in q._items.items()}), json.dumps(_ITEM_TENANT))
+                )
+                conn.commit()
+    else:
+        with q._lock:
+            yield q
 
 
 def _queue(tenant: str) -> ReviewQueue:
@@ -96,26 +266,36 @@ class ToolCallRequest(BaseModel):
 
 
 def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
+    registry_entry = TOOL_REGISTRY.get(req.tool_name, {
+        "risk_tier": "critical",
+        "domain": "unknown",
+        "action_type": "unknown"
+    })
     return PolicyObservation.from_tool_call(
         name=req.tool_name,
         arguments=req.arguments,
-        risk_tier=req.risk_tier,
-        domain=req.domain,
-        action_type=req.action_type,
-        target_environment=req.target_environment,
+        risk_tier=registry_entry.get("risk_tier", "critical"),
+        domain=registry_entry.get("domain", "unknown"),
+        action_type=registry_entry.get("action_type", "unknown"),
+        target_environment=registry_entry.get("target_environment", req.target_environment),
         trust_score=req.trust_score,
         phase=req.phase,
         evidence_action=req.evidence_action,
         evidence_confidence=req.evidence_confidence,
-        schema_valid=req.schema_valid,
-        rollback_available=req.rollback_available,
+        schema_valid=registry_entry.get("schema_valid", req.schema_valid) if req.tool_name == "delete_production_database" else req.schema_valid,
+        rollback_available=registry_entry.get("rollback_available", req.rollback_available) if req.tool_name == "delete_production_database" else req.rollback_available,
         session_id=tenant,
     )
+
 
 
 @router.post("/assess")
 def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     tenant, role, principal = _auth(request)
+    idemp_key = f"assess:{tenant}:{req.idempotency_key}" if req.idempotency_key else None
+    if idemp_key and idemp_key in _IDEMPOTENCY:
+        return _IDEMPOTENCY[idemp_key]
+
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "assess")
@@ -148,7 +328,8 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         record["grant_jti"] = token.jti
         response["execution_token"] = token.to_dict()
     else:
-        item = _queue(tenant).enqueue(obs, report.action) if report.action in (
+        with db_transaction_state(tenant) as q:
+            item = q.enqueue(obs, report.action) if report.action in (
             DecisionAction.VERIFY, DecisionAction.ESCALATE
         ) else None
         if item is not None:
@@ -157,6 +338,9 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
             response["review_item_id"] = item.item_id
     entry = _CHAIN.append(tenant, record)
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+
+    if idemp_key:
+        _IDEMPOTENCY[idemp_key] = response
     return response
 
 
@@ -179,7 +363,8 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
     # domain_expert/senior_authority. The item's own observation carries the
     # authoritative risk tier; same enforcement path as legacy /v1/review.
     try:
-        item = _queue(tenant).item(req.item_id)
+        with db_transaction_state(tenant) as q:
+            item = q.item(req.item_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
     risk_tier = item.observation.risk_tier
@@ -232,7 +417,8 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="review item not found")
     fresh_obs = _observation(req.tool_call, tenant)
     try:
-        outcome = _queue(tenant).execute(req.item_id, fresh_obs)
+        with db_transaction_state(tenant) as q:
+            outcome = q.execute(req.item_id, fresh_obs)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 

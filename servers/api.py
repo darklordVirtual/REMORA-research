@@ -46,6 +46,7 @@ import logging
 import os
 import time
 import uuid
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Literal
 
@@ -490,6 +491,24 @@ def _sign_envelope_audit_hash(audit_hash: str) -> str | None:
     ).hexdigest()
 
 
+def _canonical_envelope_for_hash(envelope_payload: dict[str, Any]) -> dict[str, Any]:
+    """Return an envelope payload suitable for deterministic chain hashing."""
+    canonical = deepcopy(envelope_payload) if isinstance(envelope_payload, dict) else {}
+    audit = canonical.get("audit") if isinstance(canonical, dict) else None
+    if isinstance(audit, dict):
+        for key in ("hash", "previous_hash", "signature", "timestamp_utc"):
+            audit.pop(key, None)
+    return canonical
+
+
+def _compute_envelope_chain_hash(*, previous_hash: str | None, envelope_payload: dict[str, Any]) -> str:
+    """Compute SHA-256(previous_hash || canonical_envelope_json)."""
+    canonical = _canonical_envelope_for_hash(envelope_payload)
+    serialized = json.dumps(canonical, sort_keys=True, separators=(",", ":"))
+    preimage = f"{previous_hash or ''}:{serialized}"
+    return hashlib.sha256(preimage.encode("utf-8")).hexdigest()
+
+
 def _finalize_envelope_audit(
     *,
     envelope_payload: dict[str, Any],
@@ -502,12 +521,12 @@ def _finalize_envelope_audit(
         audit_block = {}
         envelope_payload["audit"] = audit_block
 
-    existing_hash = audit_block.get("hash")
-    if not isinstance(existing_hash, str) or not existing_hash.strip():
-        if isinstance(fallback_hash, str) and fallback_hash.strip():
-            audit_block["hash"] = fallback_hash
-
-    audit_block["previous_hash"] = _latest_tenant_audit_hash(tenant_id)
+    previous_hash = _latest_tenant_audit_hash(tenant_id)
+    audit_block["previous_hash"] = previous_hash
+    audit_block["hash"] = _compute_envelope_chain_hash(
+        previous_hash=previous_hash,
+        envelope_payload=envelope_payload,
+    )
 
     signature = None
     audit_hash = audit_block.get("hash")

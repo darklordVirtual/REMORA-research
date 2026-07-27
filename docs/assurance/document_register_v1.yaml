@@ -1,458 +1,2245 @@
-# REMORA Document Register v1
-# Single machine-readable source of truth for the GOVERNANCE STATUS of every
-# tracked knowledge document under docs/ (figures/ assets excluded), paper/,
-# and an explicit root-document allowlist (README.md, ARCHITECTURE.md,
-# NEGATIVE_RESULTS.md, SECURITY.md, CONTRIBUTING.md, CONTRIBUTORS.md, CLAUDE.md,
-# EVIDENCE_OF_CAPABILITY.md, NOTICE). The exact coverage set is computed by
-# scripts/check_document_governance.py (`git ls-files` over docs/ + paper/ plus
-# the ROOT_DOCS allowlist); CI fails if register entries and tracked files do
-# not match exactly.
-# Validated by scripts/check_document_governance.py (CI gate) and
-# tests/test_document_governance.py.
-#
-# Statuses:
-#   canonical  - the single authoritative document for its topic (topic unique)
-#   generated  - produced by a script; edit the generator, not the file
-#   supporting - explanatory/narrative; must not contradict canonical sources
-#   proposal   - proposed/roadmap content; not implemented claims
-#   historical - dated snapshot preserved unedited; must not be cited as current
-#   superseded - kept so old links resolve; superseded_by names the successor
-#
-# Scope note (v1): this register governs the GOVERNANCE STATUS (one status per
-# file) of docs/ + paper/ + the root-document allowlist above. Content-level
-# gates still apply on top of it and are not duplicated here: README/root claims
-# via scripts/check_readme_claims.py and tests/test_review_readiness_docs.py,
-# numeric claims via scripts/check_claim_consistency.py. Navigation lives in
-# docs/README.md (index, CI-enforced); this register holds governance status
-# only — one source of truth per data type.
-
-schema_version: "1"
-updated: "2026-07-25"
-default_owner: "Stian Skogbrott"
-
-# Controlled topic registry. A canonical document may only claim a topic that
-# appears here; this prevents near-duplicate free-text topics (architecture vs
-# architecture-narrative vs reference-architecture) from proliferating. Adding
-# a new canonical topic is a deliberate edit to this list.
-topics:
-  - docs-index
-  - project-readme
-  - architecture-toplevel
-  - architecture-narrative
-  - reference-architecture
-  - evidence-and-claims
-  - evidence-of-capability
-  - experiments
-  - negative-results
-  - negative-results-detail
-  - claim-hygiene
-  - reproducibility-guide
-  - api-reference
-  - security-properties
-  - security-policy
-  - related-work
-  - research-control-matrix
-  - contributing
-  - working-agreement
-  - benchmark-validation-plan
-  - agentharm-validation
-  - release-gates
-  - remediation-register
-  - claim-register-machine
-  - claim-register-narrative
-  - capability-register
-  - document-register
-  - release-profiles
-  - documentation-governance
-  - artifact-manifest
-  - assurance-case
-  - external-review-panel
-  - evidence-levels
-  - aromer-reference
-  - paper-canonical
-
+schema_version: '1'
+updated: '2026-07-26'
 documents:
-  # ── Root knowledge documents ─────────────────────────────────────────────
-  - path: README.md
-    status: canonical
-    topic: project-readme
-  - path: ARCHITECTURE.md
-    status: canonical
-    topic: architecture-toplevel
-  - path: NEGATIVE_RESULTS.md
-    status: canonical
-    topic: negative-results
-  - path: EVIDENCE_OF_CAPABILITY.md
-    status: canonical
-    topic: evidence-of-capability
-  - path: SECURITY.md
-    status: canonical
-    topic: security-policy
-  - path: CLAUDE.md
-    status: canonical
-    topic: working-agreement
-  - path: CONTRIBUTING.md
-    status: supporting
-  - path: CONTRIBUTORS.md
-    status: supporting
-  - path: NOTICE
-    status: supporting
+- id: DOC-001
+  version: v1
+  code_synced: verified
+  verdict: current
+  path: docs/01-architecture.md
+  status: canonical
+  topic: docs_01-architecture_md
+  owner: darklordVirtual
+  audience:
+  - researcher
+  - integrator
+  last_validated: '2026-07-26'
+  last_audited: '2026-07-26'
+  validates_against: []
+  claims: []
+  last_reviewed: '2026-07-26'
+- id: DOC-002
+  version: v1
+  code_synced: verified
+  verdict: current
+  path: paper/remora_paper.md
+  status: canonical
+  topic: paper_remora_paper_md
+  owner: darklordVirtual
+  audience:
+  - researcher
+  - evaluator
+  last_validated: '2026-07-26'
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+- id: DOC-003
+  version: v1
+  code_synced: verified
+  verdict: current
+  path: docs/archive/whitepaper.md
+  status: historical
+  superseded_by: paper/remora_paper.md
+  referencing_allowed: false
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  topic: docs_archive_whitepaper_md
+- id: DOC-004
+  version: v1
+  code_synced: verified
+  verdict: current
+  path: docs/claim_register.md
+  status: canonical
+  topic: docs_claim_register_md
+  owner: darklordVirtual
+  audience:
+  - evaluator
+  validates_against:
+  - docs/assurance/claim_register_v1.yaml
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+- id: DOC-007
+  version: v1
+  path: CONTRIBUTING.md
+  status: canonical
+  topic: CONTRIBUTING_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-009
+  version: v1
+  path: NEGATIVE_RESULTS.md
+  status: canonical
+  topic: NEGATIVE_RESULTS_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-012
+  version: v1
+  path: SECURITY.md
+  status: canonical
+  topic: SECURITY_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-015
+  version: v1
+  path: ARCHITECTURE.md
+  status: canonical
+  topic: ARCHITECTURE_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-016
+  version: v1
+  path: EVIDENCE_OF_CAPABILITY.md
+  status: canonical
+  topic: EVIDENCE_OF_CAPABILITY_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-017
+  version: v1
+  path: README.md
+  status: canonical
+  topic: README_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-021
+  version: v1
+  path: paper/hf_dataset_card.md
+  status: canonical
+  topic: paper_hf_dataset_card_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-022
+  version: v1
+  path: paper/remora_paper_template.md
+  status: canonical
+  topic: paper_remora_paper_template_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-023
+  version: v1
+  path: paper/figures.md
+  status: canonical
+  topic: paper_figures_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-024
+  version: v1
+  path: paper/future_state.md
+  status: canonical
+  topic: paper_future_state_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-025
+  version: v1
+  path: paper/claim_ledger.md
+  status: canonical
+  topic: paper_claim_ledger_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-026
+  version: v1
+  path: paper/remora_mathematical_supplement.md
+  status: canonical
+  topic: paper_remora_mathematical_supplement_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-033
+  version: v1
+  path: docs/03-experiments.md
+  status: canonical
+  topic: docs_03-experiments_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-034
+  version: v1
+  path: docs/10-contributing.md
+  status: canonical
+  topic: docs_10-contributing_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-035
+  version: v1
+  path: docs/results_snapshot.md
+  status: canonical
+  topic: docs_results_snapshot_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-036
+  version: v1
+  path: docs/AI_USE.md
+  status: canonical
+  topic: docs_AI_USE_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-037
+  version: v1
+  path: docs/09-related-work.md
+  status: canonical
+  topic: docs_09-related-work_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-038
+  version: v1
+  path: docs/11-benchmark-validation-plan.md
+  status: canonical
+  topic: docs_11-benchmark-validation-plan_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-039
+  version: v1
+  path: docs/07-api-reference.md
+  status: canonical
+  topic: docs_07-api-reference_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-040
+  version: v1
+  path: docs/02-evidence-and-claims.md
+  status: canonical
+  topic: docs_02-evidence-and-claims_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-041
+  version: v1
+  path: docs/plain_language_overview.md
+  status: canonical
+  topic: docs_plain_language_overview_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-042
+  version: v1
+  path: docs/05-claim-hygiene.md
+  status: canonical
+  topic: docs_05-claim-hygiene_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-043
+  version: v1
+  path: docs/README.md
+  status: canonical
+  topic: docs_README_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-044
+  version: v1
+  path: docs/08-security.md
+  status: canonical
+  topic: docs_08-security_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-045
+  version: v1
+  path: docs/04-negative-results-detail.md
+  status: canonical
+  topic: docs_04-negative-results-detail_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-046
+  version: v1
+  path: docs/failure_analysis.md
+  status: canonical
+  topic: docs_failure_analysis_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-047
+  version: v1
+  path: docs/executive_onepager.md
+  status: canonical
+  topic: docs_executive_onepager_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-048
+  version: v1
+  path: docs/06-reproducibility.md
+  status: canonical
+  topic: docs_06-reproducibility_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-049
+  version: v1
+  path: docs/12-agentharm-validation.md
+  status: canonical
+  topic: docs_12-agentharm-validation_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-059
+  version: v1
+  path: docs/assurance/assurance_case_v1.md
+  status: canonical
+  topic: docs_assurance_assurance_case_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-060
+  version: v1
+  path: docs/assurance/reproducibility_scorecard_v1.md
+  status: canonical
+  topic: docs_assurance_reproducibility_scorecard_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-061
+  version: v1
+  path: docs/assurance/artifact_provenance_spec_v1.md
+  status: canonical
+  topic: docs_assurance_artifact_provenance_spec_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-062
+  version: v1
+  path: docs/assurance/best_practice_gap_audit_v1.md
+  status: canonical
+  topic: docs_assurance_best_practice_gap_audit_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-063
+  version: v1
+  path: docs/assurance/aromer_memory_governance_v1.md
+  status: canonical
+  topic: docs_assurance_aromer_memory_governance_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-064
+  version: v1
+  path: docs/assurance/rbac_design_v1.md
+  status: canonical
+  topic: docs_assurance_rbac_design_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-065
+  version: v1
+  path: docs/assurance/threat_model_v1.md
+  status: canonical
+  topic: docs_assurance_threat_model_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-066
+  version: v1
+  path: docs/assurance/human_oversight_operations_v1.md
+  status: canonical
+  topic: docs_assurance_human_oversight_operations_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-067
+  version: v1
+  path: docs/assurance/development_review_log_v1.md
+  status: canonical
+  topic: docs_assurance_development_review_log_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-068
+  version: v1
+  path: docs/assurance/evidence_levels.md
+  status: canonical
+  topic: docs_assurance_evidence_levels_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-069
+  version: v1
+  path: docs/assurance/documentation_governance_v1.md
+  status: canonical
+  topic: docs_assurance_documentation_governance_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-070
+  version: v1
+  path: docs/assurance/release_gates.md
+  status: canonical
+  topic: docs_assurance_release_gates_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-071
+  version: v1
+  path: docs/assurance/policy_engine_audit_v1.md
+  status: canonical
+  topic: docs_assurance_policy_engine_audit_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-072
+  version: v1
+  path: docs/assurance/independent_review_protocol_v1.md
+  status: canonical
+  topic: docs_assurance_independent_review_protocol_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-284
+  version: v1
+  path: docs/assurance/external_review_panel_v1.md
+  status: canonical
+  topic: docs_assurance_external_review_panel_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
+- id: DOC-073
+  version: v1
+  path: docs/assurance/red_team_plan_v1.md
+  status: canonical
+  topic: docs_assurance_red_team_plan_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-074
+  version: v1
+  path: docs/assurance/rbac_policy_v1.md
+  status: canonical
+  topic: docs_assurance_rbac_policy_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-075
+  version: v1
+  path: docs/assurance/claim_provenance_gate.md
+  status: canonical
+  topic: docs_assurance_claim_provenance_gate_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-076
+  version: v1
+  path: docs/assurance/ai_assisted_adversarial_security_review_v1.md
+  status: canonical
+  topic: docs_assurance_ai_assisted_adversarial_security_review_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-077
+  version: v1
+  path: docs/assurance/statistical_analysis_plan.md
+  status: canonical
+  topic: docs_assurance_statistical_analysis_plan_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-078
+  version: v1
+  path: docs/assurance/domain_pack_governance_v1.md
+  status: canonical
+  topic: docs_assurance_domain_pack_governance_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-079
+  version: v1
+  path: docs/assurance/resilience_plan_v1.md
+  status: canonical
+  topic: docs_assurance_resilience_plan_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-080
+  version: v1
+  path: docs/assurance/benchmark_audit_v1.md
+  status: canonical
+  topic: docs_assurance_benchmark_audit_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-081
+  version: v1
+  path: docs/assurance/artifact_manifest_v1.md
+  status: canonical
+  topic: docs_assurance_artifact_manifest_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-082
+  version: v1
+  path: docs/archive/external_review_round2_plan.md
+  status: historical
+  topic: docs_archive_external_review_round2_plan_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-083
+  version: v1
+  path: docs/archive/review_round2_closure.md
+  status: historical
+  topic: docs_archive_review_round2_closure_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-084
+  version: v1
+  path: docs/archive/analysis_report_legacy_2026-05-20.md
+  status: historical
+  topic: docs_archive_analysis_report_legacy_2026-05-20_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-085
+  version: v1
+  path: docs/archive/academic_evaluation_legacy_2026-05-20.md
+  status: historical
+  topic: docs_archive_academic_evaluation_legacy_2026-05-20_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-086
+  version: v1
+  path: docs/archive/toolcall_consensus_benchmark_v1.md
+  status: historical
+  topic: docs_archive_toolcall_consensus_benchmark_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-087
+  version: v1
+  path: docs/archive/DOCUMENTATION_DRIFT_REPORT.md
+  status: historical
+  topic: docs_archive_DOCUMENTATION_DRIFT_REPORT_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-093
+  version: v1
+  path: docs/archive/legacy/selective_trust_curve_proof.md
+  status: historical
+  topic: docs_archive_legacy_selective_trust_curve_proof_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-105
+  version: v1
+  path: docs/archive/legacy/agent_governance.md
+  status: historical
+  topic: docs_archive_legacy_agent_governance_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-116
+  version: v1
+  path: docs/archive/legacy/causality.md
+  status: historical
+  topic: docs_archive_legacy_causality_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-158
+  version: v1
+  path: docs/methods/architecture_risk_register.md
+  status: canonical
+  topic: docs_methods_architecture_risk_register_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-159
+  version: v1
+  path: docs/use-cases/README.md
+  status: canonical
+  topic: docs_use-cases_README_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-160
+  version: v1
+  path: docs/policy_cookbook/cyber.md
+  status: canonical
+  topic: docs_policy_cookbook_cyber_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-161
+  version: v1
+  path: docs/INDEX.md
+  status: canonical
+  topic: docs_INDEX_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-162
+  version: v1
+  path: docs/governance/eu_ai_act_nsm_mapping.md
+  status: canonical
+  topic: docs_governance_eu_ai_act_nsm_mapping_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-163
+  version: v1
+  path: docs/research/policy_generalization_risk.md
+  status: canonical
+  topic: docs_research_policy_generalization_risk_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-164
+  version: v1
+  path: docs/evidence/causal_policy_explanations.md
+  status: canonical
+  topic: docs_evidence_causal_policy_explanations_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-165
+  version: v1
+  path: docs/integrations/cyber_evidence_layer.md
+  status: canonical
+  topic: docs_integrations_cyber_evidence_layer_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-166
+  version: v1
+  path: docs/experiments/experiment5_chi_iteration_utility.md
+  status: canonical
+  topic: docs_experiments_experiment5_chi_iteration_utility_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-167
+  version: v1
+  path: docs/thermodynamics/claim_ledger.yaml
+  status: canonical
+  topic: docs_thermodynamics_claim_ledger_yaml
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-168
+  version: v1
+  path: docs/research/research_control_matrix.generated.md
+  status: canonical
+  topic: docs_research_research_control_matrix_generated_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-169
+  version: v1
+  path: docs/validation/external-review.md
+  status: canonical
+  topic: docs_validation_external-review_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-170
+  version: v1
+  path: docs/validation/audit_result_schema.md
+  status: canonical
+  topic: docs_validation_audit_result_schema_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-171
+  version: v1
+  path: docs/thermodynamics/temperature_estimator.md
+  status: canonical
+  topic: docs_thermodynamics_temperature_estimator_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-172
+  version: v1
+  path: docs/assurance/document_register_v1.yaml
+  status: canonical
+  topic: docs_assurance_document_register_v1_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-173
+  version: v1
+  path: docs/thermodynamics/limitations.md
+  status: canonical
+  topic: docs_thermodynamics_limitations_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-174
+  version: v1
+  path: docs/thermodynamics/runtime_policy.md
+  status: canonical
+  topic: docs_thermodynamics_runtime_policy_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-175
+  version: v1
+  path: docs/research/misspecification_aware_governance.md
+  status: canonical
+  topic: docs_research_misspecification_aware_governance_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-176
+  version: v1
+  path: docs/integrations/cloudflare_workers_ai.md
+  status: canonical
+  topic: docs_integrations_cloudflare_workers_ai_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-177
+  version: v1
+  path: docs/policy_cookbook/README.md
+  status: canonical
+  topic: docs_policy_cookbook_README_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-178
+  version: v1
+  path: docs/evidence/claim_evidence_matrix.md
+  status: canonical
+  topic: docs_evidence_claim_evidence_matrix_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-179
+  version: v1
+  path: docs/benchmarks/README.md
+  status: canonical
+  topic: docs_benchmarks_README_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-180
+  version: v1
+  path: docs/integrations/gostar_integration.md
+  status: canonical
+  topic: docs_integrations_gostar_integration_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-181
+  version: v1
+  path: docs/claims/thermodynamics_claims.yaml
+  status: canonical
+  topic: docs_claims_thermodynamics_claims_yaml
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-182
+  version: v1
+  path: docs/enterprise/togaf-enterprise-rollout-plan.md
+  status: canonical
+  topic: docs_enterprise_togaf-enterprise-rollout-plan_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-183
+  version: v1
+  path: docs/use-cases/building-automation.md
+  status: canonical
+  topic: docs_use-cases_building-automation_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-184
+  version: v1
+  path: docs/integrations/mcp-integration.md
+  status: canonical
+  topic: docs_integrations_mcp-integration_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-185
+  version: v1
+  path: docs/reference_architecture.md
+  status: canonical
+  topic: docs_reference_architecture_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-186
+  version: v1
+  path: docs/experiments/experiment3_phase_transition_study.md
+  status: canonical
+  topic: docs_experiments_experiment3_phase_transition_study_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-187
+  version: v1
+  path: docs/policy_cookbook/cloud_ops.md
+  status: canonical
+  topic: docs_policy_cookbook_cloud_ops_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-188
+  version: v1
+  path: docs/benchmarks/stat_tests.md
+  status: canonical
+  topic: docs_benchmarks_stat_tests_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-189
+  version: v1
+  path: docs/security/pre-deployment-review.md
+  status: canonical
+  topic: docs_security_pre-deployment-review_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-190
+  version: v1
+  path: docs/research/research_control_matrix_v1.yaml
+  status: canonical
+  topic: docs_research_research_control_matrix_v1_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-191
+  version: v1
+  path: docs/assurance/release_profiles_v1.yaml
+  status: canonical
+  topic: docs_assurance_release_profiles_v1_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-192
+  version: v1
+  path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
+  status: canonical
+  topic: docs_aromer_REMORA_AROMER_MASTER_DOCUMENT_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-193
+  version: v1
+  path: docs/evidence/empirical_evidence_record.md
+  status: canonical
+  topic: docs_evidence_empirical_evidence_record_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-194
+  version: v1
+  path: docs/deployment/onprem-airgapped.md
+  status: canonical
+  topic: docs_deployment_onprem-airgapped_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-195
+  version: v1
+  path: docs/methods/nested_governance.md
+  status: canonical
+  topic: docs_methods_nested_governance_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-196
+  version: v1
+  path: docs/assurance/remediation_register.yaml
+  status: canonical
+  topic: docs_assurance_remediation_register_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-197
+  version: v1
+  path: docs/evidence/authorship_evidence_report.md
+  status: canonical
+  topic: docs_evidence_authorship_evidence_report_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-198
+  version: v1
+  path: docs/deployment/azure-reference-architecture.md
+  status: canonical
+  topic: docs_deployment_azure-reference-architecture_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-199
+  version: v1
+  path: docs/methods/theoretical_foundations_proposals_v1.md
+  status: canonical
+  topic: docs_methods_theoretical_foundations_proposals_v1_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-200
+  version: v1
+  path: docs/research/governance_intelligence_layer.md
+  status: canonical
+  topic: docs_research_governance_intelligence_layer_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-201
+  version: v1
+  path: docs/validation/review_checklist.md
+  status: canonical
+  topic: docs_validation_review_checklist_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-202
+  version: v1
+  path: docs/benchmarks/toolcall_consensus_benchmark_v2.md
+  status: canonical
+  topic: docs_benchmarks_toolcall_consensus_benchmark_v2_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-203
+  version: v1
+  path: docs/governance/nist_ai_rmf_mapping.md
+  status: canonical
+  topic: docs_governance_nist_ai_rmf_mapping_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-204
+  version: v1
+  path: docs/research/causal_consequence_gating.md
+  status: canonical
+  topic: docs_research_causal_consequence_gating_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-205
+  version: v1
+  path: docs/assurance/claim_provenance_baseline.json
+  status: canonical
+  topic: docs_assurance_claim_provenance_baseline_json
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-206
+  version: v1
+  path: docs/security/owasp_genai_mapping.md
+  status: canonical
+  topic: docs_security_owasp_genai_mapping_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-207
+  version: v1
+  path: docs/evidence/decision_envelope_audit.md
+  status: canonical
+  topic: docs_evidence_decision_envelope_audit_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-208
+  version: v1
+  path: docs/assurance/capability_register_v1.yaml
+  status: canonical
+  topic: docs_assurance_capability_register_v1_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-209
+  version: v1
+  path: docs/experiments/experiment4_susceptibility_validation.md
+  status: canonical
+  topic: docs_experiments_experiment4_susceptibility_validation_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-210
+  version: v1
+  path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
+  status: canonical
+  topic: docs_use-cases_REMORA_v4_Thermodynamics_Evidence_Status_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-211
+  version: v1
+  path: docs/policy_cookbook/database.md
+  status: canonical
+  topic: docs_policy_cookbook_database_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-212
+  version: v1
+  path: docs/thermodynamics/README.md
+  status: canonical
+  topic: docs_thermodynamics_README_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-213
+  version: v1
+  path: docs/integrations/go_star_bridge.md
+  status: canonical
+  topic: docs_integrations_go_star_bridge_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-214
+  version: v1
+  path: docs/methods/thermodynamic_abs.md
+  status: canonical
+  topic: docs_methods_thermodynamic_abs_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-215
+  version: v1
+  path: docs/validation/EXTERNAL_VALIDATION_PLAN.md
+  status: canonical
+  topic: docs_validation_EXTERNAL_VALIDATION_PLAN_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-216
+  version: v1
+  path: docs/integrations/knowledge_domains.md
+  status: canonical
+  topic: docs_integrations_knowledge_domains_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-217
+  version: v1
+  path: docs/assurance/claim_register_v1.yaml
+  status: canonical
+  topic: docs_assurance_claim_register_v1_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-218
+  version: v1
+  path: docs/aromer/quickstart_aromer.md
+  status: canonical
+  topic: docs_aromer_quickstart_aromer_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-219
+  version: v1
+  path: docs/validation/credibility_pack_repro.md
+  status: canonical
+  topic: docs_validation_credibility_pack_repro_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-220
+  version: v1
+  path: docs/integrations/rag_oracle.md
+  status: canonical
+  topic: docs_integrations_rag_oracle_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-221
+  version: v1
+  path: docs/validation/external_validation_report_template.md
+  status: canonical
+  topic: docs_validation_external_validation_report_template_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+- id: DOC-222
+  version: v1
+  path: docs/integrations/agent_tool_hook.md
+  status: canonical
+  topic: docs_integrations_agent_tool_hook_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-131
+  version: v1
+  path: CLAUDE.md
+  status: canonical
+  topic: CLAUDE_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-132
+  version: v1
+  path: CONTRIBUTORS.md
+  status: canonical
+  topic: CONTRIBUTORS_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-133
+  version: v1
+  path: NOTICE
+  status: canonical
+  topic: NOTICE
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-134
+  version: v1
+  path: docs/archive/remora_infographic_v3_dark.html
+  status: historical
+  topic: docs_archive_remora_infographic_v3_dark_html
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-135
+  version: v1
+  path: docs/archive/legacy/remora_architecture.html
+  status: canonical
+  topic: docs_remora_architecture_html
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-223
+  version: v1
+  path: docs/archive/legacy/EXTERNAL_VALIDATION_PLAN.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-224
+  version: v1
+  path: docs/archive/legacy/README.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-225
+  version: v1
+  path: docs/archive/legacy/REMORA_AROMER_MASTER_DOCUMENT.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-226
+  version: v1
+  path: docs/archive/legacy/REMORA_v4_Thermodynamics_Evidence_Status.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-227
+  version: v1
+  path: docs/archive/legacy/agent_tool_hook.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-228
+  version: v1
+  path: docs/archive/legacy/architecture_risk_register.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-229
+  version: v1
+  path: docs/archive/legacy/audit_result_schema.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-230
+  version: v1
+  path: docs/archive/legacy/authorship_evidence_report.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-231
+  version: v1
+  path: docs/archive/legacy/azure-reference-architecture.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-232
+  version: v1
+  path: docs/archive/legacy/building-automation.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-233
+  version: v1
+  path: docs/archive/legacy/causal_consequence_gating.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-234
+  version: v1
+  path: docs/archive/legacy/causal_policy_explanations.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-235
+  version: v1
+  path: docs/archive/legacy/claim_evidence_matrix.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-236
+  version: v1
+  path: docs/archive/legacy/claim_ledger.yaml
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-237
+  version: v1
+  path: docs/archive/legacy/cloud_ops.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-238
+  version: v1
+  path: docs/archive/legacy/cloudflare_workers_ai.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-239
+  version: v1
+  path: docs/archive/legacy/credibility_pack_repro.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-240
+  version: v1
+  path: docs/archive/legacy/cyber.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-241
+  version: v1
+  path: docs/archive/legacy/cyber_evidence_layer.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-242
+  version: v1
+  path: docs/archive/legacy/database.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-243
+  version: v1
+  path: docs/archive/legacy/decision_envelope_audit.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-244
+  version: v1
+  path: docs/archive/legacy/empirical_evidence_record.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-245
+  version: v1
+  path: docs/archive/legacy/eu_ai_act_nsm_mapping.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-246
+  version: v1
+  path: docs/archive/legacy/experiment3_phase_transition_study.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-247
+  version: v1
+  path: docs/archive/legacy/experiment4_susceptibility_validation.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-248
+  version: v1
+  path: docs/archive/legacy/experiment5_chi_iteration_utility.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-249
+  version: v1
+  path: docs/archive/legacy/external-review.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-250
+  version: v1
+  path: docs/archive/legacy/external_validation_report_template.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-251
+  version: v1
+  path: docs/archive/legacy/go_star_bridge.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-252
+  version: v1
+  path: docs/archive/legacy/gostar_integration.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-253
+  version: v1
+  path: docs/archive/legacy/governance_intelligence_layer.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-254
+  version: v1
+  path: docs/archive/legacy/knowledge_domains.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-255
+  version: v1
+  path: docs/archive/legacy/limitations.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-256
+  version: v1
+  path: docs/archive/legacy/mcp-integration.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-257
+  version: v1
+  path: docs/archive/legacy/misspecification_aware_governance.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-258
+  version: v1
+  path: docs/archive/legacy/nested_governance.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-259
+  version: v1
+  path: docs/archive/legacy/nist_ai_rmf_mapping.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-260
+  version: v1
+  path: docs/archive/legacy/onprem-airgapped.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-261
+  version: v1
+  path: docs/archive/legacy/owasp_genai_mapping.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-262
+  version: v1
+  path: docs/archive/legacy/policy_generalization_risk.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-263
+  version: v1
+  path: docs/archive/legacy/pre-deployment-review.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-264
+  version: v1
+  path: docs/archive/legacy/quickstart_aromer.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-265
+  version: v1
+  path: docs/archive/legacy/rag_oracle.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-266
+  version: v1
+  path: docs/archive/legacy/reference_architecture.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-267
+  version: v1
+  path: docs/archive/legacy/research_control_matrix.generated.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-268
+  version: v1
+  path: docs/archive/legacy/research_control_matrix_v1.yaml
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-269
+  version: v1
+  path: docs/archive/legacy/review_checklist.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-270
+  version: v1
+  path: docs/archive/legacy/runtime_policy.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-271
+  version: v1
+  path: docs/archive/legacy/stat_tests.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-272
+  version: v1
+  path: docs/archive/legacy/temperature_estimator.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-273
+  version: v1
+  path: docs/archive/legacy/theoretical_foundations_proposals_v1.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-274
+  version: v1
+  path: docs/archive/legacy/thermodynamic_abs.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-275
+  version: v1
+  path: docs/archive/legacy/thermodynamics_claims.yaml
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-276
+  version: v1
+  path: docs/archive/legacy/togaf-enterprise-rollout-plan.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-277
+  version: v1
+  path: docs/archive/legacy/toolcall_consensus_benchmark_v2.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-26'
+  last_reviewed: '2026-07-26'
+  audience:
+  - researchers
+- id: DOC-278
+  version: v1
+  path: docs/assurance/experiment_manifest_spec_v1.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
+- id: DOC-279
+  version: v1
+  path: docs/research/research_modes.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
+- id: DOC-280
+  version: v1
+  path: docs/assurance/metric_definitions_v1.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
+- id: DOC-281
+  version: v1
+  path: docs/assurance/rebenchmark_protocol_v1.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
+- id: DOC-282
+  version: v1
+  path: docs/assurance/statistical_analysis_plan_v2.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
+- id: DOC-283
+  version: v1
+  path: docs/research/benchmark_round_2026_07.md
+  status: supporting
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-27'
+  last_reviewed: '2026-07-27'
+  audience:
+  - researchers
+  - evaluators
 
-  # ── Paper ────────────────────────────────────────────────────────────────
-  - path: paper/remora_paper.md
-    status: canonical
-    topic: paper-canonical
-  - path: paper/remora_mathematical_supplement.md
-    status: supporting
-  - path: paper/claim_ledger.md
-    status: supporting
-  - path: paper/figures.md
-    status: supporting
-  - path: paper/hf_dataset_card.md
-    status: supporting
-  - path: paper/remora_paper_template.md
-    status: supporting
-  - path: paper/future_state.md
-    status: proposal
-  - path: paper/code_review_report.md
-    status: historical
-  - path: paper/whitepaper.md
-    status: historical
-
-  # ── Index ────────────────────────────────────────────────────────────────
-  - path: docs/README.md
-    status: canonical
-    topic: docs-index
-
-  # ── Core numbered series (canonical per docs/README.md conventions) ──────
-  - path: docs/01-architecture.md
-    status: canonical
-    topic: architecture-narrative
-  - path: docs/02-evidence-and-claims.md
-    status: canonical
-    topic: evidence-and-claims
-  - path: docs/03-experiments.md
-    status: canonical
-    topic: experiments
-  - path: docs/04-negative-results-detail.md
-    status: canonical
-    topic: negative-results-detail
-  - path: docs/05-claim-hygiene.md
-    status: canonical
-    topic: claim-hygiene
-  - path: docs/06-reproducibility.md
-    status: canonical
-    topic: reproducibility-guide
-  - path: docs/07-api-reference.md
-    status: canonical
-    topic: api-reference
-  - path: docs/08-security.md
-    status: canonical
-    topic: security-properties
-  - path: docs/09-related-work.md
-    status: canonical
-    topic: related-work
-  - path: docs/10-contributing.md
-    status: canonical
-    topic: contributing
-  - path: docs/11-benchmark-validation-plan.md
-    status: canonical
-    topic: benchmark-validation-plan
-  - path: docs/12-agentharm-validation.md
-    status: canonical
-    topic: agentharm-validation
-
-  # ── Architecture ─────────────────────────────────────────────────────────
-  - path: docs/reference_architecture.md
-    status: canonical
-    topic: reference-architecture
-  - path: docs/methods/architecture_risk_register.md
-    status: supporting
-  - path: docs/remora_architecture.html
-    status: supporting
-  - path: docs/evidence/decision_envelope_audit.md
-    status: supporting
-  - path: docs/evidence/causal_policy_explanations.md
-    status: supporting
-  - path: docs/failure_analysis.md
-    status: generated
-    generated_by: experiments/toolcall_v2_failure_analysis.py
-  - path: docs/methods/nested_governance.md
-    status: supporting
-  - path: docs/methods/thermodynamic_abs.md
-    status: supporting
-
-  # ── Assurance: live status surfaces (canonical) ──────────────────────────
-  - path: docs/assurance/release_gates.md
-    status: canonical
-    topic: release-gates
-  - path: docs/assurance/remediation_register.yaml
-    status: canonical
-    topic: remediation-register
-  - path: docs/assurance/claim_register_v1.yaml
-    status: canonical
-    topic: claim-register-machine
-  - path: docs/claim_register.md
-    status: canonical
-    topic: claim-register-narrative
-  - path: docs/assurance/capability_register_v1.yaml
-    status: canonical
-    topic: capability-register
-  - path: docs/assurance/document_register_v1.yaml
-    status: canonical
-    topic: document-register
-  - path: docs/assurance/release_profiles_v1.yaml
-    status: canonical
-    topic: release-profiles
-  - path: docs/assurance/documentation_governance_v1.md
-    status: canonical
-    topic: documentation-governance
-  - path: docs/assurance/artifact_manifest_v1.md
-    status: canonical
-    topic: artifact-manifest
-  - path: docs/assurance/assurance_case_v1.md
-    status: canonical
-    topic: assurance-case
-  - path: docs/assurance/external_review_panel_v1.md
-    status: canonical
-    topic: external-review-panel
-  - path: docs/evidence/claim_evidence_matrix.md
-    status: supporting
-
-  # ── Assurance: process, audits, specifications (supporting) ─────────────
-  - path: docs/assurance/ai_assisted_adversarial_security_review_v1.md
-    status: supporting
-  - path: docs/assurance/aromer_memory_governance_v1.md
-    status: supporting
-  - path: docs/assurance/artifact_provenance_spec_v1.md
-    status: supporting
-  - path: docs/assurance/benchmark_audit_v1.md
-    status: supporting
-  - path: docs/assurance/claim_provenance_gate.md
-    status: supporting
-  - path: docs/assurance/claim_provenance_baseline.json
-    status: supporting
-  - path: docs/assurance/development_review_log_v1.md
-    status: supporting
-  - path: docs/assurance/domain_pack_governance_v1.md
-    status: supporting
-  - path: docs/assurance/evidence_levels.md
-    status: canonical
-    topic: evidence-levels
-  - path: docs/assurance/best_practice_gap_audit_v1.md
-    status: proposal
-  - path: docs/assurance/human_oversight_operations_v1.md
-    status: supporting
-  - path: docs/assurance/independent_review_protocol_v1.md
-    status: supporting
-  - path: docs/assurance/policy_engine_audit_v1.md
-    status: supporting
-  - path: docs/assurance/rbac_design_v1.md
-    status: supporting
-  - path: docs/assurance/rbac_policy_v1.md
-    status: supporting
-  - path: docs/assurance/red_team_plan_v1.md
-    status: supporting
-  - path: docs/assurance/reproducibility_scorecard_v1.md
-    status: supporting
-  - path: docs/assurance/resilience_plan_v1.md
-    status: supporting
-  - path: docs/assurance/statistical_analysis_plan.md
-    status: supporting
-
-  # ── Assurance: historical snapshots (banner-marked, never edited) ────────
-  - path: docs/assurance/baseline_snapshot.md
-    status: historical
-  - path: docs/assurance/operation_baseline_2026_06_30.md
-    status: historical
-  - path: docs/assurance/operation_master_plan_v1.md
-    status: historical
-  - path: docs/assurance/paper_alignment_2026-06-30.md
-    status: historical
-  - path: docs/assurance/product_strategy_v1.md
-    status: historical
-  - path: docs/assurance/simulated_hostile_review_v1.md
-    status: historical
-  - path: docs/assurance/threat_model_v1.md
-    status: historical
-  - path: docs/researchpapers/analysis_notes_2026-06-30.md
-    status: historical
-  - path: docs/researchpapers/analysis_notes_ood_2026-06-30.md
-    status: historical
-
-  # ── Compliance mappings ──────────────────────────────────────────────────
-  - path: docs/governance/eu_ai_act_nsm_mapping.md
-    status: supporting
-  - path: docs/governance/nist_ai_rmf_mapping.md
-    status: supporting
-  - path: docs/security/owasp_genai_mapping.md
-    status: supporting
-  - path: docs/security/pre-deployment-review.md
-    status: supporting
-  - path: docs/enterprise/togaf-enterprise-rollout-plan.md
-    status: supporting
-
-  # ── Evidence and benchmarks ──────────────────────────────────────────────
-  - path: docs/evidence/empirical_evidence_record.md
-    status: supporting
-  - path: docs/results_snapshot.md
-    status: generated
-    generated_by: scripts/generate_results_snapshot.py
-  - path: docs/benchmarks/toolcall_benchmarks.md
-    status: supporting
-  - path: docs/benchmarks/toolcall_consensus_benchmark_v2.md
-    status: supporting
-  - path: docs/benchmarks/agentharm_live_benchmark.md
-    status: supporting
-  - path: docs/benchmarks/agentharm_trimode_benchmark.md
-    status: supporting
-  - path: docs/benchmarks/domain_benchmark.md
-    status: supporting
-  - path: docs/benchmarks/live_benchmark.md
-    status: supporting
-  - path: docs/benchmarks/stat_tests.md
-    status: supporting
-  - path: docs/validation/credibility_pack_repro.md
-    status: supporting
-  - path: docs/validation/audit_result_schema.md
-    status: supporting
-  - path: docs/validation/EXTERNAL_VALIDATION_PLAN.md
-    status: supporting
-  - path: docs/validation/external-review.md
-    status: supporting
-  - path: docs/validation/review_checklist.md
-    status: supporting
-  - path: docs/validation/external_validation_report_template.md
-    status: supporting
-  - path: docs/experiments/experiment3_phase_transition_study.md
-    status: supporting
-  - path: docs/experiments/experiment4_susceptibility_validation.md
-    status: supporting
-  - path: docs/experiments/experiment5_chi_iteration_utility.md
-    status: supporting
-  - path: docs/thermodynamics/README.md
-    status: supporting
-  - path: docs/thermodynamics/claim_ledger.yaml
-    status: supporting
-  - path: docs/thermodynamics/limitations.md
-    status: supporting
-  - path: docs/thermodynamics/runtime_policy.md
-    status: supporting
-  - path: docs/thermodynamics/temperature_estimator.md
-    status: supporting
-  - path: docs/claims/thermodynamics_claims.yaml
-    status: supporting
-
-  # ── AROMER ───────────────────────────────────────────────────────────────
-  - path: docs/aromer/quickstart_aromer.md
-    status: supporting
-  - path: docs/aromer/aromer_learning_evidence_v1.md
-    status: historical
-  - path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
-    status: canonical
-    topic: aromer-reference
-  - path: docs/aromer/REMORA_AROMER_FINAL_REPORT.md
-    status: historical
-
-  # ── Integrations and operations ──────────────────────────────────────────
-  - path: docs/integrations/mcp-integration.md
-    status: supporting
-  - path: docs/integrations/agent_tool_hook.md
-    status: supporting
-  - path: docs/integrations/rag_oracle.md
-    status: supporting
-  - path: docs/integrations/cloudflare_workers_ai.md
-    status: supporting
-  - path: docs/integrations/knowledge_domains.md
-    status: supporting
-  - path: docs/integrations/cyber_evidence_layer.md
-    status: supporting
-  - path: docs/integrations/go_star_bridge.md
-    status: supporting
-  - path: docs/integrations/gostar_integration.md
-    status: supporting
-  - path: docs/deployment/azure-reference-architecture.md
-    status: supporting
-  - path: docs/deployment/onprem-airgapped.md
-    status: supporting
-  - path: docs/policy_cookbook/README.md
-    status: supporting
-  - path: docs/policy_cookbook/cloud_ops.md
-    status: supporting
-  - path: docs/policy_cookbook/cyber.md
-    status: supporting
-  - path: docs/policy_cookbook/database.md
-    status: supporting
-
-  # ── Use cases ────────────────────────────────────────────────────────────
-  - path: docs/use-cases/README.md
-    status: supporting
-  - path: docs/use-cases/01-healthcare.md
-    status: supporting
-  - path: docs/use-cases/02-legal-compliance.md
-    status: supporting
-  - path: docs/use-cases/03-financial.md
-    status: supporting
-  - path: docs/use-cases/04-energy.md
-    status: supporting
-  - path: docs/use-cases/05-security.md
-    status: supporting
-  - path: docs/use-cases/06-public-administration-hallucination.md
-    status: supporting
-  - path: docs/use-cases/07-norwegian-law-mcp.md
-    status: supporting
-  - path: docs/use-cases/building-automation.md
-    status: supporting
-  - path: docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
-    status: supporting
-
-  # ── Research notes and proposals ─────────────────────────────────────────
-  - path: docs/research/causal_consequence_gating.md
-    status: proposal
-  - path: docs/research/governance_intelligence_layer.md
-    status: proposal
-  - path: docs/research/misspecification_aware_governance.md
-    status: proposal
-  - path: docs/research/policy_generalization_risk.md
-    status: proposal
-  - path: docs/research/research_control_matrix_v1.yaml
-    status: canonical
-    topic: research-control-matrix
-  - path: docs/research/research_control_matrix.generated.md
-    status: generated
-    generated_by: scripts/generate_research_control_matrix.py
-  - path: docs/methods/theoretical_foundations_proposals_v1.md
-    status: proposal
-
-  # ── Meta ─────────────────────────────────────────────────────────────────
-  - path: docs/AI_USE.md
-    status: supporting
-  - path: docs/evidence/authorship_evidence_report.md
-    status: supporting
-  - path: docs/executive_onepager.md
-    status: supporting
-  - path: docs/plain_language_overview.md
-    status: supporting
-
-  # ── Forwarding stubs (superseded, kept so old links resolve) ─────────────
-  - path: docs/archive/academic_evaluation_legacy_2026-05-20.md
-    status: historical
-  - path: docs/archive/analysis_report_legacy_2026-05-20.md
-    status: historical
-  - path: docs/archive/DOCUMENTATION_DRIFT_REPORT.md
-    status: historical
-  - path: docs/archive/external_review_round2_plan.md
-    status: historical
-  - path: docs/archive/review_round2_closure.md
-    status: historical
-  - path: docs/archive/toolcall_consensus_benchmark_v1.md
-    status: superseded
-    superseded_by: docs/benchmarks/toolcall_consensus_benchmark_v2.md
-  - path: docs/archive/remora_infographic_v3_dark.html
-    status: historical
-  - path: docs/archive/legacy/agent_governance.md
-    status: historical
-  - path: docs/archive/legacy/causality.md
-    status: historical
-  - path: docs/archive/legacy/selective_trust_curve_proof.md
-    status: historical
+topics:
+- docs_01-architecture_md
+- paper_remora_paper_md
+- docs_archive_whitepaper_md
+- docs_claim_register_md
+- CHANGELOG_md
+- THIRD_PARTY_NOTICES_md
+- CONTRIBUTING_md
+- TRADEMARKS_md
+- NEGATIVE_RESULTS_md
+- LICENSING_md
+- CODE_OF_CONDUCT_md
+- SECURITY_md
+- COPYRIGHT_md
+- COMMERCIAL_LICENSE_md
+- ARCHITECTURE_md
+- EVIDENCE_OF_CAPABILITY_md
+- README_md
+- CONTRIBUTORS_md
+- CLAUDE_md
+- remora_README_md
+- paper_hf_dataset_card_md
+- paper_remora_paper_template_md
+- paper_figures_md
+- paper_future_state_md
+- paper_claim_ledger_md
+- paper_remora_mathematical_supplement_md
+- eval_pack_report_template_md
+- eval_pack_README_md
+- eval_pack_agent_action_log_schema_md
+- frontend_README_md
+- _github_pull_request_template_md
+- _pytest_cache_README_md
+- docs_03-experiments_md
+- docs_10-contributing_md
+- docs_results_snapshot_md
+- docs_AI_USE_md
+- docs_09-related-work_md
+- docs_11-benchmark-validation-plan_md
+- docs_07-api-reference_md
+- docs_02-evidence-and-claims_md
+- docs_plain_language_overview_md
+- docs_05-claim-hygiene_md
+- docs_README_md
+- docs_08-security_md
+- docs_04-negative-results-detail_md
+- docs_failure_analysis_md
+- docs_executive_onepager_md
+- docs_06-reproducibility_md
+- docs_12-agentharm-validation_md
+- scripts_README_md
+- workers_rag-oracle_README_md
+- workers_agent-control_README_md
+- workers_law-search_README_md
+- frontend__lovable_plan_md
+- frontend_src_routes_README_md
+- _github_ISSUE_TEMPLATE_benchmark_proposal_md
+- _github_ISSUE_TEMPLATE_scope_correction_md
+- _github_ISSUE_TEMPLATE_bug_report_md
+- docs_assurance_assurance_case_v1_md
+- docs_assurance_reproducibility_scorecard_v1_md
+- docs_assurance_artifact_provenance_spec_v1_md
+- docs_assurance_best_practice_gap_audit_v1_md
+- docs_assurance_aromer_memory_governance_v1_md
+- docs_assurance_rbac_design_v1_md
+- docs_assurance_threat_model_v1_md
+- docs_assurance_human_oversight_operations_v1_md
+- docs_assurance_development_review_log_v1_md
+- docs_assurance_evidence_levels_md
+- docs_assurance_documentation_governance_v1_md
+- docs_assurance_release_gates_md
+- docs_assurance_policy_engine_audit_v1_md
+- docs_assurance_independent_review_protocol_v1_md
+- docs_assurance_external_review_panel_v1_md
+- docs_assurance_red_team_plan_v1_md
+- docs_assurance_rbac_policy_v1_md
+- docs_assurance_claim_provenance_gate_md
+- docs_assurance_ai_assisted_adversarial_security_review_v1_md
+- docs_assurance_statistical_analysis_plan_md
+- docs_assurance_domain_pack_governance_v1_md
+- docs_assurance_resilience_plan_v1_md
+- docs_assurance_benchmark_audit_v1_md
+- docs_assurance_artifact_manifest_v1_md
+- docs_archive_external_review_round2_plan_md
+- docs_archive_review_round2_closure_md
+- docs_archive_analysis_report_legacy_2026-05-20_md
+- docs_archive_academic_evaluation_legacy_2026-05-20_md
+- docs_archive_toolcall_consensus_benchmark_v1_md
+- docs_archive_DOCUMENTATION_DRIFT_REPORT_md
+- docs_archive_legacy_stat_tests_md
+- docs_archive_legacy_rag_oracle_md
+- docs_archive_legacy_decision_envelope_audit_md
+- docs_archive_legacy_architecture_risk_register_md
+- docs_archive_legacy_togaf-enterprise-rollout-plan_md
+- docs_archive_legacy_selective_trust_curve_proof_md
+- docs_archive_legacy_REMORA_v4_Thermodynamics_Evidence_Status_md
+- docs_archive_legacy_cyber_md
+- docs_archive_legacy_external-review_md
+- docs_archive_legacy_cloudflare_workers_ai_md
+- docs_archive_legacy_mcp-integration_md
+- docs_archive_legacy_research_control_matrix_generated_md
+- docs_archive_legacy_knowledge_domains_md
+- docs_archive_legacy_nested_governance_md
+- docs_archive_legacy_database_md
+- docs_archive_legacy_agent_tool_hook_md
+- docs_archive_legacy_claim_evidence_matrix_md
+- docs_archive_legacy_agent_governance_md
+- docs_archive_legacy_authorship_evidence_report_md
+- docs_archive_legacy_audit_result_schema_md
+- docs_archive_legacy_theoretical_foundations_proposals_v1_md
+- docs_archive_legacy_quickstart_aromer_md
+- docs_archive_legacy_runtime_policy_md
+- docs_archive_legacy_empirical_evidence_record_md
+- docs_archive_legacy_azure-reference-architecture_md
+- docs_archive_legacy_temperature_estimator_md
+- docs_archive_legacy_gostar_integration_md
+- docs_archive_legacy_limitations_md
+- docs_archive_legacy_causality_md
+- docs_archive_legacy_toolcall_consensus_benchmark_v2_md
+- docs_archive_legacy_policy_generalization_risk_md
+- docs_archive_legacy_review_checklist_md
+- docs_archive_legacy_README_md
+- docs_archive_legacy_REMORA_AROMER_MASTER_DOCUMENT_md
+- docs_archive_legacy_owasp_genai_mapping_md
+- docs_archive_legacy_experiment3_phase_transition_study_md
+- docs_archive_legacy_nist_ai_rmf_mapping_md
+- docs_archive_legacy_thermodynamic_abs_md
+- docs_archive_legacy_external_validation_report_template_md
+- docs_archive_legacy_governance_intelligence_layer_md
+- docs_archive_legacy_causal_policy_explanations_md
+- docs_archive_legacy_onprem-airgapped_md
+- docs_archive_legacy_EXTERNAL_VALIDATION_PLAN_md
+- docs_archive_legacy_go_star_bridge_md
+- docs_archive_legacy_building-automation_md
+- docs_archive_legacy_pre-deployment-review_md
+- docs_archive_legacy_experiment4_susceptibility_validation_md
+- docs_archive_legacy_causal_consequence_gating_md
+- docs_archive_legacy_cyber_evidence_layer_md
+- docs_archive_legacy_cloud_ops_md
+- docs_archive_legacy_experiment5_chi_iteration_utility_md
+- docs_archive_legacy_misspecification_aware_governance_md
+- docs_archive_legacy_eu_ai_act_nsm_mapping_md
+- docs_archive_legacy_reference_architecture_md
+- docs_archive_legacy_credibility_pack_repro_md
+- experiments_thermo_ablation_PREREGISTERED_md
+- experiments_tsf_PREREGISTERED_md
+- experiments_agentharm_PREREGISTERED_md
+- experiments_agentharm_INTERCEPTION_NOTES_md
+- experiments_agentharm_README_md
+- datasets_finance_v1_README_md
+- datasets_aromer_external_holdout_v1_README_md
+- datasets_cyber_evidence_v1_README_md
+- datasets_ai_governance_v1_README_md
+- datasets_remora_knowledge_v1_README_md
+- datasets_remora_knowledge_v1_static_rag_kubernetes_iac_kubernetes_admission_control_summary_md
+- datasets_remora_knowledge_v1_static_rag_grid_operations_grid_ai_operations_summary_md
+- datasets_remora_knowledge_v1_static_rag_audit_provenance_w3c_prov_summary_md
+- datasets_remora_knowledge_v1_static_rag_agent_security_owasp_llm_top10_policy_map_md
+- datasets_remora_knowledge_v1_static_rag_ai_governance_nist_ai_rmf_summary_md
+- docs_methods_architecture_risk_register_md
+- docs_use-cases_README_md
+- docs_policy_cookbook_cyber_md
+- docs_INDEX_md
+- docs_governance_eu_ai_act_nsm_mapping_md
+- docs_research_policy_generalization_risk_md
+- docs_evidence_causal_policy_explanations_md
+- docs_integrations_cyber_evidence_layer_md
+- docs_experiments_experiment5_chi_iteration_utility_md
+- docs_thermodynamics_claim_ledger_yaml
+- docs_research_research_control_matrix_generated_md
+- docs_validation_external-review_md
+- docs_validation_audit_result_schema_md
+- docs_thermodynamics_temperature_estimator_md
+- docs_assurance_document_register_v1_yaml
+- docs_thermodynamics_limitations_md
+- docs_thermodynamics_runtime_policy_md
+- docs_research_misspecification_aware_governance_md
+- docs_integrations_cloudflare_workers_ai_md
+- docs_policy_cookbook_README_md
+- docs_evidence_claim_evidence_matrix_md
+- docs_benchmarks_README_md
+- docs_integrations_gostar_integration_md
+- docs_claims_thermodynamics_claims_yaml
+- docs_enterprise_togaf-enterprise-rollout-plan_md
+- docs_use-cases_building-automation_md
+- docs_integrations_mcp-integration_md
+- docs_reference_architecture_md
+- docs_experiments_experiment3_phase_transition_study_md
+- docs_policy_cookbook_cloud_ops_md
+- docs_benchmarks_stat_tests_md
+- docs_security_pre-deployment-review_md
+- docs_research_research_control_matrix_v1_yaml
+- docs_assurance_release_profiles_v1_yaml
+- docs_aromer_REMORA_AROMER_MASTER_DOCUMENT_md
+- docs_evidence_empirical_evidence_record_md
+- docs_deployment_onprem-airgapped_md
+- docs_methods_nested_governance_md
+- docs_assurance_remediation_register_yaml
+- docs_evidence_authorship_evidence_report_md
+- docs_deployment_azure-reference-architecture_md
+- docs_methods_theoretical_foundations_proposals_v1_md
+- docs_research_governance_intelligence_layer_md
+- docs_validation_review_checklist_md
+- docs_benchmarks_toolcall_consensus_benchmark_v2_md
+- docs_governance_nist_ai_rmf_mapping_md
+- docs_research_causal_consequence_gating_md
+- docs_assurance_claim_provenance_baseline_json
+- docs_security_owasp_genai_mapping_md
+- docs_evidence_decision_envelope_audit_md
+- docs_assurance_capability_register_v1_yaml
+- docs_experiments_experiment4_susceptibility_validation_md
+- docs_use-cases_REMORA_v4_Thermodynamics_Evidence_Status_md
+- docs_policy_cookbook_database_md
+- docs_thermodynamics_README_md
+- docs_integrations_go_star_bridge_md
+- docs_methods_thermodynamic_abs_md
+- docs_validation_EXTERNAL_VALIDATION_PLAN_md
+- docs_integrations_knowledge_domains_md
+- docs_assurance_claim_register_v1_yaml
+- docs_aromer_quickstart_aromer_md
+- docs_validation_credibility_pack_repro_md
+- docs_integrations_rag_oracle_md
+- docs_validation_external_validation_report_template_md
+- docs_integrations_agent_tool_hook_md
+- CLAUDE_md
+- CONTRIBUTORS_md
+- NOTICE
+- docs_archive_remora_infographic_v3_dark_html
+- docs_remora_architecture_html

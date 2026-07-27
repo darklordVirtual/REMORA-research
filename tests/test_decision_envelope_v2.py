@@ -183,6 +183,7 @@ def test_schema_contract_loaded_with_expected_top_level_required() -> None:
         "history",
         "policy_learning",
         "audit",
+        "effect",
     ]
 
 

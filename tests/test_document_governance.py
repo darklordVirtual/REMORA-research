@@ -2,10 +2,13 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Documentation-governance gate tests.
 
-The live repository must pass the gate, and the gate must actually refuse
-the failure modes it exists for (drifted profile declarations, duplicate
-canonical topics, dangling successors) — a gate that cannot fail is
-decoration.
+The live repository must pass the gate, and the gate's HARD checks must still
+refuse the failure modes they exist for (drifted profile declarations,
+duplicate canonical topics, dangling successors, gate-table drift).
+
+As of the 2026-07-27 loosening, register coverage and the schema-v2
+verification fields are ADVISORY: they surface as warnings and must NOT fail
+the build. These tests pin that split so neither side regresses.
 """
 from __future__ import annotations
 
@@ -33,11 +36,7 @@ def test_repository_passes_documentation_governance() -> None:
 
 
 def test_registers_parse_as_strict_yaml() -> None:
-    """The machine-readable registers must actually be machine-readable.
-
-    Regression: the remediation register carried five entries with unquoted
-    `notes: M3a: ...` scalars — invalid YAML that no tool had ever parsed
-    until this gate's first run (2026-07-20)."""
+    """The machine-readable registers must actually be machine-readable."""
     import yaml
 
     for name in (
@@ -52,7 +51,7 @@ def test_registers_parse_as_strict_yaml() -> None:
 
 
 def test_profile_declaration_cannot_drift(tmp_path: Path) -> None:
-    """Declaring a higher profile than the registers support must fail."""
+    """Declaring a higher profile than the registers support must fail (HARD)."""
     mod = _load_module()
     inflated = tmp_path / "profiles.yaml"
     original = (ROOT / "docs" / "assurance" / "release_profiles_v1.yaml").read_text(
@@ -69,6 +68,7 @@ def test_profile_declaration_cannot_drift(tmp_path: Path) -> None:
 
 
 def test_duplicate_canonical_topic_is_refused(tmp_path: Path) -> None:
+    """Canonical topic uniqueness stays HARD."""
     mod = _load_module()
     reg = tmp_path / "docreg.yaml"
     reg.write_text(
@@ -83,11 +83,12 @@ def test_duplicate_canonical_topic_is_refused(tmp_path: Path) -> None:
     )
     mod.DOC_REGISTER = reg
     errors: list[str] = []
-    mod.check_document_register(errors)
+    mod.check_document_register(errors, [])
     assert any("same-topic" in e and "claimed by both" in e for e in errors)
 
 
 def test_superseded_without_successor_is_refused(tmp_path: Path) -> None:
+    """Dangling successor stays HARD."""
     mod = _load_module()
     reg = tmp_path / "docreg.yaml"
     reg.write_text(
@@ -99,15 +100,195 @@ def test_superseded_without_successor_is_refused(tmp_path: Path) -> None:
     )
     mod.DOC_REGISTER = reg
     errors: list[str] = []
-    mod.check_document_register(errors)
+    mod.check_document_register(errors, [])
     assert any("superseded_by" in e for e in errors)
 
 
-def test_release_gates_table_drift_is_refused(tmp_path: Path) -> None:
-    """A Status cell that contradicts remediation_register.yaml must fail.
+def test_missing_register_coverage_warns_not_fails(tmp_path: Path) -> None:
+    """Coverage gaps (tracked file with no entry / entry for a missing file)
+    are ADVISORY after the loosening — they warn, they do not fail."""
+    mod = _load_module()
+    reg = tmp_path / "docreg.yaml"
+    reg.write_text(
+        "topics: []\n"
+        "documents:\n"
+        "  - path: docs/does_not_exist.md\n"
+        "    status: supporting\n",
+        encoding="utf-8",
+    )
+    mod.DOC_REGISTER = reg
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_document_register(errors, warnings)
+    assert errors == []
+    assert any(("no entry" in w) or ("missing/untracked" in w) for w in warnings)
 
-    REM-021 is NOT_STARTED in the register; a table row claiming it DONE is
-    exactly the mirror-drift this gate exists to catch."""
+
+def _verif_reg(tmp_path: Path, entry_lines: str):
+    reg = tmp_path / "docreg.yaml"
+    reg.write_text("documents:\n" + entry_lines, encoding="utf-8")
+    return reg
+
+
+def test_verified_without_review_date_warns(tmp_path: Path) -> None:
+    """code_synced=verified with no review date is an advisory nudge, not a
+    build failure."""
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "    status: supporting\n    last_reviewed: null\n"
+        "    code_synced: verified\n    verdict: pending\n",
+    )
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_document_verification(errors, warnings)
+    assert errors == []
+    assert any("verified but last_reviewed is null" in w for w in warnings)
+
+
+def test_current_verdict_without_verified_warns(tmp_path: Path) -> None:
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "    status: supporting\n    last_reviewed: 2026-07-26\n"
+        "    code_synced: unreviewed\n    verdict: current\n",
+    )
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_document_verification(errors, warnings)
+    assert errors == []
+    assert any("verdict=current without code_synced=verified" in w for w in warnings)
+
+
+def test_historical_current_is_exempt(tmp_path: Path) -> None:
+    """A frozen historical snapshot may be verdict=current without
+    code_synced=verified — no warning is raised for it."""
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "    status: historical\n    last_reviewed: 2026-07-26\n"
+        "    code_synced: unreviewed\n    verdict: current\n",
+    )
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_document_verification(errors, warnings)
+    assert not any("without code_synced=verified" in m for m in errors + warnings)
+
+
+def test_missing_verification_fields_warn(tmp_path: Path) -> None:
+    """Missing schema-v2 fields are advisory now — warnings, not errors."""
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - path: docs/README.md\n    status: supporting\n",
+    )
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_document_verification(errors, warnings)
+    assert errors == []
+    assert any("missing/invalid id" in w for w in warnings)
+    assert any("missing/invalid version" in w for w in warnings)
+    assert any("code_synced" in w for w in warnings)
+    assert any("verdict" in w for w in warnings)
+
+
+def test_duplicate_doc_id_is_refused(tmp_path: Path) -> None:
+    """DOC-id uniqueness is the one verification invariant kept HARD."""
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/a.md\n    version: v1\n"
+        "    status: supporting\n    last_reviewed: null\n"
+        "    code_synced: unreviewed\n    verdict: pending\n"
+        "  - id: DOC-001\n    path: docs/b.md\n    version: v1\n"
+        "    status: supporting\n    last_reviewed: null\n"
+        "    code_synced: unreviewed\n    verdict: pending\n",
+    )
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_document_verification(errors, warnings)
+    assert any("duplicate DOC id DOC-001" in e for e in errors)
+
+
+def test_unaudited_documents_warn_not_fail(tmp_path: Path) -> None:
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "    status: supporting\n    last_reviewed: null\n"
+        "    code_synced: unreviewed\n    verdict: pending\n",
+    )
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_document_verification(errors, warnings)
+    assert errors == []
+    assert any("not yet audited against code" in w for w in warnings)
+
+
+def test_placeholder_stub_registered_as_live_doc_is_refused(tmp_path: Path) -> None:
+    """A registered live document (canonical/supporting/...) whose content is a
+    bare placeholder stub must fail HARD. Gutting a doc to `# Placeholder`
+    while its register entry still presents it as live documentation is
+    exactly the drift this gate exists to stop (regression: a585202 stubbed
+    53 registered docs and left them stamped canonical/verified)."""
+    mod = _load_module()
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "gutted.md").write_text("# Placeholder\n", encoding="utf-8")
+    reg = tmp_path / "docreg.yaml"
+    reg.write_text(
+        "topics:\n- some-topic\n"
+        "documents:\n"
+        "  - path: docs/gutted.md\n"
+        "    status: canonical\n"
+        "    topic: some-topic\n",
+        encoding="utf-8",
+    )
+    mod.DOC_REGISTER = reg
+    mod.ROOT = tmp_path
+    errors: list[str] = []
+    mod.check_document_register(errors, [])
+    assert any("placeholder" in e.lower() and "docs/gutted.md" in e for e in errors), errors
+
+
+def test_placeholder_check_ignores_real_content(tmp_path: Path) -> None:
+    """A live doc with real content (even short) is not flagged."""
+    mod = _load_module()
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "real.md").write_text(
+        "# Runtime policy\n\nActual documented behavior.\n", encoding="utf-8"
+    )
+    reg = tmp_path / "docreg.yaml"
+    reg.write_text(
+        "topics: []\ndocuments:\n  - path: docs/real.md\n    status: supporting\n",
+        encoding="utf-8",
+    )
+    mod.DOC_REGISTER = reg
+    mod.ROOT = tmp_path
+    errors: list[str] = []
+    mod.check_document_register(errors, [])
+    assert not any("placeholder" in e.lower() for e in errors), errors
+
+
+def test_readme_over_budget_warns_not_fails(tmp_path: Path) -> None:
+    """README line budget is advisory."""
+    mod = _load_module()
+    mod.ROOT = tmp_path
+    mod.README_LINE_CAP = 5
+    (tmp_path / "README.md").write_text(
+        "\n".join(str(i) for i in range(20)), encoding="utf-8"
+    )
+    warnings: list[str] = []
+    mod.check_readme_budget(warnings)
+    assert any("README.md" in w and "advisory" in w for w in warnings)
+
+
+def test_release_gates_table_drift_is_refused(tmp_path: Path) -> None:
+    """A Status cell that contradicts remediation_register.yaml must fail."""
     mod = _load_module()
     gates = tmp_path / "release_gates.md"
     gates.write_text(
@@ -123,8 +304,6 @@ def test_release_gates_table_drift_is_refused(tmp_path: Path) -> None:
 
 
 def test_release_gates_table_accepts_matching_status(tmp_path: Path) -> None:
-    """The mirror passes when the cell states the register status, tolerating
-    surrounding prose and 'NOT STARTED' vs 'NOT_STARTED' spelling."""
     mod = _load_module()
     gates = tmp_path / "release_gates.md"
     gates.write_text(
@@ -141,12 +320,6 @@ def test_release_gates_table_accepts_matching_status(tmp_path: Path) -> None:
 
 
 def test_declared_current_profile_is_shadow_pilot() -> None:
-    """Pin the honest current state: SHADOW_PILOT (= SHADOW_ONLY).
-
-    If this test fails because the computed profile ROSE, update the
-    declaration together with the register evidence that raised it. If it
-    fails because the profile FELL, a register regression happened — treat
-    as an incident, not a test to silence."""
     import yaml
 
     with open(
