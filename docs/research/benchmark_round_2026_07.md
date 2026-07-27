@@ -97,9 +97,47 @@ state, Python version, dependency-lock hash, input hashes, seeds, command).
 
 ## Results
 
-*(filled from the round's artifacts when the live segment completes;
-numbers in this section must match the artifacts byte-for-byte and every
-rate names its denominator)*
+All numbers below are read directly from the round artifacts; every rate
+names its denominator.
+
+**Deterministic set** (policy layer, no live oracles — committed `2dd7b7c`):
+gate invariants unchanged versus the 2026-07-20 freeze. Toolcall v2
+full-policy-gate: FAR 0.0 (0/560 harmful of N=700), accuracy 0.90 (630/700).
+Blind v3 two-phase decide/score: FAR 0.0, accuracy 0.90 (630/700),
+`leakage_free` computed true from the regenerated task surface,
+false-block rate 0.50 (70/140 benign).
+
+**Live consensus set** (Workers AI cross-family trio, 544 items,
+`results/ablation_v2_n500_results.json`):
+
+| Condition | All-items accuracy (n=544) | Answered | Coverage | Accuracy among answered |
+|---|---|---|---|---|
+| A single oracle (llama-3.3-70b fp8) | 87.5 % [84.5, 90.0] | 539 | 99 % | 88.3 % |
+| B majority (3-oracle) | 85.3 % [82.1, 88.0] | 524 | 96 % | 88.5 % |
+| C REMORA (no routing) | 75.9 % [72.2, 79.3] | 456 | 84 % | 90.6 % |
+| D2 balanced routing | 82.9 % [79.5, 85.8] | 503 | 92 % | 89.7 % |
+
+The two-metrics story is exactly why the abstention-aware block exists:
+REMORA conditions trade all-items accuracy for selectivity — they answer
+fewer items and are more accurate on the ones they answer.
+
+**Thermodynamic phases** (`thermodynamic_eval_n500_uncalibrated_results.json`,
+UNCALIBRATED primary per SAP): ordered n=31 (majority accuracy 93.5 %),
+critical n=245 (94.3 %), disordered n=268 (76.1 %). Routing helped 0 and
+hurt 13 items versus majority — a negative result reported as-is.
+
+**End-to-end policy decisions** (`end_to_end_n500_v3.json`, n=544):
+accept 18.6 %, verify 32.2 %, abstain 49.3 %, escalate 0 %.
+
+**Confirmatory H1′** (`selective_n500_holdout_results.json`; τ* locked on
+the training split at the 18th percentile, group-aware 80/20 split seed 42):
+on the 108-item holdout, low-temperature acceptance selected 18 items, all
+18 correct (100 %, Wilson CI [82.4 %, 100 %]) at 16.7 % coverage — +12.96 pp
+over the 87.04 % holdout majority baseline. Exact one-sided binomial
+p = 0.082: **not significant at α = 0.05**, and the CI does not exclude the
+baseline. By the pre-registered reporting rule (N_accepted = 18 < 100) this
+is a directional observation only; the honest path to a powered test
+remains the planned ~1 200-real-item round.
 
 ## Where the artifacts live
 

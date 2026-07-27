@@ -1,15 +1,17 @@
 {
   "meta": {
     "script": "scripts/selective_n500_holdout.py",
-    "data_source": "results/thermodynamic_eval_n500_calibrated_results.json",
+    "data_source": "results\\thermodynamic_eval_n500_uncalibrated_results.json",
     "random_seed": 42,
     "holdout_fraction": 0.2,
     "signal": "neg_temperature",
+    "hyperparameter_provenance": "SIGNAL and COVERAGE_TARGET selected from full-dataset in-sample analysis; holdout is not pristine out-of-sample (SAP deviation D-5).",
+    "p_value_method": "exact one-sided binomial (math.comb tail sum)",
     "note": "tau* = 18th-percentile temperature on 80% training split (coverage locked at 0.18, the in-sample optimum); evaluated on 20% holdout with tau* LOCKED (no re-optimisation on holdout)."
   },
   "full_dataset": {
     "n": 544,
-    "baseline_accuracy": 0.411765,
+    "baseline_accuracy": 0.852941,
     "source_counts": {
       "truthfulqa": 85,
       "boolq": 377,
@@ -22,39 +24,40 @@
     "n_holdout": 108
   },
   "training_threshold_selection": {
-    "tau_star": 0.2032,
+    "tau_star": 0.4991,
     "coverage_target": 0.18,
     "k_train": 78,
     "n_train": 436,
-    "correct_train": 67,
-    "accuracy_train": 0.858974,
+    "correct_train": 74,
+    "accuracy_train": 0.948718,
     "coverage_train": 0.1789,
-    "baseline_accuracy_train": 0.399083,
-    "lift_pp_train": 45.9892,
+    "baseline_accuracy_train": 0.848624,
+    "lift_pp_train": 10.0094,
     "wilson_ci_train": [
-      0.7649,
-      0.9194
+      0.8754,
+      0.9799
     ],
-    "p_one_sided_train": 0.0
+    "p_one_sided_train": 0.0054684
   },
   "holdout_evaluation": {
-    "tau_star": 0.2032,
+    "tau_star": 0.4991,
     "n_holdout": 108,
-    "n_accepted": 25,
-    "correct": 22,
-    "accuracy_holdout": 0.88,
-    "coverage_holdout": 0.2315,
-    "baseline_accuracy_holdout": 0.462963,
-    "lift_pp_holdout": 41.7037,
+    "n_accepted": 18,
+    "correct": 18,
+    "accuracy_holdout": 1.0,
+    "coverage_holdout": 0.1667,
+    "baseline_accuracy_holdout": 0.87037,
+    "lift_pp_holdout": 12.963,
     "wilson_ci_holdout": [
-      0.7004,
-      0.9583
+      0.8241,
+      1.0
     ],
-    "p_one_sided_holdout": 1.446e-05,
-    "ci_above_baseline": true,
+    "p_one_sided_holdout": 0.08216252,
+    "ci_above_baseline": false,
     "phase_composition": {
-      "ordered": 25
+      "critical": 10,
+      "ordered": 8
     }
   },
-  "summary": "Held-out: 88.00% accuracy at 23.2% coverage (n_accepted=25, lift +41.70 pp over 46.30% holdout baseline, Wilson CI [0.700, 0.958], p=1.45e-05)"
+  "summary": "Held-out: 100.00% accuracy at 16.7% coverage (n_accepted=18, lift +12.96 pp over 87.04% holdout baseline, Wilson CI [0.824, 1.000], p=8.22e-02)"
 }
