@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT))
 from remora.canonical import phi
 from remora.correlation import CorrelationMatrix
 from remora.genome import Genome
-from remora.oracles.groq import GroqOracle
+from remora.oracles.factory import build_benchmark_oracle
 from remora.persistence import CachedOracle, Store
 from remora.phase_controller import phase_decision
 from remora.thermodynamics import load_thermodynamic_calibration, predict_trust_before_iteration
@@ -138,8 +138,16 @@ def main() -> None:
     majority_items = {item["item_id"]: item for item in canonical["conditions"]["B_majority"]["items"]}
     d2_items = {item["item_id"]: item for item in canonical["conditions"]["D2_balanced"]["items"]}
 
+    # Build the SAME oracles the ablation artifact was generated with — the
+    # backend and model list are read from its meta block so the two stages
+    # can never diverge (fallback: legacy artifacts without these fields).
+    backend = canonical.get("meta", {}).get("backend", "groq")
+    oracle_models = canonical.get("meta", {}).get("oracles", ORACLE_MODELS)
     store = Store(".remora_cache.json")
-    cached_oracles = [CachedOracle(GroqOracle(model), store) for model in ORACLE_MODELS]
+    cached_oracles = [
+        CachedOracle(build_benchmark_oracle(backend, model), store)
+        for model in oracle_models
+    ]
     correlation = CorrelationMatrix(window_size=500)
     genome = Genome(enable_thermodynamic_control=True)
 
@@ -215,7 +223,8 @@ def main() -> None:
 
     out = {
         "meta": {
-            "oracles": ORACLE_MODELS,
+            "backend": backend,
+            "oracles": oracle_models,
             "benchmark_module": args.benchmark_module,
             "source_results": args.results,
             "calibration": args.calibration,

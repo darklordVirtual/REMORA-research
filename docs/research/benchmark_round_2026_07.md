@@ -34,15 +34,19 @@ share a model weight family.**
 
 | Oracle | Family | Why it qualifies |
 |--------|--------|------------------|
-| `llama-3.3-70b-versatile` | Meta LLaMA | strong generalist |
-| `openai/gpt-oss-120b` | OpenAI (open-weight) | different training lineage |
-| `qwen/qwen3.6-27b` | Alibaba Qwen | different lineage; runs with reasoning disabled so it answers in clean JSON |
+| `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Meta LLaMA | strong generalist |
+| `@cf/qwen/qwen3-30b-a3b-fp8` | Alibaba Qwen | different training lineage |
+| `@cf/mistralai/mistral-small-3.1-24b-instruct` | Mistral | third independent lineage |
 
-All three hosted on Groq; hosting is shared, weight ancestry is not — the
-correlation risk consensus must defend against lives in the weights.
-Selection used only catalog availability and a 3-prompt JSON smoke test
-(never benchmark data). The trio was committed to the pre-registered plan
-BEFORE the first benchmark call.
+All three hosted on Cloudflare Workers AI; hosting is shared, weight
+ancestry is not — the correlation risk consensus must defend against lives
+in the weights. Selection used only catalog availability and a 3-prompt
+JSON smoke test (never benchmark data). An earlier Groq-hosted trio was
+declared first, but the Groq free-tier daily token quota (shared with the
+deployed workers) was exhausted before any live benchmark call could be
+made; the provider change is recorded as a dated SAP v2 amendment and
+deviation row, and the Groq trio produced no round artifacts.
+`@cf/openai/gpt-oss-120b` is the documented reserve model.
 
 ## What was run
 

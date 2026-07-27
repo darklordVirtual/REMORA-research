@@ -36,6 +36,33 @@ def build_groq_swarm() -> list[Oracle]:
     return [GroqOracle(m) for m in models]
 
 
+def build_benchmark_oracle(backend: str, model: str) -> Oracle:
+    """Build a single benchmark oracle for the 2026-07 round backends.
+
+    Groq and Cloudflare Workers AI use the same sampling temperature so the
+    only intended difference between backends is hosting + model weights.
+    """
+    if backend == "groq":
+        return GroqOracle(model, temperature=0.3)
+    if backend == "cloudflare":
+        from remora.oracles.cloudflare import CloudflareOracle
+        return CloudflareOracle(model, temperature=0.3)
+    raise ValueError(f"Unknown benchmark backend: {backend!r}")
+
+
+def build_cf_workers_ai_swarm() -> list[Oracle]:
+    """Return the 3-oracle CROSS-FAMILY Cloudflare Workers AI swarm.
+
+    SAP v2 §2 amendment (2026-07-27): the round's live segment runs on
+    Workers AI (requires CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID).
+    Validated so no two models share a weight family.
+    """
+    from remora.oracles.families import CROSS_FAMILY_CF_MODELS, validate_cross_family
+
+    validate_cross_family(CROSS_FAMILY_CF_MODELS)
+    return [build_benchmark_oracle("cloudflare", m) for m in CROSS_FAMILY_CF_MODELS]
+
+
 def build_cloudflare_swarm(
     worker_url: Optional[str] = None,
     secret: Optional[str] = None,

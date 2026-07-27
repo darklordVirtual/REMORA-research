@@ -12,6 +12,7 @@ from __future__ import annotations
 import pytest
 
 from remora.oracles.families import (
+    CROSS_FAMILY_CF_MODELS,
     CROSS_FAMILY_GROQ_MODELS,
     model_family,
     validate_cross_family,
@@ -68,3 +69,19 @@ def test_groq_swarm_is_cross_family() -> None:
     swarm = build_groq_swarm()
     fams = [model_family(o.model_id) for o in swarm]
     assert len(set(fams)) == len(fams), f"same-family oracles in swarm: {fams}"
+
+
+def test_validate_cross_family_accepts_cf_trio() -> None:
+    # SAP v2 §2 amendment 2026-07-27: the live segment's Workers AI trio.
+    validate_cross_family(CROSS_FAMILY_CF_MODELS)  # must not raise
+    fams = {model_family(m) for m in CROSS_FAMILY_CF_MODELS}
+    assert len(fams) == len(CROSS_FAMILY_CF_MODELS) == 3
+
+
+def test_cf_workers_ai_swarm_is_cross_family() -> None:
+    from remora.oracles.factory import build_cf_workers_ai_swarm
+
+    swarm = build_cf_workers_ai_swarm()
+    fams = [model_family(o.model_id) for o in swarm]
+    assert len(set(fams)) == len(fams), f"same-family oracles in swarm: {fams}"
+    assert all(o.model_id.startswith("@cf/") for o in swarm)

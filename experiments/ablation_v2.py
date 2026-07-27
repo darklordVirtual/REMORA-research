@@ -55,15 +55,26 @@ from remora.oracles.groq import GroqOracle
 from remora.persistence import CachedOracle, Store
 from remora.scoring import score_one, _polarity_match, effective_truth_rate
 
-# Cross-family trio (SAP v2, 2026-07-27) — validated so no two models share
-# a weight family. The former all-LLaMA trio is retired (same-family
+# Cross-family trios (SAP v2, 2026-07-27) — validated so no two models
+# share a weight family. The former all-LLaMA trio is retired (same-family
 # correlation; llama-4-scout removed from the Groq catalog). Frozen
 # artifacts generated with the old trio keep their recorded model lists.
-from remora.oracles.families import validate_cross_family  # noqa: E402
+# The live segment runs on Cloudflare Workers AI (SAP v2 §2 amendment,
+# 2026-07-27, recorded before the first live benchmark call); the Groq
+# backend remains selectable for reproduction attempts.
+from remora.oracles.families import CROSS_FAMILY_CF_MODELS, validate_cross_family  # noqa: E402
+from remora.oracles.factory import build_benchmark_oracle  # noqa: E402
 
-ORACLE_MODELS = list(GroqOracle.DEFAULT_MODELS)
+BACKENDS: dict[str, tuple[list[str], str]] = {
+    # backend -> (consensus trio, strong single-oracle baseline)
+    "groq": (list(GroqOracle.DEFAULT_MODELS), "llama-3.3-70b-versatile"),
+    "cloudflare": (list(CROSS_FAMILY_CF_MODELS), "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+}
+
+# Backwards-compatible module-level defaults (thermodynamic_eval fallback).
+ORACLE_MODELS = BACKENDS["groq"][0]
 validate_cross_family(ORACLE_MODELS)
-STRONG_SINGLE = "llama-3.3-70b-versatile"
+STRONG_SINGLE = BACKENDS["groq"][1]
 
 
 def load_benchmark(module_name: str) -> tuple[list[BenchmarkItem], dict[str, dict], str]:
@@ -254,7 +265,16 @@ def main() -> None:
         default=str(ROOT / "results" / "ablation_v2_results.json"),
         help="Path to the JSON results file",
     )
+    parser.add_argument(
+        "--backend",
+        choices=sorted(BACKENDS),
+        default="groq",
+        help="Oracle hosting backend (the 2026-07 round live segment uses cloudflare)",
+    )
     args = parser.parse_args()
+
+    oracle_models, strong_single = BACKENDS[args.backend]
+    validate_cross_family(oracle_models)
 
     print(f"\nLoading benchmark module {args.benchmark_module}...")
     all_items, meta_map, loader_name = load_benchmark(args.benchmark_module)
@@ -277,11 +297,12 @@ def main() -> None:
     for m in meta: per_bm[m["benchmark"]] += 1
     for bm, n in sorted(per_bm.items()): print(f"  {bm:25s}: {n}")
 
-    # Reuse existing cache — 75-item responses already stored, only new items cost API calls
+    # Reuse existing cache — responses are keyed on oracle name + prompt, so
+    # backends never collide and interrupted passes resume incrementally.
     store = Store(".remora_cache.json")
-    raw_oracles = [GroqOracle(m) for m in ORACLE_MODELS]
+    raw_oracles = [build_benchmark_oracle(args.backend, m) for m in oracle_models]
     cached = [CachedOracle(o, store) for o in raw_oracles]
-    single = CachedOracle(GroqOracle(STRONG_SINGLE), store)
+    single = CachedOracle(build_benchmark_oracle(args.backend, strong_single), store)
 
     base_genome = dict(
         max_iterations=4, max_subquestions=1, converged_threshold=0.72,
@@ -374,8 +395,9 @@ def main() -> None:
             "benchmark_loader": loader_name,
             "n_items": len(all_items),
             "per_benchmark": dict(per_bm),
-            "oracles": ORACLE_MODELS,
-            "single_oracle": STRONG_SINGLE,
+            "backend": args.backend,
+            "oracles": oracle_models,
+            "single_oracle": strong_single,
         },
         "conditions": {
             cond: {
