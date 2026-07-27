@@ -208,6 +208,41 @@ def test_policy_bundle_mismatch_refused() -> None:
     assert out.refusal_reason == "policy_bundle_mismatch"
 
 
+def _verify(lease: ExecutionLease, **overrides):
+    params = dict(
+        tool_name=TOOL, arguments=ARGS, tenant_id=TENANT,
+        target_environment=TARGET, now=BEFORE_EXPIRY, actor_identity=ACTOR,
+    )
+    params.update(overrides)
+    return lease.verify(**params)
+
+
+def test_verify_refuses_empty_lease_bundle_hash_when_binding_requested() -> None:
+    # Issue #16: a lease carrying no bundle identity must not satisfy a
+    # bundle-binding check, whatever the expected value is.
+    lease = _issue(policy_bundle_hash="")
+    out = _verify(lease, expected_policy_bundle_hash=BUNDLE)
+    assert out.verified is False
+    assert out.reason == "policy_bundle_missing"
+
+
+def test_verify_refuses_empty_expected_matching_empty_lease_hash() -> None:
+    # Regression for issue #16: "" == "" previously PASSED the binding check,
+    # so an integration passing an unset config value got no protection.
+    lease = _issue(policy_bundle_hash="")
+    out = _verify(lease, expected_policy_bundle_hash="")
+    assert out.verified is False
+    assert out.reason == "policy_bundle_missing"
+
+
+def test_verify_bundle_binding_still_accepts_match_and_names_mismatch() -> None:
+    lease = _issue()
+    assert _verify(lease, expected_policy_bundle_hash=BUNDLE).verified is True
+    out = _verify(lease, expected_policy_bundle_hash="sha256:other")
+    assert out.verified is False
+    assert out.reason == "policy_bundle_mismatch"
+
+
 def test_tampered_fields_invalidate_signature() -> None:
     d = _dispatcher()
     lease = _issue()

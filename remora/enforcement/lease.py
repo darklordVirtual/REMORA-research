@@ -250,11 +250,17 @@ class ExecutionLease:
         )
         if not hmac.compare_digest(recomputed, self.tool_args_hash):
             return LeaseVerificationResult(False, "tool_args_hash_mismatch")
-        if (
-            expected_policy_bundle_hash is not None
-            and expected_policy_bundle_hash != self.policy_bundle_hash
-        ):
-            return LeaseVerificationResult(False, "policy_bundle_mismatch")
+        if expected_policy_bundle_hash is not None:
+            # A lease with no bundle identity can never satisfy a binding
+            # check — "" == "" previously passed, so an unset config value
+            # silently disabled the protection (issue #16). Constant-time
+            # compare for parity with the signature/actor/args checks.
+            if not self.policy_bundle_hash:
+                return LeaseVerificationResult(False, "policy_bundle_missing")
+            if not hmac.compare_digest(
+                expected_policy_bundle_hash.encode(), self.policy_bundle_hash.encode()
+            ):
+                return LeaseVerificationResult(False, "policy_bundle_mismatch")
         return LeaseVerificationResult(True, "ok")
 
     def to_dict(self) -> dict[str, Any]:
