@@ -1,0 +1,163 @@
+{
+  "sap": "v3",
+  "stage": "analysis",
+  "seed": 20260727,
+  "collection_source": "sap_v3_collection.json",
+  "split_sizes": {
+    "dev": 493,
+    "riskcal": 370,
+    "test": 368
+  },
+  "frozen_development_objects": {
+    "baseline_single_model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "dev_per_oracle_accuracy": [
+      0.8682,
+      0.716,
+      0.8235
+    ],
+    "p0_dev_majority_accuracy": 0.864097,
+    "calibration_sha256": "cba30b97fc5da525ca150c88ce171ac5834b2e9a55a0a90fb2630bcbf4a55378"
+  },
+  "claim_B_risk_control": {
+    "neg_temperature": {
+      "signal": "neg_temperature",
+      "sgr": {
+        "certified": false,
+        "risk_bound": 0.99,
+        "certified_coverage_riskcal": 0.0,
+        "empirical_risk_riskcal": 0.0
+      },
+      "crc": {
+        "certified": true,
+        "criterion": 0.048518,
+        "certified_coverage_riskcal": 0.6297,
+        "test": {
+          "n_accepted": 242,
+          "errors": 24,
+          "selective_risk": 0.099174,
+          "unconditional_risk": 0.065217,
+          "coverage": 0.6576,
+          "accuracy_wilson_ci": [
+            0.8567,
+            0.9324
+          ]
+        },
+        "realized_within_budget_unconditional": false
+      }
+    },
+    "calibrated_mean_confidence": {
+      "signal": "calibrated_mean_confidence",
+      "sgr": {
+        "certified": true,
+        "risk_bound": 0.038596,
+        "certified_coverage_riskcal": 0.3162,
+        "empirical_risk_riskcal": 0.0,
+        "test": {
+          "n_accepted": 132,
+          "errors": 7,
+          "selective_risk": 0.05303,
+          "unconditional_risk": 0.019022,
+          "coverage": 0.3587,
+          "accuracy_wilson_ci": [
+            0.8946,
+            0.9741
+          ]
+        },
+        "realized_within_budget": false
+      },
+      "crc": {
+        "certified": true,
+        "criterion": 0.048518,
+        "certified_coverage_riskcal": 0.7027,
+        "test": {
+          "n_accepted": 247,
+          "errors": 14,
+          "selective_risk": 0.05668,
+          "unconditional_risk": 0.038043,
+          "coverage": 0.6712,
+          "accuracy_wilson_ci": [
+            0.9071,
+            0.9659
+          ]
+        },
+        "realized_within_budget_unconditional": true
+      }
+    },
+    "margin_plus_calibrated_confidence": {
+      "signal": "margin_plus_calibrated_confidence",
+      "sgr": {
+        "certified": true,
+        "risk_bound": 0.0446,
+        "certified_coverage_riskcal": 0.3946,
+        "empirical_risk_riskcal": 0.006849,
+        "test": {
+          "n_accepted": 161,
+          "errors": 8,
+          "selective_risk": 0.049689,
+          "unconditional_risk": 0.021739,
+          "coverage": 0.4375,
+          "accuracy_wilson_ci": [
+            0.905,
+            0.9746
+          ]
+        },
+        "realized_within_budget": true
+      },
+      "crc": {
+        "certified": true,
+        "criterion": 0.048518,
+        "certified_coverage_riskcal": 0.6973,
+        "test": {
+          "n_accepted": 248,
+          "errors": 14,
+          "selective_risk": 0.056452,
+          "unconditional_risk": 0.038043,
+          "coverage": 0.6739,
+          "accuracy_wilson_ci": [
+            0.9075,
+            0.9661
+          ]
+        },
+        "realized_within_budget_unconditional": true
+      }
+    }
+  },
+  "claim_A_ranking": {
+    "aurc": {
+      "neg_temperature": 0.09544,
+      "calibrated_mean_confidence": 0.065674,
+      "margin_plus_calibrated_confidence": 0.066844
+    },
+    "temperature_vs_calibrated_confidence": {
+      "delta_aurc": 0.029766,
+      "bootstrap_ci95": [
+        0.012579,
+        0.051098
+      ]
+    },
+    "temperature_vs_margin_hybrid": {
+      "delta_aurc": 0.028596,
+      "bootstrap_ci95": [
+        0.012431,
+        0.049982
+      ]
+    }
+  },
+  "aggregation_arm": {
+    "majority_accuracy_test": 0.8505,
+    "calibrated_confidence_weighted_accuracy_test": 0.8777,
+    "baseline_single_accuracy_test": 0.856,
+    "mcnemar_cw_vs_majority": {
+      "a_only": 1,
+      "b_only": 11,
+      "p_two_sided": 0.006348
+    },
+    "mcnemar_cw_vs_single": {
+      "a_only": 4,
+      "b_only": 12,
+      "p_two_sided": 0.076813
+    }
+  },
+  "secondary": {},
+  "reporting_note": "Guarantee statements must be quoted with loss definition, data distribution, calibration sample, model/policy versions, coverage, and assumptions (SAP v3 \u00a76). SGR zero-coverage is a legitimate outcome. CRC controls expected UNCONDITIONAL loss."
+}
