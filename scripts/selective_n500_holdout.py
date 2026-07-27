@@ -31,8 +31,15 @@ OUT_PATH = Path("results/selective_n500_holdout_results.json")
 
 RANDOM_SEED = 42
 HOLDOUT_FRACTION = 0.20
-SIGNAL = "neg_temperature"  # primary signal identified in in-sample analysis
-COVERAGE_TARGET = 0.18      # in-sample optimal coverage (locked from §10 analysis)
+# HYPERPARAMETER PROVENANCE (research audit P0-5): both SIGNAL and
+# COVERAGE_TARGET were selected from earlier FULL-dataset analysis (§10),
+# so this holdout tests an operating point partially chosen with knowledge
+# of the whole dataset. It is better than in-sample evaluation but NOT a
+# pristine out-of-sample test. A clean re-run must pre-register signal and
+# coverage before labels are opened — see
+# docs/assurance/rebenchmark_protocol_v1.md.
+SIGNAL = "neg_temperature"  # in-sample-derived (see provenance note above)
+COVERAGE_TARGET = 0.18      # in-sample-derived (see provenance note above)
 MIN_ACCEPTED = 5            # minimum holdout items to report a meaningful result
 
 
@@ -51,15 +58,22 @@ def _wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
 
 
 def _p_value_one_sided(k: int, n: int, p0: float) -> float:
-    """One-sided binomial p-value (H1: accuracy > p0) via normal approximation."""
+    """One-sided EXACT binomial p-value: P(X >= k | n, p0) under H0.
+
+    Replaced the normal approximation 2026-07-27 (research audit P0-5): at
+    n≈25 accepted observations the normal approximation is not defensible.
+    Exact tail sum via math.comb — no SciPy dependency needed.
+    """
     if n == 0:
         return 1.0
-    p_hat = k / n
-    se = math.sqrt(p0 * (1 - p0) / n)
-    if se == 0:
-        return 0.0 if p_hat > p0 else 1.0
-    z = (p_hat - p0) / se
-    return 0.5 * math.erfc(z / math.sqrt(2))
+    if p0 <= 0.0:
+        return 0.0 if k > 0 else 1.0
+    if p0 >= 1.0:
+        return 1.0
+    return sum(
+        math.comb(n, i) * (p0 ** i) * ((1.0 - p0) ** (n - i))
+        for i in range(k, n + 1)
+    )
 
 
 # ---------------------------------------------------------------------------
