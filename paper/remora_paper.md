@@ -1511,7 +1511,7 @@ Where:
 - **T1 (Calibration):** `1 − 5 × ECE`, Expected Calibration Error of Bayesian P(harm) priors vs. observed harm rates.
 - **T2 (Friction):** `exp(−benign_review_rate / 0.20)`: gradient-retaining exponential function; higher when fewer benign actions require oracle review. The earlier linear formula `1 − r/0.27` flatlined at zero for any rate ≥ 27% and was replaced in v0.2.1 (see §F.7 / Appendix F.6).
 - **T3 (MetaJudge quality):** `(mean_critique_score − 0.5) / 0.5`: quality of LLM self-reflection; boosted when LoRA fine-tuning is active.
-- **T4 (Transfer):** `replay_transfer_score`: cross-domain governance transfer accuracy; measured on the replay arena (96 fixed cases across 9 categories). Transfer subset: n=4 cross-domain cases, all correct (current T4=1.000). Overall arena accuracy (87.5%) is a separate metric.
+- **T4 (Transfer):** `replay_transfer_score`: cross-domain governance transfer accuracy; measured on the replay arena (93 fixed cases across 14 categories per `artifacts/aromer/replay_arena_report.json`). Transfer subset: n=4 cross-domain cases, all correct (current T4=1.000). Overall arena accuracy (87.1%) is a separate metric.
 - **T5 (Stability):** normalised oracle-bandit entropy + high-confidence world-model context coverage.
 
 **AII levels:** WARMUP [0, 0.4) → LEARNING [0.4, 0.6) → CAPABLE [0.6, 0.8) → TRAINED [0.8, 1.0].
