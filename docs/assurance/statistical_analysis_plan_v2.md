@@ -107,4 +107,5 @@ nothing about it has been seen.
 
 | Date | Deviation | Impact | Why |
 |------|-----------|--------|-----|
-| — | (none yet) | | |
+| 2026-07-27 | Clarification recorded after round start: with n=544, an 80/20 group split and 18 % coverage, the expected holdout N_accepted is ≈25 — §4's own ≥100 bar for generalization language is structurally unreachable this round | This round's H1′ outcome is reported as a directional observation regardless of p-value; generalization claims require a future round on a larger item pool | The arithmetic was pointed out post-start by review; recording it explicitly prevents the result from being over-quoted |
+| 2026-07-27 | Abstention-aware `selective` block ADDED to every ablation condition (`experiments/ablation_v2.py::selective_metrics`): n_answered, abstained-or-unparsed, coverage, accuracy_answered + Wilson CI. Legacy all-items `accuracy` unchanged | Review found the legacy metric scores abstention identically to a wrong answer (majority vote measured 29 % on yes/no BoolQ — below the 50 % chance floor), structurally penalizing selective conditions against always-answer baselines. Both metrics are now reported; neither replaces the other | Additive reporting fix found after round start but before any round artifact was written; H1′ analysis is untouched |

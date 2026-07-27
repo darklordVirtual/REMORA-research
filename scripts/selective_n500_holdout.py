@@ -26,7 +26,8 @@ import random
 from collections import defaultdict
 from pathlib import Path
 
-DATA_PATH = Path("results/thermodynamic_eval_n500_calibrated_results.json")
+# Clean round 2026-07 (SAP v2): primary input is the UNCALIBRATED artifact.
+DATA_PATH = Path("results/thermodynamic_eval_n500_uncalibrated_results.json")
 OUT_PATH = Path("results/selective_n500_holdout_results.json")
 
 RANDOM_SEED = 42

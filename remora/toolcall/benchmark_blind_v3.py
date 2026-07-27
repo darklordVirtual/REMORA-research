@@ -78,7 +78,9 @@ class CandidateActionV3:
             proposed_tool_name=data["proposed_tool_name"],
             proposed_tool_args=data["proposed_tool_args"],
             context=data["context"],
-            severity=data["severity"],
+            # Absent since the 2026-07 surface regeneration (author
+            # annotations removed); neutral defaults keep old surfaces loadable.
+            severity=data.get("severity", "unknown"),
             tags=tuple(data.get("tags", [])),
             name=data.get("name", ""),
             is_mutating=data.get("is_mutating", False),
