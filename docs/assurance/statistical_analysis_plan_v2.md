@@ -50,6 +50,14 @@ susceptibility χ / phase → phase-and-χ routing (`phase_controller`) →
 policy engine decision. Runner: `experiments/thermodynamic_eval.py`
 (module `remora.benchmarks.extended_v2_n500`, 544 items), consumed by
 `experiments/end_to_end_n500_v3.py` and `scripts/selective_n500_holdout.py`.
+
+**Calibration rule (declared before the first live call):** the primary
+thermodynamic run is **uncalibrated** (`--calibration` omitted).
+`calibrate_thermodynamics.py` fits phase/trust rescaling against labelled
+outcomes (`d2_correct`), so a calibration fitted on the evaluation data is
+in-sample tuning — the prior round's "calibrated" artifact had exactly this
+problem. A calibrated variant may be reported only as a secondary analysis
+with the calibration fitted on the TRAINING split alone.
 The deterministic toolcall matrix (v2 + blind v3 two-phase + significance,
 calibration, failures, ablation, governance-intelligence) is regenerated at
 the same commit; it exercises the policy layer only (no live oracles) and
