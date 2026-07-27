@@ -80,25 +80,49 @@ def _p_value_one_sided(k: int, n: int, p0: float) -> float:
 # Stratified split
 # ---------------------------------------------------------------------------
 
+def _group_key(item: dict) -> str:
+    """Grouping key so duplicate content never straddles the split (SAP v2).
+
+    item_ids carry a content-hash suffix (e.g. tqa_0000_8ed07b14); two items
+    with the same hash are the same underlying content and must land on the
+    same side. Items without a hash suffix group by their full id.
+    """
+    iid = str(item.get("item_id", ""))
+    parts = iid.rsplit("_", 1)
+    if len(parts) == 2 and len(parts[1]) == 8 and all(
+        c in "0123456789abcdef" for c in parts[1]
+    ):
+        return parts[1]
+    return iid or repr(sorted(item.items()))[:64]
+
+
 def stratified_split(
     items: list[dict],
     holdout_fraction: float,
     seed: int,
 ) -> tuple[list[dict], list[dict]]:
-    """Return (train, holdout) split stratified by `benchmark` field."""
+    """Return (train, holdout) split stratified by `benchmark` source and
+    grouped by content hash — group-aware since SAP v2 (2026-07-27), so
+    identical content cannot appear on both sides of the split."""
     rng = random.Random(seed)
-    by_source: dict[str, list[dict]] = defaultdict(list)
+    by_source: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
     for item in items:
         src = item.get("benchmark", "unknown")
-        by_source[src].append(item)
+        by_source[src][_group_key(item)].append(item)
 
     train, holdout = [], []
-    for src, group in sorted(by_source.items()):
-        shuffled = list(group)
-        rng.shuffle(shuffled)
-        n_hold = max(1, round(len(shuffled) * holdout_fraction))
-        holdout.extend(shuffled[:n_hold])
-        train.extend(shuffled[n_hold:])
+    for src, groups in sorted(by_source.items()):
+        group_keys = sorted(groups)
+        rng.shuffle(group_keys)
+        n_items = sum(len(groups[k]) for k in group_keys)
+        target_hold = max(1, round(n_items * holdout_fraction))
+        held = 0
+        for key in group_keys:
+            if held < target_hold:
+                holdout.extend(groups[key])
+                held += len(groups[key])
+            else:
+                train.extend(groups[key])
 
     return train, holdout
 
