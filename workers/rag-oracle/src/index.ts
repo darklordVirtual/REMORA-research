@@ -161,7 +161,7 @@ async function sha256hex(text: string): Promise<string> {
 
 function isNonEnglish(text: string): boolean {
   // Detects Norwegian, German, French, etc. via non-ASCII characters
-  return /[^\x00-\x7F]/.test(text) || /\b(er|og|av|til|fra|ikke|med|for|som)\b/.test(text);
+  return /[^\x00-\x7F]/.test(text) || /\b(og|av|til|fra|ikke|med|ikkje|jeg|deg)\b/.test(text);
 }
 
 function parseVerdictFromLLM(raw: string): Pick<RemoraVerdict, 'answer' | 'claim' | 'confidence'> {
@@ -332,7 +332,7 @@ function selectSynthModel(query: string, complexity: string, env: Env): string {
   if (complexity === 'high') return env.SYNTH_MODEL_STRONG;
   if (complexity === 'low')  return env.SYNTH_MODEL;
   // Auto: long or complex queries → strong model
-  return query.length > 200 || /legallov|inkasso|paragraf|§|regulation|statute/i.test(query)
+  return query.length > 200 || /(legal|lov)|inkasso|paragraf|§|regulation|statute/i.test(query)
     ? env.SYNTH_MODEL_STRONG
     : env.SYNTH_MODEL;
 }
@@ -354,7 +354,8 @@ async function handleQuery(body: QueryRequest, env: Env): Promise<Response> {
   let complexity     = body.complexity     ?? 'auto';
   let dual_consensus = body.dual_consensus ?? false;
   if (body.use_case === 'legal') {
-    dual_consensus = dual_consensus || true;
+    // legal always uses dual consensus (was `|| true`, a constant — issue #55)
+    dual_consensus = true;
     if (complexity === 'auto') complexity = 'high';
   }
   if (body.use_case === 'security') {
@@ -397,6 +398,11 @@ async function handleQuery(body: QueryRequest, env: Env): Promise<Response> {
   // Build Vectorize metadata filter.
   // Access control (clearance + tenant) is applied first; domain is additive.
   // All conditions in a flat filter object are AND-ed by Vectorize.
+  // SECURITY (issue #55): clearance_levels and tenant_id are CALLER-ASSERTED
+  // from the request body — they are a query scoping convenience, NOT an
+  // enforced boundary. A production deployment MUST place an authenticating
+  // proxy in front that derives these from a verified identity; otherwise a
+  // caller can declare any clearance/tenant.
   const filter: Record<string, unknown> = {};
   if (body.access) {
     const { clearance_levels, tenant_id } = body.access;

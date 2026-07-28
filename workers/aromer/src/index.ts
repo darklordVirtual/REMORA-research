@@ -38,6 +38,9 @@ interface Env {
   CF_MODEL_LORA_BASE?: string;
   CF_LORA_ID?: string;
   LORA_METAJUDGE_ACCURACY?: string;
+  // Shared secret gating every mutating (POST) endpoint (issue #55). When
+  // unset the worker fails closed and refuses all writes.
+  AROMER_WRITE_SECRET?: string;
 }
 
 interface EpisodeRow {
@@ -81,6 +84,38 @@ function json(data: unknown, status = 200): Response {
 
 function err(msg: string, status = 400): Response {
   return json({ error: msg, ok: false }, status);
+}
+
+/** Constant-time string comparison to avoid auth-token timing leaks. */
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/**
+ * Fail-closed write auth for every mutating (POST) endpoint (issue #55).
+ * The AROMER D1 store holds governance episodes, ground-truth labels, world-
+ * model priors and replay-transfer provenance that feed the published AII
+ * score — anonymous writes made all of it forgeable. Returns null when the
+ * request is authorised, or a Response to short-circuit.
+ *
+ * If AROMER_WRITE_SECRET is unset the worker refuses ALL writes (503) — like
+ * agent-control's CONTROL_SECRET gate. Set it with `wrangler secret put
+ * AROMER_WRITE_SECRET` and send `Authorization: Bearer <secret>`.
+ */
+function requireWriteAuth(request: Request, env: Env): Response | null {
+  const secret = (env.AROMER_WRITE_SECRET || '').trim();
+  if (!secret) {
+    return err('write auth not configured (AROMER_WRITE_SECRET unset) — writes refused', 503);
+  }
+  const header = request.headers.get('Authorization') || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  if (!token || !timingSafeEqual(token, secret)) {
+    return err('unauthorized: valid Bearer token required for write endpoints', 401);
+  }
+  return null;
 }
 
 function uuid(): string {
@@ -2938,6 +2973,14 @@ export default {
 
     const url  = new URL(request.url);
     const path = url.pathname.replace(/\/$/, '') || '/';
+
+    // Fail-closed write auth: every POST mutates governance state. GET
+    // endpoints (/status, /stats, /world, /log, /intelligence, /thresholds)
+    // are published read-only telemetry and stay open (issue #55).
+    if (request.method === 'POST') {
+      const authError = requireWriteAuth(request, env);
+      if (authError) return authError;
+    }
 
     if (path === '/status') {
       const { results } = await env.AROMER_DB.prepare(

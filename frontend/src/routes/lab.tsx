@@ -13,6 +13,7 @@ import {
   type ExecuteResponse,
 } from "@/lib/remora";
 import { createSession, executeTool } from "@/lib/remora.functions";
+import { getOperatorToken } from "@/lib/operator-token";
 
 export const Route = createFileRoute("/lab")({
   head: () => ({
@@ -341,7 +342,7 @@ function LabPage() {
   async function ensureSession(): Promise<string> {
     if (sessionRef.current) return sessionRef.current;
     const r = await createFn({
-      data: { user_id: "lab-user", user_label: "Lab" },
+      data: { access_token: getOperatorToken(), user_id: "lab-user", user_label: "Lab" },
     });
     sessionRef.current = r.session_id;
     return r.session_id;
@@ -390,6 +391,7 @@ function LabPage() {
               : "audit_decision";
         const r = await execFn({
           data: {
+            access_token: getOperatorToken(),
             tool: controlTool,
             input: parsed,
             session_id: sid,

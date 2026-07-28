@@ -329,7 +329,12 @@ function TelemetryPage() {
       </section>
 
       <section className="mt-12">
-        <SectionLabel number="06">Pilot SLOs</SectionLabel>
+        <SectionLabel number="06">Pilot SLOs (illustrative targets — simulated)</SectionLabel>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          These tiles show illustrative SLO targets on simulated data, not measured production
+          telemetry. They are not bound to a committed result artifact and must not be read as a
+          live safety posture.
+        </p>
         <div className="mt-6 grid gap-px bg-border md:grid-cols-3">
           {slos.map((s) => (
             <div key={s.label} className="bg-background p-5">

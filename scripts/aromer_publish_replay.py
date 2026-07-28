@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os as _os
 import sys
 import urllib.request
 from datetime import datetime, timezone
@@ -76,14 +77,27 @@ def main() -> int:
         return 1
 
     if args.publish:
+        # The AROMER worker now fail-closes writes behind AROMER_WRITE_SECRET
+        # (issue #55). Send it as a Bearer token; without it the worker
+        # returns 503/401 and this publish fails loudly.
+        write_secret = _os.environ.get("AROMER_WRITE_SECRET", "").strip()
+        headers = {
+            "Content-Type": "application/json",
+            # The zone WAF blocks the default Python-urllib agent.
+            "User-Agent": "remora-replay-publisher/1.0",
+        }
+        if write_secret:
+            headers["Authorization"] = f"Bearer {write_secret}"
+        else:
+            print(
+                "WARN: AROMER_WRITE_SECRET not set; the worker will reject this "
+                "write (fail-closed). Set it to publish.",
+                file=sys.stderr,
+            )
         req = urllib.request.Request(
             f"{args.worker_url.rstrip('/')}/replay-report",
             data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Content-Type": "application/json",
-                # The zone WAF blocks the default Python-urllib agent.
-                "User-Agent": "remora-replay-publisher/1.0",
-            },
+            headers=headers,
             method="POST",
         )
         try:

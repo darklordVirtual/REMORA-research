@@ -14,6 +14,7 @@ import {
   type WorkerStatus,
 } from "@/lib/remora";
 import { createSession, endSession, executeTool, getAudit } from "@/lib/remora.functions";
+import { getOperatorToken } from "@/lib/operator-token";
 
 export const Route = createFileRoute("/console")({
   head: () => ({
@@ -76,7 +77,8 @@ function ConsolePage() {
   const endFn = useServerFn(endSession);
 
   const startMut = useMutation({
-    mutationFn: async (user: string) => createFn({ data: { user_id: user, user_label: user } }),
+    mutationFn: async (user: string) =>
+      createFn({ data: { access_token: getOperatorToken(), user_id: user, user_label: user } }),
     onSuccess: (data, user) => {
       const next = { id: data.session_id, user };
       saveSession(next);
@@ -86,7 +88,8 @@ function ConsolePage() {
   });
 
   const stopMut = useMutation({
-    mutationFn: async (id: string) => endFn({ data: { session_id: id } }),
+    mutationFn: async (id: string) =>
+      endFn({ data: { access_token: getOperatorToken(), session_id: id } }),
     onSettled: () => {
       saveSession(null);
       setSession(null);
@@ -318,6 +321,7 @@ function ToolForm({
               kind: "execute",
               data: await execFn({
                 data: {
+                  access_token: getOperatorToken(),
                   tool: "remora_verify_claim",
                   input: payload,
                   session_id: session!.id,
@@ -375,6 +379,7 @@ function ToolForm({
               kind: "execute",
               data: await execFn({
                 data: {
+                  access_token: getOperatorToken(),
                   tool: "store_artifact",
                   input: payload,
                   session_id: session!.id,
@@ -992,8 +997,8 @@ function AuditLog({ sessionId }: { sessionId?: string }) {
     queryFn: () =>
       fetchAudit({
         data: sessionId
-          ? { session_id: sessionId, limit: 50, offset: 0 }
-          : { limit: 50, offset: 0 },
+          ? { access_token: getOperatorToken(), session_id: sessionId, limit: 50, offset: 0 }
+          : { access_token: getOperatorToken(), limit: 50, offset: 0 },
       }),
     refetchInterval: sessionId ? 8_000 : false,
   });

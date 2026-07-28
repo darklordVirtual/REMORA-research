@@ -116,13 +116,18 @@ export default {
       const normCit = citation.toLowerCase().replace(/\s+/g, "-");
       const searchPat = normCit.replace(/-[aup]$/, ""); // strip suffix for broader match
 
+      // Escape LIKE wildcards in caller input (issue #55): unescaped % / _
+      // let a caller pass "%" and match every row. ESCAPE '\' makes them
+      // literals.
+      const likeEscape = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
+
       // Query D1 for this citation in chunk_text or vector_id
       const result = await env.LAW_DB.prepare(
         `SELECT vector_id, vector_namespace, substr(chunk_text, 1, 500) AS snippet
          FROM legal_document_fragments
-         WHERE LOWER(vector_id) LIKE ? OR LOWER(chunk_text) LIKE ?
+         WHERE LOWER(vector_id) LIKE ? ESCAPE '\\' OR LOWER(chunk_text) LIKE ? ESCAPE '\\'
          LIMIT 5`
-      ).bind(`%${searchPat}%`, `%${normCit}%`).all();
+      ).bind(`%${likeEscape(searchPat)}%`, `%${likeEscape(normCit)}%`).all();
 
       const found = (result.results ?? []).length > 0;
       const rows  = (result.results ?? []).map((r: Record<string, unknown>) => ({

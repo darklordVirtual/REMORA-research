@@ -27,11 +27,12 @@ export const verifyCloudflareToken = createServerFn({ method: "GET" }).handler(a
         message: json.errors?.[0]?.message ?? `HTTP ${res.status}`,
       };
     }
+    // Do NOT return the token id or expiry to the client (issue #55): this is
+    // an unauthenticated server function, and those are sensitive account
+    // details. A boolean health signal is all the UI needs.
     return {
       ok: true,
       status: json.result?.status ?? "active",
-      tokenId: json.result?.id,
-      expiresOn: json.result?.expires_on ?? null,
       message: "Token verified",
     };
   } catch (err) {
