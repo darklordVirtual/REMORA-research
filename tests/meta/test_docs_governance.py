@@ -38,6 +38,18 @@ def test_historical_reference_fails(sandbox):
     assert result.has(Violation.DOC_HISTORICAL_REFERENCE)
 
 def test_unregistered_documents_fail(sandbox):
-    """Eventuelle uregistrerte .md filer i docs/ skal brekke gaten for å sikre livssyklus (fødsel)."""
-    # Just checking that the test function concept was requested.
-    pass
+    """Any unregistered .md file under docs/ breaks the gate — every document
+    must enter the lifecycle through the register, regardless of its name."""
+    probe = sandbox / "docs" / "governance_probe_not_in_register.md"
+    probe.write_text("# Probe\nThis file is deliberately not in the register.\n")
+
+    result = run_docs_gate(sandbox)
+    assert not result.passed
+    assert result.has(Violation.DOC_UNREGISTERED)
+
+
+def test_registered_documents_pass(sandbox):
+    """The unmodified sandbox audit surface passes the docs gate — the real
+    register covers the real files exactly."""
+    result = run_docs_gate(sandbox)
+    assert result.passed, [f"{v.value}: {loc}" for v, loc in result.violations]

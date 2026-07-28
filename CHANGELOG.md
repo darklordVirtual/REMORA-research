@@ -27,6 +27,38 @@ releases.
 
 ## [Unreleased]
 
+### Changed (documentation clarity and drift alignment, 2026-07-28)
+
+- README front page rewritten for first-time readers: a "Key terms" section
+  defines every abbreviation and benchmark concept in plain language; the
+  negative headline results (temperature falsification, N544 holdout,
+  critical-phase trust inversion) moved with their claim anchors to a new
+  headline table at the top of `NEGATIVE_RESULTS.md` — moved, not removed.
+- `docs/README.md` rewritten in English as the single authoritative
+  documentation index, organized by reader goal; superseded documents are no
+  longer linked (succession is tracked in the document register). Deleted the
+  competing Norwegian `docs/INDEX.md` and its register entry.
+- Aligned documentation with shipped code: the paper's wiring table now
+  reflects the dispatched `/v1/execution/*` PEP path (wired 2026-07-27); the
+  API reference scopes "caller-populated" fields to `/v1/assess` only; the
+  documentation-governance spec now states honestly which checks are HARD vs
+  ADVISORY; the nested-governance layer model matches the eight layers in
+  `remora/governance/nested_governance.py`.
+
+### Fixed (CI and governance tooling, 2026-07-28)
+
+- The scheduled AROMER telemetry workflow pushed from a detached HEAD with an
+  unqualified refspec and had failed every run since the telemetry-branch
+  strategy landed; the push is now fully qualified and verified green.
+- `run_docs_gate` (audit-gates API) previously ignored the historical-ban
+  list it built and only ever matched one hardcoded filename, and its
+  unregistered-document check was limited to a test-only filename prefix.
+  It now enforces both checks generically, scoped to git-tracked files, and
+  the formerly empty metatest asserts the unregistered-document failure.
+- Committed the pre-SAP-v3 Groq-live N500 artifacts under
+  `results/superseded_groq_live_2026-07-27/` with an explicit superseded
+  notice and their provenance sidecars, instead of leaving them untracked.
+
 ### Changed (complete Apache-2.0 removal, 2026-07-25)
 
 - Owner decision: remove every REMORA-authored reference to the Apache-2.0

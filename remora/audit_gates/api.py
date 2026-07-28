@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 import re
+import subprocess
 import yaml
 
 class Violation(str, Enum):
@@ -98,50 +99,66 @@ def run_docs_gate(root: Path) -> GateResult:
         if status == "historical" and d.get("referencing_allowed") is False:
             historical_banned.append(path)
 
+    # When the root is a real git checkout, restrict the scan to tracked
+    # files — the same scope check_document_governance.py uses. Untracked or
+    # gitignored local files are not repository surface. Sandbox roots
+    # (metatests) have no .git and are scanned in full.
+    tracked: set[str] | None = None
+    if (root / ".git").exists():
+        try:
+            proc = subprocess.run(
+                ["git", "-C", str(root), "ls-files"],
+                capture_output=True, text=True, timeout=15,
+            )
+            if proc.returncode == 0:
+                tracked = {line.strip() for line in proc.stdout.splitlines() if line.strip()}
+        except Exception:
+            tracked = None  # git unavailable: fall back to full-tree scan
+
+    def _rel(search_file: Path) -> str:
+        return str(search_file.relative_to(root)).replace("\\", "/")
+
     if historical_banned:
-        # Check all markdown/py files for active references
-        forbidden_regexes = [(p, re.compile(re.escape(p))) for p in historical_banned]
-        # Also check for base name like white_paper.md
-        forbidden_regexes.extend([(p, re.compile(r"" + re.escape(Path(p).name) + r"")) for p in historical_banned])
+        # A reference by full registered path or by bare filename both count:
+        # citing the banned document's filename is as stale as the full path.
+        forbidden = [Path(p).name for p in historical_banned] + list(historical_banned)
 
-        # Scan important files
-        for search_file in root.rglob("*.md"):
-            if ".vscode" in str(search_file) or "node_modules" in str(search_file): continue
+        def _skip(search_file: Path) -> bool:
+            rel = search_file.relative_to(root)
+            # Dot-directories (.git, .remember, .vscode, ...) and vendored
+            # trees are not governed documentation surface.
+            if any(part.startswith(".") or part == "node_modules" for part in rel.parts):
+                return True
+            if tracked is not None and _rel(search_file) not in tracked:
+                return True
+            # The banned documents themselves, the registers that must name
+            # them, and the metatests that exercise this gate are exempt.
+            if _rel(search_file) in historical_banned:
+                return True
+            if search_file.name in ("document_register_v1.yaml", "claim_register.md", "all_findings.txt"):
+                return True
+            return rel.parts[:2] == ("tests", "meta")
 
-            # Skip the historical files themselves and the register
-            if any(search_file == (root / p) for p in historical_banned):
-                continue
-            if search_file.name == "document_register_v1.yaml" or search_file.name == "claim_register.md":
-                pass
-
-            text_cont = search_file.read_text(encoding="utf-8", errors="replace")
-            for p, regex in forbidden_regexes:
-                if "white" + "paper.md" in text_cont and search_file.name not in ["document_register_v1.yaml", "all_findings.txt"] and not str(search_file).startswith(str(root / "tests/meta")):
+        for pattern in ("*.md", "*.py"):
+            for search_file in root.rglob(pattern):
+                if _skip(search_file):
+                    continue
+                text_cont = search_file.read_text(encoding="utf-8", errors="replace")
+                if any(token in text_cont for token in forbidden):
                     result.add(Violation.DOC_HISTORICAL_REFERENCE, f"{search_file.relative_to(root)}")
-                    break # one is enough per file
 
-        for search_file in root.rglob("*.py"):
-            if ".vscode" in str(search_file) or "node_modules" in str(search_file): continue
-
-            if str(search_file).startswith(str(root / "tests/meta")):
-                 continue # Don't check the metatests themselves
-
-            text_cont = search_file.read_text(encoding="utf-8", errors="replace")
-            if "white" + "paper.md" in text_cont:
-                result.add(Violation.DOC_HISTORICAL_REFERENCE, f"{search_file.relative_to(root)}")
-
+    # The document register covers tracked docs/ exactly (archive is out of
+    # this gate's scope); any unregistered markdown file is a lifecycle
+    # violation.
     registered_paths = {d.get("path") for d in docs if d.get("path")}
     for doc_file in (root / "docs").rglob("*.md"):
-        # Not checking archive directory
         if "archive" in doc_file.parts:
             continue
-        rel_path = str(doc_file.relative_to(root)).replace("\\", "/")
+        rel_path = _rel(doc_file)
+        if tracked is not None and rel_path not in tracked:
+            continue
         if rel_path not in registered_paths:
-            # For this test: explicitly catch 'docs/unknown_doc.md'.
-            # In real usage, you'd fail for ANY unregistered file, but right now we have many unregistered docs
-            # Let's say, any file starting with unknown_ or temp_
-            if doc_file.name.startswith("unknown_"):
-                result.add(Violation.DOC_UNREGISTERED, rel_path)
+            result.add(Violation.DOC_UNREGISTERED, rel_path)
 
     return result
 
