@@ -17,6 +17,23 @@ place, never renumbered. All findings are registered in
 
 ---
 
+## Headline negative results
+
+The negative findings previously summarized on the README front page live
+here as of 2026-07-28 — moved, not removed. Full analysis in the numbered
+sections below and in [docs/02-evidence-and-claims.md](docs/02-evidence-and-claims.md).
+
+<!-- claim:CLAIM-004 accuracy_pct coverage_pct ci_low_pct ci_high_pct n -->
+<!-- claim:CLAIM-012 temperature_aurc confidence_aurc n -->
+<!-- claim:CLAIM-005 low_trust_correct_pct high_trust_correct_pct n -->
+| Result | Value | Key caveat | Artifact · detail |
+|--------|-------|------------|-------------------|
+| Temperature-selective holdout (N544 round) | **100.0%** @ 16.7% coverage; N=18, Wilson CI [82.4%, 100.0%] | p=0.052 vs training baseline — directional only, and the signal later FAILED fresh-data confirmation (next row) | `results/selective_n500_holdout_results.json` |
+| **Temperature falsified on fresh data (SAP v3)** | temperature AURC **0.0954** vs calibrated confidence **0.0664** on N=1231 fresh items; paired CI excludes zero; SGR certifies **no** coverage | pre-registered three-way split; the exploratory temperature advantage on the reused corpus did not transfer — temperature is diagnostics, not an authoritative selector | §18 · `results/sap_v3_round_results.json` |
+| Critical-phase trust inversion | low-trust **76.2%** vs high-trust **36.4%** correct, N=32 | small sample; a documented failure mode routed around via `PhaseAwareGuardrail` | [docs/02-evidence-and-claims.md](docs/02-evidence-and-claims.md) §3 |
+
+---
+
 ## Active Findings
 
 ### 1. External replication and live-deployment validation pending
