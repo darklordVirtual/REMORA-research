@@ -3,6 +3,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { REMORA_URLS, type AuditRow, type ExecuteResponse, type ToolName } from "./remora";
+import { assertAppAccess } from "./app-access.server";
+
+// Every control-plane-facing function requires an operator access token
+// (issue #55). access_token is validated shape then checked server-side.
+const accessTokenField = { access_token: z.string().min(1).max(512) };
 
 function controlAuth(): HeadersInit {
   const secret = process.env.REMORA_CONTROL_SECRET;
@@ -28,22 +33,26 @@ async function passthrough<T>(res: Response): Promise<T> {
 export const createSession = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
+      ...accessTokenField,
       user_id: z.string().min(1).max(128),
       user_label: z.string().min(1).max(128).optional(),
     }),
   )
   .handler(async ({ data }) => {
+    assertAppAccess(data.access_token);
+    const { access_token: _t, ...body } = data;
     const res = await fetch(`${REMORA_URLS.agentControl}/sessions`, {
       method: "POST",
       headers: controlAuth(),
-      body: JSON.stringify(data),
+      body: JSON.stringify(body),
     });
     return passthrough<{ session_id: string; status: string }>(res);
   });
 
 export const endSession = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ session_id: z.string().uuid() }))
+  .inputValidator(z.object({ ...accessTokenField, session_id: z.string().uuid() }))
   .handler(async ({ data }) => {
+    assertAppAccess(data.access_token);
     const res = await fetch(
       `${REMORA_URLS.agentControl}/sessions/${encodeURIComponent(data.session_id)}`,
       { method: "DELETE", headers: controlAuth() },
@@ -52,6 +61,7 @@ export const endSession = createServerFn({ method: "POST" })
   });
 
 const executeInput = z.object({
+  ...accessTokenField,
   tool: z.enum(["remora_verify_claim", "dce_search_law", "store_artifact", "audit_decision"]),
   input: z.record(z.string(), z.unknown()),
   session_id: z.string().uuid(),
@@ -61,10 +71,12 @@ const executeInput = z.object({
 export const executeTool = createServerFn({ method: "POST" })
   .inputValidator(executeInput)
   .handler(async ({ data }) => {
+    assertAppAccess(data.access_token);
+    const { access_token: _t, ...body } = data;
     const res = await fetch(`${REMORA_URLS.agentControl}/execute`, {
       method: "POST",
       headers: controlAuth(),
-      body: JSON.stringify(data),
+      body: JSON.stringify(body),
     });
     return passthrough<ExecuteResponse>(res);
   });
@@ -72,12 +84,14 @@ export const executeTool = createServerFn({ method: "POST" })
 export const getAudit = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
+      ...accessTokenField,
       session_id: z.string().uuid().optional(),
       limit: z.number().int().min(1).max(200).default(50),
       offset: z.number().int().min(0).default(0),
     }),
   )
   .handler(async ({ data }) => {
+    assertAppAccess(data.access_token);
     const params = new URLSearchParams();
     if (data.session_id) params.set("session_id", data.session_id);
     params.set("limit", String(data.limit));

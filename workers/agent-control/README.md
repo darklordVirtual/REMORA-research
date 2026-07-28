@@ -2,31 +2,30 @@
 
 Cloudflare Worker acting as a secure control plane between Claude and private infrastructure.
 
-Claude invokes tools via HTTP → this Worker enforces egress policy, injects API secrets, and writes an immutable audit trail to D1.
+Claude invokes tools via HTTP → this Worker injects API secrets and writes a hash-stamped audit trail to D1.
 
 ```
 Claude Desktop / Claude API
   │  (MCP tool calls via servers/mcp_remora.py)
   ▼
 [remora-agent-control Worker]
-  │  Egress policy — only approved upstream hosts allowed
+  │  Bounded egress — statically-bound service workers only
   │  Secret injection — Claude never sees raw API keys
-  │  D1 audit trail — append-only, SHA-256 hashed
+  │  D1 audit trail — SHA-256 input/output hashes; approvals recorded via UPDATE
   ├──► REMORA Worker        multi-oracle consensus
   ├──► RAG Oracle Worker    legal / knowledge retrieval
   ├──► Law Search Worker    DCE / Norwegian statute database
-  ├──► EOS API              Luftfiber building data
   └──► R2 / D1              artifacts, audit log
 ```
 
 ## Tools Exposed to Claude
 
+These are the tools actually in `TOOL_CATALOG` (`src/index.ts`):
+
 | Tool | Description | Requires approval |
 |------|-------------|-------------------|
 | `remora_verify_claim` | Multi-oracle consensus verification | No |
 | `dce_search_law` | Search Norwegian statutes (DCE) | No |
-| `eos_query_building` | Read EOS building data (read-only) | No |
-| `eos_execute_action` | Execute an EOS action | **Yes** |
 | `store_artifact` | Write a file to R2 | **Yes** |
 | `audit_decision` | Record a human approval decision | No |
 
@@ -50,10 +49,11 @@ wrangler kv namespace create remora-sessions
 ### 2. Set secrets
 
 ```bash
-wrangler secret put CONTROL_SECRET   # Bearer token used by Claude clients
-wrangler secret put REMORA_SECRET    # Token for the REMORA Worker
-wrangler secret put EOS_API_KEY      # Luftfiber EOS API key
+wrangler secret put CONTROL_SECRET   # Bearer token required on every request
 ```
+
+(Only `CONTROL_SECRET` is read by the code. Upstream service workers are
+reached via Cloudflare service bindings, not secret-authenticated fetches.)
 
 ### 3. Initialise D1 tables
 
@@ -86,9 +86,14 @@ Add to `claude_desktop_config.json`:
 
 ## Security Principles
 
-- **Egress allowlist**: The Worker only forwards requests to a pre-approved set of upstream domains.
+- **Bounded egress**: outbound calls go only to the statically-bound service
+  workers and fixed upstreams declared in `wrangler.toml` — there is no
+  dynamic, request-controlled destination. (A configurable `EGRESS_ALLOWLIST`
+  is roadmap, not implemented; earlier README wording overstated it — issue #55.)
 - **Secret injection**: API keys live in Worker Secrets, never in Claude's context.
-- **Human-in-the-loop**: Destructive actions (`eos_execute_action`, R2 writes) are held in `PENDING_APPROVAL` until a human approves via `audit_decision`.
+- **Human-in-the-loop**: destructive actions (R2 writes via `store_artifact`)
+  are held until a human approves via `audit_decision`. Approval binds the
+  exact input hash (audit_id excluded from the hash so re-submission matches).
 - **Audit trail**: Every tool call is written to D1 with a SHA-256 hash of the input/output pair.
 - **Bearer token**: All write endpoints require `Authorization: Bearer <secret>`.
 

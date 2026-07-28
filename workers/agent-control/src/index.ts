@@ -392,7 +392,14 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
     .filter(Boolean);
   const approval_required = approvalTools.includes(body.tool) ? 1 : 0;
 
-  const inputStr = JSON.stringify(body.input);
+  // Hash the input WITHOUT the audit_id field (issue #55): the approval flow
+  // resubmits the same input plus audit_id, so hashing the raw input made the
+  // approved-call hash differ from the pre-approval hash and the HITL check
+  // ALWAYS 403'd — the only human-in-the-loop control never worked. Stripping
+  // audit_id makes both calls hash identically.
+  const { audit_id: _hashExcludedAuditId, ...hashableInput } =
+    (body.input ?? {}) as Record<string, unknown>;
+  const inputStr = JSON.stringify(hashableInput);
   const input_hash = await sha256(inputStr);
 
   const pre_audit_id = await auditInsert(env.AUDIT_DB, {
@@ -470,8 +477,27 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
       confidence,
     });
   } catch (e) {
-    console.error("Failed to update final audit state!");
-    // we still return outcome, but note that execution happened
+    // Fail-closed on the audit write (issue #55): the tool already executed,
+    // so we cannot undo the side effect — but we must NOT report a clean 200.
+    // Signal that the governance record is incomplete so the caller treats
+    // the audit trail as broken for this action.
+    console.error("Failed to update final audit state!", e);
+    return json(
+      {
+        tool: body.tool,
+        success: false,
+        session_id: body.session_id,
+        audit_id: pre_audit_id,
+        executed: true,
+        output: {
+          status: "AUDIT_WRITE_FAILED",
+          message:
+            "Tool executed but the final audit record could not be written; " +
+            "the audit trail for this action is incomplete.",
+        },
+      },
+      500,
+    );
   }
 
   const result: ToolResult = {

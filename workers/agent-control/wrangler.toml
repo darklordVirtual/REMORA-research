@@ -4,6 +4,10 @@ compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
 
 # ── Service Bindings (Worker-to-Worker, no public URL needed) ──────────────────
+# NOTE (issue #55): `go-star-remora` is an EXTERNAL worker not published in this
+# repository. `remora_verify_claim` depends on it, so this control plane is not
+# reproducible from this repo alone — deploy your own consensus worker and
+# rename the binding target, or expect this tool to fail at runtime.
 [[services]]
 binding = "REMORA_SERVICE"
 service = "go-star-remora"

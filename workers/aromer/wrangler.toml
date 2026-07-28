@@ -28,6 +28,13 @@ database_id   = "b91e1f0b-e2bd-4a12-9150-cda2048e508b"
 binding = "AROMER_STATE"
 id      = "6e84acea1ed4488a9b32cef6181900b2"
 
+# SECURITY (issue #55): every mutating (POST) endpoint requires a shared
+# secret. Provision it out-of-band and DO NOT put it here (secrets never live
+# in [vars]):
+#     wrangler secret put AROMER_WRITE_SECRET
+# Callers send `Authorization: Bearer <secret>`. With the secret unset the
+# worker fails closed and refuses all writes (503). GET telemetry stays open.
+
 [vars]
 AROMER_VERSION             = "0.2.0-experimental"
 META_JUDGE_BATCH_SIZE      = "3"

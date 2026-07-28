@@ -27,6 +27,49 @@ releases.
 
 ## [Unreleased]
 
+### Security (workers/frontend hardening, 2026-07-28 — issue #55)
+
+- **AROMER worker fail-closes all writes.** Every mutating (POST) endpoint
+  (/episode, /outcome, /adapt, /critique, /decide, /scan-result,
+  /replay-report) now requires `Authorization: Bearer <AROMER_WRITE_SECRET>`;
+  with the secret unset the worker refuses all writes (503). Anonymous callers
+  could previously overwrite episodes, set ground truth, poison world-model
+  priors and forge replay-transfer provenance feeding the AII score. GET
+  telemetry stays public. **Rollout:** `wrangler secret put
+  AROMER_WRITE_SECRET` on the worker AND set it in every write client's env
+  (the replay publisher now sends it; other operational scripts must too).
+- **Frontend no longer re-exposes the control plane anonymously.**
+  `executeTool` (store_artifact / audit_decision), `getAudit`, and the session
+  functions now require an operator access token checked server-side against
+  `REMORA_APP_ACCESS_TOKEN` (fail-closed: unset ⇒ control plane disabled).
+  `verifyCloudflareToken` no longer returns the CF token id/expiry to the
+  client.
+- **agent-control audit is fail-closed after execution.** A failed final audit
+  write now returns HTTP 500 (`AUDIT_WRITE_FAILED`) instead of a clean 200 —
+  the governance record can no longer silently go missing. The `store_artifact`
+  human-in-the-loop approval, which could never succeed (the approval hash
+  included `audit_id`, so re-submission never matched), now hashes the input
+  with `audit_id` excluded and works.
+- **rag-oracle honesty + logic fixes:** documented that `clearance_levels` /
+  `tenant_id` are caller-asserted (a scoping convenience, NOT an enforced
+  boundary without an upstream authenticator); fixed the dead
+  `ENABLE_DUAL_CONSENSUS` (`|| true` constant), the `legallov` router-regex
+  typo, and the English "for" token that routed English queries to the
+  multilingual index.
+- **law-search:** LIKE wildcards (`%` / `_`) in caller citations are now
+  escaped, closing a wildcard-injection that returned arbitrary rows.
+- **Doc/config drift corrected to match code:** agent-control README no longer
+  claims a nonexistent `EGRESS_ALLOWLIST`, `EOS` tool family / `EOS_API_KEY`,
+  or an "append-only immutable" audit log (approvals are `UPDATE`s); the
+  `go-star-remora` service binding is flagged as an external, non-reproducible
+  dependency; personal machine paths replaced with `<repo-root>`.
+- **Frontend telemetry "Pilot SLOs" tiles are labelled simulated** — they were
+  hardcoded 100% / 0.00% literals reading as measured production posture, with
+  no artifact binding.
+- Remaining items needing coordinated rollout / an identity layer (real ABAC
+  enforcement, egress-allowlist implementation, aromer worker tsconfig,
+  frontend deploy-token scoping) are tracked in issue #55 follow-ups.
+
 ### Fixed (deep self-review, 2026-07-28 night — gates, provenance, portability, honesty)
 
 - **Two `make audit` gates that could not fail are now real.**
