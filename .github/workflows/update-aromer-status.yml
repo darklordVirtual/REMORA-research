@@ -92,5 +92,5 @@ jobs:
             echo "No telemetry changes to publish."
           else
             git commit -m "chore(telemetry): update AROMER live status [ci skip]"
-            git push origin +HEAD:telemetry
+            git push origin +HEAD:refs/heads/telemetry
           fi
