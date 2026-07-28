@@ -35,6 +35,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from remora.action_semantics import IRREVERSIBLE_ACTION_TYPES
+
 if TYPE_CHECKING:
     from remora.policy.observation import PolicyObservation
 
@@ -64,19 +66,10 @@ _TIER_SEVERITY: dict[str, float] = {
     "critical": 0.70,
 }
 
-# Actions that are largely irreversible; carry a higher worst-case-loss weight.
-_IRREVERSIBLE_ACTIONS: frozenset[str] = frozenset({
-    "delete",
-    "destructive_write",
-    "emergency_write",
-    "financial_write",
-    "production_write",
-    "execute_transfer",
-    "disable_security",
-    "config_overwrite",
-    "bulk_delete",
-    "wipe",
-})
+# Actions that are largely irreversible; carry a higher worst-case-loss
+# weight. Single source of truth: remora.action_semantics (F2, external
+# review 2026-07-28); do not add entries here.
+_IRREVERSIBLE_ACTIONS: frozenset[str] = IRREVERSIBLE_ACTION_TYPES
 
 
 # ---------------------------------------------------------------------------

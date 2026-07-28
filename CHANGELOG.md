@@ -27,6 +27,45 @@ releases.
 
 ## [Unreleased]
 
+### Fixed (external code review round 2, 2026-07-28 — consensus identity and math hygiene)
+
+- **F1 — verdict fingerprints no longer hash self-reported confidence.**
+  `CanonicalVerdict.fingerprint()` previously included `magnitude`, which
+  `_coerce_magnitude` populated from the oracle's `"confidence"` field; since
+  free-text oracles practically never repeat a confidence value, identical
+  claims landed in distinct consensus buckets, inflating entropy H and
+  dissensus D and making `early_exit_on_convergence` near-unreachable.
+  Identity is now (polarity, claim_hash, tags); the metadata-sensitive hash
+  survives as `full_fingerprint()` (no consensus path uses it). NOTE: this
+  changes live-oracle H/D/V dynamics from this commit forward. Committed
+  benchmark artifacts retain pre-fix semantics and are frozen per
+  `docs/assurance/rebenchmark_protocol_v1.md`; the next SHA-bound round runs
+  with the corrected identity.
+- **F2 — one authority for irreversible action types.** `remora/engine.py`
+  (5 entries) and `remora/credal.py` (10 entries) each kept their own set, so
+  the rollback heuristic and the credal worst-case-loss multiplier could
+  disagree about the same `action_type`. Both now import the 11-entry union
+  from the new leaf module `remora/action_semantics.py` — strictly more
+  conservative in both consumers. Parity pinned by
+  `tests/test_action_semantics.py`.
+- **F3 — `potts_energy` docstring corrected** (formula and worked example
+  carried a spurious factor 2 the code never had; code and committed
+  artifacts unchanged).
+- **F4 — zlib density clamped to 1.0** in `estimate_structural_temperature`
+  and `estimate_temperature_prior`: zlib's fixed header pushed the raw
+  compression ratio to ~5 for two-character prompts, inflating structural
+  temperature for short trivial inputs. The prior's docstring no longer
+  claims the raw ratio lies in (0, 1].
+- **F5 — repo hygiene:** removed committed scratch files (`test_dc.py`,
+  `fix_execution_api.py`, `all_findings.txt`) and the committed wheel build
+  artifact; `*.whl` is now gitignored.
+- **F6 — small fixes:** stale "removed in v0.7.0" deprecation wording in
+  `remora/topology.py`; `_normalize_risk_tier` docstring incorrectly listed
+  "CRITICAL" as a value that becomes 'unknown' (case is normalised first);
+  dead `_last` variable and duplicate `trajectory()` call in
+  `Remora.report()`; coercion regex now compiled once at module level; the
+  one Norwegian Makefile comment translated.
+
 ### Changed (documentation clarity and drift alignment, 2026-07-28)
 
 - README front page rewritten for first-time readers: a "Key terms" section

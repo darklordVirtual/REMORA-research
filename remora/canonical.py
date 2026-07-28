@@ -24,7 +24,26 @@ class CanonicalVerdict:
     tags: tuple[str, ...] = field(default_factory=tuple)
 
     def fingerprint(self) -> str:
-        """Return a 16-char hex fingerprint of this verdict."""
+        """Return a 16-char hex fingerprint of this verdict's IDENTITY.
+
+        Identity is (polarity, claim_hash, tags). `magnitude` is deliberately
+        excluded: it is coerced from self-reported metadata such as
+        "confidence", and free-text oracles practically never report the same
+        confidence twice — hashing it fragmented identical claims into
+        distinct consensus buckets, inflating H/D and making convergence
+        near-unreachable (external review 2026-07-28, F1). Aggregate
+        magnitude separately; use full_fingerprint() when the metadata must
+        participate in the hash.
+        """
+        payload = {"p": self.polarity, "c": self.claim_hash, "t": list(self.tags)}
+        return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:16]
+
+    def full_fingerprint(self) -> str:
+        """Return a 16-char hex fingerprint including magnitude metadata.
+
+        This is the pre-2026-07-28 fingerprint payload. No consensus path
+        uses it; it exists for callers that need metadata-sensitive equality.
+        """
         payload = {"p": self.polarity, "c": self.claim_hash, "m": self.magnitude, "t": list(self.tags)}
         return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:16]
 

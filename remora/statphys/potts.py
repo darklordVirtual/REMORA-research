@@ -41,10 +41,11 @@ def potts_energy(
     """Potts interaction energy for a multi-oracle verdict distribution.
 
     Uses the mean-field approximation:
-        E = -J · Σ_{a} n_a(n_a - 1) / (2 · N(N-1))
+        E = -J · Σ_{a} n_a(n_a - 1) / (N(N-1))
 
     where n_a is the number of oracles voting for verdict a and N is the
-    total number of oracles.  The energy is minimised when all oracles agree.
+    total number of oracles, i.e. -J times the fraction of agreeing ordered
+    oracle pairs.  The energy is minimised when all oracles agree.
 
     Parameters
     ----------
@@ -61,8 +62,11 @@ def potts_energy(
 
     Notes
     -----
-    For N=3 and all three oracles agreeing: E = -J · 3·2/(2·3·2) = -J/2.
+    For N=3 and all three oracles agreeing: E = -J · 3·2/(3·2) = -J.
     For N=3 with all oracles disagreeing: E = -J · 0 = 0.
+    (Docstring corrected 2026-07-28, external review F3: the formula and this
+    example previously carried a spurious factor 2 that the code — and the
+    committed benchmark artifacts — never had. The code is unchanged.)
 
     Assumptions
     -----------

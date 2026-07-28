@@ -43,6 +43,32 @@ def test_fingerprint_stability():
     assert v.fingerprint() == v.fingerprint()
 
 
+def test_fingerprint_stable_under_confidence_variation():
+    # F1 (external review 2026-07-28): self-reported confidence is verdict
+    # METADATA, not identity. Identical claim+polarity must share one
+    # consensus bucket regardless of the confidence the oracle attaches.
+    for lo, hi in [(0.1, 0.9), (0.0, 1.0), (0.4999, 0.5001)]:
+        a = phi({"claim": "The sky is blue", "answer": True, "confidence": lo})
+        b = phi({"claim": "The sky is blue", "answer": True, "confidence": hi})
+        assert a.fingerprint() == b.fingerprint()
+        assert a.equivalent_to(b)
+
+
+def test_fingerprint_still_separates_polarity_and_claim():
+    base = phi({"claim": "The sky is blue", "answer": True})
+    flipped = phi({"claim": "The sky is blue", "answer": False})
+    other = phi({"claim": "Grass is red", "answer": True})
+    assert base.fingerprint() != flipped.fingerprint()
+    assert base.fingerprint() != other.fingerprint()
+
+
+def test_full_fingerprint_keeps_magnitude_sensitivity():
+    a = phi({"claim": "X", "answer": True, "confidence": 0.9})
+    b = phi({"claim": "X", "answer": True, "confidence": 0.1})
+    assert a.full_fingerprint() != b.full_fingerprint()
+    assert a.fingerprint() == b.fingerprint()
+
+
 def test_unstructured_fallback():
     v = phi({"unstructured": "yes this is correct"})
     assert v.polarity is True

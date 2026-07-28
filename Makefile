@@ -56,7 +56,7 @@ safety-check: lint test replay  ## Full safety check: lint + tests + replay aren
 # Audit
 # Invariant: README claims -> importable module -> test exists -> artifact exists.
 
-meta-audit:  ## Beviser at audit-gatene fanger seedede brudd
+meta-audit:  ## Proves the audit gates catch seeded violations
 	$(PYTEST) tests/meta/ -x -q
 
 audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + all claim consistency checks
