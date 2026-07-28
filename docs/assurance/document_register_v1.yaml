@@ -1,5 +1,5 @@
 schema_version: '1'
-updated: '2026-07-26'
+updated: '2026-07-28'
 documents:
 - id: DOC-001
   version: v1
@@ -16,7 +16,7 @@ documents:
   last_audited: '2026-07-26'
   validates_against: []
   claims: []
-  last_reviewed: '2026-07-26'
+  last_reviewed: '2026-07-28'
 - id: DOC-002
   version: v1
   code_synced: verified
@@ -30,7 +30,7 @@ documents:
   - evaluator
   last_validated: '2026-07-26'
   last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  last_reviewed: '2026-07-28'
 - id: DOC-003
   version: v1
   code_synced: verified
@@ -262,7 +262,7 @@ documents:
   code_synced: verified
   verdict: current
   last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  last_reviewed: '2026-07-28'
   audience:
   - researchers
 - id: DOC-040
@@ -306,7 +306,7 @@ documents:
   code_synced: verified
   verdict: current
   last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  last_reviewed: '2026-07-28'
   audience:
   - researchers
 - id: DOC-044
@@ -493,7 +493,7 @@ documents:
   code_synced: verified
   verdict: current
   last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  last_reviewed: '2026-07-28'
   audience:
   - researchers
 - id: DOC-070
@@ -1077,10 +1077,11 @@ documents:
   path: docs/methods/nested_governance.md
   status: canonical
   topic: docs_methods_nested_governance_md
-  code_synced: unreviewed
-  verdict: pending
+  code_synced: verified
+  verdict: current
   audience:
   - researchers
+  last_reviewed: '2026-07-28'
 - id: DOC-196
   version: v1
   path: docs/assurance/remediation_register.yaml
@@ -2250,8 +2251,6 @@ topics:
 - docs_integrations_rag_oracle_md
 - docs_validation_external_validation_report_template_md
 - docs_integrations_agent_tool_hook_md
-- CLAUDE_md
-- CONTRIBUTORS_md
 - NOTICE
 - docs_archive_remora_infographic_v3_dark_html
 - docs_remora_architecture_html

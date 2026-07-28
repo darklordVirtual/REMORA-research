@@ -58,6 +58,7 @@ venv/
 
 # Private and internal files — must not be pushed
 internal_*
+/CODE_REVIEW*.md
 _*extract*.txt
 _*detail*.txt
 

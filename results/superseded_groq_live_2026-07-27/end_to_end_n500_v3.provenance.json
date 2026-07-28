@@ -1,0 +1,16 @@
+{
+  "schema": "result_provenance_v2",
+  "git_commit": "638a6e1a3fb2ea7bc61bad1b3c4d9d8c7c91ac7c",
+  "worktree_clean": false,
+  "python_version": "3.14.0",
+  "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
+  "script": "experiments/end_to_end_n500_v3.py",
+  "input_sha256": {
+    "thermo": "7612ae3f08fc94b1d6cd8ebfd3045a0b39aebc116d87252945cbcd85bbcb0c33"
+  },
+  "random_seeds": null,
+  "command": "python experiments/end_to_end_n500_v3.py",
+  "generated_at": "2026-07-27T10:43:56.221487+00:00",
+  "artifact": "end_to_end_n500_v3.json",
+  "artifact_sha256": "900b0337d6c2cef55f27f24ec978fa63ea6ba31950696f977899480717c5de23"
+}

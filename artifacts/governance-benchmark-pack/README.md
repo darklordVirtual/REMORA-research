@@ -1,5 +1,9 @@
 # REMORA: Policy-Gated Governance for Operational AI Agents
 
+[![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml)
+[![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml)
+[![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
+
 REMORA is a pre-execution governance overlay for AI agents operating where actions carry real operational consequences — building automation, energy management, infrastructure control, regulated enterprise workflows. It governs proposed agent actions; it does not replace the agent. Before any action executes, REMORA evaluates it through a deterministic policy layer and a multi-oracle consensus pipeline (several independent model evaluations of the same action, merged into one signal) and returns one of four outcomes:
 
 | Outcome | Meaning |
