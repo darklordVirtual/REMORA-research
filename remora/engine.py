@@ -71,6 +71,9 @@ class RemoraState:
     model_misspecification_risk: float | None = None
     classification_confidence: float | None = None
     coercion_detected: bool = False
+    # Cached admission-firewall result. run() sets it exactly once; None means
+    # the state was built outside run() and report() computes it on demand.
+    adversarial_detected: bool | None = None
 
 class Remora:
     """Multi-oracle consensus engine with Lyapunov stability control."""
@@ -503,6 +506,7 @@ determinism.  Falls back to sequential execution on error.
             refuse_state = RemoraState(
                 question=question,
                 refuse_parametric_verdict=True,
+                adversarial_detected=True,
                 domain=domain,
                 risk_tier=risk_tier,
                 action_type=action_type,
@@ -528,6 +532,7 @@ determinism.  Falls back to sequential execution on error.
         state = RemoraState(
             question=question,
             controller=LyapunovController.init(params),
+            adversarial_detected=False,  # admission firewall passed above
             domain=domain,
             risk_tier=risk_tier,
             action_type=action_type,
@@ -899,7 +904,12 @@ determinism.  Falls back to sequential execution on error.
             contradiction_cycles=None,
             counterfactual_passed=None,
             assurance_root=rep.get("assurance_trace", {}).get("root_hash") if "assurance_trace" in rep else None,
-            adversarial_detected=self._detect_adversarial_input(state.question),
+            adversarial_detected=(
+                state.adversarial_detected
+                if state.adversarial_detected is not None
+                # State built outside run() (tests, replay): compute on demand.
+                else self._detect_adversarial_input(state.question)
+            ),
             risk_tier=state.risk_tier,
             domain=state.domain,
             action_type=state.action_type,

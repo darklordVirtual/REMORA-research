@@ -60,11 +60,15 @@ releases.
   `fix_execution_api.py`, `all_findings.txt`) and the committed wheel build
   artifact; `*.whl` is now gitignored.
 - **F6 — small fixes:** stale "removed in v0.7.0" deprecation wording in
-  `remora/topology.py`; `_normalize_risk_tier` docstring incorrectly listed
-  "CRITICAL" as a value that becomes 'unknown' (case is normalised first);
-  dead `_last` variable and duplicate `trajectory()` call in
-  `Remora.report()`; coercion regex now compiled once at module level; the
-  one Norwegian Makefile comment translated.
+  `remora/topology.py` (and, caught by the round-2 re-verification, the
+  identical message in `remora/zkp.py`); `_normalize_risk_tier` docstring
+  incorrectly listed "CRITICAL" as a value that becomes 'unknown' (case is
+  normalised first); dead `_last` variable and duplicate `trajectory()` call
+  in `Remora.report()`; coercion regex now compiled once at module level;
+  the one Norwegian Makefile comment translated. The admission-firewall
+  result is now cached on `RemoraState.adversarial_detected` (set once by
+  `run()`; `report()` falls back to computing it for states built outside
+  `run()`), removing the duplicate adversarial scan per report.
 
 ### Changed (documentation clarity and drift alignment, 2026-07-28)
 
