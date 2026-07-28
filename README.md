@@ -61,11 +61,21 @@ flowchart TD
     J --> K
 ```
 
-**Execution is dispatched, but only for tools a deployment registers.** Since 2026-07-27 the `/v1/execution/execute` endpoint dispatches through the `GovernedToolDispatcher` PEP after consuming the one-time grant: the call runs under an `ExecutionLease` bound to tenant, principal, tool, exact arguments, target environment and policy-bundle hash, and the response/audit record report the real outcome (`tool_execution` / `tool_executed`). Tool callables — and the credentials they close over — register exclusively through deployment configuration (`REMORA_TOOL_REGISTRY_MODULE`; the research profile ships side-effect-bounded `store_artifact`/`read_telemetry` in `servers/tool_registry_research.py`), never through request payloads. With no registry configured, dispatch reports `executed: false` explicitly. REMORA still cannot stop an agent that reaches a tool *outside* this API — bypass-proof enforcement requires the deployment to route all tool access through the dispatcher, plus the remaining REM-024/REM-025/REM-030 hardening in `docs/assurance/remediation_register.yaml`.
+### On ACCEPT: how execution works
 
-**Hard guards are deterministic and have absolute priority: no probabilistic oracle result can override a hard block.** They run first *inside* `RemoraDecisionEngine.decide()`, which runs after the consensus and evidence machinery — priority over the oracle result, not temporal precedence over the oracle calls. This is why the zero-false-accept safety result is a property of the policy layer, not of the consensus machinery; the two are distinct claims.
+When the policy decision is ACCEPT, the `/v1/execution/execute` endpoint consumes the one-time grant and dispatches the call through the `GovernedToolDispatcher` — the policy enforcement point (PEP). The call runs under an `ExecutionLease` bound to the tenant, principal, tool, exact arguments, target environment, and policy-bundle hash, and the response and audit record report what actually happened.
 
-**Evidence status of the consensus signals (SAP v3, 2026-07-27):** the thermodynamic temperature and the discrete phase labels are computed and logged, but they are **diagnostic-grade only** — as selection signals they failed their pre-registered fresh-data confirmation (CLAIM-012; details in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §18). The evidence-backed direction is dev-split-**calibrated confidence** ranking (`remora/selective/risk_control.py`), which stays OUT of the authoritative decision path until its own frozen confirmation round succeeds (SAP v3 §8 D-3). Nothing in this section changes the deterministic hard-guard floor.
+Tools are registered **only** through deployment configuration (`REMORA_TOOL_REGISTRY_MODULE`), never through request payloads — so an agent cannot smuggle in a new tool or the credentials it would run with. The research profile ships two side-effect-bounded tools (`store_artifact`, `read_telemetry`); with no registry configured, dispatch simply reports `executed: false`.
+
+**Honest limit:** REMORA cannot stop an agent that reaches a tool *outside* this API. Bypass-proof enforcement requires the deployment to route all tool access through the dispatcher, plus the REM-024 / REM-025 / REM-030 hardening tracked in [remediation_register.yaml](docs/assurance/remediation_register.yaml).
+
+### Why hard guards come first
+
+Hard guards are deterministic and have **absolute priority**: no probabilistic oracle result can override a hard block. They are checked first *inside* `RemoraDecisionEngine.decide()`. That engine runs after the consensus and evidence stages, so "first" means the guards take priority over the oracle result — not that they run before the oracle calls. This is why the zero-false-accept result belongs to the policy layer, not the consensus machinery: the two are separate claims.
+
+### What the consensus signals are (and are not)
+
+The thermodynamic temperature and the discrete phase labels are computed and logged, but they are **diagnostic-grade only**. As selection signals they failed their pre-registered fresh-data confirmation (CLAIM-012; see [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §18). The signal that is actually evidence-backed is dev-split-calibrated **confidence** ranking (`remora/selective/risk_control.py`) — and even that stays *out* of the authoritative decision path until its own frozen confirmation round succeeds (SAP v3 §8 D-3). None of this changes the deterministic hard-guard floor.
 
 Full detail: [docs/01-architecture.md](docs/01-architecture.md) (narrative) · [ARCHITECTURE.md](ARCHITECTURE.md) (canonical) · [docs/07-api-reference.md](docs/07-api-reference.md) (API).
 
