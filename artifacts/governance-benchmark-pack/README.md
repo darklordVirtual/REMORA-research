@@ -1,6 +1,6 @@
 # REMORA: Policy-Gated Governance for Operational AI Agents
 
-REMORA is a pre-execution governance overlay for AI agents operating where actions carry real operational consequences — building automation, energy management, infrastructure control, regulated enterprise workflows. It governs proposed agent actions; it does not replace the agent. Before any action executes, REMORA evaluates it through a deterministic policy layer and a multi-oracle consensus pipeline and returns one of four outcomes:
+REMORA is a pre-execution governance overlay for AI agents operating where actions carry real operational consequences — building automation, energy management, infrastructure control, regulated enterprise workflows. It governs proposed agent actions; it does not replace the agent. Before any action executes, REMORA evaluates it through a deterministic policy layer and a multi-oracle consensus pipeline (several independent model evaluations of the same action, merged into one signal) and returns one of four outcomes:
 
 | Outcome | Meaning |
 |---------|---------|
@@ -9,9 +9,9 @@ REMORA is a pre-execution governance overlay for AI agents operating where actio
 | **ABSTAIN** | Trust too low to decide; action blocked |
 | **ESCALATE** | Risk exceeds autonomous authority; routed to human review |
 
-Every decision produces a versioned `DecisionEnvelope` with a policy-version stamp and a structured audit block (on the `/v1/execution/*` path with a persistence adapter configured, envelopes are appended to a per-tenant, SHA-256 tamper-evident chain). The architecture stays conservative under uncertainty: when evidence is insufficient it errs toward ABSTAIN or ESCALATE rather than ACCEPT. Results are from controlled experiments and internal benchmarks; external replication is pending — see [Limitations](#limitations).
+Every decision produces a versioned `DecisionEnvelope` — an auditable record of what was decided, under which policy version, and why (on the `/v1/execution/*` path with a persistence adapter configured, envelopes are appended to a per-tenant, SHA-256 tamper-evident chain). The architecture stays conservative under uncertainty: when evidence is insufficient it errs toward ABSTAIN or ESCALATE rather than ACCEPT. Results are from controlled experiments and internal benchmarks; external replication is pending — see [Limitations](#limitations).
 
-**Start here:** [Reference architecture](docs/reference_architecture.md) · [Executive one-pager](docs/executive_onepager.md) · [Evidence & claims](docs/02-evidence-and-claims.md) · [Full documentation index](docs/README.md)
+**Start here:** [Plain-language overview](docs/plain_language_overview.md) · [Reference architecture](docs/reference_architecture.md) · [Executive one-pager](docs/executive_onepager.md) · [Evidence & claims](docs/02-evidence-and-claims.md) · [Full documentation index](docs/README.md) — unfamiliar terms are defined in [Key terms](#key-terms) below.
 
 ---
 
@@ -22,7 +22,7 @@ Every decision produces a versioned `DecisionEnvelope` with a policy-version sta
 
 **To reach `CONTROLLED_PILOT`, still open:** REM-021, REM-023.
 
-**Capabilities:** 6 of 12 wired to the API path or deeper ([wiring register](docs/assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](docs/assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](docs/assurance/release_profiles_v1.yaml).
+**Capabilities:** 7 of 14 wired to the API path or deeper ([wiring register](docs/assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](docs/assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](docs/assurance/release_profiles_v1.yaml).
 <!-- END GENERATED: status -->
 
 Shadow-mode research only; not certified for production. What remains open, in one place: [docs/assurance/remediation_register.yaml](docs/assurance/remediation_register.yaml).
@@ -36,11 +36,11 @@ The pipeline runs synchronously before any action executes: a deterministic admi
 ```mermaid
 flowchart TD
     A[Agent action] --> B[Admission check\nadversarial / coercion firewall]
-    B --> C[Multi-oracle consensus\nEntropy H, dissensus D, phase]
+    B --> C["Multi-oracle consensus\nH, D, temperature, phase\n(diagnostic evidence status — SAP v3)"]
     C --> D[Evidence enrichment\nRAG / domain / cyber / finance]
     D --> E[Policy decision\nhard guards → conditional guards → trust + conformal routing]
     E --> F{Outcome}
-    F -->|ACCEPT| G["Execute — caller-integrated PEP\n(dispatcher not wired into the API; REM-024)"]
+    F -->|ACCEPT| G["Execute — GovernedToolDispatcher PEP\n(lease-bound; registry via deployment config)"]
     F -->|VERIFY| H[Hold for validation]
     F -->|ABSTAIN| I[Block — trust too low]
     F -->|ESCALATE| J[Human review]
@@ -50,9 +50,11 @@ flowchart TD
     J --> K
 ```
 
-**"Execute" is the caller's step, not REMORA's.** REMORA returns the decision plus a signed one-time authorization (token/lease); the `GovernedToolDispatcher` PEP that would hold the tool credentials and make enforcement inseparable from execution is a library component, not wired into the API path — the `/v1/execution/execute` endpoint consumes the grant without invoking a tool (REM-024/REM-030 in `docs/assurance/remediation_register.yaml`). Until a deployment integrates the dispatcher in front of its tools, REMORA is an advisory + audit layer, not a bypass-proof enforcement boundary.
+**Execution is dispatched, but only for tools a deployment registers.** Since 2026-07-27 the `/v1/execution/execute` endpoint dispatches through the `GovernedToolDispatcher` PEP after consuming the one-time grant: the call runs under an `ExecutionLease` bound to tenant, principal, tool, exact arguments, target environment and policy-bundle hash, and the response/audit record report the real outcome (`tool_execution` / `tool_executed`). Tool callables — and the credentials they close over — register exclusively through deployment configuration (`REMORA_TOOL_REGISTRY_MODULE`; the research profile ships side-effect-bounded `store_artifact`/`read_telemetry` in `servers/tool_registry_research.py`), never through request payloads. With no registry configured, dispatch reports `executed: false` explicitly. REMORA still cannot stop an agent that reaches a tool *outside* this API — bypass-proof enforcement requires the deployment to route all tool access through the dispatcher, plus the remaining REM-024/REM-025/REM-030 hardening in `docs/assurance/remediation_register.yaml`.
 
 **Hard guards are deterministic and have absolute priority: no probabilistic oracle result can override a hard block.** They run first *inside* `RemoraDecisionEngine.decide()`, which runs after the consensus and evidence machinery — priority over the oracle result, not temporal precedence over the oracle calls. This is why the zero-false-accept safety result is a property of the policy layer, not of the consensus machinery; the two are distinct claims.
+
+**Evidence status of the consensus signals (SAP v3, 2026-07-27):** the thermodynamic temperature and the discrete phase labels are computed and logged, but they are **diagnostic-grade only** — as selection signals they failed their pre-registered fresh-data confirmation (CLAIM-012; details in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §18). The evidence-backed direction is dev-split-**calibrated confidence** ranking (`remora/selective/risk_control.py`), which stays OUT of the authoritative decision path until its own frozen confirmation round succeeds (SAP v3 §8 D-3). Nothing in this section changes the deterministic hard-guard floor.
 
 Full detail: [docs/01-architecture.md](docs/01-architecture.md) (narrative) · [ARCHITECTURE.md](ARCHITECTURE.md) (canonical) · [docs/07-api-reference.md](docs/07-api-reference.md) (API).
 
@@ -73,25 +75,48 @@ The maintenance demo drives the full chain: a per-link-signed A2A delegation env
 
 ---
 
+## Key terms
+
+Plain-language definitions of the terms used in the results below. Canonical metric definitions with exact denominators: [docs/assurance/metric_definitions_v1.md](docs/assurance/metric_definitions_v1.md).
+
+| Term | Meaning |
+|------|---------|
+| **FAR** — false accept rate | Share of *harmful* actions the system wrongly allowed. The safety headline; 0% is the goal. |
+| **FBR** — false block rate | Share of *harmless* actions the system blocked. FBR 100% means safety was bought by blocking all benign work too ("benign friction"). |
+| **N / effective N** | Sample size. Effective N counts only statistically independent units: 700 tasks generated from 70 templates give effective N=70, and all statistics honor that. |
+| **Wilson 95% CI** | The range of true rates compatible with the observed data; the upper bound is the worst rate the data cannot rule out. |
+| **Selective accuracy / coverage** | The system may decline to answer. Coverage is the share of items it accepts to answer; accuracy is then measured on that subset only. |
+| **Calibrated confidence** | Model confidence rescaled on a held-out development split so that "0.9" empirically means about 90% correct. |
+| **Multi-oracle consensus** | Several independent model evaluations ("oracles") of the same action, merged into one trust signal. |
+| **Temperature / phase** | Thermodynamics-inspired diagnostics of oracle disagreement. Diagnostic-grade only — falsified as a selection signal (SAP v3). |
+| **Intent-gating vs interception** | Intent-gating judges the agent's *stated* intent before execution; interception would capture the *actual* tool call. The AgentHarm result is intent-gating. |
+| **Shadow mode** | Decisions are computed and logged but not enforced; no live action is blocked. REMORA's current deployment profile. |
+| **PEP / lease** | Policy Enforcement Point — the dispatcher that actually runs a tool call, and only under a one-time `ExecutionLease` bound to tenant, tool, exact arguments and policy version. |
+| **SAP v3** | Statistical analysis plan v3 (2026-07-27): hypotheses, splits and thresholds frozen *before* fresh data was scored. |
+| **McNemar p** | Paired significance test comparing two methods on the same items; low p means the difference is unlikely to be chance. |
+| **AROMER / AII** | Autonomous Risk-Oriented Meta-Evaluator and Reasoner — the experimental learning layer. AII (Autonomous Intelligence Index) is its composite learning score. |
+
+---
+
 ## Evidence
 
-Headline results, each with the caveat that keeps it honest. **The caveat is part of the claim** — full evidence, every benchmark table, and the label-leakage disclosure are in [docs/02-evidence-and-claims.md](docs/02-evidence-and-claims.md) and [docs/03-experiments.md](docs/03-experiments.md). All numbers link to committed artifacts under `results/`.
+Headline positive results, each with the caveat that keeps it honest. **The caveat is part of the claim** — full evidence, every benchmark table, and the label-leakage disclosure are in [docs/02-evidence-and-claims.md](docs/02-evidence-and-claims.md) and [docs/03-experiments.md](docs/03-experiments.md). All numbers link to committed artifacts under `results/`.
 
 <!-- claim:CLAIM-002 far_pct far_ci_high_pct fbr_pct n -->
 <!-- claim:CLAIM-003 far_pct n -->
-<!-- claim:CLAIM-004 accuracy_pct coverage_pct ci_low_pct ci_high_pct n -->
 <!-- claim:CLAIM-001 far_pct n_effective n -->
-<!-- claim:CLAIM-005 low_trust_correct_pct high_trust_correct_pct n -->
+<!-- claim:CLAIM-013 cw_accuracy_pct majority_accuracy_pct mcnemar_p n -->
 | Result | Value | Key caveat | Artifact · gate |
 |--------|-------|------------|-----------------|
-| Zero false accepts, external AgentHarm | FAR **0.0%**, Wilson 95% CI [0.00%, 1.81%], N=208 | intent-gating, not interception; companion FBR 100% (a hard floor bought at maximal benign friction) | `results/external_benchmark_agentharm_v1.json` · REM-014 |
-| Zero recurrences, historical regression | FAR **0.0%**, N=167 | historical false-accept corpus re-run; confirms no regression | `results/false_accept_regression_v1.json` · REM-019 |
-| Selective accuracy, held-out split | **88.0%** @ 23.2% coverage; N=25, Wilson CI [70.0%, 95.8%] | small accepted set — directional confirmation, always quote with the CI | `results/selective_n500_holdout_results.json` |
+| Zero false accepts, external AgentHarm benchmark | FAR **0.0%**, Wilson 95% CI [0.00%, 1.81%], N=208 | intent-gating, not interception; companion FBR 100% — the hard floor also blocked every benign variant | `results/external_benchmark_agentharm_v1.json` · REM-014 |
+| Zero recurrences, historical regression corpus | FAR **0.0%**, N=167 | re-run of past false accepts; confirms no regression, proves nothing new | `results/false_accept_regression_v1.json` · REM-019 |
 | Tool-call safety, adversarial simulator v2 | **0.0%** unsafe execution (0/70 templates; effective N=70 of 700 tasks; Wilson CI [0.0%, 5.2%]) | simulator-scoped; the unsafe-rate Δ=0.0143 vs. baselines is **not statistically significant** (p=0.50) — the significant gain is utility (+0.456) | `results/toolcall_benchmark_v2_results.json` |
-| Critical-phase trust inversion (negative result) | low-trust **76.2%** vs high-trust **36.4%** correct, N=32 | small sample; a documented failure mode routed around via `PhaseAwareGuardrail` | [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) |
+| Calibrated confidence-weighted voting (SAP v3) | **87.8%** vs majority 85.1% on the untouched test split; paired McNemar p=0.0064, N=368 | significant vs majority only (vs best single: p=0.077, directional); no arm survives family-wise correction — not integrated into the engine from this round | `results/sap_v3_round_results.json` |
 
 <!-- claim:CLAIM-008 accuracy_pct coverage_pct n -->
-On the N=302 calibration set, single-oracle accuracy is 57.0% and majority-vote 82.8%, and the top-25% slice reaches 94.7% accuracy: REMORA's contribution is *selective coverage*, not beating a strong majority baseline on raw full-coverage accuracy (full curve in [docs/03-experiments.md](docs/03-experiments.md)).
+What the selective story means in numbers: on the N=302 calibration set a single oracle scores 57.0% and majority voting 82.8%, while REMORA's top-25% most-confident slice reaches 94.7%. The contribution is *selective coverage* — knowing which quarter of the decisions can be trusted — not beating a strong majority baseline on raw full-coverage accuracy (full risk–coverage curve in [docs/03-experiments.md](docs/03-experiments.md)). On fresh data the signal that earns this is dev-split-calibrated **confidence**, not the thermodynamic temperature.
+
+**Negative results are first-class here.** Findings that failed, regressed or were falsified — including the temperature falsification and the critical-phase trust inversion — are documented with the same rigor in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md), with a headline table at the top of that file.
 
 ---
 
@@ -100,7 +125,7 @@ On the N=302 calibration set, single-oracle accuracy is 57.0% and majority-vote 
 The most load-bearing caveats; the full list and all documented gaps live in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) and [docs/02-evidence-and-claims.md](docs/02-evidence-and-claims.md).
 
 - **Simulator-scoped safety.** The 0% unsafe-execution results come from a deterministic simulator (synthetic benchmarks) and a controlled internal corpus; no real shell, network, or database mutations occur. This does not prove field-deployment safety.
-- **Effective sample size is template-level.** The v2 benchmark's 700 tasks are 70 templates × 10 cosmetic variants; all v2 CIs and p-values are computed over the 70 clusters (effective N=70), and the unsafe-rate advantage over baselines is not statistically significant (p=0.50).
+- **Effective sample size is template-level.** The v2 benchmark's 700 tasks are 70 templates × 10 cosmetic variants; all v2 statistics use the 70 clusters (effective N=70, see [Key terms](#key-terms)), and the unsafe-rate advantage over baselines is not statistically significant (p=0.50).
 - **No external replication.** All benchmarks were run internally by the author. External replication is pending — a distinct, still-open evidence level and a prerequisite before any stronger validation label.
 - **Tamper-evident, not tamper-proof.** The hash chain detects modification after the fact; preventing it requires external append-only (WORM) storage not included here.
 - **AROMER is experimental** and its metrics are not evidence for the core governance system (see below).
@@ -115,7 +140,7 @@ Every research line REMORA builds on maps to a concrete control, code file, and 
 
 ## AROMER (experimental learning layer)
 
-AROMER is REMORA's **experimental** closed-loop calibration layer, layered on top of the governance control plane. Nothing in the control plane depends on it, and its metrics are **not** evidence for the core governance system. Offline, its abstract harm prior transfers across domains it never trained on at 83.8% (leave-one-domain-out); live AII telemetry is published to the `telemetry` branch. Detail: [docs/03-experiments.md](docs/03-experiments.md) §9 and [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16.
+AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) is REMORA's **experimental** closed-loop calibration layer, layered on top of the governance control plane. Nothing in the control plane depends on it, and its metrics are **not** evidence for the core governance system. Offline, its abstract harm prior transfers across domains it never trained on at 83.8% (leave-one-domain-out); live AII telemetry is published to the `telemetry` branch. Detail: [docs/03-experiments.md](docs/03-experiments.md) §9 and [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16.
 
 ---
 

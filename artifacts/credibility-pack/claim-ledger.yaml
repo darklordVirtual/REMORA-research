@@ -824,7 +824,7 @@ claims:
       for patterns such as temporary exceptions becoming routine, ignored
       ABSTAIN/ESCALATE routes, unapproved policy overrides, and repeated
       overrides.
-    artifact: remora/governance/nested_governance.py, enterprise/nested_governance_layers.yaml
+    artifact: remora/governance/nested_governance.py
     test: tests/test_nested_governance.py
     limitations: |
       - Structural governance capability only.
