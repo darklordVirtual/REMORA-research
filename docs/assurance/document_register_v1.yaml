@@ -765,15 +765,6 @@ documents:
   verdict: pending
   audience:
   - researchers
-- id: DOC-161
-  version: v1
-  path: docs/INDEX.md
-  status: canonical
-  topic: docs_INDEX_md
-  code_synced: unreviewed
-  verdict: pending
-  audience:
-  - researchers
 - id: DOC-162
   version: v1
   path: docs/governance/eu_ai_act_nsm_mapping.md
@@ -2198,7 +2189,6 @@ topics:
 - docs_methods_architecture_risk_register_md
 - docs_use-cases_README_md
 - docs_policy_cookbook_cyber_md
-- docs_INDEX_md
 - docs_governance_eu_ai_act_nsm_mapping_md
 - docs_research_policy_generalization_risk_md
 - docs_evidence_causal_policy_explanations_md
