@@ -45,9 +45,12 @@ documented in [06-reproducibility.md](06-reproducibility.md), not this envelope.
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 57 fields; **all fields except `question` are optional and
-caller-populated**, REMORA is stateless and performs no detection itself
-(the engine treats `None` as "unknown, not safe"). Selected fields by group:
+with 57 fields; on the research `/v1/assess` path **all fields except
+`question` are optional and caller-populated**, REMORA is stateless and
+performs no detection itself (the engine treats `None` as "unknown, not
+safe"). On `/v1/execution/*` this does NOT hold: trust-bearing fields are
+derived server-side and client values can only lower trust, never raise it
+— see the Trust boundary section below. Selected fields by group:
 
 | Group | Fields (selection) |
 |---|---|

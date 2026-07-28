@@ -1392,7 +1392,7 @@ implemented.
 | Phase-sensitive routing | Yes | Yes | Per-phase thresholds |
 | Evidence router (oracle-proxy signal) | Yes | Yes | Proxy, not live retrieval |
 | Evidence router (semantic BM25/NLI) | Planned | No | Pluggable interface ready |
-| Policy decision engine (7 hard blocks) | Yes | Yes | Priority-ordered, Python engine |
+| Policy decision engine (deterministic hard-guard floor) | Yes | Yes | Priority-ordered, Python engine |
 | OPA/Rego adapter | Adapter | No | Parity-tested; API calls the Python engine directly |
 | Governance Intelligence pre-policy enrichment | Offline | No | Optional helper + 50-task benchmark |
 | `PhaseAwareGuardrail` | Offline | No | Committed N=544 artifact |
@@ -1400,7 +1400,7 @@ implemented.
 | PVD-inspired agreement score | Offline | No | Post-hoc heuristic, no training game |
 | DecisionEnvelope v2 | Yes | Yes | Attribute-frozen; nested collections not deep-frozen |
 | SHA-256 audit hash-chain | Yes | Yes (API layer) | Tamper-detecting; HMAC only with signing key |
-| Execution grant path (`/v1/execution/*`) | Yes | Separate router | Consumes grant; does NOT invoke tools (PEP dispatcher not wired) |
+| Execution grant path (`/v1/execution/*`) | Yes | Separate router | Consumes grant; dispatches via `GovernedToolDispatcher` PEP under an `ExecutionLease` (wired 2026-07-27, CAP-013) |
 | Human review workflow (data structures) | Yes | Partial | UI demo only; no production integration |
 | External WORM audit storage | Planned | No | Required for tamper-proof audit |
 | CMMS/WIMS integration connectors | Planned | No | Webhook contract defined |

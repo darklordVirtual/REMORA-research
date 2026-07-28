@@ -81,25 +81,30 @@ because `CONTROLLED_PILOT` requires REM-021 (independent review) per
 
 ## 4. What CI enforces today
 
-The `documentation-governance` gate checks:
+The `documentation-governance` gate checks, as HARD failures:
 
-1. Document-register coverage is exact across `docs/` + `paper/` + the
-   root-doc allowlist (no unregistered files, no ghost entries, no
-   duplicates).
-2. Statuses are from the enum; `superseded` entries name an existing
+1. Statuses are from the enum; `superseded` entries name an existing
    successor and the stub points to it; `generated` entries name an existing
    generator; `historical` entries carry a banner in their first 15 lines.
-3. Canonical topics come from the controlled `topics:` registry, and at most
-   one `canonical` document claims each topic (this closes the free-text
-   topic-fragmentation gap: a new architecture doc cannot invent a fourth
-   architecture topic without a deliberate registry edit).
-4. `CAP-*` / `REM-*` / `CLAIM-*` ids are unique within their registers, and
+2. Canonical topics come from the controlled `topics:` registry, and at most
+   one `canonical` document claims each topic. Caveat (2026-07-28 audit):
+   topics are currently path-derived for effectively all entries, so the
+   uniqueness rule cannot fire in practice — closing the topic-fragmentation
+   gap requires subject-level topics, tracked in the governance backlog.
+3. `CAP-*` / `REM-*` / `CLAIM-*` ids are unique within their registers, and
    the registers parse as strict YAML (this gate found and fixed five
    invalid-YAML entries in the remediation register on its first run).
-5. Release-profile requirements reference only existing ids and ladder
+4. Release-profile requirements reference only existing ids and ladder
    levels, and declared `current_profile` equals the computed profile.
-6. `README.md` stays under 300 lines — surfacing something new in the README
-   has an enforced cost; detail belongs in `docs/`.
+
+And as ADVISORY warnings (printed, never failing the build):
+
+5. Document-register coverage across `docs/` + `paper/` + the root-doc
+   allowlist (unregistered files, ghost entries, duplicates warn only).
+6. Per-entry `id`/`version`/`code_synced`/`verdict` presence and
+   `last_reviewed` consistency.
+7. The `README.md` 300-line budget (a printed hint, not an enforced cost;
+   detail still belongs in `docs/`).
 
 A **generated-doc drift** step then regenerates every text generator and fails
 on any diff: `research_control_matrix.generated.md`
@@ -108,9 +113,9 @@ on any diff: `research_control_matrix.generated.md`
 remora-dependent `failure_analysis.md` is diffed in `quality-gates.yml`. A
 committed generated document can no longer go stale silently.
 
-Pre-existing gates complete the picture: index coverage
-(`tests/test_docs_index_coverage.py`), link integrity
-(`scripts/_check_links.py`), claim anchors and artifact existence
+Pre-existing gates complete the picture: link integrity
+(`scripts/_check_links.py` — link *targets* only; index *coverage* is not
+CI-enforced), claim anchors and artifact existence
 (`check_claim_provenance.py`, `check_artifacts_exist.py`), README claims
 (`check_readme_claims.py`), capability-register structure
 (`tests/test_capability_register.py`), research-matrix path integrity
@@ -153,10 +158,10 @@ load-bearing cases mechanical (profiles, claims, capability language).
   CODEOWNERS routes register changes for review the day a second reviewer
   exists (REM-021).
 - **MkDocs site, split human-index/generated-catalog, per-release
-  documentation manifests**: a presentation-plane program (the `docs` extra
-  already declares `mkdocs-material`, but no site config exists). Deferred as
-  a separate body of work; the register can generate MkDocs navigation when
-  that is taken on.
+  documentation manifests**: a presentation-plane program. A root
+  `mkdocs.yml` with a hand-written 16-entry nav exists but is itself
+  ungoverned (config files are outside register scope); generating its
+  navigation from the register remains deferred as a separate body of work.
 
 ## 7. The ambition
 

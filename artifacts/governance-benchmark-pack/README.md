@@ -40,7 +40,7 @@ flowchart TD
     C --> D[Evidence enrichment\nRAG / domain / cyber / finance]
     D --> E[Policy decision\nhard guards → conditional guards → trust + conformal routing]
     E --> F{Outcome}
-    F -->|ACCEPT| G["Execute — caller-integrated PEP\n(dispatcher not wired into the API; REM-024)"]
+    F -->|ACCEPT| G["Execute — GovernedToolDispatcher PEP\n(lease-bound; registry via deployment config)"]
     F -->|VERIFY| H[Hold for validation]
     F -->|ABSTAIN| I[Block — trust too low]
     F -->|ESCALATE| J[Human review]
