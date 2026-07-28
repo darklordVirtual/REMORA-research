@@ -925,8 +925,13 @@ def _authenticate(request: Request) -> tuple[str, str]:
          Callers cannot forge tenant or role via headers.
       2. Single-token mode  (REMORA_API_BEARER_TOKEN set): validates token, then
          reads tenant/role from headers (defaults: 'default' / 'operator').
-         Tenant-specific roles (e.g. 'domain_expert') are accepted; downstream
-         capability checks validate them against the tenant policy.
+         The role is SELF-ASSERTED by the caller — single-token mode is a
+         single-operator/dev profile with NO role separation (anyone holding
+         the token can claim any role). In REMORA_ENV=production the
+         X-Remora-Role header is therefore ignored and the role is pinned to
+         'operator', so approval-role gating cannot be satisfied by
+         self-assertion; production role separation requires the token-table
+         mode (external review 2026-07-28, N4).
       3. No-auth dev mode   (neither set, REMORA_ENV=development): dev fallback.
          Production with no credentials configured is a startup error.
     """
@@ -965,6 +970,11 @@ def _authenticate(request: Request) -> tuple[str, str]:
     if not hmac.compare_digest(provided, single_token):
         raise HTTPException(status_code=401, detail="invalid bearer token")
     tenant = request.headers.get("X-Remora-Tenant", "default").strip() or "default"
+    if _get_env_mode() == "production":
+        # Self-asserted roles must not satisfy approval-role gating in
+        # production (N4): pin to the baseline role; role separation
+        # requires REMORA_API_TOKENS (token -> fixed role).
+        return tenant, "operator"
     role   = request.headers.get("X-Remora-Role", "operator").strip().lower() or "operator"
     return tenant, role
 

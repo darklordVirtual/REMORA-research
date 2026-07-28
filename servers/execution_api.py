@@ -14,6 +14,7 @@ enforcement gate consumes — no summary-hash shortcut.
 """
 from __future__ import annotations
 
+from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -42,7 +43,26 @@ PEP_AUDIENCE = "pep://remora-execution"
 EXECUTION_TOKEN_TTL_SECONDS = 300
 
 _ENGINE = RemoraDecisionEngine()
-_IDEMPOTENCY: dict[str, dict[str, Any]] = {}
+# Bounded LRU (external review 2026-07-28, N2): previously an unbounded dict
+# that grew for the process lifetime. On overflow the oldest entry is
+# evicted; a replayed key after eviction simply re-runs assess, which is
+# idempotent-safe (assess has no side effects beyond the audit record).
+_IDEMPOTENCY: "OrderedDict[str, dict[str, Any]]" = OrderedDict()
+_IDEMPOTENCY_MAX_ENTRIES = 10_000
+
+
+def _idempotency_get(key: str) -> dict[str, Any] | None:
+    hit = _IDEMPOTENCY.get(key)
+    if hit is not None:
+        _IDEMPOTENCY.move_to_end(key)
+    return hit
+
+
+def _idempotency_put(key: str, response: dict[str, Any]) -> None:
+    _IDEMPOTENCY[key] = response
+    _IDEMPOTENCY.move_to_end(key)
+    while len(_IDEMPOTENCY) > _IDEMPOTENCY_MAX_ENTRIES:
+        _IDEMPOTENCY.popitem(last=False)
 
 TOOL_REGISTRY: dict[str, dict[str, Any]] = {
     "delete_production_database": {
@@ -207,7 +227,14 @@ def db_transaction_state(tenant: str):
                 _ITEM_TENANT.update(json.loads(row[1]))
             try:
                 yield q
-            finally:
+            except BaseException:
+                # Mirror the Postgres branch's transaction semantics: an
+                # exception inside the handler must roll the whole
+                # transaction back, never persist partially mutated queue
+                # state (external review 2026-07-28, N1).
+                conn.rollback()
+                raise
+            else:
                 conn.execute(
                     "INSERT INTO global_state (tenant_id, qs_json, it_json) VALUES (?, ?, ?) "
                     "ON CONFLICT (tenant_id) DO UPDATE SET qs_json = excluded.qs_json, it_json = excluded.it_json",
@@ -356,8 +383,10 @@ def _downgrade_only_bool(registry_value: bool | None, request_value: bool | None
 def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     tenant, role, principal = _auth(request)
     idemp_key = f"assess:{tenant}:{req.idempotency_key}" if req.idempotency_key else None
-    if idemp_key and idemp_key in _IDEMPOTENCY:
-        return _IDEMPOTENCY[idemp_key]
+    if idemp_key:
+        cached = _idempotency_get(idemp_key)
+        if cached is not None:
+            return cached
 
     from servers import api as api_mod
 
@@ -408,7 +437,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
 
     if idemp_key:
-        _IDEMPOTENCY[idemp_key] = response
+        _idempotency_put(idemp_key, response)
     return response
 
 

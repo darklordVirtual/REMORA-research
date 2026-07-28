@@ -45,14 +45,16 @@ class OracleProxyEvidenceProvider:
     def __init__(self, mean_rho_fn: Optional[Callable[[list[str]], float]] = None) -> None:
         self._mean_rho_fn = mean_rho_fn
 
-    def _mean_rho(self, providers: list[str]) -> float:
+    def _mean_rho(self, providers: list[str]) -> tuple[float, bool]:
+        """Return (mean rho, from_model). from_model=False marks the 0.5
+        uninformative fallback (no model supplied, or the model failed)."""
         if self._mean_rho_fn is None:
             # Conservative fallback when no correlation model is supplied.
-            return 0.5
+            return 0.5, False
         try:
-            return float(self._mean_rho_fn(providers))
+            return float(self._mean_rho_fn(providers)), True
         except Exception:
-            return 0.5
+            return 0.5, False
 
     def fetch(
         self,
@@ -93,8 +95,15 @@ class OracleProxyEvidenceProvider:
 
         coverage = n_valid / n_total if n_total > 0 else 0.0
         providers = [r.provider for r in valid]
-        consistency = self._mean_rho(providers)
-        reliability = max(0.0, min(1.0, consistency + 0.5))
+        consistency, rho_from_model = self._mean_rho(providers)
+        # Reliability of a PROXY source must not report 1.0 when no
+        # correlation model backs it (external review 2026-07-28, N5): with
+        # a real model, consistency+0.5 caps at 1.0 as before; on the
+        # uninformative fallback, report the fallback value itself (0.5).
+        if rho_from_model:
+            reliability = max(0.0, min(1.0, consistency + 0.5))
+        else:
+            reliability = consistency
         strength = majority_fraction * consistency
 
         return EvidenceProviderResult(

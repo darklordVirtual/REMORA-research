@@ -492,6 +492,43 @@ def test_execution_api_uses_durable_chain_when_configured(tmp_path, monkeypatch)
     assert isinstance(exec_mod._build_chain(), TenantAuditChain)
 
 
+def test_sqlite_transaction_rolls_back_on_exception(tmp_path, monkeypatch) -> None:
+    """N1 (external review 2026-07-28): an exception raised inside the SQLite
+    db_transaction_state context must roll the transaction back — partially
+    mutated queue/tenant state must never be persisted. The Postgres branch
+    already had this property via conn.transaction(); the SQLite branch
+    committed in `finally` even on exception."""
+    import servers.execution_api as exec_mod
+
+    monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "state.db"))
+    monkeypatch.delenv("REMORA_PG_DSN", raising=False)
+    exec_mod._QUEUES.clear()
+    exec_mod._ITEM_TENANT.clear()
+
+    class _Boom(Exception):
+        pass
+
+    with pytest.raises(_Boom):
+        with exec_mod.db_transaction_state("acme"):
+            exec_mod._ITEM_TENANT["item-aborted"] = "acme"
+            raise _Boom()
+
+    # A fresh context reloads persisted state from the DB: the aborted
+    # mutation must not have survived.
+    exec_mod._QUEUES.clear()
+    exec_mod._ITEM_TENANT.clear()
+    with exec_mod.db_transaction_state("acme"):
+        assert "item-aborted" not in exec_mod._ITEM_TENANT
+
+    # And the success path still persists: a mutation committed without an
+    # exception is visible to the next context.
+    with exec_mod.db_transaction_state("acme"):
+        exec_mod._ITEM_TENANT["item-committed"] = "acme"
+    exec_mod._ITEM_TENANT.clear()
+    with exec_mod.db_transaction_state("acme"):
+        assert exec_mod._ITEM_TENANT.get("item-committed") == "acme"
+
+
 @pytest.mark.skipif("not __import__('os').environ.get('REMORA_PG_DSN')",
                     reason="REMORA_PG_DSN not set — Postgres contract test skipped")
 def test_postgres_chain_contract() -> None:

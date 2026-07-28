@@ -34,8 +34,8 @@ Start
   Add to claude_desktop_config.json under mcpServers:
   "remora": {
       "command": "python",
-      "args": ["C:\\Users\\Stian\\REMORA\\servers\\mcp_remora.py"],
-      "cwd": "C:\\Users\\Stian\\REMORA"
+      "args": ["<repo-root>\\servers\\mcp_remora.py"],
+      "cwd": "<repo-root>"
   }
 """
 from __future__ import annotations
