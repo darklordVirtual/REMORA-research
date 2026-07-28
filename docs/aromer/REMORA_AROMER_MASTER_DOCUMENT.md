@@ -465,6 +465,11 @@ As of 2026-06-28, the AROMER worker reports the following live state (not a comm
 | Agent control | `remora-agent-control.razorsharp.workers.dev` | Live | Auth, codegraph, hook verification |
 | Frontend | `remora.razorsharp.workers.dev` | Live | Eye, control-room, benchmarks, telemetry |
 
+The MetaJudge's GO-STAR worker URL is overridable for non-default
+deployments via `REMORA_METAJUDGE_WORKER_URL` (the `MetaJudge` constructor
+argument takes precedence); AROMER state location is overridable via
+`REMORA_AROMER_HOME`.
+
 ### Claude Code Integration
 
 **File:** `.claude/settings.json`

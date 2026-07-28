@@ -7,6 +7,14 @@ successors in the [document register](assurance/document_register_v1.yaml),
 and anything under `docs/archive/` is historical and must not be cited as
 current truth.
 
+**How stable is what you are reading about?** Per-module maturity
+(CORE / EXPERIMENTAL / RESEARCH_ONLY) is tracked in the
+[Module Stability Index](../ARCHITECTURE.md#9-module-stability-index) —
+check it before depending on a module. As a rule of thumb: the consensus
+engine, policy pipeline, enforcement chain, governance/audit chains and
+safety firewall are CORE; thermodynamics, Lyapunov, cascade, causal and
+AROMER are EXPERIMENTAL; statistical-physics models are RESEARCH_ONLY.
+
 ## Start here
 
 | Document | What it gives you |
