@@ -7,7 +7,12 @@
     "weight": 0.95,
     "confidence": 0.95,
     "decay_rate": 0.0,
-    "tags": ["epistemic", "uncertainty", "abstain", "calibration"],
+    "tags": [
+      "epistemic",
+      "uncertainty",
+      "abstain",
+      "calibration"
+    ],
     "description": "When REMORA lacks sufficient evidence to make a governance decision and the action is not clearly destructive, ABSTAIN is preferable to false certainty in either direction. Abstaining honestly is better than accepting or blocking with low confidence.",
     "payload": {
       "rule": "High uncertainty + non-critical action → prefer ABSTAIN over low-confidence ACCEPT or ESCALATE.",
@@ -24,7 +29,12 @@
     "weight": 0.88,
     "confidence": 0.85,
     "decay_rate": 0.02,
-    "tags": ["epistemic", "novel-domain", "conservative", "unknown"],
+    "tags": [
+      "epistemic",
+      "novel-domain",
+      "conservative",
+      "unknown"
+    ],
     "description": "When the action domain is not in AROMER's world model (n_observations < 5), apply conservative governance: escalate for critical/high risk, verify for medium, accept only for low.",
     "payload": {
       "rule": "Novel domain (n < 5 observations) → conservative governance by risk tier.",
@@ -39,9 +49,14 @@
     "source": "remora_policy_core_v0.1",
     "version": "0.1",
     "weight": 0.93,
-    "confidence": 0.90,
+    "confidence": 0.9,
     "decay_rate": 0.0,
-    "tags": ["epistemic", "critical", "trust", "verification"],
+    "tags": [
+      "epistemic",
+      "critical",
+      "trust",
+      "verification"
+    ],
     "description": "No matter how high the trust score or oracle consensus, critical-tier actions must always route through at least VERIFY. Complete automation of critical-tier decisions is epistemically unjustified.",
     "payload": {
       "rule": "Critical risk tier always requires at minimum VERIFY, never autonomous ACCEPT.",
@@ -55,16 +70,22 @@
     "type": "epistemic_rule",
     "source": "selective_routing_analysis",
     "version": "0.1",
-    "weight": 0.88,
-    "confidence": 0.85,
+    "weight": 0.4,
+    "confidence": 0.4,
     "decay_rate": 0.02,
-    "tags": ["epistemic", "phase", "threshold", "selective-routing"],
+    "tags": [
+      "epistemic",
+      "phase",
+      "threshold",
+      "selective-routing"
+    ],
     "description": "The thermodynamic phase (ordered/critical/disordered) is a strong epistemic signal. Ordered-phase decisions have 86.9% accuracy vs 28.6% for disordered. AROMER should widen acceptance thresholds in ordered phase and tighten them in disordered phase.",
     "payload": {
       "rule": "Phase signal should modulate governance thresholds: ordered → relax, disordered → tighten.",
       "trigger_condition": "always (apply phase-adaptive thresholds)",
       "recommended_action": "ordered: lower entropy threshold for accept; disordered: raise entropy threshold and default to verify",
-      "rationale": "Selective routing analysis: +47.6pp lift at 18% coverage shows phase is the strongest discriminator available. Use it."
+      "rationale": "Selective-routing analysis showed +47.6pp lift at 18% coverage IN-SAMPLE. CAVEAT (2026-07-28): this was in-sample/exploratory; on the SAP v3 pre-registered fresh-data round the thermodynamic temperature FAILED confirmation as a selection signal and discrete phase routing helped 0 / hurt 13 items. Phase is DIAGNOSTIC-GRADE only, not a validated selector. Do not apply as an autonomous threshold modulator; see NEGATIVE_RESULTS.md.",
+      "caveat": "in_sample_only; phase falsified as selector under SAP v3 fresh-data confirmation"
     }
   },
   {
@@ -72,10 +93,15 @@
     "type": "epistemic_rule",
     "source": "remora_governance_design",
     "version": "0.1",
-    "weight": 0.90,
+    "weight": 0.9,
     "confidence": 0.92,
     "decay_rate": 0.0,
-    "tags": ["epistemic", "provenance", "audit", "sha256"],
+    "tags": [
+      "epistemic",
+      "provenance",
+      "audit",
+      "sha256"
+    ],
     "description": "Every governance decision must have a traceable provenance chain: DecisionEnvelope with SHA-256 hash, linked to the oracle responses that generated it. Decisions without provenance cannot be audited, replayed, or challenged.",
     "payload": {
       "rule": "All governance decisions must produce a SHA-256-linked DecisionEnvelope.",
@@ -92,7 +118,12 @@
     "weight": 1.0,
     "confidence": 1.0,
     "decay_rate": 0.0,
-    "tags": ["epistemic", "claims", "honesty", "research-prototype"],
+    "tags": [
+      "epistemic",
+      "claims",
+      "honesty",
+      "research-prototype"
+    ],
     "description": "AROMER and REMORA are research prototypes. No governance output should be presented as production-certified or safety-guaranteed. Claims must match artifacts. Internally supported ≠ externally validated.",
     "payload": {
       "rule": "Never present REMORA/AROMER outputs as production-certified or safety-guaranteed.",

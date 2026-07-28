@@ -39,8 +39,11 @@ def test_infer_relation_empty_string_returns_unrelated():
     assert rel == Relation.UNRELATED
 
 
-def test_infer_relation_returns_refutes_for_negated_subset():
+def test_infer_relation_agreeing_negations_entail_not_refute():
+    # Issue #56: two same-polarity (both negated) subset claims AGREE and
+    # entail (¬A ⊨ ¬(A∧B)); the old REFUTES verdict was wrong and inflated
+    # contradiction edges. Polarity disagreement is what yields CONTRADICTS.
     a = "No mammals are not vertebrates."
     b = "No mammals are not vertebrates with backbones."
     rel = infer_relation(a, b)
-    assert rel == Relation.REFUTES
+    assert rel == Relation.ENTAILS

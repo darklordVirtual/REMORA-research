@@ -64,9 +64,13 @@ class SemanticClaimGraph:
         return {"betti_0": c, "betti_1": max(0, e - v + c)}
 
     def contradiction_cycle_count(self) -> int:
-        """Number of cycles containing at least one CONTRADICTS edge.
+        """Upper BOUND on the number of independent cycles that could contain
+        a CONTRADICTS edge — ``min(betti_1, #CONTRADICTS edges)``.
 
-        Upper-bounded by betti_1.
+        This is not an exact cycle count (that would require enumerating the
+        cycle space and testing membership); it is a cheap conservative bound.
+        Named for the quantity it bounds; corrected from "Number of cycles"
+        2026-07-28 (issue #56).
         """
         b1 = self.betti()["betti_1"]
         if b1 == 0:

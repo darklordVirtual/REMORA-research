@@ -931,7 +931,30 @@ def build_episodes(seed: int = 42) -> dict[str, list[ArenaEpisode]]:
 
 
 def write_arena(out_dir: Path, episodes: dict[str, list[ArenaEpisode]]) -> dict[str, int]:
-    """Write JSONL files to out_dir.  Returns {filename: count}."""
+    """Write JSONL files to out_dir.  Returns {filename: count}.
+
+    Refuses to overwrite an existing index that has MORE categories than this
+    factory can regenerate. `_CATEGORY_MAP` covers 9 categories, but the
+    committed arena has 14 (prompt_injection, shell_execution, infra_dns,
+    financial_transfer, adversarial_hard were added as JSONL without matching
+    Python templates). Silently rewriting index.json would drop them from the
+    eval surface (issue #56) — fail loudly instead.
+    """
+    existing_index = out_dir / "index.json"
+    if existing_index.exists():
+        try:
+            prior = json.loads(existing_index.read_text(encoding="utf-8"))
+            prior_cats = set(prior.get("categories", {}))
+        except (json.JSONDecodeError, OSError):
+            prior_cats = set()
+        dropped = prior_cats - set(episodes)
+        if dropped:
+            raise RuntimeError(
+                "refusing to shrink the arena index: the existing index has "
+                f"categories this factory cannot regenerate: {sorted(dropped)}. "
+                "Rebuild _CATEGORY_MAP with templates for them, or write to a "
+                "fresh --out directory. (issue #56)"
+            )
     out_dir.mkdir(parents=True, exist_ok=True)
     counts: dict[str, int] = {}
     for category, eps in episodes.items():

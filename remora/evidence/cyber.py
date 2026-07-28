@@ -409,13 +409,23 @@ class CyberEvidenceProvider:
         query = " ".join(x for x in [question, domain, risk_tier, action_type, target_environment] if x)
         matches = self.search(query)
         signal = _signal_from_matches(matches)
+        # Encode a degraded store into signal_source so a missing/failed
+        # evidence store is distinguishable from "searched, nothing matched"
+        # (issue #56 — adopting the static_jsonl_provider pattern). An all-zero
+        # signal with source "retrieval_cyber_evidence:unavailable" is honest;
+        # a silent all-zero was not.
+        source = "retrieval_cyber_evidence"
+        if getattr(self, "load_errors", ()):  # store failed to load
+            source = "retrieval_cyber_evidence:unavailable"
         return EvidenceProviderResult(
             signal=signal,
-            signal_source="retrieval_cyber_evidence",
+            signal_source=source,
             provenance={
                 "provider_version": CYBER_PROVIDER_VERSION,
                 "evidence": [m.to_dict() for m in matches],
                 "query": query,
+                "store_size": len(getattr(self, "records", ()) or ()),
+                "load_errors": list(getattr(self, "load_errors", ()) or ()),
             },
         )
 

@@ -67,24 +67,39 @@ def run_isolation_battery(
 ) -> IsolationReport:
     store = TenantStore()
     tenants = [f"tenant-{i}" for i in range(n_tenants)]
-    keys = [f"k{j}" for j in range(keys_per_tenant)]
+    # Tenant-UNIQUE keys: tenant-i owns "tenant-i/k{j}". This is what makes the
+    # leak check real — a shared key set (the pre-2026-07-28 version) let every
+    # read hit under the reader's own scope, so cross_tenant_leaks could never
+    # be non-zero and CrossTenantError was never exercised (issue #56).
+    def owned_keys(t: str) -> list[str]:
+        return [f"{t}/k{j}" for j in range(keys_per_tenant)]
+
     for t in tenants:
-        for k in keys:
+        for k in owned_keys(t):
             store.put(t, k, f"{t}:{k}:secret")
 
     checks = leaks = forks = 0
+    # The adversarial check: each tenant tries to read every OTHER tenant's
+    # keys UNDER ITS OWN scope. A correct scoped store must refuse every such
+    # read (CrossTenantError / can_read == False); any success is a leak.
     for owner in tenants:
         for other in tenants:
             if other == owner:
                 continue
-            for k in keys:
+            for k in owned_keys(other):
                 checks += 1
-                if store.can_read(other, k) and store.get(other, k).startswith(owner):
+                if store.can_read(owner, k):
                     leaks += 1
+                    continue
+                try:
+                    store.get(owner, k)
+                    leaks += 1  # returned another tenant's row under owner scope
+                except CrossTenantError:
+                    pass  # correctly refused
 
     for t in tenants:
         solo = TenantStore()
-        for k in keys:
+        for k in owned_keys(t):
             solo.put(t, k, f"{t}:{k}:secret")
         checks += 1
         if solo.head(t) != store.head(t):

@@ -68,7 +68,10 @@ class ProfileResult:
     n_benign: int
     n_harmful: int
     false_accept_rate: float
-    review_friction: float     # (verify+abstain) on benign / benign
+    # ANY non-accept verdict on a benign case / benign — this INCLUDES
+    # escalate (false blocks), not only verify/abstain (docstring corrected
+    # 2026-07-28, issue #56). It is a total-friction measure, not verify-only.
+    review_friction: float
     accept_rate_benign: float
 
 

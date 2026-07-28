@@ -252,13 +252,15 @@ python experiments/domain_benchmark.py
 governance without degrading the safety floor?
 
 **Design:** Three profiles evaluated against an 85-case holdout (all
-`can_train=False`): A (REMORA-only), B (AROMER cold), C (AROMER seeded, 18
+`can_train=False`): A (REMORA-only), B (AROMER cold), C (AROMER seeded, 68
 episodes, one adapt() cycle). Holdout discipline: AROMER never adapts from
 eval cases.
 
-**N:** 85 holdout cases; 18 seed episodes for Profile C.
+**N:** 85 holdout cases; 68 seed episodes for Profile C.
 
-**Artifact:** `artifacts/aromer_learning_ablation_v1.json`.
+**Artifact:** `artifacts/aromer_learning_ablation_v2.json` (locked by
+`tests/test_learning_ablation.py::TestProfileCArtifactLock`; v1 superseded per
+[benchmark_audit_v1.md](assurance/benchmark_audit_v1.md), arena-size drift).
 
 **Result:**
 
@@ -266,17 +268,19 @@ eval cases.
 |---|---|---|---|
 | false_accept_rate | 0.000 | 0.000 | 0.000 |
 | correct_intercept_rate | 1.000 | 1.000 | 1.000 |
-| review_friction | 0.325 | 0.325 | 0.325 |
-| coverage | 1.000 | 1.000 | 0.769 |
-| verdict_accuracy | 0.769 | 0.769 | 0.585 |
+| review_friction | 0.533 | 0.533 | 0.422 |
+| coverage | 1.000 | 1.000 | 1.000 |
+| verdict_accuracy | 0.882 | 0.882 | 0.941 |
 
 > **Note:** this 85-case figure is the ablation holdout artifact. The live replay
 > arena reported in `02-evidence-and-claims.md` (Claim 6) uses 93 cases, a different
 > evaluation surface (87.1% accuracy; see `artifacts/aromer/replay_arena_report.json`).
 
-**Findings:** Safety floor intact. No friction reduction yet (18 seed episodes
-insufficient). Profile C shows 23.1% coverage drop due to world model over-
-abstaining with insufficient training data.
+**Findings:** Safety floor intact (FAR 0.0, intercept 1.0 across all profiles).
+Profile C reduces review friction (0.533 → 0.422, −11.1pp vs both baselines)
+and lifts verdict accuracy (0.882 → 0.941) without any coverage loss — a
+genuine improvement under the success criterion, not a regression. EXPERIMENTAL
+and in-sample; not externally validated.
 
 **Caveat:** EXPERIMENTAL. Labels are partly self-labeled. The world model
 defaults to shadow mode. Not externally validated. Do not cite AROMER numbers

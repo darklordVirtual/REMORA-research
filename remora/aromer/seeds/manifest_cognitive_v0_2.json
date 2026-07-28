@@ -20,21 +20,22 @@
   ],
   "hypothesis": "If C learns faster than A and B without higher false accepts after 500 episodes, it is strong evidence that cognitive pre-seeding accelerates governed systemic intelligence.",
   "stats": {
-    "total_cognitive_seed_entries": 57,
+    "total_cognitive_seed_entries": 62,
     "golden_cognitive_episodes": 6,
     "validation_errors": 0
   },
   "cognitive_layers": {
-    "1_truth_uncertainty":    {"types": ["cognitive_primitive", "epistemic_foundation"], "entries": 12},
-    "2_error_counterexample": {"types": ["error_taxonomy"], "entries": 6},
-    "3_causal_reasoning":     {"types": ["causal_reasoning"], "entries": 6},
-    "4_planning":             {"types": ["planning"], "entries": 6},
-    "5_memory":               {"types": ["memory_architecture"], "entries": 6},
-    "6_self_model":           {"types": ["self_model"], "entries": 6},
-    "7_learning_laws":        {"types": ["learning_law"], "entries": 5},
-    "8_transfer_abstraction": {"types": ["transfer_rule"], "entries": 5},
-    "9_domain_capsules":      {"types": ["domain_capsule"], "entries": 5},
-    "10_eval_gates":          {"types": ["eval_gate"], "entries": 5}
+    "cognitive_primitive": 6,
+    "epistemic_foundation": 6,
+    "error_taxonomy": 6,
+    "causal_reasoning": 6,
+    "planning": 6,
+    "memory_architecture": 6,
+    "self_model": 6,
+    "learning_law": 5,
+    "transfer_rule": 5,
+    "domain_capsule": 5,
+    "eval_gate": 5
   },
   "files": [
     {

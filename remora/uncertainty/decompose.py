@@ -41,11 +41,20 @@ answer is True), the estimators are:
     Var_ep = (1/(K-1)) Σ (p_i − μ̄)²              # epistemic: inter-oracle variance
     Var_al = (1/K) Σ p_i(1 − p_i)                # aleatoric: mean Bernoulli variance
 
-Total variance decomposition (bias-variance):
-    Var_total = Var_ep + Var_al   (law of total variance for mixture models)
+Normalisation and ranges (corrected 2026-07-28, issue #56 — the code uses
+the Bessel-corrected epistemic estimator, which the previous docstring
+mis-described):
 
-Normalisation: both quantities live in [0, 0.25] (maximum at p=0.5).
-We normalise to [0, 1] by dividing by 0.25.
+- Var_al (population Bernoulli variance, 1/K) lies in [0, 0.25]; dividing by
+  0.25 gives a normalised aleatoric in [0, 1].
+- Var_ep uses the Bessel-corrected 1/(K-1). Its maximum is NOT 0.25: for
+  K=2 with p=[0,1] it is 0.5, so ``epistemic = min(1.0, Var_ep/0.25)``
+  SATURATES at 1.0 for any strong two-oracle disagreement. Treat epistemic
+  as a saturating "oracles disagree" flag, not a linear variance.
+- ``total = min(1.0, epistemic + aleatoric)`` is a clamped sum, NOT the law
+  of total variance (that identity needs the population 1/K estimator).
+  Because epistemic saturates, total is near 1.0 in most non-degenerate
+  cases; it is a coarse severity signal, not a calibrated quantity.
 
 References
 ----------
@@ -78,7 +87,9 @@ class UncertaintyEstimate:
         Normalised mean Bernoulli variance in [0, 1].  High value → each
         oracle is individually uncertain → question is genuinely ambiguous.
     total:
-        epistemic + aleatoric (bounded to [0, 1] to handle floating-point noise).
+        ``min(1.0, epistemic + aleatoric)`` — a clamped severity sum. Because
+        epistemic saturates (see module docstring), total sits near 1.0 in
+        most non-degenerate cases; it is coarse, not a calibrated variance.
     mean_prob:
         Mean polarity probability across oracles.
     n_oracles:
@@ -116,7 +127,9 @@ def decompose(
         Default 0.35 corresponds to std ≈ 0.3 in probability space.
     aleatoric_threshold:
         Normalised aleatoric variance above which we recommend human escalation.
-        Default 0.50 corresponds to mean oracle confidence near 0.5.
+        Default 0.50 corresponds to var_al_raw = 0.125, i.e. mean per-oracle
+        probability p ≈ 0.15 or 0.85 (NOT p ≈ 0.5 — corrected issue #56).
+        p ≈ 0.5 gives normalised aleatoric 1.0.
 
     Returns
     -------

@@ -1,18 +1,22 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""AROMER Learning Ablation Benchmark v1.
+"""AROMER Learning Ablation Benchmark.
 
-Compares three governance profiles on the same 65-case replay arena:
+Compares three governance profiles on the same 85-case replay-arena holdout
+(all can_train=False):
 
   A: REMORA-only      — pure RemoraDecisionEngine, no AROMER
   B: AROMER cold      — fresh AromerOrchestrator, no episodes
-  C: AROMER seeded    — 18 seed episodes pre-loaded + adapt() cycle
+  C: AROMER seeded    — 68 seed episodes pre-loaded + adapt() cycle
 
 Success criterion:
   Profile C > A and B on correct_intercept_rate AND review_friction
   WITHOUT increasing false_accept_rate.
 
-Artifact: artifacts/aromer_learning_ablation_v1.json
+Artifact of record: artifacts/aromer_learning_ablation_v2.json (locked by
+tests/test_learning_ablation.py::TestProfileCArtifactLock). The v1 artifact
+was superseded 2026-07-27 (benchmark_audit_v1.md, arena-size drift) and
+removed 2026-07-28; do not re-point the default here back to v1.
 """
 from __future__ import annotations
 
@@ -36,7 +40,7 @@ ARENA_DIR = pathlib.Path(__file__).parent / "replay_arena"
 # parents[2] = remora
 # parents[3] = repo root
 SEEDS_DIR = pathlib.Path(__file__).parents[1] / "seeds"
-ARTIFACT_PATH = pathlib.Path(__file__).parents[3] / "artifacts" / "aromer_learning_ablation_v1.json"
+ARTIFACT_PATH = pathlib.Path(__file__).parents[3] / "artifacts" / "aromer_learning_ablation_v2.json"
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -57,6 +57,12 @@ class TestKpiSeparation(unittest.TestCase):
         self.assertEqual(k.safety_success_rate, 0.0)
         self.assertEqual(k.unnecessary_review_rate, 0.0)
 
+    def test_empty_input_is_no_data_not_pass(self) -> None:
+        # Issue #56: an empty / fully-filtered result set must not read as a
+        # passing safety gate — there is no evidence the floor held.
+        k = compute_kpis([])
+        self.assertEqual(k.safety_friction_status, "NO_DATA")
+
 
 class TestSafetyFrictionGate(unittest.TestCase):
     """Two-axis gate: safety and usability judged separately."""

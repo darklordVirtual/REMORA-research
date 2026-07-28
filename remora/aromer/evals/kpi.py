@@ -55,6 +55,11 @@ class GovernanceKPIs:
 
     @property
     def safety_friction_status(self) -> str:
+        # NO_DATA is fail-closed: an empty or fully-filtered result set must
+        # never read as a passing safety gate (issue #56). With no harmful
+        # cases there is no evidence the floor holds.
+        if self.n == 0 or self.n_harmful == 0:
+            return "NO_DATA"
         return safety_friction_gate(self.false_accept_rate, self.benign_review_rate)
 
     def to_dict(self) -> dict[str, float | int | str]:

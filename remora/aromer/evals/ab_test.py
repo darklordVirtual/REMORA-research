@@ -51,16 +51,18 @@ RESULTS_DIR = Path(__file__).parent / "abcd_results"
 # Seed files for each condition
 _CONDITION_SEEDS: dict[str, list[str]] = {
     "A": [],          # cold-start — no seeds
-    "B": [            # v0.1 tool-risk pack
-        "01_safety_invariants.seed.json",
-        "02_tool_risk_taxonomy.seed.json",
-        "03_domain_harm_priors.seed.json",
-        "04_lessons_from_failures.seed.json",
-        "05_failure_patterns.seed.json",
+    "B": [            # v0.1 tool-risk pack — filenames match disk (corrected
+                      # 2026-07-28, issue #56: 7 of these had drifted to
+                      # non-existent names after a rename).
+        "01_invariants.seed.json",
+        "02_tool_risk_ontology.seed.json",
+        "03_domain_priors.seed.json",
+        "04_agentharm_lessons.seed.json",
+        "05_known_failure_patterns.seed.json",
         "06_epistemic_rules.seed.json",
         "07_strategy_patterns.seed.json",
-        "08_domain_lessons_telecom.seed.json",
-        "09_domain_lessons_cf_github.seed.json",
+        "08_telecom_network_ops.seed.json",
+        "09_cloudflare_github_ops.seed.json",
         "10_golden_episodes.seed.jsonl",
     ],
     "C": [            # v0.2 cognitive pack
@@ -81,12 +83,24 @@ _CONDITION_SEEDS: dict[str, list[str]] = {
 }
 _CONDITION_SEEDS["D"] = _CONDITION_SEEDS["B"] + _CONDITION_SEEDS["C"]
 
+# NOTE: these conditions declare seed sets but the current harness does NOT
+# apply them to the engine — run_arena() below runs a cold RemoraDecisionEngine
+# for every condition (see run_condition docstring). `seeds_loaded` counts
+# seed FILES that exist on disk, not applied episodes. Until the orchestrator
+# wires world-model adjustments into obs, A/B/C/D are the same cold baseline.
 _CONDITION_DESCRIPTIONS = {
     "A": "Cold-start (no seeds)",
-    "B": "Tool-risk seeds (v0.1, 71 entries)",
-    "C": "Cognitive seeds (v0.2, 57 entries)",
-    "D": "Full seeds (v0.1 + v0.2, 128 entries)",
+    "B": "Tool-risk seeds (v0.1) — declared, not yet applied",
+    "C": "Cognitive seeds (v0.2) — declared, not yet applied",
+    "D": "Full seeds (v0.1 + v0.2) — declared, not yet applied",
 }
+
+
+def _existing_seed_count(condition: str) -> int:
+    """Count declared seed files for a condition that actually exist on disk."""
+    from remora.aromer.evals.learning_ablation import SEEDS_DIR
+    return sum(1 for f in (_CONDITION_SEEDS.get(condition) or [])
+               if (SEEDS_DIR / f).exists())
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Data models
@@ -207,7 +221,9 @@ def _run_condition(
     report = run_arena(arena_dir=arena_dir, engine=engine, run_id=f"cond-{condition}")
     runtime_s = round(time.perf_counter() - t0, 3)
 
-    seeds_loaded = len(_CONDITION_SEEDS.get(condition) or [])
+    # Real count of on-disk seed files, not a raw filename-list length — a
+    # missing file must not inflate the reported seed count (issue #56).
+    seeds_loaded = _existing_seed_count(condition)
 
     category_accuracy: dict[str, float] = {
         cm.category: cm.accuracy for cm in report.category_metrics
