@@ -42,10 +42,9 @@ def infer_relation(a: str, b: str, topic_overlap: float = 0.30) -> Relation:
     neg_a, neg_b = _has_negation(a), _has_negation(b)
     if neg_a != neg_b:
         return Relation.CONTRADICTS
-    # Subset heuristic: negated subsets refute the positive entailment;
-    # positive subsets entail.
+    # Same-polarity subset → entailment, whether both positive or both
+    # negated. Two agreeing negations still entail (¬A ⊨ ¬(A∧B)); the earlier
+    # REFUTES branch was wrong and inflated contradiction edges (issue #56).
     if ta <= tb or tb <= ta:
-        if neg_a and neg_b:
-            return Relation.REFUTES
         return Relation.ENTAILS
     return Relation.SUPPORTS

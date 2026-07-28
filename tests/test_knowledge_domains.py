@@ -81,6 +81,32 @@ def test_chains_do_not_interleave():
     assert s.head("a") != s.head("b")
 
 
+def test_isolation_battery_actually_detects_leaks():
+    # Issue #56: the battery's cross_tenant_leaks was 0 by construction. Prove
+    # it is now a real measurement by running it against a store that ignores
+    # tenant scoping — it must report leaks.
+    class LeakyStore(multitenant.TenantStore):
+        def can_read(self, tenant, key):
+            return any(k == key for (_t, k) in self._rows)
+
+        def get(self, tenant, key):
+            for (_t, k), v in self._rows.items():
+                if k == key:
+                    return v
+            raise multitenant.CrossTenantError(key)
+
+        def put(self, tenant, key, value):  # keep chain behaviour
+            return super().put(tenant, key, value)
+
+    orig = multitenant.TenantStore
+    multitenant.TenantStore = LeakyStore
+    try:
+        report = multitenant.run_isolation_battery()
+    finally:
+        multitenant.TenantStore = orig
+    assert report.cross_tenant_leaks > 0
+
+
 # ── ontology ────────────────────────────────────────────────────────────────
 
 def test_ontology_matches_artifact():

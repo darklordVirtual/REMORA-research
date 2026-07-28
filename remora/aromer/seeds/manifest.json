@@ -7,7 +7,7 @@
   "principle": "Preseed != truth. Preseed = hypothesis with source, weight, confidence and decay.",
   "a_b_recommendation": "Run preseeded AROMER in shadow mode for >=50 episodes. Compare against cold-start AROMER on same episode replay set before committing.",
   "stats": {
-    "total_seed_entries": 71,
+    "total_seed_entries": 137,
     "golden_episodes": 12,
     "validation_errors": 0
   },
@@ -15,13 +15,13 @@
     "safety_invariant": 5,
     "tool_risk": 14,
     "domain_prior": 17,
-    "lesson_agentharm": 5,
+    "lesson": 5,
     "failure_pattern": 10,
     "epistemic_rule": 6,
     "strategy_pattern": 5,
-    "domain_lesson_telecom": 9,
-    "domain_lesson_cloudflare_github": 9,
-    "golden_episodes": 12
+    "domain_lesson": 25,
+    "golden_episodes": 12,
+    "benign_domain_coverage": 50
   },
   "files": [
     {
@@ -95,6 +95,18 @@
       "description": "Loader script — injects seeds into DomainHarmPrior and EpisodicStore. Supports --dry-run, --shadow, --out.",
       "type": "loader",
       "entries": 0
+    },
+    {
+      "filename": "23_coding_session_ops.seed.json",
+      "description": "7 coding-session operational lessons (domain coverage)",
+      "type": "domain_lesson",
+      "entries": 7
+    },
+    {
+      "filename": "23_benign_domain_coverage.seed.jsonl",
+      "description": "50 benign domain-coverage episodes (friction/benign calibration)",
+      "type": "benign_domain_coverage",
+      "entries": 50
     }
   ],
   "usage": {
@@ -105,7 +117,12 @@
   },
   "design_constraints": {
     "aromer_cannot_mutate": "REMORA policy core (RemoraDecisionEngine, PolicyRule, DecisionEnvelope)",
-    "aromer_can_adjust": ["trust_score", "entropy_threshold", "oracle_selection", "lambda_weight"],
+    "aromer_can_adjust": [
+      "trust_score",
+      "entropy_threshold",
+      "oracle_selection",
+      "lambda_weight"
+    ],
     "safety_invariants_permanent": true,
     "shadow_mode_first": "All world-model adaptations >= 20% trust change require shadow validation (>=50 episodes before commit)"
   }

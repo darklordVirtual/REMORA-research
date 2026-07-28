@@ -268,6 +268,11 @@ class RAGEvidenceProvider:
         # Citation coverage: fraction of original passages that were relevant
         coverage = len(relevant) / max(len(passages), 1)
 
+        # NOTE (issue #56): evidence_strength = avg_support * (1 + coverage) is a
+        # deliberate coverage BOOST, up to 2x when every passage is relevant
+        # (coverage=1). It is clamped to 1.0. This is not a probability; it is a
+        # ranking-style strength score that rewards both per-passage support and
+        # breadth of relevant coverage.
         signal = EvidenceSignal(
             evidence_strength=round(min(1.0, avg_support * (1 + coverage)), 3),
             contradiction_score=round(avg_contradict, 3),
