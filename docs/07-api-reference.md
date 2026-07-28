@@ -197,6 +197,20 @@ one-time grant, then dispatches the tool through the app-lifecycle
 chain). RBAC: `assess`/`execute` capabilities gate assess/execute; `review`
 gates approve; `read` gates audit.
 
+**Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
+bearer token to a fixed tenant and role — callers cannot forge either.
+Single-token mode (`REMORA_API_BEARER_TOKEN`) reads tenant/role from
+caller-asserted headers and therefore has **no role separation**; in
+`REMORA_ENV=production` the role header is ignored and pinned to
+`operator`, so approval-role gating cannot be satisfied in this mode (see
+SECURITY.md). Dev mode (no credentials + `REMORA_ENV=development`) runs
+without auth; production without credentials is a startup error.
+
+**Idempotency:** `idempotency_key` deduplicates `POST /assess` per tenant.
+The cache is a bounded in-process LRU (10 000 entries); an evicted key
+simply re-runs assess, which has no side effects beyond a fresh audit
+record.
+
 **Trust boundary (issue #34):** the execution request is a PROPOSAL only —
 `tool_name`, exact `arguments`, requested `target_environment` (+
 `idempotency_key`). Every authoritative safety signal (risk tier, domain,
