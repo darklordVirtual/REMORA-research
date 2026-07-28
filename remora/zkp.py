@@ -24,7 +24,7 @@ from remora.assurance.trace import (
 
 warnings.warn(
     "remora.zkp is deprecated; import from remora.assurance.trace instead."
-    " Will be removed in v0.7.0.",
+    " Deprecated; will be removed in a future minor release.",
     DeprecationWarning,
     stacklevel=2,
 )
