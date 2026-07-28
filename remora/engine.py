@@ -4,6 +4,7 @@
 from __future__ import annotations
 import hashlib
 import json
+import re
 from collections import defaultdict
 import logging
 import time
@@ -14,6 +15,7 @@ _logger = logging.getLogger(__name__)
 from dataclasses import dataclass, field, replace
 from typing import Optional, Sequence
 
+from remora.action_semantics import IRREVERSIBLE_ACTION_TYPES
 from remora.layers import adaptive_decompose
 from remora.canonical import CanonicalVerdict, phi
 from remora.correlation import CorrelationMatrix, weighted_consensus
@@ -26,6 +28,13 @@ from remora.evidence.provider import (
     EvidenceProvider,
     EvidenceProviderResult,
     OracleProxyEvidenceProvider,
+)
+
+# Compiled once at import; style matches remora.safety.adversarial.
+_COERCION_PATTERNS = re.compile(
+    r"(if\s+you\s+don.t|unless\s+you|or\s+i\s+will|i\s+will\s+(threaten|leak|destroy|expose|report|publish)|"
+    r"blackmail|coerce|extort|you\s+must\s+.+\s+or\s+i)",
+    re.IGNORECASE,
 )
 
 @dataclass
@@ -129,19 +138,12 @@ class Remora:
         acceptable — this is a best-effort heuristic, not a hard proof.  Hard
         proof requires the caller to set coercion_detected=True directly.
         """
-        import re
-        _COERCION_PATTERNS = re.compile(
-            r"(if\s+you\s+don.t|unless\s+you|or\s+i\s+will|i\s+will\s+(threaten|leak|destroy|expose|report|publish)|"
-            r"blackmail|coerce|extort|you\s+must\s+.+\s+or\s+i)",
-            re.IGNORECASE,
-        )
         return bool(_COERCION_PATTERNS.search(text))
 
-    # Irreversible action types — rollback_available defaults to False for these.
-    _IRREVERSIBLE_ACTION_TYPES: frozenset[str] = frozenset({
-        "destructive_write", "delete", "irreversible_delete",
-        "emergency_write", "financial_write",
-    })
+    # Irreversible action types — rollback_available defaults to False for
+    # these. Single source of truth: remora.action_semantics (F2, external
+    # review 2026-07-28); do not add entries here.
+    _IRREVERSIBLE_ACTION_TYPES: frozenset[str] = IRREVERSIBLE_ACTION_TYPES
 
     def _ask_parallel(
         self,
@@ -847,9 +849,8 @@ determinism.  Falls back to sequential execution on error.
 
         from remora.policy import PolicyObservation, RemoraDecisionEngine
 
-        # Extract values from already-computed rep and state
-        traj = state.controller.trajectory()
-        _last = traj[-1] if traj else {}  # noqa: F841
+        # `traj` from the top of report() is still current — trajectory() is a
+        # read-only view and the controller does not advance during report.
 
         # Get top candidate support
         top_support = None

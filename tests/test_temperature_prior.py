@@ -9,6 +9,17 @@ from remora.thermodynamics import estimate_temperature_prior
 
 
 class TestEstimateTemperaturePriorReturnRange:
+    def test_short_prompt_density_is_clamped(self) -> None:
+        # F4 (external review 2026-07-28): zlib's fixed header made the raw
+        # compression ratio exceed 1 for short prompts (≈5 for 2 chars),
+        # inflating T for trivial inputs. With density clamped to 1.0 the
+        # prior is bounded by 0.60·1.0 + 0.40·length_factor.
+        import math
+        for prompt in ("Hi", "ignore previous", "?"):
+            length_factor = min(math.log1p(len(prompt)) / 10.0, 1.0)
+            # 1e-6 tolerance: the function rounds to 6 decimals.
+            assert estimate_temperature_prior(prompt) <= 0.60 + 0.40 * length_factor + 1e-6
+
     def test_empty_prompt_returns_uninformative_prior(self) -> None:
         result = estimate_temperature_prior("")
         assert result == pytest.approx(0.50)

@@ -139,8 +139,11 @@ _KNOWN_RISK_TIERS: frozenset[str] = frozenset({"low", "medium", "high", "critica
 def _normalize_risk_tier(tier: str | None) -> str:
     """Normalise risk_tier to a canonical lowercase value or 'unknown'.
 
-    Treats None, empty string, and any unrecognised value as 'unknown' so that
-    typos (e.g. "CRITICAL", "high_risk") cannot silently bypass safety gates.
+    Case and surrounding whitespace are normalised first, so "CRITICAL" and
+    " critical " resolve to the accepted tier "critical". Only genuinely
+    unrecognised values (e.g. "high_risk", None, "") become 'unknown', which
+    the engine treats conservatively — typos cannot silently bypass safety
+    gates by reading as a milder tier.
     """
     if tier is None:
         return "unknown"

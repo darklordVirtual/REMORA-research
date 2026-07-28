@@ -308,10 +308,13 @@ def estimate_structural_temperature(
     if not prompt:
         return _CATEGORY_PRIORS.get(category or "", 0.85)
 
-    # 1. Semantic density — Kolmogorov complexity proxy via zlib
+    # 1. Semantic density — Kolmogorov complexity proxy via zlib. Clamped to
+    # 1.0: zlib's fixed header (~11 bytes) makes the raw ratio exceed 1 for
+    # short prompts (up to ~5 for a 2-char prompt), which inflated T for
+    # short, trivial inputs (external review 2026-07-28, F4).
     encoded = prompt.encode("utf-8")
     compressed = zlib.compress(encoded, level=9)
-    density = len(compressed) / max(len(encoded), 1)
+    density = min(1.0, len(compressed) / max(len(encoded), 1))
 
     # 2. Log-length factor (normalised; log1p(22 000 chars) / 10 ≈ 1.0)
     length_factor = min(math.log1p(len(prompt)) / 10.0, 1.0)
@@ -334,13 +337,15 @@ def estimate_temperature_prior(prompt: str) -> float:
 
     Algorithm::
 
-        density       = len(zlib.compress(prompt)) / len(prompt)   # in (0, 1]
+        density       = min(1.0, len(zlib.compress(prompt)) / len(prompt))
         length_factor = min(log1p(len(prompt)) / 10, 1.0)           # in [0, 1]
         T_prior       = density * 0.60 + length_factor * 0.40
 
-    Both signals are in [0, 1]; the weighted sum therefore lives in [0, 1]
-    before clamping to [0.05, 2.0].  The formula is intentionally simple so
-    that it is easy to audit and replace with an empirically fitted model.
+    The raw compression ratio exceeds 1 for short prompts (zlib's fixed
+    header dominates), so density is clamped to [0, 1]; both signals are then
+    in [0, 1] and the weighted sum lives in [0, 1] before clamping to
+    [0.05, 2.0].  The formula is intentionally simple so that it is easy to
+    audit and replace with an empirically fitted model.
 
     Returns
     -------
@@ -352,7 +357,9 @@ def estimate_temperature_prior(prompt: str) -> float:
 
     encoded = prompt.encode("utf-8")
     compressed = zlib.compress(encoded, level=9)
-    density = len(compressed) / max(len(encoded), 1)
+    # Clamped: zlib header overhead pushes the raw ratio above 1 for short
+    # prompts (external review 2026-07-28, F4).
+    density = min(1.0, len(compressed) / max(len(encoded), 1))
     length_factor = min(math.log1p(len(prompt)) / 10.0, 1.0)
 
     raw = density * 0.60 + length_factor * 0.40

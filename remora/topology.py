@@ -18,7 +18,7 @@ def _warn_legacy() -> None:
     warnings.warn(
         "remora.topology.compute_betti_numbers operates on fingerprint clusters; "
         "use remora.graph.claim_graph.SemanticClaimGraph for rigorous β1."
-        " Will be removed in v0.7.0.",
+        " Deprecated; will be removed in a future minor release.",
         DeprecationWarning,
         stacklevel=2,
     )
