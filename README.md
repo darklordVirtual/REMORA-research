@@ -35,7 +35,14 @@ Shadow-mode research only; not certified for production. What remains open, in o
 
 ## Architecture
 
-The pipeline runs synchronously before any action executes: a deterministic admission check runs first, then multi-oracle consensus and evidence enrichment, then the policy decision — inside which deterministic hard guards are evaluated, with absolute priority, before any uncertainty-based routing.
+Every proposed action runs through this pipeline **before** it can execute — nothing happens until the pipeline returns an outcome. There are four stages, in order:
+
+1. **Admission check** — screen the request for adversarial or coercive content and reject it outright if found.
+2. **Multi-oracle consensus** — collect several independent model judgements of the action.
+3. **Evidence enrichment** — pull in supporting signals (retrieval, domain, cyber, finance).
+4. **Policy decision** — issue the verdict (ACCEPT / VERIFY / ABSTAIN / ESCALATE).
+
+Inside that final stage, deterministic **hard guards run first and win**: a hard block cannot be overridden by any uncertainty- or confidence-based signal (detailed two paragraphs down).
 
 ```mermaid
 flowchart TD
