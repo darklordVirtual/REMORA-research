@@ -298,7 +298,16 @@ def test_gate_passes_on_real_repo() -> None:
 
 
 def test_real_readme_anchors_are_wired() -> None:
+    # Positive headline claims stay anchored on the README front page.
     readme = (ccp.ROOT / "README.md").read_text(encoding="utf-8")
     anchored_claims = {m.group(1) for m in ccp.ANCHOR_RE.finditer(readme)}
-    assert {"CLAIM-001", "CLAIM-002", "CLAIM-003", "CLAIM-004", "CLAIM-005",
-            "CLAIM-008"} <= anchored_claims
+    assert {"CLAIM-001", "CLAIM-002", "CLAIM-003", "CLAIM-008",
+            "CLAIM-013"} <= anchored_claims
+
+
+def test_real_negative_results_anchors_are_wired() -> None:
+    # Negative headline claims moved to NEGATIVE_RESULTS.md (2026-07-28) and
+    # must stay anchored there — moved, never dropped.
+    negative = (ccp.ROOT / "NEGATIVE_RESULTS.md").read_text(encoding="utf-8")
+    anchored_claims = {m.group(1) for m in ccp.ANCHOR_RE.finditer(negative)}
+    assert {"CLAIM-004", "CLAIM-005", "CLAIM-012"} <= anchored_claims
