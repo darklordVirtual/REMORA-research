@@ -98,12 +98,14 @@ boundaries:
 
 | Layer | Update frequency | Agent-writable | Retention |
 |---|---|---|---|
-| L0 Runtime context | per request | yes | short |
-| L1 Trust evaluation | per decision | no | medium |
-| L2 Evidence memory | per retrieval | no | medium |
-| L3 Policy memory | reviewed change only | no | long |
-| L4 Audit ledger | append-only | no | permanent |
-| L5 Governance learning | reviewed change only | no | permanent |
+| L0 `runtime_context` | per request | yes | short |
+| L1 `session_memory` | per session | yes | short |
+| L2 `trust_memory` | per decision | no | medium |
+| L3 `evidence_memory` | per retrieval | no | medium |
+| L4 `project_memory` | reviewed change only | no | long |
+| L5 `policy_memory` | reviewed change only | no | long |
+| L6 `audit_ledger` | append-only | no | permanent |
+| L7 `architecture_baseline` | reviewed change only | no | permanent |
 
 Implementation: `remora/governance/nested_governance.py`; the machine-readable
 layer profile is the `nested_governance_layers` section of

@@ -31,36 +31,48 @@ Primary attribution:
 User / Agent Request
    |
    v
-L0 Runtime Context
+L0 runtime_context
    - prompt
    - current context
    - tool output
 
    |
    v
-L1 Trust Evaluation
-   - multi-oracle agreement
-   - disagreement
-   - entropy
-   - phase
+L1 session_memory
+   - temporary workflow state
+   - current-session decisions
 
    |
    v
-L2 Evidence Memory
+L2 trust_memory
+   - historical model quality
+   - error / abstention rates
+   - drift telemetry
+
+   |
+   v
+L3 evidence_memory
    - retrieval
    - authoritative sources
    - source freshness
 
    |
    v
-L3 Policy Memory
+L4 project_memory
+   - repository constraints
+   - architecture choices
+   - project requirements
+
+   |
+   v
+L5 policy_memory
    - authority boundaries
    - allowed actions
    - escalation rules
 
    |
    v
-L4 Audit Memory
+L6 audit_ledger
    - tamper-evident decision ledger
    - model outputs
    - scores
@@ -68,11 +80,14 @@ L4 Audit Memory
 
    |
    v
-L5 Governance Learning
-   - what failed
-   - what should be adjusted
-   - new tests or policies
+L7 architecture_baseline
+   - reviewed architectural baseline
+   - permanent, reviewed-change-only
 ```
+
+Layer names match `default_nested_governance_model()` in
+`remora/governance/nested_governance.py` — eight layers, not the earlier
+six-layer sketch.
 
 ## Memory And Update Frequencies
 
