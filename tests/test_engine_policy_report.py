@@ -577,3 +577,59 @@ def test_report_uses_custom_evidence_provider_signal_source() -> None:
     assert obs.evidence_provenance["retrieval_strategy"] == "lexical_plus_semantic_rerank"
     env = rep["envelope"]
     assert env.assessment.evidence_quality["provenance"] is not None
+
+
+def test_report_uses_cached_adversarial_flag_without_recompute(monkeypatch):
+    """Self-review 2026-07-28: run() caches the admission-firewall result on
+    RemoraState.adversarial_detected; report() must use the cache and must
+    not re-scan the question."""
+    engine = _make_engine()
+    state = _make_state()
+    state.adversarial_detected = False
+
+    def _boom(text):
+        raise AssertionError("report() re-ran adversarial detection despite cached value")
+
+    monkeypatch.setattr(Remora, "_detect_adversarial_input", staticmethod(_boom))
+    rep = engine.report(state)  # must not raise
+    assert rep is not None
+
+
+def test_report_computes_adversarial_when_uncached(monkeypatch):
+    """States built outside run() (adversarial_detected=None) fall back to
+    computing the flag on demand."""
+    engine = _make_engine()
+    state = _make_state()
+    assert state.adversarial_detected is None
+    calls = []
+    monkeypatch.setattr(
+        Remora, "_detect_adversarial_input", staticmethod(lambda text: calls.append(text) or False)
+    )
+    engine.report(state)
+    assert calls, "fallback path must invoke the detector for uncached states"
+
+
+def test_oracle_proxy_reliability_fallback_is_uninformative_not_max():
+    """N5 (external review 2026-07-28): without a correlation model the proxy
+    provider must report the uninformative 0.5, never 1.0; with a real model
+    the consistency+0.5 formula still applies."""
+    from remora.evidence.provider import OracleProxyEvidenceProvider
+
+    responses = [
+        OracleResponse(provider="a", raw_text="", extracted={"claim": "x", "answer": True}),
+        OracleResponse(provider="b", raw_text="", extracted={"claim": "x", "answer": True}),
+    ]
+    kwargs = dict(question="q", domain=None, risk_tier=None,
+                  action_type=None, target_environment=None,
+                  oracle_responses=responses)
+
+    no_model = OracleProxyEvidenceProvider().fetch(**kwargs)
+    assert no_model.signal.source_reliability == 0.5
+
+    failing_model = OracleProxyEvidenceProvider(
+        mean_rho_fn=lambda providers: (_ for _ in ()).throw(RuntimeError("down"))
+    ).fetch(**kwargs)
+    assert failing_model.signal.source_reliability == 0.5
+
+    with_model = OracleProxyEvidenceProvider(mean_rho_fn=lambda providers: 0.5).fetch(**kwargs)
+    assert with_model.signal.source_reliability == 1.0

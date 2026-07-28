@@ -14,6 +14,7 @@ if str(_root) not in _sys.path:
     _sys.path.insert(0, str(_root))
 
 import importlib.util
+import re
 import sys
 
 from experiments.agentharm.cf_compat import (
@@ -60,7 +61,8 @@ def check_base_url() -> bool:
         print(f"[base_url]  FAIL: {e}")
         return False
     has_key = bool(resolve_api_key())
-    print(f"[base_url]  OK: {base_url} (token present: {has_key})")
+    redacted_url = re.sub(r"accounts/[^/]+/", "accounts/<redacted>/", base_url)
+    print(f"[base_url]  OK: {redacted_url} (token present: {has_key})")
     return True
 
 

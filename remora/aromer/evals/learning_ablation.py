@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import pathlib
 import tempfile
 import time
@@ -363,6 +364,7 @@ def _load_seed_episodes(
     from remora.aromer.experience.episode import Episode, GroundTruth
 
     n_seeds = 0
+    n_errors = 0
     for seed_file in sorted(seeds_dir.glob("*.seed.jsonl")):
         for line in seed_file.read_text(encoding="utf-8").splitlines():
             line = line.strip()
@@ -410,9 +412,19 @@ def _load_seed_episodes(
                 aromer.record_ground_truth(eid, gt)
                 n_seeds += 1
 
-            except Exception:
-                continue  # bad line — skip silently
+            except Exception as exc:
+                # Self-review 2026-07-28: previously skipped silently. A
+                # total parse failure made the "seeded" profile identical to
+                # cold while the artifact still claimed seeding.
+                n_errors += 1
+                print(f"[seed-parse-error] {seed_file.name}: {exc}", file=sys.stderr)
 
+    if n_seeds == 0 and n_errors > 0:
+        raise RuntimeError(
+            f"seed loading failed completely ({n_errors} parse error(s), 0 "
+            "episodes loaded) — refusing to run a 'seeded' profile that "
+            "would be indistinguishable from cold"
+        )
     return n_seeds
 
 

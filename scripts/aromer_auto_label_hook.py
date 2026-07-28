@@ -33,7 +33,7 @@ Registration
       "PostToolUse": [
         {"matcher": ".*", "hooks": [
           {"type": "command",
-           "command": "python C:/Users/Stian/REMORA/scripts/aromer_auto_label_hook.py"}
+           "command": "python <repo-root>/scripts/aromer_auto_label_hook.py"}
         ]}
       ]
     }

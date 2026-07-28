@@ -18,7 +18,7 @@ Registration in .claude/settings.json (MUST run before aromer_auto_label_hook):
   "PostToolUse": [
     {"matcher": "WebFetch|WebSearch|Bash|Read",
      "hooks": [{"type": "command",
-                "command": "python C:/Users/Stian/REMORA/scripts/aromer_result_scanner_hook.py"}]},
+                "command": "python <repo-root>/scripts/aromer_result_scanner_hook.py"}]},
     ...existing hooks...
   ]
 """

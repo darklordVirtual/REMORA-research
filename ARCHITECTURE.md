@@ -380,6 +380,11 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/cascade/` | **EXPERIMENTAL** | Multi-stage cascade pipeline |
 | `remora/aromer/` | **EXPERIMENTAL** | AROMER meta-learning loop (shadow-only) |
 | `remora/causal/` | **EXPERIMENTAL** | Causal PS/PN scoring and concept attribution |
+| `remora/evidence/` | **EXPERIMENTAL** | Evidence providers (RAG/cyber/proxy); some fail-open paths, see issue tracker |
+| `remora/uncertainty/` | **EXPERIMENTAL** | Epistemic/aleatoric decomposition (normalization caveats documented) |
+| `remora/graph/` | **EXPERIMENTAL** | Semantic claim-graph β1 / contradiction cycles |
+| `remora/knowledge_domains/` | **EXPERIMENTAL** | Multi-tenant scoping + cost routing (research fixtures) |
+| `remora/governance_intelligence/` | **EXPERIMENTAL** | Pre-policy enrichment (self-labelled research-grade) |
 | `remora/statphys/` | **RESEARCH_ONLY** | Statistical-physics uncertainty models |
 | `remora/future_concept/` | **RESEARCH_ONLY** | Forward-looking research concepts |
 

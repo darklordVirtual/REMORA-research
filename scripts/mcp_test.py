@@ -2,12 +2,13 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
 """Full MCP test suite - covers all 11 tools, prints ASCII-safe results."""
+from pathlib import Path
 import json
 import os
 import re
 import subprocess
 
-MCP = ["python", r"C:\Users\Stian\REMORA\servers\mcp_remora.py"]
+MCP = ["python", str(Path(__file__).resolve().parents[1] / "servers" / "mcp_remora.py")]
 ENV = {**os.environ, "AGENT_CONTROL_URL": "https://remora-agent-control.razorsharp.workers.dev"}
 
 def call(req, timeout=45):

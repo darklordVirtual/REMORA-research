@@ -88,7 +88,10 @@ def write_sidecar(
         extra=extra,
     )
     prov["artifact"] = artifact_path.name
-    prov["artifact_sha256"] = hashlib.sha256(artifact_path.read_bytes()).hexdigest()
+    # LF-normalized, matching _sha256_lf for inputs and the LF hash protocol
+    # of docs/assurance/artifact_manifest_v1.md — a raw-bytes hash diverged
+    # from the manifest on Windows working trees (self-review 2026-07-28).
+    prov["artifact_sha256"] = _sha256_lf(artifact_path)
     sidecar = artifact_path.with_name(
         artifact_path.name.rsplit(".", 1)[0] + ".provenance.json"
     )

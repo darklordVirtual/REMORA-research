@@ -27,6 +27,54 @@ releases.
 
 ## [Unreleased]
 
+### Fixed (deep self-review, 2026-07-28 night — gates, provenance, portability, honesty)
+
+- **Two `make audit` gates that could not fail are now real.**
+  `scripts/_check_imports.py` printed `FAIL` lines but always exited 0;
+  `scripts/render_claims.py` printed a fabricated "all dynamic numbers
+  updated" success while doing nothing. The import checker now exits
+  non-zero on any failure; the render stub is honest that it is a no-op and
+  points at the gates that actually enforce number/artifact binding.
+- **Follow-ups to today's own review fixes** (caught re-reviewing the diff):
+  the N4 production role-pinning now uses the canonical `_is_production_mode()`
+  so the `"prod"` alias is covered; the N1 SQLite rollback now also restores
+  the in-memory queue/tenant mirrors (not just the DB row), and its test no
+  longer masks the gap with a manual clear. Added the four missing
+  behavioral tests (production role pinning, idempotency LRU eviction,
+  oracle-proxy reliability fallback, adversarial-flag cache).
+- **Do-not-silently-skip-failures enforced in more scorers:**
+  `experiments/agentharm/score_guardrail.py` now degrades its artifact
+  `status` to `degraded` and records dropped arms / log parse errors instead
+  of emitting `status:ok` on partial data; `learning_ablation.py` raises
+  when seed loading fails completely (was silently a cold-vs-cold "seeded"
+  run); `check_no_evaluation_leakage.py` now fails on unparseable runtime
+  files instead of excluding them while claiming full coverage.
+- **Invented-result removed:** `balanced_validation.py` derived its
+  diagnosis narrative from the measured values — the previous hardcoded
+  string asserted a failure mode even on runs recording zero false accepts.
+- **Provenance/portability:** `result_provenance.py` LF-normalizes the
+  artifact hash to match the manifest protocol (Windows working trees
+  diverged); the deterministic-round runner fails on missing declared inputs
+  instead of dropping them from the sidecar; the live-round lock uses a real
+  Windows existence probe instead of `os.kill(pid, 0)` (which would
+  terminate the peer); `toolcall_blind_v3_eval.py` writes a POSIX artifact
+  path; account-id-bearing base URLs are redacted in the AgentHarm preflight
+  prints.
+- **Coverage gate raised 60 -> 75** (actual coverage is 83%).
+- **Hygiene:** personal `C:\Users\Stian\REMORA\...` paths in `mcp_test.py`
+  and two hook docstrings replaced with repo-relative / `<repo-root>`;
+  stale `bun.lock` references removed from `.prettierignore` and
+  `codegraph.paths.ts`; dead `all_findings.txt` exemption removed from the
+  docs gate; four missing modules (`evidence`, `uncertainty`, `graph`,
+  `knowledge_domains`, `governance_intelligence`) added to the Module
+  Stability Index.
+- Live-surface security findings (unauthenticated AROMER worker, frontend
+  control-plane re-exposure) and eval-integrity findings (stale
+  `aromer_learning_ablation_v1` success artifact, seed-manifest arithmetic,
+  `uncertainty/decompose` formula drift, vacuous multitenant leak check) are
+  tracked in issues #55 and #56 — they need coordinated secret rollout /
+  artifact regeneration, not a blind patch.
+
 ### Fixed (external code review part 2, 2026-07-28 evening — servers/enforcement/periphery)
 
 - **N1 — SQLite transaction branch committed on exception.**

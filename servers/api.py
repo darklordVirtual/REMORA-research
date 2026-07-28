@@ -970,10 +970,11 @@ def _authenticate(request: Request) -> tuple[str, str]:
     if not hmac.compare_digest(provided, single_token):
         raise HTTPException(status_code=401, detail="invalid bearer token")
     tenant = request.headers.get("X-Remora-Tenant", "default").strip() or "default"
-    if _get_env_mode() == "production":
+    if _is_production_mode():
         # Self-asserted roles must not satisfy approval-role gating in
         # production (N4): pin to the baseline role; role separation
-        # requires REMORA_API_TOKENS (token -> fixed role).
+        # requires REMORA_API_TOKENS (token -> fixed role). Uses the
+        # canonical predicate so the "prod" alias is covered too.
         return tenant, "operator"
     role   = request.headers.get("X-Remora-Role", "operator").strip().lower() or "operator"
     return tenant, role

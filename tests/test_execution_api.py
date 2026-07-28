@@ -513,10 +513,14 @@ def test_sqlite_transaction_rolls_back_on_exception(tmp_path, monkeypatch) -> No
             exec_mod._ITEM_TENANT["item-aborted"] = "acme"
             raise _Boom()
 
-    # A fresh context reloads persisted state from the DB: the aborted
-    # mutation must not have survived.
-    exec_mod._QUEUES.clear()
-    exec_mod._ITEM_TENANT.clear()
+    # The aborted mutation must be gone from the in-memory mirror
+    # IMMEDIATELY (snapshot restore) — not only after a DB reload. A stale
+    # in-memory key would be re-persisted by the next successful commit.
+    assert "item-aborted" not in exec_mod._ITEM_TENANT
+
+    # And a fresh context reloading persisted state from the DB must not
+    # resurrect it either. Deliberately NO manual clear here: the context
+    # itself must deliver the invariant.
     with exec_mod.db_transaction_state("acme"):
         assert "item-aborted" not in exec_mod._ITEM_TENANT
 
@@ -597,3 +601,24 @@ def test_hash_field_boundaries_are_unambiguous() -> None:
     h1 = compute_entry_hash("0" * 64, {"e": 1}, "a", 12, "2026-07-18T00:00:00")
     h2 = compute_entry_hash("0" * 64, {"e": 1}, "a1", 2, "2026-07-18T00:00:00")
     assert h1 != h2
+
+
+def test_idempotency_cache_dedups_and_evicts(monkeypatch):
+    """N2 (external review 2026-07-28): the idempotency store is a bounded
+    LRU — hits refresh recency, overflow evicts the least-recently-used key,
+    and an evicted key simply misses (assess re-runs)."""
+    import servers.execution_api as exec_mod
+
+    exec_mod._IDEMPOTENCY.clear()
+    monkeypatch.setattr(exec_mod, "_IDEMPOTENCY_MAX_ENTRIES", 3)
+
+    for i in range(3):
+        exec_mod._idempotency_put(f"k{i}", {"n": i})
+    assert exec_mod._idempotency_get("k0") == {"n": 0}  # refreshes k0
+
+    exec_mod._idempotency_put("k3", {"n": 3})  # overflow: evicts k1 (LRU)
+    assert exec_mod._idempotency_get("k1") is None
+    assert exec_mod._idempotency_get("k0") == {"n": 0}
+    assert exec_mod._idempotency_get("k3") == {"n": 3}
+    assert len(exec_mod._IDEMPOTENCY) == 3
+    exec_mod._IDEMPOTENCY.clear()

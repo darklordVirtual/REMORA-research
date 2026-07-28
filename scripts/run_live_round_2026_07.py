@@ -68,11 +68,26 @@ def acquire_lock() -> bool:
         except ValueError:
             pid = None
         if pid is not None:
-            try:
-                os.kill(pid, 0)  # signal 0 = existence probe
-            except OSError:
-                pass  # stale lock — holder is dead
+            # os.kill(pid, 0) is a POSIX existence probe; on Windows any
+            # non-CTRL signal calls TerminateProcess — the probe would KILL
+            # the peer orchestrator, the exact clobbering this lock exists
+            # to prevent (self-review 2026-07-28).
+            if os.name == "nt":
+                import ctypes
+                PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+                handle = ctypes.windll.kernel32.OpenProcess(
+                    PROCESS_QUERY_LIMITED_INFORMATION, False, pid
+                )
+                alive = bool(handle)
+                if handle:
+                    ctypes.windll.kernel32.CloseHandle(handle)
             else:
+                try:
+                    os.kill(pid, 0)  # signal 0 = existence probe (POSIX)
+                    alive = True
+                except OSError:
+                    alive = False
+            if alive:
                 log(f"FATAL: another live round is running (pid {pid}, {lock})")
                 return False
         log("stale lock removed")
