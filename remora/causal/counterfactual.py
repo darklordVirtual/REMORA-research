@@ -134,9 +134,9 @@ class CounterfactualReplay:
         ]
 
         # Remaining blockers: reason labels from the counterfactual report
-        from remora.causal.explanation import _REASON_TO_LABEL
+        from remora.causal.explanation import REASON_TO_LABEL
         remaining_blockers = [
-            _REASON_TO_LABEL.get(r.value, r.value)
+            REASON_TO_LABEL.get(r.value, r.value)
             for r in cf_report.reasons
             if cf_report.action.value != "accept"
         ]

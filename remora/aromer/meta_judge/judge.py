@@ -13,6 +13,7 @@ EXPERIMENTAL: Part of the AROMER research plugin.
 from __future__ import annotations
 
 import json
+import os
 import ssl
 import urllib.request
 from dataclasses import dataclass, asdict
@@ -25,7 +26,12 @@ from remora.aromer.meta_judge.rubric import (
     compute_offline_rubric,
 )
 
-_WORKER_URL = "https://go-star-remora.razorsharp.workers.dev"
+# Overridable via env for non-default deployments (external review
+# 2026-07-28, N7); constructor argument still takes precedence.
+_WORKER_URL = os.environ.get(
+    "REMORA_METAJUDGE_WORKER_URL",
+    "https://go-star-remora.razorsharp.workers.dev",
+)
 
 
 @dataclass

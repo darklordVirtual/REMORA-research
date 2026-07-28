@@ -27,7 +27,9 @@ if TYPE_CHECKING:
 # Human-readable labels for DecisionReason values
 # ---------------------------------------------------------------------------
 
-_REASON_TO_LABEL: dict[str, str] = {
+# Public: remora.causal.counterfactual maps reasons through this table too
+# (external review 2026-07-28, N6 - was a private cross-module import).
+REASON_TO_LABEL: dict[str, str] = {
     "rollback_unavailable":      "No verified rollback plan for high/critical-risk action",
     "tainted_argument_verify":   "Action arguments derive from untrusted source (provenance unverified)",
     "admission_firewall_blocked": "Adversarial content detected in action request",
@@ -185,7 +187,7 @@ def generate_explanation(
     factual_reasons = [r.value for r in factual_report.reasons]
 
     # Direct policy causes → human-readable labels
-    direct_causes = [_REASON_TO_LABEL.get(r, r) for r in factual_reasons]
+    direct_causes = [REASON_TO_LABEL.get(r, r) for r in factual_reasons]
 
     # Identify which actionable concepts address which blocking reasons
     actionable_requirements: list[str] = []
@@ -196,7 +198,7 @@ def generate_explanation(
             if concept.name in seen_concepts:
                 continue
             if any(f in concept.signal_mapping for f in blocking_fields):
-                reason_label = _REASON_TO_LABEL.get(reason, reason)
+                reason_label = REASON_TO_LABEL.get(reason, reason)
                 actionable_requirements.append(
                     f"{concept.label}: addresses '{reason_label}'"
                 )

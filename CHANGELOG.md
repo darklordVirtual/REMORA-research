@@ -27,6 +27,39 @@ releases.
 
 ## [Unreleased]
 
+### Fixed (external code review part 2, 2026-07-28 evening — servers/enforcement/periphery)
+
+- **N1 — SQLite transaction branch committed on exception.**
+  `db_transaction_state`'s SQLite path ran INSERT+commit in `finally`, so an
+  exception inside an execution-API handler persisted partially mutated
+  review-queue state; the Postgres path already rolled back. The SQLite
+  branch now mirrors Postgres semantics (rollback on exception, persist on
+  success), pinned by `test_sqlite_transaction_rolls_back_on_exception`.
+- **N4 — single-token auth mode: self-asserted role neutralised in
+  production.** The `X-Remora-Role` header is caller-asserted; in
+  `REMORA_ENV=production` it is now ignored (role pinned to `operator`), so
+  approval-role gating cannot be satisfied by self-assertion. Docstring
+  states plainly that single-token mode has no role separation; role
+  separation requires the token-table mode.
+- **N2 — idempotency cache bounded** (LRU, 10k entries) instead of an
+  unbounded process-lifetime dict.
+- **N5 — oracle-proxy evidence no longer reports `source_reliability=1.0`
+  when no correlation model is supplied**; the uninformative fallback now
+  reports 0.5 honestly (accept-gate behavior unchanged — strength already
+  capped below the gate).
+- **N6 — private cross-module import removed**: `REASON_TO_LABEL` is public
+  in `remora/causal/explanation.py`; `counterfactual.py` imports the public
+  name.
+- **N7 — MetaJudge worker URL overridable** via
+  `REMORA_METAJUDGE_WORKER_URL` (constructor argument still wins).
+- **N8 — personal machine path** in the `mcp_remora.py` docstring replaced
+  with a `<repo-root>` placeholder.
+- **N9/N10 — frontend hygiene**: stale `bun.lock` removed (CI is npm-only);
+  package renamed from the scaffold name `tanstack_start_ts` to
+  `remora-frontend` in `package.json` and the lockfile.
+- N3 (two tool registries that can drift) is the same problem as issue #38
+  (unified ToolDefinition) and is tracked there, not patched piecemeal.
+
 ### Fixed (external code review round 2, 2026-07-28 — consensus identity and math hygiene)
 
 - **F1 — verdict fingerprints no longer hash self-reported confidence.**
