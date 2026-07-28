@@ -128,3 +128,44 @@ class TestRemoteEnvModeConsistency:
         assert "_get_env_mode" in src, (
             "_is_production_mode() must use _get_env_mode() helper"
         )
+
+
+class TestSingleTokenProductionRolePinning:
+    """N4 (external review 2026-07-28): in single-token mode the role header
+    is caller-asserted; production must ignore it — for BOTH recognised
+    production spellings ('production' and 'prod')."""
+
+    @staticmethod
+    def _request(headers):
+        from fastapi import Request
+        return Request(scope={
+            "type": "http", "method": "GET", "path": "/v1/assess",
+            "query_string": b"", "headers": headers,
+        })
+
+    def test_production_pins_role_to_operator(self, monkeypatch):
+        import servers.api as api_module
+        for env_val in ("production", "prod"):
+            monkeypatch.setenv("REMORA_ENV", env_val)
+            monkeypatch.setenv("REMORA_API_BEARER_TOKEN", "tok-123")
+            monkeypatch.setattr(api_module, "_TOKEN_TABLE", {})
+            req = self._request([
+                (b"authorization", b"Bearer tok-123"),
+                (b"x-remora-role", b"senior_authority"),
+            ])
+            tenant, role = api_module._authenticate(req)
+            assert role == "operator", (
+                f"REMORA_ENV={env_val!r}: self-asserted role must be pinned"
+            )
+
+    def test_development_still_honours_header_role(self, monkeypatch):
+        import servers.api as api_module
+        monkeypatch.setenv("REMORA_ENV", "development")
+        monkeypatch.setenv("REMORA_API_BEARER_TOKEN", "tok-123")
+        monkeypatch.setattr(api_module, "_TOKEN_TABLE", {})
+        req = self._request([
+            (b"authorization", b"Bearer tok-123"),
+            (b"x-remora-role", b"domain_expert"),
+        ])
+        tenant, role = api_module._authenticate(req)
+        assert role == "domain_expert"

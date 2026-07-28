@@ -113,7 +113,7 @@ def run_score(
     result["gate"] = "RemoraToolCallGate (default)"
     result["decision_process"] = {
         "mode": process_mode,
-        "decisions_file": str(decisions_path.relative_to(REPO_ROOT)),
+        "decisions_file": decisions_path.relative_to(REPO_ROOT).as_posix(),
     }
     result["protocol"] = (
         "Blinded evaluation: gate receives CandidateAction only, with author "

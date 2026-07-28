@@ -240,7 +240,6 @@ export const CODEGRAPH_PATHS = [
   'frontend/.prettierignore',
   'frontend/.prettierrc',
   'frontend/README.md',
-  'frontend/bun.lock',
   'frontend/bunfig.toml',
   'frontend/components.json',
   'frontend/eslint.config.js',

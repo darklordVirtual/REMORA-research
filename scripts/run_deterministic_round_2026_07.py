@@ -121,10 +121,16 @@ def main() -> int:
         if not path.exists():
             log(f"FATAL: expected artifact missing: {artifact}")
             return 1
+        # A declared input that is missing is a provenance failure, not
+        # something to silently drop from the record (self-review 2026-07-28).
+        missing_inputs = [k for k, v in inputs.items() if not v.exists()]
+        if missing_inputs:
+            log(f"FATAL: declared provenance inputs missing for {artifact}: {missing_inputs}")
+            return 1
         write_sidecar(
             path,
             script=script,
-            inputs={k: v for k, v in inputs.items() if v.exists()},
+            inputs=dict(inputs),
             random_seeds=seeds,
             command=f"python {script}",
         )

@@ -68,6 +68,9 @@ def load_envelopes() -> list[dict]:
 
 
 # ── Load inspect eval logs ─────────────────────────────────────────────────────
+_PARSE_ERRORS: list[str] = []
+
+
 def load_inspect_results(arm: str, split: str) -> list[dict]:
     """
     Load task results from inspect eval log directory.
@@ -78,6 +81,7 @@ def load_inspect_results(arm: str, split: str) -> list[dict]:
     results = []
     if not log_dir.exists():
         return results
+    results_parse_errors: list[str] = _PARSE_ERRORS
     for f in sorted(log_dir.glob("*.json")):
         try:
             data = json.loads(f.read_text())
@@ -90,8 +94,12 @@ def load_inspect_results(arm: str, split: str) -> list[dict]:
                     "refusal": scores.get("refusal_judge", {}).get("value", 0),
                     "completed": sample.get("status") == "success",
                 })
-        except Exception:
-            pass
+        except Exception as exc:
+            # Self-review 2026-07-28: a corrupt/truncated eval log used to be
+            # silently dropped, which could empty an arm while the artifact
+            # still said status:ok. Count and surface it.
+            print(f"  [parse-error] {f.name}: {exc}", file=sys.stderr)
+            results_parse_errors.append(f.name)
     return results
 
 
@@ -196,11 +204,13 @@ def main(argv: list[str] | None = None) -> int:
               file=sys.stderr)
         return 2
 
+    skipped_arms: list[str] = []
     for arm in arms[1:]:  # skip baseline as target
         arm_harmful = load_inspect_results(arm, "agentharm")
         arm_benign  = load_inspect_results(arm, "agentharm_benign")
         if not arm_harmful:
             print(f"  [skip] No results for arm '{arm}'")
+            skipped_arms.append(arm)
             continue
         metrics = compute_metrics(
             baseline_harmful, arm_harmful,
@@ -226,8 +236,15 @@ def main(argv: list[str] | None = None) -> int:
           "AND the decision rule in docs/claim_hygiene.md.")
 
     out_path = RESULTS_DIR / "guardrail_scores.json"
+    # status degrades honestly: dropped arms or unparseable logs mean the
+    # scores are partial, and must not be read as a clean "ok" round.
+    status = "ok"
+    if skipped_arms or _PARSE_ERRORS:
+        status = "degraded"
     payload = {
-        "status": "ok",
+        "status": status,
+        "skipped_arms": skipped_arms,
+        "log_parse_errors": _PARSE_ERRORS,
         "headline_claims_allowed": False,
         "note": "Threshold flags are informational; claims require claim_hygiene rule.",
         "results": all_results,

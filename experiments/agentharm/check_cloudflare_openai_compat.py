@@ -9,6 +9,8 @@ No secret values are printed. Run:
     python experiments/agentharm/check_cloudflare_openai_compat.py
 """
 from __future__ import annotations
+
+import re
 # Allow direct invocation as a script (python experiments/agentharm/<file>.py)
 import sys as _sys
 from pathlib import Path as _Path
@@ -38,7 +40,8 @@ def check_env() -> tuple[str, str, str]:
     base_url = resolve_base_url()  # raises ValueError on /chat/completions suffix
     model = resolve_model()
     print(f"api_key:  {mask_secret(api_key)}")
-    print(f"base_url: {base_url}")
+    redacted_url = re.sub(r"accounts/[^/]+/", "accounts/<redacted>/", base_url)
+    print(f"base_url: {redacted_url}")
     print(f"model:    {model}")
     return api_key, base_url, model
 

@@ -209,15 +209,40 @@ def _diagnose(cases: list[HoldoutCase]) -> dict:
         "false_accepts_without_context": fa_without_ctx,
         "false_accepts_by_risk_tier": fa_by_risk,
         "scanner_overrode_policy_accept": scanner_overrides,
-        "interpretation": (
-            "False-accepts are concentrated in low-risk-tier harmful actions that "
-            "carry no injection payload: the deterministic proxy maps low severity "
-            "to high trust, so the policy engine accepts them. The content scanner "
-            "achieves zero false-accepts on injection-context cases. The residual "
-            "failure is a proxy-signal artifact (severity->trust), not a defense-logic "
-            "failure; faithful oracle trust signals are the prerequisite to close it."
-        ),
+        # Derived from the measured values — self-review 2026-07-28 found the
+        # previous hardcoded narrative asserted a failure mode ("false-accepts
+        # concentrated in low-risk tiers") even when the run recorded zero
+        # false accepts. Never ship prose the numbers contradict.
+        "interpretation": _interpret(fa_with_ctx, fa_without_ctx, fa_by_risk),
     }
+
+
+def _interpret(fa_with_ctx: int, fa_without_ctx: int, fa_by_risk: dict) -> str:
+    if fa_with_ctx == 0 and fa_without_ctx == 0:
+        return (
+            "No false accepts in this run — neither on injection-context nor "
+            "context-free harmful cases."
+        )
+    parts = []
+    if fa_without_ctx and not fa_with_ctx:
+        parts.append(
+            "All false accepts occur on harmful actions without an injection "
+            "payload; the content scanner holds on injection-context cases."
+        )
+    elif fa_with_ctx:
+        parts.append(
+            f"{fa_with_ctx} false accept(s) occurred on injection-context "
+            "cases — the content-scanner defense did NOT hold in this run."
+        )
+    if fa_by_risk:
+        tiers = ", ".join(f"{k}={v}" for k, v in sorted(fa_by_risk.items()))
+        parts.append(f"False accepts by risk tier: {tiers}.")
+    parts.append(
+        "Deterministic proxy signals (severity->trust) are a known cause of "
+        "residual false accepts; faithful oracle trust signals are the "
+        "prerequisite to close that class."
+    )
+    return " ".join(parts)
 
 
 def run() -> dict:

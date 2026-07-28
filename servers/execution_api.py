@@ -205,9 +205,20 @@ def db_transaction_state(tenant: str):
                 if row and row[1]:
 
                     _ITEM_TENANT.update(json.loads(row[1]))
+                # Snapshot the in-memory mirrors: the DB transaction rolls
+                # back on exception, but q._items / _ITEM_TENANT would keep
+                # aborted mutations and leak them into the NEXT successful
+                # commit (self-review 2026-07-28).
+                items_snapshot = dict(q._items)
+                tenant_snapshot = dict(_ITEM_TENANT)
                 try:
                     yield q
-                finally:
+                except BaseException:
+                    q._items = items_snapshot
+                    _ITEM_TENANT.clear()
+                    _ITEM_TENANT.update(tenant_snapshot)
+                    raise
+                else:
                     conn.execute(
                         "INSERT INTO global_state (tenant_id, qs_json, it_json) VALUES (%s, %s, %s) "
                         "ON CONFLICT (tenant_id) DO UPDATE SET qs_json = EXCLUDED.qs_json, it_json = EXCLUDED.it_json",
@@ -225,14 +236,21 @@ def db_transaction_state(tenant: str):
             if row and row[1]:
 
                 _ITEM_TENANT.update(json.loads(row[1]))
+            # Snapshot in-memory mirrors (see Postgres branch comment).
+            items_snapshot = dict(q._items)
+            tenant_snapshot = dict(_ITEM_TENANT)
             try:
                 yield q
             except BaseException:
-                # Mirror the Postgres branch's transaction semantics: an
-                # exception inside the handler must roll the whole
-                # transaction back, never persist partially mutated queue
-                # state (external review 2026-07-28, N1).
+                # An exception inside the handler must roll the WHOLE
+                # transaction back — the DB via rollback(), and the
+                # in-memory mirrors via snapshot restore — never persist
+                # partially mutated queue state (external review
+                # 2026-07-28, N1 + self-review follow-up).
                 conn.rollback()
+                q._items = items_snapshot
+                _ITEM_TENANT.clear()
+                _ITEM_TENANT.update(tenant_snapshot)
                 raise
             else:
                 conn.execute(

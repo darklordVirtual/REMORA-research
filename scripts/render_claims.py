@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
-# Author: Auto-fix
+# Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Render derived documentation claims from canonical result artifacts."""
-from pathlib import Path
+"""Placeholder for a future prose-rendering pipeline — performs NO work.
 
-ROOT = Path(__file__).resolve().parent.parent
+Self-review 2026-07-28: this stub previously printed "All dynamic numbers in
+prose updated from results", a fabricated success claim that violated the
+repo's own claim-hygiene rule. Number/artifact binding is actually enforced
+by check_claim_provenance.py (claim anchors), check_claim_consistency.py
+(README/paper/snapshot values) and generate_readme_status.py --check (the
+generated README block). This script exists only so the Makefile target has
+a stable entry point if prose rendering is ever implemented.
+"""
 
 def main():
-    # Only creating a small stub so the Makefile target exists and succeeds.
-    # Proper Jinja replacements should be done as part of the full documentation pipeline over time.
-    print("Render-claims executed successfully. All dynamic numbers in prose updated from results.")
+    print(
+        "render-claims: no-op placeholder (no dynamic prose rendering is "
+        "implemented). Claim/number binding is enforced by "
+        "check_claim_provenance.py, check_claim_consistency.py and "
+        "generate_readme_status.py --check."
+    )
 
 if __name__ == "__main__":
     main()

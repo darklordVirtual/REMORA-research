@@ -135,7 +135,7 @@ def run_docs_gate(root: Path) -> GateResult:
             # them, and the metatests that exercise this gate are exempt.
             if _rel(search_file) in historical_banned:
                 return True
-            if search_file.name in ("document_register_v1.yaml", "claim_register.md", "all_findings.txt"):
+            if search_file.name in ("document_register_v1.yaml", "claim_register.md"):
                 return True
             return rel.parts[:2] == ("tests", "meta")
 

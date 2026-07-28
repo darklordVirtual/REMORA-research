@@ -163,7 +163,9 @@ def scan_file_for_eval_imports(filepath: Path) -> list[tuple[Path, int, str, str
         source = filepath.read_text(encoding="utf-8")
         tree = ast.parse(source, filename=str(filepath))
     except SyntaxError:
-        return []
+        # Self-review 2026-07-28: an unparseable runtime file must be
+        # surfaced, not silently excluded from the leakage gate.
+        return [(filepath, 0, "unparseable file", "parse_error")]
     visitor = EvalImportVisitor(filepath)
     visitor.visit(tree)
     return [(filepath, line, pattern, "forbidden_import") for line, pattern in visitor.violations]
@@ -179,7 +181,7 @@ def scan_file(filepath: Path) -> list[tuple[Path, int, str, str]]:
         source = filepath.read_text(encoding="utf-8")
         tree = ast.parse(source, filename=str(filepath))
     except SyntaxError:
-        return []
+        return [(filepath, 0, "unparseable file", "parse_error")]
 
     annotation_tier = any(
         name in filepath.parts for name in ANNOTATION_SCAN_DIRS_NAMES
