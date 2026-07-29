@@ -58,9 +58,6 @@ def _cmd_verify(args: argparse.Namespace) -> int:
             argv += ["--json"]
 
         rc: int = mod.main(argv)
-        if getattr(args, "json", False):
-            # main() already printed JSON; annotate with invariants_checked
-            pass
         return rc
 
     # Fallback: inline invariant checks (no eval_pack harness)
@@ -84,7 +81,7 @@ def _inline_verify(args: argparse.Namespace) -> int:
 
     invariants = [
         ("critical_write_escalates", lambda: (
-            engine.decide(obs(action_type="destructive_write", target_environment="prod")).action.value == "ESCALATE"
+            engine.decide(obs(action_type="destructive_write", target_environment="prod")).action.value.upper() == "ESCALATE"
         )),
         ("human_review_on_escalate", lambda: (
             engine.decide(obs(action_type="destructive_write", target_environment="prod")).human_review_required is True
@@ -113,9 +110,9 @@ def _inline_verify(args: argparse.Namespace) -> int:
             "results": results,
         }, indent=2))
     else:
-        print(f"\nREMORA Safety Invariants — {passed_count}/{total}\n")
+        print(f"\nREMORA Safety Invariants - {passed_count}/{total}\n")
         for r in results:
-            print(f"  {'checkmark' if r['passed'] else 'x'} {r['name']}")
+            print(f"  {'[ok]  ' if r['passed'] else '[FAIL]'} {r['name']}")
         print()
 
     return 0 if passed_count == total else 1
@@ -131,6 +128,37 @@ def _cmd_maturity(args: argparse.Namespace) -> int:  # noqa: ARG001
     mod = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
     spec.loader.exec_module(mod)  # type: ignore[union-attr]
     mod.main()
+    return 0
+
+
+def _cmd_provenance(args: argparse.Namespace) -> int:
+    """Fingerprint the governance bytes actually running: the composite policy
+    bundle hash, the per-file SHA-256 manifest, and the package version."""
+    from remora.policy.versioning import (
+        compute_policy_bundle_hash,
+        policy_bundle_manifest,
+    )
+    composite = compute_policy_bundle_hash()
+    manifest = policy_bundle_manifest()
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "remora_version": _pkg_version(),
+            "policy_bundle_hash": composite,
+            "policy_bundle_manifest": manifest,
+        }, indent=2))
+        return 0
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    print()
+    _header(ink, "POLICY PROVENANCE")
+    print("    " + ink("remora version:     ", "dim") + _pkg_version())
+    print("    " + ink("policy bundle hash: ", "dim") + ink(composite, "bold"))
+    print()
+    for path, sha in manifest.items():
+        print(f"    {ink(sha[:16], 'cyan')}  {path}")
+    print()
+    print("  " + ink("(SHA-256 over the policy-critical source bytes; "
+                     "deterministic within this checkout)", "dim"))
+    print()
     return 0
 
 
@@ -342,11 +370,38 @@ def _parse_kv_args(pairs: list[str] | None) -> dict:
     return out
 
 
+# Optional verdict -> process exit code (opt-in via --exit-code). Values >= 10
+# dodge argparse's 2 and Python's 1, so a CI job can branch on the verdict.
+_VERDICT_EXIT = {"accept": 0, "verify": 10, "abstain": 20, "escalate": 30}
+
+
+def _verdict_exit_code(decision, enabled: bool) -> int:  # type: ignore[no-untyped-def]
+    if not enabled:
+        return 0
+    return _VERDICT_EXIT.get(decision.action.value.lower(), 40)
+
+
+def _write_envelope(envelope, path: str) -> None:  # type: ignore[no-untyped-def]
+    """Persist the DecisionEnvelope to *path* as JSON (confirmation to stderr,
+    so it never contaminates --json stdout consumed by scripts/tests)."""
+    p = Path(path)
+    if p.parent and not p.parent.exists():
+        p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(envelope.to_dict(), indent=2, default=str), encoding="utf-8")
+    print(f"remora assess: wrote DecisionEnvelope to {p}", file=sys.stderr)
+
+
 def _cmd_assess(args: argparse.Namespace) -> int:
-    if getattr(args, "arguments_json", None):
-        arguments = json.loads(args.arguments_json)
-    else:
-        arguments = _parse_kv_args(getattr(args, "arg", None))
+    try:
+        if getattr(args, "arguments_json", None):
+            arguments = json.loads(args.arguments_json)
+        else:
+            arguments = _parse_kv_args(getattr(args, "arg", None))
+        if not isinstance(arguments, dict):
+            raise ValueError("tool arguments must be a JSON object")
+    except (json.JSONDecodeError, ValueError) as exc:
+        print(f"remora assess: invalid tool arguments: {exc}", file=sys.stderr)
+        return 2
     decision, trace, envelope = _assess(
         args.name,
         arguments,
@@ -356,6 +411,9 @@ def _cmd_assess(args: argparse.Namespace) -> int:
         trust_score=args.trust,
         phase=args.phase,
     )
+    rc = _verdict_exit_code(decision, getattr(args, "exit_code", False))
+    if getattr(args, "envelope_out", None):
+        _write_envelope(envelope, args.envelope_out)
     if getattr(args, "json", False):
         out: dict = {
             "decision": _decision_dict(decision),
@@ -369,11 +427,11 @@ def _cmd_assess(args: argparse.Namespace) -> int:
         if getattr(args, "envelope", False):
             out["envelope"] = envelope.to_dict()
         print(json.dumps(out, indent=2, default=str))
-        return 0
+        return rc
     ink = _make_ink(False if getattr(args, "no_color", False) else None)
     print()
     _header(ink, "TOOL CALL")
-    print("    " + ink(f"{args.name}({json.dumps(arguments, default=str)})", "white", "bold"))
+    print("    " + ink(_ascii(f"{args.name}({json.dumps(arguments, default=str)})"), "white", "bold"))
     print("    " + ink(
         f"risk: {args.risk or 'unset'}    type: {args.action_type or 'unset'}    "
         f"env: {args.target_env}", "dim"))
@@ -386,10 +444,10 @@ def _cmd_assess(args: argparse.Namespace) -> int:
         print("  " + ink("(add --envelope to print the full auditable DecisionEnvelope)", "dim"))
     print("  " + ink(f"({_DECISION_NOTE})", "dim"))
     print()
-    return 0
+    return rc
 
 
-# Preset tool calls for the interactive menu: (label, kwargs for _decide_tool_call).
+# Preset tool calls for the interactive menu: (label, kwargs for _assess).
 # The read/deploy presets carry a trust_score/phase to stand in for a
 # high-agreement oracle consensus so the ACCEPT path is demonstrable offline.
 _TRY_PRESETS = [
@@ -495,11 +553,27 @@ def _cmd_try(args: argparse.Namespace) -> int:
     return 0
 
 
+_MAIN_EPILOG = """\
+examples:
+  python -m remora try
+  python -m remora assess --name drop_database --risk critical --action-type destructive_write
+  python -m remora assess --name deploy --arg env=staging --risk medium --json
+  python -m remora assess --name drop_database --risk critical --exit-code   # exit 30 on ESCALATE
+  python -m remora assess --name drop_database --risk critical --envelope-out env.json
+  python -m remora provenance
+  python -m remora verify --json
+"""
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="remora",
-        description="REMORA CLI — formal safety verification and governance tooling",
+        description="REMORA CLI - formal safety verification and governance tooling",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=_MAIN_EPILOG,
     )
+    parser.add_argument(
+        "--version", "-V", action="version", version=f"remora {_pkg_version()}")
     sub = parser.add_subparsers(dest="command")
 
     try_p = sub.add_parser("try", help="Interactive menu: send a tool call, get a verdict")
@@ -508,10 +582,11 @@ def main(argv: list[str] | None = None) -> int:
     assess_p = sub.add_parser(
         "assess", help="Assess one tool call (scriptable; --json for CI)")
     assess_p.add_argument("--name", required=True, help="Tool / action name")
-    assess_p.add_argument(
+    arg_group = assess_p.add_mutually_exclusive_group()
+    arg_group.add_argument(
         "--arg", action="append", metavar="KEY=VALUE",
         help="Tool argument (repeatable; values are JSON-decoded)")
-    assess_p.add_argument(
+    arg_group.add_argument(
         "--arguments-json", help="Full tool arguments as a JSON object string")
     assess_p.add_argument(
         "--risk", choices=["low", "medium", "high", "critical"], help="Risk tier")
@@ -525,8 +600,20 @@ def main(argv: list[str] | None = None) -> int:
     assess_p.add_argument(
         "--envelope", action="store_true",
         help="Also print/emit the full auditable DecisionEnvelope")
+    assess_p.add_argument(
+        "--envelope-out", metavar="PATH",
+        help="Write the DecisionEnvelope JSON to PATH (audit artifact)")
+    assess_p.add_argument(
+        "--exit-code", action="store_true",
+        help="Map the verdict to the exit code "
+             "(accept=0, verify=10, abstain=20, escalate=30)")
     assess_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
     assess_p.add_argument("--json", action="store_true", help="JSON output")
+
+    prov_p = sub.add_parser(
+        "provenance", help="Show the policy bundle hash + per-file manifest + version")
+    prov_p.add_argument("--json", action="store_true", help="JSON output")
+    prov_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
 
     verify_p = sub.add_parser("verify", help="Run formal safety invariant verification")
     verify_p.add_argument("--json", action="store_true", help="JSON output for CI")
@@ -540,12 +627,19 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_try(args)
     if args.command == "assess":
         return _cmd_assess(args)
+    if args.command == "provenance":
+        return _cmd_provenance(args)
     if args.command == "verify":
         return _cmd_verify(args)
     if args.command == "maturity":
         return _cmd_maturity(args)
 
     parser.print_help()
+    if getattr(sys.stdout, "isatty", lambda: False)():
+        ink = _make_ink()
+        print()
+        print("  " + ink("New here? Try:  ", "dim")
+              + ink("python -m remora try", "cyan", "bold"))
     return 0
 
 

@@ -117,6 +117,75 @@ def test_remora_try_menu_shows_envelope_on_e():
     assert "\"gate\"" in r.stdout or "gate" in r.stdout
 
 
+def test_remora_version_flag():
+    r = _assess("--version")
+    assert r.returncode == 0
+    assert "remora" in r.stdout.lower()
+    assert any(ch.isdigit() for ch in r.stdout)
+
+
+def test_remora_assess_exit_code_maps_verdict():
+    esc = _assess("assess", "--name", "drop_database", "--risk", "critical",
+                  "--action-type", "destructive_write", "--exit-code", "--json")
+    assert esc.returncode == 30, esc.stderr
+    acc = _assess("assess", "--name", "read_file", "--risk", "low", "--action-type",
+                  "read", "--trust", "0.9", "--phase", "ordered", "--exit-code", "--json")
+    assert acc.returncode == 0, acc.stderr
+    plain = _assess("assess", "--name", "drop_database", "--risk", "critical",
+                    "--action-type", "destructive_write", "--json")
+    assert plain.returncode == 0  # exit-code is opt-in
+
+
+def test_remora_provenance_json():
+    r = _assess("provenance", "--json")
+    assert r.returncode == 0, r.stderr
+    d = json.loads(r.stdout)
+    assert len(d["policy_bundle_hash"]) == 64
+    assert len(d["policy_bundle_manifest"]) == 7
+    assert "remora_version" in d
+
+
+def test_remora_assess_bad_json_is_clean_error_not_traceback():
+    r = _assess("assess", "--name", "x", "--arguments-json", '{"a":}')
+    assert r.returncode == 2
+    assert "Traceback" not in r.stderr
+    assert "invalid tool arguments" in r.stderr
+
+
+def test_remora_assess_arg_and_arguments_json_are_mutually_exclusive():
+    r = _assess("assess", "--name", "x", "--arg", "a=1", "--arguments-json", "{}")
+    assert r.returncode == 2  # argparse conflict, never silently drops --arg
+
+
+def test_remora_assess_envelope_out_writes_audit_artifact(tmp_path):
+    out = tmp_path / "env.json"
+    r = _assess("assess", "--name", "drop_database", "--risk", "critical",
+                "--action-type", "destructive_write", "--envelope-out", str(out), "--json")
+    assert r.returncode == 0, r.stderr
+    assert out.exists()
+    env = json.loads(out.read_text(encoding="utf-8"))
+    assert env["gate"]["outcome"] == "escalate"
+    assert env["audit"]["hash"]
+
+
+def test_inline_verify_uses_ascii_marker_and_all_invariants_pass():
+    """The eval_pack-less fallback must print an ASCII marker (not the literal
+    word 'checkmark') and all invariants must pass (case-correct comparison)."""
+    import argparse
+    import contextlib
+    import io
+
+    from remora.cli import _inline_verify
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = _inline_verify(argparse.Namespace(json=False))
+    out = buf.getvalue()
+    assert "checkmark" not in out
+    assert "[ok]" in out
+    assert rc == 0
+
+
 def test_remora_maturity_exits_zero():
     """remora maturity should run without error."""
     result = subprocess.run(
