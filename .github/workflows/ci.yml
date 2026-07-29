@@ -232,6 +232,12 @@ jobs:
         # register state, README stays under its line budget.
         run: python scripts/check_document_governance.py
 
+      - name: Paper sync gate (.md / .tex / PDF coherent)
+        # remora_paper.md is the version authority; the .tex (which compiles
+        # the PDF) must carry the same version+revision and no stale process
+        # claims. Prevents the .tex/.pdf silently diverging from the .md/code.
+        run: python scripts/check_paper_sync.py
+
       - name: Experiment manifests (lifecycle + provenance coverage)
         # Malformed manifests fail; missing manifests/sidecars are advisory.
         # Spec: docs/assurance/experiment_manifest_spec_v1.md

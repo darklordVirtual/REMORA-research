@@ -2,7 +2,16 @@
 
 **Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA](https://github.com/darklordVirtual/REMORA)
 
-*Paper version v0.10.0, versioned in lockstep with the repository review tag (current: `review-v1`).*
+*Paper version v0.10.0 · revision 2026-07-29 (synchronized with repository code) · repository review tag `review-v1`.*
+
+<!-- PAPER_SYNC: this version + revision line is the single authority for the
+     paper's version stamp. scripts/check_paper_sync.py requires the SAME
+     "v0.10.0" and "revision 2026-07-29" strings to appear in paper/remora_paper.tex
+     (which compiles the PDF), so the .md, .tex and .pdf can never diverge on
+     version, date, or the guarded process claims again. To revise the paper:
+     bump both strings here, mirror them in the .tex \paperversion/\date, and
+     the gate confirms all three artifacts agree. -->
+
 
 *License: this preprint is part of the REMORA Licensed Work under the Business Source License 1.1 (source-available). Commercial use requires a separate REMORA Commercial License from the Licensor, Stian Skogbrott (support@luftfiber.no). Third-party datasets remain under their own terms; see THIRD_PARTY_NOTICES.md.*
 
@@ -867,7 +876,7 @@ AROMER's MetaJudge (§Appendix F) uses Cloudflare Workers AI LLMs (the same mode
 
 ### 13.10 Causal PS Enrichment: Implemented, Not Yet Deployed in Live Pipeline (Active)
 
-REMORA integrates a PS (probability of sufficiency) causal enrichment module (Bjøru 2026, §4.2.2) in `remora/causal/attribution.py`. As of v0.2.1-experimental, **66 blocking/verifying episodes** carry PS causal enrichment data, published via a one-time batch enrichment script in the implementation repository. The module is unit-tested and correct. The **live pipeline integration**, automatic PS enrichment of new governance episodes as they are created, has not been deployed; new episodes accumulate without causal enrichment. The §6.4 Governance Intelligence Layer description mentions "causal-consequence signals" (blast radius and expected loss), which are heuristic consequence estimates in the governance intelligence enrichment stage: distinct from the formal PS module. The PS module as described in the architecture is an algorithmic design; no empirical results over real governance episodes have been reported for it. Note: Bjøru §4.2.2 defines PS as the primary attribution metric; probability of necessity (PN) is noted there as complementary future work and is not implemented in the current module.
+REMORA integrates a PS (probability of sufficiency) causal enrichment module (Bjøru 2026, §4.2.2) in `remora/causal/attribution.py`. As of v0.2.1-experimental, **66 blocking/verifying episodes** carry PS causal enrichment data, published via a one-time batch enrichment script in the implementation repository. The module is unit-tested and correct. The **live pipeline integration**, automatic PS enrichment of new governance episodes as they are created, has not been deployed; new episodes accumulate without causal enrichment. The §6.4 Governance Intelligence Layer description mentions "causal-consequence signals" (blast radius and expected loss), which are heuristic consequence estimates in the governance intelligence enrichment stage: distinct from the formal PS module. The PS module as described in the architecture is an algorithmic design; no empirical results over real governance episodes have been reported for it. Note: Bjøru §4.2.2 defines PS as the primary attribution metric; probability of necessity (PN) is also computed in the module (`remora/causal/search.py`, aggregated as `mean_pn`/`n_necessary` in `remora/causal/attribution.py`), though — like PS — no empirical results over real governance episodes have been reported for it yet.
 
 ### 13.11 No Human-Grounded Evaluation of Explanations (Active)
 

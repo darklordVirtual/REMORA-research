@@ -72,6 +72,8 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_no_overclaims.py
 	@echo "\n-- Claim sync across README / paper / claim ledger --"
 	$(PYTHON) scripts/check_claim_sync.py
+	@echo "\n-- Paper sync (.md / .tex / PDF version + process claims) --"
+	$(PYTHON) scripts/check_paper_sync.py
 	@echo "\n-- Script metadata and source hygiene --"
 	$(PYTHON) scripts/check_script_hygiene.py
 	@echo "\n-- Internal README link integrity --"
