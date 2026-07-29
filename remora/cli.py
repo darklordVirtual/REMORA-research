@@ -22,13 +22,17 @@ Usage
 
 `try` and `assess` run the deterministic governance decision (hard blocks +
 admission firewall + risk routing + fail-closed defaults) with NO API keys and
-NO live oracles. Live multi-oracle consensus (trust/phase signals) runs via the
-API server (`/v1/assess`); pass `--trust`/`--phase` to stand in for it here.
+NO live oracles, and show three things straight from the production code paths:
+the verdict (`decide`), WHY it was reached (`explain` -> decision path + fired
+rules), and the full auditable `DecisionEnvelope` (`--envelope`, or `[e]` in the
+menu). Live multi-oracle consensus (trust/phase signals) runs via the API
+server (`/v1/assess`); pass `--trust`/`--phase` to stand in for it here.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -136,7 +140,7 @@ _DECISION_NOTE = (
 )
 
 
-def _decide_tool_call(
+def _assess(
     name: str,
     arguments: dict,
     *,
@@ -146,13 +150,19 @@ def _decide_tool_call(
     trust_score: float | None = None,
     phase: str | None = None,
 ):
-    """Run one tool call through the real policy engine + admission firewall.
+    """Run one tool call through the real engine; return ``(decision, trace,
+    envelope)``.
 
-    Deterministic: no oracles, no API keys. ``trust_score``/``phase`` stand in
+    Uses the production code paths end to end: the admission firewall
+    (``detect_adversarial``), ``RemoraDecisionEngine.decide`` for the verdict,
+    ``.explain`` for the rule-by-rule reasoning trace, and
+    ``build_decision_envelope`` for the canonical auditable envelope.
+    Deterministic - no oracles, no API keys; ``trust_score``/``phase`` stand in
     for live multi-oracle consensus when supplied.
     """
     from remora.policy.decision_engine import RemoraDecisionEngine
     from remora.policy.observation import PolicyObservation
+    from remora.reporting import build_decision_envelope
     from remora.safety.adversarial import detect_adversarial
 
     probe = f"{name} {json.dumps(arguments, sort_keys=True, default=str)}"
@@ -166,7 +176,11 @@ def _decide_tool_call(
         phase=phase,
         adversarial_detected=detect_adversarial(probe),
     )
-    return RemoraDecisionEngine().decide(obs)
+    engine = RemoraDecisionEngine()
+    decision = engine.decide(obs)
+    trace = engine.explain(obs)
+    envelope = build_decision_envelope(obs, decision, question=obs.question)
+    return decision, trace, envelope
 
 
 _ASCII_MAP = {
@@ -185,6 +199,101 @@ def _ascii(text: str | None) -> str:
     return text
 
 
+# -- Presentation: ANSI colour + ASCII frames (auto-off when piped/NO_COLOR) --
+_ANSI = {
+    "reset": "0", "bold": "1", "dim": "2", "reverse": "7",
+    "red": "91", "green": "92", "yellow": "93", "blue": "94",
+    "magenta": "95", "cyan": "96", "white": "97", "grey": "90",
+}
+
+
+class _Ink:
+    """Minimal ANSI styler; a transparent no-op when colour is disabled."""
+
+    def __init__(self, enabled: bool) -> None:
+        self.enabled = enabled
+
+    def __call__(self, text: str, *styles: str) -> str:
+        if not self.enabled or not styles:
+            return text
+        codes = ";".join(_ANSI[s] for s in styles if s in _ANSI)
+        return f"\033[{codes}m{text}\033[0m" if codes else text
+
+
+def _make_ink(force: bool | None = None) -> _Ink:
+    """Colour on for an interactive TTY; off when piped, NO_COLOR, or
+    --no-color - so a live demo is vivid while scripts and CI get clean text."""
+    if force is True:
+        enabled = True
+    elif force is False or os.environ.get("NO_COLOR"):
+        enabled = False
+    else:
+        enabled = bool(getattr(sys.stdout, "isatty", lambda: False)())
+    if enabled:
+        try:  # make ANSI work on legacy Windows consoles if colorama is present
+            import colorama
+            colorama.just_fix_windows_console()
+        except Exception:
+            pass
+    return _Ink(enabled)
+
+
+_WIDTH = 64
+
+_BANNER = r"""
+  ____  _____ __  __  ___  ____      _
+ |  _ \| ____|  \/  |/ _ \|  _ \    / \
+ | |_) |  _| | |\/| | | | | |_) |  / _ \
+ |  _ <| |___| |  | | |_| |  _ <  / ___ \
+ |_| \_\_____|_|  |_|\___/|_| \_\/_/   \_\
+""".strip("\n")
+
+
+def _pkg_version() -> str:
+    try:
+        from importlib.metadata import version
+        return version("remora")
+    except Exception:
+        return "0.10.0"
+
+
+def _banner(ink: _Ink) -> None:
+    print()
+    for line in _BANNER.splitlines():
+        print(ink(line, "cyan", "bold"))
+    print("  " + ink(f"Governed Autonomy Gate   v{_pkg_version()}   ", "dim")
+          + ink(" SHADOW_ONLY ", "yellow", "bold", "reverse"))
+    print("  " + ink("Send a tool call; get an auditable ACCEPT / VERIFY / "
+                     "ABSTAIN / ESCALATE.", "dim"))
+    print()
+
+
+def _header(ink: _Ink, title: str, style: str = "cyan") -> None:
+    bar = "+" + "-" * (_WIDTH - 2) + "+"
+    print(ink("  " + bar, style))
+    print(ink("  | " + title.ljust(_WIDTH - 3) + "|", style, "bold"))
+    print(ink("  " + bar, style))
+
+
+_VERDICT_STYLE = {
+    "accept": "green", "verify": "yellow", "abstain": "cyan", "escalate": "red",
+}
+
+
+def _badge(ink: _Ink, action: str) -> str:
+    style = _VERDICT_STYLE.get(action.lower(), "white")
+    return ink(f" {action.upper()} ", style, "bold", "reverse")
+
+
+def _print_envelope(envelope, ink: _Ink) -> None:  # type: ignore[no-untyped-def]
+    """Pretty-print the canonical DecisionEnvelope - the audit contract."""
+    _header(ink, "DECISION ENVELOPE  (audit contract)")
+    payload = envelope.to_dict() if hasattr(envelope, "to_dict") else envelope
+    for line in json.dumps(payload, indent=2, default=str).splitlines():
+        print("    " + ink(line, "grey"))
+    print()
+
+
 def _decision_dict(decision) -> dict:  # type: ignore[no-untyped-def]
     return {
         "action": decision.action.value,
@@ -198,17 +307,25 @@ def _decision_dict(decision) -> dict:  # type: ignore[no-untyped-def]
     }
 
 
-def _print_decision(decision) -> None:  # type: ignore[no-untyped-def]
+def _print_decision(decision, trace=None, ink: _Ink | None = None) -> None:  # type: ignore[no-untyped-def]
+    ink = ink or _Ink(False)
     d = _decision_dict(decision)
-    print(f"  -> {d['action']}")
+    print(f"    {ink('VERDICT', 'bold')}    {_badge(ink, d['action'])}")
+    print()
+    # What led to the decision - the real explain() reasoning trace.
+    path = getattr(trace, "decision_path", None)
+    if path:
+        print("    " + ink("why:  ", "dim") + ink(_ascii(path), "bold"))
+    fired = [r.rule for r in getattr(trace, "rule_evaluations", []) if getattr(r, "triggered", False)]
+    if fired:
+        shown = ", ".join(fired[:6]) + (" ..." if len(fired) > 6 else "")
+        print("    " + ink("rules:", "dim") + " " + shown)
     if d["human_review_required"]:
-        print("     human review required")
+        print("    " + ink("!", "red", "bold") + " human review required")
     if d["evidence_required"]:
-        print("     evidence required before this could be accepted")
-    if d["reasons"]:
-        print(f"     reasons: {', '.join(d['reasons'])}")
+        print("    " + ink("!", "yellow", "bold") + " evidence required before ACCEPT is possible")
     if d["explanation"]:
-        print(f"     {_ascii(d['explanation'])}")
+        print("    " + ink("> " + _ascii(d["explanation"]), "dim"))
 
 
 def _parse_kv_args(pairs: list[str] | None) -> dict:
@@ -230,7 +347,7 @@ def _cmd_assess(args: argparse.Namespace) -> int:
         arguments = json.loads(args.arguments_json)
     else:
         arguments = _parse_kv_args(getattr(args, "arg", None))
-    decision = _decide_tool_call(
+    decision, trace, envelope = _assess(
         args.name,
         arguments,
         risk_tier=args.risk,
@@ -240,12 +357,35 @@ def _cmd_assess(args: argparse.Namespace) -> int:
         phase=args.phase,
     )
     if getattr(args, "json", False):
-        print(json.dumps(_decision_dict(decision), indent=2))
+        out: dict = {
+            "decision": _decision_dict(decision),
+            "trace": {
+                "decision_path": trace.decision_path,
+                "triggered_rules": [
+                    r.rule for r in trace.rule_evaluations if r.triggered
+                ],
+            },
+        }
+        if getattr(args, "envelope", False):
+            out["envelope"] = envelope.to_dict()
+        print(json.dumps(out, indent=2, default=str))
+        return 0
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    print()
+    _header(ink, "TOOL CALL")
+    print("    " + ink(f"{args.name}({json.dumps(arguments, default=str)})", "white", "bold"))
+    print("    " + ink(
+        f"risk: {args.risk or 'unset'}    type: {args.action_type or 'unset'}    "
+        f"env: {args.target_env}", "dim"))
+    print()
+    _print_decision(decision, trace, ink)
+    print()
+    if getattr(args, "envelope", False):
+        _print_envelope(envelope, ink)
     else:
-        print(f"\n{args.name}({json.dumps(arguments, default=str)})  "
-              f"[risk={args.risk or 'unset'}, env={args.target_env}]")
-        _print_decision(decision)
-        print(f"\n  ({_DECISION_NOTE})\n")
+        print("  " + ink("(add --envelope to print the full auditable DecisionEnvelope)", "dim"))
+    print("  " + ink(f"({_DECISION_NOTE})", "dim"))
+    print()
     return 0
 
 
@@ -253,19 +393,19 @@ def _cmd_assess(args: argparse.Namespace) -> int:
 # The read/deploy presets carry a trust_score/phase to stand in for a
 # high-agreement oracle consensus so the ACCEPT path is demonstrable offline.
 _TRY_PRESETS = [
-    ("Read a config file (low risk, read-only)", dict(
+    ("Read a config file", dict(
         name="read_file", arguments={"path": "/etc/app/config.yaml"},
         risk_tier="low", action_type="read", target_environment="staging",
         trust_score=0.9, phase="ordered")),
-    ("Deploy version 1.4.2 to staging (medium risk)", dict(
+    ("Deploy v1.4.2 to staging", dict(
         name="deploy", arguments={"env": "staging", "version": "1.4.2"},
         risk_tier="medium", action_type="deploy", target_environment="staging",
         trust_score=0.8, phase="ordered")),
-    ("Drop the production database (critical, destructive)", dict(
+    ("Drop the production database", dict(
         name="drop_database", arguments={"db": "prod-main"},
         risk_tier="critical", action_type="destructive_write",
         target_environment="prod")),
-    ("Wire $50,000 to a new payee (high risk, financial)", dict(
+    ("Wire $50,000 to a new payee", dict(
         name="wire_transfer", arguments={"amount_usd": 50000, "payee": "new-vendor"},
         risk_tier="high", action_type="financial_transaction",
         target_environment="prod")),
@@ -276,14 +416,18 @@ _TRY_PRESETS = [
 ]
 
 
-def _print_try_menu() -> None:
-    print("\n=== REMORA - send a tool call, get a governance verdict ===")
-    print(f"({_DECISION_NOTE})\n")
-    for i, (label, _) in enumerate(_TRY_PRESETS, start=1):
-        print(f"  {i}) {label}")
-    print("  c) Enter your own action")
-    print("  m) Show this menu again")
-    print("  q) Quit\n")
+def _print_try_menu(ink: _Ink) -> None:
+    _header(ink, "SEND A TOOL CALL  ->  WATCH REMORA DECIDE")
+    print()
+    for i, (label, kwargs) in enumerate(_TRY_PRESETS, start=1):
+        tag = f"({kwargs.get('risk_tier', '?')}, {kwargs.get('action_type', '?')})"
+        print(f"    {ink('[' + str(i) + ']', 'cyan', 'bold')}  {label} {ink(tag, 'dim')}")
+    print()
+    print("    " + ink("[c]", "cyan", "bold") + " your own    "
+          + ink("[e]", "cyan", "bold") + " last envelope    "
+          + ink("[m]", "cyan", "bold") + " menu    "
+          + ink("[q]", "cyan", "bold") + " quit")
+    print()
 
 
 def _read(prompt: str) -> str | None:
@@ -293,47 +437,61 @@ def _read(prompt: str) -> str | None:
         return None
 
 
-def _try_custom() -> None:
+def _try_custom(ink: _Ink):
     name = _read("  Action / tool name: ")
     if not name:
-        return
+        return None
     risk = (_read("  Risk tier [low/medium/high/critical] (blank=unset): ") or "").strip() or None
     if risk and risk not in {"low", "medium", "high", "critical"}:
         print(f"  (unrecognised risk {risk!r} - treating as unset)")
         risk = None
     action_type = (_read("  Action type (e.g. read/deploy/destructive_write) [read]: ") or "").strip() or "read"
     target_env = (_read("  Target environment [prod]: ") or "").strip() or "prod"
-    decision = _decide_tool_call(
+    result = _assess(
         name.strip(), {"_freeform": name.strip()},
         risk_tier=risk, action_type=action_type, target_environment=target_env,
     )
-    _print_decision(decision)
+    print()
+    _print_decision(result[0], result[1], ink=ink)
+    print("    " + ink("[e] show this decision's audit envelope", "dim"))
+    return result
 
 
-def _cmd_try(args: argparse.Namespace) -> int:  # noqa: ARG001
-    _print_try_menu()
+def _cmd_try(args: argparse.Namespace) -> int:
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    _banner(ink)
+    _print_try_menu(ink)
+    last = None
     while True:
-        choice = _read("> ")
+        choice = _read(ink("> ", "cyan", "bold"))
         if choice is None:
             break
         choice = choice.strip().lower()
         if choice in {"q", "quit", "exit"}:
             break
         if choice in {"m", "menu", "help"}:
-            _print_try_menu()
+            _print_try_menu(ink)
+            continue
+        if choice in {"e", "envelope"}:
+            if last is None:
+                print("    " + ink("(assess something first, then 'e' shows its audit envelope)", "dim"))
+            else:
+                _print_envelope(last[2], ink)
             continue
         if choice in {"c", "custom", "own"}:
-            _try_custom()
+            last = _try_custom(ink) or last
             continue
         if choice.isdigit() and 1 <= int(choice) <= len(_TRY_PRESETS):
             label, kwargs = _TRY_PRESETS[int(choice) - 1]
-            print(f"\n  {label}")
-            _print_decision(_decide_tool_call(**kwargs))
+            print("\n    " + ink(label, "bold"))
+            last = _assess(**kwargs)
+            _print_decision(last[0], last[1], ink=ink)
+            print("    " + ink("[e] show this decision's audit envelope", "dim"))
             continue
         if choice == "":
             continue
-        print("  (pick 1-5, c, m, or q)")
-    print("bye")
+        print("    " + ink("(pick 1-5, e, c, m, or q)", "dim"))
+    print("  " + ink("bye", "dim"))
     return 0
 
 
@@ -344,7 +502,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("try", help="Interactive menu: send a tool call, get a verdict")
+    try_p = sub.add_parser("try", help="Interactive menu: send a tool call, get a verdict")
+    try_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
 
     assess_p = sub.add_parser(
         "assess", help="Assess one tool call (scriptable; --json for CI)")
@@ -363,6 +522,10 @@ def main(argv: list[str] | None = None) -> int:
     assess_p.add_argument(
         "--phase", choices=["ordered", "critical", "disordered"],
         help="Stand-in consensus phase (optional)")
+    assess_p.add_argument(
+        "--envelope", action="store_true",
+        help="Also print/emit the full auditable DecisionEnvelope")
+    assess_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
     assess_p.add_argument("--json", action="store_true", help="JSON output")
 
     verify_p = sub.add_parser("verify", help="Run formal safety invariant verification")

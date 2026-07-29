@@ -99,7 +99,7 @@ python -m pytest tests/test_decision_envelope_v2.py tests/test_policy_decision_e
 python scripts/demo_industrial_maintenance.py   # end-to-end governance demo (dry-run)
 ```
 
-`python -m remora try` / `assess` run the deterministic governance decision (hard blocks + admission firewall + risk routing + fail-closed defaults) with no API keys — a critical destructive prod write ESCALATEs, a prompt-injection payload is blocked at the firewall, a low-risk read with a high trust signal is ACCEPTed. Live multi-oracle consensus runs via the API server (`/v1/assess`).
+`python -m remora try` / `assess` run the deterministic governance decision (hard blocks + admission firewall + risk routing + fail-closed defaults) with no API keys — a critical destructive prod write ESCALATEs, a prompt-injection payload is blocked at the firewall, a low-risk read with a high trust signal is ACCEPTed. Each result shows the verdict, **why** it was reached (the `explain()` decision path + fired rules), and — with `--envelope` (or `[e]` in the menu) — the full auditable `DecisionEnvelope`. Live multi-oracle consensus runs via the API server (`/v1/assess`).
 
 On systems with GNU make installed, `make test` / `make test-core` / `make audit` are convenience shortcuts for the commands above (`make help` lists every target; the Makefile assumes `python` and `ruff` are on `PATH`).
 

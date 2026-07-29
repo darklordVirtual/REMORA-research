@@ -56,8 +56,8 @@ def test_remora_assess_critical_destructive_escalates():
                 "--action-type", "destructive_write", "--target-env", "prod", "--json")
     assert r.returncode == 0, r.stderr
     data = json.loads(r.stdout)
-    assert data["action"] == "escalate"
-    assert data["human_review_required"] is True
+    assert data["decision"]["action"] == "escalate"
+    assert data["decision"]["human_review_required"] is True
 
 
 def test_remora_assess_accepts_low_risk_read_with_trust():
@@ -66,7 +66,7 @@ def test_remora_assess_accepts_low_risk_read_with_trust():
                 "--risk", "low", "--action-type", "read", "--target-env", "staging",
                 "--trust", "0.9", "--phase", "ordered", "--json")
     assert r.returncode == 0, r.stderr
-    assert json.loads(r.stdout)["action"] == "accept"
+    assert json.loads(r.stdout)["decision"]["action"] == "accept"
 
 
 def test_remora_assess_prompt_injection_is_blocked():
@@ -76,8 +76,30 @@ def test_remora_assess_prompt_injection_is_blocked():
                 "--risk", "high", "--action-type", "execute", "--json")
     assert r.returncode == 0, r.stderr
     data = json.loads(r.stdout)
-    assert data["action"] == "escalate"
-    assert "admission_firewall_blocked" in data["reasons"]
+    assert data["decision"]["action"] == "escalate"
+    assert "admission_firewall_blocked" in data["decision"]["reasons"]
+
+
+def test_remora_assess_json_includes_reasoning_trace():
+    """--json surfaces the explain() reasoning: decision_path + triggered rules."""
+    r = _assess("assess", "--name", "drop_database", "--risk", "critical",
+                "--action-type", "destructive_write", "--json")
+    assert r.returncode == 0, r.stderr
+    trace = json.loads(r.stdout)["trace"]
+    assert "ESCALATE" in trace["decision_path"]
+    assert "production_write_high_or_critical" in trace["triggered_rules"]
+
+
+def test_remora_assess_envelope_is_full_audit_contract():
+    """--envelope --json emits the canonical DecisionEnvelope with its blocks."""
+    r = _assess("assess", "--name", "drop_database", "--risk", "critical",
+                "--action-type", "destructive_write", "--json", "--envelope")
+    assert r.returncode == 0, r.stderr
+    env = json.loads(r.stdout)["envelope"]
+    for block in ("request", "assessment", "gate", "audit"):
+        assert block in env, f"envelope missing {block} block"
+    assert env["gate"]["outcome"] == "escalate"
+    assert env["audit"]["hash"]
 
 
 def test_remora_try_menu_runs_and_escalates_preset():
@@ -85,6 +107,14 @@ def test_remora_try_menu_runs_and_escalates_preset():
     r = _assess("try", stdin="3\nq\n")
     assert r.returncode == 0, r.stderr
     assert "escalate" in r.stdout.lower()
+
+
+def test_remora_try_menu_shows_envelope_on_e():
+    """Selecting a preset then 'e' prints the audit envelope in the menu."""
+    r = _assess("try", stdin="3\ne\nq\n")
+    assert r.returncode == 0, r.stderr
+    assert "DECISION ENVELOPE" in r.stdout
+    assert "\"gate\"" in r.stdout or "gate" in r.stdout
 
 
 def test_remora_maturity_exits_zero():
