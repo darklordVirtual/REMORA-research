@@ -6,16 +6,21 @@
 Commands
 --------
     remora try                  Interactive menu: send a tool call, get a verdict
-    remora assess --name X ...  Assess one tool call (scriptable; --json for CI)
+    remora try 3                Run preset 3 non-interactively and exit
+    remora demo                 Eight-scenario governance walkthrough (offline)
+    remora assess NAME ...      Assess one tool call (scriptable; --json for CI)
+    remora explain NAME ...     Full rule-by-rule reasoning trace
+    remora replay LOG.jsonl     Shadow-Mode counterfactual batch replay
     remora verify               Run all safety invariant checks
     remora verify --json        JSON output for CI integration
     remora verify --scenario X  Run only scenario X
+    remora provenance           Policy bundle hash + per-file manifest
     remora maturity             Show module stability maturity report
 
 Usage
 -----
     python -m remora try
-    python -m remora assess --name drop_database --risk critical \
+    python -m remora assess drop_database --risk critical \
         --action-type destructive_write --target-env prod
     python -m remora.cli verify --json
     python -m remora.cli maturity
@@ -356,6 +361,37 @@ def _print_decision(decision, trace=None, ink: _Ink | None = None) -> None:  # t
         print("    " + ink("> " + _ascii(d["explanation"]), "dim"))
 
 
+def _trust_arg(raw: str) -> float:
+    """argparse type for --trust: a float that must lie within 0..1."""
+    try:
+        value = float(raw)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"not a number: {raw!r}")
+    if not 0.0 <= value <= 1.0:
+        raise argparse.ArgumentTypeError(f"trust must be within 0..1, got {value}")
+    return value
+
+
+def _resolve_tool_name(args: argparse.Namespace, cmd: str) -> str | None:
+    """Resolve the tool name from the positional or --name form (exactly one).
+
+    Prints a clean error and returns None when the invocation is ambiguous or
+    missing the name; callers translate None into exit code 2.
+    """
+    name_flag = getattr(args, "name", None)
+    name_pos = getattr(args, "name_pos", None)
+    if name_flag and name_pos:
+        print(f"remora {cmd}: pass the tool name once (positional or --name, not both)",
+              file=sys.stderr)
+        return None
+    name = name_flag or name_pos
+    if not name:
+        print(f"remora {cmd}: a tool name is required "
+              f"(remora {cmd} <name> or --name <name>)", file=sys.stderr)
+        return None
+    return name
+
+
 def _parse_kv_args(pairs: list[str] | None) -> dict:
     """Parse ``key=value`` pairs; JSON-decode values, falling back to string."""
     out: dict = {}
@@ -392,6 +428,9 @@ def _write_envelope(envelope, path: str) -> None:  # type: ignore[no-untyped-def
 
 
 def _cmd_assess(args: argparse.Namespace) -> int:
+    name = _resolve_tool_name(args, "assess")
+    if name is None:
+        return 2
     try:
         if getattr(args, "arguments_json", None):
             arguments = json.loads(args.arguments_json)
@@ -403,7 +442,7 @@ def _cmd_assess(args: argparse.Namespace) -> int:
         print(f"remora assess: invalid tool arguments: {exc}", file=sys.stderr)
         return 2
     decision, trace, envelope = _assess(
-        args.name,
+        name,
         arguments,
         risk_tier=args.risk,
         action_type=args.action_type,
@@ -431,7 +470,7 @@ def _cmd_assess(args: argparse.Namespace) -> int:
     ink = _make_ink(False if getattr(args, "no_color", False) else None)
     print()
     _header(ink, "TOOL CALL")
-    print("    " + ink(_ascii(f"{args.name}({json.dumps(arguments, default=str)})"), "white", "bold"))
+    print("    " + ink(_ascii(f"{name}({json.dumps(arguments, default=str)})"), "white", "bold"))
     print("    " + ink(
         f"risk: {args.risk or 'unset'}    type: {args.action_type or 'unset'}    "
         f"env: {args.target_env}", "dim"))
@@ -517,6 +556,21 @@ def _try_custom(ink: _Ink):
 
 def _cmd_try(args: argparse.Namespace) -> int:
     ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    preset = getattr(args, "preset", None)
+    if preset is not None:
+        if not preset.isdigit() or not 1 <= int(preset) <= len(_TRY_PRESETS):
+            print(f"remora try: preset must be 1..{len(_TRY_PRESETS)} "
+                  f"(run `remora try` for the menu)", file=sys.stderr)
+            return 2
+        label, kwargs = _TRY_PRESETS[int(preset) - 1]
+        print("\n    " + ink(label, "bold") + "\n")
+        decision, trace, _ = _assess(**kwargs)
+        _print_decision(decision, trace, ink=ink)
+        print()
+        print("  " + ink("(full audit envelope: remora assess <name> ... --envelope)", "dim"))
+        print("  " + ink(f"({_DECISION_NOTE})", "dim"))
+        print()
+        return 0
     _banner(ink)
     _print_try_menu(ink)
     last = None
@@ -555,6 +609,9 @@ def _cmd_try(args: argparse.Namespace) -> int:
 
 def _cmd_explain(args: argparse.Namespace) -> int:
     """Full rule-by-rule reasoning trace (every gate, in order) for one tool call."""
+    name = _resolve_tool_name(args, "explain")
+    if name is None:
+        return 2
     try:
         if getattr(args, "arguments_json", None):
             arguments = json.loads(args.arguments_json)
@@ -566,7 +623,7 @@ def _cmd_explain(args: argparse.Namespace) -> int:
         print(f"remora explain: invalid tool arguments: {exc}", file=sys.stderr)
         return 2
     decision, trace, _ = _assess(
-        args.name, arguments, risk_tier=args.risk, action_type=args.action_type,
+        name, arguments, risk_tier=args.risk, action_type=args.action_type,
         target_environment=args.target_env, trust_score=args.trust, phase=args.phase,
     )
     if getattr(args, "json", False):
@@ -653,6 +710,22 @@ def _cmd_replay(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_demo(args: argparse.Namespace) -> int:
+    """Run the eight-scenario governance walkthrough (examples/quickstart.py)."""
+    script = _ROOT / "examples" / "quickstart.py"
+    if not script.exists():
+        print("remora demo: examples/quickstart.py not found "
+              "(the walkthrough needs a repository checkout)", file=sys.stderr)
+        return 1
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("remora_examples_quickstart", script)
+    mod = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
+    sys.modules["remora_examples_quickstart"] = mod  # dataclass resolution needs it
+    spec.loader.exec_module(mod)  # type: ignore[union-attr]
+    mod.run(fast=getattr(args, "fast", False), no_color=getattr(args, "no_color", False))
+    return 0
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     """Launch the governance REST API (uvicorn). Requires the 'api' extra."""
     try:
@@ -685,17 +758,32 @@ def _cmd_serve(args: argparse.Namespace) -> int:
 
 _MAIN_EPILOG = """\
 examples:
-  python -m remora try
-  python -m remora assess --name drop_database --risk critical --action-type destructive_write
-  python -m remora assess --name deploy --arg env=staging --risk medium --json
-  python -m remora assess --name drop_database --risk critical --exit-code   # exit 30 on ESCALATE
-  python -m remora assess --name drop_database --risk critical --envelope-out env.json
+  python -m remora try                       # interactive menu
+  python -m remora try 3                     # run preset 3 and exit
+  python -m remora demo                      # eight-scenario walkthrough
+  python -m remora assess drop_database --risk critical --action-type destructive_write
+  python -m remora assess deploy --arg env=staging --risk medium --json
+  python -m remora assess drop_database --risk critical --exit-code   # exit 30 on ESCALATE
+  python -m remora assess drop_database --risk critical --envelope-out env.json
+  python -m remora explain deploy --risk medium
+  python -m remora replay artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
   python -m remora provenance
   python -m remora verify --json
 """
 
+_COMMANDS = ("try", "demo", "assess", "explain", "replay", "serve",
+             "provenance", "verify", "maturity")
+
 
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and not argv[0].startswith("-") and argv[0] not in _COMMANDS:
+        import difflib
+        match = difflib.get_close_matches(argv[0], _COMMANDS, n=1, cutoff=0.6)
+        if match:
+            print(f"remora: unknown command {argv[0]!r} - did you mean {match[0]!r}?",
+                  file=sys.stderr)
+            return 2
     parser = argparse.ArgumentParser(
         prog="remora",
         description="REMORA CLI - formal safety verification and governance tooling",
@@ -707,11 +795,22 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command")
 
     try_p = sub.add_parser("try", help="Interactive menu: send a tool call, get a verdict")
+    try_p.add_argument(
+        "preset", nargs="?", default=None, metavar="N",
+        help="Run preset N (1-5) non-interactively and exit")
     try_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
+
+    demo_p = sub.add_parser(
+        "demo", help="Eight-scenario governance walkthrough (offline, no API keys)")
+    demo_p.add_argument("--fast", action="store_true", help="Skip pauses")
+    demo_p.add_argument("--no-color", action="store_true", help="Plain text output")
 
     assess_p = sub.add_parser(
         "assess", help="Assess one tool call (scriptable; --json for CI)")
-    assess_p.add_argument("--name", required=True, help="Tool / action name")
+    assess_p.add_argument(
+        "name_pos", nargs="?", default=None, metavar="NAME",
+        help="Tool / action name")
+    assess_p.add_argument("--name", help="Tool / action name (flag form of the positional)")
     arg_group = assess_p.add_mutually_exclusive_group()
     arg_group.add_argument(
         "--arg", action="append", metavar="KEY=VALUE",
@@ -723,7 +822,7 @@ def main(argv: list[str] | None = None) -> int:
     assess_p.add_argument("--action-type", help="e.g. read / deploy / destructive_write")
     assess_p.add_argument("--target-env", default="prod", help="Target environment [prod]")
     assess_p.add_argument(
-        "--trust", type=float, help="Stand-in oracle trust score 0..1 (optional)")
+        "--trust", type=_trust_arg, help="Stand-in oracle trust score 0..1 (optional)")
     assess_p.add_argument(
         "--phase", choices=["ordered", "critical", "disordered"],
         help="Stand-in consensus phase (optional)")
@@ -742,7 +841,10 @@ def main(argv: list[str] | None = None) -> int:
 
     explain_p = sub.add_parser(
         "explain", help="Full rule-by-rule reasoning trace for one tool call")
-    explain_p.add_argument("--name", required=True, help="Tool / action name")
+    explain_p.add_argument(
+        "name_pos", nargs="?", default=None, metavar="NAME",
+        help="Tool / action name")
+    explain_p.add_argument("--name", help="Tool / action name (flag form of the positional)")
     ex_group = explain_p.add_mutually_exclusive_group()
     ex_group.add_argument(
         "--arg", action="append", metavar="KEY=VALUE",
@@ -753,7 +855,7 @@ def main(argv: list[str] | None = None) -> int:
         "--risk", choices=["low", "medium", "high", "critical"], help="Risk tier")
     explain_p.add_argument("--action-type", help="e.g. read / deploy / destructive_write")
     explain_p.add_argument("--target-env", default="prod", help="Target environment [prod]")
-    explain_p.add_argument("--trust", type=float, help="Stand-in oracle trust score 0..1")
+    explain_p.add_argument("--trust", type=_trust_arg, help="Stand-in oracle trust score 0..1")
     explain_p.add_argument(
         "--phase", choices=["ordered", "critical", "disordered"],
         help="Stand-in consensus phase")
@@ -794,6 +896,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "try":
         return _cmd_try(args)
+    if args.command == "demo":
+        return _cmd_demo(args)
     if args.command == "assess":
         return _cmd_assess(args)
     if args.command == "explain":

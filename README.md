@@ -90,7 +90,7 @@ python -m pip install -e ".[dev]"
 # See what REMORA does: send a tool call, watch it decide (interactive, no API keys):
 python -m remora try
 # ...or assess one action non-interactively:
-python -m remora assess --name drop_database --risk critical --action-type destructive_write
+python -m remora assess drop_database --risk critical --action-type destructive_write
 
 # Tests run cross-platform with no `make` required (Windows / PowerShell included):
 python -m pytest tests/ -q          # full deterministic suite (~3700 tests, no API keys, <1 min)
@@ -99,7 +99,7 @@ python -m pytest tests/test_decision_envelope_v2.py tests/test_policy_decision_e
 python scripts/demo_industrial_maintenance.py   # end-to-end governance demo (dry-run)
 ```
 
-`python -m remora try` / `assess` run the deterministic governance decision (hard blocks + admission firewall + risk routing + fail-closed defaults) with no API keys — a critical destructive prod write ESCALATEs, a prompt-injection payload is blocked at the firewall, a low-risk read with a high trust signal is ACCEPTed. Each result shows the verdict, **why** it was reached (the `explain()` decision path + fired rules), and — with `--envelope` (or `[e]` in the menu) — the full auditable `DecisionEnvelope`. Related commands surface the rest of the stack from the CLI: `remora explain` (full rule-by-rule trace), `remora replay <log.jsonl>` (Shadow-Mode counterfactual batch), `remora provenance` (policy-bundle hash), and `remora serve` (launch the REST API, where live multi-oracle consensus runs).
+`python -m remora try` / `assess` run the deterministic governance decision (hard blocks + admission firewall + risk routing + fail-closed defaults) with no API keys — a critical destructive prod write ESCALATEs, a prompt-injection payload is blocked at the firewall, a low-risk read with a high trust signal is ACCEPTed. Each result shows the verdict, **why** it was reached (the `explain()` decision path + fired rules), and — with `--envelope` (or `[e]` in the menu) — the full auditable `DecisionEnvelope`. Related commands surface the rest of the stack from the CLI: `remora demo` (the eight-scenario governance walkthrough), `remora try 3` (run one preset non-interactively), `remora explain <name>` (full rule-by-rule trace), `remora replay <log.jsonl>` (Shadow-Mode counterfactual batch), `remora provenance` (policy-bundle hash), and `remora serve` (launch the REST API, where live multi-oracle consensus runs).
 
 On systems with GNU make installed, `make test` / `make test-core` / `make audit` are convenience shortcuts for the commands above (`make help` lists every target; the Makefile assumes `python` and `ruff` are on `PATH`).
 

@@ -241,6 +241,91 @@ def test_remora_replay_both_inputs_is_clean_error():
     assert "Traceback" not in r.stderr
 
 
+# -- CLI ergonomics: positional tool name, validation, did-you-mean ----------
+
+
+def test_remora_assess_positional_name():
+    """`remora assess drop_database ...` — no --name flag needed."""
+    r = _assess("assess", "drop_database", "--risk", "critical",
+                "--action-type", "destructive_write", "--json")
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)
+    assert data["decision"]["action"] == "escalate"
+
+
+def test_remora_assess_name_flag_still_works():
+    r = _assess("assess", "--name", "drop_database", "--risk", "critical",
+                "--action-type", "destructive_write", "--json")
+    assert r.returncode == 0, r.stderr
+    assert json.loads(r.stdout)["decision"]["action"] == "escalate"
+
+
+def test_remora_assess_both_name_forms_is_clean_error():
+    r = _assess("assess", "drop_database", "--name", "other")
+    assert r.returncode == 2
+    assert "not both" in r.stderr
+    assert "Traceback" not in r.stderr
+
+
+def test_remora_assess_no_name_is_clean_error():
+    r = _assess("assess", "--risk", "critical")
+    assert r.returncode == 2
+    assert "required" in r.stderr
+    assert "Traceback" not in r.stderr
+
+
+def test_remora_explain_positional_name():
+    r = _assess("explain", "deploy", "--risk", "medium", "--json")
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)
+    assert len(data["rule_evaluations"]) > 10
+
+
+def test_remora_assess_trust_out_of_range_is_clean_error():
+    r = _assess("assess", "drop_database", "--trust", "5.0")
+    assert r.returncode == 2
+    assert "0..1" in r.stderr
+    assert "Traceback" not in r.stderr
+
+
+def test_remora_assess_trust_in_range_accepted():
+    r = _assess("assess", "read_file", "--risk", "low", "--action-type", "read",
+                "--target-env", "staging", "--trust", "0.9", "--json")
+    assert r.returncode == 0, r.stderr
+
+
+def test_remora_mistyped_command_suggests():
+    r = _assess("asses")
+    assert r.returncode == 2
+    assert "assess" in r.stderr
+    assert "did you mean" in r.stderr.lower()
+
+
+# -- `remora demo` and `remora try <n>` --------------------------------------
+
+
+def test_remora_demo_runs_clean():
+    r = _assess("demo", "--fast", "--no-color")
+    assert r.returncode == 0, r.stderr
+    assert "ACCEPT" in r.stdout
+    assert "ESCALATE" in r.stdout
+
+
+def test_remora_try_preset_noninteractive():
+    """`remora try 3` runs the drop-database preset and exits without a menu."""
+    r = _assess("try", "3", "--no-color")
+    assert r.returncode == 0, r.stderr
+    assert "ESCALATE" in r.stdout
+    # Non-interactive: must not sit waiting on stdin (subprocess would hang).
+
+
+def test_remora_try_preset_out_of_range_is_clean_error():
+    r = _assess("try", "9")
+    assert r.returncode == 2
+    assert "1..5" in r.stderr
+    assert "Traceback" not in r.stderr
+
+
 def test_remora_serve_invokes_uvicorn_with_host_port(monkeypatch):
     """serve dispatches to uvicorn with the given host/port (in-process, no bind)."""
     pytest.importorskip("fastapi")  # servers.api import needs it

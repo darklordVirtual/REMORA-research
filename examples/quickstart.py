@@ -27,6 +27,7 @@ except ModuleNotFoundError:
 
 import argparse
 import hashlib
+import sys
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -185,6 +186,10 @@ def _make_envelope(sc: Scenario, action: str, reasons: tuple, hash_val: str) -> 
 # ---------------------------------------------------------------------------
 
 def run(*, fast: bool = False, no_color: bool = False) -> None:
+    # Never crash on a console/pipe that can't encode the demo's typography
+    # (e.g. cp1252 pipes on Windows): degrade unmappable characters instead.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
     console = Console(highlight=False) if (_RICH and not no_color) else None
     engine  = RemoraDecisionEngine()
 
