@@ -626,6 +626,11 @@ class TestPolicyBundleHash:
         manifest = policy_bundle_manifest()
         expected_keys = {
             "remora/policy/decision_engine.py",
+            # thresholds.py + trace.py split out of decision_engine.py
+            # (2026-07-29); added to the bundle so no policy bytes leave hash
+            # coverage.
+            "remora/policy/thresholds.py",
+            "remora/policy/trace.py",
             "remora/policy/invariants.py",
             "remora/policy/observation.py",
             "remora/policy/trap_classifier.py",

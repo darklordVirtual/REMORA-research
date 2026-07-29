@@ -10,8 +10,11 @@ manual version-string bumps.
 Files covered
 -------------
 The hash covers the files that together determine the governance outcome of any
-decision: the engine itself, the invariants, the trap classifier, and the
-observation schema.  Changing any one of these changes the composite hash.
+decision: the engine itself, its extracted decision thresholds and trace value
+objects, the invariants, the trap classifier, and the observation schema.
+Changing any one of these changes the composite hash. (thresholds.py and
+trace.py were split out of decision_engine.py 2026-07-29 and added here so no
+decision-relevant bytes leave hash coverage.)
 
 Usage
 -----
@@ -40,6 +43,8 @@ from pathlib import Path
 # Paths are relative to the repository root (the parent of the ``remora`` package).
 _POLICY_SOURCE_FILES: tuple[str, ...] = (
     "remora/policy/decision_engine.py",
+    "remora/policy/thresholds.py",
+    "remora/policy/trace.py",
     "remora/policy/invariants.py",
     "remora/policy/observation.py",
     "remora/policy/trap_classifier.py",
@@ -61,8 +66,8 @@ def compute_policy_bundle_hash(
     source_files:
         Paths relative to *repo_root* to include in the bundle hash.
         Defaults to the canonical set: ``decision_engine.py``,
-        ``invariants.py``, ``observation.py``, ``trap_classifier.py``,
-        ``report.py``.
+        ``thresholds.py``, ``trace.py``, ``invariants.py``,
+        ``observation.py``, ``trap_classifier.py``, ``report.py``.
     repo_root:
         Repository root path.  Defaults to the parent of the ``remora``
         package directory (auto-detected from ``__file__``).
