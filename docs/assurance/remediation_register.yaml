@@ -951,16 +951,26 @@ items:
     section: "external-review-2026-07-24 F-05"
     title: "Installable distribution matches the documented deployment"
     gate: P2
-    status: NOT_STARTED
-    artifacts: []
+    status: IN_PROGRESS
+    artifacts:
+      - pyproject.toml
+      - servers/__init__.py
+      - tests/test_packaging_contract.py
     notes: >
-      External review F-05: the wheel built from this repo contains only the
-      remora/ package — not servers/ (the documented API deployment is
-      "uvicorn servers.api:app"), not the root schemas/. The api extra
-      installs fastapi/uvicorn but neither Postgres driver the runtime paths
-      import (psycopg2 in control-plane storage, psycopg in the tenant audit
-      chain), so a wheel-only install cannot run the documented server or
-      durable storage. DONE when either servers/ ships as an installable
-      package (entry point + package data) or a separate remora-api
-      distribution exists, DB drivers are declared in the relevant extras,
-      and CI smoke-tests the installed wheel from an empty directory.
+      External review F-05 (re-confirmed by external review 2026-07-29 F-01,
+      reproduced from a clean venv): the wheel built from this repo contained
+      only the remora/ package — not servers/ (the documented API deployment
+      is "uvicorn servers.api:app"), not the root schemas/ (which
+      remora.governance.envelope resolves relative to the package root), and
+      no extra declared the Postgres drivers the runtime paths import
+      (psycopg2 in control-plane storage, psycopg in the tenant audit chain).
+      Fix in flight: hatch wheel config ships remora+servers and
+      force-includes schemas/ at its checkout-relative position;
+      servers/__init__.py makes servers a real package; the `postgres` extra
+      declares psycopg[binary] and psycopg2-binary; `remora doctor` now
+      verifies the servers.api entrypoint imports (not merely that fastapi is
+      installed); the ci.yml `wheel-contract` job builds the wheel, installs
+      it with [api] in a clean venv, and from an empty directory asserts
+      servers.api imports, the packaged schema resolves, doctor reports the
+      entrypoint OK, and /v1/health answers. DONE when that CI job is green
+      on master.

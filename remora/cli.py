@@ -930,15 +930,28 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         str(_ROOT) if repo else "installed without examples/tests",
         None if repo else "clone the repo for `remora demo` and the test suite")
 
+    import importlib.util as _ilu
     for mod, label, fix in (
         ("pytest", "dev extra (tests)", 'python -m pip install -e ".[dev]"'),
-        ("fastapi", "api extra (remora serve)", 'python -m pip install -e ".[api]"'),
         ("yaml", "pyyaml (claim gates, causal)", 'python -m pip install -e ".[dev]"'),
     ):
-        import importlib.util as _ilu
         present = _ilu.find_spec(mod) is not None
         add(label, present, "installed" if present else "not installed",
             None if present else fix)
+
+    # The api promise is the ENTRYPOINT importing, not fastapi being present —
+    # a wheel that ships remora/ without servers/ would otherwise pass this
+    # check and still fail `remora serve` (REM-045 / external review F-01).
+    if _ilu.find_spec("fastapi") is None:
+        add("api extra (remora serve)", False, "not installed",
+            'python -m pip install -e ".[api]"')
+    else:
+        app, err = _import_server_app()
+        add("api extra (remora serve)", app is not None,
+            "fastapi + servers.api entrypoint import OK" if app is not None
+            else f"fastapi installed, but servers.api failed to import: {err}",
+            None if app is not None else
+            "install a distribution that ships servers/ (or run from a repo checkout)")
 
     # Live backends: report which enabling env vars are present (names only —
     # never values) and what auto-detection would pick. No network probes here
@@ -993,6 +1006,22 @@ def _cmd_demo(args: argparse.Namespace) -> int:
     return 0
 
 
+def _import_server_app():
+    """Import the REST API app (``servers.api:app``); return ``(app, error)``.
+
+    Works from an installed wheel (servers/ ships in the distribution,
+    REM-045) and from a repo checkout (repo root added to sys.path as a
+    fallback for editable/source runs).
+    """
+    if str(_ROOT) not in sys.path:
+        sys.path.insert(0, str(_ROOT))
+    try:
+        from servers.api import app
+        return app, None
+    except Exception as exc:  # noqa: BLE001
+        return None, str(exc)
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     """Launch the governance REST API (uvicorn). Requires the 'api' extra."""
     try:
@@ -1004,12 +1033,9 @@ def _cmd_serve(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 2
-    if str(_ROOT) not in sys.path:  # servers/ is a PEP-420 namespace package
-        sys.path.insert(0, str(_ROOT))
-    try:
-        from servers.api import app
-    except Exception as exc:  # noqa: BLE001
-        print(f"remora serve: could not import the API app: {exc}", file=sys.stderr)
+    app, err = _import_server_app()
+    if app is None:
+        print(f"remora serve: could not import the API app: {err}", file=sys.stderr)
         return 1
     host, port = args.host, args.port
     env_mode = os.getenv("REMORA_ENV", "development")
