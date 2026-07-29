@@ -141,7 +141,10 @@ produced 1.4\%, and the safety-rate difference is \emph{not} statistically
 significant at the cluster level ($p=0.50$). The statistically supported
 advantages are mean utility ($+0.456$, $p\approx10^{-4}$; $0.62$ vs.\ $0.16$)
 and accuracy (90\% vs.\ $\leq 60\%$). No real tool side effects were
-executed. A critical-phase evidence router resolves
+executed. The safety result is corroborated on 208 independently-sourced
+AgentHarm scenarios \cite{andriushchenko2024agentharm} under an
+intent-gating protocol (FAR $=0.0\%$, Wilson CI [0.00\%, 1.81\%]; routing
+accuracy, not verified tool interception). A critical-phase evidence router resolves
 38.5\% of high-uncertainty cases with 100\% precision on a 3,000-item NLI
 benchmark ($N_{\text{evidence-accept}}=304$, Wilson CI [98.75\%, 100.00\%]); the
 remainder are escalated to human review.
@@ -312,7 +315,7 @@ g \in \{\textsc{Accept}, \textsc{Verify}, \textsc{Abstain}, \textsc{Escalate}\}
 \end{equation}
 %
 with five required properties: (1)~safety-first (hard policy violations
-map to \textsc{Escalate} regardless of consensus); (2)~calibration-aware
+map to \textsc{Escalate} regardless of consensus); (2)~calibration-aware \cite{guo2017calibration}
 (abstain when uncertainty exceeds threshold); (3)~evidence-sensitive
 (evidence can resolve or contradict ambiguous consensus);
 (4)~auditable (every call produces a hash-chained evidence record,
@@ -480,10 +483,12 @@ Iteration halts when $\Delta V > \epsilon_{\text{tol}} \cdot |V|$
 ($\epsilon_{\text{tol}} = 0.05$). Across 1,000 synthetic sessions,
 $P(\Delta V \leq 0) = 87.2\%$, mean $\Delta V = -0.329$.
 This is an empirical heuristic metric, not a formal control-theoretic Lyapunov
-proof. Configuration note: $\lambda = 0.3$ is the paper/benchmark
-configuration; the standalone library default is
-\texttt{lambda\_dissensus = 1.0}, and other engine configurations may use
-other values.
+proof. Configuration note: the reported stability figure
+(\path{results/lyapunov_aggregate_results.json}) was computed with the
+library default \texttt{lambda\_dissensus = 1.0}. The value $\lambda = 0.3$
+appears elsewhere as a coupling weight for the free energy $F = \lambda D -
+T\cdot H$; the two are separate parameters and other engine configurations
+may use other values.
 
 \textbf{Trust score:}
 \begin{equation}
@@ -594,7 +599,7 @@ policy rule (no LLM calls): (1)~fail-closed normalization of
 caller-supplied labels (unknown is explicit, never coerced to a safe
 value); (2)~action-semantics extraction from the proposed action text
 and tool metadata; (3)~misspecification-risk inference from
-label/semantics disagreement; (4)~causal-consequence signals (blast
+label/semantics disagreement; (4)~causal-consequence signals \cite{bjoru2026causal} (blast
 radius, expected loss); and (5)~policy-generalization risk---would
 repeatedly accepting this \emph{class} of action remain safe
 fleet-wide?
@@ -741,7 +746,7 @@ $B/(n+1)$ finite-sample term and no test-point weight $w_{n+1}$;
 accepted items --- is not monotone in $\lambda$, so Theorem~1 does not
 attach even with valid density-ratio weights. In addition,
 $\beta = 0.10$ is a hand-tuned constant, not a density ratio
-(Tibshirani et al.\ 2019). All quality evidence for this component is
+\cite{tibshirani2019conformal}. All quality evidence for this component is
 empirical (repeated-split holdout results).
 
 The component is implemented as
@@ -959,7 +964,13 @@ neg-temp. (held-out)$\ddagger$ & \textbf{holdout} & 23.2\% & \textbf{88.00\%} & 
 \footnotesize
 Held-out: $N_\text{accepted}=25$ (all ordered-phase), $p=1.45\times10^{-5}$
 (one-sided binomial, H$_1$: acc $>$ holdout baseline 46.3\%),
-Wilson CI lies entirely above holdout baseline.
+Wilson CI lies entirely above holdout baseline. \textbf{These are the
+retired Groq-round figures.} The 2026-07 cross-family clean round gives
+100.0\% at 16.7\% coverage ($N_\text{accepted}=18$, $p=0.052$ ---
+directional only), and the pre-registered SAP v3 fresh-data round
+\emph{failed to confirm} the consensus-temperature selection signal
+(\S\ref{sec:negative}); do not read this row as evidence that temperature
+generalizes.
 \label{tab:qa}
 \end{table}
 
@@ -1137,14 +1148,36 @@ $\chi$-proxy AUC = 0.39 & Med & Docum. & Exploratory OOD use \\
 $T$--$D$ circularity & Med & Resolv. & Structural $T$ \\
 Crit.-phase anticorr. & High & Active & Evidence router \\
 Full-cov. acc. weak & Med & Active & Selective prediction \\
-Oracle diversity part. & Med & Active & Diversity weights \\
-In-sample calibration & Med & \textbf{Resolved} & 88.0\% held-out, $p$=1.45e-5 \\
+Oracle diversity part. & Med & Active & Cross-family trio \\
+Temp.\ selection falsified & High & \textbf{Active} & Diagnostic only; use calib.\ conf. \\
 Evidence signal proxy & Med & Active & NLI benchmark \\
 Audit not tamper-proof & Med & By des. & WORM storage \\
 \bottomrule
 \end{tabular}}
 \label{tab:negresults}
 \end{table}
+
+\paragraph{Consensus temperature failed fresh-data confirmation (SAP v3).}
+On the pre-registered SAP v3 round (1231 fresh BoolQ/TruthfulQA items,
+deduplicated against the prior 544-item corpus; frozen Cloudflare
+cross-family trio; three-way split dev 493 / risk-cal 370 / test 368, seed
+20260727), the consensus-temperature selection signal \emph{failed}
+confirmation: test-split AURC 0.0954 vs.\ 0.0664 for a
+dev-split-calibrated mean-confidence baseline (paired bootstrap
+$\Delta=0.0290$, 95\% CI [0.0119, 0.0503] excluding zero --- temperature
+ranks significantly \emph{worse}), and SGR certification at
+$r^*=5\%,\delta=0.10$ found no certifiable coverage. The exploratory
+temperature advantage seen on the reused 544-item corpus did not transfer;
+temperature is retained as a logged diagnostic, not an authoritative
+selector. \emph{What survives:} on the same round, calibrated
+confidence-weighted voting scored 87.8\% vs.\ 85.1\% for unweighted
+majority on the untouched test split ($N=368$; paired exact McNemar
+$p=0.0064$, significant; vs.\ the best single model directional only,
+$p=0.077$). Its selection certificates are marginal per arm and no arm
+survives family-wise Bonferroni-3, so calibrated confidence is a promising
+pre-registered \emph{secondary} that requires its own frozen confirmation
+round before any engine integration (SAP v3 \S8 D-3). Full detail:
+\path{NEGATIVE_RESULTS.md} \S18 and claim register CLAIM-012 / CLAIM-013.
 
 \paragraph{$\chi$-proxy failure.}
 Susceptibility $\chi$ as standalone difficulty predictor: AUC = 0.39
@@ -1173,9 +1206,12 @@ which computes $T$ from prompt structure alone.
 
 \textbf{Internal validity:} Trust threshold ($\tau^* = 0.2032$,
 18th-percentile neg-temperature on 80\% training split) is derived
-in-sample; held-out evaluation ($n=108$, 20\% stratified) confirms
-validity ($p=1.45\times10^{-5}$); 13.8\% author-curated benchmark
-items; synthetic tool-call adversarial patterns.
+in-sample; the retired-Groq held-out evaluation ($n=108$, 20\% stratified,
+$p=1.45\times10^{-5}$) supported the threshold, but the SAP v3 fresh-data
+round did not confirm the temperature signal it selects on
+(\S\ref{sec:negative}); 13.8\% author-curated benchmark items (15.1\%
+including the adversarial-curated set); synthetic tool-call adversarial
+patterns.
 
 \textbf{External validity:} Model coverage is mixed across rounds: the
 earlier QA and tool-call rounds used a Groq-hosted three-LLaMA swarm
@@ -1233,10 +1269,15 @@ Licensor, Stian Skogbrott (\texttt{support@luftfiber.no}). Third-party
 datasets and materials remain under their own terms; see
 \path{THIRD_PARTY_NOTICES.md}.
 
-\textbf{Claim binding:} every headline number in this paper is bound to
-the machine-readable claim register
-(\path{docs/assurance/claim_register_v1.yaml}), which is the single
-authoritative source; CI gates fail on divergence. Each \texttt{review-*}
+\textbf{Claim binding:} headline numbers are bound to the machine-readable
+claim register (\path{docs/assurance/claim_register_v1.yaml}), the single
+authoritative source, through the Markdown source of this paper
+(\path{paper/remora_paper.md}): the claim-provenance and claim-consistency
+CI gates fail on divergence between that source and the register. This
+LaTeX manuscript and the compiled PDF are kept in lockstep with the
+Markdown source by \path{scripts/check_paper_sync.py} (version, revision,
+and guarded process claims); numeric drift in the typeset copy is caught by
+review rather than by an automated gate on the \texttt{.tex}. Each \texttt{review-*}
 tag triggers a workflow that regenerates a commit-bound test attestation
 and a governance pack whose \path{manifest.json} records the exact commit
 SHA and per-file SHA-256 checksums, uploaded as one
@@ -1259,10 +1300,13 @@ Key results: 0\% unsafe acceptances on a leakage-remediated adversarial
 tool-call simulation (700 rows; effective $N=70$ clusters; cluster-level
 Wilson CI [0.0\%, 5.2\%]; baselines 1.4\%, difference not significant at
 $p=0.50$; the significant gains are utility $+0.456$ and accuracy);
-88.8\% in-sample selective accuracy at 18\% coverage, confirmed at 88.0\%
-on a stratified held-out split ($N_\text{accepted}=25$,
-$p=1.45\times10^{-5}$; Wilson CI [70.0\%, 95.8\%]---directional
-confirmation, not a tight estimate given the small accepted set); 38.5\%
+88.8\% in-sample selective accuracy at 18\% coverage on the retired Groq
+round (its held-out split gave 88.0\%, $N_\text{accepted}=25$; the current
+cross-family clean round gives 100.0\% at 16.7\%, $N_\text{accepted}=18$,
+$p=0.052$, directional only) --- but the SAP v3 fresh-data round
+\emph{failed to confirm} the consensus-temperature selection signal
+(\S\ref{sec:negative}), so temperature is a diagnostic, not a validated
+selector; 38.5\%
 critical-phase resolution with 100\% evidence-accept precision; 99.9\%
 ordered-phase conformal coverage with 0/20 seed failures.
 
@@ -1320,6 +1364,16 @@ Prover-verifier games improve legibility of LLM outputs.
 Angelopoulos, A.\ N., Bates, S., Fisch, A., Lei, L., \& Schuster, T.\ (2022).
 Conformal risk control.
 \emph{arXiv:2208.02814}.
+
+\bibitem{tibshirani2019conformal}
+Tibshirani, R.\ J., Barber, R.\ F., Cand\`es, E.\ J., \& Ramdas, A.\ (2019).
+Conformal prediction under covariate shift.
+\emph{NeurIPS 2019}.
+
+\bibitem{andriushchenko2024agentharm}
+Andriushchenko, M., et al.\ (2024).
+AgentHarm: A benchmark for measuring harmfulness of LLM agents.
+\emph{arXiv:2410.09024}.
 
 \bibitem{zhang2025tee}
 Dong, B.\ \& Wang, Q.\ (2025).
@@ -1539,7 +1593,7 @@ ZK assurance proofs & Planned & No & Stubbed \\
 \label{app:tee}
 
 \emph{This appendix describes tamper-resistant (not tamper-proof) audit hardening
-via hardware attestation. Implementation status: protocol specified; hardware
+via hardware attestation \cite{zhang2025tee}. Implementation status: protocol specified; hardware
 integration pending. The term ``tamper-resistant'' is used throughout; the
 hash-chain in the main system is tamper-detecting only.}
 
