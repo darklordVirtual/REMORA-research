@@ -48,7 +48,7 @@ Inside that final stage, deterministic **hard guards run first and win**: a hard
 ```mermaid
 flowchart TD
     A[Agent action] --> B[Admission check\nadversarial / coercion firewall]
-    B --> C["Multi-oracle consensus\nH, D, temperature, phase\n(diagnostic evidence status — SAP v3)"]
+    B --> C["Multi-oracle consensus\ntrust / confidence merge\n(disagreement metrics logged — diagnostic only)"]
     C --> D[Evidence enrichment\nRAG / domain / cyber / finance]
     D --> E[Policy decision\nhard guards → conditional guards → trust + conformal routing]
     E --> F{Outcome}
@@ -76,7 +76,7 @@ Hard guards are deterministic and have **absolute priority**: no probabilistic o
 
 ### What the consensus signals are (and are not)
 
-The thermodynamic temperature and the discrete phase labels are computed and logged, but they are **diagnostic-grade only**. As selection signals they failed their pre-registered fresh-data confirmation (CLAIM-012; see [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §18). The signal that is actually evidence-backed is dev-split-calibrated **confidence** ranking (`remora/selective/risk_control.py`) — and even that stays *out* of the authoritative decision path until its own frozen confirmation round succeeds (SAP v3 §8 D-3). None of this changes the deterministic hard-guard floor.
+Oracle disagreement metrics (internally named `temperature` / `phase`) are computed and logged for analysis, but they are **diagnostic-grade only**: as selection signals they failed their pre-registered fresh-data confirmation (CLAIM-012; see [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §18). The signal that is actually evidence-backed is dev-split-calibrated **confidence** ranking (`remora/selective/risk_control.py`) — and even that stays *out* of the authoritative decision path until its own frozen confirmation round succeeds (SAP v3 §8 D-3). None of this changes the deterministic hard-guard floor.
 
 Full detail: [docs/01-architecture.md](docs/01-architecture.md) (narrative) · [ARCHITECTURE.md](ARCHITECTURE.md) (canonical) · [docs/07-api-reference.md](docs/07-api-reference.md) (API).
 
@@ -129,7 +129,7 @@ Plain-language definitions of the terms used in the results below. Canonical met
 | **Selective accuracy / coverage** | The system may decline to answer. Coverage is the share of items it accepts to answer; accuracy is then measured on that subset only. |
 | **Calibrated confidence** | Model confidence rescaled on a held-out development split so that "0.9" empirically means about 90% correct. |
 | **Multi-oracle consensus** | Several independent model evaluations ("oracles") of the same action, merged into one trust signal. |
-| **Temperature / phase** | Thermodynamics-inspired diagnostics of oracle disagreement. Diagnostic-grade only — falsified as a selection signal (SAP v3). |
+| **Disagreement diagnostics** (`temperature` / `phase`) | Logged metrics of oracle disagreement (legacy physics-inspired field names). Diagnostic-grade only — falsified as a selection signal (SAP v3); calibrated confidence is the signal used for ranking. |
 | **Intent-gating vs interception** | Intent-gating judges the agent's *stated* intent before execution; interception would capture the *actual* tool call. The AgentHarm result is intent-gating. |
 | **Shadow mode** | Decisions are computed and logged but not enforced; no live action is blocked. REMORA's current deployment profile. |
 | **PEP / lease** | Policy Enforcement Point — the dispatcher that actually runs a tool call, and only under a one-time `ExecutionLease` bound to tenant, tool, exact arguments and policy version. |
@@ -155,7 +155,7 @@ Headline positive results, each with the caveat that keeps it honest. **The cave
 | Calibrated confidence-weighted voting (SAP v3) | **87.8%** vs majority 85.1% on the untouched test split; paired McNemar p=0.0064, N=368 | significant vs majority only (vs best single: p=0.077, directional); no arm survives family-wise correction — not integrated into the engine from this round | `results/sap_v3_round_results.json` |
 
 <!-- claim:CLAIM-008 accuracy_pct coverage_pct n -->
-What the selective story means in numbers: on the N=302 calibration set a single oracle scores 57.0% and majority voting 82.8%, while REMORA's top-25% most-confident slice reaches 94.7%. The contribution is *selective coverage* — knowing which quarter of the decisions can be trusted — not beating a strong majority baseline on raw full-coverage accuracy (full risk–coverage curve in [docs/03-experiments.md](docs/03-experiments.md)). On fresh data the signal that earns this is dev-split-calibrated **confidence**, not the thermodynamic temperature.
+What the selective story means in numbers: on the N=302 calibration set a single oracle scores 57.0% and majority voting 82.8%, while REMORA's top-25% most-confident slice reaches 94.7%. The contribution is *selective coverage* — knowing which quarter of the decisions can be trusted — not beating a strong majority baseline on raw full-coverage accuracy (full risk–coverage curve in [docs/03-experiments.md](docs/03-experiments.md)). On fresh data the signal that earns this is dev-split-calibrated **confidence**, not the disagreement-temperature diagnostic.
 
 **Negative results are first-class here.** Findings that failed, regressed or were falsified — including the temperature falsification and the critical-phase trust inversion — are documented with the same rigor in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md), with a headline table at the top of that file.
 
