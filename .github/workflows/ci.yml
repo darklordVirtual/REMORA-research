@@ -187,10 +187,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          pip install -e ".[dev,causal,api]" -c /tmp/constraints.txt
-          # psycopg is not in the lockfile (REM-045 tracks declaring DB
-          # drivers in extras); bounded pin until then.
-          pip install "psycopg[binary]>=3.2,<3.4"
+          # DB drivers come from the declared `postgres` extra (REM-045) —
+          # the CI environment installs exactly what the packaging promises.
+          pip install -e ".[dev,causal,api,postgres]" -c /tmp/constraints.txt
 
       - name: Postgres contract tests (must run, not skip)
         # With the DSN set, the two DSN-gated tests must actually execute —
@@ -288,6 +287,73 @@ jobs:
               print(f'ERROR parsing pyproject.toml: {e}', file=sys.stderr)
               sys.exit(1)
           "
+
+  wheel-contract:
+    # REM-045 / external review F-01: the BUILT distribution must fulfil the
+    # documented CLI/API promise — not just the editable checkout. Builds the
+    # wheel, installs it with [api] in a clean venv, and exercises the
+    # contract from an empty directory with the repo root nowhere on sys.path.
+    name: Wheel fulfils the CLI/API contract (installed, not editable)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Build wheel
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip wheel . --no-deps -w dist/
+
+      - name: Install wheel with [api] into a clean venv
+        run: |
+          python -m venv "$RUNNER_TEMP/wheelenv"
+          "$RUNNER_TEMP/wheelenv/bin/pip" install --quiet "$(ls dist/remora-*.whl)[api]"
+
+      - name: Contract smoke from an empty directory
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          PY="$RUNNER_TEMP/wheelenv/bin/python"
+
+          # The repo checkout must play no part in any of the checks below.
+          "$PY" - <<'CHECK'
+          import sys, pathlib
+          bad = [p for p in sys.path if pathlib.Path(p or ".").resolve().name == "REMORA-research"]
+          assert not bad, f"repo root leaked onto sys.path: {bad}"
+          import servers.api                      # the serve entrypoint imports
+          from remora.governance.envelope import load_decision_envelope_schema
+          load_decision_envelope_schema()         # packaged schemas/ resolves
+          CHECK
+
+          # doctor must report the api entrypoint as genuinely importable.
+          "$PY" -m remora doctor --json | tee doctor.json
+          "$PY" - <<'CHECK'
+          import json
+          d = json.load(open("doctor.json"))
+          assert d["ok"], "doctor hard checks failed on installed wheel"
+          api = [c for c in d["checks"] if c["check"] == "api extra (remora serve)"]
+          assert api and api[0]["ok"], f"api entrypoint check failed: {api}"
+          CHECK
+
+          # serve must actually come up and answer the liveness probe.
+          "$PY" -m remora serve --port 8765 &
+          SERVE_PID=$!
+          for i in $(seq 1 30); do
+            sleep 1
+            if curl -sf http://127.0.0.1:8765/v1/health > /dev/null; then
+              echo "health OK after ${i}s"; break
+            fi
+            if [ "$i" = "30" ]; then echo "ERROR: /v1/health never came up" >&2; kill $SERVE_PID; exit 1; fi
+          done
+          curl -sf http://127.0.0.1:8765/v1/health
+          kill $SERVE_PID
 
   artifact-integrity:
     name: Key artifact integrity
