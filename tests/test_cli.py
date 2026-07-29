@@ -301,6 +301,83 @@ def test_remora_mistyped_command_suggests():
     assert "did you mean" in r.stderr.lower()
 
 
+# -- Name inference: zero-flag assess must still route fail-safe --------------
+
+
+def test_remora_assess_infers_destructive_from_name():
+    """`remora assess drop_database` with zero flags must ESCALATE via inference."""
+    r = _assess("assess", "drop_database", "--json")
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)
+    assert data["decision"]["action"] == "escalate"
+    assert data["inferred"] == {
+        "action_type": "destructive_write", "risk_tier": "critical",
+    }
+
+
+def test_remora_assess_infers_read_low_from_name():
+    r = _assess("assess", "read_file", "--json")
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)
+    assert data["inferred"] == {"action_type": "read", "risk_tier": "low"}
+
+
+def test_remora_assess_explicit_flags_beat_inference():
+    r = _assess("assess", "drop_database", "--risk", "high",
+                "--action-type", "read", "--json")
+    assert r.returncode == 0, r.stderr
+    assert json.loads(r.stdout)["inferred"] == {}
+
+
+def test_remora_assess_unknown_name_stays_fail_closed():
+    """No inference match -> risk stays unset -> engine fail-closes (VERIFY)."""
+    r = _assess("assess", "frobnicate_the_widget", "--json")
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)
+    assert data["inferred"] == {}
+    assert data["decision"]["action"] in {"verify", "abstain", "escalate"}
+
+
+def test_remora_explain_reports_inference():
+    r = _assess("explain", "wire_transfer", "--json")
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)
+    assert data["inferred"]["action_type"] == "financial_transaction"
+    assert data["inferred"]["risk_tier"] == "high"
+
+
+# -- Live mode: fail-closed without a backend, keys never required ------------
+
+
+def _assess_no_live_env(*cli_args: str) -> subprocess.CompletedProcess:
+    """Run the CLI with all live-oracle env signals removed/neutralised."""
+    import os
+    env = dict(os.environ)
+    for var in ("GROQ_API_KEY", "OPENROUTER_API_KEY", "GEMINI_API_KEY"):
+        env.pop(var, None)
+    # Explicit mock: --live must refuse it rather than probe for Ollama or
+    # silently fake a "real" run on mock oracles.
+    env["REMORA_ORACLE_BACKEND"] = "mock"
+    return subprocess.run(
+        [sys.executable, "-m", "remora", *cli_args],
+        capture_output=True, text=True, cwd=ROOT, env=env,
+    )
+
+
+def test_remora_assess_live_without_backend_is_clean_error():
+    r = _assess_no_live_env("assess", "drop_database", "--live", "--json")
+    assert r.returncode == 2
+    assert "GROQ_API_KEY" in r.stderr          # tells the user how to enable live
+    assert "never printed" in r.stderr         # and states the key-handling posture
+    assert "Traceback" not in r.stderr
+
+
+def test_remora_assess_live_refuses_explicit_mock():
+    r = _assess_no_live_env("assess", "read_file", "--live", "--json")
+    assert r.returncode == 2
+    assert "no live oracle backend" in r.stderr
+
+
 # -- `remora demo` and `remora try <n>` --------------------------------------
 
 

@@ -20,6 +20,7 @@ AROMER are EXPERIMENTAL; statistical-physics models are RESEARCH_ONLY.
 | Document | What it gives you |
 |---|---|
 | [Project front page](../README.md) | What REMORA is, headline evidence, quickstart, key terms |
+| [CLI reference](cli.md) | Every `remora` command: try/demo/assess/explain/replay, exit codes, live mode |
 | [Plain-language overview](plain_language_overview.md) | Non-technical introduction |
 | [Executive one-pager](executive_onepager.md) | One-page summary for decision-makers |
 | [Reference architecture](reference_architecture.md) | The system at a glance |
