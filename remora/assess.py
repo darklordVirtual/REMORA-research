@@ -7,25 +7,45 @@ governance verdict, with no configuration, no API keys, and no network:
 
     from remora import assess_tool_call
 
-    a = assess_tool_call("drop_database", {"db": "prod-main"}, infer=True)
+    a = assess_tool_call("drop_database", {"db": "prod-main"},
+                         risk_tier="critical",              # from YOUR tool
+                         action_type="destructive_write")   # registry
     if a.should_execute:          # True only on ACCEPT
         run_tool(...)
     audit_log.write(a.envelope.to_dict())
+
+**Advisory, not enforcement** (external review 2026-07-29 F-04). This
+function judges the metadata *you* hand it — it is not bound to the callable
+that will actually run. It is only as strong as its inputs:
+
+- ``risk_tier`` / ``action_type`` must come from a **trusted tool registry**
+  keyed by callable identity, never from the caller of the tool or from the
+  tool's *name*: a mutating callable behind a benign name, or caller-asserted
+  ``risk_tier="low"``, defeats the assessment.
+- ``infer=True`` guesses from the name for exploration and demos. **Never
+  let inference drive real execution** — check ``a.advisory`` (True when
+  inference filled fields) and treat those verdicts as advisory only.
+- ``trust_score``/``phase`` are caller-supplied stand-ins for live
+  multi-oracle consensus (REST API / ``--live``).
+
+The enforcement-grade path is the ``/v1/execution`` API with the
+``GovernedToolDispatcher`` PEP: tools registered by deployment configuration,
+risk/action resolved server-side, execution lease-bound to the exact call.
 
 Runs the same production code paths as the CLI and the REST API's
 deterministic layer: the admission firewall (``detect_adversarial``),
 ``RemoraDecisionEngine.decide`` for the verdict, ``.explain`` for the
 rule-by-rule trace, and ``build_decision_envelope`` for the canonical audit
 contract. Anything left unset is handled fail-closed by the engine (unknown
-risk routes to VERIFY, never ACCEPT). ``trust_score``/``phase`` stand in for
-live multi-oracle consensus, which runs via the REST API or ``--live``.
+risk routes to VERIFY, never ACCEPT).
 
 Framework loop (OpenAI-style; LangGraph/CrewAI adapters in
-``remora.integrations``)::
+``remora.integrations``) — metadata looked up per tool, not inferred::
 
     for call in response.choices[0].message.tool_calls:
+        meta = TOOL_REGISTRY[call.function.name]    # KeyError = unknown tool
         a = assess_tool_call(call.function.name,
-                             json.loads(call.function.arguments), infer=True)
+                             json.loads(call.function.arguments), **meta)
         if not a.should_execute:
             report_blocked(call, why=a.decision.explanation)
 """
@@ -102,8 +122,23 @@ class ToolCallAssessment:
 
     @property
     def should_execute(self) -> bool:
-        """True only when the outcome is ACCEPT."""
+        """True only when the outcome is ACCEPT.
+
+        Gate real side effects on this **only** when risk_tier/action_type
+        came from a trusted registry — see :attr:`advisory`.
+        """
         return self.action == "accept"
+
+    @property
+    def advisory(self) -> bool:
+        """True when name inference filled governance fields.
+
+        An advisory verdict rests on guessed metadata and must not drive
+        real execution (external review 2026-07-29 F-04); resolve the tool's
+        registered risk/action and assess again, or route to the
+        ``/v1/execution`` path where metadata is resolved server-side.
+        """
+        return bool(self.inferred)
 
     def to_dict(self) -> dict[str, Any]:
         """JSON-ready summary (decision + trace + inferred + envelope)."""

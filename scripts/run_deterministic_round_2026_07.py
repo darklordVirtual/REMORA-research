@@ -93,7 +93,11 @@ SIDECARS: dict[str, tuple[str, dict[str, Path], list[int] | None]] = {
     ),
     "artifacts/governance_intelligence/evaluation_results.json": (
         "experiments/evaluate_governance_intelligence.py",
-        {"tasks": ROOT / "artifacts" / "governance_intelligence" / "tasks.jsonl"},
+        # The experiment reads TASKS_FILE from benchmarks/ (its line 40); the
+        # declared provenance input must match the file actually consumed
+        # (external review 2026-07-29 F-06: the artifacts/ path here made the
+        # fail-hard round abort in the provenance step on a clean HEAD).
+        {"tasks": ROOT / "benchmarks" / "governance_intelligence" / "tasks.jsonl"},
         None,
     ),
 }

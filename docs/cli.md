@@ -143,7 +143,9 @@ directly (the CLI delegates to it, so behavior is identical):
 ```python
 from remora import assess_tool_call
 
-a = assess_tool_call("drop_database", {"db": "prod-main"}, infer=True)
+a = assess_tool_call("drop_database", {"db": "prod-main"},
+                     risk_tier="critical",              # from YOUR tool
+                     action_type="destructive_write")   # registry
 if a.should_execute:              # True only on ACCEPT
     run_tool(...)
 audit_log.write(a.envelope.to_dict())   # the canonical DecisionEnvelope
@@ -151,9 +153,18 @@ audit_log.write(a.envelope.to_dict())   # the canonical DecisionEnvelope
 
 `a.action` / `a.decision` / `a.trace` / `a.inferred` carry the verdict, full
 decision report, rule-by-rule trace, and what name inference filled in.
-Explicit `risk_tier=`/`action_type=` from your tool registry beat `infer=True`.
-Worked loop: [examples/agent_gate.py](../examples/agent_gate.py);
-framework adapters (OpenAI/LangGraph/CrewAI/AutoGen): `remora.integrations`.
+
+**Advisory, not enforcement.** `assess_tool_call` judges the metadata you
+hand it; it is not bound to the callable that will run. Take
+`risk_tier`/`action_type` from a trusted tool registry keyed by callable
+identity — never from the caller, and never from the tool's *name*:
+`infer=True` is for exploration and demos, an inferred verdict has
+`a.advisory == True`, and inference must never drive real execution. The
+enforcement-grade path is the `/v1/execution` API, where metadata is
+resolved server-side and dispatch runs through the `GovernedToolDispatcher`
+under an `ExecutionLease`. Worked registry-based loop:
+[examples/agent_gate.py](../examples/agent_gate.py); framework adapters
+(OpenAI/LangGraph/CrewAI/AutoGen): `remora.integrations`.
 
 ## Output conventions
 
