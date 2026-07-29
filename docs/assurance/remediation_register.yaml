@@ -951,11 +951,12 @@ items:
     section: "external-review-2026-07-24 F-05"
     title: "Installable distribution matches the documented deployment"
     gate: P2
-    status: IN_PROGRESS
+    status: DONE
     artifacts:
       - pyproject.toml
       - servers/__init__.py
       - tests/test_packaging_contract.py
+      - .github/workflows/ci.yml
     notes: >
       External review F-05 (re-confirmed by external review 2026-07-29 F-01,
       reproduced from a clean venv): the wheel built from this repo contained
@@ -972,5 +973,6 @@ items:
       installed); the ci.yml `wheel-contract` job builds the wheel, installs
       it with [api] in a clean venv, and from an empty directory asserts
       servers.api imports, the packaged schema resolves, doctor reports the
-      entrypoint OK, and /v1/health answers. DONE when that CI job is green
-      on master.
+      entrypoint OK, and /v1/health answers. DONE 2026-07-30: the
+      wheel-contract job is green on master (run 30497123043, commit
+      d94ceb0), fulfilling the closure criterion.
