@@ -28,6 +28,8 @@ from remora.state import RemoraState
 
 if TYPE_CHECKING:
     from remora.genome import Genome
+    from remora.governance.envelope import DecisionEnvelope
+    from remora.policy import DecisionReport, PolicyObservation
 
 
 def state_hash(state: RemoraState) -> str:
@@ -300,12 +302,17 @@ def build_report(
     }
 
     # PR-6: attach the canonical DecisionEnvelope v2 to the report
-    rep["envelope"] = build_envelope(state, obs, decision, rep)
+    rep["envelope"] = _build_envelope(state, obs, decision, rep)
 
     return rep
 
 
-def build_envelope(state: RemoraState, obs: object, decision: object, rep: dict):
+def _build_envelope(
+    state: RemoraState,
+    obs: "PolicyObservation",
+    decision: "DecisionReport",
+    rep: dict,
+) -> "DecisionEnvelope":
     """Build a DecisionEnvelope v2 from engine state + policy decision.
 
     PR-6: This is the canonical output contract.  All blocks are populated
