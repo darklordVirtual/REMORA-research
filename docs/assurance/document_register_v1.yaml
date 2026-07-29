@@ -2038,9 +2038,22 @@ documents:
   audience:
   - researchers
   - integrator
+- id: DOC-288
+  version: v1
+  path: docs/validation/pilot_evaluation_protocol_v1.md
+  status: canonical
+  topic: docs_validation_pilot_evaluation_protocol_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-30'
+  last_reviewed: '2026-07-30'
+  audience:
+  - researchers
+  - evaluator
 
 topics:
 - docs_cli_md
+- docs_validation_pilot_evaluation_protocol_v1_md
 - docs_01-architecture_md
 - paper_remora_paper_md
 - docs_archive_whitepaper_md

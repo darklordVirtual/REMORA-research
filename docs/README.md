@@ -170,6 +170,7 @@ The numbered series is the primary reading path.
 | [validation/EXTERNAL_VALIDATION_PLAN.md](validation/EXTERNAL_VALIDATION_PLAN.md) | External validation plan |
 | [validation/external-review.md](validation/external-review.md) | External review record |
 | [validation/review_checklist.md](validation/review_checklist.md) | Reviewer checklist |
+| [validation/pilot_evaluation_protocol_v1.md](validation/pilot_evaluation_protocol_v1.md) | Pre-registered pilot framework: preconditions, metrics, go/no-go, stop conditions (PROPOSED) |
 | [validation/external_validation_report_template.md](validation/external_validation_report_template.md) | Report template for external validators |
 | [validation/credibility_pack_repro.md](validation/credibility_pack_repro.md) | Credibility-pack reproduction |
 | [validation/audit_result_schema.md](validation/audit_result_schema.md) | Audit result schema |
