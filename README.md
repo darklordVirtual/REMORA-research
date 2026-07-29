@@ -4,7 +4,7 @@
 [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml)
 [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
 
-REMORA is a pre-execution governance overlay for AI agents operating where actions carry real operational consequences — building automation, energy management, infrastructure control, regulated enterprise workflows. It governs proposed agent actions; it does not replace the agent. Before any action executes, REMORA evaluates it through a deterministic policy layer and a multi-oracle consensus pipeline (several independent model evaluations of the same action, merged into one signal) and returns one of four outcomes:
+REMORA is a **governance overlay** — a decision layer that sits in front of an AI agent and judges every proposed action **before** it may run. It is built for settings where actions carry real operational consequences — building automation, energy management, infrastructure control, regulated enterprise workflows. REMORA governs the agent's proposed actions; it does not replace the agent. Each action is checked by a deterministic policy layer and by several independent model assessments of the same action, merged into one signal (*multi-oracle consensus*). The result is one of four outcomes:
 
 | Outcome | Meaning |
 |---------|---------|
@@ -13,7 +13,7 @@ REMORA is a pre-execution governance overlay for AI agents operating where actio
 | **ABSTAIN** | Trust too low to decide; action blocked |
 | **ESCALATE** | Risk exceeds autonomous authority; routed to human review |
 
-Every decision produces a versioned `DecisionEnvelope` — an auditable record of what was decided, under which policy version, and why (on the `/v1/execution/*` path with a persistence adapter configured, envelopes are appended to a per-tenant, SHA-256 tamper-evident chain). The architecture stays conservative under uncertainty: when evidence is insufficient it errs toward ABSTAIN or ESCALATE rather than ACCEPT. Results are from controlled experiments and internal benchmarks; external replication is pending — see [Limitations](#limitations).
+Every decision is recorded as a versioned `DecisionEnvelope`: what was decided, under which policy version, and why. On the `/v1/execution/*` path, with a persistence adapter configured, these records are appended to a per-tenant, SHA-256 tamper-evident chain. When the evidence is insufficient, REMORA errs toward ABSTAIN or ESCALATE rather than ACCEPT. All results are from controlled experiments and internal benchmarks; external replication is pending — see [Limitations](#limitations).
 
 **Start here:** [Plain-language overview](docs/plain_language_overview.md) · [Reference architecture](docs/reference_architecture.md) · [Executive one-pager](docs/executive_onepager.md) · [Evidence & claims](docs/02-evidence-and-claims.md) · [Full documentation index](docs/README.md) — unfamiliar terms are defined in [Key terms](#key-terms) below.
 
@@ -39,7 +39,7 @@ Every proposed action runs through this pipeline **before** it can execute — n
 
 1. **Admission check** — screen the request for adversarial or coercive content and reject it outright if found.
 2. **Multi-oracle consensus** — collect several independent model judgements of the action.
-3. **Evidence enrichment** — pull in supporting signals (retrieval, domain, cyber, finance).
+3. **Evidence enrichment** — pull in supporting signals (retrieved documents; domain-, cyber- or finance-specific checks).
 4. **Policy decision** — issue the verdict (ACCEPT / VERIFY / ABSTAIN / ESCALATE).
 
 Inside that final stage, deterministic **hard guards run first and win**: a hard block cannot be overridden by any uncertainty- or confidence-based signal (detailed two paragraphs down).

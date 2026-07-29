@@ -69,8 +69,10 @@
 % ---- Metadata -------------------------------------------------------
 \title{REMORA: A Policy-Gated Multi-Oracle\\Assurance Architecture for Agentic AI}
 
-% Paper version — keep in lockstep with the repository release tag.
-\newcommand{\paperversion}{Preprint (package version 0.10.0; repository tag \texttt{review-v1})}
+% Paper version — kept in lockstep with paper/remora_paper.md by
+% scripts/check_paper_sync.py (CI-enforced). The "v0.10.0" and
+% "revision 2026-07-29" strings below MUST match the .md version line.
+\newcommand{\paperversion}{Preprint v0.10.0, revision 2026-07-29 (synchronized with repository code); repository tag \texttt{review-v1}}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -79,7 +81,7 @@
   \texttt{https://github.com/darklordVirtual/REMORA-research}
 }
 
-\date{\paperversion\ --- content dated June 2026 \ \small compiled \today\ by CI from the repository LaTeX source (unchanged content)}
+\date{\paperversion\ --- \small compiled \today\ by CI from the repository LaTeX source, synchronized with the code as of the revision date above}
 
 % ---- Notation -------------------------------------------------------
 \newcommand{\Oracles}{\mathcal{O}}
@@ -154,7 +156,10 @@ calibration quality, not to the safety floor itself.
 REMORA is a governed autonomy layer (not a replacement for domain
 authority) that converts model disagreement, uncertainty, missing
 evidence, and policy triggers into explicit, auditable control
-decisions.
+decisions. The system is \texttt{SHADOW\_ONLY}: benchmarks are
+internal/simulator-scoped, external replication with independently
+withheld labels is pending, and the audit chain is tamper-evident but not
+tamper-proof.
 \end{abstract}
 
 \textbf{Keywords:} agentic AI safety, multi-oracle consensus, selective
@@ -217,7 +222,7 @@ ensembles; REMORA's inverse-correlation weighting can be understood as an
 instance of this family applied to instruction-following LLMs.
 
 \subsection{Multi-Agent Debate}
-Du et al.\ (2023) \cite{du2023improving} showed that inter-model
+Du et al.\ (2024) \cite{du2023improving} showed that inter-model
 debate can reduce hallucination. REMORA's dissensus metric $D$ is a
 one-shot, non-iterative analogue: disagreement is measured once, not
 resolved through iterative exchange.
@@ -345,7 +350,7 @@ The \texttt{claim\_hash} field uses a pluggable backend: the default
 NFKC-normalized sorted tokens for backward-compatible, dependency-free
 operation; the \texttt{NLISemanticBackend} replaces this with bidirectional
 cross-encoder entailment clustering, implementing Semantic Entropy
-\cite{kuhn2023semantic,kuhn2026evse}. Oracle weights are derived from
+\cite{kuhn2023semantic}. Oracle weights are derived from
 inverse pairwise correlation (see \S\ref{sec:method}).
 
 \paragraph{Stage 4: Thermodynamic Observables.}
@@ -1273,12 +1278,6 @@ In \emph{Proceedings of the International Conference on Learning Representations
 (ICLR 2023)}.
 arXiv:2302.09664.
 
-\bibitem{kuhn2026evse}
-Kuhn, L., Gal, Y., \& Farquhar, S.\ (2026).
-Evidential Semantic Entropy for LLM uncertainty quantification.
-In \emph{Proceedings of the 17th Conference of the European Chapter of the
-Association for Computational Linguistics (EACL 2026)}, pp.\ 334--348.
-
 \bibitem{kirsch2024prover}
 Kirchner, J.~H., Chen, Y., Edwards, H., Leike, J., McAleese, N.,
 \& Burda, Y.\ (2024).
@@ -1291,9 +1290,9 @@ Conformal risk control.
 \emph{arXiv:2208.02814}.
 
 \bibitem{zhang2025tee}
-Zhang, Y.\ \& Lee, M.\ (2025).
-Evaluating the performance of large language models in confidential computing
-environments.
+Dong, B.\ \& Wang, Q.\ (2025).
+Evaluating the performance of the DeepSeek model in confidential computing
+environment.
 \emph{arXiv:2502.11347}.
 
 \bibitem{wang2023self}
@@ -1302,7 +1301,7 @@ Self-consistency improves chain of thought reasoning in language models.
 \emph{ICLR 2023}.
 
 \bibitem{du2023improving}
-Du, Y., et al.\ (2023).
+Du, Y., Li, S., Torralba, A., Tenenbaum, J., \& Mordatch, I.\ (2024).
 Improving factuality and reasoning in language models through multiagent debate.
 \emph{ICML 2024}.
 
@@ -1456,11 +1455,12 @@ Full JSON schema is in the Markdown paper and repository
 \section{Negative Results Archive}
 \label{app:negres}
 
-Full negative results documentation: \path{NEGATIVE_RESULTS.md}
-in repository. Resolved findings include: R1 iteration damage (fixed
-via skip\_high\_trust), R2 Stage-3b critique impact (measured,
-phase-differentiated routing implemented), R7 $T$--$D$ circularity
-(structural temperature introduced).
+The complete, versioned record of negative and resolved findings ---
+including the resolved items R1 (iteration damage), R2 (Stage-3b critique
+impact) and R7 ($T$--$D$ circularity) --- lives in \path{NEGATIVE_RESULTS.md}
+in the repository. It is not duplicated here: the main-body Negative Results
+section carries the findings that shape the architecture; this appendix is a
+single pointer to the full archive so the two do not drift.
 
 \section{Implementation Status Table}
 \label{app:impl}
@@ -1495,7 +1495,7 @@ Evidence router (oracle proxy) & Yes & Yes & Proxy signal \\
 Evidence router (semantic) & Planned & No & Interface ready \\
 DecisionEnvelope v2 & Yes & Yes & Attribute-frozen, not deep-frozen \\
 SHA-256 hash-chain & Yes & API layer & HMAC only with signing key \\
-Execution grant path & Yes & Separate router & Consumes grant; no tool dispatch \\
+Execution grant path & Yes & Separate router & Dispatches via \texttt{GovernedToolDispatcher} (lease-bound; CAP-013) \\
 Human review workflow & Yes & Partial & Demo UI only \\
 WORM audit storage & Planned & No & External dependency \\
 ZK assurance proofs & Planned & No & Stubbed \\
