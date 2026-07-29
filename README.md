@@ -87,12 +87,19 @@ Full detail: [docs/01-architecture.md](docs/01-architecture.md) (narrative) · [
 ```bash
 python -m pip install -e ".[dev]"
 
+# See what REMORA does: send a tool call, watch it decide (interactive, no API keys):
+python -m remora try
+# ...or assess one action non-interactively:
+python -m remora assess --name drop_database --risk critical --action-type destructive_write
+
 # Tests run cross-platform with no `make` required (Windows / PowerShell included):
 python -m pytest tests/ -q          # full deterministic suite (~3700 tests, no API keys, <1 min)
 python -m pytest tests/test_decision_envelope_v2.py tests/test_policy_decision_engine.py tests/test_remora_toolcall_gate.py tests/test_remora_toolcall_gate_v2.py tests/test_m1_leakage_absent.py tests/test_api_server.py -q   # core gate only (~5s)
 
 python scripts/demo_industrial_maintenance.py   # end-to-end governance demo (dry-run)
 ```
+
+`python -m remora try` / `assess` run the deterministic governance decision (hard blocks + admission firewall + risk routing + fail-closed defaults) with no API keys — a critical destructive prod write ESCALATEs, a prompt-injection payload is blocked at the firewall, a low-risk read with a high trust signal is ACCEPTed. Live multi-oracle consensus runs via the API server (`/v1/assess`).
 
 On systems with GNU make installed, `make test` / `make test-core` / `make audit` are convenience shortcuts for the commands above (`make help` lists every target; the Makefile assumes `python` and `ruff` are on `PATH`).
 
