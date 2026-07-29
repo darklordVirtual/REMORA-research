@@ -553,6 +553,126 @@ def _cmd_try(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_explain(args: argparse.Namespace) -> int:
+    """Full rule-by-rule reasoning trace (every gate, in order) for one tool call."""
+    try:
+        if getattr(args, "arguments_json", None):
+            arguments = json.loads(args.arguments_json)
+        else:
+            arguments = _parse_kv_args(getattr(args, "arg", None))
+        if not isinstance(arguments, dict):
+            raise ValueError("tool arguments must be a JSON object")
+    except (json.JSONDecodeError, ValueError) as exc:
+        print(f"remora explain: invalid tool arguments: {exc}", file=sys.stderr)
+        return 2
+    decision, trace, _ = _assess(
+        args.name, arguments, risk_tier=args.risk, action_type=args.action_type,
+        target_environment=args.target_env, trust_score=args.trust, phase=args.phase,
+    )
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "decision": _decision_dict(decision),
+            "decision_path": trace.decision_path,
+            "rule_evaluations": [
+                {"rule": e.rule, "triggered": e.triggered,
+                 "condition": e.condition, "outcome": e.outcome}
+                for e in trace.rule_evaluations
+            ],
+        }, indent=2, default=str))
+        return 0
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    print()
+    _header(ink, "DECISION TRACE  (every rule, in order)")
+    print("    " + ink("path:  ", "dim") + ink(_ascii(trace.decision_path), "bold"))
+    print("    " + ink("verdict: ", "dim") + _badge(ink, decision.action.value))
+    print()
+    for e in trace.rule_evaluations:
+        mark = ink("[X]", "red", "bold") if e.triggered else ink(" . ", "dim")
+        name = ink(e.rule, "bold") if e.triggered else ink(e.rule, "dim")
+        print(f"    {mark} {name}")
+        if e.triggered:
+            tail = f"  -> {e.outcome}" if e.outcome else ""
+            print("        " + ink(_ascii(e.condition) + tail, "dim"))
+    print()
+    print("  " + ink(f"({_DECISION_NOTE})", "dim"))
+    print()
+    return 0
+
+
+def _cmd_replay(args: argparse.Namespace) -> int:
+    """Shadow-Mode counterfactual batch replay of an action-log JSONL."""
+    from remora.shadow.replay import replay_action_log
+
+    out_dir = getattr(args, "out_dir", None)
+    kwargs: dict = {}
+    if out_dir:
+        d = Path(out_dir)
+        d.mkdir(parents=True, exist_ok=True)
+        kwargs = {
+            "output_envelopes_jsonl": str(d / "decision_envelopes.jsonl"),
+            "output_report_json": str(d / "governance_delta_report.json"),
+            "output_audit_jsonl": str(d / "replay_audit.jsonl"),
+        }
+    try:
+        result = replay_action_log(args.input, **kwargs)
+    except FileNotFoundError:
+        print(f"remora replay: input not found: {args.input}", file=sys.stderr)
+        return 2
+    r = result.report
+    if getattr(args, "json", False):
+        print(json.dumps(r.to_dict(), indent=2, default=str))
+        return 0
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    print()
+    _header(ink, "SHADOW-MODE GOVERNANCE DELTA")
+    print(f"    actions reviewed: {r.total_actions_reviewed}")
+    print("    " + ink(f"accept {r.accepted}", "green") + "    "
+          + ink(f"verify {r.verify_required}", "yellow") + "    "
+          + ink(f"abstain {r.abstained}", "cyan") + "    "
+          + ink(f"escalate {r.escalated}", "red"))
+    fa = r.critical_false_accept
+    print(f"    critical proposed: {r.critical_actions_proposed}    "
+          + ink(f"critical false-accept: {fa}", "red" if fa else "green"))
+    print("    " + ink(
+        f"audit completeness {r.audit_completeness_pct}%   "
+        f"utility retained {r.utility_retained_pct}%   "
+        f"human-review burden {r.human_review_burden_pct}%", "dim"))
+    if out_dir:
+        print("\n  " + ink(f"(envelopes + report + audit written under {out_dir}/)", "dim"))
+    print()
+    return 0
+
+
+def _cmd_serve(args: argparse.Namespace) -> int:
+    """Launch the governance REST API (uvicorn). Requires the 'api' extra."""
+    try:
+        import uvicorn
+    except ImportError:
+        print(
+            "remora serve: the REST API needs the 'api' extra.\n"
+            "  install it with:  python -m pip install \".[api]\"",
+            file=sys.stderr,
+        )
+        return 2
+    if str(_ROOT) not in sys.path:  # servers/ is a PEP-420 namespace package
+        sys.path.insert(0, str(_ROOT))
+    try:
+        from servers.api import app
+    except Exception as exc:  # noqa: BLE001
+        print(f"remora serve: could not import the API app: {exc}", file=sys.stderr)
+        return 1
+    host, port = args.host, args.port
+    env_mode = os.getenv("REMORA_ENV", "development")
+    ink = _make_ink()
+    print(ink(f"REMORA governance API -> http://{host}:{port}  (env={env_mode})",
+              "cyan", "bold"))
+    if env_mode not in {"production", "prod"} and not os.getenv("REMORA_ORACLE_BACKEND"):
+        print(ink("  dev mode: mock oracles unless REMORA_ORACLE_BACKEND is set; "
+                  "auth fail-closes only in production.", "dim"))
+    uvicorn.run(app, host=host, port=port)  # no --reload: pass the app object directly
+    return 0
+
+
 _MAIN_EPILOG = """\
 examples:
   python -m remora try
@@ -610,6 +730,41 @@ def main(argv: list[str] | None = None) -> int:
     assess_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
     assess_p.add_argument("--json", action="store_true", help="JSON output")
 
+    explain_p = sub.add_parser(
+        "explain", help="Full rule-by-rule reasoning trace for one tool call")
+    explain_p.add_argument("--name", required=True, help="Tool / action name")
+    ex_group = explain_p.add_mutually_exclusive_group()
+    ex_group.add_argument(
+        "--arg", action="append", metavar="KEY=VALUE",
+        help="Tool argument (repeatable; values are JSON-decoded)")
+    ex_group.add_argument(
+        "--arguments-json", help="Full tool arguments as a JSON object string")
+    explain_p.add_argument(
+        "--risk", choices=["low", "medium", "high", "critical"], help="Risk tier")
+    explain_p.add_argument("--action-type", help="e.g. read / deploy / destructive_write")
+    explain_p.add_argument("--target-env", default="prod", help="Target environment [prod]")
+    explain_p.add_argument("--trust", type=float, help="Stand-in oracle trust score 0..1")
+    explain_p.add_argument(
+        "--phase", choices=["ordered", "critical", "disordered"],
+        help="Stand-in consensus phase")
+    explain_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
+    explain_p.add_argument("--json", action="store_true", help="JSON output")
+
+    replay_p = sub.add_parser(
+        "replay", help="Shadow-Mode counterfactual batch replay of an action-log JSONL")
+    replay_p.add_argument(
+        "--input", required=True, metavar="JSONL", help="Action-log JSONL to replay")
+    replay_p.add_argument(
+        "--out-dir", metavar="DIR",
+        help="Write envelopes + report + audit chain here (default: nothing written)")
+    replay_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
+    replay_p.add_argument("--json", action="store_true", help="JSON output (delta report)")
+
+    serve_p = sub.add_parser(
+        "serve", help="Launch the governance REST API (needs the 'api' extra)")
+    serve_p.add_argument("--host", default="127.0.0.1", help="Bind host [127.0.0.1]")
+    serve_p.add_argument("--port", type=int, default=8000, help="Bind port [8000]")
+
     prov_p = sub.add_parser(
         "provenance", help="Show the policy bundle hash + per-file manifest + version")
     prov_p.add_argument("--json", action="store_true", help="JSON output")
@@ -627,6 +782,12 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_try(args)
     if args.command == "assess":
         return _cmd_assess(args)
+    if args.command == "explain":
+        return _cmd_explain(args)
+    if args.command == "replay":
+        return _cmd_replay(args)
+    if args.command == "serve":
+        return _cmd_serve(args)
     if args.command == "provenance":
         return _cmd_provenance(args)
     if args.command == "verify":
