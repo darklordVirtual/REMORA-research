@@ -319,6 +319,32 @@ def build_report(
     return rep
 
 
+def build_decision_envelope(
+    observation: "PolicyObservation",
+    decision: "DecisionReport",
+    *,
+    question: str | None = None,
+):
+    """Assemble a canonical ``DecisionEnvelope`` from a bare (observation,
+    decision) pair — for callers that ran ``RemoraDecisionEngine.decide()``
+    directly (CLI, deterministic tests, tooling) without a full oracle-backed
+    engine run.
+
+    Reuses the same :func:`_build_envelope` assembler as ``build_report``; the
+    oracle-vote and trajectory blocks are empty because no oracle fan-out
+    occurred, and the audit hash is derived from a minimal engine state.
+    """
+    state = RemoraState(
+        question=question or getattr(observation, "question", "") or "",
+        risk_tier=getattr(observation, "risk_tier", None),
+        action_type=getattr(observation, "action_type", None),
+        target_environment=getattr(observation, "target_environment", None) or "prod",
+        domain=getattr(observation, "domain", None),
+    )
+    rep = {"state_hash": state_hash(state)}
+    return _build_envelope(state, observation, decision, rep)
+
+
 def _build_envelope(
     state: RemoraState,
     obs: "PolicyObservation",
