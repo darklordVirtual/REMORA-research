@@ -127,7 +127,13 @@ A stratified held-out evaluation ($\tau^*$ locked from training split) confirms
 88.0\% accuracy at 23.2\% holdout coverage ($N_\text{accepted}=25$;
 $p=1.45\times10^{-5}$; Wilson~CI [70.0\%, 95.8\%]---the wide interval reflects the
 small accepted set and should be read as a directional confirmation, not a
-tight estimate). On a deterministic, leakage-remediated tool-call simulation
+tight estimate). These selective figures are from the \emph{retired Groq
+three-LLaMA round}; the 2026-07 cross-family clean round's held-out split
+gives 100.0\% accuracy at 16.7\% coverage ($N_\text{accepted}=18$, exact
+binomial $p=0.052$) as one directional observation, and a subsequent
+pre-registered round on 1231 fresh items \emph{failed to confirm} the
+consensus-temperature selection signal, demoting temperature to a diagnostic
+(NEGATIVE\_RESULTS \S18). On a deterministic, leakage-remediated tool-call simulation
 (700 rows: 70 templates $\times$ 10 cosmetic variants; effective $N=70$
 clusters), REMORA's full policy gate produced 0 simulated unsafe acceptances
 (cluster-level Wilson 95\% CI [0.0\%, 5.2\%]); comparable heuristic baselines
@@ -213,8 +219,9 @@ sampling over chain-of-thought paths. Lakshminarayanan et al.\ (2017)
 distinct random initialisations improve both accuracy and calibration.
 REMORA's oracle fan-out is structurally related but uses
 \emph{separately configured oracle endpoints} rather than multiple samples
-from one model (the design intent is distinct model families; all reported
-experiments use three Llama-family variants),
+from one model (the 2026-07 clean round and the AgentHarm validation use a
+Cloudflare Workers AI cross-family trio --- Meta LLaMA, Alibaba Qwen,
+Mistral; earlier rounds used a Groq three-LLaMA swarm),
 and weights oracles by \emph{inverse pairwise correlation} rather than
 treating them as exchangeable. Kuncheva \& Whitaker (2003)
 \cite{kuncheva2003measures} formalised diversity measures for classifier
@@ -336,8 +343,12 @@ fires an immediate \textsc{Escalate} if detected.
 \paragraph{Stage 2: Oracle Fan-Out.}
 $n$ configured oracle models are queried in parallel
 via \texttt{ThreadPoolExecutor} (the engine accepts $n \geq 2$; the
-design recommendation is $n \geq 3$ from distinct model families, but all
-reported experiments use three Llama-family variants). Responses with
+design recommendation is $n \geq 3$ from distinct model families. The
+2026-07 clean round and AgentHarm use a Cloudflare Workers AI cross-family
+trio --- Meta LLaMA, Qwen, Mistral --- enforced by
+\texttt{remora/oracles/families.py}; earlier rounds used a Groq
+three-LLaMA swarm whose within-family correlation gave an effective
+diversity closer to two). Responses with
 non-null \texttt{error} fields are excluded before any aggregation.
 $\OraclesV \subseteq \Oracles$ denotes the valid oracle set.
 
@@ -902,10 +913,13 @@ verifier heuristic; REMORA temperature-gate only (no policy engine).
 
 \subsection{Oracles}
 
-All experiments: Llama-3.1-8B-Instant, Llama-3.3-70B-Versatile,
-Llama-4-Scout-17B-16E-Instruct (Groq API). Oracle model versions
-may change; stored artifacts ensure deterministic reproduction of
-QA and tool-call benchmarks.
+The oracle backend changed across rounds. Earlier QA and tool-call rounds
+ran a Groq-hosted three-LLaMA swarm (Llama-3.1-8B-Instant,
+Llama-3.3-70B-Versatile, Llama-4-Scout-17B-16E-Instruct --- one weight
+family); the 2026-07 clean round, the AgentHarm validation, and the
+real-LLM baselines use a Cloudflare Workers AI cross-family trio (Meta
+LLaMA, Alibaba Qwen, Mistral). Oracle model versions may change; stored
+artifacts ensure deterministic reproduction.
 
 % =====================================================================
 \section{Results}
@@ -1033,9 +1047,12 @@ measure different mechanisms at different scales.
 \label{sec:ablation}
 
 \textbf{Policy vs. thermodynamics.}
-Temperature gate only achieves 70\% accuracy, 10\% unsafe execution.
-Full policy gate: 90\% accuracy, 0\% unsafe. Hard blocks account for
-the entire safety improvement.
+Temperature gate only achieves 60\% accuracy, 1.4\% unsafe execution;
+the full policy gate reaches 90\% accuracy at 0\% unsafe. After the
+2026-07-20 leakage fix the unsafe-rate delta vs.\ baselines is not
+statistically significant ($p=0.50$), so on this benchmark version the
+hard-block layer's demonstrated advantage is routing quality rather than a
+statistically separable safety delta.
 \emph{Architectural implication.} The unsafe-execution reduction is
 100\% attributable to deterministic, interpretable policy rules that are
 independent of LLM output. The multi-oracle consensus and thermodynamic
@@ -1152,9 +1169,14 @@ in-sample; held-out evaluation ($n=108$, 20\% stratified) confirms
 validity ($p=1.45\times10^{-5}$); 13.8\% author-curated benchmark
 items; synthetic tool-call adversarial patterns.
 
-\textbf{External validity:} All experiments use Groq/Llama models;
-benchmark phase distribution may not match deployment reality;
-MultiNLI is a proxy for field evidence retrieval.
+\textbf{External validity:} Model coverage is mixed across rounds: the
+earlier QA and tool-call rounds used a Groq-hosted three-LLaMA swarm
+(one weight family, partial diversity), while the 2026-07 clean round,
+the AgentHarm external validation, and the real-LLM baselines use a
+Cloudflare Workers AI cross-family trio (Meta LLaMA, Alibaba Qwen,
+Mistral). Results on other providers, closed-source models, or quantized
+variants may still differ; the benchmark phase distribution may not match
+deployment reality; and MultiNLI is a proxy for field evidence retrieval.
 
 \textbf{Construct validity:} Thermodynamic terminology is metaphorical,
 not physical. ``Trust'' is a derived scalar, not a frequency probability
@@ -1190,9 +1212,10 @@ make benchmark    # all deterministic benchmarks
 make credibility-pack
 \end{lstlisting}
 
-Live oracle experiments require \texttt{GROQ\_API\_KEY}. Oracle model
-versions on the Groq API may change; results are sensitive to model
-version updates. Stored artifact experiments are fully deterministic.
+Live oracle experiments require \texttt{GROQ\_API\_KEY} (earlier rounds)
+or \texttt{CLOUDFLARE\_API\_TOKEN} (Cloudflare Workers AI, the 2026-07
+clean round). Oracle model versions may change; results are sensitive to
+model version updates. Stored artifact experiments are fully deterministic.
 
 \paragraph{License.}
 This preprint is distributed as part of the REMORA Licensed Work under
@@ -1260,8 +1283,9 @@ AI assurance community.
 % =====================================================================
 \section*{Acknowledgements}
 Benchmarks use publicly available datasets (BoolQ, TruthfulQA, MultiNLI,
-ARC-Challenge, MMLU-Pro). Oracle inference via Groq API. Open Policy Agent
-used for policy evaluation. Negative results documented in full in
+ARC-Challenge, MMLU-Pro). Oracle inference via the Groq API (earlier
+rounds) and Cloudflare Workers AI (the 2026-07 clean round). Open Policy
+Agent used for policy evaluation. Negative results documented in full in
 \texttt{NEGATIVE\_RESULTS.md}; the authors thank all reviewers who pointed
 out scope corrections and limitations. We thank contributor Erlend Barli
 (\texttt{github.com/erlendbarli}) for contributions to the project

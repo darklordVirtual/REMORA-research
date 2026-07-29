@@ -1,6 +1,6 @@
 # REMORA: A Policy-Gated Multi-Oracle Assurance Architecture for Agentic AI
 
-**Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA](https://github.com/darklordVirtual/REMORA)
+**Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research)
 
 *Paper version v0.10.0 · revision 2026-07-29 (synchronized with repository code) · repository review tag `review-v1`.*
 
@@ -224,7 +224,7 @@ REMORA processes each gate request through six decision stages, followed by Deci
 
 ### 4.1 Oracle Swarm
 
-The oracle set $\mathcal{O}$ contains $n \geq 3$ models from distinct model families. In the reported experiments: Llama-3.1-8B-Instant, Llama-3.3-70B-Versatile, and Llama-4-Scout-17B-16E-Instruct (Groq inference API). Fan-out is implemented with `concurrent.futures.ThreadPoolExecutor`; sequential fallback is invoked on runtime errors (e.g., nested event loops). Oracle responses are collected with per-oracle timeouts. Failed responses (network errors, timeouts, parse failures) are identified by a non-null `error` field and excluded from all downstream aggregation before consensus is computed.
+The oracle set $\mathcal{O}$ contains $n \geq 3$ models from distinct model families. The 2026-07 clean benchmark round, the AgentHarm external validation, and the real-LLM baselines use a Cloudflare Workers AI cross-family trio — `@cf/meta/llama-3.3-70b-instruct-fp8-fast` (Meta LLaMA), `@cf/qwen/qwen3-30b-a3b-fp8` (Alibaba Qwen), and `@cf/mistralai/mistral-small-3.1-24b-instruct` (Mistral) — with the no-same-family rule enforced fail-closed by `remora/oracles/families.py`. Earlier QA and tool-call rounds ran on a Groq-hosted three-LLaMA swarm (Llama-3.1-8B-Instant, Llama-3.3-70B-Versatile, Llama-4-Scout-17B-16E-Instruct), which is one weight family: its within-family correlation gave an effective diversity closer to two oracles — the limitation §13.5 documents and the cross-family trio addresses. Fan-out is implemented with `concurrent.futures.ThreadPoolExecutor`; sequential fallback is invoked on runtime errors (e.g., nested event loops). Oracle responses are collected with per-oracle timeouts. Failed responses (network errors, timeouts, parse failures) are identified by a non-null `error` field and excluded from all downstream aggregation before consensus is computed.
 
 ### 4.2 Canonicalizer
 
@@ -517,13 +517,13 @@ For tool-call benchmark (N=700, deterministic heuristic):
 - Majority vote heuristic (unweighted, three deterministic heuristic variants)
 - Self-consistency heuristic (temperature sampling over heuristic variants, five draws)
 - Verifier heuristic (heuristic with destructive-keyword override)
-- REMORA temperature gate only (thermodynamic routing, no policy engine)
+- REMORA temperature gate only (temperature routing, no policy engine)
 
 **Real LLM baselines (REM-010, pilot N=100):** A second baseline set backed by actual LLM inference (`@cf/meta/llama-3.3-70b-instruct-fp8-fast` via Cloudflare Workers AI, `remora/toolcall/baselines_llm.py`) was evaluated on a 100-task stratified pilot subset of toolcall_blind_v3. Results: `single_model_llm` FAR=1.25%, `majority_vote_llm` (3-sample, temperature=0.7) FAR=0.0%, `self_consistency_llm` (5-sample, temperature=0.9) FAR=1.25%. Artifact: `results/toolcall_llm_baselines_pilot_n100.json`. Caveat: N=100 pilot; wide confidence interval; full N=700 comparison is a future experiment. The heuristic baselines remain in `remora/toolcall/baselines.py` for deterministic regression testing; they use keyword routing without LLM inference and are labeled `*_heuristic` throughout.
 
 ### 9.3 Oracles
 
-All QA and tool-call experiments use three oracle models: Llama-3.1-8B-Instant, Llama-3.3-70B-Versatile, Llama-4-Scout-17B-16E-Instruct (originally via Groq inference API; Cloudflare Workers AI also supported). Oracle responses are collected with per-request timeouts. All recorded experiments were conducted on live oracle APIs; results may differ if oracle model versions are updated.
+The oracle backend changed across rounds. Earlier QA and tool-call rounds ran a Groq-hosted three-LLaMA swarm (Llama-3.1-8B-Instant, Llama-3.3-70B-Versatile, Llama-4-Scout-17B-16E-Instruct — one weight family); the 2026-07 clean round, the AgentHarm validation, and the real-LLM baselines moved to a Cloudflare Workers AI cross-family trio (Meta LLaMA / Alibaba Qwen / Mistral). Oracle responses are collected with per-request timeouts. All recorded experiments were conducted on live oracle APIs; results may differ if oracle model versions are updated.
 
 ### 9.4 Metrics
 
@@ -549,6 +549,8 @@ All QA and tool-call experiments use three oracle models: Llama-3.1-8B-Instant, 
 | neg_temperature (10% cov.) | in-sample | 10% | 54 | 44 | 81.48% | +40.3 | [69.2, 89.6] |
 | neg_temperature (25% cov.) | in-sample | 25% | 136 | 99 | 72.79% | +31.6 | [64.8, 79.6] |
 | neg_temperature (held-out) | **holdout** | **23.2%** | **25** | **22** | **88.00%** | **+41.7** | **[70.0, 95.8]** |
+
+> **Provenance / supersession.** The selective figures in this subsection (88.0% @ 23.2% held-out, 88.78% @ 18% in-sample) are from the **retired Groq three-LLaMA round**. They are superseded by the 2026-07 cross-family clean round reported in the abstract — 100.0% accuracy at 16.7% coverage (N\_accepted=18, exact binomial p=0.052) as one directional observation — whose pre-registered fresh-data follow-up *failed to confirm* the consensus-temperature selection signal (NEGATIVE_RESULTS §18). They are retained here as the historical Groq-round record, not the current headline.
 
 *Held-out protocol:* Stratified 80/20 split (seed=42) by benchmark source; $\tau^* = 0.203$ selected on 436-item training set at 18% coverage target (locked, not re-optimised on holdout); 108-item holdout evaluated with $\tau^*$ fixed. Holdout coverage is 23.2% because the temperature distribution of the holdout split admits slightly more items below $\tau^*$. All 25 accepted holdout items are in the ordered phase. Holdout p-value = 1.45 × 10⁻⁵ (one-sided binomial, H₁: accuracy > holdout baseline 46.3%); Wilson CI [70.0%, 95.8%] lies entirely above the holdout baseline. **Interpretation caveat (REM-011):** N\_accepted=25 produces a CI spanning 25.8 pp. This is one directional held-out observation: it rules out random-chance performance but does not resolve whether 88% generalizes to new datasets. A larger holdout (N\_accepted ≥ 100) is required before making generalization claims. See `docs/assurance/remediation_register.yaml` REM-011.
 
@@ -739,13 +741,13 @@ To demonstrate that the combination of techniques gives better safety–utility 
 
 *Limitations.* All conditions use deterministic proxy or pre-existing heuristic signals, not live LLM oracle calls. External replication on a held-out production corpus is required before generalising beyond this benchmark.
 
-**Reading the table.** Conditions A and B (threshold and ensemble) achieve FAR > 0 because probabilistic methods alone cannot resolve cases where structural gate signals: prompt injection, fallback destructive execution, explicit human-approval requirements, and intent-argument conflicts, are the distinguishing factor; 30% and 10% of harmful actions slip through, respectively. Condition C (structural gates only) achieves zero false blocks of benign traffic but incurs FAR = 25%: the 140 cases from the `missing_context_high_risk` and `regulated_ambiguity` scenario families carry no hard structural flag, so they require a probabilistic thermodynamic signal to route correctly. Only the combination (conditions D and E) reaches FAR = 0 for both failure modes simultaneously. Condition D achieves the same safety floor as E, but without AROMER's learned world model it routes 50% of benign actions to review; AROMER learning reduces this to 17%, raising mean utility from 0.10 to 0.62.
+**Reading the table.** Conditions A and B (threshold and ensemble) achieve FAR > 0 because probabilistic methods alone cannot resolve cases where structural gate signals: prompt injection, fallback destructive execution, explicit human-approval requirements, and intent-argument conflicts, are the distinguishing factor; 30% and 10% of harmful actions slip through, respectively. Condition C (structural gates only) achieves zero false blocks of benign traffic but incurs FAR = 25%: the 140 cases from the `missing_context_high_risk` and `regulated_ambiguity` scenario families carry no hard structural flag, so they require a probabilistic routing signal (the temperature / dissensus observables) to route correctly. Only the combination (conditions D and E) reaches FAR = 0 for both failure modes simultaneously. Condition D achieves the same safety floor as E, but without AROMER's learned world model it routes 50% of benign actions to review; AROMER learning reduces this to 17%, raising mean utility from 0.10 to 0.62.
 
-**Conclusion.** Zero false-accept rate requires *both* structural gates (catches injection/approval/conflict failures) *and* thermodynamic policy (catches missing-context/regulated-ambiguity failures). Competitive utility requires additionally the AROMER learning layer to distinguish proven-safe contexts from genuinely uncertain ones. No single component achieves all three properties simultaneously.
+**Conclusion.** Zero false-accept rate requires *both* structural gates (catches injection/approval/conflict failures) *and* the probabilistic routing layer (the temperature / dissensus observables, which catch missing-context/regulated-ambiguity failures). Competitive utility requires additionally the AROMER learning layer to distinguish proven-safe contexts from genuinely uncertain ones. No single component achieves all three properties simultaneously.
 
 ### 11.2 Temperature-Gate vs. Full Policy Gate
 
-The temperature-gate-only condition in the tool-call benchmark isolates the thermodynamic routing contribution. Moving from temperature gate to full policy gate (leakage-free 2026-07-20 re-run):
+The temperature-gate-only condition in the tool-call benchmark isolates the temperature-routing contribution. Moving from temperature gate to full policy gate (leakage-free 2026-07-20 re-run):
 - Unsafe execution: 1.4% → 0% (a delta that is *not* statistically separable at the template-cluster level, one-sided p=0.50)
 - Accuracy: 60% → 90%
 - Mean utility: 0.36 → 0.62
@@ -854,7 +856,7 @@ At full coverage, the majority-vote baseline achieves 41.18%, below chance for b
 
 ### 13.5 Oracle Diversity is Partial
 
-The recommended oracle swarm uses three models from distinct Llama families. Within-family pairwise agreement rates (ρ̄ ≈ 0.4–0.6 in prior measurements) indicate partial correlation. True statistical independence is not achievable with current publicly available model families; diversity weighting mitigates but does not eliminate this. For production deployments, mixing providers (e.g., Anthropic Claude, Google Gemini, Meta Llama) is recommended.
+The retired Groq swarm used three LLaMA *variants* — one weight family, not distinct families — with within-family pairwise agreement (ρ̄ ≈ 0.4–0.6) indicating partial correlation, so its three-oracle consensus had an effective diversity closer to two. The 2026-07 clean round's Cloudflare cross-family trio (Meta LLaMA / Alibaba Qwen / Mistral) is genuinely cross-family and is enforced by `remora/oracles/families.py`, which fails closed on any same-family pair. True statistical independence is still not achievable with publicly available models; diversity weighting mitigates but does not eliminate residual correlation, and further provider mixing (e.g., Anthropic Claude, Google Gemini) remains recommended for production.
 
 ### 13.6 In-Sample Calibration Warning
 
@@ -910,7 +912,7 @@ REMORA produces two explanation artifacts, the `PolicyTrace` rule ladder from `e
 - Tool-call benchmark is synthetic; adversarial patterns may not reflect real deployment failures.
 
 **External validity:**
-- All experiments use Groq-hosted Llama models; results on other inference providers, closed-source models, or quantized variants may differ.
+- Model coverage is mixed across rounds: earlier QA/tool-call rounds used a Groq-hosted three-LLaMA swarm (one weight family), while the 2026-07 clean round, AgentHarm, and the real-LLM baselines use a Cloudflare Workers AI cross-family trio (Meta LLaMA / Alibaba Qwen / Mistral). Results on other inference providers, closed-source models, or quantized variants may still differ.
 - Phase classification is calibrated on a specific benchmark composition; the proportion of ordered/critical/disordered items in real deployments is unknown.
 - The MultiNLI benchmark is a reasonable proxy for evidence verification but is not equivalent to field evidence retrieval.
 
@@ -945,9 +947,9 @@ REMORA is designed to *reduce* unsafe autonomous AI actions, not to enable them.
 
 ## 16. Reproducibility and Artifact Availability
 
-**Repository:** Available at [https://github.com/darklordVirtual/REMORA](https://github.com/darklordVirtual/REMORA). Commit hash: `9c504f5`.
+**Repository:** Available at [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research). Release tag: `review-v1` (see the version line at the top of this paper).
 
-**Python version:** 3.14
+**Python version:** 3.11+
 
 **Installation:**
 ```
@@ -1019,7 +1021,7 @@ python experiments/lyapunov_aggregate.py
 We presented REMORA, a policy-gated multi-oracle assurance architecture for governing agentic AI actions. The central contribution is a system-level design that converts multi-oracle disagreement, thermodynamic uncertainty observables, evidence signals, and policy constraints into four gate outcomes (ACCEPT, VERIFY, ABSTAIN, ESCALATE), with a full audit record for every decision.
 
 Key empirical findings:
-- Thermodynamic routing achieves 88.8% selective accuracy at 18% coverage on the QA benchmark (+47.6 pp over full-coverage majority vote; in-sample calibration caveat applies). A `PhaseAwareGuardrail` exploiting the critical-phase trust inversion extends coverage to 22.1% at 85.0% accuracy (+43.8 pp lift; Wilson CI [77.5%, 90.3%]; `results/phase_aware_guardrail_n544_results.json`), adding 21 low-τ critical items via inverted-score selection.
+- Temperature-based selective routing reached 88.8% accuracy at 18% coverage on the QA benchmark in-sample (retired Groq round, +47.6 pp over full-coverage majority vote). **This did not hold up:** a pre-registered fresh-data round on 1231 cross-family items *failed to confirm* the consensus-temperature selection signal — it ranked worse than a calibrated-confidence baseline and certified no coverage under selection-with-guaranteed-risk — demoting temperature to a diagnostic (NEGATIVE_RESULTS §18). The signal that survives is dev-split-calibrated confidence, not temperature. A `PhaseAwareGuardrail` exploiting the critical-phase trust inversion extends coverage to 22.1% at 85.0% accuracy (+43.8 pp lift; Wilson CI [77.5%, 90.3%]; `results/phase_aware_guardrail_n544_results.json`), adding 21 low-τ critical items via inverted-score selection.
 - Policy hard blocks hold unsafe execution at 0% on an adversarial 700-task tool-call benchmark (effective N=70 templates; cluster-level Wilson CI [0.0%, 5.2%]). After the 2026-07-20 leakage fix, baselines show 1.4% and the unsafe-rate delta is not statistically significant (p=0.50); the significant gains are utility (+0.456) and accuracy (90% vs. ≤60%).
 - Evidence routing (NLI-proxy classification; not document-grounded retrieval) resolves 38.5% of critical-phase items with 100% NLI-proxy routing precision, where trust-based routing fails completely.
 - Mondrian phase-stratified conformal achieves 99.9% ordered-phase coverage with 0/20 seed failures at the 15% risk target.
@@ -1038,7 +1040,7 @@ The broader thesis, that modern agentic AI requires an explicit uncertainty rout
 
 ## Acknowledgements
 
-Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), TruthfulQA (Lin et al., 2022), MultiNLI (Williams et al., 2018), ARC-Challenge, and MMLU-Pro. Oracle inference via Groq API. Policy evaluation via Open Policy Agent. The authors thank all reviewers who identified scope corrections and limitations documented in NEGATIVE_RESULTS.md. We thank contributor Erlend Barli (github.com/erlendbarli) for contributions to the project (see CONTRIBUTORS.md).
+Benchmarks use publicly available datasets: BoolQ (Clark et al., 2019), TruthfulQA (Lin et al., 2022), MultiNLI (Williams et al., 2018), ARC-Challenge, and MMLU-Pro. Oracle inference via the Groq API (earlier rounds) and Cloudflare Workers AI (the 2026-07 clean round). Policy evaluation via Open Policy Agent. The authors thank all reviewers who identified scope corrections and limitations documented in NEGATIVE_RESULTS.md. We thank contributor Erlend Barli (github.com/erlendbarli) for contributions to the project (see CONTRIBUTORS.md).
 
 ---
 
@@ -1178,7 +1180,7 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 | Symbol | Definition | Notes |
 |--------|-----------|-------|
-| $\mathcal{O}$ | Oracle set $\{o_1, \ldots, o_n\}$ | $n \geq 2$ configured endpoints (design intent: $\geq 3$ distinct families; experiments use 3 Llama variants) |
+| $\mathcal{O}$ | Oracle set $\{o_1, \ldots, o_n\}$ | $n \geq 2$ configured endpoints (design intent: $\geq 3$ distinct families; 2026-07 clean round uses a Cloudflare cross-family trio, earlier rounds a Groq three-LLaMA swarm) |
 | $\mathcal{O}'$ | Valid oracle set after failure filtering | $\mathcal{O}' \subseteq \mathcal{O}$ |
 | $\phi(o)$ | Canonical verdict for oracle $o$ | (polarity, claim_hash, magnitude, tags) |
 | $\rho(a, b)$ | Rolling pairwise agreement rate | Window size 200 (persists per engine instance; the reference API builds a fresh engine per request) |
@@ -1431,7 +1433,7 @@ implemented.
 
 **The contribution** is a system architecture and empirical evaluation for governed agentic AI decision control. REMORA demonstrates that governing autonomous AI action requires explicit uncertainty routing, not suppression, and that policy hard blocks are essential safety mechanisms that thermodynamic routing alone cannot replace.
 
-**Availability.** Code, results, and negative-results documentation are available at [https://github.com/darklordVirtual/REMORA](https://github.com/darklordVirtual/REMORA). All deterministic benchmarks reproduce without API keys.
+**Availability.** Code, results, and negative-results documentation are available at [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research). All deterministic benchmarks reproduce without API keys.
 
 ---
 
@@ -1442,7 +1444,7 @@ implemented.
 | 1 | Is 88.8% accuracy at 18% coverage a cherry-picked operating point? | Yes, it is the in-sample optimum. This is disclosed in `NEGATIVE_RESULTS.md` and the artifact metadata. The held-out evaluation is the appropriate generalizability measure. A skeptical reviewer should demand the holdout results. |
 | 2 | Does the 41.18% baseline indicate the benchmark is broken? | Partially. The benchmark is heavily weighted toward disordered-phase items (75.9%) where all methods perform poorly. The baseline is weak by design, not by calibration error. The appropriate comparison is selective accuracy at the same coverage. |
 | 3 | Is thermodynamic terminology scientifically justified? | No physical thermodynamic law applies to LLMs. The terminology is explicitly framed as an operational metaphor. The observables (H, D, F, V) are deterministic functions of oracle outputs; the names are borrowed for their qualitative properties (order, disorder, energy-like tradeoffs). We believe the metaphor is useful but acknowledge it may invite misinterpretation. |
-| 4 | Are three oracle models sufficient for diversity claims? | No. Three models from related families (all Llama) provide partial diversity (ρ̄ ≈ 0.4–0.6 within-family). The diversity weighting mitigates correlation but does not eliminate it. We frame this as a known limitation and recommend mixed-provider swarms for production. |
+| 4 | Are three oracle models sufficient for diversity claims? | Originally no: the retired Groq swarm was three LLaMA variants (one family, ρ̄ ≈ 0.4–0.6 within-family), giving only partial diversity. The 2026-07 clean round replaced it with a Cloudflare cross-family trio (Meta LLaMA / Qwen / Mistral), enforced fail-closed by `remora/oracles/families.py`. Diversity weighting mitigates residual correlation; further provider mixing is recommended for production. |
 | 5 | Is the tool-call benchmark synthetic and unrealistic? | Yes. It is a synthetic adversarial suite with known failure modes and designed task weights. Results on real tool ecosystems with realistic distributions of failure modes may differ substantially. The benchmark demonstrates the policy gate's mechanism, not production safety. |
 | 6 | Is the critical-phase anticorrelation robust? | N=32 real-oracle critical-phase items is too small for definitive conclusions. The augmented N=511 dataset uses simulated trust distributions matched to observed values, which is a reasonable methodology but introduces assumptions about the simulation. The finding is consistent across both datasets. |
 | 7 | Does REMORA prevent hallucination? | No. REMORA does not verify the factual content of oracle responses. It measures agreement, uncertainty, and policy conditions. A confident, unanimous hallucination in the ordered phase would receive ACCEPT. REMORA prevents unsafe *execution* decisions when uncertainty or policy conditions are not met; it does not detect *factual errors* per se. |
