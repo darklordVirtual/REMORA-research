@@ -4,11 +4,12 @@
 REMORA Quickstart — zero API-key local demo.
 
 Demonstrates the REMORA policy engine governing a sequence of AI agent
-action proposals.  Each scenario has realistic thermodynamic parameters
-(entropy H, dissensus D, phase, trust score) and produces a full
+action proposals.  Each scenario carries illustrative thermodynamic
+parameters (entropy H, dissensus D, phase, trust score) and produces a full
 DecisionEnvelope with SHA-256 audit hash.
 
-    pip install remora          # or: pip install -e . (from repo root)
+    python -m pip install -e .   # from the repo root (REMORA is not on PyPI;
+                                 # the PyPI package named "remora" is unrelated)
     python examples/quickstart.py
     python examples/quickstart.py --no-color   # plain text
     python examples/quickstart.py --fast       # skip pauses
@@ -26,6 +27,7 @@ except ModuleNotFoundError:
 
 import argparse
 import hashlib
+import sys
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -40,6 +42,7 @@ try:
 except ImportError:
     _RICH = False
 
+from remora import __version__ as _REMORA_VERSION
 from remora.policy import RemoraDecisionEngine, PolicyObservation
 from remora.governance.envelope import (
     AssessmentBlock, AuditBlock, DecisionEnvelope, GateBlock, RequestBlock,
@@ -47,8 +50,9 @@ from remora.governance.envelope import (
 
 
 # ---------------------------------------------------------------------------
-# Scenario table — each row is a realistic agent action with calibrated
-# thermodynamic parameters derived from the REMORA N=544 benchmark.
+# Scenario table — each row is a realistic agent action with illustrative,
+# hand-authored thermodynamic parameters (diagnostic-grade signals only; the
+# engine's deterministic policy layer produces the outcome).
 # ---------------------------------------------------------------------------
 
 @dataclass
@@ -182,22 +186,26 @@ def _make_envelope(sc: Scenario, action: str, reasons: tuple, hash_val: str) -> 
 # ---------------------------------------------------------------------------
 
 def run(*, fast: bool = False, no_color: bool = False) -> None:
+    # Never crash on a console/pipe that can't encode the demo's typography
+    # (e.g. cp1252 pipes on Windows): degrade unmappable characters instead.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
     console = Console(highlight=False) if (_RICH and not no_color) else None
     engine  = RemoraDecisionEngine()
 
     if console:
         console.print()
         console.print(Panel(
-            "[bold cyan]REMORA[/bold cyan]  [dim]v0.9.0[/dim]\n"
+            f"[bold cyan]REMORA[/bold cyan]  [dim]v{_REMORA_VERSION}[/dim]\n"
             "[white]Policy-gated multi-oracle governance for autonomous AI[/white]\n\n"
-            "[dim]Thermodynamic phase classifier  ·  Lyapunov session monitor  ·  SHA-256 audit chain[/dim]\n"
+            "[dim]Deterministic policy engine  ·  SHA-256 audit chain  ·  illustrative signals[/dim]\n"
             "[dim]Zero API keys — fully local, fully reproducible[/dim]",
             border_style="cyan", padding=(1, 6), box=rich_box.DOUBLE,
         ))
         console.print()
     else:
         print("\n" + "=" * 72)
-        print("  REMORA v0.9.0 — Policy-Gated Governance (policy-engine demo, illustrative signals)")
+        print(f"  REMORA v{_REMORA_VERSION} — Policy-Gated Governance (policy-engine demo, illustrative signals)")
         print("=" * 72 + "\n")
 
     results: list[dict[str, Any]] = []
@@ -309,7 +317,7 @@ def run(*, fast: bool = False, no_color: bool = False) -> None:
             f"  [yellow]🔍 VERIFY[/yellow]    {verified} / {len(results)}  — evidence or human confirmation required\n"
             f"  [red]🚨 ESCALATE[/red]  {escalated} / {len(results)}  — hard-blocked, routed to human review\n\n"
             f"  [dim]Audit chain: every hash links to previous — tamper-evident log[/dim]\n"
-            f"  [cyan]  make shadow-replay INPUT=artifacts/demo/shadow_mode_sample_agent_action_log.jsonl[/cyan]",
+            f"  [cyan]  python -m remora replay artifacts/demo/shadow_mode_sample_agent_action_log.jsonl[/cyan]",
             title="[bold]Governance outcome[/bold]",
             border_style="cyan", padding=(0, 2),
         ))

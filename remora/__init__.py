@@ -68,6 +68,11 @@ from remora.genome import Genome
 from remora.core import Oracle, OracleResponse
 
 # ---------------------------------------------------------------------------
+# One-call tool-call assessment (the library form of `remora assess`)
+# ---------------------------------------------------------------------------
+from remora.assess import ToolCallAssessment, assess_tool_call, infer_risk_and_type
+
+# ---------------------------------------------------------------------------
 # Policy layer
 # ---------------------------------------------------------------------------
 from remora.policy import RemoraDecisionEngine, PolicyObservation
@@ -188,6 +193,8 @@ __all__ = [
     "__version__",
     # Core engine
     "Remora", "RemoraState", "Genome", "Oracle", "OracleResponse",
+    # One-call assessment
+    "ToolCallAssessment", "assess_tool_call", "infer_risk_and_type",
     # Policy
     "RemoraDecisionEngine", "PolicyObservation",
     "DecisionAction", "DecisionReason", "DecisionReport",

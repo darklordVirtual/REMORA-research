@@ -6,16 +6,22 @@
 Commands
 --------
     remora try                  Interactive menu: send a tool call, get a verdict
-    remora assess --name X ...  Assess one tool call (scriptable; --json for CI)
+    remora try 3                Run preset 3 non-interactively and exit
+    remora demo                 Eight-scenario governance walkthrough (offline)
+    remora assess NAME ...      Assess one tool call (scriptable; --json for CI)
+    remora explain NAME ...     Full rule-by-rule reasoning trace
+    remora replay LOG.jsonl     Shadow-Mode counterfactual batch replay
     remora verify               Run all safety invariant checks
     remora verify --json        JSON output for CI integration
     remora verify --scenario X  Run only scenario X
+    remora provenance           Policy bundle hash + per-file manifest
     remora maturity             Show module stability maturity report
+    remora doctor               Environment self-check with actionable fixes
 
 Usage
 -----
     python -m remora try
-    python -m remora assess --name drop_database --risk critical \
+    python -m remora assess drop_database --risk critical \
         --action-type destructive_write --target-env prod
     python -m remora.cli verify --json
     python -m remora.cli maturity
@@ -178,37 +184,24 @@ def _assess(
     trust_score: float | None = None,
     phase: str | None = None,
 ):
-    """Run one tool call through the real engine; return ``(decision, trace,
+    """Run one tool call through the engine; return ``(decision, trace,
     envelope)``.
 
-    Uses the production code paths end to end: the admission firewall
-    (``detect_adversarial``), ``RemoraDecisionEngine.decide`` for the verdict,
-    ``.explain`` for the rule-by-rule reasoning trace, and
-    ``build_decision_envelope`` for the canonical auditable envelope.
-    Deterministic - no oracles, no API keys; ``trust_score``/``phase`` stand in
-    for live multi-oracle consensus when supplied.
+    Thin wrapper over :func:`remora.assess.assess_tool_call` — the library
+    one-liner is the single source for the deterministic assessment path.
     """
-    from remora.policy.decision_engine import RemoraDecisionEngine
-    from remora.policy.observation import PolicyObservation
-    from remora.reporting import build_decision_envelope
-    from remora.safety.adversarial import detect_adversarial
+    from remora.assess import assess_tool_call
 
-    probe = f"{name} {json.dumps(arguments, sort_keys=True, default=str)}"
-    obs = PolicyObservation.from_tool_call(
-        name=name,
-        arguments=arguments,
+    a = assess_tool_call(
+        name,
+        arguments,
         risk_tier=risk_tier,
         action_type=action_type,
         target_environment=target_environment,
         trust_score=trust_score,
         phase=phase,
-        adversarial_detected=detect_adversarial(probe),
     )
-    engine = RemoraDecisionEngine()
-    decision = engine.decide(obs)
-    trace = engine.explain(obs)
-    envelope = build_decision_envelope(obs, decision, question=obs.question)
-    return decision, trace, envelope
+    return a.decision, a.trace, a.envelope
 
 
 _ASCII_MAP = {
@@ -356,6 +349,61 @@ def _print_decision(decision, trace=None, ink: _Ink | None = None) -> None:  # t
         print("    " + ink("> " + _ascii(d["explanation"]), "dim"))
 
 
+def _trust_arg(raw: str) -> float:
+    """argparse type for --trust: a float that must lie within 0..1."""
+    try:
+        value = float(raw)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"not a number: {raw!r}")
+    if not 0.0 <= value <= 1.0:
+        raise argparse.ArgumentTypeError(f"trust must be within 0..1, got {value}")
+    return value
+
+
+def _resolve_tool_name(args: argparse.Namespace, cmd: str) -> str | None:
+    """Resolve the tool name from the positional or --name form (exactly one).
+
+    Prints a clean error and returns None when the invocation is ambiguous or
+    missing the name; callers translate None into exit code 2.
+    """
+    name_flag = getattr(args, "name", None)
+    name_pos = getattr(args, "name_pos", None)
+    if name_flag and name_pos:
+        print(f"remora {cmd}: pass the tool name once (positional or --name, not both)",
+              file=sys.stderr)
+        return None
+    name = name_flag or name_pos
+    if not name:
+        print(f"remora {cmd}: a tool name is required "
+              f"(remora {cmd} <name> or --name <name>)", file=sys.stderr)
+        return None
+    return name
+
+
+# Zero-flag UX: when the user gives just a tool name, well-known name patterns
+# fill in action_type/risk_tier. Single source: remora.assess (the library
+# one-liner uses the same table via ``infer=True``). Inferred values are
+# marked "(inferred)" in output, --risk/--action-type always win, and the
+# engine still fail-closes on anything left unset.
+def _infer_from_name(name: str) -> tuple[str | None, str | None]:
+    from remora.assess import infer_risk_and_type
+    return infer_risk_and_type(name)
+
+
+def _apply_name_inference(args: argparse.Namespace, name: str) -> dict[str, str]:
+    """Fill unset --risk/--action-type from the name; return what was inferred."""
+    inferred: dict[str, str] = {}
+    if args.risk is None or args.action_type is None:
+        action_type, risk = _infer_from_name(name)
+        if args.action_type is None and action_type:
+            args.action_type = action_type
+            inferred["action_type"] = action_type
+        if args.risk is None and risk:
+            args.risk = risk
+            inferred["risk_tier"] = risk
+    return inferred
+
+
 def _parse_kv_args(pairs: list[str] | None) -> dict:
     """Parse ``key=value`` pairs; JSON-decode values, falling back to string."""
     out: dict = {}
@@ -391,7 +439,155 @@ def _write_envelope(envelope, path: str) -> None:  # type: ignore[no-untyped-def
     print(f"remora assess: wrote DecisionEnvelope to {p}", file=sys.stderr)
 
 
+# -- Live mode: real multi-oracle consensus, keys from the environment only --
+
+_LIVE_KEY_HINT = (
+    "  set GROQ_API_KEY (gsk_...) or GEMINI_API_KEY (AIza...) in the environment,\n"
+    "  run a local Ollama, or set REMORA_ORACLE_BACKEND explicitly.\n"
+    "  API keys are read from the environment only; they are never printed or stored."
+)
+
+
+def _detect_live_backend() -> str | None:
+    """Return the non-mock oracle backend --live would use, or None.
+
+    An explicit ``REMORA_ORACLE_BACKEND=mock`` means "no live backend" — live
+    mode must never silently run on mock oracles and present it as a real run.
+    """
+    explicit = os.getenv("REMORA_ORACLE_BACKEND", "").strip().lower()
+    if explicit:
+        return None if explicit == "mock" else explicit
+    from remora.oracles.factory import _detect_backend
+    detected = _detect_backend()
+    return None if detected == "mock" else detected
+
+
+def _prompt_for_api_key() -> str | None:
+    """Offer interactive API-key entry: hidden input, process memory only.
+
+    The provider is recognised from the key prefix and the key is exported to
+    this process's environment for the oracle client. It is never echoed,
+    logged, or written to disk. Interactive TTY only.
+    """
+    if not sys.stdin.isatty() or not sys.stdout.isatty():
+        return None
+    import getpass
+    print("  No oracle API key found in the environment.")
+    print("  Paste one to run live (input hidden, kept in process memory only),")
+    print("  or press Enter to cancel.  Recognised: Groq gsk_...   Gemini AIza...")
+    try:
+        key = getpass.getpass("  API key: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        return None
+    if not key:
+        return None
+    if key.startswith("gsk_"):
+        os.environ["GROQ_API_KEY"] = key
+        return "groq"
+    if key.startswith("AIza"):
+        os.environ["GEMINI_API_KEY"] = key
+        return "gemini"
+    print("  remora: unrecognised key prefix (expected gsk_... or AIza...); "
+          "key discarded.", file=sys.stderr)
+    return None
+
+
+def _cmd_assess_live(args: argparse.Namespace, name: str, arguments: dict,
+                     inferred: dict[str, str]) -> int:
+    """Run one tool call through live multi-oracle consensus (real API calls)."""
+    backend = _detect_live_backend()
+    if backend is None and not getattr(args, "json", False):
+        backend = _prompt_for_api_key()
+    if backend is None:
+        print("remora assess --live: no live oracle backend available.\n"
+              + _LIVE_KEY_HINT, file=sys.stderr)
+        return 2
+    from remora.engine import Remora
+    from remora.genome import Genome
+    from remora.oracles.factory import build_swarm
+    try:
+        oracles = build_swarm(backend)
+    except Exception as exc:
+        print(f"remora assess --live: could not initialise the '{backend}' "
+              f"oracle swarm: {exc}", file=sys.stderr)
+        return 2
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    if not getattr(args, "json", False):
+        print()
+        print("  " + ink(f"live consensus: asking {len(oracles)} oracles via "
+                         f"'{backend}' (real API calls) ...", "dim"))
+    engine = Remora(oracles=oracles, genome=Genome(
+        max_iterations=2, max_subquestions=1, enable_parallel_fanout=True,
+        enable_thermodynamic_control=True, enable_routing=True))
+    question = f"Proposed agent tool call: {name}({json.dumps(arguments, sort_keys=True, default=str)})"
+    try:
+        state = engine.run(
+            question=question,
+            risk_tier=args.risk,
+            action_type=args.action_type,
+            target_environment=args.target_env,
+        )
+        report = engine.report(state)
+    except Exception as exc:
+        print(f"remora assess --live: live run failed: {exc}", file=sys.stderr)
+        return 1
+    pd = report["policy_decision"]
+    envelope = report.get("envelope")
+    rc = (_VERDICT_EXIT.get(str(pd.get("action", "")).lower(), 40)
+          if getattr(args, "exit_code", False) else 0)
+    if getattr(args, "envelope_out", None) and envelope is not None:
+        _write_envelope(envelope, args.envelope_out)
+    consensus = {
+        "backend": backend,
+        "oracle_calls": report.get("oracle_calls"),
+        "iterations": report.get("iterations"),
+        "total_cost_usd": report.get("total_cost_usd"),
+        "final_H": report.get("final_H"),
+        "final_D": report.get("final_D"),
+    }
+    if getattr(args, "json", False):
+        out: dict = {"decision": pd, "consensus": consensus, "inferred": inferred}
+        if getattr(args, "envelope", False) and envelope is not None:
+            out["envelope"] = envelope.to_dict() if hasattr(envelope, "to_dict") else envelope
+        print(json.dumps(out, indent=2, default=str))
+        return rc
+    payload = envelope.to_dict() if hasattr(envelope, "to_dict") else {}
+    thermo = (payload.get("assessment") or {}).get("thermodynamic") or {}
+    print()
+    _header(ink, "LIVE ASSESSMENT  (multi-oracle consensus)")
+    print("    " + ink(_ascii(f"{name}({json.dumps(arguments, default=str)})"), "white", "bold"))
+    print("    " + ink(f"backend: {backend}    oracles asked: {consensus['oracle_calls']}"
+                       f"    iterations: {consensus['iterations']}", "dim"))
+    print()
+    print(f"    {ink('VERDICT', 'bold')}    {_badge(ink, str(pd.get('action', 'unknown')))}")
+    print()
+    h, d = consensus["final_H"], consensus["final_D"]
+    if h is not None or d is not None:
+        print("    " + ink(f"entropy H {h if h is not None else '?'}    "
+                           f"dissensus D {d if d is not None else '?'}    "
+                           f"phase {thermo.get('phase', '?')}    "
+                           f"trust {thermo.get('trust_score', '?')}", "dim"))
+    if pd.get("human_review_required"):
+        print("    " + ink("!", "red", "bold") + " human review required")
+    if pd.get("evidence_required"):
+        print("    " + ink("!", "yellow", "bold") + " evidence required before ACCEPT is possible")
+    if pd.get("explanation"):
+        print("    " + ink("> " + _ascii(str(pd["explanation"])), "dim"))
+    print()
+    if getattr(args, "envelope", False) and envelope is not None:
+        _print_envelope(envelope, ink)
+    cost = consensus["total_cost_usd"]
+    print("  " + ink(f"(live multi-oracle consensus via '{backend}'"
+                     + (f"; est. cost ${cost}" if cost else "")
+                     + "; hard guards keep absolute priority)", "dim"))
+    print()
+    return rc
+
+
 def _cmd_assess(args: argparse.Namespace) -> int:
+    name = _resolve_tool_name(args, "assess")
+    if name is None:
+        return 2
     try:
         if getattr(args, "arguments_json", None):
             arguments = json.loads(args.arguments_json)
@@ -402,8 +598,11 @@ def _cmd_assess(args: argparse.Namespace) -> int:
     except (json.JSONDecodeError, ValueError) as exc:
         print(f"remora assess: invalid tool arguments: {exc}", file=sys.stderr)
         return 2
+    inferred = _apply_name_inference(args, name)
+    if getattr(args, "live", False):
+        return _cmd_assess_live(args, name, arguments, inferred)
     decision, trace, envelope = _assess(
-        args.name,
+        name,
         arguments,
         risk_tier=args.risk,
         action_type=args.action_type,
@@ -423,18 +622,22 @@ def _cmd_assess(args: argparse.Namespace) -> int:
                     r.rule for r in trace.rule_evaluations if r.triggered
                 ],
             },
+            "inferred": inferred,
         }
         if getattr(args, "envelope", False):
             out["envelope"] = envelope.to_dict()
         print(json.dumps(out, indent=2, default=str))
         return rc
     ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    risk_lbl = (args.risk or "unset") + (" (inferred)" if "risk_tier" in inferred else "")
+    type_lbl = (args.action_type or "unset") + (" (inferred)" if "action_type" in inferred else "")
     print()
     _header(ink, "TOOL CALL")
-    print("    " + ink(_ascii(f"{args.name}({json.dumps(arguments, default=str)})"), "white", "bold"))
+    print("    " + ink(_ascii(f"{name}({json.dumps(arguments, default=str)})"), "white", "bold"))
     print("    " + ink(
-        f"risk: {args.risk or 'unset'}    type: {args.action_type or 'unset'}    "
-        f"env: {args.target_env}", "dim"))
+        f"risk: {risk_lbl}    type: {type_lbl}    env: {args.target_env}", "dim"))
+    if inferred:
+        print("    " + ink("(inferred from the tool name - override with --risk / --action-type)", "dim"))
     print()
     _print_decision(decision, trace, ink)
     print()
@@ -499,11 +702,16 @@ def _try_custom(ink: _Ink):
     name = _read("  Action / tool name: ")
     if not name:
         return None
-    risk = (_read("  Risk tier [low/medium/high/critical] (blank=unset): ") or "").strip() or None
+    inf_type, inf_risk = _infer_from_name(name.strip())
+    risk_default = inf_risk or "unset"
+    risk = (_read(f"  Risk tier [low/medium/high/critical] (blank={risk_default}): ")
+            or "").strip() or inf_risk
     if risk and risk not in {"low", "medium", "high", "critical"}:
         print(f"  (unrecognised risk {risk!r} - treating as unset)")
         risk = None
-    action_type = (_read("  Action type (e.g. read/deploy/destructive_write) [read]: ") or "").strip() or "read"
+    type_default = inf_type or "read"
+    action_type = (_read(f"  Action type (e.g. read/deploy/destructive_write) [{type_default}]: ")
+                   or "").strip() or type_default
     target_env = (_read("  Target environment [prod]: ") or "").strip() or "prod"
     result = _assess(
         name.strip(), {"_freeform": name.strip()},
@@ -517,6 +725,21 @@ def _try_custom(ink: _Ink):
 
 def _cmd_try(args: argparse.Namespace) -> int:
     ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    preset = getattr(args, "preset", None)
+    if preset is not None:
+        if not preset.isdigit() or not 1 <= int(preset) <= len(_TRY_PRESETS):
+            print(f"remora try: preset must be 1..{len(_TRY_PRESETS)} "
+                  f"(run `remora try` for the menu)", file=sys.stderr)
+            return 2
+        label, kwargs = _TRY_PRESETS[int(preset) - 1]
+        print("\n    " + ink(label, "bold") + "\n")
+        decision, trace, _ = _assess(**kwargs)
+        _print_decision(decision, trace, ink=ink)
+        print()
+        print("  " + ink("(full audit envelope: remora assess <name> ... --envelope)", "dim"))
+        print("  " + ink(f"({_DECISION_NOTE})", "dim"))
+        print()
+        return 0
     _banner(ink)
     _print_try_menu(ink)
     last = None
@@ -555,6 +778,9 @@ def _cmd_try(args: argparse.Namespace) -> int:
 
 def _cmd_explain(args: argparse.Namespace) -> int:
     """Full rule-by-rule reasoning trace (every gate, in order) for one tool call."""
+    name = _resolve_tool_name(args, "explain")
+    if name is None:
+        return 2
     try:
         if getattr(args, "arguments_json", None):
             arguments = json.loads(args.arguments_json)
@@ -565,8 +791,9 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     except (json.JSONDecodeError, ValueError) as exc:
         print(f"remora explain: invalid tool arguments: {exc}", file=sys.stderr)
         return 2
+    inferred = _apply_name_inference(args, name)
     decision, trace, _ = _assess(
-        args.name, arguments, risk_tier=args.risk, action_type=args.action_type,
+        name, arguments, risk_tier=args.risk, action_type=args.action_type,
         target_environment=args.target_env, trust_score=args.trust, phase=args.phase,
     )
     if getattr(args, "json", False):
@@ -578,11 +805,15 @@ def _cmd_explain(args: argparse.Namespace) -> int:
                  "condition": e.condition, "outcome": e.outcome}
                 for e in trace.rule_evaluations
             ],
+            "inferred": inferred,
         }, indent=2, default=str))
         return 0
     ink = _make_ink(False if getattr(args, "no_color", False) else None)
     print()
     _header(ink, "DECISION TRACE  (every rule, in order)")
+    if inferred:
+        print("    " + ink("(risk/type inferred from the tool name - "
+                           "override with --risk / --action-type)", "dim"))
     print("    " + ink("path:  ", "dim") + ink(_ascii(trace.decision_path), "bold"))
     print("    " + ink("verdict: ", "dim") + _badge(ink, decision.action.value))
     print()
@@ -603,6 +834,16 @@ def _cmd_replay(args: argparse.Namespace) -> int:
     """Shadow-Mode counterfactual batch replay of an action-log JSONL."""
     from remora.shadow.replay import replay_action_log
 
+    if args.input is not None and args.input_pos is not None:
+        print("remora replay: pass the action log once (positional or --input, not both)",
+              file=sys.stderr)
+        return 2
+    input_path = args.input if args.input is not None else args.input_pos
+    if input_path is None:
+        print("remora replay: an action-log JSONL is required "
+              "(remora replay <log.jsonl> or --input <log.jsonl>)", file=sys.stderr)
+        return 2
+
     out_dir = getattr(args, "out_dir", None)
     kwargs: dict = {}
     if out_dir:
@@ -614,9 +855,9 @@ def _cmd_replay(args: argparse.Namespace) -> int:
             "output_audit_jsonl": str(d / "replay_audit.jsonl"),
         }
     try:
-        result = replay_action_log(args.input, **kwargs)
+        result = replay_action_log(input_path, **kwargs)
     except FileNotFoundError:
-        print(f"remora replay: input not found: {args.input}", file=sys.stderr)
+        print(f"remora replay: input not found: {input_path}", file=sys.stderr)
         return 2
     r = result.report
     if getattr(args, "json", False):
@@ -640,6 +881,115 @@ def _cmd_replay(args: argparse.Namespace) -> int:
     if out_dir:
         print("\n  " + ink(f"(envelopes + report + audit written under {out_dir}/)", "dim"))
     print()
+    return 0
+
+
+def _cmd_doctor(args: argparse.Namespace) -> int:
+    """Environment self-check with actionable fixes.
+
+    Hard checks (fail -> exit 1): Python version, engine smoke test, policy
+    provenance. Optional capabilities (extras, live backends, repo checkout)
+    are reported with the command that enables them, but never fail.
+    """
+    checks: list[dict] = []
+
+    def add(name: str, ok: bool | None, detail: str, fix: str | None = None,
+            hard: bool = False) -> None:
+        checks.append({"check": name, "ok": ok, "detail": detail,
+                       "fix": fix, "hard": hard})
+
+    py_ok = sys.version_info >= (3, 11)
+    add("python", py_ok, f"{sys.version_info.major}.{sys.version_info.minor}",
+        None if py_ok else "install Python >= 3.11", hard=True)
+    add("remora", True, f"v{_pkg_version()}", hard=True)
+
+    try:
+        decision, _, _ = _assess(
+            "doctor_probe", {}, risk_tier="critical",
+            action_type="destructive_write", target_environment="prod")
+        engine_ok = decision.action.value == "escalate"
+        add("engine", engine_ok,
+            "critical destructive prod write -> "
+            f"{decision.action.value.upper()}",
+            None if engine_ok else "engine did not escalate a hard-block case "
+                                   "- do not trust this build", hard=True)
+    except Exception as exc:  # noqa: BLE001
+        add("engine", False, f"decide() raised: {exc}",
+            "reinstall: python -m pip install -e .", hard=True)
+
+    try:
+        from remora.policy.versioning import compute_policy_bundle_hash
+        add("provenance", True,
+            f"policy bundle {compute_policy_bundle_hash()[:16]}...", hard=True)
+    except Exception as exc:  # noqa: BLE001
+        add("provenance", False, f"could not hash policy bundle: {exc}",
+            "reinstall from a clean checkout", hard=True)
+
+    repo = (_ROOT / "examples" / "quickstart.py").exists() and (_ROOT / "tests").exists()
+    add("repo checkout", repo,
+        str(_ROOT) if repo else "installed without examples/tests",
+        None if repo else "clone the repo for `remora demo` and the test suite")
+
+    for mod, label, fix in (
+        ("pytest", "dev extra (tests)", 'python -m pip install -e ".[dev]"'),
+        ("fastapi", "api extra (remora serve)", 'python -m pip install -e ".[api]"'),
+        ("yaml", "pyyaml (claim gates, causal)", 'python -m pip install -e ".[dev]"'),
+    ):
+        import importlib.util as _ilu
+        present = _ilu.find_spec(mod) is not None
+        add(label, present, "installed" if present else "not installed",
+            None if present else fix)
+
+    # Live backends: report which enabling env vars are present (names only —
+    # never values) and what auto-detection would pick. No network probes here
+    # except the local Ollama port, so doctor stays fast and safe.
+    key_names = [v for v in ("GROQ_API_KEY", "OPENROUTER_API_KEY",
+                             "GEMINI_API_KEY", "REMORA_ORACLE_BACKEND")
+                 if os.getenv(v)]
+    backend = _detect_live_backend() if key_names else None
+    add("live oracles", bool(backend),
+        (f"backend '{backend}' via {', '.join(key_names)}" if backend
+         else "no API key in environment (deterministic mode works fine)"),
+        None if backend else "optional: set GROQ_API_KEY for `assess --live`")
+
+    hard_fail = any(c["hard"] and c["ok"] is False for c in checks)
+
+    if getattr(args, "json", False):
+        print(json.dumps({"ok": not hard_fail, "checks": checks}, indent=2))
+        return 1 if hard_fail else 0
+
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    print()
+    _header(ink, "REMORA DOCTOR")
+    for c in checks:
+        mark = (ink("[ok]  ", "green") if c["ok"]
+                else ink("[--]  ", "yellow") if not c["hard"]
+                else ink("[FAIL]", "red", "bold"))
+        print(f"    {mark} {c['check']:24} {ink(_ascii(c['detail']), 'dim')}")
+        if c["fix"] and not c["ok"]:
+            print("           " + ink("fix: " + c["fix"], "cyan"))
+    print()
+    if hard_fail:
+        print("  " + ink("hard check failed - this installation should not be trusted", "red", "bold"))
+    else:
+        print("  " + ink("all hard checks passed - you're good; next: python -m remora try", "dim"))
+    print()
+    return 1 if hard_fail else 0
+
+
+def _cmd_demo(args: argparse.Namespace) -> int:
+    """Run the eight-scenario governance walkthrough (examples/quickstart.py)."""
+    script = _ROOT / "examples" / "quickstart.py"
+    if not script.exists():
+        print("remora demo: examples/quickstart.py not found "
+              "(the walkthrough needs a repository checkout)", file=sys.stderr)
+        return 1
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("remora_examples_quickstart", script)
+    mod = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
+    sys.modules["remora_examples_quickstart"] = mod  # dataclass resolution needs it
+    spec.loader.exec_module(mod)  # type: ignore[union-attr]
+    mod.run(fast=getattr(args, "fast", False), no_color=getattr(args, "no_color", False))
     return 0
 
 
@@ -675,17 +1025,36 @@ def _cmd_serve(args: argparse.Namespace) -> int:
 
 _MAIN_EPILOG = """\
 examples:
-  python -m remora try
-  python -m remora assess --name drop_database --risk critical --action-type destructive_write
-  python -m remora assess --name deploy --arg env=staging --risk medium --json
-  python -m remora assess --name drop_database --risk critical --exit-code   # exit 30 on ESCALATE
-  python -m remora assess --name drop_database --risk critical --envelope-out env.json
+  python -m remora try                       # interactive menu
+  python -m remora try 3                     # run preset 3 and exit
+  python -m remora demo                      # eight-scenario walkthrough
+  python -m remora assess drop_database      # risk/type inferred from the name
+  python -m remora assess deploy --arg env=staging --json
+  python -m remora assess drop_database --exit-code        # exit 30 on ESCALATE
+  python -m remora assess drop_database --envelope-out env.json
+  python -m remora assess drop_database --live             # real oracle consensus (API key in env)
+  python -m remora explain deploy
+  python -m remora replay artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
   python -m remora provenance
   python -m remora verify --json
+  python -m remora doctor                    # is my setup healthy? what's missing?
+
+full reference: docs/cli.md
 """
+
+_COMMANDS = ("try", "demo", "assess", "explain", "replay", "serve",
+             "provenance", "verify", "maturity", "doctor")
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and not argv[0].startswith("-") and argv[0] not in _COMMANDS:
+        import difflib
+        match = difflib.get_close_matches(argv[0], _COMMANDS, n=1, cutoff=0.6)
+        if match:
+            print(f"remora: unknown command {argv[0]!r} - did you mean {match[0]!r}?",
+                  file=sys.stderr)
+            return 2
     parser = argparse.ArgumentParser(
         prog="remora",
         description="REMORA CLI - formal safety verification and governance tooling",
@@ -697,11 +1066,22 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command")
 
     try_p = sub.add_parser("try", help="Interactive menu: send a tool call, get a verdict")
+    try_p.add_argument(
+        "preset", nargs="?", default=None, metavar="N",
+        help="Run preset N (1-5) non-interactively and exit")
     try_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
+
+    demo_p = sub.add_parser(
+        "demo", help="Eight-scenario governance walkthrough (offline, no API keys)")
+    demo_p.add_argument("--fast", action="store_true", help="Skip pauses")
+    demo_p.add_argument("--no-color", action="store_true", help="Plain text output")
 
     assess_p = sub.add_parser(
         "assess", help="Assess one tool call (scriptable; --json for CI)")
-    assess_p.add_argument("--name", required=True, help="Tool / action name")
+    assess_p.add_argument(
+        "name_pos", nargs="?", default=None, metavar="NAME",
+        help="Tool / action name")
+    assess_p.add_argument("--name", help="Tool / action name (flag form of the positional)")
     arg_group = assess_p.add_mutually_exclusive_group()
     arg_group.add_argument(
         "--arg", action="append", metavar="KEY=VALUE",
@@ -713,7 +1093,7 @@ def main(argv: list[str] | None = None) -> int:
     assess_p.add_argument("--action-type", help="e.g. read / deploy / destructive_write")
     assess_p.add_argument("--target-env", default="prod", help="Target environment [prod]")
     assess_p.add_argument(
-        "--trust", type=float, help="Stand-in oracle trust score 0..1 (optional)")
+        "--trust", type=_trust_arg, help="Stand-in oracle trust score 0..1 (optional)")
     assess_p.add_argument(
         "--phase", choices=["ordered", "critical", "disordered"],
         help="Stand-in consensus phase (optional)")
@@ -727,12 +1107,19 @@ def main(argv: list[str] | None = None) -> int:
         "--exit-code", action="store_true",
         help="Map the verdict to the exit code "
              "(accept=0, verify=10, abstain=20, escalate=30)")
+    assess_p.add_argument(
+        "--live", action="store_true",
+        help="Run live multi-oracle consensus (needs an API key in the "
+             "environment, e.g. GROQ_API_KEY; see docs/cli.md)")
     assess_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
     assess_p.add_argument("--json", action="store_true", help="JSON output")
 
     explain_p = sub.add_parser(
         "explain", help="Full rule-by-rule reasoning trace for one tool call")
-    explain_p.add_argument("--name", required=True, help="Tool / action name")
+    explain_p.add_argument(
+        "name_pos", nargs="?", default=None, metavar="NAME",
+        help="Tool / action name")
+    explain_p.add_argument("--name", help="Tool / action name (flag form of the positional)")
     ex_group = explain_p.add_mutually_exclusive_group()
     ex_group.add_argument(
         "--arg", action="append", metavar="KEY=VALUE",
@@ -743,7 +1130,7 @@ def main(argv: list[str] | None = None) -> int:
         "--risk", choices=["low", "medium", "high", "critical"], help="Risk tier")
     explain_p.add_argument("--action-type", help="e.g. read / deploy / destructive_write")
     explain_p.add_argument("--target-env", default="prod", help="Target environment [prod]")
-    explain_p.add_argument("--trust", type=float, help="Stand-in oracle trust score 0..1")
+    explain_p.add_argument("--trust", type=_trust_arg, help="Stand-in oracle trust score 0..1")
     explain_p.add_argument(
         "--phase", choices=["ordered", "critical", "disordered"],
         help="Stand-in consensus phase")
@@ -753,7 +1140,11 @@ def main(argv: list[str] | None = None) -> int:
     replay_p = sub.add_parser(
         "replay", help="Shadow-Mode counterfactual batch replay of an action-log JSONL")
     replay_p.add_argument(
-        "--input", required=True, metavar="JSONL", help="Action-log JSONL to replay")
+        "input_pos", nargs="?", default=None, metavar="JSONL",
+        help="Action-log JSONL to replay")
+    replay_p.add_argument(
+        "--input", metavar="JSONL",
+        help="Action-log JSONL to replay (flag form of the positional)")
     replay_p.add_argument(
         "--out-dir", metavar="DIR",
         help="Write envelopes + report + audit chain here (default: nothing written)")
@@ -776,10 +1167,17 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("maturity", help="Show module stability maturity report")
 
+    doctor_p = sub.add_parser(
+        "doctor", help="Environment self-check: what works, what's missing, how to fix it")
+    doctor_p.add_argument("--json", action="store_true", help="JSON output")
+    doctor_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
+
     args = parser.parse_args(argv)
 
     if args.command == "try":
         return _cmd_try(args)
+    if args.command == "demo":
+        return _cmd_demo(args)
     if args.command == "assess":
         return _cmd_assess(args)
     if args.command == "explain":
@@ -794,6 +1192,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_verify(args)
     if args.command == "maturity":
         return _cmd_maturity(args)
+    if args.command == "doctor":
+        return _cmd_doctor(args)
 
     parser.print_help()
     if getattr(sys.stdout, "isatty", lambda: False)():
