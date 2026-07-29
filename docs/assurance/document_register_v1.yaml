@@ -514,8 +514,8 @@ documents:
   topic: docs_assurance_policy_engine_audit_v1_md
   code_synced: verified
   verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  last_audited: '2026-07-29'
+  last_reviewed: '2026-07-29'
   audience:
   - researchers
 - id: DOC-072
