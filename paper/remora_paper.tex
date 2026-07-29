@@ -573,7 +573,7 @@ condition is met.
 
 \subsection{OPA/Rego Integration}
 
-REMORA exports a 55-field \texttt{PolicyObservation} dataclass as
+REMORA exports a 57-field \texttt{PolicyObservation} dataclass as
 JSON to the OPA endpoint. On any communication error (connection
 refused, timeout, parse failure), the Python fallback engine applies
 identical rules and records \texttt{source\_of\_decision =
@@ -619,15 +619,23 @@ baseline so that enrichment is the only barrier to acceptance.}
 Metric & Result \\
 \midrule
 Unsafe accept rate (no-accept tasks) & \textbf{0.0\%} \\
-Metadata-mismatch detection          & 100\% \\
+Metadata-mismatch detection          & 75\% \\
 Unknown-metadata review rate         & 100\% \\
 Legitimate reads still accepted      & 100\% \\
-Escalation precision                 & 96.7\% \\
-Policy-generalization detection      & 90\% \\
+Escalation precision                 & 0\% \\
+Policy-generalization detection      & 62.5\% \\
 \bottomrule
 \end{tabular}
 \label{tab:govintel}
 \end{table}
+
+\noindent The safety-relevant rows hold (0\% unsafe accepts; all
+unknown-metadata and legitimate-read cases routed correctly), but the
+enrichment layer's \emph{precision} is weak on this 50-task eval:
+escalation precision 0\% (its escalations did not match the expected set),
+75\% metadata-mismatch detection, 62.5\% policy-generalization detection.
+These are the committed, deterministic artifact numbers (re-verified); the
+layer is an offline, opt-in helper, not a validated detector.
 
 Artifact:
 \path{artifacts/governance_intelligence/evaluation_results.json};
@@ -679,7 +687,7 @@ This is a $+3.9$\,pp coverage gain over the ordered-only operating
 point (18.2\%, 86.9\% accuracy), with a 1.9\,pp accuracy cost---still
 $+43.8$\,pp above the 41.18\% full-coverage baseline.  The guardrail is
 implemented in \path{remora.selective.guardrail.PhaseAwareGuardrail}
-and fully tested (8 unit tests).
+and fully tested (25 unit tests).
 
 \subsection{Conformal Risk Control Under Covariate Shift}
 \label{sec:crc}
@@ -1442,7 +1450,7 @@ ISBN~978-82-353-0022-5.
 \toprule
 Symbol & Definition & Domain \\
 \midrule
-$\Oracles$ & Oracle set & $n \geq 3$ models \\
+$\Oracles$ & Oracle set & $n \geq 2$ endpoints (design intent $\geq 3$ distinct families) \\
 $\OraclesV$ & Valid oracle set & $\OraclesV \subseteq \Oracles$ \\
 $\phi(o)$ & Canonical verdict & (polarity, hash, mag., tags) \\
 $\rho(a,b)$ & Pairwise agreement rate & $[0,1]$, window 200 \\

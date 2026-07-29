@@ -348,7 +348,7 @@ The adversarial firewall checks for injection patterns in the prompt (e.g., "ign
 
 ### 6.3 Policy-as-Code Integration
 
-REMORA exports a `PolicyObservation` dataclass with 55 fields (risk tier, domain, action type, target environment, all thermodynamic observables, evidence signals, oracle failure counts) as a JSON structure to OPA. The OPA endpoint evaluates Rego policies against this context and returns a structured decision. The fail-closed contract: any OPA communication error (connection refused, timeout, parse failure) causes the system to silently fall back to the Python engine and record `source_of_decision = "python_fallback"` in the audit envelope. This ensures no decision is ever gated on a missing policy engine.
+REMORA exports a `PolicyObservation` dataclass with 57 fields (risk tier, domain, action type, target environment, all thermodynamic observables, evidence signals, oracle failure counts) as a JSON structure to OPA. The OPA endpoint evaluates Rego policies against this context and returns a structured decision. The fail-closed contract: any OPA communication error (connection refused, timeout, parse failure) causes the system to silently fall back to the Python engine and record `source_of_decision = "python_fallback"` in the audit envelope. This ensures no decision is ever gated on a missing policy engine.
 
 ---
 
@@ -369,11 +369,11 @@ Signals merge into the existing `PolicyObservation` under a **strengthen-only** 
 | Metric | Result |
 |---|---:|
 | Unsafe accept rate (no-accept tasks) | **0.0%** |
-| Metadata-mismatch detection | 100% |
+| Metadata-mismatch detection | 75% |
 | Unknown-metadata review rate | 100% |
 | Legitimate reads still accepted | 100% |
-| Escalation precision | 96.7% |
-| Policy-generalization detection | 90% |
+| Escalation precision | 0% |
+| Policy-generalization detection | 62.5% |
 
 Without enrichment, `DROP TABLE users` labelled `action_type=read, risk_tier=low` reaches ACCEPT on a high-trust path; with enrichment it escalates. The layer is heuristic and English-centric; pattern tables can be evaded by novel phrasing, so it reduces reliance on caller labels rather than replacing verification, evidence, or human review.
 
@@ -1372,7 +1372,7 @@ Output: gate_decision g, explanation r, envelope D
 | `remora/correlation.py` | Correlation matrix, diversity weights | 115 lines |
 | `remora/lyapunov.py` | V(t) tracking, abort criterion | 167 lines |
 | `remora/thermodynamics.py` | H, D, T, F, η, χ, τ, phase | 675 lines |
-| `remora/policy/observation.py` | PolicyObservation (55 fields) | 380 lines |
+| `remora/policy/observation.py` | PolicyObservation (57 fields) | 380 lines |
 | `remora/policy/decision_engine.py` | Hard blocks, routing logic | 990 lines |
 | `remora/policy/opa_adapter.py` | OPA/Rego integration, fallback | 266 lines |
 | `remora/policy/report.py` | DecisionReport, DecisionAction enum |, |
