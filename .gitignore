@@ -17,6 +17,11 @@ build/
 # Smoke-test scratch artifacts (kept under results/ during development)
 results/_smoke_*.json
 
+# Shadow-replay output — scripts/shadow_replay.py writes here by default; the
+# Quickstart / reproducibility docs tell readers to run it, so ignore the
+# generated run output (never an artifact-of-record — those live under results/).
+artifacts/shadow_mode/
+
 # Test attestation is generated per-commit (CI review-* tags or locally via
 # scripts/generate_test_attestation.py); a committed copy is stale by
 # construction. See artifacts/credibility-pack/ATTESTATION.md.
