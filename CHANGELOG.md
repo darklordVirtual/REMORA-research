@@ -27,6 +27,36 @@ releases.
 
 ## [Unreleased]
 
+### Refactoring & code hygiene (2026-07-29)
+
+- **Engine decomposition recorded (commit 6213f1a / PR #68).** That squash
+  commit's message described only the policy `thresholds.py` + `trace.py`
+  extraction, but its diff also landed an engine decomposition that had been
+  sitting uncommitted and was swept in by an over-broad `git add -A`:
+  `remora/engine.py` slimmed (~1156 → 783 lines), with `remora/reporting.py`
+  (`build_report`, dependency-injected report + `DecisionEnvelope` assembly;
+  `Remora.report()` delegates to it) and `remora/state.py` (`RemoraState`,
+  re-exported via `from remora.engine import RemoraState`) extracted from it.
+  Behaviour was unchanged (full suite identical to the pre-refactor baseline).
+  This entry and a `git note` on 6213f1a record the true scope; shared master
+  history is not rewritten.
+- **Policy value objects extracted (6213f1a).** The 12 heuristic decision
+  thresholds → `remora/policy/thresholds.py`; `PolicyTrace` /
+  `PolicyRuleEvaluation` → `remora/policy/trace.py`. Both were added to the
+  hashed policy bundle (`versioning.py::_POLICY_SOURCE_FILES`); threshold
+  values are unchanged and pinned.
+- **Post-#68 hygiene sweep.** Removed a dead, divergent evidence-signal helper
+  from `engine.py` (and its orphan import); renamed `reporting.build_envelope`
+  → `_build_envelope` (removing a name collision with
+  `assurance.envelope.build_envelope`) and added its type annotations; added
+  dedicated `tests/test_reporting.py` + `tests/test_state.py` for the two
+  extracted modules (previously transitively covered only); pinned the 12th
+  heuristic threshold value; registered the new modules in the architecture
+  docs and Module Stability Index; corrected the policy-bundle "Files covered"
+  prose (6 → 7 files) and re-anchored the policy engine audit to symbol
+  references; synced the paper `.md` abstract to the improved `.tex` (plus a
+  "note on terminology") and refreshed stale Appendix D line counts.
+
 ### Security (workers/frontend hardening, 2026-07-28 — issue #55)
 
 - **AROMER worker fail-closes all writes.** Every mutating (POST) endpoint
