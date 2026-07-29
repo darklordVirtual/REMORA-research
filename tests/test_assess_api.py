@@ -69,6 +69,15 @@ def test_to_dict_is_json_ready_and_complete():
     assert d["inferred"] == {"action_type": "read", "risk_tier": "low"}
 
 
+def test_advisory_flags_inferred_verdicts():
+    """F-04: inferred metadata must be distinguishable from registry metadata —
+    an advisory verdict must never drive real execution."""
+    inferred = assess_tool_call("read_file", {}, infer=True)
+    assert inferred.advisory is True
+    explicit = assess_tool_call("read_file", {}, risk_tier="low", action_type="read")
+    assert explicit.advisory is False
+
+
 def test_infer_risk_and_type_token_matching():
     assert infer_risk_and_type("read_file") == ("read", "low")
     assert infer_risk_and_type("DropDatabase") == ("destructive_write", "critical")

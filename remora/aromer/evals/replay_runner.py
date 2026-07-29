@@ -412,10 +412,15 @@ def compare_runs(
 
     # ── seeded run ─────────────────────────────────────────────────────────────
     if load_seeds and seeds_dir is not None:
+        from remora.aromer.seeds.load_aromer_seeds import load_seeds as _load
         try:
-            from remora.aromer.seeds.load_aromer_seeds import load_seeds as _load
-            _load(str(seeds_dir), dry_run=False, shadow=False)
-        except Exception as exc:
+            # Keyword is shadow_mode (external review 2026-07-29 F-08: the old
+            # shadow= kwarg raised TypeError, the broad catch swallowed it, and
+            # the "seeded" run silently ran unseeded — a misleading A/B).
+            _load(str(seeds_dir), dry_run=False, shadow_mode=False)
+        except (OSError, ValueError) as exc:
+            # Data problems (missing/corrupt seed files) degrade with a warning;
+            # programming errors must propagate, never be downgraded to a warning.
             print(f"Warning: could not load seeds ({exc}), using current state")
 
     seeded_engine = RemoraDecisionEngine()
