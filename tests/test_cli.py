@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -184,6 +186,63 @@ def test_inline_verify_uses_ascii_marker_and_all_invariants_pass():
     assert "checkmark" not in out
     assert "[ok]" in out
     assert rc == 0
+
+
+def test_remora_explain_shows_full_rule_trace():
+    r = _assess("explain", "--name", "drop_database", "--risk", "critical",
+                "--action-type", "destructive_write", "--json")
+    assert r.returncode == 0, r.stderr
+    d = json.loads(r.stdout)
+    assert d["decision"]["action"] == "escalate"
+    assert len(d["rule_evaluations"]) > 10          # the FULL ladder, not just fired
+    assert any(e["triggered"] for e in d["rule_evaluations"])
+    assert any(e["rule"] == "production_write_high_or_critical" and e["triggered"]
+               for e in d["rule_evaluations"])
+
+
+def test_remora_replay_shadow_delta_report():
+    log = "artifacts/demo/shadow_mode_sample_agent_action_log.jsonl"
+    r = _assess("replay", "--input", log, "--json")
+    assert r.returncode == 0, r.stderr
+    rep = json.loads(r.stdout)
+    assert rep["total_actions_reviewed"] > 0
+    assert rep["critical_false_accept"] == 0          # REMORA never false-accepts critical
+    assert 0 <= rep["audit_completeness_pct"] <= 100
+
+
+def test_remora_replay_missing_input_is_clean_error():
+    r = _assess("replay", "--input", "does/not/exist.jsonl")
+    assert r.returncode == 2
+    assert "not found" in r.stderr
+    assert "Traceback" not in r.stderr
+
+
+def test_remora_serve_invokes_uvicorn_with_host_port(monkeypatch):
+    """serve dispatches to uvicorn with the given host/port (in-process, no bind)."""
+    pytest.importorskip("fastapi")  # servers.api import needs it
+    import argparse
+    import types
+
+    import remora.cli as cli
+
+    calls = []
+    fake = types.SimpleNamespace(run=lambda app, host, port: calls.append((host, port)))
+    monkeypatch.setitem(sys.modules, "uvicorn", fake)
+    rc = cli._cmd_serve(argparse.Namespace(host="127.0.0.1", port=8123))
+    assert rc == 0
+    assert calls == [("127.0.0.1", 8123)]
+
+
+def test_remora_serve_hints_when_api_extra_missing(monkeypatch, capsys):
+    """With uvicorn unavailable, serve exits non-zero with the pip-install hint."""
+    import argparse
+
+    import remora.cli as cli
+
+    monkeypatch.setitem(sys.modules, "uvicorn", None)  # force ImportError on `import uvicorn`
+    rc = cli._cmd_serve(argparse.Namespace(host="127.0.0.1", port=8000))
+    assert rc == 2
+    assert ".[api]" in capsys.readouterr().err
 
 
 def test_remora_maturity_exits_zero():
