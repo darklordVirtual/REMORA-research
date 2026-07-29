@@ -42,30 +42,30 @@ dependencies = []
 
 [project.optional-dependencies]
 # Core LLM API clients
-llm = ["openai>=1.0", "groq>=0.5"]
+llm = ["openai>=2.50.0", "groq>=1.6.0"]
 # Cloud provider SDKs for storage / secrets
-cloud = ["boto3>=1.26"]
+cloud = ["boto3>=1.43.59"]
 # Cryptography for ZKP and audit integrity features
-security = ["cryptography>=41.0"]
+security = ["cryptography>=49.0.0"]
 # MCP server transport (httpx is the only hard dep for the MCP workers)
 mcp = ["httpx>=0.25"]
 # REST API gateway (servers/api.py) — FastAPI + ASGI server
-api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
+api = ["fastapi>=0.141.1", "uvicorn[standard]>=0.52.0"]
 # Data analysis and visualisation
-analysis = ["matplotlib>=3.8", "numpy>=1.26"]
-stats = ["scipy>=1.11"]
-datasets = ["datasets>=2.0"]
-agentharm = ["inspect-ai>=0.3", "inspect-evals", "openai>=1.0", "pyyaml>=6.0"]
+analysis = ["matplotlib>=3.11.1", "numpy>=2.4.6"]
+stats = ["scipy>=1.17.1"]
+datasets = ["datasets>=5.0.1"]
+agentharm = ["inspect-ai>=0.3.251", "inspect-evals", "openai>=2.50.0", "pyyaml>=6.0"]
 causal = ["pyyaml>=6.0"]
 # Documentation
-docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
+docs = ["mkdocs-material>=9.7.7", "mkdocstrings[python]>=1.0.6"]
 # Postgres-backed runtime paths (REM-045): tenant audit chain + enforcement
 # gate import psycopg (v3); control-plane storage + audit adapter import
 # psycopg2. A wheel-only install of the documented durable storage needs both.
-postgres = ["psycopg[binary]>=3.2,<3.4", "psycopg2-binary>=2.9"]
+postgres = ["psycopg[binary]>=3.3.4,<3.4", "psycopg2-binary>=2.9.12"]
 # dev must cover everything `make test` collects: the causal test modules
 # import pyyaml at collection time, so a bare ".[dev]" install must include it.
-dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.8", "sqlglot>=23.0", "mypy>=1.11", "pyyaml>=6.0", "httpx>=0.25"]
+dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.16.0", "sqlglot>=30.14.0", "mypy>=2.3.0", "pyyaml>=6.0", "httpx>=0.25"]
 
 [project.urls]
 Homepage = "https://github.com/darklordVirtual/REMORA-research"
