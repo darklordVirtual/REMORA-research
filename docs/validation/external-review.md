@@ -74,6 +74,13 @@ python -m pytest tests/ -q    # ~3.7k deterministic tests, <1 min
    versions drift.
 4. Report any divergence between the artifact and your run.
 
+## Piloting instead of reviewing?
+
+If you are evaluating REMORA as a shadow-mode pilot platform rather than
+reviewing the research: the pre-registered pilot framework — preconditions,
+measurement criteria, go/no-go thresholds and stop conditions — is
+[pilot_evaluation_protocol_v1.md](pilot_evaluation_protocol_v1.md).
+
 ## What we will do with your review
 - Engage on the issue directly and publicly.
 - Fix or document anything you surface; understated caveats get corrected.
