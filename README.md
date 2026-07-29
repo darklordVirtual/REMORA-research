@@ -16,7 +16,7 @@ REMORA is a **governance overlay** — a decision layer that sits in front of an
 
 Every decision is recorded as a versioned `DecisionEnvelope`: what was decided, under which policy version, and why. On the `/v1/execution/*` path, with a persistence adapter configured, these records are appended to a per-tenant, SHA-256 tamper-evident chain. When the evidence is insufficient, REMORA errs toward ABSTAIN or ESCALATE rather than ACCEPT. All results are from controlled experiments and internal benchmarks; external replication is pending — see [Limitations](#limitations).
 
-**Start here:** [Plain-language overview](docs/plain_language_overview.md) · [Reference architecture](docs/reference_architecture.md) · [Executive one-pager](docs/executive_onepager.md) · [Evidence & claims](docs/02-evidence-and-claims.md) · [Full documentation index](docs/README.md) — unfamiliar terms are defined in [Key terms](#key-terms) below.
+**Start here:** [Plain-language overview](docs/plain_language_overview.md) · [Reference architecture](docs/reference_architecture.md) · [Executive one-pager](docs/executive_onepager.md) · [Evidence & claims](docs/02-evidence-and-claims.md) · [Reviewing this repo](docs/validation/external-review.md) · [Full documentation index](docs/README.md) — unfamiliar terms are defined in [Key terms](#key-terms) below.
 
 ---
 
