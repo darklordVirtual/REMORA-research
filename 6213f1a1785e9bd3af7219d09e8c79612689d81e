@@ -1,0 +1,14 @@
+Post-hoc scope record (commit message understated the diff).
+
+Besides the policy value-object extraction named in the message
+(thresholds.py + trace.py out of decision_engine.py), this squash commit
+also landed an ENGINE decomposition that was swept in by an over-broad
+`git add -A`:
+  - remora/engine.py slimmed ~1156 -> 783 lines
+  - NEW remora/reporting.py (build_report, dependency-injected report +
+    DecisionEnvelope assembly; Remora.report() delegates to it)
+  - NEW remora/state.py (RemoraState; re-exported via
+    `from remora.engine import RemoraState`)
+Behaviour unchanged (full suite identical to the pre-refactor baseline).
+Shared master history is intentionally NOT rewritten; see CHANGELOG
+[Unreleased] "Refactoring & code hygiene (2026-07-29)".
