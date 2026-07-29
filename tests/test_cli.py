@@ -217,6 +217,30 @@ def test_remora_replay_missing_input_is_clean_error():
     assert "Traceback" not in r.stderr
 
 
+def test_remora_replay_positional_input_matches_readme():
+    """README documents `remora replay <log.jsonl>` — the positional form must work."""
+    log = "artifacts/demo/shadow_mode_sample_agent_action_log.jsonl"
+    r = _assess("replay", log, "--json")
+    assert r.returncode == 0, r.stderr
+    rep = json.loads(r.stdout)
+    assert rep["total_actions_reviewed"] > 0
+
+
+def test_remora_replay_no_input_is_clean_error():
+    r = _assess("replay")
+    assert r.returncode == 2
+    assert "required" in r.stderr
+    assert "Traceback" not in r.stderr
+
+
+def test_remora_replay_both_inputs_is_clean_error():
+    log = "artifacts/demo/shadow_mode_sample_agent_action_log.jsonl"
+    r = _assess("replay", log, "--input", log)
+    assert r.returncode == 2
+    assert "not both" in r.stderr
+    assert "Traceback" not in r.stderr
+
+
 def test_remora_serve_invokes_uvicorn_with_host_port(monkeypatch):
     """serve dispatches to uvicorn with the given host/port (in-process, no bind)."""
     pytest.importorskip("fastapi")  # servers.api import needs it

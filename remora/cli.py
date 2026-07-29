@@ -603,6 +603,16 @@ def _cmd_replay(args: argparse.Namespace) -> int:
     """Shadow-Mode counterfactual batch replay of an action-log JSONL."""
     from remora.shadow.replay import replay_action_log
 
+    if args.input is not None and args.input_pos is not None:
+        print("remora replay: pass the action log once (positional or --input, not both)",
+              file=sys.stderr)
+        return 2
+    input_path = args.input if args.input is not None else args.input_pos
+    if input_path is None:
+        print("remora replay: an action-log JSONL is required "
+              "(remora replay <log.jsonl> or --input <log.jsonl>)", file=sys.stderr)
+        return 2
+
     out_dir = getattr(args, "out_dir", None)
     kwargs: dict = {}
     if out_dir:
@@ -614,9 +624,9 @@ def _cmd_replay(args: argparse.Namespace) -> int:
             "output_audit_jsonl": str(d / "replay_audit.jsonl"),
         }
     try:
-        result = replay_action_log(args.input, **kwargs)
+        result = replay_action_log(input_path, **kwargs)
     except FileNotFoundError:
-        print(f"remora replay: input not found: {args.input}", file=sys.stderr)
+        print(f"remora replay: input not found: {input_path}", file=sys.stderr)
         return 2
     r = result.report
     if getattr(args, "json", False):
@@ -753,7 +763,11 @@ def main(argv: list[str] | None = None) -> int:
     replay_p = sub.add_parser(
         "replay", help="Shadow-Mode counterfactual batch replay of an action-log JSONL")
     replay_p.add_argument(
-        "--input", required=True, metavar="JSONL", help="Action-log JSONL to replay")
+        "input_pos", nargs="?", default=None, metavar="JSONL",
+        help="Action-log JSONL to replay")
+    replay_p.add_argument(
+        "--input", metavar="JSONL",
+        help="Action-log JSONL to replay (flag form of the positional)")
     replay_p.add_argument(
         "--out-dir", metavar="DIR",
         help="Write envelopes + report + audit chain here (default: nothing written)")
