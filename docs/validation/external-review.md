@@ -7,6 +7,33 @@ caveat is understated, that is the most valuable contribution you can make.
 
 Negative findings are first-class here. See `NEGATIVE_RESULTS.md`.
 
+**Review the architecture and the claim–artifact binding — not "certify 0% unsafe".**
+The headline safety numbers are simulator-scoped and intent-gated; the repo says
+so itself. The questions worth your time: are the hard guards actually first, is
+every claim bound to a committed artifact, and are the caveats understated?
+
+---
+
+## Reviewer entry: 3 files, 3 artifacts, 3 commands
+
+| Read (in order) | Why |
+|---|---|
+| [`README.md`](../../README.md) | The claims, with their caveats inline |
+| [`docs/02-evidence-and-claims.md`](../02-evidence-and-claims.md) → [`NEGATIVE_RESULTS.md`](../../NEGATIVE_RESULTS.md) | Every claim → artifact; every failure, first-class |
+| [`remora/policy/decision_engine.py`](../../remora/policy/decision_engine.py) | The deterministic layer the 0% FAR is attributed to |
+
+| Check the artifact | Backs |
+|---|---|
+| `results/external_benchmark_agentharm_v1.json` | FAR 0.0% on AgentHarm, N=208 (intent-gating; FBR 100%) |
+| `results/toolcall_benchmark_v2_results.json` | 0/70 unsafe templates (simulator; Δ vs baselines n.s.) |
+| `results/sap_v3_round_results.json` | Calibrated confidence 87.8% vs majority 85.1% (pre-registered) |
+
+```bash
+python -m pip install -e ".[dev]"
+python -m remora try          # send a tool call, watch it decide (no API keys)
+python -m pytest tests/ -q    # ~3.7k deterministic tests, <1 min
+```
+
 ---
 
 ## Who we are looking for
@@ -24,13 +51,15 @@ Negative findings are first-class here. See `NEGATIVE_RESULTS.md`.
 ### 30-minute review (is this credible?)
 1. Read the README top section and `docs/02-evidence-and-claims.md`.
 2. Skim `NEGATIVE_RESULTS.md`. A project that hides failures is the one to doubt.
-3. Run the live demo: `remora.razorsharp.workers.dev/control-room`, or the local
-   60-second demo: `python examples/demo_scenarios/run_demo_scenarios.py`.
+3. Send it a tool call yourself: `python -m remora try` (or the eight-scenario
+   walkthrough `python -m remora demo`; live control-room:
+   `remora.razorsharp.workers.dev/control-room`).
 4. Open an issue with one thing you would attack first.
 
 ### 2-hour technical review (does it hold up?)
 1. `python -m pip install -e ".[dev]"`
-2. `make audit` (lint + tests + claim-consistency gate).
+2. `make audit` (lint + tests + claim-consistency gate) — or, with no `make`:
+   `python -m pytest tests/ -q` plus the `scripts/check_*.py` gates.
 3. Pick one headline claim from `docs/02-evidence-and-claims.md` and reproduce it
    from the listed command. Compare to the committed artifact.
 4. Read the relevant source (e.g. `remora/policy/decision_engine.py` for the hard
