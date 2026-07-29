@@ -52,6 +52,8 @@ architectural caveat.
 | Module | Purpose | Key entry point |
 |---|---|---|
 | `remora/engine.py` | Orchestrates the five stages | `Remora` |
+| `remora/reporting.py` | Assembles the decision report + `DecisionEnvelope` (dependency-injected) | `build_report()` |
+| `remora/state.py` | Engine session-state contract (re-exported via `remora.engine`) | `RemoraState` |
 | `remora/policy/decision_engine.py` | Hard-block invariants + routing logic | `RemoraDecisionEngine.decide()` |
 | `remora/policy/invariants.py` | Deterministic safety rules | `CORE_INVARIANTS`, `assert_invariants()` |
 | `remora/cascade/` | Multi-oracle cascade + consensus | `remora/cascade/stages.py` |

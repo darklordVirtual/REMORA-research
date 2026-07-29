@@ -4,7 +4,7 @@
   - RemoraAuditChain (governance/audit_chain.py)
   - GovernanceInvariants (policy/invariants.py)
   - PolicyObservation factory methods (policy/observation.py)
-  - DecisionEngine.explain() / PolicyTrace (policy/decision_engine.py)
+  - DecisionEngine.explain() (policy/decision_engine.py) / PolicyTrace, PolicyRuleEvaluation (policy/trace.py, re-exported via decision_engine.py)
   - New framework adapters: CrewAIActionAdapter, AutoGenActionAdapter, AsyncActionGate
 """
 from __future__ import annotations

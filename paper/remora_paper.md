@@ -1373,13 +1373,13 @@ Output: gate_decision g, explanation r, envelope D
 
 | Module | Responsibility | Key file |
 |--------|----------------|----------|
-| `remora/engine.py` | Main orchestration, oracle fan-out | 688 lines |
+| `remora/engine.py` | Main orchestration, oracle fan-out | 730 lines |
 | `remora/canonical.py` | Verdict canonicalization (φ) | 159 lines |
 | `remora/correlation.py` | Correlation matrix, diversity weights | 115 lines |
 | `remora/lyapunov.py` | V(t) tracking, abort criterion | 167 lines |
 | `remora/thermodynamics.py` | H, D, T, F, η, χ, τ, phase | 675 lines |
 | `remora/policy/observation.py` | PolicyObservation (57 fields) | 380 lines |
-| `remora/policy/decision_engine.py` | Hard blocks, routing logic | 990 lines |
+| `remora/policy/decision_engine.py` | Hard blocks, routing logic | 1152 lines |
 | `remora/policy/opa_adapter.py` | OPA/Rego integration, fallback | 266 lines |
 | `remora/policy/report.py` | DecisionReport, DecisionAction enum |, |
 | `remora/audit/hash_chain.py` | SHA-256 hash-chain | 168 lines |
