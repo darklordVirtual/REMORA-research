@@ -82,7 +82,7 @@ class TestRemoteEnvModeConsistency:
                     f"REMORA_ENV={val!r} should give development mode"
                 )
 
-    def test_auth_and_is_production_mode_agree_on_unset_env(self):
+    def test_auth_and_is_production_mode_agree_on_unset_env(self, monkeypatch):
         """The auth function must also treat unset REMORA_ENV as development.
 
         The audit found that _is_production_mode() defaulted to 'development'
@@ -92,28 +92,29 @@ class TestRemoteEnvModeConsistency:
         import servers.api as api_module
         from fastapi import Request
 
-        env_backup = os.environ.pop("REMORA_ENV", None)
-        # Also remove credentials so auth hits the "no credentials" path
-        token_backup = os.environ.pop("REMORA_API_BEARER_TOKEN", None)
-        try:
-            # With no env and no credentials, auth must NOT raise 500
-            # (it should use dev fallback and return "default", "operator")
-            scope = {
-                "type": "http",
-                "method": "GET",
-                "path": "/v1/assess",
-                "query_string": b"",
-                "headers": [],
-            }
-            mock_request = Request(scope=scope)
-            tenant, role = api_module._authenticate(mock_request)
-            assert tenant == "default"
-            assert role == "operator"
-        finally:
-            if env_backup is not None:
-                os.environ["REMORA_ENV"] = env_backup
-            if token_backup is not None:
-                os.environ["REMORA_API_BEARER_TOKEN"] = token_backup
+        # Hermetic env: clear EVERY auth input so this test is robust to
+        # cross-file ordering. _authenticate keys off bool(_TOKEN_TABLE) as
+        # well as the env vars, so a leaked non-empty token table (from another
+        # test file) would otherwise force token-mode and a spurious 401.
+        # monkeypatch auto-reverts, unlike the previous manual os.environ.pop.
+        monkeypatch.delenv("REMORA_ENV", raising=False)
+        monkeypatch.delenv("REMORA_API_BEARER_TOKEN", raising=False)
+        monkeypatch.delenv("REMORA_API_TOKENS", raising=False)
+        monkeypatch.setattr(api_module, "_TOKEN_TABLE", {})
+
+        # With no env and no credentials, auth must NOT raise 500 — it should
+        # use the dev fallback and return ("default", "operator").
+        scope = {
+            "type": "http",
+            "method": "GET",
+            "path": "/v1/assess",
+            "query_string": b"",
+            "headers": [],
+        }
+        mock_request = Request(scope=scope)
+        tenant, role = api_module._authenticate(mock_request)
+        assert tenant == "default"
+        assert role == "operator"
 
     def test_single_env_mode_helper_used_everywhere(self):
         """servers/api.py must define a single canonical env-mode helper."""

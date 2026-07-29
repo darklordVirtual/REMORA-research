@@ -980,26 +980,6 @@ def _authenticate(request: Request) -> tuple[str, str]:
     return tenant, role
 
 
-def _require_bearer_auth(request: Request) -> None:
-    """Optional API key auth.
-
-    If REMORA_API_BEARER_TOKEN is set, callers must send
-    Authorization: Bearer <token>.
-    """
-    expected = os.getenv("REMORA_API_BEARER_TOKEN")
-    if not expected:
-        return
-
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        _METRICS["auth_failures"] = _metric_int("auth_failures") + 1
-        raise HTTPException(status_code=401, detail="missing bearer token")
-    provided = auth[len("Bearer "):].strip()
-    if not hmac.compare_digest(provided, expected):
-        _METRICS["auth_failures"] = _metric_int("auth_failures") + 1
-        raise HTTPException(status_code=401, detail="invalid bearer token")
-
-
 def _tenant_id_from_request(request: Request) -> str:
     tenant = request.headers.get("X-Remora-Tenant", "default").strip()
     return tenant or "default"

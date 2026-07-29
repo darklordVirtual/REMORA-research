@@ -33,6 +33,13 @@ if TYPE_CHECKING:
 
 
 def state_hash(state: RemoraState) -> str:
+    """Content-addressed identity of the reasoning state.
+
+    Covers the decision-relevant fields (question, iteration, candidate set +
+    support, falsified set) and intentionally EXCLUDES ``oracle_log`` and
+    ``decisions``: this is a state-identity digest for replay/dedup, not a full
+    audit hash of every runtime event.
+    """
     snap = {"q": state.question, "iter": state.iteration,
         "candidates": sorted(state.candidates.keys()), "falsified": sorted(state.falsified),
         "support": sorted(state.candidate_support.items())}
@@ -56,6 +63,11 @@ def build_report(
     ``detect_adversarial`` is the admission-firewall fallback used when the
     state was built outside ``run()`` (tests, replay) and therefore carries
     no cached ``adversarial_detected`` result.
+
+    Side effect: appends evidence-provider selection/fallback notes to
+    ``state.decisions`` (the state's own decision log), preserving the
+    pre-refactor ``Remora.report()`` behaviour. ``state`` is otherwise treated
+    as read input; the assembled report is returned, not stored on ``state``.
     """
     top_candidates = sorted(state.candidate_support.items(), key=lambda x: -x[1])[:5]
     top_claims = []
