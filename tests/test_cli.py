@@ -18,6 +18,16 @@ def test_remora_verify_exits_zero():
     assert result.returncode == 0, result.stderr + result.stdout
 
 
+def test_python_m_remora_entrypoint_exits_zero():
+    """`python -m remora verify` must work PATH-free via remora/__main__.py,
+    without relying on the `remora` console script being on PATH."""
+    result = subprocess.run(
+        [sys.executable, "-m", "remora", "verify"],
+        capture_output=True, text=True, cwd=ROOT,
+    )
+    assert result.returncode == 0, result.stderr + result.stdout
+
+
 def test_remora_verify_json_output():
     """remora verify --json should produce valid JSON with invariants_checked > 0."""
     result = subprocess.run(
