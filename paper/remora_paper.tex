@@ -101,74 +101,47 @@
 % =====================================================================
 \begin{abstract}
 Autonomous AI agents that invoke tools, query databases, or actuate
-real-world systems require an assurance layer that decides---before
-execution---whether an action is safe enough to proceed autonomously,
-requires verification, warrants abstention, or must be escalated to
-human review. We present \textbf{REMORA} (Reasoning Ensemble
-Multi-Oracle Routing Architecture), a research-grade control layer for
-agentic AI governance. REMORA combines parallel multi-oracle consensus,
-canonicalized verdict extraction, correlation-aware consensus
-weighting, thermodynamic-inspired uncertainty observables,
-Lyapunov-inspired heuristic stability tracking, and a policy engine with
-hard-block precedence rules to produce one of four structured gate
-outcomes: \textsc{accept}, \textsc{verify}, \textsc{abstain}, or
-\textsc{escalate}.
+real-world systems need a gate that decides---before anything
+executes---whether an action may proceed autonomously, requires
+verification, warrants abstention, or must be escalated to a human.
+We present \textbf{REMORA} (Reasoning Ensemble Multi-Oracle Routing
+Architecture), a research-grade control layer that makes this decision.
+Several independent language models assess each proposed action in
+parallel; a deterministic policy engine applies hard safety rules that
+no probabilistic score can override; and every action leaves the gate
+as one of four auditable outcomes: \textsc{accept}, \textsc{verify},
+\textsc{abstain}, or \textsc{escalate}.
 
-On a 544-item benchmark (TruthfulQA, BoolQ, adversarial suite), REMORA
-achieves 88.8\% selective accuracy at 18\% coverage (majority-vote
-full-coverage baseline: 41.18\%; $+47.6$\,pp lift; in-sample optimum).
-Exploiting a preliminary critical-phase trust inversion observation ($N=32$ real-oracle
-critical items; low-$\tau$
-critical items achieve 76.2\% accuracy vs.\ 36.4\% for high-$\tau$),
-a \texttt{PhaseAwareGuardrail} with inverted-score selection extends coverage
-to 22.1\% at 85.0\% accuracy ($+43.8$\,pp lift; $N=120$; Wilson~CI [77.5\%,
-90.3\%])---a $+3.9$\,pp coverage gain with only $1.9$\,pp accuracy cost.
-A stratified held-out evaluation ($\tau^*$ locked from training split) confirms
-88.0\% accuracy at 23.2\% holdout coverage ($N_\text{accepted}=25$;
-$p=1.45\times10^{-5}$; Wilson~CI [70.0\%, 95.8\%]---the wide interval reflects the
-small accepted set and should be read as a directional confirmation, not a
-tight estimate). These selective figures are from the \emph{retired Groq
-three-LLaMA round}; the 2026-07 cross-family clean round's held-out split
-gives 100.0\% accuracy at 16.7\% coverage ($N_\text{accepted}=18$, exact
-binomial $p=0.052$) as one directional observation, and a subsequent
-pre-registered round on 1231 fresh items \emph{failed to confirm} the
-consensus-temperature selection signal, demoting temperature to a diagnostic
-(NEGATIVE\_RESULTS \S18). On a deterministic, leakage-remediated tool-call simulation
-(700 rows: 70 templates $\times$ 10 cosmetic variants; effective $N=70$
-clusters), REMORA's full policy gate produced 0 simulated unsafe acceptances
-(cluster-level Wilson 95\% CI [0.0\%, 5.2\%]); comparable heuristic baselines
-produced 1.4\%, and the safety-rate difference is \emph{not} statistically
-significant at the cluster level ($p=0.50$). The statistically supported
-advantages are mean utility ($+0.456$, $p\approx10^{-4}$; $0.62$ vs.\ $0.16$)
-and accuracy (90\% vs.\ $\leq 60\%$). No real tool side effects were
-executed. The safety result is corroborated on 208 independently-sourced
-AgentHarm scenarios \cite{andriushchenko2024agentharm} under an
-intent-gating protocol (FAR $=0.0\%$, Wilson CI [0.00\%, 1.81\%]; routing
-accuracy, not verified tool interception). A critical-phase evidence router resolves
-38.5\% of high-uncertainty cases with 100\% precision on a 3,000-item NLI
-benchmark ($N_{\text{evidence-accept}}=304$, Wilson CI [98.75\%, 100.00\%]); the
-remainder are escalated to human review.
+The central finding is about \emph{where the safety comes from}. On a
+leakage-controlled tool-call benchmark, REMORA's full policy gate
+produced zero simulated unsafe acceptances with significantly higher
+decision utility and accuracy than heuristic baselines (mean utility
+$+0.456$, $p\approx10^{-4}$; accuracy 90\% vs.\ $\leq 60\%$)---and an
+ablation shows the zero is attributable entirely to the deterministic
+hard rules, not to the multi-model voting machinery. Under an
+intent-gating protocol on 208 independently sourced AgentHarm scenarios
+\cite{andriushchenko2024agentharm}, the same rule set produced zero
+false authorizations. The probabilistic machinery instead contributes
+routing quality: a critical-phase evidence router resolves 38.5\% of
+high-uncertainty cases at 100\% precision ($N=304$), and selective
+answering on a 544-item QA benchmark reached 88.8\% accuracy at 18\%
+coverage against 41.2\% for majority vote. Two further findings
+constrain how much trust to place in model signals: model confidence
+\emph{anticorrelates} with correctness exactly in the
+high-disagreement phase where routing matters most, and a
+pre-registered round on 1{,}231 fresh items failed to confirm our
+temperature-based selection signal, which is therefore retained only
+as a logged diagnostic.
 
-Key limitations: (1) the benchmark contains 13.8\% author-curated
-items subject to selection bias; (2) trust scoring alone cannot
-discriminate correctness in the critical phase (anticorrelation
-confirmed empirically); (3) semantic evidence retrieval is pluggable
-but not live in the current implementation; (4) the audit hash-chain
-is tamper-evident but not tamper-proof without external append-only
-storage; (5) the entropy computation in all reported experiments uses a
-token-fingerprint heuristic backend, not full Semantic Entropy over NLI
-clusters---the NLI backend exists as a drop-in but was not used here.
-An important architectural finding: the 0\% unsafe-acceptance floor is
-attributable entirely to deterministic policy hard blocks;
-the multi-oracle thermodynamic machinery contributes to decision routing and
-calibration quality, not to the safety floor itself.
-REMORA is a governed autonomy layer (not a replacement for domain
-authority) that converts model disagreement, uncertainty, missing
-evidence, and policy triggers into explicit, auditable control
-decisions. The system is \texttt{SHADOW\_ONLY}: benchmarks are
-internal/simulator-scoped, external replication with independently
-withheld labels is pending, and the audit chain is tamper-evident but not
-tamper-proof.
+Key limitations: the entropy observable is computed by a
+token-fingerprint proxy rather than full semantic entropy over NLI
+clusters; the QA benchmark is partly author-curated; semantic evidence
+retrieval is pluggable but not live; and the audit hash chain is
+tamper-evident, not tamper-proof, without external append-only
+storage. REMORA is a governed autonomy layer, not a replacement for
+domain authority. The system is \texttt{SHADOW\_ONLY}: benchmarks are
+internal or simulator-scoped, and external replication with
+independently withheld labels is pending.
 \end{abstract}
 
 \textbf{Keywords:} agentic AI safety, multi-oracle consensus, selective
@@ -210,6 +183,15 @@ new foundation model, training procedure, or benchmark. It is a
 reference implementation, a set of measurable observables, a
 documented set of negative results, and an honest account of what
 remains unsolved.
+
+\paragraph{A note on terminology.}
+REMORA borrows labels from statistical physics (\emph{temperature},
+\emph{entropy}, \emph{dissensus}, \emph{Lyapunov stability}) as
+operational names for deterministic functions of oracle
+outputs---variance, disagreement, and trend statistics. No physical
+analogy is claimed; each quantity is defined formally in
+\S\ref{sec:method}, and readers may substitute ``disagreement
+metrics'' wherever the physics vocabulary appears.
 
 % =====================================================================
 \section{Background and Related Work}
@@ -442,7 +424,10 @@ deployment integration point, not a current runtime property.
 
 \subsection{Core Observables}
 
-\textbf{Shannon entropy:}
+\textbf{Shannon entropy} (computed over the token-fingerprint proxy
+clustering in all reported experiments, not NLI-based semantic
+clusters; backend note in \S\ref{sec:architecture}, limitations in
+\S\ref{sec:threats}):
 \begin{equation}
   H = -\sum_v \hat{p}(v) \log_2 \hat{p}(v) \quad \text{(bits)}
 \end{equation}
@@ -945,7 +930,8 @@ artifacts ensure deterministic reproduction.
 \caption{QA benchmark selective accuracy ($N=544$). $\dagger$~In-sample
 optimum; $\ddagger$~held-out: stratified 80/20 split, $\tau^*=0.203$
 locked from training set (seed=42); $\S$~\texttt{PhaseAwareGuardrail}:
-ordered~$+$~inverted low-$\tau$ critical ($\tau < 0.10$), $N=120$.}
+ordered~$+$~inverted low-$\tau$ critical ($\tau < 0.10$), $N=120$.
+Entropy-derived observables use the token-fingerprint proxy backend.}
 \fitcolumn{%
 \begin{tabular}{@{}llrrrr@{}}
 \toprule
@@ -1169,7 +1155,13 @@ ranks significantly \emph{worse}), and SGR certification at
 $r^*=5\%,\delta=0.10$ found no certifiable coverage. The exploratory
 temperature advantage seen on the reused 544-item corpus did not transfer;
 temperature is retained as a logged diagnostic, not an authoritative
-selector. \emph{What survives:} on the same round, calibrated
+selector. For scale: distinguishing a 90\%-accurate selector from an
+80\% full-coverage baseline at conventional thresholds (one-sided
+$\alpha=0.05$, power $1-\beta=0.8$) requires on the order of
+150--200 \emph{accepted} items---an order of magnitude beyond the
+$N_\text{accepted}=18$--25 accepted sets available in the rounds above,
+which is why those are reported as directional only. \emph{What
+survives:} on the same round, calibrated
 confidence-weighted voting scored 87.8\% vs.\ 85.1\% for unweighted
 majority on the untouched test split ($N=368$; paired exact McNemar
 $p=0.0064$, significant; vs.\ the best single model directional only,

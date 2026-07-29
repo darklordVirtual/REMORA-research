@@ -107,15 +107,15 @@ External anchoring (not yet implemented):
 
 Traced all ACCEPT-returning paths in `decide()`:
 
-| ACCEPT path | Lines | Hard blocks checked before it |
+| ACCEPT path | Branch in `decide()` | Hard blocks checked before it |
 |-------------|-------|-------------------------------|
-| `conformal_phase_thresholds` (Mondrian) | 447–458 | All hard blocks (adv, schema_false, tool_forbidden, coercion, blackmail, counterfactual=False, contradictions>0, argument_tainted, refuse_parametric, distribution_shift, critical+critical, rollback, state_transition, prod_write matrix, evidence_insufficient for high/critical, **critical risk catch-all**), minimax, trap, unknown tier, misspecification, session, fleet, GAP A+C, schema_unverified floor |
-| `conformal_trust_threshold` (marginal) | 462–470 | Same as above |
-| `temperature_threshold` | 472–480 | Same as above |
-| `evidence_supported` | 482–493 | Same as above |
-| `ordered_high_trust` | 499–513 | Same as above |
+| `conformal_phase_thresholds` (Mondrian) | conformal-phase ACCEPT branch in `decide()` | All hard blocks (adv, schema_false, tool_forbidden, coercion, blackmail, counterfactual=False, contradictions>0, argument_tainted, refuse_parametric, distribution_shift, critical+critical, rollback, state_transition, prod_write matrix, evidence_insufficient for high/critical, **critical risk catch-all**), minimax, trap, unknown tier, misspecification, session, fleet, GAP A+C, schema_unverified floor |
+| `conformal_trust_threshold` (marginal) | conformal-trust ACCEPT branch in `decide()` | Same as above |
+| `temperature_threshold` | temperature ACCEPT branch in `decide()` | Same as above |
+| `evidence_supported` | `evidence_supported_accept` branch in `decide()` | Same as above |
+| `ordered_high_trust` | `ordered_high_trust` branch in `decide()` | Same as above |
 
-**Critical risk ACCEPT is architecturally blocked**: line 312–314 (`risk_tier == "critical" → VERIFY`) fires for every critical-risk observation that has bypassed the earlier evidence-insufficient gate. This ensures critical risk cannot reach any ACCEPT path regardless of `conformal_phase_thresholds`, `conformal_trust_threshold`, or `temperature_threshold` configuration.
+**Critical risk ACCEPT is architecturally blocked**: the critical-risk VERIFY catch-all in `_CONDITIONAL_GATES` (`risk_tier == "critical" → VERIFY`) fires for every critical-risk observation that has bypassed the earlier evidence-insufficient gate. This ensures critical risk cannot reach any ACCEPT path regardless of `conformal_phase_thresholds`, `conformal_trust_threshold`, or `temperature_threshold` configuration.
 
 **High risk with evidence CAN reach ACCEPT** via conformal or temperature paths if:
 - `evidence_action='answer'` (bypasses evidence_insufficient gate)
@@ -233,7 +233,7 @@ Priority 11+: ACCEPT paths (conformal, temperature, evidence, ordered_high_trust
 
 **Finding F-1 (Low): Unknown action_type is not conservatively blocked**
 
-If `action_type=None` or an unrecognised string, it falls through to normal logic without triggering the unknown-risk-tier VERIFY gate (which only fires for actions explicitly in `_MUTATING_TYPES`). This is documented as intentional in the source comment at line 43:
+If `action_type=None` or an unrecognised string, it falls through to normal logic without triggering the unknown-risk-tier VERIFY gate (which only fires for actions explicitly in `_MUTATING_TYPES`). This is documented as intentional in the source comment on the `_MUTATING_TYPES` gate:
 
 ```python
 # Unknown action_type (None / unrecognised string) is NOT in this set — it falls through
@@ -283,7 +283,7 @@ A captured valid `PolicyDecisionToken` for a specific observation is permanently
 
 ## 7. Policy Versioning Controls Assessment
 
-**Current state:** `policy_version = "RemoraDecisionEngine-v3"` is hardcoded in `_build()` at line 953 and in `PolicyTrace` at line 139.
+**Current state:** `policy_version = "RemoraDecisionEngine-v3"` is set in `_build()` (`decision_engine.py`) and as the default of `PolicyTrace.policy_version` (`remora/policy/trace.py`).
 
 **Assessed controls:**
 

@@ -13,6 +13,7 @@ from remora.policy import decision_engine as de
 
 
 def test_heuristic_threshold_values_are_unchanged() -> None:
+    assert de.MIN_REQUIRED_ORACLE_VOTES == 2
     assert de.ORDERED_HIGH_TRUST_MIN == 0.72
     assert de.EVIDENCE_CONFIDENCE_MIN == 0.7
     assert de.LOW_TRUST_ABSTAIN_MAX == 0.2

@@ -136,7 +136,7 @@ flowchart TD
 | Policy support | `remora/policy/invariants.py`, `trap_classifier.py`, `opa_adapter.py` | machine-checked safety invariants; irreversibility/impact trap scoring; OPA/Rego integration with a Python fallback |
 | **Governance envelope** | `remora/governance/envelope.py` | `DecisionEnvelope` (v2) + `AuditBlock`, the canonical governance contract |
 | **Cascade pipeline** | `remora/cascade/` | staged execution: `FastGate` → `ConsensusGate` → `VerifierGate` → `CritiqueRevisionGate` → `SelfConsistencyGate` → `MixtureOfAgentsSynth` (see §5) |
-| **Consensus core** | `remora/engine.py`, `remora/correlation.py` | multi-oracle consensus loop; rolling correlation matrix and diversity weights |
+| **Consensus core** | `remora/engine.py`, `remora/reporting.py`, `remora/state.py`, `remora/correlation.py` | multi-oracle consensus loop; report + `DecisionEnvelope` assembly (`build_report`) and the `RemoraState` session-state contract split out of `engine.py` (2026-07-29); rolling correlation matrix and diversity weights |
 | **Uncertainty observables** | `remora/thermodynamics.py`, `remora/statphys/` | entropy `H`, dissensus `D`, value `V` as an uncertainty-routing metaphor (not physics) |
 | **Selective prediction** | `remora/selective/` | `conformal.py`, `crc.py` (weight-corrected slack), `pvd.py`, `guardrail.py` (`PhaseAwareGuardrail`), `drift_detector.py` |
 | **Oracles (pluggable)** | `remora/oracles/` | interchangeable backends, see §6 |
@@ -365,6 +365,8 @@ selective routing is phase-aware rather than a single global threshold. See
 |--------|-----------|-------|
 | `remora/core.py` | **CORE** | Oracle ABC + OracleResponse |
 | `remora/engine.py` | **CORE** | Multi-oracle consensus engine |
+| `remora/reporting.py` | **CORE** | Decision report + `DecisionEnvelope` assembly (dependency-injected; split from `engine.py` 2026-07-29) |
+| `remora/state.py` | **CORE** | `RemoraState` engine session-state contract (re-exported via `remora.engine`) |
 | `remora/genome.py` | **CORE** | Hyperparameter configuration |
 | `remora/policy/` | **CORE** | PolicyObservation → DecisionReport pipeline (hard-block-first) |
 | `remora/adapters/` | **CORE** | LangGraph, OpenAI, MCP adapters |

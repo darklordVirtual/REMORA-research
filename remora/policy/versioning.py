@@ -11,7 +11,8 @@ Files covered
 -------------
 The hash covers the files that together determine the governance outcome of any
 decision: the engine itself, its extracted decision thresholds and trace value
-objects, the invariants, the trap classifier, and the observation schema.
+objects, the invariants, the trap classifier, the observation schema, and the
+DecisionReport contract (report.py).
 Changing any one of these changes the composite hash. (thresholds.py and
 trace.py were split out of decision_engine.py 2026-07-29 and added here so no
 decision-relevant bytes leave hash coverage.)

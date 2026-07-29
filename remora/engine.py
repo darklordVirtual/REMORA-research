@@ -25,7 +25,6 @@ from remora.correlation import CorrelationMatrix, weighted_consensus
 from remora.genome import Genome, RouterMode
 from remora.lyapunov import (LyapunovController, LyapunovParams, state_from_consensus)
 from remora.core import Oracle, OracleResponse
-from remora.evidence.evidence_types import EvidenceSignal
 from remora.evidence.provider import (
     EvidenceProvider,
     OracleProxyEvidenceProvider,
@@ -715,58 +714,6 @@ determinism.  Falls back to sequential execution on error.
             w = consensus.weights.get(provider, 1.0/len(verdicts))
             dist[verdict.fingerprint()] += w; total += w
         return {fp: w/total for fp, w in dist.items()} if total else {}
-
-    def _build_evidence_signal_from_state(self, state: RemoraState) -> EvidenceSignal:
-        """Build an EvidenceSignal proxy from oracle consensus data.
-
-        Uses oracle agreement as a proxy for evidence quality when no external
-        retriever is available.  This is a structural bridge — semantic
-        evidence should replace it in production.
-        """
-        valid = [r for r in state.oracle_log if r.error is None and r.extracted is not None]
-        n_valid = len(valid)
-        n_total = len(state.oracle_log)
-
-        if n_valid == 0:
-            return EvidenceSignal(
-                evidence_strength=0.0,
-                contradiction_score=0.0,
-                citation_coverage=0.0,
-                cross_evidence_consistency=0.0,
-                source_reliability=0.0,
-            )
-
-        # Polarity distribution from valid responses
-        polarity_counts: dict = {}
-        for r in valid:
-            v = phi(r.extracted)
-            polarity_counts[v.polarity] = polarity_counts.get(v.polarity, 0) + 1
-
-        max_count = max(polarity_counts.values()) if polarity_counts else 0
-        majority_fraction = max_count / n_valid
-        # contradiction = 1 - agreement (how split are we?)
-        contradiction = 1.0 - majority_fraction
-
-        # coverage = fraction of oracles that gave valid responses
-        coverage = n_valid / n_total if n_total > 0 else 0.0
-
-        # consistency = mean pairwise rho (oracle correlation)
-        providers = [r.provider for r in valid]
-        consistency = self._mean_rho(providers)
-
-        # reliability = consistency scaled to [0,1] with a floor
-        reliability = max(0.0, min(1.0, consistency + 0.5))
-
-        # strength = majority support weighted by consistency
-        strength = majority_fraction * consistency
-
-        return EvidenceSignal(
-            evidence_strength=round(strength, 3),
-            contradiction_score=round(contradiction, 3),
-            citation_coverage=round(coverage, 3),
-            cross_evidence_consistency=round(consistency, 3),
-            source_reliability=round(reliability, 3),
-        )
 
     def report(self, state: RemoraState) -> dict:
         """Assemble the full decision report for a completed engine state.
