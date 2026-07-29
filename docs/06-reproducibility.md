@@ -1,7 +1,10 @@
 # How do I reproduce every result from scratch?
 
 Every headline result has an exact command and expected output file. Run `make test`
-first to confirm the environment is intact, then run the specific target below.
+(or, with no `make` installed, `python -m pytest tests/ -q`) first to confirm the
+environment is intact, then run the specific target below. Every `make` target here is
+a thin wrapper over a `python` command — run `make help` to list them, or read the
+recipe in the `Makefile` to get the exact `python`/`python -m pytest` invocation.
 
 → [02-evidence-and-claims.md](02-evidence-and-claims.md) maps claims to artifacts.
 → [04-negative-results-detail.md](04-negative-results-detail.md) lists results that
