@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass
-from typing import Any
 
 from remora.credal import (
     MINIMAX_ESCALATE_THRESHOLD,
@@ -31,59 +30,27 @@ from remora.policy.trap_classifier import (
 from remora.policy.trap_classifier import (
     score as trap_score,
 )
-
-# Minimum number of independent oracle votes required to trust consensus.
-# Fewer votes means the oracle pool may be degraded or partially compromised.
-# If oracle consultation was attempted (valid_oracle_count > 0 or oracle_failures > 0)
-# but fewer than this number of oracles responded, route to human review.
-MIN_REQUIRED_ORACLE_VOTES: int = 2
-
-# ---------------------------------------------------------------------------
-# Decision thresholds: CALIBRATED vs HEURISTIC (external review, Grok 3.3/4.3)
-# ---------------------------------------------------------------------------
-#
-# CALIBRATED thresholds are derived from a committed result artifact and are
-# INJECTED into the engine at construction, never hard-coded here:
-#   * temperature_threshold        — in-sample optimum T*≈0.1972 at 18% coverage
-#                                     (remora/policy/calibration.py; N=500
-#                                     artifact). Passed via __init__.
-#   * conformal_trust_threshold    — offline conformal calibration, loaded from
-#     / conformal_phase_thresholds   a GuardrailReport artifact (NOT the eval
-#                                     set). Passed via __init__.
-# Also calibrated and named at their point of definition:
-#   * TRAP_ESCALATE/VERIFY_THRESHOLD (remora/policy/trap_classifier.py)
-#   * MINIMAX_ESCALATE_THRESHOLD     (remora/credal.py)
-#
-# HEURISTIC thresholds below are HAND-TUNED conservative constants. They are
-# NOT derived from any artifact and MUST NOT be cited as calibrated. They are
-# named here (rather than left inline) so their provenance is explicit and a
-# single edit changes both decide() and explain(). Each errs toward VERIFY/
-# ESCALATE (more human review), consistent with the fail-closed posture.
-
-# Trust bar for the ordered-phase high-trust ACCEPT and the evidence-supported
-# ACCEPT (coincides with the AROMER-recommended value but is not artifact-fit).
-ORDERED_HIGH_TRUST_MIN: float = 0.72
-# Evidence-verifier confidence required before an evidence-supported ACCEPT.
-EVIDENCE_CONFIDENCE_MIN: float = 0.7
-# Trust below which a non-answer routes to ABSTAIN.
-LOW_TRUST_ABSTAIN_MAX: float = 0.2
-# Credal ambiguity width required (with minimax) before escalating — guards
-# against escalating low-trust zero-H/D observations.
-MINIMAX_AMBIGUITY_WIDTH_MIN: float = 0.15
-# Production-env confidence below which a non-read action verifies.
-ENV_CONFIDENCE_MIN: float = 0.80
-# Classification-confidence below which a non-read action verifies.
-CLASSIFICATION_CONFIDENCE_MIN: float = 0.60
-# Model-misspecification risk above which a non-read action verifies.
-MISSPECIFICATION_RISK_MAX: float = 0.60
-# Session cumulative-risk above which the "boiling frog" gate verifies.
-SESSION_CUMULATIVE_RISK_MAX: float = 0.80
-# Session action-count above which the flood gate verifies.
-SESSION_ACTION_COUNT_MAX: int = 100
-# Fleet-scale policy-generalization risk above which the gate verifies.
-POLICY_GENERALIZATION_RISK_MAX: float = 0.70
-# Repeat-count of a similar action above which the flood gate verifies.
-SIMILAR_ACTION_FLOOD_MAX: int = 50
+# Heuristic decision thresholds moved to remora/policy/thresholds.py
+# (2026-07-29). Re-imported into THIS module namespace so the
+# _CONDITIONAL_GATES lambdas below (which close over these as engine-module
+# globals) and the de.<NAME> references pinned by
+# tests/test_policy_threshold_constants.py keep resolving. VALUES are
+# unchanged; see thresholds.py for the CALIBRATED-vs-HEURISTIC provenance
+# note. Calibrated thresholds stay constructor-injected, never imported here.
+from remora.policy.thresholds import (  # noqa: F401  (re-exported for gate closures + tests)
+    MIN_REQUIRED_ORACLE_VOTES,
+    ORDERED_HIGH_TRUST_MIN,
+    EVIDENCE_CONFIDENCE_MIN,
+    LOW_TRUST_ABSTAIN_MAX,
+    MINIMAX_AMBIGUITY_WIDTH_MIN,
+    ENV_CONFIDENCE_MIN,
+    CLASSIFICATION_CONFIDENCE_MIN,
+    MISSPECIFICATION_RISK_MAX,
+    SESSION_CUMULATIVE_RISK_MAX,
+    SESSION_ACTION_COUNT_MAX,
+    POLICY_GENERALIZATION_RISK_MAX,
+    SIMILAR_ACTION_FLOOD_MAX,
+)
 
 # Action types that are inherently safe to classify conservatively.
 # Misspecification gates skip these to avoid blocking obviously read-only actions.
@@ -222,33 +189,13 @@ def _normalize_observation(obs: PolicyObservation) -> PolicyObservation:
 # PolicyTrace — structured explanation returned by explain()
 # ---------------------------------------------------------------------------
 
-@dataclass(frozen=True)
-class PolicyRuleEvaluation:
-    """Evaluation record for one rule in the decision tree."""
-    rule: str
-    triggered: bool
-    condition: str
-    outcome: str | None = None
-
-
-@dataclass(frozen=True)
-class PolicyTrace:
-    """Full decision audit trail produced by :meth:`RemoraDecisionEngine.explain`.
-
-    Example::
-
-        trace = engine.explain(obs)
-        print(trace.decision_path)          # "ordered_high_trust → ACCEPT"
-        for step in trace.rule_evaluations:
-            marker = "✓" if step.triggered else "·"
-            print(f"  {marker} {step.rule}: {step.condition}")
-    """
-    action: str
-    reasons: tuple[str, ...]
-    decision_path: str
-    rule_evaluations: tuple[PolicyRuleEvaluation, ...]
-    observation_summary: dict[str, Any]
-    policy_version: str = "RemoraDecisionEngine-v3"
+# PolicyTrace / PolicyRuleEvaluation moved to remora/policy/trace.py
+# (2026-07-29) and re-exported here so remora/__init__.py and the test suite
+# keep importing them from remora.policy.decision_engine unchanged.
+from remora.policy.trace import (  # noqa: E402, F401  (re-exported)
+    PolicyRuleEvaluation,
+    PolicyTrace,
+)
 
 
 # ---------------------------------------------------------------------------
