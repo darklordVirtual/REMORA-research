@@ -35,6 +35,7 @@ python -m remora assess drop_database        # zero flags: risk/type inferred fr
 | `provenance` | Policy bundle hash + per-file SHA-256 manifest + version. |
 | `verify` | Formal safety invariant verification (CI-friendly with `--json`). |
 | `maturity` | Module stability maturity report. |
+| `doctor` | Environment self-check: what works, what's missing, how to fix it (`--json` for CI). |
 
 Mistyped a command? The CLI suggests the closest one (`remora asses` →
 `did you mean 'assess'?`).
@@ -121,6 +122,38 @@ python -m remora assess drop_database --live
 - Live calls cost real API credits and take seconds, not milliseconds.
 - Hard guards keep absolute priority: live consensus can inform, never
   override, a deterministic block.
+
+## Something not working? `remora doctor`
+
+```bash
+python -m remora doctor
+```
+
+Checks Python version, package health (the engine must escalate a known
+hard-block case), policy provenance, installed extras, repo checkout, and
+which live backends are available — each failing line comes with the exact
+command that fixes it. Hard failures exit 1 (CI-friendly with `--json`).
+Env-var **names** may be shown; key **values** never are.
+
+## The same thing as a library — three lines
+
+The CLI's deterministic assessment is `remora.assess_tool_call`, importable
+directly (the CLI delegates to it, so behavior is identical):
+
+```python
+from remora import assess_tool_call
+
+a = assess_tool_call("drop_database", {"db": "prod-main"}, infer=True)
+if a.should_execute:              # True only on ACCEPT
+    run_tool(...)
+audit_log.write(a.envelope.to_dict())   # the canonical DecisionEnvelope
+```
+
+`a.action` / `a.decision` / `a.trace` / `a.inferred` carry the verdict, full
+decision report, rule-by-rule trace, and what name inference filled in.
+Explicit `risk_tier=`/`action_type=` from your tool registry beat `infer=True`.
+Worked loop: [examples/agent_gate.py](../examples/agent_gate.py);
+framework adapters (OpenAI/LangGraph/CrewAI/AutoGen): `remora.integrations`.
 
 ## Output conventions
 

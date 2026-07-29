@@ -16,6 +16,7 @@ Commands
     remora verify --scenario X  Run only scenario X
     remora provenance           Policy bundle hash + per-file manifest
     remora maturity             Show module stability maturity report
+    remora doctor               Environment self-check with actionable fixes
 
 Usage
 -----
@@ -183,37 +184,24 @@ def _assess(
     trust_score: float | None = None,
     phase: str | None = None,
 ):
-    """Run one tool call through the real engine; return ``(decision, trace,
+    """Run one tool call through the engine; return ``(decision, trace,
     envelope)``.
 
-    Uses the production code paths end to end: the admission firewall
-    (``detect_adversarial``), ``RemoraDecisionEngine.decide`` for the verdict,
-    ``.explain`` for the rule-by-rule reasoning trace, and
-    ``build_decision_envelope`` for the canonical auditable envelope.
-    Deterministic - no oracles, no API keys; ``trust_score``/``phase`` stand in
-    for live multi-oracle consensus when supplied.
+    Thin wrapper over :func:`remora.assess.assess_tool_call` — the library
+    one-liner is the single source for the deterministic assessment path.
     """
-    from remora.policy.decision_engine import RemoraDecisionEngine
-    from remora.policy.observation import PolicyObservation
-    from remora.reporting import build_decision_envelope
-    from remora.safety.adversarial import detect_adversarial
+    from remora.assess import assess_tool_call
 
-    probe = f"{name} {json.dumps(arguments, sort_keys=True, default=str)}"
-    obs = PolicyObservation.from_tool_call(
-        name=name,
-        arguments=arguments,
+    a = assess_tool_call(
+        name,
+        arguments,
         risk_tier=risk_tier,
         action_type=action_type,
         target_environment=target_environment,
         trust_score=trust_score,
         phase=phase,
-        adversarial_detected=detect_adversarial(probe),
     )
-    engine = RemoraDecisionEngine()
-    decision = engine.decide(obs)
-    trace = engine.explain(obs)
-    envelope = build_decision_envelope(obs, decision, question=obs.question)
-    return decision, trace, envelope
+    return a.decision, a.trace, a.envelope
 
 
 _ASCII_MAP = {
@@ -392,43 +380,14 @@ def _resolve_tool_name(args: argparse.Namespace, cmd: str) -> str | None:
     return name
 
 
-# Transparent stand-in inference for the deterministic CLI path: when the user
-# gives just a tool name, well-known name patterns fill in action_type and
-# risk_tier so `remora assess drop_database` needs zero flags. Only fields the
-# user left unset are filled, every inferred value is marked "(inferred)" in
-# the output (and echoed under "inferred" in --json), and --risk /
-# --action-type always win. This is CLI convenience, not engine policy — the
+# Zero-flag UX: when the user gives just a tool name, well-known name patterns
+# fill in action_type/risk_tier. Single source: remora.assess (the library
+# one-liner uses the same table via ``infer=True``). Inferred values are
+# marked "(inferred)" in output, --risk/--action-type always win, and the
 # engine still fail-closes on anything left unset.
-_NAME_INFERENCE: tuple[tuple[tuple[str, ...], str, str], ...] = (
-    (("drop", "delete", "remove", "truncate", "destroy", "wipe", "purge"),
-     "destructive_write", "critical"),
-    (("disable", "revoke", "unlock", "mfa", "firewall", "permission"),
-     "security_change", "critical"),
-    (("wire", "transfer", "payment", "payout", "refund", "charge"),
-     "financial_transaction", "high"),
-    (("deploy", "release", "rollout", "restart", "scale", "migrate"),
-     "deploy", "medium"),
-    (("send", "publish", "notify", "write", "update", "create", "insert", "upload"),
-     "write", "medium"),
-    (("read", "get", "list", "fetch", "query", "search", "view", "describe"),
-     "read", "low"),
-)
-
-
 def _infer_from_name(name: str) -> tuple[str | None, str | None]:
-    """Return ``(action_type, risk_tier)`` inferred from the tool name.
-
-    Matches whole words of the name (split on ``_``/``-``/camelCase) by
-    prefix, so ``read_file`` matches ``read`` but ``widget`` does not match
-    ``get``.
-    """
-    import re
-    snake = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", name)
-    tokens = [t for t in re.split(r"[^a-z0-9]+", snake.lower()) if t]
-    for keywords, action_type, risk in _NAME_INFERENCE:
-        if any(t.startswith(k) for t in tokens for k in keywords):
-            return action_type, risk
-    return None, None
+    from remora.assess import infer_risk_and_type
+    return infer_risk_and_type(name)
 
 
 def _apply_name_inference(args: argparse.Namespace, name: str) -> dict[str, str]:
@@ -925,6 +884,99 @@ def _cmd_replay(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_doctor(args: argparse.Namespace) -> int:
+    """Environment self-check with actionable fixes.
+
+    Hard checks (fail -> exit 1): Python version, engine smoke test, policy
+    provenance. Optional capabilities (extras, live backends, repo checkout)
+    are reported with the command that enables them, but never fail.
+    """
+    checks: list[dict] = []
+
+    def add(name: str, ok: bool | None, detail: str, fix: str | None = None,
+            hard: bool = False) -> None:
+        checks.append({"check": name, "ok": ok, "detail": detail,
+                       "fix": fix, "hard": hard})
+
+    py_ok = sys.version_info >= (3, 11)
+    add("python", py_ok, f"{sys.version_info.major}.{sys.version_info.minor}",
+        None if py_ok else "install Python >= 3.11", hard=True)
+    add("remora", True, f"v{_pkg_version()}", hard=True)
+
+    try:
+        decision, _, _ = _assess(
+            "doctor_probe", {}, risk_tier="critical",
+            action_type="destructive_write", target_environment="prod")
+        engine_ok = decision.action.value == "escalate"
+        add("engine", engine_ok,
+            "critical destructive prod write -> "
+            f"{decision.action.value.upper()}",
+            None if engine_ok else "engine did not escalate a hard-block case "
+                                   "- do not trust this build", hard=True)
+    except Exception as exc:  # noqa: BLE001
+        add("engine", False, f"decide() raised: {exc}",
+            "reinstall: python -m pip install -e .", hard=True)
+
+    try:
+        from remora.policy.versioning import compute_policy_bundle_hash
+        add("provenance", True,
+            f"policy bundle {compute_policy_bundle_hash()[:16]}...", hard=True)
+    except Exception as exc:  # noqa: BLE001
+        add("provenance", False, f"could not hash policy bundle: {exc}",
+            "reinstall from a clean checkout", hard=True)
+
+    repo = (_ROOT / "examples" / "quickstart.py").exists() and (_ROOT / "tests").exists()
+    add("repo checkout", repo,
+        str(_ROOT) if repo else "installed without examples/tests",
+        None if repo else "clone the repo for `remora demo` and the test suite")
+
+    for mod, label, fix in (
+        ("pytest", "dev extra (tests)", 'python -m pip install -e ".[dev]"'),
+        ("fastapi", "api extra (remora serve)", 'python -m pip install -e ".[api]"'),
+        ("yaml", "pyyaml (claim gates, causal)", 'python -m pip install -e ".[dev]"'),
+    ):
+        import importlib.util as _ilu
+        present = _ilu.find_spec(mod) is not None
+        add(label, present, "installed" if present else "not installed",
+            None if present else fix)
+
+    # Live backends: report which enabling env vars are present (names only —
+    # never values) and what auto-detection would pick. No network probes here
+    # except the local Ollama port, so doctor stays fast and safe.
+    key_names = [v for v in ("GROQ_API_KEY", "OPENROUTER_API_KEY",
+                             "GEMINI_API_KEY", "REMORA_ORACLE_BACKEND")
+                 if os.getenv(v)]
+    backend = _detect_live_backend() if key_names else None
+    add("live oracles", bool(backend),
+        (f"backend '{backend}' via {', '.join(key_names)}" if backend
+         else "no API key in environment (deterministic mode works fine)"),
+        None if backend else "optional: set GROQ_API_KEY for `assess --live`")
+
+    hard_fail = any(c["hard"] and c["ok"] is False for c in checks)
+
+    if getattr(args, "json", False):
+        print(json.dumps({"ok": not hard_fail, "checks": checks}, indent=2))
+        return 1 if hard_fail else 0
+
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    print()
+    _header(ink, "REMORA DOCTOR")
+    for c in checks:
+        mark = (ink("[ok]  ", "green") if c["ok"]
+                else ink("[--]  ", "yellow") if not c["hard"]
+                else ink("[FAIL]", "red", "bold"))
+        print(f"    {mark} {c['check']:24} {ink(_ascii(c['detail']), 'dim')}")
+        if c["fix"] and not c["ok"]:
+            print("           " + ink("fix: " + c["fix"], "cyan"))
+    print()
+    if hard_fail:
+        print("  " + ink("hard check failed - this installation should not be trusted", "red", "bold"))
+    else:
+        print("  " + ink("all hard checks passed - you're good; next: python -m remora try", "dim"))
+    print()
+    return 1 if hard_fail else 0
+
+
 def _cmd_demo(args: argparse.Namespace) -> int:
     """Run the eight-scenario governance walkthrough (examples/quickstart.py)."""
     script = _ROOT / "examples" / "quickstart.py"
@@ -985,12 +1037,13 @@ examples:
   python -m remora replay artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
   python -m remora provenance
   python -m remora verify --json
+  python -m remora doctor                    # is my setup healthy? what's missing?
 
 full reference: docs/cli.md
 """
 
 _COMMANDS = ("try", "demo", "assess", "explain", "replay", "serve",
-             "provenance", "verify", "maturity")
+             "provenance", "verify", "maturity", "doctor")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1114,6 +1167,11 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("maturity", help="Show module stability maturity report")
 
+    doctor_p = sub.add_parser(
+        "doctor", help="Environment self-check: what works, what's missing, how to fix it")
+    doctor_p.add_argument("--json", action="store_true", help="JSON output")
+    doctor_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
+
     args = parser.parse_args(argv)
 
     if args.command == "try":
@@ -1134,6 +1192,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_verify(args)
     if args.command == "maturity":
         return _cmd_maturity(args)
+    if args.command == "doctor":
+        return _cmd_doctor(args)
 
     parser.print_help()
     if getattr(sys.stdout, "isatty", lambda: False)():

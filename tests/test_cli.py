@@ -378,6 +378,41 @@ def test_remora_assess_live_refuses_explicit_mock():
     assert "no live oracle backend" in r.stderr
 
 
+# -- `remora doctor` -----------------------------------------------------------
+
+
+def test_remora_doctor_passes_in_dev_checkout():
+    r = _assess("doctor", "--no-color")
+    assert r.returncode == 0, r.stderr + r.stdout
+    assert "all hard checks passed" in r.stdout
+    assert "[FAIL]" not in r.stdout
+
+
+def test_remora_doctor_json_reports_hard_checks():
+    r = _assess("doctor", "--json")
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)
+    assert data["ok"] is True
+    hard = {c["check"] for c in data["checks"] if c["hard"]}
+    assert {"python", "remora", "engine", "provenance"} <= hard
+    assert all(c["ok"] for c in data["checks"] if c["hard"])
+
+
+def test_remora_doctor_never_leaks_key_values():
+    """Doctor may name enabling env vars but must never print their values."""
+    import os
+    env = dict(os.environ)
+    env["GROQ_API_KEY"] = "gsk_super_secret_value_1234567890"
+    r = subprocess.run(
+        [sys.executable, "-m", "remora", "doctor", "--json"],
+        capture_output=True, text=True, cwd=ROOT, env=env,
+    )
+    assert r.returncode == 0, r.stderr
+    assert "gsk_super_secret_value" not in r.stdout
+    assert "gsk_super_secret_value" not in r.stderr
+    assert "GROQ_API_KEY" in r.stdout           # the NAME is fine and useful
+
+
 # -- `remora demo` and `remora try <n>` --------------------------------------
 
 

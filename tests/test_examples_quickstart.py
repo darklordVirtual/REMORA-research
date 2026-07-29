@@ -42,3 +42,13 @@ def test_examples_aromer_quickstart_runs_clean():
     r = _run_example("examples/aromer_quickstart.py")
     assert r.returncode == 0, r.stderr
     assert "false_accept_rate" in r.stdout
+
+
+def test_examples_agent_gate_runs_clean():
+    """The three-line integration example must show the full outcome spread."""
+    r = _run_example("examples/agent_gate.py")
+    assert r.returncode == 0, r.stderr
+    assert "ACCEPT" in r.stdout
+    assert "ESCALATE" in r.stdout
+    assert "executed read_file" in r.stdout          # ACCEPT path actually ran
+    assert "executed drop_database" not in r.stdout  # blocked call never runs
