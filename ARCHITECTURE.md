@@ -38,7 +38,7 @@ permission**, not truth.
 ## 2. The canonical research claim (stated honestly)
 
 **The safety floor is carried by the deterministic hard-block policy layer, not by
-the probabilistic consensus / thermodynamic / Lyapunov machinery.**
+the probabilistic consensus / disagreement-diagnostics / Lyapunov machinery.**
 
 On the 700-task adversarial tool-call benchmark (a deterministic simulator;
 70 unique templates × 10 cosmetic variants, effective N = 70), the
@@ -49,7 +49,7 @@ policy rules close unsafe execution to 0% (cluster-level Wilson CI
 significant at the template-cluster level (p = 0.50); the gate's significant
 advantage on this benchmark is decision utility and routing accuracy.
 
-The consensus, entropy/dissensus, thermodynamic-phase, and Lyapunov components do
+The consensus, entropy/dissensus, phase-classification, and Lyapunov components do
 **not** contribute to the unsafe-execution safety floor. What they contribute is
 **routing quality**: calibrated separation of the plausible-but-unverified cases
 into VERIFY versus ABSTAIN. Do not cite REMORA's safety result as evidence for
@@ -76,7 +76,7 @@ flowchart TD
     S1 -->|"adversarial / coercion detected"| ESC["ESCALATE / ABSTAIN\n(cannot be overridden)"]
     S1 -->|"passes admission"| S2
 
-    S2["Stage 2 — Multi-oracle consensus\nremora/engine.py + remora/correlation.py\nthermodynamic phase: entropy H, dissensus D, trust;\ncorrelation-aware diversity weighting"]
+    S2["Stage 2 — Multi-oracle consensus\nremora/engine.py + remora/correlation.py\ndisagreement diagnostics: entropy H, dissensus D, trust;\ncorrelation-aware diversity weighting"]
     S2 --> S3
 
     S3["Stage 3 — Evidence verification\nremora/oracles/evidence_verifier.py, evidence_v2/v3\nsource-anchored support / contradiction (lexical)"]
@@ -104,11 +104,12 @@ flowchart TD
    with absolute priority inside the Stage 4 policy decision (`remora/policy`).
    Together these are the safety floor of §2.
 2. **Multi-oracle consensus** (`remora/engine.py`, `remora/correlation.py`,
-   `remora/thermodynamics`), several oracle backends answer; a thermodynamic
+   `remora/thermodynamics`), several oracle backends answer; a consensus
    *phase* (ordered / critical / disordered) is derived from entropy `H`,
    dissensus `D`, and a trust score. Correlated oracles are down-weighted so
-   echo-chamber agreement does not inflate confidence. "Thermodynamic" here is an
-   operational uncertainty-routing metaphor, **not** a physics claim.
+   echo-chamber agreement does not inflate confidence. The physics-flavoured
+   module and field names (`thermodynamics`, `temperature`) are legacy naming
+   for these disagreement diagnostics, **not** a physics claim.
 3. **Evidence verification** (`remora/oracles/evidence_verifier.py`,
    `evidence_v2.py`, `evidence_v3.py`), where evidence is available, checks
    whether cited sources support or contradict the candidate. Relation detection
@@ -170,7 +171,7 @@ flowchart TD
     S1 -->|"ACCEPT (conf ≥ 0.90)"| OUT["Final verdict"]
     S1 -->|"VERIFY (conf < 0.90)"| S2
 
-    S2["Stage 2: ConsensusGate\n3-oracle REMORA engine\nthermodynamic phase classification"]
+    S2["Stage 2: ConsensusGate\n3-oracle REMORA engine\nconsensus-phase classification"]
     S2 -->|"ACCEPT (trust ≥ 0.65)"| OUT
     S2 -->|"ABSTAIN (trust < 0.12)"| OUT
     S2 -->|"VERIFY (0.12 ≤ trust < 0.65)"| S3
@@ -206,7 +207,7 @@ Key properties: a `budget_oracle_calls` cap halts early and returns VERIFY when
 the call budget is exhausted; each stage's judge/oracle is intentionally a
 different model family to avoid shared failure modes; every early-exit path
 includes ABSTAIN as a reachable outcome (fail-conservative); Stage 2 wraps the
-full `remora.engine.Remora` (thermodynamic phase, conformal guardrail, policy
+full `remora.engine.Remora` (phase diagnostics, conformal guardrail, policy
 engine, assurance trace) according to the active Genome flags.
 
 ### 5.2 Governance envelope (`remora/governance/envelope.py`)
@@ -298,7 +299,7 @@ REMORA run. Current defaults:
 | `converged_threshold` | **0.75** | weighted support needed for early exit |
 | `entropy_abort_ratio` | 1.3 | ε tolerance for V increase before abort |
 | `negation_weight` | 0.4 | λ, dissensus contribution to the Lyapunov value |
-| `thermo_lambda` | 0.4 | dissensus weight in the thermodynamic phase metric |
+| `thermo_lambda` | 0.4 | dissensus weight in the consensus-phase metric |
 | `divergent_boost` | 0.5 | boost applied to divergence signal |
 | `negation_ratio` | 0.25 | fraction of iterations using negation prompts |
 | `decomposition_strategy` | `"simple"` | question-splitting strategy |
@@ -306,9 +307,9 @@ REMORA run. Current defaults:
 | `enable_routing` | `False` | pre-sweep router gate disabled by default |
 | `router_mode` | `RouterMode.BALANCED` | router threshold strategy (STRICT/BALANCED/HYBRID) |
 | `router_confidence_min` | 0.80 | min avg confidence for HYBRID to skip |
-| `enable_thermodynamic_control` | `False` | experimental thermodynamic pre-router |
-| `trust_threshold_high` | 0.45 | thermodynamic high-trust bound |
-| `trust_threshold_low` | 0.08 | thermodynamic low-trust bound |
+| `enable_thermodynamic_control` | `False` | experimental disagreement-metric pre-router |
+| `trust_threshold_high` | 0.45 | consensus high-trust bound |
+| `trust_threshold_low` | 0.08 | consensus low-trust bound |
 | `hallucination_threshold` | 0.05 | candidate hallucination-bound proxy |
 | `enable_cascade` | `False` | enable the cascade pipeline (§5.1) |
 | `cascade_fast_threshold` | 0.90 | Stage 1 verbalized-confidence accept |

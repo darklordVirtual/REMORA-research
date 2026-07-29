@@ -21,7 +21,7 @@ produces in benchmarks.
 ```mermaid
 flowchart TD
     A[Agent action / question] --> B[Stage 1: Admission check\nadversarial / coercion firewall]
-    B --> C[Stage 2: Multi-oracle consensus\nEntropy H, dissensus D, phase]
+    B --> C[Stage 2: Multi-oracle consensus\ndisagreement diagnostics: H, D, phase]
     C --> D[Stage 3: Evidence enrichment\nRAG / cyber / finance / AI-governance]
     D --> E[Stage 4: Policy decision\nhard guards → conditional guards → trust + conformal routing]
     E --> F{Decision}
@@ -77,8 +77,8 @@ Oracle A (LLaMA 3.3 70B)  ─┐
 Oracle B (Claude 3.5 Haiku) ├─► ConsensusGate ─► PolicyObservation ─► RemoraDecisionEngine
 Oracle C (Gemma 3 27B)     ─┘        │                                         │
                                       │                                         │
-                              Entropy H, Dissensus D,                    Hard guards first
-                              Temperature T, Phase                        (within decide())
+                              Disagreement diagnostics:                  Hard guards first
+                              H, D, temperature, phase                   (within decide())
                               (ordered / critical / disordered)
 ```
 
