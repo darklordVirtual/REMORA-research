@@ -87,11 +87,14 @@ Full detail: [docs/01-architecture.md](docs/01-architecture.md) (narrative) · [
 ```bash
 python -m pip install -e ".[dev]"
 
-make test        # full deterministic suite (~3500 tests, no API keys, <1 min)
-make test-core   # envelope + policy engine + gate + API only (~5s)
+# Tests run cross-platform with no `make` required (Windows / PowerShell included):
+python -m pytest tests/ -q          # full deterministic suite (~3700 tests, no API keys, <1 min)
+python -m pytest tests/test_decision_envelope_v2.py tests/test_policy_decision_engine.py tests/test_remora_toolcall_gate.py tests/test_remora_toolcall_gate_v2.py tests/test_m1_leakage_absent.py tests/test_api_server.py -q   # core gate only (~5s)
 
 python scripts/demo_industrial_maintenance.py   # end-to-end governance demo (dry-run)
 ```
+
+On systems with GNU make installed, `make test` / `make test-core` / `make audit` are convenience shortcuts for the commands above (`make help` lists every target; the Makefile assumes `python` and `ruff` are on `PATH`).
 
 The maintenance demo drives the full chain: a per-link-signed A2A delegation envelope is actually verified, the real `RemoraDecisionEngine` decides, and analysis confidence cannot buy actuation authority that was never delegated (outcomes pinned by `tests/test_demo_industrial_maintenance.py`). More worked scenarios: [docs/use-cases/](docs/use-cases/README.md). Reproduce every benchmark step by step: [docs/06-reproducibility.md](docs/06-reproducibility.md).
 
@@ -199,6 +202,7 @@ separate commercial agreement. See [LICENSING.md](LICENSING.md) for scope and
 examples; contact: support@luftfiber.no.
 
 Before contributing, see [docs/10-contributing.md](docs/10-contributing.md):
-run `make audit`, ensure every claim links to a committed artifact on disk,
+run the full quality gate (`make audit` — or, with no `make`, `python -m pytest`
+plus the `scripts/check_*.py` gates), ensure every claim links to a committed artifact on disk,
 and do not remove negative results or caveats. Working agreement and
 claim-hygiene rules: [CLAUDE.md](CLAUDE.md).
