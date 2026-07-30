@@ -55,6 +55,11 @@ api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
 analysis = ["matplotlib>=3.8", "numpy>=1.26"]
 stats = ["scipy>=1.11"]
 datasets = ["datasets>=2.0"]
+# NLI semantic-entropy backend (NLISemanticBackend in remora/semantic_entropy.py).
+# Executed on CI-Linux via .github/workflows/nli-parity.yml (RF-06); local
+# Windows execution can be blocked by application control on torch's shm.dll
+# (WinError 4551) — see NEGATIVE_RESULTS.md section 3.
+nli = ["sentence-transformers>=5.6", "torch>=2.12"]
 agentharm = ["inspect-ai>=0.3", "inspect-evals", "openai>=1.0", "pyyaml>=6.0"]
 causal = ["pyyaml>=6.0"]
 # Documentation

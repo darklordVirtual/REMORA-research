@@ -1,0 +1,231 @@
+{
+  "schema": "se_parity_corpus_v1",
+  "description": "Hand-authored fixture corpus for the semantic-entropy backend parity smoke (RF-06, scripts/se_backend_parity_smoke.py). Each item holds 3-5 short English verdict strings in one of three design classes: 'paraphrase_disjoint' (same meaning, no shared content tokens after stopword filtering - the case where the token-fingerprint and NLI backends are expected to diverge), 'contradiction_lexical' (shared content tokens, opposite meaning - including word-order reversals with identical token sets, where the fingerprint backend is expected to false-merge), and 'identical' (identical or near-identical responses, where both backends are expected to agree on a single cluster). All sentences are original. Class labels describe design intent, not measured backend behavior; the measured comparison lives only in the CI-produced smoke artifact.",
+  "n_items": 24,
+  "classes": {
+    "paraphrase_disjoint": "same meaning, pairwise-disjoint content tokens",
+    "contradiction_lexical": "opposite meaning, shared content tokens (some with identical token sets)",
+    "identical": "identical or near-identical surface forms"
+  },
+  "items": [
+    {
+      "id": "a-01",
+      "class": "paraphrase_disjoint",
+      "responses": [
+        "The request was approved.",
+        "Permission has been granted.",
+        "Authorization went through successfully."
+      ]
+    },
+    {
+      "id": "a-02",
+      "class": "paraphrase_disjoint",
+      "responses": [
+        "The request was denied.",
+        "Permission has been refused.",
+        "Access could not be authorized."
+      ]
+    },
+    {
+      "id": "a-03",
+      "class": "paraphrase_disjoint",
+      "responses": [
+        "The task is complete.",
+        "All work has been finished.",
+        "Everything wrapped up successfully."
+      ]
+    },
+    {
+      "id": "a-04",
+      "class": "paraphrase_disjoint",
+      "responses": [
+        "An error occurred during processing.",
+        "Something went wrong while running.",
+        "The operation hit an unexpected fault."
+      ]
+    },
+    {
+      "id": "a-05",
+      "class": "paraphrase_disjoint",
+      "responses": [
+        "No records were found.",
+        "The search returned zero matches.",
+        "Nothing came back from that query."
+      ]
+    },
+    {
+      "id": "a-06",
+      "class": "paraphrase_disjoint",
+      "responses": [
+        "Both sources agree.",
+        "The two documents tell an identical story.",
+        "There is no discrepancy between them."
+      ]
+    },
+    {
+      "id": "a-07",
+      "class": "paraphrase_disjoint",
+      "responses": [
+        "The deadline was met.",
+        "Delivery happened on time.",
+        "The work arrived before its due date."
+      ]
+    },
+    {
+      "id": "a-08",
+      "class": "paraphrase_disjoint",
+      "responses": [
+        "The service is healthy.",
+        "All checks passed without issues.",
+        "Monitoring reports everything normal."
+      ]
+    },
+    {
+      "id": "b-01",
+      "class": "contradiction_lexical",
+      "responses": [
+        "The deployment succeeded on the first attempt.",
+        "The deployment failed on the first attempt.",
+        "The deployment succeeded on the first attempt."
+      ]
+    },
+    {
+      "id": "b-02",
+      "class": "contradiction_lexical",
+      "responses": [
+        "The invoice was paid in full.",
+        "The invoice was not paid in full.",
+        "The invoice remains unpaid."
+      ]
+    },
+    {
+      "id": "b-03",
+      "class": "contradiction_lexical",
+      "responses": [
+        "The audit finished before the migration.",
+        "The migration finished before the audit.",
+        "The audit finished before the migration."
+      ]
+    },
+    {
+      "id": "b-04",
+      "class": "contradiction_lexical",
+      "responses": [
+        "The parent process terminated the child process.",
+        "The child process terminated the parent process.",
+        "The parent process terminated the child process."
+      ]
+    },
+    {
+      "id": "b-05",
+      "class": "contradiction_lexical",
+      "responses": [
+        "Model accuracy improved after the update.",
+        "Model accuracy declined after the update.",
+        "Accuracy got worse once the update landed."
+      ]
+    },
+    {
+      "id": "b-06",
+      "class": "contradiction_lexical",
+      "responses": [
+        "The cache layer sits above the database.",
+        "The database sits above the cache layer.",
+        "The cache layer sits above the database."
+      ]
+    },
+    {
+      "id": "b-07",
+      "class": "contradiction_lexical",
+      "responses": [
+        "Backups are enabled for this project.",
+        "Backups are disabled for this project.",
+        "Backups are enabled for this project."
+      ]
+    },
+    {
+      "id": "b-08",
+      "class": "contradiction_lexical",
+      "responses": [
+        "Team alpha reviewed the code written by team beta.",
+        "Team beta reviewed the code written by team alpha.",
+        "Team alpha reviewed the code written by team beta."
+      ]
+    },
+    {
+      "id": "c-01",
+      "class": "identical",
+      "responses": [
+        "Access granted.",
+        "Access granted.",
+        "Access granted."
+      ]
+    },
+    {
+      "id": "c-02",
+      "class": "identical",
+      "responses": [
+        "The certificate is valid.",
+        "The certificate is valid.",
+        "The certificate is valid."
+      ]
+    },
+    {
+      "id": "c-03",
+      "class": "identical",
+      "responses": [
+        "Verified: no policy violation found.",
+        "verified - no policy violation found",
+        "Verified, no policy violation found."
+      ]
+    },
+    {
+      "id": "c-04",
+      "class": "identical",
+      "responses": [
+        "Signature check passed.",
+        "Signature check passed.",
+        "Signature check passed.",
+        "Signature check passed."
+      ]
+    },
+    {
+      "id": "c-05",
+      "class": "identical",
+      "responses": [
+        "ALL TESTS GREEN.",
+        "All tests green.",
+        "all tests green"
+      ]
+    },
+    {
+      "id": "c-06",
+      "class": "identical",
+      "responses": [
+        "Latency within budget.",
+        "Latency within budget.",
+        "Latency within budget."
+      ]
+    },
+    {
+      "id": "c-07",
+      "class": "identical",
+      "responses": [
+        "Rollback completed successfully.",
+        "Rollback  completed successfully.",
+        "Rollback completed successfully"
+      ]
+    },
+    {
+      "id": "c-08",
+      "class": "identical",
+      "responses": [
+        "Quota not exceeded.",
+        "Quota not exceeded.",
+        "Quota not exceeded.",
+        "Quota not exceeded.",
+        "Quota not exceeded."
+      ]
+    }
+  ]
+}

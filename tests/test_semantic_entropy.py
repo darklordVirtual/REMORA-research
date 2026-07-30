@@ -2,13 +2,23 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Tests for remora.semantic_entropy — SE clustering and entropy computation.
 
-All tests use the TokenFingerprintBackend (no external model required) and
+Most tests use the TokenFingerprintBackend (no external model required) and
 verify mathematical properties of Semantic Entropy as defined in
 Kuhn, Gal & Farquhar (ICLR 2023).
+
+TestNLIExecution additionally executes the real NLISemanticBackend (RF-06).
+Those tests skip with an explicit reason where the ``nli`` extra (or the
+torch DLL) is unavailable — UNLESS REMORA_REQUIRE_NLI=1, in which case
+unavailability is a hard failure (the no-silent-skip rule for the
+nli-parity.yml CI job, where NLI execution is the point).
 """
 from __future__ import annotations
 
+import importlib.util
+import json
 import math
+import os
+from pathlib import Path
 
 import pytest
 
@@ -378,3 +388,159 @@ def test_se_result_is_hashable_compat():
     assert isinstance(cluster, SemanticCluster)
     # Frozen dataclass — should be hashable
     _ = {cluster}
+
+
+# ---------------------------------------------------------------------------
+# NLI-executed path (RF-06) — runs wherever the nli extra actually loads
+# ---------------------------------------------------------------------------
+
+# Cached (backend, failure_reason) so the cross-encoder model is constructed
+# at most once per test session, not per test.
+_NLI_LOAD_RESULT: tuple[object, str | None] | None = None
+
+
+def _nli_backend_or_handle():
+    """Return a real NLISemanticBackend, or skip/fail per REMORA_REQUIRE_NLI.
+
+    Unavailability manifests as ImportError without the ``nli`` extra, but as
+    OSError (WinError 4551) under the documented Windows application-control
+    block on torch's shm.dll — hence the deliberately broad except. Called
+    from test bodies (not a fixture) so REMORA_REQUIRE_NLI=1 produces a
+    FAILED test, not a fixture ERROR.
+    """
+    global _NLI_LOAD_RESULT
+    if _NLI_LOAD_RESULT is None:
+        try:
+            from remora.semantic_entropy import NLISemanticBackend
+            _NLI_LOAD_RESULT = (NLISemanticBackend(), None)
+        except Exception as exc:
+            _NLI_LOAD_RESULT = (None, f"{type(exc).__name__}: {exc}")
+    backend, reason = _NLI_LOAD_RESULT
+    if backend is None:
+        if os.environ.get("REMORA_REQUIRE_NLI") == "1":
+            pytest.fail(
+                f"REMORA_REQUIRE_NLI=1 but the NLI backend is unavailable: {reason}"
+            )
+        pytest.skip(f"NLI backend unavailable: {reason}")
+    return backend
+
+
+class TestNLIExecution:
+    """Execute the real NLI backend — the path no reported context has run."""
+
+    def test_lexically_disjoint_paraphrases_cluster_under_nli(self):
+        """Paraphrases with zero shared content tokens must co-cluster under
+        NLI while the fingerprint backend keeps them apart — the divergence
+        RF-06 exists to expose."""
+        backend = _nli_backend_or_handle()
+        responses = ["The request was approved.", "Permission has been granted."]
+        nli_result = compute_semantic_entropy(responses, backend=backend)
+        fp_result = compute_semantic_entropy(
+            responses, backend=TokenFingerprintBackend()
+        )
+        assert nli_result.n_clusters == 1
+        assert fp_result.n_clusters == 2
+
+    def test_contradiction_pair_clusters_apart_under_nli(self):
+        backend = _nli_backend_or_handle()
+        responses = ["The system passed every test.", "The system failed every test."]
+        nli_result = compute_semantic_entropy(responses, backend=backend)
+        assert nli_result.n_clusters == 2
+
+    def test_entropy_finite_under_both_backends(self):
+        backend = _nli_backend_or_handle()
+        responses = [
+            "The request was approved.",
+            "Permission has been granted.",
+            "The request was denied.",
+        ]
+        h_nli = compute_semantic_entropy(responses, backend=backend).entropy
+        h_fp = compute_semantic_entropy(
+            responses, backend=TokenFingerprintBackend()
+        ).entropy
+        assert isinstance(h_nli, float) and math.isfinite(h_nli)
+        assert isinstance(h_fp, float) and math.isfinite(h_fp)
+
+
+# ---------------------------------------------------------------------------
+# Parity smoke script (scripts/se_backend_parity_smoke.py) — offline path
+# ---------------------------------------------------------------------------
+
+_ROOT = Path(__file__).resolve().parents[1]
+_SMOKE_SCRIPT = _ROOT / "scripts" / "se_backend_parity_smoke.py"
+_CORPUS_PATH = _ROOT / "data" / "se_parity" / "paraphrase_corpus_v1.json"
+
+
+def _load_smoke_module():
+    spec = importlib.util.spec_from_file_location(
+        "se_backend_parity_smoke", _SMOKE_SCRIPT
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+class TestParitySmokeOffline:
+    """Fingerprint-side structure and determinism — runs everywhere.
+
+    The NLI path is forced unavailable via monkeypatch so the default suite
+    never loads (or downloads) the cross-encoder model; real NLI execution is
+    covered by TestNLIExecution and the nli-parity.yml smoke step.
+    """
+
+    def test_corpus_structure(self):
+        corpus = json.loads(_CORPUS_PATH.read_text(encoding="utf-8"))
+        assert corpus["schema"] == "se_parity_corpus_v1"
+        assert corpus["n_items"] == len(corpus["items"]) == 24
+        ids = [item["id"] for item in corpus["items"]]
+        assert len(ids) == len(set(ids)), "item ids must be unique"
+        classes = {item["class"] for item in corpus["items"]}
+        assert classes == {"paraphrase_disjoint", "contradiction_lexical", "identical"}
+        for item in corpus["items"]:
+            assert 3 <= len(item["responses"]) <= 5
+            assert all(isinstance(r, str) and r for r in item["responses"])
+
+    def test_smoke_script_fingerprint_only_structure_and_determinism(
+        self, tmp_path, monkeypatch
+    ):
+        mod = _load_smoke_module()
+        monkeypatch.setattr(
+            mod, "try_load_nli_backend",
+            lambda: (None, "forced unavailable (offline test)"),
+        )
+        out1 = tmp_path / "run1.json"
+        out2 = tmp_path / "run2.json"
+        assert mod.main(["--output", str(out1)]) == 0
+        assert mod.main(["--output", str(out2)]) == 0
+
+        payload = json.loads(out1.read_text(encoding="utf-8"))
+        assert payload["status"] in {"skipped", "ok"}
+        # NLI is forced unavailable here, so the skip must be explicit.
+        assert payload["status"] == "skipped"
+        assert payload["reason"] == "nli_backend_unavailable"
+        assert payload["schema"] == "se_backend_parity_smoke_v1"
+        assert payload["n_items"] == len(payload["items"]) == 24
+        assert payload["fingerprint_backend"] == "token_fingerprint"
+        for row in payload["items"]:
+            assert set(row) == {"id", "class", "n_responses", "fingerprint"}
+            stats = row["fingerprint"]
+            assert stats["n_clusters"] >= 1
+            assert math.isfinite(stats["entropy"]) and stats["entropy"] >= 0.0
+        # Byte-identical across runs (same forced-skip status both times).
+        assert out1.read_bytes() == out2.read_bytes()
+
+    def test_smoke_script_require_nli_fails_hard_when_unavailable(
+        self, tmp_path, monkeypatch
+    ):
+        mod = _load_smoke_module()
+        monkeypatch.setattr(
+            mod, "try_load_nli_backend",
+            lambda: (None, "forced unavailable (offline test)"),
+        )
+        out = tmp_path / "out.json"
+        rc = mod.main(["--require-nli", "--output", str(out)])
+        assert rc != 0
+        # The skip artifact is still written explicitly, never silently.
+        payload = json.loads(out.read_text(encoding="utf-8"))
+        assert payload["status"] == "skipped"
+        assert payload["reason"] == "nli_backend_unavailable"
