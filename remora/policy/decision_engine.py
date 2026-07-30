@@ -168,6 +168,43 @@ def hard_guard_floor(
     return None
 
 
+#: Action types whose execution is bounded and reversible. Membership is by
+#: exact match: an unrecognised or missing action_type is unknown, not read-only,
+#: and must never qualify.
+_READ_ONLY_ACTION_TYPES: frozenset[str] = frozenset(
+    {"read", "read_only", "search", "list", "get", "query", "lookup"}
+)
+
+
+def _is_low_consequence(obs: PolicyObservation) -> bool:
+    """True when the action is read-only and carries no negative safety signal.
+
+    Every condition is a *confirmed negative* check written so that ``None``
+    (unknown) never satisfies it. The path permits only on positive evidence of
+    read-only semantics plus the absence of any recorded concern.
+    """
+    if (obs.action_type or "").strip().lower() not in _READ_ONLY_ACTION_TYPES:
+        return False
+
+    if obs.argument_tainted or obs.tool_forbidden:
+        return False
+    if obs.adversarial_detected or obs.coercion_detected:
+        return False
+    if obs.blackmail_pattern_detected or obs.distribution_shift_detected:
+        return False
+    if obs.schema_valid is False or obs.counterfactual_passed is False:
+        return False
+    if obs.evidence_contradictions:
+        return False
+
+    # Production is excluded even for reads: blast radius there includes
+    # disclosure of live data, which no read-only guarantee covers.
+    if (obs.target_environment or "").strip().lower() in {"prod", "production"}:
+        return False
+
+    return True
+
+
 def _normalize_observation(obs: PolicyObservation) -> PolicyObservation:
     """Return a copy of *obs* with context fields normalised for fail-closed handling.
 
@@ -494,7 +531,12 @@ class RemoraDecisionEngine:
         temperature_threshold: float | None = None,
         conformal_trust_threshold: float | None = None,
         conformal_phase_thresholds: dict[str, float] | None = None,
+        low_consequence_accept: bool = False,
     ) -> None:
+        # Opt-in: lets bounded, reversible action semantics reach ACCEPT without
+        # an oracle consensus signal. Off by default — see the path itself for
+        # what it does and does not assert.
+        self.low_consequence_accept = low_consequence_accept
         self.temperature_threshold = temperature_threshold
         self.conformal_trust_threshold = conformal_trust_threshold
         self.conformal_phase_thresholds = conformal_phase_thresholds
@@ -762,6 +804,26 @@ class RemoraDecisionEngine:
         ):
             reasons.append(DecisionReason.LOW_TRUST)
             return self._build(DecisionAction.ABSTAIN, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+
+        # ── LOW-CONSEQUENCE ACCEPT (opt-in, 2026-07-31) ─────────────────────
+        # Placed here deliberately: every hard guard and every blocking gate has
+        # already run, so this can only convert a fall-through that would
+        # otherwise abstain. It can never preempt a block —
+        # tests/test_low_consequence_accept.py asserts that over a grid.
+        #
+        # What it asserts is CONSEQUENCE, not correctness. The engine cannot
+        # tell a correct read from an incorrect one from observable data; the
+        # claim is only that executing this call is cheap to get wrong. That is
+        # why it is restricted to read-only semantics with no negative safety
+        # signal, and why it is off by default.
+        #
+        # Known cost, measured on the routing benchmark: it also accepts
+        # read-only calls that are the *wrong* call for the task, including
+        # cases another source annotates as unanswerable. A deployment that
+        # cannot tolerate a wasted or mildly disclosing read must leave it off.
+        if self.low_consequence_accept and _is_low_consequence(obs):
+            reasons.append(DecisionReason.LOW_CONSEQUENCE_ACCEPT)
+            return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── DEFAULT ─────────────────────────────────────────────────────────
 
@@ -1103,12 +1165,19 @@ class RemoraDecisionEngine:
             reasons=tuple(reasons),
             risk_estimate=risk_estimate,
             confidence=confidence,
-            coverage_policy={
-                DecisionAction.ACCEPT: "selective — accepted based on evidence/trust state",
-                DecisionAction.VERIFY: "held for verification",
-                DecisionAction.ABSTAIN: "abstained — insufficient evidence",
-                DecisionAction.ESCALATE: "escalated — hard failure detected",
-            }[action],
+            coverage_policy=(
+                # The low-consequence path reaches ACCEPT with no evidence or
+                # trust signal at all, so the generic ACCEPT wording would be a
+                # false statement about why the action was permitted.
+                "bounded consequence — read-only action, no evidence/trust signal used"
+                if DecisionReason.LOW_CONSEQUENCE_ACCEPT in reasons
+                else {
+                    DecisionAction.ACCEPT: "selective — accepted based on evidence/trust state",
+                    DecisionAction.VERIFY: "held for verification",
+                    DecisionAction.ABSTAIN: "abstained — insufficient evidence",
+                    DecisionAction.ESCALATE: "escalated — hard failure detected",
+                }[action]
+            ),
             evidence_required=evidence_required,
             human_review_required=human_review_required,
             audit_root=obs.assurance_root,

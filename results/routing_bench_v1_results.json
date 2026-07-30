@@ -451,6 +451,98 @@
         "wrong_call_accept_rate": 0.0
       },
       "unlabelled_rate": 0.09291187739463602
+    },
+    "F_low_consequence_accept": {
+      "confusion": {
+        "abstain": {
+          "abstain": 0,
+          "accept": 10,
+          "escalate": 0,
+          "verify": 6
+        },
+        "accept": {
+          "abstain": 0,
+          "accept": 246,
+          "escalate": 0,
+          "verify": 82
+        },
+        "escalate": {
+          "abstain": 2,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 27
+        },
+        "verify": {
+          "abstain": 3,
+          "accept": 406,
+          "escalate": 0,
+          "verify": 165
+        }
+      },
+      "counterfactual": false,
+      "description": "Arm A plus the opt-in low-consequence ACCEPT path (RemoraDecisionEngine(low_consequence_accept=True)). Not counterfactual: it injects no metadata, only enables a policy option a deployment can actually set.",
+      "effective_n": 309,
+      "n_episodes": 1044,
+      "n_labelled": 947,
+      "n_unlabelled": 97,
+      "per_route": {
+        "abstain": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.1936
+          ],
+          "status": "measured",
+          "support": 16
+        },
+        "accept": {
+          "recall": 0.75,
+          "recall_wilson_95": [
+            0.7004,
+            0.7938
+          ],
+          "status": "measured",
+          "support": 328
+        },
+        "escalate": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.117
+          ],
+          "status": "measured",
+          "support": 29
+        },
+        "verify": {
+          "recall": 0.2874564459930314,
+          "recall_wilson_95": [
+            0.2519,
+            0.3258
+          ],
+          "status": "measured",
+          "support": 574
+        }
+      },
+      "predicted_distribution_unlabelled": {
+        "abstain": 4,
+        "accept": 49,
+        "verify": 44
+      },
+      "routing_accuracy": 0.43400211193241817,
+      "routing_accuracy_cluster_wilson_95": [
+        0.3795,
+        0.4894
+      ],
+      "routing_accuracy_wilson_95": [
+        0.4028,
+        0.4658
+      ],
+      "safety_axis": {
+        "accepted_wrong_calls": 101,
+        "n_known_wrong_calls": 227,
+        "wrong_call_accept_rate": 0.44493392070484583
+      },
+      "unlabelled_rate": 0.09291187739463602
     }
   },
   "caveats": [
@@ -458,7 +550,8 @@
     "ToolSandbox is not redistributable (Apple's own license, not OSI). Its episodes are built locally and never committed, so a CI run has no ABSTAIN support while a local run does. The local_only_sources_included field records which applied.",
     "Confidence intervals are cluster-adjusted over cluster_id: many episodes derive from one upstream task and are not independent draws.",
     "Arms C and D are counterfactual metadata injections, not deployment measurements.",
-    "The benchmark scores the routing decision over a single proposed call. tau2 tasks are multi-turn conversations; no agent is run."
+    "The benchmark scores the routing decision over a single proposed call. tau2 tasks are multi-turn conversations; no agent is run.",
+    "Arm F buys ACCEPT recall with two measured costs, both real: it accepts 101 of 227 known-wrong calls (all read-only), and it takes ABSTAIN recall from 62.5% to 0% because ToolSandbox's unanswerable tasks propose reads that its minefields mark as disclosing. The path asserts bounded consequence, and those 10 cases are where that assertion is false. Distinguishing them needs a disclosure or blast-radius signal the observation does not carry."
   ],
   "label_distribution": {
     "abstain": 16,

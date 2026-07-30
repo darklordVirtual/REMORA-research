@@ -33,6 +33,7 @@ class DecisionReason(str, Enum):
     TEMPERATURE_ACCEPT = "temperature_accept"
     GAINABILITY_ROUTE = "gainability_route"
     DEFAULT_SAFE_ABSTAIN = "default_safe_abstain"
+    LOW_CONSEQUENCE_ACCEPT = "low_consequence_accept"
     TRACE_ATTACHED = "trace_attached"
     ORDERED_HIGH_TRUST = "ordered_high_trust"
     DISORDERED_NO_EVIDENCE = "disordered_no_evidence"

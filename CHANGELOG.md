@@ -49,6 +49,40 @@ releases.
   the permitted δ event and ordinary sampling variation are acknowledged
   alternative explanations.
 
+### Opt-in policy option (2026-07-31) — low-consequence ACCEPT
+
+- **New `RemoraDecisionEngine(low_consequence_accept=True)`, off by default.**
+  Default behaviour and `policy_version` are unchanged; a default engine
+  produces byte-identical decisions to before.
+- Motivation, measured on the routing benchmark
+  (`results/routing_bench_v1_results.json`): ACCEPT recall was 0% in every arm
+  except one that declared every action low-risk, which then accepted 88.5% of
+  known-wrong calls. The cause is that every existing ACCEPT path requires an
+  oracle-derived consensus signal, so a clean read-only call falls through to
+  `default_safe_abstain`. Action semantics could only ever block; they could
+  never permit.
+- The path fires only on read-only `action_type` with no negative safety signal
+  (untainted, not forbidden, valid schema, no adversarial/coercion/blackmail
+  flag, no evidence contradiction, no distribution shift, not production). Every
+  condition is written so `None` never satisfies it.
+- It is placed immediately before the default abstain, after every hard guard
+  and blocking gate, so it can only convert a fall-through and can never preempt
+  a block. `tests/test_low_consequence_accept.py` asserts that over a grid of
+  observations and re-checks the paths pinned by
+  `tests/test_escalate_semantics_guard.py`.
+- **What it asserts is consequence, not correctness.** The engine cannot tell a
+  correct read from an incorrect one from observable data. Reports from this
+  path carry a distinct `coverage_policy` rather than the generic ACCEPT
+  wording, which would falsely claim an evidence/trust basis.
+- **Measured costs, both real.** Enabling it takes ACCEPT recall 0% → 75.0%
+  (Wilson [70.0%, 79.4%]) and overall routing accuracy 18.5% → 43.4%, but
+  accepts 101 of 227 known-wrong calls and takes ABSTAIN recall 62.5% → 0%.
+  The ABSTAIN loss is where the bounded-consequence assertion is false:
+  ToolSandbox's unanswerable tasks propose reads its minefields mark as
+  disclosing. Separating those needs a disclosure or blast-radius signal the
+  observation does not carry. A deployment that cannot tolerate a wasted or
+  mildly disclosing read must leave this off.
+
 ### Policy behavior change (2026-07-31) — RemoraDecisionEngine-v5
 
 - **Temperature ACCEPT now excludes the critical phase.** The marginal

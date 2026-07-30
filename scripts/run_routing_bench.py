@@ -41,7 +41,14 @@ from remora.toolcall.routing.evaluate import (  # noqa: E402
 DATA = REPO_ROOT / "data" / "routing_bench_v1"
 OUT = REPO_ROOT / "results" / "routing_bench_v1_results.json"
 
-Arm = tuple[str, str, bool, Callable[[PolicyObservation], PolicyObservation]]
+#: (name, description, counterfactual, observation mutator, engine factory)
+Arm = tuple[
+    str, str, bool,
+    Callable[[PolicyObservation], PolicyObservation],
+    Callable[[], RemoraDecisionEngine],
+]
+
+_DEFAULT_ENGINE: Callable[[], RemoraDecisionEngine] = RemoraDecisionEngine
 
 ARMS: list[Arm] = [
     (
@@ -50,6 +57,7 @@ ARMS: list[Arm] = [
         "before running any oracle.",
         False,
         lambda o: o,
+        _DEFAULT_ENGINE,
     ),
     (
         "B_plus_schema_valid",
@@ -57,6 +65,7 @@ ARMS: list[Arm] = [
         "dataset's calls are well-formed.",
         False,
         lambda o: replace(o, schema_valid=True),
+        _DEFAULT_ENGINE,
     ),
     (
         "C_plus_low_risk_tier",
@@ -64,6 +73,7 @@ ARMS: list[Arm] = [
         "per call, not declare everything low.",
         True,
         lambda o: replace(o, schema_valid=True, risk_tier="low"),
+        _DEFAULT_ENGINE,
     ),
     (
         "D_plus_uniform_high_trust",
@@ -80,6 +90,7 @@ ARMS: list[Arm] = [
             evidence_contradictions=0,
             counterfactual_passed=True,
         ),
+        _DEFAULT_ENGINE,
     ),
     (
         "E_high_trust_critical_risk",
@@ -97,6 +108,17 @@ ARMS: list[Arm] = [
             evidence_contradictions=0,
             counterfactual_passed=True,
         ),
+        _DEFAULT_ENGINE,
+    ),
+    (
+        "F_low_consequence_accept",
+        "Arm A plus the opt-in low-consequence ACCEPT path "
+        "(RemoraDecisionEngine(low_consequence_accept=True)). Not "
+        "counterfactual: it injects no metadata, only enables a policy option a "
+        "deployment can actually set.",
+        False,
+        lambda o: o,
+        lambda: RemoraDecisionEngine(low_consequence_accept=True),
     ),
 ]
 
@@ -152,10 +174,9 @@ def main() -> None:
 
     episodes, local_sources = load_episodes()
     manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf-8"))
-    engine = RemoraDecisionEngine()
-
     arms: dict[str, Any] = {}
-    for name, description, counterfactual, mutate in ARMS:
+    for name, description, counterfactual, mutate, make_engine in ARMS:
+        engine = make_engine()
         results = [
             (ep, _ACTION_TO_ROUTE[engine.decide(mutate(build_observation(ep))).action])
             for ep in episodes
@@ -205,6 +226,13 @@ def main() -> None:
             "measurements.",
             "The benchmark scores the routing decision over a single proposed "
             "call. tau2 tasks are multi-turn conversations; no agent is run.",
+            "Arm F buys ACCEPT recall with two measured costs, both real: it "
+            "accepts 101 of 227 known-wrong calls (all read-only), and it takes "
+            "ABSTAIN recall from 62.5% to 0% because ToolSandbox's unanswerable "
+            "tasks propose reads that its minefields mark as disclosing. The "
+            "path asserts bounded consequence, and those 10 cases are where "
+            "that assertion is false. Distinguishing them needs a disclosure or "
+            "blast-radius signal the observation does not carry.",
         ],
     }
 
