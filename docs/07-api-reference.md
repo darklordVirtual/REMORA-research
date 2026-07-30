@@ -182,8 +182,10 @@ the `jti` so a token can authorise exactly one execution.
 live app via the execution API, `POST /v1/execution/assess` issues a
 short-lived signed token on ACCEPT, and `POST /v1/execution/execute` re-gates
 the fresh observation and consumes a one-time grant through the gate. The
-`jti`-consumption store is in-process (durable multi-node consumption is a
-deployment concern). See `servers/execution_api.py` and
+`jti`-consumption store persists to a `pep_consumed` table when
+`REMORA_PG_DSN` (Postgres) or `REMORA_CHAIN_DB` (SQLite) is configured
+(`remora/enforcement/gate.py`), in-process set by default; cross-restart
+replay refusal is not yet directly tested. See `servers/execution_api.py` and
 `docs/assurance/capability_register_v1.yaml` CAP-003 (WIRED_API_PATH).
 
 ### Execution state machine, `servers/execution_api.py` (`/v1/execution/*`)
