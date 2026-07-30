@@ -99,9 +99,18 @@ releases.
   pure arithmetic — about as bounded as a call gets — and still wrong. The
   shared property is unobtainable arguments, not scope of effect.
 - Effect: ABSTAIN recall in the enabled arm goes 0% → 62.5%, exactly the
-  baseline, and known-wrong accepts fall 101 → 89. The registry currently
-  covers only ToolSandbox tools; extending it to tau2 is the next lever on the
-  residual 89 and is not yet done.
+  baseline, and known-wrong accepts fall 101 → 89.
+- The registry now also covers tau2 (85 signatures, up from 38), which required
+  extending the extractor to public methods of top-level classes — tau2 exposes
+  its tools as methods on a domain class rather than as module functions. That
+  extension gained coverage but moved no routing metric; see
+  `NEGATIVE_RESULTS.md` §20 for why, and for the adapter artifact that briefly
+  made it look like a 92% reduction in unsafe accepts.
+- A required parameter already present in the proposed call counts as sourced.
+  The check gates a proposed call, so a value already in it was obtained
+  somewhere; whether legitimately is `argument_tainted`'s question. Without
+  this, tau2's multi-turn tasks read as unsatisfiable because the value came
+  from a conversation turn the single-call view does not contain.
 - Extraction detail worth keeping: a parameter defaulted to `None` counts as
   required. `None` is the standard Python sentinel for "not supplied", so
   `search_weather_around_lat_lon(days=0, latitude=None, longitude=None)` needs

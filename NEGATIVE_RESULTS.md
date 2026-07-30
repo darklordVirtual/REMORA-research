@@ -1035,6 +1035,47 @@ escalations downgraded. It is not a candidate. See
 
 ---
 
+## §20 Extending the tool registry to tau2: coverage gained, no outcome change (2026-07-31)
+
+**Finding.** Extending the routing benchmark's tool registry from ToolSandbox
+only (38 signatures) to ToolSandbox plus tau2 (85 signatures) produced **no
+measurable change** in any reported routing metric. The low-consequence ACCEPT
+arm scores identically before and after: ACCEPT recall 75.0%, ABSTAIN recall
+62.5%, 89 of 227 known-wrong calls accepted, overall accuracy 44.5%.
+
+**Why it does not help.** `arguments_satisfiable` detects calls whose required
+parameters cannot be sourced. That property is orthogonal to whether a call is
+the *correct* one for the task. A wrong tau2 call is fully satisfiable — it has
+its arguments — so the signal has nothing to say about it. The signal only ever
+had purchase on ToolSandbox, whose unanswerable scenarios are unsatisfiable by
+construction.
+
+**What the extension did achieve.** Coverage. Of 903 tau2 episodes, 858 now
+carry a determinate value (844 satisfiable, 14 unsatisfiable) instead of
+`None`. That is epistemically better even though it moved no metric: fewer
+decisions rest on an unknown. The 14 confirmed-unsatisfiable tau2 calls do not
+overlap with the cases the reported metrics track.
+
+**The intermediate number was an artifact, and this is the important part.**
+Before the adapter was corrected, extending the registry appeared to cut
+known-wrong accepts from 89 to 17 — a large apparent safety gain. It was
+entirely spurious. Substituted (deliberately wrong) tau2 episodes carried empty
+`proposed_tool_args` because the adapter never populated them, which made every
+wrong call look unsatisfiable for a reason that was a property of the harness
+rather than of the call. Once substitutions were given the borrowed call's real
+arguments, the number returned to 89.
+
+Had the artifact not been caught, this repository would hold a recorded 92%
+reduction in unsafe accepts attributable to a tool registry. The general lesson:
+when a benchmark change produces a large one-sided improvement, check whether
+the improvement is a property of the data-generation code before recording it.
+
+**Artifacts.** `results/routing_bench_v1_results.json` (`tool_registry_size`
+records how many signatures were loaded), `data/routing_bench_v1/tau2.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py && python scripts/run_routing_bench.py`
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1052,6 +1093,7 @@ escalations downgraded. It is not a candidate. See
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)**, `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
 | MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
+| tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 cut in unsafe accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
 | AgentHarm rescoring: FBR target not met (§19) | **Active (accepted negative result)**: FAR=0.0% (target met, Wilson upper 1.8%), FBR=100.0% (target <=40%, NOT met); cause is structural — every source verdict is ESCALATE and the control protocols act only on VERIFY. Bounds the protocols on this dataset; does not identify avoidable escalations. A blanket ESCALATE→VERIFY reclassification is ruled out by measurement (19 harmful / 0 benign moved) | Medium |
 | Benchmark v2 oracle-flag/severity/tags leakage + effective N ~70 not 700 (§17) | **Fixed (2026-07-20)**: gate and baselines restricted to observable surface + platform facts; cluster-level inference (n=70); "0% vs 10–20%" claim withdrawn — baselines now 1.4%, unsafe-rate delta not significant (p=0.50); FAR=0 unchanged, CI [0.0%, 5.2%]; residual: platform facts simulator-declared | **High (was inflating headline claim)** |
 

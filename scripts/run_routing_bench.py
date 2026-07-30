@@ -135,7 +135,10 @@ LOCAL = REPO_ROOT / ".cache" / "routing_bench" / "local"
 #: Tool sources for the registry. Stands in for the tool registry a deployment
 #: already has; reads only tool signatures, never labels. ToolSandbox tool
 #: modules are cached locally and never committed.
-TOOL_SOURCES = [REPO_ROOT / ".cache" / "routing_bench" / "toolsandbox" / "tools"]
+TOOL_SOURCES = [
+    REPO_ROOT / ".cache" / "routing_bench" / "toolsandbox" / "tools",
+    REPO_ROOT / ".cache" / "routing_bench" / "tau2_tools",
+]
 
 
 def load_registry() -> ToolRegistry:

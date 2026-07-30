@@ -206,3 +206,99 @@ def test_real_weather_tool_requires_coordinates() -> None:
     required = sigs["search_weather_around_lat_lon"].required_params
     assert "latitude" in required and "longitude" in required
     assert "days" not in required
+
+
+# ---------------------------------------------------------------------------
+# Class-method tools (tau2 exposes its tools as methods, not functions)
+# ---------------------------------------------------------------------------
+
+def test_public_class_methods_are_extracted(tmp_path) -> None:
+    """tau2 defines tools as methods on a domain class, not module functions."""
+    module = tmp_path / "tools.py"
+    module.write_text(
+        "class AirlineTools:\n"
+        "    def __init__(self, db):\n        ...\n"
+        "    def _get_user(self, user_id: str):\n        ...\n"
+        "    def get_reservation_details(self, reservation_id: str):\n        ...\n"
+        "    def search_direct_flight(self, origin: str, destination: str,\n"
+        "                             date: str):\n        ...\n",
+        encoding="utf-8",
+    )
+    sigs = extract_from_python([module])
+    assert "get_reservation_details" in sigs
+    assert sigs["get_reservation_details"].required_params == ("reservation_id",)
+    assert sigs["search_direct_flight"].required_params == (
+        "origin", "destination", "date",
+    )
+
+
+def test_self_and_private_methods_are_excluded(tmp_path) -> None:
+    """`self` is never a parameter, and a leading underscore means internal."""
+    module = tmp_path / "tools.py"
+    module.write_text(
+        "class T:\n"
+        "    def __init__(self, db):\n        ...\n"
+        "    def _helper(self, x: int):\n        ...\n"
+        "    def public(self, x: int):\n        ...\n",
+        encoding="utf-8",
+    )
+    sigs = extract_from_python([module])
+    assert set(sigs) == {"public"}
+    assert sigs["public"].required_params == ("x",)
+
+
+TAU2_TOOLS = Path(__file__).parent.parent / ".cache" / "routing_bench" / "tau2_tools"
+
+
+@pytest.mark.skipif(
+    not TAU2_TOOLS.exists(),
+    reason="tau2 tool cache absent; run scripts/build_routing_bench.py --fetch",
+)
+def test_real_tau2_signatures_extract() -> None:
+    sigs = extract_from_python(sorted(TAU2_TOOLS.glob("*.py")))
+    assert "get_reservation_details" in sigs
+    assert sigs["get_reservation_details"].required_params == ("reservation_id",)
+    assert not any(name.startswith("_") for name in sigs)
+
+
+# ---------------------------------------------------------------------------
+# Arguments already present in the proposed call
+# ---------------------------------------------------------------------------
+
+def test_supplied_argument_satisfies_its_parameter(registry) -> None:
+    """A parameter present in the proposed call has been sourced by definition.
+
+    The check gates a *proposed call*; if the value is already in it, the agent
+    obtained it somewhere. Whether that somewhere was legitimate is a different
+    question, answered by argument_tainted, not by this signal.
+
+    Without this, tau2's multi-turn tasks look unsatisfiable: the value came
+    from an earlier conversation turn the benchmark's single-call view does not
+    contain, so neither the task text nor another tool appears to supply it.
+    """
+    assert registry.arguments_satisfiable(
+        proposed="search_lat_lon",
+        available=("search_lat_lon",),
+        task_text="What city am I in?",
+        proposed_args={"latitude": 37.3, "longitude": -122.0},
+    ) is True
+
+
+def test_partially_supplied_arguments_are_still_unsatisfiable(registry) -> None:
+    """One supplied parameter does not excuse a missing one."""
+    assert registry.arguments_satisfiable(
+        proposed="search_lat_lon",
+        available=("search_lat_lon",),
+        task_text="What city am I in?",
+        proposed_args={"latitude": 37.3},
+    ) is False
+
+
+def test_empty_proposed_args_change_nothing(registry) -> None:
+    """The default stays the pre-existing behaviour."""
+    assert registry.arguments_satisfiable(
+        proposed="search_lat_lon",
+        available=("search_lat_lon",),
+        task_text="What city am I in?",
+        proposed_args={},
+    ) is False

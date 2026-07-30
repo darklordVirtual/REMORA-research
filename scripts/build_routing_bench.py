@@ -101,6 +101,23 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def fetch_tau2_tools() -> None:
+    """Fetch tau2 tool modules for the registry (signatures only)."""
+    base = (
+        "https://raw.githubusercontent.com/sierra-research/tau2-bench/"
+        f"{TAU2_COMMIT}/src/tau2/domains"
+    )
+    root = CACHE / "tau2_tools"
+    root.mkdir(parents=True, exist_ok=True)
+    for domain in ("airline", "retail", "telecom"):
+        req = urllib.request.Request(
+            f"{base}/{domain}/tools.py", headers={"User-Agent": "remora-routing-bench"}
+        )
+        data = urllib.request.urlopen(req, timeout=120).read()
+        (root / f"{domain}.py").write_bytes(data)
+        print(f"  fetched tau2_tools/{domain}.py  {len(data)} bytes")
+
+
 def fetch_agentdojo() -> None:
     base = (
         "https://raw.githubusercontent.com/ethz-spylab/agentdojo/"
@@ -282,6 +299,7 @@ def main() -> None:
     if args.fetch:
         print("fetching pinned upstream sources...")
         fetch_tau2()
+        fetch_tau2_tools()
         fetch_agentdojo()
         fetch_toolsandbox()
     raise SystemExit(build())

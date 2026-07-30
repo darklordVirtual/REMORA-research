@@ -199,9 +199,18 @@ class Tau2Adapter:
             tasks = self._load(domain)
             # Domain-wide pool of gold call names, used for substitution. Sorted
             # so the choice never depends on dict or file ordering.
-            pool = sorted(
-                {a["name"] for t in tasks for a in self._actions(t) if a.get("name")}
-            )
+            # Name -> a real argument set for that call, taken from the first
+            # task that uses it. A substituted call must be shaped like a call
+            # an agent would actually propose; leaving its arguments empty
+            # would make it look unsatisfiable for a reason that is an artifact
+            # of this adapter rather than a property of the call.
+            pool_args: dict[str, dict[str, Any]] = {}
+            for task in tasks:
+                for action in self._actions(task):
+                    name = action.get("name")
+                    if name and name not in pool_args:
+                        pool_args[name] = dict(action.get("arguments") or {})
+            pool = sorted(pool_args)
 
             for task in tasks:
                 actions = self._actions(task)
@@ -247,12 +256,12 @@ class Tau2Adapter:
                             task=task,
                             suffix="substituted",
                             proposed_name=substitute,
-                            proposed_args={},
+                            proposed_args=dict(pool_args.get(substitute, {})),
                             gold_names=gold_names,
                             available=tuple(sorted(gold_names | {substitute})),
                             notes=(
                                 "proposed call substituted from another task in "
-                                "the same domain",
+                                "the same domain, with that call's arguments",
                             ),
                         )
                     )

@@ -79,6 +79,7 @@ def build_observation(
                 proposed=obs["proposed_tool_name"],
                 available=obs["available_tools"],
                 task_text=obs["user_task"],
+                proposed_args=obs["proposed_tool_args"],
             )
             if registry is not None
             else None

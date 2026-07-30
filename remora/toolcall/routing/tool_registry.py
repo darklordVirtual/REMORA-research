@@ -78,12 +78,18 @@ class ToolRegistry:
         proposed: str | None,
         available: Sequence[str],
         task_text: str,
+        proposed_args: dict[str, object] | None = None,
     ) -> bool | None:
         """Can every required parameter of *proposed* be sourced?
 
-        Returns ``True`` when each required parameter is either named in the
-        task text or produced by an available tool, ``False`` when at least one
-        has no possible source, and ``None`` when the tool is not registered.
+        A parameter counts as sourced when it is already present in
+        ``proposed_args``, named in the task text, or produced by an available
+        tool. Returns ``False`` when at least one has no possible source, and
+        ``None`` when the tool is not registered.
+
+        Arguments already in the call are sourced by definition — the agent
+        obtained the value somewhere. Whether that somewhere was legitimate is
+        ``argument_tainted``'s question, not this one.
         """
         if not proposed:
             return None
@@ -99,10 +105,16 @@ class ToolRegistry:
             if other is not None and other.name != proposed:
                 supplied |= other.produces()
 
+        given = {
+            _normalise(k)
+            for k, v in (proposed_args or {}).items()
+            if v is not None and str(v).strip()
+        }
+
         text = task_text.lower()
         for param in signature.required_params:
             key = _normalise(param)
-            if key in supplied:
+            if key in given or key in supplied:
                 continue
             # A task that names the parameter supplies it.
             if key in text or param.strip().lower() in text:
@@ -155,9 +167,21 @@ def extract_from_python(paths: Iterable[Path]) -> dict[str, ToolSignature]:
 
     for path in paths:
         tree = ast.parse(Path(path).read_text(encoding="utf-8"))
-        for node in tree.body:
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                continue
+
+        # Module-level functions (ToolSandbox) and public methods of top-level
+        # classes (tau2 exposes its tools as methods on a domain class).
+        candidates: list[ast.FunctionDef | ast.AsyncFunctionDef] = []
+        for top in tree.body:
+            if isinstance(top, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                candidates.append(top)
+            elif isinstance(top, ast.ClassDef):
+                candidates.extend(
+                    m
+                    for m in top.body
+                    if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))
+                )
+
+        for node in candidates:
             if node.name.startswith("_"):
                 continue
 
