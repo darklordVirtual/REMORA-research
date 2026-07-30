@@ -16,7 +16,7 @@
 # EXTERNALLY_VERIFIED — deployment_status is SHADOW_ONLY until REM-021.
 
 schema_version: "1"
-updated: "2026-07-27"
+updated: "2026-07-30"
 
 capabilities:
   - id: CAP-001
@@ -45,7 +45,7 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    caveat: "Issued and consumed via /v1/execution/*; consumption store is in-process (durable jti store is a deployment concern)."
+    caveat: "Issued and consumed via /v1/execution/*; jti one-time consumption persists to a pep_consumed table when REMORA_PG_DSN (Postgres) or REMORA_CHAIN_DB (SQLite) is configured (remora/enforcement/gate.py), in-process set by default. Cross-restart replay refusal is not yet directly tested; the lease nonce ledger stays in-process (REM-025)."
 
   - id: CAP-004
     name: "Tool-call payload binding (canonical hash, recomputed before execution)"
@@ -63,7 +63,7 @@ capabilities:
       - remora/governance/tenant_chain.py
       - servers/execution_api.py
       - tests/test_execution_api.py
-    caveat: "PERSISTED_ATOMIC when REMORA_CHAIN_DB (SQLite, restart-proven) or REMORA_PG_DSN (Postgres FOR UPDATE) is configured; default in-process. Queue/jti stores remain in-process; legacy /v1/assess unmigrated."
+    caveat: "PERSISTED_ATOMIC when REMORA_CHAIN_DB (SQLite, restart-proven) or REMORA_PG_DSN (Postgres FOR UPDATE) is configured; default in-process. Queue and jti gained durable stores under the same env switches (see CAP-007/CAP-003); the nonce ledger and the assess idempotency cache remain in-process; legacy /v1/assess unmigrated."
 
   - id: CAP-006
     name: "A2A delegation envelope (principal-bound keys, attenuation, replay, payload binding)"
@@ -81,7 +81,7 @@ capabilities:
       - remora/governance/review_queue.py
       - tests/test_review_queue.py
       - servers/execution_api.py
-    caveat: "Wired via /v1/execution/approve + /execute with fresh re-gate; queue is in-process (durable store is a deployment concern). Legacy /v1/review records only."
+    caveat: "Wired via /v1/execution/approve + /execute with fresh re-gate; queue items, item->tenant binding and approvals persist in one transaction (global_state table) when REMORA_CHAIN_DB/REMORA_PG_DSN is configured — SQLite restart-proven, the Postgres branch is not yet contract-tested; in-process by default. Legacy /v1/review records only."
 
   - id: CAP-008
     name: "Degradation ladder G0-G4 with tamper-evident transition log"

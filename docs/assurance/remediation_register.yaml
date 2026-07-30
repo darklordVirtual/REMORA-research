@@ -466,12 +466,13 @@ items:
       (actor_identity_required / actor_identity_mismatch, constant-time
       compare). The identity string must come from an authenticated transport
       context; cryptographic workload identity (credential/key ID binding)
-      remains open. REMAINING before DONE: transport-anchored actor identity,
-      mandatory policy-bundle hash in a production profile (F-07: the
-      dispatcher's expected_policy_bundle_hash defaults to None, so freshness
-      is opt-in), durable multi-process nonce/lease storage (REM-025 overlap),
-      deployment integration where the dispatcher fronts real downstream
-      credentials, and external interception validation (REM-030, REM-021).
+      remains open. REMAINING before DONE (list as of 2026-07-25; SUPERSEDED
+      by the 2026-07-27 update below, which closed F-07 — the bundle hash is
+      a mandatory constructor argument, never opt-in): transport-anchored
+      actor identity, durable multi-process nonce/lease storage (REM-025
+      overlap), deployment integration where the dispatcher fronts real
+      downstream credentials, and external interception validation
+      (REM-030, REM-021).
       Enforcement is not yet inseparable from tool execution: the local hook is
       optional and the signed-token PDP/PEP boundary (REM-013) is a library, not
       an integrated dispatcher. In-repo building blocks exist: opt-in hook
@@ -655,9 +656,11 @@ items:
       POSTGRES_DDL with SELECT FOR UPDATE on the per-tenant head row;
       contract test runs when REMORA_PG_DSN is set, skipped otherwise).
       The execution API selects the durable chain via REMORA_PG_DSN or
-      REMORA_CHAIN_DB. Remaining out of scope here: durable review-queue
-      and jti-consumption stores; legacy /v1/assess keeps its
-      predecessor-reference records until migrated.
+      REMORA_CHAIN_DB. (UPDATE 2026-07-30: the once-out-of-scope durable
+      review-queue and jti-consumption stores now exist under the same env
+      switches — global_state in servers/execution_api.py and pep_consumed
+      in remora/enforcement/gate.py; see CAP-007/CAP-003.) Legacy /v1/assess
+      keeps its predecessor-reference records until migrated.
 
   - id: REM-035
     section: "review-2026-07-18 P1/P2"
@@ -679,9 +682,10 @@ items:
       re-gates on the fresh observation (equal-or-safer executes;
       stricter invalidates; changed args refused by binding) and issues a
       one-time grant consumed atomically by the PEP. Every transition
-      appends to the REM-034 tenant chain. CAVEAT: queue and consumption
-      store are in-process; durable multi-process deployment requires the
-      REM-034 DDL adapter and an external jti store. The legacy
+      appends to the REM-034 tenant chain. CAVEAT (2026-07-18, SUPERSEDED
+      for queue/jti by the UPDATE 2026-07-27 below): queue and consumption
+      store were in-process at that date; both now persist via
+      REMORA_CHAIN_DB/REMORA_PG_DSN. The legacy
       /v1/assess+/v1/review endpoints remain for compatibility and do not
       issue grants. SCOPE CAVEAT (external review 2026-07-24, F-01,
       SUPERSEDED — see update below): at that date /v1/execution/execute
