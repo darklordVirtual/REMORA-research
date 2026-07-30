@@ -2085,7 +2085,21 @@ documents:
   - researcher
   - evaluator
 
+- id: DOC-292
+  version: v1
+  path: docs/research/routing_benchmark_v1_design.md
+  status: canonical
+  topic: docs_research_routing_benchmark_v1_design_md
+  code_synced: unreviewed
+  verdict: pending
+  last_audited: '2026-07-31'
+  last_reviewed: '2026-07-31'
+  audience:
+  - researcher
+  - evaluator
+
 topics:
+- docs_research_routing_benchmark_v1_design_md
 - docs_cli_md
 - docs_validation_pilot_evaluation_protocol_v1_md
 - docs_enterprise_audit-anchoring-guide_md
