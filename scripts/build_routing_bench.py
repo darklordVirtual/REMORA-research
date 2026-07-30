@@ -38,13 +38,20 @@ from remora.toolcall.routing.route_table import (  # noqa: E402
     readable_table,
     table_content_hash,
 )
+from remora.toolcall.routing.sources.agentdojo import AgentDojoAdapter  # noqa: E402
 from remora.toolcall.routing.sources.tau2 import (  # noqa: E402
     REFUSAL_PATTERN_VERSION,
     Tau2Adapter,
 )
+from remora.toolcall.routing.sources.toolsandbox import ToolSandboxAdapter  # noqa: E402
 
 CACHE = REPO_ROOT / ".cache" / "routing_bench"
 OUT = REPO_ROOT / "data" / "routing_bench_v1"
+#: Non-redistributable episodes never leave the gitignored cache.
+LOCAL_OUT = CACHE / "local"
+
+AGENTDOJO_COMMIT = "089ed468cf3ed0322acc66b0211f26d9d90dbf60"
+AGENTDOJO_SUITES = ("banking", "slack", "travel", "workspace")
 
 TAU2_COMMIT = "363133ada1936491fb5bcec33cd62c3518a99f65"
 TAU2_FILES = [
@@ -67,11 +74,65 @@ SOURCES: dict[str, dict[str, Any]] = {
         ),
         "redistributable": True,
     },
+    "agentdojo": {
+        "repo": "https://github.com/ethz-spylab/agentdojo",
+        "commit": AGENTDOJO_COMMIT,
+        "license": "MIT",
+        "attribution": (
+            "AgentDojo, (c) ETH Zurich SPY Lab. MIT for upstream benchmark "
+            "data only; REMORA itself is BUSL-1.1."
+        ),
+        "redistributable": True,
+    },
+    "toolsandbox": {
+        "repo": "https://github.com/apple/ToolSandbox",
+        "commit": "main",
+        "license": "Apple proprietary (not OSI)",
+        "attribution": (
+            "ToolSandbox, (c) Apple Inc. Not redistributable: derived episodes "
+            "are built locally and never committed."
+        ),
+        "redistributable": False,
+    },
 }
 
 
 def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def fetch_agentdojo() -> None:
+    base = (
+        "https://raw.githubusercontent.com/ethz-spylab/agentdojo/"
+        f"{AGENTDOJO_COMMIT}/src/agentdojo/default_suites/v1"
+    )
+    root = CACHE / "agentdojo"
+    for suite in AGENTDOJO_SUITES:
+        target = root / suite
+        target.mkdir(parents=True, exist_ok=True)
+        for name in ("user_tasks.py", "injection_tasks.py"):
+            req = urllib.request.Request(
+                f"{base}/{suite}/{name}", headers={"User-Agent": "remora-routing-bench"}
+            )
+            data = urllib.request.urlopen(req, timeout=120).read()
+            (target / name).write_bytes(data)
+            print(f"  fetched {suite}/{name}  {len(data)} bytes")
+
+
+def fetch_toolsandbox() -> None:
+    """Fetch ToolSandbox sources into the cache only. Never committed."""
+    base = "https://raw.githubusercontent.com/apple/ToolSandbox/main"
+    root = CACHE / "toolsandbox"
+    root.mkdir(parents=True, exist_ok=True)
+    for url, name in (
+        (f"{base}/tool_sandbox/scenarios/insufficient_information_scenarios.py",
+         "insufficient_information_scenarios.py"),
+        (f"{base}/LICENSE", "LICENSE"),
+    ):
+        req = urllib.request.Request(url, headers={"User-Agent": "remora-routing-bench"})
+        data = urllib.request.urlopen(req, timeout=120).read()
+        (root / name).write_bytes(data)
+        print(f"  fetched toolsandbox/{name}  {len(data)} bytes")
 
 
 def fetch_tau2() -> None:
@@ -108,12 +169,55 @@ def build() -> int:
     print(readable_table())
     print()
 
-    episodes = Tau2Adapter(root=tau2_root, commit=TAU2_COMMIT).build_episodes()
+    episodes: list[RoutingEpisode] = []
+    episodes.extend(Tau2Adapter(root=tau2_root, commit=TAU2_COMMIT).build_episodes())
+
+    agentdojo_root = CACHE / "agentdojo"
+    if agentdojo_root.exists():
+        episodes.extend(
+            AgentDojoAdapter(root=agentdojo_root, commit=AGENTDOJO_COMMIT).build_episodes()
+        )
+    else:
+        print("NOTE: agentdojo cache absent — untrusted-origin axis will be empty")
+
+    # ToolSandbox is not redistributable. Its episodes are built into the
+    # gitignored cache and are filtered out of data/ by the redistributable flag
+    # below, so the licence posture does not depend on remembering to exclude it.
+    ts_module = CACHE / "toolsandbox" / "insufficient_information_scenarios.py"
+    if ts_module.exists():
+        episodes.extend(
+            ToolSandboxAdapter(paths=[ts_module], commit="main").build_episodes()
+        )
+    else:
+        print("NOTE: toolsandbox cache absent — ABSTAIN axis will be empty")
+
     check_all(episodes)
-    print(f"tau2: {len(episodes)} episodes, {len({e.cluster_id for e in episodes})} clusters")
+
+    by_source: dict[str, int] = {}
+    for episode in episodes:
+        by_source[episode.source_dataset] = by_source.get(episode.source_dataset, 0) + 1
+    for name, count in sorted(by_source.items()):
+        print(f"{name}: {count} episodes")
 
     redistributable = [e for e in episodes if e.redistributable]
-    digest = write_jsonl(OUT / "tau2.jsonl", redistributable)
+    local_only = [e for e in episodes if not e.redistributable]
+
+    files: dict[str, dict[str, Any]] = {}
+    for dataset in sorted({e.source_dataset for e in redistributable}):
+        subset = [e for e in redistributable if e.source_dataset == dataset]
+        digest = write_jsonl(OUT / f"{dataset}.jsonl", subset)
+        files[f"{dataset}.jsonl"] = {"sha256": digest, "n_episodes": len(subset)}
+        print(f"wrote {OUT / f'{dataset}.jsonl'}  sha256={digest[:16]}")
+
+    if local_only:
+        LOCAL_OUT.mkdir(parents=True, exist_ok=True)
+        for dataset in sorted({e.source_dataset for e in local_only}):
+            subset = [e for e in local_only if e.source_dataset == dataset]
+            write_jsonl(LOCAL_OUT / f"{dataset}.jsonl", subset)
+            print(
+                f"wrote {LOCAL_OUT / f'{dataset}.jsonl'}  "
+                f"({len(subset)} episodes, local-only, not committed)"
+            )
 
     manifest = {
         "schema": "routing_bench_manifest_v1",
@@ -121,12 +225,12 @@ def build() -> int:
         "route_table_content_hash": table_content_hash(),
         "refusal_pattern_version": REFUSAL_PATTERN_VERSION,
         "sources": SOURCES,
-        "files": {"tau2.jsonl": {"sha256": digest, "n_episodes": len(redistributable)}},
+        "files": files,
+        "local_only_sources": sorted({e.source_dataset for e in local_only}),
     }
     (OUT / "manifest.json").write_bytes(
         (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode("utf-8")
     )
-    print(f"wrote {OUT / 'tau2.jsonl'}  sha256={digest[:16]}")
     print(f"wrote {OUT / 'manifest.json'}")
     return 0
 
@@ -178,6 +282,8 @@ def main() -> None:
     if args.fetch:
         print("fetching pinned upstream sources...")
         fetch_tau2()
+        fetch_agentdojo()
+        fetch_toolsandbox()
     raise SystemExit(build())
 
 

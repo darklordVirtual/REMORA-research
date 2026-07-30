@@ -271,11 +271,28 @@ attribution. The manifest records the license and attribution text per source.
 - **ToolBench** — automatically generated with no route-determining
   annotation. Every episode would be `route: null`. Volume without labels does
   not test routing.
-- **ToolSandbox** — the only source covering the VERIFY-versus-ABSTAIN
-  distinction directly, but licensed under Apple's own terms, not an OSI
-  license. Derived episodes cannot be committed to a BUSL repository without a
-  licensing review. Deferred, not dismissed; the adapter interface accommodates
-  it without migration.
+- **ToolSandbox** — **admitted 2026-07-31 as a local-only source**, superseding
+  the original deferral. It is licensed under Apple's own terms, not an OSI
+  license, so nothing derived from it is committed: every episode carries
+  `redistributable=False`, the build script writes them to the gitignored cache,
+  and `data/` receives only redistributable sources. Even its adapter test
+  fixture is original REMORA content mimicking the parsed shape rather than an
+  upstream excerpt.
+
+  It is the only source that annotates "no tool call is correct here" in volume,
+  so without it the ABSTAIN route has no support. Its 28 scenarios yield 16
+  ABSTAIN episodes.
+
+  A consequence to keep visible: a CI run has no ABSTAIN support while a local
+  run does. The results artifact records which applied in
+  `local_only_sources_included` rather than reporting the two as one population.
+
+  Note the predicate distinction this source forced. ToolSandbox insufficiency
+  and tau2's `unknown_info` sound alike but are different claims: tau2 means the
+  user could supply the fact if asked (machine-resolvable, VERIFY), ToolSandbox
+  means the fact is unobtainable with the available tools (ABSTAIN). The adapter
+  leaves `information_missing` silent for that reason; setting it true would make
+  row 3 fire before row 4 and relabel every unanswerable task as resolvable.
 - **BFCL** — relevance-detection categories would strengthen the
   `tool_required` predicate. Deferred to v2 purely for scope.
 - **MCP-Atlas** — the URL in the source proposal 404s under the given owner.

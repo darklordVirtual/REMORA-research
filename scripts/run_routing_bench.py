@@ -81,16 +81,54 @@ ARMS: list[Arm] = [
             counterfactual_passed=True,
         ),
     ),
+    (
+        "E_high_trust_critical_risk",
+        "As D but risk_tier=critical. Isolates a confound in D: the "
+        "tainted-argument escalation path is tier-dependent (v4, issue #40) and "
+        "declaring everything low-risk suppresses it. Counterfactual in the "
+        "same way as D.",
+        True,
+        lambda o: replace(
+            o,
+            schema_valid=True,
+            risk_tier="critical",
+            phase="ordered",
+            trust_score=0.9,
+            evidence_contradictions=0,
+            counterfactual_passed=True,
+        ),
+    ),
 ]
 
 
-def load_episodes() -> list[RoutingEpisode]:
+#: Non-redistributable episodes (ToolSandbox) live only here. Included when
+#: present so a local run covers the ABSTAIN axis; absent in CI, where the
+#: artifact records the reduced coverage rather than hiding it.
+LOCAL = REPO_ROOT / ".cache" / "routing_bench" / "local"
+
+
+def _read_jsonl(path: Path) -> list[RoutingEpisode]:
+    return [
+        RoutingEpisode.from_json_dict(json.loads(line))
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+
+
+def load_episodes() -> tuple[list[RoutingEpisode], list[str]]:
+    """Return all available episodes and the names of any local-only sources."""
     episodes: list[RoutingEpisode] = []
     for path in sorted(DATA.glob("*.jsonl")):
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if line.strip():
-                episodes.append(RoutingEpisode.from_json_dict(json.loads(line)))
-    return episodes
+        episodes.extend(_read_jsonl(path))
+
+    local_sources: list[str] = []
+    if LOCAL.exists():
+        for path in sorted(LOCAL.glob("*.jsonl")):
+            local = _read_jsonl(path)
+            if local:
+                episodes.extend(local)
+                local_sources.append(local[0].source_dataset)
+    return episodes, local_sources
 
 
 def main() -> None:
@@ -112,7 +150,7 @@ def main() -> None:
         print(f"status:skipped — {DATA} missing")
         return
 
-    episodes = load_episodes()
+    episodes, local_sources = load_episodes()
     manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf-8"))
     engine = RemoraDecisionEngine()
 
@@ -144,15 +182,23 @@ def main() -> None:
         "route_table_version": manifest["route_table_version"],
         "route_table_content_hash": manifest["route_table_content_hash"],
         "sources": manifest["sources"],
+        "local_only_sources_included": local_sources,
+        "per_source_episode_counts": {
+            name: sum(1 for e in episodes if e.source_dataset == name)
+            for name in sorted({e.source_dataset for e in episodes})
+        },
         "label_distribution": {
             r: sum(1 for e in episodes if (e.route.value if e.route else "null") == r)
             for r in ("accept", "verify", "abstain", "escalate", "null")
         },
         "arms": arms,
         "caveats": [
-            "Routes with zero labelled episodes are reported as unmeasured, never "
-            "as a zero rate. ABSTAIN has no support in this source and ESCALATE "
-            "has 2 episodes; neither supports a claim.",
+            "Routes with zero labelled episodes are reported as unmeasured, "
+            "never as a zero rate.",
+            "ToolSandbox is not redistributable (Apple's own license, not OSI). "
+            "Its episodes are built locally and never committed, so a CI run "
+            "has no ABSTAIN support while a local run does. The "
+            "local_only_sources_included field records which applied.",
             "Confidence intervals are cluster-adjusted over cluster_id: many "
             "episodes derive from one upstream task and are not independent draws.",
             "Arms C and D are counterfactual metadata injections, not deployment "
