@@ -91,3 +91,6 @@ docs/researchpapers/kompendium_ai_assurance_3utgave.md
 
 # Mypy temp output
 mypy_errors.txt
+
+# Routing benchmark upstream source cache (never committed)
+.cache/

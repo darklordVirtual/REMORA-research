@@ -1,0 +1,21 @@
+{
+  "files": {
+    "tau2.jsonl": {
+      "n_episodes": 903,
+      "sha256": "6fc04801d7f32ff2c3c87b318d43a7b4b54a9e715524d3c6a1077b1da72d9402"
+    }
+  },
+  "refusal_pattern_version": "1",
+  "route_table_content_hash": "2b420160d0dfe0ce7e28a1eff2b3a9b85be77be1f089360d154b7c9de53b55c7",
+  "route_table_version": "1",
+  "schema": "routing_bench_manifest_v1",
+  "sources": {
+    "tau2": {
+      "attribution": "tau2-bench, (c) Sierra Research. MIT for upstream benchmark data only; REMORA itself is BUSL-1.1.",
+      "commit": "363133ada1936491fb5bcec33cd62c3518a99f65",
+      "license": "MIT",
+      "redistributable": true,
+      "repo": "https://github.com/sierra-research/tau2-bench"
+    }
+  }
+}

@@ -1,0 +1,374 @@
+{
+  "arms": {
+    "A_observable_only": {
+      "confusion": {
+        "abstain": {
+          "abstain": 0,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 0
+        },
+        "accept": {
+          "abstain": 161,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 81
+        },
+        "escalate": {
+          "abstain": 2,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 0
+        },
+        "verify": {
+          "abstain": 409,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 165
+        }
+      },
+      "counterfactual": false,
+      "description": "Task text, tool name and arguments only \u2014 what an integrator has before running any oracle.",
+      "effective_n": 180,
+      "n_episodes": 903,
+      "n_labelled": 818,
+      "n_unlabelled": 85,
+      "per_route": {
+        "abstain": {
+          "status": "unmeasured",
+          "support": 0
+        },
+        "accept": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.0156
+          ],
+          "status": "measured",
+          "support": 242
+        },
+        "escalate": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.6576
+          ],
+          "status": "measured",
+          "support": 2
+        },
+        "verify": {
+          "recall": 0.2874564459930314,
+          "recall_wilson_95": [
+            0.2519,
+            0.3258
+          ],
+          "status": "measured",
+          "support": 574
+        }
+      },
+      "predicted_distribution_unlabelled": {
+        "abstain": 43,
+        "verify": 42
+      },
+      "routing_accuracy": 0.2017114914425428,
+      "routing_accuracy_cluster_wilson_95": [
+        0.1481,
+        0.2644
+      ],
+      "routing_accuracy_wilson_95": [
+        0.1756,
+        0.2306
+      ],
+      "safety_axis": {
+        "accepted_wrong_calls": 0,
+        "n_known_wrong_calls": 175,
+        "wrong_call_accept_rate": 0.0
+      },
+      "unlabelled_rate": 0.09413067552602436
+    },
+    "B_plus_schema_valid": {
+      "confusion": {
+        "abstain": {
+          "abstain": 0,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 0
+        },
+        "accept": {
+          "abstain": 161,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 81
+        },
+        "escalate": {
+          "abstain": 2,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 0
+        },
+        "verify": {
+          "abstain": 409,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 165
+        }
+      },
+      "counterfactual": false,
+      "description": "Adds schema_valid=True. Genuinely checkable without an oracle: the dataset's calls are well-formed.",
+      "effective_n": 180,
+      "n_episodes": 903,
+      "n_labelled": 818,
+      "n_unlabelled": 85,
+      "per_route": {
+        "abstain": {
+          "status": "unmeasured",
+          "support": 0
+        },
+        "accept": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.0156
+          ],
+          "status": "measured",
+          "support": 242
+        },
+        "escalate": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.6576
+          ],
+          "status": "measured",
+          "support": 2
+        },
+        "verify": {
+          "recall": 0.2874564459930314,
+          "recall_wilson_95": [
+            0.2519,
+            0.3258
+          ],
+          "status": "measured",
+          "support": 574
+        }
+      },
+      "predicted_distribution_unlabelled": {
+        "abstain": 43,
+        "verify": 42
+      },
+      "routing_accuracy": 0.2017114914425428,
+      "routing_accuracy_cluster_wilson_95": [
+        0.1481,
+        0.2644
+      ],
+      "routing_accuracy_wilson_95": [
+        0.1756,
+        0.2306
+      ],
+      "safety_axis": {
+        "accepted_wrong_calls": 0,
+        "n_known_wrong_calls": 175,
+        "wrong_call_accept_rate": 0.0
+      },
+      "unlabelled_rate": 0.09413067552602436
+    },
+    "C_plus_low_risk_tier": {
+      "confusion": {
+        "abstain": {
+          "abstain": 0,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 0
+        },
+        "accept": {
+          "abstain": 242,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 0
+        },
+        "escalate": {
+          "abstain": 2,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 0
+        },
+        "verify": {
+          "abstain": 574,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 0
+        }
+      },
+      "counterfactual": true,
+      "description": "Adds risk_tier=low. Counterfactual: a deployment would classify risk per call, not declare everything low.",
+      "effective_n": 180,
+      "n_episodes": 903,
+      "n_labelled": 818,
+      "n_unlabelled": 85,
+      "per_route": {
+        "abstain": {
+          "status": "unmeasured",
+          "support": 0
+        },
+        "accept": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.0156
+          ],
+          "status": "measured",
+          "support": 242
+        },
+        "escalate": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.6576
+          ],
+          "status": "measured",
+          "support": 2
+        },
+        "verify": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.0066
+          ],
+          "status": "measured",
+          "support": 574
+        }
+      },
+      "predicted_distribution_unlabelled": {
+        "abstain": 85
+      },
+      "routing_accuracy": 0.0,
+      "routing_accuracy_cluster_wilson_95": [
+        0.0,
+        0.0209
+      ],
+      "routing_accuracy_wilson_95": [
+        0.0,
+        0.0047
+      ],
+      "safety_axis": {
+        "accepted_wrong_calls": 0,
+        "n_known_wrong_calls": 175,
+        "wrong_call_accept_rate": 0.0
+      },
+      "unlabelled_rate": 0.09413067552602436
+    },
+    "D_plus_uniform_high_trust": {
+      "confusion": {
+        "abstain": {
+          "abstain": 0,
+          "accept": 0,
+          "escalate": 0,
+          "verify": 0
+        },
+        "accept": {
+          "abstain": 0,
+          "accept": 242,
+          "escalate": 0,
+          "verify": 0
+        },
+        "escalate": {
+          "abstain": 0,
+          "accept": 2,
+          "escalate": 0,
+          "verify": 0
+        },
+        "verify": {
+          "abstain": 0,
+          "accept": 574,
+          "escalate": 0,
+          "verify": 0
+        }
+      },
+      "counterfactual": true,
+      "description": "Adds phase=ordered, trust_score=0.9, no contradictions, counterfactual passed. Counterfactual: simulates an oracle ensemble agreeing uniformly on every episode.",
+      "effective_n": 180,
+      "n_episodes": 903,
+      "n_labelled": 818,
+      "n_unlabelled": 85,
+      "per_route": {
+        "abstain": {
+          "status": "unmeasured",
+          "support": 0
+        },
+        "accept": {
+          "recall": 1.0,
+          "recall_wilson_95": [
+            0.9844,
+            1.0
+          ],
+          "status": "measured",
+          "support": 242
+        },
+        "escalate": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.6576
+          ],
+          "status": "measured",
+          "support": 2
+        },
+        "verify": {
+          "recall": 0.0,
+          "recall_wilson_95": [
+            0.0,
+            0.0066
+          ],
+          "status": "measured",
+          "support": 574
+        }
+      },
+      "predicted_distribution_unlabelled": {
+        "accept": 85
+      },
+      "routing_accuracy": 0.29584352078239606,
+      "routing_accuracy_cluster_wilson_95": [
+        0.2327,
+        0.3648
+      ],
+      "routing_accuracy_wilson_95": [
+        0.2656,
+        0.328
+      ],
+      "safety_axis": {
+        "accepted_wrong_calls": 175,
+        "n_known_wrong_calls": 175,
+        "wrong_call_accept_rate": 1.0
+      },
+      "unlabelled_rate": 0.09413067552602436
+    }
+  },
+  "caveats": [
+    "Routes with zero labelled episodes are reported as unmeasured, never as a zero rate. ABSTAIN has no support in this source and ESCALATE has 2 episodes; neither supports a claim.",
+    "Confidence intervals are cluster-adjusted over cluster_id: many episodes derive from one upstream task and are not independent draws.",
+    "Arms C and D are counterfactual metadata injections, not deployment measurements.",
+    "The benchmark scores the routing decision over a single proposed call. tau2 tasks are multi-turn conversations; no agent is run."
+  ],
+  "label_distribution": {
+    "abstain": 0,
+    "accept": 242,
+    "escalate": 2,
+    "null": 85,
+    "verify": 574
+  },
+  "n_clusters": 184,
+  "n_episodes": 903,
+  "route_table_content_hash": "2b420160d0dfe0ce7e28a1eff2b3a9b85be77be1f089360d154b7c9de53b55c7",
+  "route_table_version": "1",
+  "schema": "routing_bench_v1_results",
+  "sources": {
+    "tau2": {
+      "attribution": "tau2-bench, (c) Sierra Research. MIT for upstream benchmark data only; REMORA itself is BUSL-1.1.",
+      "commit": "363133ada1936491fb5bcec33cd62c3518a99f65",
+      "license": "MIT",
+      "redistributable": true,
+      "repo": "https://github.com/sierra-research/tau2-bench"
+    }
+  },
+  "status": "measured"
+}

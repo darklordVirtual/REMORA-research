@@ -1,0 +1,318 @@
+[
+ {
+  "description": {
+   "notes": null,
+   "purpose": null,
+   "relevant_policies": null
+  },
+  "evaluation_criteria": {
+   "actions": [
+    {
+     "action_id": "10_0",
+     "arguments": {
+      "email": "mia.garcia2723@example.com"
+     },
+     "info": null,
+     "name": "find_user_id_by_email"
+    },
+    {
+     "action_id": "10_1",
+     "arguments": {
+      "user_id": "mia_garcia_4516"
+     },
+     "info": null,
+     "name": "get_user_details"
+    },
+    {
+     "action_id": "10_2",
+     "arguments": {
+      "order_id": "#W5490111"
+     },
+     "info": null,
+     "name": "get_order_details"
+    },
+    {
+     "action_id": "10_3",
+     "arguments": {
+      "order_id": "#W7387996"
+     },
+     "info": null,
+     "name": "get_order_details"
+    },
+    {
+     "action_id": "10_4",
+     "arguments": {
+      "summary": "The user wants to refund each order to the opposite order's payment method, but the agent cannot help."
+     },
+     "compare_args": [],
+     "info": null,
+     "name": "transfer_to_human_agents"
+    }
+   ],
+   "communicate_info": [],
+   "nl_assertions": null,
+   "reward_basis": [
+    "DB",
+    "NL_ASSERTION"
+   ]
+  },
+  "id": "10",
+  "initial_state": null,
+  "user_scenario": {
+   "instructions": {
+    "domain": "retail",
+    "known_info": "You are mia_garcia_4516 (mia.garcia2723@example.com).",
+    "reason_for_call": "For some reason, you want to return all things ordered. You have two payment methods and two orders, and you want to refund each order to the other order's payment method. If not possible, you are angry and swear for a few times, then ask for human representative. Make sure to return BOTH orders.",
+    "task_instructions": "You are a mysterious person and do not want to reveal much about yourself or speak too many words at the same time.",
+    "unknown_info": null
+   },
+   "persona": null
+  }
+ },
+ {
+  "description": {
+   "notes": null,
+   "purpose": null,
+   "relevant_policies": null
+  },
+  "evaluation_criteria": {
+   "actions": [
+    {
+     "action_id": "11_0",
+     "arguments": {
+      "email": "mia.garcia2723@example.com"
+     },
+     "info": null,
+     "name": "find_user_id_by_email"
+    },
+    {
+     "action_id": "11_1",
+     "arguments": {
+      "user_id": "mia_garcia_4516"
+     },
+     "info": null,
+     "name": "get_user_details"
+    },
+    {
+     "action_id": "11_2",
+     "arguments": {
+      "order_id": "#W5490111"
+     },
+     "info": null,
+     "name": "get_order_details"
+    },
+    {
+     "action_id": "11_3",
+     "arguments": {
+      "order_id": "#W7387996"
+     },
+     "info": null,
+     "name": "get_order_details"
+    },
+    {
+     "action_id": "11_4",
+     "arguments": {
+      "item_ids": [
+       "4579334072",
+       "1421289881",
+       "6117189161",
+       "4947717507"
+      ],
+      "order_id": "#W5490111",
+      "payment_method_id": "credit_card_3124723"
+     },
+     "info": null,
+     "name": "return_delivered_order_items"
+    },
+    {
+     "action_id": "11_5",
+     "arguments": {
+      "item_ids": [
+       "5796612084"
+      ],
+      "order_id": "#W7387996",
+      "payment_method_id": "paypal_9497703"
+     },
+     "info": null,
+     "name": "return_delivered_order_items"
+    }
+   ],
+   "communicate_info": [],
+   "nl_assertions": null,
+   "reward_basis": [
+    "DB",
+    "NL_ASSERTION"
+   ]
+  },
+  "id": "11",
+  "initial_state": null,
+  "user_scenario": {
+   "instructions": {
+    "domain": "retail",
+    "known_info": "You are mia_garcia_4516 (mia.garcia2723@example.com).",
+    "reason_for_call": "For some reason, you want to return all things ordered. You have two payment methods and two orders, and you want to refund each order to the other order's payment method. If not possible, you are angry and swear for a few times, then agree to return all things with the original payment method.",
+    "task_instructions": "You are a mysterious person and do not want to reveal much about yourself or speak too many words at the same time.",
+    "unknown_info": null
+   },
+   "persona": null
+  }
+ },
+ {
+  "description": {
+   "notes": null,
+   "purpose": null,
+   "relevant_policies": null
+  },
+  "evaluation_criteria": {
+   "actions": [
+    {
+     "action_id": "0_0",
+     "arguments": {
+      "first_name": "Yusuf",
+      "last_name": "Rossi",
+      "zip": "19122"
+     },
+     "info": null,
+     "name": "find_user_id_by_name_zip"
+    },
+    {
+     "action_id": "0_1",
+     "arguments": {
+      "order_id": "#W2378156"
+     },
+     "info": null,
+     "name": "get_order_details"
+    },
+    {
+     "action_id": "0_2",
+     "arguments": {
+      "product_id": "1656367028"
+     },
+     "info": null,
+     "name": "get_product_details"
+    },
+    {
+     "action_id": "0_3",
+     "arguments": {
+      "product_id": "4896585277"
+     },
+     "info": null,
+     "name": "get_product_details"
+    },
+    {
+     "action_id": "0_4",
+     "arguments": {
+      "item_ids": [
+       "1151293680",
+       "4983901480"
+      ],
+      "new_item_ids": [
+       "7706410293",
+       "7747408585"
+      ],
+      "order_id": "#W2378156",
+      "payment_method_id": "credit_card_9513926"
+     },
+     "info": null,
+     "name": "exchange_delivered_order_items"
+    }
+   ],
+   "communicate_info": [],
+   "nl_assertions": null,
+   "reward_basis": [
+    "DB",
+    "NL_ASSERTION"
+   ]
+  },
+  "id": "0",
+  "initial_state": null,
+  "user_scenario": {
+   "instructions": {
+    "domain": "retail",
+    "known_info": "You are Yusuf Rossi in zip code 19122.",
+    "reason_for_call": "You received your order #W2378156 and wish to exchange the mechanical keyboard for the same one but with clicky switches and the smart thermostat for one compatible with Google Home instead of Apple HomeKit. If there is no keyboard that is clicky, RGB backlight, full size, you'd go for no backlight.",
+    "task_instructions": "You are detail-oriented and want to make sure everything is addressed in one go.",
+    "unknown_info": "You do not remember your email address."
+   },
+   "persona": null
+  }
+ },
+ {
+  "description": {
+   "notes": null,
+   "purpose": null,
+   "relevant_policies": null
+  },
+  "evaluation_criteria": {
+   "actions": [
+    {
+     "action_id": "1_0",
+     "arguments": {
+      "first_name": "Yusuf",
+      "last_name": "Rossi",
+      "zip": "19122"
+     },
+     "info": null,
+     "name": "find_user_id_by_name_zip"
+    },
+    {
+     "action_id": "1_1",
+     "arguments": {
+      "order_id": "#W2378156"
+     },
+     "info": null,
+     "name": "get_order_details"
+    },
+    {
+     "action_id": "1_2",
+     "arguments": {
+      "product_id": "1656367028"
+     },
+     "info": null,
+     "name": "get_product_details"
+    },
+    {
+     "action_id": "1_3",
+     "arguments": {
+      "product_id": "4896585277"
+     },
+     "info": null,
+     "name": "get_product_details"
+    },
+    {
+     "action_id": "1_4",
+     "arguments": {
+      "item_ids": [
+       "4983901480"
+      ],
+      "new_item_ids": [
+       "7747408585"
+      ],
+      "order_id": "#W2378156",
+      "payment_method_id": "credit_card_9513926"
+     },
+     "info": null,
+     "name": "exchange_delivered_order_items"
+    }
+   ],
+   "communicate_info": [],
+   "nl_assertions": null,
+   "reward_basis": [
+    "DB",
+    "NL_ASSERTION"
+   ]
+  },
+  "id": "1",
+  "initial_state": null,
+  "user_scenario": {
+   "instructions": {
+    "domain": "retail",
+    "known_info": "You are Yusuf Rossi in zip code 19122.",
+    "reason_for_call": "You received your order #W2378156 and wish to exchange the mechanical keyboard for the same one but with clicky switches and the smart thermostat for one compatible with Google Home instead of Apple HomeKit. If there is no keyboard that is clicky, RGB backlight, full size, you'd rather only exchange the thermostat.",
+    "task_instructions": "You are detail-oriented and want to make sure everything is addressed in one go.",
+    "unknown_info": "You do not remember your email address"
+   },
+   "persona": null
+  }
+ }
+]
