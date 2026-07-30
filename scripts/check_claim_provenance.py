@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Claim provenance gate: the claim register is the single source of truth.
 
-This validator enforces four guardrails, all rooted in
+This validator enforces five guardrails, all rooted in
 docs/assurance/claim_register_v1.yaml:
 
 1. Register integrity — every claim has required fields and a valid
@@ -19,6 +19,14 @@ docs/assurance/claim_register_v1.yaml:
    register's value for each listed metric appears in the paragraph that
    follows the anchor; and any doc line that cites a CLAIM id together with
    an evidence-level term must agree with the register.
+5. Promotion provenance (issue #88) — a promoted claim artifact whose
+   sidecar declares result_provenance_v3 (field ``post_run_worktree_clean``
+   present) must record pre_run_worktree_clean == true AND
+   post_run_worktree_clean == true, or carry an explicit hashed diff
+   (``worktree_diff_sha256`` in the sidecar plus a matching
+   ``<artifact>.worktree.diff`` on disk, LF-normalized SHA-256). Legacy
+   result_provenance_v2 sidecars are exempt by construction: the
+   requirement binds newly promoted artifacts only.
 
 Known violations are grandfathered in
 docs/assurance/claim_provenance_baseline.json: baselined error ids are
@@ -303,6 +311,103 @@ def check_manifest(
     return errors
 
 
+_HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _sidecar_path(artifact: Path) -> Path:
+    return artifact.with_name(artifact.name.rsplit(".", 1)[0] + ".provenance.json")
+
+
+def check_promotion_provenance(
+    claims: list[dict], notes: list[str], root: Path = ROOT
+) -> list[tuple[str, str]]:
+    """Guardrail 5 (issue #88): v3 sidecars on promoted artifacts must be clean.
+
+    A claim artifact whose sibling ``.provenance.json`` contains the
+    ``post_run_worktree_clean`` field (i.e. schema result_provenance_v3)
+    must have ``pre_run_worktree_clean`` AND ``post_run_worktree_clean``
+    true, or document the dirty state via an explicit hashed diff
+    (``worktree_diff_sha256`` + matching ``<artifact>.worktree.diff``,
+    LF-normalized SHA-256). Legacy v2 sidecars (no such field) are exempt —
+    the gate binds newly promoted artifacts only. Missing artifacts are
+    check_artifacts' job; sidecar coverage itself is not gated here.
+    """
+    errors: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for claim in claims:
+        artifacts = claim.get("artifact") or []
+        if isinstance(artifacts, str):
+            artifacts = [artifacts]
+        for rel in artifacts:
+            if rel in seen:
+                continue
+            seen.add(rel)
+            artifact = root / rel
+            sidecar = _sidecar_path(artifact)
+            if not artifact.exists() or not sidecar.exists():
+                continue
+            try:
+                prov = json.loads(sidecar.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+                errors.append(
+                    (
+                        f"promotion-sidecar-unreadable:{rel}",
+                        f"{rel}: provenance sidecar exists but cannot be "
+                        f"parsed as JSON: {sidecar.name}",
+                    )
+                )
+                continue
+            if not isinstance(prov, dict) or "post_run_worktree_clean" not in prov:
+                continue  # legacy result_provenance_v2: exempt by construction
+            pre = prov.get("pre_run_worktree_clean")
+            post = prov.get("post_run_worktree_clean")
+            if pre is True and post is True:
+                continue
+            diff_sha = prov.get("worktree_diff_sha256")
+            diff_file = artifact.with_name(
+                artifact.name.rsplit(".", 1)[0] + ".worktree.diff"
+            )
+            if (
+                isinstance(diff_sha, str)
+                and _HEX64_RE.match(diff_sha)
+                and diff_file.exists()
+            ):
+                actual = _sha256(
+                    diff_file.read_bytes().replace(b"\r\n", b"\n")
+                )
+                if actual == diff_sha:
+                    notes.append(
+                        f"{rel}: dirty worktree documented by hashed diff "
+                        f"{diff_file.name} (worktree_diff_sha256 verified)"
+                    )
+                    continue
+                errors.append(
+                    (
+                        f"promotion-diff-hash-mismatch:{rel}",
+                        f"{rel}: worktree_diff_sha256 does not match "
+                        f"{diff_file.name} (LF-normalized SHA-256) — the "
+                        f"documented diff is not the diff on disk",
+                    )
+                )
+                continue
+            beyond = prov.get("worktree_dirty_beyond_outputs") or []
+            preview = ", ".join(str(p) for p in beyond[:5])
+            errors.append(
+                (
+                    f"promotion-dirty-worktree:{rel}",
+                    f"{rel}: result_provenance_v3 sidecar records "
+                    f"pre_run_worktree_clean={pre} "
+                    f"post_run_worktree_clean={post}"
+                    + (f"; dirty beyond declared outputs: {preview}" if preview else "")
+                    + " — re-run from a clean tagged checkout per "
+                    "docs/assurance/rebenchmark_protocol_v1.md, or commit "
+                    "<artifact>.worktree.diff plus worktree_diff_sha256 in "
+                    "the sidecar to document the dirty state explicitly",
+                )
+            )
+    return errors
+
+
 def _display_path(path: Path) -> str:
     try:
         return path.relative_to(ROOT).as_posix()
@@ -446,6 +551,7 @@ def run() -> int:
 
     errors.extend(check_register(claims))
     errors.extend(check_artifacts(claims))
+    errors.extend(check_promotion_provenance(claims, notes))
 
     if MANIFEST_PATH.exists():
         errors.extend(check_manifest(MANIFEST_PATH.read_text(encoding="utf-8"), notes))

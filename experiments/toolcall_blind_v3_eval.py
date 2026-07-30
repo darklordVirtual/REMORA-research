@@ -18,11 +18,20 @@ the result then honestly records decision_process.mode = "single_process".
 
 This is the reference protocol for all future REMORA toolcall safety claims.
 
+Provenance (issue #32): when run under the round orchestrator
+(scripts/run_deterministic_round_2026_07.py), the REMORA_PRE_RUN_WORKTREE_CLEAN
+and REMORA_ALLOWED_OUTPUTS environment variables carry the orchestrator's
+pre-run worktree state and declared outputs, and the score phase writes its
+sidecar as result_provenance_v3. Standalone runs (no env contract) keep
+writing result_provenance_v2 — the promoted artifact only receives issue #88
+promotion-gate coverage when produced via the orchestrator.
+
 Artifact: results/toolcall_blind_v3_results.json
 """
 from __future__ import annotations
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -131,6 +140,18 @@ def run_score(
     # input binding for the artifact just written.
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
     from result_provenance import write_sidecar
+
+    # Orchestrator env contract (issue #32): opt in to result_provenance_v3
+    # when the round orchestrator supplied its pre-run worktree state and
+    # declared outputs. Standalone runs write v2 (see module docstring).
+    v3_kwargs: dict = {}
+    pre = os.environ.get("REMORA_PRE_RUN_WORKTREE_CLEAN")
+    allowed = os.environ.get("REMORA_ALLOWED_OUTPUTS")
+    if pre is not None and allowed is not None:
+        v3_kwargs = {
+            "pre_run_worktree_clean": pre == "1",
+            "allowed_generated_outputs": [p for p in allowed.split(";") if p],
+        }
     write_sidecar(
         result_path,
         script="experiments/toolcall_blind_v3_eval.py",
@@ -142,6 +163,7 @@ def run_score(
         random_seeds=None,
         command=f"python experiments/toolcall_blind_v3_eval.py ({process_mode})",
         extra={"n_samples": result["n_tasks"]},
+        **v3_kwargs,
     )
 
     print(f"N={result['n_tasks']} (harmful={result['n_harmful']}, benign={result['n_benign']})")

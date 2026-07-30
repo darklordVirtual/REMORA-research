@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import json
 from pathlib import Path
 
 
@@ -128,6 +129,143 @@ def test_check_artifacts_missing_and_present(tmp_path: Path) -> None:
             "artifact-missing:CLAIM-301:results/gone.json",
             "CLAIM-301: cited artifact does not exist on disk: results/gone.json",
         )
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Promotion provenance (issue #88): v3 sidecars must be clean or carry a
+# hashed diff; legacy v2 sidecars are exempt.
+# ---------------------------------------------------------------------------
+
+def _write_artifact_with_sidecar(
+    tmp_path: Path, rel: str, sidecar: dict | str | None
+) -> Path:
+    artifact = tmp_path / rel
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_text("{}", encoding="utf-8")
+    if sidecar is not None:
+        sidecar_path = artifact.with_name(
+            artifact.name.rsplit(".", 1)[0] + ".provenance.json"
+        )
+        text = sidecar if isinstance(sidecar, str) else json.dumps(sidecar)
+        sidecar_path.write_text(text, encoding="utf-8")
+    return artifact
+
+
+V3_CLEAN_SIDECAR = {
+    "schema": "result_provenance_v3",
+    "pre_run_worktree_clean": True,
+    "allowed_generated_outputs": ["results/r.json"],
+    "post_run_worktree_clean": True,
+    "worktree_dirty_beyond_outputs": [],
+}
+
+
+def test_promotion_gate_skips_v2_sidecar(tmp_path: Path) -> None:
+    _write_artifact_with_sidecar(
+        tmp_path,
+        "results/r.json",
+        {"schema": "result_provenance_v2", "worktree_clean": False},
+    )
+    claims = [{"id": "CLAIM-401", "artifact": ["results/r.json"]}]
+    notes: list[str] = []
+    assert ccp.check_promotion_provenance(claims, notes, root=tmp_path) == []
+
+
+def test_promotion_gate_skips_missing_sidecar(tmp_path: Path) -> None:
+    _write_artifact_with_sidecar(tmp_path, "results/r.json", None)
+    claims = [{"id": "CLAIM-401", "artifact": ["results/r.json"]}]
+    notes: list[str] = []
+    assert ccp.check_promotion_provenance(claims, notes, root=tmp_path) == []
+
+
+def test_promotion_gate_passes_clean_v3(tmp_path: Path) -> None:
+    _write_artifact_with_sidecar(tmp_path, "results/r.json", V3_CLEAN_SIDECAR)
+    claims = [{"id": "CLAIM-401", "artifact": ["results/r.json"]}]
+    notes: list[str] = []
+    assert ccp.check_promotion_provenance(claims, notes, root=tmp_path) == []
+    assert notes == []
+
+
+def test_promotion_gate_fails_dirty_v3(tmp_path: Path) -> None:
+    sidecar = dict(V3_CLEAN_SIDECAR)
+    sidecar["post_run_worktree_clean"] = False
+    sidecar["worktree_dirty_beyond_outputs"] = ["scripts/hack.py"]
+    _write_artifact_with_sidecar(tmp_path, "results/r.json", sidecar)
+    claims = [{"id": "CLAIM-401", "artifact": ["results/r.json"]}]
+    notes: list[str] = []
+    errors = ccp.check_promotion_provenance(claims, notes, root=tmp_path)
+    assert [eid for eid, _ in errors] == ["promotion-dirty-worktree:results/r.json"]
+    assert "scripts/hack.py" in errors[0][1]
+    assert "rebenchmark_protocol_v1.md" in errors[0][1]
+
+
+def test_promotion_gate_requires_both_flags(tmp_path: Path) -> None:
+    # pre=false/post=true also fails: a run started on a dirty tree cannot
+    # pass without the manual hashed-diff route.
+    sidecar = dict(V3_CLEAN_SIDECAR)
+    sidecar["pre_run_worktree_clean"] = False
+    _write_artifact_with_sidecar(tmp_path, "results/r.json", sidecar)
+    claims = [{"id": "CLAIM-401", "artifact": ["results/r.json"]}]
+    notes: list[str] = []
+    errors = ccp.check_promotion_provenance(claims, notes, root=tmp_path)
+    assert [eid for eid, _ in errors] == ["promotion-dirty-worktree:results/r.json"]
+
+
+def test_promotion_gate_dedupes_across_claims(tmp_path: Path) -> None:
+    sidecar = dict(V3_CLEAN_SIDECAR)
+    sidecar["post_run_worktree_clean"] = False
+    _write_artifact_with_sidecar(tmp_path, "results/r.json", sidecar)
+    claims = [
+        {"id": "CLAIM-401", "artifact": ["results/r.json"]},
+        {"id": "CLAIM-402", "artifact": ["results/r.json"]},
+    ]
+    notes: list[str] = []
+    errors = ccp.check_promotion_provenance(claims, notes, root=tmp_path)
+    assert [eid for eid, _ in errors] == ["promotion-dirty-worktree:results/r.json"]
+
+
+def test_promotion_gate_accepts_hashed_diff(tmp_path: Path) -> None:
+    diff_lf = b"--- a/scripts/hack.py\n+++ b/scripts/hack.py\n+x = 1\n"
+    sidecar = dict(V3_CLEAN_SIDECAR)
+    sidecar["post_run_worktree_clean"] = False
+    sidecar["worktree_diff_sha256"] = hashlib.sha256(diff_lf).hexdigest()
+    artifact = _write_artifact_with_sidecar(tmp_path, "results/r.json", sidecar)
+    diff_file = artifact.with_name("r.worktree.diff")
+    diff_file.write_bytes(diff_lf)
+    claims = [{"id": "CLAIM-401", "artifact": ["results/r.json"]}]
+    notes: list[str] = []
+    assert ccp.check_promotion_provenance(claims, notes, root=tmp_path) == []
+    assert notes and "hashed diff" in notes[0]
+
+    # CRLF-on-disk variant of the same diff also passes (LF normalization).
+    diff_file.write_bytes(diff_lf.replace(b"\n", b"\r\n"))
+    notes = []
+    assert ccp.check_promotion_provenance(claims, notes, root=tmp_path) == []
+    assert notes
+
+
+def test_promotion_gate_fails_diff_hash_mismatch(tmp_path: Path) -> None:
+    sidecar = dict(V3_CLEAN_SIDECAR)
+    sidecar["post_run_worktree_clean"] = False
+    sidecar["worktree_diff_sha256"] = "0" * 64
+    artifact = _write_artifact_with_sidecar(tmp_path, "results/r.json", sidecar)
+    artifact.with_name("r.worktree.diff").write_bytes(b"+x = 1\n")
+    claims = [{"id": "CLAIM-401", "artifact": ["results/r.json"]}]
+    notes: list[str] = []
+    errors = ccp.check_promotion_provenance(claims, notes, root=tmp_path)
+    assert [eid for eid, _ in errors] == [
+        "promotion-diff-hash-mismatch:results/r.json"
+    ]
+
+
+def test_promotion_gate_flags_unreadable_sidecar(tmp_path: Path) -> None:
+    _write_artifact_with_sidecar(tmp_path, "results/r.json", "{not json")
+    claims = [{"id": "CLAIM-401", "artifact": ["results/r.json"]}]
+    notes: list[str] = []
+    errors = ccp.check_promotion_provenance(claims, notes, root=tmp_path)
+    assert [eid for eid, _ in errors] == [
+        "promotion-sidecar-unreadable:results/r.json"
     ]
 
 
