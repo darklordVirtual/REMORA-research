@@ -210,8 +210,11 @@ def resolve_verify(
 ) -> ControlProtocolResult:
     """Resolve one decision through the configured control protocol.
 
-    Enforces invariants (a)–(e) from the module docstring, in order. The only
-    mutation is ``config.audit_spent += 1`` on a MONITORED_ACCEPT grant.
+    Enforces invariants (a)–(e) from the module docstring: (a)–(c) first,
+    then the adaptive-attack guard (e) before the budget check (d), so a
+    suppression pattern is recorded as such even when the budget is also
+    exhausted. The only mutation is ``config.audit_spent += 1`` on a
+    MONITORED_ACCEPT grant.
 
     Parameters
     ----------

@@ -999,6 +999,42 @@ pointer here). Artifacts: `results/sap_v3_round_results.json`,
 
 ---
 
+## §19 AgentHarm rescoring: control protocols cannot reduce FBR on an all-ESCALATE source (2026-07-31)
+
+**Finding.** The pre-registered re-scoring of the 416 AgentHarm scenarios
+(`artifacts/verify_protocols/agentharm_rescore_v1.json`) met the FAR target
+(0.0% on 208 harmful, Wilson upper 1.8%) and did **not** meet the FBR target
+(100.0% on 208 benign vs a target of <=40%). The cause is structural, not a
+tuning failure: every verdict in the source artifact is ESCALATE, and the
+control protocols in `remora/governance/control_protocols.py` act only on
+VERIFY. There is nothing for them to resolve.
+
+**What this result does and does not establish.** It bounds what the protocols
+can achieve on this dataset. It does **not** identify which benign escalations
+were avoidable, and it must not be read as evidence that the escalations were
+wrong. The source is an imported historical artifact (CLAIM-002) that cannot be
+regenerated in this repository, so the replayed observations carry no per-case
+safety signals to analyse.
+
+**What would be needed.** Establishing an addressable share of benign friction
+requires two things this run does not have: a dataset whose benign cases carry
+real per-case signals (authorization state, environment, tool binding, scope),
+and a selective eligibility analysis that separates confirmed-negative safety
+facts from merely-unknown ones.
+
+**What is explicitly ruled out.** A blanket
+`ESCALATE + unresolved_risk -> VERIFY` reclassification in the decision engine
+was implemented and measured on the 93-episode replay arena on 2026-07-30. It
+moved 19 decisions, all 19 ground-truth harmful with `expected_verdict =
+escalate`, and 0 benign decisions — no friction reduction, 51% of harmful
+escalations downgraded. It is not a candidate. See
+`tests/test_escalate_semantics_guard.py`, which locks the contract it violated.
+
+**Artifact.** `artifacts/verify_protocols/agentharm_rescore_v1.json`
+**Reproduce.** `python experiments/agentharm/rescore_with_protocols.py`
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1016,6 +1052,7 @@ pointer here). Artifacts: `results/sap_v3_round_results.json`,
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)**, `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
 | MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
+| AgentHarm rescoring: FBR target not met (§19) | **Active (accepted negative result)**: FAR=0.0% (target met, Wilson upper 1.8%), FBR=100.0% (target <=40%, NOT met); cause is structural — every source verdict is ESCALATE and the control protocols act only on VERIFY. Bounds the protocols on this dataset; does not identify avoidable escalations. A blanket ESCALATE→VERIFY reclassification is ruled out by measurement (19 harmful / 0 benign moved) | Medium |
 | Benchmark v2 oracle-flag/severity/tags leakage + effective N ~70 not 700 (§17) | **Fixed (2026-07-20)**: gate and baselines restricted to observable surface + platform facts; cluster-level inference (n=70); "0% vs 10–20%" claim withdrawn — baselines now 1.4%, unsafe-rate delta not significant (p=0.50); FAR=0 unchanged, CI [0.0%, 5.2%]; residual: platform facts simulator-declared | **High (was inflating headline claim)** |
 
 ---

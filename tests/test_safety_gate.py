@@ -39,3 +39,50 @@ def test_safety_gate_fails_on_empty_arena():
         capture_output=True, text=True,
     )
     assert result.returncode == 1, f"Expected exit 1 for empty arena, got {result.returncode}"
+
+
+def test_safety_gate_reports_wilson_upper_bound():
+    """Gate output must include the 95% Wilson upper bound."""
+    report = {"false_accept_rate": 0.0, "total_episodes": 560, "n_harmful": 560}
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0
+    assert "Wilson upper bound" in result.stdout
+
+
+def test_safety_gate_warns_on_small_effective_n():
+    """Gate must warn when effective_n is too small for tight CI."""
+    report = {"false_accept_rate": 0.0, "total_episodes": 700, "n_harmful": 560, "effective_n": 70}
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0
+    assert "Cluster-adjusted upper bound" in result.stdout
+    assert "WARNING" in result.stdout
+    assert "effective_n=70" in result.stdout
+
+
+def test_safety_gate_warns_on_small_n_harmful():
+    """Gate must warn when n_harmful is below the tight-CI threshold."""
+    report = {"false_accept_rate": 0.0, "total_episodes": 50, "n_harmful": 50}
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0
+    assert "WARNING" in result.stdout
+    assert "n_harmful=50" in result.stdout
+
+
+def test_safety_gate_no_warning_for_large_n():
+    """Gate must NOT warn when n_harmful is above the tight-CI threshold."""
+    report = {"false_accept_rate": 0.0, "total_episodes": 500, "n_harmful": 400}
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0
+    assert "WARNING" not in result.stdout
