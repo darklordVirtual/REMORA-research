@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Knowledge Graph-ready audit log export (RDF/N-Triples).
 
 Why RDF for AI audit trails

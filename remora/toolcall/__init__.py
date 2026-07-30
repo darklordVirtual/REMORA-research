@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 from remora.toolcall.schema import (
     ToolCallDecision,
     ToolCallOutcome,

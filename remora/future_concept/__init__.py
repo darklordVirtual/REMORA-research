@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """EXPERIMENTAL: Conceptual sketches — NOT functional implementations.
 
 This module contains architectural explorations for future REMORA capabilities.

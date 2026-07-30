@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Human-on-the-Loop Escalation Contract.
 
 When REMORA's decision engine outputs ESCALATE or ABSTAIN on a high-stakes

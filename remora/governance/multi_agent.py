@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Multi-Agent Governance Protocol for REMORA.
 
 When Agent A delegates a tool call or sub-task to Agent B, REMORA must:

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """DecisionEnvelope v2 — canonical decision contract for REMORA.
 
 This module defines the shared envelope schema used by both the backend

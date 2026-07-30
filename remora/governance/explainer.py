@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Explainable Decision Narratives for REMORA.
 
 Auto-generates human-readable natural-language explanations for each

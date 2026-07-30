@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Data types for evidence-grounded routing decisions."""
 from __future__ import annotations
 

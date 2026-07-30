@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Counterfactual policy replay for REMORA.
 
 Implements policy-only counterfactual analysis: given an original

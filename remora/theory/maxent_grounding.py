@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """
 Maximum Entropy Grounding: what the F = λD − H identity is, and is not
 =======================================================================

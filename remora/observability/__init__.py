@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """OpenTelemetry-ready observability for the REMORA cascade pipeline."""
 
 from remora.observability.otel import (

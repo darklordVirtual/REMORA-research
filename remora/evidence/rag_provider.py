@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Retrieval-Augmented Generation (RAG) evidence provider for REMORA.
 
 This provider fetches real documents from a vector store or search backend

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Formal theoretical foundations for REMORA's online learning system."""
 
 from remora.theory.joint_convergence import CoupledConvergenceResult, JointConvergenceTheorem

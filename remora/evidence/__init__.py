@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Evidence-grounded routing for critical-phase oracle decisions.
 
 This package provides an independent evidence channel that can break

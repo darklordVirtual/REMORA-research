@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Online adaptation of thermodynamic parameters via stochastic gradient descent.
 
 REMORA's thermodynamic parameters (λ coupling constant, phase weights, T_c scale)

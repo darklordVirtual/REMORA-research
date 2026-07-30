@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """
 Scaling Analysis for REMORA's Coupled Online Learning System
 ============================================================

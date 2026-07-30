@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Cryptographic hash-chain for REMORA audit entries.
 
 Provides tamper-DETECTABLE ledger integrity by linking each audit entry

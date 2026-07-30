@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """AST-based command validation using bashlex (shell) and sqlglot (SQL).
 
 Attempts to import bashlex and sqlglot at module load time.  Falls back to

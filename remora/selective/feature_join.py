@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Join per-item data from multiple result artifacts to build richer feature vectors.
 
 Used by gainability experiments to improve feature coverage.

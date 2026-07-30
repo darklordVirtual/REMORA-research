@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Governance primitives for long-running REMORA agents.
 
 The governance package tracks observable behavioral drift, memory-write risk,

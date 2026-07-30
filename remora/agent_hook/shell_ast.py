@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Lightweight shell intent AST — robust against obfuscation.
 
 Problem with regex

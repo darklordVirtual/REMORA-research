@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Provenance metadata builder for REMORA result artifacts.
 
 Implements the schema defined in docs/assurance/artifact_provenance_spec_v1.md.

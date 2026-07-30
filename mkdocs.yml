@@ -56,20 +56,122 @@ markdown_extensions:
 nav:
   - Home: README.md
   - Getting started:
+      - Plain-language overview: plain_language_overview.md
       - Executive one-pager: executive_onepager.md
       - Reproduce results: 06-reproducibility.md
+      - CLI reference: cli.md
   - Concepts:
       - Architecture (end to end): 01-architecture.md
       - Reference architecture: reference_architecture.md
       - Evidence and claims: 02-evidence-and-claims.md
+      - Experiments: 03-experiments.md
+      - Experiment 3 — phase transition study: experiments/experiment3_phase_transition_study.md
+      - Experiment 4 — susceptibility validation: experiments/experiment4_susceptibility_validation.md
+      - Experiment 5 — chi iteration utility: experiments/experiment5_chi_iteration_utility.md
       - Negative results (detail): 04-negative-results-detail.md
       - Claim hygiene: 05-claim-hygiene.md
+      - AgentHarm validation: 12-agentharm-validation.md
+      - Failure analysis: failure_analysis.md
+      - Results snapshot: results_snapshot.md
+      - Claim register: claim_register.md
+  - Research:
+      - Research control matrix: research/research_control_matrix.generated.md
+      - Research modes: research/research_modes.md
+      - Causal consequence gating: research/causal_consequence_gating.md
+      - Governance intelligence layer: research/governance_intelligence_layer.md
+      - Misspecification-aware governance: research/misspecification_aware_governance.md
+      - Policy generalization risk: research/policy_generalization_risk.md
+      - Benchmark round 2026-07: research/benchmark_round_2026_07.md
+      - Method alternatives 2026-07: research/method_alternatives_2026_07.md
+  - Evidence:
+      - Empirical evidence record: evidence/empirical_evidence_record.md
+      - Claim evidence matrix: evidence/claim_evidence_matrix.md
+      - Authorship evidence: evidence/authorship_evidence_report.md
+      - Causal policy explanations: evidence/causal_policy_explanations.md
+      - Decision envelope audit: evidence/decision_envelope_audit.md
+  - Methods:
+      - Architecture risk register: methods/architecture_risk_register.md
+      - Nested governance: methods/nested_governance.md
+      - Theoretical foundations proposals: methods/theoretical_foundations_proposals_v1.md
+      - Thermodynamic abstraction: methods/thermodynamic_abs.md
+  - Thermodynamics:
+      - Overview: thermodynamics/README.md
+      - Limitations: thermodynamics/limitations.md
+      - Runtime policy: thermodynamics/runtime_policy.md
+      - Temperature estimator: thermodynamics/temperature_estimator.md
   - Reference:
       - API reference: 07-api-reference.md
       - Security: 08-security.md
       - Related work: 09-related-work.md
+      - Contributing: 10-contributing.md
       - Benchmark validation plan: 11-benchmark-validation-plan.md
+      - Benchmarks overview: benchmarks/README.md
+      - Statistical tests: benchmarks/stat_tests.md
+      - Tool-call consensus benchmark v2: benchmarks/toolcall_consensus_benchmark_v2.md
+  - Policy cookbook:
+      - Overview: policy_cookbook/README.md
+      - Cloud ops: policy_cookbook/cloud_ops.md
+      - Cyber: policy_cookbook/cyber.md
+      - Database: policy_cookbook/database.md
   - Assurance:
+      - AI use disclosure: AI_USE.md
       - Development & review log: assurance/development_review_log_v1.md
       - Release gates: assurance/release_gates.md
       - Threat model: assurance/threat_model_v1.md
+      - Assurance case: assurance/assurance_case_v1.md
+      - Evidence levels: assurance/evidence_levels.md
+      - Metric definitions: assurance/metric_definitions_v1.md
+      - Statistical analysis plan v3: assurance/statistical_analysis_plan_v3.md
+      - Claim provenance gate: assurance/claim_provenance_gate.md
+      - Artifact manifest: assurance/artifact_manifest_v1.md
+      - Reproducibility scorecard: assurance/reproducibility_scorecard_v1.md
+      - RBAC design: assurance/rbac_design_v1.md
+      - RBAC policy: assurance/rbac_policy_v1.md
+      - Human oversight operations: assurance/human_oversight_operations_v1.md
+      - Red team plan: assurance/red_team_plan_v1.md
+      - External review panel: assurance/external_review_panel_v1.md
+      - Independent review protocol: assurance/independent_review_protocol_v1.md
+      - Policy engine audit: assurance/policy_engine_audit_v1.md
+      - Best practice gap audit: assurance/best_practice_gap_audit_v1.md
+      - Resilience plan: assurance/resilience_plan_v1.md
+      - AI-assisted adversarial security review: assurance/ai_assisted_adversarial_security_review_v1.md
+      - Artifact provenance spec: assurance/artifact_provenance_spec_v1.md
+      - Benchmark audit: assurance/benchmark_audit_v1.md
+      - Documentation governance: assurance/documentation_governance_v1.md
+      - Domain pack governance: assurance/domain_pack_governance_v1.md
+      - Experiment manifest spec: assurance/experiment_manifest_spec_v1.md
+      - Rebenchmark protocol: assurance/rebenchmark_protocol_v1.md
+  - Validation:
+      - External review: validation/external-review.md
+      - External validation plan: validation/EXTERNAL_VALIDATION_PLAN.md
+      - Review checklist: validation/review_checklist.md
+      - Credibility pack repro: validation/credibility_pack_repro.md
+      - Pilot evaluation protocol: validation/pilot_evaluation_protocol_v1.md
+      - Audit result schema: validation/audit_result_schema.md
+      - External validation report template: validation/external_validation_report_template.md
+  - Integrations:
+      - Agent tool hook: integrations/agent_tool_hook.md
+      - Cloudflare Workers AI: integrations/cloudflare_workers_ai.md
+      - Cyber evidence layer: integrations/cyber_evidence_layer.md
+      - Knowledge domains: integrations/knowledge_domains.md
+      - MCP integration: integrations/mcp-integration.md
+      - RAG oracle: integrations/rag_oracle.md
+      - GO-STAR bridge: integrations/go_star_bridge.md
+  - Deployment:
+      - Azure reference architecture: deployment/azure-reference-architecture.md
+      - On-prem airgapped: deployment/onprem-airgapped.md
+  - Governance mappings:
+      - EU AI Act / NSM mapping: governance/eu_ai_act_nsm_mapping.md
+      - NIST AI RMF mapping: governance/nist_ai_rmf_mapping.md
+      - OWASP GenAI mapping: security/owasp_genai_mapping.md
+      - Pre-deployment review: security/pre-deployment-review.md
+  - Enterprise:
+      - TOGAF enterprise rollout plan: enterprise/togaf-enterprise-rollout-plan.md
+  - Use cases:
+      - Overview: use-cases/README.md
+      - Building automation: use-cases/building-automation.md
+      - Thermodynamics evidence status: use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md
+  - AROMER:
+      - Master document: aromer/REMORA_AROMER_MASTER_DOCUMENT.md
+      - Quickstart: aromer/quickstart_aromer.md
+      - Memory governance: assurance/aromer_memory_governance_v1.md

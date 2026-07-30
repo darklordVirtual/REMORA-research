@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Hallucination bound — formal derivation and numerical verification.
 
 THEOREM (False-Consensus Upper Bound)

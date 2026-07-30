@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Candidate false-consensus bound (v2).
 
 This module intentionally avoids theorem-strength language.

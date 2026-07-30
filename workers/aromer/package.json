@@ -1,6 +1,6 @@
 {
-  "name": "aromer",
-  "version": "0.1.0",
+  "name": "remora-aromer",
+  "version": "0.10.0",
   "private": true,
   "scripts": {
     "deploy": "wrangler deploy",

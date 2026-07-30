@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """
 Theorem 1 — Joint Convergence of REMORA's Coupled Online Learners
 =================================================================

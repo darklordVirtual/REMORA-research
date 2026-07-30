@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path

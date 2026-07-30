@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Baselines for Tool-Call Benchmark v3.
 
 Five strategies of increasing sophistication, evaluated identically on all

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Causal intervention search: minimal contrastive explanations and concept scores.
 
 Implements two algorithms from Bjøru (2026) Paper IV:

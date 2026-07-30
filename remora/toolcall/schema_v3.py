@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Schema for Tool-Call Benchmark v3.
 
 v3 extends beyond single-decision policy gating (v1/v2) to evaluate REMORA as

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Structured causal explanation for REMORA policy decisions.
 
 Generates CausalExplanation objects that describe why a policy decision

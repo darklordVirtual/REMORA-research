@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 from __future__ import annotations
 from remora.graph.claim_graph import SemanticClaimGraph
 from remora.graph.relations import infer_relation, Relation
