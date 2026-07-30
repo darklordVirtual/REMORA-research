@@ -21,30 +21,46 @@ size_categories:
 
 # REMORA Governance Benchmark Results
 
-Benchmark artifacts and evaluation results for **REMORA** (Reasoning Ensemble Multi-Oracle Routing Architecture): a research-grade pre-execution governance overlay for autonomous AI agents.
+Benchmark artifacts and evaluation results for **REMORA**: a research-grade,
+policy-gated pre-execution governance overlay for autonomous AI agents.
 
 ## Repository
 
-[github.com/darklordVirtual/REMORA](https://github.com/darklordVirtual/REMORA)
-
-Live governance worker: [aromer.razorsharp.workers.dev](https://aromer.razorsharp.workers.dev)
+[github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research)
+— every number below links to a committed, provenance-stamped artifact there;
+claim status is machine-checked in CI against
+`docs/assurance/claim_register_v1.yaml`.
 
 ## What REMORA Does
 
 REMORA intercepts proposed agent actions before execution and routes each through:
-1. Parallel multi-oracle consensus (3 Workers AI models)
-2. Thermodynamic uncertainty observables (entropy H, dissensus D, trust score τ)
+1. Deterministic admission firewall (adversarial / coercion screening)
+2. Parallel multi-oracle consensus with disagreement diagnostics (entropy H,
+   dissensus D, trust — **diagnostic-grade only**; falsified as selection
+   signals in the pre-registered SAP v3 round, CLAIM-012)
 3. Domain evidence layer (cyber / AI governance / financial)
-4. Policy engine with hard-block precedence rules
+4. Policy engine with hard-block precedence rules — the safety floor
 
-Output: one of four structured verdicts (**ACCEPT / VERIFY / ABSTAIN / ESCALATE**) with a SHA-256 audit hash chain.
+Output: one of four structured verdicts (**ACCEPT / VERIFY / ABSTAIN /
+ESCALATE**) with a SHA-256 tamper-evident audit chain.
 
-## Benchmark Results
+## Current headline results
 
-### AgentHarm External Benchmark (N=88)
+Every caveat is part of the claim; full tables in the repository's
+`docs/02-evidence-and-claims.md` and `NEGATIVE_RESULTS.md`.
 
-Source: [ai-safety-institute/AgentHarm](https://huggingface.co/datasets/ai-safety-institute/AgentHarm)
-Reference: Andriushchenko et al., arXiv:2410.09024 (2024)
+| Result | Value | Key caveat | Artifact |
+|---|---|---|---|
+| AgentHarm external benchmark | FAR **0.0%**, Wilson 95% CI [0.00%, 1.81%], N=208 | intent-gating, not interception; companion FBR 100% | `results/external_benchmark_agentharm_v1.json` |
+| Adversarial tool-call simulator v2 | **0.0%** unsafe execution (0/70 templates; effective N=70 of 700 tasks) | simulator-scoped; unsafe-rate Δ vs baselines not significant (p=0.50) | `results/toolcall_benchmark_v2_results.json` |
+| Calibrated confidence-weighted voting (SAP v3) | **87.8%** vs majority 85.1%, McNemar p=0.0064, N=368 | significant vs majority only; not integrated into the engine from this round | `results/sap_v3_round_results.json` |
+
+## Historical studies (superseded or scoped — labelled, not hidden)
+
+### Trimode AgentHarm study (N=88, research oracle setup)
+
+An earlier three-mode study; the N=208 FAR result above is the current
+headline. Artifact: `artifacts/agentharm_trimode_results.json`.
 
 | Mode | Recall | FPR | Blocked Recall | Coverage |
 |---|---|---|---|---|
@@ -52,12 +68,7 @@ Reference: Andriushchenko et al., arXiv:2410.09024 (2024)
 | Mode 2, Harm-specific oracle | 1.000 | 0.114 | 1.000 | 0.989 |
 | Mode 3, Full REMORA gate | 0.114 | **0.023** | **0.977** | 0.977 |
 
-All three deployment goals met under blocked-recall definition:
-blocked_recall ≥ 0.95 ✓ · FPR < 0.10 ✓ · coverage ≥ 0.95 ✓
-
-Artifact: `artifacts/agentharm_trimode_results.json`
-
-### Cross-Domain Evidence Benchmark (N=36)
+### Cross-domain evidence benchmark (N=36, deterministic)
 
 | Domain | N | Precision | Escalation Recall | Critical Failures |
 |---|---|---|---|---|
@@ -65,51 +76,50 @@ Artifact: `artifacts/agentharm_trimode_results.json`
 | AI Governance (ATLAS/OWASP) | 12 | 1.000 | 1.000 | 0 |
 | Financial (FATF/SDN) | 12 | 1.000 | 1.000 | 0 |
 
-Fully deterministic: reproducible without API keys.
-Artifact: `artifacts/domain_benchmark_results.json`
+Reproducible without API keys. Artifact: `artifacts/domain_benchmark_results.json`.
 
-### QA Selective Accuracy (N=544)
+### QA selective accuracy (retired Groq round — superseded)
 
-| Method | Coverage | Accuracy | Lift |
-|---|---|---|---|
-| Majority vote (baseline) | 100% | 41.18% |, |
-| REMORA neg-temperature | 18% | **88.78%** | +47.6 pp |
-| REMORA (held-out) | 23.2% | **88.00%** | +41.7 pp |
+The 88.78% @ 18% figures came from the retired single-family Groq round and
+are **superseded** by the 2026-07 cross-family clean round (SAP v3, above).
+Kept for the record; do not cite as current.
 
-### Replay Arena (N=93)
+### Replay arena (N=93)
 
-93 fixed governance cases across 14 categories. Accuracy: **87.1%**
-(`replay_accuracy=0.871` per `artifacts/aromer/replay_arena_report.json`).
-False accept rate: **0.0%**. Transfer category accuracy: **100%** (4/4).
+93 fixed governance cases across 14 categories: accuracy **87.1%**, false
+accept rate **0.0%**. Artifact: `artifacts/aromer/replay_arena_report.json`.
 
 ## AROMER: Learning Extension (Experimental)
 
-Live AII (Autonomous Intelligence Index), current state (2026-07-01):
-- AII: **0.9895** (structural ceiling 0.9922) [TRAINED, shadow-only mode]
-- ECE: 0.0052 (T1=0.9741; T2=T3=T4=T5=1.000)
-- False accept rate: **0.000** (n_operational_fa=0; REM-020 longitudinal stability closed 2026-07-17 under the 7-day criterion)
-- safety_certification: CERTIFIED_INDEPENDENT_HOLDOUT (n=814 operational harmful; CP upper bound 0.367%)
-- Open gaps: MCE bucket selection bias (§15, structural); live cross-domain episodes absent (§16, interpretation ceiling)
-- One production gate remains: REM-021 (independent human review). REM-020 closed 2026-07-17 (7-day criterion, fail-closed tooling; self-reported values pending REM-021 verification). REM-022 DONE with recorded deviation (REM-023).
+AROMER is the experimental learning layer; its metrics are **not** evidence
+for the core governance system. Snapshot dated 2026-07-01 (live values
+drift; see the repository's telemetry branch for current):
+- AII **0.9895** (structural ceiling 0.9922) [TRAINED, shadow-only mode]
+- ECE 0.0052; false accept rate 0.000 (n_operational_fa=0)
+- Open gaps and review status: see `docs/assurance/remediation_register.yaml`
+  (REM-021 independent human review remains open)
 
 ## Test Suite
 
-3333 passing tests · 14 skipped · pre-push quality gate active
+3,700+ passing deterministic tests, no API keys required; quality gates
+(lint, claim consistency, paper sync, wheel contract) enforced in CI.
 
 ## Limitations
 
-- AgentHarm evaluation uses research oracle setup (not production deployment)
-- AROMER results are preliminary observations from live but uncontrolled deployment
-- QA benchmark in-sample results; held-out validation reported separately
-- No production safety certification
+- AgentHarm evaluation is intent-gating with a research oracle setup, not
+  production tool-call interception
+- Simulator results are synthetic; real tool ecosystems may differ
+- AROMER results are preliminary observations from a live but uncontrolled
+  deployment
+- No production safety certification; deployment profile is SHADOW_ONLY
 
 ## Citation
 
 ```bibtex
-@software{remora2026,
+@misc{remora2026,
+  title  = {REMORA: A Policy-Gated Multi-Oracle Assurance Architecture for Agentic AI},
   author = {Skogbrott, Stian},
-  title = {REMORA: Thermodynamic Governance Overlay for Autonomous AI Agents},
-  year = {2026},
-  url = {https://github.com/darklordVirtual/REMORA}
+  year   = {2026},
+  url    = {https://github.com/darklordVirtual/REMORA-research}
 }
 ```

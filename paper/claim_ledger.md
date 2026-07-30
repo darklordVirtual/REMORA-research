@@ -1,5 +1,17 @@
 # REMORA Claim Ledger
 
+> **HISTORICAL SNAPSHOT (June 2026) — superseded.** This ledger was the
+> pre-submission stress-test of the paper's claims as of June 2026. The
+> **sole current authority** for claim status is
+> [`docs/assurance/claim_register_v1.yaml`](../docs/assurance/claim_register_v1.yaml)
+> (machine-checked in CI), with negative results in
+> [`NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md). Several rows below predate
+> the 2026-07 rounds and are now outdated — notably row 4 (the 88.8%/88.0%
+> selective figures are from the retired Groq round, superseded per paper
+> §"Historical supersession") and row 14 (temperature was subsequently
+> falsified as a selection signal, CLAIM-012 / SAP v3). Do not cite numbers
+> from this file.
+
 **Version:** main branch, June 2026  
 **τ* reference value:** 0.2032 (18th-percentile neg-temperature on 80% training split; verified from `results/selective_n500_holdout_results.json`)  
 **Authoritative source for all numeric claims:** `results/*.json` artifacts, not this file.
