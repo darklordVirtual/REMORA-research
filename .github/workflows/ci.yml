@@ -449,7 +449,10 @@ jobs:
           for rel in changed:
               sidecar = pathlib.Path(rel)
               prov = json.loads(sidecar.read_text(encoding="utf-8"))
-              artifact = pathlib.Path(prov["artifact"])
+              # The sidecar's "artifact" field is the bare filename; the
+              # artifact always lives NEXT TO its sidecar (caught in the
+              # local rehearsal of this job, 2026-07-30).
+              artifact = sidecar.parent / prov["artifact"]
               if not artifact.exists():
                   errors.append(f"{rel}: artifact missing: {artifact}")
                   continue
