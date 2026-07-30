@@ -1,0 +1,64 @@
+name: NLI backend parity (RF-06)
+
+# Executes the NLI Semantic Entropy backend for real (NEGATIVE_RESULTS.md
+# section 3, Active: every reported benchmark used TokenFingerprintBackend;
+# the NLI route has never run in a reported context). Local Windows execution
+# can be blocked by application control on torch's shm.dll (WinError 4551),
+# so ubuntu-latest + the `nli` extra is the execution route.
+#
+# Deliberately NOT part of the default CI path (no push/pull_request trigger):
+# the model download is network-bound and the parity artifact is CI-produced,
+# uploaded, and never committed — it enters the repo only via a later,
+# provenance-bound round.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly, Monday 03:17 UTC — off-peak, odd minute to avoid the
+    # on-the-hour scheduler load spike.
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  nli-parity:
+    name: NLI execution + backend parity smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install package with the nli extra
+        run: |
+          python -m pip install --upgrade pip
+          # Constraints (-c) pin every resolved dependency to the exact versions
+          # in the committed requirements-lock.txt, while the extras still drive
+          # WHAT gets installed. The lock file contains editable (-e) and comment
+          # lines that pip rejects in a constraints file, so filter them out.
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e ".[dev,nli]" -c /tmp/constraints.txt
+
+      - name: NLI-executed semantic-entropy tests (must run, not skip)
+        # REMORA_REQUIRE_NLI=1 turns backend-unavailability into a hard test
+        # failure instead of a skip — a silent skip here would mean the job
+        # proved nothing (no-silent-skip rule).
+        run: REMORA_REQUIRE_NLI=1 python -m pytest tests/test_semantic_entropy.py -q
+
+      - name: Backend parity smoke (fail-hard on missing NLI)
+        run: python scripts/se_backend_parity_smoke.py --require-nli --output results/se_backend_parity_smoke.json
+
+      - name: Upload parity artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: se-backend-parity-smoke
+          path: results/se_backend_parity_smoke.json
+          retention-days: 90
