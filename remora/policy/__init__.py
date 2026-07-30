@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 from __future__ import annotations
 
 from typing import Any

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Pluggable evidence providers for REMORA policy routing.
 
 The default provider derives an evidence signal from oracle response

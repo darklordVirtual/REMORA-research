@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """PolicyIntervention — do(variable=value) for policy concepts.
 
 Only actionable variables may be intervened upon.  Non-actionable signals

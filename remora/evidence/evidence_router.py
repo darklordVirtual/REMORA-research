@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Evidence-grounded routing logic for critical-phase oracle decisions.
 
 The :class:`CriticalEvidenceRouter` implements the evidence arm of the

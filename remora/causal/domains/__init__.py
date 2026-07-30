@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Built-in causal domain profiles for REMORA."""
 from remora.causal.domains.loader import load_domain, load_from_yaml
 

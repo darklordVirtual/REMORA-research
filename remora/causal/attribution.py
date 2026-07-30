@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Global concept attribution over observation logs.
 
 Implements the global explanation framework from Bjøru (2026) Paper IV §4.2.1:

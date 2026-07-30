@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """OpenTelemetry-ready distributed tracing for the REMORA cascade pipeline.
 
 Architecture Goal

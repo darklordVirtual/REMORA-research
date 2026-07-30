@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Online adaptation modules for REMORA's thermodynamic parameters and oracle pool."""
 
 from remora.adaptation.oracle_bandit import OracleBandit

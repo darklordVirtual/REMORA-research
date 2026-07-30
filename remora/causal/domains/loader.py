@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Loader for YAML-based CausalDecisionModel domain profiles."""
 from __future__ import annotations
 

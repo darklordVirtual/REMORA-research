@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Causal schema for REMORA policy explanations.
 
 All types are bounded to the policy model (decision_scope="policy_only").

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Scoring and metrics for Tool-Call Benchmark v3.
 
 Computes per-task outcomes and aggregates 11 metrics per layer and overall.

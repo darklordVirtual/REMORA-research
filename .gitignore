@@ -28,6 +28,14 @@ artifacts/shadow_mode/
 artifacts/credibility-pack/test-attestation.json
 artifacts/credibility-pack/test-report.txt
 
+# Literature extract scratch files (never committed; move to docs/archive/ if needed)
+_*_extract.txt
+_*_paper*.txt
+
+# Internal review notes — the files themselves state "gitignored, do not push".
+# To publish one: remove that marker, register it in the document register.
+docs/archive/code_reviews/
+
 # Node / wrangler — node_modules is installed by CI (npm install), never committed
 node_modules/
 frontend/node_modules/

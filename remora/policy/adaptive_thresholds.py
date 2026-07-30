@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Adaptive Policy Thresholds with Temporal Decay for REMORA.
 
 Policies that auto-adjust based on outcome feedback:

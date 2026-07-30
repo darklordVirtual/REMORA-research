@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """OPA/Rego integration adapter for enterprise multi-team policy governance.
 
 Why OPA

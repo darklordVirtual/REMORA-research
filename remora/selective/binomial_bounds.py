@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Finite-sample binomial bounds (stdlib only).
 
 These are used to construct conservative upper confidence bounds on

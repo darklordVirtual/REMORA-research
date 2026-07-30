@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Distribution shift detector for conformal guardrail runtime protection.
 
 The Problem

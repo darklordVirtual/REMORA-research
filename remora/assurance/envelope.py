@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """AssuranceEnvelope — stronger audit wrapper around AssuranceTrace.
 
 Adds config hash, model pool hash, policy hash, and a signature standard.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Decision Provenance DAG with Merkle verification for REMORA.
 
 Upgrades from a linear hash chain to a directed acyclic graph (DAG) of

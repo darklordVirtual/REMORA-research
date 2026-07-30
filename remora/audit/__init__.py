@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Audit export utilities — RDF/SPARQL and structured audit log formats."""
 
 from remora.audit.anchor import AnchorRecord, AuditAnchor, anchor_from_jsonl

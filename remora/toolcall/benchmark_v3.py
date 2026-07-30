@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: BUSL-1.1
 """Tool-Call Benchmark v3 — data generation and loading.
 
 Generates 800 synthetic tasks across four layers (200 per layer).
