@@ -1,17 +1,22 @@
 {
-  "name": "remora-rag-oracle",
-  "version": "0.10.0",
-  "private": true,
-  "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "test": "vitest run"
-  },
-  "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.16.10",
-    "@cloudflare/workers-types": "^4.20241022.0",
-    "typescript": "^5.5.0",
-    "vitest": "^4.1.7",
-    "wrangler": "^3.0.0"
-  }
+ "name": "remora-rag-oracle",
+ "version": "0.10.0",
+ "private": true,
+ "scripts": {
+  "deploy": "wrangler deploy",
+  "dev": "wrangler dev",
+  "test": "vitest run"
+ },
+ "devDependencies": {
+  "@cloudflare/vitest-pool-workers": "^0.16.10",
+  "@cloudflare/workers-types": "^4.20241022.0",
+  "typescript": "^5.5.0",
+  "vitest": "^4.1.7",
+  "wrangler": "^3.0.0"
+ },
+ "overrides": {
+  "@emnapi/core": "1.10.0",
+  "@emnapi/runtime": "1.10.0",
+  "@emnapi/wasi-threads": "1.2.3"
+ }
 }
