@@ -23,13 +23,32 @@ the following:
 
 1. Personal, non-commercial use by a natural person;
 2. Non-commercial teaching or academic research by an accredited
-   educational institution;
+   educational institution, or by a non-profit or independent research
+   organization;
 3. Independent, good-faith security research that is not performed as
    a paid service for a commercial organization;
 4. Internal Production Use by a non-profit community organization,
    provided that the organization does not offer the Licensed Work or
    substantially similar functionality to third parties for payment or
-   other commercial consideration.
+   other commercial consideration;
+5. Research Use by any person or organization: use of the Licensed
+   Work to study, evaluate, benchmark, reproduce, attempt to falsify,
+   or extend its methods and results, and to create and publish
+   research artifacts derived from that work (papers, theses,
+   datasets, benchmark results, reproductions, and modified source
+   shared for reproducibility), provided the Licensed Work is not
+   thereby offered to third parties as, or embedded in, a commercial
+   product or service;
+6. Shadow-Mode Research Evaluation by any organization, including a
+   for-profit organization: operating the Licensed Work in
+   observer-only (shadow) mode - where its decisions are logged but
+   are not enforced and do not control any live system - for the
+   purpose of evaluating or researching the Licensed Work itself, for
+   up to ninety (90) consecutive days per organization.
+
+Publication is never restricted: publishing results, measurements,
+benchmarks, or comparisons involving the Licensed Work - favorable or
+not - requires no permission from the Licensor.
 
 For purposes of this Additional Use Grant, "Production Use" means use of
 the Licensed Work in a live environment involving real users, systems,
@@ -37,7 +56,8 @@ workloads, operational decisions, infrastructure, data or services.
 Development, testing, evaluation, demonstration, proof-of-concept and
 staging use are non-production uses.
 
-This Additional Use Grant does not grant free Production Use:
+This Additional Use Grant does not grant free Production Use, except
+where paragraph 5 or 6 above expressly applies:
 
 a. By or on behalf of a for-profit organization;
 b. In an income-generating or business-critical operational process;
