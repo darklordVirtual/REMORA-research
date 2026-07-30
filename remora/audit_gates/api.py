@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: BUSL-1.1
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -83,7 +85,7 @@ def run_docs_gate(root: Path) -> GateResult:
     reg = yaml.safe_load(reg_path.read_text())
     docs = reg.get("documents", [])
 
-    topics = {}
+    topics: dict[str, str] = {}
     historical_banned = []
 
     for d in docs:

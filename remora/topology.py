@@ -7,6 +7,8 @@ for rigorous Betti numbers over semantic relations. This module remains for
 operational use cases (cheap β0 sanity checks on exact-fingerprint clusters)
 but should not be cited as topological analysis in papers.
 """
+from __future__ import annotations
+
 import warnings
 from typing import Dict, List, Set, Tuple
 

@@ -10,7 +10,7 @@ from remora.toolcall.remora_gate import (
     _text,
     derive_risk_level,
 )
-from remora.toolcall.schema import ToolCallDecision, ToolCallTask
+from remora.toolcall.schema import ToolAction, ToolCallDecision, ToolCallTask
 
 
 class ToolCallBaseline:
@@ -20,7 +20,7 @@ class ToolCallBaseline:
         raise NotImplementedError
 
 
-def _heuristic_action(task: ToolCallTask, *, variant: int = 0) -> str:
+def _heuristic_action(task: ToolCallTask, *, variant: int = 0) -> ToolAction:
     # Baselines share the gate's derived risk level so every evaluated system
     # receives the identical input contract (no author-annotated severity).
     risk = derive_risk_level(task)
@@ -101,6 +101,7 @@ class RemoraTemperatureGateBaseline(ToolCallBaseline):
 
     def decide(self, task: ToolCallTask) -> ToolCallDecision:
         risk = derive_risk_level(task)
+        action: ToolAction
         if risk == "low":
             action = "EXECUTE"
             confidence = 0.85

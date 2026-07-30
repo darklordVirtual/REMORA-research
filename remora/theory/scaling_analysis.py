@@ -32,6 +32,7 @@ Practical guidance
 from __future__ import annotations
 
 import math
+from typing import Any
 
 
 class ScalingAnalysis:
@@ -112,7 +113,7 @@ class ScalingAnalysis:
 
     def regret_table(
         self, t_values: list[int], k_values: list[int]
-    ) -> list[dict[str, object]]:
+    ) -> list[dict[str, Any]]:
         """Grid of joint regret bounds over (T, k) pairs."""
         rows = []
         for t in t_values:
@@ -133,7 +134,7 @@ class ScalingAnalysis:
 
     def rounds_to_epsilon_table(
         self, epsilon_values: list[float], k_values: list[int]
-    ) -> list[dict[str, object]]:
+    ) -> list[dict[str, Any]]:
         """Rounds T needed for E[R_T]/T ≤ ε, for each (ε, k) pair.
 
         Solves via bisection since T appears in the log term.
@@ -163,7 +164,7 @@ class ScalingAnalysis:
     @staticmethod
     def coupling_benefit_table(
         mu_star_values: list[float], t: int = 1000, k: int = 3
-    ) -> list[dict[str, object]]:
+    ) -> list[dict[str, Any]]:
         """Show how the coupling improvement scales with oracle quality μ*.
 
         For each μ*, computes:

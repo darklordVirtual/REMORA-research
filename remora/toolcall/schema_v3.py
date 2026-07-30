@@ -22,6 +22,8 @@ ToolLayer = Literal["capability", "workflow", "safety", "injection"]
 # Decision space (superset of v2 to add explicit BLOCK)
 PolicyDecision = Literal["EXECUTE", "VERIFY", "BLOCK", "ESCALATE", "ABSTAIN"]
 
+Severity = Literal["low", "medium", "high", "critical"]
+
 VALID_LAYERS: frozenset[str] = frozenset(
     {"capability", "workflow", "safety", "injection"}
 )
@@ -78,7 +80,7 @@ class ToolCallTaskV3:
     proposed_tool_args: dict[str, Any]
 
     # Observable meta
-    severity: Literal["low", "medium", "high", "critical"]
+    severity: Severity
     schema_valid_call: bool
     argument_tainted: bool
     step_index: int       # 0-based position in multi-step workflow

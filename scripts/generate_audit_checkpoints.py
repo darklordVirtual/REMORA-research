@@ -12,8 +12,8 @@ N=8 envelope hashes (the final span may be shorter) to
 The output is byte-identical on re-run: no timestamps, no randomness, sorted
 JSON keys, LF line endings.
 
-Exit codes: 0 = success, 1 = input log missing, 2 = envelope hash chain or
-checkpoint self-verification failed.
+Exit codes: 0 = success, 1 = input log missing, 2 = invalid --interval,
+envelope hash chain or checkpoint self-verification failed.
 """
 from __future__ import annotations
 

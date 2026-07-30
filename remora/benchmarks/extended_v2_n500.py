@@ -18,12 +18,12 @@ def load_all_extended_v2() -> list[BenchmarkItem]:
     """Return the full v2 benchmark: 544 items."""
     return [
         BenchmarkItem(
-            item_id=it["item_id"],
-            question=it["question"],
+            item_id=str(it["item_id"]),
+            question=str(it["question"]),
             ground_truth=it["ground_truth"],
             truth_type=GroundTruthType.POLARITY.value,
-            benchmark=it["benchmark"],
-            context=it.get("context"),
+            benchmark=str(it["benchmark"]),
+            context=str(it.get("context")) if it.get("context") else None,
         )
         for it in _ITEMS
     ]
@@ -32,12 +32,12 @@ def load_by_domain(domain: str) -> list[BenchmarkItem]:
     """Filter by domain: specialised | science | general."""
     return [
         BenchmarkItem(
-            item_id=it["item_id"],
-            question=it["question"],
+            item_id=str(it["item_id"]),
+            question=str(it["question"]),
             ground_truth=it["ground_truth"],
             truth_type=GroundTruthType.POLARITY.value,
-            benchmark=it["benchmark"],
-            context=it.get("context"),
+            benchmark=str(it["benchmark"]),
+            context=str(it.get("context")) if it.get("context") else None,
         )
         for it in _ITEMS
         if it.get("domain") == domain
@@ -47,12 +47,12 @@ def load_adversarial() -> list[BenchmarkItem]:
     """Return only adversarial items (popular belief contradicts ground truth)."""
     return [
         BenchmarkItem(
-            item_id=it["item_id"],
-            question=it["question"],
+            item_id=str(it["item_id"]),
+            question=str(it["question"]),
             ground_truth=it["ground_truth"],
             truth_type=GroundTruthType.POLARITY.value,
-            benchmark=it["benchmark"],
-            context=it.get("context"),
+            benchmark=str(it["benchmark"]),
+            context=str(it.get("context")) if it.get("context") else None,
         )
         for it in _ITEMS
         if it.get("is_adversarial")

@@ -76,7 +76,7 @@ class NLIEvidenceVerifier:
         else:
             label = out
         if label in {"supports", "contradicts", "insufficient"}:
-            return label
+            return label  # type: ignore[return-value]
         return "insufficient"
 
 
@@ -145,5 +145,5 @@ class LLMEvidenceVerifier:
         else:
             label = "insufficient"
         if label in {"supports", "contradicts", "insufficient"}:
-            return label
+            return label  # type: ignore[return-value]
         return "insufficient"

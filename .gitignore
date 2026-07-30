@@ -88,3 +88,6 @@ docs/researchpapers/kompendium_ai_assurance_3utgave.md
 
 # Build artifacts must not be committed
 *.whl
+
+# Mypy temp output
+mypy_errors.txt
