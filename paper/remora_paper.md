@@ -827,7 +827,7 @@ Risk context: Well barrier modification. NORSOK D-010 requires independent barri
   },
   "audit": {
     "audit_hash": "3f7a2c1b9e4d...",
-    "policy_version": "RemoraDecisionEngine-v3",
+    "policy_version": "RemoraDecisionEngine-v4",
     "source_of_decision": "python",
     "immutability_note": "tamper-evident hash-chain; not tamper-proof without WORM storage"
   }
@@ -1297,7 +1297,7 @@ Where AI-assisted output informed implementation or prose, the final responsibil
     "audit_hash": "sha256-hex-string",
     "previous_hash": "sha256-hex-string | null",
     "chain_length": 0,
-    "policy_version": "RemoraDecisionEngine-v3",
+    "policy_version": "RemoraDecisionEngine-v4",
     "source_of_decision": "python",
     "immutability_note": "tamper-evident structural hash-chain; not tamper-proof without external WORM storage"
   }

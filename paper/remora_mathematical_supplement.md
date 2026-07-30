@@ -1,6 +1,6 @@
 # REMORA: Mathematical Supplement and Defence Notes
 
-**Companion to** `paper/remora_paper.pdf` (REMORA v0.9.0) and the AROMER learning
+**Companion to** `paper/remora_paper.pdf` (REMORA v0.10.0) and the AROMER learning
 layer (worker v0.2.1).
 **Purpose.** A single, self-contained derivation of every quantity REMORA and
 AROMER compute, with worked numerical examples that can be reproduced on a
@@ -674,7 +674,9 @@ framing in §3 should note this discrepancy; results with the NLI backend may
 differ.
 
 **Reproduce:** `python -m pip install -e ".[dev]"`; `make benchmark` (deterministic
-artifacts); live oracle runs need `GROQ_API_KEY`. AROMER: `python -m pytest
+artifacts); live oracle runs use Cloudflare Workers AI (`CLOUDFLARE_API_TOKEN`,
+the 2026-07 clean-round backend) or Groq (`GROQ_API_KEY`, earlier retired
+rounds). AROMER: `python -m pytest
 tests/test_aromer_core.py tests/test_kpi.py tests/test_pending_resolution.py -q`.
 
 ---
