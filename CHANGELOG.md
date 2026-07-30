@@ -27,6 +27,24 @@ releases.
 
 ## [Unreleased]
 
+### Policy behavior change (2026-07-30) — RemoraDecisionEngine-v4
+
+- **Tainted arguments at CRITICAL risk now ESCALATE** (new reason
+  `tainted_argument_escalate`) instead of the approvable VERIFY floor —
+  a reviewer can no longer wave through an unsanitized critical write
+  (issue #40, option c; option b — sanitize + revalidate before approval
+  is grantable — remains the tracked target state in #40). Non-critical
+  tiers keep the established `tainted_argument_verify` floor unchanged.
+- Engine `policy_version` bumped `RemoraDecisionEngine-v3` → `-v4`; the
+  illustrative Rego policy and the OPA conformance golden set carry the
+  same tier-dependent rule (engine/OPA parity pinned by a new
+  `tainted_argument_critical` golden case).
+- Promoted benchmark artifacts remain v3 snapshots with their recorded
+  provenance; regeneration under v4 follows
+  `docs/assurance/rebenchmark_protocol_v1.md` (both outcomes block
+  autonomous execution, so FAR-based claims are unaffected by
+  construction — the VERIFY/ESCALATE mix is what shifts).
+
 ### Refactoring & code hygiene (2026-07-29)
 
 - **Engine decomposition recorded (commit 6213f1a / PR #68).** That squash

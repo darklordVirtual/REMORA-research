@@ -49,7 +49,15 @@ hard_escalate if {
 	input.target_environment in {"production", "prod", "live"}
 }
 
-# Tainted arguments must never auto-accept (VERIFY floor in the engine).
+# Tainted argument at CRITICAL risk → ESCALATE, never an approvable VERIFY
+# (engine parity: issue #40 decision, 2026-07-30).
+hard_escalate if {
+	input.argument_tainted == true
+	input.risk_tier == "critical"
+}
+
+# Tainted arguments must never auto-accept (VERIFY floor in the engine;
+# critical tier is caught by the hard_escalate rule above).
 tainted_floor if { input.argument_tainted == true }
 
 # Contradicting evidence without cycles → ABSTAIN (engine parity)

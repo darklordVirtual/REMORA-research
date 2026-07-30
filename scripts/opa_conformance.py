@@ -84,6 +84,14 @@ def golden_observations() -> list[tuple[str, PolicyObservation]]:
             PolicyObservation(question=f"golden {name}", risk_tier="low", **overrides),
         ))
 
+    # Issue #40 (2026-07-30): the tainted floor is tier-dependent — critical
+    # risk escalates. Pin engine/OPA parity on the critical branch too.
+    cases.append((
+        "hard_guard:tainted_argument_critical",
+        PolicyObservation(question="golden tainted critical",
+                          risk_tier="critical", argument_tainted=True),
+    ))
+
     cases.extend([
         ("clean_low_read_ordered", PolicyObservation(
             question="read service metrics", risk_tier="low", action_type="read",
