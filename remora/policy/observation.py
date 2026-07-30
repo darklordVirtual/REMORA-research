@@ -186,6 +186,14 @@ class PolicyObservation:
     coercion_detected: bool = False
     blackmail_pattern_detected: bool = False
 
+    # Can every required parameter of the proposed call be sourced — from the
+    # task, from prior results, or from another available tool? Supplied by the
+    # caller's tool registry (see remora/toolcall/routing/tool_registry.py for a
+    # reference extractor). False means confirmed unsatisfiable: an agent making
+    # this call would have to fabricate arguments. None means the registry does
+    # not cover the tool, which is unknown, not a negative.
+    arguments_satisfiable: bool | None = None
+
     # Policy generalization / fleet-level risk (v0.9)
     # All fields are caller-populated — REMORA is stateless.
     similar_action_seen_count: int | None = None

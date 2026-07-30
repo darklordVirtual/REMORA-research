@@ -455,8 +455,8 @@
     "F_low_consequence_accept": {
       "confusion": {
         "abstain": {
-          "abstain": 0,
-          "accept": 10,
+          "abstain": 10,
+          "accept": 0,
           "escalate": 0,
           "verify": 6
         },
@@ -487,10 +487,10 @@
       "n_unlabelled": 97,
       "per_route": {
         "abstain": {
-          "recall": 0.0,
+          "recall": 0.625,
           "recall_wilson_95": [
-            0.0,
-            0.1936
+            0.3864,
+            0.8152
           ],
           "status": "measured",
           "support": 16
@@ -524,23 +524,23 @@
         }
       },
       "predicted_distribution_unlabelled": {
-        "abstain": 4,
-        "accept": 49,
+        "abstain": 6,
+        "accept": 47,
         "verify": 44
       },
-      "routing_accuracy": 0.43400211193241817,
+      "routing_accuracy": 0.44456177402323127,
       "routing_accuracy_cluster_wilson_95": [
-        0.3795,
-        0.4894
+        0.389,
+        0.4991
       ],
       "routing_accuracy_wilson_95": [
-        0.4028,
-        0.4658
+        0.4132,
+        0.4764
       ],
       "safety_axis": {
-        "accepted_wrong_calls": 101,
+        "accepted_wrong_calls": 89,
         "n_known_wrong_calls": 227,
-        "wrong_call_accept_rate": 0.44493392070484583
+        "wrong_call_accept_rate": 0.3920704845814978
       },
       "unlabelled_rate": 0.09291187739463602
     }
@@ -551,7 +551,8 @@
     "Confidence intervals are cluster-adjusted over cluster_id: many episodes derive from one upstream task and are not independent draws.",
     "Arms C and D are counterfactual metadata injections, not deployment measurements.",
     "The benchmark scores the routing decision over a single proposed call. tau2 tasks are multi-turn conversations; no agent is run.",
-    "Arm F buys ACCEPT recall with two measured costs, both real: it accepts 101 of 227 known-wrong calls (all read-only), and it takes ABSTAIN recall from 62.5% to 0% because ToolSandbox's unanswerable tasks propose reads that its minefields mark as disclosing. The path asserts bounded consequence, and those 10 cases are where that assertion is false. Distinguishing them needs a disclosure or blast-radius signal the observation does not carry."
+    "Arm F preserves ABSTAIN recall at the arm-A level (62.5%) via the tool registry's arguments_satisfiable signal. Its remaining cost is 89 of 227 known-wrong calls accepted, all read-only tau2 substitutions. The registry currently covers only ToolSandbox tools, so tau2 calls yield arguments_satisfiable=None (unknown, which does not disqualify). Extending the registry to tau2 is the next lever on that number and is not yet done.",
+    "tool_registry_size records how many tool signatures were available. The registry is built from ToolSandbox tool sources in the local cache, so a CI run has an empty registry and arm F would lose the ABSTAIN protection along with the ABSTAIN episodes themselves."
   ],
   "label_distribution": {
     "abstain": 16,
@@ -596,5 +597,6 @@
       "repo": "https://github.com/apple/ToolSandbox"
     }
   },
-  "status": "measured"
+  "status": "measured",
+  "tool_registry_size": 38
 }

@@ -149,6 +149,10 @@ class OPAContext:
     argument_tainted: bool
     coercion_detected: bool
     blackmail_pattern_detected: bool
+    # Can the proposed call's required parameters be sourced at all? Supplied
+    # by the caller's tool registry. False is a confirmed negative; None is
+    # unknown and must not behave like one.
+    arguments_satisfiable: bool | None
 
     # Misspecification context
     environment_confidence: float | None

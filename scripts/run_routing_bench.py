@@ -32,6 +32,10 @@ sys.path.insert(0, str(REPO_ROOT))
 from remora.policy.decision_engine import RemoraDecisionEngine  # noqa: E402
 from remora.policy.observation import PolicyObservation  # noqa: E402
 from remora.toolcall.routing.episode import RoutingEpisode  # noqa: E402
+from remora.toolcall.routing.tool_registry import (  # noqa: E402
+    ToolRegistry,
+    extract_from_python,
+)
 from remora.toolcall.routing.evaluate import (  # noqa: E402
     _ACTION_TO_ROUTE,
     build_observation,
@@ -128,6 +132,16 @@ ARMS: list[Arm] = [
 #: artifact records the reduced coverage rather than hiding it.
 LOCAL = REPO_ROOT / ".cache" / "routing_bench" / "local"
 
+#: Tool sources for the registry. Stands in for the tool registry a deployment
+#: already has; reads only tool signatures, never labels. ToolSandbox tool
+#: modules are cached locally and never committed.
+TOOL_SOURCES = [REPO_ROOT / ".cache" / "routing_bench" / "toolsandbox" / "tools"]
+
+
+def load_registry() -> ToolRegistry:
+    paths = [p for root in TOOL_SOURCES if root.exists() for p in sorted(root.glob("*.py"))]
+    return ToolRegistry(extract_from_python(paths) if paths else {})
+
 
 def _read_jsonl(path: Path) -> list[RoutingEpisode]:
     return [
@@ -174,11 +188,17 @@ def main() -> None:
 
     episodes, local_sources = load_episodes()
     manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf-8"))
+    registry = load_registry()
     arms: dict[str, Any] = {}
     for name, description, counterfactual, mutate, make_engine in ARMS:
         engine = make_engine()
         results = [
-            (ep, _ACTION_TO_ROUTE[engine.decide(mutate(build_observation(ep))).action])
+            (
+                ep,
+                _ACTION_TO_ROUTE[
+                    engine.decide(mutate(build_observation(ep, registry))).action
+                ],
+            )
             for ep in episodes
         ]
         scored = score_routing(results)
@@ -204,6 +224,7 @@ def main() -> None:
         "route_table_content_hash": manifest["route_table_content_hash"],
         "sources": manifest["sources"],
         "local_only_sources_included": local_sources,
+        "tool_registry_size": len(registry.signatures),
         "per_source_episode_counts": {
             name: sum(1 for e in episodes if e.source_dataset == name)
             for name in sorted({e.source_dataset for e in episodes})
@@ -226,13 +247,18 @@ def main() -> None:
             "measurements.",
             "The benchmark scores the routing decision over a single proposed "
             "call. tau2 tasks are multi-turn conversations; no agent is run.",
-            "Arm F buys ACCEPT recall with two measured costs, both real: it "
-            "accepts 101 of 227 known-wrong calls (all read-only), and it takes "
-            "ABSTAIN recall from 62.5% to 0% because ToolSandbox's unanswerable "
-            "tasks propose reads that its minefields mark as disclosing. The "
-            "path asserts bounded consequence, and those 10 cases are where "
-            "that assertion is false. Distinguishing them needs a disclosure or "
-            "blast-radius signal the observation does not carry.",
+            "Arm F preserves ABSTAIN recall at the arm-A level (62.5%) via the "
+            "tool registry's arguments_satisfiable signal. Its remaining cost "
+            "is 89 of 227 known-wrong calls accepted, all read-only tau2 "
+            "substitutions. The registry currently covers only ToolSandbox "
+            "tools, so tau2 calls yield arguments_satisfiable=None (unknown, "
+            "which does not disqualify). Extending the registry to tau2 is the "
+            "next lever on that number and is not yet done.",
+            "tool_registry_size records how many tool signatures were "
+            "available. The registry is built from ToolSandbox tool sources in "
+            "the local cache, so a CI run has an empty registry and arm F would "
+            "lose the ABSTAIN protection along with the ABSTAIN episodes "
+            "themselves.",
         ],
     }
 

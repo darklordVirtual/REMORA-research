@@ -26,6 +26,7 @@ from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction
 from remora.toolcall.routing.episode import Route, RoutingEpisode
+from remora.toolcall.routing.tool_registry import ToolRegistry
 
 #: DecisionAction maps one-to-one onto Route; both enumerate the same four
 #: control decisions. Kept explicit so a new DecisionAction fails loudly here
@@ -45,8 +46,17 @@ _MUTATING = (
 )
 
 
-def build_observation(episode: RoutingEpisode) -> PolicyObservation:
-    """Build a PolicyObservation from *episode*'s observable surface."""
+def build_observation(
+    episode: RoutingEpisode,
+    registry: ToolRegistry | None = None,
+) -> PolicyObservation:
+    """Build a PolicyObservation from *episode*'s observable surface.
+
+    *registry* stands in for the tool registry a deployment would already have.
+    It reads only observable fields — proposed tool name, available tools, task
+    text — and supplies ``arguments_satisfiable``. Without it that field stays
+    ``None``, which the engine treats as unknown rather than as a negative.
+    """
     obs = episode.observable()
     name = (obs["proposed_tool_name"] or "").lower()
 
@@ -64,18 +74,28 @@ def build_observation(episode: RoutingEpisode) -> PolicyObservation:
         # Untrusted content reaching the call surface is observable taint. It is
         # the only security signal this harness can supply honestly.
         argument_tainted=bool(obs["untrusted_context"]),
+        arguments_satisfiable=(
+            registry.arguments_satisfiable(
+                proposed=obs["proposed_tool_name"],
+                available=obs["available_tools"],
+                task_text=obs["user_task"],
+            )
+            if registry is not None
+            else None
+        ),
     )
 
 
 def evaluate_episodes(
     episodes: Iterable[RoutingEpisode],
     engine: RemoraDecisionEngine | None = None,
+    registry: ToolRegistry | None = None,
 ) -> list[tuple[RoutingEpisode, Route]]:
     """Run the engine over *episodes*; return (episode, predicted route) pairs."""
     engine = engine or RemoraDecisionEngine()
     out: list[tuple[RoutingEpisode, Route]] = []
     for episode in episodes:
-        report = engine.decide(build_observation(episode))
+        report = engine.decide(build_observation(episode, registry))
         route = _ACTION_TO_ROUTE.get(report.action)
         if route is None:
             raise ValueError(f"unmapped DecisionAction: {report.action!r}")

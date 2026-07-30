@@ -74,14 +74,40 @@ releases.
   correct read from an incorrect one from observable data. Reports from this
   path carry a distinct `coverage_policy` rather than the generic ACCEPT
   wording, which would falsely claim an evidence/trust basis.
-- **Measured costs, both real.** Enabling it takes ACCEPT recall 0% → 75.0%
-  (Wilson [70.0%, 79.4%]) and overall routing accuracy 18.5% → 43.4%, but
-  accepts 101 of 227 known-wrong calls and takes ABSTAIN recall 62.5% → 0%.
-  The ABSTAIN loss is where the bounded-consequence assertion is false:
-  ToolSandbox's unanswerable tasks propose reads its minefields mark as
-  disclosing. Separating those needs a disclosure or blast-radius signal the
-  observation does not carry. A deployment that cannot tolerate a wasted or
-  mildly disclosing read must leave this off.
+- **Measured.** Enabling it takes ACCEPT recall 0% → 75.0%
+  (Wilson [70.0%, 79.4%]) and overall routing accuracy 18.5% → 44.5%, while
+  ABSTAIN recall stays at the baseline 62.5% (see `arguments_satisfiable`
+  below). Residual cost: 89 of 227 known-wrong calls accepted, all read-only.
+  A deployment that cannot tolerate a wasted read must leave this off.
+
+### New observation field (2026-07-31) — `arguments_satisfiable`
+
+- **`PolicyObservation.arguments_satisfiable: bool | None`.** Can every required
+  parameter of the proposed call be sourced — from the task, from a prior
+  result, or from another available tool? Caller-supplied from a tool registry,
+  like every other field; `remora/toolcall/routing/tool_registry.py` is a
+  reference extractor that reads Python tool signatures by AST.
+- The low-consequence ACCEPT path rejects a **confirmed** `False`. `None` is
+  unknown and does not disqualify, so sources whose schemas have not been
+  extracted keep working. Exported to OPA for parity; documented in
+  `docs/07-api-reference.md` (58 fields).
+- **This field replaces `blast_radius` as the fix for the ABSTAIN loss, on
+  evidence.** An earlier note in this changelog proposed a disclosure or
+  blast-radius signal. Inspecting all ten lost cases refuted that: they were
+  `search_lat_lon` with no latitude obtainable, `timestamp_diff` with no clock
+  available, `unit_conversion` with no amount to convert. `unit_conversion` is
+  pure arithmetic — about as bounded as a call gets — and still wrong. The
+  shared property is unobtainable arguments, not scope of effect.
+- Effect: ABSTAIN recall in the enabled arm goes 0% → 62.5%, exactly the
+  baseline, and known-wrong accepts fall 101 → 89. The registry currently
+  covers only ToolSandbox tools; extending it to tau2 is the next lever on the
+  residual 89 and is not yet done.
+- Extraction detail worth keeping: a parameter defaulted to `None` counts as
+  required. `None` is the standard Python sentinel for "not supplied", so
+  `search_weather_around_lat_lon(days=0, latitude=None, longitude=None)` needs
+  coordinates even though all three parameters carry defaults. Treating them
+  all as optional made an unsatisfiable call look satisfiable and left two
+  cases unfixed until a test caught it.
 
 ### Policy behavior change (2026-07-31) — RemoraDecisionEngine-v5
 

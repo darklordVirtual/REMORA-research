@@ -160,3 +160,45 @@ def test_accepted_report_records_bounded_consequence_not_correctness() -> None:
     report = ON.decide(_obs(action_type="read"))
     assert report.human_review_required is False
     assert "consequence" in report.coverage_policy.lower()
+
+
+# ---------------------------------------------------------------------------
+# arguments_satisfiable — the ABSTAIN fix (2026-07-31)
+# ---------------------------------------------------------------------------
+
+def test_confirmed_unsatisfiable_arguments_block_the_path() -> None:
+    """A call whose required arguments cannot be sourced must not ACCEPT.
+
+    This is what an agent would have to fabricate arguments for. Measured on
+    the routing benchmark, every ABSTAIN case the path wrongly accepted was of
+    this shape: search_lat_lon with no latitude obtainable, unit_conversion
+    with no amount to convert.
+    """
+    report = ON.decide(_obs(action_type="read", arguments_satisfiable=False))
+    assert report.action != DecisionAction.ACCEPT
+    assert DecisionReason.LOW_CONSEQUENCE_ACCEPT not in report.reasons
+
+
+def test_unknown_satisfiability_does_not_block_the_path() -> None:
+    """None is unknown, not a negative.
+
+    Sources whose tool schemas have not been extracted must keep working;
+    treating unknown as unsatisfiable would disqualify every one of them.
+    """
+    assert ON.decide(_obs(action_type="read", arguments_satisfiable=None)).action == (
+        DecisionAction.ACCEPT
+    )
+
+
+def test_confirmed_satisfiable_arguments_qualify() -> None:
+    assert ON.decide(_obs(action_type="read", arguments_satisfiable=True)).action == (
+        DecisionAction.ACCEPT
+    )
+
+
+def test_unsatisfiable_arguments_do_not_change_the_default_engine() -> None:
+    """The new field must not alter behaviour when the path is off."""
+    for value in (True, False, None):
+        assert OFF.decide(_obs(action_type="read", arguments_satisfiable=value)).action == (
+            DecisionAction.ABSTAIN
+        )

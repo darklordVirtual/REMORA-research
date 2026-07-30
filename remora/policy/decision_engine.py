@@ -197,6 +197,14 @@ def _is_low_consequence(obs: PolicyObservation) -> bool:
     if obs.evidence_contradictions:
         return False
 
+    # A call whose required arguments cannot be sourced is one an agent would
+    # have to fabricate arguments for. Bounded consequence does not cover a
+    # fabricated call: unit_conversion is pure arithmetic and still wrong when
+    # there is no amount to convert. Confirmed-unsatisfiable only — an
+    # unregistered tool is unknown and must not be disqualified.
+    if obs.arguments_satisfiable is False:
+        return False
+
     # Production is excluded even for reads: blast radius there includes
     # disclosure of live data, which no read-only guarantee covers.
     if (obs.target_environment or "").strip().lower() in {"prod", "production"}:
