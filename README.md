@@ -213,12 +213,17 @@ The Licensor is Stian Skogbrott; **no commercial use is permitted without a
 commercial license from the Licensor**.
 
 The BSL permits source inspection, modification, redistribution,
-non-production use and the limited non-commercial Production Uses specified
-in its Additional Use Grant. Commercial production use — including internal
-business production, paid consulting, SaaS, API, managed service, OEM,
-embedding, white-label use, resale or commercial redistribution — requires a
-separate commercial agreement. See [LICENSING.md](LICENSING.md) for scope and
-examples; contact: support@luftfiber.no.
+non-production use and the non-commercial Production Uses specified in its
+Additional Use Grant. **Research is expressly welcome**: studying,
+benchmarking, reproducing and publishing results (no benchmark clause) is
+granted to any person or organization, and 90-day observer-only shadow-mode
+research evaluation is granted even inside companies — see the researcher
+section of [LICENSING.md](LICENSING.md). Commercial production use —
+including internal business production, paid consulting, SaaS, API, managed
+service, OEM, embedding, white-label use, resale or commercial
+redistribution — requires a separate commercial agreement. See
+[LICENSING.md](LICENSING.md) for scope and examples; contact:
+support@luftfiber.no.
 
 Before contributing, see [docs/10-contributing.md](docs/10-contributing.md):
 run the full quality gate (`make audit` — or, with no `make`, `python -m pytest`
