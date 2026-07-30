@@ -204,7 +204,7 @@ function optionalBearer(request: Request, env: Env): boolean {
 async function embedText(text: string, env: Env, multilingual: boolean): Promise<number[]> {
   const truncated = text.slice(0, 512);
   const model = multilingual ? env.EMBED_MODEL_MULTI : env.EMBED_MODEL;
-  const result = await env.AI.run(model as BaseAiTextEmbeddingsModels, { text: [truncated] });
+  const result = await env.AI.run(model, { text: [truncated] });
   return (result as { data: number[][] }).data[0];
 }
 
@@ -212,7 +212,7 @@ async function embedText(text: string, env: Env, multilingual: boolean): Promise
 
 async function translateToEnglish(text: string, env: Env): Promise<string> {
   try {
-    const result = await env.AI.run(env.TRANSLATE_MODEL as BaseAiTranslationModels, {
+    const result = await env.AI.run(env.TRANSLATE_MODEL, {
       text,
       source_lang: 'no',
       target_lang: 'en',
@@ -234,7 +234,7 @@ async function rerankChunks(
   if (chunks.length <= topK) return { chunks, reranked: false };
   try {
     const texts = chunks.map(c => c.content.slice(0, 512));
-    const result = await env.AI.run(env.RERANKER_MODEL as BaseAiRerankModels, { query, texts });
+    const result = await env.AI.run(env.RERANKER_MODEL, { query, texts });
     const raw = result as unknown;
 
     // Defensively handle possible output shapes from Workers AI reranker
@@ -286,7 +286,7 @@ async function synthesiseSingle(
   env: Env,
 ): Promise<Pick<RemoraVerdict, 'answer' | 'claim' | 'confidence'>> {
   const { system, user } = buildPrompts(query, context);
-  const result = await env.AI.run(model as BaseAiTextGenerationModels, {
+  const result = await env.AI.run(model, {
     messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
     max_tokens: 300,
     temperature: 0.1,
@@ -301,7 +301,7 @@ async function synthesiseDual(
 ): Promise<Pick<RemoraVerdict, 'answer' | 'claim' | 'confidence'> & { models_agreed: boolean; model: string }> {
   const { system, user } = buildPrompts(query, context);
   const runModel = (m: string) =>
-    env.AI.run(m as BaseAiTextGenerationModels, {
+    env.AI.run(m, {
       messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
       max_tokens: 300,
       temperature: 0.1,
@@ -403,7 +403,7 @@ async function handleQuery(body: QueryRequest, env: Env): Promise<Response> {
   // enforced boundary. A production deployment MUST place an authenticating
   // proxy in front that derives these from a verified identity; otherwise a
   // caller can declare any clearance/tenant.
-  const filter: Record<string, unknown> = {};
+  const filter: VectorizeVectorMetadataFilter = {};
   if (body.access) {
     const { clearance_levels, tenant_id } = body.access;
     if (clearance_levels?.length) {
@@ -633,7 +633,7 @@ async function handleTranslate(
   env: Env,
 ): Promise<Response> {
   if (!body.text?.trim()) return err('text is required');
-  const result = await env.AI.run(env.TRANSLATE_MODEL as BaseAiTranslationModels, {
+  const result = await env.AI.run(env.TRANSLATE_MODEL, {
     text: body.text,
     source_lang: body.source_lang ?? 'no',
     target_lang: body.target_lang ?? 'en',

@@ -34,7 +34,7 @@ function json(data: unknown, status = 200): Response {
 
 async function embed(text: string, env: Env): Promise<number[]> {
   // bge-m3 (1024-dim, multilingual) — matches DCE's norges-lover-law-index embedding model
-  const result = await env.AI.run("@cf/baai/bge-m3" as BaseAiTextEmbeddingsModels, {
+  const result = await env.AI.run("@cf/baai/bge-m3", {
     text: [text.slice(0, 2048)],
   });
   return (result as { data: number[][] }).data[0];

@@ -572,7 +572,7 @@ async function computeAii(
 
   // Phase 4: transfer is NOT_MEASURED when no real replay data exists.
   // Assigning 0.5 when replayTransferScore is null fabricates a score.
-  const transfer_score: number | null = replayTransferScore !== null
+  const transfer_score: number | null = replayTransferScore != null
     ? Math.max(0, Math.min(1, replayTransferScore))
     : null;
   const transfer_not_measured = transfer_score === null;
@@ -2658,7 +2658,7 @@ async function handleIntelligence(env: Env, url: URL): Promise<Response> {
   // Cross-domain transfer cases: 0 means T4=1.0 is from in-domain replay only, not true cross-domain
   let crossDomainCases = 0;
   if (realReplay) {
-    const cdt = (realReplay as Record<string, unknown>).cross_domain_transfer;
+    const cdt = realReplay.cross_domain_transfer;
     if (cdt && typeof cdt === 'object') {
       for (const [k, v] of Object.entries(cdt as Record<string, unknown>)) {
         if (k.endsWith('_cases')) crossDomainCases += Number(v ?? 0);

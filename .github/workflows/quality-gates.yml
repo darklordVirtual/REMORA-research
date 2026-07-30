@@ -103,6 +103,44 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+  worker-typecheck:
+    # Issue #86 (F-09): the Cloudflare workers were not typechecked by any CI
+    # gate, so @cloudflare/workers-types drift (caret ranges float to new
+    # builds) surfaced only at deploy time. This gate runs `tsc --noEmit` per
+    # worker directory that has a tsconfig.json. A red leg after an upstream
+    # workers-types release is real drift to fix, not a flake.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        worker: [agent-control, aromer, law-search, rag-oracle]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          # npm 11 required (Node 24 bundles it): the worker lockfiles are
+          # regenerated with npm 11, which records optional platform-variant
+          # deps (@esbuild/*) for all platforms — npm 10 rejects them in
+          # strict `npm ci` (same class as the frontend @emnapi note above).
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: workers/${{ matrix.worker }}/package-lock.json
+
+      - name: Install deps
+        working-directory: workers/${{ matrix.worker }}
+        run: npm ci
+
+      - name: Typecheck
+        # `npx tsc --noEmit` directly rather than an npm script: script names
+        # are inconsistent across workers today (only agent-control defines
+        # one), and the gate must not depend on per-package script naming.
+        working-directory: workers/${{ matrix.worker }}
+        run: npx tsc --noEmit
+
   replay-heavy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
