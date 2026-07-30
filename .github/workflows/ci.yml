@@ -355,6 +355,117 @@ jobs:
           curl -sf http://127.0.0.1:8765/v1/health
           kill $SERVE_PID
 
+  deterministic-round:
+    # Issue #84 / external review F-06: the documented fail-hard reproduction
+    # round must be green in CI, not just by convention. The round REGENERATES
+    # result files, so this job verifies in a throwaway workspace and never
+    # commits. Deterministic on Linux EXCEPT provenance sidecars (git_commit /
+    # generated_at / worktree state) and toolcall_blind_v3_results.json
+    # (embeds a run timestamp and platform path separators) — those get
+    # semantic checks instead of byte-diff (unscoped `git diff --exit-code`
+    # false-fails, verified empirically 2026-07-30).
+    name: Deterministic reproduction round (verify-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e ".[dev,causal]" -c /tmp/constraints.txt
+
+      - name: Run the full deterministic round (fail-hard)
+        run: python scripts/run_deterministic_round_2026_07.py
+
+      - name: Byte-determinism outside the known-variable files
+        run: |
+          CHANGED=$(git diff --name-only -- . \
+            ':(exclude)*.provenance.json' \
+            ':(exclude)results/toolcall_blind_v3_results.json')
+          if [ -n "$CHANGED" ]; then
+            echo "ERROR: round changed files that must be byte-deterministic:" >&2
+            echo "$CHANGED" >&2
+            git diff --stat -- $CHANGED >&2
+            exit 1
+          fi
+          echo "byte-determinism holds outside the known-variable files"
+
+      - name: Semantic compare for the timestamped artifact
+        run: |
+          python - <<'PY'
+          import json, subprocess, sys
+
+          PATH = "results/toolcall_blind_v3_results.json"
+          VOLATILE_KEYS = {"generated_at", "timestamp", "run_timestamp"}
+
+          def normalize(obj):
+              if isinstance(obj, dict):
+                  return {k: normalize(v) for k, v in sorted(obj.items())
+                          if k not in VOLATILE_KEYS}
+              if isinstance(obj, list):
+                  return [normalize(v) for v in obj]
+              if isinstance(obj, str):
+                  return obj.replace("\\", "/")
+              return obj
+
+          committed = json.loads(subprocess.run(
+              ["git", "show", f"HEAD:{PATH}"],
+              capture_output=True, text=True, check=True).stdout)
+          regenerated = json.load(open(PATH, encoding="utf-8"))
+          a, b = normalize(committed), normalize(regenerated)
+          if a != b:
+              for key in sorted(set(a) | set(b)):
+                  if a.get(key) != b.get(key):
+                      print(f"DIVERGES at top-level key: {key}", file=sys.stderr)
+              sys.exit(1)
+          print("semantic compare (volatile keys stripped): identical")
+          PY
+
+      - name: Sidecar self-consistency
+        # Every sidecar the round wrote must hash-bind the artifact next to it
+        # (LF-normalized SHA-256, the manifest protocol).
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, subprocess, sys
+
+          changed = subprocess.run(
+              ["git", "diff", "--name-only", "--", "*.provenance.json"],
+              capture_output=True, text=True, check=True).stdout.split()
+          if not changed:
+              print("ERROR: the round wrote no sidecars — orchestrator broken",
+                    file=sys.stderr)
+              sys.exit(1)
+          errors = []
+          for rel in changed:
+              sidecar = pathlib.Path(rel)
+              prov = json.loads(sidecar.read_text(encoding="utf-8"))
+              # The sidecar's "artifact" field is the bare filename; the
+              # artifact always lives NEXT TO its sidecar (caught in the
+              # local rehearsal of this job, 2026-07-30).
+              artifact = sidecar.parent / prov["artifact"]
+              if not artifact.exists():
+                  errors.append(f"{rel}: artifact missing: {artifact}")
+                  continue
+              data = artifact.read_bytes().replace(b"\r\n", b"\n")
+              actual = hashlib.sha256(data).hexdigest()
+              if actual != prov["artifact_sha256"]:
+                  errors.append(f"{rel}: artifact_sha256 mismatch")
+          if errors:
+              print("\n".join(errors), file=sys.stderr)
+              sys.exit(1)
+          print(f"sidecar self-consistency OK for {len(changed)} sidecars")
+          PY
+
   artifact-integrity:
     name: Key artifact integrity
     runs-on: ubuntu-latest

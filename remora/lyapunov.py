@@ -15,6 +15,14 @@ class LyapunovParams:
     mu_cost: float = 0.0
     epsilon_tolerance: float = 0.05
     min_window: int = 2
+    # Issue #50 (M2): number of CONSECUTIVE over-threshold ΔV increases
+    # required before should_abort() signals abort. The default of 1 preserves
+    # the original greedy one-step behavior exactly; k > 1 tolerates a single
+    # transient spike followed by recovery. Changing the default (or having a
+    # call site pass a non-default value) changes accept/abort behavior on
+    # live sessions and is a policy-version event that must be scheduled with
+    # the rebenchmark round (docs/assurance/rebenchmark_protocol_v1.md).
+    abort_window: int = 1
 
 
 @dataclass(frozen=True)
@@ -127,8 +135,16 @@ class LyapunovController:
         return self.history[-2] if len(self.history) >= 2 else None
 
     def should_abort(self, allow_exploration=False):
-        """Return (abort: bool, reason: str) based on ΔV vs epsilon_tolerance."""
-        if len(self.history) < max(2, self.params.min_window):
+        """Return (abort: bool, reason: str) based on ΔV vs epsilon_tolerance.
+
+        With ``params.abort_window`` k > 1 (issue #50 M2), abort requires the
+        last k consecutive steps to EACH show an over-threshold ΔV increase
+        (per-step threshold, evaluated pairwise) — a single spike followed by
+        recovery does not abort. The default k = 1 preserves the original
+        greedy one-step behavior exactly, including reason strings.
+        """
+        window = max(1, self.params.abort_window)
+        if len(self.history) < max(window + 1, self.params.min_window):
             return False, "warming_up"
         latest = self.history[-1]
         prev = self.history[-2]
@@ -139,6 +155,20 @@ class LyapunovController:
         delta_V = latest.V - prev.V
         threshold = abs(prev.V) * self.params.epsilon_tolerance + 1e-9
         if delta_V > threshold:
+            # Latest step increased. For k > 1, the k-1 preceding steps must
+            # each also be over-threshold increases before we abort.
+            for back in range(2, window + 1):
+                newer = self.history[-back]
+                older = self.history[-back - 1]
+                if older.V == float("inf") or newer.V == float("inf"):
+                    return False, f"window_interrupted_by_unknown_at_-{back}"
+                step_delta = newer.V - older.V
+                step_threshold = abs(older.V) * self.params.epsilon_tolerance + 1e-9
+                if step_delta <= step_threshold:
+                    return False, (
+                        f"single_spike_tolerated dV={delta_V:.4f} "
+                        f"(abort_window={window} consecutive increases required)"
+                    )
             if allow_exploration:
                 return False, f"exploration_allowed_dV={delta_V:.4f}"
             return True, f"V_increased dV={delta_V:.4f} > eps={threshold:.4f}"
