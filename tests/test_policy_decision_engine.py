@@ -1019,3 +1019,53 @@ class TestInvariants:
         r2 = engine.decide(obs)
         assert r1.action == r2.action
 
+
+
+# ---------------------------------------------------------------------------
+# Issue #40 (2026-07-30): tainted-argument floor is tier-dependent
+# ---------------------------------------------------------------------------
+
+
+def test_tainted_critical_escalates_never_approvable_verify(engine: RemoraDecisionEngine) -> None:
+    """A tainted argument at CRITICAL risk escalates (issue #40 option c):
+    it must never surface as an approvable VERIFY a reviewer can wave through
+    without the argument being sanitized."""
+    obs = PolicyObservation(
+        question="apply tainted config to core router",
+        risk_tier="critical",
+        action_type="destructive_write",
+        target_environment="prod",
+        argument_tainted=True,
+        schema_valid=True,
+    )
+    report = engine.decide(obs)
+    assert report.action == DecisionAction.ESCALATE
+    assert DecisionReason.TAINTED_ARGUMENT_ESCALATE in report.reasons
+    assert report.human_review_required is True
+
+
+def test_tainted_critical_case_insensitive_tier(engine: RemoraDecisionEngine) -> None:
+    """Tier normalisation applies before the tainted branch ('CRITICAL' == 'critical')."""
+    obs = PolicyObservation(
+        question="q", risk_tier="CRITICAL", argument_tainted=True, schema_valid=True,
+    )
+    report = engine.decide(obs)
+    assert report.action == DecisionAction.ESCALATE
+    assert DecisionReason.TAINTED_ARGUMENT_ESCALATE in report.reasons
+
+
+@pytest.mark.parametrize("tier", ["low", "medium", "high"])
+def test_tainted_non_critical_keeps_verify_floor(engine: RemoraDecisionEngine, tier: str) -> None:
+    """Non-critical tiers keep the established VERIFY floor unchanged."""
+    obs = PolicyObservation(
+        question="q", risk_tier=tier, argument_tainted=True, schema_valid=True,
+    )
+    report = engine.decide(obs)
+    assert report.action == DecisionAction.VERIFY
+    assert DecisionReason.TAINTED_ARGUMENT_VERIFY in report.reasons
+
+
+def test_policy_version_is_v4(engine: RemoraDecisionEngine) -> None:
+    """The tier-dependent tainted floor is a behavior change -> version bump."""
+    report = engine.decide(PolicyObservation(question="q", risk_tier="low"))
+    assert report.policy_version == "RemoraDecisionEngine-v4"

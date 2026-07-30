@@ -156,6 +156,14 @@ def hard_guard_floor(
         )
         return action, DecisionReason.EVIDENCE_CONTRADICTED
     if obs.argument_tainted:
+        # Issue #40 decision (2026-07-30): at CRITICAL risk a tainted
+        # argument is never an approvable VERIFY — it escalates, so no
+        # reviewer can wave through an unsanitized critical write. The
+        # target state (option b: sanitize + revalidate before approval is
+        # grantable) is tracked in #40; until that machinery exists the
+        # floor fails toward ESCALATE for the critical tier.
+        if _normalize_risk_tier(obs.risk_tier) == "critical":
+            return DecisionAction.ESCALATE, DecisionReason.TAINTED_ARGUMENT_ESCALATE
         return DecisionAction.VERIFY, DecisionReason.TAINTED_ARGUMENT_VERIFY
     return None
 
@@ -556,12 +564,11 @@ class RemoraDecisionEngine:
         # Single source of truth: hard_guard_floor(). The same function backs
         # the OPA adapter's monotonicity floor, so an external PDP can never
         # downgrade below what this stage would return. The tainted-argument
-        # VERIFY floor is intentionally last in hard_guard_floor(): the
-        # conditional ESCALATE gates further down (critical-phase+critical-risk,
-        # rollback, state-transition, production-write matrix) are NOT given
-        # priority over it — a tainted critical production write yields VERIFY,
-        # not ESCALATE; both block autonomous execution and set
-        # human_review_required.
+        # floor is intentionally last in hard_guard_floor() and is
+        # tier-dependent (issue #40, 2026-07-30): CRITICAL risk escalates
+        # (TAINTED_ARGUMENT_ESCALATE — never an approvable VERIFY), other
+        # tiers yield the VERIFY floor. Both block autonomous execution and
+        # set human_review_required.
 
         _floor = None if _skip_hard_floor else hard_guard_floor(obs)
 
@@ -826,8 +833,8 @@ class RemoraDecisionEngine:
 
         r("tainted_argument_check",
           obs.argument_tainted,
-          f"argument_tainted={obs.argument_tainted}",
-          "VERIFY")
+          f"argument_tainted={obs.argument_tainted} risk_tier={obs.risk_tier}",
+          "ESCALATE" if _normalize_risk_tier(obs.risk_tier) == "critical" else "VERIFY")
 
         # ── CONDITIONAL GATES (single source: _CONDITIONAL_GATES) ───────────
         # Record every conditional gate from the same ordered inventory decide()
@@ -1101,7 +1108,8 @@ class RemoraDecisionEngine:
             explanation=explanation_map[action],
             raw_observation=raw_obs if raw_obs is not None else obs,
             source_of_decision=source,
-            policy_version="RemoraDecisionEngine-v3",
+            # v4 (2026-07-30): tier-dependent tainted floor (issue #40).
+            policy_version="RemoraDecisionEngine-v4",
             in_sample_calibration_warning=(
                 "temperature threshold may be in-sample if derived from evaluation artifact"
                 if DecisionReason.TEMPERATURE_ACCEPT in reasons and self.temperature_threshold is not None

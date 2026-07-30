@@ -40,6 +40,10 @@ class DecisionReason(str, Enum):
     MALFORMED_CALL_BLOCKED = "malformed_call_blocked"
     FORBIDDEN_TOOL_BLOCKED = "forbidden_tool_blocked"
     TAINTED_ARGUMENT_VERIFY = "tainted_argument_verify"
+    # Issue #40 decision (2026-07-30): tainted arguments at CRITICAL risk are
+    # never an approvable VERIFY — they escalate (option c; option b,
+    # sanitize-and-revalidate before approval, is the tracked target state).
+    TAINTED_ARGUMENT_ESCALATE = "tainted_argument_escalate"
     # Credal risk gates (v0.9)
     MINIMAX_ESCALATE = "minimax_escalate"       # worst_case_loss >= threshold
     TRAP_ESCALATE    = "trap_escalate"          # trap_score >= 0.70
@@ -87,7 +91,9 @@ class DecisionReport:
     explanation: str
     raw_observation: PolicyObservation
     source_of_decision: str = "default"
-    policy_version: str = "RemoraDecisionEngine-v3"
+    # v4 (2026-07-30): tainted-argument floor is tier-dependent — critical
+    # risk escalates instead of the approvable VERIFY (issue #40 decision).
+    policy_version: str = "RemoraDecisionEngine-v4"
     in_sample_calibration_warning: str | None = None
     # True when the OPA daemon was unreachable and the Python engine was used
     # as fallback.  Consumers should surface this in audit records.

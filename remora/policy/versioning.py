@@ -25,7 +25,7 @@ Usage
 
     bundle_hash = compute_policy_bundle_hash()
     audit_block = AuditBlock(
-        policy_version="RemoraDecisionEngine-v3",
+        policy_version="RemoraDecisionEngine-v4",
         policy_bundle_hash=bundle_hash,
         ...
     )
