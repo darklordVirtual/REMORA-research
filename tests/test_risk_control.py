@@ -148,3 +148,56 @@ def test_no_nan_and_threshold_from_calibration_scores() -> None:
         assert not math.isnan(res.risk_bound)
         if res.certified:
             assert res.threshold in scores
+
+
+# ---------------------------------------------------------------------------
+# External review 2026-07-29 F-07 (issue #85): SGR is not "largest set",
+# and the rejected path must report the BEST evaluated bound.
+# ---------------------------------------------------------------------------
+
+
+def test_sgr_binary_search_can_miss_larger_passing_set_documented():
+    """Erlend's counterexample: four correct points, target 0.6, delta 0.1.
+
+    The full-coverage cut (CP upper bound ~0.5727 <= 0.6) would pass, but the
+    binary-search walk never evaluates it and returns certified=False. This
+    pins the DOCUMENTED behavior: the procedure's guarantee holds over the
+    evaluated candidates only - certified=False means "the pre-registered SGR
+    procedure returned zero certified coverage", not "no coverage is
+    certifiable".
+    """
+    from remora.selective.risk_control import (
+        clopper_pearson_upper,
+        sgr_threshold,
+    )
+
+    scores = [0.9, 0.8, 0.7, 0.6]
+    losses = [0, 0, 0, 0]
+    result = sgr_threshold(scores, losses, target_risk=0.6, delta=0.1)
+
+    # The globally-largest set WOULD pass under the same per-test level...
+    full_bound = clopper_pearson_upper(0, 4, result.delta_spent)
+    assert full_bound <= 0.6
+    # ...yet the walk rejects (documented non-optimality, guarantee intact).
+    assert result.certified is False
+    assert result.coverage == 0.0
+
+
+def test_sgr_rejected_path_reports_best_evaluated_bound():
+    """risk_bound on certified=False must be the BEST (smallest) evaluated
+    bound, not the last one visited - the last-visited bound made SAP v3
+    report 0.99 when the best evaluated was ~0.0844 (F-07)."""
+    from remora.selective.risk_control import (
+        clopper_pearson_upper,
+        sgr_threshold,
+    )
+
+    scores = [0.9, 0.8, 0.7, 0.6]
+    losses = [0, 0, 0, 0]
+    result = sgr_threshold(scores, losses, target_risk=0.6, delta=0.1)
+
+    # Walk evaluates the n=2 cut first (bound ~0.8175), then n=1 (~0.9667).
+    best_evaluated = clopper_pearson_upper(0, 2, result.delta_spent)
+    last_evaluated = clopper_pearson_upper(0, 1, result.delta_spent)
+    assert result.risk_bound == pytest.approx(best_evaluated, abs=1e-9)
+    assert result.risk_bound < last_evaluated

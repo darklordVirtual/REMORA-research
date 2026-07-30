@@ -86,8 +86,11 @@ paired statistics, and no method chosen after seeing this round's labels.
   the clean low-temperature prefix is long (the Clopper–Pearson bound
   needs roughly ln(δ/m)/ln(1 − r\*) ≈ 90 consecutive accepted items with
   ~0 errors at these settings). If certification fails, the honest result
-  is "no autonomous-accept threshold is certifiable at this budget" — the
-  system abstains; the budget is not softened after seeing data.
+  is "the pre-registered SGR procedure certifies no autonomous-accept
+  threshold at this budget" — procedure-scoped, since the binary-search
+  walk evaluates only ~log₂(K) candidates and is optimal only under a
+  monotone bound (external review 2026-07-29 F-07). The system abstains;
+  the budget is not softened after seeing data.
 - **Secondary certification: CRC** on the same split, α = 0.05, over the
   plain 0/1 ACCEPTED-AND-WRONG loss (B = 1). The severity-weighted
   variant is DEFERRED: this knowledge corpus carries no harm-category
@@ -125,7 +128,11 @@ procedure controls the declared selective risk under the stated
 assumptions. Evidence: the certification held on risk calibration AND the
 realized selective risk on the untouched test split ≤ r\*. Success
 language requires both; a certified-but-not-realized outcome is reported
-as a guarantee-assumption failure, not explained away.
+as such and investigated — a single test point-estimate above r\* can be
+the permitted δ-probability event or ordinary sampling variation in the
+finite test split, and only beyond those explanations is it evidence of
+a guarantee-assumption (e.g. exchangeability) failure. It is never
+explained away.
 
 **Claim C (cumulative evidence; separate long-term track):** an e-process
 for H₀: selective risk ≥ r\*, with preconditions fixed now: acceptance

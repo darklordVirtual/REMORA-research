@@ -27,6 +27,28 @@ releases.
 
 ## [Unreleased]
 
+### Statistical precision (2026-07-30) — SGR diagnostics and wording (issue #85 / review F-07)
+
+- `sgr_threshold` on the rejected path now reports the **best (smallest)
+  evaluated Clopper–Pearson bound** as `risk_bound`, matching the
+  dataclass contract — previously it returned the *last visited* bound,
+  which made the SAP v3 sidecar report temperature `risk_bound=0.99`
+  when the best evaluated bound was ≈0.0844. Frozen artifacts keep their
+  recorded values; the semantics note travels with the code.
+- Docstrings and claim documents no longer describe the SGR result as
+  "the largest acceptance set": the binary-search walk is optimal only
+  under a monotone bound (with zero observed errors the CP bound
+  *decreases* with coverage, so a larger passing set can exist that the
+  walk never visits — pinned by a regression test with the review's
+  counterexample). Certified=False now reads, everywhere, as "the
+  pre-registered SGR procedure returned zero certified coverage", not
+  "no coverage is certifiable". The CRC full-scan variant's "largest
+  set" claim is correct and unchanged.
+- SAP v3 Claim B: a certified-but-not-realized test outcome is
+  investigated before being labelled a guarantee-assumption failure —
+  the permitted δ event and ordinary sampling variation are acknowledged
+  alternative explanations.
+
 ### Policy behavior change (2026-07-30) — RemoraDecisionEngine-v4
 
 - **Tainted arguments at CRITICAL risk now ESCALATE** (new reason

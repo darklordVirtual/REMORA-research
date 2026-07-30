@@ -79,10 +79,14 @@ to temperature's (0.0385) that no superiority claim is possible.
 
 ### Certified gates demonstrated on round data (train-calibrated, exploratory)
 
-- **SGR** (target risk 5 %, δ = 0.10, n_cal = 436): **not certifiable** —
-  the Clopper–Pearson bound cannot reach 5 % at any coverage with this
-  calibration size. A valid procedure returning nothing useful: exactly
-  the "valid ≠ useful" small-sample behaviour the review warned about.
+- **SGR** (target risk 5 %, δ = 0.10, n_cal = 436): **zero certified
+  coverage** — the pre-registered procedure certified no threshold at
+  these settings; the Clopper–Pearson bound needs a long near-error-free
+  accepted prefix that this calibration data does not provide. (Scoped to
+  the procedure: the binary-search walk evaluates ~log₂(K) candidates and
+  is optimal only under a monotone bound — F-07.) A valid procedure
+  returning nothing useful: exactly the "valid ≠ useful" small-sample
+  behaviour the review warned about.
 - **CRC** (α = 5 %): certifies **53 % train coverage** (criterion 0.048);
   realized on the holdout: 2 errors / 57 accepted (3.5 % conditional,
   1.9 % unconditional — within budget). NOTE the semantics: CRC controls
