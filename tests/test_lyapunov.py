@@ -101,3 +101,53 @@ def test_summarize_v_trajectories_reports_aggregate_stability():
     assert summary["fraction_monotone_nonincreasing"] == 2 / 3
     assert summary["divergent_fraction"] == 1 / 3
     assert summary["mean_total_reduction"] > 0
+
+
+# ---------------------------------------------------------------------------
+# Issue #50 (M2): configurable abort_window — k consecutive increases
+# ---------------------------------------------------------------------------
+
+
+def test_abort_window_default_preserves_greedy_behavior():
+    """abort_window=1 (default) must behave exactly like the original:
+    a single over-threshold increase aborts, reason string unchanged."""
+    params = LyapunovParams(epsilon_tolerance=0.01, min_window=2)
+    assert params.abort_window == 1
+    ctrl = LyapunovController.init(params)
+    ctrl.push(_make_state(1, V=1.0))
+    ctrl.push(_make_state(2, V=2.0))
+    abort, reason = ctrl.should_abort()
+    assert abort
+    assert "V_increased" in reason
+
+
+def test_abort_window_two_tolerates_single_spike():
+    """k=2: one spike followed by recovery must NOT abort."""
+    params = LyapunovParams(epsilon_tolerance=0.01, min_window=2, abort_window=2)
+    ctrl = LyapunovController.init(params)
+    for i, v in enumerate([2.0, 1.0, 2.0]):  # down, then ONE spike
+        ctrl.push(_make_state(i + 1, V=v))
+    abort, reason = ctrl.should_abort()
+    assert not abort
+    assert "single_spike_tolerated" in reason
+
+
+def test_abort_window_two_aborts_on_two_consecutive_increases():
+    params = LyapunovParams(epsilon_tolerance=0.01, min_window=2, abort_window=2)
+    ctrl = LyapunovController.init(params)
+    for i, v in enumerate([1.0, 1.5, 2.5]):  # two consecutive increases
+        ctrl.push(_make_state(i + 1, V=v))
+    abort, reason = ctrl.should_abort()
+    assert abort
+    assert "V_increased" in reason
+
+
+def test_abort_window_needs_enough_history():
+    """k=2 with only two points is still warming up (needs k+1 states)."""
+    params = LyapunovParams(epsilon_tolerance=0.01, min_window=2, abort_window=2)
+    ctrl = LyapunovController.init(params)
+    ctrl.push(_make_state(1, V=1.0))
+    ctrl.push(_make_state(2, V=2.0))
+    abort, reason = ctrl.should_abort()
+    assert not abort
+    assert reason == "warming_up"
