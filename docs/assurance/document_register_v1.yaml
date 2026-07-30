@@ -1,5 +1,5 @@
 schema_version: '1'
-updated: '2026-07-28'
+updated: '2026-07-30'
 documents:
 - id: DOC-001
   version: v1
@@ -2049,6 +2049,16 @@ documents:
   last_reviewed: '2026-07-30'
   audience:
   - researchers
+  - evaluator
+- id: DOC-289
+  version: v1
+  path: docs/13-research-frontier-roadmap.md
+  status: proposal
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: '2026-07-30'
+  audience:
+  - researcher
   - evaluator
 
 topics:
