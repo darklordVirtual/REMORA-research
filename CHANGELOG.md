@@ -49,6 +49,30 @@ releases.
   the permitted δ event and ordinary sampling variation are acknowledged
   alternative explanations.
 
+### Policy behavior change (2026-07-31) — RemoraDecisionEngine-v5
+
+- **Temperature ACCEPT now excludes the critical phase.** The marginal
+  (phase-blind) conformal ACCEPT path has always carried an
+  `obs.phase != "critical"` exclusion, because trust anti-correlates with
+  correctness in that phase (ARCHITECTURE.md §8, CLAIM-005) and a phase-blind
+  threshold would accept exactly the items most likely to be wrong. The
+  temperature ACCEPT path is the same kind of phase-blind aggregate over the
+  oracle distribution but was missing the guard, so a low temperature could
+  silently override critical-phase VERIFY routing. Both paths now agree.
+- This is a **tightening**: it removes an accept path, it does not add one.
+  Measured effect on the N500 v3 round: temperature-calibrated coverage falls
+  18% → 5.7% (31/544). Accuracy on the accepted set is asserted separately and
+  is unaffected. `tests/test_end_to_end_n500_v3.py` is re-baselined to the
+  3–10% band with the rationale recorded in the test.
+- Engine `policy_version` bumped `RemoraDecisionEngine-v4` → `-v5`. The
+  illustrative Rego policy has no temperature ACCEPT path, so there is no
+  engine/OPA parity change and no new conformance golden case.
+- Promoted benchmark artifacts remain v4 (and earlier) snapshots with their
+  recorded provenance; regeneration under v5 follows
+  `docs/assurance/rebenchmark_protocol_v1.md`. FAR-based claims are unaffected
+  by construction — the removed path only ever produced ACCEPT, so any item it
+  no longer accepts moves to a blocking outcome.
+
 ### Policy behavior change (2026-07-30) — RemoraDecisionEngine-v4
 
 - **Tainted arguments at CRITICAL risk now ESCALATE** (new reason

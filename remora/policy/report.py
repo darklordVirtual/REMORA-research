@@ -92,9 +92,11 @@ class DecisionReport:
     explanation: str
     raw_observation: PolicyObservation
     source_of_decision: str = "default"
+    # v5 (2026-07-31): the temperature ACCEPT path excludes the critical
+    # phase, matching the marginal conformal path.
     # v4 (2026-07-30): tainted-argument floor is tier-dependent — critical
     # risk escalates instead of the approvable VERIFY (issue #40 decision).
-    policy_version: str = "RemoraDecisionEngine-v4"
+    policy_version: str = "RemoraDecisionEngine-v5"
     in_sample_calibration_warning: str | None = None
     # True when the OPA daemon was unreachable and the Python engine was used
     # as fallback.  Consumers should surface this in audit records.

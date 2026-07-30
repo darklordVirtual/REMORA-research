@@ -462,6 +462,32 @@ def test_temperature_accept_at_exact_threshold() -> None:
     assert DecisionReason.TEMPERATURE_ACCEPT in report.reasons
 
 
+def test_temperature_accept_excluded_in_critical_phase() -> None:
+    """A low temperature must not accept in the critical phase — VERIFY instead.
+
+    v5 (2026-07-31). The marginal conformal ACCEPT path has always excluded the
+    critical phase because trust anti-correlates with correctness there
+    (ARCHITECTURE.md §8, CLAIM-005). The temperature path is the same kind of
+    phase-blind aggregate over the oracle distribution but was missing the
+    guard, so a low temperature could override critical-phase VERIFY routing.
+    """
+    e = RemoraDecisionEngine(temperature_threshold=0.20)
+    obs = PolicyObservation(question="q", temperature=0.05, phase="critical")
+    report = e.decide(obs)
+    assert report.action == DecisionAction.VERIFY
+    assert DecisionReason.TEMPERATURE_ACCEPT not in report.reasons
+    assert DecisionReason.CRITICAL_PHASE in report.reasons
+
+
+def test_temperature_accept_still_applies_in_ordered_phase() -> None:
+    """The v5 critical-phase exclusion must not affect the ordered phase."""
+    e = RemoraDecisionEngine(temperature_threshold=0.20)
+    obs = PolicyObservation(question="q", temperature=0.05, phase="ordered")
+    report = e.decide(obs)
+    assert report.action == DecisionAction.ACCEPT
+    assert DecisionReason.TEMPERATURE_ACCEPT in report.reasons
+
+
 # ---------------------------------------------------------------------------
 # evidence_contradictions guard regression tests (fix: != 0 → == 0)
 # ---------------------------------------------------------------------------
@@ -1068,4 +1094,4 @@ def test_tainted_non_critical_keeps_verify_floor(engine: RemoraDecisionEngine, t
 def test_policy_version_is_v4(engine: RemoraDecisionEngine) -> None:
     """The tier-dependent tainted floor is a behavior change -> version bump."""
     report = engine.decide(PolicyObservation(question="q", risk_tier="low"))
-    assert report.policy_version == "RemoraDecisionEngine-v4"
+    assert report.policy_version == "RemoraDecisionEngine-v5"

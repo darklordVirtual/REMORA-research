@@ -669,10 +669,17 @@ class RemoraDecisionEngine:
             reasons.append(DecisionReason.CONFORMAL_ACCEPT)
             return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
+        # Temperature ACCEPT carries the same critical-phase exclusion as the
+        # marginal conformal path above, and for the same reason: temperature
+        # is a phase-blind aggregate of the oracle distribution, so in the
+        # critical phase a low value selects the items where trust
+        # anti-correlates with correctness. Without this guard a low
+        # temperature silently overrides critical-phase VERIFY routing.
         if (
             self.temperature_threshold is not None
             and obs.temperature is not None
             and obs.temperature <= self.temperature_threshold
+            and obs.phase != "critical"
             and obs.counterfactual_passed is not False
             and not (obs.evidence_contradictions or 0)
         ):
@@ -1108,8 +1115,9 @@ class RemoraDecisionEngine:
             explanation=explanation_map[action],
             raw_observation=raw_obs if raw_obs is not None else obs,
             source_of_decision=source,
+            # v5 (2026-07-31): temperature ACCEPT excludes the critical phase.
             # v4 (2026-07-30): tier-dependent tainted floor (issue #40).
-            policy_version="RemoraDecisionEngine-v4",
+            policy_version="RemoraDecisionEngine-v5",
             in_sample_calibration_warning=(
                 "temperature threshold may be in-sample if derived from evaluation artifact"
                 if DecisionReason.TEMPERATURE_ACCEPT in reasons and self.temperature_threshold is not None
