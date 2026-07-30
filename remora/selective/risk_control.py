@@ -120,13 +120,21 @@ def sgr_threshold(
     target_risk: float,
     delta: float,
 ) -> RiskControlResult:
-    """Certify the largest score-threshold whose selective risk is bounded.
+    """Certify a score-threshold whose selective risk is bounded (SGR).
 
     ``scores``: higher = more confident (accept when score >= threshold).
     ``losses``: 1 = the item's prediction is wrong, 0 = correct.
-    Returns the largest acceptance set (fixed-sequence walk from smallest)
-    whose Clopper-Pearson upper bound on errors-among-accepted stays
-    <= ``target_risk`` at confidence 1 - ``delta``.
+    Returns the largest acceptance set FOUND BY THE BINARY-SEARCH WALK among
+    the (at most ``m``) evaluated candidates whose Clopper-Pearson upper
+    bound on errors-among-accepted stays <= ``target_risk`` at confidence
+    1 - ``delta``. This equals the globally largest certifiable set only
+    when the bound is monotone in coverage; with zero observed errors the
+    CP bound DECREASES as coverage grows, so a larger passing set can exist
+    that the walk never visits (external review 2026-07-29 F-07). The risk
+    guarantee itself (FWER <= ``delta`` via Bonferroni over the evaluated
+    candidates) holds regardless. A ``certified=False`` result therefore
+    means "the pre-registered SGR procedure returned zero certified
+    coverage", not "no coverage is certifiable".
     """
     _validate(scores, losses)
     order = sorted(range(len(scores)), key=lambda i: -scores[i])
@@ -148,7 +156,12 @@ def sgr_threshold(
     m = max(1, math.ceil(math.log2(len(cuts))) + 1)
     delta_step = delta / m
     best: tuple[float, int, int, float] | None = None
-    last_bound = 1.0
+    # Diagnostic on the rejected path: the BEST (smallest) bound among the
+    # evaluated candidates — the dataclass promises "best rejected bound".
+    # Returning the LAST evaluated bound instead made SAP v3 report
+    # risk_bound=0.99 when the best evaluated bound was ~0.0844 (external
+    # review 2026-07-29 F-07).
+    best_rejected_bound = 1.0
     lo, hi = 0, len(cuts) - 1
     for _ in range(m):
         if lo > hi:
@@ -156,7 +169,7 @@ def sgr_threshold(
         mid = (lo + hi) // 2
         threshold, n_acc, k_acc_err = cuts[mid]
         bound = clopper_pearson_upper(k_acc_err, n_acc, delta_step)
-        last_bound = bound
+        best_rejected_bound = min(best_rejected_bound, bound)
         if bound <= target_risk:
             best = (threshold, n_acc, k_acc_err, bound)
             lo = mid + 1  # try larger coverage
@@ -172,7 +185,7 @@ def sgr_threshold(
             n_calibration=n,
             n_accepted=0,
             empirical_risk=0.0,
-            risk_bound=last_bound,
+            risk_bound=best_rejected_bound,
             target=target_risk,
             delta_spent=delta_step,
         )
