@@ -43,6 +43,7 @@ The numbered series is the primary reading path.
 | [10-contributing.md](10-contributing.md) | Contribution rules and quality gates |
 | [11-benchmark-validation-plan.md](11-benchmark-validation-plan.md) | Plan for external benchmark validation |
 | [12-agentharm-validation.md](12-agentharm-validation.md) | AgentHarm external-benchmark validation |
+| [13-research-frontier-roadmap.md](13-research-frontier-roadmap.md) | Research frontier roadmap: RF-01–RF-09 work packages (PROPOSED) |
 | [AI_USE.md](AI_USE.md) | Disclosure of AI-assisted development |
 
 ## Evidence and results
