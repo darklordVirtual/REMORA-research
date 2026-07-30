@@ -1,0 +1,23 @@
+{
+  "schema": "result_provenance_v3",
+  "git_commit": "4d7d05742485ad227b2b25bae0849271fc8fa8dc",
+  "worktree_clean": false,
+  "pre_run_worktree_clean": true,
+  "allowed_generated_outputs": [
+    "results/se_backend_parity_smoke.json",
+    "results/se_backend_parity_smoke.provenance.json"
+  ],
+  "post_run_worktree_clean": true,
+  "worktree_dirty_beyond_outputs": [],
+  "python_version": "3.14.0",
+  "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
+  "script": "scripts/se_backend_parity_smoke.py",
+  "input_sha256": {
+    "corpus": "10f39fd18fedd8fb413fca14765a35f6986092eb1cd9992260d7f8b2cab663bb"
+  },
+  "random_seeds": [],
+  "command": "python scripts/se_backend_parity_smoke.py --require-nli --output results/se_backend_parity_smoke.json",
+  "generated_at": "2026-07-30T17:54:51.882464+00:00",
+  "artifact": "se_backend_parity_smoke.json",
+  "artifact_sha256": "3842257f833aebb0e6c7d808fa4a60a6bfb3d248710417b5d652790a186492bb"
+}

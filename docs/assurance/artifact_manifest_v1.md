@@ -93,6 +93,21 @@ generator scripts under the new input contract.
 
 ---
 
+## Addition Note (2026-07-30)
+
+`results/se_backend_parity_smoke.json` is added (new artifact, not a
+re-issue): the first NLI-executed semantic-entropy backend comparison on disk
+(RF-06 slice 1; `scripts/se_backend_parity_smoke.py` over the committed
+fixture corpus `data/se_parity/paraphrase_corpus_v1.json`, model
+`cross-encoder/nli-deberta-v3-small`). Byte-deterministic across repeated
+runs; provenance sidecar `results/se_backend_parity_smoke.provenance.json`
+(result_provenance_v3, pre- and post-run worktree clean). Scope caveat: a
+24-item fixture-corpus comparison, NOT a re-scoring of any reported
+benchmark — NEGATIVE_RESULTS.md §3 remains active (narrowed with a dated
+note there).
+
+---
+
 ## Primary Safety Gate Artifacts
 
 These are the two hard P0 release-blocker artifacts (REM-014, REM-019). Checksums
@@ -128,6 +143,7 @@ must not change unless the benchmark is re-run under a documented protocol.
 | `results/trust_calibration_report.json` | `83a5cb4190a6446f6fcb462c0e62226cdc0f52b75ca8569e12e87c305e83acc1` | 9579 | 2026-05-31T22:38:13 | Trust calibration report |
 | `results/gainability_routing.json` | `7d5245f410ed360362abed0720aabed2c959a2383951f6cdc35be68536a611e7` | 291 | 2026-06-09T22:51:30 | Gainability routing result |
 | `results/evidence_v2_n500.json` | `322a4f8a90bd111e98a48a9ae6f58442395986f86d999afb799467b473d18b1e` | 406 | 2026-06-09T22:51:30 | Evidence routing N=500 |
+| `results/se_backend_parity_smoke.json` | `3842257f833aebb0e6c7d808fa4a60a6bfb3d248710417b5d652790a186492bb` | 9334 | 2026-07-30 | NLI vs TokenFingerprint SE-backend parity smoke (RF-06): 24-item fixture corpus, 12/24 cluster-count disagreements; fixture-scope only, provenance sidecar v3 (added 2026-07-30) |
 
 ---
 
