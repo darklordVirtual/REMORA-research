@@ -105,7 +105,7 @@ releases.
   its tools as methods on a domain class rather than as module functions. That
   extension gained coverage but moved no routing metric; see
   `NEGATIVE_RESULTS.md` §20 for why, and for the adapter artifact that briefly
-  made it look like a 92% reduction in unsafe accepts.
+  made it look like an 80.9% reduction in known-wrong call accepts.
 - A required parameter already present in the proposed call counts as sourced.
   The check gates a proposed call, so a value already in it was obtained
   somewhere; whether legitimately is `argument_tainted`'s question. Without

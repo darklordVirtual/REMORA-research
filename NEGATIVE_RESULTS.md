@@ -1039,7 +1039,8 @@ escalations downgraded. It is not a candidate. See
 
 **Finding.** Extending the routing benchmark's tool registry from ToolSandbox
 only (38 signatures) to ToolSandbox plus tau2 (85 signatures) produced **no
-measurable change** in any reported routing metric. The low-consequence ACCEPT
+observed change** in any reported routing metric — the values are identical, not
+statistically indistinguishable; no significance test was run. The low-consequence ACCEPT
 arm scores identically before and after: ACCEPT recall 75.0%, ABSTAIN recall
 62.5%, 89 of 227 known-wrong calls accepted, overall accuracy 44.5%.
 
@@ -1065,14 +1066,80 @@ wrong call look unsatisfiable for a reason that was a property of the harness
 rather than of the call. Once substitutions were given the borrowed call's real
 arguments, the number returned to 89.
 
-Had the artifact not been caught, this repository would hold a recorded 92%
-reduction in unsafe accepts attributable to a tool registry. The general lesson:
+Had the artifact not been caught, this repository would hold a recorded 80.9%
+reduction ((89-17)/89) in known-wrong call accepts attributable to a tool
+registry. Note the term: these are calls the source annotates as *not the
+correct call*, which is not the same as calls that would cause harm. The
+harmful-accept axis is measured separately and was zero throughout. The general
+lesson:
 when a benchmark change produces a large one-sided improvement, check whether
 the improvement is a property of the data-generation code before recording it.
 
 **Artifacts.** `results/routing_bench_v1_results.json` (`tool_registry_size`
 records how many signatures were loaded), `data/routing_bench_v1/tau2.jsonl`.
 **Reproduce.** `python scripts/build_routing_bench.py && python scripts/run_routing_bench.py`
+
+---
+
+## §21 Balanced mutation set: routing is a near-constant predictor (2026-07-31)
+
+**Finding.** `routing_bench_v2` generates 1332 controlled mutants from tau2's
+correctly-labelled calls, 912 of them labelled with a gold route known **by
+construction** rather than by annotation, balanced at 228 per route across 72
+source clusters. Against that set the default engine scores 25.0% routing
+accuracy (cluster-adjusted Wilson [16.4%, 36.1%]) — and the per-family
+breakdown shows the number is not discrimination.
+
+| mutation family | gold route | default engine predicts |
+|---|---|---|
+| identity | ACCEPT | abstain 149, verify 79 |
+| missing_arg_obtainable | VERIFY | abstain 149, verify 79 |
+| missing_arg_unobtainable | ABSTAIN | abstain 149, verify 79 |
+| wrong_arg_value | (unlabelled) | abstain 149, verify 79 |
+| untrusted_origin | ESCALATE | verify 228 |
+
+**Four families with four different correct answers receive an identical
+prediction distribution.** The 65.4% ABSTAIN recall is not the engine
+recognising an unresolvable call; it is a fixed abstain/verify split applied
+blindly, which happens to be right for one family. Accuracy on this set is
+explained by a constant predictor, not by any response to the defect.
+
+**Three specific gaps this quantifies.**
+
+1. *No semantic call-correctness signal.* With the low-consequence path enabled,
+   `wrong_arg_value` is accepted 149 times — exactly the same count as
+   `identity`. The engine cannot distinguish a correct call from the same call
+   with a corrupted argument value. This is the single largest gap.
+2. *ESCALATE is unreachable from untrusted origin.* All 228 untrusted-origin
+   mutants route to VERIFY, never ESCALATE. Untrusted content blocks execution
+   but does not reach human authority. ESCALATE recall is 0% in both engine
+   configurations.
+3. *A resolvable gap is treated as permission.* With the path enabled,
+   `missing_arg_obtainable` is accepted 149 times where the correct route is
+   VERIFY. `arguments_satisfiable` correctly separates obtainable from
+   unobtainable (the unobtainable family abstains 144/228), but a satisfiable
+   gap becomes ACCEPT rather than a bounded fetch.
+
+**Method notes, both defects found in this benchmark rather than the engine.**
+The mutation family was initially encoded in the episode id, which is part of
+the observable surface — a leakage test caught it before any measurement. And
+the synthetic producer that makes the obtainable family obtainable was not
+registered in the tool registry, which made the obtainable and unobtainable
+families byte-identical to the engine and the VERIFY/ABSTAIN distinction
+untestable. Both are now covered by tests.
+
+**Deliberately unlabelled.** `wrong_tool` and `wrong_arg_value` carry no gold
+route, for the same reason v1 refused: the defect says the call is wrong, not
+whether the remedy is to stop or to repair. They are diagnostic only.
+
+**Honest limit on what this set proves.** For families whose defect is directly
+observable, a correct answer shows a signal is wired, not that judgement
+occurred. The judgement-testing families are exactly the unlabelled ones. A set
+that tests judgement needs a semantic task–tool compatibility signal that does
+not yet exist.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`, `manifest.json`.
+**Reproduce.** `python scripts/build_routing_bench.py`
 
 ---
 
@@ -1083,8 +1150,8 @@ records how many signatures were loaded), `data/routing_bench_v1/tau2.jsonl`.
 | Consensus temperature failed pre-registered fresh-data confirmation (§18) | **Active (accepted negative result)**: AURC 0.0954 vs 0.0664 (paired CI excludes zero), zero SGR-certifiable coverage; temperature demoted to diagnostics; confidence-gate promotion awaits its own confirmation round | **High (falsifies the thermodynamic-selection hypothesis)** |
 | External replication and live validation pending | Active, formal third-party replication still outstanding | Medium |
 | AROMER safety floor on external holdout (proxy-signal transfer) | **Largely de-risked**, 0% false-accept / 100% harm-intercept via structural gates (schema validity, forbidden-tool, tainted-arg) on 495-case balanced holdout; proxy-signal transfer and live-oracle trust/entropy calibration pending before general claim | Medium-Low |
-| Entropy backend is token-fingerprint heuristic, not Semantic Entropy | Active, NLISemanticBackend is fully implemented; local execution blocked by torch DLL policy; external replication instructions in §3 | Medium |
-| AROMER TRAINED milestone, organic regression, and recovery | **TRAINED_SHADOW_ONLY recovered (~15:53 UTC 2026-06-28)**, AII=0.8042. Full §12→§13 cycle: peak AII=0.844 (T2=1.000, T3=0.800 [M], cycle 12) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). FAR=0 throughout. 2 active gaps: Gap 2 (FA holdout 22.2%), Gap 4 (NLI/SE DLL). 3 gates before deployment: longitudinal stability, human review, RBAC audit. | **Medium** |
+| Entropy backend is token-fingerprint heuristic, not Semantic Entropy | **Active (partially advanced)**: the NLI backend now executes locally and differs materially from the fingerprint backend on the smoke corpus (`results/se_backend_parity_smoke.json`). Full benchmark parity remains unmeasured; the default backend is still exact-fingerprint. The earlier torch-DLL block is no longer reproduced. | Medium |
+| AROMER TRAINED milestone, organic regression, and recovery | **TRAINED_SHADOW_ONLY recovered (~15:53 UTC 2026-06-28)**, AII=0.8042. Full §12→§13 cycle: peak AII=0.844 (T2=1.000, T3=0.800 [M], cycle 12) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). FAR=0 throughout. 2 active gaps: Gap 2 (FA holdout 22.2%), Gap 4 (NLI/SE parity unmeasured). Deployment gates: REM-020 (longitudinal stability) and REM-022 (RBAC, deviation recorded as REM-023) are CLOSED; REM-021 independent human review remains the sole blocker. | **Medium** |
 | benign_review_rate window distortion during world-model seeding | **Resolved**, brr fell from 11.33% (secondary equilibrium) to 1.03% (n=134) via organic /decide window rotation. T2 recovered to 0.949 (T2_eq≈0.946). T5 recovered to 0.669. Global gate PASS throughout; 0 FA. | Low |
 | Window-rotation bottleneck, adapt cycles do not generate /decide episodes | **Resolved in practice**, confirmed plateau n=107–112; recovery occurred via session hook MEDIUM/HIGH traffic generating organic /decide episodes across n=119–134; design gap (fixed-size recency window vs. EMA) remains open for future improvement | Low |
 | External adversarial dataset: FA=30.7% under neutral metadata (Phase 2) | **Partially addressed**, Phase 1 FA=43.0% (structural-only); Phase 2 FA=30.7% (−12.3 pp via semantic enrichment); Post-seeding aradhye holdout FA=22.2% (−30 pp vs Phase 2 aradhye, confirms seeding generalizes). Residual gap: 22.2% holdout FA from contextual harm not visible in instruction text. Fix path: runtime execution monitoring. Artifacts committed: `harmful_seed_holdout_eval.json`, `external_dataset_eval.json` (Phase 1, FA=43.0%), `external_dataset_eval_v2.json` (Phase 2, FA=30.7%), the latter two restored from the main implementation repo 2026-07-03 | High |
@@ -1093,7 +1160,8 @@ records how many signatures were loaded), `data/routing_bench_v1/tau2.jsonl`.
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)**, `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
 | MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
-| tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 cut in unsafe accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
+| Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
+| tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
 | AgentHarm rescoring: FBR target not met (§19) | **Active (accepted negative result)**: FAR=0.0% (target met, Wilson upper 1.8%), FBR=100.0% (target <=40%, NOT met); cause is structural — every source verdict is ESCALATE and the control protocols act only on VERIFY. Bounds the protocols on this dataset; does not identify avoidable escalations. A blanket ESCALATE→VERIFY reclassification is ruled out by measurement (19 harmful / 0 benign moved) | Medium |
 | Benchmark v2 oracle-flag/severity/tags leakage + effective N ~70 not 700 (§17) | **Fixed (2026-07-20)**: gate and baselines restricted to observable surface + platform facts; cluster-level inference (n=70); "0% vs 10–20%" claim withdrawn — baselines now 1.4%, unsafe-rate delta not significant (p=0.50); FAR=0 unchanged, CI [0.0%, 5.2%]; residual: platform facts simulator-declared | **High (was inflating headline claim)** |
 
@@ -1113,7 +1181,7 @@ list.  They are preserved here as scientific record.
 | R5 | Lyapunov V(t), no aggregate distribution published | `experiments/lyapunov_aggregate.py`: N=1000 synthetic sessions, P(ΔV ≤ 0) = 87.2 %, mean ΔV = −0.329 | ≤0.6.0 |
 | R6 | Oracle family independence partial (ρ̄ ≈ 0.4–0.6 within-family) | `build_recommended_swarm()`: 3 distinct base-model families (LLaMA 3.3 70B, Claude 3.5 Haiku, Gemma 3 27B) | ≤0.6.0 |
 | R7 | T-estimator circularity (D→T→F, D contributes 18 % to T) | `estimate_structural_temperature()` is circularity-free (prompt-only); is the active path in `engine.py`; `_CATEGORY_PRIORS` documented as intentional safety floors | 0.6.1 |
-| R8 | Tool-call v1, no differentiation (every strategy = 0 % unsafe on 252-task non-adversarial suite) | v2 adversarial suite (700 tasks): `remora_full_policy_gate` = **0 % unsafe** vs 10–20 % for all baselines; artifact `results/toolcall_benchmark_v2_summary.md`; implementation `experiments/evaluate_toolcall_benchmark_v2.py`; regression test `tests/test_toolcall_v2_results.py` | 0.7.0 |
+| R8 **[SUPERSEDED BY §17]** | Tool-call v1, no differentiation (every strategy = 0 % unsafe on 252-task non-adversarial suite) | ~~v2 adversarial suite (700 tasks): `remora_full_policy_gate` = 0 % unsafe vs 10–20 % for all baselines~~ — **this comparison is withdrawn**: §17 established effective N≈70 (not 700), baselines at 1.4 % under the leakage-free surface, and an unsafe-rate delta that is not significant (p=0.50). FAR=0 itself is unchanged, CI [0.0 %, 5.2 %]. Original artifact artifact `results/toolcall_benchmark_v2_summary.md`; implementation `experiments/evaluate_toolcall_benchmark_v2.py`; regression test `tests/test_toolcall_v2_results.py` | 0.7.0 |
 | R9 | Conformal exchangeability not verified at runtime | `MondrianPhaseGuardrail.route(prompt=…)` + `PromptDriftDetector` integration: distribution shift triggers ABSTAIN before conformal routing; tests in `tests/test_guardrail.py` (drift integration) and `tests/test_drift_detector.py` | 0.7.0 |
 | R10 | χ-proxy difficulty signal below chance (AUC = 0.39) | Negative result preserved as empirical record; χ repurposed to OOD/adversarial escalation (`phase_decision()`, threshold 1.45) | 0.7.1 |
 | R11 | Full-coverage baseline framing risk (41.18 % vs selective 88.8 %) | Mixed-comparison caveat standardized in docs; held-out validation added (`results/selective_n500_holdout_results.json`); benchmark-scoped wording enforced | 0.7.1 |

@@ -1,0 +1,13 @@
+{
+  "derived_from": "data/routing_bench_v1/tau2.jsonl",
+  "files": {
+    "tau2_mutations.jsonl": {
+      "n_episodes": 1332,
+      "n_labelled": 912,
+      "sha256": "af4ee695c2efb47d6cc4137216f3894b8b92df39b6d02cd8f0ad67fad4f9bbc7"
+    }
+  },
+  "route_source": "mutation_construction",
+  "schema": "routing_bench_manifest_v2",
+  "tool_registry_size": 118
+}

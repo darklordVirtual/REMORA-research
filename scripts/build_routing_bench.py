@@ -33,6 +33,11 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from remora.toolcall.routing.episode import RoutingEpisode  # noqa: E402
 from remora.toolcall.routing.leakage import check_all  # noqa: E402
+from remora.toolcall.routing.mutations import mutate_episodes  # noqa: E402
+from remora.toolcall.routing.tool_registry import (  # noqa: E402
+    ToolRegistry,
+    extract_from_python,
+)
 from remora.toolcall.routing.route_table import (  # noqa: E402
     ROUTE_TABLE_VERSION,
     readable_table,
@@ -47,6 +52,7 @@ from remora.toolcall.routing.sources.toolsandbox import ToolSandboxAdapter  # no
 
 CACHE = REPO_ROOT / ".cache" / "routing_bench"
 OUT = REPO_ROOT / "data" / "routing_bench_v1"
+OUT_V2 = REPO_ROOT / "data" / "routing_bench_v2"
 #: Non-redistributable episodes never leave the gitignored cache.
 LOCAL_OUT = CACHE / "local"
 
@@ -235,6 +241,46 @@ def build() -> int:
                 f"wrote {LOCAL_OUT / f'{dataset}.jsonl'}  "
                 f"({len(subset)} episodes, local-only, not committed)"
             )
+
+    # v2: controlled mutations over the redistributable, correctly-labelled
+    # episodes. Gold route comes from the constructed defect, not an annotation.
+    tool_paths = [
+        q
+        for root in (CACHE / "toolsandbox" / "tools", CACHE / "tau2_tools")
+        if root.exists()
+        for q in sorted(root.glob("*.py"))
+    ]
+    registry = ToolRegistry(extract_from_python(tool_paths) if tool_paths else {})
+    mutants = mutate_episodes(
+        [e for e in redistributable if e.source_dataset == "tau2"], registry
+    )
+    check_all(mutants)
+    v2_digest = write_jsonl(OUT_V2 / "tau2_mutations.jsonl", mutants)
+    labelled = sum(1 for e in mutants if e.route is not None)
+    print(
+        f"v2 mutations: {len(mutants)} episodes ({labelled} labelled, "
+        f"{len({e.cluster_id for e in mutants})} clusters)"
+    )
+    (OUT_V2 / "manifest.json").write_bytes(
+        (json.dumps(
+            {
+                "schema": "routing_bench_manifest_v2",
+                "derived_from": "data/routing_bench_v1/tau2.jsonl",
+                "route_source": "mutation_construction",
+                "tool_registry_size": len(registry.signatures),
+                "files": {
+                    "tau2_mutations.jsonl": {
+                        "sha256": v2_digest,
+                        "n_episodes": len(mutants),
+                        "n_labelled": labelled,
+                    }
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        ) + "\n").encode("utf-8")
+    )
+    print(f"wrote {OUT_V2 / 'tau2_mutations.jsonl'}  sha256={v2_digest[:16]}")
 
     manifest = {
         "schema": "routing_bench_manifest_v1",
