@@ -18,13 +18,19 @@ fail-hard, from the tagged round commit:
      labels never loaded — audit P0-3)
  10. experiments/toolcall_blind_v3_eval.py score     (separate process;
      writes its own provenance sidecar)
- 11. result_provenance_v2 sidecars for the artifacts of steps 2-7
+ 11. result_provenance_v3 sidecars for the artifacts of steps 2-7:
+     worktree state is captured BEFORE step 1 (issue #32), the round's
+     declared outputs live in ALLOWED_OUTPUTS, and the sidecars record
+     pre-/post-run cleanliness plus any dirty paths beyond the declared
+     outputs. Step 10's self-written sidecar opts in via the
+     REMORA_PRE_RUN_WORKTREE_CLEAN / REMORA_ALLOWED_OUTPUTS env contract.
 
 Usage: python scripts/run_deterministic_round_2026_07.py
 Log:   results/deterministic_round_2026_07.log (append)
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import time
@@ -32,7 +38,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from result_provenance import write_sidecar  # noqa: E402
+from result_provenance import capture_pre_run_state, write_sidecar  # noqa: E402
 
 LOG = ROOT / "results" / "deterministic_round_2026_07.log"
 
@@ -103,6 +109,36 @@ SIDECARS: dict[str, tuple[str, dict[str, Path], list[int] | None]] = {
 }
 
 
+def _sidecar_name(rel: str) -> str:
+    """Mirror write_sidecar's naming: <artifact-stem>.provenance.json."""
+    head, _, name = rel.rpartition("/")
+    stem = name.rsplit(".", 1)[0]
+    return (head + "/" if head else "") + stem + ".provenance.json"
+
+
+# Outputs of steps not covered by the SIDECARS map: step 1 surface, step 8
+# blind v3 surface, step 9 decisions, step 10 result + its self-sidecar.
+# results/deterministic_round_2026_07.log and .remora_cache*.json are
+# gitignored and never appear in `git status --porcelain`, so they are
+# deliberately not listed. Keep this an explicit file list — no globs — so
+# an undeclared new output flips post_run_worktree_clean and is noticed.
+EXTRA_OUTPUTS = [
+    "artifacts/toolcall_benchmark_v2.json",               # step 1
+    "benchmarks/toolcall_blind_v3/tasks.json",            # step 8
+    "benchmarks/toolcall_blind_v3/labels.json",           # step 8
+    "results/toolcall_blind_v3_decisions.jsonl",          # step 9
+    "results/toolcall_blind_v3_results.json",             # step 10
+    "results/toolcall_blind_v3_results.provenance.json",  # step 10 self-sidecar
+]
+
+# Every declared output of the round, incl. the sidecars this script writes
+# (each sidecar name must itself be allowed, or writing sidecar N would make
+# sidecar N+1 report a dirty worktree).
+ALLOWED_OUTPUTS = sorted(
+    set(SIDECARS) | {_sidecar_name(a) for a in SIDECARS} | set(EXTRA_OUTPUTS)
+)
+
+
 def log(msg: str) -> None:
     line = f"[{time.strftime('%H:%M:%S')}] {msg}"
     print(line, flush=True)
@@ -111,10 +147,30 @@ def log(msg: str) -> None:
 
 
 def main() -> int:
+    # Issue #32: worktree state must be captured BEFORE any step generates
+    # output — v2's write-time flag was false for every real round. Record
+    # only, never abort: enforcement lives in the promotion gate
+    # (scripts/check_claim_provenance.py, issue #88), and a dishonest run
+    # is worse than a dirty one.
+    pre = capture_pre_run_state()
+    log(f"PRE-RUN worktree_clean={pre['pre_run_worktree_clean']}")
+    if pre["pre_run_dirty_paths"]:
+        log("PRE-RUN dirty: " + ", ".join(pre["pre_run_dirty_paths"]))
+
+    # Env contract so step 10's self-written sidecar (toolcall_blind_v3_eval
+    # score) can opt in to result_provenance_v3 with the same pre-run state.
+    env = {
+        **os.environ,
+        "REMORA_PRE_RUN_WORKTREE_CLEAN": (
+            "1" if pre["pre_run_worktree_clean"] else "0"
+        ),
+        "REMORA_ALLOWED_OUTPUTS": ";".join(ALLOWED_OUTPUTS),
+    }
+
     for script, args in STEPS:
         cmd = [sys.executable, script, *args]
         log(f"RUN {' '.join(cmd)}")
-        proc = subprocess.run(cmd, cwd=ROOT)
+        proc = subprocess.run(cmd, cwd=ROOT, env=env)
         log(f"EXIT {proc.returncode}")
         if proc.returncode != 0:
             log(f"FATAL: {script} {' '.join(args)} failed")
@@ -137,6 +193,8 @@ def main() -> int:
             inputs=dict(inputs),
             random_seeds=seeds,
             command=f"python {script}",
+            pre_run_worktree_clean=pre["pre_run_worktree_clean"],
+            allowed_generated_outputs=ALLOWED_OUTPUTS,
         )
         log(f"SIDECAR {artifact}")
 
