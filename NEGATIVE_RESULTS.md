@@ -1655,6 +1655,61 @@ for against a frozen snapshot.
 
 ---
 
+## §31 Discrimination confirmed blind — under ideal conditions only (2026-07-31)
+
+**Result.** Track A2, evaluated once at locked commit `a9ec74c` on the fleetops
+white-box domain: 540 episodes over 90 clusters, admission-verified at 100%
+judgeable before sealing.
+
+| metric | target | result |
+|---|---|---|
+| covered identity ACCEPT | >= 85% | **100%** (90/90), Wilson [95.9%, 100%] |
+| covered wrong-argument ACCEPT | <= 15% | **0%** (0/90), Wilson [0%, 4.1%] |
+| discrimination gap | >= 60 pp | **100 pp** |
+| false-UNSUPPORTED on valid values | <= 2% | **0%** |
+
+Routing accuracy 100%, cluster-adjusted Wilson [95.9%, 100%]. All four met.
+This is the first blind confirmation that the engine separates a correct call
+from the same call with a corrupted identifier.
+
+**A perfect score is a reason for suspicion, not celebration, and here the
+explanation is mundane.** fleetops is generated: the database is the complete
+entity universe, identifiers are structured, and a corrupted identifier is
+therefore *definitely* absent. The value check has exactly the evidence it needs
+and the task reduces to a set membership test. 100% says the mechanism is wired
+correctly and its precondition is sufficient — it does not say the mechanism is
+clever.
+
+**What this does not establish.** Every hard condition from the earlier
+sections is absent by construction:
+
+* partial coverage, where some argument roles are held and others are not (§29)
+* stale state, where the snapshot no longer matches the live system
+* ambiguous scope, where a value exists under a different tenant or entity type
+* open-world state, where absence is not evidence of absence (§26)
+* naturally-occurring wrong values rather than generated ones
+
+A domain with any of those would produce a materially different number, and
+none of them is reproduced here. The synthetic result is a **necessary**
+condition — the mechanism must work when its precondition holds, and it now
+demonstrably does — not a sufficient one.
+
+**Small N.** 90 clusters, 90 identity and 90 wrong-argument episodes. The
+Wilson intervals are honest about that: identity ACCEPT could be as low as
+95.9%, wrong-argument as high as 4.1%.
+
+**The defensible claim.** On a closed-world domain whose completeness is
+declared and verified, and on a set admission-verified as 100% judgeable before
+sealing, REMORA accepted every valid identifier call and no corrupted one, on a
+single blind evaluation. Generalisation to domains with partial or stale
+authoritative state is unestablished and is the next thing worth measuring.
+
+**Artifacts.** `results/routing_bench_trackA2_results.json`,
+`results/fleetops_admission.json`,
+`data/routing_bench_trackA2/manifest.json` (episodes `3c070516`, db `3cc32d40`).
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1674,7 +1729,7 @@ for against a frozen snapshot.
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
 | ESCALATE recall is 0% on the untrusted-origin family (§23) | **Resolved 2026-07-31 (§24)**: split into noncontrolling (VERIFY) and controls-sensitive (ESCALATE); recall 0% -> 100%, accuracy 56.9% -> 85.5%. Formerly: all untrusted-origin mutants route to VERIFY, never ESCALATE. Not addressable by a resolver — untrusted provenance is a question about authority, not missing information. Needs the two provenance families (noncontrolling vs controls-sensitive-argument), which do not exist | **High** |
 | Blind holdout missed 2 of 5 targets; state check confused absent-from-record with outside-my-coverage (§26) | **Fixed and blind-confirmed 2026-07-31 (§27)**: CoverageScope per argument; false-UNSUPPORTED rate 0/3841 on a second blind set, accuracy 69.6% -> 92.2%. Residual: covered-domain discrimination unconfirmed on blind data (no untouched covered clusters exist), and uncovered domains accept 61.5% of corrupted identifiers. Formerly: identity ACCEPT 94.6% dev -> 0.0% holdout; discrimination gap 42.1 pp -> 0.0 pp; accuracy 91.9% -> 69.6%. Cause: state index covered airline+retail, holdout is telecom, so every identifier read as absent. argument_values_supported must return None outside its coverage, not False. Requires a new untouched holdout to confirm any fix | **High** |
-| Covered-domain discrimination unconfirmed on blind data (§28, §29) | **Active (blocks the argument-value-correctness claim)**: Track A on banking_knowledge was spent without testing the hypothesis — 836/942 wrong-argument episodes were unjudgeable because the index does not cover the arguments the tasks use. Next attempt must pre-register a minimum judgeable fraction as an admission criterion. Formerly: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
+| Covered-domain discrimination unconfirmed on blind data (§28, §29) | **Confirmed under ideal conditions 2026-07-31 (§31)**: on a generated closed-world domain, identity ACCEPT 100% and wrong-argument ACCEPT 0%, gap 100 pp, admission-verified 100% judgeable. Necessary not sufficient — partial coverage, stale state, ambiguous scope and open-world absence are all absent by construction. Formerly: Track A on banking_knowledge was spent without testing the hypothesis — 836/942 wrong-argument episodes were unjudgeable because the index does not cover the arguments the tasks use. Next attempt must pre-register a minimum judgeable fraction as an admission criterion. Formerly: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
