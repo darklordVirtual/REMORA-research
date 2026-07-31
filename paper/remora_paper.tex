@@ -1249,6 +1249,79 @@ sign-off\}; SLA=4h.
 
 \textbf{Audit hash} recorded; action blocked.
 
+
+\section{Case Study: State Resolution on a Fleet Operations Agent}
+\label{sec:casestudy-fleetops}
+
+The barrier case shows the deterministic floor stopping an action outright.
+This one shows the mechanism that distinguishes the current architecture: what
+happens when the action is well-formed and the \emph{state it refers to} is
+uncertain. Both calls below are structurally perfect. They are routed
+differently, and neither routing depends on a model's confidence.
+
+\paragraph{Setup.} A fleet-operations agent has six tools, of which
+\texttt{get\_vehicle}, \texttt{get\_driver}, \texttt{get\_work\_order} and
+\texttt{list\_depot\_vehicles} are declared \texttt{read} and
+\texttt{assign\_driver} and \texttt{close\_work\_order} are declared
+\texttt{write}. The effects come from the registry, not from the verb in the
+name --- a distinction that matters, because \texttt{assign} and
+\texttt{close} were once absent from a mutating-verb list and thirty writes
+were scored as reads. No bulk state export exists, so every argument value
+verdict is \textsc{unknown}: the deployment has point lookups and nothing else.
+
+\paragraph{Call A: a legitimate read.} The user asks for the status of vehicle
+\texttt{V-0042}; the agent proposes \texttt{get\_vehicle(vehicle\_id="V-0042")}.
+Every structural signal is satisfied. The value is grounded --- \texttt{V-0042}
+is named in the task text. But \texttt{vehicle\_id} steers where the read
+lands, and nothing has confirmed it exists, so autonomy is unavailable:
+
+\begin{center}
+{\footnotesize
+\begin{tabular}{@{}ll@{}}
+\toprule
+Step & Outcome \\
+\midrule
+Argument support & \textsc{unknown} (no coverage declaration) \\
+Value grounding & grounded (named in the task) \\
+Validation requirement & required (steers the read) \\
+Resolver availability & \texttt{get\_vehicle} bound to the role \\
+Verdict & \textsc{verify} + \texttt{ResolutionPlan} \\
+\midrule
+\multicolumn{2}{@{}l@{}}{\emph{validator consulted; entity confirmed present}} \\
+\midrule
+Re-entry & whole router, fresh observation \\
+Final verdict & \textsc{accept} \\
+\bottomrule
+\end{tabular}}
+\end{center}
+
+The plan names one resolver and exactly one argument it may write. The
+validator returns a verdict and hands control back; it never performs the
+original call and cannot redirect it. Re-entry re-runs the \emph{whole} router,
+so every guard applies again to the confirmed call rather than being patched
+around. Had no validator been bound to \texttt{vehicle\_id}, the verdict would
+be \textsc{abstain}, not \textsc{verify}: promising a verification that cannot
+happen is worse than stopping.
+
+\paragraph{Call B: the same confirmation, a different action.} The agent
+proposes \texttt{assign\_driver(work\_order\_id="WO-00123",
+\texttt{driver\_id}="D-0017")}. Both identifiers confirm against the system of
+record exactly as \texttt{V-0042} did. The call is nonetheless held at
+\textsc{verify}: the registry declares this tool a write, and the read/write
+posture does not trade confirmed state for autonomy on a state change. No
+confidence score moves it.
+
+\paragraph{Call C: structurally perfect, wrong tool.} The user asks for a
+vehicle status; the agent proposes \texttt{get\_work\_order} with a work-order
+identifier that happens to appear elsewhere in the task. Schema valid,
+arguments satisfiable, values grounded, nothing tainted --- every signal in
+Call A's ladder is satisfied. This is the case \S\ref{sec:routing-blind}
+measured at 86.8\% acceptance on blind external data, and no signal in the
+ladder refutes it, because none of them is about the \emph{task}. A declared
+tool contract does: the task targets a vehicle, the tool acts on a work order,
+and the mismatch is established rather than merely unverified. That authority
+is implemented and \textbf{unmeasured} (\S\ref{sec:wrongcall-implication}).
+
 % =====================================================================
 \section{Negative Results}
 \label{sec:negative}

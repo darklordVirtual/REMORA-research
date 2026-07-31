@@ -952,6 +952,31 @@ The agent is blocked from execution. The follow-up workflow is dispatched to an 
 
 ---
 
+## 12b. Case Study: State Resolution on a Fleet Operations Agent
+
+The barrier case above shows the deterministic floor stopping an action outright. This one shows the mechanism that distinguishes the current architecture: what happens when the action is well-formed and the *state it refers to* is uncertain. All three calls below are structurally perfect. They are routed differently, and no routing depends on a model's confidence.
+
+**Setup.** A fleet-operations agent has six tools. `get_vehicle`, `get_driver`, `get_work_order` and `list_depot_vehicles` are declared `read`; `assign_driver` and `close_work_order` are declared `write`. The effects come from the registry, not from the verb in the name — a distinction that matters, because `assign` and `close` were once absent from a mutating-verb list and thirty writes were scored as reads. No bulk state export exists, so every argument value verdict is UNKNOWN: the deployment has point lookups and nothing else.
+
+**Call A: a legitimate read.** The user asks for the status of vehicle `V-0042`; the agent proposes `get_vehicle(vehicle_id="V-0042")`. Every structural signal is satisfied, and the value is grounded — `V-0042` is named in the task text. But `vehicle_id` steers where the read lands and nothing has confirmed it exists, so autonomy is unavailable:
+
+| Step | Outcome |
+|---|---|
+| Argument support | UNKNOWN (no coverage declaration) |
+| Value grounding | grounded (named in the task) |
+| Validation requirement | required (steers the read) |
+| Resolver availability | `get_vehicle` bound to the role |
+| Verdict | **VERIFY** + `ResolutionPlan` |
+| *validator consulted; entity confirmed present* | |
+| Re-entry | whole router, fresh observation |
+| Final verdict | **ACCEPT** |
+
+The plan names one resolver and exactly one argument it may write. The validator returns a verdict and hands control back; it never performs the original call and cannot redirect it. Re-entry re-runs the *whole* router, so every guard applies again to the confirmed call rather than being patched around. Had no validator been bound to `vehicle_id`, the verdict would be ABSTAIN, not VERIFY: promising a verification that cannot happen is worse than stopping.
+
+**Call B: the same confirmation, a different action.** The agent proposes `assign_driver(work_order_id="WO-00123", driver_id="D-0017")`. Both identifiers confirm against the system of record exactly as `V-0042` did. The call is nonetheless held at VERIFY: the registry declares this tool a write, and the read/write posture does not trade confirmed state for autonomy on a state change. No confidence score moves it.
+
+**Call C: structurally perfect, wrong tool.** The user asks for a vehicle status; the agent proposes `get_work_order` with a work-order identifier that happens to appear elsewhere in the task. Schema valid, arguments satisfiable, values grounded, nothing tainted — every signal in Call A's ladder is satisfied. This is the case §10.6 measured at 86.8% acceptance on blind external data, and no signal in the ladder refutes it, because none of them is about the *task*. A declared tool contract does: the task targets a vehicle, the tool acts on a work order, and the mismatch is established rather than merely unverified. That authority is implemented and **unmeasured** (§10.8).
+
 ## 13. Limitations and Negative Results
 
 Publication of negative results is standard scientific practice. This section documents active findings that constrain the system's operational claims.
