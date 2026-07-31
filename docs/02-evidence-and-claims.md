@@ -49,19 +49,28 @@ below names the PDF, verify against the .md, which supersedes it.
   `python experiments/evaluate_toolcall_benchmark_v2.py`; compare to committed
   `results/`. See `docs/benchmarks/toolcall_consensus_benchmark_v2.md`.
 
-### 2. 88% selective accuracy on a held-out split
-- **Claim:** 88.0% selective accuracy at 23.2% coverage on a stratified hold-out,
-  with the decision threshold locked on the training split.
-- **Evidence:** threshold `τ* = 0.2032` frozen on 80% of the data before the
-  hold-out was touched; one-sided binomial p = 1.45×10⁻⁵ against the hold-out base
-  rate; Wilson CI [70.0%, 95.8%] lies entirely above the 46.3% holdout baseline.
-  (In-sample optimum: 88.78% at 18% coverage, +47.6 pp.)
-- **Artifact:** `paper/remora_paper.pdf` §8; `results/selective_n500_holdout_results.json`.
-- **Caveat:** `N_accepted = 25`, the Wilson CI [70.0%, 95.8%] is wide. The
-  lower bound of 70.0% is the scientifically honest floor for this claim. It is an
-  out-of-sample *directional confirmation* of the operating point, not a tight
-  accuracy guarantee. Quote the CI, not just the point estimate.
-- **Reproduce:** `python experiments/end_to_end_n500_v3.py`; the held-out p-value
+### 2. Selective accuracy on a held-out split (CLAIM-004, SUPERSEDED)
+
+> **This claim is superseded by CLAIM-012** and is retained for the record only.
+> The signal it ranks on, consensus temperature, failed its pre-registered
+> fresh-data confirmation. Do not cite it as evidence that temperature
+> generalises. Archive entry:
+> [`assurance/superseded_claims.md`](assurance/superseded_claims.md).
+
+<!-- claim:CLAIM-004 accuracy_pct coverage_pct ci_low_pct ci_high_pct n -->
+- **Claim (as re-issued 2026-07-27, SAP v2 clean round):** 100.0% selective
+  accuracy at 16.7% hold-out coverage, N_accepted = 18, Wilson CI
+  [82.4%, 100.0%], with the decision threshold locked on the training split.
+- **Evidence:** `τ*` frozen on the 436-item training split before the 108-item
+  hold-out was touched; exact one-sided binomial against the pre-registered
+  training-split null p0 = 84.86% gives p = 0.052.
+- **Artifact:** `results/selective_n500_holdout_results.json`.
+- **Caveat:** p = 0.052 is **not** significant at α = 0.05, the CI does not
+  exclude p0, and N_accepted = 18 is far below the pre-registered ≥100 bar for
+  generalisation language. Directional only, and then contradicted on fresh data.
+  Earlier documents quoted 88.0% at 23.2% coverage with N_accepted = 25 from the
+  pre-2026-07-27 round; those figures are stale and must not be reused.
+- **Reproduce:** `python scripts/selective_n500_holdout.py`; the held-out p-value
   and CI are in the result JSON.
 
 ### 3. The critical-phase trust inversion

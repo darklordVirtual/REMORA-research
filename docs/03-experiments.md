@@ -27,17 +27,25 @@ before holdout is touched. Metric: selective accuracy at τ* on the holdout spli
 - `results/selective_n500_holdout_results.json`
 - `paper/remora_paper.pdf` §8
 
-**Result:**
-- In-sample: 88.78% selective accuracy at 18% coverage (+47.6 pp over baseline).
-- Holdout: 88.0% selective accuracy at 23.2% coverage (N_accepted = 25).
-- Threshold τ* = 0.2032 (locked before holdout).
-- Wilson CI [70.0%, 95.8%], one-sided binomial p = 1.45×10⁻⁵.
+> **CLAIM-004 is superseded by CLAIM-012.** The signal ranked on here, consensus
+> temperature, failed its pre-registered fresh-data confirmation. Retained for
+> the record; archive entry in
+> [`assurance/superseded_claims.md`](assurance/superseded_claims.md).
 
-**Caveat:** N_accepted = 25. The CI is wide; 70.0% is the honest lower bound.
+<!-- claim:CLAIM-004 accuracy_pct coverage_pct ci_low_pct ci_high_pct n -->
+**Result (SAP v2 clean round, re-issued 2026-07-27):**
+- Holdout: 100.0% selective accuracy at 16.7% coverage, N_accepted = 18.
+- Threshold locked on the 436-item training split before the holdout was touched.
+- Wilson CI [82.4%, 100.0%]; exact one-sided binomial vs the training-split null
+  p0 = 84.86% gives p = 0.052.
+
+**Caveat:** N_accepted = 18 and p = 0.052, so this is directional only, not
+significant at α = 0.05. Documents written before 2026-07-27 quoted 88.0% at
+23.2% coverage with N_accepted = 25; those figures are stale.
 
 **Reproduce:**
 ```bash
-python experiments/end_to_end_n500_v3.py
+python scripts/selective_n500_holdout.py
 ```
 
 ---

@@ -455,6 +455,65 @@ def check_release_gates_table(errors: list[str]) -> None:
         )
 
 
+#: Documents that are deliberately unreachable from the index. docs/README.md is
+#: the index itself; the two earlier SAPs are superseded by v3 and the index
+#: states outright that superseded documents are not linked.
+INDEX_EXEMPT = {
+    "docs/README.md",
+    "docs/assurance/statistical_analysis_plan.md",
+    "docs/assurance/statistical_analysis_plan_v2.md",
+}
+
+
+def check_index_completeness(errors: list[str]) -> None:
+    """Every live, registered document must be reachable from the docs index.
+
+    docs/README.md claims to be "the single authoritative index" and that
+    "every linked document is current". Nothing checked the converse, so a new
+    document could be registered, pass every gate, and still be invisible to a
+    reader working from the index — which is how `superseded_claims.md` and
+    `routing_benchmark_v1_design.md` came to sit unlinked. Superseded documents
+    stay off the index by design; that is what INDEX_EXEMPT records, and an
+    exemption for a document that is *not* superseded has to be argued for in
+    this list rather than happening silently.
+    """
+    index = ROOT / "docs" / "README.md"
+    if not index.exists():
+        errors.append("docs-index: docs/README.md is missing")
+        return
+    text = index.read_text(encoding="utf-8")
+    linked: set[str] = set()
+    for target in re.findall(r"\]\(([^)]+)\)", text):
+        target = target.split("#")[0].strip()
+        if not target or target.startswith(("http", "mailto:")):
+            continue
+        try:
+            resolved = (ROOT / "docs" / target).resolve().relative_to(ROOT.resolve())
+        except (ValueError, OSError):
+            continue
+        linked.add(resolved.as_posix())
+
+    register = _load(ROOT / "docs" / "assurance" / "document_register_v1.yaml")
+    docs = register.get("documents", register) if isinstance(register, dict) else register
+    for entry in docs if isinstance(docs, list) else []:
+        if not isinstance(entry, dict):
+            continue
+        path = entry.get("path")
+        if not isinstance(path, str) or not path.startswith("docs/"):
+            continue
+        if entry.get("status") not in LIVE_STATUSES:
+            continue
+        if path in INDEX_EXEMPT or "/archive/" in path:
+            continue
+        if path not in linked:
+            errors.append(
+                f"docs-index: {entry.get('id')} {path} is registered "
+                f"status={entry.get('status')!r} but is not linked from "
+                f"docs/README.md — add it to the index, or add it to "
+                f"INDEX_EXEMPT with a reason if it is deliberately unlisted"
+            )
+
+
 def check_readme_budget(warnings: list[str]) -> None:
     n = len((ROOT / "README.md").read_text(encoding="utf-8").splitlines())
     if n > README_LINE_CAP:
@@ -472,6 +531,7 @@ def main() -> int:
     check_register_id_uniqueness(errors)
     check_release_profiles(errors)
     check_release_gates_table(errors)
+    check_index_completeness(errors)
     check_readme_budget(warnings)
     if warnings:
         for w in warnings:

@@ -103,7 +103,7 @@ The reviewer should read the following documents before beginning:
 | Regression proof | results/false_accept_regression_v1.json | CLAIM-003: FAR=0% on N=167 |
 | Toolcall v2 result | results/toolcall_benchmark_v2_results.json | CLAIM-001: FAR=0% on N=700 |
 | Blinded v3 result | results/toolcall_blind_v3_results.json | CLAIM-010: leakage_free=True |
-| Selective holdout | results/selective_n500_holdout_results.json | CLAIM-004: 88.0% at N_accepted=25 |
+| Selective holdout | results/selective_n500_holdout_results.json | CLAIM-004 (**superseded** by CLAIM-012): 100.0% at N_accepted=18, p=0.052 |
 | M1 clean-signal | results/toolcall_m1_clean_signal.json | M1 fix: leakage not load-bearing |
 
 ### Source code modules
@@ -193,8 +193,9 @@ as evidence for the multi-oracle consensus machinery?
 
 ### Section E: Claim Hygiene
 
-**E1.** Does the README cite the 88.0% selective accuracy result with its full
-Wilson CI [70.0%, 95.8%] and the N_accepted=25 caveat?
+**E1.** CLAIM-004 was superseded by CLAIM-012 on 2026-07-31 and removed from the
+README front page. Confirm the README does **not** cite it as current, and that
+the archive entry in `superseded_claims.md` carries its CI and sample size.
 
 **E2.** Does the README correctly distinguish simulator-scoped results from
 field deployment claims? Is the "deterministic simulator" qualifier present?

@@ -15,7 +15,7 @@ committed. It addresses the "Requires External Replication" items in
 
 | Claim | N | In-sample | Holdout | External |
 |---|---|---|---|---|
-| Selective accuracy 88.8% at 18% coverage | 544 | locked artifact | 88.0% / 23.2% (25 accepted) | needed |
+| Selective accuracy (CLAIM-004, **superseded** by CLAIM-012) | 544 | locked artifact | 100.0% / 16.7% (18 accepted), p=0.052 | superseded, not pursued |
 | Tool-call 0% unsafe execution (full policy gate) | 700 | simulator | N/A (benchmark-scoped) | needed |
 | Critical-phase trust inversion | 544 | observed | partial | needed |
 | Lyapunov V(t) monotone convergence | 1000 synthetic | unit tested |, | needed |

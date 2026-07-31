@@ -347,6 +347,66 @@ def check_supersession(claims: list[dict], root: Path = ROOT) -> list[tuple[str,
     return errors
 
 
+#: Words that make a paragraph's supersession status explicit to a reader.
+SUPERSESSION_MARKERS = (
+    "supersed", "archiv", "outdated", "retired", "historical",
+    "no longer", "downgrad", "stale",
+)
+#: The archive page exists to describe superseded claims; requiring it to
+#: announce that on every line would be circular.
+SUPERSESSION_CITE_EXCLUDE = ("docs/assurance/superseded_claims.md",)
+
+
+def _paragraph_around(lines: list[str], idx: int) -> str:
+    start = idx
+    while start > 0 and lines[start - 1].strip():
+        start -= 1
+    end = idx
+    while end < len(lines) - 1 and lines[end + 1].strip():
+        end += 1
+    return " ".join(lines[start : end + 1])
+
+
+def check_superseded_citations(
+    doc_path: Path, text: str, superseded: set[str], by_id: dict[str, dict]
+) -> list[tuple[str, str]]:
+    """A superseded claim may be cited, but never silently.
+
+    Guardrail 5b. The README rule above keeps archived results off the front
+    page; this keeps them from reading as current everywhere else. A reader who
+    meets ``CLAIM-004`` in a table has no way to know a later round replaced it
+    unless the surrounding text says so, and that is exactly how the
+    2026-07-27 re-issue went unnoticed in four assurance documents for four
+    days. Anchor comments are exempt: an anchor is a machine binding, and the
+    value check already holds it to the register.
+    """
+    errors: list[tuple[str, str]] = []
+    rel = _display_path(doc_path)
+    if rel in SUPERSESSION_CITE_EXCLUDE:
+        return errors
+    lines = text.splitlines()
+    for idx, line in enumerate(lines):
+        if ANCHOR_RE.search(line):
+            continue
+        for cid in sorted(set(CLAIM_ID_RE.findall(line))):
+            if cid not in superseded:
+                continue
+            paragraph = _paragraph_around(lines, idx).lower()
+            if any(marker in paragraph for marker in SUPERSESSION_MARKERS):
+                continue
+            errors.append(
+                (
+                    f"cites-superseded-claim-silently:{rel}:{cid}",
+                    f"{rel}:{idx + 1}: cites {cid}, which is superseded by "
+                    f"{by_id[cid].get('superseded_by')}, without saying so "
+                    f"anywhere in the paragraph — a reader cannot tell the "
+                    f"result was replaced (archive: "
+                    f"docs/assurance/superseded_claims.md)",
+                )
+            )
+    return errors
+
+
 def check_artifacts(claims: list[dict], root: Path = ROOT) -> list[tuple[str, str]]:
     errors: list[tuple[str, str]] = []
     for claim in claims:
@@ -665,11 +725,17 @@ def run() -> int:
     else:
         errors.append(("manifest-missing", f"missing manifest: {MANIFEST_PATH}"))
 
+    superseded_ids = {
+        c["id"] for c in claims if c.get("status") == "superseded" and "id" in c
+    }
     for doc in _doc_paths():
         text = doc.read_text(encoding="utf-8", errors="replace")
         errors.extend(check_doc_anchors(doc, text, claims_by_id))
         errors.extend(check_evidence_citations(doc, text, claims_by_id))
         errors.extend(check_stale_strings(doc, text))
+        errors.extend(
+            check_superseded_citations(doc, text, superseded_ids, claims_by_id)
+        )
 
     baseline = _load_baseline()
     seen_ids = {eid for eid, _ in errors}

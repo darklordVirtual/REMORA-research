@@ -468,3 +468,61 @@ def test_real_negative_results_anchors_are_wired() -> None:
     negative = (ccp.ROOT / "NEGATIVE_RESULTS.md").read_text(encoding="utf-8")
     anchored_claims = {m.group(1) for m in ccp.ANCHOR_RE.finditer(negative)}
     assert {"CLAIM-004", "CLAIM-005", "CLAIM-012"} <= anchored_claims
+
+
+# ---------------------------------------------------------------------------
+# Guardrail 5b: a superseded claim may be cited, but never silently.
+# ---------------------------------------------------------------------------
+
+_SUPERSEDED = {"CLAIM-004"}
+_BY_ID = {"CLAIM-004": {"superseded_by": "CLAIM-012"}}
+
+
+def _cite_errors(tmp_path: Path, body: str, name: str = "doc.md"):
+    doc = tmp_path / name
+    doc.write_text(body, encoding="utf-8")
+    return ccp.check_superseded_citations(doc, body, _SUPERSEDED, _BY_ID)
+
+
+def test_silent_citation_of_superseded_claim_is_flagged(tmp_path: Path) -> None:
+    errors = _cite_errors(tmp_path, "| CLAIM-004 | 88% at 23.2% coverage |\n")
+    assert [eid for eid, _ in errors] == ["cites-superseded-claim-silently:doc.md:CLAIM-004"]
+    assert "CLAIM-012" in errors[0][1]
+
+
+def test_citation_with_a_supersession_note_passes(tmp_path: Path) -> None:
+    body = (
+        "CLAIM-004 is retained for the record only. It was **superseded** by\n"
+        "CLAIM-012 when the fresh-data round falsified the signal.\n"
+    )
+    assert _cite_errors(tmp_path, body) == []
+
+
+def test_the_note_must_be_in_the_same_paragraph(tmp_path: Path) -> None:
+    # A disclaimer three paragraphs away does not reach the reader who is
+    # looking at the table row.
+    body = (
+        "Some of the results on this page are superseded.\n"
+        "\n"
+        "Unrelated prose about something else entirely.\n"
+        "\n"
+        "| CLAIM-004 | 88% at 23.2% coverage |\n"
+    )
+    assert len(_cite_errors(tmp_path, body)) == 1
+
+
+def test_anchor_comments_are_exempt(tmp_path: Path) -> None:
+    # An anchor is a machine binding, already value-checked against the
+    # register; it is not prose a reader could mistake for a current result.
+    body = "<!-- claim:CLAIM-004 accuracy_pct n -->\nSome numbers: 100.0 and 18.\n"
+    assert _cite_errors(tmp_path, body) == []
+
+
+def test_the_archive_page_itself_is_exempt(tmp_path: Path) -> None:
+    doc = ccp.ROOT / "docs" / "assurance" / "superseded_claims.md"
+    body = "## CLAIM-004 stands here with no disclaimer, because the page is one.\n"
+    assert ccp.check_superseded_citations(doc, body, _SUPERSEDED, _BY_ID) == []
+
+
+def test_active_claims_are_never_flagged(tmp_path: Path) -> None:
+    assert _cite_errors(tmp_path, "| CLAIM-001 | 0% unsafe execution |\n") == []

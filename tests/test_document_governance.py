@@ -328,3 +328,53 @@ def test_declared_current_profile_is_shadow_pilot() -> None:
         prof = yaml.safe_load(f)
     assert prof["current_profile"] == "SHADOW_PILOT"
     assert prof["deployment_status_equivalent"] == "SHADOW_ONLY"
+
+
+# ---------------------------------------------------------------------------
+# Index completeness: docs/README.md calls itself "the single authoritative
+# index", and nothing checked the converse until 2026-07-31 — so a registered,
+# current document could pass every gate while being invisible to a reader
+# working from the index. That is how superseded_claims.md and
+# routing_benchmark_v1_design.md came to sit unlinked.
+# ---------------------------------------------------------------------------
+
+def test_index_completeness_flags_an_unlinked_live_document(tmp_path: Path) -> None:
+    mod = _load_module()
+    (tmp_path / "docs" / "assurance").mkdir(parents=True)
+    (tmp_path / "docs" / "README.md").write_text(
+        "# Index\n\n[linked](assurance/linked.md)\n", encoding="utf-8"
+    )
+    (tmp_path / "docs" / "assurance" / "document_register_v1.yaml").write_text(
+        "documents:\n"
+        "- id: DOC-901\n  path: docs/assurance/linked.md\n  status: canonical\n"
+        "- id: DOC-902\n  path: docs/assurance/orphan.md\n  status: canonical\n",
+        encoding="utf-8",
+    )
+    mod.ROOT = tmp_path
+    errors: list[str] = []
+    mod.check_index_completeness(errors)
+    assert len(errors) == 1, errors
+    assert "DOC-902" in errors[0] and "orphan.md" in errors[0]
+
+
+def test_index_completeness_ignores_non_live_statuses(tmp_path: Path) -> None:
+    mod = _load_module()
+    (tmp_path / "docs" / "assurance").mkdir(parents=True)
+    (tmp_path / "docs" / "README.md").write_text("# Index\n", encoding="utf-8")
+    (tmp_path / "docs" / "assurance" / "document_register_v1.yaml").write_text(
+        "documents:\n"
+        "- id: DOC-903\n  path: docs/assurance/old.md\n  status: superseded\n"
+        "- id: DOC-904\n  path: docs/assurance/hist.md\n  status: historical\n",
+        encoding="utf-8",
+    )
+    mod.ROOT = tmp_path
+    errors: list[str] = []
+    mod.check_index_completeness(errors)
+    assert errors == [], errors
+
+
+def test_the_live_index_links_every_live_registered_document() -> None:
+    mod = _load_module()
+    errors: list[str] = []
+    mod.check_index_completeness(errors)
+    assert errors == [], errors

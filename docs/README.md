@@ -71,6 +71,7 @@ The numbered series is the primary reading path.
 | [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml) | Deployment maturity ladder |
 | [release_gates.md](assurance/release_gates.md) | Gate status per profile |
 | [artifact_manifest_v1.md](assurance/artifact_manifest_v1.md) | SHA-256 manifest of result artifacts |
+| [superseded_claims.md](assurance/superseded_claims.md) | Generated archive of claims a later round replaced, and what replaced them |
 | [claim_provenance_baseline.json](assurance/claim_provenance_baseline.json) | Grandfathered provenance violations |
 
 ## Assurance: process and audits
@@ -109,6 +110,7 @@ The numbered series is the primary reading path.
 | [benchmarks/README.md](benchmarks/README.md) | Benchmark overview |
 | [benchmarks/stat_tests.md](benchmarks/stat_tests.md) | Statistical test methodology |
 | [benchmarks/toolcall_consensus_benchmark_v2.md](benchmarks/toolcall_consensus_benchmark_v2.md) | Tool-call benchmark v2 |
+| [research/routing_benchmark_v1_design.md](research/routing_benchmark_v1_design.md) | Tool-routing benchmark design: predicates, frozen routing, leakage gates |
 | [research/research_control_matrix.generated.md](research/research_control_matrix.generated.md) | Research-line → control → code → test matrix (generated) |
 | [research/research_control_matrix_v1.yaml](research/research_control_matrix_v1.yaml) | Matrix source |
 | [research/benchmark_round_2026_07.md](research/benchmark_round_2026_07.md) | 2026-07 benchmark round |

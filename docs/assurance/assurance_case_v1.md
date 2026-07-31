@@ -170,7 +170,7 @@ Recording them is the point — none of these are hidden.
 | D-3 | Effective sample size: the 700 v2 tasks are 70 templates × 10 variants (effective N=70); the unsafe-rate advantage over baselines is not statistically significant (cluster p=0.50) | G2 / CLAIM-001 | Resolved into honest framing | NEGATIVE_RESULTS §17, REM-038 |
 | D-4 | Caller-supplied `risk_tier`/`action_type`/`target_environment` are not registry-authoritative | G2 | Open deployment gate | NEGATIVE_RESULTS §14/M4 |
 | D-5 | Operational human oversight (SLA, taxonomy, alarm-fatigue, on-call, routing) is design-only; REM-021 independent review NOT_STARTED | G4 | Open | REM-021, human_oversight_operations_v1.md |
-| D-6 | Selective-prediction evidence is thin: CLAIM-004 rests on a single 80/20 split (N_accepted=25, wide CI); CLAIM-008 is a calibration-set upper bound; both use the token-fingerprint entropy backend, not the NLI Semantic Entropy backend the paper describes | selective claims | Open; disclosed | NEGATIVE_RESULTS §3, §14/M8 |
+| D-6 | Selective-prediction evidence is thin, and both claims are now **superseded**: CLAIM-004 rests on a single 80/20 split (N_accepted=18, p=0.052, superseded by CLAIM-012); CLAIM-008 is a calibration-set upper bound (superseded by CLAIM-013); both use the token-fingerprint entropy backend, not the NLI Semantic Entropy backend the paper describes | selective claims | Superseded; archived in superseded_claims.md | NEGATIVE_RESULTS §3, §14/M8, §18 |
 | D-7 | Audit chain is tamper-evident, not tamper-proof (local HMAC only; no KMS/HSM, RFC 3161, WORM, OIDC approver binding) | G5 | Open; roadmap | REM-025 (KMS/RFC3161/WORM), REM-042/REM-022 §8 (OIDC) |
 | D-8 | AROMER metadata dependency: structural FAR=0% only holds when callers supply accurate high-risk metadata; under neutral metadata FA=30.7% on external datasets | AROMER (CLAIM-009) | Open; disclosed negative result | NEGATIVE_RESULTS §2, §8 |
 | D-9 | No claim reaches `independently_replicated` or above; all benchmarks run internally by the author | all | Open; the definitive gap | NEGATIVE_RESULTS §1, `docs/11-benchmark-validation-plan.md` |
@@ -185,11 +185,11 @@ artifact. Levels are authoritative in [claim_register_v1.yaml](claim_register_v1
 | CLAIM-001 | `internal_benchmark` | `results/toolcall_benchmark_v2_results.json` | D-1, D-3, D-4, D-9 |
 | CLAIM-002 | `externally_benchmarked` | `results/external_benchmark_agentharm_v1.json` | D-2, D-9 |
 | CLAIM-003 | `regression_tested` | `results/false_accept_regression_v1.json` | D-9 |
-| CLAIM-004 | `internal_benchmark` | `results/selective_n500_holdout_results.json` | D-6, D-9 |
+| CLAIM-004 (**SUPERSEDED by CLAIM-012**) | `internal_benchmark` | `results/selective_n500_holdout_results.json` | D-6, D-9 |
 | CLAIM-005 | `internal_benchmark` | `results/selective_n500_results.json` | D-6 (is itself a defeater artifact) |
 | CLAIM-006 | `internal_simulation` | `NEGATIVE_RESULTS.md` (TRAINED / AII≈0.84 record and its regressions) | D-8, D-9 |
 | CLAIM-007 | `internal_benchmark` | `artifacts/aromer/component_ablation_results.json` | D-1, D-9 |
-| CLAIM-008 | `internal_benchmark` | `results/selective_trust_curve_results.json` | D-6 |
+| CLAIM-008 (**SUPERSEDED by CLAIM-013**) | `internal_benchmark` | `results/selective_trust_curve_results.json` | D-6 |
 | CLAIM-009 | `internal_benchmark` | `artifacts/aromer/external_dataset_eval_v2.json` | D-8 (is itself a defeater artifact) |
 | CLAIM-010 | `regression_tested` | `results/toolcall_blind_v3_results.json` | D-1, D-9 |
 | CLAIM-011 | `theoretical` | `results/far_confidence_sequence_v1.json` | D-9 |

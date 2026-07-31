@@ -70,6 +70,17 @@ jobs:
       - name: Claim provenance gate (register/artifact/manifest/doc binding)
         run: python scripts/check_claim_provenance.py
 
+      - name: README-claim and leakage gates (need the installed package)
+        # Also `make audit`-only until 2026-07-31. check_readme_claims imports
+        # the modules the README names, so a README claiming a component that
+        # no longer exists now fails here; the leakage gate re-asserts the M1
+        # input contract; _check_imports catches a core module that stopped
+        # importing cleanly.
+        run: |
+          python scripts/check_readme_claims.py
+          python scripts/check_no_evaluation_leakage.py
+          python scripts/_check_imports.py
+
       - name: Run tests with coverage
         # Raised 60 -> 75 (self-review 2026-07-28): actual coverage is 83%,
         # so 60 let critical code hide behind slack. Next step per external

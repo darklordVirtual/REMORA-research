@@ -74,8 +74,8 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml`. Pri
 
 - **Split:** 80/20 stratified by source, seed=42. Training split: N=436; held-out split: N=108.
 - **Threshold lock:** τ* = 0.2032 selected on training split, locked before holdout was touched (documented in `docs/assurance/statistical_analysis_plan.md` §1). No re-optimisation on holdout.
-- **Held-out result:** N_accepted=25 on held-out split, accuracy=88%. Wilson CI [70.0%, 95.8%] is wide (25.8 pp). This is a **directional observation only**: the SAP labels it `[POST-HOC]` and requires N_accepted >= 100 for generalization claims.
-- **Split label:** `CLAIM-004` in `claim_register_v1.yaml` correctly describes this as a held-out split result with the CI and sample-size caveat.
+- **Held-out result (re-issued 2026-07-27, SAP v2 clean round):** N_accepted=18 on the held-out split, accuracy=100.0% at 16.7% coverage. Wilson CI [82.4%, 100.0%]; exact one-sided binomial vs the training-split null p0=84.86% gives p=0.052. This is a **directional observation only**: the SAP requires N_accepted >= 100 for generalization claims. The figures this audit originally recorded (N_accepted=25, accuracy 88%, CI [70.0%, 95.8%]) predate that re-issue and are stale.
+- **Split label:** `CLAIM-004` in `claim_register_v1.yaml` correctly describes this as a held-out split result with the CI and sample-size caveat. It is now **superseded by CLAIM-012**: the temperature signal it ranks on failed its pre-registered fresh-data confirmation. Archive: `superseded_claims.md`.
 
 ### AROMER Learning Ablation Arena (N=85)
 
@@ -98,7 +98,7 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml`. Pri
 | Toolcall blind v3 | 700 | 560 | FAR=0.0% | Wilson [0.00%, 0.55%] |
 | AgentHarm external | 208 | 208 | FAR=0.0% | Wilson [0.00%, 1.81%] |
 | False-accept regression | 167 | 167 | FAR=0.0% | Wilson [0.00%, 2.22%] |
-| Selective held-out | 25 |, | Accuracy=88.0% | Wilson [70.0%, 95.8%] |
+| Selective held-out (superseded) | 18 |, | Accuracy=100.0% @ 16.7% cov | Wilson [82.4%, 100.0%], p=0.052 |
 | AROMER arena (Profile C) | 85 | 40 | intercept=100% | Wilson [91.2%, 100%] |
 
 **Validity notes:**
@@ -148,11 +148,11 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml`. Pri
 | CLAIM-001 | FAR=0% toolcall v2 (N=700, simulator) | `results/toolcall_benchmark_v2_results.json` | Yes | N=700 confirmed | `test_toolcall_benchmark_v2_results.py` |
 | CLAIM-002 | FAR=0% AgentHarm external (N=208) | `results/external_benchmark_agentharm_v1.json` | Yes | N=208 confirmed | `test_assurance_envelope.py` (gate REM-014) |
 | CLAIM-003 | FAR=0% regression corpus (N=167) | `results/false_accept_regression_v1.json` | Yes | N=167 confirmed | `test_assurance_envelope.py` (gate REM-019) |
-| CLAIM-004 | 88% selective accuracy at 23.2% coverage (N=25 accepted) | `results/selective_n500_holdout_results.json` | Yes | N_accepted=25 confirmed | `test_selective_n500.py` |
+| CLAIM-004 (**superseded** by CLAIM-012) | 100.0% selective accuracy at 16.7% coverage (18 accepted, p=0.052) | `results/selective_n500_holdout_results.json` | Yes | N_accepted=18 confirmed | `test_selective_n500.py` |
 | CLAIM-005 | Critical-phase trust inversion (negative result, N=32) | `results/selective_n500_results.json` | Yes | N=32 confirmed | Covered by N500 test suite |
 | CLAIM-006 | AROMER AII=0.8412 TRAINED (shadow-mode only) | `artifacts/aromer/intelligence_after_v020.json` | Yes | Live endpoint | No deterministic test possible |
 | CLAIM-007 | Component ablation: REMORA full gate dominates (N=700) | `artifacts/aromer/component_ablation_results.json` | Yes | N=700 confirmed | `test_toolcall_benchmark_v2_results.py` |
-| CLAIM-008 | 94.7% accuracy at 25% coverage, calibration set (N=302) | `results/selective_trust_curve_results.json` | Yes | N=302 confirmed | `test_selective_trust_curve.py` |
+| CLAIM-008 (**superseded** by CLAIM-013) | 94.7% accuracy at 25% coverage, calibration set (N=302) | `results/selective_trust_curve_results.json` | Yes | N=302 confirmed | `test_selective_trust_curve.py` |
 | CLAIM-009 | FA=30.7% on neutral-metadata external datasets (negative) | `artifacts/aromer/external_dataset_eval_v2.json` | Yes (restored from main repo 2026-07-03) | N=1036 confirmed | Documented negative result; no lock test |
 | CLAIM-010 | FAR=0% blinded v3 (N=700, leakage_free=True) | `results/toolcall_blind_v3_results.json` | Yes | N=700, leakage_free=True | `test_toolcall_v2_results.py` |
 | CLAIM-A | Profile C false_block_rate=0.0222, arena (N=85) | `artifacts/aromer_learning_ablation_v2.json` | Yes (regenerated) | N=85 confirmed | `test_learning_ablation.py::TestProfileCArtifactLock` |
@@ -201,7 +201,7 @@ The root-cause of Fix 1 is that `n_eval_cases` in the v2 artifact had drifted to
 
 2. **External replication gap:** No benchmark result has been independently replicated by parties outside the project. The AgentHarm benchmark uses a third-party dataset (satisfying dataset independence) but the evaluation was run by the project authors with project code.
 
-3. **Selective prediction generalization (CLAIM-004):** N_accepted=25 yields a CI [70.0%, 95.8%] too wide to establish generalization. The SAP requires N_accepted >= 100 from an independently collected dataset before this claim can be upgraded.
+3. **Selective prediction generalization (CLAIM-004, now superseded):** N_accepted=18 yields a CI [82.4%, 100.0%] and p=0.052, too weak to establish generalization. The SAP required N_accepted >= 100 from an independently collected dataset before an upgrade; instead the SAP v3 fresh-data round falsified the signal, so the claim is superseded by CLAIM-012 rather than upgraded.
 
 4. **AROMER arena adversarial_hard exclusion:** The 8 adversarial_hard cases are evaluated separately from the learning ablation. Their results are not included in any committed summary artifact for the ablation: they would need a dedicated artifact if published separately.
 
@@ -216,7 +216,7 @@ The root-cause of Fix 1 is that `n_eval_cases` in the v2 artifact had drifted to
 | M1 label leakage (`is_unsafe_if_executed`) | Critical | Fixed (2026-06-28, pre-audit) |
 | Arena/artifact case-count drift (88 vs 85) | High | Fixed (2026-06-30, this audit, artifact regenerated) |
 | shadow_replay.py ModuleNotFoundError in subprocess | High | Fixed (2026-06-30, this audit, sys.path added) |
-| Selective prediction N_accepted=25 too small for generalization | Medium | Documented (SAP, CLAIM-004 caveat); remediation requires larger dataset |
+| Selective prediction N_accepted=18 too small for generalization | Medium | Resolved by supersession: the SAP v3 fresh-data round falsified the signal, CLAIM-004 is superseded by CLAIM-012 |
 | LLM baselines incomplete (pilot only) | Medium | In progress (REM-010) |
 | Thermodynamic eval artifact lacks git_commit | Low | Documented (artifact_manifest_v1.md gap list) |
 | Arena/seed split boundary not test-enforced | Low | No test for cross-contamination; manual check confirms clean state |
