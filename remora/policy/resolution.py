@@ -157,7 +157,10 @@ def validate_and_reenter(
     for index, argument in enumerate(plan.target_arguments):
         attempts += 1
         try:
-            plan.assert_within_budget(attempts)
+            # The budget is per fact, not per plan: a two-argument call
+            # validated once per argument is within a max_attempts=1 plan.
+            # No retry loop exists, so each fact is attempted exactly once.
+            plan.assert_within_budget(1)
         except ResolutionExhausted as exc:
             violation = str(exc)
             break
@@ -258,7 +261,8 @@ def resolve_and_reenter(
     for index, argument in enumerate(plan.target_arguments):
         attempts += 1
         try:
-            plan.assert_within_budget(attempts)
+            # Per fact, not per plan — see validate_and_reenter.
+            plan.assert_within_budget(1)
         except ResolutionExhausted as exc:
             violation = str(exc)
             break

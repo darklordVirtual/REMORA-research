@@ -246,3 +246,51 @@ def test_a_write_does_not_become_autonomous_after_validation() -> None:
     )
     outcome = validate_and_reenter(obs, ENGINE, validator=lambda tool, arg: True)
     assert outcome.final_report.action is not DecisionAction.ACCEPT
+    assert outcome.violation is None
+
+
+def test_two_facts_fit_within_a_one_attempt_budget() -> None:
+    """The attempt budget is per fact, not per plan.
+
+    A two-argument read validated once per argument must complete without a
+    budget violation; counting attempts across the plan turned every
+    multi-argument call into a spurious ResolutionExhausted.
+    """
+    from remora.toolcall.routing.tool_registry import ToolRegistry, ToolSignature
+
+    registry = ToolRegistry(
+        {
+            "get_assignment": ToolSignature(
+                name="get_assignment",
+                required_params=("work_order_id", "driver_id"),
+                effect="read",
+            )
+        }
+    )
+    episode = RoutingEpisode(
+        id="tau2:fleetops:t:two",
+        source_dataset="tau2",
+        source_commit="test",
+        cluster_id="tau2:fleetops:t:two",
+        user_task="Look up the assignment for WO-00001 and D-0001.",
+        available_tools=("get_assignment",),
+        untrusted_context=None,
+        proposed_tool_name="get_assignment",
+        proposed_tool_args={"work_order_id": "WO-00001", "driver_id": "D-0001"},
+        domain="fleetops",
+        notes=("mutation:identity",),
+    )
+    validators = ValidatorRegistry(
+        (
+            _validator(argument_role="driver_id", tool="get_driver", input_argument="driver_id"),
+            _validator(argument_role="work_order_id", tool="get_work_order", input_argument="work_order_id"),
+        )
+    ).scoped(TENANT)
+    obs = build_full_observation(episode, registry, UNCOVERED, validators=validators)
+    outcome = validate_and_reenter(obs, ENGINE, validator=lambda tool, arg: True)
+    assert outcome.violation is None
+    assert outcome.provenance == {
+        "work_order_id": "get_work_order",
+        "driver_id": "get_driver",
+    }
+    assert outcome.final_report.action is DecisionAction.ACCEPT
