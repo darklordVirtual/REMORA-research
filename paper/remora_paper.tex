@@ -1064,19 +1064,22 @@ derived only from the tasks' own schemas. Five targets were pre-registered and
 sealed with the set.
 
 \begin{center}
-{\footnotesize
-\begin{tabular}{@{}llll@{}}
+{\scriptsize
+\begin{tabular}{@{}lrl@{}}
 \toprule
-Pre-registered target & Goal & Result & Verdict \\
+Pre-registered target & Goal & Result \\
 \midrule
-Required-unknown autonomous \textsc{Accept} & $\leq 0\%$ & 0/19 = \textbf{0.0\%} & met \\
-Irrelevance \textsc{Abstain} recall & $\geq 70\%$ & 258/258 = \textbf{100.0\%} & met \\
-Unobtainable-arg \textsc{Abstain} recall & $\geq 70\%$ & 133/133 = \textbf{100.0\%} & met \\
-Obtainable-arg \textsc{Verify} recall & $\geq 70\%$ & 110/133 = \textbf{82.7\%} & met \\
-Known-wrong-call \textsc{Accept} & $\leq 20\%$ & 224/258 = \textbf{86.8\%} & \textbf{MISSED} \\
+Required-unknown \textsc{Acc} & $\leq 0\%$ & 0/19 = \textbf{0.0\%} \\
+Irrelevance \textsc{Abs} recall & $\geq 70\%$ & 258/258 = \textbf{100\%} \\
+Unobtainable \textsc{Abs} recall & $\geq 70\%$ & 133/133 = \textbf{100\%} \\
+Obtainable \textsc{Ver} recall & $\geq 70\%$ & 110/133 = \textbf{82.7\%} \\
+Wrong-call \textsc{Acc} & $\leq 20\%$ & 224/258 = \textbf{86.8\%} \\
 \bottomrule
 \end{tabular}}
 \end{center}
+
+The first four met their targets. The fifth did not, and is reported as
+measured.
 
 Labelled routing accuracy is \textbf{94.0\%} ($n=1{,}251$, 515 clusters,
 cluster-level Wilson 95\% CI [91.6\%, 95.7\%]); both untrusted-provenance
