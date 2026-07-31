@@ -16,12 +16,26 @@ are drawn from the 2265 that were never touched.
 | source | tau2 telecom `tasks.json`, excluding every id in `tasks_small.json` |
 | source commit | `363133ada1936491fb5bcec33cd62c3518a99f65` |
 | reserved clusters | 300 (deterministic: first 300 by sorted id) |
-| episodes | 5580 (3720 labelled) |
+| episodes | 4290 (3060 labelled) |
 | built | 2026-07-31 |
+| resealed | 2026-07-31 — generator schema change (see below) |
 | evaluated | **never** |
 
 Selection is by sorted id rather than by sample, so there was no opportunity to
 pick a favourable subset and no seed to record.
+
+## Reseal record
+
+The holdout was rebuilt once, from the same 300 untouched clusters, after the
+mutation generator split `UNTRUSTED_ORIGIN` into `untrusted_noncontrolling`
+(gold VERIFY) and `untrusted_controls_sensitive` (gold ESCALATE). The previous
+build (`sha256 fa45db27`) carried the old single family and would have measured
+the engine against a benchmark schema the code no longer produces.
+
+This is legitimate **only** because no holdout result had ever been observed —
+the seal is about not evaluating, not about never regenerating. `--reseal`
+requires a reason, records it and the superseded hash in the manifest, and
+refuses outright once `status` is anything other than `sealed_never_run`.
 
 ## Protocol
 

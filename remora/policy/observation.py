@@ -213,6 +213,13 @@ class PolicyObservation:
     # plan to the call it was issued for.
     proposed_tool_name: str | None = None
 
+    # Argument names whose value derives from untrusted content. Meaningful
+    # only together with argument_tainted. When one of them occupies a
+    # sensitive role (recipient, command, credential, egress target) the
+    # untrusted content is authorising rather than informing, and the call
+    # escalates regardless of the declared risk tier.
+    untrusted_controlled_arguments: tuple[str, ...] = ()
+
     # Policy generalization / fleet-level risk (v0.9)
     # All fields are caller-populated — REMORA is stateless.
     similar_action_seen_count: int | None = None

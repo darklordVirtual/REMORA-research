@@ -119,6 +119,29 @@ def _normalize_risk_tier(tier: str | None) -> str:
     return normalised if normalised in _KNOWN_RISK_TIERS else "unknown"
 
 
+#: Argument roles through which controlling a value confers authority rather
+#: than information: where an action lands, what it runs, and what it
+#: authenticates with. Matched as whole tokens against the argument name, so
+#: `to`, `to_address` and `recipient_email` all count while `photo` does not.
+_SENSITIVE_ARGUMENT_ROLES: frozenset[str] = frozenset({
+    "recipient", "recipients", "to", "cc", "bcc", "destination", "dest",
+    "target", "address", "email", "account", "iban", "payee",
+    "command", "cmd", "script", "exec", "shell", "query_command",
+    "credential", "credentials", "password", "secret", "token", "key",
+    "apikey", "api_key", "auth", "url", "uri", "endpoint", "webhook",
+    "host", "path", "principal", "role", "permission", "rights",
+})
+
+
+def _controls_sensitive_argument(names: tuple[str, ...] | None) -> bool:
+    """True when any named argument occupies a sensitive role."""
+    for name in names or ():
+        tokens = {tok for tok in str(name).lower().replace("-", "_").split("_") if tok}
+        if tokens & _SENSITIVE_ARGUMENT_ROLES:
+            return True
+    return False
+
+
 def hard_guard_floor(
     obs: PolicyObservation,
 ) -> tuple[DecisionAction, DecisionReason] | None:
@@ -157,6 +180,20 @@ def hard_guard_floor(
         )
         return action, DecisionReason.EVIDENCE_CONTRADICTED
     if obs.argument_tainted:
+        # Untrusted content that *controls* a sensitive argument is
+        # authorising, not informing. Deciding where money goes, what command
+        # runs, or which credential is used is exactly the authority untrusted
+        # content must never hold, so this escalates regardless of the declared
+        # risk tier — a caller-supplied "low" must not buy autonomy for an
+        # attacker-chosen recipient. §23 recorded ESCALATE recall at 0% before
+        # this existed. Untrusted provenance alone stays at the VERIFY floor
+        # below: escalating every tainted call would send a summary of an email
+        # to a human, which is friction with no decision to make.
+        if _controls_sensitive_argument(obs.untrusted_controlled_arguments):
+            return (
+                DecisionAction.ESCALATE,
+                DecisionReason.UNTRUSTED_CONTROLS_SENSITIVE_ARGUMENT,
+            )
         # Issue #40 decision (2026-07-30): at CRITICAL risk a tainted
         # argument is never an approvable VERIFY — it escalates, so no
         # reviewer can wave through an unsanitized critical write. The

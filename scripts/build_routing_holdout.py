@@ -64,20 +64,33 @@ def _dev_task_ids() -> set[str]:
     return {str(e["id"]) for e in json.loads(small.read_text(encoding="utf-8"))}
 
 
-def build() -> int:
+def build(reseal_reason: str | None = None) -> int:
     source = CACHE / "tau2_holdout" / "telecom_full.json"
     if not source.exists():
         print(f"ERROR: {source} missing (fetch the full telecom task set first)",
               file=sys.stderr)
         return 1
-    if (OUT / "manifest.json").exists():
-        print(
-            "REFUSING: a holdout manifest already exists.\n"
-            "Rebuilding after any result has been seen turns the holdout into a "
-            "second development set. Delete it deliberately if that is intended.",
-            file=sys.stderr,
-        )
-        return 2
+    previous = None
+    manifest_path = OUT / "manifest.json"
+    if manifest_path.exists():
+        previous = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if previous.get("status") != "sealed_never_run":
+            print(
+                "REFUSING: this holdout has been evaluated. Rebuilding it would "
+                "turn a spent blind set into a second development set.",
+                file=sys.stderr,
+            )
+            return 2
+        if not reseal_reason:
+            print(
+                "REFUSING: a holdout manifest already exists.\n"
+                "Resealing is only legitimate when the generator schema changed "
+                "and no holdout result has ever been observed. Pass --reseal "
+                "with a reason, which is recorded in the manifest.",
+                file=sys.stderr,
+            )
+            return 2
+        print(f"RESEALING (previous sha256={previous['sha256'][:16]}): {reseal_reason}")
 
     tasks = json.loads(source.read_text(encoding="utf-8"))
     used = _dev_task_ids()
@@ -118,6 +131,11 @@ def build() -> int:
         "n_episodes": len(mutants),
         "n_labelled": labelled,
         "sha256": digest,
+        "reseal_history": (
+            (previous.get("reseal_history", []) if previous else [])
+            + ([{"previous_sha256": previous["sha256"], "reason": reseal_reason}]
+               if previous else [])
+        ),
         "files": {"telecom_holdout.jsonl": {"sha256": digest}},
     }
     (OUT / "manifest.json").write_bytes(
@@ -147,8 +165,13 @@ def verify() -> int:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--verify", action="store_true")
+    ap.add_argument(
+        "--reseal", metavar="REASON",
+        help="rebuild an unevaluated holdout after a generator schema change; "
+             "the reason is recorded in the manifest",
+    )
     args = ap.parse_args()
-    raise SystemExit(verify() if args.verify else build())
+    raise SystemExit(verify() if args.verify else build(args.reseal))
 
 
 if __name__ == "__main__":

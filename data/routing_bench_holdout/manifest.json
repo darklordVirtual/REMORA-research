@@ -1,14 +1,20 @@
 {
   "files": {
     "telecom_holdout.jsonl": {
-      "sha256": "fa45db2783331a2d1012823529a09c4f04df90a5fcecde3de0676097cd3745f1"
+      "sha256": "81f67cdc0f0563053865e2e738115779872aa14b242cda0c8205e1a69188e279"
     }
   },
-  "n_episodes": 5580,
-  "n_labelled": 3720,
+  "n_episodes": 4290,
+  "n_labelled": 3060,
   "n_source_clusters": 300,
+  "reseal_history": [
+    {
+      "previous_sha256": "fa45db2783331a2d1012823529a09c4f04df90a5fcecde3de0676097cd3745f1",
+      "reason": "generator schema change: UNTRUSTED_ORIGIN split into untrusted_noncontrolling (VERIFY) and untrusted_controls_sensitive (ESCALATE); no holdout result has ever been observed"
+    }
+  ],
   "schema": "routing_bench_holdout_v1",
-  "sha256": "fa45db2783331a2d1012823529a09c4f04df90a5fcecde3de0676097cd3745f1",
+  "sha256": "81f67cdc0f0563053865e2e738115779872aa14b242cda0c8205e1a69188e279",
   "source": "tau2 telecom tasks.json, excluding every task in tasks_small.json",
   "source_commit": "363133ada1936491fb5bcec33cd62c3518a99f65",
   "status": "sealed_never_run"

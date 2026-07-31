@@ -48,6 +48,9 @@ class DecisionReason(str, Enum):
     # never an approvable VERIFY — they escalate (option c; option b,
     # sanitize-and-revalidate before approval, is the tracked target state).
     TAINTED_ARGUMENT_ESCALATE = "tainted_argument_escalate"
+    # Untrusted content controls a recipient/command/credential/egress target:
+    # authorising, not informing. Escalates at any declared risk tier.
+    UNTRUSTED_CONTROLS_SENSITIVE_ARGUMENT = "untrusted_controls_sensitive_argument"
     # Credal risk gates (v0.9)
     MINIMAX_ESCALATE = "minimax_escalate"       # worst_case_loss >= threshold
     TRAP_ESCALATE    = "trap_escalate"          # trap_score >= 0.70

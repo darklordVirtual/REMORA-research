@@ -74,6 +74,15 @@ def build_observation(
         # Untrusted content reaching the call surface is observable taint. It is
         # the only security signal this harness can supply honestly.
         argument_tainted=bool(obs["untrusted_context"]),
+        # When untrusted content is present, every argument of the call is
+        # potentially derived from it. Naming them lets the engine decide
+        # whether any occupies a sensitive role; the harness does not make
+        # that judgement itself.
+        untrusted_controlled_arguments=(
+            tuple(sorted(obs["proposed_tool_args"]))
+            if obs["untrusted_context"]
+            else ()
+        ),
         arguments_satisfiable=(
             registry.arguments_satisfiable(
                 proposed=obs["proposed_tool_name"],

@@ -1261,6 +1261,56 @@ successful resolution.
 
 ---
 
+## §24 Untrusted-provenance split closes the ESCALATE gap (2026-07-31)
+
+**Finding.** §23 recorded ESCALATE recall at 0%: every untrusted-origin episode
+routed to VERIFY. The cause was a benchmark that treated all untrusted
+provenance as one family with gold route ESCALATE, and an engine with no way to
+distinguish informing from authorising. Splitting both fixes it.
+
+| family | gold | engine predicts |
+|---|---|---|
+| `untrusted_noncontrolling` | VERIFY | 184/184 VERIFY |
+| `untrusted_controls_sensitive` | ESCALATE | 228/228 ESCALATE |
+
+Overall accuracy on the development set moves 56.9% -> **85.5%**
+(cluster-adjusted Wilson [76.3%, 92.3%]). ESCALATE recall 0% -> 100%; VERIFY
+recall 100%.
+
+**The rule.** Untrusted content that *controls* a recipient, command,
+credential or egress target is authorising, not informing, and escalates
+regardless of the declared risk tier — a caller-supplied "low" must not buy
+autonomy for an attacker-chosen recipient. Untrusted provenance alone keeps the
+existing VERIFY floor: escalating every tainted call would send a summary of an
+email to a human, which is friction with no decision to make.
+
+**Two benchmark defects found while building this, both of the same kind.**
+
+1. Where the source call already carried a sensitive-role argument, attaching
+   untrusted content made *both* variants controlling, so the contrast was void
+   and a routing difference between them would have proven nothing. Those
+   sources now emit only the controlling variant.
+2. The generator and the engine had **separate vocabularies** for "sensitive".
+   They disagreed on 17 episodes, which appeared as spurious escalations in the
+   noncontrolling family. The generator now imports the engine's set. Two
+   definitions that drift apart produce a benchmark whose control arm is
+   silently not a control arm.
+
+**Still missed, unchanged from §23.** wrong-argument ACCEPT rate 22.4% (target
+<= 20%) and unobtainable ABSTAIN recall 66.4% (target >= 70%). Neither is
+addressed by provenance routing.
+
+**Holdout resealed.** The sealed set was rebuilt once from the same 300
+untouched clusters, because the previous build carried the old single
+untrusted family. No holdout result had ever been observed; the reason and the
+superseded hash are recorded in the manifest, and `--reseal` refuses once the
+set has been evaluated.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py`
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1278,7 +1328,7 @@ successful resolution.
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)**, `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
 | MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
-| ESCALATE recall is 0% on the untrusted-origin family (§23) | **Active**: all untrusted-origin mutants route to VERIFY, never ESCALATE. Not addressable by a resolver — untrusted provenance is a question about authority, not missing information. Needs the two provenance families (noncontrolling vs controls-sensitive-argument), which do not exist | **High** |
+| ESCALATE recall is 0% on the untrusted-origin family (§23) | **Resolved 2026-07-31 (§24)**: split into noncontrolling (VERIFY) and controls-sensitive (ESCALATE); recall 0% -> 100%, accuracy 56.9% -> 85.5%. Formerly: all untrusted-origin mutants route to VERIFY, never ESCALATE. Not addressable by a resolver — untrusted provenance is a question about authority, not missing information. Needs the two provenance families (noncontrolling vs controls-sensitive-argument), which do not exist | **High** |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
