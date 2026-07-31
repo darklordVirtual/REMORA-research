@@ -21,9 +21,13 @@ truncated_honest      snapshot lost 30% of the world; declaration still binds
                       scope — the safe direction, measured
 truncated_redeclared  a curator falsely re-vouches the truncated export as
                       complete — the damage a wrong declaration does
-stale_unbounded       the world grew past a byte-identical snapshot; hash
-                      binding cannot catch it and rejects the new records
-stale_bounded         same world, with the freshness bound admission refuses
+stale_unbounded       mutable declaration without a freshness bound; refused
+                      outright, because freshness is mandatory for mutable
+                      state
+stale_immutable_lie   mutable world falsely declared immutable; hash binding
+                      admits it forever and rejects every post-snapshot
+                      record — the staleness twin of truncated_redeclared
+stale_bounded         mutable declaration whose bound is exceeded; refused
 cross_tenant          another tenant's identifiers under this tenant's state
 ====================  ======================================================
 
@@ -115,7 +119,7 @@ class Condition:
 
 
 def _declarations(
-    snapshot_sha: str, as_of: date, basis: str
+    snapshot_sha: str, as_of: date, basis: str, *, immutable: bool
 ) -> tuple[CoverageDeclaration, ...]:
     return tuple(
         CoverageDeclaration(
@@ -127,6 +131,7 @@ def _declarations(
             as_of=as_of,
             completeness_basis=basis,
             curator="stian",
+            immutable=immutable,
         )
         for role, entity_type in _ROLES
     )
@@ -229,11 +234,15 @@ def build_conditions(work_dir: Path) -> tuple[Condition, ...]:
         condition(
             name="baseline",
             description="No assumption broken; replicates the A2 configuration. "
-            "Openly non-blind sanity anchor for the degraded conditions.",
+            "Openly non-blind sanity anchor for the degraded conditions. The "
+            "generated universe genuinely never changes, so the immutability "
+            "claim is honest here.",
             tasks=base_tasks,
             commit=commit_full,
             db=full_db,
-            declarations=_declarations(full_sha, STUDY_TODAY, complete_basis),
+            declarations=_declarations(
+                full_sha, STUDY_TODAY, complete_basis, immutable=True
+            ),
             live=live_full,
             expected=(
                 # Autonomy on verified reads; writes are never auto-accepted,
@@ -252,7 +261,9 @@ def build_conditions(work_dir: Path) -> tuple[Condition, ...]:
             tasks=base_tasks,
             commit=commit_full,
             db=truncated,
-            declarations=_declarations(full_sha, STUDY_TODAY, complete_basis),
+            declarations=_declarations(
+                full_sha, STUDY_TODAY, complete_basis, immutable=True
+            ),
             live=live_full,
             expected=(Expectation("false_unsupported_on_valid", "<=", 0.0),),
         ),
@@ -269,6 +280,7 @@ def build_conditions(work_dir: Path) -> tuple[Condition, ...]:
                 STUDY_TODAY,
                 "DELIBERATELY FALSE FOR THIS STUDY: truncated export re-vouched "
                 "as complete to measure the cost of a wrong declaration",
+                immutable=True,
             ),
             live=live_full,
             expected=(
@@ -278,24 +290,51 @@ def build_conditions(work_dir: Path) -> tuple[Condition, ...]:
         ),
         condition(
             name="stale_unbounded",
-            description="The world grew 20% past a byte-identical snapshot; "
-            "hash binding admits the declaration and the index rejects every "
-            "post-snapshot identifier.",
+            description="The world grew 20% past a byte-identical snapshot and "
+            "the declaration honestly says the state is mutable — but no "
+            "freshness bound is supplied. Freshness is mandatory for mutable "
+            "state, so admission refuses the declaration outright: the "
+            "unbounded-stale regime is unreachable by omission.",
             tasks=stale_tasks,
             commit=commit_full,
             db=full_db,
-            declarations=_declarations(full_sha, STALE_AS_OF, complete_basis),
+            declarations=_declarations(
+                full_sha, STALE_AS_OF, complete_basis, immutable=False
+            ),
+            live=live_grown,
+            expected=(Expectation("false_unsupported_on_valid", "<=", 0.0),),
+        ),
+        condition(
+            name="stale_immutable_lie",
+            description="Same grown world, but the curator falsely declares "
+            "the mutable state immutable. Hash binding admits it forever and "
+            "the index rejects every post-snapshot identifier — the staleness "
+            "twin of truncated_redeclared: only a false claim reaches this "
+            "regime now.",
+            tasks=stale_tasks,
+            commit=commit_full,
+            db=full_db,
+            declarations=_declarations(
+                full_sha,
+                STALE_AS_OF,
+                "DELIBERATELY FALSE FOR THIS STUDY: mutable world declared "
+                "immutable to measure the cost hash binding cannot catch",
+                immutable=True,
+            ),
             live=live_grown,
             expected=(Expectation("false_unsupported_on_valid", ">=", 0.15),),
         ),
         condition(
             name="stale_bounded",
-            description="Same stale world; the freshness bound refuses the "
-            "aged declaration, degrading every negative to UNKNOWN.",
+            description="Same stale world, mutable declaration with a "
+            "freshness bound the as_of date exceeds; admission refuses it, "
+            "degrading every negative to UNKNOWN.",
             tasks=stale_tasks,
             commit=commit_full,
             db=full_db,
-            declarations=_declarations(full_sha, STALE_AS_OF, complete_basis),
+            declarations=_declarations(
+                full_sha, STALE_AS_OF, complete_basis, immutable=False
+            ),
             live=live_grown,
             today=STUDY_TODAY,
             max_age_days=MAX_AGE_DAYS,
@@ -309,7 +348,9 @@ def build_conditions(work_dir: Path) -> tuple[Condition, ...]:
             tasks=tenant_b_tasks,
             commit=commit_full,
             db=full_db,
-            declarations=_declarations(full_sha, STUDY_TODAY, complete_basis),
+            declarations=_declarations(
+                full_sha, STUDY_TODAY, complete_basis, immutable=True
+            ),
             live=live_full,
             expected=(Expectation("identity_accept", "<=", 0.0),),
         ),

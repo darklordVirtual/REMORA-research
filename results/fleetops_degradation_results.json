@@ -49,7 +49,7 @@
         ],
         "status": "eligible"
       },
-      "description": "No assumption broken; replicates the A2 configuration. Openly non-blind sanity anchor for the degraded conditions.",
+      "description": "No assumption broken; replicates the A2 configuration. Openly non-blind sanity anchor for the degraded conditions. The generated universe genuinely never changes, so the immutability claim is honest here.",
       "expectations": {
         "false_unsupported_on_valid": {
           "met": true,
@@ -408,6 +408,135 @@
     },
     {
       "admission": {
+        "eligible_argument_roles": [],
+        "excluded_argument_roles": [
+          "depot_id",
+          "driver_id",
+          "vehicle_id",
+          "work_order_id"
+        ],
+        "minimum_judgeable_fraction": 0.9,
+        "observed_judgeable_fraction": 0.0,
+        "per_role": [
+          {
+            "eligible": false,
+            "identity_n": 15,
+            "judgeable_fraction": 0.5,
+            "judgeable_n": 15,
+            "role": "depot_id",
+            "wrong_arg_n": 15
+          },
+          {
+            "eligible": false,
+            "identity_n": 30,
+            "judgeable_fraction": 0.0,
+            "judgeable_n": 0,
+            "role": "driver_id",
+            "wrong_arg_n": 30
+          },
+          {
+            "eligible": false,
+            "identity_n": 15,
+            "judgeable_fraction": 0.0,
+            "judgeable_n": 0,
+            "role": "vehicle_id",
+            "wrong_arg_n": 15
+          },
+          {
+            "eligible": false,
+            "identity_n": 45,
+            "judgeable_fraction": 0.0,
+            "judgeable_n": 0,
+            "role": "work_order_id",
+            "wrong_arg_n": 45
+          }
+        ],
+        "status": "ineligible"
+      },
+      "description": "The world grew 20% past a byte-identical snapshot and the declaration honestly says the state is mutable \u2014 but no freshness bound is supplied. Freshness is mandatory for mutable state, so admission refuses the declaration outright: the unbounded-stale regime is unreachable by omission.",
+      "expectations": {
+        "false_unsupported_on_valid": {
+          "met": true,
+          "target": "<= 0.0",
+          "value": 0.0
+        }
+      },
+      "false_unsupported_on_valid": {
+        "d": 105,
+        "n": 0,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0353
+        ]
+      },
+      "identity_accept": {
+        "d": 90,
+        "n": 45,
+        "rate": 0.5,
+        "wilson95": [
+          0.3988,
+          0.6012
+        ]
+      },
+      "identity_accept_read": {
+        "d": 60,
+        "n": 45,
+        "rate": 0.75
+      },
+      "identity_accept_snapshot_absent": {
+        "d": 75,
+        "n": 30,
+        "rate": 0.4
+      },
+      "identity_accept_snapshot_present": {
+        "d": 15,
+        "n": 15,
+        "rate": 1.0
+      },
+      "identity_accept_write": {
+        "d": 30,
+        "n": 0,
+        "rate": 0.0
+      },
+      "n_episodes": 540,
+      "name": "stale_unbounded",
+      "predicted_by_family": {
+        "identity": {
+          "abstain": 15,
+          "accept": 45,
+          "verify": 30
+        },
+        "missing_arg_obtainable": {
+          "verify": 90
+        },
+        "missing_arg_unobtainable": {
+          "abstain": 90
+        },
+        "untrusted_controls_sensitive": {
+          "escalate": 90
+        },
+        "untrusted_noncontrolling": {
+          "verify": 90
+        },
+        "wrong_arg_value": {
+          "abstain": 15,
+          "accept": 45,
+          "verify": 30
+        }
+      },
+      "wrong_arg_accept": {
+        "d": 90,
+        "n": 45,
+        "rate": 0.5,
+        "wilson95": [
+          0.3988,
+          0.6012
+        ]
+      }
+    },
+    {
+      "admission": {
         "eligible_argument_roles": [
           "work_order_id",
           "driver_id",
@@ -453,7 +582,7 @@
         ],
         "status": "eligible"
       },
-      "description": "The world grew 20% past a byte-identical snapshot; hash binding admits the declaration and the index rejects every post-snapshot identifier.",
+      "description": "Same grown world, but the curator falsely declares the mutable state immutable. Hash binding admits it forever and the index rejects every post-snapshot identifier \u2014 the staleness twin of truncated_redeclared: only a false claim reaches this regime now.",
       "expectations": {
         "false_unsupported_on_valid": {
           "met": true,
@@ -500,7 +629,7 @@
         "rate": 0.0
       },
       "n_episodes": 540,
-      "name": "stale_unbounded",
+      "name": "stale_immutable_lie",
       "predicted_by_family": {
         "identity": {
           "abstain": 45,
@@ -581,7 +710,7 @@
         ],
         "status": "ineligible"
       },
-      "description": "Same stale world; the freshness bound refuses the aged declaration, degrading every negative to UNKNOWN.",
+      "description": "Same stale world, mutable declaration with a freshness bound the as_of date exceeds; admission refuses it, degrading every negative to UNKNOWN.",
       "expectations": {
         "false_unsupported_on_valid": {
           "met": true,
@@ -791,8 +920,8 @@
       }
     }
   ],
-  "run_at_commit": "3bec0e2",
-  "schema": "fleetops_degradation_results_v1",
+  "run_at_commit": "f396bda",
+  "schema": "fleetops_degradation_results_v2",
   "status": "mechanism_study_not_blind",
   "study_parameters": {
     "growth_fraction": 0.2,

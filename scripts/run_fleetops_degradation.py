@@ -73,7 +73,7 @@ def main() -> int:
         v["met"] for m in evaluated for v in m["expectations"].values()
     )
     report = {
-        "schema": "fleetops_degradation_results_v1",
+        "schema": "fleetops_degradation_results_v2",
         "status": "mechanism_study_not_blind",
         "run_at_commit": commit,
         "study_parameters": {

@@ -164,12 +164,13 @@ def evaluated(tmp_path_factory) -> dict[str, dict]:
     return {c.name: run_condition(c) for c in conditions}
 
 
-def test_the_six_conditions_are_built(evaluated) -> None:
+def test_the_seven_conditions_are_built(evaluated) -> None:
     assert set(evaluated) == {
         "baseline",
         "truncated_honest",
         "truncated_redeclared",
         "stale_unbounded",
+        "stale_immutable_lie",
         "stale_bounded",
         "cross_tenant",
     }
@@ -211,9 +212,21 @@ def test_redeclared_truncation_still_rejects_corrupted_values(evaluated) -> None
     assert evaluated["truncated_redeclared"]["wrong_arg_accept"]["rate"] <= 0.15
 
 
-def test_stale_snapshot_rejects_post_snapshot_identifiers(evaluated) -> None:
-    """Hash binding cannot catch a world that moved on."""
+def test_a_mutable_declaration_without_a_bound_is_refused_outright(evaluated) -> None:
+    """Freshness is mandatory for mutable state: the unbounded-stale regime is
+    no longer reachable by omission — only by a false immutability claim."""
     metrics = evaluated["stale_unbounded"]
+    assert metrics["false_unsupported_on_valid"]["rate"] == 0.0
+    assert metrics["admission"]["status"] == "ineligible"
+
+
+def test_a_false_immutability_claim_rejects_post_snapshot_identifiers(
+    evaluated,
+) -> None:
+    """Hash binding cannot catch a world that moved on; with freshness
+    mandatory, reproducing that failure requires a curator to falsely declare
+    mutable state immutable — the staleness twin of truncated_redeclared."""
+    metrics = evaluated["stale_immutable_lie"]
     assert metrics["false_unsupported_on_valid"]["rate"] >= 0.15
 
 

@@ -62,6 +62,12 @@ class CoverageDeclaration:
     curator: str
     canonicalization: str = "string_exact"
     aliases_supported: bool = False
+    #: A curator's claim that the underlying dataset never changes after the
+    #: snapshot — a generated fixture, a sealed archive. Only an immutable
+    #: declaration may be admitted without a freshness bound: for mutable
+    #: state, integrity without freshness is insufficient (§32 finding 3), and
+    #: this claim is the curator's to answer for like every other field.
+    immutable: bool = False
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -101,6 +107,7 @@ class CoverageDeclaration:
             "curator": self.curator,
             "canonicalization": self.canonicalization,
             "aliases_supported": self.aliases_supported,
+            "immutable": self.immutable,
         }
 
     @classmethod
@@ -116,6 +123,7 @@ class CoverageDeclaration:
             curator=d["curator"],
             canonicalization=d.get("canonicalization", "string_exact"),
             aliases_supported=bool(d.get("aliases_supported", False)),
+            immutable=bool(d.get("immutable", False)),
         )
 
 
@@ -141,13 +149,16 @@ def admitted_scopes(
     against. Dropping is always the safe direction: it removes the ability to
     make a negative claim, it never adds one.
 
-    *today* and *max_age_days* together enforce a freshness bound: a
-    declaration older than the bound is dropped. Hash binding cannot catch a
-    world that moved on — a snapshot whose bytes never changed still goes stale
-    as records are created after it — so staleness is only detectable from
-    ``as_of``. The bound is opt-in but must be whole: passing one parameter
-    without the other is refused rather than half-checked. *today* is explicit
-    rather than read from the clock so admission is reproducible.
+    **Freshness is mandatory for mutable state.** Hash binding cannot catch a
+    world that moved on — a snapshot whose bytes never changed still goes
+    stale as records are created after it — so staleness is only detectable
+    from ``as_of``. A declaration that does not claim ``immutable`` is
+    therefore dropped unless a freshness bound (*today* + *max_age_days*) is
+    supplied and met. Immutable declarations are exempt from the age check;
+    that exemption is the curator's claim to answer for. The bound must be
+    whole: passing one parameter without the other is refused rather than
+    half-checked, and *today* is explicit rather than read from the clock so
+    admission is reproducible.
     """
     if (today is None) != (max_age_days is None):
         raise ValueError(
@@ -158,12 +169,11 @@ def admitted_scopes(
     for declaration in declarations:
         if declaration.tenant != tenant:
             continue
-        if (
-            today is not None
-            and max_age_days is not None
-            and (today - declaration.as_of).days > max_age_days
-        ):
-            continue
+        if not declaration.immutable:
+            if today is None or max_age_days is None:
+                continue
+            if (today - declaration.as_of).days > max_age_days:
+                continue
         snapshot = snapshots.get(declaration.domain)
         if snapshot is None or not declaration.matches_snapshot(snapshot):
             continue
