@@ -76,8 +76,8 @@ def test_parse_register_real_file() -> None:
     text = ccp.REGISTER_PATH.read_text(encoding="utf-8")
     claims = ccp.parse_register(text)
     ids = [c["id"] for c in claims]
-    assert len(claims) == 13
-    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-013"
+    assert len(claims) == 15
+    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-015"
     by_id = {c["id"]: c for c in claims}
     assert by_id["CLAIM-001"]["artifact"] == [
         "results/toolcall_benchmark_v2_results.json",

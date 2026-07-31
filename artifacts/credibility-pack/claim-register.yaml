@@ -425,3 +425,87 @@ claims:
     reproduce: >
       python experiments/sap_v3_round.py analyze
       (replays offline from results/sap_v3_collection.json; zero API calls)
+
+  - id: CLAIM-014
+    title: "System demonstration: governance chain from tool call to enforcement"
+    statement: >
+      A single command (python scripts/run_system_demonstration.py) exercises the
+      full governance chain — structure and policy, state coverage and freshness,
+      argument-value provenance, ACCEPT/VERIFY/ABSTAIN/ESCALATE, named validator,
+      re-entry, and enforcement — and produces one reproducible artifact. Under
+      study conditions: verified reads are accepted autonomously, writes route to
+      VERIFY, UNKNOWN state resolves through named validators, and context-foreign
+      calls lose autonomy. All seven pre-registered degradation expectations met.
+      All eight validator targets met. Validator loop restored read utility from
+      0% to 100%. None of 139 seeded corruption forms reached ACCEPT.
+    evidence_level: internal_benchmark
+    status: development_measurement_not_blind
+    artifact:
+      - "results/system_demonstration_v1.json"
+      - "results/fleetops_degradation_results.json"
+      - "results/fleetops_validator_study_results.json"
+    n: 7
+    n_detail: >
+      7 degradation conditions (fleetops domain, mechanism study, non-blind);
+      validator study N is study-internal (not independently published).
+    metrics:
+      degradation_conditions_n: 7
+      degradation_all_expectations_met: true
+      validator_targets_n: 8
+      validator_all_targets_met: true
+      read_utility_without_validators: 0.0
+      read_utility_with_validators: 1.0
+      seeded_corruption_forms_n: 139
+      corrupt_accept_rate: 0.0
+    caveat: >
+      Open (non-blind) mechanism study on the generated fleetops domain.
+      All three sub-studies are mechanism studies, not blind holdout evaluations.
+      Results demonstrate architectural behaviour under controlled conditions; they
+      are not evidence of generalisation to external domains or field deployments.
+      false_absent_on_valid=0 is by construction (study validator consults live
+      world directly). Do not cite as production-readiness evidence.
+    reproduce: >
+      python scripts/run_system_demonstration.py
+      (deterministic; no API keys; one unified artifact at
+      results/system_demonstration_v1.json)
+
+  - id: CLAIM-015
+    title: "Argument-value grounding reduces wrong-call ACCEPT from 86.8% to 11.6%"
+    statement: >
+      On the BFCL foreign-call set used in section 34 (development measurement on
+      the spent blind set), enabling argument-value grounding reduces wrong-call
+      autonomous acceptance from 86.8% to 11.6%. All irrelevant-tool calls
+      abstain (100%). All unobtainable-argument calls abstain (100%).
+      Legitimate-identity post-grounding autonomy is 56.8% (utility cost: ~29 pp
+      vs blind record). The 86.8% blind record is not superseded; it stands as
+      the unaffected baseline.
+    evidence_level: internal_benchmark
+    status: development_measurement_not_blind
+    artifact:
+      - "results/system_demonstration_v1.json"
+    n: null
+    n_detail: >
+      N not independently published. Development re-measurement on the spent
+      blind BFCL set from section 34. The wrong_call_accept_blind_prefix=86.8%
+      is from the sealed evaluation; grounding numbers are post-hoc re-measurement
+      on the same (now non-blind) set.
+    metrics:
+      wrong_call_accept_blind_prefix_pct: 86.8
+      wrong_call_accept_post_grounding_pct: 11.6
+      irrelevance_abstain_pct: 100.0
+      unobtainable_abstain_pct: 100.0
+      identity_accept_post_grounding_pct: 56.8
+      obtainable_verify_pct: 82.7
+    caveat: >
+      Development measurement, not blind holdout. 11.6% is not an external
+      holdout result. Grounding does not prove the correct tool was selected.
+      The remaining ~30 wrong calls pass due to coincidental value overlap;
+      full resolution requires task-call semantic provenance. Utility cost is real:
+      relative dates, normalised formats, unit conversions and computed values are
+      not directly copied from context and cannot be grounded without derivation
+      provenance. Do not cite as blind generalisation evidence. Blind confirmation
+      requires a new sealed set covering the six categories documented in
+      NEGATIVE_RESULTS.md under the next experiment plan.
+    reproduce: >
+      python scripts/run_system_demonstration.py
+      (bfcl_foreign_calls block in results/system_demonstration_v1.json)

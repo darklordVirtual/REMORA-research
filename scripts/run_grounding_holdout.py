@@ -150,6 +150,10 @@ def run() -> int:
         per_category[cat].append((episode, predicted))
 
     # ── Primary target scoring ────────────────────────────────────────────────
+    # gold_autonomy is measured on gold_direct ONLY:
+    #   gold_direct = correct tool + values verbatim from task text, read-only.
+    #   gold_derived correctly routes to VERIFY (can't confirm derived values).
+    #   validator_grounded correctly routes to VERIFY (UNKNOWN before re-entry).
     wrong_calls = [
         (e, p) for e, p in results
         if e.predicates is not None and e.predicates.call_in_gold_set.value is False
@@ -158,9 +162,9 @@ def run() -> int:
         (e, p) for e, p in results
         if sealed[e.id]["grounding_category"] == "foreign_coincidental"
     ]
-    gold = [
+    gold_direct = [
         (e, p) for e, p in results
-        if sealed[e.id]["grounding_category"] in ("gold_direct", "gold_derived", "validator_grounded")
+        if sealed[e.id]["grounding_category"] == "gold_direct"
     ]
     writes = [
         (e, p) for e, p in results
@@ -178,7 +182,7 @@ def run() -> int:
         return hits / len(items), hits, len(items)
 
     wrong_call_accept, wca_n, wca_total = _rate(wrong_calls, lambda p: p is Route.ACCEPT)
-    gold_autonomy, ga_n, ga_total = _rate(gold, lambda p: p is Route.ACCEPT)
+    gold_autonomy, ga_n, ga_total = _rate(gold_direct, lambda p: p is Route.ACCEPT)
     coincidental_accept, co_n, co_total = _rate(coincidental, lambda p: p is Route.ACCEPT)
     write_accept, wa_n, wa_total = _rate(writes, lambda p: p is Route.ACCEPT)
     cross_tenant_accept, ct_n, ct_total = _rate(cross_tenant, lambda p: p is Route.ACCEPT)
@@ -225,7 +229,7 @@ def run() -> int:
         "per_category": category_breakdown,
         "raw_counts": {
             "wrong_calls": {"accepted": wca_n, "total": wca_total},
-            "gold": {"accepted": ga_n, "total": ga_total},
+            "gold_direct": {"accepted": ga_n, "total": ga_total},
             "coincidental": {"accepted": co_n, "total": co_total},
             "writes": {"accepted": wa_n, "total": wa_total},
             "cross_tenant": {"accepted": ct_n, "total": ct_total},
