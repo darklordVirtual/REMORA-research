@@ -36,7 +36,7 @@ that bounds it — that is the point, not a footnote.
 
 <!-- claim:CLAIM-002 far_pct far_ci_high_pct fbr_pct n -->
 <!-- claim:CLAIM-001 far_pct n_effective n -->
-<!-- claim:CLAIM-014 routing_accuracy_pct irrelevance_abstain_pct unobtainable_abstain_pct obtainable_verify_pct required_unknown_accept_pct -->
+<!-- claim:CLAIM-016 routing_accuracy_pct irrelevance_abstain_pct unobtainable_abstain_pct obtainable_verify_pct required_unknown_accept_pct -->
 <!-- claim:CLAIM-013 cw_accuracy_pct majority_accuracy_pct mcnemar_p n -->
 <!-- claim:CLAIM-003 far_pct n -->
 | What was measured | Result | Bounded by |

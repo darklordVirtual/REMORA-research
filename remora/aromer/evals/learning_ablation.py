@@ -453,6 +453,7 @@ def run_profile_c(
         run_meta_judge=False,
         run_replay_arena=False,
         world_model_shadow_mode=False,  # activate world model for seeded profile
+        strict_shadow=False,            # Profile C explicitly tests world-model activation
     )
 
     # ── Load seed episodes (pre-training signal) ──────────────────────────────

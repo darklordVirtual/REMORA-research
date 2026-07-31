@@ -604,6 +604,7 @@ def test_orchestrator_keeps_world_model_shadow_until_min_observations(tmp_path):
         world_model_path=str(tmp_path / "world.json"),
         bridge_state_path=str(tmp_path / "bridge.json"),
         run_meta_judge=False,
+        strict_shadow=False,
     )
 
     for _ in range(9):
@@ -623,6 +624,7 @@ def test_orchestrator_activates_world_model_after_ece_gate(tmp_path):
         world_model_path=str(tmp_path / "world.json"),
         bridge_state_path=str(tmp_path / "bridge.json"),
         run_meta_judge=False,
+        strict_shadow=False,
     )
 
     for _ in range(40):
@@ -643,6 +645,7 @@ def test_orchestrator_auto_reverts_world_model_on_false_accept(tmp_path):
         world_model_path=str(tmp_path / "world.json"),
         bridge_state_path=str(tmp_path / "bridge.json"),
         run_meta_judge=False,
+        strict_shadow=False,
     )
 
     for _ in range(40):
@@ -694,6 +697,7 @@ def test_orchestrator_conformal_threshold_reverts_in_shadow_mode(tmp_path):
         bridge_state_path=str(tmp_path / "bridge.json"),
         run_meta_judge=False,
         world_model_shadow_mode=False,
+        strict_shadow=False,
     )
     aromer.decide(_obs())
     assert aromer._engine.conformal_trust_threshold is not None
@@ -711,6 +715,7 @@ def test_orchestrator_world_model_lowers_trust_when_shadow_disabled(tmp_path):
         bridge_state_path=str(tmp_path / "bridge.json"),
         run_meta_judge=False,
         world_model_shadow_mode=False,
+        strict_shadow=False,
     )
     # Record many harmful outcomes in "dangerous" domain
     for _ in range(15):
@@ -742,3 +747,25 @@ def test_world_model_adjust_trust_handles_none():
     p._priors = {}
     assert p.adjust_trust(None, "d", "write", "high") is None
     assert isinstance(p.adjust_trust(0.8, "d", "write", "high"), float)
+
+
+def test_orchestrator_strict_shadow_mode_prevents_activation(tmp_path):
+    """If strict_shadow is True (default), AROMER stays in shadow mode even if ECE passes validation."""
+    aromer = AromerOrchestrator(
+        store_path=str(tmp_path / "episodes.jsonl"),
+        world_model_path=str(tmp_path / "world.json"),
+        bridge_state_path=str(tmp_path / "bridge.json"),
+        run_meta_judge=False,
+        strict_shadow=True, # defaults to True
+    )
+
+    for _ in range(40):
+        _, eid = aromer.decide(_obs(domain="safe", action_type="read", risk_tier="low"))
+        aromer.record_ground_truth(eid, GroundTruth.BENIGN)
+
+    report = aromer.adapt()
+
+    # Active should be False, and explain state should be strictly shadow
+    assert report["world_model_activation"]["active"] is False
+    assert report["world_model_activation"]["reason"] == "strict_shadow_mode_enforced"
+    assert aromer.status()["world_model_active"] is False

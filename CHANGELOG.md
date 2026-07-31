@@ -27,6 +27,35 @@ releases.
 
 ## [Unreleased]
 
+### Reconciled with master; master's CI was red (2026-07-31)
+
+- **Claim numbering.** Master had already merged CLAIM-014 ("system
+  demonstration") and CLAIM-015 ("argument-value grounding"). This branch had
+  independently registered different claims under the same two ids. Master's
+  numbering wins — it merged first and is what other documents cite — so the
+  duplicates from this branch are dropped and the one genuinely new claim, the
+  **sealed BFCL blind track**, is registered as **CLAIM-016**. It is the only
+  entry in the register carrying `blindness: blind`; master had no claim for
+  that artifact at all.
+- **`status` split into two fields.** Master used
+  `status: development_measurement_not_blind`; this branch used
+  `status: active | superseded`. One key was answering two questions, so
+  `status` now means *is this claim current* and the new `blindness: blind |
+  development` means *was it a blind evaluation*. A development measurement can
+  be perfectly current; a superseded claim may well have been blind when made.
+  The provenance gate validates both.
+- **Master's own CI was red and is fixed here.** `ruff` reported 9 errors
+  (unused imports, a multi-import line, trailing whitespace) across four files
+  added on master, and `tests/test_evidence_verifier.py` failed on all three
+  Python versions with `ModuleNotFoundError: No module named 'numpy'` — the
+  local-NLI branch softmaxes with numpy, which ships with the `analysis` extra,
+  while the deterministic job installs `[dev,causal,api]`. That test now
+  `importorskip`s numpy: it covers an optional-dependency path, not a core one.
+- Master's `cast()`-based mypy fix is replaced by the validating variant from
+  this branch, for the reasons recorded in commit 4274aeb: `cast()` silences
+  the checker without checking, and `.get("required_params", ())` would turn a
+  missing required field into a signature claiming the tool needs no arguments.
+
 ### Build fix: mypy gate was red on the routing modules (2026-07-31)
 
 - `ToolRegistry.to_json_dict` / `from_json_dict` were annotated

@@ -163,6 +163,7 @@ class OPAContext:
     proposed_tool_name: str | None
     untrusted_controlled_arguments: tuple[str, ...]
     unvalidated_required_arguments: tuple[str, ...]
+    tool_not_in_available_set: bool | None
 
     # Misspecification context
     environment_confidence: float | None

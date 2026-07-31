@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Artifact gate for the routing-track claims CLAIM-014 / CLAIM-015 / CLAIM-016.
 
-CLAIM-014 rests on a **sealed blind record**: `routing_bench_bfcl_results.json`
+CLAIM-016 rests on a **sealed blind record**: `routing_bench_bfcl_results.json`
 was produced by a single evaluation at locked commit `cf02fa8` on external data
 the system had never seen. That set is now spent, so the artifact can never be
 legitimately regenerated — a second run would measure development, not
@@ -44,7 +44,7 @@ def _claim_block(claim_id: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# CLAIM-014 — the sealed blind record
+# CLAIM-016 — the sealed blind record
 # ---------------------------------------------------------------------------
 
 def test_bfcl_blind_record_is_sealed_and_unchanged() -> None:
@@ -82,9 +82,10 @@ def test_bfcl_four_met_targets_hold_and_the_fifth_is_still_published() -> None:
 
 
 def test_bfcl_register_entry_matches_the_artifact() -> None:
-    block = _claim_block("CLAIM-014")
+    block = _claim_block("CLAIM-016")
     d = _load(BFCL)
     assert "externally_benchmarked" in block
+    assert "blindness: blind" in block
     assert f"routing_accuracy_pct: {round(d['routing_accuracy_labelled'] * 100, 1)}" in block
     assert f"wrong_call_accept_pct: {round(d['targets']['known_wrong_call_accept']['value'] * 100, 1)}" in block
     assert f"obtainable_verify_pct: {round(d['targets']['obtainable_verify_recall']['value'] * 100, 1)}" in block
@@ -112,15 +113,19 @@ def test_value_grounding_demonstration_labels_itself_development() -> None:
 
 def test_value_grounding_register_entry_carries_the_blind_caveat() -> None:
     block = _claim_block("CLAIM-015")
-    assert "DEVELOPMENT MEASUREMENT, NOT BLIND" in block
-    assert "blind_wrong_call_accept_pct: 86.8" in block
+    assert "blindness: development" in block
+    assert "Development measurement, not blind holdout" in block
+    # The blind prefix must stay in the entry: 11.6% only means anything next
+    # to the 86.8% it improved on, and only if the reader can see that 86.8%
+    # was the sealed number and 11.6% was not.
+    assert "wrong_call_accept_blind_prefix_pct: 86.8" in block
     d = _load(DEMO)["bfcl_foreign_calls"]
-    assert f"wrong_call_accept_dev_pct: {round(d['wrong_call_accept_post_grounding'] * 100, 1)}" in block
-    assert f"identity_accept_dev_pct: {round(d['identity_accept_post_grounding'] * 100, 1)}" in block
+    assert f"wrong_call_accept_post_grounding_pct: {round(d['wrong_call_accept_post_grounding'] * 100, 1)}" in block
+    assert f"identity_accept_post_grounding_pct: {round(d['identity_accept_post_grounding'] * 100, 1)}" in block
 
 
 # ---------------------------------------------------------------------------
-# CLAIM-016 — the validator / degradation mechanism study
+# CLAIM-014 — the validator / degradation mechanism study
 # ---------------------------------------------------------------------------
 
 def test_validator_study_safety_targets_are_all_at_their_bound() -> None:

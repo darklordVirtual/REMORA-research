@@ -91,6 +91,8 @@ class DecisionReason(str, Enum):
     COUNTERFACTUAL_UNKNOWN_VERIFY = "counterfactual_unknown_verify" # counterfactual=None + high/critical evidence path
     # Oracle quorum gate (PR 3)
     INSUFFICIENT_ORACLE_VOTES     = "insufficient_oracle_votes"     # valid_oracle_count < MIN_REQUIRED_ORACLE_VOTES
+    # Tool-set membership gate (open risk B)
+    TOOL_NOT_IN_AVAILABLE_SET     = "tool_not_in_available_set"     # proposed tool absent from declared available_tools
 
 
 @dataclass(frozen=True)

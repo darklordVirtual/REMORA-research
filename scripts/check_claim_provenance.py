@@ -247,14 +247,32 @@ def check_register(claims: list[dict]) -> list[tuple[str, str]]:
     return errors
 
 
+VALID_BLINDNESS = ("blind", "development")
+
+
 def check_supersession(claims: list[dict], root: Path = ROOT) -> list[tuple[str, str]]:
-    """Guardrail 5: archived results stay archived, and off the front page."""
+    """Guardrail 5: archived results stay archived, and off the front page.
+
+    ``status`` answers "is this claim current?" and ``blindness`` answers "was
+    it a blind evaluation?". They were briefly one field, which made the two
+    questions compete: a development measurement is not thereby out of date,
+    and a superseded claim may well have been blind when it was made.
+    """
     errors: list[tuple[str, str]] = []
     by_id = {c["id"]: c for c in claims if "id" in c}
     valid = ("active", "superseded")
 
     for claim in claims:
         cid = claim.get("id", "<missing-id>")
+        blindness = claim.get("blindness")
+        if blindness is not None and blindness not in VALID_BLINDNESS:
+            errors.append(
+                (
+                    f"claim-blindness-invalid:{cid}",
+                    f"{cid}: blindness must be one of {VALID_BLINDNESS} or "
+                    f"omitted, got {blindness!r}",
+                )
+            )
         status = claim.get("status")
         if status not in valid:
             errors.append(

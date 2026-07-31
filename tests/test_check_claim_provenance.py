@@ -444,9 +444,12 @@ def test_real_readme_anchors_are_wired() -> None:
     # Active positive headline claims stay anchored on the README front page.
     # CLAIM-008 was dropped from this set on 2026-07-31: it was superseded by
     # CLAIM-013, and guardrail 5 now forbids anchoring a superseded claim here.
-    # Its numbers moved to docs/03-experiments.md, anchored there.
+    # Its numbers moved to docs/03-experiments.md, anchored there. The sealed
+    # BFCL track is CLAIM-016: master had already claimed 014/015 for the
+    # system-demonstration and value-grounding claims, and master's numbering
+    # wins because it merged first and is what other documents cite.
     assert {"CLAIM-001", "CLAIM-002", "CLAIM-003", "CLAIM-013",
-            "CLAIM-014"} <= _readme_anchored_claims()
+            "CLAIM-016"} <= _readme_anchored_claims()
 
 
 def test_readme_front_page_carries_no_superseded_claim() -> None:

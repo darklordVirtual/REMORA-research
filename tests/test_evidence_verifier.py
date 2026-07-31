@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from remora.oracles.evidence_verifier import (
     LLMEvidenceVerifier,
     NLIEvidenceVerifier,
@@ -40,4 +42,28 @@ def test_llm_verifier_maps_string_and_dict_outputs() -> None:
 
     v_invalid = LLMEvidenceVerifier(llm_fn=lambda c, s: {"verdict": "maybe"})
     assert v_invalid.classify("claim", "snippet") == "insufficient"
+
+
+def test_nli_verifier_with_mocked_local_cross_encoder() -> None:
+    # The local-NLI branch softmaxes its logits with numpy, which arrives only
+    # with the `analysis` extra (and transitively with the NLI stack). The
+    # deterministic CI job installs [dev,causal,api], so numpy is genuinely
+    # absent there and this test must skip rather than fail — it covers an
+    # optional-dependency path, not a core one.
+    pytest.importorskip("numpy")
+    from unittest.mock import MagicMock
+
+    mock_encoder = MagicMock()
+    mock_encoder.predict.side_effect = lambda pairs: {
+        ("snippet supports", "claim"): [[0.0, 10.0, 0.0]],
+        ("snippet opposes", "claim"): [[10.0, 0.0, 0.0]],
+        ("snippet neutral", "claim"): [[0.0, 0.0, 10.0]],
+    }[pairs[0]]
+
+    verifier = NLIEvidenceVerifier(use_local_nli=True)
+    verifier._encoder = mock_encoder
+
+    assert verifier.classify("claim", "snippet supports") == "supports"
+    assert verifier.classify("claim", "snippet opposes") == "contradicts"
+    assert verifier.classify("claim", "snippet neutral") == "insufficient"
 

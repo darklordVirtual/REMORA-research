@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 import re
 import subprocess
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 class Violation(str, Enum):
     UNBACKED_CLAIM = "unbacked_claim"

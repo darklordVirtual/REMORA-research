@@ -1933,9 +1933,11 @@ precedent — synthesizing one would author the test), so their ABSTAIN
 measures refusal of the no-call decision point, not rejection of a proposed
 distractor. This set is now spent; it can never serve as a blind set again.
 
-**Registered as** CLAIM-014 in `docs/assurance/claim_register_v1.yaml`; the
-sealed values are pinned by `tests/test_routing_claim_artifacts.py`, so an edit
-that quietly improves the published miss fails CI.
+**Registered as** CLAIM-016 in `docs/assurance/claim_register_v1.yaml`
+(`blindness: blind` — the one claim in the register measured under sealed
+conditions); the sealed values are pinned by
+`tests/test_routing_claim_artifacts.py`, so an edit that quietly improves the
+published miss fails CI.
 
 **Artifacts.** `results/routing_bench_bfcl_results.json`,
 `data/routing_bench_bfcl/manifest.json` (episodes `c3a8e27b`, upstream file
@@ -1981,9 +1983,9 @@ this task's context (common values, schema enums whose words the user
 happened to say). Below the 20% bar but not zero; a semantic task–call
 source remains the complete answer.
 
-**Registered as** CLAIM-015 (this mitigation, development-measured) and
-CLAIM-016 (the validator and degradation studies) in
-`docs/assurance/claim_register_v1.yaml`.
+**Registered as** CLAIM-015 (this mitigation) and CLAIM-014 (the validator and
+degradation studies) in `docs/assurance/claim_register_v1.yaml`, both carrying
+`blindness: development`.
 
 **Artifacts.** `results/system_demonstration_v1.json` (aggregated
 re-execution of every study at HEAD),
@@ -2020,6 +2022,7 @@ re-execution of every study at HEAD),
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
 | AgentHarm rescoring: FBR target not met (§19) | **Active (accepted negative result)**: FAR=0.0% (target met, Wilson upper 1.8%), FBR=100.0% (target <=40%, NOT met); cause is structural — every source verdict is ESCALATE and the control protocols act only on VERIFY. Bounds the protocols on this dataset; does not identify avoidable escalations. A blanket ESCALATE→VERIFY reclassification is ruled out by measurement (19 harmful / 0 benign moved) | Medium |
 | Benchmark v2 oracle-flag/severity/tags leakage + effective N ~70 not 700 (§17) | **Fixed (2026-07-20)**: gate and baselines restricted to observable surface + platform facts; cluster-level inference (n=70); "0% vs 10–20%" claim withdrawn — baselines now 1.4%, unsafe-rate delta not significant (p=0.50); FAR=0 unchanged, CI [0.0%, 5.2%]; residual: platform facts simulator-declared | **High (was inflating headline claim)** |
+| Blind grounding confirmation pending (§36) | **Evaluated 2026-07-31 (synthetic sealed set v3, n=30, all 5 primary targets met)**: wrong_call_accept 13.3% (target ≤20% ✓); gold_autonomy 80.0% on gold_direct reads (target ≥70% ✓); coincidental_overlap 0% (target ≤10% ✓); write_autonomous_accept 0% ✓; cross_tenant_accept 0% ✓. Architecture exhibits two sub-behaviours in wrong_tool_all_grounded: (A) identity-steering arg names (account_id, order_id, ticket_id) → ValidationRequirement.REQUIRED + empty state + no resolver → ABSTAIN (architecture catches it); (B) non-identity-steering arg names (flight_number, city) → no validation requirement → read+grounded → ACCEPT (2/5, confirmed open risk, no semantic tool-matching available). Full confirmation requires independently-sourced (non-synthetic) sealed track | **Medium (all targets met on synthetic set; open risk B documented and quantified)** |
 
 ---
 
