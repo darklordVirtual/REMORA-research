@@ -71,8 +71,8 @@
 
 % Paper version — kept in lockstep with paper/remora_paper.md by
 % scripts/check_paper_sync.py (CI-enforced). The "v0.10.0" and
-% "revision 2026-07-29" strings below MUST match the .md version line.
-\newcommand{\paperversion}{Preprint v0.10.0, revision 2026-07-29 (synchronized with repository code); repository tag \texttt{review-v1}}
+% "revision 2026-07-31" strings below MUST match the .md version line.
+\newcommand{\paperversion}{Preprint v0.10.0, revision 2026-07-31 (synchronized with repository code); repository tag \texttt{review-v1}}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -1046,6 +1046,109 @@ This NLI-proxy benchmark is distinct from the 32-case
 \emph{Cross-Domain Evidence Replay} (static rule-based provider)
 reported in the repository and the enterprise white paper; the two
 measure different mechanisms at different scales.
+
+
+\subsection{Tool Routing on Sealed External Data (BFCL v3)}
+\label{sec:routing-blind}
+
+The benchmarks above measure whether a \emph{harmful} call is stopped. They do
+not measure whether a \emph{harmless-looking but wrong} call is stopped, and
+those are different questions: the second has no adversary, so nothing about the
+call looks suspicious.
+
+Track C-ext was evaluated once, at a locked commit, on sealed external data the
+system had never seen (BFCL v3 live categories, ShishirPatil/gorilla @
+\texttt{c15b2a15}, Apache-2.0): 1{,}509 episodes over 515 clusters, under no
+authority at all --- an empty state index, no validator bindings, and a registry
+derived only from the tasks' own schemas. Five targets were pre-registered and
+sealed with the set.
+
+\begin{center}
+{\footnotesize
+\begin{tabular}{@{}llll@{}}
+\toprule
+Pre-registered target & Goal & Result & Verdict \
+\midrule
+Required-unknown autonomous \textsc{Accept} & $\leq 0\%$ & 0/19 = \textbf{0.0\%} & met \
+Irrelevance \textsc{Abstain} recall & $\geq 70\%$ & 258/258 = \textbf{100.0\%} & met \
+Unobtainable-arg \textsc{Abstain} recall & $\geq 70\%$ & 133/133 = \textbf{100.0\%} & met \
+Obtainable-arg \textsc{Verify} recall & $\geq 70\%$ & 110/133 = \textbf{82.7\%} & met \
+Known-wrong-call \textsc{Accept} & $\leq 20\%$ & 224/258 = \textbf{86.8\%} & \textbf{MISSED} \
+\bottomrule
+\end{tabular}}
+\end{center}
+
+Labelled routing accuracy is \textbf{94.0\%} ($n=1{,}251$, 515 clusters,
+cluster-level Wilson 95\% CI [91.6\%, 95.7\%]); both untrusted-provenance
+families routed at 100\% (257/257 \textsc{Escalate} for controls-sensitive
+arguments, 213/213 \textsc{Verify} for noncontrolling ones).
+
+\textbf{The miss is the finding.} A substituted call --- another task's gold
+call, carried with its own complete, well-formed arguments --- is a read the
+engine has no structural reason to distrust. Every required parameter is present
+and sourced. The aggregate 94.0\% conceals the failure completely: a headline
+accuracy can be high while one axis sits at chance or worse, which is the
+methodological argument for pre-registering per-axis targets rather than a
+single score. We report it as measured; repairing it against the set that
+exposed it would convert a blind result into a development one, and the set
+cannot be un-spent.
+
+\subsection{Argument-Value Grounding (development measurement)}
+\label{sec:grounding}
+
+The tell of a foreign call is provenance-shaped: its argument values are
+traceable to nothing in the present context. The signal
+\texttt{argument\_values\_grounded} judges each value against three sources ---
+the task text, the tool's own parameter declarations, and the system of record
+--- and withdraws autonomy to \textsc{Verify} when no judgeable value anchors to
+\emph{this} task.
+
+Re-measured on the spent Track C-ext set, wrong-call acceptance falls from the
+blind \textbf{86.8\%} to \textbf{11.6\%}, meeting the $\leq 20\%$ bar. The cost
+is measured too: legitimate read autonomy falls from 86.1\% to \textbf{56.8\%},
+the loss being \emph{derived} values --- dates normalised from prose, unit
+conversions --- that are correct but not literally present in the user's text.
+
+\textbf{This is a development measurement, not a blind one.} The 86.8\% blind
+record stands and is not superseded by 11.6\%. The grounding definition was
+iterated against the spent set in three measured steps, which is development
+done where development is allowed; blind confirmation requires a new sealed
+track. A residue remains by construction: roughly 30 of 258 foreign calls still
+accept because their values coincide with the present task.
+
+\subsection{What the Wrong-Call Axis Implies}
+\label{sec:wrongcall-implication}
+
+The pattern across \S\ref{sec:routing-blind}--\S\ref{sec:grounding} is this
+paper's clearest architectural result, and it is a negative one:
+
+\begin{quote}
+\textbf{Structural validity and semantic correctness are independent
+properties, and the governance signals that establish the first cannot
+establish the second.}
+\end{quote}
+
+Schema validity, argument satisfiability, provenance, taint and value grounding
+are all properties of the \emph{call}. Whether the call serves the \emph{task}
+is a property of the relation between them, and no amount of scrutiny of the
+call alone recovers it. The residue is therefore not a threshold to tune: there
+is no threshold on a signal that does not carry the information.
+
+The architecture reserves a slot for the missing authority ---
+\texttt{tool\_matches\_goal}, tri-state, held at \textsc{Unknown} since
+definition rather than filled with a guess. A mechanism now occupies it: a
+deployment-declared tool contract (capability, effect, resource type, mutation,
+argument roles) matched against a structured task intent, routing an established
+contradiction to \textsc{Abstain} for reads and \textsc{Escalate} for writes. It
+is placed ahead of trust routing, so a confident consensus cannot execute a call
+that provably serves the wrong goal, and behind every hard guard, so it can
+never unblock one. The authority limit is the design: a model may \emph{propose}
+the intent but may not thereby assert a match, and an intent whose quoted spans
+do not occur in the task text yields \textsc{Unknown}, never \textsc{Supported}.
+
+Its effect on the residue is \textbf{unmeasured}. Measuring it needs a sealed
+set that the spent BFCL population cannot provide, and that experiment is
+identified as the highest-value next step rather than reported as a result.
 
 % =====================================================================
 \section{Ablations}

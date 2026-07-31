@@ -2,11 +2,11 @@
 
 **Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research)
 
-*Paper version v0.10.0 · revision 2026-07-29 (synchronized with repository code) · repository review tag `review-v1`.*
+*Paper version v0.10.0 · revision 2026-07-31 (synchronized with repository code) · repository review tag `review-v1`.*
 
 <!-- PAPER_SYNC: this version + revision line is the single authority for the
      paper's version stamp. scripts/check_paper_sync.py requires the SAME
-     "v0.10.0" and "revision 2026-07-29" strings to appear in paper/remora_paper.tex
+     "v0.10.0" and "revision 2026-07-31" strings to appear in paper/remora_paper.tex
      (which compiles the PDF), so the .md, .tex and .pdf can never diverge on
      version, date, or the guarded process claims again. To revise the paper:
      bump both strings here, mirror them in the .tex \paperversion/\date, and
@@ -727,6 +727,95 @@ A deterministic, API-key-free benchmark validates REMORA's evidence layer across
 All 36 cases pass with zero critical failures. Precision and escalation recall are both 1.000 across all domains. Artifact: `artifacts/domain_benchmark_results.json`. This benchmark is fully deterministic and reproducible without API keys.
 
 ---
+
+### 10.6 Tool Routing on Sealed External Data (BFCL v3)
+
+The benchmarks above measure whether a *harmful* call is stopped. They do not
+measure whether a *harmless-looking but wrong* call is stopped, and those are
+different questions: the second one has no adversary, so nothing about the call
+looks suspicious.
+
+Track C-ext was evaluated once, at a locked commit, on sealed external data the
+system had never seen (BFCL v3 live categories, ShishirPatil/gorilla @
+`c15b2a15`, Apache-2.0): 1,509 episodes over 515 clusters, under no authority at
+all — an empty state index, no validator bindings, and a registry derived only
+from the tasks' own schemas. Five targets were pre-registered and sealed with
+the set.
+
+<!-- claim:CLAIM-016 irrelevance_abstain_pct unobtainable_abstain_pct obtainable_verify_pct required_unknown_accept_pct wrong_call_accept_pct -->
+
+| Pre-registered target | Goal | Result | Verdict |
+|---|---|---|---|
+| Required-but-unknown autonomous ACCEPT | ≤ 0% | 0/19 = **0.0%** | met |
+| Irrelevance ABSTAIN recall | ≥ 70% | 258/258 = **100.0%** | met |
+| Unobtainable-argument ABSTAIN recall | ≥ 70% | 133/133 = **100.0%** | met |
+| Obtainable-argument VERIFY recall | ≥ 70% | 110/133 = **82.7%** | met |
+| Known-wrong-call ACCEPT | ≤ 20% | 224/258 = **86.8%** | **MISSED** |
+
+<!-- claim:CLAIM-016 routing_accuracy_pct n_clusters -->
+Labelled routing accuracy is **94.0%** (n=1,251, 515 clusters, cluster-level
+Wilson 95% CI [91.6%, 95.7%]); both untrusted-provenance families routed at 100%
+(257/257 ESCALATE for controls-sensitive arguments, 213/213 VERIFY for
+noncontrolling ones).
+
+**The miss is the finding.** A substituted call — another task's gold call,
+carried with its own complete, well-formed arguments — is a read the engine has
+no structural reason to distrust. Every required parameter is present and
+sourced. The aggregate 94.0% conceals it completely: a headline accuracy can be
+high while one axis is at chance or worse, which is the methodological argument
+for pre-registering per-axis targets rather than a single score.
+
+We report this as measured. Repairing it against the set that exposed it would
+convert a blind result into a development one, and the set cannot be un-spent.
+
+### 10.7 Argument-Value Grounding (development measurement)
+
+The tell of a foreign call is provenance-shaped: its argument values are
+traceable to nothing in the present context. The signal
+`argument_values_grounded` judges each value against three sources — the task
+text, the tool's own parameter declarations, and the system of record — and
+withdraws autonomy to VERIFY when no judgeable value anchors to *this* task.
+
+<!-- claim:CLAIM-015 wrong_call_accept_blind_prefix_pct wrong_call_accept_post_grounding_pct identity_accept_post_grounding_pct -->
+
+Re-measured on the spent Track C-ext set, wrong-call acceptance falls from the
+blind **86.8%** to **11.6%**, meeting the ≤20% bar. The cost is measured too:
+legitimate read autonomy falls from 86.1% to **56.8%**, the loss being *derived*
+values — dates normalised from prose, unit conversions — that are correct but
+not literally present in the user's text.
+
+**This is a development measurement, not a blind one.** The 86.8% blind record
+stands and is not superseded by 11.6%. The grounding definition was iterated
+against the spent set in three measured steps, which is development done where
+development is allowed; blind confirmation requires a new sealed track.
+
+A residue remains by construction: roughly 30 of 258 foreign calls still accept
+because their values coincide with the present task. Grounding can ask where a
+value came from. It cannot ask whether this is the right tool, acting on the
+right resource, with the right effect — and the residue turns entirely on that
+question.
+
+### 10.8 What the wrong-call axis implies
+
+The pattern across §10.6–§10.7 is the paper's clearest architectural result, and
+it is a negative one:
+
+> **Structural validity and semantic correctness are independent properties, and
+> the governance signals that establish the first cannot establish the second.**
+
+Schema validity, argument satisfiability, provenance, taint and value grounding
+are all properties of the *call*. Whether the call serves the *task* is a
+property of the relation between them, and no amount of scrutiny of the call
+alone recovers it. This is why the residue is not a threshold to tune: there is
+no threshold on a signal that does not carry the information.
+
+The architecture reserves a slot for the missing authority —
+`tool_matches_goal`, tri-state, held at `None` since definition rather than
+filled with a guess. A mechanism now occupies it (§13.9), under the constraint
+that a model may *propose* the task intent but may not thereby assert a match:
+every clause is re-derived from the task text, a deployment-declared tool
+contract, and the call itself. Its effect on the residue is **unmeasured**, and
+measuring it needs a sealed set the spent BFCL population cannot provide.
 
 ## 11. Ablations
 
