@@ -44,6 +44,10 @@ class DecisionReason(str, Enum):
     # (§34) withdraws from autonomy; verification must establish where its
     # values came from.
     UNGROUNDED_ARGUMENT_VALUES_VERIFY = "ungrounded_argument_values_verify"
+    # §34 residue: the call is well-formed and its values are grounded, but the
+    # declared tool contract contradicts the task's goal — wrong resource, or
+    # right resource and wrong effect.
+    TOOL_DOES_NOT_MATCH_GOAL = "tool_does_not_match_goal"
     TRACE_ATTACHED = "trace_attached"
     ORDERED_HIGH_TRUST = "ordered_high_trust"
     DISORDERED_NO_EVIDENCE = "disordered_no_evidence"

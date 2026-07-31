@@ -211,6 +211,21 @@ class PolicyObservation:
     # Caller-supplied; see remora/toolcall/routing/compatibility.py.
     argument_values_grounded: bool | None = None
 
+    # Does this call serve the task's goal — right resource, right effect?
+    # True  → established: the declared tool contract matches an intent quoted
+    #         from the task text, and the call fills the targeted role.
+    # False → established contradiction: right form, wrong resource or wrong
+    #         effect. This is §34's residue — the 30 of 258 foreign calls that
+    #         survived value grounding because their values coincidentally
+    #         occurred in the task.
+    # None  → nothing establishes it: no declared contract, no intent, or an
+    #         intent whose spans are not in the task text.
+    # Caller-supplied from remora/toolcall/routing/goal_match.py. A model may
+    # propose the intent; it may not set this field to True by assertion, and
+    # the matcher only returns True when every clause is re-derivable from the
+    # task text, the contract and the call.
+    tool_matches_goal: bool | None = None
+
     # Required parameters of the proposed call that are absent from it, and the
     # authoritative tools that could supply them. Both caller-populated from a
     # tool registry. A non-empty missing list with resolver tools available is

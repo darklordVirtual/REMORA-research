@@ -37,9 +37,11 @@ cites only `open` sections and that no `open` section is missing a theme.
    problem. Value grounding answers "do these argument values come from this
    context?"; it does not answer "is this the right tool and the right effect
    for the user's goal?". 30 of 258 foreign calls still pass because their
-   values coincidentally occur in the task. Needs declared tool effect
-   contracts, a structured `TaskIntent`, and a tri-state `tool_matches_goal`
-   that a model may propose but not unilaterally set to SUPPORTED.
+   values coincidentally occur in the task. **The mechanism now exists**
+   (`goal_match.py`: declared tool contracts, structured `TaskIntent`,
+   tri-state `tool_matches_goal` that a model may propose but not unilaterally
+   set to SUPPORTED); what remains is measuring it, which requires theme 2's
+   sealed set rather than the spent BFCL population.
 2. **Blind confirmation of grounding** (§35) — 86.8% → 11.6% is a *development*
    measurement on a spent set. It needs a new sealed track, including the case
    where every value is grounded and the effect is still wrong.
@@ -2029,6 +2031,28 @@ answer key against itself. Irrelevance episodes propose no call (tau2
 precedent — synthesizing one would author the test), so their ABSTAIN
 measures refusal of the no-call decision point, not rejection of a proposed
 distractor. This set is now spent; it can never serve as a blind set again.
+
+**Mechanism built 2026-07-31, not yet measured.** `tool_matches_goal` now has
+an authority: `remora/toolcall/routing/goal_match.py` matches a declared
+`ToolContract` (capability, effect, resource_type, mutation, argument roles)
+against a structured `TaskIntent`, and routes an established contradiction to
+ABSTAIN for reads and ESCALATE for writes. It is a *conditional* gate, placed
+ahead of trust routing, so a confident consensus cannot execute a call that
+provably serves the wrong goal — but behind every hard guard, so it can never
+unblock one.
+
+The authority limit is the design: **a model may propose the intent, but may
+not thereby assert a match.** Every clause is re-derived from the task text,
+the contract and the call. An intent whose `source_spans` do not occur in the
+task yields UNKNOWN, never SUPPORTED, so a fabricated goal cannot manufacture
+permission for a destructive call.
+
+**No result is claimed for it.** The mechanism is unit-tested (35 tests) and
+inert where no contracts are declared. Its effect on the §34 residue — the 30
+of 258 foreign calls whose values coincidentally occurred in the task — is
+unmeasured, and measuring it needs a **new sealed set**: the BFCL population is
+spent, and re-running it would report development, not generalisation. Until
+that track exists this section stays `open`.
 
 **Registered as** CLAIM-016 in `docs/assurance/claim_register_v1.yaml`
 (`blindness: blind` — the one claim in the register measured under sealed
