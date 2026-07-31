@@ -19,7 +19,13 @@ docs/assurance/claim_register_v1.yaml:
    register's value for each listed metric appears in the paragraph that
    follows the anchor; and any doc line that cites a CLAIM id together with
    an evidence-level term must agree with the register.
-5. Promotion provenance (issue #88) — a promoted claim artifact whose
+5. Supersession hygiene — every claim declares ``status: active`` or
+   ``status: superseded``. A superseded claim must name an existing, different
+   ``superseded_by`` claim, must not be superseded by another superseded claim
+   (no archive chains that dead-end), and must not stay anchored on the README
+   front page. Superseded claims are never removed from the register: they are
+   archived by ``scripts/generate_superseded_claims.py``.
+6. Promotion provenance (issue #88) — a promoted claim artifact whose
    sidecar declares result_provenance_v3 (field ``post_run_worktree_clean``
    present) must record pre_run_worktree_clean == true AND
    post_run_worktree_clean == true, or carry an explicit hashed diff
@@ -238,6 +244,88 @@ def check_register(claims: list[dict]) -> list[tuple[str, str]]:
                     f"{cid}: evidence_level '{level}' not in taxonomy",
                 )
             )
+    return errors
+
+
+def check_supersession(claims: list[dict], root: Path = ROOT) -> list[tuple[str, str]]:
+    """Guardrail 5: archived results stay archived, and off the front page."""
+    errors: list[tuple[str, str]] = []
+    by_id = {c["id"]: c for c in claims if "id" in c}
+    valid = ("active", "superseded")
+
+    for claim in claims:
+        cid = claim.get("id", "<missing-id>")
+        status = claim.get("status")
+        if status not in valid:
+            errors.append(
+                (
+                    f"claim-status-invalid:{cid}",
+                    f"{cid}: status must be one of {valid}, got {status!r} — a "
+                    f"claim with no declared status cannot be told apart from a "
+                    f"result the project has moved past",
+                )
+            )
+            continue
+        replacement = claim.get("superseded_by")
+        if status == "active":
+            if replacement:
+                errors.append(
+                    (
+                        f"claim-active-with-successor:{cid}",
+                        f"{cid}: status is 'active' but superseded_by={replacement!r} "
+                        f"is set — pick one",
+                    )
+                )
+            continue
+        if not replacement:
+            errors.append(
+                (
+                    f"claim-superseded-without-successor:{cid}",
+                    f"{cid}: status is 'superseded' but no superseded_by claim "
+                    f"is named — an archived result must say what replaced it",
+                )
+            )
+            continue
+        if replacement == cid:
+            errors.append(
+                (f"claim-superseded-by-self:{cid}", f"{cid}: superseded_by points at itself")
+            )
+            continue
+        successor = by_id.get(str(replacement))
+        if successor is None:
+            errors.append(
+                (
+                    f"claim-successor-unknown:{cid}",
+                    f"{cid}: superseded_by cites {replacement} which is not in the register",
+                )
+            )
+            continue
+        if successor.get("status") == "superseded":
+            errors.append(
+                (
+                    f"claim-successor-also-superseded:{cid}",
+                    f"{cid}: superseded_by cites {replacement}, which is itself "
+                    f"superseded — the archive must point forward to a live claim",
+                )
+            )
+
+    superseded = {c["id"] for c in claims if c.get("status") == "superseded" and "id" in c}
+    readme = root / "README.md"
+    if superseded and readme.exists():
+        text = readme.read_text(encoding="utf-8", errors="replace")
+        for match in ANCHOR_RE.finditer(text):
+            cid = match.group(1)
+            if cid in superseded:
+                line = text[: match.start()].count("\n") + 1
+                errors.append(
+                    (
+                        f"readme-anchors-superseded-claim:{cid}",
+                        f"README.md:{line}: front page anchors {cid}, which is "
+                        f"superseded by {by_id[cid].get('superseded_by')} — move "
+                        f"it to docs/ and cite the current claim instead "
+                        f"(archive: docs/assurance/superseded_claims.md)",
+                    )
+                )
     return errors
 
 
@@ -550,6 +638,7 @@ def run() -> int:
     claims_by_id = {c["id"]: c for c in claims if "id" in c}
 
     errors.extend(check_register(claims))
+    errors.extend(check_supersession(claims))
     errors.extend(check_artifacts(claims))
     errors.extend(check_promotion_provenance(claims, notes))
 

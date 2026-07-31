@@ -76,8 +76,8 @@ def test_parse_register_real_file() -> None:
     text = ccp.REGISTER_PATH.read_text(encoding="utf-8")
     claims = ccp.parse_register(text)
     ids = [c["id"] for c in claims]
-    assert len(claims) == 13
-    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-013"
+    assert len(claims) == 16
+    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-016"
     by_id = {c["id"]: c for c in claims}
     assert by_id["CLAIM-001"]["artifact"] == [
         "results/toolcall_benchmark_v2_results.json",
@@ -435,12 +435,28 @@ def test_gate_passes_on_real_repo() -> None:
     assert ccp.run() == 0
 
 
-def test_real_readme_anchors_are_wired() -> None:
-    # Positive headline claims stay anchored on the README front page.
+def _readme_anchored_claims() -> set[str]:
     readme = (ccp.ROOT / "README.md").read_text(encoding="utf-8")
-    anchored_claims = {m.group(1) for m in ccp.ANCHOR_RE.finditer(readme)}
-    assert {"CLAIM-001", "CLAIM-002", "CLAIM-003", "CLAIM-008",
-            "CLAIM-013"} <= anchored_claims
+    return {m.group(1) for m in ccp.ANCHOR_RE.finditer(readme)}
+
+
+def test_real_readme_anchors_are_wired() -> None:
+    # Active positive headline claims stay anchored on the README front page.
+    # CLAIM-008 was dropped from this set on 2026-07-31: it was superseded by
+    # CLAIM-013, and guardrail 5 now forbids anchoring a superseded claim here.
+    # Its numbers moved to docs/03-experiments.md, anchored there.
+    assert {"CLAIM-001", "CLAIM-002", "CLAIM-003", "CLAIM-013",
+            "CLAIM-014"} <= _readme_anchored_claims()
+
+
+def test_readme_front_page_carries_no_superseded_claim() -> None:
+    # The other half of the archive contract: an archived result may not creep
+    # back onto the front page. Asserted here as well as in the gate, so the
+    # rule is visible where the anchor set is maintained.
+    claims = ccp.parse_register(ccp.REGISTER_PATH.read_text(encoding="utf-8"))
+    superseded = {c["id"] for c in claims if c.get("status") == "superseded"}
+    assert superseded, "register declares no superseded claim — did the field vanish?"
+    assert not (superseded & _readme_anchored_claims())
 
 
 def test_real_negative_results_anchors_are_wired() -> None:

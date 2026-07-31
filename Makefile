@@ -84,6 +84,10 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_no_evaluation_leakage.py
 	@echo "\n-- License policy (BUSL-1.1, no legacy-license drift) --"
 	$(PYTHON) scripts/check_license_policy.py
+	@echo "\n-- Claim provenance (register, artifacts, anchors, supersession) --"
+	$(PYTHON) scripts/check_claim_provenance.py
+	@echo "\n-- Superseded-claims archive is current --"
+	$(PYTHON) scripts/generate_superseded_claims.py --check
 	@echo "\nFull audit passed. REMORA claims are consistent with code and artifacts."
 
 license-check:  ## Verify BUSL-1.1 licensing surface and absence of legacy-license drift
