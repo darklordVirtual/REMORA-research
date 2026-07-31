@@ -743,14 +743,24 @@ class RemoraDecisionEngine:
         # must not reach ACCEPT via the conformal/temperature/evidence/
         # ordered-trust paths on a low/medium declared risk tier. Deny-by-
         # default for actuation — route to VERIFY. action_type=None (pure QA /
-        # no tool call) is intentionally allowed through.
+        # no tool call) is intentionally allowed through. For tool-calling
+        # operations, an empty action_type is treated as unclassified actuation
+        # and floored to VERIFY.
         _action_norm = (obs.action_type or "").strip().lower()
-        if (
-            _action_norm
-            and _action_norm not in _READ_ONLY_TYPES
-            and _action_norm not in _MUTATING_TYPES
-            and _action_norm not in _NON_ACTUATING_TYPES
-        ):
+        _is_unclassified_actuation = (
+            obs.proposed_tool_name is not None
+            and obs.proposed_tool_name.strip() != ""
+            and not _action_norm
+        )
+        _is_unknown_action_type = (
+            _is_unclassified_actuation or (
+                bool(_action_norm)
+                and _action_norm not in _READ_ONLY_TYPES
+                and _action_norm not in _MUTATING_TYPES
+                and _action_norm not in _NON_ACTUATING_TYPES
+            )
+        )
+        if _is_unknown_action_type:
             reasons.append(DecisionReason.UNKNOWN_ACTION_TYPE_VERIFY)
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
@@ -1076,12 +1086,22 @@ class RemoraDecisionEngine:
           "VERIFY")
 
         _explain_action_norm = (obs.action_type or "").strip().lower()
+        _is_explain_unclassified_actuation = (
+            obs.proposed_tool_name is not None
+            and obs.proposed_tool_name.strip() != ""
+            and not _explain_action_norm
+        )
+        _is_explain_unknown_action_type = (
+            _is_explain_unclassified_actuation or (
+                bool(_explain_action_norm)
+                and _explain_action_norm not in _READ_ONLY_TYPES
+                and _explain_action_norm not in _MUTATING_TYPES
+                and _explain_action_norm not in _NON_ACTUATING_TYPES
+            )
+        )
         r("unknown_action_type_floor",
-          bool(_explain_action_norm)
-          and _explain_action_norm not in _READ_ONLY_TYPES
-          and _explain_action_norm not in _MUTATING_TYPES
-          and _explain_action_norm not in _NON_ACTUATING_TYPES,
-          f"action_type={obs.action_type!r} (not in known vocabulary)",
+          _is_explain_unknown_action_type,
+          f"action_type={obs.action_type!r} (not in known vocabulary, or unclassified tool call)",
           "VERIFY")
 
         if (

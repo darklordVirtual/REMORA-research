@@ -292,3 +292,28 @@ def test_unknown_action_type_does_not_override_hard_blocks():
     engine = RemoraDecisionEngine()
     obs = _obs_uat(action_type="frobnicate_widget", adversarial_detected=True)
     assert engine.decide(obs).action.value == "escalate"
+
+
+def test_unclassified_action_type_tool_call_floored_to_verify():
+    """If action_type is missing/empty but a tool name is proposed, floor to VERIFY."""
+    from remora.policy import RemoraDecisionEngine
+    from remora.policy.report import DecisionReason
+
+    engine = RemoraDecisionEngine()
+    obs = _obs_uat(
+        action_type=None,
+        proposed_tool_name="delete_user_account",
+        risk_tier="low",
+        phase="ordered",
+        trust_score=0.99,
+        schema_valid=True,
+    )
+    report = engine.decide(obs)
+    assert report.action.value == "verify"
+    assert DecisionReason.UNKNOWN_ACTION_TYPE_VERIFY in report.reasons
+
+    # Check that explain() parity is preserved exactly
+    trace = engine.explain(obs)
+    rule_fired = next(t for t in trace.rule_evaluations if t.rule == "unknown_action_type_floor")
+    assert rule_fired.triggered is True
+    assert rule_fired.outcome == "VERIFY"

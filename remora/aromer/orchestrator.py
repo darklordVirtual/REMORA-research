@@ -99,12 +99,13 @@ class AromerOrchestrator:
         world_model_activation_ece: float = _WORLD_MODEL_MAX_ECE,
         world_model_activation_min_observations: int = _WORLD_MODEL_MIN_OBSERVATIONS,
         run_replay_arena: bool = True,
+        strict_shadow: bool = True,
     ) -> None:
         self._engine   = RemoraDecisionEngine()
         self._store    = EpisodicStore(store_path)
         self._world    = DomainHarmPrior(
             world_model_path,
-            shadow_mode=world_model_shadow_mode,
+            shadow_mode=world_model_shadow_mode if not strict_shadow else True,
         )
         self._bridge   = AromerAdapterBridge(bridge_state_path)
         self._judge    = AromerMetaJudge() if run_meta_judge else None
@@ -116,6 +117,7 @@ class AromerOrchestrator:
             world_model_activation_min_observations
         )
         self._run_replay_arena = run_replay_arena
+        self._strict_shadow = strict_shadow
 
     # ------------------------------------------------------------------
     # Core governance API
@@ -365,6 +367,12 @@ class AromerOrchestrator:
         false_accept_rate: float | None,
     ) -> dict[str, Any]:
         """Activate calibrated world-model trust adjustment; revert on safety drift."""
+        if self._strict_shadow:
+            self._world.shadow_mode = True
+            return self._world_model_activation_state(
+                reason="strict_shadow_mode_enforced"
+            )
+
         if false_accept_rate is not None and false_accept_rate > 0:
             self._world.shadow_mode = True
             return self._world_model_activation_state(

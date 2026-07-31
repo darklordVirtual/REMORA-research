@@ -52,32 +52,82 @@ LLMClassifierFn = Callable[[str, str], Any]
 
 
 class NLIEvidenceVerifier:
-    """Pluggable NLI-style verifier.
+    """Pluggable NLI-style verifier with optional local semantic Cross-Encoder.
 
-    If no custom nli_fn is provided, this class falls back to lexical behavior.
-    This is a structural interface upgrade; semantic performance must be
-    demonstrated separately.
+    Parameters
+    ----------
+    nli_fn:
+        Optional custom NLI classifier callable.
+    fallback:
+        Verifier fallback. Defaults to LexicalEvidenceVerifier.
+    use_local_nli:
+        If True, attempts to load a sentence-transformers cross-encoder
+        (default "cross-encoder/nli-deberta-v3-small") to perform true
+        semantic NLI evaluation rather than falling back to lexical checks.
+    nli_model_name:
+        Model name to use when use_local_nli is True.
+    support_threshold:
+        Threshold probability for "supports" classification. Default 0.5.
+    contradiction_threshold:
+        Threshold probability for "contradicts" classification. Default 0.5.
     """
 
     def __init__(
         self,
         nli_fn: NLIClassifierFn | None = None,
         fallback: EvidenceVerifierProtocol | None = None,
+        use_local_nli: bool = False,
+        nli_model_name: str = "cross-encoder/nli-deberta-v3-small",
+        support_threshold: float = 0.5,
+        contradiction_threshold: float = 0.5,
     ) -> None:
         self.nli_fn = nli_fn
         self.fallback = fallback or LexicalEvidenceVerifier()
+        self.use_local_nli = use_local_nli
+        self.nli_model_name = nli_model_name
+        self.support_threshold = support_threshold
+        self.contradiction_threshold = contradiction_threshold
+        self._encoder = None
+
+        if self.use_local_nli and self.nli_fn is None:
+            try:
+                from sentence_transformers import CrossEncoder  # type: ignore[import]
+                self._encoder = CrossEncoder(self.nli_model_name)
+            except ImportError:
+                import warnings
+                warnings.warn(
+                    "sentence-transformers is not installed. NLIEvidenceVerifier "
+                    "falling back to LexicalEvidenceVerifier."
+                )
 
     def classify(self, claim: str, snippet: str) -> EvidenceRelation:
-        if self.nli_fn is None:
-            return self.fallback.classify(claim, snippet)
-        out = self.nli_fn(claim, snippet)
-        if isinstance(out, tuple):
-            label = out[0]
-        else:
-            label = out
-        if label in {"supports", "contradicts", "insufficient"}:
-            return label  # type: ignore[return-value]
-        return "insufficient"
+        if self.nli_fn is not None:
+            out = self.nli_fn(claim, snippet)
+            if isinstance(out, tuple):
+                label = out[0]
+            else:
+                label = out
+            if label in {"supports", "contradicts", "insufficient"}:
+                return label  # type: ignore[return-value]
+            return "insufficient"
+
+        if self.use_local_nli and self._encoder is not None:
+            import numpy as np  # type: ignore[import]
+            # Use snippet as premise and claim as hypothesis
+            scores = self._encoder.predict([(snippet, claim)])
+            logits = scores[0]
+            exp_logits = np.exp(logits - np.max(logits))
+            probs = exp_logits / exp_logits.sum()
+            contradiction_prob = float(probs[0])
+            entailment_prob = float(probs[1])
+
+            if entailment_prob >= self.support_threshold:
+                return "supports"
+            if contradiction_prob >= self.contradiction_threshold:
+                return "contradicts"
+            return "insufficient"
+
+        return self.fallback.classify(claim, snippet)
 
 
 class LLMJudgeVerifier:
