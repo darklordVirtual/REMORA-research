@@ -41,12 +41,17 @@ from typing import Any
 
 from remora.toolcall.routing.tool_registry import ToolRegistry
 
-#: An identifier is a compact token of letters/digits/dashes with at least one
-#: digit or an underscore-joined shape — the sort of value a system of record
-#: can confirm. Prose, dates and small counts are excluded: checking them
-#: against a state index would reject every legitimate call carrying a message
-#: body or a passenger count.
-_IDENTIFIER = re.compile(r"^(?=.*[0-9_])[A-Za-z0-9_-]{4,64}$")
+#: A reference candidate is a compact, whitespace-free token — the sort of value
+#: a system of record can confirm. Whitespace is the boundary: "Boston" can be
+#: looked up, "please seat me by the window" cannot.
+#:
+#: The first version additionally required a digit or underscore, which excluded
+#: plain single-word names. Measured on the mutation set that left 51 corrupted
+#: values unjudged, every one a string the rule declined to consider. Widening
+#: to any whitespace-free token is the principled boundary rather than a
+#: threshold chosen to move a number; the effect on both correct and corrupted
+#: calls is measured, not assumed.
+_IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:\-]{2,64}$")
 
 
 @dataclass(frozen=True)

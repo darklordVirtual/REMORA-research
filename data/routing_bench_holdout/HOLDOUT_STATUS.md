@@ -82,11 +82,19 @@ improved substantially.
 
 These are development numbers. They carry no blind support.
 
-| arm | wrong_arg ACCEPT | identity ACCEPT | gap |
-|---|---|---|---|
-| A current engine | 65.4% | 65.4% | 0.0 pp |
-| B + arguments_satisfiable | 65.4% | 65.4% | 0.0 pp |
-| C + argument_values_supported | 22.4% | 63.6% | 41.2 pp |
+| arm | wrong_arg ACCEPT | identity ACCEPT | gap | accuracy |
+|---|---|---|---|---|
+| A current engine | 65.4% | 65.4% | 0.0 pp | 25.0% |
+| B + arguments_satisfiable | 65.4% | 65.4% | 0.0 pp | 40.8% |
+| C + argument_values_supported | 22.4% | 63.6% | 41.2 pp | 40.4% |
+| D + ResolutionPlan | 22.4% | 63.6% | 41.2 pp | 56.9% |
+| E + provenance split | 22.4% | 63.6% | 41.2 pp | 85.5% |
+| F + causal fixes (§25) | 19.7% | 63.6% | 42.1 pp | **91.9%** |
+
+All five pre-registered targets are met at arm F on development data. The
+wrong-argument rate clears its threshold by 0.3 pp — two episodes out of 228 —
+which is not a robust margin and is the number most likely to move on a blind
+set.
 
 The defensible claim as of this writing:
 

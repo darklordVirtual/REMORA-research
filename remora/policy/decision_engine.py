@@ -133,6 +133,13 @@ _SENSITIVE_ARGUMENT_ROLES: frozenset[str] = frozenset({
 })
 
 
+def _unresolvable_gap(obs: PolicyObservation) -> bool:
+    """True when a required argument is missing and nothing can supply it."""
+    return bool(obs.missing_required_arguments) and (
+        not obs.argument_resolver_tools or obs.arguments_satisfiable is False
+    )
+
+
 def _controls_sensitive_argument(names: tuple[str, ...] | None) -> bool:
     """True when any named argument occupies a sensitive role."""
     for name in names or ():
@@ -701,6 +708,21 @@ class RemoraDecisionEngine:
             _outcome = _gate.evaluate(self, obs, _credal, _trap)
             if _outcome is not None:
                 reasons.append(_gate.reason)
+                # A VERIFY whose information gap is already known to be
+                # unclosable is a false promise, whichever gate produced it.
+                # The §23 contract — VERIFY means a specific bounded step is
+                # expected to establish the missing information — has to hold
+                # for upstream gates too, or a mutating call with an unknown
+                # schema is told to verify something the engine has already
+                # established nobody can supply. Both outcomes block execution,
+                # so this is a statement about honesty, not a safety change.
+                # ESCALATE and ABSTAIN are untouched: a block outranks it.
+                if _outcome is DecisionAction.VERIFY and _unresolvable_gap(obs):
+                    reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+                    return self._build(
+                        DecisionAction.ABSTAIN, reasons, obs,
+                        credal=_credal, raw_obs=_raw_obs,
+                    )
                 return self._build(_outcome, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── SCHEMA UNVERIFIED FLOOR ─────────────────────────────────────────
@@ -709,6 +731,10 @@ class RemoraDecisionEngine:
         # If schema was not validated for a mutating action, force VERIFY here
         # rather than letting the action reach an ACCEPT outcome.
         if _schema_unverified_mutating:
+            if _unresolvable_gap(obs):
+                reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+                return self._build(DecisionAction.ABSTAIN, reasons, obs,
+                                   credal=_credal, raw_obs=_raw_obs)
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── UNKNOWN ACTION-TYPE FLOOR ───────────────────────────────────────
@@ -857,6 +883,9 @@ class RemoraDecisionEngine:
             return self._build(DecisionAction.ABSTAIN, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── ARGUMENT RESOLUTION (2026-07-31) ─────────────────────────────
+        # Note: the unresolvable half of this rule also runs *before* the
+        # conditional gates, in decide(), because a VERIFY produced upstream
+        # would otherwise outlive the fact that its gap cannot be closed.
         # §22 measured obtainable VERIFY recall at 0%: a call missing an
         # argument an available tool could supply was accepted rather than
         # routed to a bounded fetch. This is the gate that distinguishes

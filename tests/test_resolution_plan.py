@@ -242,3 +242,57 @@ def test_re_entry_runs_the_whole_router_not_just_the_gate() -> None:
     result = resolve_and_reenter(obs, ENGINE, resolver=lambda tool, arg: "EHGLP3")
     assert result.final_report.action == DecisionAction.ESCALATE
     assert DecisionReason.FORBIDDEN_TOOL_BLOCKED in result.final_report.reasons
+
+
+# ---------------------------------------------------------------------------
+# An unresolvable VERIFY from any gate is a false promise
+# ---------------------------------------------------------------------------
+
+def test_unresolvable_gap_downgrades_a_verify_from_another_gate() -> None:
+    """A VERIFY produced upstream must not survive an unobtainable requirement.
+
+    The §23 contract says VERIFY means a specific bounded step is expected to
+    establish the missing information. That has to hold whichever gate emitted
+    the VERIFY: a mutating call with an unknown schema gets VERIFY from
+    schema_unverified_verify long before the resolution gate is reached, and
+    without this the engine promises a verification it has already established
+    cannot happen. Both outcomes block execution, so this is a statement about
+    honesty rather than a change in safety.
+    """
+    obs = PolicyObservation(
+        question="cancel reservation",
+        action_type="write",            # mutating -> schema_unverified_verify
+        proposed_tool_name="cancel_reservation",
+        missing_required_arguments=("reservation_id",),
+        argument_resolver_tools=(),     # nothing can supply it
+        arguments_satisfiable=False,
+    )
+    report = ENGINE.decide(obs)
+    assert report.action == DecisionAction.ABSTAIN
+    assert DecisionReason.NO_RESOLVER_AVAILABLE in report.reasons
+
+
+def test_a_resolvable_gap_leaves_an_upstream_verify_alone() -> None:
+    """Only the unresolvable case downgrades; a real plan keeps VERIFY."""
+    obs = PolicyObservation(
+        question="cancel reservation",
+        action_type="write",
+        proposed_tool_name="cancel_reservation",
+        missing_required_arguments=("reservation_id",),
+        argument_resolver_tools=("lookup_reservation_id",),
+        arguments_satisfiable=True,
+    )
+    assert ENGINE.decide(obs).action == DecisionAction.VERIFY
+
+
+def test_an_escalate_is_never_downgraded_by_this_rule() -> None:
+    """A block outranks the honesty rule; ESCALATE must survive."""
+    obs = PolicyObservation(
+        question="cancel reservation",
+        action_type="write",
+        tool_forbidden=True,
+        missing_required_arguments=("reservation_id",),
+        argument_resolver_tools=(),
+        arguments_satisfiable=False,
+    )
+    assert ENGINE.decide(obs).action == DecisionAction.ESCALATE

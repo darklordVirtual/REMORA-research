@@ -124,18 +124,23 @@ def test_detection_is_blind_to_how_the_wrong_value_was_made(registry, state) -> 
         assert c.argument_values_supported is False, bogus
 
 
-def test_non_identifier_shaped_value_is_unknown_not_unsupported(registry, state) -> None:
-    """A value that is not identifier-shaped cannot be confirmed either way.
+def test_prose_valued_argument_is_unknown_not_unsupported(registry, state) -> None:
+    """A value that is not a reference candidate cannot be confirmed either way.
 
-    The shape rule requires a digit or underscore, which fits tau2's ids
-    (EHGLP3, 4WQ150, emma_kim_9957, HAT001) but also means an all-letter token
-    is out of scope. Reporting None there is honest; reporting False would
-    invent a negative about a value the rule was never meant to judge. This is
-    a real limitation of the deterministic check, recorded rather than hidden.
+    The boundary is whitespace: a compact token can be looked up in a system of
+    record, a sentence cannot. Reporting None for prose is honest; reporting
+    False would invent a negative about a value the rule was never meant to
+    judge, and would reject every legitimate call carrying a message body.
+
+    The boundary moved once. It first also required a digit or underscore,
+    which put plain single-word names such as a city out of scope and left 51
+    corrupted values unjudged on the mutation set. That was a real limitation,
+    not a tuning knob; widening to whitespace-free is why this test now uses a
+    sentence rather than an all-letter token.
     """
     c = compute_compatibility(
         tool="get_reservation_details",
-        args={"reservation_id": "ZZZZZZ"},
+        args={"reservation_id": "the one I booked last Tuesday"},
         registry=registry,
         state=state,
     )
@@ -194,3 +199,37 @@ def test_compatibility_is_frozen() -> None:
     c = CallCompatibility()
     with pytest.raises(Exception):
         c.tool_matches_goal = True  # type: ignore[misc]
+
+
+def test_single_token_values_are_checked_even_without_digits(registry) -> None:
+    """A whitespace-free token is a reference candidate; prose is not.
+
+    The first shape rule required a digit or underscore, which excluded plain
+    single-word identifiers such as a city or airport name. Measured on the
+    mutation set, that left 51 corrupted values unchecked — every one of them a
+    string the rule declined to judge. Whitespace is the honest boundary:
+    "Boston" can be looked up in a system of record, "window seat please"
+    cannot.
+    """
+    state = StateIndex.from_values({"Boston", "EHGLP3"})
+    supported = compute_compatibility(
+        tool="get_reservation_details", args={"reservation_id": "Boston"},
+        registry=registry, state=state,
+    )
+    assert supported.argument_values_supported is True
+
+    corrupted = compute_compatibility(
+        tool="get_reservation_details", args={"reservation_id": "Boston_XX"},
+        registry=registry, state=state,
+    )
+    assert corrupted.argument_values_supported is False
+
+
+def test_multi_word_prose_is_still_not_judged(registry) -> None:
+    state = StateIndex.from_values({"Boston"})
+    c = compute_compatibility(
+        tool="get_reservation_details",
+        args={"reservation_id": "Boston", "note": "please seat me by the window"},
+        registry=registry, state=state,
+    )
+    assert c.argument_values_supported is True

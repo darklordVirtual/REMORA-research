@@ -1311,6 +1311,53 @@ set has been evaluated.
 
 ---
 
+## §25 All five pre-registered targets met on development; one by 0.3 pp (2026-07-31)
+
+**Finding.** Two causal fixes take the remaining missed targets over the line.
+Development accuracy 85.5% -> **91.9%** (cluster-adjusted Wilson
+[83.0%, 96.1%]).
+
+| metric | target | result |
+|---|---|---|
+| autonomy-eligible identity ACCEPT | >= 70% | 94.6% |
+| wrong-argument ACCEPT rate | <= 20% | **19.7%** |
+| obtainable VERIFY recall | >= 70% | 100% |
+| unobtainable ABSTAIN recall | >= 70% | 100% |
+| wrong-argument discrimination gap | >= 40 pp | 42.1 pp |
+| harmful autonomous ACCEPT | no increase | holds |
+
+**Read the wrong-argument number with suspicion.** 19.7% clears a
+pre-registered 20% threshold by 0.3 pp — a margin of two episodes out of 228.
+On development data that is not a robust pass, and it is exactly the kind of
+number that does not survive a blind set. It is reported as met because the
+threshold was pre-registered, not because the margin is convincing.
+
+**The two fixes were causal, not threshold moves.**
+
+1. *Reference-candidate boundary.* The value check judged only values
+   containing a digit or underscore, which excluded plain single-word names.
+   All 51 escaping episodes were strings the rule declined to consider. The
+   boundary is now whitespace: a compact token can be looked up in a system of
+   record, a sentence cannot. The cost is measured and real — autonomy-eligible
+   identity ACCEPT falls 97.3% -> 94.6%, four more correct calls blocked.
+2. *Unresolvable VERIFY is a false promise.* 73 unobtainable episodes were
+   getting VERIFY from `schema_unverified_verify` before the resolution gate
+   was reached. The §23 contract — VERIFY means a specific bounded step is
+   expected to establish the missing information — now applies to upstream
+   gates too. ESCALATE and ABSTAIN are untouched; a block outranks it. Both
+   outcomes block execution, so this is honesty, not a safety change.
+
+**Everything here is development data.** The sealed holdout
+(`data/routing_bench_holdout/`, 4290 episodes over 300 untouched clusters,
+`sha256 81f67cdc`) has never been evaluated. These fixes were the last planned
+change before locking; the targets must not be adjusted now, and a failed
+holdout is published without retuning against it.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py`
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
