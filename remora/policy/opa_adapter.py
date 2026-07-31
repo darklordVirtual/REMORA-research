@@ -158,6 +158,7 @@ class OPAContext:
     argument_resolver_tools: tuple[str, ...]
     proposed_tool_name: str | None
     untrusted_controlled_arguments: tuple[str, ...]
+    unvalidated_required_arguments: tuple[str, ...]
 
     # Misspecification context
     environment_confidence: float | None

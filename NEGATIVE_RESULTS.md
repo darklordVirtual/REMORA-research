@@ -1475,6 +1475,72 @@ low-consequence ACCEPT path.
 
 ---
 
+## §28 Validation-required routing: blind-confirmed policy, unconfirmed discrimination (2026-07-31)
+
+**Change.** An argument that steers where the action lands — a customer,
+account, recipient, deployment target — must be confirmed against an
+authoritative source before autonomous execution. Unconfirmed with a resolver
+available routes to VERIFY carrying a plan; unconfirmed with none routes to
+ABSTAIN.
+
+Routing *every* UNKNOWN to VERIFY was rejected: it rebuilds the constant blocker
+of §21 one level up. The requirement is decided by what the argument steers,
+independently of whether an index happens to cover it, and unrecognised roles
+default to OPTIONAL — one of the few places where the conservative-looking
+default is the wrong one, because REQUIRED-by-default makes every unfamiliar
+tool signature a source of friction.
+
+**Track C — resolver policy, blind, 278 clusters, 2915 episodes, evaluated
+once.** Clusters disjoint from development and from both spent holdouts.
+
+| metric | target | result |
+|---|---|---|
+| required-but-unvalidated autonomous ACCEPT | 0 | **0.0000** |
+| obtainable VERIFY recall | >= 95% | 100% |
+| unobtainable blocked recall | >= 95% | 100% |
+| false-UNSUPPORTED rate | 0 | 0.0000 |
+
+All four met. Routing accuracy 72.0%, cluster-adjusted Wilson [66.4%, 76.9%].
+
+**Development effect, split by coverage.**
+
+| stratum | identity ACCEPT | wrong-argument ACCEPT | gap |
+|---|---|---|---|
+| covered (airline, retail) | 100% | 9.8% | 55.8 pp |
+| uncovered (telecom) | 0% | 0% | 0.0 pp |
+
+On covered domains the change roughly halves wrong-argument acceptance (23.7%
+-> 9.8%) and widens the gap (41.9 -> 55.8 pp). On uncovered domains it stops
+autonomy entirely for calls carrying a validation-required argument, including
+correct ones. That is the intended policy position — no autonomous action on an
+unconfirmable customer id — and it is also why Track C's 72.0% accuracy is
+substantially below the covered figure.
+
+**Against the revised targets, on development data.**
+
+| target | result |
+|---|---|
+| covered identity ACCEPT >= 85% | 100% — met |
+| covered wrong-argument ACCEPT <= 15% | 9.8% — met |
+| discrimination gap >= 60 pp | 55.8 pp — **missed** |
+| false-UNSUPPORTED on valid values <= 2% | 0% — met |
+
+**Still not established, and this is the load-bearing caveat.** No blind test of
+correct-versus-corrupted discrimination on a *covered* domain has been run, and
+none can be with the data available: every airline and retail cluster was
+consumed during development. Tracks B and C both ran on telecom, where
+discrimination is informationally impossible, so neither supports the
+discrimination claim. The 55.8 pp is a development figure.
+
+The remaining work is data acquisition, not modelling: a covered domain with an
+authoritative state table independent of the tasks, and clusters reserved before
+the detector is developed.
+
+**Artifacts.** `results/routing_bench_holdout_c_results.json`,
+`data/routing_bench_holdout_c/manifest.json` (sha256 `f7bd9a9e`).
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1494,6 +1560,7 @@ low-consequence ACCEPT path.
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
 | ESCALATE recall is 0% on the untrusted-origin family (§23) | **Resolved 2026-07-31 (§24)**: split into noncontrolling (VERIFY) and controls-sensitive (ESCALATE); recall 0% -> 100%, accuracy 56.9% -> 85.5%. Formerly: all untrusted-origin mutants route to VERIFY, never ESCALATE. Not addressable by a resolver — untrusted provenance is a question about authority, not missing information. Needs the two provenance families (noncontrolling vs controls-sensitive-argument), which do not exist | **High** |
 | Blind holdout missed 2 of 5 targets; state check confused absent-from-record with outside-my-coverage (§26) | **Fixed and blind-confirmed 2026-07-31 (§27)**: CoverageScope per argument; false-UNSUPPORTED rate 0/3841 on a second blind set, accuracy 69.6% -> 92.2%. Residual: covered-domain discrimination unconfirmed on blind data (no untouched covered clusters exist), and uncovered domains accept 61.5% of corrupted identifiers. Formerly: identity ACCEPT 94.6% dev -> 0.0% holdout; discrimination gap 42.1 pp -> 0.0 pp; accuracy 91.9% -> 69.6%. Cause: state index covered airline+retail, holdout is telecom, so every identifier read as absent. argument_values_supported must return None outside its coverage, not False. Requires a new untouched holdout to confirm any fix | **High** |
+| Covered-domain discrimination unconfirmed on blind data (§28) | **Active (blocks the argument-value-correctness claim)**: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |

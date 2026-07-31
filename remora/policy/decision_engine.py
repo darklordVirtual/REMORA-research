@@ -913,6 +913,32 @@ class RemoraDecisionEngine:
             return self._build(DecisionAction.ABSTAIN, reasons, obs,
                                credal=_credal, raw_obs=_raw_obs)
 
+        # ── VALIDATION REQUIRED (2026-07-31) ─────────────────────────────
+        # §27 left UNKNOWN falling through to autonomy, so an uncovered domain
+        # accepted 61.5% of corrupted identifiers. An argument that steers where
+        # the action lands must be confirmed before autonomous execution — and
+        # only such arguments, because routing every UNKNOWN here would rebuild
+        # the constant blocker of §21 one level up.
+        #
+        # Placed after every blocking gate, so it can only convert a
+        # fall-through. Inert until the caller populates the field.
+        if obs.unvalidated_required_arguments:
+            if obs.argument_resolver_tools:
+                reasons.append(DecisionReason.ARGUMENT_VALIDATION_REQUIRED)
+                return self._build(
+                    DecisionAction.VERIFY, reasons, obs,
+                    credal=_credal, raw_obs=_raw_obs,
+                    resolution_plan=ResolutionPlan(
+                        resolver="argument_validation",
+                        target_arguments=tuple(obs.unvalidated_required_arguments),
+                        source_tools=tuple(obs.argument_resolver_tools),
+                    ),
+                )
+            # Nothing authoritative can confirm it, so autonomy is unavailable.
+            reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+            return self._build(DecisionAction.ABSTAIN, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
+
         # ── LOW-CONSEQUENCE ACCEPT (opt-in, 2026-07-31) ─────────────────────
         # Placed here deliberately: every hard guard and every blocking gate has
         # already run, so this can only convert a fall-through that would

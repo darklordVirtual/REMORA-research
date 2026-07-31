@@ -220,6 +220,14 @@ class PolicyObservation:
     # escalates regardless of the declared risk tier.
     untrusted_controlled_arguments: tuple[str, ...] = ()
 
+    # Arguments that policy requires validated against an authoritative source
+    # and that are not confirmed — either contradicted or simply unknown. The
+    # requirement is a property of what the argument steers, decided
+    # independently of whether an index happens to cover it; see
+    # remora/toolcall/routing/validation.py. Non-empty means autonomy is not
+    # available until the value is confirmed.
+    unvalidated_required_arguments: tuple[str, ...] = ()
+
     # Policy generalization / fleet-level risk (v0.9)
     # All fields are caller-populated — REMORA is stateless.
     similar_action_seen_count: int | None = None

@@ -1,0 +1,28 @@
+{
+  "evaluated_all_targets_met": true,
+  "n_episodes": 2915,
+  "n_source_clusters": 300,
+  "note": "Tests the resolver policy for unconfirmed required arguments, not argument discrimination. Discrimination is informationally impossible on this domain.",
+  "schema": "routing_bench_holdout_track_c_v1",
+  "sha256": "f7bd9a9edff5a1b45c33eb923460212e40337ebb7c95d00d3697dbdf896fad0b",
+  "status": "evaluated",
+  "targets": {
+    "false_unsupported_rate": [
+      "==",
+      0.0
+    ],
+    "obtainable_verify_recall": [
+      ">=",
+      0.95
+    ],
+    "required_but_unvalidated_autonomous_accept": [
+      "==",
+      0.0
+    ],
+    "unobtainable_blocked_recall": [
+      ">=",
+      0.95
+    ]
+  },
+  "track": "C \u2014 UNKNOWN + validation-required routing policy"
+}

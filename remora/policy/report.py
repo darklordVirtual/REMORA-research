@@ -36,6 +36,9 @@ class DecisionReason(str, Enum):
     LOW_CONSEQUENCE_ACCEPT = "low_consequence_accept"
     ARGUMENT_RESOLUTION_REQUIRED = "argument_resolution_required"
     NO_RESOLVER_AVAILABLE = "no_resolver_available"
+    # An argument policy requires validated is unconfirmed, and a bounded
+    # authoritative lookup is expected to settle it.
+    ARGUMENT_VALIDATION_REQUIRED = "argument_validation_required"
     TRACE_ATTACHED = "trace_attached"
     ORDERED_HIGH_TRUST = "ordered_high_trust"
     DISORDERED_NO_EVIDENCE = "disordered_no_evidence"

@@ -28,6 +28,7 @@ from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction
 from remora.toolcall.routing.episode import Route, RoutingEpisode
 from remora.toolcall.routing.compatibility import StateIndex, compute_compatibility
+from remora.toolcall.routing.validation import unvalidated_required
 from remora.toolcall.routing.tool_registry import (
     ToolRegistry,
     _name_derived_output,
@@ -138,12 +139,30 @@ def build_full_observation(
         if (_name_derived_output(tool) or "") in wanted
     )
 
+    # Per-argument value status, so validation-required routing can see which
+    # specific arguments are unconfirmed rather than one pooled verdict.
+    statuses = {
+        name: state.status(episode.domain, name, value).value
+        for name, value in episode.proposed_tool_args.items()
+        if isinstance(value, str)
+    }
+    tri = {"supported": True, "unsupported": False, "unknown": None}
+    unvalidated = unvalidated_required({k: tri[v] for k, v in statuses.items()})
+
+    # A validation lookup is expected from a tool that produces this argument.
+    validation_resolvers = tuple(
+        tool
+        for tool in episode.available_tools
+        if (_name_derived_output(tool) or "") in {a.lower() for a in unvalidated}
+    )
+
     return replace(
         obs,
         argument_values_supported=compatibility.argument_values_supported,
         missing_required_arguments=missing,
-        argument_resolver_tools=resolvers,
+        argument_resolver_tools=resolvers or validation_resolvers,
         proposed_tool_name=episode.proposed_tool_name,
+        unvalidated_required_arguments=unvalidated,
     )
 
 
