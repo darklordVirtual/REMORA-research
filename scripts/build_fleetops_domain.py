@@ -30,6 +30,7 @@ from remora.toolcall.routing.sources.fleetops import (  # noqa: E402
     _TOOLS,
     build_database,
     build_tasks,
+    canonical_json_bytes,
     serialize_snapshot,
 )
 
@@ -45,7 +46,7 @@ def main() -> None:
     DB_OUT.parent.mkdir(parents=True, exist_ok=True)
     TASKS_OUT.parent.mkdir(parents=True, exist_ok=True)
     DB_OUT.write_bytes(serialize_snapshot(db))
-    TASKS_OUT.write_bytes(serialize_snapshot(tasks))
+    TASKS_OUT.write_bytes(canonical_json_bytes(tasks))
     digest = hashlib.sha256(DB_OUT.read_bytes()).hexdigest()
     print(
         f"database: {N_VEHICLES} vehicles, {N_DRIVERS} drivers, "

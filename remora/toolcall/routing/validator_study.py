@@ -198,17 +198,20 @@ def _run_arm(study: Study, *, with_validators: bool) -> dict[str, Any]:
 
     # Correct-validator: among initial validation plans, every source tool is
     # the declared binding for one of the episode's argument roles.
+    # Carry the plan itself, not the outcome it came from: the filter below
+    # establishes that it is present, and re-reading the optional field would
+    # discard that.
     planned = [
-        (e, o)
-        for e, o in outcomes
+        o.plan
+        for _, o in outcomes
         if o.plan is not None and o.plan.resolver == "argument_validation"
     ]
     correct = sum(
         1
-        for e, o in planned
+        for plan in planned
         if all(
             tool == _BINDINGS.get(role)
-            for role, tool in zip(o.plan.target_arguments, o.plan.source_tools)
+            for role, tool in zip(plan.target_arguments, plan.source_tools)
         )
     )
 
