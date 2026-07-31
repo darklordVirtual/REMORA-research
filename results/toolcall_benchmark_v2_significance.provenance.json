@@ -1,12 +1,44 @@
 {
-  "schema": "result_provenance_v2",
-  "git_commit": "dad285fac7affd83ab63270ab2a11d7bfd57cd02",
+  "schema": "result_provenance_v3",
+  "git_commit": "90d5b16013ab8fa42865aefa2cae88abe99e65c8",
   "worktree_clean": false,
+  "pre_run_worktree_clean": true,
+  "allowed_generated_outputs": [
+    "artifacts/governance_intelligence/evaluation_results.json",
+    "artifacts/governance_intelligence/evaluation_results.provenance.json",
+    "artifacts/toolcall_benchmark_v2.json",
+    "benchmarks/toolcall_blind_v3/labels.json",
+    "benchmarks/toolcall_blind_v3/tasks.json",
+    "results/toolcall_benchmark_v2_ablation.json",
+    "results/toolcall_benchmark_v2_ablation.provenance.json",
+    "results/toolcall_benchmark_v2_blind_test.json",
+    "results/toolcall_benchmark_v2_blind_test.provenance.json",
+    "results/toolcall_benchmark_v2_calibration.json",
+    "results/toolcall_benchmark_v2_calibration.provenance.json",
+    "results/toolcall_benchmark_v2_failures.json",
+    "results/toolcall_benchmark_v2_failures.provenance.json",
+    "results/toolcall_benchmark_v2_results.json",
+    "results/toolcall_benchmark_v2_results.provenance.json",
+    "results/toolcall_benchmark_v2_significance.json",
+    "results/toolcall_benchmark_v2_significance.provenance.json",
+    "results/toolcall_blind_v3_decisions.jsonl",
+    "results/toolcall_blind_v3_results.json",
+    "results/toolcall_blind_v3_results.provenance.json"
+  ],
+  "post_run_worktree_clean": false,
+  "worktree_dirty_beyond_outputs": [
+    "docs/failure_analysis.md",
+    "results/blind_test_result.json",
+    "results/calibration_result.json",
+    "results/toolcall_ablation_v2_results.json",
+    "results/toolcall_benchmark_v2_heuristic_results.json",
+    "results/toolcall_benchmark_v2_summary.md"
+  ],
   "python_version": "3.14.0",
   "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
   "script": "experiments/toolcall_v2_significance.py",
   "input_sha256": {
-    "results": "f243d475169ff4a534c849ed9e583874028502f77565293eddb504d3a2e5738b"
+    "results": "559a39a092aeacdaf4ea74c20444df9221d4043408bdecf0cbf01d175249cd75"
   },
   "random_seeds": [
     7,
@@ -15,7 +47,7 @@
     19
   ],
   "command": "python experiments/toolcall_v2_significance.py",
-  "generated_at": "2026-07-27T09:57:46.669418+00:00",
+  "generated_at": "2026-07-31T06:27:41.383872+00:00",
   "artifact": "toolcall_benchmark_v2_significance.json",
-  "artifact_sha256": "a9e1d6177758c07129881281a1a8cd63e919ad7238900c299356ccc737ecd2d9"
+  "artifact_sha256": "a285400c966989d4ae43ae69168140353a353240f68c1741cfa27838c87e7a9d"
 }

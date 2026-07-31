@@ -1,14 +1,48 @@
 {
-  "schema": "result_provenance_v2",
-  "git_commit": "dad285fac7affd83ab63270ab2a11d7bfd57cd02",
+  "schema": "result_provenance_v3",
+  "git_commit": "90d5b16013ab8fa42865aefa2cae88abe99e65c8",
   "worktree_clean": false,
+  "pre_run_worktree_clean": true,
+  "allowed_generated_outputs": [
+    "artifacts/governance_intelligence/evaluation_results.json",
+    "artifacts/governance_intelligence/evaluation_results.provenance.json",
+    "artifacts/toolcall_benchmark_v2.json",
+    "benchmarks/toolcall_blind_v3/labels.json",
+    "benchmarks/toolcall_blind_v3/tasks.json",
+    "results/toolcall_benchmark_v2_ablation.json",
+    "results/toolcall_benchmark_v2_ablation.provenance.json",
+    "results/toolcall_benchmark_v2_blind_test.json",
+    "results/toolcall_benchmark_v2_blind_test.provenance.json",
+    "results/toolcall_benchmark_v2_calibration.json",
+    "results/toolcall_benchmark_v2_calibration.provenance.json",
+    "results/toolcall_benchmark_v2_failures.json",
+    "results/toolcall_benchmark_v2_failures.provenance.json",
+    "results/toolcall_benchmark_v2_results.json",
+    "results/toolcall_benchmark_v2_results.provenance.json",
+    "results/toolcall_benchmark_v2_significance.json",
+    "results/toolcall_benchmark_v2_significance.provenance.json",
+    "results/toolcall_blind_v3_decisions.jsonl",
+    "results/toolcall_blind_v3_results.json",
+    "results/toolcall_blind_v3_results.provenance.json"
+  ],
+  "post_run_worktree_clean": false,
+  "worktree_dirty_beyond_outputs": [
+    "docs/failure_analysis.md",
+    "results/blind_test_result.json",
+    "results/calibration_result.json",
+    "results/toolcall_ablation_v2_results.json",
+    "results/toolcall_benchmark_v2_heuristic_results.json",
+    "results/toolcall_benchmark_v2_summary.md"
+  ],
   "python_version": "3.14.0",
   "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
   "script": "experiments/evaluate_governance_intelligence.py",
-  "input_sha256": {},
+  "input_sha256": {
+    "tasks": "346f6b06b829eb9001016aa16769fbaf2703f7361ec8ed705348c313025e7e57"
+  },
   "random_seeds": null,
   "command": "python experiments/evaluate_governance_intelligence.py",
-  "generated_at": "2026-07-27T09:57:46.941910+00:00",
+  "generated_at": "2026-07-31T06:27:41.765718+00:00",
   "artifact": "evaluation_results.json",
-  "artifact_sha256": "487f0227a15fc2962aee1bbde51794580c47e2bd3a6b0251ee5598cccb73c80a"
+  "artifact_sha256": "8fd67e44a1060c7e87e32879a24faf73c61aaf930b8e0c118a6fda923593a985"
 }

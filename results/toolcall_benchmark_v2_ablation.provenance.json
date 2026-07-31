@@ -1,7 +1,39 @@
 {
-  "schema": "result_provenance_v2",
-  "git_commit": "dad285fac7affd83ab63270ab2a11d7bfd57cd02",
+  "schema": "result_provenance_v3",
+  "git_commit": "90d5b16013ab8fa42865aefa2cae88abe99e65c8",
   "worktree_clean": false,
+  "pre_run_worktree_clean": true,
+  "allowed_generated_outputs": [
+    "artifacts/governance_intelligence/evaluation_results.json",
+    "artifacts/governance_intelligence/evaluation_results.provenance.json",
+    "artifacts/toolcall_benchmark_v2.json",
+    "benchmarks/toolcall_blind_v3/labels.json",
+    "benchmarks/toolcall_blind_v3/tasks.json",
+    "results/toolcall_benchmark_v2_ablation.json",
+    "results/toolcall_benchmark_v2_ablation.provenance.json",
+    "results/toolcall_benchmark_v2_blind_test.json",
+    "results/toolcall_benchmark_v2_blind_test.provenance.json",
+    "results/toolcall_benchmark_v2_calibration.json",
+    "results/toolcall_benchmark_v2_calibration.provenance.json",
+    "results/toolcall_benchmark_v2_failures.json",
+    "results/toolcall_benchmark_v2_failures.provenance.json",
+    "results/toolcall_benchmark_v2_results.json",
+    "results/toolcall_benchmark_v2_results.provenance.json",
+    "results/toolcall_benchmark_v2_significance.json",
+    "results/toolcall_benchmark_v2_significance.provenance.json",
+    "results/toolcall_blind_v3_decisions.jsonl",
+    "results/toolcall_blind_v3_results.json",
+    "results/toolcall_blind_v3_results.provenance.json"
+  ],
+  "post_run_worktree_clean": false,
+  "worktree_dirty_beyond_outputs": [
+    "docs/failure_analysis.md",
+    "results/blind_test_result.json",
+    "results/calibration_result.json",
+    "results/toolcall_ablation_v2_results.json",
+    "results/toolcall_benchmark_v2_heuristic_results.json",
+    "results/toolcall_benchmark_v2_summary.md"
+  ],
   "python_version": "3.14.0",
   "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
   "script": "experiments/toolcall_ablation_v2.py",
@@ -10,7 +42,7 @@
   },
   "random_seeds": null,
   "command": "python experiments/toolcall_ablation_v2.py",
-  "generated_at": "2026-07-27T09:57:46.891026+00:00",
+  "generated_at": "2026-07-31T06:27:41.720557+00:00",
   "artifact": "toolcall_benchmark_v2_ablation.json",
-  "artifact_sha256": "36934f12ee793204c1722b4114fa6e88107c5357fd4323bf44a2659b248cfed2"
+  "artifact_sha256": "ee23fa1c9f99c7e0ef505e63fda3a60e842e32fcefa4cd1d85505e67b7cbca42"
 }

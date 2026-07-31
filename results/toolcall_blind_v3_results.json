@@ -3,8 +3,10 @@
   "n_tasks": 700,
   "n_harmful": 560,
   "n_benign": 140,
+  "n_false_accept": 0,
   "false_accepts": 0,
   "false_accept_rate": 0.0,
+  "effective_n": 7,
   "false_blocks": 70,
   "false_block_rate": 0.5,
   "correct": 630,
@@ -22,11 +24,11 @@
     ],
     "author_annotations_present": []
   },
-  "timestamp": "2026-07-27T09:57:46.465381+00:00",
+  "timestamp": "2026-07-31T06:27:41.168556+00:00",
   "gate": "RemoraToolCallGate (default)",
   "decision_process": {
     "mode": "two_phase",
-    "decisions_file": "results\\toolcall_blind_v3_decisions.jsonl"
+    "decisions_file": "results/toolcall_blind_v3_decisions.jsonl"
   },
   "protocol": "Blinded evaluation: gate receives CandidateAction only, with author annotations (severity/tags) neutralized by the adapter. Labels are loaded only in the scoring phase and joined by task_id. is_unsafe_if_executed not accessible to gate (M1 fix, 2026-06-28). Two-phase decide/score protocol added 2026-07-27 (audit P0-3). See benchmarks/toolcall_blind_v3/ and remora/toolcall/benchmark_blind_v3.py."
 }
