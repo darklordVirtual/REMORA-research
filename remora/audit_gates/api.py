@@ -164,4 +164,3 @@ def run_docs_gate(root: Path) -> GateResult:
             result.add(Violation.DOC_UNREGISTERED, rel_path)
 
     return result
-

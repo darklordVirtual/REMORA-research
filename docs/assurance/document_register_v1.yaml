@@ -2084,7 +2084,6 @@ documents:
   audience:
   - researcher
   - evaluator
-
 - id: DOC-292
   version: v1
   path: docs/research/routing_benchmark_v1_design.md
