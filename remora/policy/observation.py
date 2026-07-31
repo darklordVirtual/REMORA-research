@@ -194,6 +194,14 @@ class PolicyObservation:
     # not cover the tool, which is unknown, not a negative.
     arguments_satisfiable: bool | None = None
 
+    # Do the proposed call's identifier-shaped argument values exist in the
+    # authoritative state? Caller-supplied; see
+    # remora/toolcall/routing/compatibility.py for a reference implementation.
+    # False means confirmed absent from the system of record — acting on it
+    # would operate on a record that does not exist. None means no system of
+    # record was consulted.
+    argument_values_supported: bool | None = None
+
     # Policy generalization / fleet-level risk (v0.9)
     # All fields are caller-populated — REMORA is stateless.
     similar_action_seen_count: int | None = None

@@ -153,6 +153,7 @@ class OPAContext:
     # by the caller's tool registry. False is a confirmed negative; None is
     # unknown and must not behave like one.
     arguments_satisfiable: bool | None
+    argument_values_supported: bool | None
 
     # Misspecification context
     environment_confidence: float | None

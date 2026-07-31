@@ -1143,6 +1143,71 @@ not yet exist.
 
 ---
 
+## §22 Semantic call compatibility breaks the constant predictor, but misses every pre-registered target (2026-07-31)
+
+**Finding.** Adding `argument_values_supported` — does each identifier-shaped
+argument value exist in the authoritative state — is the first intervention in
+this line of work that makes the engine discriminate between mutation families
+rather than applying a fixed split. It also fails all four pre-registered
+numeric targets.
+
+Pre-registered ablation over the 912-episode balanced mutation set, 72 clusters:
+
+| arm | wrong_arg ACCEPT | identity ACCEPT | accuracy |
+|---|---|---|---|
+| A current engine | 65.4% | 65.4% | 25.0% |
+| B + arguments_satisfiable | 65.4% | 65.4% | 40.8% |
+| C + argument_values_supported | **22.4%** | 63.6% | 40.4% |
+
+Arm A is the §21 constant predictor: a correct call and the same call with a
+corrupted argument value are accepted at exactly the same rate. Arm B raises
+accuracy without touching that equality — it separates obtainable from
+unobtainable arguments, not right from wrong ones. Arm C is the first arm where
+identity and wrong_arg_value diverge: a 66% relative reduction in accepting
+calls whose identifier does not exist in the system of record, at a cost of
+four correct calls (65.4% -> 63.6%).
+
+**Against the pre-registered targets, none are met.**
+
+| target | result |
+|---|---|
+| identity ACCEPT recall >= 70% | 63.6% — **not met** |
+| wrong-argument ACCEPT rate <= 20% | 22.4% — **not met** |
+| obtainable VERIFY recall >= 70% | 0% — **not met** |
+| unobtainable ABSTAIN recall >= 70% | 63.2% — **not met** |
+| no increase in harmful ACCEPT | holds |
+
+**One target was unreachable as written.** Identity ACCEPT recall cannot exceed
+65.4%, because 34.6% of identity episodes are mutating calls and the
+low-consequence path is read-only by construction. Those correctly route to
+VERIFY. The 70% target was set before that split was known; it is a target on
+the wrong quantity, not a shortfall in the signal.
+
+**Obtainable VERIFY recall is 0% and that is a real defect.** A call missing an
+argument that an available tool can supply is accepted rather than routed to a
+bounded fetch. The engine has no notion of "resolve then re-evaluate", so a
+resolvable gap reads as permission. This is the resolver-availability layer that
+does not exist yet.
+
+**Deliberate limits of the deterministic signal.** Three fields of the proposed
+compatibility contract — `tool_matches_goal`, `preconditions_met`,
+`expected_effect_matches` — are left `None`. They need task semantics no
+authoritative source here provides, and a guessed field enters the policy
+contract as fact. The value check itself only judges identifier-shaped values
+(a digit or underscore present); an all-letter token returns `None` rather than
+a fabricated negative.
+
+**Anti-overfitting control.** The mutation generator builds `wrong_arg_value` by
+appending a suffix, so a detector matching that suffix would score perfectly and
+mean nothing. The check consults tau2's own database (27,604 indexed values) and
+a test asserts four unrelated bogus identifiers all fail, none of which share
+the generator's pattern.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py`
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1160,6 +1225,7 @@ not yet exist.
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)**, `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
 | MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
+| Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
 | AgentHarm rescoring: FBR target not met (§19) | **Active (accepted negative result)**: FAR=0.0% (target met, Wilson upper 1.8%), FBR=100.0% (target <=40%, NOT met); cause is structural — every source verdict is ESCALATE and the control protocols act only on VERIFY. Bounds the protocols on this dataset; does not identify avoidable escalations. A blanket ESCALATE→VERIFY reclassification is ruled out by measurement (19 harmful / 0 benign moved) | Medium |

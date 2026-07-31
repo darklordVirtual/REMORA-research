@@ -202,3 +202,32 @@ def test_unsatisfiable_arguments_do_not_change_the_default_engine() -> None:
         assert OFF.decide(_obs(action_type="read", arguments_satisfiable=value)).action == (
             DecisionAction.ABSTAIN
         )
+
+
+# ---------------------------------------------------------------------------
+# argument_values_supported — semantic call compatibility (REM-UR-011)
+# ---------------------------------------------------------------------------
+
+def test_unsupported_argument_value_blocks_the_path() -> None:
+    """A call whose identifier does not exist in the system of record.
+
+    §21 measured wrong_arg_value being accepted at exactly the same rate as the
+    correct call. Bounded consequence does not cover acting on an identifier
+    the authoritative state does not contain.
+    """
+    report = ON.decide(_obs(action_type="read", argument_values_supported=False))
+    assert report.action != DecisionAction.ACCEPT
+    assert DecisionReason.LOW_CONSEQUENCE_ACCEPT not in report.reasons
+
+
+def test_unknown_argument_value_support_does_not_block() -> None:
+    """None is unknown; deployments without a system of record keep working."""
+    assert ON.decide(_obs(action_type="read", argument_values_supported=None)).action == (
+        DecisionAction.ACCEPT
+    )
+
+
+def test_supported_argument_value_qualifies() -> None:
+    assert ON.decide(_obs(action_type="read", argument_values_supported=True)).action == (
+        DecisionAction.ACCEPT
+    )

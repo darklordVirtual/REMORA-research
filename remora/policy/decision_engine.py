@@ -205,6 +205,11 @@ def _is_low_consequence(obs: PolicyObservation) -> bool:
     if obs.arguments_satisfiable is False:
         return False
 
+    # An identifier the system of record does not contain means the call would
+    # operate on a record that does not exist. Confirmed-absent only.
+    if obs.argument_values_supported is False:
+        return False
+
     # Production is excluded even for reads: blast radius there includes
     # disclosure of live data, which no read-only guarantee covers.
     if (obs.target_environment or "").strip().lower() in {"prod", "production"}:
