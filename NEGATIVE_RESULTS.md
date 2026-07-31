@@ -818,6 +818,11 @@ ground truth, and per-claim provenance. Paper updated to use "NLI-proxy routing 
 88% holdout accuracy rests on one 80/20 split (N\_accepted=25, Wilson CI [70.0%, 95.8%]). Wide CI
 and single-split caveat already present in abstract and §10. Nested cross-validation and
 template-holdout are future work. No claim upgrade without a stronger experimental design.
+*(Historical record of the M8 finding as written. The artifact was re-issued
+2026-07-27: N_accepted=18, 100.0% at 16.7% coverage, CI [82.4%, 100.0%],
+p=0.052. CLAIM-004 is now superseded by CLAIM-012 — the signal failed its
+fresh-data confirmation, which resolves M8 by falsification rather than by the
+stronger design it asked for.)*
 
 **M9, Credibility-pack reproducibility (FIXED)**
 

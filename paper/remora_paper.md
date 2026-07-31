@@ -558,7 +558,8 @@ The oracle backend changed across rounds. Earlier QA and tool-call rounds ran a 
 
 > **Provenance / supersession.** The selective figures in this subsection (88.0% @ 23.2% held-out, 88.78% @ 18% in-sample) are from the **retired Groq three-LLaMA round**. They are superseded by the 2026-07 cross-family clean round reported in the abstract — 100.0% accuracy at 16.7% coverage (N\_accepted=18, exact binomial p=0.052) as one directional observation — whose pre-registered fresh-data follow-up *failed to confirm* the consensus-temperature selection signal (NEGATIVE_RESULTS §18). They are retained here as the historical Groq-round record, not the current headline.
 
-*Held-out protocol:* Stratified 80/20 split (seed=42) by benchmark source; $\tau^* = 0.203$ selected on 436-item training set at 18% coverage target (locked, not re-optimised on holdout); 108-item holdout evaluated with $\tau^*$ fixed. Holdout coverage is 23.2% because the temperature distribution of the holdout split admits slightly more items below $\tau^*$. All 25 accepted holdout items are in the ordered phase. Holdout p-value = 1.45 × 10⁻⁵ (one-sided binomial, H₁: accuracy > holdout baseline 46.3%); Wilson CI [70.0%, 95.8%] lies entirely above the holdout baseline. **Interpretation caveat (REM-011):** N\_accepted=25 produces a CI spanning 25.8 pp. This is one directional held-out observation: it rules out random-chance performance but does not resolve whether 88% generalizes to new datasets. A larger holdout (N\_accepted ≥ 100) is required before making generalization claims. See `docs/assurance/remediation_register.yaml` REM-011.
+*Held-out protocol* (retired round, superseded — see the provenance note above):
+Stratified 80/20 split (seed=42) by benchmark source; $\tau^* = 0.203$ selected on 436-item training set at 18% coverage target (locked, not re-optimised on holdout); 108-item holdout evaluated with $\tau^*$ fixed. Holdout coverage is 23.2% because the temperature distribution of the holdout split admits slightly more items below $\tau^*$. All 25 accepted holdout items are in the ordered phase. Holdout p-value = 1.45 × 10⁻⁵ (one-sided binomial, H₁: accuracy > holdout baseline 46.3%); Wilson CI [70.0%, 95.8%] lies entirely above the holdout baseline. **Interpretation caveat (REM-011):** N\_accepted=25 produces a CI spanning 25.8 pp. This is one directional held-out observation: it rules out random-chance performance but does not resolve whether 88% generalizes to new datasets. A larger holdout (N\_accepted ≥ 100) is required before making generalization claims. See `docs/assurance/remediation_register.yaml` REM-011.
 
 **Phase breakdown at 18% coverage:**
 - Ordered (k=96): 86.9% accuracy on ordered-phase items (N=99)
@@ -868,7 +869,7 @@ The retired Groq swarm used three LLaMA *variants* — one weight family, not di
 
 The trust threshold $\tau^* = 0.197$ (in-sample) / $\tau^* = 0.203$ (held-out) and coverage operating points are evaluated on the same N=544 dataset used for threshold selection. The `in_sample_calibration_warning` field in the decision envelope records this explicitly.
 
-**Held-out validation (added post-review):** A stratified 80/20 split (seed=42, stratified by benchmark source) was used to select $\tau^* = 0.203$ on 436 training items at the 18% coverage target, then evaluate on 108 holdout items with $\tau^*$ fixed. The holdout result is **88.0% accuracy at 23.2% coverage** (22/25 accepted, Wilson CI [70.0%, 95.8%], p = 1.45 × 10⁻⁵; see `results/selective_n500_holdout_results.json`). The held-out accuracy is within 0.8 pp of the in-sample figure, providing out-of-sample support for the selective-trust claim. All 25 accepted holdout items are in the ordered phase, consistent with the thermodynamic interpretation.
+**Held-out validation (added post-review; superseded, retired Groq round):** A stratified 80/20 split (seed=42, stratified by benchmark source) was used to select $\tau^* = 0.203$ on 436 training items at the 18% coverage target, then evaluate on 108 holdout items with $\tau^*$ fixed. The holdout result is **88.0% accuracy at 23.2% coverage** (22/25 accepted, Wilson CI [70.0%, 95.8%], p = 1.45 × 10⁻⁵; see `results/selective_n500_holdout_results.json`). The held-out accuracy is within 0.8 pp of the in-sample figure, providing out-of-sample support for the selective-trust claim. All 25 accepted holdout items are in the ordered phase, consistent with the thermodynamic interpretation.
 
 ### 13.7 Evidence Retrieval is Proxy-Based
 
@@ -899,7 +900,7 @@ REMORA produces two explanation artifacts, the `PolicyTrace` rule ladder from `e
 | Critical-phase trust anticorrelation | High | Active | Evidence router (38.5% resolution, 100% NLI-proxy routing precision, not document retrieval) |
 | Full-coverage accuracy weak | Medium | Active | Selective prediction at ordered phase |
 | Oracle diversity partial | Medium | Active | Diversity weighting; mixed-family swarm |
-| In-sample calibration | Medium | **Resolved** | Held-out eval: 88.0% @ 23.2% cov., p=1.45e-5 (§13.6) |
+| In-sample calibration | Medium | **Superseded** | Held-out eval (retired round): 88.0% @ 23.2% cov., p=1.45e-5 (§13.6); re-issued 2026-07-27 as 100.0% @ 16.7% cov., p=0.052, then falsified on fresh data (NEGATIVE_RESULTS §18) |
 | Evidence retrieval proxy-based | Medium | Active | MultiNLI benchmark as proxy |
 | Demo data synthetic | Low | By design | Source code labelling |
 | Audit chain not tamper-proof | Medium | By design | External WORM storage required |

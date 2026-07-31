@@ -71,11 +71,14 @@ make holdout   # python scripts/selective_n500_holdout.py
 Expected output files:
 - `results/selective_n500_holdout_results.json`
 
-Committed metrics: 88.0% selective accuracy at 23.2% coverage, threshold
-τ* = 0.2032, Wilson CI [70.0%, 95.8%], one-sided binomial p = 1.45×10⁻⁵.
+Committed metrics (SAP v2 clean round, re-issued 2026-07-27): 100.0% selective
+accuracy at 16.7% coverage, N_accepted = 18, Wilson CI [82.4%, 100.0%], exact
+one-sided binomial vs the training-split null p0 = 84.86% giving p = 0.052.
 
-Caveat: N_accepted = 25. The CI lower bound 70.0% is the scientifically honest
-floor. Quote the CI, not just the point estimate.
+Caveat: N_accepted = 18 and p = 0.052, so the result is directional, not
+significant. **CLAIM-004 is superseded by CLAIM-012** — the temperature signal it
+ranks on failed its fresh-data confirmation, so reproducing this number confirms
+the artifact, not the hypothesis. Quote the CI, not the point estimate.
 
 ---
 

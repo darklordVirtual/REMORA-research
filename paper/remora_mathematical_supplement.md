@@ -329,6 +329,9 @@ do not quote it.
 
 ### 5.3 The held-out p-value (one-sided binomial)
 
+> *Superseded: these are the retired Groq three-LLaMA round figures. The 2026-07-27 re-issue gives 100.0% at 16.7% coverage, N_accepted=18, CI [82.4%, 100.0%], p=0.052, and CLAIM-004 is now superseded by CLAIM-012 (NEGATIVE_RESULTS §18).* The derivation below is kept because the *method* is what this section
+> teaches; the numbers it walks through are the retired round's.
+
 The held-out claim: `22/25` correct (`88.0%`), threshold `τ* = 0.2032` locked on
 the 80% training split, against a holdout base rate of `46.3%`. The exact tail:
 
@@ -344,9 +347,10 @@ the effect of rounding `p₀`, quote the artifact's `1.45×10⁻⁵`, not the ro
 hand value. Either way the tail is `< 2×10⁻⁵`. The hypothesis is pre-registered
 (`H₁: acc > 46.3%`), the
 threshold was frozen before touching the holdout, and the Wilson CI
-`[70.0%, 95.8%]` lies entirely above the baseline. This is the single most
-important defensive point: **the headline survives an out-of-sample, locked-
-threshold test**, so it is not merely an in-sample fit.
+`[70.0%, 95.8%]` lies entirely above the baseline. *(Retired-round figures,
+superseded — see the note opening this section. On the re-issued artifact the
+same locked-threshold protocol gives p=0.052, which does **not** clear α=0.05,
+and the fresh-data round then falsified the signal outright.)*
 
 ### 5.4 The critical-phase trust-inversion finding
 
@@ -656,7 +660,7 @@ these independently; it transcribes them.
 | Finding | Value | Artifact / source |
 |---|---|---|
 | Selective accuracy @ 18% cov (in-sample) | 88.78%, +47.6 pp | `paper §8 tab:qa` |
-| Held-out selective accuracy | 88.0% @ 23.2% cov, `p=1.45e-5` | `paper §8`; locked `τ*=0.2032` |
+| Held-out selective accuracy (**superseded**, retired round) | 88.0% @ 23.2% cov, `p=1.45e-5` — re-issued 2026-07-27 as 100.0% @ 16.7% cov, p=0.052 | `paper §8`; locked `τ*=0.2032` |
 | Unsafe execution (tool-call, full policy) | 0%, cluster-level Wilson CI [0.0%, 5.2%] | `paper §9.2 tab:toolcall`, `N=700` tasks, effective N=70 templates |
 | Mean utility (full policy vs baselines) | 0.62 vs 0.16 | `paper §9.2` (2026-07-20 leakage-free re-run) |
 | Critical-phase trust inversion | 76.2% (τ<0.10) vs 36.4% (τ≥0.10) | `paper §6.1, §13`, `N=32` |
@@ -689,6 +693,9 @@ tests/test_aromer_core.py tests/test_kpi.py tests/test_pending_resolution.py -q`
    analogy.
 2. **"88.8% is cherry-picked in-sample."** → The locked-threshold held-out test
    gives 88.0% with `p = 1.45×10⁻⁵` (§5.3); threshold frozen before holdout.
+   *(Superseded: the re-issued artifact gives p=0.052, which does not clear
+   α=0.05, and the pre-registered fresh-data round falsified the signal. This
+   rebuttal no longer holds and the claim is retired, not defended.)*
 3. **"0% unsafe is just a small sample."** → Agreed — and quantified honestly:
    effective N is 70 template clusters, and the claim is reported as a
    cluster-level Wilson CI `[0, 5.2%]` (§5.2). The unsafe-rate delta vs.

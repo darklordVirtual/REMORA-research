@@ -61,7 +61,7 @@ status in `capability_register_v1.yaml` for how far each one is actually wired.
 |--------------|-------|--------------------------|
 | External adversarial benchmark | ✅ | REM-014 AgentHarm (`results/external_benchmark_agentharm_v1.json`). **Intent-gating, not interception** (INTERCEPTION_NOTES); routing accuracy, not execution prevention. |
 | Tool-call safety benchmark | ✅ | RES-005 v2; deterministic simulator, effective N=70, cluster-level CIs. Not field-deployment proof. |
-| Selective accuracy on held-out split | ✅ | CLAIM-004; N_accepted=25, wide CI (directional). |
+| Selective accuracy on held-out split | ✅ | CLAIM-004, now **superseded** by CLAIM-012; N_accepted=18, p=0.052, wide CI (directional). |
 | Repeated-run consistency (pass^k) | ⛔ | REMORA does not measure its own decision consistency over repeated runs — a `tau-bench`-style metric the compendium flags as the one that matters most in drift. |
 | Long-horizon / computer-use safety eval | ⚪ | REMORA governs single proposed actions; long-horizon and computer-use capability measurement are out of scope. |
 
