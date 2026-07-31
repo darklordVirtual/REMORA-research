@@ -1,0 +1,400 @@
+{
+  "schema": "se_backend_parity_smoke_v1",
+  "corpus": "data/se_parity/paraphrase_corpus_v1.json",
+  "corpus_sha256": "10f39fd18fedd8fb413fca14765a35f6986092eb1cd9992260d7f8b2cab663bb",
+  "n_items": 24,
+  "entailment_threshold": 0.5,
+  "fingerprint_backend": "token_fingerprint",
+  "items": [
+    {
+      "id": "a-01",
+      "class": "paraphrase_disjoint",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "a-02",
+      "class": "paraphrase_disjoint",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "a-03",
+      "class": "paraphrase_disjoint",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "a-04",
+      "class": "paraphrase_disjoint",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "a-05",
+      "class": "paraphrase_disjoint",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "a-06",
+      "class": "paraphrase_disjoint",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "a-07",
+      "class": "paraphrase_disjoint",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "a-08",
+      "class": "paraphrase_disjoint",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "b-01",
+      "class": "contradiction_lexical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "b-02",
+      "class": "contradiction_lexical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "b-03",
+      "class": "contradiction_lexical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "b-04",
+      "class": "contradiction_lexical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "b-05",
+      "class": "contradiction_lexical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "nli": {
+        "n_clusters": 3,
+        "entropy": 1.098612,
+        "dominant_cluster_mass": 0.333333
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "b-06",
+      "class": "contradiction_lexical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "b-07",
+      "class": "contradiction_lexical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "b-08",
+      "class": "contradiction_lexical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 2,
+        "entropy": 0.636514,
+        "dominant_cluster_mass": 0.666667
+      },
+      "cluster_count_agreement": false
+    },
+    {
+      "id": "c-01",
+      "class": "identical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "c-02",
+      "class": "identical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "c-03",
+      "class": "identical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "c-04",
+      "class": "identical",
+      "n_responses": 4,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "c-05",
+      "class": "identical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "c-06",
+      "class": "identical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "c-07",
+      "class": "identical",
+      "n_responses": 3,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": true
+    },
+    {
+      "id": "c-08",
+      "class": "identical",
+      "n_responses": 5,
+      "fingerprint": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "nli": {
+        "n_clusters": 1,
+        "entropy": -0.0,
+        "dominant_cluster_mass": 1.0
+      },
+      "cluster_count_agreement": true
+    }
+  ],
+  "status": "ok",
+  "summary": {
+    "n_items": 24,
+    "n_cluster_disagreements": 12,
+    "backend_model_name": "nli:cross-encoder/nli-deberta-v3-small"
+  }
+}

@@ -118,6 +118,7 @@ The numbered series is the primary reading path.
 | [research/misspecification_aware_governance.md](research/misspecification_aware_governance.md) | Misspecification-aware governance |
 | [research/policy_generalization_risk.md](research/policy_generalization_risk.md) | Policy generalization risk |
 | [research/research_modes.md](research/research_modes.md) | Research modes |
+| [research/verify_control_protocols.md](research/verify_control_protocols.md) | AI-control VERIFY-resolution design + frozen pre-registered re-scoring rule (RF-04) |
 | [experiments/experiment3_phase_transition_study.md](experiments/experiment3_phase_transition_study.md) | Phase-transition study |
 | [experiments/experiment4_susceptibility_validation.md](experiments/experiment4_susceptibility_validation.md) | Susceptibility validation |
 | [experiments/experiment5_chi_iteration_utility.md](experiments/experiment5_chi_iteration_utility.md) | Chi iteration utility |
@@ -157,6 +158,7 @@ The numbered series is the primary reading path.
 | [deployment/azure-reference-architecture.md](deployment/azure-reference-architecture.md) | Azure reference architecture |
 | [deployment/onprem-airgapped.md](deployment/onprem-airgapped.md) | On-prem / air-gapped deployment |
 | [enterprise/togaf-enterprise-rollout-plan.md](enterprise/togaf-enterprise-rollout-plan.md) | TOGAF enterprise rollout plan |
+| [enterprise/audit-anchoring-guide.md](enterprise/audit-anchoring-guide.md) | Audit-chain Merkle checkpointing: coverage, verification, threat-model delta |
 | [policy_cookbook/README.md](policy_cookbook/README.md) | Policy cookbook (recipes: [cloud_ops](policy_cookbook/cloud_ops.md), [cyber](policy_cookbook/cyber.md), [database](policy_cookbook/database.md)) |
 | [security/pre-deployment-review.md](security/pre-deployment-review.md) | Pre-deployment security review |
 | [security/owasp_genai_mapping.md](security/owasp_genai_mapping.md) | OWASP GenAI mapping |
