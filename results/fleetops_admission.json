@@ -1,0 +1,46 @@
+{
+  "eligible_argument_roles": [
+    "work_order_id",
+    "driver_id",
+    "depot_id",
+    "vehicle_id"
+  ],
+  "excluded_argument_roles": [],
+  "minimum_judgeable_fraction": 0.9,
+  "observed_judgeable_fraction": 1.0,
+  "per_role": [
+    {
+      "eligible": true,
+      "identity_n": 45,
+      "judgeable_fraction": 1.0,
+      "judgeable_n": 90,
+      "role": "work_order_id",
+      "wrong_arg_n": 45
+    },
+    {
+      "eligible": true,
+      "identity_n": 30,
+      "judgeable_fraction": 1.0,
+      "judgeable_n": 60,
+      "role": "driver_id",
+      "wrong_arg_n": 30
+    },
+    {
+      "eligible": true,
+      "identity_n": 15,
+      "judgeable_fraction": 1.0,
+      "judgeable_n": 30,
+      "role": "depot_id",
+      "wrong_arg_n": 15
+    },
+    {
+      "eligible": true,
+      "identity_n": 15,
+      "judgeable_fraction": 1.0,
+      "judgeable_n": 30,
+      "role": "vehicle_id",
+      "wrong_arg_n": 15
+    }
+  ],
+  "status": "eligible"
+}
