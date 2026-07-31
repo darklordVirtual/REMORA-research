@@ -1541,6 +1541,57 @@ the detector is developed.
 
 ---
 
+## §29 Track A did not test what it was reserved to test (2026-07-31)
+
+**Result.** The covered-domain blind track was built on tau2
+`banking_knowledge` (97 untouched clusters, 5768 episodes, authoritative
+`db.json` independent of the tasks) and evaluated once.
+
+| metric | target | result |
+|---|---|---|
+| covered identity ACCEPT | >= 85% | 93.6% (882/942) — met |
+| covered wrong-argument ACCEPT | <= 15% | **90.3%** (851/942) — missed |
+| discrimination gap | >= 60 pp | **3.3 pp** — missed |
+| false-UNSUPPORTED on valid values | <= 2% | 4.8% — missed |
+
+**This is not a falsification of the discrimination signal. It is a failed
+experiment.** Of the 942 wrong-argument episodes, 836 received UNKNOWN: the
+banking tasks operate on `annual_income` and `customer_name`, which `db.json`
+does not carry as covered keys, even though it does cover `user_id` and
+`account_id`. Only 106 episodes were in a position to be judged at all. A gap of
+3.3 pp measured over a population that is 89% unjudgeable says nothing about
+discrimination.
+
+**The methodological error is mine and it is specific.** Before locking, I
+verified that the index covered `user_id`, `account_id`, `address`, `name` and
+`amount` — a sample of index keys. I did not verify that those were the
+arguments the mutation generator would actually corrupt. Coverage must be
+checked against the arguments the benchmark exercises, not against whatever the
+index happens to contain. That check is cheap, it was available before locking,
+and skipping it cost a blind set.
+
+**The 98.5% routing accuracy is vacuous** and should not be quoted. It reflects
+a system accepting nearly everything on a population where 89% of the
+discriminating signal was unavailable.
+
+**Standing position, unchanged since §28.** Correct-versus-corrupted argument
+discrimination has never been tested on blind data where the signal had
+information. Three blind sets have now been spent — telecom v1 (§26, failed on
+the open-world bug), telecom B and C (§27, §28, both confirming policy on
+uncovered domains), and banking A (this section, mis-specified). None supports
+the discrimination claim.
+
+**What a valid Track A requires**, stated so the next attempt does not repeat
+this: a domain where the authoritative state covers *the specific argument
+names the mutations corrupt*, verified by counting judgeable episodes before
+the set is locked, with a pre-registered minimum judgeable fraction (e.g. >= 80%)
+as an admission criterion for the track itself.
+
+**Artifacts.** `results/routing_bench_holdout_a_results.json`,
+`data/routing_bench_holdout_a/manifest.json` (sha256 `2f6f85f3`).
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1560,7 +1611,7 @@ the detector is developed.
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
 | ESCALATE recall is 0% on the untrusted-origin family (§23) | **Resolved 2026-07-31 (§24)**: split into noncontrolling (VERIFY) and controls-sensitive (ESCALATE); recall 0% -> 100%, accuracy 56.9% -> 85.5%. Formerly: all untrusted-origin mutants route to VERIFY, never ESCALATE. Not addressable by a resolver — untrusted provenance is a question about authority, not missing information. Needs the two provenance families (noncontrolling vs controls-sensitive-argument), which do not exist | **High** |
 | Blind holdout missed 2 of 5 targets; state check confused absent-from-record with outside-my-coverage (§26) | **Fixed and blind-confirmed 2026-07-31 (§27)**: CoverageScope per argument; false-UNSUPPORTED rate 0/3841 on a second blind set, accuracy 69.6% -> 92.2%. Residual: covered-domain discrimination unconfirmed on blind data (no untouched covered clusters exist), and uncovered domains accept 61.5% of corrupted identifiers. Formerly: identity ACCEPT 94.6% dev -> 0.0% holdout; discrimination gap 42.1 pp -> 0.0 pp; accuracy 91.9% -> 69.6%. Cause: state index covered airline+retail, holdout is telecom, so every identifier read as absent. argument_values_supported must return None outside its coverage, not False. Requires a new untouched holdout to confirm any fix | **High** |
-| Covered-domain discrimination unconfirmed on blind data (§28) | **Active (blocks the argument-value-correctness claim)**: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
+| Covered-domain discrimination unconfirmed on blind data (§28, §29) | **Active (blocks the argument-value-correctness claim)**: Track A on banking_knowledge was spent without testing the hypothesis — 836/942 wrong-argument episodes were unjudgeable because the index does not cover the arguments the tasks use. Next attempt must pre-register a minimum judgeable fraction as an admission criterion. Formerly: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |

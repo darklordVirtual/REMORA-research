@@ -97,13 +97,25 @@ class Tau2Adapter:
         return (task.get("evaluation_criteria") or {}).get("nl_assertions") or []
 
     @staticmethod
+    def _instructions(task: dict[str, Any]) -> dict[str, Any]:
+        """Instructions as a mapping.
+
+        Not every tau2 domain uses the same shape: banking_knowledge carries a
+        plain string here where airline and retail carry a dict. Treating the
+        string case as "no structured instructions" is correct — there are no
+        annotated fields to read — and avoids the adapter crashing on a domain
+        whose schema it has not seen.
+        """
+        instructions = (task.get("user_scenario") or {}).get("instructions")
+        return instructions if isinstance(instructions, dict) else {}
+
+    @staticmethod
     def _unknown_info(task: dict[str, Any]) -> str | None:
-        instructions = (task.get("user_scenario") or {}).get("instructions") or {}
-        return instructions.get("unknown_info")
+        return Tau2Adapter._instructions(task).get("unknown_info")
 
     @staticmethod
     def _user_task(task: dict[str, Any]) -> str:
-        instructions = (task.get("user_scenario") or {}).get("instructions") or {}
+        instructions = Tau2Adapter._instructions(task)
         parts = [
             instructions.get("reason_for_call") or "",
             instructions.get("task_instructions") or "",

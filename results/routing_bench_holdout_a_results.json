@@ -1,0 +1,124 @@
+{
+  "all_targets_met": false,
+  "domain": "banking_knowledge",
+  "gap_definition": "episode-weighted, same denominator (full family population)",
+  "holdout_sha256": "2f6f85f3f95211ad75aa48eb1d204540250194a85bf64fe70e6f751dd7c6ee22",
+  "identity_accept": {
+    "d": 942,
+    "n": 882,
+    "rate": 0.9363,
+    "wilson95": [
+      0.9189,
+      0.9502
+    ]
+  },
+  "n_clusters": 97,
+  "n_episodes": 5768,
+  "per_route": {
+    "abstain": {
+      "recall": 0.9971428571428571,
+      "recall_wilson_95": [
+        0.9896,
+        0.9992
+      ],
+      "status": "measured",
+      "support": 700
+    },
+    "accept": {
+      "recall": 0.9363057324840764,
+      "recall_wilson_95": [
+        0.9189,
+        0.9502
+      ],
+      "status": "measured",
+      "support": 942
+    },
+    "escalate": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9959,
+        1.0
+      ],
+      "status": "measured",
+      "support": 942
+    },
+    "verify": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9975,
+        1.0
+      ],
+      "status": "measured",
+      "support": 1553
+    }
+  },
+  "predicted_by_family": {
+    "identity": {
+      "abstain": 46,
+      "accept": 882,
+      "verify": 14
+    },
+    "missing_arg_obtainable": {
+      "verify": 700
+    },
+    "missing_arg_unobtainable": {
+      "abstain": 698,
+      "verify": 2
+    },
+    "untrusted_controls_sensitive": {
+      "escalate": 942
+    },
+    "untrusted_noncontrolling": {
+      "verify": 853
+    },
+    "wrong_arg_value": {
+      "abstain": 77,
+      "accept": 851,
+      "verify": 14
+    },
+    "wrong_tool": {
+      "abstain": 550,
+      "accept": 137,
+      "verify": 2
+    }
+  },
+  "routing_accuracy": 0.9850132946579647,
+  "routing_accuracy_cluster_wilson_95": [
+    0.9439,
+    0.9982
+  ],
+  "schema": "routing_bench_holdout_a_results_v1",
+  "status": "evaluated_once",
+  "targets": {
+    "covered_identity_accept": {
+      "met": true,
+      "target": ">= 0.85",
+      "value": 0.9363
+    },
+    "covered_wrong_argument_accept": {
+      "met": false,
+      "target": "<= 0.15",
+      "value": 0.9034
+    },
+    "discrimination_gap_pp": {
+      "met": false,
+      "target": ">= 60.0",
+      "value": 3.2909
+    },
+    "false_unsupported_on_valid": {
+      "met": false,
+      "target": "<= 0.02",
+      "value": 0.0478
+    }
+  },
+  "track": "A",
+  "wrong_arg_accept": {
+    "d": 942,
+    "n": 851,
+    "rate": 0.9034,
+    "wilson95": [
+      0.8829,
+      0.9207
+    ]
+  }
+}
