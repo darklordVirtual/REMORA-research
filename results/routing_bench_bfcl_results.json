@@ -1,0 +1,171 @@
+{
+  "all_targets_met": false,
+  "caveat": "Evaluated once on sealed external data (BFCL v3 live, Apache-2.0) with no authority: empty state index, no validator bindings. The wrong-argument value axis is excluded by admission (no vouchable state exists). No retuning against this set is permitted; misses are published as measured.",
+  "confusion": {
+    "abstain": {
+      "abstain": 391,
+      "accept": 0,
+      "escalate": 0,
+      "verify": 0
+    },
+    "accept": {
+      "abstain": 37,
+      "accept": 205,
+      "escalate": 0,
+      "verify": 15
+    },
+    "escalate": {
+      "abstain": 0,
+      "accept": 0,
+      "escalate": 257,
+      "verify": 0
+    },
+    "verify": {
+      "abstain": 23,
+      "accept": 0,
+      "escalate": 0,
+      "verify": 323
+    }
+  },
+  "holdout_sha256": "c3a8e27bb559762342615bfa25f3816c122ca655417ec972f5a7984ef0537dd9",
+  "identity_accept_optional_lane": {
+    "d": 238,
+    "n": 205,
+    "rate": 0.8613
+  },
+  "locked_at_commit": "cf02fa8",
+  "n_clusters": 515,
+  "n_episodes": 1509,
+  "n_labelled": 1251,
+  "n_unlabelled": 258,
+  "per_route": {
+    "abstain": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9903,
+        1.0
+      ],
+      "status": "measured",
+      "support": 391
+    },
+    "accept": {
+      "recall": 0.7976653696498055,
+      "recall_wilson_95": [
+        0.7443,
+        0.8422
+      ],
+      "status": "measured",
+      "support": 257
+    },
+    "escalate": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9853,
+        1.0
+      ],
+      "status": "measured",
+      "support": 257
+    },
+    "verify": {
+      "recall": 0.9335260115606936,
+      "recall_wilson_95": [
+        0.9022,
+        0.9553
+      ],
+      "status": "measured",
+      "support": 346
+    }
+  },
+  "predicted_by_family": {
+    "identity": {
+      "abstain": 37,
+      "accept": 205,
+      "verify": 15
+    },
+    "missing_arg_obtainable": {
+      "abstain": 23,
+      "verify": 110
+    },
+    "missing_arg_unobtainable": {
+      "abstain": 133
+    },
+    "native:irrelevance": {
+      "abstain": 258
+    },
+    "native:substituted": {
+      "abstain": 26,
+      "accept": 224,
+      "verify": 8
+    },
+    "untrusted_controls_sensitive": {
+      "escalate": 257
+    },
+    "untrusted_noncontrolling": {
+      "verify": 213
+    }
+  },
+  "routing_accuracy_cluster_wilson_95": [
+    0.9158,
+    0.9573
+  ],
+  "routing_accuracy_labelled": 0.9400479616306955,
+  "schema": "routing_bench_bfcl_results_v1",
+  "status": "evaluated_once",
+  "targets": {
+    "irrelevance_abstain_recall": {
+      "d": 258,
+      "met": true,
+      "n": 258,
+      "target": ">= 0.7",
+      "value": 1.0,
+      "wilson95": [
+        0.9853,
+        1.0
+      ]
+    },
+    "known_wrong_call_accept": {
+      "d": 258,
+      "met": false,
+      "n": 224,
+      "target": "<= 0.2",
+      "value": 0.8682,
+      "wilson95": [
+        0.8215,
+        0.9041
+      ]
+    },
+    "obtainable_verify_recall": {
+      "d": 133,
+      "met": true,
+      "n": 110,
+      "target": ">= 0.7",
+      "value": 0.8271,
+      "wilson95": [
+        0.7539,
+        0.8819
+      ]
+    },
+    "required_unknown_auto_accept": {
+      "d": 19,
+      "met": true,
+      "n": 0,
+      "target": "<= 0.0",
+      "value": 0.0,
+      "wilson95": [
+        0.0,
+        0.1682
+      ]
+    },
+    "unobtainable_abstain_recall": {
+      "d": 133,
+      "met": true,
+      "n": 133,
+      "target": ">= 0.7",
+      "value": 1.0,
+      "wilson95": [
+        0.9719,
+        1.0
+      ]
+    }
+  }
+}

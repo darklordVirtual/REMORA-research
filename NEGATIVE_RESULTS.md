@@ -1882,6 +1882,63 @@ and fails closed when authoritative validation is unavailable.
 
 ---
 
+## §34 External blind track (BFCL): four axes hold, wrong-call blindness measured cleanly (2026-07-31)
+
+**Result.** Track C-ext, evaluated once at locked commit `cf02fa8` on sealed
+external data the system had never seen: BFCL v3 live categories
+(ShishirPatil/gorilla @ `c15b2a15`, Apache-2.0) — real user-submitted
+tool-call tasks. 1509 episodes over 515 clusters, targets pre-registered and
+sealed with the set, evaluation under **no authority at all**: empty state
+index, no validator bindings, registry only from the tasks' own schemas.
+
+| pre-registered target | goal | result | verdict |
+|---|---|---|---|
+| required-UNKNOWN autonomous ACCEPT | ≤ 0% | **0/19 = 0%** | MET |
+| irrelevance ABSTAIN recall | ≥ 70% | **258/258 = 100%**, Wilson [98.5%, 100%] | MET |
+| obtainable VERIFY recall | ≥ 70% | **110/133 = 82.7%** | MET |
+| unobtainable ABSTAIN recall | ≥ 70% | **133/133 = 100%** | MET |
+| known-wrong-call ACCEPT | ≤ 20% | **224/258 = 86.8%** | **MISSED** |
+
+Reported without target: optional-lane identity ACCEPT 205/238 = 86.1%;
+labelled routing accuracy 94.0% (n=1251, cluster-adjusted); both untrusted
+provenance families 100% (257/257 ESCALATE, 213/213 VERIFY).
+
+**The miss is §21's wrong-tool blindness, now measured cleanly on external
+data.** A substituted call — another task's gold call, carried with its own
+complete, well-formed arguments — is a read the engine has no structural
+reason to distrust: every required parameter is present and sourced,
+`tool_matches_goal` is deliberately `None` because no authoritative source
+establishes task–goal match, and fabricating that boolean is precisely what
+this architecture refuses to do. On tau2 this leak was partially masked
+because substituted calls' arguments were often unsatisfiable from the task
+text; BFCL's substitutes carry their own arguments, so the mask falls away
+and the true rate shows: **structural signals alone cannot catch a
+well-formed wrong call.** Closing it requires a semantic task–call
+compatibility source (the `tool_matches_goal` slot exists and waits for an
+authority worth trusting) — not threshold tuning, which is why this is
+published as a miss rather than repaired against the set.
+
+**What the four met axes say.** On foreign data with zero authority the
+posture holds: nothing required-and-unknown was autonomously accepted
+(fail-closed confirmed outside the home domain), every no-call-is-correct
+task was refused, satisfiability routing transferred (82.7%/100%), and both
+provenance families transferred perfectly. The optional-lane utility (86.1%)
+came free of any false accepts on the required lane.
+
+**Honesty notes.** The wrong-argument value axis was excluded *before
+sealing* (admission verdict in the manifest): BFCL's ground-truth argument
+lists are the labels, and using them as a system of record would score the
+answer key against itself. Irrelevance episodes propose no call (tau2
+precedent — synthesizing one would author the test), so their ABSTAIN
+measures refusal of the no-call decision point, not rejection of a proposed
+distractor. This set is now spent; it can never serve as a blind set again.
+
+**Artifacts.** `results/routing_bench_bfcl_results.json`,
+`data/routing_bench_bfcl/manifest.json` (episodes `c3a8e27b`, upstream file
+hashes pinned).
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1904,6 +1961,7 @@ and fails closed when authoritative validation is unavailable.
 | Covered-domain discrimination unconfirmed on blind data (§28, §29) | **Confirmed under ideal conditions 2026-07-31 (§31)**: on a generated closed-world domain, identity ACCEPT 100% and wrong-argument ACCEPT 0%, gap 100 pp, admission-verified 100% judgeable. Necessary not sufficient — partial coverage, stale state, ambiguous scope and open-world absence are all absent by construction. Formerly: Track A on banking_knowledge was spent without testing the hypothesis — 836/942 wrong-argument episodes were unjudgeable because the index does not cover the arguments the tasks use. Next attempt must pre-register a minimum judgeable fraction as an admission criterion. Formerly: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
 | Coverage loss degrades discrimination, not validity (§32) | **Active (accepted characterization)**: honest declaration loss (hash mismatch, freshness refusal) yields 0 false-UNSUPPORTED but 50% wrong-arg accepts on read-only UNKNOWN; a falsely re-vouched truncated export rejects 17.1% of valid identifiers; a byte-identical stale snapshot rejects 85.7% and only the freshness bound catches it; cross-tenant accepts 0. Production posture per action type: autonomy on verified reads (baseline 100%), verification on writes (0% auto-accept — "assign"/"close"/"approve" were missing from the mutating-verb list, so A2's pooled 100% included 30 misclassified writes). Open mechanism study on generated degradations; field performance unmeasured | Medium (failure geometry, not field evidence) |
 | UNKNOWN-regime utility recovered via declared validators (§33) | **Addressed under study conditions 2026-07-31**: in the empty-index regime (no bulk export, every verdict UNKNOWN), declared point-lookup validator bindings take read completion 0% → 100% with all eight pre-registered safety targets at their bound (0 required-UNKNOWN auto-accepts, 0/90 corrupt accepts, 0 cross-tenant consultations, 0 budget overruns); freshness now mandatory for mutable declarations; per-fact attempt budget fixed. Validator is live-world-perfect by construction; production validators need their own false-absent check. Field performance unmeasured | Medium (mechanism confirmed, field pending) |
+| Well-formed wrong calls pass structural gates on external blind data (§34) | **Active (accepted negative result)**: BFCL blind track, 4 of 5 pre-registered targets met (fail-closed 0/19, irrelevance ABSTAIN 100%, obtainable VERIFY 82.7%, unobtainable ABSTAIN 100%, both provenance families 100%), but known-wrong-call ACCEPT 86.8% vs ≤20% target — a substituted call with its own complete arguments gives structural signals nothing to distrust; tau2 masked this via unsatisfiable arguments. Requires an authoritative task–call semantic source for `tool_matches_goal`, not tuning | **High (the open autonomy risk on foreign calls)** |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |

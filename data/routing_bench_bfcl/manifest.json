@@ -1638,16 +1638,18 @@
     ],
     "status": "ineligible"
   },
+  "evaluated_all_targets_met": false,
   "excluded_axes": {
     "wrong_argument_value": "no state table with vouchable completeness exists; ground-truth argument lists are the labels and may not serve as a system of record. wrong_arg_value mutants were not sealed."
   },
+  "locked_at_commit": "cf02fa8",
   "n_clusters": 516,
   "n_episodes": 1509,
   "registry_sha256": "bab85ad0399aab997b91d9e55a74ebe53018d1dd51acb1de3533dabdb847d554",
   "route_table_version_hash": "2b420160d0dfe0ce7e28a1eff2b3a9b85be77be1f089360d154b7c9de53b55c7",
   "schema": "routing_bench_bfcl_v1",
   "sha256": "c3a8e27bb559762342615bfa25f3816c122ca655417ec972f5a7984ef0537dd9",
-  "status": "sealed_never_run",
+  "status": "evaluated",
   "targets": {
     "irrelevance_abstain_recall": [
       ">=",
