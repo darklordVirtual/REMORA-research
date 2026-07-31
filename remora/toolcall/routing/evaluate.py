@@ -71,8 +71,18 @@ def build_observation(
     obs = episode.observable()
     name = (obs["proposed_tool_name"] or "").lower()
 
+    # Registry-declared effect is authoritative; the verb heuristic is a
+    # conservative fallback for tools the deployment has not classified.
+    declared = (
+        registry.signatures[obs["proposed_tool_name"]].effect
+        if registry is not None
+        and obs["proposed_tool_name"] in (registry.signatures if registry else {})
+        else None
+    )
     if not name:
         action_type = None
+    elif declared in ("read", "write"):
+        action_type = declared
     elif any(token in name for token in _MUTATING):
         action_type = "write"
     else:

@@ -59,6 +59,53 @@ def _episode(**overrides) -> RoutingEpisode:
 # Action-type classification — a write must never pass as a read
 # ---------------------------------------------------------------------------
 
+def test_registry_effect_metadata_overrides_the_verb_heuristic() -> None:
+    """Authoritative tool metadata is the primary source of action type.
+
+    A tool named like a read but declared a write must classify as a write,
+    and vice versa: the deployment's registry knows what a tool does; the
+    verb list is a conservative fallback for unregistered tools only.
+    """
+    from remora.toolcall.routing.tool_registry import ToolRegistry, ToolSignature
+
+    registry = ToolRegistry(
+        {
+            "get_summary_report": ToolSignature(
+                name="get_summary_report", effect="write"
+            ),
+            "close_quarterly_books": ToolSignature(
+                name="close_quarterly_books", effect="read"
+            ),
+        }
+    )
+    looks_read = build_observation(
+        _episode(proposed_tool_name="get_summary_report"), registry
+    )
+    assert looks_read.action_type == "write"
+    looks_write = build_observation(
+        _episode(proposed_tool_name="close_quarterly_books"), registry
+    )
+    assert looks_write.action_type == "read"
+
+
+def test_registered_tool_without_effect_falls_back_to_the_verb_heuristic() -> None:
+    from remora.toolcall.routing.tool_registry import ToolRegistry, ToolSignature
+
+    registry = ToolRegistry({"assign_driver": ToolSignature(name="assign_driver")})
+    obs = build_observation(_episode(proposed_tool_name="assign_driver"), registry)
+    assert obs.action_type == "write"
+
+
+def test_effect_round_trips_through_registry_json() -> None:
+    from remora.toolcall.routing.tool_registry import ToolRegistry, ToolSignature
+
+    registry = ToolRegistry(
+        {"assign_driver": ToolSignature(name="assign_driver", effect="write")}
+    )
+    loaded = ToolRegistry.from_json_dict(registry.to_json_dict())
+    assert loaded.signatures["assign_driver"].effect == "write"
+
+
 def test_assigning_and_closing_classify_as_writes() -> None:
     """`assign_driver` and `close_work_order` mutate state.
 

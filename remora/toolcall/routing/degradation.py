@@ -369,6 +369,7 @@ def score_condition(
     results: Sequence[tuple[RoutingEpisode, Route]],
     state: StateIndex,
     live_values: dict[str, frozenset[str]],
+    registry: ToolRegistry | None = None,
 ) -> dict[str, Any]:
     """Score one condition's results against the live-world ground truth.
 
@@ -414,10 +415,11 @@ def score_condition(
     absent = [(e, p) for e, p in identity if not in_snapshot(e)]
 
     # Autonomy is claimed for reads; writes route to verification. Classified
-    # through build_observation so the metric and the engine share one
-    # definition of "write" — a second verb list here would drift.
+    # through build_observation — registry-declared effect first, verb
+    # heuristic as fallback — so the metric and the engine share one
+    # definition of "write"; a second verb list here would drift.
     def is_write(episode: RoutingEpisode) -> bool:
-        return build_observation(episode).action_type == "write"
+        return build_observation(episode, registry).action_type == "write"
 
     reads = [(e, p) for e, p in identity if not is_write(e)]
     writes = [(e, p) for e, p in identity if is_write(e)]
@@ -481,7 +483,9 @@ def run_condition(
         )
         for episode in condition.episodes
     ]
-    metrics = score_condition(results, condition.state, condition.live_values)
+    metrics = score_condition(
+        results, condition.state, condition.live_values, condition.registry
+    )
     metrics["name"] = condition.name
     metrics["description"] = condition.description
     metrics["n_episodes"] = len(condition.episodes)

@@ -48,15 +48,17 @@ _DEPOT_CITIES = ["oslo", "bergen", "trondheim", "stavanger", "tromso", "kristian
 _MAKES = ["Volvo", "Scania", "MAN", "Mercedes", "DAF"]
 _STATUSES = ["open", "assigned", "closed"]
 
-#: (tool, argument roles). Read-only tools first so the identity family has
-#: autonomy-eligible episodes; the mutating ones exercise the write path.
-_TOOLS: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("get_vehicle", ("vehicle_id",)),
-    ("get_work_order", ("work_order_id",)),
-    ("get_driver", ("driver_id",)),
-    ("list_depot_vehicles", ("depot_id",)),
-    ("assign_driver", ("work_order_id", "driver_id")),
-    ("close_work_order", ("work_order_id",)),
+#: (tool, argument roles, effect). Read-only tools first so the identity
+#: family has autonomy-eligible episodes; the mutating ones exercise the write
+#: path. Effects are declared authoritatively — the registry, not a verb
+#: heuristic, is what classifies a fleetops action.
+_TOOLS: tuple[tuple[str, tuple[str, ...], str], ...] = (
+    ("get_vehicle", ("vehicle_id",), "read"),
+    ("get_work_order", ("work_order_id",), "read"),
+    ("get_driver", ("driver_id",), "read"),
+    ("list_depot_vehicles", ("depot_id",), "read"),
+    ("assign_driver", ("work_order_id", "driver_id"), "write"),
+    ("close_work_order", ("work_order_id",), "write"),
 )
 
 _PHRASING = [
@@ -134,7 +136,7 @@ def build_tasks(db: dict, rng: random.Random) -> list[dict]:
     }
     tasks: list[dict] = []
     for index in range(N_TASK_CLUSTERS):
-        tool, roles = _TOOLS[index % len(_TOOLS)]
+        tool, roles, _effect = _TOOLS[index % len(_TOOLS)]
         arguments = {role: rng.choice(pools[role]) for role in roles}
         desc = f"{tool.replace('_', ' ')} {' '.join(arguments.values())}"
         tasks.append(
@@ -185,8 +187,8 @@ def fleetops_registry() -> ToolRegistry:
     """Signatures for the six domain tools, as an integrator would register them."""
     return ToolRegistry(
         {
-            name: ToolSignature(name=name, required_params=roles)
-            for name, roles in _TOOLS
+            name: ToolSignature(name=name, required_params=roles, effect=effect)
+            for name, roles, effect in _TOOLS
         }
     )
 

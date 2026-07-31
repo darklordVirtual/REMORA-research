@@ -60,6 +60,12 @@ class ToolSignature:
     #: Names this tool can supply to a later call, from its return annotation's
     #: ``Literal`` keys plus the noun in its own name.
     produced_names: tuple[str, ...] = ()
+    #: Authoritative action type: "read" or "write", declared by the
+    #: deployment. When set, it overrides the verb heuristic in
+    #: ``evaluate.build_observation`` — the registry knows what a tool does;
+    #: the verb list is a conservative fallback for unregistered tools only.
+    #: ``None`` means the deployment has not declared it.
+    effect: str | None = None
 
     def produces(self) -> set[str]:
         return {_normalise(n) for n in self.produced_names}
@@ -81,6 +87,11 @@ class ToolRegistry:
             name: {
                 "required_params": list(signature.required_params),
                 "produced_names": list(signature.produced_names),
+                **(
+                    {"effect": signature.effect}
+                    if signature.effect is not None
+                    else {}
+                ),
             }
             for name, signature in sorted(self.signatures.items())
         }
@@ -93,6 +104,7 @@ class ToolRegistry:
                     name=name,
                     required_params=tuple(entry["required_params"]),
                     produced_names=tuple(entry["produced_names"]),
+                    effect=entry.get("effect"),
                 )
                 for name, entry in d.items()
             }

@@ -920,7 +920,7 @@
       }
     }
   ],
-  "run_at_commit": "f396bda",
+  "run_at_commit": "af73e2f",
   "schema": "fleetops_degradation_results_v2",
   "status": "mechanism_study_not_blind",
   "study_parameters": {
