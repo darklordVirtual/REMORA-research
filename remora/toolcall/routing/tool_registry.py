@@ -74,6 +74,30 @@ class ToolRegistry:
     def __contains__(self, tool: str) -> bool:
         return tool in self.signatures
 
+    def to_json_dict(self) -> dict[str, dict[str, list[str]]]:
+        """Sorted, committable form — so CI can hold the registry a test needs
+        without depending on the gitignored extraction cache."""
+        return {
+            name: {
+                "required_params": list(signature.required_params),
+                "produced_names": list(signature.produced_names),
+            }
+            for name, signature in sorted(self.signatures.items())
+        }
+
+    @classmethod
+    def from_json_dict(cls, d: dict[str, dict[str, list[str]]]) -> "ToolRegistry":
+        return cls(
+            {
+                name: ToolSignature(
+                    name=name,
+                    required_params=tuple(entry["required_params"]),
+                    produced_names=tuple(entry["produced_names"]),
+                )
+                for name, entry in d.items()
+            }
+        )
+
     def arguments_satisfiable(
         self,
         *,

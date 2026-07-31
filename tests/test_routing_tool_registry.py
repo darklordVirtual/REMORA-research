@@ -248,6 +248,48 @@ def test_self_and_private_methods_are_excluded(tmp_path) -> None:
 
 
 TAU2_TOOLS = Path(__file__).parent.parent / ".cache" / "routing_bench" / "tau2_tools"
+SIGNATURE_FIXTURE = (
+    Path(__file__).parent / "fixtures" / "routing_bench" / "tau2_tool_signatures.json"
+)
+
+
+def test_registry_round_trips_through_json(registry) -> None:
+    """Serialization exists so a registry can be committed as a fixture and CI
+    can enforce invariants without the gitignored extraction cache."""
+    assert ToolRegistry.from_json_dict(registry.to_json_dict()).signatures == (
+        registry.signatures
+    )
+
+
+def test_committed_tau2_signature_fixture_loads() -> None:
+    """The metamorphic invariants must run in CI, where .cache does not exist.
+
+    An empty registry silently made every obtainable/unobtainable pair
+    observationally identical in CI while the invariant passed locally — the
+    exact Windows-local-vs-CI gap this fixture closes.
+    """
+    import json
+
+    loaded = ToolRegistry.from_json_dict(
+        json.loads(SIGNATURE_FIXTURE.read_text(encoding="utf-8"))
+    )
+    assert "get_reservation_details" in loaded.signatures
+    assert loaded.signatures["get_reservation_details"].required_params == (
+        "reservation_id",
+    )
+
+
+@pytest.mark.skipif(
+    not TAU2_TOOLS.exists(),
+    reason="tau2 tool cache absent; run scripts/build_routing_bench.py --fetch",
+)
+def test_committed_fixture_matches_a_fresh_extraction() -> None:
+    """The committed fixture must never drift from what extraction produces."""
+    import json
+
+    fresh = ToolRegistry(extract_from_python(sorted(TAU2_TOOLS.glob("*.py"))))
+    committed = json.loads(SIGNATURE_FIXTURE.read_text(encoding="utf-8"))
+    assert fresh.to_json_dict() == committed
 
 
 @pytest.mark.skipif(

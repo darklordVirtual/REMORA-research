@@ -30,12 +30,11 @@ from remora.policy import RemoraDecisionEngine
 from remora.toolcall.routing.episode import Route, RoutingEpisode
 from remora.toolcall.routing.evaluate import build_observation
 from remora.toolcall.routing.mutations import MutationFamily, family_of
-from remora.toolcall.routing.tool_registry import ToolRegistry, extract_from_python
+from remora.toolcall.routing.tool_registry import ToolRegistry
 
 REPO = Path(__file__).parent.parent
 V2 = REPO / "data" / "routing_bench_v2" / "tau2_mutations.jsonl"
 HOLDOUT = REPO / "data" / "routing_bench_holdout"
-CACHE = REPO / ".cache" / "routing_bench"
 
 ENGINE = RemoraDecisionEngine(low_consequence_accept=True)
 
@@ -53,11 +52,19 @@ def episodes() -> list[RoutingEpisode]:
 
 @pytest.fixture(scope="module")
 def registry() -> ToolRegistry:
-    paths = [
-        q for root in (CACHE / "toolsandbox" / "tools", CACHE / "tau2_tools")
-        if root.exists() for q in sorted(root.glob("*.py"))
-    ]
-    return ToolRegistry(extract_from_python(paths) if paths else {})
+    """The committed tau2 signature fixture — never the extraction cache.
+
+    The cache is gitignored, so a fixture built from it silently degraded to an
+    empty registry in CI: every obtainable/unobtainable pair became
+    observationally identical there while the invariant passed locally.
+    Loading the committed fixture makes local and CI runs test the same
+    registry; `test_committed_fixture_matches_a_fresh_extraction` keeps the
+    fixture honest against the cache where the cache exists.
+    """
+    fixture = REPO / "tests" / "fixtures" / "routing_bench" / "tau2_tool_signatures.json"
+    return ToolRegistry.from_json_dict(
+        json.loads(fixture.read_text(encoding="utf-8"))
+    )
 
 
 def _decide(ep: RoutingEpisode, registry: ToolRegistry) -> Route:
