@@ -76,9 +76,9 @@ def build_block() -> str:
     total = len(caps)
 
     lines = [
-        f"{BEGIN} — source: assurance registers, via "
+        f"{BEGIN}, source: assurance registers, via "
         f"scripts/generate_readme_status.py --check. DO NOT EDIT. -->",
-        f"**Deployment profile:** `{current}` (= `{dse}`) — recomputed from the "
+        f"**Deployment profile:** `{current}` (= `{dse}`), recomputed from the "
         f"capability and remediation registers by CI; a profile cannot be raised "
         f"by editing prose.",
     ]

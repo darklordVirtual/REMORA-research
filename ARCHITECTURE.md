@@ -70,39 +70,59 @@ in the pipeline it is evaluated.
 
 ```mermaid
 flowchart TD
-    ACT["Proposed agent action\n(tool call + args + risk_tier / action_type / env)"] --> S1
+    ACT["Proposed agent action<br/>(tool call + args + risk_tier / action_type / env)"] --> S1
 
-    S1["Stage 1 — Admission firewall\nremora/engine.py + remora/safety/\nadversarial / coercion text detection — deterministic, pre-oracle"]
-    S1 -->|"adversarial / coercion detected"| ESC["ESCALATE / ABSTAIN\n(cannot be overridden)"]
+    S1["Stage 1 · Admission firewall<br/>remora/safety/adversarial.py + remora/engine.py<br/>adversarial / coercion text detection, deterministic, pre-oracle"]
+    S1 -.->|"detected: adversarial_detected set,<br/>oracle fan-out suppressed"| S4
     S1 -->|"passes admission"| S2
 
-    S2["Stage 2 — Multi-oracle consensus\nremora/engine.py + remora/correlation.py\ndisagreement diagnostics: entropy H, dissensus D, trust;\ncorrelation-aware diversity weighting"]
+    S2["Stage 2 · Multi-oracle consensus<br/>remora/engine.py + remora/correlation.py<br/>disagreement diagnostics: entropy H, dissensus D, trust,<br/>correlation-aware diversity weighting"]
     S2 --> S3
 
-    S3["Stage 3 — Evidence verification\nremora/oracles/evidence_verifier.py, evidence_v2/v3\nsource-anchored support / contradiction (lexical)"]
+    S3["Stage 3 · Evidence verification<br/>remora/oracles/evidence_verifier.py, evidence_v2/v3<br/>source-anchored support / contradiction (lexical)"]
     S3 --> S4
 
-    S4["Stage 4 — Policy decision\nremora/policy/decision_engine.py + remora/selective/\nhard guards first (schema / forbidden-tool / tainted-arg /\nproduction-write / contradiction / counterfactual),\nthen conditional guards, then trust / conformal routing"]
-    S4 -->|"hard block fires"| ESC
+    S4["Stage 4 · Policy decision<br/>remora/policy/decision_engine.py + remora/selective/<br/>hard_guard_floor() first, absolute priority (admission flag,<br/>schema, forbidden tool, coercion, blackmail, counterfactual,<br/>contradicted evidence, tainted argument),<br/>then conditional guards and trust / conformal routing,<br/>then the argument gates on whatever is left"]
+    S4 -->|"hard guard fires"| ESC["ESCALATE / ABSTAIN<br/>(cannot be overridden)"]
     S4 --> DEC{"Decision"}
 
     DEC -->|"assurance met"| ACCEPT["ACCEPT"]
-    DEC -->|"needs validation"| VERIFY["VERIFY"]
+    DEC -->|"needs validation"| VERIFY["VERIFY<br/>carries a ResolutionPlan when a bounded<br/>lookup can close the gap"]
     DEC -->|"too uncertain"| ABSTAIN["ABSTAIN"]
 
-    ACCEPT & VERIFY & ABSTAIN & ESC --> S5["Stage 5 — Hash-chain audit\nremora/governance/envelope.py + remora/audit/hash_chain.py\nDecisionEnvelope; atomic per-tenant chain on the /v1/execution path"]
+    VERIFY -.->|"resolver / validator answers:<br/>whole router re-runs on a fresh observation<br/>(remora/policy/resolution.py)"| S4
+
+    ACCEPT & VERIFY & ABSTAIN & ESC --> S5["Stage 5 · Hash-chain audit<br/>remora/governance/envelope.py + remora/audit/hash_chain.py<br/>DecisionEnvelope, atomic per-tenant chain on the /v1/execution path"]
     S5 --> OUT["Audit chain + shadow-replay log"]
 ```
 
+Two edges are dotted because they are not verdicts. Stage 1 never issues one: it
+sets `adversarial_detected` and suppresses the oracle fan-out, and the first
+guard in `hard_guard_floor()` turns that flag into ESCALATE
+(`ADMISSION_FIREWALL_BLOCKED`). Every verdict leaves from Stage 4, which is why
+`decide()` and `explain()` cannot disagree. The VERIFY edge is the resolution
+loop: a bounded lookup answers, and the whole router re-runs on a fresh
+observation rather than patching the old one.
+
 **Stage summary:**
 
-1. **Admission firewall** (`remora/engine.py`, `remora/safety`), a deterministic
-   adversarial/coercion text check that runs *before* any oracle call and routes
-   detected attacks straight to ESCALATE/ABSTAIN. The remaining hard-block
-   invariants (malformed calls, forbidden tools, tainted arguments, production-write
-   without safeguards, contradicting evidence, counterfactual failure) are enforced
-   with absolute priority inside the Stage 4 policy decision (`remora/policy`).
-   Together these are the safety floor of §2.
+1. **Admission firewall** (`remora/safety/adversarial.py`, `remora/engine.py`), a
+   deterministic adversarial/coercion text check that runs *before* any oracle
+   call. It sets `adversarial_detected` and suppresses the oracle fan-out; the
+   ESCALATE itself is issued by the first guard in Stage 4, so the firewall has
+   one job and the verdict has one source.
+
+   The safety floor of §2 is exactly what `hard_guard_floor()` returns, and
+   nothing else: admission flag, invalid schema, forbidden tool, coercion,
+   blackmail pattern, failed counterfactual, contradicted evidence, and tainted
+   arguments (ESCALATE when untrusted content controls a recipient, command or
+   credential, or at critical risk; VERIFY otherwise). Rules that depend on risk
+   tier or environment, such as **production-write without safeguards**,
+   unavailable rollback, uncertain state transition or critical phase, are
+   *conditional* gates, not part of the floor. The distinction is deliberate:
+   an external PDP
+   (`opa_adapter.py`) may legitimately differ in the probabilistic band, but may
+   never downgrade below the floor.
 2. **Multi-oracle consensus** (`remora/engine.py`, `remora/correlation.py`,
    `remora/thermodynamics`), several oracle backends answer; a consensus
    *phase* (ordered / critical / disordered) is derived from entropy `H`,
@@ -122,6 +142,20 @@ flowchart TD
    accept/verify/abstain, with phase-specific thresholds (the critical phase is
    handled by score inversion, see §8). Hard guards evaluated here have absolute
    priority over the routing signals.
+
+   **The argument gates run last** (`missing_required_arguments`,
+   `unvalidated_required_arguments`, `argument_values_grounded`), after every
+   blocking rule, so they can only make a would-be ACCEPT more cautious and can
+   never unblock anything. Each answers a different question about the call's
+   inputs: can a missing argument be sourced at all (no resolver means ABSTAIN,
+   not VERIFY, since a verification that cannot happen must not be promised); is
+   an argument that steers where the action lands confirmed against the system of
+   record; and do the argument values anchor to *this* task, or is the call
+   observationally identical to a well-formed copy of someone else's. A VERIFY
+   from these gates carries a `ResolutionPlan` naming the permitted lookup and
+   the exact arguments it may write. `remora/policy/resolution.py` runs that
+   lookup and re-enters the whole router; the resolver cannot switch tools or
+   write outside its plan.
 5. **Hash-chain audit** (`remora/governance/envelope.py`,
    `remora/audit/hash_chain.py`), the decision is written as a
    `DecisionEnvelope` and hash-chained. The record is **tamper-evident**, not
@@ -158,7 +192,7 @@ verification stages.
 
 ```
 remora/cascade/
-|- engine.py   # CascadeEngine — assembles and runs all stages
+|- engine.py   # CascadeEngine: assembles and runs all stages
 |- stages.py   # FastGate, ConsensusGate, VerifierGate, CritiqueRevisionGate, SelfConsistencyGate
 \- result.py   # CascadeResult, StageResult, CascadeVerdict, CascadeStage
 ```
@@ -167,30 +201,30 @@ remora/cascade/
 flowchart TD
     Q["Action + optional evidence"] --> S1
 
-    S1["Stage 1: FastGate\n1 oracle call\nVerbalized confidence ≥ 0.90?"]
+    S1["Stage 1: FastGate<br/>1 oracle call<br/>Verbalized confidence ≥ 0.90?"]
     S1 -->|"ACCEPT (conf ≥ 0.90)"| OUT["Final verdict"]
     S1 -->|"VERIFY (conf < 0.90)"| S2
 
-    S2["Stage 2: ConsensusGate\n3-oracle REMORA engine\nconsensus-phase classification"]
+    S2["Stage 2: ConsensusGate<br/>3-oracle REMORA engine<br/>consensus-phase classification"]
     S2 -->|"ACCEPT (trust ≥ 0.65)"| OUT
     S2 -->|"ABSTAIN (trust < 0.12)"| OUT
     S2 -->|"VERIFY (0.12 ≤ trust < 0.65)"| S3
 
-    S3["Stage 3: VerifierGate\nLLM-as-judge, different model family\nevaluates consensus answer vs evidence"]
+    S3["Stage 3: VerifierGate<br/>LLM-as-judge, different model family<br/>evaluates consensus answer vs evidence"]
     S3 -->|"ACCEPT (supported)"| OUT
     S3 -->|"ABSTAIN (refuted)"| OUT
     S3 -->|"VERIFY (challenged)"| S3B
 
-    S3B["Stage 3b: CritiqueRevisionGate\ncritique → revision oracle → re-judge\nconstitutional pattern, up to 2 rounds"]
+    S3B["Stage 3b: CritiqueRevisionGate<br/>critique → revision oracle → re-judge<br/>constitutional pattern, up to 2 rounds"]
     S3B -->|"ACCEPT / ABSTAIN"| OUT
     S3B -->|"VERIFY (still challenged)"| S4
 
-    S4["Stage 4: SelfConsistencyGate\n7 independent samples, majority vote"]
+    S4["Stage 4: SelfConsistencyGate<br/>7 independent samples, majority vote"]
     S4 -->|"ACCEPT (agreement ≥ 0.72)"| OUT
     S4 -->|"ABSTAIN (< 0.50)"| OUT
     S4 -->|"VERIFY (0.50–0.72)"| S6
 
-    S6["Stage 6: MixtureOfAgentsSynth (optional)\nsynthesis oracle reconciles prior responses"]
+    S6["Stage 6: MixtureOfAgentsSynth (optional)<br/>synthesis oracle reconciles prior responses"]
     S6 -->|"ACCEPT / VERIFY / ABSTAIN"| OUT
 ```
 
@@ -407,18 +441,23 @@ not a guarantee of safety, and not a replacement for domain authority.
 - **Production gates:** `REM-020` (longitudinal stability) is **DONE**
   (2026-07-17, closed by fail-closed tooling under the owner-reconciled 7-day
   criterion; self-reported values pending independent verification).
-  `REM-022` (RBAC audit) is **DONE** (2026-06-30, with recorded deviation, 
-  follow-through tracked as `REM-023`, of which only external confirmation
-  remains, folded into `REM-021`). `REM-021` (independent human review) is
-  **open** (not started) and blocks exit from shadow mode.
+  `REM-022` (RBAC audit) is **DONE** (2026-06-30, with a recorded deviation
+  whose follow-through is tracked as `REM-023`, still **IN_PROGRESS**).
+  `REM-021` (independent human review) is **NOT_STARTED** and blocks exit from
+  shadow mode. Statuses are held in
+  [`remediation_register.yaml`](docs/assurance/remediation_register.yaml), which
+  is what CI recomputes the README's deployment profile from.
   Deployment status cannot advance past SHADOW_ONLY until REM-021 is cleared.
 - **External replication is pending.** All benchmarks are internally run; no
   external live-agent validation has been conducted.
 - **Result scope:** reported results are simulator-scoped or post-hoc over
   committed artifacts where noted (the 0% unsafe-execution result is a
-  deterministic simulator; the selective-accuracy hold-out accepted only ~25
-  items, so its Wilson CI is wide, quote the CI, not the point estimate). The
-  historically-labelled "N500" selective-prediction artifact currently has
+  deterministic simulator; the selective-accuracy hold-out accepted **18**
+  items, so its Wilson CI is wide, [82.4%, 100.0%]; quote the CI, not the
+  point estimate). That hold-out (CLAIM-004) is now **superseded** by CLAIM-012:
+  the signal it ranked on failed its pre-registered fresh-data confirmation. See
+  [`docs/assurance/superseded_claims.md`](docs/assurance/superseded_claims.md).
+  The historically-labelled "N500" selective-prediction artifact currently has
   **544 evaluable items** ("N500" is a legacy name, not the item count).
 - **Semantic-entropy caveat:** the reported headline numbers use a
   **token-fingerprint heuristic** (sorted SHA-256 tokens), **not** the NLI-based
