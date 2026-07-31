@@ -154,6 +154,10 @@ class OPAContext:
     # unknown and must not behave like one.
     arguments_satisfiable: bool | None
     argument_values_supported: bool | None
+    # Are the call's judgeable argument values traceable to this context
+    # (task text, schema declaration, system of record)? False withdraws
+    # autonomy from well-formed foreign calls (NEGATIVE_RESULTS.md §34).
+    argument_values_grounded: bool | None
     missing_required_arguments: tuple[str, ...]
     argument_resolver_tools: tuple[str, ...]
     proposed_tool_name: str | None

@@ -54,6 +54,9 @@ from remora.toolcall.routing.tool_registry import ToolRegistry
 #: calls is measured, not assumed.
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:\-]{2,64}$")
 
+#: Token splitter for multiword provenance grounding in ``values_grounded``.
+_SPLIT_TOKENS = re.compile(r"[^a-z0-9]+")
+
 
 class ArgumentValueStatus(str, Enum):
     """What the system of record establishes about one argument value.
@@ -229,6 +232,108 @@ def _split_scope(
 
 def _is_identifier(value: object) -> bool:
     return isinstance(value, str) and bool(_IDENTIFIER.match(value))
+
+
+def values_grounded(
+    args: dict[str, Any],
+    *,
+    task_text: str,
+    state: StateIndex,
+    domain: str,
+    signature: Any = None,
+) -> bool | None:
+    """Are the call's judgeable argument values traceable to this context?
+
+    §34 measured the open autonomy risk on foreign calls: a well-formed call
+    whose values came from *another context* gives structural signals nothing
+    to distrust. The tell is provenance-shaped: the values occur nowhere in
+    what the user said, and no system of record confirms them.
+
+    A value is grounded when its text form occurs in the task text, when the
+    tool's own parameter declaration names it (*signature*'s ``param_values``
+    — an enum value like ``celsius`` comes from the schema, not the user, and
+    the schema is the same authority class as the registry naming the tool),
+    or when the state index confirms it SUPPORTED. A whole-valued float
+    grounds through its integer text form: the user wrote ``$999``, the call
+    carries ``999.0``, same number. Judgeable values are identifier-shaped
+    strings and numbers; free text is not an identifier and is never judged.
+    Comparison is otherwise exact, matching the declaration layer's refusal
+    of canonicalisation promises (§30) — a *derived* value (``2023-04-03``
+    from "April 3rd") stays ungrounded, because the engine cannot check the
+    derivation; verifying it is a cost kept, not a defect.
+
+    Tri-state: ``True`` all judgeable values grounded, ``False`` at least one
+    is not, ``None`` nothing was judgeable — and None must never behave like
+    False, or every schema-only call would lose autonomy (§21).
+    """
+    from remora.toolcall.routing.validation import (
+        ValidationRequirement,
+        requirement_for,
+    )
+
+    declared = getattr(signature, "param_values", None) or {}
+    text_lower = task_text.lower()
+    judged = False
+    anchored = False
+
+    def scalar_grounding(name: str, value: Any) -> tuple[bool, bool] | None:
+        """(grounded, anchors) for one scalar, or None when unjudgeable."""
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, (int, float)):
+            forms = [str(value)]
+            if isinstance(value, float) and value.is_integer():
+                forms.append(str(int(value)))
+            if any(form in task_text for form in forms):
+                return (True, True)
+            if any(form in declared.get(name, ()) for form in forms):
+                return (True, False)
+            return (False, False)
+        if not isinstance(value, str) or not value.strip():
+            return None
+        if value in task_text:
+            return (True, True)
+        if state.status(domain, name, value) is ArgumentValueStatus.SUPPORTED:
+            return (True, True)
+        # Schema-declared values ground — they are not suspicious — but they
+        # cannot anchor: an enum value says nothing about which task the
+        # call belongs to.
+        if value in declared.get(name, ()):
+            return (True, False)
+        if not _is_identifier(value):
+            # Multiword value: provenance is judged token-wise,
+            # case-insensitively — 'Naples, Florida' need not be a verbatim
+            # substring, but a foreign 'Paris, France' shares no tokens with
+            # this task. A looser rule than the state layer's exactness, and
+            # allowed to be: this is provenance, not existence.
+            tokens = [t for t in _SPLIT_TOKENS.split(value.lower()) if len(t) >= 3]
+            if not tokens:
+                return None
+            hits = sum(1 for t in tokens if t in text_lower)
+            return (hits * 2 >= len(tokens), hits * 2 >= len(tokens))
+        return (False, False)
+
+    for name, value in args.items():
+        # Free-text roles (note, message, description ...) are composed by
+        # the agent and legitimately not verbatim anywhere; never judged.
+        if requirement_for(name) is ValidationRequirement.NOT_APPLICABLE:
+            continue
+        items = value if isinstance(value, (list, tuple)) else [value]
+        for item in items:
+            verdict = scalar_grounding(name, item)
+            if verdict is None:
+                continue
+            judged = True
+            grounded_one, anchors = verdict
+            if not grounded_one:
+                return False
+            anchored = anchored or anchors
+
+    if not judged:
+        return None
+    # Every value traceable, none of them to *this* context: the call is
+    # observationally identical to a foreign copy of itself (§34).
+    return anchored
 
 
 def compute_compatibility(

@@ -210,22 +210,22 @@
       },
       "identity_accept": {
         "d": 90,
-        "n": 55,
-        "rate": 0.6111111111111112,
+        "n": 50,
+        "rate": 0.5555555555555556,
         "wilson95": [
-          0.5078,
-          0.7053
+          0.4527,
+          0.6538
         ]
       },
       "identity_accept_read": {
         "d": 60,
-        "n": 55,
-        "rate": 0.9166666666666666
+        "n": 50,
+        "rate": 0.8333333333333334
       },
       "identity_accept_snapshot_absent": {
         "d": 17,
-        "n": 5,
-        "rate": 0.29411764705882354
+        "n": 0,
+        "rate": 0.0
       },
       "identity_accept_snapshot_present": {
         "d": 73,
@@ -241,8 +241,8 @@
       "name": "truncated_honest",
       "predicted_by_family": {
         "identity": {
-          "abstain": 5,
-          "accept": 55,
+          "abstain": 10,
+          "accept": 50,
           "verify": 30
         },
         "missing_arg_obtainable": {
@@ -258,18 +258,17 @@
           "verify": 90
         },
         "wrong_arg_value": {
-          "abstain": 15,
-          "accept": 45,
+          "abstain": 60,
           "verify": 30
         }
       },
       "wrong_arg_accept": {
         "d": 90,
-        "n": 45,
-        "rate": 0.5,
+        "n": 0,
+        "rate": 0.0,
         "wilson95": [
-          0.3988,
-          0.6012
+          0.0,
+          0.0409
         ]
       }
     },
@@ -472,22 +471,22 @@
       },
       "identity_accept": {
         "d": 90,
-        "n": 45,
-        "rate": 0.5,
+        "n": 15,
+        "rate": 0.16666666666666666,
         "wilson95": [
-          0.3988,
-          0.6012
+          0.1037,
+          0.2569
         ]
       },
       "identity_accept_read": {
         "d": 60,
-        "n": 45,
-        "rate": 0.75
+        "n": 15,
+        "rate": 0.25
       },
       "identity_accept_snapshot_absent": {
         "d": 75,
-        "n": 30,
-        "rate": 0.4
+        "n": 0,
+        "rate": 0.0
       },
       "identity_accept_snapshot_present": {
         "d": 15,
@@ -503,8 +502,8 @@
       "name": "stale_unbounded",
       "predicted_by_family": {
         "identity": {
-          "abstain": 15,
-          "accept": 45,
+          "abstain": 45,
+          "accept": 15,
           "verify": 30
         },
         "missing_arg_obtainable": {
@@ -520,18 +519,17 @@
           "verify": 90
         },
         "wrong_arg_value": {
-          "abstain": 15,
-          "accept": 45,
+          "abstain": 60,
           "verify": 30
         }
       },
       "wrong_arg_accept": {
         "d": 90,
-        "n": 45,
-        "rate": 0.5,
+        "n": 0,
+        "rate": 0.0,
         "wilson95": [
-          0.3988,
-          0.6012
+          0.0,
+          0.0409
         ]
       }
     },
@@ -729,22 +727,22 @@
       },
       "identity_accept": {
         "d": 90,
-        "n": 45,
-        "rate": 0.5,
+        "n": 15,
+        "rate": 0.16666666666666666,
         "wilson95": [
-          0.3988,
-          0.6012
+          0.1037,
+          0.2569
         ]
       },
       "identity_accept_read": {
         "d": 60,
-        "n": 45,
-        "rate": 0.75
+        "n": 15,
+        "rate": 0.25
       },
       "identity_accept_snapshot_absent": {
         "d": 75,
-        "n": 30,
-        "rate": 0.4
+        "n": 0,
+        "rate": 0.0
       },
       "identity_accept_snapshot_present": {
         "d": 15,
@@ -760,8 +758,8 @@
       "name": "stale_bounded",
       "predicted_by_family": {
         "identity": {
-          "abstain": 15,
-          "accept": 45,
+          "abstain": 45,
+          "accept": 15,
           "verify": 30
         },
         "missing_arg_obtainable": {
@@ -777,18 +775,17 @@
           "verify": 90
         },
         "wrong_arg_value": {
-          "abstain": 15,
-          "accept": 45,
+          "abstain": 60,
           "verify": 30
         }
       },
       "wrong_arg_accept": {
         "d": 90,
-        "n": 45,
-        "rate": 0.5,
+        "n": 0,
+        "rate": 0.0,
         "wilson95": [
-          0.3988,
-          0.6012
+          0.0,
+          0.0409
         ]
       }
     },
@@ -920,7 +917,7 @@
       }
     }
   ],
-  "run_at_commit": "af73e2f",
+  "run_at_commit": "fc59a78",
   "schema": "fleetops_degradation_results_v2",
   "status": "mechanism_study_not_blind",
   "study_parameters": {

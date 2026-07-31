@@ -1939,6 +1939,51 @@ hashes pinned).
 
 ---
 
+## §35 Value grounding withdraws autonomy from foreign calls (2026-07-31)
+
+**The fix for §34, and what it costs.** A well-formed foreign call gives
+structural signals nothing to distrust; its tell is provenance-shaped — the
+argument values are traceable to nothing in this context. The new
+deterministic signal `argument_values_grounded` judges every argument value
+(numbers, identifiers, multiword strings, list elements; free-text roles from
+the NOT_APPLICABLE vocabulary exempt) against three grounding sources: the
+task text, the tool's own parameter declarations (enums/defaults — grounded
+but *not anchoring*, since an enum says nothing about which task the call
+belongs to), and the system of record. A call whose judgeable values are all
+traceable but none anchored to *this* context is observationally identical to
+a foreign copy of itself and withdraws to VERIFY. Validator confirmation
+grounds on re-entry — the system of record vouching for a value is the same
+anchoring clause as a SUPPORTED verdict.
+
+**Measured on the spent §34 set (development, not blind — the 86.8% blind
+record stands):** wrong-call accept 86.8% → **11.6%**, meeting the ≤20%
+pre-registered bar on dev. Cost: identity autonomy 86.1% → 56.8%, the loss
+being *derived* values (dates normalized from prose, unit conversions) that
+now route VERIFY — the engine cannot check a derivation, so verifying it is
+the honest lane, not a defect. On fleetops the same signal closed §32's
+residual: wrong-arg accepts in the UNKNOWN regime went 50% → **0%** with all
+pre-registered expectations still met, and the validator path still recovers
+read utility 0% → 100% (all eight §33 targets green post-change).
+
+**Iteration disclosure.** The grounding definition was developed against the
+spent sets in three steps (exact substring → schema declarations + numeric
+forms → token-wise multiword + anchor requirement + free-text exemption),
+each step measured. That is development, done where development is allowed;
+the numbers above must not be quoted as blind performance. **Blind
+confirmation of the grounding signal requires the next sealed track.**
+
+**Residual.** 30/258 foreign calls still accept — their values coincide with
+this task's context (common values, schema enums whose words the user
+happened to say). Below the 20% bar but not zero; a semantic task–call
+source remains the complete answer.
+
+**Artifacts.** `results/system_demonstration_v1.json` (aggregated
+re-execution of every study at HEAD),
+`results/fleetops_degradation_results.json`,
+`results/fleetops_validator_study_results.json`.
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1961,7 +2006,7 @@ hashes pinned).
 | Covered-domain discrimination unconfirmed on blind data (§28, §29) | **Confirmed under ideal conditions 2026-07-31 (§31)**: on a generated closed-world domain, identity ACCEPT 100% and wrong-argument ACCEPT 0%, gap 100 pp, admission-verified 100% judgeable. Necessary not sufficient — partial coverage, stale state, ambiguous scope and open-world absence are all absent by construction. Formerly: Track A on banking_knowledge was spent without testing the hypothesis — 836/942 wrong-argument episodes were unjudgeable because the index does not cover the arguments the tasks use. Next attempt must pre-register a minimum judgeable fraction as an admission criterion. Formerly: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
 | Coverage loss degrades discrimination, not validity (§32) | **Active (accepted characterization)**: honest declaration loss (hash mismatch, freshness refusal) yields 0 false-UNSUPPORTED but 50% wrong-arg accepts on read-only UNKNOWN; a falsely re-vouched truncated export rejects 17.1% of valid identifiers; a byte-identical stale snapshot rejects 85.7% and only the freshness bound catches it; cross-tenant accepts 0. Production posture per action type: autonomy on verified reads (baseline 100%), verification on writes (0% auto-accept — "assign"/"close"/"approve" were missing from the mutating-verb list, so A2's pooled 100% included 30 misclassified writes). Open mechanism study on generated degradations; field performance unmeasured | Medium (failure geometry, not field evidence) |
 | UNKNOWN-regime utility recovered via declared validators (§33) | **Addressed under study conditions 2026-07-31**: in the empty-index regime (no bulk export, every verdict UNKNOWN), declared point-lookup validator bindings take read completion 0% → 100% with all eight pre-registered safety targets at their bound (0 required-UNKNOWN auto-accepts, 0/90 corrupt accepts, 0 cross-tenant consultations, 0 budget overruns); freshness now mandatory for mutable declarations; per-fact attempt budget fixed. Validator is live-world-perfect by construction; production validators need their own false-absent check. Field performance unmeasured | Medium (mechanism confirmed, field pending) |
-| Well-formed wrong calls pass structural gates on external blind data (§34) | **Active (accepted negative result)**: BFCL blind track, 4 of 5 pre-registered targets met (fail-closed 0/19, irrelevance ABSTAIN 100%, obtainable VERIFY 82.7%, unobtainable ABSTAIN 100%, both provenance families 100%), but known-wrong-call ACCEPT 86.8% vs ≤20% target — a substituted call with its own complete arguments gives structural signals nothing to distrust; tau2 masked this via unsatisfiable arguments. Requires an authoritative task–call semantic source for `tool_matches_goal`, not tuning | **High (the open autonomy risk on foreign calls)** |
+| Well-formed wrong calls pass structural gates on external blind data (§34) | **Active (accepted negative result)**: BFCL blind track, 4 of 5 pre-registered targets met (fail-closed 0/19, irrelevance ABSTAIN 100%, obtainable VERIFY 82.7%, unobtainable ABSTAIN 100%, both provenance families 100%), but known-wrong-call ACCEPT 86.8% vs ≤20% target — a substituted call with its own complete arguments gives structural signals nothing to distrust; tau2 masked this via unsatisfiable arguments. Requires an authoritative task–call semantic source for `tool_matches_goal`, not tuning. **Addressed on dev 2026-07-31 (§35)**: value grounding cuts foreign-call accept 86.8% → 11.6% on the spent set (identity autonomy cost 86.1% → 56.8%, derived values now VERIFY); blind confirmation pending a new sealed track | **Medium (mitigated on dev; blind confirmation pending)** |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |

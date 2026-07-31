@@ -92,10 +92,29 @@ def bfcl_registry(paths: list[Path]) -> ToolRegistry:
                 name = schema.get("name")
                 if not name or name in signatures:
                     continue
-                required = tuple(
-                    (schema.get("parameters") or {}).get("required") or ()
+                parameters = schema.get("parameters") or {}
+                required = tuple(parameters.get("required") or ())
+                declared: dict[str, tuple[str, ...]] = {}
+                for param, spec in (parameters.get("properties") or {}).items():
+                    if not isinstance(spec, dict):
+                        continue
+                    named = [
+                        str(v)
+                        for v in (spec.get("enum") or [])
+                        if isinstance(v, (str, int, float)) and not isinstance(v, bool)
+                    ]
+                    default = spec.get("default")
+                    if isinstance(default, (str, int, float)) and not isinstance(
+                        default, bool
+                    ):
+                        named.append(str(default))
+                    if named:
+                        declared[param] = tuple(dict.fromkeys(named))
+                signatures[name] = ToolSignature(
+                    name=name,
+                    required_params=required,
+                    param_values=declared or None,
                 )
-                signatures[name] = ToolSignature(name=name, required_params=required)
     return ToolRegistry(signatures)
 
 

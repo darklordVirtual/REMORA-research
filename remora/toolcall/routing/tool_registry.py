@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import ast
 import re
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -66,6 +66,11 @@ class ToolSignature:
     #: the verb list is a conservative fallback for unregistered tools only.
     #: ``None`` means the deployment has not declared it.
     effect: str | None = None
+    #: Values the tool's own parameter declarations name (enums, defaults),
+    #: per parameter, as text forms. A schema-declared value is grounded by
+    #: declaration — the same authority class as the registry naming the
+    #: tool. ``None`` means the schema declares no values.
+    param_values: "Mapping[str, tuple[str, ...]] | None" = None
 
     def produces(self) -> set[str]:
         return {_normalise(n) for n in self.produced_names}
@@ -92,6 +97,16 @@ class ToolRegistry:
                     if signature.effect is not None
                     else {}
                 ),
+                **(
+                    {
+                        "param_values": {
+                            k: list(v)
+                            for k, v in sorted(signature.param_values.items())
+                        }
+                    }
+                    if signature.param_values
+                    else {}
+                ),
             }
             for name, signature in sorted(self.signatures.items())
         }
@@ -105,6 +120,14 @@ class ToolRegistry:
                     required_params=tuple(entry["required_params"]),
                     produced_names=tuple(entry["produced_names"]),
                     effect=entry.get("effect"),
+                    param_values=(
+                        {
+                            k: tuple(v)
+                            for k, v in entry["param_values"].items()
+                        }
+                        if entry.get("param_values")
+                        else None
+                    ),
                 )
                 for name, entry in d.items()
             }

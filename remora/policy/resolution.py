@@ -207,10 +207,14 @@ def validate_and_reenter(
     else:
         # Every target confirmed present. Fresh observation, full router:
         # every guard the engine applies runs again on the validated call.
+        # Confirmation also grounds the values — the system of record
+        # vouching for a value is the same anchoring clause as a SUPPORTED
+        # state verdict, so a validated call is no longer foreign.
         final = engine.decide(
             replace(
                 obs,
                 argument_values_supported=True,
+                argument_values_grounded=True,
                 unvalidated_required_arguments=(),
                 argument_resolver_tools=(),
             )

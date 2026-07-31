@@ -27,7 +27,11 @@ from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction
 from remora.toolcall.routing.episode import Route, RoutingEpisode
-from remora.toolcall.routing.compatibility import StateIndex, compute_compatibility
+from remora.toolcall.routing.compatibility import (
+    StateIndex,
+    compute_compatibility,
+    values_grounded,
+)
 from remora.toolcall.routing.validation import unvalidated_required
 from remora.toolcall.routing.validators import ValidatorRegistry
 from remora.toolcall.routing.tool_registry import (
@@ -184,6 +188,13 @@ def build_full_observation(
     return replace(
         obs,
         argument_values_supported=compatibility.argument_values_supported,
+        argument_values_grounded=values_grounded(
+            episode.proposed_tool_args,
+            task_text=episode.user_task,
+            state=state,
+            domain=episode.domain,
+            signature=signature,
+        ),
         missing_required_arguments=missing,
         argument_resolver_tools=resolvers or validation_resolvers,
         proposed_tool_name=episode.proposed_tool_name,

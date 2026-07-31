@@ -202,6 +202,15 @@ class PolicyObservation:
     # record was consulted.
     argument_values_supported: bool | None = None
 
+    # Are the call's judgeable argument values traceable to this context —
+    # named in the task text or confirmed by the system of record? A
+    # well-formed call whose values came from another context gives structural
+    # signals nothing to distrust (NEGATIVE_RESULTS.md §34 measured 86.8% of
+    # such calls accepted); ungrounded values withdraw autonomy. None means
+    # nothing was judgeable, which must never behave like a negative.
+    # Caller-supplied; see remora/toolcall/routing/compatibility.py.
+    argument_values_grounded: bool | None = None
+
     # Required parameters of the proposed call that are absent from it, and the
     # authoritative tools that could supply them. Both caller-populated from a
     # tool registry. A non-empty missing list with resolver tools available is

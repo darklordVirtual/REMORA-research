@@ -189,7 +189,7 @@
     "valid_id_completion_read": ">= 0.85",
     "write_auto_accept": "<= 0.0"
   },
-  "run_at_commit": "90e7d2f",
+  "run_at_commit": "fc59a78",
   "schema": "fleetops_validator_study_results_v1",
   "status": "mechanism_study_not_blind"
 }

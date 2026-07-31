@@ -45,7 +45,7 @@ documented in [06-reproducibility.md](06-reproducibility.md), not this envelope.
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 64 fields; on the research `/v1/assess` path **all fields except
+with 65 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe"). On `/v1/execution/*` this does NOT hold: trust-bearing fields are
@@ -59,7 +59,7 @@ derived server-side and client values can only lower trust, never raise it
 | Evidence | `evidence_action`, `evidence_confidence`, `evidence_contradictions`, `evidence_supporters`, `evidence_signal_source`, `require_rag` |
 | Risk & action | `risk_tier`, `action_type`, `target_environment`, `rollback_available`, `state_transition_uncertain`, `proposed_tool_name` |
 | Resolution | `missing_required_arguments`, `argument_resolver_tools`, `unvalidated_required_arguments` — required parameters absent from the call and the authoritative tools that could supply them. Non-empty with resolvers available yields VERIFY carrying a `ResolutionPlan`; without them, ABSTAIN |
-| Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected`, `arguments_satisfiable`, `argument_values_supported`, `untrusted_controlled_arguments` |
+| Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected`, `arguments_satisfiable`, `argument_values_supported`, `argument_values_grounded`, `untrusted_controlled_arguments` |
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
 | Binding | `tool_call_hash`, SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |

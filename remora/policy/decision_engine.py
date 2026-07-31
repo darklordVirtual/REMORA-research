@@ -939,6 +939,19 @@ class RemoraDecisionEngine:
             return self._build(DecisionAction.ABSTAIN, reasons, obs,
                                credal=_credal, raw_obs=_raw_obs)
 
+        # ── UNGROUNDED ARGUMENT VALUES (2026-07-31) ──────────────────────
+        # §34 measured the open autonomy risk: 86.8% of well-formed foreign
+        # calls accepted, because every structural signal was satisfied. The
+        # tell is provenance-shaped — the values are traceable to nothing in
+        # this context — so autonomy withdraws to VERIFY. Placed after every
+        # blocking gate (it can only convert a fall-through, never preempt a
+        # block) and before the low-consequence accept it exists to guard.
+        # None never triggers it: a call with nothing to judge keeps its lane.
+        if obs.argument_values_grounded is False:
+            reasons.append(DecisionReason.UNGROUNDED_ARGUMENT_VALUES_VERIFY)
+            return self._build(DecisionAction.VERIFY, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
+
         # ── LOW-CONSEQUENCE ACCEPT (opt-in, 2026-07-31) ─────────────────────
         # Placed here deliberately: every hard guard and every blocking gate has
         # already run, so this can only convert a fall-through that would

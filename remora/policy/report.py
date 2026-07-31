@@ -39,6 +39,11 @@ class DecisionReason(str, Enum):
     # An argument policy requires validated is unconfirmed, and a bounded
     # authoritative lookup is expected to settle it.
     ARGUMENT_VALIDATION_REQUIRED = "argument_validation_required"
+    # The call's argument values are traceable to nothing in this context —
+    # not the task text, not the system of record. A well-formed foreign call
+    # (§34) withdraws from autonomy; verification must establish where its
+    # values came from.
+    UNGROUNDED_ARGUMENT_VALUES_VERIFY = "ungrounded_argument_values_verify"
     TRACE_ATTACHED = "trace_attached"
     ORDERED_HIGH_TRUST = "ordered_high_trust"
     DISORDERED_NO_EVIDENCE = "disordered_no_evidence"
