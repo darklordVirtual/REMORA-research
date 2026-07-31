@@ -427,3 +427,22 @@ The declaration-to-index path used by the study —
 `build_state_index` with tenant, snapshot-hash and freshness rules applied in
 one place — is the production composition path; evaluation wiring assembled
 inline in runners is no longer permitted.
+
+## Follow-on: validator-resolution study (2026-07-31)
+
+The §32 UNKNOWN gap is closed by declarative validator bindings
+(`remora/toolcall/routing/validators.py`): a deployment names which tool
+validates which argument role, tenant-bound, budgeted. `validate_and_reenter`
+(policy layer) runs the tri-state round — exists / confirmed absent /
+unknown — under the bounded-authority checks, and the whole router re-runs on
+the verdict.
+
+- Pre-registered study: `remora/toolcall/routing/validator_study.py`,
+  runner `scripts/run_fleetops_validator_study.py`
+- Artifact: `results/fleetops_validator_study_results.json`
+- Findings and caveats: `NEGATIVE_RESULTS.md` §33
+
+Production tightenings landed with it: freshness is mandatory for mutable
+closed-world declarations (immutability is an explicit curator claim), and
+action type comes from registry-declared `effect` metadata with the
+mutating-verb heuristic as conservative fallback.

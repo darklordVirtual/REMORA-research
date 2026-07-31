@@ -1807,6 +1807,81 @@ degradation harness, action-type classification).
 
 ---
 
+## §33 Declared validators recover read utility from the empty-index regime (2026-07-31)
+
+**What was done.** §32's remaining gap was the UNKNOWN regime: with no
+trustworthy coverage, corrupted identifiers rode the read-ACCEPT path at 50%.
+The fix under test is a **declarative validator binding** — a deployment
+statement that `get_vehicle` validates `vehicle_id`, tenant-bound, with an
+attempt budget — feeding the existing VERIFY-with-plan / re-entry machinery.
+Point lookups need no completeness claim: "does V-0113 exist?" is answerable
+even when nobody can vouch for a bulk export, which §31 showed to be the
+fragile precondition.
+
+**Setup.** Openly non-blind mechanism study (blind budget spent in §31), in
+the regime production actually has when **no bulk export exists at all**: an
+empty state index, every verdict UNKNOWN, bulk closed-world declarations
+impossible. Eight targets pre-registered in external review before the study
+module first ran. Two arms, same 540 episodes, same engine. Alongside:
+freshness became mandatory for mutable declarations (§32 finding 3 closed —
+the unbounded-stale regime is now unreachable except through a false
+immutability claim), and action type now comes from registry-declared
+`effect` metadata with the verb heuristic as fallback.
+
+| pre-registered target | goal | without validators | with validators |
+|---|---|---|---|
+| required-UNKNOWN autonomous ACCEPT | 0% | 0/180 | **0/180** |
+| correct validator chosen | ≥ 95% | — (no plans) | **120/120 = 100%** |
+| valid-ID read completion after resolver | ≥ 85% | 0/60 = **0%** | **60/60 = 100%** |
+| corrupt-ID ACCEPT after resolver | ≤ 5% | 0/90 | **0/90** |
+| write autonomous ACCEPT | 0% | 0/30 | **0/30** |
+| false-absent on valid values | 0% | 0/0 | 0/120 (by construction) |
+| cross-tenant validator use | 0% | 0/0 | **0/120** |
+| attempt budget exceeded | 0% | 0/540 | **0/540** |
+
+All eight met. The headline is the completion column: **read utility goes
+from 0% to 100% without any bulk export**, purely through declared
+point-lookup validators, while every safety rate stays at zero. The
+without-validators arm proves the regime fails closed — required-role reads
+ABSTAIN rather than silently accept — which is the honest cost the bindings
+then recover. UNKNOWN+OPTIONAL keeps its autonomous lane (pinned by test),
+so the §21 constant blocker is not rebuilt one level up.
+
+**What the mechanism enforces.** A binding cannot disclaim authority; every
+field is mandatory; an unscoped registry refuses tenant-free lookups; a
+foreign tenant's binding is structurally invisible (a distinctly named
+tenant-B validator was declared and never consulted, 0/120). Validation
+writes no argument values — it only establishes status — under the existing
+bounded-authority checks: exists → re-enter confirmed (reads may ACCEPT,
+writes keep their verification posture), confirmed absent → blocked, never
+retried; unknown or validator error → ABSTAIN.
+
+**Found and fixed on the way.** The resolution attempt budget counted
+attempts across the whole plan, so any multi-argument call spuriously
+exhausted a max_attempts=1 plan. The budget is now per fact, pinned by a
+two-argument read completing without violation.
+
+**Caveats.** Same class as §32: generated domain, generated corruptions, and
+the study's validator consults the live world directly — `false_absent = 0`
+is true *by construction* here and is a check a production validator must be
+held to separately, not a finding. Corrupt-argument writes end in VERIFY via
+schema/risk gates rather than a hard block from the confirmed-absent verdict;
+acceptable (never autonomous) but unaesthetic, noted as residual. Field
+performance on external domains remains unmeasured.
+
+**The defensible claim now** (per-action-type posture): REMORA implements a
+reproducible state-aware governance architecture that autonomously permits
+verified read operations, routes writes to verification, preserves UNKNOWN
+outside trustworthy coverage, binds state to tenant, hash and freshness
+constraints, recovers read utility through declared authoritative validators,
+and fails closed when authoritative validation is unavailable.
+
+**Artifacts.** `results/fleetops_validator_study_results.json` (schema
+`fleetops_validator_study_results_v1`, status `mechanism_study_not_blind`),
+`results/fleetops_degradation_results.json` (schema v2, seven conditions).
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1828,6 +1903,7 @@ degradation harness, action-type classification).
 | Blind holdout missed 2 of 5 targets; state check confused absent-from-record with outside-my-coverage (§26) | **Fixed and blind-confirmed 2026-07-31 (§27)**: CoverageScope per argument; false-UNSUPPORTED rate 0/3841 on a second blind set, accuracy 69.6% -> 92.2%. Residual: covered-domain discrimination unconfirmed on blind data (no untouched covered clusters exist), and uncovered domains accept 61.5% of corrupted identifiers. Formerly: identity ACCEPT 94.6% dev -> 0.0% holdout; discrimination gap 42.1 pp -> 0.0 pp; accuracy 91.9% -> 69.6%. Cause: state index covered airline+retail, holdout is telecom, so every identifier read as absent. argument_values_supported must return None outside its coverage, not False. Requires a new untouched holdout to confirm any fix | **High** |
 | Covered-domain discrimination unconfirmed on blind data (§28, §29) | **Confirmed under ideal conditions 2026-07-31 (§31)**: on a generated closed-world domain, identity ACCEPT 100% and wrong-argument ACCEPT 0%, gap 100 pp, admission-verified 100% judgeable. Necessary not sufficient — partial coverage, stale state, ambiguous scope and open-world absence are all absent by construction. Formerly: Track A on banking_knowledge was spent without testing the hypothesis — 836/942 wrong-argument episodes were unjudgeable because the index does not cover the arguments the tasks use. Next attempt must pre-register a minimum judgeable fraction as an admission criterion. Formerly: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
 | Coverage loss degrades discrimination, not validity (§32) | **Active (accepted characterization)**: honest declaration loss (hash mismatch, freshness refusal) yields 0 false-UNSUPPORTED but 50% wrong-arg accepts on read-only UNKNOWN; a falsely re-vouched truncated export rejects 17.1% of valid identifiers; a byte-identical stale snapshot rejects 85.7% and only the freshness bound catches it; cross-tenant accepts 0. Production posture per action type: autonomy on verified reads (baseline 100%), verification on writes (0% auto-accept — "assign"/"close"/"approve" were missing from the mutating-verb list, so A2's pooled 100% included 30 misclassified writes). Open mechanism study on generated degradations; field performance unmeasured | Medium (failure geometry, not field evidence) |
+| UNKNOWN-regime utility recovered via declared validators (§33) | **Addressed under study conditions 2026-07-31**: in the empty-index regime (no bulk export, every verdict UNKNOWN), declared point-lookup validator bindings take read completion 0% → 100% with all eight pre-registered safety targets at their bound (0 required-UNKNOWN auto-accepts, 0/90 corrupt accepts, 0 cross-tenant consultations, 0 budget overruns); freshness now mandatory for mutable declarations; per-fact attempt budget fixed. Validator is live-world-perfect by construction; production validators need their own false-absent check. Field performance unmeasured | Medium (mechanism confirmed, field pending) |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
