@@ -35,7 +35,8 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -54,6 +55,48 @@ from remora.toolcall.routing.tool_registry import ToolRegistry
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:\-]{2,64}$")
 
 
+class ArgumentValueStatus(str, Enum):
+    """What the system of record establishes about one argument value.
+
+    UNSUPPORTED is a claim about the world; UNKNOWN is a claim about our
+    evidence. Reporting the first when only the second holds is precisely the
+    §26 holdout failure.
+    """
+
+    SUPPORTED = "supported"
+    UNSUPPORTED = "unsupported"
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True)
+class CoverageScope:
+    """What an index is entitled to make negative claims about.
+
+    Coverage is per *argument*, not per domain. tau2's telecom state covers
+    ``plan_id`` and ``device_id`` while its tasks operate on ``customer_id`` and
+    ``line_id``, so a domain-level flag would call those covered and reproduce
+    §26 one level up.
+    """
+
+    domain: str
+    argument_names: frozenset[str]
+    #: Absence may only mean UNSUPPORTED when the index is complete for this
+    #: scope. Without that guarantee, absence is not evidence of absence.
+    closed_world: bool = True
+
+
+@dataclass(frozen=True)
+class ArgumentValueEvidence:
+    """The basis for a value verdict, so an envelope can show why, not just what."""
+
+    status: ArgumentValueStatus
+    domain: str
+    argument_name: str
+    coverage_complete: bool
+    closed_world: bool
+    reason: str
+
+
 @dataclass(frozen=True)
 class CallCompatibility:
     """What can be established about a proposed call's fit to the task.
@@ -67,6 +110,8 @@ class CallCompatibility:
     argument_values_supported: bool | None = None
     preconditions_met: bool | None = None
     expected_effect_matches: bool | None = None
+    #: The decisive value verdict and what it rested on.
+    value_evidence: ArgumentValueEvidence | None = None
 
 
 @dataclass(frozen=True)
@@ -80,33 +125,74 @@ class StateIndex:
     """
 
     values: frozenset[str]
+    #: What this index is entitled to make negative claims about.
+    scopes: tuple[CoverageScope, ...] = field(default_factory=tuple)
+
+    def status(
+        self, domain: str, argument_name: str, value: str
+    ) -> ArgumentValueStatus:
+        """What this index establishes about *value* for that domain/argument."""
+        scope = self._scope(domain, argument_name)
+        if scope is None:
+            return ArgumentValueStatus.UNKNOWN
+        if value in self.values:
+            return ArgumentValueStatus.SUPPORTED
+        if not scope.closed_world:
+            return ArgumentValueStatus.UNKNOWN
+        return ArgumentValueStatus.UNSUPPORTED
+
+    def _scope(self, domain: str, argument_name: str) -> CoverageScope | None:
+        for scope in self.scopes:
+            if scope.domain == domain and argument_name in scope.argument_names:
+                return scope
+        return None
+
+    def covers(self, domain: str, argument_name: str) -> bool:
+        return self._scope(domain, argument_name) is not None
 
     @classmethod
-    def from_values(cls, values: set[str]) -> StateIndex:
-        return cls(frozenset(v for v in values if isinstance(v, str) and v))
+    def from_values(
+        cls, values: set[str], scopes: tuple[CoverageScope, ...] = ()
+    ) -> StateIndex:
+        return cls(frozenset(v for v in values if isinstance(v, str) and v), scopes)
 
     @classmethod
     def from_json_files(cls, paths: list[Path]) -> StateIndex:
-        """Index every scalar string and dict key found in the given documents."""
-        collected: set[str] = set()
+        """Index scalar values, deriving coverage from the keys actually seen.
 
-        def walk(node: Any) -> None:
+        The domain is the file stem. An argument name counts as covered when the
+        document carries it as a key mapping to a scalar — the index knows what
+        it covers because it saw those keys, rather than being told.
+        """
+        collected: set[str] = set()
+        covered: dict[str, set[str]] = {}
+
+        def walk(node: Any, domain: str) -> None:
             if isinstance(node, dict):
                 for key, value in node.items():
                     if isinstance(key, str):
                         collected.add(key)
-                    walk(value)
+                        if isinstance(value, (str, int, float)) and not isinstance(
+                            value, bool
+                        ):
+                            covered.setdefault(domain, set()).add(key)
+                    walk(value, domain)
             elif isinstance(node, list):
                 for item in node:
-                    walk(item)
+                    walk(item, domain)
             elif isinstance(node, str):
                 collected.add(node)
             elif isinstance(node, (int, float)) and not isinstance(node, bool):
                 collected.add(str(node))
 
         for path in paths:
-            walk(json.loads(Path(path).read_text(encoding="utf-8")))
-        return cls.from_values(collected)
+            walk(json.loads(Path(path).read_text(encoding="utf-8")), Path(path).stem)
+
+        scopes = tuple(
+            CoverageScope(domain=d, argument_names=frozenset(names), closed_world=True)
+            for d, names in sorted(covered.items())
+        )
+        return cls.from_values(collected, scopes)
 
     def __len__(self) -> int:
         return len(self.values)
@@ -125,6 +211,7 @@ def compute_compatibility(
     args: dict[str, Any],
     registry: ToolRegistry,
     state: StateIndex,
+    domain: str = "",
 ) -> CallCompatibility:
     """Derive the establishable compatibility facts for one proposed call."""
     if not tool:
@@ -136,18 +223,49 @@ def compute_compatibility(
     else:
         roles_valid = all(param in args for param in signature.required_params)
 
-    identifiers = [v for v in args.values() if _is_identifier(v)]
-    if not state or not identifiers:
-        # With no system of record, or no identifier-shaped value to check,
-        # nothing can be *confirmed* unsupported.
-        values_supported: bool | None = None
+    # One confirmed-unsupported value is decisive. Otherwise the call counts as
+    # supported only if at least one value was actually judged: a call whose
+    # values all fall outside coverage is UNKNOWN, never "fine".
+    verdicts = [
+        (name, state.status(domain, name, value))
+        for name, value in args.items()
+        if _is_identifier(value)
+    ]
+    unsupported = [p for p in verdicts if p[1] is ArgumentValueStatus.UNSUPPORTED]
+    supported = [p for p in verdicts if p[1] is ArgumentValueStatus.SUPPORTED]
+
+    if unsupported:
+        name, status = unsupported[0]
+        reason = f"{name!r} absent from a closed-world index covering {domain!r}"
+    elif supported:
+        name, status = supported[0]
+        reason = f"{name!r} present in the index covering {domain!r}"
     else:
-        values_supported = all(state.contains(v) for v in identifiers)
+        name = verdicts[0][0] if verdicts else ""
+        status = ArgumentValueStatus.UNKNOWN
+        reason = (
+            f"no closed-world coverage for {domain!r}"
+            f"{'/' + repr(name) if name else ''}; absence is not evidence of absence"
+        )
+
+    scope_covered = bool(name) and state.covers(domain, name)
 
     return CallCompatibility(
         tool_matches_goal=None,
         argument_roles_valid=roles_valid,
-        argument_values_supported=values_supported,
+        argument_values_supported={
+            ArgumentValueStatus.SUPPORTED: True,
+            ArgumentValueStatus.UNSUPPORTED: False,
+            ArgumentValueStatus.UNKNOWN: None,
+        }[status],
         preconditions_met=None,
         expected_effect_matches=None,
+        value_evidence=ArgumentValueEvidence(
+            status=status,
+            domain=domain,
+            argument_name=name,
+            coverage_complete=scope_covered,
+            closed_world=scope_covered,
+            reason=reason,
+        ),
     )

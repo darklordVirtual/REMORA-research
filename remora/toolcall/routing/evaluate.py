@@ -122,6 +122,7 @@ def build_full_observation(
         args=episode.proposed_tool_args,
         registry=registry,
         state=state,
+        domain=episode.domain,
     )
 
     signature = registry.signatures.get(episode.proposed_tool_name or "")

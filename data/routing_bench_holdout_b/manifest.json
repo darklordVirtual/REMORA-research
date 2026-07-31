@@ -1,0 +1,30 @@
+{
+  "evaluated_all_targets_met": true,
+  "n_episodes": 3841,
+  "n_labelled": 2731,
+  "n_source_clusters": 300,
+  "note": "Discrimination between correct and corrupted identifiers is NOT a target here: without an authoritative source for this domain it is informationally impossible. What is tested is that the engine says UNKNOWN rather than inventing UNSUPPORTED.",
+  "schema": "routing_bench_holdout_track_b_v1",
+  "sha256": "a36d6c68a78411562c95ac216d7fb75f784255984696052d893379d1239f1caa",
+  "source": "tau2 telecom tasks.json, excluding development ids and every cluster spent on holdout v1",
+  "status": "evaluated",
+  "targets": {
+    "false_unsupported_rate": [
+      "==",
+      0.0
+    ],
+    "obtainable_verify_recall": [
+      ">=",
+      0.7
+    ],
+    "unknown_correctness": [
+      ">=",
+      1.0
+    ],
+    "unobtainable_abstain_recall": [
+      ">=",
+      0.7
+    ]
+  },
+  "track": "B \u2014 uncovered domain: telecom, whose authoritative state is deliberately absent from the index"
+}

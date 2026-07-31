@@ -29,6 +29,7 @@ import pytest
 
 from remora.toolcall.routing.compatibility import (
     CallCompatibility,
+    CoverageScope,
     StateIndex,
     compute_compatibility,
 )
@@ -49,9 +50,24 @@ def registry() -> ToolRegistry:
     )
 
 
+#: Coverage must be declared. §26: an index with no declared scope has no
+#: entitlement to a negative verdict, so these fixtures name what they cover.
+_SCOPE = (
+    CoverageScope(
+        domain="airline",
+        argument_names=frozenset(
+            {"reservation_id", "user_id", "flight_number", "note", "passengers"}
+        ),
+        closed_world=True,
+    ),
+)
+
+
 @pytest.fixture
 def state() -> StateIndex:
-    return StateIndex.from_values({"EHGLP3", "4WQ150", "emma_kim_9957", "HAT001"})
+    return StateIndex.from_values(
+        {"EHGLP3", "4WQ150", "emma_kim_9957", "HAT001"}, _SCOPE
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -64,13 +80,15 @@ def test_all_required_parameters_present(registry, state) -> None:
         args={"reservation_id": "EHGLP3"},
         registry=registry,
         state=state,
+        domain="airline",
     )
     assert c.argument_roles_valid is True
 
 
 def test_missing_required_parameter_is_detected(registry, state) -> None:
     c = compute_compatibility(
-        tool="get_reservation_details", args={}, registry=registry, state=state
+        tool="get_reservation_details", args={}, registry=registry, state=state,
+        domain="airline",
     )
     assert c.argument_roles_valid is False
 
@@ -78,7 +96,8 @@ def test_missing_required_parameter_is_detected(registry, state) -> None:
 def test_unregistered_tool_leaves_roles_unknown(registry, state) -> None:
     """Unknown must never read as a negative."""
     c = compute_compatibility(
-        tool="not_in_registry", args={"x": 1}, registry=registry, state=state
+        tool="not_in_registry", args={"x": 1}, registry=registry, state=state,
+        domain="airline",
     )
     assert c.argument_roles_valid is None
 
@@ -93,6 +112,7 @@ def test_identifier_present_in_authoritative_state_is_supported(registry, state)
         args={"reservation_id": "EHGLP3"},
         registry=registry,
         state=state,
+        domain="airline",
     )
     assert c.argument_values_supported is True
 
@@ -104,6 +124,7 @@ def test_identifier_absent_from_authoritative_state_is_unsupported(registry, sta
         args={"reservation_id": "EHGLP3_XX"},
         registry=registry,
         state=state,
+        domain="airline",
     )
     assert c.argument_values_supported is False
 
@@ -120,6 +141,7 @@ def test_detection_is_blind_to_how_the_wrong_value_was_made(registry, state) -> 
             args={"reservation_id": bogus},
             registry=registry,
             state=state,
+            domain="airline",
         )
         assert c.argument_values_supported is False, bogus
 
@@ -143,6 +165,7 @@ def test_prose_valued_argument_is_unknown_not_unsupported(registry, state) -> No
         args={"reservation_id": "the one I booked last Tuesday"},
         registry=registry,
         state=state,
+        domain="airline",
     )
     assert c.argument_values_supported is None
 
@@ -154,6 +177,7 @@ def test_empty_state_index_leaves_values_unknown(registry) -> None:
         args={"reservation_id": "anything"},
         registry=registry,
         state=StateIndex.from_values(set()),
+        domain="airline",
     )
     assert c.argument_values_supported is None
 
@@ -170,6 +194,7 @@ def test_non_identifier_values_are_not_checked(registry, state) -> None:
               "note": "window seat please", "passengers": 2},
         registry=registry,
         state=state,
+        domain="airline",
     )
     assert c.argument_values_supported is True
 
@@ -189,6 +214,7 @@ def test_semantic_fields_are_none_not_guessed(registry, state) -> None:
         args={"reservation_id": "EHGLP3"},
         registry=registry,
         state=state,
+        domain="airline",
     )
     assert c.tool_matches_goal is None
     assert c.preconditions_met is None
@@ -211,25 +237,25 @@ def test_single_token_values_are_checked_even_without_digits(registry) -> None:
     "Boston" can be looked up in a system of record, "window seat please"
     cannot.
     """
-    state = StateIndex.from_values({"Boston", "EHGLP3"})
+    state = StateIndex.from_values({"Boston", "EHGLP3"}, _SCOPE)
     supported = compute_compatibility(
         tool="get_reservation_details", args={"reservation_id": "Boston"},
-        registry=registry, state=state,
+        registry=registry, state=state, domain="airline",
     )
     assert supported.argument_values_supported is True
 
     corrupted = compute_compatibility(
         tool="get_reservation_details", args={"reservation_id": "Boston_XX"},
-        registry=registry, state=state,
+        registry=registry, state=state, domain="airline",
     )
     assert corrupted.argument_values_supported is False
 
 
 def test_multi_word_prose_is_still_not_judged(registry) -> None:
-    state = StateIndex.from_values({"Boston"})
+    state = StateIndex.from_values({"Boston"}, _SCOPE)
     c = compute_compatibility(
         tool="get_reservation_details",
         args={"reservation_id": "Boston", "note": "please seat me by the window"},
-        registry=registry, state=state,
+        registry=registry, state=state, domain="airline",
     )
     assert c.argument_values_supported is True
