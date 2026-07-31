@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 import re
 import subprocess
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 class Violation(str, Enum):
     UNBACKED_CLAIM = "unbacked_claim"
@@ -164,4 +164,3 @@ def run_docs_gate(root: Path) -> GateResult:
             result.add(Violation.DOC_UNREGISTERED, rel_path)
 
     return result
-

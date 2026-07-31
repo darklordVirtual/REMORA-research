@@ -168,7 +168,7 @@ def build_tasks(db: dict, rng: random.Random) -> list[dict]:
     return tasks
 
 
-def serialize_snapshot(db: dict) -> bytes:
+def serialize_snapshot(db: object) -> bytes:
     """The canonical snapshot bytes a coverage declaration binds to."""
     return (json.dumps(db, indent=1, sort_keys=True) + "\n").encode("utf-8")
 

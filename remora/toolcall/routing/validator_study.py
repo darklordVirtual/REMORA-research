@@ -203,14 +203,16 @@ def _run_arm(study: Study, *, with_validators: bool) -> dict[str, Any]:
         for e, o in outcomes
         if o.plan is not None and o.plan.resolver == "argument_validation"
     ]
-    correct = sum(
-        1
-        for e, o in planned
+    correct = 0
+    for _, outcome in planned:
+        plan = outcome.plan
+        if plan is None:
+            continue
         if all(
             tool == _BINDINGS.get(role)
-            for role, tool in zip(o.plan.target_arguments, o.plan.source_tools)
-        )
-    )
+            for role, tool in zip(plan.target_arguments, plan.source_tools)
+        ):
+            correct += 1
 
     initial_accepts = sum(
         1

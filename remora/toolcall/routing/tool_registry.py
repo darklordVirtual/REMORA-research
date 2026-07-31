@@ -33,6 +33,7 @@ import re
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import cast
 
 #: Verbs stripped from a function name to derive what it produces:
 #: ``get_current_timestamp`` -> ``timestamp``.
@@ -85,7 +86,7 @@ class ToolRegistry:
     def __contains__(self, tool: str) -> bool:
         return tool in self.signatures
 
-    def to_json_dict(self) -> dict[str, dict[str, list[str]]]:
+    def to_json_dict(self) -> dict[str, dict[str, object]]:
         """Sorted, committable form — so CI can hold the registry a test needs
         without depending on the gitignored extraction cache."""
         return {
@@ -112,20 +113,30 @@ class ToolRegistry:
         }
 
     @classmethod
-    def from_json_dict(cls, d: dict[str, dict[str, list[str]]]) -> "ToolRegistry":
+    def from_json_dict(cls, d: Mapping[str, Mapping[str, object]]) -> "ToolRegistry":
         return cls(
             {
                 name: ToolSignature(
                     name=name,
-                    required_params=tuple(entry["required_params"]),
-                    produced_names=tuple(entry["produced_names"]),
-                    effect=entry.get("effect"),
+                    required_params=tuple(
+                        cast(Sequence[str], entry.get("required_params", ()))
+                    ),
+                    produced_names=tuple(
+                        cast(Sequence[str], entry.get("produced_names", ()))
+                    ),
+                    effect=(
+                        cast(str, entry["effect"])
+                        if isinstance(entry.get("effect"), str)
+                        else None
+                    ),
                     param_values=(
                         {
                             k: tuple(v)
-                            for k, v in entry["param_values"].items()
+                            for k, v in cast(
+                                Mapping[str, Sequence[str]], entry["param_values"]
+                            ).items()
                         }
-                        if entry.get("param_values")
+                        if isinstance(entry.get("param_values"), Mapping)
                         else None
                     ),
                 )
