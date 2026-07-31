@@ -22,11 +22,11 @@ The invariants under attack:
 from __future__ import annotations
 
 import json
+import random
+import string
 from pathlib import Path
 
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
 
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.report import DecisionAction
@@ -371,29 +371,36 @@ def test_airline_corrupted_identifiers_never_accept() -> None:
 # ---------------------------------------------------------------------------
 # Property sweep — no corruption shape survives
 # ---------------------------------------------------------------------------
+#
+# Seeded rather than hypothesis-driven: the repo's CI is deterministic by
+# policy, and a fixed seed makes every run test the identical corpus. The
+# alphabet matches the identifier grammar the compatibility layer accepts.
 
-@settings(max_examples=60, deadline=None)
-@given(
-    corruption=st.text(
-        alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.:-",
-        min_size=1,
-        max_size=24,
-    )
-)
-def test_no_corrupted_identifier_ever_accepts(corruption: str) -> None:
+_ALPHABET = string.ascii_letters + string.digits + "_.:-"
+
+
+def _corruption_corpus(n: int = 120, seed: int = 20260731) -> list[str]:
+    rng = random.Random(seed)
+    corpus = [
+        "V-" + "".join(rng.choice(_ALPHABET) for _ in range(rng.randint(1, 24)))
+        for _ in range(n)
+    ]
+    # Boundary shapes a random draw is unlikely to produce.
+    corpus += ["V-0001_XX", "V-0001 ", " V-0001", "V-00010", "V-000", "V--0001"]
+    return [value for value in corpus if value not in LIVE["vehicle_id"]]
+
+
+@pytest.mark.parametrize("value", _corruption_corpus())
+def test_no_corrupted_identifier_ever_accepts(value: str) -> None:
     """For any identifier-shaped corruption that is not the live value, the
     final decision is never ACCEPT — regardless of the corruption's shape,
     so the guarantee cannot be an artifact of the _XX generator."""
-    value = f"V-{corruption}"
-    if value in LIVE["vehicle_id"]:
-        return  # collided with a genuinely valid identifier
     episode = _episode(args={"vehicle_id": value})
     outcome = _outcome(episode)
     assert outcome.final_report.action is not DecisionAction.ACCEPT
 
 
-@settings(max_examples=20, deadline=None)
-@given(valid=st.sampled_from(sorted(LIVE["vehicle_id"])))
+@pytest.mark.parametrize("valid", sorted(LIVE["vehicle_id"]))
 def test_every_live_identifier_completes(valid: str) -> None:
     episode = _episode(args={"vehicle_id": valid})
     outcome = _outcome(episode)
