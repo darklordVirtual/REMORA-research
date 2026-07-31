@@ -1,0 +1,15 @@
+{
+  "files": {
+    "telecom_holdout.jsonl": {
+      "sha256": "fa45db2783331a2d1012823529a09c4f04df90a5fcecde3de0676097cd3745f1"
+    }
+  },
+  "n_episodes": 5580,
+  "n_labelled": 3720,
+  "n_source_clusters": 300,
+  "schema": "routing_bench_holdout_v1",
+  "sha256": "fa45db2783331a2d1012823529a09c4f04df90a5fcecde3de0676097cd3745f1",
+  "source": "tau2 telecom tasks.json, excluding every task in tasks_small.json",
+  "source_commit": "363133ada1936491fb5bcec33cd62c3518a99f65",
+  "status": "sealed_never_run"
+}

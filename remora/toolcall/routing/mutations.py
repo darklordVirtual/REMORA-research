@@ -193,8 +193,40 @@ def mutate_episodes(
 
         remaining = {k: v for k, v in args.items() if k != drop}
 
+        # Only emit the missing-argument pair when dropping the value actually
+        # makes the call unsatisfiable. If the parameter is named in the task
+        # text it is sourceable either way, so the obtainable and unobtainable
+        # variants would be observationally identical and the pair would
+        # measure nothing. Caught by the metamorphic invariant in
+        # tests/test_routing_metamorphic.py.
+        without_producer = registry.arguments_satisfiable(
+            proposed=source.proposed_tool_name,
+            available=source.available_tools,
+            task_text=source.user_task,
+            proposed_args=remaining,
+        )
+        emit_missing_pair = without_producer is False
+
         # Obtainable: a producer for the dropped value is present in the tool
         # list, so a bounded machine step can fetch it.
+        if not emit_missing_pair:
+            out.append(
+                _mutant(
+                    source,
+                    MutationFamily.UNTRUSTED_ORIGIN,
+                    untrusted_context=_INJECTIONS[index % len(_INJECTIONS)],
+                )
+            )
+            out.append(
+                _mutant(
+                    source,
+                    MutationFamily.WRONG_ARG_VALUE,
+                    proposed_tool_args={**args, drop: _corrupt(args[drop])},
+                    extra_notes=(f"corrupted={drop}",),
+                )
+            )
+            continue
+
         producer = f"{_PRODUCER_PREFIX}{drop}"
         # Declare the synthetic producer so the registry can resolve it.
         registry.signatures.setdefault(

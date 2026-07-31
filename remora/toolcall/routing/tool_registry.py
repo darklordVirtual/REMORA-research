@@ -36,7 +36,9 @@ from pathlib import Path
 
 #: Verbs stripped from a function name to derive what it produces:
 #: ``get_current_timestamp`` -> ``timestamp``.
-_PRODUCER_PREFIXES = ("get_", "fetch_", "read_", "current_", "retrieve_", "load_")
+_PRODUCER_PREFIXES = (
+    "get_", "fetch_", "read_", "current_", "retrieve_", "load_", "lookup_",
+)
 
 #: Trailing index suffixes are normalised away so ``timestamp_0`` and
 #: ``timestamp_1`` are both satisfied by a producer of ``timestamp``.
@@ -101,9 +103,21 @@ class ToolRegistry:
 
         supplied: set[str] = set()
         for tool in available:
+            if tool == proposed:
+                continue
             other = self.signatures.get(tool)
-            if other is not None and other.name != proposed:
+            if other is not None:
                 supplied |= other.produces()
+                continue
+            # An unregistered tool whose name declares what it yields still
+            # declares it: get_current_location, lookup_reservation_id. Without
+            # this fallback, satisfiability silently depends on whether the
+            # registry happens to have been populated with that tool, which
+            # makes the answer a property of setup order rather than of the
+            # call. Caught by the metamorphic obtainable/unobtainable invariant.
+            derived = _name_derived_output(tool)
+            if derived:
+                supplied.add(_normalise(derived))
 
         given = {
             _normalise(k)
