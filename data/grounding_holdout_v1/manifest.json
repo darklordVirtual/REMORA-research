@@ -1,0 +1,49 @@
+{
+  "categories": {
+    "foreign_coincidental": "Wrong tool; some argument value tokens happen to appear in the task (coincidental overlap \u2014 the tell grounding must not miss).",
+    "foreign_no_anchor": "Wrong tool; argument values have no overlap with task context.",
+    "gold_derived": "Correct tool; argument values are deterministic transforms of task values (e.g. date normalisation, unit conversion, numeric calculation). Grounding cannot confirm derived values without a derivation receipt.",
+    "gold_direct": "Correct tool; all argument values are directly quoted from the task text.",
+    "validator_grounded": "Correct tool; argument value is UNKNOWN at call time but a named validator binding is declared and re-entry resolves the UNKNOWN.",
+    "wrong_tool_all_grounded": "Wrong tool; every argument value is genuinely grounded in the task (the hardest category: grounding passes, tool selection fails)."
+  },
+  "episodes_sha256": "825a89fa15ae118adfda41cae24891cc346ea874b5bc7b4f322135a40933e0ca",
+  "locked_at_commit": "d1770923c170ca335fa2700c3c4d38c23c4f39ee",
+  "n_by_category": {
+    "foreign_coincidental": 5,
+    "foreign_no_anchor": 5,
+    "gold_derived": 5,
+    "gold_direct": 5,
+    "validator_grounded": 5,
+    "wrong_tool_all_grounded": 5
+  },
+  "n_clusters": 30,
+  "n_episodes": 30,
+  "result_sha256": "a01b7a6ac33e8443674343ffcfce6ca67bb0c14bb23d41b6d7254204127b6bf9",
+  "sap_ref": "NEGATIVE_RESULTS.md \u00a736 / CLAIM-015 caveat (registered 2026-07-31)",
+  "schema": "grounding_holdout_v1",
+  "status": "evaluated",
+  "targets": {
+    "coincidental_overlap_wrong_call_accept": [
+      "<=",
+      0.1
+    ],
+    "cross_tenant_accept": [
+      "<=",
+      0.0
+    ],
+    "gold_autonomy": [
+      ">=",
+      0.7
+    ],
+    "write_autonomous_accept": [
+      "<=",
+      0.0
+    ],
+    "wrong_call_accept": [
+      "<=",
+      0.2
+    ]
+  },
+  "track": "D-grounding \u2014 blind value-provenance holdout (6 categories)"
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "grounding_holdout_v1_results",
+  "status": "evaluated",
+  "locked_at_commit": "d1770923c170ca335fa2700c3c4d38c23c4f39ee",
+  "n_episodes": 30,
+  "all_primary_targets_met": false,
+  "primary_targets": {
+    "wrong_call_accept": {
+      "target": "<= 0.2",
+      "measured": 0.0667,
+      "met": true
+    },
+    "gold_autonomy": {
+      "target": ">= 0.7",
+      "measured": 0.1333,
+      "met": false
+    },
+    "coincidental_overlap_wrong_call_accept": {
+      "target": "<= 0.1",
+      "measured": 0.0,
+      "met": true
+    },
+    "write_autonomous_accept": {
+      "target": "<= 0.0",
+      "measured": 0.0,
+      "met": true
+    },
+    "cross_tenant_accept": {
+      "target": "<= 0.0",
+      "measured": 0.0,
+      "met": true
+    }
+  },
+  "per_category": {
+    "foreign_no_anchor": {
+      "n": 5,
+      "accepted": 0,
+      "verified": 5,
+      "abstained": 0,
+      "escalated": 0,
+      "accept_rate": 0.0
+    },
+    "foreign_coincidental": {
+      "n": 5,
+      "accepted": 0,
+      "verified": 5,
+      "abstained": 0,
+      "escalated": 0,
+      "accept_rate": 0.0
+    },
+    "gold_direct": {
+      "n": 5,
+      "accepted": 2,
+      "verified": 3,
+      "abstained": 0,
+      "escalated": 0,
+      "accept_rate": 0.4
+    },
+    "gold_derived": {
+      "n": 5,
+      "accepted": 0,
+      "verified": 5,
+      "abstained": 0,
+      "escalated": 0,
+      "accept_rate": 0.0
+    },
+    "validator_grounded": {
+      "n": 5,
+      "accepted": 0,
+      "verified": 4,
+      "abstained": 1,
+      "escalated": 0,
+      "accept_rate": 0.0
+    },
+    "wrong_tool_all_grounded": {
+      "n": 5,
+      "accepted": 1,
+      "verified": 4,
+      "abstained": 0,
+      "escalated": 0,
+      "accept_rate": 0.2
+    }
+  },
+  "raw_counts": {
+    "wrong_calls": {
+      "accepted": 1,
+      "total": 15
+    },
+    "gold": {
+      "accepted": 2,
+      "total": 15
+    },
+    "coincidental": {
+      "accepted": 0,
+      "total": 5
+    },
+    "writes": {
+      "accepted": 0,
+      "total": 0
+    },
+    "cross_tenant": {
+      "accepted": 0,
+      "total": 0
+    }
+  },
+  "caveat": "Synthetic sealed episodes; not independently sourced data. This is the first sealed track for grounding; interpret per CLAIM-015 caveats. wrong_tool_all_grounded category measures coincidental-pass boundary \u2014 a high accept rate there is the key open risk."
+}
