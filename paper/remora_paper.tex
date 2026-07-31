@@ -13,7 +13,7 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{graphicx}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 % xurl = url with break points after every character class, so long
 % URLs and \path tokens wrap inside the narrow two-column measure
 % instead of protruding into the margin.
@@ -112,7 +112,9 @@ no probabilistic score can override; and every action leaves the gate
 as one of four auditable outcomes: \textsc{accept}, \textsc{verify},
 \textsc{abstain}, or \textsc{escalate}.
 
-The central finding is about \emph{where the safety comes from}. On a
+We report three findings.
+
+\textbf{First, autonomous safety needs a deterministic floor.} On a
 leakage-controlled tool-call benchmark, REMORA's full policy gate
 produced zero simulated unsafe acceptances with significantly higher
 decision utility and accuracy than heuristic baselines (mean utility
@@ -121,24 +123,51 @@ ablation shows the zero is attributable entirely to the deterministic
 hard rules, not to the multi-model voting machinery. Under an
 intent-gating protocol on 208 independently sourced AgentHarm scenarios
 \cite{andriushchenko2024agentharm}, the same rule set produced zero
-false authorizations. The probabilistic machinery instead contributes
-routing quality: a critical-phase evidence router resolves 38.5\% of
-high-uncertainty cases at 100\% precision ($N=304$), and selective
-answering on a 544-item QA benchmark reached 88.8\% accuracy at 18\%
-coverage against 41.2\% for majority vote. Two further findings
-constrain how much trust to place in model signals: model confidence
-\emph{anticorrelates} with correctness exactly in the
-high-disagreement phase where routing matters most, and a
-pre-registered round on 1{,}231 fresh items failed to confirm our
-temperature-based selection signal, which is therefore retained only
-as a logged diagnostic.
+false authorizations. Probabilistic consensus improves routing; it
+cannot override policy.
+
+\textbf{Second, unknown state is a resolution problem, not a verdict.}
+Absence of a record without a declared completeness guarantee is
+\textsc{unknown}, not \textsc{unsupported}. We make that distinction
+operational: a \textsc{verify} must name an actual bounded lookup and be
+followed by full re-entry of the whole router on a fresh observation, or
+it degrades to \textsc{abstain}---promising a verification that cannot
+happen is worse than stopping. Under study conditions this recovers read
+utility from 0\% to 100\% in a regime where every value verdict is
+\textsc{unknown}, with zero corrupt-identifier acceptances and zero
+cross-tenant lookups.
+
+\textbf{Third, and most consequential: call validity is not task
+correctness.} On sealed external data evaluated once (BFCL v3, 1{,}509
+episodes over 515 clusters) four of five pre-registered targets were met,
+but \textbf{86.8\% of well-formed \emph{wrong} calls were accepted}
+against a $\leq 20\%$ target. A substituted call carrying its own
+complete, sourced arguments gives structural signals nothing to
+distrust, and an aggregate routing accuracy of 94.0\% concealed the
+failure entirely. An argument-value provenance signal cuts this to
+11.6\%---but on development data, and a residue survives because some
+values coincide with the task by chance. We therefore state as an
+architectural result that \emph{structural validity and semantic
+correctness are independent properties, and the governance signals that
+establish the first cannot establish the second}. This is not a
+threshold to tune: there is no threshold on a signal that does not carry
+the information.
+
+Two further findings constrain how much trust to place in model signals:
+model confidence \emph{anticorrelates} with correctness exactly in the
+high-disagreement phase where routing matters most, and a pre-registered
+round on 1{,}231 fresh items failed to confirm our temperature-based
+selection signal, which is therefore retained only as a logged
+diagnostic.
 
 Key limitations: the entropy observable is computed by a
 token-fingerprint proxy rather than full semantic entropy over NLI
 clusters; the QA benchmark is partly author-curated; semantic evidence
-retrieval is pluggable but not live; and the audit hash chain is
-tamper-evident, not tamper-proof, without external append-only
-storage. REMORA is a governed autonomy layer, not a replacement for
+retrieval is pluggable but not live; the audit hash chain is
+tamper-evident, not tamper-proof, without external append-only storage;
+and the task--tool compatibility authority that would close the
+wrong-call residue is implemented but \emph{unmeasured}, because the
+blind set that exposed the gap is spent. REMORA is a governed autonomy layer, not a replacement for
 domain authority. The system is \texttt{SHADOW\_ONLY}: benchmarks are
 internal or simulator-scoped, and external replication with
 independently withheld labels is pending.
@@ -394,6 +423,62 @@ are not deep-frozen) records: request, assessment, gate, reviewer
 context, follow-up request, case history, policy-learning candidate,
 and audit hash-chain entry.
 
+
+\subsection{The Argument-Resolution Ladder}
+\label{sec:resolution-ladder}
+
+The six stages above describe how an action reaches a verdict. They do not
+describe what the engine reasons about when the action is well-formed but the
+\emph{state it refers to} is uncertain --- which, in operational deployments,
+is the common case. That reasoning is a distinct ladder, evaluated after every
+blocking gate so it can only ever make a would-be \textsc{accept} more
+cautious, never unblock one:
+
+\begin{enumerate}\setlength{\itemsep}{1pt}
+\item \textbf{Authoritative tool metadata.} Effect, risk class, resource type
+  and validator bindings come from a server-side registry. A caller may raise
+  risk, never lower it. Verb heuristics are a fallback for unregistered tools
+  only --- a lesson learned when \texttt{assign}, \texttt{close} and
+  \texttt{approve} were absent from a mutating-verb list and thirty writes
+  scored as reads.
+\item \textbf{Coverage declaration.} A state index may not infer its own
+  completeness. Closed-world authority is a signed, curator-bound declaration
+  scoped per argument role, with a snapshot hash, an as-of date and a
+  freshness bound. Without it, absence means \textsc{unknown}.
+\item \textbf{Tenant, hash and freshness binding.} A declaration that does not
+  match the snapshot it claims, or that has aged past its bound, is refused
+  rather than trusted. Cross-tenant consultation is refused outright.
+\item \textbf{Argument support.} Does the system of record contain this value?
+  Tri-state: present, confirmed absent, or outside coverage. Unknown must
+  never behave like a negative.
+\item \textbf{Value grounding.} Are the argument values traceable to
+  \emph{this} task --- named in the task text, declared by the tool's own
+  schema, or vouched for by the system of record? A call whose values anchor
+  to nothing here is observationally a foreign call.
+\item \textbf{Validation requirement.} An argument that steers where the action
+  lands must be confirmed before autonomy, decided by what the argument
+  \emph{does} rather than by whether an index happens to cover it.
+\item \textbf{Resolver availability.} If a bounded lookup can close the gap, the
+  verdict is \textsc{verify} carrying a \texttt{ResolutionPlan} that names the
+  resolver, the exact arguments it may write, and the sources permitted to
+  supply them. If no resolver exists, the verdict is \textsc{abstain}:
+  promising a verification that cannot happen is worse than stopping.
+\item \textbf{Validator execution and full re-entry.} The resolver returns one
+  value and hands control back. It never performs the original call and cannot
+  redirect it. The \emph{whole} router then re-runs on a fresh observation, so
+  every guard applies again to the resolved call rather than being patched
+  around.
+\item \textbf{Read/write posture.} A verified read may proceed autonomously; a
+  write does not, whatever the state evidence says.
+\end{enumerate}
+
+This ladder, not the consensus machinery, is what the operational results in
+\S\ref{sec:routing-blind}--\S\ref{sec:wrongcall-implication} measure. Its
+tri-state discipline is the recurring commitment: \textsc{unknown} is a first-class
+verdict distinct from \textsc{unsupported}, and a signal that cannot be established
+is left absent rather than guessed --- a fabricated boolean enters the policy
+contract as fact, while \texttt{None} correctly says nothing establishes this.
+
 % =====================================================================
 \section{Method: Thermodynamic-Inspired Uncertainty Observables}
 \label{sec:method}
@@ -563,7 +648,7 @@ condition is met.
 
 \subsection{OPA/Rego Integration}
 
-REMORA exports a 57-field \texttt{PolicyObservation} dataclass as
+REMORA exports a 67-field \texttt{PolicyObservation} dataclass as
 JSON to the OPA endpoint. On any communication error (connection
 refused, timeout, parse failure), the Python fallback engine applies
 identical rules and records \texttt{source\_of\_decision =
@@ -682,70 +767,14 @@ and fully tested (25 unit tests).
 \subsection{Conformal Risk Control Under Covariate Shift}
 \label{sec:crc}
 
-Standard Mondrian conformal calibration assumes that calibration and
-test samples are \emph{exchangeable} — drawn i.i.d.\ from the same
-distribution.  This assumption is violated in the critical phase: the
-joint distribution $(\tau, \text{correct})$ differs structurally
-between ordered-phase calibration items and critical-phase test items
-due to the trust-score inversion documented above.  Empirically,
-applying standard conformal to critical-phase items yields 100\%
-observed risk and zero coverage.
-
-REMORA addresses this with a \textbf{weighted empirical selective
-router} \emph{inspired by} Conformal Risk Control (CRC,
-\cite{angelopoulos2022crc}) but --- important --- \emph{not
-implementing the CRC procedure} (see below).  Each calibration item $i$
-receives an importance weight $w_i = p_{\text{test}}(x_i) /
-p_{\text{cal}}(x_i)$.  For REMORA's phase shift, we use the
-hand-tuned estimate
-
-\begin{equation}
-  w_i = \begin{cases} 1.0 & \text{if phase}(i) = p_{\text{test}} \\
-                      \beta & \text{otherwise} \end{cases}
-  \qquad (\beta = 0.10)
-  \label{eq:phase_weights}
-\end{equation}
-
-The selector picks the \emph{smallest} threshold $\hat{\lambda}$ (i.e.\
-maximum coverage) such that the weighted empirical risk
-$\bar{L}(\lambda) = \sum_i \tilde{w}_i \ell_i(\lambda) \leq \alpha$,
-with $\tilde{w}_i = w_i / \sum_j w_j$ normalised over the calibration
-items.
-
-\begin{theorem}[CRC Guarantee, Angelopoulos et al.\ 2022 --- stated for
-context; not instantiated by the implementation]
-For any monotone loss $\ell : [0,1] \to [0,B]$, target risk
-$\alpha \in (0,B)$, and correctly-specified importance weights:
-\[
-  \mathbb{E}[L(\hat{\lambda})] \leq \alpha + \frac{B}{n+1}
-\]
-where $n$ is the calibration set size.
-\end{theorem}
-
-\textbf{Non-applicability.} The implemented selector does not
-instantiate this theorem, for two structural reasons no weight
-specification can repair (external review R3-01): (a)~its threshold
-rule applies the raw constraint $\bar{L}(\lambda) \leq \alpha$ with no
-$B/(n+1)$ finite-sample term and no test-point weight $w_{n+1}$;
-(b)~the controlled quantity --- the conditional error rate among
-accepted items --- is not monotone in $\lambda$, so Theorem~1 does not
-attach even with valid density-ratio weights. In addition,
-$\beta = 0.10$ is a hand-tuned constant, not a density ratio
-\cite{tibshirani2019conformal}. All quality evidence for this component is
-empirical (repeated-split holdout results).
-
-The component is implemented as
-\path{remora.selective.crc.WeightedEmpiricalSelectiveRouter}
-(formerly \texttt{CovariateShiftCRC}, retained as an alias) with a
-\texttt{fit(scores, labels, phases, target\_phase)} interface
-compatible with \texttt{ConformalPhaseGuardrail}.  A \texttt{CRCReport}
-dataclass exposes \texttt{finite\_sample\_slack} ($= 1/(n_{\text{cal}}+1)$)
-and \texttt{nominal\_risk\_bound} ($= \alpha + \text{slack}$) as
-informational reference values (not applicable bounds), plus
-\texttt{holdout\_risk} (plain unweighted holdout count). The module is
-fully tested (45 unit tests) and is an
-offline research component, not invoked by the reference API.
-
+A weighted split-conformal router inspired by Conformal Risk Control is
+implemented and tested, but it is an offline research component: the
+reference API does not invoke it, and the implementation does not
+instantiate the CRC theorem's hypotheses, so its output is a heuristic
+bound rather than a certified one. Because it is neither part of the
+operative architecture nor a valid instance of the formal method, the
+derivation, the theorem statement, and the reasons no reweighting repairs
+the gap are given in Appendix~\ref{app:crc} rather than here.
 
 \subsection{PVD-Inspired Offline Agreement Score for Critical-Phase Routing}
 \label{sec:pvd}
@@ -1388,47 +1417,64 @@ SHA and per-file SHA-256 checksums, uploaded as one
 \section{Conclusion}
 \label{sec:conclusion}
 
-We presented REMORA, a policy-gated multi-oracle assurance architecture
-for governing agentic AI actions. The central contribution is a
-system-level design that converts multi-oracle disagreement,
-thermodynamic uncertainty observables, evidence signals, and policy
-constraints into four structured gate outcomes with a full audit record.
+We presented REMORA, a policy-gated assurance architecture for governing
+agentic AI actions before they execute. Three results carry the paper,
+and the third is the one we would most like the field to take up.
 
-Key results: 0\% unsafe acceptances on a leakage-remediated adversarial
-tool-call simulation (700 rows; effective $N=70$ clusters; cluster-level
-Wilson CI [0.0\%, 5.2\%]; baselines 1.4\%, difference not significant at
-$p=0.50$; the significant gains are utility $+0.456$ and accuracy);
-88.8\% in-sample selective accuracy at 18\% coverage on the retired Groq
-round (its held-out split gave 88.0\%, $N_\text{accepted}=25$; the current
-cross-family clean round gives 100.0\% at 16.7\%, $N_\text{accepted}=18$,
-$p=0.052$, directional only) --- but the SAP v3 fresh-data round
-\emph{failed to confirm} the consensus-temperature selection signal
-(\S\ref{sec:negative}), so temperature is a diagnostic, not a validated
-selector; 38.5\%
-critical-phase resolution with 100\% evidence-accept precision; 99.9\%
-ordered-phase conformal coverage with 0/20 seed failures.
+\textbf{Autonomous safety needs a deterministic floor.} The
+0\% unsafe-acceptance result (700 rows; effective $N=70$ clusters;
+cluster-level Wilson CI [0.0\%, 5.2\%]; baselines 1.4\%, difference not
+significant at $p=0.50$; the significant gains are utility $+0.456$ and
+accuracy) is attributable \emph{entirely} to deterministic hard blocks,
+not to the multi-oracle consensus machinery. We state this against our
+own interest: the probabilistic architecture that gives the system its
+name is not what produces its headline safety number. It contributes
+routing quality, and that is a different claim requiring different
+evidence.
 
-Key negative findings: trust alone cannot route critical-phase decisions
-safely; $\chi$-proxy susceptibility fails as a difficulty predictor
-(AUC = 0.39); evidence retrieval is currently proxy-based; the benchmark
-has structural composition biases; entropy computation in reported
-experiments uses a token-fingerprint heuristic, not full Semantic Entropy
-over NLI clusters. A central architectural finding is that the
-0\% unsafe-acceptance floor is entirely attributable to deterministic policy
-hard blocks, not to the multi-oracle consensus machinery---the
-latter contributes routing calibration quality.
+\textbf{Unknown state is a resolution problem.} Absence without declared
+completeness is \textsc{unknown}, not \textsc{unsupported}; a
+\textsc{verify} that cannot name a bounded lookup degrades to
+\textsc{abstain}; and a resolved value re-enters the whole router rather
+than patching the prior decision. Under study conditions this recovers
+read utility from 0\% to 100\% in the all-\textsc{unknown} regime with
+zero corrupt-identifier acceptances, zero cross-tenant lookups, and
+writes held at \textsc{verify} throughout.
 
-REMORA is a research-grade prototype. Production deployment requires
-semantic evidence retrieval, WORM audit storage, OPA policy integration,
-and domain-authority validation. The architecture is designed to be
-pluggable: each component can be replaced without changing the gate
-interface.
+\textbf{Call validity is not task correctness.} On sealed external data
+evaluated once, four of five pre-registered targets were met and the
+fifth was missed at \textbf{86.8\%} against a $\leq 20\%$ bar: well-formed
+calls for the \emph{wrong} tool were accepted, because every structural
+signal was satisfied. An aggregate routing accuracy of 94.0\% concealed
+this completely --- which is the methodological argument for
+pre-registering per-axis targets rather than a single score. Value
+provenance cuts the rate to 11.6\% on development data at a measured
+utility cost (86.1\% $\rightarrow$ 56.8\% legitimate read autonomy), and a
+residue survives on coincidental value overlap. We therefore report as an
+architectural result that \emph{structural validity and semantic
+correctness are independent properties, and the governance signals that
+establish the first cannot establish the second}. No threshold recovers
+information a signal does not carry. The authority this requires ---
+declared tool effect contracts matched against a task intent that a model
+may propose but not assert --- is implemented and \textbf{unmeasured}; the
+blind set that exposed the gap is spent, and confirming the fix needs a
+new one.
 
-The broader thesis---that governed autonomy requires explicit uncertainty
-routing, not suppression---is supported by both positive results and
-negative findings. We offer REMORA as a reference architecture, an
-empirical baseline, and a documented set of unsolved problems for the
-AI assurance community.
+Key negative findings retained in full: trust anticorrelates with
+correctness in the critical phase; the $\chi$-proxy fails as a difficulty
+predictor (AUC $=0.39$); a pre-registered fresh-data round falsified the
+consensus-temperature selection signal, which is retained only as a
+diagnostic; evidence retrieval is proxy-based; entropy uses a
+token-fingerprint heuristic rather than semantic entropy over NLI
+clusters; and the AgentHarm run blocked every benign counterpart as well
+as every harmful one.
+
+REMORA is a research-grade prototype, \texttt{SHADOW\_ONLY}, with
+external replication pending. We offer it as a reference architecture, an
+empirical baseline, and --- in the wrong-call axis specifically --- a
+documented open problem we believe is more general than this system:
+any gate that reasons only about the well-formedness of a proposed action
+will accept well-formed actions that serve the wrong goal.
 
 % =====================================================================
 \section*{Acknowledgements}
@@ -1705,6 +1751,76 @@ ZK assurance proofs & Planned & No & Stubbed \\
 \bottomrule
 \end{tabular}}
 \end{table}
+
+\section{Conformal Risk Control Under Covariate Shift (offline component)}
+\label{app:crc}
+
+
+Standard Mondrian conformal calibration assumes that calibration and
+test samples are \emph{exchangeable} — drawn i.i.d.\ from the same
+distribution.  This assumption is violated in the critical phase: the
+joint distribution $(\tau, \text{correct})$ differs structurally
+between ordered-phase calibration items and critical-phase test items
+due to the trust-score inversion documented above.  Empirically,
+applying standard conformal to critical-phase items yields 100\%
+observed risk and zero coverage.
+
+REMORA addresses this with a \textbf{weighted empirical selective
+router} \emph{inspired by} Conformal Risk Control (CRC,
+\cite{angelopoulos2022crc}) but --- important --- \emph{not
+implementing the CRC procedure} (see below).  Each calibration item $i$
+receives an importance weight $w_i = p_{\text{test}}(x_i) /
+p_{\text{cal}}(x_i)$.  For REMORA's phase shift, we use the
+hand-tuned estimate
+
+\begin{equation}
+  w_i = \begin{cases} 1.0 & \text{if phase}(i) = p_{\text{test}} \\
+                      \beta & \text{otherwise} \end{cases}
+  \qquad (\beta = 0.10)
+  \label{eq:phase_weights}
+\end{equation}
+
+The selector picks the \emph{smallest} threshold $\hat{\lambda}$ (i.e.\
+maximum coverage) such that the weighted empirical risk
+$\bar{L}(\lambda) = \sum_i \tilde{w}_i \ell_i(\lambda) \leq \alpha$,
+with $\tilde{w}_i = w_i / \sum_j w_j$ normalised over the calibration
+items.
+
+\begin{theorem}[CRC Guarantee, Angelopoulos et al.\ 2022 --- stated for
+context; not instantiated by the implementation]
+For any monotone loss $\ell : [0,1] \to [0,B]$, target risk
+$\alpha \in (0,B)$, and correctly-specified importance weights:
+\[
+  \mathbb{E}[L(\hat{\lambda})] \leq \alpha + \frac{B}{n+1}
+\]
+where $n$ is the calibration set size.
+\end{theorem}
+
+\textbf{Non-applicability.} The implemented selector does not
+instantiate this theorem, for two structural reasons no weight
+specification can repair (external review R3-01): (a)~its threshold
+rule applies the raw constraint $\bar{L}(\lambda) \leq \alpha$ with no
+$B/(n+1)$ finite-sample term and no test-point weight $w_{n+1}$;
+(b)~the controlled quantity --- the conditional error rate among
+accepted items --- is not monotone in $\lambda$, so Theorem~1 does not
+attach even with valid density-ratio weights. In addition,
+$\beta = 0.10$ is a hand-tuned constant, not a density ratio
+\cite{tibshirani2019conformal}. All quality evidence for this component is
+empirical (repeated-split holdout results).
+
+The component is implemented as
+\path{remora.selective.crc.WeightedEmpiricalSelectiveRouter}
+(formerly \texttt{CovariateShiftCRC}, retained as an alias) with a
+\texttt{fit(scores, labels, phases, target\_phase)} interface
+compatible with \texttt{ConformalPhaseGuardrail}.  A \texttt{CRCReport}
+dataclass exposes \texttt{finite\_sample\_slack} ($= 1/(n_{\text{cal}}+1)$)
+and \texttt{nominal\_risk\_bound} ($= \alpha + \text{slack}$) as
+informational reference values (not applicable bounds), plus
+\texttt{holdout\_risk} (plain unweighted holdout count). The module is
+fully tested (45 unit tests) and is an
+offline research component, not invoked by the reference API.
+
+
 
 \section{Optional TEE-Based Audit Hardening (Tamper-Resistant)}
 \label{app:tee}
