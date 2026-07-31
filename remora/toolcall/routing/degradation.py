@@ -48,7 +48,11 @@ from remora.toolcall.routing.coverage_declaration import (
     build_state_index,
 )
 from remora.toolcall.routing.episode import Route, RoutingEpisode
-from remora.toolcall.routing.evaluate import _ACTION_TO_ROUTE, build_full_observation
+from remora.toolcall.routing.evaluate import (
+    _ACTION_TO_ROUTE,
+    build_full_observation,
+    build_observation,
+)
 from remora.toolcall.routing.mutations import MutationFamily, family_of, mutate_episodes
 from remora.toolcall.routing.sources.fleetops import (
     SEED,
@@ -232,7 +236,10 @@ def build_conditions(work_dir: Path) -> tuple[Condition, ...]:
             declarations=_declarations(full_sha, STUDY_TODAY, complete_basis),
             live=live_full,
             expected=(
-                Expectation("identity_accept", ">=", 0.85),
+                # Autonomy on verified reads; writes are never auto-accepted,
+                # even with every argument confirmed against the snapshot.
+                Expectation("identity_accept_read", ">=", 0.85),
+                Expectation("identity_accept_write", "<=", 0.15),
                 Expectation("wrong_arg_accept", "<=", 0.15),
                 Expectation("false_unsupported_on_valid", "<=", 0.02),
             ),
@@ -365,6 +372,15 @@ def score_condition(
     present = [(e, p) for e, p in identity if in_snapshot(e)]
     absent = [(e, p) for e, p in identity if not in_snapshot(e)]
 
+    # Autonomy is claimed for reads; writes route to verification. Classified
+    # through build_observation so the metric and the engine share one
+    # definition of "write" — a second verb list here would drift.
+    def is_write(episode: RoutingEpisode) -> bool:
+        return build_observation(episode).action_type == "write"
+
+    reads = [(e, p) for e, p in identity if not is_write(e)]
+    writes = [(e, p) for e, p in identity if is_write(e)]
+
     def accepts(pairs: list[tuple[RoutingEpisode, Route]]) -> int:
         return sum(1 for _, p in pairs if p is Route.ACCEPT)
 
@@ -376,6 +392,8 @@ def score_condition(
 
     return {
         "identity_accept": _rate(accepts(identity), len(identity)),
+        "identity_accept_read": _rate(accepts(reads), len(reads)),
+        "identity_accept_write": _rate(accepts(writes), len(writes)),
         "wrong_arg_accept": _rate(accepts(wrong), len(wrong)),
         "false_unsupported_on_valid": _rate(false_unsupported, live_occurrences),
         "identity_accept_snapshot_present": _rate(accepts(present), len(present)),

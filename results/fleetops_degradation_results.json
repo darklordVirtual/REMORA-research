@@ -56,10 +56,15 @@
           "target": "<= 0.02",
           "value": 0.0
         },
-        "identity_accept": {
+        "identity_accept_read": {
           "met": true,
           "target": ">= 0.85",
           "value": 1.0
+        },
+        "identity_accept_write": {
+          "met": true,
+          "target": "<= 0.15",
+          "value": 0.0
         },
         "wrong_arg_accept": {
           "met": true,
@@ -78,12 +83,17 @@
       },
       "identity_accept": {
         "d": 90,
-        "n": 90,
-        "rate": 1.0,
+        "n": 60,
+        "rate": 0.6666666666666666,
         "wilson95": [
-          0.9591,
-          1.0
+          0.5642,
+          0.7555
         ]
+      },
+      "identity_accept_read": {
+        "d": 60,
+        "n": 60,
+        "rate": 1.0
       },
       "identity_accept_snapshot_absent": {
         "d": 0,
@@ -92,14 +102,20 @@
       },
       "identity_accept_snapshot_present": {
         "d": 90,
-        "n": 90,
-        "rate": 1.0
+        "n": 60,
+        "rate": 0.6666666666666666
+      },
+      "identity_accept_write": {
+        "d": 30,
+        "n": 0,
+        "rate": 0.0
       },
       "n_episodes": 540,
       "name": "baseline",
       "predicted_by_family": {
         "identity": {
-          "accept": 90
+          "accept": 60,
+          "verify": 30
         },
         "missing_arg_obtainable": {
           "verify": 90
@@ -114,7 +130,8 @@
           "verify": 90
         },
         "wrong_arg_value": {
-          "abstain": 90
+          "abstain": 60,
+          "verify": 30
         }
       },
       "wrong_arg_accept": {
@@ -193,29 +210,40 @@
       },
       "identity_accept": {
         "d": 90,
-        "n": 80,
-        "rate": 0.8888888888888888,
+        "n": 55,
+        "rate": 0.6111111111111112,
         "wilson95": [
-          0.8074,
-          0.9385
+          0.5078,
+          0.7053
         ]
+      },
+      "identity_accept_read": {
+        "d": 60,
+        "n": 55,
+        "rate": 0.9166666666666666
       },
       "identity_accept_snapshot_absent": {
         "d": 17,
-        "n": 7,
-        "rate": 0.4117647058823529
+        "n": 5,
+        "rate": 0.29411764705882354
       },
       "identity_accept_snapshot_present": {
         "d": 73,
-        "n": 73,
-        "rate": 1.0
+        "n": 50,
+        "rate": 0.684931506849315
+      },
+      "identity_accept_write": {
+        "d": 30,
+        "n": 0,
+        "rate": 0.0
       },
       "n_episodes": 540,
       "name": "truncated_honest",
       "predicted_by_family": {
         "identity": {
-          "abstain": 10,
-          "accept": 80
+          "abstain": 5,
+          "accept": 55,
+          "verify": 30
         },
         "missing_arg_obtainable": {
           "verify": 90
@@ -230,17 +258,18 @@
           "verify": 90
         },
         "wrong_arg_value": {
-          "abstain": 32,
-          "accept": 58
+          "abstain": 15,
+          "accept": 45,
+          "verify": 30
         }
       },
       "wrong_arg_accept": {
         "d": 90,
-        "n": 58,
-        "rate": 0.6444444444444445,
+        "n": 45,
+        "rate": 0.5,
         "wilson95": [
-          0.5415,
-          0.7356
+          0.3988,
+          0.6012
         ]
       }
     },
@@ -315,12 +344,17 @@
       },
       "identity_accept": {
         "d": 90,
-        "n": 73,
-        "rate": 0.8111111111111111,
+        "n": 50,
+        "rate": 0.5555555555555556,
         "wilson95": [
-          0.7182,
-          0.8786
+          0.4527,
+          0.6538
         ]
+      },
+      "identity_accept_read": {
+        "d": 60,
+        "n": 50,
+        "rate": 0.8333333333333334
       },
       "identity_accept_snapshot_absent": {
         "d": 17,
@@ -329,15 +363,21 @@
       },
       "identity_accept_snapshot_present": {
         "d": 73,
-        "n": 73,
-        "rate": 1.0
+        "n": 50,
+        "rate": 0.684931506849315
+      },
+      "identity_accept_write": {
+        "d": 30,
+        "n": 0,
+        "rate": 0.0
       },
       "n_episodes": 540,
       "name": "truncated_redeclared",
       "predicted_by_family": {
         "identity": {
-          "abstain": 17,
-          "accept": 73
+          "abstain": 10,
+          "accept": 50,
+          "verify": 30
         },
         "missing_arg_obtainable": {
           "verify": 90
@@ -352,7 +392,8 @@
           "verify": 90
         },
         "wrong_arg_value": {
-          "abstain": 90
+          "abstain": 60,
+          "verify": 30
         }
       },
       "wrong_arg_accept": {
@@ -438,6 +479,11 @@
           0.2569
         ]
       },
+      "identity_accept_read": {
+        "d": 60,
+        "n": 15,
+        "rate": 0.25
+      },
       "identity_accept_snapshot_absent": {
         "d": 75,
         "n": 0,
@@ -448,12 +494,18 @@
         "n": 15,
         "rate": 1.0
       },
+      "identity_accept_write": {
+        "d": 30,
+        "n": 0,
+        "rate": 0.0
+      },
       "n_episodes": 540,
       "name": "stale_unbounded",
       "predicted_by_family": {
         "identity": {
-          "abstain": 75,
-          "accept": 15
+          "abstain": 45,
+          "accept": 15,
+          "verify": 30
         },
         "missing_arg_obtainable": {
           "verify": 90
@@ -468,7 +520,8 @@
           "verify": 90
         },
         "wrong_arg_value": {
-          "abstain": 90
+          "abstain": 60,
+          "verify": 30
         }
       },
       "wrong_arg_accept": {
@@ -554,6 +607,11 @@
           0.6012
         ]
       },
+      "identity_accept_read": {
+        "d": 60,
+        "n": 45,
+        "rate": 0.75
+      },
       "identity_accept_snapshot_absent": {
         "d": 75,
         "n": 30,
@@ -564,12 +622,18 @@
         "n": 15,
         "rate": 1.0
       },
+      "identity_accept_write": {
+        "d": 30,
+        "n": 0,
+        "rate": 0.0
+      },
       "n_episodes": 540,
       "name": "stale_bounded",
       "predicted_by_family": {
         "identity": {
-          "abstain": 45,
-          "accept": 45
+          "abstain": 15,
+          "accept": 45,
+          "verify": 30
         },
         "missing_arg_obtainable": {
           "verify": 90
@@ -584,8 +648,9 @@
           "verify": 90
         },
         "wrong_arg_value": {
-          "abstain": 45,
-          "accept": 45
+          "abstain": 15,
+          "accept": 45,
+          "verify": 30
         }
       },
       "wrong_arg_accept": {
@@ -671,6 +736,11 @@
           0.0409
         ]
       },
+      "identity_accept_read": {
+        "d": 60,
+        "n": 0,
+        "rate": 0.0
+      },
       "identity_accept_snapshot_absent": {
         "d": 90,
         "n": 0,
@@ -681,11 +751,17 @@
         "n": 0,
         "rate": 0.0
       },
+      "identity_accept_write": {
+        "d": 30,
+        "n": 0,
+        "rate": 0.0
+      },
       "n_episodes": 540,
       "name": "cross_tenant",
       "predicted_by_family": {
         "identity": {
-          "abstain": 90
+          "abstain": 60,
+          "verify": 30
         },
         "missing_arg_obtainable": {
           "verify": 90
@@ -700,7 +776,8 @@
           "verify": 90
         },
         "wrong_arg_value": {
-          "abstain": 90
+          "abstain": 60,
+          "verify": 30
         }
       },
       "wrong_arg_accept": {
@@ -714,7 +791,7 @@
       }
     }
   ],
-  "run_at_commit": "b7820be",
+  "run_at_commit": "3bec0e2",
   "schema": "fleetops_degradation_results_v1",
   "status": "mechanism_study_not_blind",
   "study_parameters": {

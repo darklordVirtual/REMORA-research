@@ -56,6 +56,30 @@ def _episode(**overrides) -> RoutingEpisode:
 
 
 # ---------------------------------------------------------------------------
+# Action-type classification — a write must never pass as a read
+# ---------------------------------------------------------------------------
+
+def test_assigning_and_closing_classify_as_writes() -> None:
+    """`assign_driver` and `close_work_order` mutate state.
+
+    Both were classified as reads because the verb list lacked their tokens,
+    which let mutating fleetops calls onto the low-consequence ACCEPT path in
+    the §32 degradation study. Misclassifying a write as a read widens
+    autonomy; the reverse merely costs a verification, so the token list must
+    err toward write.
+    """
+    for tool in ("assign_driver", "close_work_order", "approve_invoice"):
+        obs = build_observation(_episode(proposed_tool_name=tool))
+        assert obs.action_type == "write", tool
+
+
+def test_lookups_still_classify_as_reads() -> None:
+    for tool in ("get_vehicle", "list_depot_vehicles", "search_flights"):
+        obs = build_observation(_episode(proposed_tool_name=tool))
+        assert obs.action_type == "read", tool
+
+
+# ---------------------------------------------------------------------------
 # The observation must be built from observable fields only
 # ---------------------------------------------------------------------------
 

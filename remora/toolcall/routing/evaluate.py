@@ -46,9 +46,14 @@ _ACTION_TO_ROUTE: dict[DecisionAction, Route] = {
 
 #: Tool-name substrings that an integrator can observe before execution. Used
 #: only to derive action_type, never to derive a label.
+#: "assign", "close" and "approve" were missing until the §32 degradation
+#: study showed fleetops' mutating calls (assign_driver, close_work_order)
+#: riding the low-consequence read path. Misclassifying a write as a read
+#: widens autonomy; the reverse costs one verification — err toward write.
 _MUTATING = (
     "cancel", "delete", "remove", "update", "modify", "transfer", "refund",
     "exchange", "book", "send", "create", "write", "set", "change", "suspend",
+    "assign", "close", "approve",
 )
 
 

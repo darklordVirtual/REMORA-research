@@ -1722,25 +1722,35 @@ of *how the architecture degrades*, pre-registered directionally in
 committed this time (`scripts/run_fleetops_degradation.py`) — the A2 runner
 was assembled inline and never committed, a reproducibility gap now closed.
 
-| condition | identity ACCEPT | wrong-arg ACCEPT | false-UNSUPPORTED | admission |
-|---|---|---|---|---|
-| baseline | 100% (90/90) | 0% | 0/105 | eligible |
-| truncated_honest | 88.9% | **64.4%** | 0/105 | ineligible |
-| truncated_redeclared | 81.1% | 0% | **18/105 = 17.1%** | eligible |
-| stale_unbounded | 16.7% | 0% | **90/105 = 85.7%** | eligible |
-| stale_bounded | 50.0% | 50.0% | 0/105 | ineligible |
-| cross_tenant | 0% | 0% | 0/0 | eligible |
+The first run of the study surfaced a classifier defect (finding 5) whose fix
+changes what is claimable, so the study was re-run with the corrected engine;
+the table below is the corrected run. Identity ACCEPT is reported per action
+type because the claimable production posture is per action type: **autonomy
+on verified reads, verification on writes.**
 
-All pre-registered expectations met. Four findings, one per broken assumption:
+| condition | identity ACCEPT read | identity ACCEPT write | wrong-arg ACCEPT | false-UNSUPPORTED | admission |
+|---|---|---|---|---|---|
+| baseline | 100% (60/60) | 0% (0/30 — VERIFY) | 0% | 0/105 | eligible |
+| truncated_honest | 91.7% | 0% | **50%** | 0/105 | ineligible |
+| truncated_redeclared | 83.3% | 0% | 0% | **18/105 = 17.1%** | eligible |
+| stale_unbounded | 25% | 0% | 0% | **90/105 = 85.7%** | eligible |
+| stale_bounded | 75% | 0% | 50% | 0/105 | ineligible |
+| cross_tenant | 0% | 0% | 0% | 0/0 | eligible |
+
+All pre-registered expectations met (the baseline expectation is
+`identity_accept_read >= 85%` and `identity_accept_write <= 15%`; overall
+pooled identity ACCEPT is reported in the artifact but carries no autonomy
+claim). Five findings:
 
 **1. Honest failure is safe — and expensive in a different currency.** When
 the declaration stops holding for an honest reason (hash mismatch after
 truncation, freshness bound refusing a stale declaration), no valid identifier
 is ever rejected: false-UNSUPPORTED is 0 in both conditions, because every
 scope degrades to UNKNOWN rather than to a negative. The price appears on the
-other axis: with the discrimination signal inert, corrupted identifiers are
-accepted at 50–64% on read-only calls. Losing coverage costs the *safety of
-discrimination*, never the *validity of work*. The admission gate reports both
+other axis: with the discrimination signal inert, 50% of corrupted
+identifiers are accepted on read-only calls. Losing coverage costs the
+*safety of discrimination*, never the *validity of work*. The admission gate
+reports both
 conditions ineligible, which is the architecture agreeing with itself: a set
 whose signal is inert may not be sold as a discrimination track.
 
@@ -1766,6 +1776,18 @@ work on stale evidence is the §26/§29 failure again.
 universe was accepted (0/90), and the foreign tenant's declarations were never
 admitted for the local tenant.
 
+**5. The study's first run caught a write passing as a read.** The engine's
+mutating-verb list lacked "assign", "close" and "approve", so fleetops'
+`assign_driver` and `close_work_order` rode the low-consequence read-ACCEPT
+path. This also recontextualizes §31: **A2's 100% identity ACCEPT pooled 60
+reads with 30 misclassified writes.** The sealed A2 artifact stands as
+evaluated, but its pooled figure must not be quoted as a write-autonomy
+claim. With the verb list fixed, every correct write routes to VERIFY even
+with all arguments confirmed — the posture the production claim is now
+stated in. Misclassifying a write as a read widens autonomy; the reverse
+costs one verification, so the token list errs toward write
+(`tests/test_routing_evaluate.py` pins both directions).
+
 **What this does not establish.** Everything §31 listed stays open: these are
 generated degradations of a generated domain. Naturally partial exports,
 organically stale replicas and semantically ambiguous scopes will not be this
@@ -1777,7 +1799,8 @@ production path from declarations + snapshots to a `StateIndex` (tenant, hash
 and freshness rules applied in one place; snapshot filenames that contradict
 their domain are refused); the fleetops generator moved into the package
 byte-pinned to the A2 snapshot hash; `admitted_scopes` gained the opt-in
-freshness bound. 42 new tests across the three layers.
+freshness bound. 45 new tests across the four layers (domain, declarations,
+degradation harness, action-type classification).
 
 **Artifacts.** `results/fleetops_degradation_results.json` (schema
 `fleetops_degradation_results_v1`, status `mechanism_study_not_blind`).
@@ -1804,7 +1827,7 @@ freshness bound. 42 new tests across the three layers.
 | ESCALATE recall is 0% on the untrusted-origin family (§23) | **Resolved 2026-07-31 (§24)**: split into noncontrolling (VERIFY) and controls-sensitive (ESCALATE); recall 0% -> 100%, accuracy 56.9% -> 85.5%. Formerly: all untrusted-origin mutants route to VERIFY, never ESCALATE. Not addressable by a resolver — untrusted provenance is a question about authority, not missing information. Needs the two provenance families (noncontrolling vs controls-sensitive-argument), which do not exist | **High** |
 | Blind holdout missed 2 of 5 targets; state check confused absent-from-record with outside-my-coverage (§26) | **Fixed and blind-confirmed 2026-07-31 (§27)**: CoverageScope per argument; false-UNSUPPORTED rate 0/3841 on a second blind set, accuracy 69.6% -> 92.2%. Residual: covered-domain discrimination unconfirmed on blind data (no untouched covered clusters exist), and uncovered domains accept 61.5% of corrupted identifiers. Formerly: identity ACCEPT 94.6% dev -> 0.0% holdout; discrimination gap 42.1 pp -> 0.0 pp; accuracy 91.9% -> 69.6%. Cause: state index covered airline+retail, holdout is telecom, so every identifier read as absent. argument_values_supported must return None outside its coverage, not False. Requires a new untouched holdout to confirm any fix | **High** |
 | Covered-domain discrimination unconfirmed on blind data (§28, §29) | **Confirmed under ideal conditions 2026-07-31 (§31)**: on a generated closed-world domain, identity ACCEPT 100% and wrong-argument ACCEPT 0%, gap 100 pp, admission-verified 100% judgeable. Necessary not sufficient — partial coverage, stale state, ambiguous scope and open-world absence are all absent by construction. Formerly: Track A on banking_knowledge was spent without testing the hypothesis — 836/942 wrong-argument episodes were unjudgeable because the index does not cover the arguments the tasks use. Next attempt must pre-register a minimum judgeable fraction as an admission criterion. Formerly: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
-| Coverage loss degrades discrimination, not validity (§32) | **Active (accepted characterization)**: honest declaration loss (hash mismatch, freshness refusal) yields 0 false-UNSUPPORTED but 50–64% wrong-arg accepts on UNKNOWN; a falsely re-vouched truncated export rejects 17.1% of valid identifiers; a byte-identical stale snapshot rejects 85.7% and only the freshness bound catches it; cross-tenant accepts 0. Open mechanism study on generated degradations; field performance unmeasured | Medium (failure geometry, not field evidence) |
+| Coverage loss degrades discrimination, not validity (§32) | **Active (accepted characterization)**: honest declaration loss (hash mismatch, freshness refusal) yields 0 false-UNSUPPORTED but 50% wrong-arg accepts on read-only UNKNOWN; a falsely re-vouched truncated export rejects 17.1% of valid identifiers; a byte-identical stale snapshot rejects 85.7% and only the freshness bound catches it; cross-tenant accepts 0. Production posture per action type: autonomy on verified reads (baseline 100%), verification on writes (0% auto-accept — "assign"/"close"/"approve" were missing from the mutating-verb list, so A2's pooled 100% included 30 misclassified writes). Open mechanism study on generated degradations; field performance unmeasured | Medium (failure geometry, not field evidence) |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
