@@ -1632,11 +1632,26 @@ aggregate. Only admitted roles enter the discrimination analysis.
 The decisive test is that the gate refuses the §29 set. A check that would not
 have caught the failure it was written for is not a gate.
 
+**Declaration as evidence, not configuration.** A closed-world claim is now a
+versioned object binding domain, tenant, entity type, argument role, the
+SHA-256 of the exact snapshot it was written against, an as-of date, the basis
+for the claim, and a named curator. Every way such a claim goes wrong is a scope
+error — complete for one tenant applied to another, complete at one instant
+consulted later, `user_id` conflated with a recipient id, aliases treated as
+absent — and each now degrades that scope to UNKNOWN rather than to UNSUPPORTED.
+Losing a negative claim is the safe direction; keeping one on stale evidence is
+how a valid identifier gets rejected.
+
+A declaration may also not claim behaviour the code does not implement:
+declaring case-insensitive canonicalisation or alias support is refused at
+construction, because a curator promising that `U1` matches `u1` when the
+comparison is exact would reproduce §29 by hand.
+
 **Still not established.** Correct-versus-corrupted discrimination on blind data
 where the signal has information. Four blind sets are spent. The next attempt
-must begin with admission, not with a router change — and under the new
-declaration rule it also needs a domain whose completeness someone is willing
-to vouch for.
+must begin with admission, not with a router change — and under the declaration
+rule it needs a domain whose completeness a named curator is willing to vouch
+for against a frozen snapshot.
 
 ---
 
