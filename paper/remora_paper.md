@@ -554,7 +554,7 @@ The oracle backend changed across rounds. Earlier QA and tool-call rounds ran a 
 | neg_temperature (18% cov.) | in-sample | 18% | 98 | 87 | **88.78%** | **+47.6** | [81.0, 93.6] |
 | neg_temperature (10% cov.) | in-sample | 10% | 54 | 44 | 81.48% | +40.3 | [69.2, 89.6] |
 | neg_temperature (25% cov.) | in-sample | 25% | 136 | 99 | 72.79% | +31.6 | [64.8, 79.6] |
-| neg_temperature (held-out) | **holdout** | **23.2%** | **25** | **22** | **88.00%** | **+41.7** | **[70.0, 95.8]** |
+| neg_temperature (held-out, **retired round** — superseded, see note below) | **holdout** | **23.2%** | **25** | **22** | **88.00%** | **+41.7** | **[70.0, 95.8]** |
 
 > **Provenance / supersession.** The selective figures in this subsection (88.0% @ 23.2% held-out, 88.78% @ 18% in-sample) are from the **retired Groq three-LLaMA round**. They are superseded by the 2026-07 cross-family clean round reported in the abstract — 100.0% accuracy at 16.7% coverage (N\_accepted=18, exact binomial p=0.052) as one directional observation — whose pre-registered fresh-data follow-up *failed to confirm* the consensus-temperature selection signal (NEGATIVE_RESULTS §18). They are retained here as the historical Groq-round record, not the current headline.
 

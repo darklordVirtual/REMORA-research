@@ -77,6 +77,11 @@ DOC_PATTERNS = (
     "docs/*.md",
     "docs/assurance/*.md",
     "paper/*.md",
+    # The PDF is compiled from the .tex, and the PDF is what gets cited. A
+    # retired figure that survives only in the .tex ships to readers without
+    # ever passing a gate (found 2026-07-31, when the paper .md was corrected
+    # and the .tex was not re-checked).
+    "paper/*.tex",
 )
 # evidence_levels.md defines the taxonomy and legitimately pairs claim ids
 # with levels in explanatory examples; it is not a citation site.

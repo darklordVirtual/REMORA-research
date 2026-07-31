@@ -181,6 +181,12 @@ claims:
     # Written as they appeared before the 2026-07-27 SAP v2 clean-round
     # re-issue. Any document still carrying one of these strings outside an
     # explicitly historical paragraph is drift, and CI says which document.
+    # The last three are LaTeX forms: the markdown strings do not match them,
+    # so until they were added paper/remora_paper.tex passed the gate
+    # vacuously while still carrying the retired figures into the compiled
+    # PDF. "1.45" alone is deliberately absent — the chi threshold is 1.45 too.
+    # (A comment inside the list would terminate it: the register's restricted
+    # parser breaks on any non-list line.)
     retired_values:
       - "23.2% coverage"
       - "N_accepted=25"
@@ -188,6 +194,9 @@ claims:
       - "[70.0%, 95.8%]"
       - "p = 1.45"
       - "p=1.45"
+      - '23.2\%'
+      - "[70.0, 95.8]"
+      - "accepted}=25"
     caveat: >
       Directional observation only: p=0.052 vs the training-split null, the
       CI does not exclude p0, and N_accepted=18 is far below the
