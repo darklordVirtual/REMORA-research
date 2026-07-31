@@ -128,14 +128,14 @@ must not change unless the benchmark is re-run under a documented protocol.
 
 | File | SHA-256 | Size (bytes) | Last modified | Description |
 |------|---------|-------------|---------------|-------------|
-| `results/toolcall_blind_v3_results.json` | `e263a121924c0379eb1483357d7cca8a5fb922322e27630f1f8c27864dd5086c` | 1206 | 2026-07-27 | Blinded benchmark v3: FAR=0.0, N=700, two-phase decide/score (REM-009; re-issued 2026-07-27, clean round) |
+| `results/toolcall_blind_v3_results.json` | `5b26eb99c561eae06e79ee3569dd4753fa73aa837508b06927194de859036e63` | 1248 | 2026-07-31 | Blinded benchmark v3: FAR=0.0, N=700, two-phase decide/score (REM-009; re-issued 2026-07-31 for additive scoring keys n_false_accept/effective_n and portable decisions_file path — no metric value changed) |
 | `results/selective_n500_holdout_results.json` | `3ed9f7d61493fb564574202cb832c64f365b5ec015c509e639db0a0104d28a35` | 2404 | 2026-07-27 | Held-out selective accuracy (SAP v2, Workers AI trio): 100% at 16.7% coverage, N_accepted=18, p=0.052 vs p0=train baseline — directional only (re-issued 2026-07-27, clean round) |
 | `results/selective_n500_results.json` | `ba838b99eeedcbe707d5ebbac5b21dc63edf4f107efaeaaf423ed390b9ecf1fb` | 12725 | 2026-06-09T22:51:30 | Full N=500 selective trust evaluation |
 | `results/thermodynamic_eval_n500_calibrated_results.json` | `ec2eacf7ff6ce4e79467fed2f6f9f5cb103d6b0faaa97eac3c6f45e1bf97cce2` | 349515 | 2026-06-09T22:51:30 | N=500 thermodynamic calibration (data source for holdout) |
 | `results/phase_aware_guardrail_n544_results.json` | `22961a33638e86be925608eb2301f292d61ac79f9d6f3d62e473cce8ef22e77e` | 4488 | 2026-06-09T22:51:30 | Phase-aware conformal guardrail N=544 |
 | `results/conformal_guardrail_holdout.json` | `f2544bc587f6a9dcb1ffc8d2b4d76c8f9129440ab299a69322410114c5bfeb50` | 121621 | 2026-06-09T22:51:30 | Conformal guardrail holdout evaluation |
 | `results/conformal_repeated_splits.json` | `8943001fb76811976c973747e93f6a0c7201c5cb1101cc65aac822730a851c4d` | 1164 | 2026-06-30T11:21:09 | Conformal repeated-splits robustness check |
-| `results/toolcall_benchmark_v2_results.json` | `f243d475169ff4a534c849ed9e583874028502f77565293eddb504d3a2e5738b` | 19286 | 2026-07-27 | Toolcall benchmark v2: FAR=0.0, N=700 (effective N=70; re-issued 2026-07-27, clean round) |
+| `results/toolcall_benchmark_v2_results.json` | `559a39a092aeacdaf4ea74c20444df9221d4043408bdecf0cbf01d175249cd75` | 19597 | 2026-07-31 | Toolcall benchmark v2: FAR=0.0, N=700 (effective N=70; re-issued 2026-07-31 for additive scoring keys n_false_accept/effective_n — no metric value changed) |
 | `results/toolcall_llm_baselines_pilot_n100.json` | `a825fd5b3ce36db086b21b72b15d961d3b0e9915d5aab78ae0b539569cdb287a` | 117701 | 2026-06-29T00:07:39 | LLM baselines pilot N=100 (REM-010) |
 | `results/m1_flag_coverage.json` | `b8c57f5b8e02ca39107695396d38bff4733eb469c058b90549d50bc3bf4e7c6d` | 544 | 2026-06-28T22:45:40 | M1 structural/keyword flag coverage on toolcall_blind_v3 |
 | `results/toolcall_m1_clean_signal.json` | `62a497f3483f7375e08ad6fa9f6929c5d0ea7c2556d3f5dd541f76cda533f663` | 2663 | 2026-07-20 | M1 leakage clean-signal evaluation (REM-001; re-issued 2026-07-20, REM-038) |

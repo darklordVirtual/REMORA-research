@@ -1,6 +1,6 @@
 {
   "schema": "result_provenance_v3",
-  "git_commit": "90d5b16013ab8fa42865aefa2cae88abe99e65c8",
+  "git_commit": "7300ef4d332ffa37df243667d73384878a98ee49",
   "worktree_clean": false,
   "pre_run_worktree_clean": true,
   "allowed_generated_outputs": [
@@ -25,15 +25,8 @@
     "results/toolcall_blind_v3_results.json",
     "results/toolcall_blind_v3_results.provenance.json"
   ],
-  "post_run_worktree_clean": false,
-  "worktree_dirty_beyond_outputs": [
-    "docs/failure_analysis.md",
-    "results/blind_test_result.json",
-    "results/calibration_result.json",
-    "results/toolcall_ablation_v2_results.json",
-    "results/toolcall_benchmark_v2_heuristic_results.json",
-    "results/toolcall_benchmark_v2_summary.md"
-  ],
+  "post_run_worktree_clean": true,
+  "worktree_dirty_beyond_outputs": [],
   "python_version": "3.14.0",
   "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
   "script": "experiments/toolcall_v2_failure_analysis.py",
@@ -42,7 +35,7 @@
   },
   "random_seeds": null,
   "command": "python experiments/toolcall_v2_failure_analysis.py",
-  "generated_at": "2026-07-31T06:27:41.671611+00:00",
+  "generated_at": "2026-07-31T06:37:41.972309+00:00",
   "artifact": "toolcall_benchmark_v2_failures.json",
   "artifact_sha256": "557e1faa452362169fe42e0428592e2635fbb4b5aef59afad87e4cd15c2f4312"
 }
