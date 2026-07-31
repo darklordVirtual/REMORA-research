@@ -50,6 +50,9 @@ _REQUIRES_VALIDATION: frozenset[str] = frozenset({
     # which thing
     "device", "resource", "asset", "file", "path", "database", "table",
     "deployment", "environment", "cluster", "bucket",
+    # fleet operands (§32): a vehicle, driver or depot is what the action
+    # operates on, exactly like a device or a resource
+    "vehicle", "driver", "depot",
     # commercial objects
     "order", "invoice", "payment", "transaction", "reservation", "booking",
     "ticket", "claim",

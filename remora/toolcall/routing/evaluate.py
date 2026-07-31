@@ -29,6 +29,7 @@ from remora.policy.report import DecisionAction
 from remora.toolcall.routing.episode import Route, RoutingEpisode
 from remora.toolcall.routing.compatibility import StateIndex, compute_compatibility
 from remora.toolcall.routing.validation import unvalidated_required
+from remora.toolcall.routing.validators import ValidatorRegistry
 from remora.toolcall.routing.tool_registry import (
     ToolRegistry,
     _name_derived_output,
@@ -121,6 +122,7 @@ def build_full_observation(
     episode: RoutingEpisode,
     registry: ToolRegistry,
     state: StateIndex,
+    validators: "ValidatorRegistry | None" = None,
 ) -> PolicyObservation:
     """The complete signal pipeline — the locked evaluation configuration.
 
@@ -164,8 +166,16 @@ def build_full_observation(
     tri = {"supported": True, "unsupported": False, "unknown": None}
     unvalidated = unvalidated_required({k: tri[v] for k, v in statuses.items()})
 
-    # A validation lookup is expected from a tool that produces this argument.
-    validation_resolvers = tuple(
+    # Declared validator bindings take precedence: the deployment has named
+    # which tool validates which argument role, so nothing is derived. The
+    # name-derivation fallback below covers only undeclared roles — it cannot
+    # see that get_vehicle validates vehicle_id, which is why the binding
+    # exists (§32).
+    if validators is not None:
+        declared_resolvers = validators.tools_for(unvalidated)
+    else:
+        declared_resolvers = ()
+    validation_resolvers = declared_resolvers or tuple(
         tool
         for tool in episode.available_tools
         if (_name_derived_output(tool) or "") in {a.lower() for a in unvalidated}

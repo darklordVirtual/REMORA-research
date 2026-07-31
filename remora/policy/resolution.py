@@ -111,6 +111,119 @@ class ResolutionOutcome:
     violation: str | None = None
 
 
+def validate_and_reenter(
+    obs: PolicyObservation,
+    engine: DecisionEngineLike,
+    *,
+    validator: Callable[[str, str], bool | None],
+    _tamper_tool: str | None = None,
+) -> ResolutionOutcome:
+    """Run one bounded validation round, then re-run the whole router.
+
+    Validation differs from resolution in what the resolver is allowed to do:
+    it **writes no argument values**. The value is already in the call; the
+    validator only establishes its status against the system of record.
+    *validator* is called as ``validator(source_tool, argument)`` and returns
+    tri-state: ``True`` (the entity exists), ``False`` (the system of record
+    confirms it absent), ``None`` (nothing establishes either).
+
+    The outcome mapping is the §32 contract:
+
+    * every target confirmed → re-enter with the values supported; reads may
+      then ACCEPT, writes keep their verification posture
+    * any target confirmed absent → re-enter with the value unsupported; the
+      call is blocked, never retried into acceptance
+    * any target unknown, or a validator error → the gap stands and no
+      resolver remains, so the router abstains — a validation that cannot
+      happen is not promised
+    """
+    initial = engine.decide(obs)
+    plan = initial.resolution_plan
+
+    if (
+        plan is None
+        or initial.action is not DecisionAction.VERIFY
+        or plan.resolver != "argument_validation"
+    ):
+        return ResolutionOutcome(
+            initial_report=initial, final_report=initial, plan=plan
+        )
+
+    verdicts: dict[str, bool] = {}
+    provenance: dict[str, str] = {}
+    attempts = 0
+    violation: str | None = None
+
+    for index, argument in enumerate(plan.target_arguments):
+        attempts += 1
+        try:
+            plan.assert_within_budget(attempts)
+        except ResolutionExhausted as exc:
+            violation = str(exc)
+            break
+
+        source = plan.source_tools[min(index, len(plan.source_tools) - 1)]
+        try:
+            verdict = validator(source, argument)
+        except Exception as exc:  # noqa: BLE001 — an unreachable validator is a gap
+            violation = f"validator raised: {exc}"
+            break
+
+        if verdict is None:
+            continue
+        verdicts[argument] = bool(verdict)
+        provenance[argument] = source
+
+    if violation is None:
+        try:
+            plan.assert_only_targets(verdicts)
+            plan.assert_preserves_call(
+                before_tool=obs.proposed_tool_name,
+                after_tool=_tamper_tool or obs.proposed_tool_name,
+            )
+        except ResolverViolation as exc:
+            violation = str(exc)
+
+    confirmed_absent = [a for a in plan.target_arguments if verdicts.get(a) is False]
+    unresolved = [a for a in plan.target_arguments if a not in verdicts]
+
+    if confirmed_absent and violation is None:
+        # The system of record says the value does not exist. Blocked, never
+        # retried into acceptance.
+        final = engine.decide(
+            replace(
+                obs,
+                argument_values_supported=False,
+                argument_resolver_tools=(),
+            )
+        )
+    elif violation is not None or unresolved:
+        # Nothing establishes the status and no resolver remains: the gap
+        # stands, so the decision is terminal rather than optimistic.
+        final = engine.decide(replace(obs, argument_resolver_tools=()))
+    else:
+        # Every target confirmed present. Fresh observation, full router:
+        # every guard the engine applies runs again on the validated call.
+        final = engine.decide(
+            replace(
+                obs,
+                argument_values_supported=True,
+                unvalidated_required_arguments=(),
+                argument_resolver_tools=(),
+            )
+        )
+
+    return ResolutionOutcome(
+        initial_report=initial,
+        final_report=final,
+        plan=plan,
+        resolved={},
+        provenance=provenance,
+        attempts=attempts,
+        violation=violation,
+    )
+
+
 def resolve_and_reenter(
     obs: PolicyObservation,
     engine: DecisionEngineLike,
