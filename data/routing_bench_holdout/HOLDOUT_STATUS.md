@@ -1,6 +1,10 @@
 # Blind holdout status — routing benchmark
 
-**Status: SEALED, NEVER EVALUATED.**
+**Status: EVALUATED ONCE, 2026-07-31. SPENT.**
+
+Result: 2 of 5 targets missed. See `NEGATIVE_RESULTS.md` §26 and
+`results/routing_bench_holdout_results.json`. No retuning against this set is
+permitted and the runner refuses a second run.
 
 ## Why this exists
 
@@ -19,7 +23,7 @@ are drawn from the 2265 that were never touched.
 | episodes | 4290 (3060 labelled) |
 | built | 2026-07-31 |
 | resealed | 2026-07-31 — generator schema change (see below) |
-| evaluated | **never** |
+| evaluated | 2026-07-31, once, at locked commit `dd37c81` |
 
 Selection is by sorted id rather than by sample, so there was no opportunity to
 pick a favourable subset and no seed to record.

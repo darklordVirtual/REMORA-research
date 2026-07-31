@@ -1358,6 +1358,60 @@ holdout is published without retuning against it.
 
 ---
 
+## §26 Blind holdout: two of five targets missed; the state check fails open-loop on an uncovered domain (2026-07-31)
+
+**Result, evaluated once at locked commit `dd37c81`, 4290 episodes over 300
+clusters that never appeared in development.**
+
+| metric | target | development | **holdout** |
+|---|---|---|---|
+| autonomy-eligible identity ACCEPT | >= 70% | 94.6% | **0.0% — MISSED** |
+| wrong-argument ACCEPT rate | <= 20% | 19.7% | 0.0% — met |
+| obtainable VERIFY recall | >= 70% | 100% | 100% — met |
+| unobtainable ABSTAIN recall | >= 70% | 100% | 100% — met |
+| discrimination gap | >= 40 pp | 42.1 pp | **0.0 pp — MISSED** |
+
+Routing accuracy 91.9% on development, **69.6%** on the holdout
+(cluster-adjusted Wilson [64.2%, 74.6%]).
+
+**The headline is the gap.** It is 0 pp because both identity and
+wrong-argument calls are accepted at 0%. The constant predictor of §21 is back,
+at the blocking end rather than the accepting end. Nothing is accepted, so
+nothing is discriminated. The three "met" targets are met vacuously: a system
+that refuses everything achieves 0% wrong-argument accepts and 100% ABSTAIN
+recall without any judgement.
+
+**Diagnosed cause, and it is a design flaw rather than bad luck.** All 930
+holdout identity episodes carry `argument_values_supported = False`. The state
+index was built from `airline.json` and `retail.json`; the holdout is telecom,
+whose database was never indexed. Every telecom identifier therefore reads as
+absent from the system of record.
+
+The check cannot distinguish *"this identifier does not exist"* from *"my index
+does not cover this domain"*. A non-empty but incomplete index produces
+confident negatives. This is exactly the confirmed-false-versus-unknown
+discipline enforced everywhere else in this engine — `arguments_satisfiable`,
+`schema_valid`, `rollback_available`, `tool_matches_goal` — and
+`argument_values_supported` violated it. `StateIndex` returns `None` only when
+it is *empty*, which is the wrong emptiness test: coverage is per-domain, not
+per-index.
+
+**What is not claimed.** That the configuration would have passed with a
+telecom-aware index. The set is spent and that counterfactual is unverifiable.
+What the run establishes is narrower and still useful: the locked configuration
+does not generalise to a domain its authoritative state does not cover, and it
+fails toward blocking everything rather than toward reporting unknown.
+
+**No retuning against this set.** The holdout status is `evaluated` and the
+runner refuses a second run. Confirming any fix requires a new untouched
+holdout; 1965 telecom clusters remain unused, but a set drawn from them would
+be blind only for the specific change made after this result was seen.
+
+**Artifacts.** `results/routing_bench_holdout_results.json`,
+`data/routing_bench_holdout/manifest.json` (sha256 `81f67cdc`).
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1376,6 +1430,7 @@ holdout is published without retuning against it.
 | MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
 | ESCALATE recall is 0% on the untrusted-origin family (§23) | **Resolved 2026-07-31 (§24)**: split into noncontrolling (VERIFY) and controls-sensitive (ESCALATE); recall 0% -> 100%, accuracy 56.9% -> 85.5%. Formerly: all untrusted-origin mutants route to VERIFY, never ESCALATE. Not addressable by a resolver — untrusted provenance is a question about authority, not missing information. Needs the two provenance families (noncontrolling vs controls-sensitive-argument), which do not exist | **High** |
+| Blind holdout missed 2 of 5 targets; state check confuses absent-from-record with outside-my-coverage (§26) | **Active (highest priority)**: identity ACCEPT 94.6% dev -> 0.0% holdout; discrimination gap 42.1 pp -> 0.0 pp; accuracy 91.9% -> 69.6%. Cause: state index covered airline+retail, holdout is telecom, so every identifier read as absent. argument_values_supported must return None outside its coverage, not False. Requires a new untouched holdout to confirm any fix | **High** |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
