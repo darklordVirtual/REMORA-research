@@ -118,8 +118,8 @@ documents:
   topic: README_md
   code_synced: verified
   verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  last_audited: '2026-07-31'
+  last_reviewed: '2026-07-31'
   audience:
   - researchers
 - id: DOC-021
@@ -1288,8 +1288,8 @@ documents:
   topic: docs_assurance_claim_register_v1_yaml
   code_synced: verified
   verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  last_audited: '2026-07-31'
+  last_reviewed: '2026-07-31'
   audience:
   - researchers
 - id: DOC-218
@@ -2096,8 +2096,21 @@ documents:
   audience:
   - researcher
   - evaluator
+- id: DOC-293
+  version: v1
+  path: docs/assurance/superseded_claims.md
+  status: canonical
+  topic: docs_assurance_superseded_claims_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-07-31'
+  last_reviewed: '2026-07-31'
+  audience:
+  - researchers
+  - evaluator
 
 topics:
+- docs_assurance_superseded_claims_md
 - docs_research_routing_benchmark_v1_design_md
 - docs_cli_md
 - docs_validation_pilot_evaluation_protocol_v1_md

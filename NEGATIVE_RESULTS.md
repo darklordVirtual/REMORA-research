@@ -1933,6 +1933,12 @@ precedent — synthesizing one would author the test), so their ABSTAIN
 measures refusal of the no-call decision point, not rejection of a proposed
 distractor. This set is now spent; it can never serve as a blind set again.
 
+**Registered as** CLAIM-016 in `docs/assurance/claim_register_v1.yaml`
+(`blindness: blind` — the one claim in the register measured under sealed
+conditions); the sealed values are pinned by
+`tests/test_routing_claim_artifacts.py`, so an edit that quietly improves the
+published miss fails CI.
+
 **Artifacts.** `results/routing_bench_bfcl_results.json`,
 `data/routing_bench_bfcl/manifest.json` (episodes `c3a8e27b`, upstream file
 hashes pinned).
@@ -1976,6 +1982,10 @@ confirmation of the grounding signal requires the next sealed track.**
 this task's context (common values, schema enums whose words the user
 happened to say). Below the 20% bar but not zero; a semantic task–call
 source remains the complete answer.
+
+**Registered as** CLAIM-015 (this mitigation) and CLAIM-014 (the validator and
+degradation studies) in `docs/assurance/claim_register_v1.yaml`, both carrying
+`blindness: development`.
 
 **Artifacts.** `results/system_demonstration_v1.json` (aggregated
 re-execution of every study at HEAD),

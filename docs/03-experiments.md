@@ -309,8 +309,16 @@ Coverage sweep (`neg_temperature` signal):
 | 18% | 98 | 87 | 88.8% |
 | 20% | 109 | 94 | 86.2% |
 
+<!-- claim:CLAIM-008 accuracy_pct coverage_pct n -->
 On the N=302 calibration set, the top-25% slice is k=76, correct=72,
-accuracy 94.7% (`results/selective_trust_curve_results.json`).
+accuracy 94.7% (`results/selective_trust_curve_results.json`). **This claim is
+superseded** (CLAIM-013): the curve above ranks on `neg_temperature`, the signal
+that later failed its pre-registered fresh-data confirmation, and 94.7% is a
+calibration-set upper bound rather than a held-out result. It moved off the
+README front page on 2026-07-31 and is archived in
+[superseded_claims.md](assurance/superseded_claims.md); the numbers stand as
+measured, but dev-split-calibrated confidence is the signal that now carries
+selective ranking.
 
 ### Tool-call safety (v1 / v2)
 

@@ -33,7 +33,6 @@ import re
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import cast
 
 #: Verbs stripped from a function name to derive what it produces:
 #: ``get_current_timestamp`` -> ``timestamp``.
@@ -48,6 +47,24 @@ _INDEX_SUFFIX = re.compile(r"_\d+$")
 
 def _normalise(name: str) -> str:
     return _INDEX_SUFFIX.sub("", name.strip().lower())
+
+
+#: One serialized signature. JSON has no sum types, so the value type is the
+#: union the on-disk format actually admits: name lists for ``required_params``
+#: and ``produced_names``, a bare string for ``effect``, and a nested map for
+#: ``param_values``. Readers narrow before use — a registry file is untrusted
+#: input like any other file on disk.
+RegistryEntry = dict[str, "list[str] | str | dict[str, list[str]]"]
+
+
+def _name_list(tool: str, entry: "RegistryEntry", key: str) -> tuple[str, ...]:
+    """Read one list-of-names field, refusing any other shape."""
+    value = entry[key]
+    if not isinstance(value, list):
+        raise ValueError(
+            f"{tool}: {key!r} must be a list of names, got {type(value).__name__}"
+        )
+    return tuple(value)
 
 
 @dataclass(frozen=True)
@@ -86,63 +103,53 @@ class ToolRegistry:
     def __contains__(self, tool: str) -> bool:
         return tool in self.signatures
 
-    def to_json_dict(self) -> dict[str, dict[str, object]]:
+    def to_json_dict(self) -> dict[str, RegistryEntry]:
         """Sorted, committable form — so CI can hold the registry a test needs
         without depending on the gitignored extraction cache."""
-        return {
-            name: {
+        out: dict[str, RegistryEntry] = {}
+        for name, signature in sorted(self.signatures.items()):
+            entry: RegistryEntry = {
                 "required_params": list(signature.required_params),
                 "produced_names": list(signature.produced_names),
-                **(
-                    {"effect": signature.effect}
-                    if signature.effect is not None
-                    else {}
-                ),
-                **(
-                    {
-                        "param_values": {
-                            k: list(v)
-                            for k, v in sorted(signature.param_values.items())
-                        }
-                    }
-                    if signature.param_values
-                    else {}
-                ),
             }
-            for name, signature in sorted(self.signatures.items())
-        }
+            if signature.effect is not None:
+                entry["effect"] = signature.effect
+            if signature.param_values:
+                entry["param_values"] = {
+                    k: list(v) for k, v in sorted(signature.param_values.items())
+                }
+            out[name] = entry
+        return out
 
     @classmethod
-    def from_json_dict(cls, d: Mapping[str, Mapping[str, object]]) -> "ToolRegistry":
-        return cls(
-            {
-                name: ToolSignature(
-                    name=name,
-                    required_params=tuple(
-                        cast(Sequence[str], entry.get("required_params", ()))
-                    ),
-                    produced_names=tuple(
-                        cast(Sequence[str], entry.get("produced_names", ()))
-                    ),
-                    effect=(
-                        cast(str, entry["effect"])
-                        if isinstance(entry.get("effect"), str)
-                        else None
-                    ),
-                    param_values=(
-                        {
-                            k: tuple(v)
-                            for k, v in cast(
-                                Mapping[str, Sequence[str]], entry["param_values"]
-                            ).items()
-                        }
-                        if isinstance(entry.get("param_values"), Mapping)
-                        else None
-                    ),
-                )
-                for name, entry in d.items()
-            }
-        )
+    def from_json_dict(cls, d: Mapping[str, RegistryEntry]) -> "ToolRegistry":
+        """Rebuild from the serialized form, narrowing each field as it is read.
+
+        A registry file is untrusted input: a malformed field must fail loudly
+        here rather than surface later as a routing decision made on a field
+        that was silently the wrong shape.
+        """
+        signatures: dict[str, ToolSignature] = {}
+        for name, entry in d.items():
+            effect = entry.get("effect")
+            if effect is not None and not isinstance(effect, str):
+                raise ValueError(f"{name}: 'effect' must be a string, got {type(effect).__name__}")
+
+            raw_values = entry.get("param_values")
+            if raw_values is not None and not isinstance(raw_values, dict):
+                raise ValueError(f"{name}: 'param_values' must be a map, got {type(raw_values).__name__}")
+            param_values = (
+                {k: tuple(v) for k, v in raw_values.items()} if raw_values else None
+            )
+
+            signatures[name] = ToolSignature(
+                name=name,
+                required_params=_name_list(name, entry, "required_params"),
+                produced_names=_name_list(name, entry, "produced_names"),
+                effect=effect,
+                param_values=param_values,
+            )
+        return cls(signatures)
 
     def arguments_satisfiable(
         self,

@@ -38,7 +38,6 @@ from remora.toolcall.routing.evaluate import (  # noqa: E402
     build_full_observation,
 )
 from remora.toolcall.routing.tool_registry import ToolRegistry  # noqa: E402
-from remora.toolcall.routing.validators import ValidatorRegistry  # noqa: E402
 
 HOLDOUT = REPO_ROOT / "data" / "grounding_holdout_v1"
 OUT = REPO_ROOT / "results" / "grounding_holdout_v1_results.json"

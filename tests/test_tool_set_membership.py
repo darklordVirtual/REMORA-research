@@ -6,7 +6,6 @@ while a tool in the set is not blocked by this guard alone.
 """
 from __future__ import annotations
 
-import pytest
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason
@@ -83,7 +82,7 @@ class TestToolNotInAvailableSet:
 
     def test_build_full_observation_populates_field(self):
         """build_full_observation must set tool_not_in_available_set correctly."""
-        import json, sys
+        import sys
         from pathlib import Path
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from remora.toolcall.routing.compatibility import StateIndex

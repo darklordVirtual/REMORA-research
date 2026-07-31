@@ -62,6 +62,7 @@ from remora.toolcall.routing.sources.fleetops import (
     SEED,
     build_database,
     build_tasks,
+    canonical_json_bytes,
     entity_values,
     fleetops_registry,
     grow_database,
@@ -143,7 +144,7 @@ def _build_episodes(
     """The exact A2 pipeline: tau2 adapter over generated tasks, then mutants."""
     domain_dir = work_dir / name / "fleetops"
     domain_dir.mkdir(parents=True, exist_ok=True)
-    (domain_dir / "tasks.json").write_bytes(serialize_snapshot(tasks))
+    (domain_dir / "tasks.json").write_bytes(canonical_json_bytes(tasks))
     adapter = Tau2Adapter(root=work_dir / name, commit=commit)
     registry = fleetops_registry()
     mutants = mutate_episodes(adapter.build_episodes(), registry)

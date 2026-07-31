@@ -27,6 +27,113 @@ releases.
 
 ## [Unreleased]
 
+### Reconciled with master; master's CI was red (2026-07-31)
+
+- **Claim numbering.** Master had already merged CLAIM-014 ("system
+  demonstration") and CLAIM-015 ("argument-value grounding"). This branch had
+  independently registered different claims under the same two ids. Master's
+  numbering wins — it merged first and is what other documents cite — so the
+  duplicates from this branch are dropped and the one genuinely new claim, the
+  **sealed BFCL blind track**, is registered as **CLAIM-016**. It is the only
+  entry in the register carrying `blindness: blind`; master had no claim for
+  that artifact at all.
+- **`status` split into two fields.** Master used
+  `status: development_measurement_not_blind`; this branch used
+  `status: active | superseded`. One key was answering two questions, so
+  `status` now means *is this claim current* and the new `blindness: blind |
+  development` means *was it a blind evaluation*. A development measurement can
+  be perfectly current; a superseded claim may well have been blind when made.
+  The provenance gate validates both.
+- **Master's own CI was red and is fixed here.** `ruff` reported 9 errors
+  (unused imports, a multi-import line, trailing whitespace) across four files
+  added on master, and `tests/test_evidence_verifier.py` failed on all three
+  Python versions with `ModuleNotFoundError: No module named 'numpy'` — the
+  local-NLI branch softmaxes with numpy, which ships with the `analysis` extra,
+  while the deterministic job installs `[dev,causal,api]`. That test now
+  `importorskip`s numpy: it covers an optional-dependency path, not a core one.
+- Master's `cast()`-based mypy fix is replaced by the validating variant from
+  this branch, for the reasons recorded in commit 4274aeb: `cast()` silences
+  the checker without checking, and `.get("required_params", ())` would turn a
+  missing required field into a signature claiming the tool needs no arguments.
+
+### Build fix: mypy gate was red on the routing modules (2026-07-31)
+
+- `ToolRegistry.to_json_dict` / `from_json_dict` were annotated
+  `dict[str, dict[str, list[str]]]`, a shape the serialized form never had —
+  `effect` is a string and `param_values` a nested map. Introduced an explicit
+  `RegistryEntry` alias for the union the format actually admits, and narrowed
+  each field on read. A malformed registry file now fails loudly at load
+  instead of surfacing later as a routing decision made on a mistyped field.
+- `serialize_snapshot(db: dict)` was being called with a task *list*. Split out
+  `canonical_json_bytes(payload: object)` and had `serialize_snapshot` delegate
+  to it; byte output is unchanged, so every committed snapshot hash still holds.
+- `validator_study` carried the outcome through a filter that had already
+  established its plan was present, then re-read the optional field. It now
+  carries the plan itself.
+- Added `types-PyYAML` to the `dev` extra. It was pinned in
+  `requirements-lock.txt` but declared by no extra, so `-c` pinned a version pip
+  was never asked to install and the CI mypy step failed on `import yaml` in two
+  modules that pass locally.
+
+### Superseded-result archive (2026-07-31)
+
+- Every claim now declares `status: active | superseded`; a superseded claim must
+  name the claim that replaced it. Nothing is deleted — CLAUDE.md forbids that —
+  but a result the project has moved past no longer sits in the reader's path as
+  if it were current.
+- **CLAIM-004** (temperature-selective holdout) → superseded by CLAIM-012, the
+  fresh-data round that falsified the signal. **CLAIM-008** (selective trust
+  curve, 94.7% at 25% coverage) → superseded by CLAIM-013: the curve ranks on
+  `neg_temperature` and 94.7% is a calibration-set upper bound, so it moved off
+  the README front page into `docs/03-experiments.md`, anchored there.
+- New `scripts/generate_superseded_claims.py` renders
+  `docs/assurance/superseded_claims.md` from the register, with `--check` for CI;
+  wired into `ci.yml`'s generated-doc drift step and into `make audit`.
+- `check_claim_provenance.py` gains guardrail 5: status must be declared and
+  valid, a superseded claim must name an existing non-superseded successor, and
+  **no superseded claim may be anchored on the README front page**. The gate
+  caught CLAIM-008 on the first run.
+
+### README readability pass (2026-07-31)
+
+- Rewrote the front page for a first-time reader: plain-language outcome table,
+  results stated as what was measured rather than as metric names, and the
+  jargon moved into a collapsible glossary. Negative results are linked, not
+  front-loaded — the full record stays in `NEGATIVE_RESULTS.md`.
+- Corrected the architecture diagram against `decide()`: the admission firewall
+  sets `adversarial_detected` and suppresses the model fan-out (dotted edge) but
+  does not issue the verdict — `hard_guard_floor()` does; the argument gates run
+  *after* trust routing, not before; and the VERIFY → bounded lookup → re-entry
+  loop is now drawn. Every node names the module or symbol it stands for, and
+  line breaks use `<br/>` instead of `\n`.
+
+### Claim coverage for the routing track (2026-07-31)
+
+- Registered the tool-call routing track in the authoritative claim register,
+  which previously stopped at CLAIM-013 while §19–§35 of `NEGATIVE_RESULTS.md`
+  accumulated results with no register entry:
+  - **CLAIM-014** (`externally_benchmarked`) — the sealed BFCL v3 blind track:
+    four of five pre-registered targets met, the fifth (known-wrong-call
+    ACCEPT 86.8% vs a ≤20% bar) missed and published as measured.
+  - **CLAIM-015** (`internal_benchmark`) — argument value grounding, labelled
+    **development measurement, not blind**, carrying the 86.8% blind record
+    alongside the 11.6% development number so the two cannot be quoted apart.
+  - **CLAIM-016** (`internal_simulation`) — declared validator bindings
+    recovering read utility 0% → 100% in the UNKNOWN regime, plus the
+    seven-condition degradation study, both scoped as mechanism studies.
+- Added `tests/test_routing_claim_artifacts.py`: the sealed blind record is now
+  pinned by CI (status, locked commit, holdout hash, all five target values), so
+  an edit that quietly repairs the published miss fails instead of shipping.
+- Added the six routing artifacts to `artifact_manifest_v1.md` under a documented
+  addition note that distinguishes the never-regenerable blind record from the
+  development artifact that is expected to move with the engine.
+- Rewrote `README.md`: results lifted to the front, each with the caveat that
+  keeps it honest and a link to the register entry governing it; a "Where it
+  fails" summary pointing into `NEGATIVE_RESULTS.md` (which remains the sole
+  home of the full negative record); corrected the architecture diagram to show
+  the VERIFY → bounded resolver → router re-entry loop and the admission
+  firewall's direct block edge; test count refreshed from ~3700 to ~4400.
+
 ### Statistical precision (2026-07-30) — SGR diagnostics and wording (issue #85 / review F-07)
 
 - `sgr_threshold` on the rejected path now reports the **best (smallest)

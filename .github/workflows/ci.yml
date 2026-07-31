@@ -251,6 +251,10 @@ jobs:
         run: |
           python scripts/generate_research_control_matrix.py --check
           python scripts/generate_readme_status.py --check
+          # A result that a later round replaced is archived, never deleted.
+          # This fails if a claim's status/superseded_by changed without the
+          # archive page being regenerated.
+          python scripts/generate_superseded_claims.py --check
           python scripts/generate_results_snapshot.py
           git diff --exit-code -- docs/results_snapshot.md artifacts/benchmark_summary.json
 

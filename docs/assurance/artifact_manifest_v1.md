@@ -106,6 +106,27 @@ runs; provenance sidecar `results/se_backend_parity_smoke.provenance.json`
 benchmark — NEGATIVE_RESULTS.md §3 remains active (narrowed with a dated
 note there).
 
+## Addition Note (2026-07-31, routing track)
+
+Six new artifacts are added (additions, not re-issues) covering the tool-call
+routing track registered as CLAIM-014, CLAIM-015 and CLAIM-016:
+
+- `results/routing_bench_bfcl_results.json` + `data/routing_bench_bfcl/manifest.json`
+  are the **sealed blind record** (CLAIM-014). They were produced by a single
+  evaluation at locked commit `cf02fa8` and must never change. Any checksum
+  change here is a protocol violation, not a re-run: the set is spent and a
+  second evaluation cannot restore blindness.
+- `results/system_demonstration_v1.json` (CLAIM-015) is an aggregated
+  re-execution of every committed routing study at HEAD; its own `status`
+  field records `development_measurement_not_blind`. It is expected to change
+  when the engine changes — that is what it is for — and the blind record above
+  is what it must never be confused with.
+- `results/fleetops_validator_study_results.json`,
+  `results/fleetops_degradation_results.json` and
+  `results/fleetops_admission.json` (CLAIM-016) are the open mechanism study on
+  the generated fleetops domain, whose blind budget was spent in
+  NEGATIVE_RESULTS.md §31.
+
 ---
 
 ## Primary Safety Gate Artifacts
@@ -144,6 +165,12 @@ must not change unless the benchmark is re-run under a documented protocol.
 | `results/gainability_routing.json` | `7d5245f410ed360362abed0720aabed2c959a2383951f6cdc35be68536a611e7` | 291 | 2026-06-09T22:51:30 | Gainability routing result |
 | `results/evidence_v2_n500.json` | `322a4f8a90bd111e98a48a9ae6f58442395986f86d999afb799467b473d18b1e` | 406 | 2026-06-09T22:51:30 | Evidence routing N=500 |
 | `results/se_backend_parity_smoke.json` | `3842257f833aebb0e6c7d808fa4a60a6bfb3d248710417b5d652790a186492bb` | 9334 | 2026-07-30 | NLI vs TokenFingerprint SE-backend parity smoke (RF-06): 24-item fixture corpus, 12/24 cluster-count disagreements; fixture-scope only, provenance sidecar v3 (added 2026-07-30) |
+| `results/routing_bench_bfcl_results.json` | `922b6926a542cf1400164a6df31c724dc0adbc154337f936f745ae775c156c4c` | 3504 | 2026-07-31 | **SEALED BLIND RECORD** (CLAIM-014): BFCL v3 routing track evaluated once at commit `cf02fa8`; 4/5 pre-registered targets met, known-wrong-call ACCEPT 86.8% missed and published. Must never change (added 2026-07-31) |
+| `data/routing_bench_bfcl/manifest.json` | `a9b4f044510d4ffc40d50986a90955d1b558e113ea7d54791c85d9f035c069b8` | 39122 | 2026-07-31 | Episode manifest for the sealed BFCL track: holdout sha256 `c3a8e27b…`, upstream gorilla file hashes pinned, admission verdict recorded (added 2026-07-31) |
+| `results/system_demonstration_v1.json` | `ccfa8246cd63f055540bec49d369a07864a133495e1be32ca3359839cbb5dc43` | 3500 | 2026-07-31 | Aggregated re-execution of every routing study at HEAD (CLAIM-015); `status = development_measurement_not_blind` — expected to move with the engine (added 2026-07-31) |
+| `results/fleetops_validator_study_results.json` | `d0a55ea4641b950f0089f5fc7f2c775c8e59fe66a1e2a46b7a37bea28ceab591` | 4686 | 2026-07-31 | Declared-validator study (CLAIM-016): read utility 0% → 100% in the UNKNOWN regime, all 8 pre-registered safety targets at bound (added 2026-07-31) |
+| `results/fleetops_degradation_results.json` | `6695d7d114be5faff21a131a8f09917aae6aed1569ba976a875d23df5913c394` | 22907 | 2026-07-31 | Seven-condition coverage-degradation study (CLAIM-016): what stale, truncated, re-vouched and cross-tenant state cost (added 2026-07-31) |
+| `results/fleetops_admission.json` | `ae2c3bbb62345113ad44a4c0383b6118d27e92377bc72d6452911d3870116a91` | 946 | 2026-07-31 | Admission verdict for the fleetops study: per-role judgeable fraction 1.0 against a 0.9 minimum (added 2026-07-31) |
 
 ---
 

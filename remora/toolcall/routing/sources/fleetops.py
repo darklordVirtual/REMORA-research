@@ -168,9 +168,18 @@ def build_tasks(db: dict, rng: random.Random) -> list[dict]:
     return tasks
 
 
-def serialize_snapshot(db: object) -> bytes:
+def canonical_json_bytes(payload: object) -> bytes:
+    """Canonical JSON encoding — the byte form every hash in this domain binds to.
+
+    Task lists and snapshot maps both go through here, so a hash computed over
+    one is computed the same way as a hash over the other.
+    """
+    return (json.dumps(payload, indent=1, sort_keys=True) + "\n").encode("utf-8")
+
+
+def serialize_snapshot(db: dict) -> bytes:
     """The canonical snapshot bytes a coverage declaration binds to."""
-    return (json.dumps(db, indent=1, sort_keys=True) + "\n").encode("utf-8")
+    return canonical_json_bytes(db)
 
 
 def entity_values(db: dict) -> dict[str, set[str]]:
