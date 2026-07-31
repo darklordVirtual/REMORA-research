@@ -238,15 +238,17 @@ jobs:
         run: python scripts/check_paper_sync.py
 
       - name: Claim-hygiene gates (stdlib only)
-        # These five ran in `make audit` but in no workflow, so until
+        # These four ran in `make audit` but in no workflow, so until
         # 2026-07-31 an overclaim in the README, a claim citing an artifact
         # that does not exist, or a broken internal link all passed CI. They
         # need no third-party dependency, so they belong in this light job.
+        # check_paper_overflow is deliberately NOT here: it needs PyMuPDF and
+        # the compiled PDF, and already runs in compile-paper.yml where both
+        # exist.
         run: |
           python scripts/check_artifacts_exist.py
           python scripts/check_claim_sync.py
           python scripts/check_no_overclaims.py
-          python scripts/check_paper_overflow.py
           python scripts/_check_links.py
 
       - name: Source hygiene (script metadata, SPDX headers)

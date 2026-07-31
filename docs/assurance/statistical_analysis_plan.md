@@ -38,8 +38,11 @@ exceeds the full-coverage majority-vote baseline on a held-out test set.
 **Status [POST-HOC]:** Run at commit 7da2ae3. N_accepted=25, p=1.45×10⁻⁵, CI [70.0%, 95.8%].
 Wide CI (25.8 pp) prevents generalization claims. Re-run under this SAP required with
 a dataset providing N_accepted ≥ 100.
+*(Superseded historical record. The 2026-07-27 re-issue replaced these with
+N_accepted=18, 100.0% at 16.7% coverage, CI [82.4%, 100.0%], p=0.052.)*
 
-**Interpretation constraint:** With N_accepted=25, the result is a directional observation
+**Interpretation constraint** *(superseded round; the re-issued figure is
+N_accepted=18)*: With N_accepted=25, the result is a directional observation
 only. Do not report as "established" or "confirmed generalization." Language required:
 "one directional held-out observation consistent with no in-sample threshold artefact."
 

@@ -367,6 +367,53 @@ def _paragraph_around(lines: list[str], idx: int) -> str:
     return " ".join(lines[start : end + 1])
 
 
+def check_retired_values(
+    doc_path: Path, text: str, claims: list[dict]
+) -> list[tuple[str, str]]:
+    """Guardrail 5c: a number an artifact re-issue replaced may not survive.
+
+    This is the gate the 2026-07-27 re-issue needed and did not have. The
+    register was updated, eight documents were not, and nothing noticed for
+    four days, because the anchor mechanism is opt-in: it only value-checks
+    paragraphs that already carry an anchor, so unanchored prose drifts
+    silently and invisibly.
+
+    ``retired_values`` inverts that. When an artifact is re-issued, the
+    claim records the strings its old numbers were written as. CI then fails
+    on every occurrence anywhere in the governed surface, so the first build
+    after a re-issue *enumerates the blast radius* instead of leaving it to
+    be discovered by audit. A paragraph that is explicitly historical keeps
+    its old numbers: recording what a previous round measured is not drift.
+    """
+    errors: list[tuple[str, str]] = []
+    rel = _display_path(doc_path)
+    if rel in SUPERSESSION_CITE_EXCLUDE:
+        return errors
+    lines = text.splitlines()
+    for claim in claims:
+        retired = claim.get("retired_values") or []
+        if isinstance(retired, str):
+            retired = [retired]
+        for value in retired:
+            for idx, line in enumerate(lines):
+                if value not in line:
+                    continue
+                paragraph = _paragraph_around(lines, idx).lower()
+                if any(marker in paragraph for marker in SUPERSESSION_MARKERS):
+                    continue
+                errors.append(
+                    (
+                        f"retired-value-still-quoted:{rel}:{claim['id']}:{value}",
+                        f"{rel}:{idx + 1}: quotes {value!r}, which "
+                        f"{claim['id']} retired when its artifact was "
+                        f"re-issued — update it to the current value, or mark "
+                        f"the paragraph as a historical record",
+                    )
+                )
+    return errors
+
+
+
 def check_superseded_citations(
     doc_path: Path, text: str, superseded: set[str], by_id: dict[str, dict]
 ) -> list[tuple[str, str]]:
@@ -736,6 +783,7 @@ def run() -> int:
         errors.extend(
             check_superseded_citations(doc, text, superseded_ids, claims_by_id)
         )
+        errors.extend(check_retired_values(doc, text, claims))
 
     baseline = _load_baseline()
     seen_ids = {eid for eid, _ in errors}

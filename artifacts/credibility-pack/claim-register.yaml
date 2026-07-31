@@ -21,6 +21,11 @@
 #                scripts/generate_superseded_claims.py and diffed in CI. The
 #                claim-provenance gate refuses to let a superseded claim stay
 #                anchored on the README front page.
+#   retired_values — strings the claim's numbers used to be written as, before
+#   an artifact re-issue changed them. The gate fails on any occurrence outside
+#   an explicitly historical paragraph, so the first CI run after a re-issue
+#   enumerates every document that still needs updating. Populate this at
+#   re-issue time; see docs/assurance/rebenchmark_protocol_v1.md.
 # blindness values (measurement condition — was it a blind evaluation?):
 #   blind       — evaluated once, on a sealed set, against targets fixed
 #                 beforehand. The set is spent afterwards.
@@ -173,6 +178,16 @@ claims:
       coverage_pct: 16.7
       ci_low_pct: 82.4
       ci_high_pct: 100.0
+    # Written as they appeared before the 2026-07-27 SAP v2 clean-round
+    # re-issue. Any document still carrying one of these strings outside an
+    # explicitly historical paragraph is drift, and CI says which document.
+    retired_values:
+      - "23.2% coverage"
+      - "N_accepted=25"
+      - "N_accepted = 25"
+      - "[70.0%, 95.8%]"
+      - "p = 1.45"
+      - "p=1.45"
     caveat: >
       Directional observation only: p=0.052 vs the training-split null, the
       CI does not exclude p0, and N_accepted=18 is far below the

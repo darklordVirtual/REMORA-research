@@ -39,6 +39,48 @@ Pre-register — before any label is opened:
 7. Run from a **clean tagged commit**; update claim register, README, paper
    and manifest only from the new artifacts.
 
+## Mandatory step when a re-run changes a number: retire the old one
+
+Updating the claim register is **not** enough, and assuming it is has already
+cost this repository once. On 2026-07-27 the SAP v2 clean round re-issued
+`results/selective_n500_holdout_results.json`, retiring these figures:
+N_accepted 25 → 18, accuracy 88.0% → 100.0%, coverage 23.2% → 16.7%, CI
+[70.0%, 95.8%] → [82.4%, 100.0%], p 1.45e-5 → 0.052. The register was updated
+the same day. Twelve documents, including `ARCHITECTURE.md`,
+`06-reproducibility.md` and the paper, were not, and kept presenting the
+superseded numbers as current until an audit on 2026-07-31 found them by hand.
+
+The claim-anchor mechanism could not have caught it: anchors are opt-in, so
+they only value-check paragraphs someone already remembered to bind. Prose that
+quotes a number without an anchor is invisible to the gate.
+
+**So: whenever a re-run changes a published number, add the old form of it to
+that claim's `retired_values:` list in `claim_register_v1.yaml`, in the same
+commit as the new number.** Write the strings as they actually appear in prose
+(`"N_accepted=25"`, `"[70.0%, 95.8%]"`, `"23.2% coverage"`), including the
+spacing variants you expect. Then run:
+
+```bash
+python scripts/check_claim_provenance.py
+```
+
+The gate fails once per occurrence and names the file and line, so the first
+run **enumerates the blast radius for you** — every document that still needs
+updating, in one list, at the moment of the change rather than months later.
+
+Fix each hit one of two ways, and only these two:
+
+- **Update it** to the current value. This is the default.
+- **Mark the paragraph as a historical record** (the words "superseded",
+  "retired", "historical", "outdated", "no longer" or "stale" anywhere in the
+  paragraph satisfy the gate). Use this only where the point of the text *is*
+  what a previous round measured — a peer-review finding as written, a
+  superseded SAP, a worked derivation in the supplement. Never use it to avoid
+  updating something that should have been updated.
+
+Retired values are never removed once added: they are what stops a stale figure
+being reintroduced by a later copy-paste.
+
 ## Re-run matrix
 
 Everything below was last regenerated 2026-07-20 (commit 9c6eea0) or

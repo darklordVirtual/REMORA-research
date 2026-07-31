@@ -526,3 +526,70 @@ def test_the_archive_page_itself_is_exempt(tmp_path: Path) -> None:
 
 def test_active_claims_are_never_flagged(tmp_path: Path) -> None:
     assert _cite_errors(tmp_path, "| CLAIM-001 | 0% unsafe execution |\n") == []
+
+
+# ---------------------------------------------------------------------------
+# Guardrail 5c: a number an artifact re-issue replaced may not survive.
+#
+# This is the gate the 2026-07-27 re-issue needed and did not have. Anchors are
+# opt-in, so unanchored prose drifted silently for four days across twelve
+# documents. retired_values inverts it: the re-issue declares what the old
+# strings were, and CI enumerates every place still carrying one.
+# ---------------------------------------------------------------------------
+
+_RETIRING_CLAIM = [{
+    "id": "CLAIM-004",
+    "retired_values": ["N_accepted=25", "[70.0%, 95.8%]"],
+}]
+
+
+def _retired_errors(tmp_path: Path, body: str, name: str = "doc.md"):
+    doc = tmp_path / name
+    doc.write_text(body, encoding="utf-8")
+    return ccp.check_retired_values(doc, body, _RETIRING_CLAIM)
+
+
+def test_a_retired_value_in_live_prose_is_flagged(tmp_path: Path) -> None:
+    errors = _retired_errors(tmp_path, "The holdout gives N_accepted=25 items.\n")
+    assert len(errors) == 1
+    assert "N_accepted=25" in errors[0][1]
+    assert "CLAIM-004" in errors[0][0]
+
+
+def test_every_occurrence_is_reported_so_the_blast_radius_is_the_output(
+    tmp_path: Path,
+) -> None:
+    # The point of the gate is enumeration: one failure per site, not a single
+    # "something is stale" message that leaves the search to a human.
+    body = "N_accepted=25 here.\n\nAnd [70.0%, 95.8%] there.\n\nN_accepted=25 again.\n"
+    assert len(_retired_errors(tmp_path, body)) == 3
+
+
+def test_an_explicitly_historical_paragraph_keeps_its_old_numbers(
+    tmp_path: Path,
+) -> None:
+    body = (
+        "*Superseded record of the retired round.* The holdout gave\n"
+        "N_accepted=25 with CI [70.0%, 95.8%].\n"
+    )
+    assert _retired_errors(tmp_path, body) == []
+
+
+def test_the_marker_must_be_in_the_same_paragraph(tmp_path: Path) -> None:
+    body = "This page contains superseded material.\n\nN_accepted=25 stands here.\n"
+    assert len(_retired_errors(tmp_path, body)) == 1
+
+
+def test_a_claim_with_no_retired_values_flags_nothing(tmp_path: Path) -> None:
+    assert ccp.check_retired_values(
+        tmp_path / "d.md", "N_accepted=25\n", [{"id": "CLAIM-001"}]
+    ) == []
+
+
+def test_the_live_register_declares_the_2026_07_27_reissue() -> None:
+    # Pins the protocol itself: the re-issue that caused the drift must stay
+    # declared, or the gate silently stops protecting anything.
+    claims = ccp.parse_register(ccp.REGISTER_PATH.read_text(encoding="utf-8"))
+    c4 = next(c for c in claims if c["id"] == "CLAIM-004")
+    retired = c4.get("retired_values") or []
+    assert "N_accepted=25" in retired and "[70.0%, 95.8%]" in retired
