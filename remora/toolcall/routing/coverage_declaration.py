@@ -130,6 +130,8 @@ def admitted_scopes(
     snapshots: dict[str, Path],
     *,
     tenant: str,
+    today: date | None = None,
+    max_age_days: int | None = None,
 ) -> dict[str, set[str]]:
     """Return ``{domain: {argument_role}}`` for declarations that hold right now.
 
@@ -138,13 +140,77 @@ def admitted_scopes(
     its domain, or when the snapshot bytes differ from those it was written
     against. Dropping is always the safe direction: it removes the ability to
     make a negative claim, it never adds one.
+
+    *today* and *max_age_days* together enforce a freshness bound: a
+    declaration older than the bound is dropped. Hash binding cannot catch a
+    world that moved on — a snapshot whose bytes never changed still goes stale
+    as records are created after it — so staleness is only detectable from
+    ``as_of``. The bound is opt-in but must be whole: passing one parameter
+    without the other is refused rather than half-checked. *today* is explicit
+    rather than read from the clock so admission is reproducible.
     """
+    if (today is None) != (max_age_days is None):
+        raise ValueError(
+            "a freshness bound needs both today and max_age_days; "
+            "passing one without the other would silently skip the check"
+        )
     admitted: dict[str, set[str]] = {}
     for declaration in declarations:
         if declaration.tenant != tenant:
+            continue
+        if (
+            today is not None
+            and max_age_days is not None
+            and (today - declaration.as_of).days > max_age_days
+        ):
             continue
         snapshot = snapshots.get(declaration.domain)
         if snapshot is None or not declaration.matches_snapshot(snapshot):
             continue
         admitted.setdefault(declaration.domain, set()).add(declaration.argument_role)
     return admitted
+
+
+def build_state_index(
+    declarations: tuple[CoverageDeclaration, ...],
+    snapshots: dict[str, Path],
+    *,
+    tenant: str,
+    today: date | None = None,
+    max_age_days: int | None = None,
+):
+    """The one production path from declarations plus snapshots to a StateIndex.
+
+    Track A2 was evaluated through wiring assembled inline in a runner that was
+    never committed; an evaluation pipeline that exists only in a transient
+    script can drift from the one described. This function is that wiring,
+    landed: every admission rule — tenant, snapshot hash, freshness — is
+    applied here, and only admitted scopes become closed-world. Everything else
+    the snapshots contain is indexed open-world: present values confirm, absent
+    values say UNKNOWN.
+    """
+    from remora.toolcall.routing.compatibility import StateIndex
+
+    # The index keys coverage by file stem. A snapshot filed under a stem that
+    # contradicts its domain key would misfile the scope: admitted for
+    # "banking", indexed under "foo", applied to nothing — coverage silently
+    # lost. Refused rather than repaired, because renaming on the fly would
+    # break the byte-binding the declaration's hash asserts.
+    for domain, path in snapshots.items():
+        if Path(path).stem != domain:
+            raise ValueError(
+                f"snapshot for domain {domain!r} has file stem "
+                f"{Path(path).stem!r}; the index would misfile its coverage"
+            )
+
+    admitted = admitted_scopes(
+        declarations,
+        snapshots,
+        tenant=tenant,
+        today=today,
+        max_age_days=max_age_days,
+    )
+    return StateIndex.from_json_files(
+        [snapshots[domain] for domain in sorted(snapshots)],
+        closed_world=admitted,
+    )
