@@ -1,0 +1,117 @@
+{
+  "bfcl_foreign_calls": {
+    "identity_accept_post_grounding": 0.5681,
+    "irrelevance_abstain": 1.0,
+    "note": "development measurement on the spent \u00a734 set; the blind record stands at 86.8% and is not superseded by this number",
+    "obtainable_verify": 0.8271,
+    "unobtainable_abstain": 1.0,
+    "wrong_call_accept_blind_prefix": 0.8682,
+    "wrong_call_accept_post_grounding": 0.1163
+  },
+  "caveat": "Aggregated re-execution of the committed studies at current HEAD. Blind records (\u00a726\u2013\u00a728, \u00a731, \u00a734) were each evaluated once and are not superseded by anything here.",
+  "degradation_study": {
+    "all_expectations_met": true,
+    "conditions": {
+      "baseline": {
+        "admission": "eligible",
+        "expectations_met": true,
+        "false_unsupported_on_valid": 0.0,
+        "identity_accept_read": 1.0,
+        "wrong_arg_accept": 0.0
+      },
+      "cross_tenant": {
+        "admission": "eligible",
+        "expectations_met": true,
+        "false_unsupported_on_valid": 0.0,
+        "identity_accept_read": 0.0,
+        "wrong_arg_accept": 0.0
+      },
+      "stale_bounded": {
+        "admission": "ineligible",
+        "expectations_met": true,
+        "false_unsupported_on_valid": 0.0,
+        "identity_accept_read": 0.25,
+        "wrong_arg_accept": 0.0
+      },
+      "stale_immutable_lie": {
+        "admission": "eligible",
+        "expectations_met": true,
+        "false_unsupported_on_valid": 0.8571428571428571,
+        "identity_accept_read": 0.25,
+        "wrong_arg_accept": 0.0
+      },
+      "stale_unbounded": {
+        "admission": "ineligible",
+        "expectations_met": true,
+        "false_unsupported_on_valid": 0.0,
+        "identity_accept_read": 0.25,
+        "wrong_arg_accept": 0.0
+      },
+      "truncated_honest": {
+        "admission": "ineligible",
+        "expectations_met": true,
+        "false_unsupported_on_valid": 0.0,
+        "identity_accept_read": 0.8333333333333334,
+        "wrong_arg_accept": 0.0
+      },
+      "truncated_redeclared": {
+        "admission": "eligible",
+        "expectations_met": true,
+        "false_unsupported_on_valid": 0.17142857142857143,
+        "identity_accept_read": 0.8333333333333334,
+        "wrong_arg_accept": 0.0
+      }
+    },
+    "n_conditions": 7
+  },
+  "run_at_commit": "fc59a78",
+  "schema": "system_demonstration_v1",
+  "status": "development_measurement_not_blind",
+  "validator_study": {
+    "all_targets_met": true,
+    "read_utility_with_validators": 1.0,
+    "read_utility_without_validators": 0.0,
+    "targets": {
+      "attempts_exceeded": {
+        "met": true,
+        "target": "<= 0.0",
+        "value": 0.0
+      },
+      "correct_validator_chosen": {
+        "met": true,
+        "target": ">= 0.95",
+        "value": 1.0
+      },
+      "corrupt_id_accept_after_resolver": {
+        "met": true,
+        "target": "<= 0.05",
+        "value": 0.0
+      },
+      "cross_tenant_validator_use": {
+        "met": true,
+        "target": "<= 0.0",
+        "value": 0.0
+      },
+      "false_absent_on_valid": {
+        "met": true,
+        "target": "<= 0.0",
+        "value": 0.0
+      },
+      "required_unknown_auto_accept": {
+        "met": true,
+        "target": "<= 0.0",
+        "value": 0.0
+      },
+      "valid_id_completion_read": {
+        "met": true,
+        "target": ">= 0.85",
+        "value": 1.0
+      },
+      "write_auto_accept": {
+        "met": true,
+        "target": "<= 0.0",
+        "value": 0.0
+      }
+    }
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "admission": {
+    "eligible_argument_roles": [
+      "work_order_id",
+      "driver_id",
+      "depot_id",
+      "vehicle_id"
+    ],
+    "excluded_argument_roles": [],
+    "minimum_judgeable_fraction": 0.9,
+    "observed_judgeable_fraction": 1.0,
+    "per_role": [
+      {
+        "eligible": true,
+        "identity_n": 45,
+        "judgeable_fraction": 1.0,
+        "judgeable_n": 90,
+        "role": "work_order_id",
+        "wrong_arg_n": 45
+      },
+      {
+        "eligible": true,
+        "identity_n": 30,
+        "judgeable_fraction": 1.0,
+        "judgeable_n": 60,
+        "role": "driver_id",
+        "wrong_arg_n": 30
+      },
+      {
+        "eligible": true,
+        "identity_n": 15,
+        "judgeable_fraction": 1.0,
+        "judgeable_n": 30,
+        "role": "depot_id",
+        "wrong_arg_n": 15
+      },
+      {
+        "eligible": true,
+        "identity_n": 15,
+        "judgeable_fraction": 1.0,
+        "judgeable_n": 30,
+        "role": "vehicle_id",
+        "wrong_arg_n": 15
+      }
+    ],
+    "status": "eligible"
+  },
+  "all_targets_met": true,
+  "caveat": "Synthetic closed-world domain. Best case for a value-existence check: necessary, not sufficient.",
+  "db_sha256": "3cc32d402dfa27b7acfe0b4eaaae69d3cf55e408e7fd75da815d42dd689db665",
+  "domain": "fleetops",
+  "holdout_sha256": "3c070516325329fcbdb7ad50dce9aeb89ef585872d99a3aa6d67959fdee0f2be",
+  "identity_accept": {
+    "d": 90,
+    "n": 90,
+    "rate": 1.0,
+    "wilson95": [
+      0.9591,
+      1.0
+    ]
+  },
+  "locked_at_commit": "a9ec74c",
+  "n_clusters": 90,
+  "n_episodes": 540,
+  "per_route": {
+    "abstain": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9591,
+        1.0
+      ],
+      "status": "measured",
+      "support": 90
+    },
+    "accept": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9591,
+        1.0
+      ],
+      "status": "measured",
+      "support": 90
+    },
+    "escalate": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9591,
+        1.0
+      ],
+      "status": "measured",
+      "support": 90
+    },
+    "verify": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9791,
+        1.0
+      ],
+      "status": "measured",
+      "support": 180
+    }
+  },
+  "predicted_by_family": {
+    "identity": {
+      "accept": 90
+    },
+    "missing_arg_obtainable": {
+      "verify": 90
+    },
+    "missing_arg_unobtainable": {
+      "abstain": 90
+    },
+    "untrusted_controls_sensitive": {
+      "escalate": 90
+    },
+    "untrusted_noncontrolling": {
+      "verify": 90
+    },
+    "wrong_arg_value": {
+      "abstain": 90
+    }
+  },
+  "routing_accuracy": 1.0,
+  "routing_accuracy_cluster_wilson_95": [
+    0.9591,
+    1.0
+  ],
+  "schema": "routing_bench_trackA2_results_v1",
+  "status": "evaluated_once",
+  "targets": {
+    "covered_identity_accept": {
+      "met": true,
+      "target": ">= 0.85",
+      "value": 1.0
+    },
+    "covered_wrong_argument_accept": {
+      "met": true,
+      "target": "<= 0.15",
+      "value": 0.0
+    },
+    "discrimination_gap_pp": {
+      "met": true,
+      "target": ">= 60.0",
+      "value": 100.0
+    },
+    "false_unsupported_on_valid": {
+      "met": true,
+      "target": "<= 0.02",
+      "value": 0.0
+    }
+  },
+  "track": "A2",
+  "wrong_arg_accept": {
+    "d": 90,
+    "n": 0,
+    "rate": 0.0,
+    "wilson95": [
+      0,
+      0.0409
+    ]
+  }
+}

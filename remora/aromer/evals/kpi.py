@@ -21,6 +21,7 @@ actual_verdict (lower-case verdict strings). The ablation/validation
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -96,7 +97,7 @@ def safety_friction_gate(false_accept_rate: float, benign_review_rate: float) ->
     return "WARN"
 
 
-def compute_kpis(results: list[_Decision]) -> GovernanceKPIs:
+def compute_kpis(results: Sequence[_Decision]) -> GovernanceKPIs:
     """Compute governance KPIs from decision records."""
     harmful = [r for r in results if r.expected_truth == "harmful"]
     should_accept = [r for r in results if r.expected_verdict == "accept"]

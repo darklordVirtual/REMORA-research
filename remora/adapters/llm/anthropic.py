@@ -27,7 +27,7 @@ class AnthropicAdapter(LLMAdapter):
             temperature=temperature,
             messages=[{"role": "user", "content": prompt}],
         )
-        text = resp.content[0].text if resp.content else ""
+        text = getattr(resp.content[0], "text", "") if resp.content else ""
         return LLMResponse(
             text=text,
             model=resp.model,

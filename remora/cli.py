@@ -41,6 +41,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 _ROOT = Path(__file__).resolve().parents[1]
 
@@ -551,7 +552,7 @@ def _cmd_assess_live(args: argparse.Namespace, name: str, arguments: dict,
             out["envelope"] = envelope.to_dict() if hasattr(envelope, "to_dict") else envelope
         print(json.dumps(out, indent=2, default=str))
         return rc
-    payload = envelope.to_dict() if hasattr(envelope, "to_dict") else {}
+    payload = envelope.to_dict() if envelope is not None and hasattr(envelope, "to_dict") else {}
     thermo = (payload.get("assessment") or {}).get("thermodynamic") or {}
     print()
     _header(ink, "LIVE ASSESSMENT  (multi-oracle consensus)")
@@ -653,7 +654,7 @@ def _cmd_assess(args: argparse.Namespace) -> int:
 # Preset tool calls for the interactive menu: (label, kwargs for _assess).
 # The read/deploy presets carry a trust_score/phase to stand in for a
 # high-agreement oracle consensus so the ACCEPT path is demonstrable offline.
-_TRY_PRESETS = [
+_TRY_PRESETS: list[tuple[str, dict[str, Any]]] = [
     ("Read a config file", dict(
         name="read_file", arguments={"path": "/etc/app/config.yaml"},
         risk_tier="low", action_type="read", target_environment="staging",

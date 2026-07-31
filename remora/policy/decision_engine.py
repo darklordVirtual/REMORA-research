@@ -23,6 +23,7 @@ from remora.credal import (
 )
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
+from remora.policy.resolution import ResolutionPlan
 from remora.policy.trap_classifier import (
     TRAP_ESCALATE_THRESHOLD,
     TRAP_VERIFY_THRESHOLD,
@@ -118,6 +119,36 @@ def _normalize_risk_tier(tier: str | None) -> str:
     return normalised if normalised in _KNOWN_RISK_TIERS else "unknown"
 
 
+#: Argument roles through which controlling a value confers authority rather
+#: than information: where an action lands, what it runs, and what it
+#: authenticates with. Matched as whole tokens against the argument name, so
+#: `to`, `to_address` and `recipient_email` all count while `photo` does not.
+_SENSITIVE_ARGUMENT_ROLES: frozenset[str] = frozenset({
+    "recipient", "recipients", "to", "cc", "bcc", "destination", "dest",
+    "target", "address", "email", "account", "iban", "payee",
+    "command", "cmd", "script", "exec", "shell", "query_command",
+    "credential", "credentials", "password", "secret", "token", "key",
+    "apikey", "api_key", "auth", "url", "uri", "endpoint", "webhook",
+    "host", "path", "principal", "role", "permission", "rights",
+})
+
+
+def _unresolvable_gap(obs: PolicyObservation) -> bool:
+    """True when a required argument is missing and nothing can supply it."""
+    return bool(obs.missing_required_arguments) and (
+        not obs.argument_resolver_tools or obs.arguments_satisfiable is False
+    )
+
+
+def _controls_sensitive_argument(names: tuple[str, ...] | None) -> bool:
+    """True when any named argument occupies a sensitive role."""
+    for name in names or ():
+        tokens = {tok for tok in str(name).lower().replace("-", "_").split("_") if tok}
+        if tokens & _SENSITIVE_ARGUMENT_ROLES:
+            return True
+    return False
+
+
 def hard_guard_floor(
     obs: PolicyObservation,
 ) -> tuple[DecisionAction, DecisionReason] | None:
@@ -156,6 +187,20 @@ def hard_guard_floor(
         )
         return action, DecisionReason.EVIDENCE_CONTRADICTED
     if obs.argument_tainted:
+        # Untrusted content that *controls* a sensitive argument is
+        # authorising, not informing. Deciding where money goes, what command
+        # runs, or which credential is used is exactly the authority untrusted
+        # content must never hold, so this escalates regardless of the declared
+        # risk tier — a caller-supplied "low" must not buy autonomy for an
+        # attacker-chosen recipient. §23 recorded ESCALATE recall at 0% before
+        # this existed. Untrusted provenance alone stays at the VERIFY floor
+        # below: escalating every tainted call would send a summary of an email
+        # to a human, which is friction with no decision to make.
+        if _controls_sensitive_argument(obs.untrusted_controlled_arguments):
+            return (
+                DecisionAction.ESCALATE,
+                DecisionReason.UNTRUSTED_CONTROLS_SENSITIVE_ARGUMENT,
+            )
         # Issue #40 decision (2026-07-30): at CRITICAL risk a tainted
         # argument is never an approvable VERIFY — it escalates, so no
         # reviewer can wave through an unsanitized critical write. The
@@ -166,6 +211,56 @@ def hard_guard_floor(
             return DecisionAction.ESCALATE, DecisionReason.TAINTED_ARGUMENT_ESCALATE
         return DecisionAction.VERIFY, DecisionReason.TAINTED_ARGUMENT_VERIFY
     return None
+
+
+#: Action types whose execution is bounded and reversible. Membership is by
+#: exact match: an unrecognised or missing action_type is unknown, not read-only,
+#: and must never qualify.
+_READ_ONLY_ACTION_TYPES: frozenset[str] = frozenset(
+    {"read", "read_only", "search", "list", "get", "query", "lookup"}
+)
+
+
+def _is_low_consequence(obs: PolicyObservation) -> bool:
+    """True when the action is read-only and carries no negative safety signal.
+
+    Every condition is a *confirmed negative* check written so that ``None``
+    (unknown) never satisfies it. The path permits only on positive evidence of
+    read-only semantics plus the absence of any recorded concern.
+    """
+    if (obs.action_type or "").strip().lower() not in _READ_ONLY_ACTION_TYPES:
+        return False
+
+    if obs.argument_tainted or obs.tool_forbidden:
+        return False
+    if obs.adversarial_detected or obs.coercion_detected:
+        return False
+    if obs.blackmail_pattern_detected or obs.distribution_shift_detected:
+        return False
+    if obs.schema_valid is False or obs.counterfactual_passed is False:
+        return False
+    if obs.evidence_contradictions:
+        return False
+
+    # A call whose required arguments cannot be sourced is one an agent would
+    # have to fabricate arguments for. Bounded consequence does not cover a
+    # fabricated call: unit_conversion is pure arithmetic and still wrong when
+    # there is no amount to convert. Confirmed-unsatisfiable only — an
+    # unregistered tool is unknown and must not be disqualified.
+    if obs.arguments_satisfiable is False:
+        return False
+
+    # An identifier the system of record does not contain means the call would
+    # operate on a record that does not exist. Confirmed-absent only.
+    if obs.argument_values_supported is False:
+        return False
+
+    # Production is excluded even for reads: blast radius there includes
+    # disclosure of live data, which no read-only guarantee covers.
+    if (obs.target_environment or "").strip().lower() in {"prod", "production"}:
+        return False
+
+    return True
 
 
 def _normalize_observation(obs: PolicyObservation) -> PolicyObservation:
@@ -494,7 +589,12 @@ class RemoraDecisionEngine:
         temperature_threshold: float | None = None,
         conformal_trust_threshold: float | None = None,
         conformal_phase_thresholds: dict[str, float] | None = None,
+        low_consequence_accept: bool = False,
     ) -> None:
+        # Opt-in: lets bounded, reversible action semantics reach ACCEPT without
+        # an oracle consensus signal. Off by default — see the path itself for
+        # what it does and does not assert.
+        self.low_consequence_accept = low_consequence_accept
         self.temperature_threshold = temperature_threshold
         self.conformal_trust_threshold = conformal_trust_threshold
         self.conformal_phase_thresholds = conformal_phase_thresholds
@@ -608,6 +708,21 @@ class RemoraDecisionEngine:
             _outcome = _gate.evaluate(self, obs, _credal, _trap)
             if _outcome is not None:
                 reasons.append(_gate.reason)
+                # A VERIFY whose information gap is already known to be
+                # unclosable is a false promise, whichever gate produced it.
+                # The §23 contract — VERIFY means a specific bounded step is
+                # expected to establish the missing information — has to hold
+                # for upstream gates too, or a mutating call with an unknown
+                # schema is told to verify something the engine has already
+                # established nobody can supply. Both outcomes block execution,
+                # so this is a statement about honesty, not a safety change.
+                # ESCALATE and ABSTAIN are untouched: a block outranks it.
+                if _outcome is DecisionAction.VERIFY and _unresolvable_gap(obs):
+                    reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+                    return self._build(
+                        DecisionAction.ABSTAIN, reasons, obs,
+                        credal=_credal, raw_obs=_raw_obs,
+                    )
                 return self._build(_outcome, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── SCHEMA UNVERIFIED FLOOR ─────────────────────────────────────────
@@ -616,6 +731,10 @@ class RemoraDecisionEngine:
         # If schema was not validated for a mutating action, force VERIFY here
         # rather than letting the action reach an ACCEPT outcome.
         if _schema_unverified_mutating:
+            if _unresolvable_gap(obs):
+                reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+                return self._build(DecisionAction.ABSTAIN, reasons, obs,
+                                   credal=_credal, raw_obs=_raw_obs)
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── UNKNOWN ACTION-TYPE FLOOR ───────────────────────────────────────
@@ -669,10 +788,17 @@ class RemoraDecisionEngine:
             reasons.append(DecisionReason.CONFORMAL_ACCEPT)
             return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
+        # Temperature ACCEPT carries the same critical-phase exclusion as the
+        # marginal conformal path above, and for the same reason: temperature
+        # is a phase-blind aggregate of the oracle distribution, so in the
+        # critical phase a low value selects the items where trust
+        # anti-correlates with correctness. Without this guard a low
+        # temperature silently overrides critical-phase VERIFY routing.
         if (
             self.temperature_threshold is not None
             and obs.temperature is not None
             and obs.temperature <= self.temperature_threshold
+            and obs.phase != "critical"
             and obs.counterfactual_passed is not False
             and not (obs.evidence_contradictions or 0)
         ):
@@ -755,6 +881,96 @@ class RemoraDecisionEngine:
         ):
             reasons.append(DecisionReason.LOW_TRUST)
             return self._build(DecisionAction.ABSTAIN, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+
+        # ── ARGUMENT RESOLUTION (2026-07-31) ─────────────────────────────
+        # Note: the unresolvable half of this rule also runs *before* the
+        # conditional gates, in decide(), because a VERIFY produced upstream
+        # would otherwise outlive the fact that its gap cannot be closed.
+        # §22 measured obtainable VERIFY recall at 0%: a call missing an
+        # argument an available tool could supply was accepted rather than
+        # routed to a bounded fetch. This is the gate that distinguishes
+        # "resolvable gap" from "unresolvable gap", which §21 showed the router
+        # could not do. Inert until the caller populates the fields, so default
+        # behaviour is unchanged.
+        #
+        # Placed after every blocking gate, so it can only convert a
+        # fall-through — a forbidden tool still escalates on re-entry.
+        if obs.missing_required_arguments:
+            if obs.argument_resolver_tools and obs.arguments_satisfiable is not False:
+                reasons.append(DecisionReason.ARGUMENT_RESOLUTION_REQUIRED)
+                return self._build(
+                    DecisionAction.VERIFY, reasons, obs,
+                    credal=_credal, raw_obs=_raw_obs,
+                    resolution_plan=ResolutionPlan(
+                        resolver="argument_resolution",
+                        target_arguments=tuple(obs.missing_required_arguments),
+                        source_tools=tuple(obs.argument_resolver_tools),
+                    ),
+                )
+            # No bounded step can close the gap. Promising a verification that
+            # cannot happen is worse than stopping.
+            reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+            return self._build(DecisionAction.ABSTAIN, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
+
+        # ── VALIDATION REQUIRED (2026-07-31) ─────────────────────────────
+        # §27 left UNKNOWN falling through to autonomy, so an uncovered domain
+        # accepted 61.5% of corrupted identifiers. An argument that steers where
+        # the action lands must be confirmed before autonomous execution — and
+        # only such arguments, because routing every UNKNOWN here would rebuild
+        # the constant blocker of §21 one level up.
+        #
+        # Placed after every blocking gate, so it can only convert a
+        # fall-through. Inert until the caller populates the field.
+        if obs.unvalidated_required_arguments:
+            if obs.argument_resolver_tools:
+                reasons.append(DecisionReason.ARGUMENT_VALIDATION_REQUIRED)
+                return self._build(
+                    DecisionAction.VERIFY, reasons, obs,
+                    credal=_credal, raw_obs=_raw_obs,
+                    resolution_plan=ResolutionPlan(
+                        resolver="argument_validation",
+                        target_arguments=tuple(obs.unvalidated_required_arguments),
+                        source_tools=tuple(obs.argument_resolver_tools),
+                    ),
+                )
+            # Nothing authoritative can confirm it, so autonomy is unavailable.
+            reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+            return self._build(DecisionAction.ABSTAIN, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
+
+        # ── UNGROUNDED ARGUMENT VALUES (2026-07-31) ──────────────────────
+        # §34 measured the open autonomy risk: 86.8% of well-formed foreign
+        # calls accepted, because every structural signal was satisfied. The
+        # tell is provenance-shaped — the values are traceable to nothing in
+        # this context — so autonomy withdraws to VERIFY. Placed after every
+        # blocking gate (it can only convert a fall-through, never preempt a
+        # block) and before the low-consequence accept it exists to guard.
+        # None never triggers it: a call with nothing to judge keeps its lane.
+        if obs.argument_values_grounded is False:
+            reasons.append(DecisionReason.UNGROUNDED_ARGUMENT_VALUES_VERIFY)
+            return self._build(DecisionAction.VERIFY, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
+
+        # ── LOW-CONSEQUENCE ACCEPT (opt-in, 2026-07-31) ─────────────────────
+        # Placed here deliberately: every hard guard and every blocking gate has
+        # already run, so this can only convert a fall-through that would
+        # otherwise abstain. It can never preempt a block —
+        # tests/test_low_consequence_accept.py asserts that over a grid.
+        #
+        # What it asserts is CONSEQUENCE, not correctness. The engine cannot
+        # tell a correct read from an incorrect one from observable data; the
+        # claim is only that executing this call is cheap to get wrong. That is
+        # why it is restricted to read-only semantics with no negative safety
+        # signal, and why it is off by default.
+        #
+        # Known cost, measured on the routing benchmark: it also accepts
+        # read-only calls that are the *wrong* call for the task, including
+        # cases another source annotates as unanswerable. A deployment that
+        # cannot tolerate a wasted or mildly disclosing read must leave it off.
+        if self.low_consequence_accept and _is_low_consequence(obs):
+            reasons.append(DecisionReason.LOW_CONSEQUENCE_ACCEPT)
+            return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── DEFAULT ─────────────────────────────────────────────────────────
 
@@ -1022,6 +1238,7 @@ class RemoraDecisionEngine:
         *,
         credal: CredalEnvelope | None = None,
         raw_obs: PolicyObservation | None = None,
+        resolution_plan: ResolutionPlan | None = None,
     ) -> DecisionReport:
         if obs.assurance_root is not None and DecisionReason.TRACE_ATTACHED not in reasons:
             reasons = list(reasons) + [DecisionReason.TRACE_ATTACHED]
@@ -1096,26 +1313,35 @@ class RemoraDecisionEngine:
             reasons=tuple(reasons),
             risk_estimate=risk_estimate,
             confidence=confidence,
-            coverage_policy={
-                DecisionAction.ACCEPT: "selective — accepted based on evidence/trust state",
-                DecisionAction.VERIFY: "held for verification",
-                DecisionAction.ABSTAIN: "abstained — insufficient evidence",
-                DecisionAction.ESCALATE: "escalated — hard failure detected",
-            }[action],
+            coverage_policy=(
+                # The low-consequence path reaches ACCEPT with no evidence or
+                # trust signal at all, so the generic ACCEPT wording would be a
+                # false statement about why the action was permitted.
+                "bounded consequence — read-only action, no evidence/trust signal used"
+                if DecisionReason.LOW_CONSEQUENCE_ACCEPT in reasons
+                else {
+                    DecisionAction.ACCEPT: "selective — accepted based on evidence/trust state",
+                    DecisionAction.VERIFY: "held for verification",
+                    DecisionAction.ABSTAIN: "abstained — insufficient evidence",
+                    DecisionAction.ESCALATE: "escalated — hard failure detected",
+                }[action]
+            ),
             evidence_required=evidence_required,
             human_review_required=human_review_required,
             audit_root=obs.assurance_root,
             explanation=explanation_map[action],
             raw_observation=raw_obs if raw_obs is not None else obs,
             source_of_decision=source,
+            # v5 (2026-07-31): temperature ACCEPT excludes the critical phase.
             # v4 (2026-07-30): tier-dependent tainted floor (issue #40).
-            policy_version="RemoraDecisionEngine-v4",
+            policy_version="RemoraDecisionEngine-v5",
             in_sample_calibration_warning=(
                 "temperature threshold may be in-sample if derived from evaluation artifact"
                 if DecisionReason.TEMPERATURE_ACCEPT in reasons and self.temperature_threshold is not None
                 else None
             ),
             credal=credal,
+            resolution_plan=resolution_plan,
         )
 
     def _source_of_decision(self, reasons: list[DecisionReason]) -> str:

@@ -79,7 +79,7 @@ _CONDITION_SEEDS: dict[str, list[str]] = {
         "21_eval_gates.seed.json",
         "22_golden_cognitive_episodes.seed.jsonl",
     ],
-    "D": None,        # filled below (union of B + C)
+    "D": [],            # filled below (union of B + C)
 }
 _CONDITION_SEEDS["D"] = _CONDITION_SEEDS["B"] + _CONDITION_SEEDS["C"]
 

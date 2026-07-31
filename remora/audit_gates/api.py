@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: BUSL-1.1
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 import re
 import subprocess
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 class Violation(str, Enum):
     UNBACKED_CLAIM = "unbacked_claim"
@@ -83,7 +85,7 @@ def run_docs_gate(root: Path) -> GateResult:
     reg = yaml.safe_load(reg_path.read_text())
     docs = reg.get("documents", [])
 
-    topics = {}
+    topics: dict[str, str] = {}
     historical_banned = []
 
     for d in docs:
@@ -162,4 +164,3 @@ def run_docs_gate(root: Path) -> GateResult:
             result.add(Violation.DOC_UNREGISTERED, rel_path)
 
     return result
-

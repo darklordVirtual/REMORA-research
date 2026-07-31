@@ -145,7 +145,7 @@ class AromerOrchestrator:
         )
 
         # Build adjusted observation
-        adjusted_obs = _replace_trust(obs, adjusted_trust)
+        adjusted_obs = _replace_trust(obs, adjusted_trust if adjusted_trust is not None else 0.0)
 
         # 2. Inject conformal trust threshold once the world model is calibrated.
         # When shadow_mode=False (ECE < 0.10 and n_obs >= 10), the world model
@@ -170,9 +170,9 @@ class AromerOrchestrator:
             risk_tier=obs.risk_tier or "medium",
             action_type=obs.action_type or "execution",
             phase=_phase_from_H(obs.final_H),
-            trust_score=adjusted_trust,
-            entropy_H=obs.final_H,
-            dissensus_D=obs.final_D,
+            trust_score=adjusted_trust if adjusted_trust is not None else 0.0,
+            entropy_H=obs.final_H if obs.final_H is not None else 0.0,
+            dissensus_D=obs.final_D if obs.final_D is not None else 0.0,
             verdict=report.action.value,
             confidence=_confidence_from_report(report),
             rules_triggered=_rules_from_report(report),

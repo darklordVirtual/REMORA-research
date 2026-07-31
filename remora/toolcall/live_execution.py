@@ -336,7 +336,7 @@ class LiveToolSandboxExecutor:
 
     def _exec_network(self, task: ToolCallTask, root: Path) -> dict[str, Any]:
         state_path = root / "network_state.json"
-        state = {"history": []}
+        state: dict[str, Any] = {"history": []}
         if state_path.exists():
             state = json.loads(state_path.read_text(encoding="utf-8"))
         state["history"].append(task.proposed_tool_args)
@@ -348,7 +348,7 @@ class LiveToolSandboxExecutor:
 
     def _exec_building(self, task: ToolCallTask, root: Path) -> dict[str, Any]:
         state_path = root / "building_state.json"
-        state = {"history": []}
+        state: dict[str, Any] = {"history": []}
         if state_path.exists():
             state = json.loads(state_path.read_text(encoding="utf-8"))
         state["history"].append(task.proposed_tool_args)

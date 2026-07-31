@@ -1,0 +1,1692 @@
+{
+  "admission": {
+    "eligible_argument_roles": [],
+    "excluded_argument_roles": [
+      "Content",
+      "ContentItem",
+      "MetaDescription",
+      "MetaTitle",
+      "TheFod",
+      "Title",
+      "UrlName",
+      "abv_max",
+      "abv_min",
+      "acc_routing_start",
+      "airCleanOperationMode",
+      "airConJobMode",
+      "airConOperationMode",
+      "airlines",
+      "anchor",
+      "answer",
+      "apply_special_tax",
+      "aroma",
+      "artist",
+      "artist_name",
+      "attachments",
+      "auto_reconnect",
+      "bcc_address",
+      "body",
+      "botId",
+      "botVersion",
+      "brewery",
+      "cast",
+      "cc_address",
+      "cinema_hall",
+      "city",
+      "city_name",
+      "color",
+      "command",
+      "component",
+      "content",
+      "coordinate_format",
+      "copyright_content",
+      "copyright_holder",
+      "country",
+      "county",
+      "customer",
+      "data_source",
+      "date",
+      "dateOrTime",
+      "default_ssid",
+      "departure_date",
+      "departure_location",
+      "departure_time",
+      "device_id",
+      "device_name",
+      "directed_by",
+      "discount_rate",
+      "district_name",
+      "districts_name",
+      "encoding_type",
+      "end_available_date",
+      "end_date",
+      "endingBefore",
+      "environmental_impact_focus",
+      "event_identifier",
+      "fabricName",
+      "faq_link_accounts_start",
+      "filterName",
+      "filterOperator",
+      "filterValue",
+      "flight_id",
+      "food_item",
+      "food_name",
+      "format",
+      "gender",
+      "genre",
+      "geolocation",
+      "get_balance_start",
+      "get_transactions_start",
+      "has_late_check_in",
+      "hide_input",
+      "ibu_max",
+      "ibu_min",
+      "identifier",
+      "image_path",
+      "include_discontinued",
+      "include_forecast",
+      "include_images",
+      "include_precipitation",
+      "include_wind",
+      "infoType",
+      "input_value",
+      "interfaceType",
+      "interval",
+      "language",
+      "loc",
+      "localeId",
+      "location",
+      "location_multiplier",
+      "maxResults",
+      "max_date",
+      "meal_name",
+      "min_date",
+      "missing_values",
+      "model",
+      "modification_request",
+      "movie_date",
+      "movie_format",
+      "movie_language",
+      "networkId",
+      "new_datetime",
+      "nextToken",
+      "notify",
+      "outofscope",
+      "output_format",
+      "pairings",
+      "params",
+      "partner_name",
+      "passenger_name",
+      "person_name",
+      "play",
+      "portion_unit",
+      "producto",
+      "project",
+      "prompt_message",
+      "province_id",
+      "quality",
+      "query",
+      "question",
+      "relationship",
+      "repos",
+      "restaurant",
+      "restaurants",
+      "retry_attempts",
+      "return_time",
+      "reverse",
+      "schema",
+      "search_type",
+      "sensorSerial",
+      "separator",
+      "shuffle",
+      "song_id",
+      "song_name",
+      "sortBy",
+      "source_language",
+      "special",
+      "speed",
+      "start_available_date",
+      "start_date",
+      "startingAfter",
+      "state",
+      "statement",
+      "status",
+      "style",
+      "sub_district_name",
+      "subject",
+      "t0",
+      "t1",
+      "target_language",
+      "tasa_interes_minima",
+      "taste",
+      "tax_exempt",
+      "temperature_unit",
+      "text",
+      "ticket_number",
+      "time",
+      "timeout",
+      "timespan",
+      "timezone",
+      "to_address",
+      "triggerMetric",
+      "type",
+      "unit",
+      "units",
+      "urgency",
+      "url",
+      "user_id",
+      "user_message",
+      "user_name",
+      "user_preferences",
+      "uuid",
+      "volume",
+      "vulnerability",
+      "windStrength",
+      "zone"
+    ],
+    "minimum_judgeable_fraction": 0.9,
+    "observed_judgeable_fraction": 0.0,
+    "per_role": [
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "Content",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "ContentItem",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "MetaDescription",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "MetaTitle",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "TheFod",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "Title",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "UrlName",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "abv_max",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "abv_min",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "acc_routing_start",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "airCleanOperationMode",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "airConJobMode",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "airConOperationMode",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "airlines",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "anchor",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 6,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "answer",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "apply_special_tax",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "aroma",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "artist",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "artist_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "attachments",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "auto_reconnect",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "bcc_address",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "body",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "botId",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "botVersion",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "brewery",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 18,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "cast",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "cc_address",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "cinema_hall",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 23,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "city",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "city_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "color",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 28,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "command",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "component",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 11,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "content",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "coordinate_format",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "copyright_content",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "copyright_holder",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "country",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "county",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "customer",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "data_source",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 16,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "dateOrTime",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "default_ssid",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "departure_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "departure_location",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "departure_time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 6,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "device_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "device_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 18,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "directed_by",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "discount_rate",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "district_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "districts_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "encoding_type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "end_available_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "end_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "endingBefore",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "environmental_impact_focus",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "event_identifier",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "fabricName",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "faq_link_accounts_start",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "filterName",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "filterOperator",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "filterValue",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "flight_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "food_item",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "food_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "format",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "gender",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 18,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "genre",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "geolocation",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "get_balance_start",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "get_transactions_start",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "has_late_check_in",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "hide_input",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "ibu_max",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "ibu_min",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "identifier",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "image_path",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_discontinued",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_forecast",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_images",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_precipitation",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_wind",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "infoType",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "input_value",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "interfaceType",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "interval",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 6,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "language",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "loc",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "localeId",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 23,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "location",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "location_multiplier",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "maxResults",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "max_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "meal_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "min_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "missing_values",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "model",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "modification_request",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "movie_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "movie_format",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "movie_language",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "networkId",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "new_datetime",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "nextToken",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "notify",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "outofscope",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "output_format",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "pairings",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "params",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "partner_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "passenger_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "person_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "play",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "portion_unit",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "producto",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "project",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "prompt_message",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "province_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "quality",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "query",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "question",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "relationship",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "repos",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "restaurant",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "restaurants",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "retry_attempts",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "return_time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "reverse",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "schema",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "search_type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "sensorSerial",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "separator",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "shuffle",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "song_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "song_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "sortBy",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "source_language",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "special",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "speed",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "start_available_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "start_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "startingAfter",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "state",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "statement",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "status",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "style",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "sub_district_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "subject",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "t0",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "t1",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "target_language",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "tasa_interes_minima",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "taste",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "tax_exempt",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "temperature_unit",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "text",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "ticket_number",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "timeout",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "timespan",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "timezone",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "to_address",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "triggerMetric",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 13,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 44,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "unit",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "units",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "urgency",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 12,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "url",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "user_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "user_message",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "user_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "user_preferences",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "uuid",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "volume",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "vulnerability",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "windStrength",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "zone",
+        "wrong_arg_n": 0
+      }
+    ],
+    "status": "ineligible"
+  },
+  "evaluated_all_targets_met": false,
+  "excluded_axes": {
+    "wrong_argument_value": "no state table with vouchable completeness exists; ground-truth argument lists are the labels and may not serve as a system of record. wrong_arg_value mutants were not sealed."
+  },
+  "locked_at_commit": "cf02fa8",
+  "n_clusters": 516,
+  "n_episodes": 1509,
+  "registry_sha256": "bab85ad0399aab997b91d9e55a74ebe53018d1dd51acb1de3533dabdb847d554",
+  "route_table_version_hash": "2b420160d0dfe0ce7e28a1eff2b3a9b85be77be1f089360d154b7c9de53b55c7",
+  "schema": "routing_bench_bfcl_v1",
+  "sha256": "c3a8e27bb559762342615bfa25f3816c122ca655417ec972f5a7984ef0537dd9",
+  "status": "evaluated",
+  "targets": {
+    "irrelevance_abstain_recall": [
+      ">=",
+      0.7
+    ],
+    "known_wrong_call_accept": [
+      "<=",
+      0.2
+    ],
+    "obtainable_verify_recall": [
+      ">=",
+      0.7
+    ],
+    "required_unknown_auto_accept": [
+      "<=",
+      0.0
+    ],
+    "unobtainable_abstain_recall": [
+      ">=",
+      0.7
+    ]
+  },
+  "track": "C-ext \u2014 external blind routing on BFCL v3 live (no authority)",
+  "upstream": {
+    "commit": "c15b2a151662cac9839c96d7dfb1493b5329c975",
+    "files": {
+      "answers": "4a1988780cdd8a723967587614cb84a9f53aa5d6fd37f83c78a0dd7acc2f3d15",
+      "irrelevance": "0d259e1c3ab6ba06c2a51911e2f49ecaa2eac3723a4a14f183a7687955e61338",
+      "live_simple": "10e5cedb6dc73cd16bc430755643c658d6032a69363dfc41a22a84988eaa312a"
+    },
+    "irrelevance_sample": {
+      "n": 258,
+      "population": 882,
+      "seed": 20260731,
+      "sha256": "19d6a1a96087e8c73c060af959abb480f7c987e3d22dd76c53eaa5017c2cda24"
+    },
+    "license": "Apache-2.0",
+    "repo": "https://github.com/ShishirPatil/gorilla"
+  }
+}

@@ -1,0 +1,945 @@
+{
+ "activate_debit_card_8291": {
+  "produced_names": [],
+  "required_params": [
+   "card_id",
+   "last_4_digits",
+   "expiration_date",
+   "cvv",
+   "pin"
+  ]
+ },
+ "activate_debit_card_8292": {
+  "produced_names": [],
+  "required_params": [
+   "card_id",
+   "last_4_digits",
+   "expiration_date",
+   "cvv",
+   "pin"
+  ]
+ },
+ "activate_debit_card_8293": {
+  "produced_names": [],
+  "required_params": [
+   "card_id",
+   "last_4_digits",
+   "expiration_date",
+   "cvv",
+   "pin"
+  ]
+ },
+ "apply_checking_account_credit_5829": {
+  "produced_names": [],
+  "required_params": [
+   "account_id",
+   "amount",
+   "credit_type"
+  ]
+ },
+ "apply_credit_card_account_flag_6147": {
+  "produced_names": [],
+  "required_params": [
+   "credit_card_account_id",
+   "user_id",
+   "flag_type",
+   "expiration_date",
+   "reason"
+  ]
+ },
+ "apply_for_credit_card": {
+  "produced_names": [],
+  "required_params": [
+   "card_type",
+   "customer_name",
+   "annual_income"
+  ]
+ },
+ "apply_savings_account_credit_6831": {
+  "produced_names": [],
+  "required_params": [
+   "account_id",
+   "amount",
+   "credit_type"
+  ]
+ },
+ "apply_statement_credit_8472": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "credit_card_account_id",
+   "amount",
+   "reason"
+  ]
+ },
+ "approve_credit_limit_increase_5847": {
+  "produced_names": [],
+  "required_params": [
+   "credit_card_account_id",
+   "user_id",
+   "new_credit_limit"
+  ]
+ },
+ "assert_data_refueling_amount": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "line_id",
+   "expected_amount"
+  ]
+ },
+ "assert_line_status": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "line_id",
+   "expected_status"
+  ]
+ },
+ "assert_no_overdue_bill": {
+  "produced_names": [],
+  "required_params": [
+   "overdue_bill_id"
+  ]
+ },
+ "assert_overdue_bill_exists": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "overdue_bill_id"
+  ]
+ },
+ "book_reservation": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "origin",
+   "destination",
+   "flight_type",
+   "cabin",
+   "flights",
+   "passengers",
+   "payment_methods",
+   "total_baggages",
+   "nonfree_baggages",
+   "insurance"
+  ]
+ },
+ "calculate": {
+  "produced_names": [],
+  "required_params": [
+   "expression"
+  ]
+ },
+ "call_discoverable_agent_tool": {
+  "produced_names": [],
+  "required_params": [
+   "agent_tool_name"
+  ]
+ },
+ "call_discoverable_user_tool": {
+  "produced_names": [],
+  "required_params": [
+   "discoverable_tool_name"
+  ]
+ },
+ "cancel_pending_order": {
+  "produced_names": [],
+  "required_params": [
+   "order_id",
+   "reason"
+  ]
+ },
+ "cancel_reservation": {
+  "produced_names": [],
+  "required_params": [
+   "reservation_id"
+  ]
+ },
+ "change_debit_card_pin_6285": {
+  "produced_names": [],
+  "required_params": [
+   "card_id",
+   "current_pin",
+   "new_pin"
+  ]
+ },
+ "change_user_email": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "new_email"
+  ]
+ },
+ "clear_debit_card_fraud_alert_4892": {
+  "produced_names": [],
+  "required_params": [
+   "card_id",
+   "reason"
+  ]
+ },
+ "close_bank_account_7392": {
+  "produced_names": [],
+  "required_params": [
+   "account_id"
+  ]
+ },
+ "close_credit_card_account_7834": {
+  "produced_names": [],
+  "required_params": [
+   "credit_card_account_id",
+   "user_id"
+  ]
+ },
+ "close_debit_card_4721": {
+  "produced_names": [],
+  "required_params": [
+   "card_id",
+   "reason"
+  ]
+ },
+ "deny_credit_limit_increase_5848": {
+  "produced_names": [],
+  "required_params": [
+   "credit_card_account_id",
+   "user_id",
+   "denial_reason"
+  ]
+ },
+ "deposit_check_3847": {
+  "produced_names": [],
+  "required_params": [
+   "account_id",
+   "check_amount"
+  ]
+ },
+ "disable_roaming": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "line_id"
+  ]
+ },
+ "emergency_credit_bureau_incident_transfer_1114": {
+  "produced_names": [],
+  "required_params": []
+ },
+ "enable_roaming": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "line_id"
+  ]
+ },
+ "example_agent_tool_0000": {
+  "produced_names": [],
+  "required_params": []
+ },
+ "exchange_delivered_order_items": {
+  "produced_names": [],
+  "required_params": [
+   "order_id",
+   "item_ids",
+   "new_item_ids",
+   "payment_method_id"
+  ]
+ },
+ "file_credit_card_transaction_dispute_4829": {
+  "produced_names": [],
+  "required_params": [
+   "transaction_id",
+   "card_action",
+   "card_last_4_digits",
+   "full_name",
+   "user_id",
+   "phone",
+   "email",
+   "address",
+   "contacted_merchant",
+   "purchase_date",
+   "issue_noticed_date",
+   "dispute_reason",
+   "resolution_requested",
+   "eligible_for_provisional_credit",
+   "partial_refund_amount"
+  ]
+ },
+ "file_debit_card_transaction_dispute_6281": {
+  "produced_names": [],
+  "required_params": [
+   "transaction_id",
+   "account_id",
+   "card_id",
+   "user_id",
+   "dispute_category",
+   "transaction_date",
+   "discovery_date",
+   "disputed_amount",
+   "transaction_type",
+   "card_in_possession",
+   "pin_compromised",
+   "contacted_merchant",
+   "police_report_filed",
+   "written_statement_provided",
+   "provisional_credit_eligible",
+   "customer_max_liability_amount",
+   "card_action"
+  ]
+ },
+ "find_user_id_by_email": {
+  "produced_names": [],
+  "required_params": [
+   "email"
+  ]
+ },
+ "find_user_id_by_name_zip": {
+  "produced_names": [],
+  "required_params": [
+   "first_name",
+   "last_name",
+   "zip"
+  ]
+ },
+ "format_discoverable_tool_for_agent": {
+  "produced_names": [],
+  "required_params": [
+   "tool_info"
+  ]
+ },
+ "freeze_debit_card_3892": {
+  "produced_names": [],
+  "required_params": [
+   "card_id"
+  ]
+ },
+ "get_agent_discoverable_tools_state": {
+  "produced_names": [
+   "agent_discoverable_tools_state"
+  ],
+  "required_params": []
+ },
+ "get_all_user_accounts_by_user_id_3847": {
+  "produced_names": [
+   "all_user_accounts_by_user_id_3847"
+  ],
+  "required_params": [
+   "user_id"
+  ]
+ },
+ "get_atm_deposit_images_8473": {
+  "produced_names": [
+   "atm_deposit_images_8473"
+  ],
+  "required_params": [
+   "transaction_id"
+  ]
+ },
+ "get_available_plan_ids": {
+  "produced_names": [
+   "available_plan_ids"
+  ],
+  "required_params": []
+ },
+ "get_bank_account_transactions_9173": {
+  "produced_names": [
+   "bank_account_transactions_9173"
+  ],
+  "required_params": [
+   "account_id"
+  ]
+ },
+ "get_bills_for_customer": {
+  "produced_names": [
+   "bills_for_customer"
+  ],
+  "required_params": [
+   "customer_id"
+  ]
+ },
+ "get_card_last_4_digits": {
+  "produced_names": [
+   "card_last_4_digits"
+  ],
+  "required_params": [
+   "credit_card_account_id"
+  ]
+ },
+ "get_closure_reason_history_8293": {
+  "produced_names": [
+   "closure_reason_history_8293"
+  ],
+  "required_params": [
+   "credit_card_account_id"
+  ]
+ },
+ "get_credit_card_accounts_by_user": {
+  "produced_names": [
+   "credit_card_accounts_by_user"
+  ],
+  "required_params": [
+   "user_id"
+  ]
+ },
+ "get_credit_card_transactions_by_user": {
+  "produced_names": [
+   "credit_card_transactions_by_user"
+  ],
+  "required_params": [
+   "user_id"
+  ]
+ },
+ "get_credit_limit_increase_history_4829": {
+  "produced_names": [
+   "credit_limit_increase_history_4829"
+  ],
+  "required_params": [
+   "credit_card_account_id"
+  ]
+ },
+ "get_current_time": {
+  "produced_names": [
+   "time"
+  ],
+  "required_params": []
+ },
+ "get_customer_by_id": {
+  "produced_names": [
+   "customer_by_id"
+  ],
+  "required_params": [
+   "customer_id"
+  ]
+ },
+ "get_customer_by_name": {
+  "produced_names": [
+   "customer_by_name"
+  ],
+  "required_params": [
+   "full_name",
+   "dob"
+  ]
+ },
+ "get_customer_by_phone": {
+  "produced_names": [
+   "customer_by_phone"
+  ],
+  "required_params": [
+   "phone_number"
+  ]
+ },
+ "get_data_usage": {
+  "produced_names": [
+   "data_usage"
+  ],
+  "required_params": [
+   "customer_id",
+   "line_id"
+  ]
+ },
+ "get_debit_cards_by_account_id_7823": {
+  "produced_names": [
+   "debit_cards_by_account_id_7823"
+  ],
+  "required_params": [
+   "account_id"
+  ]
+ },
+ "get_debit_dispute_status_7483": {
+  "produced_names": [
+   "debit_dispute_status_7483"
+  ],
+  "required_params": [
+   "user_id"
+  ]
+ },
+ "get_details_by_id": {
+  "produced_names": [
+   "details_by_id"
+  ],
+  "required_params": [
+   "id"
+  ]
+ },
+ "get_flight_status": {
+  "produced_names": [
+   "flight_status"
+  ],
+  "required_params": [
+   "flight_number",
+   "date"
+  ]
+ },
+ "get_id": {
+  "produced_names": [
+   "id"
+  ],
+  "required_params": [
+   "id_type",
+   "id_name"
+  ]
+ },
+ "get_item_details": {
+  "produced_names": [
+   "item_details"
+  ],
+  "required_params": [
+   "item_id"
+  ]
+ },
+ "get_order_details": {
+  "produced_names": [
+   "order_details"
+  ],
+  "required_params": [
+   "order_id"
+  ]
+ },
+ "get_payment_history_6183": {
+  "produced_names": [
+   "payment_history_6183"
+  ],
+  "required_params": [
+   "credit_card_account_id",
+   "months"
+  ]
+ },
+ "get_pending_replacement_orders_5765": {
+  "produced_names": [
+   "pending_replacement_orders_5765"
+  ],
+  "required_params": [
+   "credit_card_account_id"
+  ]
+ },
+ "get_product_details": {
+  "produced_names": [
+   "product_details"
+  ],
+  "required_params": [
+   "product_id"
+  ]
+ },
+ "get_referral_link": {
+  "produced_names": [
+   "referral_link"
+  ],
+  "required_params": [
+   "user_id",
+   "card_name"
+  ]
+ },
+ "get_referrals_by_user": {
+  "produced_names": [
+   "referrals_by_user"
+  ],
+  "required_params": [
+   "user_id"
+  ]
+ },
+ "get_reservation_details": {
+  "produced_names": [
+   "reservation_details"
+  ],
+  "required_params": [
+   "reservation_id"
+  ]
+ },
+ "get_user_details": {
+  "produced_names": [
+   "user_details"
+  ],
+  "required_params": [
+   "user_id"
+  ]
+ },
+ "get_user_discoverable_tools_state": {
+  "produced_names": [
+   "user_discoverable_tools_state"
+  ],
+  "required_params": []
+ },
+ "get_user_dispute_history_7291": {
+  "produced_names": [
+   "user_dispute_history_7291"
+  ],
+  "required_params": [
+   "user_id"
+  ]
+ },
+ "get_user_information_by_email": {
+  "produced_names": [
+   "user_information_by_email"
+  ],
+  "required_params": [
+   "email"
+  ]
+ },
+ "get_user_information_by_id": {
+  "produced_names": [
+   "user_information_by_id"
+  ],
+  "required_params": [
+   "user_id"
+  ]
+ },
+ "get_user_information_by_name": {
+  "produced_names": [
+   "user_information_by_name"
+  ],
+  "required_params": [
+   "customer_name"
+  ]
+ },
+ "give_discoverable_user_tool": {
+  "produced_names": [],
+  "required_params": [
+   "discoverable_tool_name"
+  ]
+ },
+ "initial_transfer_to_human_agent_0218": {
+  "produced_names": [],
+  "required_params": []
+ },
+ "initial_transfer_to_human_agent_1822": {
+  "produced_names": [],
+  "required_params": []
+ },
+ "list_all_airports": {
+  "produced_names": [],
+  "required_params": []
+ },
+ "list_all_product_types": {
+  "produced_names": [],
+  "required_params": []
+ },
+ "list_discoverable_agent_tools": {
+  "produced_names": [],
+  "required_params": []
+ },
+ "list_discoverable_user_tools": {
+  "produced_names": [],
+  "required_params": []
+ },
+ "log_credit_card_closure_reason_4521": {
+  "produced_names": [],
+  "required_params": [
+   "credit_card_account_id",
+   "user_id",
+   "closure_reason"
+  ]
+ },
+ "log_verification": {
+  "produced_names": [],
+  "required_params": [
+   "name",
+   "user_id",
+   "address",
+   "email",
+   "phone_number",
+   "date_of_birth",
+   "time_verified"
+  ]
+ },
+ "modify_pending_order_address": {
+  "produced_names": [],
+  "required_params": [
+   "order_id",
+   "address1",
+   "address2",
+   "city",
+   "state",
+   "country",
+   "zip"
+  ]
+ },
+ "modify_pending_order_items": {
+  "produced_names": [],
+  "required_params": [
+   "order_id",
+   "item_ids",
+   "new_item_ids",
+   "payment_method_id"
+  ]
+ },
+ "modify_pending_order_payment": {
+  "produced_names": [],
+  "required_params": [
+   "order_id",
+   "payment_method_id"
+  ]
+ },
+ "modify_user_address": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "address1",
+   "address2",
+   "city",
+   "state",
+   "country",
+   "zip"
+  ]
+ },
+ "open_bank_account_4821": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "account_type",
+   "account_class"
+  ]
+ },
+ "order_debit_card_5739": {
+  "produced_names": [],
+  "required_params": [
+   "account_id",
+   "user_id",
+   "delivery_option",
+   "delivery_fee",
+   "card_design",
+   "design_fee",
+   "shipping_address",
+   "excess_replacement_fee"
+  ]
+ },
+ "order_replacement_credit_card_7291": {
+  "produced_names": [],
+  "required_params": [
+   "credit_card_account_id",
+   "user_id",
+   "shipping_address",
+   "reason"
+  ]
+ },
+ "parse_discoverable_tool_docstring": {
+  "produced_names": [],
+  "required_params": [
+   "func"
+  ]
+ },
+ "pay_credit_card_from_checking_9182": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "checking_account_id",
+   "credit_card_account_id",
+   "amount"
+  ]
+ },
+ "query_database": {
+  "produced_names": [],
+  "required_params": [
+   "database_name"
+  ]
+ },
+ "refuel_data": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "line_id",
+   "gb_amount"
+  ]
+ },
+ "request_human_agent_transfer": {
+  "produced_names": [],
+  "required_params": []
+ },
+ "request_temporary_debit_card_limit_increase_8374": {
+  "produced_names": [],
+  "required_params": [
+   "card_id",
+   "limit_type",
+   "new_limit"
+  ]
+ },
+ "reset_debit_card_pin_6284": {
+  "produced_names": [],
+  "required_params": [
+   "card_id",
+   "last_4_digits",
+   "new_pin"
+  ]
+ },
+ "resume_line": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "line_id"
+  ]
+ },
+ "return_delivered_order_items": {
+  "produced_names": [],
+  "required_params": [
+   "order_id",
+   "item_ids",
+   "payment_method_id"
+  ]
+ },
+ "search_direct_flight": {
+  "produced_names": [],
+  "required_params": [
+   "origin",
+   "destination",
+   "date"
+  ]
+ },
+ "search_onestop_flight": {
+  "produced_names": [],
+  "required_params": [
+   "origin",
+   "destination",
+   "date"
+  ]
+ },
+ "send_certificate": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "amount"
+  ]
+ },
+ "send_payment_request": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "bill_id"
+  ]
+ },
+ "set_data_usage": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "line_id",
+   "data_used_gb"
+  ]
+ },
+ "set_debit_card_recurring_block_7382": {
+  "produced_names": [],
+  "required_params": [
+   "card_id",
+   "block_recurring"
+  ]
+ },
+ "set_read_log_allowlist": {
+  "produced_names": [],
+  "required_params": [
+   "allowlist"
+  ]
+ },
+ "submit_cash_back_dispute_0589": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "transaction_id"
+  ]
+ },
+ "submit_credit_limit_increase_request_7392": {
+  "produced_names": [],
+  "required_params": [
+   "credit_card_account_id",
+   "user_id",
+   "requested_increase_amount"
+  ]
+ },
+ "submit_interest_discrepancy_report_7294": {
+  "produced_names": [],
+  "required_params": [
+   "account_id",
+   "user_id",
+   "expected_apy",
+   "actual_apy",
+   "amount_difference"
+  ]
+ },
+ "submit_referral": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "account_type"
+  ]
+ },
+ "submit_transaction": {
+  "produced_names": [],
+  "required_params": [
+   "user_id",
+   "credit_card_type",
+   "merchant_name",
+   "amount",
+   "category"
+  ]
+ },
+ "suspend_line": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "line_id",
+   "reason"
+  ]
+ },
+ "suspend_line_for_overdue_bill": {
+  "produced_names": [],
+  "required_params": [
+   "customer_id",
+   "line_id",
+   "new_bill_id",
+   "contract_ended"
+  ]
+ },
+ "transfer_funds_between_bank_accounts_7291": {
+  "produced_names": [],
+  "required_params": [
+   "source_account_id",
+   "destination_account_id",
+   "amount"
+  ]
+ },
+ "transfer_to_human_agents": {
+  "produced_names": [],
+  "required_params": [
+   "summary"
+  ]
+ },
+ "unfreeze_debit_card_3893": {
+  "produced_names": [],
+  "required_params": [
+   "card_id"
+  ]
+ },
+ "unlock_discoverable_agent_tool": {
+  "produced_names": [],
+  "required_params": [
+   "agent_tool_name"
+  ]
+ },
+ "update_reservation_baggages": {
+  "produced_names": [],
+  "required_params": [
+   "reservation_id",
+   "total_baggages",
+   "nonfree_baggages",
+   "payment_id"
+  ]
+ },
+ "update_reservation_flights": {
+  "produced_names": [],
+  "required_params": [
+   "reservation_id",
+   "cabin",
+   "flights",
+   "payment_id"
+  ]
+ },
+ "update_reservation_passengers": {
+  "produced_names": [],
+  "required_params": [
+   "reservation_id",
+   "passengers"
+  ]
+ },
+ "update_transaction_rewards_3847": {
+  "produced_names": [],
+  "required_params": [
+   "transaction_id",
+   "new_rewards_earned"
+  ]
+ }
+}

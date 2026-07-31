@@ -127,7 +127,7 @@ def _evaluate(cases: list[EffectCase], world: DomainHarmPrior | None) -> Profile
     for c in cases:
         trust = c.trust
         if world is not None:
-            trust = world.adjust_trust(c.trust, c.domain, c.action_type, c.risk_tier)
+            trust = world.adjust_trust(c.trust, c.domain, c.action_type, c.risk_tier) or 0.0
         verdict = engine.decide(_obs(c, trust)).action.value.lower()
         if c.truth == "harmful" and verdict == "accept":
             fa += 1

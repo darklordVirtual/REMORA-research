@@ -1,10 +1,26 @@
 # VERIFY Resolution via AI-Control Protocols (RF-04)
 
-Status: proposal / library-only. The module `remora/governance/control_protocols.py`
-is flag-gated behind `REMORA_CONTROL_PROTOCOLS`, is wired into nothing, and no
-run of the pre-registered protocol below has been performed. This document
-contains a design and a frozen pre-registered decision rule — it contains **no
-results**.
+Status: library-only; pre-registered run completed with a negative outcome. The
+module `remora/governance/control_protocols.py` is flag-gated behind
+`REMORA_CONTROL_PROTOCOLS` and is still wired into nothing.
+
+The pre-registered re-scoring below has now been run. The result is an honest
+negative: the FAR target was met (0.0%, Wilson upper 1.8%) and the FBR target
+was not (100.0% vs <=40%). The cause is structural — every verdict in the
+source artifact is ESCALATE, and these protocols act only on VERIFY, so they
+have nothing to resolve. The run bounds what the protocols can do on this
+dataset; it does not identify which benign escalations were avoidable. Artifact:
+`artifacts/verify_protocols/agentharm_rescore_v1.json`; analysis:
+`NEGATIVE_RESULTS.md` §19.
+
+One resolution route is explicitly ruled out by measurement. A blanket
+`ESCALATE + unresolved_risk -> VERIFY` reclassification in the decision engine
+was implemented and measured on the 93-episode replay arena on 2026-07-30: it
+moved 19 decisions, all 19 ground-truth harmful, and 0 benign — no friction
+reduction, 51% of harmful escalations downgraded. Any future resolution path
+must be **selective eligibility carried in a separate field**, never a
+redefinition of what `DecisionReport.action` means. The contract is pinned by
+`tests/test_escalate_semantics_guard.py`.
 
 ## Motivation
 

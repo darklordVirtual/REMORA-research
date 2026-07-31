@@ -188,12 +188,23 @@ def test_temperature_calibrated_accuracy_on_accepted(result):
 
 
 def test_temperature_calibrated_coverage(result):
-    """Accepted items should be approximately 18% of N500 (10-25% range)."""
+    """Accepted items should be approximately 5.7% of N500 (3-10% range).
+
+    Re-baselined under RemoraDecisionEngine-v5 (2026-07-31). The temperature
+    ACCEPT path now carries the same ``phase != "critical"`` exclusion as the
+    marginal conformal path, so critical-phase items are no longer accepted on
+    a low temperature alone. Measured coverage drops 18% -> 5.7% (31/544).
+
+    The drop is the intended effect, not a regression: the excluded items are
+    exactly those where trust anti-correlates with correctness
+    (ARCHITECTURE.md §8, CLAIM-005). Accuracy on the accepted set is asserted
+    separately by test_temperature_calibrated_accuracy_on_accepted.
+    """
     n_accepted = result["accepted"]
     n_total = result["n_items"]
     coverage = n_accepted / n_total if n_total else 0.0
-    assert 0.10 <= coverage <= 0.25, (
-        f"Expected ~18% coverage, got {100 * coverage:.1f}% "
+    assert 0.03 <= coverage <= 0.10, (
+        f"Expected ~5.7% coverage under v5, got {100 * coverage:.1f}% "
         f"({n_accepted}/{n_total})"
     )
 

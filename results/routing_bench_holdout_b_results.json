@@ -1,0 +1,105 @@
+{
+  "all_targets_met": true,
+  "caveat": "Uncovered-domain track. Correct-versus-corrupted identifier discrimination is not a target and is informationally impossible without an authoritative source for this domain. What is tested is that the engine reports UNKNOWN rather than inventing UNSUPPORTED \u2014 the \u00a726 failure.",
+  "holdout_sha256": "a36d6c68a78411562c95ac216d7fb75f784255984696052d893379d1239f1caa",
+  "n_clusters": 298,
+  "n_episodes": 3841,
+  "per_route": {
+    "abstain": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9873,
+        1.0
+      ],
+      "status": "measured",
+      "support": 299
+    },
+    "accept": {
+      "recall": 0.7385943279901356,
+      "recall_wilson_95": [
+        0.7073,
+        0.7677
+      ],
+      "status": "measured",
+      "support": 811
+    },
+    "escalate": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9953,
+        1.0
+      ],
+      "status": "measured",
+      "support": 811
+    },
+    "verify": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9953,
+        1.0
+      ],
+      "status": "measured",
+      "support": 810
+    }
+  },
+  "predicted_by_family": {
+    "identity": {
+      "accept": 599,
+      "verify": 212
+    },
+    "missing_arg_obtainable": {
+      "verify": 299
+    },
+    "missing_arg_unobtainable": {
+      "abstain": 299
+    },
+    "untrusted_controls_sensitive": {
+      "escalate": 811
+    },
+    "untrusted_noncontrolling": {
+      "verify": 511
+    },
+    "wrong_arg_value": {
+      "accept": 599,
+      "verify": 212
+    },
+    "wrong_tool": {
+      "abstain": 9,
+      "accept": 209,
+      "verify": 81
+    }
+  },
+  "routing_accuracy": 0.9223727572317832,
+  "routing_accuracy_cluster_wilson_95": [
+    0.8869,
+    0.948
+  ],
+  "schema": "routing_bench_holdout_b_results_v1",
+  "status": "evaluated_once",
+  "targets": {
+    "false_unsupported_rate": {
+      "met": true,
+      "target": "== 0.0",
+      "value": 0.0
+    },
+    "obtainable_verify_recall": {
+      "met": true,
+      "target": ">= 0.7",
+      "value": 1.0
+    },
+    "unknown_correctness": {
+      "met": true,
+      "target": ">= 1.0",
+      "value": 1.0
+    },
+    "unobtainable_abstain_recall": {
+      "met": true,
+      "target": ">= 0.7",
+      "value": 1.0
+    }
+  },
+  "track": "B",
+  "value_status_distribution": {
+    "unknown": 3841
+  }
+}

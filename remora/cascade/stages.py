@@ -149,7 +149,7 @@ class ConsensusGate:
         if thermo is not None:
             trust = getattr(thermo, "trust_score", None)
             phase_raw = getattr(thermo, "phase", None)
-            phase = phase_raw.value if hasattr(phase_raw, "value") else phase_raw
+            phase = phase_raw.value if phase_raw is not None and hasattr(phase_raw, "value") else phase_raw
 
         oracle_calls = len(state.oracle_log)
 

@@ -285,9 +285,9 @@ class RemoraToolCallGate:
         elif self.use_counterfactual_flags:
             counterfactual_passed = True
 
-        phase = "ordered"
-        trust_score = 0.82
-        temperature = 0.12
+        phase: str | None = "ordered"
+        trust_score: float = 0.82
+        temperature: float | None = 0.12
         if risk == "medium":
             phase = "critical"
             trust_score = 0.45

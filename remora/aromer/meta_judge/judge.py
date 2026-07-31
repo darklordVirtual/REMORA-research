@@ -109,11 +109,11 @@ class AromerMetaJudge:
             verdict=episode.verdict,
             confidence=episode.confidence,
             rules=", ".join(episode.rules_triggered) or "none",
-            outcome=episode.decision_quality.value,
+            outcome=episode.decision_quality.value if episode.decision_quality else "unknown",
         )
         context = (
             f"AROMER meta-cognitive self-critique. "
-            f"Domain: {episode.domain}. Decision quality: {episode.decision_quality.value}."
+            f"Domain: {episode.domain}. Decision quality: {episode.decision_quality.value if episode.decision_quality else 'unknown'}."
         )
         try:
             raw = self._call_worker(prompt, context)
@@ -155,7 +155,7 @@ class AromerMetaJudge:
             verdict=episode.verdict,
             confidence=episode.confidence,
             rules=", ".join(episode.rules_triggered) or "none",
-            outcome=episode.decision_quality.value,
+            outcome=episode.decision_quality.value if episode.decision_quality else "unknown",
         )
         context = (
             f"AROMER structured rubric critique. "

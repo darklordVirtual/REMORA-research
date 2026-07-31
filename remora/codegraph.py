@@ -109,14 +109,14 @@ def _local_search(query: str, limit: int = 8) -> list[dict[str, Any]]:
     summaries = _parse_codegraph_md()
     query_tokens = set(re.split(r"[^a-z0-9]+", query.lower())) - _STOPWORDS
 
-    results = []
+    results: list[dict[str, Any]] = []
     for path in paths:
         summary = summaries.get(path, _humanize(path))
         score   = _score(query_tokens, path, summary)
         if score > 0:
             results.append({"path": path, "summary": summary, "score": score, "backend": "local"})
 
-    results.sort(key=lambda r: r["score"], reverse=True)
+    results.sort(key=lambda r: float(r["score"]), reverse=True)
     return results[:limit]
 
 

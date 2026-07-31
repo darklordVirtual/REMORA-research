@@ -1,0 +1,195 @@
+{
+  "all_targets_met": true,
+  "arms": {
+    "with_validators": {
+      "attempts_exceeded": {
+        "d": 540,
+        "n": 0,
+        "rate": 0.0
+      },
+      "correct_validator_chosen": {
+        "d": 120,
+        "n": 120,
+        "rate": 1.0
+      },
+      "corrupt_id_accept_after_resolver": {
+        "d": 90,
+        "n": 0,
+        "rate": 0.0
+      },
+      "cross_tenant_validator_use": {
+        "d": 120,
+        "n": 0,
+        "rate": 0.0
+      },
+      "false_absent_on_valid": {
+        "d": 120,
+        "n": 0,
+        "rate": 0.0
+      },
+      "final_by_family": {
+        "identity": {
+          "accept": 60,
+          "verify": 30
+        },
+        "missing_arg_obtainable": {
+          "verify": 90
+        },
+        "missing_arg_unobtainable": {
+          "abstain": 90
+        },
+        "untrusted_controls_sensitive": {
+          "escalate": 90
+        },
+        "untrusted_noncontrolling": {
+          "verify": 90
+        },
+        "wrong_arg_value": {
+          "abstain": 60,
+          "verify": 30
+        }
+      },
+      "n_episodes": 540,
+      "n_plans": 120,
+      "n_validator_consultations": 120,
+      "required_unknown_auto_accept": {
+        "d": 180,
+        "n": 0,
+        "rate": 0.0
+      },
+      "targets": {
+        "attempts_exceeded": {
+          "met": true,
+          "target": "<= 0.0",
+          "value": 0.0
+        },
+        "correct_validator_chosen": {
+          "met": true,
+          "target": ">= 0.95",
+          "value": 1.0
+        },
+        "corrupt_id_accept_after_resolver": {
+          "met": true,
+          "target": "<= 0.05",
+          "value": 0.0
+        },
+        "cross_tenant_validator_use": {
+          "met": true,
+          "target": "<= 0.0",
+          "value": 0.0
+        },
+        "false_absent_on_valid": {
+          "met": true,
+          "target": "<= 0.0",
+          "value": 0.0
+        },
+        "required_unknown_auto_accept": {
+          "met": true,
+          "target": "<= 0.0",
+          "value": 0.0
+        },
+        "valid_id_completion_read": {
+          "met": true,
+          "target": ">= 0.85",
+          "value": 1.0
+        },
+        "write_auto_accept": {
+          "met": true,
+          "target": "<= 0.0",
+          "value": 0.0
+        }
+      },
+      "valid_id_completion_read": {
+        "d": 60,
+        "n": 60,
+        "rate": 1.0
+      },
+      "write_auto_accept": {
+        "d": 30,
+        "n": 0,
+        "rate": 0.0
+      }
+    },
+    "without_validators": {
+      "attempts_exceeded": {
+        "d": 540,
+        "n": 0,
+        "rate": 0.0
+      },
+      "correct_validator_chosen": {
+        "d": 0,
+        "n": 0,
+        "rate": 0.0
+      },
+      "corrupt_id_accept_after_resolver": {
+        "d": 90,
+        "n": 0,
+        "rate": 0.0
+      },
+      "cross_tenant_validator_use": {
+        "d": 0,
+        "n": 0,
+        "rate": 0.0
+      },
+      "false_absent_on_valid": {
+        "d": 0,
+        "n": 0,
+        "rate": 0.0
+      },
+      "final_by_family": {
+        "identity": {
+          "abstain": 60,
+          "verify": 30
+        },
+        "missing_arg_obtainable": {
+          "verify": 90
+        },
+        "missing_arg_unobtainable": {
+          "abstain": 90
+        },
+        "untrusted_controls_sensitive": {
+          "escalate": 90
+        },
+        "untrusted_noncontrolling": {
+          "verify": 90
+        },
+        "wrong_arg_value": {
+          "abstain": 60,
+          "verify": 30
+        }
+      },
+      "n_episodes": 540,
+      "n_plans": 0,
+      "n_validator_consultations": 0,
+      "required_unknown_auto_accept": {
+        "d": 180,
+        "n": 0,
+        "rate": 0.0
+      },
+      "valid_id_completion_read": {
+        "d": 60,
+        "n": 0,
+        "rate": 0.0
+      },
+      "write_auto_accept": {
+        "d": 30,
+        "n": 0,
+        "rate": 0.0
+      }
+    }
+  },
+  "caveat": "Open (non-blind) mechanism study on the generated fleetops domain in the empty-index regime. The study's validator consults the live world directly, so false_absent_on_valid is 0 by construction; a production validator must be held to that check separately. Not evidence of generalisation to external domains.",
+  "preregistered_targets": {
+    "attempts_exceeded": "<= 0.0",
+    "correct_validator_chosen": ">= 0.95",
+    "corrupt_id_accept_after_resolver": "<= 0.05",
+    "cross_tenant_validator_use": "<= 0.0",
+    "false_absent_on_valid": "<= 0.0",
+    "required_unknown_auto_accept": "<= 0.0",
+    "valid_id_completion_read": ">= 0.85",
+    "write_auto_accept": "<= 0.0"
+  },
+  "run_at_commit": "fc59a78",
+  "schema": "fleetops_validator_study_results_v1",
+  "status": "mechanism_study_not_blind"
+}

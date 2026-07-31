@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from remora.policy.observation import PolicyObservation
 
@@ -33,6 +33,17 @@ class DecisionReason(str, Enum):
     TEMPERATURE_ACCEPT = "temperature_accept"
     GAINABILITY_ROUTE = "gainability_route"
     DEFAULT_SAFE_ABSTAIN = "default_safe_abstain"
+    LOW_CONSEQUENCE_ACCEPT = "low_consequence_accept"
+    ARGUMENT_RESOLUTION_REQUIRED = "argument_resolution_required"
+    NO_RESOLVER_AVAILABLE = "no_resolver_available"
+    # An argument policy requires validated is unconfirmed, and a bounded
+    # authoritative lookup is expected to settle it.
+    ARGUMENT_VALIDATION_REQUIRED = "argument_validation_required"
+    # The call's argument values are traceable to nothing in this context —
+    # not the task text, not the system of record. A well-formed foreign call
+    # (§34) withdraws from autonomy; verification must establish where its
+    # values came from.
+    UNGROUNDED_ARGUMENT_VALUES_VERIFY = "ungrounded_argument_values_verify"
     TRACE_ATTACHED = "trace_attached"
     ORDERED_HIGH_TRUST = "ordered_high_trust"
     DISORDERED_NO_EVIDENCE = "disordered_no_evidence"
@@ -45,6 +56,9 @@ class DecisionReason(str, Enum):
     # never an approvable VERIFY — they escalate (option c; option b,
     # sanitize-and-revalidate before approval, is the tracked target state).
     TAINTED_ARGUMENT_ESCALATE = "tainted_argument_escalate"
+    # Untrusted content controls a recipient/command/credential/egress target:
+    # authorising, not informing. Escalates at any declared risk tier.
+    UNTRUSTED_CONTROLS_SENSITIVE_ARGUMENT = "untrusted_controls_sensitive_argument"
     # Credal risk gates (v0.9)
     MINIMAX_ESCALATE = "minimax_escalate"       # worst_case_loss >= threshold
     TRAP_ESCALATE    = "trap_escalate"          # trap_score >= 0.70
@@ -92,9 +106,11 @@ class DecisionReport:
     explanation: str
     raw_observation: PolicyObservation
     source_of_decision: str = "default"
+    # v5 (2026-07-31): the temperature ACCEPT path excludes the critical
+    # phase, matching the marginal conformal path.
     # v4 (2026-07-30): tainted-argument floor is tier-dependent — critical
     # risk escalates instead of the approvable VERIFY (issue #40 decision).
-    policy_version: str = "RemoraDecisionEngine-v4"
+    policy_version: str = "RemoraDecisionEngine-v5"
     in_sample_calibration_warning: str | None = None
     # True when the OPA daemon was unreachable and the Python engine was used
     # as fallback.  Consumers should surface this in audit records.
@@ -102,3 +118,8 @@ class DecisionReport:
     # Credal risk envelope — interval-valued harm/utility estimate.
     # Attached to every report produced by RemoraDecisionEngine.decide().
     credal: CredalEnvelope | None = None
+    # ── Resolution (2026-07-31) ──────────────────────────────────────────
+    # A VERIFY produced by the argument-resolution gate always carries a plan
+    # naming the bounded machine step expected to close the gap. VERIFY without
+    # a plan from that gate is a contract violation, not a softer outcome.
+    resolution_plan: Any = None

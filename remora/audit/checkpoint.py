@@ -223,8 +223,9 @@ def verify_span(hashes: Sequence[str], checkpoint: Checkpoint) -> bool:
     Returns ``True`` only when *hashes* has exactly the length the
     checkpoint declares AND its recomputed Merkle root equals
     ``checkpoint.root``.  Any tamper (a single flipped bit in any hash) or
-    length mismatch returns ``False``; this function never raises on bad
-    span data.
+    length mismatch returns ``False``.  Leaves are expected to be strings
+    (malformed hex simply fails the root comparison); non-string leaves
+    raise ``TypeError``.
     """
     declared_len = checkpoint.seq_end - checkpoint.seq_start + 1
     if declared_len <= 0 or len(hashes) != declared_len:

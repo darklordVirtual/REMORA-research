@@ -34,7 +34,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from remora.toolcall.schema import ToolCallDecision
+from remora.toolcall.schema import ToolAction, ToolCallDecision
 
 _VALID_ACTIONS = frozenset({"EXECUTE", "VERIFY", "ABSTAIN", "ESCALATE"})
 _LLM_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
@@ -76,10 +76,10 @@ def _build_user_prompt(task: Any) -> str:
     )
 
 
-def _parse_action(text: str) -> str:
+def _parse_action(text: str) -> ToolAction:
     """Extract action from LLM response; fall back to ABSTAIN if unrecognized."""
     cleaned = text.strip().upper().split()[0] if text.strip() else ""
-    return cleaned if cleaned in _VALID_ACTIONS else "ABSTAIN"
+    return cleaned if cleaned in _VALID_ACTIONS else "ABSTAIN"  # type: ignore[return-value]
 
 
 def _call_llm(prompt: str, temperature: float = 0.0, retries: int = 3) -> str:

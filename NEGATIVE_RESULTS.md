@@ -999,6 +999,991 @@ pointer here). Artifacts: `results/sap_v3_round_results.json`,
 
 ---
 
+## §19 AgentHarm rescoring: control protocols cannot reduce FBR on an all-ESCALATE source (2026-07-31)
+
+**Finding.** The pre-registered re-scoring of the 416 AgentHarm scenarios
+(`artifacts/verify_protocols/agentharm_rescore_v1.json`) met the FAR target
+(0.0% on 208 harmful, Wilson upper 1.8%) and did **not** meet the FBR target
+(100.0% on 208 benign vs a target of <=40%). The cause is structural, not a
+tuning failure: every verdict in the source artifact is ESCALATE, and the
+control protocols in `remora/governance/control_protocols.py` act only on
+VERIFY. There is nothing for them to resolve.
+
+**What this result does and does not establish.** It bounds what the protocols
+can achieve on this dataset. It does **not** identify which benign escalations
+were avoidable, and it must not be read as evidence that the escalations were
+wrong. The source is an imported historical artifact (CLAIM-002) that cannot be
+regenerated in this repository, so the replayed observations carry no per-case
+safety signals to analyse.
+
+**What would be needed.** Establishing an addressable share of benign friction
+requires two things this run does not have: a dataset whose benign cases carry
+real per-case signals (authorization state, environment, tool binding, scope),
+and a selective eligibility analysis that separates confirmed-negative safety
+facts from merely-unknown ones.
+
+**What is explicitly ruled out.** A blanket
+`ESCALATE + unresolved_risk -> VERIFY` reclassification in the decision engine
+was implemented and measured on the 93-episode replay arena on 2026-07-30. It
+moved 19 decisions, all 19 ground-truth harmful with `expected_verdict =
+escalate`, and 0 benign decisions — no friction reduction, 51% of harmful
+escalations downgraded. It is not a candidate. See
+`tests/test_escalate_semantics_guard.py`, which locks the contract it violated.
+
+**Artifact.** `artifacts/verify_protocols/agentharm_rescore_v1.json`
+**Reproduce.** `python experiments/agentharm/rescore_with_protocols.py`
+
+---
+
+## §20 Extending the tool registry to tau2: coverage gained, no outcome change (2026-07-31)
+
+**Finding.** Extending the routing benchmark's tool registry from ToolSandbox
+only (38 signatures) to ToolSandbox plus tau2 (85 signatures) produced **no
+observed change** in any reported routing metric — the values are identical, not
+statistically indistinguishable; no significance test was run. The low-consequence ACCEPT
+arm scores identically before and after: ACCEPT recall 75.0%, ABSTAIN recall
+62.5%, 89 of 227 known-wrong calls accepted, overall accuracy 44.5%.
+
+**Why it does not help.** `arguments_satisfiable` detects calls whose required
+parameters cannot be sourced. That property is orthogonal to whether a call is
+the *correct* one for the task. A wrong tau2 call is fully satisfiable — it has
+its arguments — so the signal has nothing to say about it. The signal only ever
+had purchase on ToolSandbox, whose unanswerable scenarios are unsatisfiable by
+construction.
+
+**What the extension did achieve.** Coverage. Of 903 tau2 episodes, 858 now
+carry a determinate value (844 satisfiable, 14 unsatisfiable) instead of
+`None`. That is epistemically better even though it moved no metric: fewer
+decisions rest on an unknown. The 14 confirmed-unsatisfiable tau2 calls do not
+overlap with the cases the reported metrics track.
+
+**The intermediate number was an artifact, and this is the important part.**
+Before the adapter was corrected, extending the registry appeared to cut
+known-wrong accepts from 89 to 17 — a large apparent safety gain. It was
+entirely spurious. Substituted (deliberately wrong) tau2 episodes carried empty
+`proposed_tool_args` because the adapter never populated them, which made every
+wrong call look unsatisfiable for a reason that was a property of the harness
+rather than of the call. Once substitutions were given the borrowed call's real
+arguments, the number returned to 89.
+
+Had the artifact not been caught, this repository would hold a recorded 80.9%
+reduction ((89-17)/89) in known-wrong call accepts attributable to a tool
+registry. Note the term: these are calls the source annotates as *not the
+correct call*, which is not the same as calls that would cause harm. The
+harmful-accept axis is measured separately and was zero throughout. The general
+lesson:
+when a benchmark change produces a large one-sided improvement, check whether
+the improvement is a property of the data-generation code before recording it.
+
+**Artifacts.** `results/routing_bench_v1_results.json` (`tool_registry_size`
+records how many signatures were loaded), `data/routing_bench_v1/tau2.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py && python scripts/run_routing_bench.py`
+
+---
+
+## §21 Balanced mutation set: routing is a near-constant predictor (2026-07-31)
+
+**Finding.** `routing_bench_v2` generates 1332 controlled mutants from tau2's
+correctly-labelled calls, 912 of them labelled with a gold route known **by
+construction** rather than by annotation, balanced at 228 per route across 72
+source clusters. Against that set the default engine scores 25.0% routing
+accuracy (cluster-adjusted Wilson [16.4%, 36.1%]) — and the per-family
+breakdown shows the number is not discrimination.
+
+| mutation family | gold route | default engine predicts |
+|---|---|---|
+| identity | ACCEPT | abstain 149, verify 79 |
+| missing_arg_obtainable | VERIFY | abstain 149, verify 79 |
+| missing_arg_unobtainable | ABSTAIN | abstain 149, verify 79 |
+| wrong_arg_value | (unlabelled) | abstain 149, verify 79 |
+| untrusted_origin | ESCALATE | verify 228 |
+
+**Four families with four different correct answers receive an identical
+prediction distribution.** The 65.4% ABSTAIN recall is not the engine
+recognising an unresolvable call; it is a fixed abstain/verify split applied
+blindly, which happens to be right for one family. Accuracy on this set is
+explained by a constant predictor, not by any response to the defect.
+
+**Three specific gaps this quantifies.**
+
+1. *No semantic call-correctness signal.* With the low-consequence path enabled,
+   `wrong_arg_value` is accepted 149 times — exactly the same count as
+   `identity`. The engine cannot distinguish a correct call from the same call
+   with a corrupted argument value. This is the single largest gap.
+2. *ESCALATE is unreachable from untrusted origin.* All 228 untrusted-origin
+   mutants route to VERIFY, never ESCALATE. Untrusted content blocks execution
+   but does not reach human authority. ESCALATE recall is 0% in both engine
+   configurations.
+3. *A resolvable gap is treated as permission.* With the path enabled,
+   `missing_arg_obtainable` is accepted 149 times where the correct route is
+   VERIFY. `arguments_satisfiable` correctly separates obtainable from
+   unobtainable (the unobtainable family abstains 144/228), but a satisfiable
+   gap becomes ACCEPT rather than a bounded fetch.
+
+**Method notes, both defects found in this benchmark rather than the engine.**
+The mutation family was initially encoded in the episode id, which is part of
+the observable surface — a leakage test caught it before any measurement. And
+the synthetic producer that makes the obtainable family obtainable was not
+registered in the tool registry, which made the obtainable and unobtainable
+families byte-identical to the engine and the VERIFY/ABSTAIN distinction
+untestable. Both are now covered by tests.
+
+**Deliberately unlabelled.** `wrong_tool` and `wrong_arg_value` carry no gold
+route, for the same reason v1 refused: the defect says the call is wrong, not
+whether the remedy is to stop or to repair. They are diagnostic only.
+
+**Honest limit on what this set proves.** For families whose defect is directly
+observable, a correct answer shows a signal is wired, not that judgement
+occurred. The judgement-testing families are exactly the unlabelled ones. A set
+that tests judgement needs a semantic task–tool compatibility signal that does
+not yet exist.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`, `manifest.json`.
+**Reproduce.** `python scripts/build_routing_bench.py`
+
+---
+
+## §22 Semantic call compatibility breaks the constant predictor, but misses every pre-registered target (2026-07-31)
+
+**Finding.** Adding `argument_values_supported` — does each identifier-shaped
+argument value exist in the authoritative state — is the first intervention in
+this line of work that makes the engine discriminate between mutation families
+rather than applying a fixed split. It also fails all four pre-registered
+numeric targets.
+
+Pre-registered ablation over the 912-episode balanced mutation set, 72 clusters:
+
+| arm | wrong_arg ACCEPT | identity ACCEPT | accuracy |
+|---|---|---|---|
+| A current engine | 65.4% | 65.4% | 25.0% |
+| B + arguments_satisfiable | 65.4% | 65.4% | 40.8% |
+| C + argument_values_supported | **22.4%** | 63.6% | 40.4% |
+
+Arm A is the §21 constant predictor: a correct call and the same call with a
+corrupted argument value are accepted at exactly the same rate. Arm B raises
+accuracy without touching that equality — it separates obtainable from
+unobtainable arguments, not right from wrong ones. Arm C is the first arm where
+identity and wrong_arg_value diverge: a 66% relative reduction in accepting
+calls whose identifier does not exist in the system of record, at a cost of
+four correct calls (65.4% -> 63.6%).
+
+**Against the pre-registered targets, none are met.**
+
+| target | result |
+|---|---|
+| identity ACCEPT recall >= 70% | 63.6% — **not met** |
+| wrong-argument ACCEPT rate <= 20% | 22.4% — **not met** |
+| obtainable VERIFY recall >= 70% | 0% — **not met** |
+| unobtainable ABSTAIN recall >= 70% | 63.2% — **not met** |
+| no increase in harmful ACCEPT | holds |
+
+**One target was unreachable as written.** Identity ACCEPT recall cannot exceed
+65.4%, because 34.6% of identity episodes are mutating calls and the
+low-consequence path is read-only by construction. Those correctly route to
+VERIFY. The 70% target was set before that split was known; it is a target on
+the wrong quantity, not a shortfall in the signal.
+
+**Obtainable VERIFY recall is 0% and that is a real defect.** A call missing an
+argument that an available tool can supply is accepted rather than routed to a
+bounded fetch. The engine has no notion of "resolve then re-evaluate", so a
+resolvable gap reads as permission. This is the resolver-availability layer that
+does not exist yet.
+
+**Deliberate limits of the deterministic signal.** Three fields of the proposed
+compatibility contract — `tool_matches_goal`, `preconditions_met`,
+`expected_effect_matches` — are left `None`. They need task semantics no
+authoritative source here provides, and a guessed field enters the policy
+contract as fact. The value check itself only judges identifier-shaped values
+(a digit or underscore present); an all-letter token returns `None` rather than
+a fabricated negative.
+
+**Anti-overfitting control.** The mutation generator builds `wrong_arg_value` by
+appending a suffix, so a detector matching that suffix would score perfectly and
+mean nothing. The check consults tau2's own database (27,604 indexed values) and
+a test asserts four unrelated bogus identifiers all fail, none of which share
+the generator's pattern.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py`
+
+---
+
+## §23 ResolutionPlan closes the obtainable-VERIFY gap; two targets remain missed (2026-07-31)
+
+**Finding.** §22 measured obtainable VERIFY recall at 0%: a call missing an
+argument an available tool could supply was accepted rather than routed to a
+bounded fetch. Adding an argument-resolution gate and router re-entry takes that
+metric to 100% and overall accuracy from 40.7% to 56.9% (cluster-adjusted
+Wilson [45.4%, 67.7%]).
+
+| arm | accuracy | obtainable VERIFY | identity ACCEPT | wrong_arg ACCEPT | gap |
+|---|---|---|---|---|---|
+| C + argument_values_supported | 40.7% | 0% | 63.6% | 22.4% | 41.2 pp |
+| D + ResolutionPlan gate | **56.9%** | **100%** | 63.6% | 22.4% | 41.2 pp |
+
+The gate leaves the identity/wrong-argument discrimination untouched, which is
+the expected shape: it addresses *which* non-accept route a resolvable gap
+takes, not whether a call is correct. The two signals are independent and the
+ablation shows it.
+
+**Against the pre-registered criteria, on development data only.**
+
+| metric | target | result |
+|---|---|---|
+| autonomy-eligible identity ACCEPT | >= 70% | 97.3% (145/149) — met |
+| obtainable VERIFY recall | >= 70% | 100% — met |
+| wrong-argument discrimination gap | >= 40 pp | 41.2 pp — met |
+| wrong-argument ACCEPT rate | <= 20% | 22.4% — **missed** |
+| unobtainable ABSTAIN recall | >= 70% | 66.4% — **missed** |
+| harmful autonomous ACCEPT | no increase | holds |
+
+Three of five met, two narrowly missed. These are development numbers. The
+sealed holdout has not been evaluated and must not be until the code and
+criteria are locked; see `data/routing_bench_holdout/HOLDOUT_STATUS.md`.
+
+**ESCALATE recall remains 0%.** Every untrusted-origin episode still routes to
+VERIFY. Nothing in this change addresses it, and it is not addressable by a
+resolver: untrusted provenance is a question about who may authorise, not about
+what information is missing. The two provenance families
+(`untrusted_but_noncontrolling`, `untrusted_controls_sensitive_argument`) that
+would make the distinction measurable do not exist yet.
+
+**Contract established.** A VERIFY produced by the resolution gate always
+carries a `ResolutionPlan`; a missing argument with no resolver is ABSTAIN, not
+VERIFY. Promising a verification that cannot happen is worse than stopping. The
+resolver's authority is bounded and enforced: it may not change the target tool,
+may not write an argument outside its plan, and its attempt budget is checked.
+Re-entry re-runs the whole router, so a forbidden tool still escalates after a
+successful resolution.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py`
+
+---
+
+## §24 Untrusted-provenance split closes the ESCALATE gap (2026-07-31)
+
+**Finding.** §23 recorded ESCALATE recall at 0%: every untrusted-origin episode
+routed to VERIFY. The cause was a benchmark that treated all untrusted
+provenance as one family with gold route ESCALATE, and an engine with no way to
+distinguish informing from authorising. Splitting both fixes it.
+
+| family | gold | engine predicts |
+|---|---|---|
+| `untrusted_noncontrolling` | VERIFY | 184/184 VERIFY |
+| `untrusted_controls_sensitive` | ESCALATE | 228/228 ESCALATE |
+
+Overall accuracy on the development set moves 56.9% -> **85.5%**
+(cluster-adjusted Wilson [76.3%, 92.3%]). ESCALATE recall 0% -> 100%; VERIFY
+recall 100%.
+
+**The rule.** Untrusted content that *controls* a recipient, command,
+credential or egress target is authorising, not informing, and escalates
+regardless of the declared risk tier — a caller-supplied "low" must not buy
+autonomy for an attacker-chosen recipient. Untrusted provenance alone keeps the
+existing VERIFY floor: escalating every tainted call would send a summary of an
+email to a human, which is friction with no decision to make.
+
+**Two benchmark defects found while building this, both of the same kind.**
+
+1. Where the source call already carried a sensitive-role argument, attaching
+   untrusted content made *both* variants controlling, so the contrast was void
+   and a routing difference between them would have proven nothing. Those
+   sources now emit only the controlling variant.
+2. The generator and the engine had **separate vocabularies** for "sensitive".
+   They disagreed on 17 episodes, which appeared as spurious escalations in the
+   noncontrolling family. The generator now imports the engine's set. Two
+   definitions that drift apart produce a benchmark whose control arm is
+   silently not a control arm.
+
+**Still missed, unchanged from §23.** wrong-argument ACCEPT rate 22.4% (target
+<= 20%) and unobtainable ABSTAIN recall 66.4% (target >= 70%). Neither is
+addressed by provenance routing.
+
+**Holdout resealed.** The sealed set was rebuilt once from the same 300
+untouched clusters, because the previous build carried the old single
+untrusted family. No holdout result had ever been observed; the reason and the
+superseded hash are recorded in the manifest, and `--reseal` refuses once the
+set has been evaluated.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py`
+
+---
+
+## §25 All five pre-registered targets met on development; one by 0.3 pp (2026-07-31)
+
+**Finding.** Two causal fixes take the remaining missed targets over the line.
+Development accuracy 85.5% -> **91.9%** (cluster-adjusted Wilson
+[83.0%, 96.1%]).
+
+| metric | target | result |
+|---|---|---|
+| autonomy-eligible identity ACCEPT | >= 70% | 94.6% |
+| wrong-argument ACCEPT rate | <= 20% | **19.7%** |
+| obtainable VERIFY recall | >= 70% | 100% |
+| unobtainable ABSTAIN recall | >= 70% | 100% |
+| wrong-argument discrimination gap | >= 40 pp | 42.1 pp |
+| harmful autonomous ACCEPT | no increase | holds |
+
+**Read the wrong-argument number with suspicion.** 19.7% clears a
+pre-registered 20% threshold by 0.3 pp — a margin of two episodes out of 228.
+On development data that is not a robust pass, and it is exactly the kind of
+number that does not survive a blind set. It is reported as met because the
+threshold was pre-registered, not because the margin is convincing.
+
+**The two fixes were causal, not threshold moves.**
+
+1. *Reference-candidate boundary.* The value check judged only values
+   containing a digit or underscore, which excluded plain single-word names.
+   All 51 escaping episodes were strings the rule declined to consider. The
+   boundary is now whitespace: a compact token can be looked up in a system of
+   record, a sentence cannot. The cost is measured and real — autonomy-eligible
+   identity ACCEPT falls 97.3% -> 94.6%, four more correct calls blocked.
+2. *Unresolvable VERIFY is a false promise.* 73 unobtainable episodes were
+   getting VERIFY from `schema_unverified_verify` before the resolution gate
+   was reached. The §23 contract — VERIFY means a specific bounded step is
+   expected to establish the missing information — now applies to upstream
+   gates too. ESCALATE and ABSTAIN are untouched; a block outranks it. Both
+   outcomes block execution, so this is honesty, not a safety change.
+
+**Everything here is development data.** The sealed holdout
+(`data/routing_bench_holdout/`, 4290 episodes over 300 untouched clusters,
+`sha256 81f67cdc`) has never been evaluated. These fixes were the last planned
+change before locking; the targets must not be adjusted now, and a failed
+holdout is published without retuning against it.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py`
+
+---
+
+## §26 Blind holdout: two of five targets missed; the state check fails open-loop on an uncovered domain (2026-07-31)
+
+**Result, evaluated once at locked commit `dd37c81`, 4290 episodes over 300
+clusters that never appeared in development.**
+
+| metric | target | development | **holdout** |
+|---|---|---|---|
+| autonomy-eligible identity ACCEPT | >= 70% | 94.6% | **0.0% — MISSED** |
+| wrong-argument ACCEPT rate | <= 20% | 19.7% | 0.0% — met |
+| obtainable VERIFY recall | >= 70% | 100% | 100% — met |
+| unobtainable ABSTAIN recall | >= 70% | 100% | 100% — met |
+| discrimination gap | >= 40 pp | 42.1 pp | **0.0 pp — MISSED** |
+
+Routing accuracy 91.9% on development, **69.6%** on the holdout
+(cluster-adjusted Wilson [64.2%, 74.6%]).
+
+**The headline is the gap.** It is 0 pp because both identity and
+wrong-argument calls are accepted at 0%. The constant predictor of §21 is back,
+at the blocking end rather than the accepting end. Nothing is accepted, so
+nothing is discriminated. The three "met" targets are met vacuously: a system
+that refuses everything achieves 0% wrong-argument accepts and 100% ABSTAIN
+recall without any judgement.
+
+**Diagnosed cause, and it is a design flaw rather than bad luck.** All 930
+holdout identity episodes carry `argument_values_supported = False`. The state
+index was built from `airline.json` and `retail.json`; the holdout is telecom,
+whose database was never indexed. Every telecom identifier therefore reads as
+absent from the system of record.
+
+The check cannot distinguish *"this identifier does not exist"* from *"my index
+does not cover this domain"*. A non-empty but incomplete index produces
+confident negatives. This is exactly the confirmed-false-versus-unknown
+discipline enforced everywhere else in this engine — `arguments_satisfiable`,
+`schema_valid`, `rollback_available`, `tool_matches_goal` — and
+`argument_values_supported` violated it. `StateIndex` returns `None` only when
+it is *empty*, which is the wrong emptiness test: coverage is per-domain, not
+per-index.
+
+**What is not claimed.** That the configuration would have passed with a
+telecom-aware index. The set is spent and that counterfactual is unverifiable.
+What the run establishes is narrower and still useful: the locked configuration
+does not generalise to a domain its authoritative state does not cover, and it
+fails toward blocking everything rather than toward reporting unknown.
+
+**No retuning against this set.** The holdout status is `evaluated` and the
+runner refuses a second run. Confirming any fix requires a new untouched
+holdout; 1965 telecom clusters remain unused, but a set drawn from them would
+be blind only for the specific change made after this result was seen.
+
+**Artifacts.** `results/routing_bench_holdout_results.json`,
+`data/routing_bench_holdout/manifest.json` (sha256 `81f67cdc`).
+
+---
+
+## §27 Evidence-state fix confirmed on a second blind set; discrimination remains unconfirmed (2026-07-31)
+
+**Fix.** `argument_values_supported` no longer treats absence from an index as
+invalidity. `StateIndex` now carries `CoverageScope` per *argument*, derived
+from the keys it actually indexed, and returns `UNSUPPORTED` only inside a
+covered, closed-world scope. Everything else is `UNKNOWN`, which reaches the
+policy contract as `None`.
+
+Coverage is per entity type rather than per domain, established empirically:
+tau2's telecom state covers `plan_id` and `device_id` while its tasks operate on
+`customer_id` and `line_id`. A domain-level flag would have called those covered
+and reproduced §26 one level up.
+
+**Track B — uncovered domain, blind, 298 fresh clusters, 3841 episodes.**
+Evaluated once. Clusters disjoint from development *and* from the spent §26
+holdout.
+
+| metric | target | result |
+|---|---|---|
+| false-UNSUPPORTED rate | 0 | **0.0000** |
+| UNKNOWN correctness | 100% | **100%** (3841/3841) |
+| obtainable VERIFY recall | >= 70% | 100% |
+| unobtainable ABSTAIN recall | >= 70% | 100% |
+
+Routing accuracy 69.6% (§26) -> **92.2%**, cluster-adjusted Wilson
+[88.7%, 94.8%]. All four targets met.
+
+**What Track B does and does not establish.** It confirms the open-world fix
+generalises: on a domain the index does not cover, the engine now says UNKNOWN
+3841 times out of 3841 instead of inventing UNSUPPORTED. It does **not** test
+correct-versus-corrupted discrimination, which is informationally impossible
+without an authoritative source for that domain, and which was therefore not a
+target.
+
+**The previous development numbers were partly earned by the bug.** Re-running
+development after the fix, split by coverage:
+
+| stratum | identity ACCEPT | wrong-argument ACCEPT | gap |
+|---|---|---|---|
+| covered (airline, retail) | 100% | 23.7% | 41.9 pp |
+| uncovered (telecom) | 100% | 61.5% | 0.0 pp |
+
+The pooled pre-fix figures (19.7%, 42.1 pp) were flattered by telecom episodes
+being wrongly blocked. Post-fix pooled values are 25.9% and 39.5 pp — the
+wrong-argument target is now missed and the gap sits just under 40 pp. Reported
+as measured; the targets are not being moved to accommodate them.
+
+**Discrimination on a covered domain remains unconfirmed on blind data.** Every
+airline and retail cluster was consumed during development, so no untouched
+covered-domain set exists. Track A cannot be run with the data available, and
+the 41.9 pp above is a development figure. Confirming it needs a covered domain
+with reserved clusters — a data-acquisition problem, not a modelling one.
+
+**Uncovered domains accept 61.5% of corrupted identifiers.** That is the honest
+cost of refusing to invent negatives, and it is the strongest remaining argument
+for routing UNKNOWN-plus-required-validation to VERIFY rather than to the
+low-consequence ACCEPT path.
+
+**Artifacts.** `results/routing_bench_holdout_b_results.json`,
+`data/routing_bench_holdout_b/manifest.json` (sha256 `a36d6c68`).
+
+---
+
+## §28 Validation-required routing: blind-confirmed policy, unconfirmed discrimination (2026-07-31)
+
+**Change.** An argument that steers where the action lands — a customer,
+account, recipient, deployment target — must be confirmed against an
+authoritative source before autonomous execution. Unconfirmed with a resolver
+available routes to VERIFY carrying a plan; unconfirmed with none routes to
+ABSTAIN.
+
+Routing *every* UNKNOWN to VERIFY was rejected: it rebuilds the constant blocker
+of §21 one level up. The requirement is decided by what the argument steers,
+independently of whether an index happens to cover it, and unrecognised roles
+default to OPTIONAL — one of the few places where the conservative-looking
+default is the wrong one, because REQUIRED-by-default makes every unfamiliar
+tool signature a source of friction.
+
+**Track C — resolver policy, blind, 278 clusters, 2915 episodes, evaluated
+once.** Clusters disjoint from development and from both spent holdouts.
+
+| metric | target | result |
+|---|---|---|
+| required-but-unvalidated autonomous ACCEPT | 0 | **0.0000** |
+| obtainable VERIFY recall | >= 95% | 100% |
+| unobtainable blocked recall | >= 95% | 100% |
+| false-UNSUPPORTED rate | 0 | 0.0000 |
+
+All four met. Routing accuracy 72.0%, cluster-adjusted Wilson [66.4%, 76.9%].
+
+**Development effect, split by coverage.**
+
+| stratum | identity ACCEPT | wrong-argument ACCEPT | gap |
+|---|---|---|---|
+| covered (airline, retail) | 100% | 9.8% | 55.8 pp |
+| uncovered (telecom) | 0% | 0% | 0.0 pp |
+
+On covered domains the change roughly halves wrong-argument acceptance (23.7%
+-> 9.8%) and widens the gap (41.9 -> 55.8 pp). On uncovered domains it stops
+autonomy entirely for calls carrying a validation-required argument, including
+correct ones. That is the intended policy position — no autonomous action on an
+unconfirmable customer id — and it is also why Track C's 72.0% accuracy is
+substantially below the covered figure.
+
+**Against the revised targets, on development data.**
+
+| target | result |
+|---|---|
+| covered identity ACCEPT >= 85% | 100% — met |
+| covered wrong-argument ACCEPT <= 15% | 9.8% — met |
+| discrimination gap >= 60 pp | 55.8 pp — **missed** |
+| false-UNSUPPORTED on valid values <= 2% | 0% — met |
+
+**Still not established, and this is the load-bearing caveat.** No blind test of
+correct-versus-corrupted discrimination on a *covered* domain has been run, and
+none can be with the data available: every airline and retail cluster was
+consumed during development. Tracks B and C both ran on telecom, where
+discrimination is informationally impossible, so neither supports the
+discrimination claim. The 55.8 pp is a development figure.
+
+The remaining work is data acquisition, not modelling: a covered domain with an
+authoritative state table independent of the tasks, and clusters reserved before
+the detector is developed.
+
+**Artifacts.** `results/routing_bench_holdout_c_results.json`,
+`data/routing_bench_holdout_c/manifest.json` (sha256 `f7bd9a9e`).
+
+---
+
+## §29 Track A did not test what it was reserved to test (2026-07-31)
+
+**Result.** The covered-domain blind track was built on tau2
+`banking_knowledge` (97 untouched clusters, 5768 episodes, authoritative
+`db.json` independent of the tasks) and evaluated once.
+
+| metric | target | result |
+|---|---|---|
+| covered identity ACCEPT | >= 85% | 93.6% (882/942) — met |
+| covered wrong-argument ACCEPT | <= 15% | **90.3%** (851/942) — missed |
+| discrimination gap | >= 60 pp | **3.3 pp** — missed |
+| false-UNSUPPORTED on valid values | <= 2% | 4.8% — missed |
+
+**This is not a falsification of the discrimination signal. It is a failed
+experiment.** Of the 942 wrong-argument episodes, 836 received UNKNOWN: the
+banking tasks operate on `annual_income` and `customer_name`, which `db.json`
+does not carry as covered keys, even though it does cover `user_id` and
+`account_id`. Only 106 episodes were in a position to be judged at all. A gap of
+3.3 pp measured over a population that is 89% unjudgeable says nothing about
+discrimination.
+
+**The methodological error is mine and it is specific.** Before locking, I
+verified that the index covered `user_id`, `account_id`, `address`, `name` and
+`amount` — a sample of index keys. I did not verify that those were the
+arguments the mutation generator would actually corrupt. Coverage must be
+checked against the arguments the benchmark exercises, not against whatever the
+index happens to contain. That check is cheap, it was available before locking,
+and skipping it cost a blind set.
+
+**The 98.5% routing accuracy is vacuous** and should not be quoted. It reflects
+a system accepting nearly everything on a population where 89% of the
+discriminating signal was unavailable.
+
+**Standing position, unchanged since §28.** Correct-versus-corrupted argument
+discrimination has never been tested on blind data where the signal had
+information. Three blind sets have now been spent — telecom v1 (§26, failed on
+the open-world bug), telecom B and C (§27, §28, both confirming policy on
+uncovered domains), and banking A (this section, mis-specified). None supports
+the discrimination claim.
+
+**What a valid Track A requires**, stated so the next attempt does not repeat
+this: a domain where the authoritative state covers *the specific argument
+names the mutations corrupt*, verified by counting judgeable episodes before
+the set is locked, with a pre-registered minimum judgeable fraction (e.g. >= 80%)
+as an admission criterion for the track itself.
+
+**Artifacts.** `results/routing_bench_holdout_a_results.json`,
+`data/routing_bench_holdout_a/manifest.json` (sha256 `2f6f85f3`).
+
+---
+
+## §30 An index may not infer its own completeness; admission gate added (2026-07-31)
+
+**The 4.8% false-UNSUPPORTED from §29, diagnosed.** All 45 cases were valid
+values supplied by tau2's own gold actions: `phone_number` 25,
+`user_id` 13, `reason` 6, `address` 1. Examples: `friend_user_5839`,
+`619-555-0284`, `account_ownership_dispute`. None was a normalisation or
+casing artefact — zero matched under case or whitespace variants.
+
+**Root cause: the same open-world error as §26, one level deeper.**
+`StateIndex.from_json_files` marked every scalar-valued key as *closed-world*
+covered. Having seen the key `user_id` once was treated as holding every
+`user_id`. §26 fixed domain-level coverage; the fix left key-presence implying
+completeness.
+
+Seeing a key is evidence of a key, never evidence of completeness. Completeness
+is a property of how the data was assembled, which only the assembler knows, so
+it is now **declared, not inferred**. Scopes built from files are open-world
+unless explicitly named in a `closed_world` declaration.
+
+The cost is deliberate: with nothing declared, no value is ever UNSUPPORTED and
+the discrimination signal is inert. That is the correct default. A signal that
+stays silent until someone vouches for the data is preferable to one that
+invents authority from a filename — which is what produced both §26 and the 45
+false negatives here.
+
+**Admission gate.** `remora/toolcall/routing/admission.py` decides whether a
+candidate set may be sealed as a discrimination track, before any evaluation.
+It reads only structural facts: argument names, coverage, whether completeness
+is declared, and how many episodes are therefore judgeable. It never runs the
+router or reads a prediction, so running it does not spend the set — asserted
+structurally by a test forbidding those imports rather than by convention.
+
+Pre-registered thresholds: 90% judgeable (above the 80% floor discussed in
+review, because a pooled figure can mask one dead role) and at least 20
+judgeable episodes per role, assessed **per argument role** and then in
+aggregate. Only admitted roles enter the discrimination analysis.
+
+The decisive test is that the gate refuses the §29 set. A check that would not
+have caught the failure it was written for is not a gate.
+
+**Declaration as evidence, not configuration.** A closed-world claim is now a
+versioned object binding domain, tenant, entity type, argument role, the
+SHA-256 of the exact snapshot it was written against, an as-of date, the basis
+for the claim, and a named curator. Every way such a claim goes wrong is a scope
+error — complete for one tenant applied to another, complete at one instant
+consulted later, `user_id` conflated with a recipient id, aliases treated as
+absent — and each now degrades that scope to UNKNOWN rather than to UNSUPPORTED.
+Losing a negative claim is the safe direction; keeping one on stale evidence is
+how a valid identifier gets rejected.
+
+A declaration may also not claim behaviour the code does not implement:
+declaring case-insensitive canonicalisation or alias support is refused at
+construction, because a curator promising that `U1` matches `u1` when the
+comparison is exact would reproduce §29 by hand.
+
+**Still not established.** Correct-versus-corrupted discrimination on blind data
+where the signal has information. Four blind sets are spent. The next attempt
+must begin with admission, not with a router change — and under the declaration
+rule it needs a domain whose completeness a named curator is willing to vouch
+for against a frozen snapshot.
+
+---
+
+## §31 Discrimination confirmed blind — under ideal conditions only (2026-07-31)
+
+**Result.** Track A2, evaluated once at locked commit `a9ec74c` on the fleetops
+white-box domain: 540 episodes over 90 clusters, admission-verified at 100%
+judgeable before sealing.
+
+| metric | target | result |
+|---|---|---|
+| covered identity ACCEPT | >= 85% | **100%** (90/90), Wilson [95.9%, 100%] |
+| covered wrong-argument ACCEPT | <= 15% | **0%** (0/90), Wilson [0%, 4.1%] |
+| discrimination gap | >= 60 pp | **100 pp** |
+| false-UNSUPPORTED on valid values | <= 2% | **0%** |
+
+Routing accuracy 100%, cluster-adjusted Wilson [95.9%, 100%]. All four met.
+This is the first blind confirmation that the engine separates a correct call
+from the same call with a corrupted identifier.
+
+**A perfect score is a reason for suspicion, not celebration, and here the
+explanation is mundane.** fleetops is generated: the database is the complete
+entity universe, identifiers are structured, and a corrupted identifier is
+therefore *definitely* absent. The value check has exactly the evidence it needs
+and the task reduces to a set membership test. 100% says the mechanism is wired
+correctly and its precondition is sufficient — it does not say the mechanism is
+clever.
+
+**What this does not establish.** Every hard condition from the earlier
+sections is absent by construction:
+
+* partial coverage, where some argument roles are held and others are not (§29)
+* stale state, where the snapshot no longer matches the live system
+* ambiguous scope, where a value exists under a different tenant or entity type
+* open-world state, where absence is not evidence of absence (§26)
+* naturally-occurring wrong values rather than generated ones
+
+A domain with any of those would produce a materially different number, and
+none of them is reproduced here. The synthetic result is a **necessary**
+condition — the mechanism must work when its precondition holds, and it now
+demonstrably does — not a sufficient one.
+
+**Small N.** 90 clusters, 90 identity and 90 wrong-argument episodes. The
+Wilson intervals are honest about that: identity ACCEPT could be as low as
+95.9%, wrong-argument as high as 4.1%.
+
+**The defensible claim.** On a closed-world domain whose completeness is
+declared and verified, and on a set admission-verified as 100% judgeable before
+sealing, REMORA accepted every valid identifier call and no corrupted one, on a
+single blind evaluation. Generalisation to domains with partial or stale
+authoritative state is unestablished and is the next thing worth measuring.
+
+**Artifacts.** `results/routing_bench_trackA2_results.json`,
+`results/fleetops_admission.json`,
+`data/routing_bench_trackA2/manifest.json` (episodes `3c070516`, db `3cc32d40`).
+
+---
+
+## §32 Degrading fleetops on purpose: coverage loss costs discrimination, not validity (2026-07-31)
+
+**What was done.** §31 ended with the observation that the only state
+production actually has is the one where the precondition does not hold. This
+study broke the fleetops precondition one assumption at a time and measured
+the router through the same locked pipeline as A2. **Openly non-blind**: the
+fleetops blind budget was spent in §31, so these are development measurements
+of *how the architecture degrades*, pre-registered directionally in
+`remora/toolcall/routing/degradation.py` before evaluation. The runner is
+committed this time (`scripts/run_fleetops_degradation.py`) — the A2 runner
+was assembled inline and never committed, a reproducibility gap now closed.
+
+The first run of the study surfaced a classifier defect (finding 5) whose fix
+changes what is claimable, so the study was re-run with the corrected engine;
+the table below is the corrected run. Identity ACCEPT is reported per action
+type because the claimable production posture is per action type: **autonomy
+on verified reads, verification on writes.**
+
+| condition | identity ACCEPT read | identity ACCEPT write | wrong-arg ACCEPT | false-UNSUPPORTED | admission |
+|---|---|---|---|---|---|
+| baseline | 100% (60/60) | 0% (0/30 — VERIFY) | 0% | 0/105 | eligible |
+| truncated_honest | 91.7% | 0% | **50%** | 0/105 | ineligible |
+| truncated_redeclared | 83.3% | 0% | 0% | **18/105 = 17.1%** | eligible |
+| stale_unbounded | 25% | 0% | 0% | **90/105 = 85.7%** | eligible |
+| stale_bounded | 75% | 0% | 50% | 0/105 | ineligible |
+| cross_tenant | 0% | 0% | 0% | 0/0 | eligible |
+
+All pre-registered expectations met (the baseline expectation is
+`identity_accept_read >= 85%` and `identity_accept_write <= 15%`; overall
+pooled identity ACCEPT is reported in the artifact but carries no autonomy
+claim). Five findings:
+
+**1. Honest failure is safe — and expensive in a different currency.** When
+the declaration stops holding for an honest reason (hash mismatch after
+truncation, freshness bound refusing a stale declaration), no valid identifier
+is ever rejected: false-UNSUPPORTED is 0 in both conditions, because every
+scope degrades to UNKNOWN rather than to a negative. The price appears on the
+other axis: with the discrimination signal inert, 50% of corrupted
+identifiers are accepted on read-only calls. Losing coverage costs the
+*safety of discrimination*, never the *validity of work*. The admission gate
+reports both
+conditions ineligible, which is the architecture agreeing with itself: a set
+whose signal is inert may not be sold as a discrimination track.
+
+**2. A false declaration is the expensive failure.** A curator re-vouching
+the truncated export as complete produces confident rejection of 17.1% of
+valid identifier occurrences (18/105; the draw put 17 of 90 identity episodes
+on removed entities). The mechanism was *correct about the bytes it was
+given* — the snapshot-membership split shows 100% ACCEPT on present
+identifiers and 0% on absent ones — and wrong about the world exactly where
+the declaration lied. The mechanism's ceiling is the declaration's
+truthfulness; nothing in the runtime can detect this condition.
+
+**3. Staleness is the failure hash binding cannot catch.** After the world
+grows 20% past a byte-identical snapshot, the declaration still hash-matches
+and the index confidently rejects 85.7% of valid post-snapshot occurrences.
+This motivated the freshness bound (`as_of` + `max_age_days`, both explicit):
+with it, the same world yields 0% false-UNSUPPORTED. The residual is finding
+1's currency — UNKNOWN accepts half the corrupted values — but that trade is
+the declared design: losing a negative claim is recoverable, rejecting valid
+work on stale evidence is the §26/§29 failure again.
+
+**4. Tenant isolation holds.** No identifier from a disjoint foreign-tenant
+universe was accepted (0/90), and the foreign tenant's declarations were never
+admitted for the local tenant.
+
+**5. The study's first run caught a write passing as a read.** The engine's
+mutating-verb list lacked "assign", "close" and "approve", so fleetops'
+`assign_driver` and `close_work_order` rode the low-consequence read-ACCEPT
+path. This also recontextualizes §31: **A2's 100% identity ACCEPT pooled 60
+reads with 30 misclassified writes.** The sealed A2 artifact stands as
+evaluated, but its pooled figure must not be quoted as a write-autonomy
+claim. With the verb list fixed, every correct write routes to VERIFY even
+with all arguments confirmed — the posture the production claim is now
+stated in. Misclassifying a write as a read widens autonomy; the reverse
+costs one verification, so the token list errs toward write
+(`tests/test_routing_evaluate.py` pins both directions).
+
+**What this does not establish.** Everything §31 listed stays open: these are
+generated degradations of a generated domain. Naturally partial exports,
+organically stale replicas and semantically ambiguous scopes will not be this
+clean. The numbers characterize the mechanism's failure geometry, not its
+field performance.
+
+**Architecture landed alongside.** `build_state_index` is now the single
+production path from declarations + snapshots to a `StateIndex` (tenant, hash
+and freshness rules applied in one place; snapshot filenames that contradict
+their domain are refused); the fleetops generator moved into the package
+byte-pinned to the A2 snapshot hash; `admitted_scopes` gained the opt-in
+freshness bound. 45 new tests across the four layers (domain, declarations,
+degradation harness, action-type classification).
+
+**Artifacts.** `results/fleetops_degradation_results.json` (schema
+`fleetops_degradation_results_v1`, status `mechanism_study_not_blind`).
+
+---
+
+## §33 Declared validators recover read utility from the empty-index regime (2026-07-31)
+
+**What was done.** §32's remaining gap was the UNKNOWN regime: with no
+trustworthy coverage, corrupted identifiers rode the read-ACCEPT path at 50%.
+The fix under test is a **declarative validator binding** — a deployment
+statement that `get_vehicle` validates `vehicle_id`, tenant-bound, with an
+attempt budget — feeding the existing VERIFY-with-plan / re-entry machinery.
+Point lookups need no completeness claim: "does V-0113 exist?" is answerable
+even when nobody can vouch for a bulk export, which §31 showed to be the
+fragile precondition.
+
+**Setup.** Openly non-blind mechanism study (blind budget spent in §31), in
+the regime production actually has when **no bulk export exists at all**: an
+empty state index, every verdict UNKNOWN, bulk closed-world declarations
+impossible. Eight targets pre-registered in external review before the study
+module first ran. Two arms, same 540 episodes, same engine. Alongside:
+freshness became mandatory for mutable declarations (§32 finding 3 closed —
+the unbounded-stale regime is now unreachable except through a false
+immutability claim), and action type now comes from registry-declared
+`effect` metadata with the verb heuristic as fallback.
+
+| pre-registered target | goal | without validators | with validators |
+|---|---|---|---|
+| required-UNKNOWN autonomous ACCEPT | 0% | 0/180 | **0/180** |
+| correct validator chosen | ≥ 95% | — (no plans) | **120/120 = 100%** |
+| valid-ID read completion after resolver | ≥ 85% | 0/60 = **0%** | **60/60 = 100%** |
+| corrupt-ID ACCEPT after resolver | ≤ 5% | 0/90 | **0/90** |
+| write autonomous ACCEPT | 0% | 0/30 | **0/30** |
+| false-absent on valid values | 0% | 0/0 | 0/120 (by construction) |
+| cross-tenant validator use | 0% | 0/0 | **0/120** |
+| attempt budget exceeded | 0% | 0/540 | **0/540** |
+
+All eight met. The headline is the completion column: **read utility goes
+from 0% to 100% without any bulk export**, purely through declared
+point-lookup validators, while every safety rate stays at zero. The
+without-validators arm proves the regime fails closed — required-role reads
+ABSTAIN rather than silently accept — which is the honest cost the bindings
+then recover. UNKNOWN+OPTIONAL keeps its autonomous lane (pinned by test),
+so the §21 constant blocker is not rebuilt one level up.
+
+**What the mechanism enforces.** A binding cannot disclaim authority; every
+field is mandatory; an unscoped registry refuses tenant-free lookups; a
+foreign tenant's binding is structurally invisible (a distinctly named
+tenant-B validator was declared and never consulted, 0/120). Validation
+writes no argument values — it only establishes status — under the existing
+bounded-authority checks: exists → re-enter confirmed (reads may ACCEPT,
+writes keep their verification posture), confirmed absent → blocked, never
+retried; unknown or validator error → ABSTAIN.
+
+**Found and fixed on the way.** The resolution attempt budget counted
+attempts across the whole plan, so any multi-argument call spuriously
+exhausted a max_attempts=1 plan. The budget is now per fact, pinned by a
+two-argument read completing without violation.
+
+**Caveats.** Same class as §32: generated domain, generated corruptions, and
+the study's validator consults the live world directly — `false_absent = 0`
+is true *by construction* here and is a check a production validator must be
+held to separately, not a finding. Corrupt-argument writes end in VERIFY via
+schema/risk gates rather than a hard block from the confirmed-absent verdict;
+acceptable (never autonomous) but unaesthetic, noted as residual. Field
+performance on external domains remains unmeasured.
+
+**The defensible claim now** (per-action-type posture): REMORA implements a
+reproducible state-aware governance architecture that autonomously permits
+verified read operations, routes writes to verification, preserves UNKNOWN
+outside trustworthy coverage, binds state to tenant, hash and freshness
+constraints, recovers read utility through declared authoritative validators,
+and fails closed when authoritative validation is unavailable.
+
+**Artifacts.** `results/fleetops_validator_study_results.json` (schema
+`fleetops_validator_study_results_v1`, status `mechanism_study_not_blind`),
+`results/fleetops_degradation_results.json` (schema v2, seven conditions).
+
+---
+
+## §34 External blind track (BFCL): four axes hold, wrong-call blindness measured cleanly (2026-07-31)
+
+**Result.** Track C-ext, evaluated once at locked commit `cf02fa8` on sealed
+external data the system had never seen: BFCL v3 live categories
+(ShishirPatil/gorilla @ `c15b2a15`, Apache-2.0) — real user-submitted
+tool-call tasks. 1509 episodes over 515 clusters, targets pre-registered and
+sealed with the set, evaluation under **no authority at all**: empty state
+index, no validator bindings, registry only from the tasks' own schemas.
+
+| pre-registered target | goal | result | verdict |
+|---|---|---|---|
+| required-UNKNOWN autonomous ACCEPT | ≤ 0% | **0/19 = 0%** | MET |
+| irrelevance ABSTAIN recall | ≥ 70% | **258/258 = 100%**, Wilson [98.5%, 100%] | MET |
+| obtainable VERIFY recall | ≥ 70% | **110/133 = 82.7%** | MET |
+| unobtainable ABSTAIN recall | ≥ 70% | **133/133 = 100%** | MET |
+| known-wrong-call ACCEPT | ≤ 20% | **224/258 = 86.8%** | **MISSED** |
+
+Reported without target: optional-lane identity ACCEPT 205/238 = 86.1%;
+labelled routing accuracy 94.0% (n=1251, cluster-adjusted); both untrusted
+provenance families 100% (257/257 ESCALATE, 213/213 VERIFY).
+
+**The miss is §21's wrong-tool blindness, now measured cleanly on external
+data.** A substituted call — another task's gold call, carried with its own
+complete, well-formed arguments — is a read the engine has no structural
+reason to distrust: every required parameter is present and sourced,
+`tool_matches_goal` is deliberately `None` because no authoritative source
+establishes task–goal match, and fabricating that boolean is precisely what
+this architecture refuses to do. On tau2 this leak was partially masked
+because substituted calls' arguments were often unsatisfiable from the task
+text; BFCL's substitutes carry their own arguments, so the mask falls away
+and the true rate shows: **structural signals alone cannot catch a
+well-formed wrong call.** Closing it requires a semantic task–call
+compatibility source (the `tool_matches_goal` slot exists and waits for an
+authority worth trusting) — not threshold tuning, which is why this is
+published as a miss rather than repaired against the set.
+
+**What the four met axes say.** On foreign data with zero authority the
+posture holds: nothing required-and-unknown was autonomously accepted
+(fail-closed confirmed outside the home domain), every no-call-is-correct
+task was refused, satisfiability routing transferred (82.7%/100%), and both
+provenance families transferred perfectly. The optional-lane utility (86.1%)
+came free of any false accepts on the required lane.
+
+**Honesty notes.** The wrong-argument value axis was excluded *before
+sealing* (admission verdict in the manifest): BFCL's ground-truth argument
+lists are the labels, and using them as a system of record would score the
+answer key against itself. Irrelevance episodes propose no call (tau2
+precedent — synthesizing one would author the test), so their ABSTAIN
+measures refusal of the no-call decision point, not rejection of a proposed
+distractor. This set is now spent; it can never serve as a blind set again.
+
+**Artifacts.** `results/routing_bench_bfcl_results.json`,
+`data/routing_bench_bfcl/manifest.json` (episodes `c3a8e27b`, upstream file
+hashes pinned).
+
+---
+
+## §35 Value grounding withdraws autonomy from foreign calls (2026-07-31)
+
+**The fix for §34, and what it costs.** A well-formed foreign call gives
+structural signals nothing to distrust; its tell is provenance-shaped — the
+argument values are traceable to nothing in this context. The new
+deterministic signal `argument_values_grounded` judges every argument value
+(numbers, identifiers, multiword strings, list elements; free-text roles from
+the NOT_APPLICABLE vocabulary exempt) against three grounding sources: the
+task text, the tool's own parameter declarations (enums/defaults — grounded
+but *not anchoring*, since an enum says nothing about which task the call
+belongs to), and the system of record. A call whose judgeable values are all
+traceable but none anchored to *this* context is observationally identical to
+a foreign copy of itself and withdraws to VERIFY. Validator confirmation
+grounds on re-entry — the system of record vouching for a value is the same
+anchoring clause as a SUPPORTED verdict.
+
+**Measured on the spent §34 set (development, not blind — the 86.8% blind
+record stands):** wrong-call accept 86.8% → **11.6%**, meeting the ≤20%
+pre-registered bar on dev. Cost: identity autonomy 86.1% → 56.8%, the loss
+being *derived* values (dates normalized from prose, unit conversions) that
+now route VERIFY — the engine cannot check a derivation, so verifying it is
+the honest lane, not a defect. On fleetops the same signal closed §32's
+residual: wrong-arg accepts in the UNKNOWN regime went 50% → **0%** with all
+pre-registered expectations still met, and the validator path still recovers
+read utility 0% → 100% (all eight §33 targets green post-change).
+
+**Iteration disclosure.** The grounding definition was developed against the
+spent sets in three steps (exact substring → schema declarations + numeric
+forms → token-wise multiword + anchor requirement + free-text exemption),
+each step measured. That is development, done where development is allowed;
+the numbers above must not be quoted as blind performance. **Blind
+confirmation of the grounding signal requires the next sealed track.**
+
+**Residual.** 30/258 foreign calls still accept — their values coincide with
+this task's context (common values, schema enums whose words the user
+happened to say). Below the 20% bar but not zero; a semantic task–call
+source remains the complete answer.
+
+**Artifacts.** `results/system_demonstration_v1.json` (aggregated
+re-execution of every study at HEAD),
+`results/fleetops_degradation_results.json`,
+`results/fleetops_validator_study_results.json`.
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1006,8 +1991,8 @@ pointer here). Artifacts: `results/sap_v3_round_results.json`,
 | Consensus temperature failed pre-registered fresh-data confirmation (§18) | **Active (accepted negative result)**: AURC 0.0954 vs 0.0664 (paired CI excludes zero), zero SGR-certifiable coverage; temperature demoted to diagnostics; confidence-gate promotion awaits its own confirmation round | **High (falsifies the thermodynamic-selection hypothesis)** |
 | External replication and live validation pending | Active, formal third-party replication still outstanding | Medium |
 | AROMER safety floor on external holdout (proxy-signal transfer) | **Largely de-risked**, 0% false-accept / 100% harm-intercept via structural gates (schema validity, forbidden-tool, tainted-arg) on 495-case balanced holdout; proxy-signal transfer and live-oracle trust/entropy calibration pending before general claim | Medium-Low |
-| Entropy backend is token-fingerprint heuristic, not Semantic Entropy | Active, NLISemanticBackend is fully implemented; local execution blocked by torch DLL policy; external replication instructions in §3 | Medium |
-| AROMER TRAINED milestone, organic regression, and recovery | **TRAINED_SHADOW_ONLY recovered (~15:53 UTC 2026-06-28)**, AII=0.8042. Full §12→§13 cycle: peak AII=0.844 (T2=1.000, T3=0.800 [M], cycle 12) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). FAR=0 throughout. 2 active gaps: Gap 2 (FA holdout 22.2%), Gap 4 (NLI/SE DLL). 3 gates before deployment: longitudinal stability, human review, RBAC audit. | **Medium** |
+| Entropy backend is token-fingerprint heuristic, not Semantic Entropy | **Active (partially advanced)**: the NLI backend now executes locally and differs materially from the fingerprint backend on the smoke corpus (`results/se_backend_parity_smoke.json`). Full benchmark parity remains unmeasured; the default backend is still exact-fingerprint. The earlier torch-DLL block is no longer reproduced. | Medium |
+| AROMER TRAINED milestone, organic regression, and recovery | **TRAINED_SHADOW_ONLY recovered (~15:53 UTC 2026-06-28)**, AII=0.8042. Full §12→§13 cycle: peak AII=0.844 (T2=1.000, T3=0.800 [M], cycle 12) → regression at ~13:00 UTC (brr 0%→5%, AII=0.7885) → organic recovery in ~2h53min (brr 5%→2.5%, AII 0.789→0.804). FAR=0 throughout. 2 active gaps: Gap 2 (FA holdout 22.2%), Gap 4 (NLI/SE parity unmeasured). Deployment gates: REM-020 (longitudinal stability) and REM-022 (RBAC, deviation recorded as REM-023) are CLOSED; REM-021 independent human review remains the sole blocker. | **Medium** |
 | benign_review_rate window distortion during world-model seeding | **Resolved**, brr fell from 11.33% (secondary equilibrium) to 1.03% (n=134) via organic /decide window rotation. T2 recovered to 0.949 (T2_eq≈0.946). T5 recovered to 0.669. Global gate PASS throughout; 0 FA. | Low |
 | Window-rotation bottleneck, adapt cycles do not generate /decide episodes | **Resolved in practice**, confirmed plateau n=107–112; recovery occurred via session hook MEDIUM/HIGH traffic generating organic /decide episodes across n=119–134; design gap (fixed-size recency window vs. EMA) remains open for future improvement | Low |
 | External adversarial dataset: FA=30.7% under neutral metadata (Phase 2) | **Partially addressed**, Phase 1 FA=43.0% (structural-only); Phase 2 FA=30.7% (−12.3 pp via semantic enrichment); Post-seeding aradhye holdout FA=22.2% (−30 pp vs Phase 2 aradhye, confirms seeding generalizes). Residual gap: 22.2% holdout FA from contextual harm not visible in instruction text. Fix path: runtime execution monitoring. Artifacts committed: `harmful_seed_holdout_eval.json`, `external_dataset_eval.json` (Phase 1, FA=43.0%), `external_dataset_eval_v2.json` (Phase 2, FA=30.7%), the latter two restored from the main implementation repo 2026-07-03 | High |
@@ -1016,6 +2001,16 @@ pointer here). Artifacts: `results/sap_v3_round_results.json`,
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)**, `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
 | MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
+| ESCALATE recall is 0% on the untrusted-origin family (§23) | **Resolved 2026-07-31 (§24)**: split into noncontrolling (VERIFY) and controls-sensitive (ESCALATE); recall 0% -> 100%, accuracy 56.9% -> 85.5%. Formerly: all untrusted-origin mutants route to VERIFY, never ESCALATE. Not addressable by a resolver — untrusted provenance is a question about authority, not missing information. Needs the two provenance families (noncontrolling vs controls-sensitive-argument), which do not exist | **High** |
+| Blind holdout missed 2 of 5 targets; state check confused absent-from-record with outside-my-coverage (§26) | **Fixed and blind-confirmed 2026-07-31 (§27)**: CoverageScope per argument; false-UNSUPPORTED rate 0/3841 on a second blind set, accuracy 69.6% -> 92.2%. Residual: covered-domain discrimination unconfirmed on blind data (no untouched covered clusters exist), and uncovered domains accept 61.5% of corrupted identifiers. Formerly: identity ACCEPT 94.6% dev -> 0.0% holdout; discrimination gap 42.1 pp -> 0.0 pp; accuracy 91.9% -> 69.6%. Cause: state index covered airline+retail, holdout is telecom, so every identifier read as absent. argument_values_supported must return None outside its coverage, not False. Requires a new untouched holdout to confirm any fix | **High** |
+| Covered-domain discrimination unconfirmed on blind data (§28, §29) | **Confirmed under ideal conditions 2026-07-31 (§31)**: on a generated closed-world domain, identity ACCEPT 100% and wrong-argument ACCEPT 0%, gap 100 pp, admission-verified 100% judgeable. Necessary not sufficient — partial coverage, stale state, ambiguous scope and open-world absence are all absent by construction. Formerly: Track A on banking_knowledge was spent without testing the hypothesis — 836/942 wrong-argument episodes were unjudgeable because the index does not cover the arguments the tasks use. Next attempt must pre-register a minimum judgeable fraction as an admission criterion. Formerly: dev covered gap 55.8 pp and wrong-argument ACCEPT 9.8%, but all airline/retail clusters were spent in development and both blind tracks ran on telecom, where discrimination is informationally impossible. Needs a covered domain with an independent state table and clusters reserved before detector development | **High (data acquisition)** |
+| Coverage loss degrades discrimination, not validity (§32) | **Active (accepted characterization)**: honest declaration loss (hash mismatch, freshness refusal) yields 0 false-UNSUPPORTED but 50% wrong-arg accepts on read-only UNKNOWN; a falsely re-vouched truncated export rejects 17.1% of valid identifiers; a byte-identical stale snapshot rejects 85.7% and only the freshness bound catches it; cross-tenant accepts 0. Production posture per action type: autonomy on verified reads (baseline 100%), verification on writes (0% auto-accept — "assign"/"close"/"approve" were missing from the mutating-verb list, so A2's pooled 100% included 30 misclassified writes). Open mechanism study on generated degradations; field performance unmeasured | Medium (failure geometry, not field evidence) |
+| UNKNOWN-regime utility recovered via declared validators (§33) | **Addressed under study conditions 2026-07-31**: in the empty-index regime (no bulk export, every verdict UNKNOWN), declared point-lookup validator bindings take read completion 0% → 100% with all eight pre-registered safety targets at their bound (0 required-UNKNOWN auto-accepts, 0/90 corrupt accepts, 0 cross-tenant consultations, 0 budget overruns); freshness now mandatory for mutable declarations; per-fact attempt budget fixed. Validator is live-world-perfect by construction; production validators need their own false-absent check. Field performance unmeasured | Medium (mechanism confirmed, field pending) |
+| Well-formed wrong calls pass structural gates on external blind data (§34) | **Active (accepted negative result)**: BFCL blind track, 4 of 5 pre-registered targets met (fail-closed 0/19, irrelevance ABSTAIN 100%, obtainable VERIFY 82.7%, unobtainable ABSTAIN 100%, both provenance families 100%), but known-wrong-call ACCEPT 86.8% vs ≤20% target — a substituted call with its own complete arguments gives structural signals nothing to distrust; tau2 masked this via unsatisfiable arguments. Requires an authoritative task–call semantic source for `tool_matches_goal`, not tuning. **Addressed on dev 2026-07-31 (§35)**: value grounding cuts foreign-call accept 86.8% → 11.6% on the spent set (identity autonomy cost 86.1% → 56.8%, derived values now VERIFY); blind confirmation pending a new sealed track | **Medium (mitigated on dev; blind confirmation pending)** |
+| Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
+| Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
+| tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |
+| AgentHarm rescoring: FBR target not met (§19) | **Active (accepted negative result)**: FAR=0.0% (target met, Wilson upper 1.8%), FBR=100.0% (target <=40%, NOT met); cause is structural — every source verdict is ESCALATE and the control protocols act only on VERIFY. Bounds the protocols on this dataset; does not identify avoidable escalations. A blanket ESCALATE→VERIFY reclassification is ruled out by measurement (19 harmful / 0 benign moved) | Medium |
 | Benchmark v2 oracle-flag/severity/tags leakage + effective N ~70 not 700 (§17) | **Fixed (2026-07-20)**: gate and baselines restricted to observable surface + platform facts; cluster-level inference (n=70); "0% vs 10–20%" claim withdrawn — baselines now 1.4%, unsafe-rate delta not significant (p=0.50); FAR=0 unchanged, CI [0.0%, 5.2%]; residual: platform facts simulator-declared | **High (was inflating headline claim)** |
 
 ---
@@ -1034,7 +2029,7 @@ list.  They are preserved here as scientific record.
 | R5 | Lyapunov V(t), no aggregate distribution published | `experiments/lyapunov_aggregate.py`: N=1000 synthetic sessions, P(ΔV ≤ 0) = 87.2 %, mean ΔV = −0.329 | ≤0.6.0 |
 | R6 | Oracle family independence partial (ρ̄ ≈ 0.4–0.6 within-family) | `build_recommended_swarm()`: 3 distinct base-model families (LLaMA 3.3 70B, Claude 3.5 Haiku, Gemma 3 27B) | ≤0.6.0 |
 | R7 | T-estimator circularity (D→T→F, D contributes 18 % to T) | `estimate_structural_temperature()` is circularity-free (prompt-only); is the active path in `engine.py`; `_CATEGORY_PRIORS` documented as intentional safety floors | 0.6.1 |
-| R8 | Tool-call v1, no differentiation (every strategy = 0 % unsafe on 252-task non-adversarial suite) | v2 adversarial suite (700 tasks): `remora_full_policy_gate` = **0 % unsafe** vs 10–20 % for all baselines; artifact `results/toolcall_benchmark_v2_summary.md`; implementation `experiments/evaluate_toolcall_benchmark_v2.py`; regression test `tests/test_toolcall_v2_results.py` | 0.7.0 |
+| R8 **[SUPERSEDED BY §17]** | Tool-call v1, no differentiation (every strategy = 0 % unsafe on 252-task non-adversarial suite) | ~~v2 adversarial suite (700 tasks): `remora_full_policy_gate` = 0 % unsafe vs 10–20 % for all baselines~~ — **this comparison is withdrawn**: §17 established effective N≈70 (not 700), baselines at 1.4 % under the leakage-free surface, and an unsafe-rate delta that is not significant (p=0.50). FAR=0 itself is unchanged, CI [0.0 %, 5.2 %]. Original artifact artifact `results/toolcall_benchmark_v2_summary.md`; implementation `experiments/evaluate_toolcall_benchmark_v2.py`; regression test `tests/test_toolcall_v2_results.py` | 0.7.0 |
 | R9 | Conformal exchangeability not verified at runtime | `MondrianPhaseGuardrail.route(prompt=…)` + `PromptDriftDetector` integration: distribution shift triggers ABSTAIN before conformal routing; tests in `tests/test_guardrail.py` (drift integration) and `tests/test_drift_detector.py` | 0.7.0 |
 | R10 | χ-proxy difficulty signal below chance (AUC = 0.39) | Negative result preserved as empirical record; χ repurposed to OOD/adversarial escalation (`phase_decision()`, threshold 1.45) | 0.7.1 |
 | R11 | Full-coverage baseline framing risk (41.18 % vs selective 88.8 %) | Mixed-comparison caveat standardized in docs; held-out validation added (`results/selective_n500_holdout_results.json`); benchmark-scoped wording enforced | 0.7.1 |

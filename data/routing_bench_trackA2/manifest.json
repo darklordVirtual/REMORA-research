@@ -1,0 +1,126 @@
+{
+  "admission": {
+    "eligible_argument_roles": [
+      "work_order_id",
+      "driver_id",
+      "depot_id",
+      "vehicle_id"
+    ],
+    "excluded_argument_roles": [],
+    "minimum_judgeable_fraction": 0.9,
+    "observed_judgeable_fraction": 1.0,
+    "per_role": [
+      {
+        "eligible": true,
+        "identity_n": 45,
+        "judgeable_fraction": 1.0,
+        "judgeable_n": 90,
+        "role": "work_order_id",
+        "wrong_arg_n": 45
+      },
+      {
+        "eligible": true,
+        "identity_n": 30,
+        "judgeable_fraction": 1.0,
+        "judgeable_n": 60,
+        "role": "driver_id",
+        "wrong_arg_n": 30
+      },
+      {
+        "eligible": true,
+        "identity_n": 15,
+        "judgeable_fraction": 1.0,
+        "judgeable_n": 30,
+        "role": "depot_id",
+        "wrong_arg_n": 15
+      },
+      {
+        "eligible": true,
+        "identity_n": 15,
+        "judgeable_fraction": 1.0,
+        "judgeable_n": 30,
+        "role": "vehicle_id",
+        "wrong_arg_n": 15
+      }
+    ],
+    "status": "eligible"
+  },
+  "coverage_declarations": [
+    {
+      "aliases_supported": false,
+      "argument_role": "vehicle_id",
+      "as_of": "2026-07-31",
+      "canonicalization": "string_exact",
+      "completeness_basis": "generated database is the entire entity universe by construction",
+      "curator": "stian",
+      "domain": "fleetops",
+      "entity_type": "vehicle",
+      "source_snapshot_sha256": "3cc32d402dfa27b7acfe0b4eaaae69d3cf55e408e7fd75da815d42dd689db665",
+      "tenant": "fleetops_fixture"
+    },
+    {
+      "aliases_supported": false,
+      "argument_role": "driver_id",
+      "as_of": "2026-07-31",
+      "canonicalization": "string_exact",
+      "completeness_basis": "generated database is the entire entity universe by construction",
+      "curator": "stian",
+      "domain": "fleetops",
+      "entity_type": "driver",
+      "source_snapshot_sha256": "3cc32d402dfa27b7acfe0b4eaaae69d3cf55e408e7fd75da815d42dd689db665",
+      "tenant": "fleetops_fixture"
+    },
+    {
+      "aliases_supported": false,
+      "argument_role": "work_order_id",
+      "as_of": "2026-07-31",
+      "canonicalization": "string_exact",
+      "completeness_basis": "generated database is the entire entity universe by construction",
+      "curator": "stian",
+      "domain": "fleetops",
+      "entity_type": "work_order",
+      "source_snapshot_sha256": "3cc32d402dfa27b7acfe0b4eaaae69d3cf55e408e7fd75da815d42dd689db665",
+      "tenant": "fleetops_fixture"
+    },
+    {
+      "aliases_supported": false,
+      "argument_role": "depot_id",
+      "as_of": "2026-07-31",
+      "canonicalization": "string_exact",
+      "completeness_basis": "generated database is the entire entity universe by construction",
+      "curator": "stian",
+      "domain": "fleetops",
+      "entity_type": "depot",
+      "source_snapshot_sha256": "3cc32d402dfa27b7acfe0b4eaaae69d3cf55e408e7fd75da815d42dd689db665",
+      "tenant": "fleetops_fixture"
+    }
+  ],
+  "db_sha256": "3cc32d402dfa27b7acfe0b4eaaae69d3cf55e408e7fd75da815d42dd689db665",
+  "evaluated_all_targets_met": true,
+  "gap_definition": "episode-weighted, same denominator (full family population)",
+  "locked_at_commit": "a9ec74c",
+  "n_episodes": 540,
+  "n_source_clusters": 90,
+  "schema": "routing_bench_trackA2_v1",
+  "sha256": "3c070516325329fcbdb7ad50dce9aeb89ef585872d99a3aa6d67959fdee0f2be",
+  "status": "evaluated",
+  "targets": {
+    "covered_identity_accept": [
+      ">=",
+      0.85
+    ],
+    "covered_wrong_argument_accept": [
+      "<=",
+      0.15
+    ],
+    "discrimination_gap_pp": [
+      ">=",
+      60.0
+    ],
+    "false_unsupported_on_valid": [
+      "<=",
+      0.02
+    ]
+  },
+  "track": "A2 \u2014 covered closed-world domain: fleetops"
+}

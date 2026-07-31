@@ -1,0 +1,29 @@
+{
+  "evaluated_all_targets_met": false,
+  "gap_definition": "episode-weighted, same denominator: identity ACCEPT rate minus wrong_arg ACCEPT rate, both over the full family population",
+  "n_episodes": 5768,
+  "n_source_clusters": 97,
+  "schema": "routing_bench_holdout_track_a_v1",
+  "sha256": "2f6f85f3f95211ad75aa48eb1d204540250194a85bf64fe70e6f751dd7c6ee22",
+  "state_source": "data/tau2/domains/banking_knowledge/db.json (2399 values, 67 covered argument names)",
+  "status": "evaluated",
+  "targets": {
+    "covered_identity_accept": [
+      ">=",
+      0.85
+    ],
+    "covered_wrong_argument_accept": [
+      "<=",
+      0.15
+    ],
+    "discrimination_gap_pp": [
+      ">=",
+      60.0
+    ],
+    "false_unsupported_on_valid": [
+      "<=",
+      0.02
+    ]
+  },
+  "track": "A \u2014 covered domain: banking_knowledge, authoritative db.json independent of the tasks"
+}

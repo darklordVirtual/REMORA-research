@@ -49,6 +49,99 @@ releases.
   the permitted δ event and ordinary sampling variation are acknowledged
   alternative explanations.
 
+### Opt-in policy option (2026-07-31) — low-consequence ACCEPT
+
+- **New `RemoraDecisionEngine(low_consequence_accept=True)`, off by default.**
+  Default behaviour and `policy_version` are unchanged; a default engine
+  produces byte-identical decisions to before.
+- Motivation, measured on the routing benchmark
+  (`results/routing_bench_v1_results.json`): ACCEPT recall was 0% in every arm
+  except one that declared every action low-risk, which then accepted 88.5% of
+  known-wrong calls. The cause is that every existing ACCEPT path requires an
+  oracle-derived consensus signal, so a clean read-only call falls through to
+  `default_safe_abstain`. Action semantics could only ever block; they could
+  never permit.
+- The path fires only on read-only `action_type` with no negative safety signal
+  (untainted, not forbidden, valid schema, no adversarial/coercion/blackmail
+  flag, no evidence contradiction, no distribution shift, not production). Every
+  condition is written so `None` never satisfies it.
+- It is placed immediately before the default abstain, after every hard guard
+  and blocking gate, so it can only convert a fall-through and can never preempt
+  a block. `tests/test_low_consequence_accept.py` asserts that over a grid of
+  observations and re-checks the paths pinned by
+  `tests/test_escalate_semantics_guard.py`.
+- **What it asserts is consequence, not correctness.** The engine cannot tell a
+  correct read from an incorrect one from observable data. Reports from this
+  path carry a distinct `coverage_policy` rather than the generic ACCEPT
+  wording, which would falsely claim an evidence/trust basis.
+- **Measured.** Enabling it takes ACCEPT recall 0% → 75.0%
+  (Wilson [70.0%, 79.4%]) and overall routing accuracy 18.5% → 44.5%, while
+  ABSTAIN recall stays at the baseline 62.5% (see `arguments_satisfiable`
+  below). Residual cost: 89 of 227 known-wrong calls accepted, all read-only.
+  A deployment that cannot tolerate a wasted read must leave this off.
+
+### New observation field (2026-07-31) — `arguments_satisfiable`
+
+- **`PolicyObservation.arguments_satisfiable: bool | None`.** Can every required
+  parameter of the proposed call be sourced — from the task, from a prior
+  result, or from another available tool? Caller-supplied from a tool registry,
+  like every other field; `remora/toolcall/routing/tool_registry.py` is a
+  reference extractor that reads Python tool signatures by AST.
+- The low-consequence ACCEPT path rejects a **confirmed** `False`. `None` is
+  unknown and does not disqualify, so sources whose schemas have not been
+  extracted keep working. Exported to OPA for parity; documented in
+  `docs/07-api-reference.md` (58 fields).
+- **This field replaces `blast_radius` as the fix for the ABSTAIN loss, on
+  evidence.** An earlier note in this changelog proposed a disclosure or
+  blast-radius signal. Inspecting all ten lost cases refuted that: they were
+  `search_lat_lon` with no latitude obtainable, `timestamp_diff` with no clock
+  available, `unit_conversion` with no amount to convert. `unit_conversion` is
+  pure arithmetic — about as bounded as a call gets — and still wrong. The
+  shared property is unobtainable arguments, not scope of effect.
+- Effect: ABSTAIN recall in the enabled arm goes 0% → 62.5%, exactly the
+  baseline, and known-wrong accepts fall 101 → 89.
+- The registry now also covers tau2 (85 signatures, up from 38), which required
+  extending the extractor to public methods of top-level classes — tau2 exposes
+  its tools as methods on a domain class rather than as module functions. That
+  extension gained coverage but moved no routing metric; see
+  `NEGATIVE_RESULTS.md` §20 for why, and for the adapter artifact that briefly
+  made it look like an 80.9% reduction in known-wrong call accepts.
+- A required parameter already present in the proposed call counts as sourced.
+  The check gates a proposed call, so a value already in it was obtained
+  somewhere; whether legitimately is `argument_tainted`'s question. Without
+  this, tau2's multi-turn tasks read as unsatisfiable because the value came
+  from a conversation turn the single-call view does not contain.
+- Extraction detail worth keeping: a parameter defaulted to `None` counts as
+  required. `None` is the standard Python sentinel for "not supplied", so
+  `search_weather_around_lat_lon(days=0, latitude=None, longitude=None)` needs
+  coordinates even though all three parameters carry defaults. Treating them
+  all as optional made an unsatisfiable call look satisfiable and left two
+  cases unfixed until a test caught it.
+
+### Policy behavior change (2026-07-31) — RemoraDecisionEngine-v5
+
+- **Temperature ACCEPT now excludes the critical phase.** The marginal
+  (phase-blind) conformal ACCEPT path has always carried an
+  `obs.phase != "critical"` exclusion, because trust anti-correlates with
+  correctness in that phase (ARCHITECTURE.md §8, CLAIM-005) and a phase-blind
+  threshold would accept exactly the items most likely to be wrong. The
+  temperature ACCEPT path is the same kind of phase-blind aggregate over the
+  oracle distribution but was missing the guard, so a low temperature could
+  silently override critical-phase VERIFY routing. Both paths now agree.
+- This is a **tightening**: it removes an accept path, it does not add one.
+  Measured effect on the N500 v3 round: temperature-calibrated coverage falls
+  18% → 5.7% (31/544). Accuracy on the accepted set is asserted separately and
+  is unaffected. `tests/test_end_to_end_n500_v3.py` is re-baselined to the
+  3–10% band with the rationale recorded in the test.
+- Engine `policy_version` bumped `RemoraDecisionEngine-v4` → `-v5`. The
+  illustrative Rego policy has no temperature ACCEPT path, so there is no
+  engine/OPA parity change and no new conformance golden case.
+- Promoted benchmark artifacts remain v4 (and earlier) snapshots with their
+  recorded provenance; regeneration under v5 follows
+  `docs/assurance/rebenchmark_protocol_v1.md`. FAR-based claims are unaffected
+  by construction — the removed path only ever produced ACCEPT, so any item it
+  no longer accepts moves to a blocking outcome.
+
 ### Policy behavior change (2026-07-30) — RemoraDecisionEngine-v4
 
 - **Tainted arguments at CRITICAL risk now ESCALATE** (new reason

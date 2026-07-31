@@ -186,6 +186,57 @@ class PolicyObservation:
     coercion_detected: bool = False
     blackmail_pattern_detected: bool = False
 
+    # Can every required parameter of the proposed call be sourced — from the
+    # task, from prior results, or from another available tool? Supplied by the
+    # caller's tool registry (see remora/toolcall/routing/tool_registry.py for a
+    # reference extractor). False means confirmed unsatisfiable: an agent making
+    # this call would have to fabricate arguments. None means the registry does
+    # not cover the tool, which is unknown, not a negative.
+    arguments_satisfiable: bool | None = None
+
+    # Do the proposed call's identifier-shaped argument values exist in the
+    # authoritative state? Caller-supplied; see
+    # remora/toolcall/routing/compatibility.py for a reference implementation.
+    # False means confirmed absent from the system of record — acting on it
+    # would operate on a record that does not exist. None means no system of
+    # record was consulted.
+    argument_values_supported: bool | None = None
+
+    # Are the call's judgeable argument values traceable to this context —
+    # named in the task text or confirmed by the system of record? A
+    # well-formed call whose values came from another context gives structural
+    # signals nothing to distrust (NEGATIVE_RESULTS.md §34 measured 86.8% of
+    # such calls accepted); ungrounded values withdraw autonomy. None means
+    # nothing was judgeable, which must never behave like a negative.
+    # Caller-supplied; see remora/toolcall/routing/compatibility.py.
+    argument_values_grounded: bool | None = None
+
+    # Required parameters of the proposed call that are absent from it, and the
+    # authoritative tools that could supply them. Both caller-populated from a
+    # tool registry. A non-empty missing list with resolver tools available is
+    # the VERIFY-with-a-plan case; without them it is ABSTAIN, because
+    # promising a verification that cannot happen is worse than stopping.
+    missing_required_arguments: tuple[str, ...] = ()
+    argument_resolver_tools: tuple[str, ...] = ()
+    # Name of the tool being proposed, when known. Used to bind a resolution
+    # plan to the call it was issued for.
+    proposed_tool_name: str | None = None
+
+    # Argument names whose value derives from untrusted content. Meaningful
+    # only together with argument_tainted. When one of them occupies a
+    # sensitive role (recipient, command, credential, egress target) the
+    # untrusted content is authorising rather than informing, and the call
+    # escalates regardless of the declared risk tier.
+    untrusted_controlled_arguments: tuple[str, ...] = ()
+
+    # Arguments that policy requires validated against an authoritative source
+    # and that are not confirmed — either contradicted or simply unknown. The
+    # requirement is a property of what the argument steers, decided
+    # independently of whether an index happens to cover it; see
+    # remora/toolcall/routing/validation.py. Non-empty means autonomy is not
+    # available until the value is confirmed.
+    unvalidated_required_arguments: tuple[str, ...] = ()
+
     # Policy generalization / fleet-level risk (v0.9)
     # All fields are caller-populated — REMORA is stateless.
     similar_action_seen_count: int | None = None
