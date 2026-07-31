@@ -86,6 +86,8 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_license_policy.py
 	@echo "\n-- Claim provenance (register, artifacts, anchors, supersession) --"
 	$(PYTHON) scripts/check_claim_provenance.py
+	@echo "\n-- NEGATIVE_RESULTS status taxonomy --"
+	$(PYTHON) scripts/check_negative_results_status.py
 	@echo "\n-- Superseded-claims archive is current --"
 	$(PYTHON) scripts/generate_superseded_claims.py --check
 	@echo "\nFull audit passed. REMORA claims are consistent with code and artifacts."

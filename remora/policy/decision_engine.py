@@ -221,6 +221,15 @@ _READ_ONLY_ACTION_TYPES: frozenset[str] = frozenset(
 )
 
 
+def _is_read_only_action(obs: PolicyObservation) -> bool:
+    """True only on a positively declared read-only action type.
+
+    Unknown or unrecognised is not read-only. A goal mismatch on something we
+    cannot confirm is harmless must escalate, not abstain.
+    """
+    return (obs.action_type or "").strip().lower() in _READ_ONLY_ACTION_TYPES
+
+
 def _is_low_consequence(obs: PolicyObservation) -> bool:
     """True when the action is read-only and carries no negative safety signal.
 
@@ -348,6 +357,18 @@ class _ConditionalGate:
 
 
 _CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
+    _ConditionalGate(
+        "tool_does_not_match_goal", DecisionReason.TOOL_DOES_NOT_MATCH_GOAL,
+        lambda e, o, c, t: (
+            None if o.tool_matches_goal is not False
+            else (DecisionAction.ABSTAIN if _is_read_only_action(o)
+                  else DecisionAction.ESCALATE)
+        ),
+        "ABSTAIN/ESCALATE",
+        lambda o, c, t: (
+            f"tool_matches_goal={o.tool_matches_goal}, action_type={o.action_type!r}"
+        ),
+    ),
     _ConditionalGate(
         "refuse_parametric", DecisionReason.THERMO_REQUIRE_EVIDENCE,
         lambda e, o, c, t: DecisionAction.VERIFY

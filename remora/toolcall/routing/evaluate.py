@@ -32,6 +32,8 @@ from remora.toolcall.routing.compatibility import (
     compute_compatibility,
     values_grounded,
 )
+from remora.toolcall.routing.goal_match import TaskIntent, match_tool_to_intent
+from remora.toolcall.routing.tool_contract import ToolContractRegistry
 from remora.toolcall.routing.validation import unvalidated_required
 from remora.toolcall.routing.validators import ValidatorRegistry
 from remora.toolcall.routing.tool_registry import (
@@ -127,6 +129,8 @@ def build_full_observation(
     registry: ToolRegistry,
     state: StateIndex,
     validators: "ValidatorRegistry | None" = None,
+    contracts: "ToolContractRegistry | None" = None,
+    intent: "TaskIntent | None" = None,
 ) -> PolicyObservation:
     """The complete signal pipeline — the locked evaluation configuration.
 
@@ -136,6 +140,12 @@ def build_full_observation(
     at each call site can drift between the two without anyone noticing, and the
     blind result would then measure a different system than the one that was
     locked.
+
+    *contracts* and *intent* are optional and default to absent, which yields
+    ``tool_matches_goal=None`` and leaves routing exactly as it was. A source
+    that has not declared tool semantics is not thereby penalised — the §34
+    residue needs the declaration to be closable, and a fabricated contract
+    would be worse than none.
     """
     obs = build_observation(episode, registry)
 
@@ -206,6 +216,12 @@ def build_full_observation(
             if episode.available_tools and episode.proposed_tool_name is not None
             else None
         ),
+        tool_matches_goal=match_tool_to_intent(
+            contract=contracts.get(episode.proposed_tool_name) if contracts else None,
+            intent=intent,
+            proposed_args=episode.proposed_tool_args,
+            task_text=episode.user_task,
+        ).as_bool,
     )
 
 
