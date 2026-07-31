@@ -1592,6 +1592,54 @@ as an admission criterion for the track itself.
 
 ---
 
+## §30 An index may not infer its own completeness; admission gate added (2026-07-31)
+
+**The 4.8% false-UNSUPPORTED from §29, diagnosed.** All 45 cases were valid
+values supplied by tau2's own gold actions: `phone_number` 25,
+`user_id` 13, `reason` 6, `address` 1. Examples: `friend_user_5839`,
+`619-555-0284`, `account_ownership_dispute`. None was a normalisation or
+casing artefact — zero matched under case or whitespace variants.
+
+**Root cause: the same open-world error as §26, one level deeper.**
+`StateIndex.from_json_files` marked every scalar-valued key as *closed-world*
+covered. Having seen the key `user_id` once was treated as holding every
+`user_id`. §26 fixed domain-level coverage; the fix left key-presence implying
+completeness.
+
+Seeing a key is evidence of a key, never evidence of completeness. Completeness
+is a property of how the data was assembled, which only the assembler knows, so
+it is now **declared, not inferred**. Scopes built from files are open-world
+unless explicitly named in a `closed_world` declaration.
+
+The cost is deliberate: with nothing declared, no value is ever UNSUPPORTED and
+the discrimination signal is inert. That is the correct default. A signal that
+stays silent until someone vouches for the data is preferable to one that
+invents authority from a filename — which is what produced both §26 and the 45
+false negatives here.
+
+**Admission gate.** `remora/toolcall/routing/admission.py` decides whether a
+candidate set may be sealed as a discrimination track, before any evaluation.
+It reads only structural facts: argument names, coverage, whether completeness
+is declared, and how many episodes are therefore judgeable. It never runs the
+router or reads a prediction, so running it does not spend the set — asserted
+structurally by a test forbidding those imports rather than by convention.
+
+Pre-registered thresholds: 90% judgeable (above the 80% floor discussed in
+review, because a pooled figure can mask one dead role) and at least 20
+judgeable episodes per role, assessed **per argument role** and then in
+aggregate. Only admitted roles enter the discrimination analysis.
+
+The decisive test is that the gate refuses the §29 set. A check that would not
+have caught the failure it was written for is not a gate.
+
+**Still not established.** Correct-versus-corrupted discrimination on blind data
+where the signal has information. Four blind sets are spent. The next attempt
+must begin with admission, not with a router change — and under the new
+declaration rule it also needs a domain whose completeness someone is willing
+to vouch for.
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |

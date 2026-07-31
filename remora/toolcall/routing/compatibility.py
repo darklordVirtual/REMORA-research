@@ -157,13 +157,24 @@ class StateIndex:
         return cls(frozenset(v for v in values if isinstance(v, str) and v), scopes)
 
     @classmethod
-    def from_json_files(cls, paths: list[Path]) -> StateIndex:
+    def from_json_files(
+        cls,
+        paths: list[Path],
+        closed_world: dict[str, set[str]] | None = None,
+    ) -> StateIndex:
         """Index scalar values, deriving coverage from the keys actually seen.
 
         The domain is the file stem. An argument name counts as covered when the
-        document carries it as a key mapping to a scalar — the index knows what
-        it covers because it saw those keys, rather than being told.
+        document carries it as a key mapping to a scalar.
+
+        **Completeness is never inferred.** Seeing a key is evidence of a key,
+        not of holding every value for it. Scopes are open-world unless named in
+        *closed_world*, so an undeclared index confirms what it holds and says
+        UNKNOWN about everything else. §29 measured the cost of the other
+        default: 45 valid banking values were reported as confirmed-invalid
+        because the index assumed its own completeness.
         """
+        declared = closed_world or {}
         collected: set[str] = set()
         covered: dict[str, set[str]] = {}
 
@@ -189,8 +200,9 @@ class StateIndex:
             walk(json.loads(Path(path).read_text(encoding="utf-8")), Path(path).stem)
 
         scopes = tuple(
-            CoverageScope(domain=d, argument_names=frozenset(names), closed_world=True)
+            scope
             for d, names in sorted(covered.items())
+            for scope in _split_scope(d, names, declared.get(d, set()))
         )
         return cls.from_values(collected, scopes)
 
@@ -199,6 +211,20 @@ class StateIndex:
 
     def contains(self, value: str) -> bool:
         return value in self.values
+
+
+def _split_scope(
+    domain: str, seen: set[str], declared: set[str]
+) -> list[CoverageScope]:
+    """Split a domain's seen keys into declared-complete and open-world scopes."""
+    complete = seen & declared
+    open_world = seen - declared
+    out: list[CoverageScope] = []
+    if complete:
+        out.append(CoverageScope(domain, frozenset(complete), closed_world=True))
+    if open_world:
+        out.append(CoverageScope(domain, frozenset(open_world), closed_world=False))
+    return out
 
 
 def _is_identifier(value: object) -> bool:
