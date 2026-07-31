@@ -1208,6 +1208,59 @@ the generator's pattern.
 
 ---
 
+## §23 ResolutionPlan closes the obtainable-VERIFY gap; two targets remain missed (2026-07-31)
+
+**Finding.** §22 measured obtainable VERIFY recall at 0%: a call missing an
+argument an available tool could supply was accepted rather than routed to a
+bounded fetch. Adding an argument-resolution gate and router re-entry takes that
+metric to 100% and overall accuracy from 40.7% to 56.9% (cluster-adjusted
+Wilson [45.4%, 67.7%]).
+
+| arm | accuracy | obtainable VERIFY | identity ACCEPT | wrong_arg ACCEPT | gap |
+|---|---|---|---|---|---|
+| C + argument_values_supported | 40.7% | 0% | 63.6% | 22.4% | 41.2 pp |
+| D + ResolutionPlan gate | **56.9%** | **100%** | 63.6% | 22.4% | 41.2 pp |
+
+The gate leaves the identity/wrong-argument discrimination untouched, which is
+the expected shape: it addresses *which* non-accept route a resolvable gap
+takes, not whether a call is correct. The two signals are independent and the
+ablation shows it.
+
+**Against the pre-registered criteria, on development data only.**
+
+| metric | target | result |
+|---|---|---|
+| autonomy-eligible identity ACCEPT | >= 70% | 97.3% (145/149) — met |
+| obtainable VERIFY recall | >= 70% | 100% — met |
+| wrong-argument discrimination gap | >= 40 pp | 41.2 pp — met |
+| wrong-argument ACCEPT rate | <= 20% | 22.4% — **missed** |
+| unobtainable ABSTAIN recall | >= 70% | 66.4% — **missed** |
+| harmful autonomous ACCEPT | no increase | holds |
+
+Three of five met, two narrowly missed. These are development numbers. The
+sealed holdout has not been evaluated and must not be until the code and
+criteria are locked; see `data/routing_bench_holdout/HOLDOUT_STATUS.md`.
+
+**ESCALATE recall remains 0%.** Every untrusted-origin episode still routes to
+VERIFY. Nothing in this change addresses it, and it is not addressable by a
+resolver: untrusted provenance is a question about who may authorise, not about
+what information is missing. The two provenance families
+(`untrusted_but_noncontrolling`, `untrusted_controls_sensitive_argument`) that
+would make the distinction measurable do not exist yet.
+
+**Contract established.** A VERIFY produced by the resolution gate always
+carries a `ResolutionPlan`; a missing argument with no resolver is ABSTAIN, not
+VERIFY. Promising a verification that cannot happen is worse than stopping. The
+resolver's authority is bounded and enforced: it may not change the target tool,
+may not write an argument outside its plan, and its attempt budget is checked.
+Re-entry re-runs the whole router, so a forbidden tool still escalates after a
+successful resolution.
+
+**Artifacts.** `data/routing_bench_v2/tau2_mutations.jsonl`.
+**Reproduce.** `python scripts/build_routing_bench.py`
+
+---
+
 ## Summary Table
 
 | Finding | Status | Severity |
@@ -1225,6 +1278,7 @@ the generator's pattern.
 | Peer-review M1–M9: construct validity, monotonic violation, credibility-pack (§14) | M1: **FIXED (2026-06-28)**, `is_unsafe_if_executed` removed from gate; AST detector + mutation tests guard against re-introduction; FAR=0 confirmed post-fix; caveats on benchmark construction validity documented; M3 (monotonic) and M9 (credibility-pack) **FIXED**; M2/M5/M6/M7 paper language updated; M4/M8 documented as open gaps | **Fixed (M1/M3/M9), Docs (M2/M5/M6/M7)** |
 | MCE bucket selection bias (AII calibration ceiling (§15) | Active) ECE=0.0052 structural; MCE bucket priors receive 0 organic traffic; AII ceiling=0.9922 reached 2026-07-01; fix requires adversarial exposure | High (structural limitation) |
 | Live cross-domain episodes absent (interpretation ceiling (§16) | Active) crossDomainCases=0 in adapt window; interpretation_nuanced=TRANSFER_UNMEASURED despite AII=0.9922 and T4=1.0 (replay); fix requires diverse deployment context | Medium (structural limitation; same root as §15) |
+| ESCALATE recall is 0% on the untrusted-origin family (§23) | **Active**: all untrusted-origin mutants route to VERIFY, never ESCALATE. Not addressable by a resolver — untrusted provenance is a question about authority, not missing information. Needs the two provenance families (noncontrolling vs controls-sensitive-argument), which do not exist | **High** |
 | Semantic call compatibility: discrimination achieved, targets missed (§22) | **Active**: `argument_values_supported` cuts wrong-argument ACCEPT 65.4% -> 22.4% and is the first signal to separate a correct call from a corrupted one. All four pre-registered numeric targets missed; obtainable VERIFY recall is 0% because no resolver layer exists. One target (identity ACCEPT >= 70%) was unreachable as written — 34.6% of those episodes are writes | **High (next: resolver availability layer)** |
 | Routing is a near-constant predictor on the balanced mutation set (§21) | **Active (highest-priority gap)**: 912 labelled mutants balanced 228/route; default engine 25.0% accuracy, cluster CI [16.4%, 36.1%]; four families with different correct answers get identical predictions. wrong_arg_value accepted at the same rate as identity (149 each); ESCALATE recall 0%. Requires a semantic task-tool compatibility signal, not further threshold or registry work | **High** |
 | tau2 tool-registry extension: coverage without outcome change (§20) | **Active (accepted negative result)**: registry 38 -> 85 signatures moved no routing metric; arguments_satisfiable is orthogonal to call correctness. Coverage gained: 858/903 tau2 episodes now determinate instead of None. An apparent 89 -> 17 (80.9%) cut in known-wrong call accepts was an adapter artifact (empty args on substituted calls) and was withdrawn | Medium (methodological) |

@@ -23,6 +23,7 @@ from remora.credal import (
 )
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
+from remora.policy.resolution import ResolutionPlan
 from remora.policy.trap_classifier import (
     TRAP_ESCALATE_THRESHOLD,
     TRAP_VERIFY_THRESHOLD,
@@ -818,6 +819,34 @@ class RemoraDecisionEngine:
             reasons.append(DecisionReason.LOW_TRUST)
             return self._build(DecisionAction.ABSTAIN, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
+        # ── ARGUMENT RESOLUTION (2026-07-31) ─────────────────────────────
+        # §22 measured obtainable VERIFY recall at 0%: a call missing an
+        # argument an available tool could supply was accepted rather than
+        # routed to a bounded fetch. This is the gate that distinguishes
+        # "resolvable gap" from "unresolvable gap", which §21 showed the router
+        # could not do. Inert until the caller populates the fields, so default
+        # behaviour is unchanged.
+        #
+        # Placed after every blocking gate, so it can only convert a
+        # fall-through — a forbidden tool still escalates on re-entry.
+        if obs.missing_required_arguments:
+            if obs.argument_resolver_tools and obs.arguments_satisfiable is not False:
+                reasons.append(DecisionReason.ARGUMENT_RESOLUTION_REQUIRED)
+                return self._build(
+                    DecisionAction.VERIFY, reasons, obs,
+                    credal=_credal, raw_obs=_raw_obs,
+                    resolution_plan=ResolutionPlan(
+                        resolver="argument_resolution",
+                        target_arguments=tuple(obs.missing_required_arguments),
+                        source_tools=tuple(obs.argument_resolver_tools),
+                    ),
+                )
+            # No bounded step can close the gap. Promising a verification that
+            # cannot happen is worse than stopping.
+            reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+            return self._build(DecisionAction.ABSTAIN, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
+
         # ── LOW-CONSEQUENCE ACCEPT (opt-in, 2026-07-31) ─────────────────────
         # Placed here deliberately: every hard guard and every blocking gate has
         # already run, so this can only convert a fall-through that would
@@ -1104,6 +1133,7 @@ class RemoraDecisionEngine:
         *,
         credal: CredalEnvelope | None = None,
         raw_obs: PolicyObservation | None = None,
+        resolution_plan: ResolutionPlan | None = None,
     ) -> DecisionReport:
         if obs.assurance_root is not None and DecisionReason.TRACE_ATTACHED not in reasons:
             reasons = list(reasons) + [DecisionReason.TRACE_ATTACHED]
@@ -1206,6 +1236,7 @@ class RemoraDecisionEngine:
                 else None
             ),
             credal=credal,
+            resolution_plan=resolution_plan,
         )
 
     def _source_of_decision(self, reasons: list[DecisionReason]) -> str:

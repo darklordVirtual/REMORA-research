@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from remora.policy.observation import PolicyObservation
 
@@ -34,6 +34,8 @@ class DecisionReason(str, Enum):
     GAINABILITY_ROUTE = "gainability_route"
     DEFAULT_SAFE_ABSTAIN = "default_safe_abstain"
     LOW_CONSEQUENCE_ACCEPT = "low_consequence_accept"
+    ARGUMENT_RESOLUTION_REQUIRED = "argument_resolution_required"
+    NO_RESOLVER_AVAILABLE = "no_resolver_available"
     TRACE_ATTACHED = "trace_attached"
     ORDERED_HIGH_TRUST = "ordered_high_trust"
     DISORDERED_NO_EVIDENCE = "disordered_no_evidence"
@@ -105,3 +107,8 @@ class DecisionReport:
     # Credal risk envelope — interval-valued harm/utility estimate.
     # Attached to every report produced by RemoraDecisionEngine.decide().
     credal: CredalEnvelope | None = None
+    # ── Resolution (2026-07-31) ──────────────────────────────────────────
+    # A VERIFY produced by the argument-resolution gate always carries a plan
+    # naming the bounded machine step expected to close the gap. VERIFY without
+    # a plan from that gate is a contract violation, not a softer outcome.
+    resolution_plan: Any = None

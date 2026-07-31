@@ -202,6 +202,17 @@ class PolicyObservation:
     # record was consulted.
     argument_values_supported: bool | None = None
 
+    # Required parameters of the proposed call that are absent from it, and the
+    # authoritative tools that could supply them. Both caller-populated from a
+    # tool registry. A non-empty missing list with resolver tools available is
+    # the VERIFY-with-a-plan case; without them it is ABSTAIN, because
+    # promising a verification that cannot happen is worse than stopping.
+    missing_required_arguments: tuple[str, ...] = ()
+    argument_resolver_tools: tuple[str, ...] = ()
+    # Name of the tool being proposed, when known. Used to bind a resolution
+    # plan to the call it was issued for.
+    proposed_tool_name: str | None = None
+
     # Policy generalization / fleet-level risk (v0.9)
     # All fields are caller-populated — REMORA is stateless.
     similar_action_seen_count: int | None = None

@@ -154,6 +154,9 @@ class OPAContext:
     # unknown and must not behave like one.
     arguments_satisfiable: bool | None
     argument_values_supported: bool | None
+    missing_required_arguments: tuple[str, ...]
+    argument_resolver_tools: tuple[str, ...]
+    proposed_tool_name: str | None
 
     # Misspecification context
     environment_confidence: float | None
