@@ -408,3 +408,22 @@ in `NEGATIVE_RESULTS.md` following §19.
 7. Scoring integration and the first measured artifact.
 
 Steps 1–5 deliver a working benchmark on one source. Step 6 is additive.
+
+## Follow-on: fleetops degradation study (2026-07-31)
+
+After Track A2 confirmed discrimination under ideal conditions
+(`NEGATIVE_RESULTS.md` §31), the closed-world precondition was broken on
+purpose, one assumption at a time — truncation, false re-declaration,
+staleness with and without a freshness bound, and a foreign tenant.
+
+- Conditions and pre-registered directional expectations:
+  `remora/toolcall/routing/degradation.py`
+- Committed deterministic runner: `scripts/run_fleetops_degradation.py`
+- Artifact: `results/fleetops_degradation_results.json`
+  (`mechanism_study_not_blind` — the fleetops blind budget was spent in §31)
+- Findings and caveats: `NEGATIVE_RESULTS.md` §32
+
+The declaration-to-index path used by the study —
+`build_state_index` with tenant, snapshot-hash and freshness rules applied in
+one place — is the production composition path; evaluation wiring assembled
+inline in runners is no longer permitted.
