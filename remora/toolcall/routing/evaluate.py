@@ -199,6 +199,13 @@ def build_full_observation(
         argument_resolver_tools=resolvers or validation_resolvers,
         proposed_tool_name=episode.proposed_tool_name,
         unvalidated_required_arguments=unvalidated,
+        # True when the proposed tool is confirmed absent from available_tools;
+        # None when available_tools is empty (unknown, not confirmed absence).
+        tool_not_in_available_set=(
+            episode.proposed_tool_name not in episode.available_tools
+            if episode.available_tools and episode.proposed_tool_name is not None
+            else None
+        ),
     )
 
 

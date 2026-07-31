@@ -222,6 +222,13 @@ class PolicyObservation:
     # plan to the call it was issued for.
     proposed_tool_name: str | None = None
 
+    # Is the proposed tool absent from the caller-declared available_tools set?
+    # True  → the tool is confirmed not in the set (VERIFY floor).
+    # False → the tool is in the set (nominal path).
+    # None  → available_tools was not supplied; absence is unknown, not confirmed.
+    # Populated by build_full_observation; never inferred by the engine itself.
+    tool_not_in_available_set: bool | None = None
+
     # Argument names whose value derives from untrusted content. Meaningful
     # only together with argument_tainted. When one of them occupies a
     # sensitive role (recipient, command, credential, egress target) the

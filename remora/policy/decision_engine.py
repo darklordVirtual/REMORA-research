@@ -764,6 +764,14 @@ class RemoraDecisionEngine:
             reasons.append(DecisionReason.UNKNOWN_ACTION_TYPE_VERIFY)
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
+        # ── TOOL-SET MEMBERSHIP FLOOR ────────────────────────────────────────
+        # True means the integration layer confirmed the proposed tool is absent
+        # from the declared available_tools set. This is a caller-observable,
+        # deterministic signal; None (set not supplied) passes through.
+        if obs.tool_not_in_available_set is True:
+            reasons.append(DecisionReason.TOOL_NOT_IN_AVAILABLE_SET)
+            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+
         # ── MONDRIAN PER-PHASE CONFORMAL ────────────────────────────────────
 
         if (
@@ -1104,6 +1112,11 @@ class RemoraDecisionEngine:
           f"action_type={obs.action_type!r} (not in known vocabulary, or unclassified tool call)",
           "VERIFY")
 
+        r("tool_not_in_available_set",
+          obs.tool_not_in_available_set is True,
+          f"proposed_tool={obs.proposed_tool_name!r} not in declared available_tools",
+          "VERIFY")
+
         if (
             self.conformal_phase_thresholds is not None
             and obs.phase in self.conformal_phase_thresholds
@@ -1390,6 +1403,7 @@ class RemoraDecisionEngine:
             (DecisionReason.POLICY_GENERALIZATION_VERIFY, "policy_generalization"),
             (DecisionReason.SIMILAR_ACTION_FLOOD_VERIFY,  "policy_generalization"),
             (DecisionReason.TAINTED_ARGUMENT_VERIFY,     "taint_floor"),
+            (DecisionReason.TOOL_NOT_IN_AVAILABLE_SET,   "tool_set_membership"),
             (DecisionReason.TEMPERATURE_ACCEPT,          "temperature_threshold"),
             (DecisionReason.CONFORMAL_ACCEPT,            "conformal"),
             (DecisionReason.DISTRIBUTION_SHIFT,          "calibration_shift"),

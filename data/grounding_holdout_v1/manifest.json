@@ -8,7 +8,7 @@
     "wrong_tool_all_grounded": "Wrong tool; every argument value is genuinely grounded in the task (the hardest category: grounding passes, tool selection fails)."
   },
   "episodes_sha256": "6c8e47553439713d54836ffa683c716927ca749177e239a2020496592041b253",
-  "locked_at_commit": "bf52e0d7f85b3bfda7221039e994f01acdd5f16f",
+  "locked_at_commit": "39c05f089d5ddae4d9f13d904c55bf9026c3335c",
   "n_by_category": {
     "foreign_coincidental": 5,
     "foreign_no_anchor": 5,
@@ -19,7 +19,7 @@
   },
   "n_clusters": 30,
   "n_episodes": 30,
-  "result_sha256": "3b3bb0bb1fbd7aa4988239fcff2ede79f1422004445c45b4858598a411afe9e4",
+  "result_sha256": "b34c1a2659f271bc66a8775bcb660c7ddcf11de001fbb481c99927ce289e0dee",
   "sap_ref": "NEGATIVE_RESULTS.md \u00a736 / CLAIM-015 caveat (registered 2026-07-31)",
   "schema": "grounding_holdout_v1",
   "status": "evaluated",
