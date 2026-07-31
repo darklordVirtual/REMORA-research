@@ -20,13 +20,18 @@ from __future__ import annotations
 import math
 from collections import Counter
 from collections.abc import Iterable, Sequence
+from dataclasses import replace
 from typing import Any
 
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction
 from remora.toolcall.routing.episode import Route, RoutingEpisode
-from remora.toolcall.routing.tool_registry import ToolRegistry
+from remora.toolcall.routing.compatibility import StateIndex, compute_compatibility
+from remora.toolcall.routing.tool_registry import (
+    ToolRegistry,
+    _name_derived_output,
+)
 
 #: DecisionAction maps one-to-one onto Route; both enumerate the same four
 #: control decisions. Kept explicit so a new DecisionAction fails loudly here
@@ -93,6 +98,51 @@ def build_observation(
             if registry is not None
             else None
         ),
+    )
+
+
+def build_full_observation(
+    episode: RoutingEpisode,
+    registry: ToolRegistry,
+    state: StateIndex,
+) -> PolicyObservation:
+    """The complete signal pipeline — the locked evaluation configuration.
+
+    Every signal a deployment could supply from a tool registry and a system of
+    record, and nothing else. Development and the blind holdout must call this
+    same function: an evaluation whose observation pipeline is assembled inline
+    at each call site can drift between the two without anyone noticing, and the
+    blind result would then measure a different system than the one that was
+    locked.
+    """
+    obs = build_observation(episode, registry)
+
+    compatibility = compute_compatibility(
+        tool=episode.proposed_tool_name,
+        args=episode.proposed_tool_args,
+        registry=registry,
+        state=state,
+    )
+
+    signature = registry.signatures.get(episode.proposed_tool_name or "")
+    missing = tuple(
+        param
+        for param in (signature.required_params if signature else ())
+        if param not in episode.proposed_tool_args
+    )
+    wanted = {name.lower() for name in missing}
+    resolvers = tuple(
+        tool
+        for tool in episode.available_tools
+        if (_name_derived_output(tool) or "") in wanted
+    )
+
+    return replace(
+        obs,
+        argument_values_supported=compatibility.argument_values_supported,
+        missing_required_arguments=missing,
+        argument_resolver_tools=resolvers,
+        proposed_tool_name=episode.proposed_tool_name,
     )
 
 
