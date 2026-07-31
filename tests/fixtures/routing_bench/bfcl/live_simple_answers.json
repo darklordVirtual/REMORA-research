@@ -1,0 +1,3 @@
+{"ground_truth": [{"get_user_info": {"special": ["black"], "user_id": [7890]}}], "id": "live_simple_0-0-0"}
+{"ground_truth": [{"github_star": {"aligned": [true], "repos": ["ShishirPatil/gorilla,gorilla-llm/gorilla-cli"]}}], "id": "live_simple_1-1-0"}
+{"ground_truth": [{"uber.ride": {"loc": ["2020 Addison Street, Berkeley, CA, USA"], "time": [600], "type": ["comfort"]}}], "id": "live_simple_2-2-0"}
