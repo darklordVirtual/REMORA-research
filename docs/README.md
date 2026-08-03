@@ -158,6 +158,7 @@ The numbered series is the primary reading path.
 
 | Document | Contents |
 |---|---|
+| [deployment/execution-quickstart.md](deployment/execution-quickstart.md) | Execution-path deployment quickstart: install → configure → registry → run → verify the chain |
 | [deployment/azure-reference-architecture.md](deployment/azure-reference-architecture.md) | Azure reference architecture |
 | [deployment/onprem-airgapped.md](deployment/onprem-airgapped.md) | On-prem / air-gapped deployment |
 | [enterprise/togaf-enterprise-rollout-plan.md](enterprise/togaf-enterprise-rollout-plan.md) | TOGAF enterprise rollout plan |
