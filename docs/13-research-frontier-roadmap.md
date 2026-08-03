@@ -23,6 +23,17 @@ by release-profile gating), and roadmap WPs are not remediation items. Where a
 WP would close a registered remediation item (RF-08 ↔ REM-025), the WP says so
 explicitly.
 
+**Pick-list.** `docs/research/research_shelf_v1.yaml` is the machine-readable
+companion to this document: one entry per candidate external component, each
+carrying its source, whether that source was actually retrieved and when, what
+REMORA already has, and the adoption decision. `scripts/check_research_shelf.py`
+(run by `make audit`) refuses a shelf where an unretrieved source has been
+adopted, where an ADOPTED entry names code or tests that do not exist on disk,
+or where an author's reported numbers have been recorded in a way that could
+read as REMORA's. Entries cross-reference work packages here by `roadmap_ref`,
+and a test fails if that reference names no WP in this file. This document
+holds the argument; the shelf holds the evidence that a pick is safe to make.
+
 **Related documents.** `paper/future_state.md` (long-horizon research
 directions; interface stubs only), `docs/11-benchmark-validation-plan.md`
 (external-validation protocol this roadmap's benchmark WPs extend),
@@ -974,6 +985,76 @@ provide. First slice: the `experiments/agentdojo/` scaffold with committed
 fixture episodes, a fail-hard scorer, offline pytest coverage, and a Makefile
 target stub — no live run, no result artifact, no claims, nothing in the claim
 register until a real run exists.
+
+---
+
+## RF-10 — Declared task–tool contracts: preconditions, effects, minimal frontier `[gating]` `[slice 1 shipped, remainder P1–P2, effort M]`
+
+**Source appraisal.** Four externally published works motivate this WP. Each
+was retrieved and its title, authors and abstract confirmed against arXiv on
+2026-08-03 before being cited here; none of their reported numbers are
+reproduced as REMORA results.
+
+| Work | arXiv | What it shows | What REMORA takes |
+|---|---|---|---|
+| Ravindran & Deochake, *ToolGuardian: Declarative Security for AI Agent-Tool Interactions* | [2607.21835](https://arxiv.org/abs/2607.21835) | Separates tool *characterization* from the policy decision; reasons over capabilities, observed effects and task context with Answer Set Programming | The characterization/decision split, already realised as `ToolContract` + `goal_match`. ASP is **not** adopted: REMORA's engine is a frozen first-match table, and a solver in the decision path would replace an auditable artifact with a search |
+| Babu & Iyer, *ToolChoiceConfusion: Causal Minimal Tool Filtering* | [2606.06284](https://arxiv.org/abs/2606.06284) | Precondition–effect contracts expose only tools that can advance the current state; "relevance is insufficient — a tool may be related while still premature" | The frontier concept, as an **advisory harness filter**, never as a gate. Their reported reduction (100 visible tools → ~1/step, ≈90% token cut over 102 tasks) is their result on their setup and is not a REMORA claim |
+| Kamath et al., *Enforcing Temporal Constraints for LLM Agents* (Agent-C) | [2512.23738](https://arxiv.org/abs/2512.23738) | First-order-logic specs + SMT solving to block non-conformant actions during generation | The *ordering* requirement ("approve before close"), as declared `preconditions` on a contract. SMT is deferred: a deterministic session state machine covers the single-call case and is auditable without a solver in the loop |
+| Guo et al., *Sample, Predict, then Proceed* (DyMo/SVS) | [2506.02918](https://arxiv.org/abs/2506.02918) | A trained dynamics model predicts post-action state and screens proposed calls | The predict-before-execute *shape* only. The model-trained part is explicitly refused as an authority: a generative state estimate must never establish SUPPORTED (see the module docstring) |
+
+**Gap (grounded, 2026-08-03).** `CallCompatibility` (`compatibility.py`) has
+carried five tri-state slots since it was defined. Three were populated:
+`argument_roles_valid`, `argument_values_supported`, and — via
+`goal_match.match_tool_to_intent`, wired at `evaluate.py:219` —
+`tool_matches_goal`. Two were permanently `None` with the module docstring
+recording why: "a guessed field is worse than an absent one". Those two are
+exactly where the works above land.
+
+**Slice 1 — shipped in this change.**
+
+- `ToolContract` gains `state_delta` (declared post-state, dotted field →
+  value) and `preconditions` (named facts that must hold first). Both default
+  empty and round-trip through the registry JSON, so existing contracts are
+  unaffected.
+- A read contract that declares a `state_delta` is refused at construction,
+  matching the existing refusal of `mutation=False` with a non-read effect: a
+  self-contradictory declaration must not be resolvable while a call is
+  pending.
+- `remora/toolcall/routing/effect_prediction.py` supplies
+  `expected_effect_matches`. It refutes three cases the label comparison in
+  `goal_match` cannot see: a read request served by a tool declared to mutate,
+  a change request served by a read-only tool, and a declared post-state that
+  writes a resource the intent never named.
+- It also **tightens** one case: a mutating contract with no declared
+  `state_delta` is UNKNOWN, where `goal_match` alone returns SUPPORTED on the
+  matching label. An undeclared write does not ride on a label.
+- Policy wiring mirrors `tool_does_not_match_goal` exactly — established
+  `False` → ABSTAIN (read) / ESCALATE (write); `None` and `True` fire nothing.
+  `tests/test_effect_prediction.py` pins that an established `True` buys no
+  autonomy and does not relax the critical-tier floor.
+
+**Not implemented, and why.** These are registered here rather than left as
+folklore:
+
+- *No-op detection* ("close a work order that is already closed") needs
+  field-level current state. `StateIndex` is a flat value set by deliberate
+  design — a schema-aware state model "invites over-fitting to one dataset's
+  shape". Adding one is a separate decision needing its own evidence.
+- *Argument-bound delta templates* (`work_order.{id}.status`). The signature
+  accepts `proposed_args` so this lands without an interface change; today a
+  placeholder is left verbatim rather than half-bound.
+- *`preconditions_met`.* The field is declarable now; the adjudicator is not
+  written. It needs an authoritative fact set (approval records, session
+  history), and inventing one would let a model's claim of "approved" satisfy
+  an approval gate. This is the Agent-C slice, and it is the natural next one.
+- *Minimal causal tool frontier.* Advisory harness work, not a gate. It has no
+  effect on any decision REMORA makes and therefore cannot be justified as
+  safety work; it belongs with the agent hook.
+
+**Verdict: slice 1 done, `preconditions_met` next, frontier after.** The
+sequencing is not the papers' — it is REMORA's: the two authorities that fill
+existing policy-contract slots come before any harness feature, because only
+they change what the system refuses.
 
 ---
 

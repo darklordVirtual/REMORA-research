@@ -12,6 +12,8 @@ from remora.adapters.storage.control_plane import (
     InMemoryControlPlaneStore,
     PostgresControlPlaneStore,
     ReviewRecord,
+    SQLiteControlPlaneStore,
+    verify_audit_record_chain,
 )
 
 
@@ -47,8 +49,10 @@ __all__ = [
     "StorageAdapter",
     "ControlPlaneStore",
     "InMemoryControlPlaneStore",
+    "SQLiteControlPlaneStore",
     "PostgresControlPlaneStore",
     "EvidenceRecord",
     "ReviewRecord",
     "FollowUpRecord",
+    "verify_audit_record_chain",
 ]

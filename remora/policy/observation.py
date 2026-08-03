@@ -226,6 +226,19 @@ class PolicyObservation:
     # task text, the contract and the call.
     tool_matches_goal: bool | None = None
 
+    # Does the tool's declared post-state match the effect the task requested?
+    # True  → established: the declared state_delta acts on the resource the
+    #         task named, in the direction (read vs change) it asked for.
+    # False → established contradiction: a read task served by a tool declared
+    #         to mutate, a change task served by a read-only tool, or a
+    #         declared post-state that writes a different resource entirely.
+    # None  → nothing establishes it: no contract, no intent, an unverified
+    #         intent, or a mutating tool whose state_delta is undeclared.
+    # Caller-supplied from remora/toolcall/routing/effect_prediction.py. This
+    # is a *declaration* check, never a simulation: no model-predicted state
+    # may set it to True.
+    expected_effect_matches: bool | None = None
+
     # Required parameters of the proposed call that are absent from it, and the
     # authoritative tools that could supply them. Both caller-populated from a
     # tool registry. A non-empty missing list with resolver tools available is

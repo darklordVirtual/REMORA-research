@@ -32,7 +32,14 @@ Out of scope (for this cycle):
 - For production-mode checks:
   - `REMORA_ENV=production`
   - `REMORA_API_BEARER_TOKEN=<token>`
-  - `REMORA_CONTROL_PLANE_DSN=<dsn>`
+  - `REMORA_API_TOKENS=<token table>` (tenant isolation)
+  - `REMORA_CONTROL_PLANE_DSN=<dsn>` (or `REMORA_CONTROL_PLANE_DB=<sqlite path>`)
+    — durable envelope storage
+  - `REMORA_PG_DSN=<dsn>` or `REMORA_CHAIN_DB=<sqlite path>` — durable
+    execution state. Without it the tenant audit chain, review queue and the
+    PEP's consumed-jti ledger are process-local, which makes a one-time
+    execution grant replayable by a second worker or after a restart.
+    Production fails closed rather than running with that window open.
   - `REMORA_ORACLE_BACKEND=<non-mock backend>`
 
 ## 4. Validation Procedure

@@ -11,7 +11,7 @@
 #   make report            Generate results snapshot + claim consistency check
 #   make credibility-pack  Generate full credibility pack for external review
 
-.PHONY: install test test-fast test-core curated-test stress-toolcalls lint audit benchmark benchmark-package claim-check claim-sync demo report credibility-pack external-review shadow-replay shadow-replay-smoke holdout cyber-evidence cyber-vector-payload cyber-threat-feeds thermo-ablation tsf-synthetic typecheck replay safety-check clean help domain-benchmark ai-governance-evidence finance-evidence up down logs docker-build docker-test
+.PHONY: install test test-fast test-core curated-test stress-toolcalls lint audit benchmark benchmark-package claim-check claim-sync demo report credibility-pack external-review shadow-replay shadow-verify shadow-audit-smoke shadow-replay-smoke holdout cyber-evidence cyber-vector-payload cyber-threat-feeds thermo-ablation tsf-synthetic typecheck replay safety-check clean help domain-benchmark ai-governance-evidence finance-evidence up down logs docker-build docker-test
 
 PYTHON ?= python
 PYTEST ?= $(PYTHON) -m pytest
@@ -86,6 +86,8 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_license_policy.py
 	@echo "\n-- Claim provenance (register, artifacts, anchors, supersession) --"
 	$(PYTHON) scripts/check_claim_provenance.py
+	@echo "\n-- Research shelf (source verification, adoption evidence) --"
+	$(PYTHON) scripts/check_research_shelf.py
 	@echo "\n-- NEGATIVE_RESULTS status taxonomy --"
 	$(PYTHON) scripts/check_negative_results_status.py
 	@echo "\n-- Superseded-claims archive is current --"
@@ -147,6 +149,18 @@ shadow-replay:  ## Run counterfactual governance replay on an action log JSONL
 
 shadow-replay-smoke:  ## Replay the bundled sample action log
 	$(PYTHON) scripts/shadow_replay.py --input artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
+
+shadow-verify:  ## Re-verify a persisted DecisionEnvelope trail from disk
+	$(PYTHON) scripts/verify_envelope_chain.py \
+		--envelopes "$${ENVELOPES:-artifacts/shadow_mode/decision_envelopes.jsonl}"
+
+shadow-audit-smoke:  ## Replay the sample log to a durable store and verify the persisted trail
+	$(PYTHON) scripts/shadow_replay.py \
+		--input artifacts/demo/shadow_mode_sample_agent_action_log.jsonl \
+		--store-db artifacts/shadow_mode/shadow_control_plane.db \
+		--verify
+	$(PYTHON) scripts/verify_envelope_chain.py \
+		--store-db artifacts/shadow_mode/shadow_control_plane.db --tenant shadow
 
 cyber-evidence:  ## Validate the standalone public cyber evidence pack
 	$(PYTHON) datasets/cyber_evidence_v1/scripts/validate_cyber_evidence.py

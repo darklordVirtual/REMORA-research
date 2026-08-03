@@ -47,6 +47,17 @@ LAW_SEARCH_URL      = "https://remora-law-search.razorsharp.workers.dev"  # repl
 # Human-in-the-loop: tools that require approval before executing
 APPROVAL_REQUIRED_TOOLS = "store_artifact"
 
+# Governance record context. TENANT_ID scopes the DecisionEnvelope hash chain
+# in D1 — change it only when you intend to start a separate chain, since
+# every entry binds the tenant it was written under. TARGET_ENVIRONMENT is
+# recorded verbatim in each envelope and in the tool-call binding hash.
+TENANT_ID          = "default"
+TARGET_ENVIRONMENT = "cloudflare_worker"
+
 # Secrets (set with: wrangler secret put <NAME>)
 # CONTROL_SECRET — shared bearer token clients must present. Required;
 # the auth guard refuses writes with 503 if this is unset.
+# ENVELOPE_SIGNING_KEY — optional HMAC key over each envelope entry_hash.
+# Without it the chain still detects edits to a stored envelope, but not an
+# attacker with write access who rewrites whole rows including their hashes.
+# GET /envelopes/verify states which of the two guarantees is in force.

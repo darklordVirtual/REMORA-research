@@ -166,6 +166,39 @@ under an `ExecutionLease`. Worked registry-based loop:
 [examples/agent_gate.py](../examples/agent_gate.py); framework adapters
 (OpenAI/LangGraph/CrewAI/AutoGen): `remora.integrations`.
 
+## `replay` — persist and prove a shadow-mode trail
+
+`replay` re-decides a historical action log and can persist every resulting
+`DecisionEnvelope` so the run is reviewable afterwards, not just summarised.
+
+```bash
+python -m remora replay log.jsonl --out-dir out/            # envelopes + report + audit JSONL
+python -m remora replay log.jsonl --out-dir out/ --verify   # reload from disk, recheck the hash chain
+python -m remora replay log.jsonl --store-db shadow.db      # also into a durable control-plane store
+```
+
+| Flag | Effect |
+|---|---|
+| `--out-dir DIR` | Write `decision_envelopes.jsonl`, `governance_delta_report.json`, `replay_audit.jsonl` |
+| `--store-db PATH` | Persist each envelope to a SQLite control-plane store, queryable by `request_id` |
+| `--store-tenant ID` | Tenant for `--store-db` (default `shadow`, keeping counterfactuals out of live traffic) |
+| `--verify` | Reload the written JSONL and recompute the chain; exits non-zero and names every break |
+
+Without `--out-dir` or `--store-db` nothing is written: the report is printed
+and the envelopes are gone when the process exits. That is fine for a quick
+look and useless as evidence.
+
+To re-verify a stored trail later, or to check one produced by someone else:
+
+```bash
+python scripts/verify_envelope_chain.py --envelopes out/decision_envelopes.jsonl
+python scripts/verify_envelope_chain.py --store-db shadow.db --tenant shadow
+make shadow-audit-smoke     # replay the bundled sample, persist it, verify both forms
+```
+
+Verification reports the number of records checked as well as the verdict: an
+empty trail passes trivially and proves nothing about what was decided.
+
 ## Output conventions
 
 - Colour is TTY-gated: piped output and CI logs are plain text. Force off

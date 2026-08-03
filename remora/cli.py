@@ -847,19 +847,46 @@ def _cmd_replay(args: argparse.Namespace) -> int:
 
     out_dir = getattr(args, "out_dir", None)
     kwargs: dict = {}
+    envelopes_path: str | None = None
     if out_dir:
         d = Path(out_dir)
         d.mkdir(parents=True, exist_ok=True)
+        envelopes_path = str(d / "decision_envelopes.jsonl")
         kwargs = {
-            "output_envelopes_jsonl": str(d / "decision_envelopes.jsonl"),
+            "output_envelopes_jsonl": envelopes_path,
             "output_report_json": str(d / "governance_delta_report.json"),
             "output_audit_jsonl": str(d / "replay_audit.jsonl"),
         }
+
+    store_db = getattr(args, "store_db", None)
+    if store_db:
+        from remora.adapters.storage import SQLiteControlPlaneStore
+
+        Path(store_db).parent.mkdir(parents=True, exist_ok=True)
+        kwargs["envelope_store"] = SQLiteControlPlaneStore(db_path=store_db)
+        kwargs["store_tenant_id"] = getattr(args, "store_tenant", "shadow")
+
+    if getattr(args, "verify", False) and not envelopes_path:
+        print("remora replay: --verify needs --out-dir (there is nothing on disk "
+              "to re-verify otherwise)", file=sys.stderr)
+        return 2
+
     try:
         result = replay_action_log(input_path, **kwargs)
     except FileNotFoundError:
         print(f"remora replay: input not found: {input_path}", file=sys.stderr)
         return 2
+
+    if getattr(args, "verify", False) and envelopes_path:
+        from remora.shadow.replay import verify_envelope_file
+
+        chain_ok, chain_breaks = verify_envelope_file(envelopes_path)
+        if not chain_ok:
+            print(f"remora replay: persisted envelope chain BROKEN: {envelopes_path}",
+                  file=sys.stderr)
+            for line in chain_breaks:
+                print(f"  - {line}", file=sys.stderr)
+            return 1
     r = result.report
     if getattr(args, "json", False):
         print(json.dumps(r.to_dict(), indent=2, default=str))
@@ -881,6 +908,12 @@ def _cmd_replay(args: argparse.Namespace) -> int:
         f"human-review burden {r.human_review_burden_pct}%", "dim"))
     if out_dir:
         print("\n  " + ink(f"(envelopes + report + audit written under {out_dir}/)", "dim"))
+    if store_db:
+        print("  " + ink(
+            f"(envelopes persisted to {store_db}, tenant "
+            f"{getattr(args, 'store_tenant', 'shadow')})", "dim"))
+    if getattr(args, "verify", False) and envelopes_path:
+        print("  " + ink("(persisted envelope chain re-verified from disk)", "dim"))
     print()
     return 0
 
@@ -1175,6 +1208,15 @@ def main(argv: list[str] | None = None) -> int:
     replay_p.add_argument(
         "--out-dir", metavar="DIR",
         help="Write envelopes + report + audit chain here (default: nothing written)")
+    replay_p.add_argument(
+        "--store-db", metavar="SQLITE",
+        help="Also persist every envelope to a durable SQLite control-plane store")
+    replay_p.add_argument(
+        "--store-tenant", metavar="TENANT", default="shadow",
+        help="Tenant id for --store-db envelopes (default: shadow)")
+    replay_p.add_argument(
+        "--verify", action="store_true",
+        help="Reload the written envelope JSONL and re-verify its hash chain")
     replay_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
     replay_p.add_argument("--json", action="store_true", help="JSON output (delta report)")
 

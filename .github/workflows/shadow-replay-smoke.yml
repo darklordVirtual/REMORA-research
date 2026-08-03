@@ -32,12 +32,55 @@ jobs:
           pip install -e ".[dev]" -c /tmp/constraints.txt
 
       - name: Run shadow replay on demo log
+        # --store-db also persists every envelope to a durable control-plane
+        # store, so the smoke test exercises the path a real shadow pilot uses
+        # rather than only the flat-file one.
         run: |
           python scripts/shadow_replay.py \
             --input artifacts/demo/shadow_mode_sample_agent_action_log.jsonl \
             --envelopes-out artifacts/shadow_mode/decision_envelopes.jsonl \
             --report-out artifacts/shadow_mode/governance_delta_report.json \
-            --audit-out artifacts/shadow_mode/replay_audit.jsonl
+            --audit-out artifacts/shadow_mode/replay_audit.jsonl \
+            --store-db artifacts/shadow_mode/shadow_control_plane.db \
+            --verify
+
+      - name: Verify the persisted envelope chain
+        # `test -s` only proves a file is non-empty — a file of garbage passes
+        # it. These two commands reload the trail from disk and recompute the
+        # hashes, which is the property shadow mode is supposed to provide.
+        run: |
+          python scripts/verify_envelope_chain.py \
+            --envelopes artifacts/shadow_mode/decision_envelopes.jsonl
+          python scripts/verify_envelope_chain.py \
+            --store-db artifacts/shadow_mode/shadow_control_plane.db --tenant shadow
+
+      - name: Tamper detection must actually fire
+        # A verifier that never fails proves nothing. Edit a stored record and
+        # require a non-zero exit; if this step succeeds, the gate above is
+        # not checking what it claims to check.
+        #
+        # The edit appends to proposed_action rather than overwriting a verdict:
+        # assigning a verdict that the record already holds is a no-op, and the
+        # verifier would then correctly report an intact chain — turning this
+        # gate into a coin flip on the sample data.
+        run: |
+          cp artifacts/shadow_mode/decision_envelopes.jsonl /tmp/tampered.jsonl
+          python - <<'PY'
+          import json
+          path = "/tmp/tampered.jsonl"
+          lines = open(path).read().splitlines()
+          record = json.loads(lines[0])
+          before = record["request"]["proposed_action"]
+          record["request"]["proposed_action"] = before + " [tampered]"
+          assert record["request"]["proposed_action"] != before
+          lines[0] = json.dumps(record, sort_keys=True)
+          open(path, "w").write("\n".join(lines) + "\n")
+          PY
+          if python scripts/verify_envelope_chain.py --envelopes /tmp/tampered.jsonl; then
+            echo "FAIL: tampered envelope chain verified as intact"
+            exit 1
+          fi
+          echo "Tamper detection confirmed"
 
       - name: Validate outputs
         run: |

@@ -190,6 +190,89 @@ CREATE TABLE IF NOT EXISTS tenant_chain_entry (
 """
 
 
+def compute_entry_hash_from_canonical(
+    previous_hash: str,
+    canonical_payload: str,
+    tenant_id: str,
+    sequence_no: int,
+    timestamp: str,
+) -> str:
+    """Same hash as :func:`compute_entry_hash`, over an already-canonical payload.
+
+    Producers outside Python (the Cloudflare agent-control Worker) store the
+    exact canonical string they hashed. Re-serialising their parsed payload
+    here would risk a spurious mismatch on values Python and JavaScript
+    render differently (``1.0`` vs ``1``), so an independent verifier must
+    hash the stored bytes instead.
+    """
+    sep = "\x1f"
+    preimage = sep.join((
+        previous_hash,
+        canonical_payload,
+        tenant_id,
+        str(sequence_no),
+        timestamp,
+    ))
+    return hashlib.sha256(preimage.encode("utf-8")).hexdigest()
+
+
+def verify_exported_chain(
+    rows: list[dict[str, Any]],
+    *,
+    signing_key: str | None = None,
+) -> tuple[bool, list[str]]:
+    """Verify a chain exported from an external producer, off-platform.
+
+    This is what makes the Worker's trail independently checkable: an auditor
+    pulls ``GET /envelopes`` and re-derives every hash here, on their own
+    machine, without trusting the Worker's own verify endpoint.
+
+    Each row needs ``sequence_no``, ``created_at``, ``envelope_canonical``,
+    ``previous_hash``, ``entry_hash`` and (optionally) ``signature``. Rows
+    must be in ascending sequence order. Returns ``(ok, problems)`` listing
+    every failure, not just the first.
+    """
+    problems: list[str] = []
+    previous_hash = _GENESIS
+    key = (signing_key or os.environ.get(_ENV_KEY, "")).strip().encode()
+
+    for i, row in enumerate(rows):
+        sequence_no = int(row.get("sequence_no", -1))
+        canonical = str(row.get("envelope_canonical", ""))
+        entry_hash = str(row.get("entry_hash", ""))
+        row_previous = str(row.get("previous_hash", ""))
+        timestamp = str(row.get("created_at", ""))
+        signature = str(row.get("signature", "") or "")
+
+        if sequence_no != i:
+            problems.append(f"sequence_gap_at:{i}")
+        if row_previous != previous_hash:
+            problems.append(f"chain_break_at:{i}")
+
+        try:
+            tenant_id = str(json.loads(canonical)["audit"]["tenant_id"])
+        except (json.JSONDecodeError, KeyError, TypeError) as exc:
+            problems.append(f"unreadable_payload_at:{i}:{exc}")
+            previous_hash = entry_hash
+            continue
+
+        if compute_entry_hash_from_canonical(
+            row_previous, canonical, tenant_id, sequence_no, timestamp
+        ) != entry_hash:
+            problems.append(f"hash_mismatch_at:{i}")
+
+        if key and signature:
+            want = hmac.new(key, entry_hash.encode(), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(want, signature):
+                problems.append(f"signature_mismatch_at:{i}")
+        elif key and not signature:
+            problems.append(f"signature_missing_at:{i}")
+
+        previous_hash = entry_hash
+
+    return (not problems), problems
+
+
 def _verify_generic(chain, tenant_id: str) -> tuple[bool, list[str]]:
     problems: list[str] = []
     previous_hash = _GENESIS

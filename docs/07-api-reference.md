@@ -40,12 +40,61 @@ Note: the flat per-decision record used in result files
 (`action`, `trust`, `H`, `D`, `phase`, …) is the *benchmark JSONL schema*
 documented in [06-reproducibility.md](06-reproducibility.md), not this envelope.
 
+### Where envelopes are stored
+
+An envelope that is not persisted is not an audit trail. The REST gateway
+writes every envelope to a control-plane store selected at startup:
+
+| Backend | Selected by | Durable | Scope |
+|---|---|---|---|
+| `postgres` | `REMORA_CONTROL_PLANE_DSN=postgresql://…` | yes | multi-node |
+| `sqlite` | `REMORA_CONTROL_PLANE_DSN=sqlite:///path.db` or `REMORA_CONTROL_PLANE_DB=path.db` | yes | single node |
+| `in_memory` | neither variable set (development only) | **no** | process lifetime |
+
+`InMemoryControlPlaneStore` exists for tests and local iteration. It loses
+every envelope when the process exits, so it is refused in
+`REMORA_ENV=production`, it logs a warning at startup, and both
+`GET /v1/metrics` and `GET /v1/policy/version` report
+`control_plane_durable: false`. Treat decisions from a non-durable run as
+unrecorded.
+
+Retrieval and proof:
+
+- `GET /v1/envelope/{request_id}` returns the stored envelope.
+- `GET /v1/audit/{request_id}` returns its audit record.
+- `GET /v1/audit/chain/verify` walks the tenant's whole persisted trail and
+  confirms each record links to its predecessor, so a removed or spliced
+  decision is detectable. It reports `records_checked` alongside
+  `chain_valid`: an empty trail verifies trivially and proves nothing.
+
+Off-platform verification (an auditor recomputing hashes on their own
+machine, trusting no endpoint) uses `scripts/verify_envelope_chain.py`.
+
+### Execution-layer state is a separate durability decision
+
+The envelope store above covers `/v1/assess`. The execution layer
+(`/v1/execution/*`) keeps its own state: the per-tenant audit chain, the
+review queue, and the PEP's consumed-jti ledger. These are durable only when
+`REMORA_PG_DSN` (multi-node) or `REMORA_CHAIN_DB` (single-node SQLite) is set.
+
+With neither, the consequence is not only a lost audit trail. The consumed-jti
+ledger is what makes an execution grant single-use, so a grant already
+consumed by one worker is accepted again by a second worker, or by the same
+worker after a restart. Production mode fails closed rather than start in
+that configuration; development mode allows it, logs a warning, and reports
+`execution_state_durable: false` on `/v1/metrics` and `/v1/policy/version`.
+
+Known remaining limit: `NonceLedger` in `remora/enforcement/lease.py`, which
+backs `GovernedToolDispatcher` leases, has no durable adapter at all. A lease
+nonce is single-use per process, not globally. Deployments running more than
+one dispatcher process must not rely on it as a global guarantee (REM-025).
+
 ---
 
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 67 fields; on the research `/v1/assess` path **all fields except
+with 68 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe"). On `/v1/execution/*` this does NOT hold: trust-bearing fields are

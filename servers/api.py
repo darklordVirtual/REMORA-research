@@ -8,6 +8,7 @@ Endpoints
   POST /v1/assess              — Full REMORA policy assessment for an agent action
   GET  /v1/envelope/{id}       — Retrieve a stored DecisionEnvelope by request_id
   GET  /v1/audit/{id}          — Retrieve the audit record for a request_id
+  GET  /v1/audit/chain/verify  — Verify hash-chain linkage across stored decisions
   POST /v1/review              — Submit human review (approved / rejected)
   POST /v1/follow-up           — Append follow-up information to a case
   POST /v1/evidence            — Attach external evidence to a case
@@ -32,6 +33,11 @@ Design notes
 - Development mode keeps bearer auth optional for local iteration.
 - Production mode (`REMORA_ENV=production`) fails closed unless auth,
     persistent storage, and a non-mock oracle backend are configured.
+- Envelope persistence is selected by REMORA_CONTROL_PLANE_DSN (postgres://
+    or sqlite:) or REMORA_CONTROL_PLANE_DB (SQLite path). Without either, the
+    store is in-memory and every envelope dies with the process — the API
+    reports `control_plane_durable: false` and logs a warning so that a
+    volatile run is never mistaken for an audit trail.
 - The endpoint is stateless: each request creates an ephemeral Remora engine
   with MockOracles.  Replace with a shared engine pool for production.
 - All inputs are validated via Pydantic before processing.
@@ -169,6 +175,8 @@ from remora.adapters.storage import (
     InMemoryControlPlaneStore,
     PostgresControlPlaneStore,
     ReviewRecord,
+    SQLiteControlPlaneStore,
+    verify_audit_record_chain,
 )
 from remora.adapters.storage.control_plane import utc_now_iso
 from remora.engine import Remora
@@ -294,8 +302,22 @@ def _validate_production_prerequisites() -> None:
     missing: list[str] = []
     if not os.getenv("REMORA_API_BEARER_TOKEN", "").strip():
         missing.append("REMORA_API_BEARER_TOKEN")
-    if not os.getenv("REMORA_CONTROL_PLANE_DSN", "").strip():
-        missing.append("REMORA_CONTROL_PLANE_DSN")
+    if not (
+        os.getenv("REMORA_CONTROL_PLANE_DSN", "").strip()
+        or os.getenv("REMORA_CONTROL_PLANE_DB", "").strip()
+    ):
+        missing.append("REMORA_CONTROL_PLANE_DSN (or REMORA_CONTROL_PLANE_DB)")
+    if not _execution_state_dsn():
+        # Without durable execution state the tenant audit chain, the review
+        # queue and the PEP's consumed-jti ledger all live in process memory.
+        # That is not merely a lost audit trail: a one-time execution grant
+        # already consumed by one worker is accepted again by a second worker
+        # or after a restart, because the ledger that refused the replay is
+        # gone. Production must not run in that mode.
+        missing.append(
+            "REMORA_PG_DSN or REMORA_CHAIN_DB (durable execution state: tenant "
+            "audit chain, review queue, and one-time-grant ledger)"
+        )
     if not os.getenv("REMORA_ORACLE_BACKEND", "").strip():
         missing.append("REMORA_ORACLE_BACKEND")
     if not os.getenv("REMORA_API_TOKENS", "").strip():
@@ -324,9 +346,69 @@ def _validate_production_prerequisites() -> None:
         )
 
 
+def _execution_state_dsn() -> str:
+    """Return the configured durable backing store for execution-layer state.
+
+    The execution layer (``servers/execution_api.py``) keeps three pieces of
+    safety-relevant state: the per-tenant audit chain, the review queue, and
+    the PEP's consumed-jti ledger. All three are durable only when
+    ``REMORA_PG_DSN`` or ``REMORA_CHAIN_DB`` is set; otherwise they are
+    in-process. Empty string means no durable store is configured.
+    """
+    return (
+        os.getenv("REMORA_PG_DSN", "").strip()
+        or os.getenv("REMORA_CHAIN_DB", "").strip()
+    )
+
+
+def _execution_state_backend() -> str:
+    """Name the execution-layer state backend: postgres, sqlite, or in_process."""
+    if os.getenv("REMORA_PG_DSN", "").strip():
+        return "postgres"
+    if os.getenv("REMORA_CHAIN_DB", "").strip():
+        return "sqlite"
+    return "in_process"
+
+
+def _sqlite_path_from_dsn(dsn: str) -> str | None:
+    """Return the file path for a SQLite DSN, or None if it is not one.
+
+    Accepts ``sqlite:///abs/path.db``, ``sqlite://relative.db`` and the bare
+    ``sqlite:path.db`` form, mirroring how the tenant chain is configured via
+    REMORA_CHAIN_DB. Everything else (postgres://, postgresql://, ...) is not
+    a SQLite DSN.
+    """
+    lowered = dsn.lower()
+    for prefix in ("sqlite:///", "sqlite://", "sqlite:"):
+        if lowered.startswith(prefix):
+            return dsn[len(prefix):] or ":memory:"
+    return None
+
+
 def _make_control_plane_store() -> tuple[ControlPlaneStore, str]:
+    """Select the control-plane store.
+
+    Precedence: REMORA_CONTROL_PLANE_DSN (postgres or sqlite:) →
+    REMORA_CONTROL_PLANE_DB (SQLite path) → in-memory.
+
+    The in-memory store is NOT an audit store — envelopes die with the
+    process. It is therefore refused in production, and the chosen backend
+    plus its durability are surfaced on /v1/metrics and /v1/policy/version
+    so a volatile fallback can never masquerade as an audit trail.
+    """
     dsn = os.getenv("REMORA_CONTROL_PLANE_DSN", "").strip()
     if dsn:
+        sqlite_path = _sqlite_path_from_dsn(dsn)
+        if sqlite_path is not None:
+            try:
+                return SQLiteControlPlaneStore(db_path=sqlite_path), "sqlite"
+            except Exception as exc:
+                if _is_production_mode():
+                    raise RuntimeError(
+                        "REMORA API production mode fail-closed: unable to initialize "
+                        "SQLiteControlPlaneStore from REMORA_CONTROL_PLANE_DSN."
+                    ) from exc
+                return InMemoryControlPlaneStore(), "in_memory_fallback"
         try:
             return PostgresControlPlaneStore(dsn=dsn), "postgres"
         except Exception as exc:
@@ -337,15 +419,40 @@ def _make_control_plane_store() -> tuple[ControlPlaneStore, str]:
                 ) from exc
             # Fail open to in-memory for local dev if optional deps/backing DB are absent.
             return InMemoryControlPlaneStore(), "in_memory_fallback"
+
+    sqlite_db = os.getenv("REMORA_CONTROL_PLANE_DB", "").strip()
+    if sqlite_db:
+        try:
+            return SQLiteControlPlaneStore(db_path=sqlite_db), "sqlite"
+        except Exception as exc:
+            if _is_production_mode():
+                raise RuntimeError(
+                    "REMORA API production mode fail-closed: unable to initialize "
+                    "SQLiteControlPlaneStore from REMORA_CONTROL_PLANE_DB."
+                ) from exc
+            return InMemoryControlPlaneStore(), "in_memory_fallback"
+
     if _is_production_mode():
         raise RuntimeError(
-            "REMORA API production mode fail-closed: REMORA_CONTROL_PLANE_DSN is required."
+            "REMORA API production mode fail-closed: REMORA_CONTROL_PLANE_DSN "
+            "(or REMORA_CONTROL_PLANE_DB for a single-node SQLite trail) is required."
         )
     return InMemoryControlPlaneStore(), "in_memory"
 
 
 _validate_production_prerequisites()
 _CONTROL_PLANE_STORE, _CONTROL_PLANE_BACKEND = _make_control_plane_store()
+_CONTROL_PLANE_DURABLE = bool(getattr(_CONTROL_PLANE_STORE, "durable", False))
+if not _CONTROL_PLANE_DURABLE:
+    # Mode degradation must be recorded, never silent: on this backend every
+    # DecisionEnvelope is lost at process exit, so nothing produced here is
+    # admissible as an audit trail (shadow mode included).
+    logger.warning(
+        "control-plane backend %r is NOT durable: DecisionEnvelopes are lost on "
+        "restart and must not be treated as an audit trail. Set "
+        "REMORA_CONTROL_PLANE_DSN (postgres) or REMORA_CONTROL_PLANE_DB (sqlite).",
+        _CONTROL_PLANE_BACKEND,
+    )
 _TRACER = get_remora_tracer(service_name="remora-api")
 
 
@@ -1368,6 +1475,38 @@ def get_audit_record(request_id: str, request: Request) -> dict:
     return record
 
 
+@app.get("/v1/audit/chain/verify", response_model=dict, tags=["governance"])
+def verify_audit_chain(request: Request) -> dict:
+    """Verify hash-chain linkage across this tenant's persisted decisions.
+
+    This is the check that makes the stored trail *provable* rather than
+    merely present: it walks every persisted audit record in write order and
+    confirms each one links to its predecessor, so a deleted or spliced
+    decision is detectable. It reports `durable=false` when the active
+    backend cannot survive a restart — on such a backend a "valid" chain
+    proves nothing about history.
+    """
+    tenant_id, role = _authenticate(request)
+    _require_tenant_capability(role, tenant_id, "read")
+
+    lister = getattr(_CONTROL_PLANE_STORE, "list_audit_records_for_tenant", None)
+    if lister is None:
+        raise HTTPException(
+            status_code=501,
+            detail="active control-plane store cannot enumerate the audit trail",
+        )
+    records = lister(tenant_id=tenant_id)
+    ok, breaks = verify_audit_record_chain(records)
+    return {
+        "tenant_id": tenant_id,
+        "records_checked": len(records),
+        "chain_valid": ok,
+        "breaks": breaks,
+        "control_plane_backend": _CONTROL_PLANE_BACKEND,
+        "durable": _CONTROL_PLANE_DURABLE,
+    }
+
+
 @app.post("/v1/review", response_model=dict, tags=["governance"])
 def review(req: ReviewRequest, request: Request) -> dict:
     """Submit a human review decision for a previously assessed request."""
@@ -1469,6 +1608,9 @@ def metrics(request: Request) -> dict:
         "evidence_total": _metric_int("evidence_total"),
         "rerun_total": _metric_int("rerun_total"),
         "control_plane_backend": _CONTROL_PLANE_BACKEND,
+        "control_plane_durable": _CONTROL_PLANE_DURABLE,
+        "execution_state_backend": _execution_state_backend(),
+        "execution_state_durable": _execution_state_backend() != "in_process",
         "decision_counts": decision_counts,
         "decision_counts_by_risk": _dict_metric("decision_counts_by_risk"),
         "latency_buckets_ms": _dict_metric("latency_bucket_counts"),
@@ -1514,6 +1656,10 @@ def policy_version(request: Request) -> dict:
         "opa_policy_hash": hashes["opa_policy_hash"],
         "source": "python_decision_engine",
         "runtime_mode": "production" if _is_production_mode() else "development",
+        "control_plane_backend": _CONTROL_PLANE_BACKEND,
+        "control_plane_durable": _CONTROL_PLANE_DURABLE,
+        "execution_state_backend": _execution_state_backend(),
+        "execution_state_durable": _execution_state_backend() != "in_process",
     }
 
 

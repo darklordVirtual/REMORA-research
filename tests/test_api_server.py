@@ -782,6 +782,9 @@ def test_production_mode_rejects_mock_oracle_flag(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setenv("REMORA_ENV", "production")
     monkeypatch.setenv("REMORA_API_BEARER_TOKEN", "token")
     monkeypatch.setenv("REMORA_CONTROL_PLANE_DSN", "postgresql://localhost/remora")
+    # Durable execution state, so this test reaches the oracle check it is
+    # actually about rather than stopping at the earlier prerequisite.
+    monkeypatch.setenv("REMORA_CHAIN_DB", "/tmp/remora-chain.db")
     monkeypatch.setenv("REMORA_ORACLE_BACKEND", "groq")
     monkeypatch.setenv("REMORA_API_TOKENS", '{"tok":{"tenant":"t","role":"operator"}}')
     monkeypatch.setenv("REMORA_API_ALLOW_MOCK_ORACLES", "true")

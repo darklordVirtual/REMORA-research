@@ -284,9 +284,16 @@ class ExecutionLease:
 class NonceLedger:
     """Atomic single-use nonce consumption.
 
-    In-process only (threading.Lock + set) — the same limitation as
-    EnforcementGate's consumed-jti set and the REM-035 execution queues.
-    Durable, multi-process storage is REM-025 scope.
+    In-process only (threading.Lock + set). A nonce consumed in one process
+    is unknown to another, so a lease is single-use *per process*, not
+    globally: with several workers, or after a restart, the same lease can be
+    dispatched again.
+
+    Unlike ``EnforcementGate``'s consumed-jti ledger, which does persist to
+    ``pep_consumed`` when a DSN or SQLite path is supplied, this ledger has
+    no durable adapter. Deployments that run more than one dispatcher process
+    must not treat a lease nonce as a global single-use guarantee. Durable,
+    multi-process storage is REM-025 scope.
     """
 
     def __init__(self) -> None:
