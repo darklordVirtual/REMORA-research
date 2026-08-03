@@ -92,7 +92,10 @@ pipe audit records to an external append-only log (e.g., Cloudflare R2 WORM buck
 
 ## 6. Rate Limiting
 
-No rate limiting is currently implemented on any worker endpoint.
+No rate limiting exists on any worker endpoint. (The governance API is
+separate: `servers/api.py:_InMemoryRateLimiter` gates `POST /v1/assess` per
+tenant, default 120/min — but that limiter is per-process and does not cover
+the workers.)
 
 **Risk:** A leaked `CONTROL_SECRET` enables unbounded `/execute` calls, driving up
 AI inference costs and polluting the audit log.
