@@ -114,6 +114,56 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+  worker-envelope-parity:
+    # The agent-control Worker writes the live DecisionEnvelope hash chain in
+    # TypeScript; auditors verify it in Python. If the two ever disagree on
+    # canonical JSON or the entry hash, an intact chain reads as tampered or a
+    # tampered one reads as intact.
+    #
+    # tests/test_worker_envelope_chain.py pins that agreement by executing the
+    # real Worker module, but it SKIPS without node + esbuild — and the main
+    # pytest job has no JS toolchain, so in that job the contract is not
+    # actually gated. This job gives it both runtimes and fails if the parity
+    # test skips instead of running.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: workers/agent-control/package-lock.json
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e ".[dev]" -c /tmp/constraints.txt
+
+      - name: Install worker deps (provides esbuild for the bundle step)
+        working-directory: workers/agent-control
+        run: npm ci
+
+      - name: Cross-language envelope parity (must run, not skip)
+        # -rs prints skip reasons; the grep turns a silent skip into a red leg,
+        # because a skipped parity test looks identical to a passing one.
+        run: |
+          python -m pytest tests/test_worker_envelope_chain.py -q -rs | tee /tmp/parity.txt
+          if grep -qi "skipped" /tmp/parity.txt; then
+            echo "FAIL: envelope parity test skipped — the JS toolchain is missing in a job that must have it"
+            exit 1
+          fi
+
   worker-typecheck:
     # Issue #86 (F-09): the Cloudflare workers were not typechecked by any CI
     # gate, so @cloudflare/workers-types drift (caret ranges float to new

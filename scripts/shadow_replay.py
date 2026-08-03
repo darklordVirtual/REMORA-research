@@ -16,7 +16,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from remora.shadow.replay import replay_action_log
+from remora.shadow.replay import replay_action_log, verify_envelope_file
 
 
 def main() -> None:
@@ -45,6 +45,28 @@ def main() -> None:
             "decision_envelopes.jsonl, governance_delta_report.json, and replay_audit.jsonl there."
         ),
     )
+    parser.add_argument(
+        "--store-db",
+        default=None,
+        help=(
+            "Optional SQLite path. When set, every replayed DecisionEnvelope is "
+            "also persisted to a durable control-plane store, queryable by "
+            "request_id, instead of living only in the output JSONL."
+        ),
+    )
+    parser.add_argument(
+        "--store-tenant",
+        default="shadow",
+        help="Tenant id the replayed envelopes are stored under (default: shadow).",
+    )
+    parser.add_argument(
+        "--verify",
+        action="store_true",
+        help=(
+            "After writing, reload the envelope JSONL from disk and re-verify "
+            "its hash chain. Exits non-zero if the persisted trail is broken."
+        ),
+    )
     args = parser.parse_args()
 
     envelopes_out = args.envelopes_out
@@ -56,11 +78,20 @@ def main() -> None:
         report_out = str(out_dir / "governance_delta_report.json")
         audit_out = str(out_dir / "replay_audit.jsonl")
 
+    envelope_store = None
+    if args.store_db:
+        from remora.adapters.storage import SQLiteControlPlaneStore
+
+        Path(args.store_db).parent.mkdir(parents=True, exist_ok=True)
+        envelope_store = SQLiteControlPlaneStore(db_path=args.store_db)
+
     result = replay_action_log(
         args.input,
         output_envelopes_jsonl=envelopes_out,
         output_report_json=report_out,
         output_audit_jsonl=audit_out,
+        envelope_store=envelope_store,
+        store_tenant_id=args.store_tenant,
     )
 
     r = result.report
@@ -85,6 +116,24 @@ def main() -> None:
     print()
     print("Baseline comparison:")
     print(json.dumps(r.baseline_comparison, indent=2, sort_keys=True))
+
+    if envelope_store is not None:
+        print()
+        print(f"Envelopes persisted to SQLite: {args.store_db} (tenant={args.store_tenant})")
+
+    if args.verify:
+        print()
+        if not envelopes_out:
+            print("Verification requested but no envelope JSONL was written.", file=sys.stderr)
+            raise SystemExit(2)
+        ok, breaks = verify_envelope_file(envelopes_out)
+        if ok:
+            print(f"Persisted envelope chain verified: {envelopes_out}")
+        else:
+            print(f"Persisted envelope chain BROKEN: {envelopes_out}", file=sys.stderr)
+            for line in breaks:
+                print(f"  - {line}", file=sys.stderr)
+            raise SystemExit(1)
 
 
 if __name__ == "__main__":

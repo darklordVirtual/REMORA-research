@@ -94,6 +94,44 @@ def test_enforce_consumes_token_once() -> None:
     assert executed == [True]  # second execution never ran
 
 
+def test_in_process_ledger_does_not_survive_a_restart(tmp_path) -> None:
+    """Pin the limitation, so it can never be silently assumed away.
+
+    A second EnforcementGate stands in for a second uvicorn worker, or for
+    the same process after a restart. Without a durable ledger it has no
+    memory of what was consumed, so the one-time grant is accepted again.
+    Production refuses this configuration
+    (`servers.api._validate_production_prerequisites`); this test documents
+    exactly what that gate is protecting against.
+    """
+    token = _issue()
+    assert EnforcementGate(strict=True).check(token, consume=True).allowed is True
+    # Fresh process, empty in-memory set: the replay goes through.
+    assert EnforcementGate(strict=True).check(token, consume=True).allowed is True
+
+
+def test_durable_ledger_refuses_the_replay_across_processes(tmp_path) -> None:
+    """With a durable ledger the same replay is refused, which is the point."""
+    db = str(tmp_path / "jti.db")
+    token = _issue()
+
+    first = EnforcementGate(strict=True, db_path=db)
+    assert first.check(token, consume=True).allowed is True
+
+    second = EnforcementGate(strict=True, db_path=db)
+    result = second.check(token, consume=True)
+    assert result.allowed is False
+    assert result.reason == "token_already_consumed"
+
+
+def test_durable_ledger_still_allows_a_fresh_token(tmp_path) -> None:
+    """The ledger must block replays, not every token that follows one."""
+    db = str(tmp_path / "jti.db")
+    gate = EnforcementGate(strict=True, db_path=db)
+    assert gate.check(_issue(), consume=True).allowed is True
+    assert gate.check(_issue(request_id="req-2"), consume=True).allowed is True
+
+
 def test_audience_binding() -> None:
     gate = EnforcementGate(strict=True, audience="pep://ot-gateway")
     wrong = _issue(audience="pep://other")

@@ -283,20 +283,93 @@ def verify_envelope_hash_chain(envelopes: list[DecisionEnvelope]) -> bool:
 
     Uses the same canonical hash preimage as ``_build_envelope``.
     """
+    return not describe_envelope_hash_chain_breaks(envelopes)
+
+
+def describe_envelope_hash_chain_breaks(
+    envelopes: list[DecisionEnvelope],
+) -> list[str]:
+    """Return every hash-chain break, in order, as human-readable strings.
+
+    ``verify_envelope_hash_chain`` answers *whether* a replayed trail is
+    intact; this answers *where* it broke, which is what a reviewer needs
+    when a persisted envelope file fails verification. An empty list means
+    the chain is intact.
+    """
+    breaks: list[str] = []
     previous_hash: str | None = None
-    for envelope in envelopes:
+
+    for index, envelope in enumerate(envelopes):
+        request_id = envelope.request.request_id or f"index-{index}"
         if envelope.audit.previous_hash != previous_hash:
-            return False
+            breaks.append(
+                f"{request_id}: previous_hash {envelope.audit.previous_hash!r} "
+                f"does not link to predecessor {previous_hash!r}"
+            )
         payload = envelope.to_dict()
         audit_block = payload.get("audit")
         if isinstance(audit_block, dict):
             audit_block["hash"] = None
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-        expected_hash = hashlib.sha256(f"{previous_hash or '0' * 64}:{canonical}".encode()).hexdigest()
+        expected_hash = hashlib.sha256(
+            f"{previous_hash or '0' * 64}:{canonical}".encode()
+        ).hexdigest()
         if envelope.audit.hash != expected_hash:
-            return False
+            breaks.append(
+                f"{request_id}: envelope hash {envelope.audit.hash!r} does not "
+                f"match the recomputed payload hash {expected_hash!r} "
+                "(payload was modified after the decision)"
+            )
         previous_hash = envelope.audit.hash
-    return True
+
+    return breaks
+
+
+def load_envelopes_jsonl(path: str) -> list[DecisionEnvelope]:
+    """Load persisted DecisionEnvelopes back from a replay JSONL file.
+
+    Round-trips the output of ``replay_action_log(output_envelopes_jsonl=...)``
+    so a stored shadow-mode trail can be re-verified later by someone who was
+    not present for the run. Without this, the hash chain could only ever be
+    checked in the memory of the process that produced it, which is not an
+    audit property.
+    """
+    envelopes: list[DecisionEnvelope] = []
+    with open(path, encoding="utf-8") as handle:
+        for line_no, line in enumerate(handle, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(
+                    f"{path}:{line_no}: not valid JSON — the envelope trail is "
+                    f"corrupt and cannot be verified ({exc})"
+                ) from exc
+            try:
+                envelopes.append(DecisionEnvelope.from_dict(payload))
+            except (KeyError, TypeError) as exc:
+                # A line that parses as JSON but is not an envelope must abort
+                # the load. Skipping it would silently shorten the trail and
+                # hand the caller a chain that verifies over the wrong records.
+                raise ValueError(
+                    f"{path}:{line_no}: not a DecisionEnvelope — the trail is "
+                    f"corrupt and cannot be verified ({exc})"
+                ) from exc
+    return envelopes
+
+
+def verify_envelope_file(path: str) -> tuple[bool, list[str]]:
+    """Verify a persisted envelope JSONL file end to end.
+
+    Returns ``(ok, breaks)``. Reads the file from disk, rebuilds every
+    envelope, and recomputes the whole hash chain, so tampering with any
+    stored field is detected.
+    """
+    envelopes = load_envelopes_jsonl(path)
+    breaks = describe_envelope_hash_chain_breaks(envelopes)
+    return (not breaks), breaks
 
 
 def _baseline_action(name: str, obs: PolicyObservation) -> str:
@@ -360,6 +433,8 @@ def replay_action_log(
     output_envelopes_jsonl: str | None = None,
     output_report_json: str | None = None,
     output_audit_jsonl: str | None = None,
+    envelope_store: Any | None = None,
+    store_tenant_id: str = "shadow",
 ) -> ReplayResult:
     """Replay historical agent action logs through REMORA policy governance.
 
@@ -373,6 +448,15 @@ def replay_action_log(
         Optional output path for aggregate GovernanceDeltaReport JSON.
     output_audit_jsonl:
         Optional path for hash-chained JSONL audit entries.
+    envelope_store:
+        Optional ``remora.adapters.storage.ControlPlaneStore``. When given,
+        each replayed envelope is also written to that store under
+        ``store_tenant_id``, so shadow-mode decisions land in the same
+        queryable control plane as live ones instead of only in a flat file.
+    store_tenant_id:
+        Tenant the replayed envelopes are recorded under. Defaults to
+        ``"shadow"`` to keep counterfactual decisions separable from live
+        tenant traffic.
 
     Returns
     -------
@@ -406,6 +490,37 @@ def replay_action_log(
         env = _build_envelope(idx, obs, dec, previous_hash=_chain_hash)
         _chain_hash = env.audit.hash  # advance the chain
         envelopes.append(env)
+
+        if envelope_store is not None:
+            # Persist before the counters advance: a store failure must abort
+            # the replay rather than yield a report whose envelopes were never
+            # written. A partial trail that looks complete is the failure mode
+            # this whole path exists to prevent.
+            envelope_store.save_decision(
+                request_id=env.request.request_id,
+                tenant_id=store_tenant_id,
+                envelope=env.to_dict(),
+                audit_record={
+                    "request_id": env.request.request_id,
+                    "tenant_id": store_tenant_id,
+                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                    "source": "shadow_replay",
+                    "input_log": input_jsonl_path,
+                    "replay_index": idx,
+                    "domain": env.request.domain,
+                    "risk_tier": env.request.risk_tier,
+                    "action_type": env.request.action_type,
+                    "target_environment": env.request.target_environment,
+                    "policy_version": env.audit.policy_version,
+                    "decision": env.gate.outcome,
+                    "reasons": list(env.assessment.policy_triggers),
+                    "human_review_required": dec.human_review_required,
+                    "evidence_required": dec.evidence_required,
+                    "envelope_audit_hash": env.audit.hash,
+                    "envelope_previous_hash": env.audit.previous_hash,
+                    "envelope_signature": env.audit.signature,
+                },
+            )
 
         if dec.action == DecisionAction.ACCEPT:
             accepted += 1

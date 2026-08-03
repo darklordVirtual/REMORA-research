@@ -27,6 +27,9 @@
  *   POST /sessions           Start a new agent session
  *   DELETE /sessions/:id     End a session
  *   GET  /audit              Query audit log (admin only)
+ *   GET  /envelopes          List stored DecisionEnvelopes (admin only)
+ *   GET  /envelopes/verify   Recompute the tenant envelope hash chain (admin only)
+ *   GET  /envelopes/:id      Fetch one DecisionEnvelope by request_id (admin only)
  *   GET  /status             Health check
  *   GET  /search             Repo search + snippets
  *
@@ -37,18 +40,36 @@
  *   - All outbound requests checked against EGRESS_ALLOWLIST
  *   - Writes to R2 require explicit approval flag from caller
  *   - Sensitive tool calls marked approval_required in audit_log
+ *   - Every /execute writes a hash-chained DecisionEnvelope v2 (see
+ *     src/envelope.ts); a failed envelope write fails the request rather than
+ *     returning a clean 200 on an unrecorded action
  *
  * Deploy
  * ──────
  *   cd workers/agent-control
- *   npm run db:init:remote         # create D1 tables
+ *   npm run db:init:remote         # create D1 tables (incl. envelope chain)
  *   wrangler secret put CONTROL_SECRET
+ *   wrangler secret put ENVELOPE_SIGNING_KEY   # optional; signs the chain
  *   wrangler secret put REMORA_SECRET
  *   wrangler secret put RAG_SECRET
  *   npm run deploy
+ *
+ * Upgrading an existing deployment: schema.sql is idempotent
+ * (CREATE TABLE IF NOT EXISTS), so re-running db:init:remote adds the
+ * decision_envelopes and envelope_chain_head tables without touching
+ * existing audit_log rows. Envelopes begin at sequence 0 from that point;
+ * calls made before the upgrade have no envelope and must not be presented
+ * as if they did.
  */
 
 import { buildCodegraphPayload } from "./codegraph";
+import {
+  appendEnvelope,
+  buildEnvelope,
+  canonicalToolCallHash,
+  verifyChain,
+  type ChainRow,
+} from "./envelope";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -66,8 +87,17 @@ interface Env {
   LAW_SEARCH_URL:           string;
   APPROVAL_REQUIRED_TOOLS:  string;
 
+  // Governance record context. TENANT_ID scopes the envelope hash chain;
+  // TARGET_ENVIRONMENT is recorded verbatim in every envelope.
+  TENANT_ID?:          string;
+  TARGET_ENVIRONMENT?: string;
+
   // Secrets — required in production; the auth guard fails closed if missing.
   CONTROL_SECRET?: string;
+  // Optional HMAC key over each envelope entry_hash. Unset means unsigned:
+  // the chain still detects edits, but not an attacker who can rewrite whole
+  // rows including their hashes. /envelopes/verify reports which case applies.
+  ENVELOPE_SIGNING_KEY?: string;
 }
 
 interface ToolInput {
@@ -87,6 +117,10 @@ interface ToolResult {
   session_id:   string;
   audit_id?:    number;
   approval_required?: boolean;
+  /** Envelope identity: lets the caller fetch and verify its own governance record. */
+  request_id?:        string;
+  envelope_hash?:     string;
+  envelope_sequence?: number;
 }
 
 // ── Tool catalog ───────────────────────────────────────────────────────────────
@@ -161,6 +195,28 @@ const TOOL_CATALOG = [
 ] as const;
 
 type ToolName = (typeof TOOL_CATALOG)[number]["name"];
+
+/**
+ * Risk tier per tool, recorded in the envelope's request block.
+ *
+ * Derived from what the tool can do, not from a model's opinion: tools that
+ * write persistent state or record an approval are "high", read-only lookups
+ * are "low". Anything not listed is "unspecified" — the governance record
+ * must never invent a tier it does not know.
+ */
+const TOOL_RISK_TIER: Record<string, string> = {
+  remora_verify_claim: "low",
+  dce_search_law:      "low",
+  store_artifact:      "high",
+  audit_decision:      "high",
+};
+
+const TOOL_DOMAIN: Record<string, string> = {
+  remora_verify_claim: "verification",
+  dce_search_law:      "legal_research",
+  store_artifact:      "artifact_storage",
+  audit_decision:      "governance",
+};
 
 // ── Utilities ──────────────────────────────────────────────────────────────────
 
@@ -375,6 +431,96 @@ async function auditUpdateFinal(
   ).run();
 }
 
+/**
+ * Write the governance record for one tool call.
+ *
+ * Separated from the audit_log write because the two answer different
+ * questions: audit_log says a call happened, the envelope says what was
+ * decided and links to the decision before it. Callers must treat a thrown
+ * error as a failed request — an action with no governance record is exactly
+ * the state this control plane exists to prevent.
+ */
+async function recordEnvelope(
+  env: Env,
+  args: {
+    requestId: string;
+    tenantId: string;
+    sessionId: string;
+    actorIdentity: string;
+    toolName: string;
+    toolArgs: Record<string, unknown>;
+    outcome: "accept" | "escalate" | "abstain";
+    policyTriggers: string[];
+    approvalRequired: boolean;
+    executed: boolean;
+    effectOutcome: string;
+    verdict?: string;
+    confidence?: number;
+    auditId: number | null;
+  },
+): Promise<{ entry_hash: string; sequence_no: number }> {
+  const targetEnvironment = env.TARGET_ENVIRONMENT ?? "cloudflare_worker";
+  const toolArgsHash = await canonicalToolCallHash(
+    args.toolName,
+    args.toolArgs,
+    args.tenantId,
+    targetEnvironment,
+  );
+
+  const envelope = buildEnvelope({
+    requestId:         args.requestId,
+    tenantId:          args.tenantId,
+    sessionId:         args.sessionId,
+    actorIdentity:     args.actorIdentity,
+    toolName:          args.toolName,
+    toolArgs:          args.toolArgs,
+    toolArgsHash,
+    riskTier:          TOOL_RISK_TIER[args.toolName] ?? "unspecified",
+    domain:            TOOL_DOMAIN[args.toolName] ?? "unspecified",
+    targetEnvironment,
+    outcome:           args.outcome,
+    policyTriggers:    args.policyTriggers,
+    approvalRequired:  args.approvalRequired,
+    executed:          args.executed,
+    effectOutcome:     args.effectOutcome,
+    verdict:           args.verdict,
+    confidence:        args.confidence,
+    auditId:           args.auditId,
+    timestampUtc:      new Date().toISOString(),
+  });
+
+  const result = await appendEnvelope(env.AUDIT_DB, {
+    tenantId:   args.tenantId,
+    sessionId:  args.sessionId,
+    requestId:  args.requestId,
+    envelope,
+    auditId:    args.auditId,
+    signingKey: env.ENVELOPE_SIGNING_KEY,
+  });
+
+  return { entry_hash: result.entryHash, sequence_no: result.sequenceNo };
+}
+
+function envelopeFailureResponse(sessionId: string, tool: string, executed: boolean, e: unknown): Response {
+  console.error("decision envelope write failed:", e instanceof Error ? e.message : String(e));
+  return json(
+    {
+      tool,
+      success: false,
+      session_id: sessionId,
+      executed,
+      output: {
+        status: "ENVELOPE_WRITE_FAILED",
+        message:
+          "The DecisionEnvelope for this action could not be persisted; the " +
+          "governance record is incomplete and this action must not be " +
+          "treated as governed.",
+      },
+    },
+    500,
+  );
+}
+
 async function handleExecute(req: Request, env: Env): Promise<Response> {
   let body: ToolInput;
   try {
@@ -385,6 +531,16 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
   if (!body.tool || !body.input || !body.session_id) {
     return err("Required fields: tool, input, session_id");
   }
+
+  const tenantId = env.TENANT_ID ?? "default";
+  const requestId = crypto.randomUUID();
+  // Credential-derived identity only (REM-039). This deployment authenticates
+  // with one shared bearer, so the principal IS that credential; a
+  // client-declared user_id is kept as an explicitly unverified annotation
+  // and never becomes the identity.
+  const actorIdentity =
+    "control_secret_bearer" +
+    (body.user_id ? ` (on_behalf_of=${body.user_id}, unverified)` : "");
 
   const approvalTools = (env.APPROVAL_REQUIRED_TOOLS ?? "")
     .split(",")
@@ -416,6 +572,22 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
 
   if (approval_required === 1) {
     if (!body.input.audit_id) {
+      // Gate held the action pending human review: that IS a decision, and it
+      // gets a governance record like any other.
+      try {
+        await recordEnvelope(env, {
+          requestId, tenantId, sessionId: body.session_id, actorIdentity,
+          toolName: body.tool, toolArgs: hashableInput,
+          outcome: "escalate",
+          policyTriggers: ["approval_required"],
+          approvalRequired: true,
+          executed: false,
+          effectOutcome: "awaiting_human_approval",
+          auditId: pre_audit_id,
+        });
+      } catch (e) {
+        return envelopeFailureResponse(body.session_id, body.tool, false, e);
+      }
       return json(
         {
           tool: body.tool,
@@ -428,6 +600,7 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
           approval_required: true,
           session_id: body.session_id,
           audit_id: pre_audit_id,
+          request_id: requestId,
         },
         402
       );
@@ -438,8 +611,33 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
       .first<{ approved: number; input_hash: string }>();
 
     if (!row || row.approved !== 1 || row.input_hash !== input_hash) {
+      // A refused call is the outcome most worth recording: it is the evidence
+      // that the gate actually held.
+      try {
+        await recordEnvelope(env, {
+          requestId, tenantId, sessionId: body.session_id, actorIdentity,
+          toolName: body.tool, toolArgs: hashableInput,
+          outcome: "abstain",
+          policyTriggers: [
+            "approval_required",
+            !row ? "approval_record_missing"
+              : row.approved !== 1 ? "approval_not_granted"
+              : "input_modified_after_approval",
+          ],
+          approvalRequired: true,
+          executed: false,
+          effectOutcome: "refused",
+          auditId: pre_audit_id,
+        });
+      } catch (e) {
+        return envelopeFailureResponse(body.session_id, body.tool, false, e);
+      }
       return json(
-        { error: "UNAUTHORIZED: audit_id not approved or input modified", audit_id: body.input.audit_id },
+        {
+          error: "UNAUTHORIZED: audit_id not approved or input modified",
+          audit_id: body.input.audit_id,
+          request_id: requestId,
+        },
         403
       );
     }
@@ -500,6 +698,26 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
     );
   }
 
+  let envelopeRef: { entry_hash: string; sequence_no: number };
+  try {
+    envelopeRef = await recordEnvelope(env, {
+      requestId, tenantId, sessionId: body.session_id, actorIdentity,
+      toolName: body.tool, toolArgs: hashableInput,
+      // The gate let this through; success/failure is the effect, recorded
+      // separately in the effect block rather than restated as a verdict.
+      outcome: "accept",
+      policyTriggers: approval_required === 1 ? ["approval_required", "approval_granted"] : [],
+      approvalRequired: approval_required === 1,
+      executed: true,
+      effectOutcome: success ? "succeeded" : "failed",
+      verdict,
+      confidence,
+      auditId: pre_audit_id,
+    });
+  } catch (e) {
+    return envelopeFailureResponse(body.session_id, body.tool, true, e);
+  }
+
   const result: ToolResult = {
     tool: body.tool,
     success,
@@ -510,6 +728,9 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
     session_id: body.session_id,
     audit_id: pre_audit_id,
     approval_required: approval_required === 1,
+    request_id: requestId,
+    envelope_hash: envelopeRef.entry_hash,
+    envelope_sequence: envelopeRef.sequence_no,
   };
 
   return json(result, success ? 200 : 502);
@@ -560,6 +781,77 @@ async function handleAudit(url: URL, env: Env): Promise<Response> {
   return json({ rows: results, count: results.length });
 }
 
+// ── DecisionEnvelope read + verify ─────────────────────────────────────────────
+
+async function handleEnvelopeList(url: URL, env: Env): Promise<Response> {
+  const tenantId   = url.searchParams.get("tenant_id") ?? env.TENANT_ID ?? "default";
+  const sessionId  = url.searchParams.get("session_id");
+  const limit      = Math.min(Number(url.searchParams.get("limit") ?? 50), 200);
+  const offset     = Number(url.searchParams.get("offset") ?? 0);
+
+  const stmt = sessionId
+    ? env.AUDIT_DB.prepare(
+        "SELECT request_id, tenant_id, session_id, sequence_no, created_at, " +
+          "envelope_canonical, previous_hash, entry_hash, signature, audit_id " +
+          "FROM decision_envelopes WHERE tenant_id=? AND session_id=? " +
+          "ORDER BY sequence_no ASC LIMIT ? OFFSET ?",
+      ).bind(tenantId, sessionId, limit, offset)
+    : env.AUDIT_DB.prepare(
+        "SELECT request_id, tenant_id, session_id, sequence_no, created_at, " +
+          "envelope_canonical, previous_hash, entry_hash, signature, audit_id " +
+          "FROM decision_envelopes WHERE tenant_id=? " +
+          "ORDER BY sequence_no ASC LIMIT ? OFFSET ?",
+      ).bind(tenantId, limit, offset);
+
+  const { results } = await stmt.all<Record<string, unknown>>();
+  const rows = (results ?? []).map((r) => ({
+    ...r,
+    envelope: JSON.parse(String(r.envelope_canonical)),
+  }));
+  return json({ tenant_id: tenantId, rows, count: rows.length });
+}
+
+async function handleEnvelopeGet(requestId: string, env: Env): Promise<Response> {
+  const row = await env.AUDIT_DB.prepare(
+    "SELECT request_id, tenant_id, session_id, sequence_no, created_at, " +
+      "envelope_canonical, previous_hash, entry_hash, signature, audit_id " +
+      "FROM decision_envelopes WHERE request_id = ?",
+  )
+    .bind(requestId)
+    .first<Record<string, unknown>>();
+
+  if (!row) return err("Envelope not found", 404);
+  return json({ ...row, envelope: JSON.parse(String(row.envelope_canonical)) });
+}
+
+async function handleEnvelopeVerify(url: URL, env: Env): Promise<Response> {
+  const tenantId = url.searchParams.get("tenant_id") ?? env.TENANT_ID ?? "default";
+
+  // Verification must read the WHOLE chain: a paged subset cannot prove that
+  // nothing was removed outside the page.
+  const { results } = await env.AUDIT_DB.prepare(
+    "SELECT sequence_no, created_at, envelope_canonical, previous_hash, " +
+      "entry_hash, signature FROM decision_envelopes WHERE tenant_id=? " +
+      "ORDER BY sequence_no ASC",
+  )
+    .bind(tenantId)
+    .all<ChainRow>();
+
+  const rows = results ?? [];
+  const verdict = await verifyChain(rows, env.ENVELOPE_SIGNING_KEY);
+  return json({
+    tenant_id: tenantId,
+    ...verdict,
+    signed: Boolean(env.ENVELOPE_SIGNING_KEY),
+    note:
+      rows.length === 0
+        ? "No envelopes stored for this tenant. An empty chain verifies trivially and proves nothing."
+        : env.ENVELOPE_SIGNING_KEY
+          ? "Chain recomputed and HMAC signatures checked."
+          : "Chain recomputed. ENVELOPE_SIGNING_KEY is unset, so rows rewritten wholesale (hash included) are not detectable.",
+  });
+}
+
 // ── Main fetch handler ─────────────────────────────────────────────────────────
 
 export default {
@@ -578,7 +870,13 @@ export default {
     // /tools, /status, /sessions GET are intentionally public.
     const needsAuth =
       ["POST", "DELETE", "PATCH"].includes(request.method) ||
-      (request.method === "GET" && (path === "/audit" || path === "/test-bindings"));
+      (request.method === "GET" &&
+        (path === "/audit" ||
+          path === "/test-bindings" ||
+          // Envelopes carry full request context and decision rationale;
+          // they are strictly more sensitive than /audit and are never public.
+          path === "/envelopes" ||
+          path.startsWith("/envelopes/")));
 
     if (needsAuth) {
       if (!env.CONTROL_SECRET) {
@@ -635,6 +933,23 @@ export default {
     // GET /audit — query audit log (admin)
     if (path === "/audit" && request.method === "GET") {
       return handleAudit(url, env);
+    }
+
+    // GET /envelopes/verify — recompute the tenant envelope chain (admin).
+    // Checked before the :request_id route so "verify" is never read as an id.
+    if (path === "/envelopes/verify" && request.method === "GET") {
+      return handleEnvelopeVerify(url, env);
+    }
+
+    // GET /envelopes — list stored DecisionEnvelopes (admin)
+    if (path === "/envelopes" && request.method === "GET") {
+      return handleEnvelopeList(url, env);
+    }
+
+    // GET /envelopes/:request_id — one DecisionEnvelope (admin)
+    const envelopeMatch = path.match(/^\/envelopes\/([A-Za-z0-9._-]+)$/);
+    if (envelopeMatch && request.method === "GET") {
+      return handleEnvelopeGet(envelopeMatch[1], env);
     }
 
     // GET /status — public health check (no upstream URLs in response)

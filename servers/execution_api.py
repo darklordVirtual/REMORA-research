@@ -3,7 +3,7 @@
 """End-to-end execution API (REM-035): one authoritative state machine.
 
     PROPOSED --assess--> ACCEPT  -> signed short-lived execution token
-                     -> VERIFY/ESCALATE -> durable ReviewQueue item
+                     -> VERIFY/ESCALATE -> ReviewQueue item
     APPROVED --execute--> fresh re-gate -> one-time grant -> PEP consume
     (or: EXPIRED / INVALIDATED / BINDING_REFUSED — all audited)
 
@@ -11,6 +11,22 @@ Every transition appends to the atomic per-tenant audit chain (REM-034).
 The exact tool-call payload is bound at the API boundary: assess accepts
 ``tool_name`` + full ``arguments`` and computes the same canonical hash the
 enforcement gate consumes — no summary-hash shortcut.
+
+State durability — read this before deploying
+---------------------------------------------
+Three pieces of state here are safety-relevant: the tenant audit chain, the
+review queue, and the PEP's consumed-jti ledger. They are durable only when
+``REMORA_PG_DSN`` (multi-node) or ``REMORA_CHAIN_DB`` (single-node SQLite) is
+set. With neither, all three live in process memory, and the consequence is
+not just a lost audit trail: a one-time execution grant consumed by one
+worker is accepted again by a second worker or after a restart, because the
+ledger that would have refused the replay no longer exists.
+
+Production mode therefore refuses to start without one of those variables
+(``servers/api.py::_validate_production_prerequisites``). Development mode
+allows it, logs a warning, and reports ``execution_state_durable: false`` on
+``/v1/metrics`` and ``/v1/policy/version`` so the degradation is recorded
+rather than assumed away.
 """
 from __future__ import annotations
 
@@ -120,7 +136,28 @@ def _build_chain():
 
 
 _CHAIN = _build_chain()
+import logging as _logging
 import os as _os
+
+_LOGGER = _logging.getLogger("remora.execution_api")
+
+# Resolved once, so every reporting surface gives the same answer.
+EXECUTION_STATE_BACKEND = (
+    "postgres" if _os.environ.get("REMORA_PG_DSN", "").strip()
+    else "sqlite" if _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    else "in_process"
+)
+EXECUTION_STATE_DURABLE = EXECUTION_STATE_BACKEND != "in_process"
+
+if not EXECUTION_STATE_DURABLE:
+    _LOGGER.warning(
+        "execution-layer state is in-process: the tenant audit chain, review "
+        "queue and one-time-grant ledger are lost on restart, and a consumed "
+        "execution grant becomes replayable by another worker. Set "
+        "REMORA_PG_DSN or REMORA_CHAIN_DB. Production mode refuses to start "
+        "in this configuration."
+    )
+
 _GATE = EnforcementGate(
     strict=True,
     audience=PEP_AUDIENCE,

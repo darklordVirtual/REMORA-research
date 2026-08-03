@@ -27,6 +27,43 @@ releases.
 
 ## [Unreleased]
 
+### DecisionEnvelope persistence and execution-state durability (2026-08-03)
+
+- **Durable envelope storage.** Added `SQLiteControlPlaneStore`: until now the
+  only durable control-plane backend was PostgreSQL, so any deployment without
+  it stored every `DecisionEnvelope` in process memory and lost the whole
+  audit trail on restart. Selected via `REMORA_CONTROL_PLANE_DSN=sqlite:…` or
+  `REMORA_CONTROL_PLANE_DB=<path>`.
+- **No silent volatility.** `/v1/metrics` and `/v1/policy/version` now report
+  `control_plane_durable` and `execution_state_durable`, and a non-durable
+  backend logs a warning at startup. The in-memory store is refused in
+  production.
+- **Verifiable trail.** Added `GET /v1/audit/chain/verify`,
+  `remora.shadow.replay.load_envelopes_jsonl` / `verify_envelope_file`, and
+  `scripts/verify_envelope_chain.py`, so a stored trail can be re-checked
+  from disk by someone who was not present for the run. Previously the hash
+  chain could only be verified in the memory of the producing process.
+- **BREAKING (production deployments): durable execution state is now
+  required.** `REMORA_ENV=production` fails closed unless `REMORA_PG_DSN` or
+  `REMORA_CHAIN_DB` is set. Without one, the tenant audit chain, review queue
+  and the PEP's consumed-jti ledger were all process-local, which meant a
+  one-time execution grant consumed by one worker was accepted again by a
+  second worker or after a restart. Regression tests:
+  `tests/test_token_hardening.py::test_durable_ledger_refuses_the_replay_across_processes`.
+- **Worker governance records.** `workers/agent-control` now writes a
+  hash-chained `DecisionEnvelope` v2 per `/execute` (including refused calls)
+  into new D1 tables, with `GET /envelopes`, `/envelopes/{id}` and
+  `/envelopes/verify`. It previously stored only a call log with no decision
+  contract and no predecessor linkage. The chain uses the REM-034 hash
+  contract; cross-language agreement with Python is gated in CI by
+  `tests/test_worker_envelope_chain.py`.
+- **CI gates strengthened.** The shadow-replay smoke job now verifies the
+  persisted chain and asserts that tamper detection actually fires, instead of
+  only checking that output files are non-empty.
+- Corrected the `NonceLedger` docstring, which claimed the same in-process
+  limitation as `EnforcementGate`'s jti ledger; that ledger does persist when
+  configured, while `NonceLedger` still has no durable adapter (REM-025).
+
 ### Reconciled with master; master's CI was red (2026-07-31)
 
 - **Claim numbering.** Master had already merged CLAIM-014 ("system

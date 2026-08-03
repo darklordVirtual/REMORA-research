@@ -61,6 +61,13 @@ checkpoint's root, so the checkpoints form their own chain.
   `TenantAuditChain.verify()` in `remora/governance/tenant_chain.py`, and
   `scripts/verify_audit_anchor.py` for JSONL audit files. Checkpoints add
   a compact commitment on top; they do not replace chain verification.
+- **Verifying a stored trail** (rather than one held in memory) is
+  `scripts/verify_envelope_chain.py`. It reads back a replay envelope JSONL,
+  a SQLite control-plane store, or an export from the agent-control Worker's
+  `GET /envelopes`, and recomputes the hashes locally, so an auditor never
+  has to trust the producing system's own verify endpoint. Worker chains use
+  `verify_exported_chain()` in `remora/governance/tenant_chain.py`, which
+  hashes the stored canonical payload string rather than re-serialising it.
 
 ## Regenerating the sample artifact
 
