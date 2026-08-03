@@ -32,6 +32,7 @@ from remora.toolcall.routing.compatibility import (
     compute_compatibility,
     values_grounded,
 )
+from remora.toolcall.routing.effect_prediction import effect_consistent
 from remora.toolcall.routing.goal_match import TaskIntent, match_tool_to_intent
 from remora.toolcall.routing.tool_contract import ToolContractRegistry
 from remora.toolcall.routing.validation import unvalidated_required
@@ -217,6 +218,12 @@ def build_full_observation(
             else None
         ),
         tool_matches_goal=match_tool_to_intent(
+            contract=contracts.get(episode.proposed_tool_name) if contracts else None,
+            intent=intent,
+            proposed_args=episode.proposed_tool_args,
+            task_text=episode.user_task,
+        ).as_bool,
+        expected_effect_matches=effect_consistent(
             contract=contracts.get(episode.proposed_tool_name) if contracts else None,
             intent=intent,
             proposed_args=episode.proposed_tool_args,

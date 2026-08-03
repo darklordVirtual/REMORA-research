@@ -52,9 +52,31 @@ class ToolContract:
     #: ``{"booking_id": "target_resource"}``. Roles are how an intent says
     #: *what* is being acted on without knowing the tool's parameter names.
     argument_roles: Mapping[str, str] = None  # type: ignore[assignment]
+    #: The state this tool is declared to leave behind: dotted field -> value,
+    #: e.g. ``{"work_order.status": "closed"}``. Declared by the deployment,
+    #: never inferred. Empty means *nothing is declared about the effect*,
+    #: which stays UNKNOWN rather than becoming "no effect" — a mutating tool
+    #: with no declared delta is undeclared, not harmless.
+    state_delta: Mapping[str, str] = None  # type: ignore[assignment]
+    #: Named facts that must hold before this tool may run, e.g.
+    #: ``("closure_approved",)``. Checked against an authoritative fact set;
+    #: a precondition nobody can adjudicate yields UNKNOWN, never "met".
+    preconditions: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "argument_roles", dict(self.argument_roles or {}))
+        object.__setattr__(self, "state_delta", dict(self.state_delta or {}))
+        object.__setattr__(self, "preconditions", tuple(self.preconditions or ()))
+        if self.is_read and self.state_delta:
+            # A read that declares a post-state is self-contradictory. As with
+            # the mutation check below, the contradiction is refused at
+            # construction: resolving it later would mean choosing which half
+            # of a broken declaration to believe, while a call is pending.
+            raise ValueError(
+                f"{self.tool}: effect {self.effect!r} is a read effect but the "
+                f"contract declares a state_delta {dict(self.state_delta)!r}; a "
+                f"read cannot leave a changed state behind"
+            )
         if self.mutation is False and self.effect.strip().lower() not in READ_EFFECTS:
             # A contract that declares a non-read effect while claiming not to
             # mutate is self-contradictory, and the contradiction resolves
@@ -85,6 +107,8 @@ class ToolContract:
             "resource_type": self.resource_type,
             "mutation": self.mutation,
             "argument_roles": dict(sorted(self.argument_roles.items())),
+            "state_delta": dict(sorted(self.state_delta.items())),
+            "preconditions": list(self.preconditions),
         }
 
 
@@ -126,6 +150,14 @@ class ToolContractRegistry:
             roles = entry.get("argument_roles") or {}
             if not isinstance(roles, Mapping):
                 raise ValueError(f"{tool}: 'argument_roles' must be a map")
+            delta = entry.get("state_delta") or {}
+            if not isinstance(delta, Mapping):
+                raise ValueError(f"{tool}: 'state_delta' must be a map")
+            preconditions = entry.get("preconditions") or ()
+            if isinstance(preconditions, (str, bytes)) or not isinstance(
+                preconditions, Iterable
+            ):
+                raise ValueError(f"{tool}: 'preconditions' must be a list of names")
             contracts.append(
                 ToolContract(
                     tool=tool,
@@ -134,6 +166,8 @@ class ToolContractRegistry:
                     resource_type=str(entry["resource_type"]),
                     mutation=bool(entry["mutation"]),
                     argument_roles={str(k): str(v) for k, v in roles.items()},
+                    state_delta={str(k): str(v) for k, v in delta.items()},
+                    preconditions=tuple(str(p) for p in preconditions),
                 )
             )
         return cls(contracts)

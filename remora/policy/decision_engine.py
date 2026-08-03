@@ -370,6 +370,24 @@ _CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
         ),
     ),
     _ConditionalGate(
+        # Same shape and same severity as tool_does_not_match_goal: a refuted
+        # effect is the same class of defect (right form, wrong outcome), so it
+        # earns the same response rather than a softer one. Only an established
+        # False fires; None changes nothing, which is what keeps an undeclared
+        # contract from tightening the route on absence of information.
+        "expected_effect_contradicted", DecisionReason.EXPECTED_EFFECT_CONTRADICTED,
+        lambda e, o, c, t: (
+            None if o.expected_effect_matches is not False
+            else (DecisionAction.ABSTAIN if _is_read_only_action(o)
+                  else DecisionAction.ESCALATE)
+        ),
+        "ABSTAIN/ESCALATE",
+        lambda o, c, t: (
+            f"expected_effect_matches={o.expected_effect_matches}, "
+            f"action_type={o.action_type!r}"
+        ),
+    ),
+    _ConditionalGate(
         "refuse_parametric", DecisionReason.THERMO_REQUIRE_EVIDENCE,
         lambda e, o, c, t: DecisionAction.VERIFY
         if (o.refuse_parametric_verdict and o.evidence_action != "answer") else None,

@@ -1,0 +1,405 @@
+# REMORA Research Shelf v1
+#
+# Machine-readable inventory of external research considered as off-the-shelf
+# components. The point of this file is that "sufficient grounding" is a
+# CHECKED property, not a promise: scripts/check_research_shelf.py refuses a
+# shelf where an unverified source has been adopted, where an adopted entry
+# names code or tests that do not exist, or where someone else's reported
+# numbers have drifted into looking like REMORA's.
+#
+# This is not a second frontier roadmap. docs/13-research-frontier-roadmap.md
+# holds the narrative work packages and the sequencing argument; this file
+# holds the pick-list and its evidence, and the two cross-reference by id.
+#
+# ── Source verification ladder ───────────────────────────────────────────────
+#   VERIFIED_RETRIEVED   title + authors confirmed against the publisher's own
+#                        page on the `verified` date
+#   UNVERIFIED           listed but not retrieved. MAY NOT be adopted and MAY
+#                        NOT be cited in any narrative document until checked
+#   RETRIEVAL_FAILED     retrieval attempted and the record did not match
+#   INTERNAL             a REMORA finding, not an external work. Requires
+#                        `venue: internal` and carries no url; the checker
+#                        refuses an INTERNAL entry that cites one, so an
+#                        internal item can never borrow external authority
+#
+# ── Adoption ladder ──────────────────────────────────────────────────────────
+#   ADOPTED          shipped; `remora_evidence` names existing code + tests
+#   PARTIAL          one slice shipped, remainder scoped in `remaining`
+#   SCOPED           decided to build, not started; `blocked_by` names what first
+#   PROTOTYPE_ONLY   research track only; must never gate a live decision
+#   DECLINED         decided against; `decline_reason` is mandatory
+#   UNEVALUATED      on the shelf, no decision taken
+#
+# ── The rule that keeps this honest ──────────────────────────────────────────
+# `reported_results` is ALWAYS the source authors' number on their own setup.
+# No REMORA measurement may be recorded here. REMORA numbers live in
+# docs/assurance/claim_register_v1.yaml, bound to a result artifact on disk.
+# A `remora_results` key is a hard error.
+
+schema_version: "1"
+updated: "2026-08-03"
+
+components:
+
+  # ── Task–tool semantics ────────────────────────────────────────────────────
+
+  - id: SHELF-001
+    name: "Declarative tool capability/effect contracts"
+    source:
+      title: "ToolGuardian: Declarative Security for AI Agent-Tool Interactions"
+      authors: "Arun Ravindran, Saurabh Deochake"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2607.21835"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-03"
+      reported_results: >-
+        Authors report F1 0.86 for denial classification and 88% vetting
+        accuracy over 16 MCP-style tools (8 malicious variants) and 20 runtime
+        scenarios. Their setup, their numbers.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      ToolContract + ToolContractRegistry declare capability, effect,
+      resource_type, mutation and argument roles; goal_match supplies the
+      tri-state tool_matches_goal.
+    adoption: ADOPTED
+    remora_evidence:
+      - remora/toolcall/routing/tool_contract.py
+      - remora/toolcall/routing/goal_match.py
+      - tests/test_goal_match.py
+    declined_parts: >-
+      Answer Set Programming is not adopted. The decision engine is a frozen
+      first-match table; a solver in the decision path replaces an auditable
+      artifact with a search.
+
+  - id: SHELF-002
+    name: "Predict declared state change before execution"
+    source:
+      title: "Sample, Predict, then Proceed: Self-Verification Sampling for Tool Use of LLMs"
+      authors: "Shangmin Guo et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2506.02918"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-03"
+      reported_results: >-
+        Authors report improved BFCL results and fewer hallucinated actions
+        from a trained dynamics model. Their setup, their numbers.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      effect_prediction.py fills expected_effect_matches from the deployment's
+      declared state_delta, wired into the engine's conditional gates.
+    adoption: ADOPTED
+    remora_evidence:
+      - remora/toolcall/routing/effect_prediction.py
+      - tests/test_effect_prediction.py
+      - remora/policy/decision_engine.py
+    declined_parts: >-
+      The trained dynamics model is refused as an authority. A generative state
+      estimate must never establish SUPPORTED; only the declared contract may.
+    remaining: >-
+      No-op detection needs field-level current state; StateIndex is a flat
+      value set by design. Argument-bound delta templates are unimplemented.
+
+  - id: SHELF-003
+    name: "Task alignment checked at every step"
+    source:
+      title: "The Task Shield: Enforcing Task Alignment to Defend Against Indirect Prompt Injection in LLM Agents"
+      authors: "Feiran Jia, Tong Wu, Xin Qin, Anna Squicciarini"
+      venue: "ACL 2025 (peer-reviewed)"
+      url: "https://aclanthology.org/2025.acl-long.1435/"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-03"
+      reported_results: >-
+        Authors report 2.07% attack success rate and 69.79% task utility on
+        AgentDojo with GPT-4o. Their setup, their numbers.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      goal_match implements the same reframing deterministically, and more
+      strictly than a model judge: source_spans must occur verbatim in the task
+      text, and resource, effect and target role must all agree.
+    adoption: PARTIAL
+    remora_evidence:
+      - remora/toolcall/routing/goal_match.py
+      - tests/test_goal_match.py
+    remaining: >-
+      Single intent against a single call. No subgoals, no dependency between
+      steps, no notion of a call that serves the goal indirectly. Extending
+      TaskIntent with subgoals/completion criteria is the next slice.
+    blocked_by: "SHELF-020"
+
+  # ── Trajectory and control flow ────────────────────────────────────────────
+
+  - id: SHELF-004
+    name: "Plan as a tool dependency graph"
+    source:
+      title: "IPIGuard: A Novel Tool Dependency Graph-Based Defense Against Indirect Prompt Injection in LLM Agents"
+      authors: "Not yet confirmed against the publisher page"
+      venue: "EMNLP 2025 (peer-reviewed)"
+      url: "https://aclanthology.org/2025.emnlp-main.53/"
+      verification: UNVERIFIED
+      reported_results: "Not recorded — source not retrieved."
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      No trajectory graph. PolicyObservation's session fields are explicitly
+      caller-populated, and session_id is used only for audit correlation, so
+      nothing authoritative explains why a later call is legitimate.
+    adoption: UNEVALUATED
+    blocked_by: "SHELF-020"
+
+  - id: SHELF-005
+    name: "Verify-before-commit separation of speculative and authorised facts"
+    source:
+      title: "VIGIL: Defending LLM Agents Against Tool-Stream Injection via Verify-Before-Commit"
+      authors: "Junda Lin et al."
+      venue: "ACL 2026 (peer-reviewed)"
+      url: "https://aclanthology.org/2026.acl-long.443/"
+      verification: UNVERIFIED
+      reported_results: "Not recorded — source not retrieved."
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      Pre-execution decision, exact call binding, execution lease, fresh re-gate
+      and a single dispatcher PEP all exist. What is absent is an integrity
+      class on facts: a tool result and an authoritative record are not
+      distinguished.
+    adoption: UNEVALUATED
+
+  - id: SHELF-006
+    name: "Persistent safety state across a trajectory (shadow memory)"
+    source:
+      title: "MAGE: Safeguarding LLM Agents against Long-Horizon Threats via Shadow Memory"
+      authors: "Yuhui Wang et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2605.03228"
+      verification: UNVERIFIED
+      reported_results: "Not recorded — source not retrieved."
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      session_count and cumulative_risk exist as PolicyObservation fields but
+      are caller-supplied, so they are integration context rather than an
+      authoritative safety state built from observed events.
+    adoption: UNEVALUATED
+    blocked_by: "SHELF-020"
+
+  # ── Information flow and provenance ────────────────────────────────────────
+
+  - id: SHELF-007
+    name: "Per-value integrity/confidentiality labels (information-flow control)"
+    source:
+      title: "Securing AI Agents with Information-Flow Control (Fides)"
+      authors: "Manuel Costa et al."
+      venue: "Microsoft Research; publication entry lists TMLR"
+      url: "https://www.microsoft.com/en-us/research/publication/securing-ai-agents-with-information-flow-control/"
+      verification: UNVERIFIED
+      reported_results: "Not recorded — source not retrieved."
+    roadmap_ref: "RF-02"
+    remora_status: >-
+      argument_tainted is a single global flag plus a list of untrusted-
+      controlled argument names. An argument is effectively tainted or not;
+      there is no per-value label, no confidentiality dimension and no
+      transitive propagation.
+    adoption: UNEVALUATED
+
+  - id: SHELF-008
+    name: "Capabilities bound to data, not only to tools"
+    source:
+      title: "Defeating Prompt Injections by Design (CaMeL)"
+      authors: "Edoardo Debenedetti et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2503.18813"
+      verification: UNVERIFIED
+      reported_results: "Not recorded — source not retrieved."
+    roadmap_ref: "RF-02"
+    remora_status: >-
+      The propose/decide/execute separation already holds and the agent owns
+      neither callables nor credentials. Capability is attached to the tool and
+      the lease, not to each datum used as an argument.
+    adoption: UNEVALUATED
+
+  # ── Least privilege ────────────────────────────────────────────────────────
+
+  - id: SHELF-009
+    name: "Programmable fine-grained privilege policy"
+    source:
+      title: "Progent: Programmable Privilege Control for LLM Agents"
+      authors: "Tianneng Shi et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2504.11703"
+      verification: UNVERIFIED
+      reported_results: "Not recorded — source not retrieved."
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      Server-side tool registry, action types, risk tiers, hard guards, an OPA
+      adapter and execution leases exist. There is no privilege lattice, so
+      "a lower-privileged tool would have sufficed" is not expressible.
+    adoption: UNEVALUATED
+
+  - id: SHELF-010
+    name: "Over-privileged tool selection benchmark"
+    source:
+      title: "When Lower Privileges Suffice: Investigating Over-Privileged Tool Selection in LLM Agents"
+      authors: "Kaiyue Yang et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2606.20023"
+      verification: UNVERIFIED
+      reported_results: "Not recorded — source not retrieved."
+    roadmap_ref: "RF-09"
+    remora_status: "No privilege-escalation track exists in any benchmark."
+    adoption: UNEVALUATED
+    blocked_by: "SHELF-009"
+
+  # ── Abstention ─────────────────────────────────────────────────────────────
+
+  - id: SHELF-011
+    name: "Paired act/abstain benchmark"
+    source:
+      title: "AgentAbstain: Do LLM Agents Know When Not to Act?"
+      authors: >-
+        Xun Liu, Yi Evie Zhang, Vira Kasprova, Parisa Rabbani,
+        Pardis Sadat Zahraei, Tianyu Zhang, Ali Ebrahimpour-Boroojeny,
+        Varun Chandrasekaran
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2607.10059"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-03"
+      reported_results: >-
+        263 paired tasks across 42 executable sandbox environments, each pair a
+        should-act task and a should-abstain variant. Their setup, their
+        numbers; REMORA has run nothing against it.
+    roadmap_ref: "RF-09"
+    remora_status: >-
+      ABSTAIN is a first-class route, but no external benchmark tests whether
+      it is chosen BEFORE an irreversible commit. The paired structure is what
+      makes this worth adopting: a system that always abstains scores badly.
+    adoption: SCOPED
+    remaining: >-
+      Adapter under experiments/, fixture episodes committed, fail-hard scorer,
+      offline pytest coverage. No claim register entry until a real run
+      produces a result artifact.
+
+  # ── Formal policy ──────────────────────────────────────────────────────────
+
+  - id: SHELF-012
+    name: "Temporal ordering constraints on agent actions"
+    source:
+      title: "Enforcing Temporal Constraints for LLM Agents (Agent-C)"
+      authors: >-
+        Adharsh Kamath, Sishen Zhang, Calvin Xu, Shubham Ugare,
+        Gagandeep Singh, Sasa Misailovic
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2512.23738"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-03"
+      reported_results: >-
+        Authors report full conformance in their retail and airline benchmark
+        environments. Their setup, their numbers.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      ToolContract.preconditions is declarable. The adjudicator is not written:
+      it needs an authoritative fact set, and inventing one would let a model's
+      claim of "approved" satisfy an approval gate.
+    adoption: PARTIAL
+    remora_evidence:
+      - remora/toolcall/routing/tool_contract.py
+      - tests/test_effect_prediction.py
+    remaining: >-
+      preconditions_met adjudicator over an authoritative fact set. This is the
+      last empty slot in CallCompatibility.
+    declined_parts: >-
+      SMT in the decision path is deferred. A deterministic session state
+      machine covers the single-call case and stays auditable without a solver.
+
+  - id: SHELF-013
+    name: "Minimal causal tool frontier"
+    source:
+      title: "ToolChoiceConfusion: Causal Minimal Tool Filtering for Reliable LLM Agents"
+      authors: "Rahul Suresh Babu, Laxmipriya Ganesh Iyer"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2606.06284"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-03"
+      reported_results: >-
+        Authors report comparable task success while cutting visible tools from
+        100 to about one per step and token use by roughly 90%, over 102 tasks.
+        Their setup, their numbers.
+    roadmap_ref: "RF-10"
+    remora_status: "Nothing computes an admissible tool frontier."
+    adoption: SCOPED
+    remaining: >-
+      Advisory harness filter in the agent hook. It changes no decision REMORA
+      makes and must never be presented as a gate; a tool outside the frontier
+      is still refused by policy if called directly.
+    blocked_by: "SHELF-012"
+
+  # ── Uncertainty signals (research track only) ──────────────────────────────
+
+  - id: SHELF-014
+    name: "Kernel Language Entropy as a third semantic-entropy backend"
+    source:
+      title: "Kernel Language Entropy: Fine-grained Uncertainty Quantification for LLMs from Semantic Similarities"
+      authors: "Alexander Nikitin, Jannik Kossen, Yarin Gal, Pekka Marttinen"
+      venue: "arXiv (NeurIPS 2024)"
+      url: "https://arxiv.org/abs/2405.20003"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-03"
+      reported_results: >-
+        Authors replace hard semantic clustering with a similarity kernel and
+        von Neumann entropy. Their setup, their numbers.
+    roadmap_ref: "RF-06"
+    remora_status: >-
+      TokenFingerprint and an NLI backend exist; RF-06 already scopes backend
+      parity. KLE would be a third arm in the same pre-registered protocol.
+    adoption: PROTOTYPE_ONLY
+    remaining: >-
+      Must not become a new ACCEPT authority ahead of a pre-registered
+      confirmation. Parity study only.
+
+  - id: SHELF-015
+    name: "Semantic entropy probes from hidden states"
+    source:
+      title: "Semantic Entropy Probes: Robust and Cheap Hallucination Detection in LLMs"
+      authors: "Jannik Kossen et al."
+      venue: "arXiv"
+      url: "https://arxiv.org/abs/2406.15927"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-03"
+      reported_results: >-
+        Authors estimate semantic entropy from hidden states in one generation
+        instead of sampling many. Their setup, their numbers.
+    roadmap_ref: "RF-06"
+    remora_status: >-
+      Requires hidden-state access, so it applies only to locally hosted
+      models, not to the API oracles REMORA routes through today.
+    adoption: PROTOTYPE_ONLY
+    remaining: >-
+      Admissible as a diagnostic latent signal only. It may never populate
+      argument_supported, tool_matches_goal or policy_allowed.
+
+  # ── Internal prerequisite, not an external component ───────────────────────
+
+  - id: SHELF-020
+    name: "Wire the routing context builder into the authoritative execution path"
+    source:
+      title: "Internal finding — no external source"
+      authors: "REMORA code review, 2026-08-03"
+      venue: internal
+      verification: INTERNAL
+      verified: "2026-08-03"
+      reported_results: >-
+        No external result. Verified by inspection: build_full_observation is
+        imported by remora/toolcall/routing/*, the holdout scripts and tests,
+        and by neither servers/api.py nor servers/execution_api.py.
+        ToolContractRegistry appears only in the contract module, the routing
+        evaluation and tests.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      The whole task–tool semantics layer — ToolContract, TaskIntent,
+      goal_match, effect_prediction — is exercised in the research and
+      benchmark path and is absent from the path that actually enforces.
+      Everything measured about it is therefore measured about a component the
+      production route does not run.
+    adoption: SCOPED
+    remaining: >-
+      One authoritative context builder used by both the benchmarks and
+      /v1/execution/assess, so the system under test is the system enforced.
+      Invariants to hold: no production path builds safety fields by hand, no
+      caller can set tool_matches_goal=True, and the contract/state/validator
+      hashes bind into the lease and envelope.

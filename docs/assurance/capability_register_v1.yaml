@@ -141,6 +141,16 @@ capabilities:
       - tests/test_tool_registry_research.py
     caveat: "Wired 2026-07-27 (issue #13): /v1/execution/execute dispatches through GovernedToolDispatcher under an ExecutionLease after PEP consume; tool callables come only from REMORA_TOOL_REGISTRY_MODULE (research profile ships side-effect-bounded store_artifact/read_telemetry). Response/audit report the real outcome (tool_execution / tool_executed). Remaining: transport-anchored actor identity, durable multi-process nonce store (REM-025), deployment fronting real downstream credentials, external validation (REM-021/REM-030)."
 
+  - id: CAP-014
+    name: "Declared-effect consistency (expected_effect_matches tri-state authority)"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - remora/toolcall/routing/effect_prediction.py
+      - remora/toolcall/routing/tool_contract.py
+      - tests/test_effect_prediction.py
+      - remora/policy/decision_engine.py
+    caveat: "Fills the expected_effect_matches slot that CallCompatibility had left None. Refutes read-request-served-by-mutating-tool, change-request-served-by-read-only-tool, and a declared post-state writing an unnamed resource; tightens a mutating contract with no declared state_delta from SUPPORTED to UNKNOWN. Wired into the routing evaluation path (remora/toolcall/routing/evaluate.py) and the engine's conditional gates, NOT into the /v1/assess REST path, which has no tool contract to read. DISCRIMINATION IS UNMEASURED: no blind or development artifact quantifies what this catches on real data, so no accuracy or error-reduction number may be quoted for it anywhere. Design and source appraisal: docs/13-research-frontier-roadmap.md RF-10. Requires deployment-supplied contracts; absent a contract every verdict is UNKNOWN and nothing changes."
+
   - id: CAP-META
     name: "Metatesting of the evidence regime (audit gates are mutation-tested)"
     status: IMPLEMENTED_LIBRARY

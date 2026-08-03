@@ -48,6 +48,7 @@ class DecisionReason(str, Enum):
     # declared tool contract contradicts the task's goal — wrong resource, or
     # right resource and wrong effect.
     TOOL_DOES_NOT_MATCH_GOAL = "tool_does_not_match_goal"
+    EXPECTED_EFFECT_CONTRADICTED = "expected_effect_contradicted"
     TRACE_ATTACHED = "trace_attached"
     ORDERED_HIGH_TRUST = "ordered_high_trust"
     DISORDERED_NO_EVIDENCE = "disordered_no_evidence"
