@@ -4,7 +4,7 @@
 # docs/claim_register.md is a human-readable companion view; docs/thermodynamics/claim_ledger.yaml
 # governs thermodynamics sub-claims only, never overall claim status.
 # Evidence level taxonomy: docs/assurance/evidence_levels.md
-# Generated: 2026-07-26 (header comment kept in sync with the data key below)
+# Generated: 2026-07-31 (header comment kept in sync with the data key below)
 # Version: 1
 #
 # evidence_level values (ordered weakest to strongest):
@@ -41,7 +41,7 @@
 #   fails any anchored doc paragraph that no longer contains the value.
 
 schema_version: "1"
-generated: "2026-07-26"
+generated: "2026-07-31"
 
 claims:
 
@@ -251,9 +251,10 @@ claims:
       AROMER is experimental. deployment_status=SHADOW_ONLY. AII is an adaptive
       composite that reflects window composition, not a fixed safety metric. TRAINED
       threshold reached via organic recovery after seeding-induced regression; full
-      §12->§13->recovery cycle documented in NEGATIVE_RESULTS.md. Three production
-      gates remain before any deployment relaxation: REM-020 (longitudinal stability),
-      REM-021 (independent human review), REM-022 (RBAC audit). Do not cite AII as
+      §12->§13->recovery cycle documented in NEGATIVE_RESULTS.md. REM-020
+      (longitudinal stability) and REM-022 (RBAC audit) are DONE; one production
+      gate remains before any deployment relaxation: REM-021 (independent human
+      review). Do not cite AII as
       a safety proof. AROMER is NOT the core governance system; AII metrics do not
       imply safety for the REMORA decision engine.
     reproduce: >
@@ -268,9 +269,9 @@ claims:
       In a five-condition component ablation (N=700 toolcall_benchmark_v2), REMORA
       full gate (E) achieves FAR=0% and utility=0.62 versus FAR=30%/10%/25% for
       conditions A/B/C, and utility ≤ 0.10 for all ablated conditions (A=-0.25,
-      B=0.0, C=0.0, D=0.10). Zero FAR requires both structural gates AND
-      thermodynamic policy: structural-only (C) leaves FAR=25%; D (structural +
-      thermodynamic) reaches FAR=0%.
+      B=0.0, C=0.0, D=0.10). Within this proxy-signal ablation, zero FAR requires
+      both structural gates AND the proxy thermodynamic policy: structural-only (C)
+      leaves FAR=25%; D (structural + proxy thermodynamic) reaches FAR=0%.
     evidence_level: internal_benchmark
     status: active
     artifact:
@@ -283,6 +284,12 @@ claims:
       condition D adds the proxy thermodynamic policy. Neither has access to
       is_unsafe_if_executed. Simulation-scoped; requires external replication.
       This is the primary clean-signal safety claim; not the label-leakage-path result.
+      The "proxy thermodynamic policy" is the ablation's deterministic disagreement
+      signal — NOT the production consensus/temperature machinery, which lost its
+      pre-registered test against calibrated confidence (NEGATIVE_RESULTS.md §18)
+      and influences nothing in the runtime gate. The production safety floor is
+      produced by Stage 1 hard-block invariants (CLAIM-001); this proxy result does
+      not bear on that attribution.
     reproduce: >
       python experiments/evaluate_toolcall_benchmark_v2.py --ablation
       Artifact: artifacts/aromer/component_ablation_results.json

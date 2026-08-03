@@ -1,7 +1,7 @@
 # AI-Assisted Adversarial Security Review: Findings & Disposition v1
 
-> **Historical findings snapshot (2026-07-03) — do not cite dispositions as
-> current state.** ROADMAP dispositions below reflect the codebase at review
+> **Historical findings snapshot (2026-07-03) — do not cite dispositions as current state.**
+> ROADMAP dispositions below reflect the codebase at review
 > time; several have since shipped (governed dispatch through the API path is
 > CAP-013 `WIRED_API_PATH`, durable audit/execution state exists behind
 > `REMORA_PG_DSN`/`REMORA_CHAIN_DB`). Current status authority:

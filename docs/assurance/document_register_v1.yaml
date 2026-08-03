@@ -512,7 +512,7 @@ documents:
   path: docs/assurance/policy_engine_audit_v1.md
   status: historical
   topic: docs_assurance_policy_engine_audit_v1_md
-  code_synced: verified
+  code_synced: mismatch
   verdict: stale
   last_audited: '2026-08-03'
   last_reviewed: '2026-08-03'
@@ -578,7 +578,7 @@ documents:
   path: docs/assurance/ai_assisted_adversarial_security_review_v1.md
   status: historical
   topic: docs_assurance_ai_assisted_adversarial_security_review_v1_md
-  code_synced: verified
+  code_synced: mismatch
   verdict: stale
   last_audited: '2026-08-03'
   last_reviewed: '2026-08-03'
