@@ -1,5 +1,5 @@
 schema_version: '1'
-updated: '2026-07-30'
+updated: '2026-08-03'
 documents:
 - id: DOC-001
   version: v1
@@ -2108,6 +2108,29 @@ documents:
   audience:
   - researchers
   - evaluator
+- id: DOC-294
+  version: v1
+  path: docs/research/research_shelf_v1.yaml
+  status: canonical
+  topic: docs_research_research_shelf_v1_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-08-03'
+  last_reviewed: '2026-08-03'
+  audience:
+  - researchers
+- id: DOC-295
+  version: v1
+  path: docs/deployment/execution-quickstart.md
+  status: canonical
+  topic: docs_deployment_execution-quickstart_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-08-03'
+  last_reviewed: '2026-08-03'
+  audience:
+  - operators
+  - evaluator
 
 topics:
 - docs_assurance_superseded_claims_md
@@ -2342,3 +2365,5 @@ topics:
 - NOTICE
 - docs_archive_remora_infographic_v3_dark_html
 - docs_remora_architecture_html
+- docs_research_research_shelf_v1_yaml
+- docs_deployment_execution-quickstart_md

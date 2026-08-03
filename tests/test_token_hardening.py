@@ -110,8 +110,14 @@ def test_in_process_ledger_does_not_survive_a_restart(tmp_path) -> None:
     assert EnforcementGate(strict=True).check(token, consume=True).allowed is True
 
 
-def test_durable_ledger_refuses_the_replay_across_processes(tmp_path) -> None:
-    """With a durable ledger the same replay is refused, which is the point."""
+def test_durable_ledger_refuses_the_replay_from_a_second_gate(tmp_path) -> None:
+    """With a durable ledger the same replay is refused, which is the point.
+
+    Scope note: this exercises a second ``EnforcementGate`` over the same
+    ledger file *in one process*. It does not spawn a new interpreter, so it
+    proves the ledger is the authority rather than the in-memory set; true
+    cross-restart behaviour is inferred from that, not directly observed.
+    """
     db = str(tmp_path / "jti.db")
     token = _issue()
 

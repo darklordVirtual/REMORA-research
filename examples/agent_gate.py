@@ -21,8 +21,10 @@ metadata is resolved server-side and dispatch runs through the
 GovernedToolDispatcher under an ExecutionLease.
 
 Works the same wherever tool calls come from — OpenAI function-calling,
-LangGraph, CrewAI, AutoGen (ready-made adapters in ``remora.integrations``),
-or your own loop as below. Deterministic, offline, no API keys.
+LangGraph, CrewAI, AutoGen (worked examples next to this file:
+``openai_tool_calling.py``, ``langgraph_integration.py``,
+``crewai_integration.py``, ``autogen_integration.py``), or your own loop as
+below. Deterministic, offline, no API keys.
 
 Run:
     python examples/agent_gate.py

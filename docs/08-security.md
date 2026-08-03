@@ -99,7 +99,12 @@ Before any production deployment, confirm all items below. Source:
 ### Rate limiting
 
 - [ ] Cloudflare Rate Limiting rules configured (100 req/min per IP minimum)
-  (no rate limiting currently implemented, risk of DoS / cost amplification on leaked secret)
+  (the governance API limits `POST /v1/assess` per tenant in-process,
+  `servers/api.py:_InMemoryRateLimiter`, default 120 requests per 60-second
+  window via `REMORA_ASSESS_RATE_LIMIT_PER_MIN`, `0` disables it. That limiter
+  is per-process and not shared across replicas, and it does not cover the
+  workers, so edge/IP rate limiting is still required against DoS and cost
+  amplification on a leaked secret.)
 
 ### Dependencies
 
@@ -123,7 +128,7 @@ Before any production deployment, confirm all items below. Source:
 |---|---|---|
 | No `/query` auth on `rag-oracle` | Anyone can query the knowledge base | Accept if KB is non-sensitive; add auth if sensitive |
 | CORS wildcard | CSRF risk for browser-based callers | Restrict origins before browser-facing deploy |
-| No rate limiting | DoS / cost amplification | Add CF Rate Limiting rules |
+| No edge or per-replica-shared rate limiting (the API's in-process per-tenant limiter does not span replicas and does not cover the workers) | DoS / cost amplification | Add CF Rate Limiting rules |
 | Audit log `UPDATE` allowed | Approval records can be overwritten | WORM log for regulated deployments |
 | No mTLS between workers | Service binding calls unencrypted in transit | Enable mTLS in Cloudflare Zero Trust if required |
 | No semantic injection detection | Sophisticated indirect injection not caught | NLI/semantic entailment model at retrieval layer |

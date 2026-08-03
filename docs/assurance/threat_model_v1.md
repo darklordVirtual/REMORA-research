@@ -10,8 +10,10 @@
 
 **Status:** STRIDE baseline — cited as EU AI Act Art. 11 technical documentation
 **Scope:** `darklordVirtual/REMORA-research` (STRIDE analysis of the governance core)
-**Related gates:** REM-021, REM-024, REM-030
-**Related gates:** REM-022 (NOT_STARTED), REM-021 (NOT_STARTED)
+**Related gates:** REM-021 (NOT_STARTED), REM-022 (DONE), REM-024 (IN_PROGRESS),
+REM-025 (NOT_STARTED), REM-030 (NOT_STARTED). Statuses are authoritative in
+[`remediation_register.yaml`](remediation_register.yaml); this line is a pointer,
+not a second source of truth.
 
 This document is grounded exclusively in code and files that exist in the repository.
 No capabilities are invented. Claims marked as gaps are gaps; claims marked as
@@ -205,7 +207,7 @@ doc (`docs/08-security.md`) document an `rag-oracle` worker with endpoints:
 | Cloudflare Rate Limiting | Pre-deployment checklist | NOT implemented — checklist only |
 | R2 path traversal validation | Pre-deployment checklist | NOT confirmed in code |
 | RAG /ingest content-length | Pre-deployment checklist | NOT implemented — checklist only |
-| RBAC for signing keys | REM-022 (NOT_STARTED) | NOT implemented |
+| RBAC for signing keys | REM-022 (DONE): written policy in `rbac_policy_v1.md` | Policy documented; technical enforcement NOT implemented (no KMS/HSM, key is a plaintext env var) |
 | KMS/HSM key management | Documented as future requirement | NOT implemented |
 | mTLS between workers | Documented as optional | NOT implemented |
 
@@ -229,8 +231,8 @@ doc (`docs/08-security.md`) document an `rag-oracle` worker with endpoints:
 | Single-token mode trusts X-Remora-Role header | Caller can self-promote role | Use multi-tenant mode (REMORA_API_TOKENS) in production; deprecate single-token mode |
 | CORS wildcard | CSRF risk for browser callers | Restrict to allowlist before browser-facing deploy |
 | HF_TOKEN in Python heredoc in CI workflow | Secret may appear in runner logs if Python prints it | Rewrite step to pass token via environment variable, not string interpolation |
-| No token expiry on PolicyDecisionToken | Captured token could be replayed indefinitely | Add `exp` claim and validate issued_at within window |
-| Actor identity not bound to authenticated credential | Non-repudiation gap in audit log | Bind actor_identity to token identity in multi-tenant mode |
+| No expiry on the API *bearer* token (the `PolicyDecisionToken` gap is closed: `token.py:verify()` rejects a token with no `expires_at` as `missing_expiry`, and `issue()` applies a default TTL) | A leaked bearer token stays valid until the operator removes it and restarts | Add bearer-token expiry and hot revocation |
+| Lease nonce ledger is in-process (REM-025) | Replay semantics change across multiple API replicas | Durable multi-process nonce ledger |
 
 ### Medium gaps (documented, accepted for research phase)
 
@@ -249,7 +251,9 @@ doc (`docs/08-security.md`) document an `rag-oracle` worker with endpoints:
 This threat model does NOT claim:
 
 - That REMORA is production-certified or externally audited
-- That the RBAC design is complete (REM-022 is NOT_STARTED)
+- That RBAC is technically enforced on signing keys. REM-022 is DONE, but what
+  it delivered is the written policy in `rbac_policy_v1.md`; KMS/HSM key
+  custody and CI-only deployment remain open.
 - That all gaps listed above are mitigated in the current codebase
 - That the system is safe against host-level attacks, model extraction, or infrastructure compromise
 - That this analysis constitutes a penetration test

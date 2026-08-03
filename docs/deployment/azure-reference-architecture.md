@@ -128,6 +128,38 @@ az containerapp create \
   --env-vars "GROQ_API_KEY=secretref:groq-key"
 ```
 
+### 3b. Execution layer (governed dispatch)
+
+The container above serves the assess path as-is. To enable the
+enforcement-grade `/v1/execution/*` path (signed one-time grants, approval
+freshness re-gate, lease-bound dispatch), extend the container app's
+environment:
+
+```bash
+az containerapp update --name remora-assurance --resource-group rg-remora \
+  --set-env-vars \
+    "REMORA_ENV=production" \
+    "REMORA_API_TOKENS=secretref:remora-tokens" \
+    "REMORA_CONTROL_PLANE_DSN=secretref:pg-dsn" \
+    "REMORA_PG_DSN=secretref:pg-dsn" \
+    "REMORA_PDP_SIGNING_KEY=secretref:pdp-key" \
+    "REMORA_TOOL_REGISTRY_MODULE=my_app.remora_registry"
+```
+
+The Flexible Server provisioned in step 1 carries both stores: the durable
+DecisionEnvelope store (`REMORA_CONTROL_PLANE_DSN`) and the execution state —
+tenant audit chain, review queue, one-time-grant ledger (`REMORA_PG_DSN`).
+Production mode refuses to start without them; without durable state a
+consumed grant becomes replayable across container restarts. Keep signing
+keys in Key Vault like the API keys above. The tool registry module is
+deployment-owned code baked into the image — request payloads can never add
+or replace callables. Full walkthrough and verification round:
+[`execution-quickstart.md`](execution-quickstart.md).
+
+Run **one replica** for the execution path until REM-025 (durable lease-nonce
+ledger) closes: the jti grant ledger is durable in PostgreSQL, but lease
+nonces are per-process.
+
 ### 4. Azure OpenAI configuration
 
 Deploy models via Azure OpenAI:

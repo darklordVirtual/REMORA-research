@@ -372,6 +372,21 @@ def _paragraph_around(lines: list[str], idx: int) -> str:
     return " ".join(lines[start : end + 1])
 
 
+def _supersession_context(lines: list[str], idx: int) -> str:
+    """Return the text whose supersession markers govern line ``idx``.
+
+    A markdown table is one blank-line-delimited block, so
+    ``_paragraph_around`` hands back every row at once. That made the marker
+    check leak across rows: the word "Archive" in an unrelated citation on one
+    row exempted every other row in the same table, including rows quoting
+    figures a re-issue had retired (found 2026-08-03 in
+    ``paper/claim_ledger.md``). A row must therefore carry its own marker.
+    """
+    if lines[idx].lstrip().startswith("|"):
+        return lines[idx]
+    return _paragraph_around(lines, idx)
+
+
 def check_retired_values(
     doc_path: Path, text: str, claims: list[dict]
 ) -> list[tuple[str, str]]:
@@ -403,8 +418,8 @@ def check_retired_values(
             for idx, line in enumerate(lines):
                 if value not in line:
                     continue
-                paragraph = _paragraph_around(lines, idx).lower()
-                if any(marker in paragraph for marker in SUPERSESSION_MARKERS):
+                context = _supersession_context(lines, idx).lower()
+                if any(marker in context for marker in SUPERSESSION_MARKERS):
                     continue
                 errors.append(
                     (

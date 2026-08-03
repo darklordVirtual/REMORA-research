@@ -163,8 +163,10 @@ identity — never from the caller, and never from the tool's *name*:
 enforcement-grade path is the `/v1/execution` API, where metadata is
 resolved server-side and dispatch runs through the `GovernedToolDispatcher`
 under an `ExecutionLease`. Worked registry-based loop:
-[examples/agent_gate.py](../examples/agent_gate.py); framework adapters
-(OpenAI/LangGraph/CrewAI/AutoGen): `remora.integrations`.
+[examples/agent_gate.py](../examples/agent_gate.py); worked framework examples
+(OpenAI function-calling, LangGraph, CrewAI, AutoGen) live in
+[examples/](../examples/) as standalone scripts. (`remora.integrations`
+currently ships only the GO-STAR bridge.)
 
 ## `replay` — persist and prove a shadow-mode trail
 

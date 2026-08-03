@@ -49,7 +49,9 @@ releases.
   and the PEP's consumed-jti ledger were all process-local, which meant a
   one-time execution grant consumed by one worker was accepted again by a
   second worker or after a restart. Regression tests:
-  `tests/test_token_hardening.py::test_durable_ledger_refuses_the_replay_across_processes`.
+  `tests/test_token_hardening.py::test_durable_ledger_refuses_the_replay_from_a_second_gate`
+  (a second gate over the same ledger file, same process; no test spawns a new
+  interpreter, so restart behaviour is inferred from the shared ledger).
 - **Worker governance records.** `workers/agent-control` now writes a
   hash-chained `DecisionEnvelope` v2 per `/execute` (including refused calls)
   into new D1 tables, with `GET /envelopes`, `/envelopes/{id}` and

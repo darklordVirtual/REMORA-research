@@ -43,7 +43,7 @@ The numbered series is the primary reading path.
 | [10-contributing.md](10-contributing.md) | Contribution rules and quality gates |
 | [11-benchmark-validation-plan.md](11-benchmark-validation-plan.md) | Plan for external benchmark validation |
 | [12-agentharm-validation.md](12-agentharm-validation.md) | AgentHarm external-benchmark validation |
-| [13-research-frontier-roadmap.md](13-research-frontier-roadmap.md) | Research frontier roadmap: RF-01–RF-09 work packages (PROPOSED) |
+| [13-research-frontier-roadmap.md](13-research-frontier-roadmap.md) | Research frontier roadmap: RF-01–RF-10 work packages (PROPOSED, except RF-10 slice 1 = CAP-014) |
 | [AI_USE.md](AI_USE.md) | Disclosure of AI-assisted development |
 
 ## Evidence and results
@@ -113,6 +113,7 @@ The numbered series is the primary reading path.
 | [research/routing_benchmark_v1_design.md](research/routing_benchmark_v1_design.md) | Tool-routing benchmark design: predicates, frozen routing, leakage gates |
 | [research/research_control_matrix.generated.md](research/research_control_matrix.generated.md) | Research-line → control → code → test matrix (generated) |
 | [research/research_control_matrix_v1.yaml](research/research_control_matrix_v1.yaml) | Matrix source |
+| [research/research_shelf_v1.yaml](research/research_shelf_v1.yaml) | Vetted external-component shelf: source, retrieval status, adoption verdict per candidate |
 | [research/benchmark_round_2026_07.md](research/benchmark_round_2026_07.md) | 2026-07 benchmark round |
 | [research/method_alternatives_2026_07.md](research/method_alternatives_2026_07.md) | Method alternatives considered |
 | [research/governance_intelligence_layer.md](research/governance_intelligence_layer.md) | Governance-intelligence layer |
@@ -157,6 +158,7 @@ The numbered series is the primary reading path.
 
 | Document | Contents |
 |---|---|
+| [deployment/execution-quickstart.md](deployment/execution-quickstart.md) | Execution-path deployment quickstart: install → configure → registry → run → verify the chain |
 | [deployment/azure-reference-architecture.md](deployment/azure-reference-architecture.md) | Azure reference architecture |
 | [deployment/onprem-airgapped.md](deployment/onprem-airgapped.md) | On-prem / air-gapped deployment |
 | [enterprise/togaf-enterprise-rollout-plan.md](enterprise/togaf-enterprise-rollout-plan.md) | TOGAF enterprise rollout plan |

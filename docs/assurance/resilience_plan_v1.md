@@ -41,9 +41,11 @@ mode-degradation rule, [`../01-architecture.md`](../01-architecture.md)).
 ## 2. Required behavior: the degradation ladder (REM-032)
 
 Five recorded modes. Transitions in either direction MUST emit a degradation
-event into the audit chain (mode, cause, timestamp, affected links), this
-operationalizes the existing mode-degradation rule, which today is stated but
-has no dedicated recorder.
+event into the audit chain (mode, cause, timestamp, affected links). The
+recorder exists: `remora/governance/degradation.py:DegradationRecorder` derives
+the current mode from reported link health and appends every transition to a
+`ChainedEventLog`. What remains a deployment concern is which process hosts it
+and which links report into it, see section 6.
 
 | Mode | Trigger | What still executes |
 |---|---|---|
@@ -70,17 +72,21 @@ execution and refuses on any mismatch. If the tool call's *values changed*
 after approval, the approval is already void by construction.
 (`remora/policy/observation.py`, `remora/enforcement/gate.py`.)
 
-**3b. Mandatory expiry, partial, to be tightened.** `PolicyDecisionToken`
-supports signed `expires_at`, but legacy no-expiry tokens are still accepted
-(recorded as audit finding F-2). REM-033 makes expiry mandatory for VERIFY
-and ESCALATE approvals: recommended default TTL 15 minutes for production
-writes, 24 h ceiling for anything. An expired approval returns the item to
-the review queue; it never silently re-executes.
+**3b. Mandatory expiry, implemented.** `PolicyDecisionToken` carries a signed
+`expires_at`, and the no-expiry window that audit finding F-2 recorded is
+closed: `remora/enforcement/token.py:verify()` rejects a token without
+`expires_at` outright (`reason="missing_expiry"`), and `issue()` applies a
+default TTL when the issuer sets none, rejecting any TTL outside
+`(0, MAX_TOKEN_TTL_SECONDS]`. An expired approval returns the item to the
+review queue; it never silently re-executes. Residual gap: the API *bearer*
+token is a separate credential and still has no expiry.
 
-**3c. Re-gate at execution, the missing piece.** Identical arguments do not
+**3c. Re-gate at execution, implemented.** Identical arguments do not
 imply an unchanged world: occupancy changed, telemetry crossed a threshold,
-evidence was contradicted while the item sat in the queue. Required
-execution-time semantics:
+evidence was contradicted while the item sat in the queue. These are the
+execution-time semantics, implemented on `POST /v1/execution/execute`
+(`servers/execution_api.py`), which re-decides on a fresh observation before
+consuming the one-time grant:
 
 ```
 on execute(approved_item):

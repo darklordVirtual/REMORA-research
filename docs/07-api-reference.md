@@ -28,6 +28,7 @@ blocks without updating the envelope hash and schema.
 | `history` | Session-level history references |
 | `policy_learning` | Signals exported to the (experimental) learning layer |
 | `audit` | SHA-256 hash-chain linkage and audit metadata |
+| `effect` | Decision-to-effect execution state: `executed`, `tool_call_hash`, `effect_outcome`, `ledger_entry` |
 | `causal_explanation` | Optional policy-only what-if analysis (`decision_scope="policy_only"`) |
 
 Serialise with `envelope.to_dict()`. The audit hash chain
@@ -234,8 +235,12 @@ short-lived signed token on ACCEPT, and `POST /v1/execution/execute` re-gates
 the fresh observation and consumes a one-time grant through the gate. The
 `jti`-consumption store persists to a `pep_consumed` table when
 `REMORA_PG_DSN` (Postgres) or `REMORA_CHAIN_DB` (SQLite) is configured
-(`remora/enforcement/gate.py`), in-process set by default; cross-restart
-replay refusal is not yet directly tested. See `servers/execution_api.py` and
+(`remora/enforcement/gate.py`), in-process set by default. A second gate over
+the same durable ledger refuses the replay
+(`tests/test_token_hardening.py::test_durable_ledger_refuses_the_replay_from_a_second_gate`);
+no test spawns a new interpreter, so behaviour across an actual process restart
+is inferred from the shared ledger rather than directly observed. See
+`servers/execution_api.py` and
 `docs/assurance/capability_register_v1.yaml` CAP-003 (WIRED_API_PATH).
 
 ### Execution state machine, `servers/execution_api.py` (`/v1/execution/*`)
@@ -393,4 +398,3 @@ result = provider.triage(
 
 Also implements the REMORA evidence provider interface for use in the oracle
 pipeline. See `docs/integrations/cyber_evidence_layer.md`.
-`effect`

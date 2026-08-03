@@ -16,7 +16,7 @@
 # EXTERNALLY_VERIFIED — deployment_status is SHADOW_ONLY until REM-021.
 
 schema_version: "1"
-updated: "2026-07-30"
+updated: "2026-08-03"
 
 capabilities:
   - id: CAP-001
@@ -45,7 +45,7 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    caveat: "Issued and consumed via /v1/execution/*; jti one-time consumption persists to a pep_consumed table when REMORA_PG_DSN (Postgres) or REMORA_CHAIN_DB (SQLite) is configured (remora/enforcement/gate.py), in-process set by default. Cross-restart replay refusal is not yet directly tested; the lease nonce ledger stays in-process (REM-025)."
+    caveat: "Issued and consumed via /v1/execution/*; jti one-time consumption persists to a pep_consumed table when REMORA_PG_DSN (Postgres) or REMORA_CHAIN_DB (SQLite) is configured (remora/enforcement/gate.py), in-process set by default. A second gate over the same durable ledger refuses the replay (tests/test_token_hardening.py::test_durable_ledger_refuses_the_replay_from_a_second_gate); no test spawns a new interpreter, so behaviour across an actual process restart is inferred from the shared ledger, not directly observed. The lease nonce ledger stays in-process (REM-025)."
 
   - id: CAP-004
     name: "Tool-call payload binding (canonical hash, recomputed before execution)"
