@@ -1,7 +1,11 @@
 # 13 — Research Frontier Roadmap (2026-07)
 
-**Status: proposal.** Nothing in this document is a claim. No work package (WP)
-below is implemented. Every WP follows the repo contract: a claim may only enter
+**Status: proposal, with one exception.** Every work package (WP) below is
+unimplemented **except RF-10 slice 1**, which shipped on 2026-08-03 and is
+recorded as CAP-014 in `docs/assurance/capability_register_v1.yaml`
+(`IMPLEMENTED_LIBRARY`, discrimination unmeasured, so no accuracy number may be
+quoted for it). Nothing else in this document is a claim. Every WP follows the
+repo contract: a claim may only enter
 `README.md` / `EVIDENCE_OF_CAPABILITY.md` after its artifact exists on disk, its
 tests pass under `make test` (deterministic, no API keys), and `make audit`
 verifies claim ↔ artifact consistency. Caveats travel with numbers.
@@ -12,11 +16,12 @@ mid-2026, plus REMORA's own open findings (`NEGATIVE_RESULTS.md` §3
 entropy-backend mismatch; the AgentHarm FBR=100% corner; the tamper-evident
 limitation in the README Limitations section, registered as REM-025; the
 REM-020/REM-021 deployment gates; the SAP v3 CWV result, validated but not
-wired). Each WP was grounded against the working tree on 2026-07-30
-(master @ `0646a87`); the "Already in the repo" subsections record what the
-draft's gap statements had to be corrected against.
+wired). RF-01…RF-09 were grounded against the working tree on 2026-07-30
+(master @ `0646a87`); RF-10 was added on 2026-08-03 (master @ `f510cde`). The
+"Already in the repo" subsections record what the draft's gap statements had to
+be corrected against.
 
-**Namespace note.** WP identifiers are RF-01…RF-09 (research frontier). The
+**Namespace note.** WP identifiers are RF-01…RF-10 (research frontier). The
 `REM-` prefix is deliberately not used: it is the namespace of
 `docs/assurance/remediation_register.yaml` (REM-001…REM-046, machine-consumed
 by release-profile gating), and roadmap WPs are not remediation items. Where a

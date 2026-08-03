@@ -190,10 +190,22 @@ def test_envelope_blocks_match() -> None:
     actual = {f.name for f in dataclasses.fields(DecisionEnvelope)}
     expected = {"request", "assessment", "gate", "reviewer_context",
                 "follow_up", "history", "policy_learning", "audit",
-                "causal_explanation", "effect", "effect"}
+                "causal_explanation", "effect"}
     assert actual == expected
-    for block in expected:
-        assert f"`{block}`" in DOC_TEXT
+
+    # A bare `effect` token dropped anywhere in the file used to satisfy this
+    # check, so the block table shipped one row short while CI stayed green
+    # (found 2026-08-03). Require the row, not the mention: each block must
+    # appear as the first cell of a row in the contract table.
+    table = DOC_TEXT.split("| Block | Contents |", 1)[1].split("\n\n", 1)[0]
+    documented = {
+        m.group(1)
+        for m in re.finditer(r"^\|\s*`([a-z_]+)`\s*\|", table, re.MULTILINE)
+    }
+    assert documented == expected, (
+        f"envelope block table out of sync: missing {sorted(expected - documented)}, "
+        f"unexpected {sorted(documented - expected)}"
+    )
 
 
 def test_enforcement_api_matches() -> None:

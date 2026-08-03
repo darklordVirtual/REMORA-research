@@ -26,14 +26,14 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 
 | Role | assess | evidence | execute | rerun | read | review | follow_up |
 |------|--------|----------|---------|-------|------|--------|-----------|
-| admin | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| operator | ✓ | ✓ | ✓ | ✓ | ✓ | (|) |
-| reviewer | (|) | (|) | ✓ | ✓ | ✓ |
-| domain_expert | (|) | (|) | ✓ | ✓ |, |
-| senior_authority | (|) | (|) | ✓ | ✓ |, |
-| soc_analyst | (|) | (|) | ✓ | ✓ |, |
-| legal_counsel | (|) | (|) | ✓ | ✓ |, |
-| viewer | (|) | (|) | ✓ | (|) |
+| admin | yes | yes | yes | yes | yes | yes | yes |
+| operator | yes | yes | yes | yes | yes | no | no |
+| reviewer | no | no | no | no | yes | yes | yes |
+| domain_expert | no | no | no | no | yes | yes | no |
+| senior_authority | no | no | no | no | yes | yes | no |
+| soc_analyst | no | no | no | no | yes | yes | no |
+| legal_counsel | no | no | no | no | yes | yes | no |
+| viewer | no | no | no | no | yes | no | no |
 
 **Capability definitions:**
 - `assess`, submit a governance request (`POST /v1/assess`)
@@ -46,7 +46,10 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 
 (`assess` also gates `POST /v1/execution/assess`; `review` gates `POST /v1/execution/approve`.)
 
-**Role enforcement:** `X-Remora-Role` header is validated against `REMORA_API_TOKENS` tenant map or the builtin table. An empty or missing role grants zero permissions. See `servers/api.py:_require_capability()`.
+**Role enforcement:** the authenticated role comes from `servers/api.py:_authenticate()`
+and is checked by `servers/api.py:_require_tenant_capability()`. An empty or
+missing role grants zero permissions. Where the role comes from depends on the
+auth mode, and the two modes are not equivalent, see section 3.3.
 
 ---
 
@@ -71,11 +74,28 @@ Defined in `servers/api.py:_BUILTIN_ROLE_PERMISSIONS`.
 
 ### 3.3 API Bearer Tokens
 
-- **Format (single-tenant):** `REMORA_API_BEARER_TOKEN=<secret>`: grants the role specified by `REMORA_API_DEFAULT_ROLE`.
-- **Format (multi-tenant):** `REMORA_API_TOKENS={"<token>": {"tenant": "<id>", "role": "<role>"}}`: per-token tenant and role binding.
-- **Implemented in:** `servers/api.py:_auth_token_data()`
+- **Format (multi-tenant, the mode with real role separation):**
+  `REMORA_API_TOKENS={"<token>": {"tenant": "<id>", "role": "<role>"}}`. The
+  token maps to a fixed `(tenant, role)` pair; callers cannot forge either via
+  headers. Roles outside the matrix in section 2 do not authenticate.
+- **Format (single-token):** `REMORA_API_BEARER_TOKEN=<secret>` validates the
+  token and then reads tenant and role from the `X-Remora-Tenant` and
+  `X-Remora-Role` headers, defaulting to `default` / `operator`. **The role is
+  self-asserted: anyone holding the token can claim any role.** This is a
+  single-operator and development profile with no role separation. Under
+  `REMORA_ENV=production` the `X-Remora-Role` header is ignored and the role is
+  pinned to `operator`, so approval-role gating cannot be satisfied by
+  self-assertion; production role separation requires the token-table mode
+  (external review 2026-07-28, N4).
+- **No credentials configured:** allowed only under `REMORA_ENV=development`.
+  Production startup fails closed.
+- **Implemented in:** `servers/api.py:_authenticate()`, `servers/api.py:_load_token_table()`
 - **Revocation:** Remove the token from `REMORA_API_TOKENS` and restart the server. No hot revocation mechanism in v1.
-- **Gap (acknowledged):** No token expiry enforcement in the bearer layer (envelope token has expiry; bearer token does not). Revocation requires server restart.
+- **Gap (acknowledged):** No token expiry enforcement in the bearer layer.
+  This is separate from `PolicyDecisionToken`, which does enforce expiry:
+  `remora/enforcement/token.py:verify()` rejects a token without `expires_at`
+  outright (`reason="missing_expiry"`). Bearer-token revocation requires a
+  server restart.
 
 ---
 
@@ -123,7 +143,7 @@ All deployments: `cd workers/<name> && npx wrangler deploy`. Requires `CLOUDFLAR
 
 | Log | Location | Retention |
 |----|----------|-----------|
-| DecisionEnvelope records | `REMORA_CONTROL_PLANE_DSN` (PostgreSQL) or in-memory | Operator-defined; recommended minimum: 1 year |
+| DecisionEnvelope records | `REMORA_CONTROL_PLANE_DSN` (`postgres://` or `sqlite:`) or `REMORA_CONTROL_PLANE_DB` (SQLite path); in-memory when neither is set | Operator-defined; recommended minimum: 1 year |
 | AROMER D1 episodes | Cloudflare D1 | Indefinite (no TTL configured) |
 | Agent-control audit ledger | Cloudflare D1 | Indefinite |
 | Server access logs | Platform/infra layer | Operator-defined |

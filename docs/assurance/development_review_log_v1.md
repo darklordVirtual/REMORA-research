@@ -15,7 +15,7 @@ point of the whole repository, so it is the point of this log too.
 
 | Dimension | State | How to verify |
 |---|---|---|
-| Test suite | 3,514 tests, 0 failing (from 3,301 at the start of the hardening cycle: **+213**) | `pip install -e ".[dev,causal,api]" && make test` |
+| Test suite | 4,594 tests collected, 0 failing (3,301 at the start of the hardening cycle; 3,514 when this log was first written) | `pip install -e ".[dev,causal,api]" && make test` |
 | CI | Green on 3 Python versions (3.12/3.13/3.14) + pinned-OPA conformance + claim-provenance gate | GitHub Actions, every push |
 | Result artifacts | 78 committed under `results/`; every headline number is reproducible offline | see §6 |
 | Remediation items | 22 of 30 tracked REM-items DONE; **REM-021 (independent review) is the sole open production gate** | [`remediation_register.yaml`](remediation_register.yaml) |
@@ -157,7 +157,7 @@ No number in this repository requires trusting the author. From a clean clone:
 
 ```bash
 pip install -e ".[dev,causal,api]"
-make test                                   # 3,514 tests, no keys, ~60s
+make test                                   # 4,594 tests, no keys, ~60s
 python scripts/demo_industrial_maintenance.py   # the autonomy boundary, live engine
 python experiments/end_to_end_n500_v3.py        # 0.8878 selective accuracy (claim 3)
 python experiments/evaluate_toolcall_benchmark_v2.py  # unsafe=0.0000 (claims 1-2)

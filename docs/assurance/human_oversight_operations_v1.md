@@ -34,7 +34,11 @@ These are real, tested controls — the substrate this design builds on.
 
 **Crucial distinction:** the queue TTL is a *safety timeout* (inaction resolves
 to ABSTAIN), **not** a reviewer response-time SLA. There is no measurement of
-time-to-review today, and the queue is in-memory by design.
+time-to-review today. The `ReviewQueue` class itself
+(`remora/governance/review_queue.py`) is in-memory by design, but the queue
+behind `/v1/execution/*` is durable when `REMORA_PG_DSN` (Postgres) or
+`REMORA_CHAIN_DB` (SQLite) is configured, and production refuses to start
+without one (`servers/execution_api.py`).
 
 ## 2. Oversight as designed work (the operational layer)
 
@@ -83,9 +87,10 @@ fail-closed queue TTL. Nothing measures them today (gap, §6).
 
 ## 5. Alarm-fatigue mitigation (proposed)
 
-The review queue is a flat in-memory dict with no prioritisation, deduplication,
-batching, or noise budget — so unmitigated volume would degrade oversight
-quality. Proposed measures (all roadmap):
+The review queue is flat, with no prioritisation, deduplication, batching, or
+noise budget, so unmitigated volume would degrade oversight quality. (Durability
+does not help here: a persisted flat queue is still a flat queue.) Proposed
+measures (all roadmap):
 
 - Order the queue by severity (§4), not arrival.
 - Deduplicate structurally identical proposals (same `tool_call_hash` + tenant).
@@ -102,7 +107,7 @@ quality. Proposed measures (all roadmap):
 | Alarm-fatigue mitigation (prioritise/dedup/batch/budget) | missing | REM-042 |
 | On-call roster, coverage, paging/notification | missing | REM-042 |
 | Escalation routing/dispatch to a named target (design-only in `artifacts/credibility-pack/policy-model.md`) | design_only | REM-042 |
-| Durable, queryable operational review queue (current queue is in-memory) | partial | REM-042 |
+| Queryable operational review queue (durable storage exists when Postgres/SQLite is configured; the operational query surface does not) | partial | REM-042 |
 | Federated reviewer identity (OIDC binding) | missing | REM-022 §8, REM-042 |
 | Independent human review of methodology and claims | not started | REM-021 |
 
