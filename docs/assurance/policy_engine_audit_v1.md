@@ -1,5 +1,15 @@
 # REMORA Policy Engine Assurance Audit v1
 
+> **Historical audit snapshot — do not cite as current state.** This audit
+> describes master @ `2cd573d` (2026-06-30). Several findings have since been
+> remediated and are false as statements about today's code: token expiry is
+> now mandatory (`token.py:verify()` rejects `missing_expiry`), RBAC exists
+> (`rbac_policy_v1.md`, REM-022 DONE), and audit/execution state has durable
+> SQLite/Postgres backends behind `REMORA_CONTROL_PLANE_DSN`/`REMORA_PG_DSN`.
+> Current status authority: `capability_register_v1.yaml` and
+> `remediation_register.yaml`. This snapshot is retained as evidence of the
+> audit process, not of the present system.
+
 **Date:** 2026-06-30
 **Scope:** Policy engine, PDP/PEP boundaries, DecisionEnvelope, hash chain, policy versioning
 **Auditor role:** Agent A (automated assurance campaign)

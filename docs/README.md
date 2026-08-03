@@ -88,12 +88,12 @@ The numbered series is the primary reading path.
 | [claim_provenance_gate.md](assurance/claim_provenance_gate.md) | The claim-provenance CI gate |
 | [documentation_governance_v1.md](assurance/documentation_governance_v1.md) | How documentation itself is governed |
 | [benchmark_audit_v1.md](assurance/benchmark_audit_v1.md) | Benchmark audit findings |
-| [policy_engine_audit_v1.md](assurance/policy_engine_audit_v1.md) | Policy-engine audit |
+| [policy_engine_audit_v1.md](assurance/policy_engine_audit_v1.md) | Policy-engine audit (HISTORICAL snapshot of `2cd573d`, 2026-06-30) |
 | [best_practice_gap_audit_v1.md](assurance/best_practice_gap_audit_v1.md) | Gap audit vs research best practice |
 | [development_review_log_v1.md](assurance/development_review_log_v1.md) | Development review log |
 | [external_review_panel_v1.md](assurance/external_review_panel_v1.md) | External review panel record |
 | [independent_review_protocol_v1.md](assurance/independent_review_protocol_v1.md) | Protocol for independent review |
-| [ai_assisted_adversarial_security_review_v1.md](assurance/ai_assisted_adversarial_security_review_v1.md) | Adversarial security review |
+| [ai_assisted_adversarial_security_review_v1.md](assurance/ai_assisted_adversarial_security_review_v1.md) | Adversarial security review (HISTORICAL findings snapshot, 2026-07-03) |
 | [red_team_plan_v1.md](assurance/red_team_plan_v1.md) | Red-team plan |
 | [threat_model_v1.md](assurance/threat_model_v1.md) | Threat model |
 | [rbac_design_v1.md](assurance/rbac_design_v1.md) · [rbac_policy_v1.md](assurance/rbac_policy_v1.md) | RBAC design and policy |
@@ -187,4 +187,4 @@ The numbered series is the primary reading path.
 | Document | Contents |
 |---|---|
 | [aromer/quickstart_aromer.md](aromer/quickstart_aromer.md) | AROMER quickstart |
-| [aromer/REMORA_AROMER_MASTER_DOCUMENT.md](aromer/REMORA_AROMER_MASTER_DOCUMENT.md) | AROMER master document |
+| [aromer/REMORA_AROMER_MASTER_DOCUMENT.md](aromer/REMORA_AROMER_MASTER_DOCUMENT.md) | AROMER technical reference (verification vintage 2026-06-05; registers are the status authority) |
