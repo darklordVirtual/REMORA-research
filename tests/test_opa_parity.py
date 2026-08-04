@@ -42,11 +42,26 @@ from remora.policy.report import DecisionAction, DecisionReason
 # ---------------------------------------------------------------------------
 
 _DECISION_PATH_MODULES = (decision_engine, remora.credal, trap_classifier)
-_OBS_FIELD_RE = re.compile(r"\bobs\.([a-zA-Z_][a-zA-Z0-9_]*)")
+
+#: Receiver names the decision path binds an observation to. ``obs`` is the
+#: ordinary spelling; ``o`` is the parameter name used by the conditional-gate
+#: lambdas in ``decision_engine`` (``lambda e, o, c, t: ... o.field ...``).
+#: Matching only ``obs.`` left those gates invisible: two engine-read fields
+#: (``tool_matches_goal``, ``expected_effect_matches``) went unexported while
+#: this contract test passed (found by the OT/Rego test set, 2026-08-04).
+_OBS_RECEIVERS = ("obs", "o")
+_OBS_FIELD_RE = re.compile(
+    r"\b(?:" + "|".join(_OBS_RECEIVERS) + r")\.([a-zA-Z_][a-zA-Z0-9_]*)"
+)
 
 
 def _fields_read_by_decision_path() -> set[str]:
-    """Every ``obs.<field>`` access in the decision-path modules."""
+    """Every observation-field access in the decision-path modules.
+
+    Covers both receiver spellings (``obs.field`` and the gate lambdas'
+    ``o.field``). A name is kept only when it is a real ``PolicyObservation``
+    field, which filters method calls and unrelated attribute chains.
+    """
     observation_fields = {f.name for f in dataclass_fields(PolicyObservation)}
     read: set[str] = set()
     for module in _DECISION_PATH_MODULES:
@@ -58,6 +73,21 @@ def _fields_read_by_decision_path() -> set[str]:
             if name in observation_fields:
                 read.add(name)
     return read
+
+
+def test_conditional_gate_lambda_fields_are_seen_by_the_contract() -> None:
+    """The scanner must see fields the gate lambdas read as ``o.<field>``.
+
+    Regression pin for the blind spot itself: these two fields are read only
+    through the lambda receiver, so a scanner that matches ``obs.`` alone
+    reports the contract as complete while the OPA input is missing them.
+    """
+    read = _fields_read_by_decision_path()
+    for field in ("tool_matches_goal", "expected_effect_matches"):
+        assert field in read, (
+            f"{field} is read by a conditional gate but the parity scanner "
+            f"does not see it — the OPA contract check is blind to that gate"
+        )
 
 
 def test_every_engine_read_field_is_exported_or_excluded() -> None:

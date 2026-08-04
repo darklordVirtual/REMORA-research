@@ -164,6 +164,15 @@ class OPAContext:
     untrusted_controlled_arguments: tuple[str, ...]
     unvalidated_required_arguments: tuple[str, ...]
     tool_not_in_available_set: bool | None
+    # Declared task-tool semantics (SHELF-020). Both are tri-state: False is an
+    # established contradiction (right form, wrong resource/effect) and drives
+    # the engine to ABSTAIN on reads / ESCALATE on writes; None establishes
+    # nothing and must never behave like a negative. They were missing from
+    # this contract until 2026-08-04 — the gate lambdas read them as
+    # ``o.<field>``, which the parity scanner did not match, so a Rego author
+    # could not write the rule even where the engine enforces it.
+    tool_matches_goal: bool | None
+    expected_effect_matches: bool | None
 
     # Misspecification context
     environment_confidence: float | None
