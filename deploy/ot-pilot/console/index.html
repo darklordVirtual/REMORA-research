@@ -3,134 +3,105 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>REMORA OT Pilot — Operator Console</title>
+<title>REMORA Showcase — Enterprise Governance Console</title>
 <style>
   :root {
-    --bg:#0e1116; --panel:#161b22; --panel2:#1c2230; --line:#2a323d;
-    --ink:#e6edf3; --dim:#8b949e; --accent:#4aa8ff;
-    --accept:#3fb950; --verify:#d29922; --abstain:#8b949e; --escalate:#f85149;
+    --bg:#07111f; --panel:#0f1727; --panel2:#111c2f; --line:#23324a; --ink:#f2f7ff;
+    --dim:#8ba0bd; --accent:#4da3ff; --accent2:#62d2a2; --warn:#f6c85f; --danger:#ff6b6b;
     --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   }
-  @media (prefers-color-scheme: light) {
-    :root { --bg:#f6f8fa; --panel:#fff; --panel2:#f0f3f6; --line:#d7dde3;
-            --ink:#1f2328; --dim:#636c76; }
-  }
   * { box-sizing:border-box }
-  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55
-         -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif }
-  header { padding:20px 28px; border-bottom:1px solid var(--line);
-           display:flex; align-items:center; gap:16px; flex-wrap:wrap }
-  h1 { font-size:19px; margin:0; font-weight:650; letter-spacing:-.01em }
+  body { margin:0; font:15px/1.6 Inter,Segoe UI,Roboto,sans-serif; background:radial-gradient(circle at top left,#11203b 0%,var(--bg) 45%); color:var(--ink); }
+  header { padding:24px 28px 18px; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between; backdrop-filter:blur(12px); }
+  h1 { margin:0; font-size:22px; letter-spacing:-.02em }
   .sub { color:var(--dim); font-size:13px }
-  .pill { font:600 11px/1 var(--mono); padding:5px 9px; border-radius:999px;
-          border:1px solid var(--line); background:var(--panel2); letter-spacing:.04em }
-  .pill.live { color:var(--accept); border-color:color-mix(in srgb,var(--accept) 45%,transparent) }
-  .pill.down { color:var(--escalate); border-color:color-mix(in srgb,var(--escalate) 45%,transparent) }
-  main { padding:22px 28px 60px; max-width:1320px; margin:0 auto }
-  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)) }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px }
-  .card h2 { font-size:12px; margin:0 0 12px; color:var(--dim); font-weight:600;
-             text-transform:uppercase; letter-spacing:.07em }
-  .stat { font:650 30px/1.1 var(--mono); letter-spacing:-.02em }
-  .stat small { font-size:12px; color:var(--dim); font-weight:400; letter-spacing:0 }
-  .row { display:grid; gap:16px; grid-template-columns:1.15fr .85fr; margin-top:16px }
-  @media (max-width:940px){ .row{grid-template-columns:1fr} }
-  .bars { display:flex; flex-direction:column; gap:11px; margin-top:4px }
-  .bar { display:grid; grid-template-columns:78px 1fr 42px; align-items:center; gap:10px }
-  .bar span:first-child { font:600 12px/1 var(--mono); color:var(--dim) }
-  .track { height:9px; background:var(--panel2); border-radius:999px; overflow:hidden }
-  .fill { height:100%; border-radius:999px; transition:width .45s cubic-bezier(.4,0,.2,1) }
-  .bar b { font:600 13px/1 var(--mono); text-align:right }
+  .pill { padding:7px 11px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.03); font:600 11px/1 var(--mono); letter-spacing:.05em; text-transform:uppercase }
+  .pill.live { color:var(--accent2); border-color:rgba(98,210,162,.35); }
+  .pill.down { color:var(--danger); border-color:rgba(255,107,107,.35); }
+  main { padding:24px 28px 64px; max-width:1480px; margin:0 auto }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); margin-bottom:16px }
+  .card { background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015)); border:1px solid var(--line); border-radius:16px; padding:18px 18px 16px; box-shadow:0 20px 40px rgba(0,0,0,.18); }
+  .card h2 { font-size:12px; font-weight:700; text-transform:uppercase; color:var(--dim); letter-spacing:.08em; margin:0 0 10px }
+  .stat { font:700 30px/1.05 var(--mono); letter-spacing:-.02em }
+  .row { display:grid; gap:16px; grid-template-columns:1.1fr .9fr; margin-top:16px }
+  .two-col { display:grid; gap:16px; grid-template-columns:1.05fr 0.95fr; margin-top:16px }
+  @media (max-width:1100px){ .row,.two-col{grid-template-columns:1fr} }
+  .bars { display:flex; flex-direction:column; gap:10px }
+  .bar { display:grid; grid-template-columns:90px 1fr 44px; gap:10px; align-items:center }
+  .bar span { color:var(--dim); font-size:12px; font-family:var(--mono) }
+  .track { height:10px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden }
+  .fill { height:100%; border-radius:999px; transition:width .35s ease }
+  .bar b { text-align:right; font-family:var(--mono); font-size:13px }
   table { width:100%; border-collapse:collapse; font-size:13px }
-  th,td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line) }
-  th { color:var(--dim); font-weight:600; font-size:11px; text-transform:uppercase;
-       letter-spacing:.05em }
-  td.num { font-family:var(--mono); text-align:right }
-  button { font:600 13px/1 inherit; padding:10px 14px; border-radius:9px;
-           border:1px solid var(--line); background:var(--panel2); color:var(--ink);
-           cursor:pointer; transition:.15s }
+  th,td { padding:8px 6px; border-bottom:1px solid var(--line); text-align:left }
+  th { font-size:11px; text-transform:uppercase; color:var(--dim); letter-spacing:.06em }
+  td.num { text-align:right; font-family:var(--mono) }
+  button { border:1px solid var(--line); background:rgba(255,255,255,.04); color:var(--ink); padding:10px 13px; border-radius:10px; cursor:pointer; font-weight:600 }
   button:hover:not(:disabled) { border-color:var(--accent); color:var(--accent) }
-  button:disabled { opacity:.5; cursor:progress }
-  button.primary { background:var(--accent); border-color:var(--accent); color:#06121f }
-  button.primary:hover:not(:disabled) { filter:brightness(1.1); color:#06121f }
-  .scenarios { display:flex; flex-direction:column; gap:9px }
-  .scenario { text-align:left; padding:11px 13px; line-height:1.4 }
-  .scenario em { display:block; color:var(--dim); font-style:normal; font-size:12px; margin-top:3px }
-  pre { background:var(--panel2); border:1px solid var(--line); border-radius:9px;
-        padding:13px; overflow:auto; max-height:420px; font:12px/1.5 var(--mono);
-        white-space:pre-wrap; word-break:break-word; margin:0 }
-  .verdict { display:inline-block; font:700 12px/1 var(--mono); padding:5px 10px;
-             border-radius:6px; letter-spacing:.05em; margin-bottom:10px }
-  .v-accept{background:color-mix(in srgb,var(--accept) 20%,transparent);color:var(--accept)}
-  .v-verify{background:color-mix(in srgb,var(--verify) 20%,transparent);color:var(--verify)}
-  .v-abstain{background:color-mix(in srgb,var(--abstain) 22%,transparent);color:var(--abstain)}
-  .v-escalate{background:color-mix(in srgb,var(--escalate) 20%,transparent);color:var(--escalate)}
-  .toolbar { display:flex; gap:9px; align-items:center; flex-wrap:wrap; margin-bottom:13px }
-  select { font:13px inherit; padding:9px 11px; border-radius:9px;
-           border:1px solid var(--line); background:var(--panel2); color:var(--ink) }
-  code { font:12px var(--mono); background:var(--panel2); padding:2px 6px;
-         border-radius:5px; border:1px solid var(--line) }
-  a { color:var(--accent); text-decoration:none } a:hover{text-decoration:underline}
+  button:disabled { opacity:.55; cursor:progress }
+  button.primary { background:linear-gradient(135deg,var(--accent),#1e7ed7); color:white; border-color:transparent }
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px }
+  select { background:rgba(255,255,255,.04); border:1px solid var(--line); color:var(--ink); padding:9px 11px; border-radius:10px }
+  .scenarios { display:flex; flex-direction:column; gap:8px }
+  .scenario { text-align:left; line-height:1.4 }
+  .scenario em { display:block; color:var(--dim); font-size:12px; margin-top:3px; font-style:normal }
+  pre { background:#050b13; border:1px solid var(--line); border-radius:12px; padding:13px; overflow:auto; max-height:500px; font:12px/1.5 var(--mono); white-space:pre-wrap; word-break:break-word; margin:0 }
+  .verdict { display:inline-block; font:700 12px/1 var(--mono); padding:6px 10px; border-radius:999px; margin-bottom:10px; text-transform:uppercase; letter-spacing:.06em }
+  .v-accept{background:rgba(98,210,162,.16); color:var(--accent2)}
+  .v-verify{background:rgba(246,200,95,.16); color:var(--warn)}
+  .v-abstain{background:rgba(139,148,158,.18); color:#b7c0cc}
+  .v-escalate{background:rgba(255,107,107,.16); color:var(--danger)}
+  code { font:12px var(--mono); background:rgba(255,255,255,.05); padding:2px 6px; border-radius:6px }
+  a { color:var(--accent); text-decoration:none } a:hover{ text-decoration:underline }
   .note { color:var(--dim); font-size:12px; margin-top:12px; line-height:1.5 }
-  .kv { display:grid; grid-template-columns:auto 1fr; gap:5px 14px; font-size:13px }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:6px 14px; font-size:13px }
   .kv dt { color:var(--dim) } .kv dd { margin:0; font-family:var(--mono); font-size:12px }
+  .stack { display:grid; gap:10px }
+  .mini { font-size:12px; color:var(--dim) }
   canvas { width:100%; height:150px; display:block }
 </style>
 </head>
 <body>
 <header>
-  <h1>REMORA <span style="color:var(--dim);font-weight:400">OT Pilot Console</span></h1>
-  <span id="mode" class="pill">connecting…</span>
-  <span id="durable" class="pill"></span>
-  <span class="sub" style="margin-left:auto">
-    <a href="http://localhost:8080/docs" target="_blank" rel="noopener">Swagger</a> ·
-    <a href="http://localhost:8080/redoc" target="_blank" rel="noopener">ReDoc</a> ·
-    <a href="http://localhost:8080/metrics" target="_blank" rel="noopener">Prometheus</a>
-  </span>
+  <div>
+    <h1>REMORA Showcase • Enterprise Governance Console</h1>
+    <div class="sub">Production-code path, observability-first, designed for operators, auditors, and reviewers.</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <span id="mode" class="pill">connecting…</span>
+    <span id="durable" class="pill"></span>
+    <span class="sub">Docs · <a href="http://localhost:8080/docs" target="_blank" rel="noopener">Swagger</a> · <a href="http://localhost:8080/metrics" target="_blank" rel="noopener">Prometheus</a></span>
+  </div>
 </header>
 
 <main>
   <div class="grid">
-    <div class="card"><h2>Governed decisions</h2>
-      <div class="stat" id="m-assess">–</div>
-      <div class="sub">through /v1/execution</div></div>
-    <div class="card"><h2>Human approvals</h2>
-      <div class="stat" id="m-appr">–</div>
-      <div class="sub">granted by an approver role</div></div>
-    <div class="card"><h2>Confirmed side effects</h2>
-      <div class="stat" id="m-exec">–</div>
-      <div class="sub">the dispatcher saw them happen</div></div>
-    <div class="card"><h2>Refused at enforcement</h2>
-      <div class="stat" id="m-ref">–</div>
-      <div class="sub">binding, replay, expiry, PEP</div></div>
-    <div class="card"><h2>Audit chain</h2>
-      <div class="stat" id="m-chain">–</div>
-      <div class="sub">per-tenant hash chain</div></div>
+    <div class="card"><h2>Governed decisions</h2><div class="stat" id="m-assess">–</div><div class="sub">through the live governance API</div></div>
+    <div class="card"><h2>Human approvals</h2><div class="stat" id="m-appr">–</div><div class="sub">review and approval workflow</div></div>
+    <div class="card"><h2>Confirmed side effects</h2><div class="stat" id="m-exec">–</div><div class="sub">dispatcher-visible execution</div></div>
+    <div class="card"><h2>Refusals at enforcement</h2><div class="stat" id="m-ref">–</div><div class="sub">policy, replay, and lease checks</div></div>
+    <div class="card"><h2>Audit chain</h2><div class="stat" id="m-chain">–</div><div class="sub">hash-chain verification status</div></div>
   </div>
 
   <div class="row">
     <div class="card">
       <h2>Decision mix</h2>
       <div class="bars" id="mix"></div>
-      <h2 style="margin-top:22px">Confirmed side effects over time</h2>
+      <h2 style="margin-top:22px">Execution visibility</h2>
       <canvas id="spark" width="600" height="150"></canvas>
-      <p class="note">Every bar is a decision the enforcement plane made. ACCEPT
-        stays empty by design here: the policy-only kernel has no oracle
-        signal, so it falls toward VERIFY rather than granting autonomy.</p>
+      <p class="note">This view stays close to the real control plane: metrics, decision counts, and audit verification are all fed from the same API endpoints used in enterprise deployments.</p>
     </div>
-
     <div class="card">
       <h2>Refusals by reason</h2>
-      <table><thead><tr><th>Reason</th><th style="text-align:right">Count</th></tr></thead>
-        <tbody id="refusals"><tr><td colspan="2" class="sub">–</td></tr></tbody></table>
-      <h2 style="margin-top:22px">Deployment</h2>
+      <table><thead><tr><th>Reason</th><th style="text-align:right">Count</th></tr></thead><tbody id="refusals"><tr><td colspan="2" class="sub">none yet</td></tr></tbody></table>
+      <h2 style="margin-top:20px">Deployment posture</h2>
       <dl class="kv" id="deploy"></dl>
     </div>
   </div>
 
-  <div class="row">
+  <div class="two-col">
     <div class="card">
-      <h2>Try a governed call</h2>
+      <h2>Run a governed call</h2>
       <div class="toolbar">
         <label class="sub" for="role">Act as</label>
         <select id="role">
@@ -140,36 +111,61 @@
         </select>
       </div>
       <div class="scenarios" id="scenarios"></div>
-      <p class="note">Each button sends one real call to the governed API and
-        shows the verdict with the rules that fired. Switch the role to
-        <code>viewer</code> and watch the same call get refused — the token
-        carries the role, the caller cannot assert it.</p>
+      <p class="note">Each action uses the real API path and demonstrates how role-based access and policy enforcement change the outcome.</p>
     </div>
-
     <div class="card">
-      <h2>Result</h2>
-      <div id="verdict"></div>
-      <pre id="out">Pick a scenario, or run the full OT battery below.</pre>
-      <div class="toolbar" style="margin:14px 0 0">
+      <h2>Diagnostics & troubleshooting</h2>
+      <div id="diag" class="stack"></div>
+      <div class="toolbar" style="margin-top:14px">
         <button class="primary" id="run">Run the 15-case OT battery</button>
         <span class="sub" id="runstate"></span>
       </div>
+      <div id="verdict"></div>
+      <pre id="out">Select a scenario or run the full battery to inspect the live result payload.</pre>
     </div>
   </div>
 
-  <p class="note">Demonstration console. It holds the pilot's demo tokens
-    because this is a local pilot; a real deployment puts an identity provider
-    here instead. The console makes no decision of its own — it forwards calls
-    and shows exactly what the governed API answered, refusals included.</p>
+  <div class="row">
+    <div class="card">
+      <h2>Envelope inspection</h2>
+      <div class="toolbar">
+        <input id="requestId" placeholder="request_id" style="flex:1;min-width:220px;" />
+        <button id="loadEnvelope">Load envelope</button>
+      </div>
+      <pre id="envelopeOut">Enter a request_id to inspect the stored DecisionEnvelope and related metadata.</pre>
+    </div>
+    <div class="card">
+      <h2>Operational trace</h2>
+      <div id="trace" class="stack"></div>
+    </div>
+  </div>
 </main>
 
 <script>
 const $ = s => document.querySelector(s);
 const ACTIONS = ["accept","verify","abstain","escalate"];
-const COLORS = {accept:"--accept",verify:"--verify",abstain:"--abstain",escalate:"--escalate"};
+const COLORS = {accept:"--accent2",verify:"--warn",abstain:"--dim",escalate:"--danger"};
 let history = [];
 
 function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+function renderDiagnostics(data){
+  const health = data.health || {};
+  const policy = data.policy || {};
+  const metrics = data.metrics || {};
+  const chain = data.chain || {};
+  const summary = data.summary || {};
+  const rows = [
+    `<div class="mini">Health: <strong>${health.status || 'unknown'}</strong></div>`,
+    `<div class="mini">Runtime: <strong>${policy.runtime_mode || 'unknown'}</strong></div>`,
+    `<div class="mini">Policy hash: <strong>${(policy.policy_hash || 'n/a').slice(0,16)}</strong></div>`,
+    `<div class="mini">Assess count: <strong>${metrics.assess_total ?? 0}</strong></div>`,
+    `<div class="mini">Chain valid: <strong>${chain.chain_valid ? 'yes' : 'no'}</strong></div>`,
+    `<div class="mini">Ready: <strong>${summary.ready ? 'yes' : 'no'}</strong></div>`
+  ];
+  $("#diag").innerHTML = rows.join("");
+  $("#trace").innerHTML = `<div class="mini">Trace path: ${data.trace?.focus?.join(' → ') || 'n/a'}</div><div class="mini">Observability stack: ${data.trace?.observability || 'n/a'}</div>`;
+}
 
 async function poll(){
   let s;
@@ -181,8 +177,7 @@ async function poll(){
   $("#mode").className = "pill " + (healthy ? "live" : "down");
 
   const durable = s.policy && s.policy.execution_state_durable;
-  $("#durable").textContent = durable
-    ? `durable · ${s.policy.execution_state_backend}` : "state NOT durable";
+  $("#durable").textContent = durable ? `durable · ${s.policy.execution_state_backend}` : "state NOT durable";
   $("#durable").className = "pill " + (durable ? "live" : "down");
 
   const m = s.metrics || {};
@@ -191,102 +186,36 @@ async function poll(){
   const refTotal = Object.values(refusals).reduce((a,b)=>a+b,0);
 
   $("#m-assess").textContent = m.execution_assess_total ?? "–";
-  $("#m-appr").textContent   = m.execution_approvals_total ?? "–";
-  $("#m-exec").textContent   = m.execution_tool_calls_executed ?? "–";
-  $("#m-ref").textContent    = refTotal;
-  const chainOk = s.chain && s.chain.valid;
-  $("#m-chain").innerHTML = s.chain
-    ? (chainOk ? '<span style="color:var(--accept)">valid</span>'
-               : '<span style="color:var(--escalate)">BROKEN</span>')
-    : "–";
+  $("#m-appr").textContent = m.execution_approvals_total ?? "–";
+  $("#m-exec").textContent = m.execution_tool_calls_executed ?? "–";
+  $("#m-ref").textContent = refTotal;
+  $("#m-chain").innerHTML = s.chain && s.chain.chain_valid ? '<span style="color:var(--accent2)">valid</span>' : '<span style="color:var(--danger)">check</span>';
 
   const max = Math.max(1, ...ACTIONS.map(a=>counts[a]||0));
-  $("#mix").innerHTML = ACTIONS.map(a=>{
-    const v = counts[a]||0, c = cssVar(COLORS[a]);
-    return `<div class="bar"><span>${a}</span>
-      <div class="track"><div class="fill" style="width:${v/max*100}%;background:${c}"></div></div>
-      <b>${v}</b></div>`;
-  }).join("");
+  $("#mix").innerHTML = ACTIONS.map(a=>{ const v=counts[a]||0; return `<div class="bar"><span>${a}</span><div class="track"><div class="fill" style="width:${(v/max)*100}%;background:${cssVar(COLORS[a])}"></div></div><b>${v}</b></div>`; }).join("");
 
   const rows = Object.entries(refusals).filter(([,v])=>v>0);
-  $("#refusals").innerHTML = rows.length
-    ? rows.map(([k,v])=>`<tr><td><code>${k}</code></td><td class="num">${v}</td></tr>`).join("")
-    : '<tr><td colspan="2" class="sub">none yet</td></tr>';
+  $("#refusals").innerHTML = rows.length ? rows.map(([k,v])=>`<tr><td><code>${k}</code></td><td class="num">${v}</td></tr>`).join("") : '<tr><td colspan="2" class="sub">none yet</td></tr>';
 
   const p = s.policy || {};
-  $("#deploy").innerHTML = `
-    <dt>runtime</dt><dd>${p.runtime_mode ?? "?"}</dd>
-    <dt>policy</dt><dd>${(p.policy_hash||"?").slice(0,26)}…</dd>
-    <dt>exec state</dt><dd>${p.execution_state_backend ?? "?"}</dd>
-    <dt>envelopes</dt><dd>${m.control_plane_backend ?? "?"}</dd>`;
+  $("#deploy").innerHTML = `<dt>runtime</dt><dd>${p.runtime_mode ?? '?'}</dd><dt>policy</dt><dd>${(p.policy_hash||'?').slice(0,20)}…</dd><dt>exec state</dt><dd>${p.execution_state_backend ?? '?'}</dd><dt>envelopes</dt><dd>${m.control_plane_backend ?? '?'}</dd>`;
 
-  history.push(m.execution_tool_calls_executed || 0);
-  if (history.length > 120) history.shift();
-  drawSpark();
+  history.push(m.execution_tool_calls_executed || 0); if (history.length > 120) history.shift(); drawSpark();
 }
 
-function drawSpark(){
-  const c = $("#spark"), ctx = c.getContext("2d");
-  const w = c.width = c.clientWidth * devicePixelRatio;
-  const h = c.height = 150 * devicePixelRatio;
-  ctx.clearRect(0,0,w,h);
-  if (history.length < 2) {
-    ctx.fillStyle = cssVar("--dim"); ctx.font = `${13*devicePixelRatio}px system-ui`;
-    ctx.fillText("collecting…", 10*devicePixelRatio, 24*devicePixelRatio); return;
-  }
-  const max = Math.max(1, ...history), pad = 8*devicePixelRatio;
-  const x = i => pad + i*(w-2*pad)/(history.length-1);
-  const y = v => h - pad - v/max*(h-2*pad);
-  const accent = cssVar("--accept");
-  const g = ctx.createLinearGradient(0,0,0,h);
-  g.addColorStop(0, accent + "55"); g.addColorStop(1, accent + "00");
-  ctx.beginPath(); ctx.moveTo(x(0), h-pad);
-  history.forEach((v,i)=>ctx.lineTo(x(i), y(v)));
-  ctx.lineTo(x(history.length-1), h-pad); ctx.closePath();
-  ctx.fillStyle = g; ctx.fill();
-  ctx.beginPath(); history.forEach((v,i)=> i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));
-  ctx.strokeStyle = accent; ctx.lineWidth = 2*devicePixelRatio;
-  ctx.lineJoin = "round"; ctx.stroke();
-}
+function drawSpark(){ const c = $("#spark"), ctx = c.getContext("2d"); const w = c.width = c.clientWidth * devicePixelRatio; const h = c.height = 150 * devicePixelRatio; ctx.clearRect(0,0,w,h); if (history.length < 2) { ctx.fillStyle = cssVar("--dim"); ctx.font = `${13*devicePixelRatio}px system-ui`; ctx.fillText("collecting…", 10*devicePixelRatio, 24*devicePixelRatio); return; } const max = Math.max(1,...history), pad=8*devicePixelRatio; const x=i=>pad+i*(w-2*pad)/(history.length-1); const y=v=>h-pad-v/max*(h-2*pad); const accent=cssVar("--accent2"); const g=ctx.createLinearGradient(0,0,0,h); g.addColorStop(0,accent+'44'); g.addColorStop(1,accent+'00'); ctx.beginPath(); ctx.moveTo(x(0),h-pad); history.forEach((v,i)=>ctx.lineTo(x(i),y(v))); ctx.lineTo(x(history.length-1),h-pad); ctx.closePath(); ctx.fillStyle=g; ctx.fill(); ctx.beginPath(); history.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v))); ctx.strokeStyle=accent; ctx.lineWidth=2*devicePixelRatio; ctx.lineJoin='round'; ctx.stroke(); }
 
-function showVerdict(action){
-  $("#verdict").innerHTML = action
-    ? `<span class="verdict v-${action}">${action.toUpperCase()}</span>` : "";
-}
+function showVerdict(action){ $("#verdict").innerHTML = action ? `<span class="verdict v-${action}">${action.toUpperCase()}</span>` : ""; }
 
-async function loadScenarios(){
-  const list = await (await fetch("/api/scenarios")).json();
-  $("#scenarios").innerHTML = list.map((s,i)=>
-    `<button class="scenario" data-i="${i}">${s.label}<em>${s.expect}</em></button>`).join("");
-  $("#scenarios").addEventListener("click", async e=>{
-    const btn = e.target.closest("button[data-i]"); if(!btn) return;
-    const s = list[+btn.dataset.i];
-    btn.disabled = true; $("#out").textContent = "calling…"; showVerdict(null);
-    try{
-      const r = await (await fetch("/api/call",{method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({role:$("#role").value,
-                              path:"/v1/execution/assess", payload:s.payload})})).json();
-      showVerdict(r.body && r.body.decision);
-      $("#out").textContent =
-        `HTTP ${r.status}  ·  as ${r.role}\n\n` + JSON.stringify(r.body,null,2);
-    } catch(err){ $("#out").textContent = "console error: " + err; }
-    btn.disabled = false; poll();
-  });
-}
+async function loadDiagnostics(){ const data = await (await fetch("/api/diagnostics")).json(); renderDiagnostics(data); }
 
-$("#run").addEventListener("click", async ()=>{
-  const b = $("#run"); b.disabled = true;
-  $("#runstate").textContent = "running 15 cases…"; showVerdict(null);
-  $("#out").textContent = "running the OT battery — this drives real approvals and side effects…";
-  try{
-    $("#out").textContent = await (await fetch("/api/battery",{method:"POST"})).text();
-  } catch(err){ $("#out").textContent = "console error: " + err; }
-  $("#runstate").textContent = ""; b.disabled = false; poll();
-});
+async function loadScenarios(){ const list = await (await fetch("/api/scenarios")).json(); $("#scenarios").innerHTML = list.map((s,i)=>`<button class="scenario" data-i="${i}">${s.label}<em>${s.expect}</em></button>`).join(""); $("#scenarios").addEventListener("click", async e=>{ const btn=e.target.closest("button[data-i]"); if(!btn) return; const s=list[+btn.dataset.i]; btn.disabled=true; $("#out").textContent="calling…"; showVerdict(null); try { const r=await (await fetch("/api/call",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({role:$("#role").value,path:"/v1/execution/assess",payload:s.payload})})).json(); showVerdict(r.body && r.body.decision); $("#out").textContent=`HTTP ${r.status} · as ${r.role}\n\n`+JSON.stringify(r.body,null,2); } catch(err){ $("#out").textContent="console error: "+err; } btn.disabled=false; poll(); loadDiagnostics(); }); }
 
-loadScenarios(); poll(); setInterval(poll, 3000);
-window.addEventListener("resize", drawSpark);
+$("#run").addEventListener("click", async ()=>{ const b=$("#run"); b.disabled=true; $("#runstate").textContent="running 15 cases…"; showVerdict(null); $("#out").textContent="running the OT battery — this drives real approvals and side effects…"; try { $("#out").textContent = await (await fetch("/api/battery",{method:"POST"})).text(); } catch(err){ $("#out").textContent="console error: "+err; } $("#runstate").textContent=""; b.disabled=false; poll(); loadDiagnostics(); });
+
+$("#loadEnvelope").addEventListener("click", async ()=>{ const id=$("#requestId").value.trim(); if(!id){ $("#envelopeOut").textContent="Enter a request_id first."; return; } try { const data = await (await fetch(`/api/envelope/${encodeURIComponent(id)}`)).json(); $("#envelopeOut").textContent = JSON.stringify(data,null,2); } catch(err){ $("#envelopeOut").textContent="console error: "+err; } });
+
+loadScenarios(); loadDiagnostics(); poll(); setInterval(()=>{ poll(); loadDiagnostics(); }, 3000); window.addEventListener("resize", drawSpark);
 </script>
 </body>
 </html>

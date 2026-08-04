@@ -50,7 +50,7 @@ async def state() -> JSONResponse:
             ("health", "/v1/health", None),
             ("policy", "/v1/policy/version", TOKENS["viewer"]),
             ("metrics", "/v1/metrics", TOKENS["viewer"]),
-            ("chain", "/v1/execution/audit/verify", TOKENS["viewer"]),
+            ("chain", "/v1/audit/chain/verify", TOKENS["viewer"]),
         ):
             headers = {"Authorization": f"Bearer {token}"} if token else {}
             try:
@@ -60,6 +60,57 @@ async def state() -> JSONResponse:
             except Exception as exc:  # noqa: BLE001 — surface, never crash the page
                 out[name] = {"error": type(exc).__name__, "detail": str(exc)[:160]}
     return JSONResponse(out)
+
+
+@app.get("/api/diagnostics")
+async def diagnostics() -> JSONResponse:
+    """Aggregate runtime diagnostics for the showcase surface."""
+    out: dict = {"api": API, "trace": {}, "summary": {"ready": False}}
+    async with httpx.AsyncClient(timeout=10) as client:
+        for name, path, token in (
+            ("health", "/v1/health", None),
+            ("policy", "/v1/policy/version", TOKENS["viewer"]),
+            ("metrics", "/v1/metrics", TOKENS["viewer"]),
+            ("chain", "/v1/audit/chain/verify", TOKENS["viewer"]),
+        ):
+            headers = {"Authorization": f"Bearer {token}"} if token else {}
+            try:
+                r = await client.get(f"{API}{path}", headers=headers)
+                data = r.json() if r.status_code == 200 else {
+                    "error": f"HTTP {r.status_code}", "detail": r.text[:160]}
+            except Exception as exc:  # noqa: BLE001
+                data = {"error": type(exc).__name__, "detail": str(exc)[:160]}
+            out[name] = data
+
+    summary = {
+        "ready": bool(out.get("health", {}).get("status") == "ok"),
+        "mode": out.get("policy", {}).get("runtime_mode", "unknown"),
+        "assess_total": out.get("metrics", {}).get("assess_total", 0),
+        "chain_valid": bool(out.get("chain", {}).get("chain_valid")),
+    }
+    out["summary"] = summary
+    out["trace"] = {
+        "api": API,
+        "observability": "FastAPI + REMORA metrics + audit verification",
+        "focus": ["health", "policy", "metrics", "chain"],
+    }
+    return JSONResponse(out)
+
+
+@app.get("/api/envelope/{request_id}")
+async def envelope(request_id: str) -> JSONResponse:
+    """Proxy envelope retrieval so the showcase can inspect and export a stored envelope."""
+    async with httpx.AsyncClient(timeout=10) as client:
+        try:
+            r = await client.get(
+                f"{API}/v1/envelope/{request_id}",
+                headers={"Authorization": f"Bearer {TOKENS['viewer']}"},
+            )
+            if r.status_code == 200:
+                return JSONResponse(r.json())
+            return JSONResponse({"error": f"HTTP {r.status_code}", "detail": r.text[:160]})
+        except Exception as exc:  # noqa: BLE001
+            return JSONResponse({"error": type(exc).__name__, "detail": str(exc)[:160]})
 
 
 @app.post("/api/call")

@@ -164,6 +164,18 @@ and its metrics are **not** evidence for the core governance system
 ([docs/03-experiments.md](docs/03-experiments.md) §9 ·
 [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16).
 
+## Docker-based testing
+
+For a simple local test deployment, build and start the API with Docker Compose:
+
+```bash
+docker compose -f docker-compose.test.yml up --build
+docker compose -f docker-compose.test.yml ps
+curl http://localhost:8000/v1/health
+```
+
+The container exposes the REMORA API on port 8000 and runs the FastAPI service from [servers/api.py](servers/api.py). This setup is intended for lightweight testing only; it uses development mode and does not provide a production-grade persistence layer.
+
 ## AI use, citation, license
 
 Built with the assistance of generative-AI development tools; no AI output was accepted

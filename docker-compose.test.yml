@@ -1,0 +1,12 @@
+services:
+  remora-api:
+    build:
+      context: .
+      dockerfile: artifacts/docker/Dockerfile
+    image: remora-test:latest
+    ports:
+      - "8000:8000"
+    environment:
+      REMORA_ENV: development
+      PYTHONUNBUFFERED: "1"
+    command: ["sh", "-c", "pip install -e '.[api,dev]' && uvicorn servers.api:app --host 0.0.0.0 --port 8000"]

@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+.git/
+.gitignore
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+node_modules/
+frontend/
+dist/
+artifacts/figures/
+artifacts/demo/
+results/
