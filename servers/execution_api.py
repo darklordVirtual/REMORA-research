@@ -651,6 +651,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
             response["review_item_id"] = item.item_id
     entry = _CHAIN.append(tenant, record)
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+    api_mod.record_execution_assess(report.action.value)
 
     if idemp_key:
         _idempotency_put(idemp_key, response)
@@ -713,6 +714,7 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
         "item_id": req.item_id,
         "expires_at": approval.expires_at.isoformat(),
     })
+    api_mod.record_execution_approval()
     return {
         "status": "approved",
         "item_id": req.item_id,
@@ -759,6 +761,9 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
             "detail": outcome.detail,
         })
         response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+        api_mod.record_execution_execute(
+            executed=False, refusal=outcome.decision.value
+        )
         return response
 
     # The re-gate only AUTHORIZED the call (persisted above); EXECUTED is
@@ -882,6 +887,10 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
 
     response["tool_execution"] = tool_execution
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+    api_mod.record_execution_execute(
+        executed=bool(tool_execution["executed"]),
+        refusal=tool_execution.get("refusal_reason"),
+    )
     return response
 
 

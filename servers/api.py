@@ -245,7 +245,89 @@ _METRICS: dict[str, Any] = {
         "escalation_rate": 0,
         "oracle_cost": 0,
     },
+    # ── Enforcement path (/v1/execution) ────────────────────────────────────
+    # Kept separate from the assess counters above on purpose: the advisory
+    # plane and the enforcing plane answer different questions, and a pilot
+    # needs to know which one produced a decision. Before these existed, a
+    # deployment could run fifteen governed decisions and six real side
+    # effects while every metric still read zero (found running the OT pilot
+    # in production mode, 2026-08-04).
+    "execution_assess_total": 0,
+    "execution_decision_counts": {
+        "accept": 0,
+        "verify": 0,
+        "abstain": 0,
+        "escalate": 0,
+    },
+    "execution_approvals_total": 0,
+    "execution_executes_total": 0,
+    # Counted only after the dispatcher confirms a side effect actually
+    # happened — authorised-to-run and did-run are different states, and
+    # conflating them would let a dead dispatcher look healthy.
+    "execution_tool_calls_executed": 0,
+    "execution_refusals": {
+        "binding_refused": 0,
+        "approval_expired": 0,
+        "approval_invalidated": 0,
+        "pep_denied": 0,
+        "tool_failed": 0,
+        "no_dispatcher": 0,
+        "unknown_tool": 0,
+    },
 }
+
+#: Snapshot of the initial counter shape, so tests and long-lived processes can
+#: reset without reconstructing the literal above.
+_METRICS_INITIAL = deepcopy(_METRICS)
+
+
+def reset_metrics() -> None:
+    """Reset every counter to its initial value (test/support hook)."""
+    _METRICS.clear()
+    _METRICS.update(deepcopy(_METRICS_INITIAL))
+
+
+def record_execution_assess(action: str) -> None:
+    """Count one /v1/execution/assess decision."""
+    _METRICS["execution_assess_total"] = _metric_int("execution_assess_total") + 1
+    counts = _METRICS.setdefault("execution_decision_counts", {})
+    if isinstance(counts, dict):
+        key = str(action).strip().lower()
+        counts[key] = int(counts.get(key, 0)) + 1
+
+
+def record_execution_approval() -> None:
+    _METRICS["execution_approvals_total"] = (
+        _metric_int("execution_approvals_total") + 1
+    )
+
+
+def record_execution_execute(*, executed: bool, refusal: str | None = None) -> None:
+    """Count one /v1/execution/execute call and what it actually did."""
+    _METRICS["execution_executes_total"] = (
+        _metric_int("execution_executes_total") + 1
+    )
+    if executed:
+        _METRICS["execution_tool_calls_executed"] = (
+            _metric_int("execution_tool_calls_executed") + 1
+        )
+        return
+    if not refusal:
+        return
+    refusals = _METRICS.setdefault("execution_refusals", {})
+    if isinstance(refusals, dict):
+        key = str(refusal).strip().lower()
+        # tool_failed_nonce_burned and friends collapse to their family so the
+        # metric stays a bounded label set rather than growing per message.
+        for known in ("binding_refused", "approval_expired",
+                      "approval_invalidated", "pep_denied", "tool_failed",
+                      "unknown_tool"):
+            if key.startswith(known):
+                key = known
+                break
+        else:
+            key = key if key in refusals else "no_dispatcher"
+        refusals[key] = int(refusals.get(key, 0)) + 1
 
 _SLO_TARGETS = {
     "latency_p95_ms": float(os.getenv("REMORA_SLO_LATENCY_P95_MS", "2000")),
@@ -1227,6 +1309,29 @@ def _prometheus_metrics_text() -> str:
         "# HELP remora_followups_total Number of follow-up requests submitted.",
         "# TYPE remora_followups_total counter",
         f"remora_followups_total {_metric_int('follow_up_total')}",
+        "# HELP remora_execution_assess_total Governed tool-call assessments on /v1/execution.",
+        "# TYPE remora_execution_assess_total counter",
+        f"remora_execution_assess_total {_metric_int('execution_assess_total')}",
+        "# HELP remora_execution_approvals_total Human approvals granted on /v1/execution.",
+        "# TYPE remora_execution_approvals_total counter",
+        f"remora_execution_approvals_total {_metric_int('execution_approvals_total')}",
+        "# HELP remora_execution_executes_total Execute calls on /v1/execution (any outcome).",
+        "# TYPE remora_execution_executes_total counter",
+        f"remora_execution_executes_total {_metric_int('execution_executes_total')}",
+        "# HELP remora_execution_tool_calls_executed_total Tool calls with a CONFIRMED side effect.",
+        "# TYPE remora_execution_tool_calls_executed_total counter",
+        f"remora_execution_tool_calls_executed_total {_metric_int('execution_tool_calls_executed')}",
+        *[
+            line
+            for action, count in sorted(_dict_metric("execution_decision_counts").items())
+            for line in (
+                f'remora_execution_decisions_total{{action="{action}"}} {int(count)}',
+            )
+        ],
+        *[
+            f'remora_execution_refusals_total{{reason="{reason}"}} {int(count)}'
+            for reason, count in sorted(_dict_metric("execution_refusals").items())
+        ],
         "# HELP remora_assess_latency_mean_ms Mean assessment latency in milliseconds.",
         "# TYPE remora_assess_latency_mean_ms gauge",
         f"remora_assess_latency_mean_ms {round(mean_elapsed, 3)}",
@@ -1619,6 +1724,14 @@ def metrics(request: Request) -> dict:
         "execution_state_durable": _execution_state_backend() != "in_process",
         "decision_counts": decision_counts,
         "decision_counts_by_risk": _dict_metric("decision_counts_by_risk"),
+        # Enforcement path, reported separately from the advisory path above
+        # so an operator can tell which plane produced a decision.
+        "execution_assess_total": _metric_int("execution_assess_total"),
+        "execution_decision_counts": _dict_metric("execution_decision_counts"),
+        "execution_approvals_total": _metric_int("execution_approvals_total"),
+        "execution_executes_total": _metric_int("execution_executes_total"),
+        "execution_tool_calls_executed": _metric_int("execution_tool_calls_executed"),
+        "execution_refusals": _dict_metric("execution_refusals"),
         "latency_buckets_ms": _dict_metric("latency_bucket_counts"),
         "mean_assess_latency_ms": mean_elapsed,
         "escalation_rate": escalation_rate,
