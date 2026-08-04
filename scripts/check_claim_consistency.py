@@ -13,6 +13,7 @@ SUMMARY = ROOT / "artifacts" / "benchmark_summary.json"
 README = ROOT / "README.md"
 WHITEPAPER = ROOT / "paper" / "remora_paper.md"
 RESULTS_SNAPSHOT = ROOT / "docs" / "results_snapshot.md"
+EVIDENCE_DOC = ROOT / "docs" / "02-evidence-and-claims.md"
 
 
 def fail(msg: str) -> None:
@@ -144,6 +145,7 @@ def main() -> None:
     readme = read_utf8(README)
     remora_paper = read_utf8(WHITEPAPER)
     results_snapshot = read_utf8(RESULTS_SNAPSHOT)
+    evidence_doc = read_utf8(EVIDENCE_DOC)
 
     # Canonical percentages must appear in technical artifacts.
     technical_pcts = [
@@ -160,14 +162,19 @@ def main() -> None:
         ensure_pct_pattern(results_snapshot, float(v), "docs/results_snapshot.md")
         ensure_pct_pattern(remora_paper, float(v), "paper/remora_paper.md")
 
-    # README is narrative and should include at least baseline anchors from the
-    # canonical benchmark, but does not need every ablation percentage.
-    ensure_pct_pattern(readme, float(h["A_single_accuracy_pct"]), "README.md")
-    ensure_pct_pattern(readme, float(h["B_majority_accuracy_pct"]), "README.md")
+    # The selective-prediction baseline anchors moved off the front page in the
+    # 2026-08-04 README simplification: the front page no longer quotes that
+    # benchmark, so its anchors are required where the numbers now live —
+    # docs/02-evidence-and-claims.md. Quoting a selective number anywhere
+    # without its single-model and majority baselines is still a violation.
+    ensure_pct_pattern(evidence_doc, float(h["A_single_accuracy_pct"]),
+                       "docs/02-evidence-and-claims.md")
+    ensure_pct_pattern(evidence_doc, float(h["B_majority_accuracy_pct"]),
+                       "docs/02-evidence-and-claims.md")
 
     # Benchmark size consistency.
     n_items = int(summary["n_items"])
-    ensure_pattern(readme, rf"N\s*=\s*{n_items}", "README.md")
+    ensure_pattern(evidence_doc, rf"N\s*=\s*{n_items}", "docs/02-evidence-and-claims.md")
     ensure_pattern(remora_paper, rf"N\s*=\s*{n_items}", "paper/remora_paper.md")
     ensure_pattern(results_snapshot, rf"N\s*=\s*{n_items}", "docs/results_snapshot.md")
 

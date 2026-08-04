@@ -131,9 +131,9 @@ below names the PDF, verify against the .md, which supersedes it.
 The six headline claims above are the narrative highlights, **not** the complete
 governed set. The authoritative, machine-checked list is
 [`docs/assurance/claim_register_v1.yaml`](assurance/claim_register_v1.yaml)
-(11 claims, CLAIM-001 … CLAIM-011), verified by
-`scripts/check_claim_provenance.py`. The claims not expanded above, with their
-artifacts:
+(17 claims, CLAIM-001 … CLAIM-017; CLAIM-004 is superseded by CLAIM-012),
+verified by `scripts/check_claim_provenance.py`. The claims not expanded above,
+with their artifacts:
 
 | ID | Claim | Evidence level | Artifact |
 |----|-------|----------------|----------|
@@ -144,6 +144,18 @@ artifacts:
 | CLAIM-009 | FA=30.7% on neutral-metadata external datasets (negative) | internal_benchmark | `artifacts/aromer/external_dataset_eval_v2.json` |
 | CLAIM-010 | Blinded benchmark v3: FAR=0% without label access (N=700) | regression_tested | `results/toolcall_blind_v3_results.json` |
 | CLAIM-011 | Anytime-valid FA-rate bound for REM-020 (cycle level) | theoretical | `results/far_confidence_sequence_v1.json` |
+| CLAIM-012 | NEGATIVE: consensus temperature failed pre-registered fresh-data confirmation (SAP v3) | internal_benchmark | `results/sap_v3_round_results.json` |
+| CLAIM-013 | Calibrated confidence-weighted voting: significant aggregation win; marginal per-arm certificates only | internal_benchmark | `results/sap_v3_round_results.json` |
+| CLAIM-014 | System demonstration: governance chain from tool call to enforcement | internal_benchmark | `results/system_demonstration_v1.json` |
+| CLAIM-015 | Argument-value grounding reduces wrong-call ACCEPT from 86.8% to 11.6% (development measurement) | internal_benchmark | `results/system_demonstration_v1.json` |
+| CLAIM-016 | Sealed external routing track (BFCL v3): 4 of 5 pre-registered targets met, the 5th missed and published | externally_benchmarked | `results/routing_bench_bfcl_results.json` |
+| CLAIM-017 | Semantic binding gap in match_tool_to_intent (finding, fixed and regression-tested) | regression_tested | `remora/toolcall/routing/goal_match.py` |
+
+Baseline context for the selective-prediction numbers: the calibration benchmark
+is N=302 items, where one model alone scores 57.0% and plain vote-counting
+82.8%. REMORA's contribution is knowing *which* decisions to trust, not raising
+that ceiling; the full risk–coverage curve is in
+[03-experiments.md](03-experiments.md).
 
 Numbers here mirror the register; the register is the source of truth. When a
 section above references `paper/remora_paper.pdf`, treat it as a dated snapshot

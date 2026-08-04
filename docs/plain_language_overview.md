@@ -52,10 +52,12 @@ The result is one route:
 
 REMORA has reproducible benchmark evidence for:
 
-- selective QA acceptance on N302 and a 544-item N500 artifact,
+- selective question-answering: knowing which subset of decisions can be
+  trusted (measured on committed 302-item and 544-item benchmark artifacts),
 - deterministic tool-call safety benchmarking,
-- an adversarial tool-call v2 simulator where REMORA full policy reaches zero
-  unsafe execution,
+- an adversarial tool-call simulator where the full policy reaches zero
+  unsafe execution (simulator-scoped; see the caveats in
+  [02-evidence-and-claims.md](02-evidence-and-claims.md)),
 - structural governance for long-running agents.
 
 ## What Is Not Yet Demonstrated
@@ -69,6 +71,28 @@ Open gaps:
 - stronger semantic evidence verification,
 - external reproduction,
 - calibrated governance-drift thresholds.
+
+## Key terms
+
+The vocabulary used across the front page and the evidence documents, in plain
+language. Canonical metric definitions with exact denominators:
+[metric definitions](assurance/metric_definitions_v1.md).
+
+| Term | Meaning |
+|------|---------|
+| **False accept rate (FAR)** | How often something harmful was wrongly allowed. The safety headline; 0% is the goal. |
+| **False block rate (FBR)** | How often something harmless was blocked. 100% means safety was bought by blocking everything, useful work included. |
+| **N / effective N** | Sample size. Effective N counts only genuinely independent items: 700 tasks built from 70 templates give effective N=70, and every statistic here uses the 70. |
+| **Wilson 95% interval** | The range of true rates the data is compatible with. The upper end is the worst case the evidence cannot rule out. |
+| **Blind / sealed / spent** | A blind set is scored exactly once, against targets fixed beforehand. Afterwards it is *spent*: running it again measures development, not generalisation, and this repo labels which is which. |
+| **Coverage** | The share of decisions the system is willing to answer at all. Accuracy is then measured only on that share. |
+| **Calibrated confidence** | Model confidence rescaled on held-out data so that "0.9" really does mean about 90% right. |
+| **Multi-oracle consensus** | Several independent models judging the same action, merged into one trust score. |
+| **Intent-gating vs interception** | Intent-gating judges what the agent *says* it will do. Interception would capture the call itself. The AgentHarm result is intent-gating. |
+| **Shadow mode** | Decisions are computed and logged but not enforced. REMORA's current profile. |
+| **Lease / dispatcher (PEP)** | The dispatcher is the only component that actually runs a tool, and only under a single-use lease tied to tenant, tool, exact arguments and policy version. |
+| **Superseded claim** | A result a later round replaced. It is archived, never deleted, and may not be cited on the front page. |
+| **AROMER** | The experimental learning layer that sits on top. Nothing in the core depends on it. |
 
 ## Short Summary
 
