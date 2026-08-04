@@ -108,7 +108,7 @@ if a.should_execute: run_tool(...)   # ACCEPT only; a.envelope is the audit reco
 ```
 
 That library path is *advisory*: it judges the facts you hand it. The enforcing path is
-the `/v1/execution` API ([deployment quickstart](docs/deployment/execution-quickstart.md)).
+the `/v1/execution` API ([deployment quickstart](docs/deployment/execution-quickstart.md)) — run it locally with the production-mode Docker OT pilot and operator console ([deploy/ot-pilot/docker-compose.yml](deploy/ot-pilot/docker-compose.yml)) or the lighter dev-mode [docker-compose.test.yml](docker-compose.test.yml).
 Worked loop: [examples/agent_gate.py](examples/agent_gate.py) · scenarios:
 [docs/use-cases/](docs/use-cases/README.md) · reproduce every benchmark:
 [docs/06-reproducibility.md](docs/06-reproducibility.md).
@@ -163,18 +163,6 @@ closed-loop calibration layer, sits on top: nothing in the control plane depends
 and its metrics are **not** evidence for the core governance system
 ([docs/03-experiments.md](docs/03-experiments.md) §9 ·
 [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16).
-
-## Docker-based testing
-
-For a simple local test deployment, build and start the API with Docker Compose:
-
-```bash
-docker compose -f docker-compose.test.yml up --build
-docker compose -f docker-compose.test.yml ps
-curl http://localhost:8000/v1/health
-```
-
-The container exposes the REMORA API on port 8000 and runs the FastAPI service from [servers/api.py](servers/api.py). This setup is intended for lightweight testing only; it uses development mode and does not provide a production-grade persistence layer.
 
 ## AI use, citation, license
 

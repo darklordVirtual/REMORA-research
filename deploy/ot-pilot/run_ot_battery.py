@@ -18,7 +18,6 @@ battery is to find out, not to confirm.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import shutil
@@ -220,9 +219,9 @@ def write_run_directory(bundle: dict, base_dir: str | os.PathLike[str]) -> dict:
     run_dir.mkdir(parents=True, exist_ok=False)
     manifest_path = run_dir / "manifest.json"
     results_path = run_dir / "results.json"
-    stdout_path = run_dir / "stdout.txt"
     metrics_path = run_dir / "metrics.json"
     chain_path = run_dir / "chain-verification.json"
+    report_path = run_dir / "report.txt"
     write_evidence_bundle(bundle, manifest_path)
     write_evidence_bundle({"results": bundle["results"]}, results_path)
     write_evidence_bundle(bundle.get("metrics") or {}, metrics_path)
@@ -230,7 +229,28 @@ def write_run_directory(bundle: dict, base_dir: str | os.PathLike[str]) -> dict:
         "execution_audit_chain": bundle.get("execution_audit_chain"),
         "envelope_chain": bundle.get("envelope_chain"),
     }, chain_path)
+    report_path.write_text(render_text_report(bundle) + "\n", encoding="utf-8")
     return {"run_dir": str(run_dir), "manifest": str(manifest_path), "results": str(results_path)}
+
+
+def prune_evidence_runs(base_dir: str | os.PathLike[str], keep: int) -> list[str]:
+    """Delete the oldest run directories beyond ``keep``, newest-first retention.
+
+    Returns the removed paths so callers can log them; a ``keep`` of zero or
+    less disables pruning entirely (retain everything).
+    """
+    if keep <= 0:
+        return []
+    base_path = Path(base_dir)
+    if not base_path.is_dir():
+        return []
+    run_dirs = sorted((p for p in base_path.iterdir() if p.is_dir()),
+                      key=lambda p: p.stat().st_mtime, reverse=True)
+    removed: list[str] = []
+    for stale in run_dirs[keep:]:
+        shutil.rmtree(stale)
+        removed.append(str(stale))
+    return removed
 
 
 def render_text_report(bundle: dict) -> str:
@@ -405,6 +425,11 @@ def main() -> int:
     if evidence_root != Path("/tmp/remora-evidence") or os.environ.get("REMORA_EVIDENCE_ROOT"):
         run_layout = write_run_directory(evidence, evidence_root)
         print(f"\nImmutable evidence dir: {run_layout['run_dir']}")
+        # Retention: keep the newest N runs. Pruning is loud — every removed
+        # directory is named, so evidence never disappears silently.
+        keep = int(os.environ.get("REMORA_EVIDENCE_KEEP", "20"))
+        for pruned in prune_evidence_runs(evidence_root, keep):
+            print(f"Pruned evidence dir (keep={keep}): {pruned}")
 
     return 0 if not failures else 1
 

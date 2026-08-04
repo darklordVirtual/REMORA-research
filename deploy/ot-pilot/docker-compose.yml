@@ -105,6 +105,9 @@ services:
       PILOT_TOKEN_APPROVER: ot-approver
       PILOT_TOKEN_VIEWER: ot-viewer
       REMORA_EVIDENCE_ROOT: /var/lib/remora/evidence
+      # Retention: keep the newest N battery runs on the evidence volume.
+      # Pruned directories are named in the battery output — never silent.
+      REMORA_EVIDENCE_KEEP: "20"
     volumes:
       - remora-evidence:/var/lib/remora/evidence
 
