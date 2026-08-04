@@ -139,10 +139,11 @@ class ToolContractRegistry:
     contracts: Mapping[str, ToolContract]
 
     def __init__(self, contracts: Iterable[ToolContract] | Mapping[str, ToolContract]):
+        resolved: dict[str, ToolContract]
         if isinstance(contracts, Mapping):
             resolved = dict(contracts)
         else:
-            resolved: dict[str, ToolContract] = {}
+            resolved = {}
             for c in contracts:
                 if c.tool in resolved:
                     raise ValueError(
