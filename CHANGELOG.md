@@ -54,6 +54,11 @@ releases.
   a runtime snapshot. Identity-shaped request fields document their
   unverified-metadata semantics, the pilot tokens are marked demo-only, and
   `ToolCallRequest` ships worked examples for Swagger try-out.
+- Generated TypeScript client types: `frontend/src/generated/remora-api.ts`
+  is produced from the committed contract by `npm run api:types`
+  (openapi-typescript) and drift-gated in CI — a contract change that skips
+  regeneration is a red build. Generated code is excluded from lint and
+  covered by the frontend typecheck gate.
 
 ### Policy identity: API hash bound to the canonical policy source set (2026-08-05)
 

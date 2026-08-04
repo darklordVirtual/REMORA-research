@@ -134,6 +134,15 @@ jobs:
         working-directory: frontend
         run: npm run pilot:build
 
+      - name: Generated API types drift gate
+        # src/generated/remora-api.ts is generated from schemas/openapi.json
+        # (itself drift-gated above). Regenerate and diff: a contract change
+        # that skips regeneration is a red build, not silent client drift.
+        working-directory: frontend
+        run: |
+          npm run api:types
+          git diff --exit-code -- src/generated/remora-api.ts
+
   worker-envelope-parity:
     # The agent-control Worker writes the live DecisionEnvelope hash chain in
     # TypeScript; auditors verify it in Python. If the two ever disagree on
