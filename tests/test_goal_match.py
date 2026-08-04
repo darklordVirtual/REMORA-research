@@ -60,6 +60,7 @@ READ_INTENT = TaskIntent(
     requested_effect="read",
     target_entities=("target_resource",),
     source_spans=("booking B-104",),
+    action_spans=("show me",),
 )
 
 
@@ -139,6 +140,7 @@ def test_span_verification_is_case_and_whitespace_insensitive() -> None:
     intent = TaskIntent(
         operation="retrieve", resource_type="booking", requested_effect="read",
         target_entities=("target_resource",), source_spans=("BOOKING   b-104",),
+        action_spans=("SHOW  me",),  # normalised → "show me" → grounded
     )
     assert _match("get_booking", intent=intent).verdict is GoalMatch.SUPPORTED
 
@@ -168,6 +170,7 @@ def test_a_mutating_tool_never_reaches_supported_from_a_read_intent() -> None:
         intent = TaskIntent(
             operation="retrieve", resource_type="booking", requested_effect=effect,
             target_entities=("target_resource",), source_spans=("booking B-104",),
+            action_spans=("show me",),  # grounded → proceeds to effect mismatch
         )
         assert _match("cancel_booking", intent=intent).verdict is GoalMatch.UNSUPPORTED
 
@@ -177,6 +180,7 @@ def test_a_matching_mutation_is_supported_when_the_task_asks_for_it() -> None:
     intent = TaskIntent(
         operation="cancel", resource_type="booking", requested_effect="cancel",
         target_entities=("target_resource",), source_spans=("cancel booking B-104",),
+        action_spans=("cancel",),  # explicit action grounding
     )
     result = _match("cancel_booking", intent=intent, task=task)
     assert result.verdict is GoalMatch.SUPPORTED
@@ -199,6 +203,148 @@ def test_registry_rejects_a_role_that_is_not_a_declared_argument() -> None:
             tool="x", capability="c", effect="delete", resource_type="r",
             mutation=False, argument_roles={},
         )
+
+
+# ---------------------------------------------------------------------------
+# Semantic binding — the §34 residue that source-span presence cannot close
+#
+# These cases pin the authority gap identified in the external review:
+# source_spans proves the entity was mentioned; it cannot prove the effect
+# was requested.  "Show me booking B-104" must not ground a cancel claim
+# however clearly "booking B-104" appears in the task.
+# ---------------------------------------------------------------------------
+
+from remora.toolcall.routing.goal_match import (  # noqa: E402
+    EFFECT_VOCABULARY,
+    EFFECT_VOCABULARY_VERSION,
+    match_tool_to_intent,
+)
+
+_SHOW_TASK = "Show me booking B-104."
+
+
+def test_real_entity_span_with_wrong_effect_is_unknown() -> None:
+    # THE HEADLINE GAP: entity span verifies, resource type matches, and the
+    # effect label matches the contract — but "cancel" is not in the task.
+    intent = TaskIntent(
+        operation="cancel", resource_type="booking", requested_effect="cancel",
+        target_entities=("target_resource",),
+        source_spans=("booking B-104",),   # entity grounded ✓
+        action_spans=("booking B-104",),   # no cancel keyword → NOT grounded
+    )
+    result = match_tool_to_intent(
+        contract=CANCEL_BOOKING, intent=intent,
+        proposed_args={"booking_id": "B-104"}, task_text=_SHOW_TASK,
+    )
+    assert result.verdict is GoalMatch.UNKNOWN
+    assert "effect" in result.reason
+
+
+def test_read_verb_does_not_ground_cancel_effect() -> None:
+    # A model claiming cancel intent while quoting a read-verb action span.
+    intent = TaskIntent(
+        operation="cancel", resource_type="booking", requested_effect="cancel",
+        target_entities=("target_resource",),
+        source_spans=("booking B-104",),
+        action_spans=("show me",),  # read keyword, not in cancel vocabulary
+    )
+    result = match_tool_to_intent(
+        contract=CANCEL_BOOKING, intent=intent,
+        proposed_args={"booking_id": "B-104"}, task_text=_SHOW_TASK,
+    )
+    assert result.verdict is GoalMatch.UNKNOWN
+
+
+def test_no_action_spans_yields_unknown_even_with_entity_spans() -> None:
+    # A TaskIntent constructed without action_spans cannot reach SUPPORTED.
+    # The effect is ungrounded, regardless of the entity span.
+    intent = TaskIntent(
+        operation="retrieve", resource_type="booking", requested_effect="read",
+        target_entities=("target_resource",),
+        source_spans=("booking B-104",),
+        # action_spans defaults to ()
+    )
+    result = _match("get_booking", intent=intent)
+    assert result.verdict is GoalMatch.UNKNOWN
+    assert "effect" in result.reason or "action" in result.reason
+
+
+def test_negation_prevents_effect_grounding() -> None:
+    # "do not cancel" contains the keyword but it is negated — must be UNKNOWN.
+    task = "Please do not cancel booking B-104."
+    intent = TaskIntent(
+        operation="cancel", resource_type="booking", requested_effect="cancel",
+        target_entities=("target_resource",),
+        source_spans=("booking B-104",),
+        action_spans=("do not cancel",),
+    )
+    result = match_tool_to_intent(
+        contract=CANCEL_BOOKING, intent=intent,
+        proposed_args={"booking_id": "B-104"}, task_text=task,
+    )
+    assert result.verdict is GoalMatch.UNKNOWN
+
+
+def test_conditionality_prevents_effect_grounding() -> None:
+    # "inspect before closing" — "closing" is conditional, not immediate.
+    task = "Please inspect pump P-401 before closing it."
+    close_pump = ToolContract(
+        tool="close_pump", capability="pump_management", effect="close",
+        resource_type="pump", mutation=True,
+        argument_roles={"pump_id": "target_resource"},
+        state_delta={"pump.status": "closed"},
+    )
+    intent = TaskIntent(
+        operation="close", resource_type="pump", requested_effect="close",
+        target_entities=("target_resource",),
+        source_spans=("pump P-401",),
+        action_spans=("before closing",),  # conditional → NOT grounded
+    )
+    result = match_tool_to_intent(
+        contract=close_pump, intent=intent,
+        proposed_args={"pump_id": "P-401"}, task_text=task,
+    )
+    assert result.verdict is GoalMatch.UNKNOWN
+
+
+def test_action_spans_not_in_task_text_are_unknown() -> None:
+    # Action span text that does not appear in the task cannot ground anything.
+    intent = TaskIntent(
+        operation="cancel", resource_type="booking", requested_effect="cancel",
+        target_entities=("target_resource",),
+        source_spans=("booking B-104",),
+        action_spans=("cancel this reservation",),  # not in _SHOW_TASK
+    )
+    result = _match("cancel_booking", intent=intent, task=_SHOW_TASK)
+    assert result.verdict is GoalMatch.UNKNOWN
+
+
+def test_unrecognised_effect_cannot_be_grounded() -> None:
+    # An effect name absent from EFFECT_VOCABULARY yields UNKNOWN regardless
+    # of how well the span verifies.
+    assert "frobnicate" not in EFFECT_VOCABULARY, (
+        f"update this test — 'frobnicate' was added to "
+        f"EFFECT_VOCABULARY/{EFFECT_VOCABULARY_VERSION}"
+    )
+    custom_contract = ToolContract(
+        tool="custom_tool", capability="misc", effect="frobnicate",
+        resource_type="booking", mutation=True,
+        argument_roles={"booking_id": "target_resource"},
+        state_delta={"booking.state": "frobnicated"},
+    )
+    intent = TaskIntent(
+        operation="frobnicate", resource_type="booking",
+        requested_effect="frobnicate",
+        target_entities=("target_resource",),
+        source_spans=("booking B-104",),
+        action_spans=("frobnicate booking B-104",),
+    )
+    result = match_tool_to_intent(
+        contract=custom_contract, intent=intent,
+        proposed_args={"booking_id": "B-104"},
+        task_text="frobnicate booking B-104",
+    )
+    assert result.verdict is GoalMatch.UNKNOWN
 
 
 # ---------------------------------------------------------------------------

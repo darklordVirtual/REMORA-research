@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-07-31: **11 `open`**, **4 `accepted`**, **20 `superseded`**.
+Counts as of 2026-08-04: **12 `open`**, **4 `accepted`**, **20 `superseded`**.
 
 ## The actual backlog
 
@@ -33,15 +33,17 @@ after each theme are where its evidence lives, and CI checks that every theme
 cites only `open` sections and that no `open` section is missing a theme.
 
 <!-- backlog-start -->
-1. **Full task–tool semantic compatibility** (§34) — the highest-value open
+1. **Full task–tool semantic compatibility** (§34, §36) — the highest-value open
    problem. Value grounding answers "do these argument values come from this
    context?"; it does not answer "is this the right tool and the right effect
    for the user's goal?". 30 of 258 foreign calls still pass because their
    values coincidentally occur in the task. **The mechanism now exists**
    (`goal_match.py`: declared tool contracts, structured `TaskIntent`,
    tri-state `tool_matches_goal` that a model may propose but not unilaterally
-   set to SUPPORTED); what remains is measuring it, which requires theme 2's
-   sealed set rather than the spent BFCL population.
+   set to SUPPORTED); the semantic binding gap (§36: `source_spans` proved
+   entity presence, not effect entailment) has been patched in code but its
+   effect on the §34 residue remains unmeasured. What still remains is
+   measuring it, which requires theme 2's sealed set.
 2. **Blind confirmation of grounding** (§35) — 86.8% → 11.6% is a *development*
    measurement on a spent set. It needs a new sealed track, including the case
    where every value is grounded and the effect is still wrong.
@@ -2116,6 +2118,61 @@ re-execution of every study at HEAD),
 
 ---
 
+## §36 Semantic binding gap in `match_tool_to_intent`: span-existence is not span-entailment (2026-08-04)
+<!-- finding-status: open -->
+
+**The gap.** `TaskIntent.source_spans` verified only that the quoted text
+appeared verbatim in the task — not that the *claimed effect* was grounded
+there. A model could set `requested_effect="cancel"` and
+`source_spans=("booking B-104",)` for the task "Show me booking B-104":
+the span check passes (the entity is named), the resource type matches the
+contract, the effect label matches the contract → verdict **SUPPORTED**,
+even though no cancel word appears anywhere in the task.
+
+The paper stated: *"an intent whose quoted spans do not occur in the task text
+yields Unknown, never Supported."* This sentence is technically true and
+rethorically misleading — it promises span-*existence*, while the reader
+reasonably hears span-*entailment*. The gap made `TaskIntent` a writable
+signal: a model could assert any effect by quoting only the entity span.
+
+**Threat model consequence.** Until this was fixed, `TaskIntent` was an
+implicit fasit channel for the matcher. Any measurement of `tool_matches_goal`
+before this fix measures the intent-provider's honesty, not the matcher's
+discrimination.
+
+**Fix applied (2026-08-04, commit on master).** Three additions to
+`remora/toolcall/routing/goal_match.py`:
+
+1. `action_spans: tuple[str, ...]` — a separate field on `TaskIntent` that
+   must ground the *action* claim; the entity spans (`source_spans`) and the
+   action spans are now distinct requirements.
+2. `EFFECT_VOCABULARY` (version `v1`) — a frozen, versioned mapping from
+   governance-level effect labels to keyword sets. An effect whose keyword
+   does not appear in `action_spans` is ungrounded → UNKNOWN, never SUPPORTED.
+   An effect name absent from the vocabulary cannot be grounded at all.
+3. Negation and conditionality detection — a keyword immediately preceded by
+   a negation word (`not`, `never`, …) or a conditionality marker (`before`,
+   `after`, …) is skipped rather than counted, yielding UNKNOWN. The check is
+   a single preceding-word lookup, not NLU: the design principle is *"refuse
+   to pretend it understands"*, not *"understand it correctly"*.
+
+Seven new pinning tests cover: real entity span with wrong effect label,
+read verb against cancel contract, absent `action_spans`, negation, conditional
+phrase, action span not in task text, unrecognised effect name.
+
+**Unmeasured effect on §34 residue.** The 30 of 258 foreign calls that still
+accepted after value grounding (§35) included cases whose argument values
+coincided with the task. Whether `action_spans` + `EFFECT_VOCABULARY` would
+have closed any of those without a contract oracle providing `TaskIntent` is
+unmeasured. Measuring it requires the new sealed OT track; the BFCL set is
+spent.
+
+**Registered as** CLAIM-017 in `docs/assurance/claim_register_v1.yaml`
+(`status: finding_registered` — the fix is in code and tested, the effect on
+benchmark metrics is unmeasured).
+
+---
+
 ## Summary Table
 
 Grouped by status, not by age. `scripts/check_negative_results_status.py`
@@ -2129,6 +2186,7 @@ sections again.
 |---------|-----------------|----------|
 | Well-formed wrong calls pass structural gates (§34) | Blind: 86.8% of substituted-but-valid calls accepted. Mitigated on development by value grounding (§35), 11.6%; 30/258 still pass on coincidental value overlap. Needs task–tool semantic compatibility, not tuning | **High** |
 | Grounding is development-measured only (§35) | 86.8% → 11.6% and the 86.1% → 56.8% autonomy cost are both re-measurements on a spent set. Needs a new sealed track | **High** |
+| Semantic binding gap: span-existence ≠ span-entailment (§36) | Code-fixed 2026-08-04 (`action_spans` + `EFFECT_VOCABULARY` v1 + negation/conditionality detection, 7 pinning tests). Effect on §34 residue unmeasured pending new sealed track | **High** |
 | Derived values lose legitimate autonomy (§35) | Dates, unit conversions and computed values are correct but not literal, so they route VERIFY. Needs a verifiable `DerivationReceipt` over deterministic transforms | Medium |
 | Contextual harm invisible in a single call (§2, §8) | FA=30.7% under neutral metadata; semantic enrichment cut it but the residual needs trajectory-level governance, not another per-call classifier | **High** |
 | Entropy backend is a token fingerprint, not Semantic Entropy (§3) | NLI backend executes and disagrees on 12/24 of the smoke corpus; full benchmark parity unmeasured. Solvable now | Medium |

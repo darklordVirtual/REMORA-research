@@ -41,6 +41,72 @@ from typing import Any
 from remora.toolcall.routing.tool_contract import READ_EFFECTS, ToolContract
 
 
+#: Version tag recorded in UNKNOWN reasons so the audit trace can identify
+#: which vocabulary was active at decision time. Increment when entries change.
+EFFECT_VOCABULARY_VERSION: str = "v1"
+
+#: Frozen mapping from governance-level effect labels to keyword sets.
+#: A requested effect is grounded only when at least one keyword from its set
+#: appears in the action_spans without a preceding negation or conditionality
+#: marker.  Effects not listed here cannot be grounded — an unrecognised
+#: effect name yields UNKNOWN, never SUPPORTED.
+EFFECT_VOCABULARY: dict[str, frozenset[str]] = {
+    "read":     frozenset({"show", "get", "retrieve", "find", "list", "view",
+                           "display", "look", "search", "query", "check",
+                           "see", "fetch", "read", "lookup"}),
+    "retrieve": frozenset({"show", "get", "retrieve", "find", "list", "view",
+                           "display", "look", "search", "query", "check",
+                           "see", "fetch", "read", "lookup"}),
+    "search":   frozenset({"search", "find", "look", "query", "lookup", "filter"}),
+    "list":     frozenset({"list", "show", "display", "enumerate", "get"}),
+    "get":      frozenset({"get", "show", "retrieve", "find", "view",
+                           "fetch", "read", "lookup"}),
+    "query":    frozenset({"query", "search", "find", "get", "retrieve"}),
+    "lookup":   frozenset({"lookup", "look", "find", "search", "get"}),
+    "cancel":   frozenset({"cancel", "cancellation", "canceling", "cancelling",
+                           "abort", "terminate", "void", "revoke"}),
+    "delete":   frozenset({"delete", "remove", "erase", "destroy", "purge"}),
+    "create":   frozenset({"create", "add", "new", "make", "open", "submit",
+                           "register", "book", "schedule", "start"}),
+    "update":   frozenset({"update", "modify", "change", "edit", "set",
+                           "correct", "revise", "adjust"}),
+    "close":    frozenset({"close", "closing", "closed", "complete", "finish",
+                           "end", "shut", "resolve", "finalise", "finalize"}),
+    "approve":  frozenset({"approve", "approval", "authorise", "authorize",
+                           "confirm", "accept"}),
+    "assign":   frozenset({"assign", "allocate", "delegate", "route"}),
+    "send":     frozenset({"send", "submit", "dispatch", "transmit", "forward"}),
+    "transfer": frozenset({"transfer", "move", "shift"}),
+}
+
+#: Words that, immediately preceding an effect keyword, negate it.
+#: "do not cancel" → "cancel" is negated → effect not grounded.
+_NEGATION_WORDS: frozenset[str] = frozenset({
+    "not", "no", "dont", "don't", "never", "without", "avoid", "prevent", "stop",
+})
+
+#: Words that, immediately preceding an effect keyword, make it conditional.
+#: "before closing" → "closing" is a future/conditional action → not grounded.
+_CONDITIONAL_WORDS: frozenset[str] = frozenset({
+    "before", "after", "when", "once", "if", "until", "unless",
+    "following", "prior",
+})
+
+
+def _keyword_present_in_span(keywords: frozenset[str], span: str) -> bool:
+    """True iff a keyword from *keywords* appears in *span* without negation or
+    conditionality on the immediately preceding word."""
+    words = _normalise(span).split()
+    for i, word in enumerate(words):
+        if word not in keywords:
+            continue
+        preceding = words[i - 1] if i > 0 else None
+        if preceding in _NEGATION_WORDS or preceding in _CONDITIONAL_WORDS:
+            continue  # negated or conditional — not an immediate request
+        return True
+    return False
+
+
 class GoalMatch(Enum):
     """Tri-state verdict on task-call fit."""
 
@@ -81,6 +147,11 @@ class TaskIntent:
     #: Verbatim spans of the task text this intent was read from. An intent
     #: whose spans are not in the task cannot support anything.
     source_spans: tuple[str, ...] = ()
+    #: Verbatim spans that ground the *action* (effect) claim, separate from
+    #: the entity spans above.  "booking B-104" proves the entity was named;
+    #: it cannot also prove "cancel" was requested.  An intent with no
+    #: action_spans cannot reach SUPPORTED through the effect gate.
+    action_spans: tuple[str, ...] = ()
     #: Free-text note on where the intent came from. Audit only; it grants
     #: nothing, by design.
     proposed_by: str = "unspecified"
@@ -90,6 +161,30 @@ class TaskIntent:
             return False
         haystack = _normalise(task_text)
         return all(_normalise(span) in haystack for span in self.source_spans)
+
+    def action_grounded_in(self, task_text: str | None) -> bool:
+        """Effect grounding: action_spans present, verifiable in task, and
+        containing an unambiguous keyword for requested_effect — without a
+        preceding negation (``not``, ``never``, …) or conditionality marker
+        (``before``, ``after``, …).
+
+        Returns False when action_spans is empty, the task is absent, a span
+        cannot be found in the task, the effect is not in EFFECT_VOCABULARY,
+        or every keyword occurrence is negated/conditional.
+        """
+        if not self.action_spans or not task_text:
+            return False
+        haystack = _normalise(task_text)
+        if not all(_normalise(span) in haystack for span in self.action_spans):
+            return False
+        keywords = EFFECT_VOCABULARY.get(
+            self.requested_effect.strip().lower(), frozenset()
+        )
+        if not keywords:
+            return False  # unrecognised effect → ungroundable
+        return any(
+            _keyword_present_in_span(keywords, span) for span in self.action_spans
+        )
 
 
 @dataclass(frozen=True)
@@ -158,6 +253,17 @@ def match_tool_to_intent(
             GoalMatch.UNKNOWN,
             "the intent's source span(s) do not occur in the task text, so the "
             "intent is unverified and cannot establish a match",
+            mutation=contract.mutation,
+        )
+    # Entity spans prove the resource was mentioned; action spans must
+    # separately prove the effect was requested.  "Show me booking B-104"
+    # cannot ground a cancel request however clearly "booking B-104" appears.
+    if not intent.action_grounded_in(task_text):
+        return GoalMatchResult(
+            GoalMatch.UNKNOWN,
+            f"the requested effect {intent.requested_effect!r} is not grounded "
+            f"in the task text — action_spans is absent or contains no "
+            f"unambiguous keyword from EFFECT_VOCABULARY/{EFFECT_VOCABULARY_VERSION}",
             mutation=contract.mutation,
         )
 

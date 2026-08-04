@@ -396,6 +396,18 @@ components:
       benchmark path and is absent from the path that actually enforces.
       Everything measured about it is therefore measured about a component the
       production route does not run.
+
+      2026-08-04 partial fix: the semantic-binding gap in match_tool_to_intent
+      was patched.  source_spans only verified entity presence; a model could
+      claim requested_effect="cancel" with source_span="booking B-104" and reach
+      SUPPORTED because "booking B-104" appeared in the task.  The fix adds
+      action_spans (a separate span field for the effect claim), a versioned
+      EFFECT_VOCABULARY (v1), and negation/conditionality detection.  Seven new
+      tests pin the attack surface: real-entity-span-wrong-effect → UNKNOWN,
+      negation → UNKNOWN, conditional ("before closing") → UNKNOWN.
+      effect_consistent() still uses only spans_verifiable_in() for this check;
+      match_tool_to_intent is the primary gate and the more critical path.
+      SHELF-020 itself (wiring into /v1/execution) remains open.
     adoption: SCOPED
     remaining: >-
       One authoritative context builder used by both the benchmarks and
