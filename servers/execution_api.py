@@ -32,7 +32,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -404,6 +404,137 @@ def _jsonable(value: Any) -> Any:
         return repr(value)
 
 
+# ── OpenAPI contract models (documentation-only) ───────────────────────────
+#
+# These models type the wire contract for Swagger and generated clients. They
+# are attached via `responses={200: {"model": ...}}`, NOT `response_model=`,
+# deliberately: the handlers build their dicts incrementally and conditional
+# keys are ABSENT, never null (pinned by test_execution_api.py), while the
+# semantic booleans are always present even when None. A response_model would
+# either inject null keys or, with exclude_none, drop the nullable-but-present
+# fields — both are wire-format changes. Timestamps stay `str`: they are
+# pre-serialized ISO-8601 and retyping them as datetime would let Pydantic
+# re-normalize the string form.
+
+GovernanceAction = Literal["accept", "verify", "abstain", "escalate"]
+ExecutionOutcome = Literal["execute", "approval_expired", "binding_refused",
+                           "approval_invalidated"]
+
+
+class ErrorDetail(BaseModel):
+    detail: str
+
+
+class AuditRef(BaseModel):
+    sequence_no: int
+    entry_hash: str
+
+
+class SemanticAssessment(BaseModel):
+    tool_contract_bundle_hash: str = Field(
+        "", description="Empty string means no semantic bundle is configured "
+                        "(registry-only path) — recorded, never assumed away.")
+    state_hash: str = ""
+    intent_authority_hash: str = Field(
+        "", description="Empty string when no intent_ref was resolved.")
+    tool_matches_goal: bool | None = Field(
+        None, description="None means not evaluated; the key is always present.")
+    expected_effect_matches: bool | None = Field(
+        None, description="None means not evaluated; the key is always present.")
+
+
+class ExecutionGrant(BaseModel):
+    """Signed single-use policy decision token (PolicyDecisionToken)."""
+
+    action: str
+    observation_hash: str
+    request_id: str
+    issued_at: str
+    expires_at: str | None
+    jti: str
+    audience: str
+    signature: str
+    is_signed: bool
+
+
+class PepResult(BaseModel):
+    allowed: bool
+    reason: str = Field(description="e.g. accept, token_already_consumed")
+
+
+class ToolResultEnvelopeModel(BaseModel):
+    sha256: str
+    size_bytes: int
+    truncated: bool
+    preview: Any = None
+    media_type: str
+
+
+class ToolExecutionResult(BaseModel):
+    executed: bool
+    refusal_reason: str | None = Field(
+        None, description="Present only when executed is false: pep_denied, "
+                          "policy_bundle_unavailable, lease_unavailable:*, "
+                          "tool_failed_nonce_burned, or a dispatcher/lease "
+                          "refusal such as unknown_tool, "
+                          "nonce_already_consumed, policy_bundle_mismatch.")
+    error: str | None = None
+    result: Any = Field(
+        None, description="Tool return value (deployment-defined shape); "
+                          "present only when executed is true.")
+    result_envelope: ToolResultEnvelopeModel | None = None
+
+
+class ExecutionAssessResponse(BaseModel):
+    decision: GovernanceAction
+    reasons: list[str]
+    tool_call_hash: str
+    semantic: SemanticAssessment
+    execution_token: ExecutionGrant | None = Field(
+        None, description="Present only on accept; key absent otherwise.")
+    review_item_id: str | None = Field(
+        None, description="Present only on verify/escalate; key absent "
+                          "otherwise (abstain has neither).")
+    audit: AuditRef
+
+
+class ExecutionApproveResponse(BaseModel):
+    status: Literal["approved"]
+    item_id: str
+    expires_at: str
+    audit: AuditRef
+
+
+class ExecutionExecuteResponse(BaseModel):
+    outcome: ExecutionOutcome
+    detail: str
+    execution_grant: ExecutionGrant | None = Field(
+        None, description="Present only when outcome is execute.")
+    pep: PepResult | None = Field(
+        None, description="Present only when outcome is execute.")
+    tool_execution: ToolExecutionResult | None = Field(
+        None, description="Present only when outcome is execute.")
+    audit: AuditRef
+
+
+class ExecutionAuditVerifyResponse(BaseModel):
+    tenant: str
+    valid: bool
+    problems: list[str]
+    records_checked: int
+    empty: bool = Field(
+        description="True when no records exist: an empty chain is trivially "
+                    "valid and must not pose as verified history.")
+
+
+_AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {
+    401: {"model": ErrorDetail,
+          "description": "Missing or invalid bearer token."},
+    403: {"model": ErrorDetail,
+          "description": "Role lacks the required capability for this tenant."},
+}
+
+
 class ToolCallRequest(BaseModel):
     """The PROPOSAL only (issue #34 trust boundary; full-args binding kept).
 
@@ -588,8 +719,21 @@ def _downgrade_only_bool(registry_value: bool | None, request_value: bool | None
 
 
 
-@router.post("/assess")
+@router.post("/assess", responses={
+    200: {"model": ExecutionAssessResponse,
+          "description": "Governance decision; conditional keys are absent, never null."},
+    **_AUTH_RESPONSES,
+})
 def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
+    """Assess a proposed tool call — nothing executes here.
+
+    Authoritative signals (risk tier, action type, domain, semantic context)
+    are derived server-side from the tool registry and the deployment's
+    semantic bundle; the request is a proposal and can only lower trust,
+    never raise it. ACCEPT returns a signed single-use execution token;
+    VERIFY/ESCALATE enqueue a review item for a human; ABSTAIN returns
+    neither. Every assessment appends to the tenant audit chain.
+    """
     tenant, role, principal = _auth(request)
     idemp_key = f"assess:{tenant}:{req.idempotency_key}" if req.idempotency_key else None
     if idemp_key:
@@ -664,8 +808,23 @@ class ApproveRequest(BaseModel):
     on_behalf_of: str | None = None
 
 
-@router.post("/approve")
+@router.post("/approve", responses={
+    200: {"model": ExecutionApproveResponse},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "Review item not found for this tenant."},
+    409: {"model": ErrorDetail,
+          "description": "Item not pending, queue TTL exceeded, or invalid approval TTL."},
+})
 def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
+    """Record an approval by the authenticated reviewer.
+
+    The approver identity comes from the credential, never from the request
+    body; `on_behalf_of` is recorded in the audit chain as client-declared,
+    unverified metadata. Role separation is enforced: the operator role that
+    proposed the action cannot approve it, and a tenant's risk profile may
+    reserve approval for domain_expert/senior_authority. The approval TTL is
+    mandatory and bounded.
+    """
     tenant, role, principal = _auth(request)
     from servers import api as api_mod
 
@@ -731,8 +890,25 @@ class ExecuteRequest(BaseModel):
     tool_call: ToolCallRequest
 
 
-@router.post("/execute")
+@router.post("/execute", responses={
+    200: {"model": ExecutionExecuteResponse,
+          "description": "Outcome of enforcement; refusal outcomes carry no "
+                         "grant/pep/tool_execution keys."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "Review item not found for this tenant."},
+    409: {"model": ErrorDetail, "description": "Item not in an executable state."},
+})
 def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
+    """Execute a previously approved item under full re-gating.
+
+    The complete payload is re-presented and freshly re-decided: an
+    equal-or-safer world state executes, a stricter one invalidates the
+    approval, and changed arguments are refused by exact payload binding. A
+    single-use grant is consumed atomically, and the tool is dispatched
+    through the governed dispatcher under a lease bound to the current
+    policy bundle hash. Both the pre-dispatch authorization and the result
+    are separate records in the tenant audit chain.
+    """
     tenant, role, principal = _auth(request)
     from servers import api as api_mod
 
@@ -894,8 +1070,19 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     return response
 
 
-@router.get("/audit/verify")
+@router.get("/audit/verify", responses={
+    200: {"model": ExecutionAuditVerifyResponse},
+    **_AUTH_RESPONSES,
+})
 def audit_verify(request: Request) -> dict[str, Any]:
+    """Verify this tenant's execution audit chain.
+
+    Distinct from `/v1/audit/chain/verify`, which verifies the
+    DecisionEnvelope chain in the control-plane store: this chain records
+    the execution lifecycle (assessed → approved → execution_authorized →
+    execution_result). Reports how many records were checked; an empty
+    chain is trivially valid and is flagged as such.
+    """
     tenant, role, _principal = _auth(request)
     from servers import api as api_mod
 

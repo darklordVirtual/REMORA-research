@@ -27,6 +27,20 @@ releases.
 
 ## [Unreleased]
 
+### Typed OpenAPI contract for /v1/execution (2026-08-05)
+
+- The four execution operations now carry documentation-typed response
+  models (`ExecutionAssessResponse`, `ExecutionApproveResponse`,
+  `ExecutionExecuteResponse`, `ExecutionAuditVerifyResponse`), closed enums
+  for `decision` and `outcome`, a shared `ErrorDetail` model with documented
+  401/403/404/409 statuses, and real operation descriptions — the contract a
+  generated client needs instead of `Record<string, unknown>`.
+- Deliberately attached via `responses={200: {"model": ...}}`, not
+  `response_model=`: handlers keep returning plain dicts, so the wire format
+  — conditional keys absent (never null), semantic booleans present even
+  when null, timestamps as pre-serialized ISO strings — stays byte-identical.
+  Pinned by `tests/test_execution_openapi_contract.py`.
+
 ### Policy identity: API hash bound to the canonical policy source set (2026-08-05)
 
 - `_policy_component_hashes()` in `servers/api.py` hashed only
