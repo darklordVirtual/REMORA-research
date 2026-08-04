@@ -20,8 +20,6 @@ enforced.
 """
 from __future__ import annotations
 
-import dataclasses
-
 import pytest
 
 from remora.policy.observation import PolicyObservation
