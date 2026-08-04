@@ -146,7 +146,7 @@ python -m pip install -e ".[dev]"
 python -m remora try                  # interactive: propose a call, watch it get judged
 python -m remora assess drop_database # one-shot verdict for a named tool
 
-python -m pytest tests/ -q            # full deterministic suite (~4,400 tests, no keys, ~80s)
+python -m pytest tests/ -q            # full deterministic suite (~4,600 tests, no keys, ~80s)
 python scripts/demo_industrial_maintenance.py   # end-to-end walkthrough (dry-run)
 python -m remora doctor               # environment self-check, with fixes
 ```
