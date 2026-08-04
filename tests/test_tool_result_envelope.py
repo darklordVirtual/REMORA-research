@@ -139,6 +139,7 @@ def test_envelope_is_frozen() -> None:
     import dataclasses
 
     env = capture_tool_result({"a": 1})
+    assert isinstance(env, ToolResultEnvelope)
     assert dataclasses.is_dataclass(env)
     try:
         env.truncated = True  # type: ignore[misc]
