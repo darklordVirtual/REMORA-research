@@ -131,8 +131,8 @@ Shadow-mode research only; not certified for production. The load-bearing caveat
   rate is a synthetic-benchmark result: a deterministic simulator and a controlled
   internal corpus, with no real shell, network or database touched.
 - **Sample sizes are smaller than they look.** The simulator's 700 tasks are 70
-  templates × 10 cosmetic variants; every statistic uses the 70, and the margin over
-  baselines is not statistically significant (p=0.50).
+  templates × 10 cosmetic variants (effective N=70); every statistic uses the 70, and
+  the margin over baselines is not statistically significant (p=0.50).
 - **Nobody outside this project has reproduced any of it.** External replication is pending
   — a distinct, still-open evidence level, and a prerequisite for any stronger label.
 - **REMORA cannot stop an agent that goes around it.** The guarantee holds only where a
