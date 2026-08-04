@@ -203,7 +203,17 @@ def normalize_audit_for_hash(payload: dict[str, Any]) -> dict[str, Any]:
 
 @dataclass(frozen=True)
 class EffectBlock:
-    """Reconstructs decision-to-effect execution state."""
+    """Decision-to-effect execution state — RESERVED, not yet populated.
+
+    Production status (verified 2026-08-05): no producer sets these fields.
+    The envelope producer (/v1/assess) never dispatches a tool, and the
+    dispatching path (/v1/execution) records its outcome in the tenant audit
+    chain (``tool_execution`` / ``execution_result`` records) without
+    building an envelope. Every shipped envelope therefore carries this
+    block at its defaults; treat a non-default instance as external input,
+    not as REMORA-attested execution state. Wiring the execution outcome
+    into the envelope is tracked follow-up work on the /v1/execution path.
+    """
     executed: bool = False
     tool_call_hash: str | None = None
     effect_outcome: str | None = None

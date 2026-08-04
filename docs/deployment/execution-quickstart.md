@@ -43,6 +43,7 @@ fail-closed set is complete:
 | `REMORA_TOOL_REGISTRY_MODULE` | Deployment-owned tool registry (section 3) | required for dispatch |
 | `REMORA_SEMANTIC_BUNDLE_MODULE` | Deployment-owned semantic bundle: tool contracts + signatures + validators + state, hashed and consulted by `build_full_observation` on assess/execute (SHELF-020) | optional — without it the registry-only path runs |
 | `REMORA_INTENT_SOURCE_FILE` | Research-profile intent source: JSON map of `intent_ref` → approved workflow intent (`servers/semantic_bundle_research.py`) | optional |
+| `REMORA_MAX_TOOL_RESULT_BYTES` | Cap on how much of a tool result is retained in the response/audit record; the full result is always hashed (`remora/enforcement/result_envelope.py`) | optional — default 65536 |
 
 Key generation: `python -c "import secrets; print(secrets.token_hex(32))"`.
 Rotation policy: [`../assurance/rbac_policy_v1.md`](../assurance/rbac_policy_v1.md).

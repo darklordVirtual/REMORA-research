@@ -28,7 +28,7 @@ blocks without updating the envelope hash and schema.
 | `history` | Session-level history references |
 | `policy_learning` | Signals exported to the (experimental) learning layer |
 | `audit` | SHA-256 hash-chain linkage and audit metadata |
-| `effect` | Decision-to-effect execution state: `executed`, `tool_call_hash`, `effect_outcome`, `ledger_entry` |
+| `effect` | Reserved for decision-to-effect execution state (`executed`, `tool_call_hash`, `effect_outcome`, `ledger_entry`) — **no producer populates it yet**: the execution outcome is recorded in the tenant audit chain, not in the envelope |
 | `causal_explanation` | Optional policy-only what-if analysis (`decision_scope="policy_only"`) |
 
 Serialise with `envelope.to_dict()`. The audit hash chain

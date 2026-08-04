@@ -27,6 +27,18 @@ releases.
 
 ## [Unreleased]
 
+### Contract honesty: EffectBlock relabeled, config gap closed (2026-08-05)
+
+- `EffectBlock` on the canonical DecisionEnvelope was documented as
+  decision-to-effect execution state, but no producer populates it: the
+  envelope producer never dispatches, and the dispatching path records its
+  outcome in the tenant audit chain without building an envelope. Docstring
+  and API reference now say exactly that (reserved, unpopulated); wiring the
+  outcome into the envelope is tracked follow-up work.
+- `REMORA_MAX_TOOL_RESULT_BYTES` (result retention cap, default 65536,
+  full result always hashed) was read by the code but missing from the
+  execution quickstart's configuration table — added.
+
 ### Frontend: typecheck clean and CI-gated (2026-08-05)
 
 - Fixed the pre-existing TypeScript errors (recharts 3.x Tooltip/Legend
