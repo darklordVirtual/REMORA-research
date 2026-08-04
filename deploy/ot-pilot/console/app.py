@@ -15,6 +15,7 @@ pattern for production credential handling and says so on the page.
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import sys
 from pathlib import Path
@@ -22,6 +23,8 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from pathlib import Path
+import json
 
 API = os.environ.get("REMORA_API_URL", "http://api:8000")
 HERE = Path(__file__).parent
@@ -148,14 +151,28 @@ async def battery() -> PlainTextResponse:
     failing case, and the battery's whole value is that it says when the
     system did not do what the case specified.
     """
+    artifact_path = HERE / "artifacts" / "latest-ot-battery.json"
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    evidence_root = os.environ.get("REMORA_EVIDENCE_ROOT", "/var/lib/remora/evidence")
     proc = await asyncio.create_subprocess_exec(
         sys.executable, str(HERE.parent / "run_ot_battery.py"),
+        "--json-out", str(artifact_path),
+        "--evidence-root", evidence_root,
         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
-        env={**os.environ, "REMORA_PILOT_URL": API},
+        env={**os.environ, "REMORA_PILOT_URL": API, "REMORA_EVIDENCE_ROOT": evidence_root},
     )
     stdout, _ = await proc.communicate()
     text = stdout.decode("utf-8", errors="replace")
     return PlainTextResponse(f"{text}\n[exit code {proc.returncode}]")
+
+
+@app.get("/api/battery/evidence")
+async def battery_evidence() -> JSONResponse:
+    """Return the structured evidence artifact written by the most recent battery run."""
+    artifact_path = HERE / "artifacts" / "latest-ot-battery.json"
+    if not artifact_path.exists():
+        return JSONResponse({"error": "No evidence artifact yet"}, status_code=404)
+    return JSONResponse(json.loads(artifact_path.read_text(encoding="utf-8")))
 
 
 @app.get("/api/scenarios")

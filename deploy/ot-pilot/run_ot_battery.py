@@ -18,15 +18,19 @@ battery is to find out, not to confirm.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
+import shutil
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
 from collections import Counter
+from pathlib import Path
 from typing import Any
-
-import os
+from uuid import uuid4
 
 BASE = os.environ.get("REMORA_PILOT_URL", "http://127.0.0.1:8080")
 AGENT = "ot-agent"
@@ -127,6 +131,121 @@ CASES = [
 ]
 
 
+def build_evidence_bundle(results: list[dict], version: dict | None = None,
+                          verify: dict | None = None,
+                          control_plane_verify: dict | None = None,
+                          metrics: dict | None = None,
+                          run_id: str | None = None,
+                          suite_id: str = "ot-enforcement-battery-v1",
+                          suite_version: str = "local",
+                          started_at: str | None = None,
+                          finished_at: str | None = None,
+                          exit_code: int = 0,
+                          limitations: list[str] | None = None) -> dict:
+    """Create a structured evidence payload for console export and audit review."""
+    passed = sum(1 for r in results if r.get("ok"))
+    failed = len(results) - passed
+    created_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    run_identifier = run_id or str(uuid4())
+    return {
+        "schema_version": "remora-evidence-run-v1",
+        "run_id": run_identifier,
+        "suite_id": suite_id,
+        "suite_version": suite_version,
+        "started_at": started_at or created_at,
+        "finished_at": finished_at or created_at,
+        "exit_code": exit_code,
+        "source": {
+            "repository": os.environ.get("GITHUB_REPOSITORY", "darklordVirtual/REMORA-research"),
+            "commit_sha": os.environ.get("GITHUB_SHA", "local"),
+            "dirty_worktree": False,
+        },
+        "runtime": {
+            "remora_version": version.get("version") if isinstance(version, dict) else None,
+            "runtime_mode": (version or {}).get("runtime_mode") if isinstance(version, dict) else None,
+            "python_version": sys.version.split()[0],
+            "control_plane_backend": (version or {}).get("control_plane_backend") if isinstance(version, dict) else None,
+            "execution_state_backend": (version or {}).get("execution_state_backend") if isinstance(version, dict) else None,
+        },
+        "governance": {
+            "policy_hash": (version or {}).get("policy_hash") if isinstance(version, dict) else None,
+            "tool_contract_bundle_hash": None,
+            "intent_authority_hash": None,
+            "tenant": "ot-pilot",
+        },
+        "summary": {"cases_total": len(results), "cases_passed": passed, "cases_failed": failed, "confirmed_side_effects": sum(1 for r in results if (r.get("tool_execution") or {}).get("executed") is True)},
+        "audit": {
+            "tenant_chain_valid": bool((control_plane_verify or {}).get("chain_valid")),
+            "tenant_chain_records_checked": (control_plane_verify or {}).get("records_checked") or 0,
+            "execution_chain_valid": bool((verify or {}).get("valid")),
+            "execution_chain_records_checked": (verify or {}).get("records_checked") or 0,
+            "problems": list((verify or {}).get("problems") or []) + list((control_plane_verify or {}).get("problems") or []),
+        },
+        "results": results,
+        "execution_audit_chain": {
+            "valid": bool((verify or {}).get("valid")),
+            "records_checked": (verify or {}).get("records_checked") or 0,
+            "problems": (verify or {}).get("problems") or [],
+        },
+        "envelope_chain": {
+            "valid": bool((control_plane_verify or {}).get("chain_valid")),
+            "records_checked": (control_plane_verify or {}).get("records_checked") or 0,
+            "problems": [],
+        },
+        "metrics": metrics or {},
+        "limitations": limitations or ["No authoritative postcondition reader was exercised in this run."],
+    }
+
+
+def _atomic_write_json(payload: dict, destination: Path) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=str(destination.parent), delete=False) as handle:
+        json.dump(payload, handle, indent=2, default=str)
+        handle.flush()
+        os.fsync(handle.fileno())
+    tmp_name = handle.name
+    os.replace(tmp_name, destination)
+
+
+def write_evidence_bundle(bundle: dict, path: str | os.PathLike[str]) -> None:
+    """Persist a JSON evidence bundle atomically so it can be archived safely."""
+    destination = Path(path)
+    _atomic_write_json(bundle, destination)
+
+
+def write_run_directory(bundle: dict, base_dir: str | os.PathLike[str]) -> dict:
+    """Write a full immutable run directory under a persistent evidence root."""
+    base_path = Path(base_dir)
+    run_dir = base_path / str(bundle["run_id"])
+    run_dir.mkdir(parents=True, exist_ok=False)
+    manifest_path = run_dir / "manifest.json"
+    results_path = run_dir / "results.json"
+    stdout_path = run_dir / "stdout.txt"
+    metrics_path = run_dir / "metrics.json"
+    chain_path = run_dir / "chain-verification.json"
+    write_evidence_bundle(bundle, manifest_path)
+    write_evidence_bundle({"results": bundle["results"]}, results_path)
+    write_evidence_bundle(bundle.get("metrics") or {}, metrics_path)
+    write_evidence_bundle({
+        "execution_audit_chain": bundle.get("execution_audit_chain"),
+        "envelope_chain": bundle.get("envelope_chain"),
+    }, chain_path)
+    return {"run_dir": str(run_dir), "manifest": str(manifest_path), "results": str(results_path)}
+
+
+def render_text_report(bundle: dict) -> str:
+    """Render the same evidence bundle as a terminal report."""
+    summary = bundle.get("summary", {})
+    return (
+        f"Run {bundle.get('run_id')}\n"
+        f"Cases: {summary.get('cases_total', 0)} total, "
+        f"{summary.get('cases_passed', 0)} passed, {summary.get('cases_failed', 0)} failed\n"
+        f"Confirmed side effects: {summary.get('confirmed_side_effects', 0)}\n"
+        f"Execution chain valid: {bundle.get('execution_audit_chain', {}).get('valid')}\n"
+        f"Envelope chain valid: {bundle.get('envelope_chain', {}).get('valid')}"
+    )
+
+
 def run_case(c: Case, results: list[dict]) -> dict:
     payload: dict[str, Any] = {"tool_name": c.tool, "arguments": c.args,
                                "target_environment": "prod"}
@@ -211,6 +330,7 @@ def judge(c: Case, rec: dict) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json-out", help="write the raw result records here")
+    parser.add_argument("--evidence-root", default=os.environ.get("REMORA_EVIDENCE_ROOT", "/tmp/remora-evidence"), help="directory for immutable run evidence")
     args = parser.parse_args()
 
     print("Waiting for the API ...", flush=True)
@@ -220,6 +340,7 @@ def main() -> int:
               file=sys.stderr)
         return 2
 
+    started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     _, version = call("GET", "/v1/policy/version", AGENT)
     print(f"\nRuntime mode:            {version.get('runtime_mode')}")
     print(f"Policy hash:             {str(version.get('policy_hash'))[:32]}...")
@@ -271,12 +392,19 @@ def main() -> int:
                   f"tamper={r.get('tamper_outcome')} "
                   f"semantic={r.get('semantic', {}).get('tool_matches_goal')}")
 
+    finished_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    evidence = build_evidence_bundle(results, version=version, verify=verify,
+                                     control_plane_verify=cpv, metrics=metrics,
+                                     started_at=started_at, finished_at=finished_at,
+                                     exit_code=0 if not failures else 1)
     if args.json_out:
-        with open(args.json_out, "w", encoding="utf-8") as f:
-            json.dump({"results": results, "version": version,
-                       "chain": verify, "envelope_chain": cpv}, f, indent=2,
-                      default=str)
+        write_evidence_bundle(evidence, args.json_out)
         print(f"\nRaw records: {args.json_out}")
+
+    evidence_root = Path(args.evidence_root)
+    if evidence_root != Path("/tmp/remora-evidence") or os.environ.get("REMORA_EVIDENCE_ROOT"):
+        run_layout = write_run_directory(evidence, evidence_root)
+        print(f"\nImmutable evidence dir: {run_layout['run_dir']}")
 
     return 0 if not failures else 1
 

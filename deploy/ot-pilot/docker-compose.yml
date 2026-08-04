@@ -104,3 +104,9 @@ services:
       PILOT_TOKEN_OPERATOR: ot-agent
       PILOT_TOKEN_APPROVER: ot-approver
       PILOT_TOKEN_VIEWER: ot-viewer
+      REMORA_EVIDENCE_ROOT: /var/lib/remora/evidence
+    volumes:
+      - remora-evidence:/var/lib/remora/evidence
+
+volumes:
+  remora-evidence:
