@@ -82,6 +82,7 @@ The numbered series is the primary reading path.
 | [evidence_levels.md](assurance/evidence_levels.md) | Evidence-level taxonomy |
 | [metric_definitions_v1.md](assurance/metric_definitions_v1.md) | Canonical metric definitions and denominators |
 | [statistical_analysis_plan_v3.md](assurance/statistical_analysis_plan_v3.md) | Pre-registered statistical analysis plan (in force) |
+| [statistical_analysis_plan_v4.md](assurance/statistical_analysis_plan_v4.md) | SAP v4 — OT semantic track: co-primary targets, cluster failure rule, ablation arms A–D |
 | [rebenchmark_protocol_v1.md](assurance/rebenchmark_protocol_v1.md) | Protocol for the next clean benchmark round |
 | [experiment_manifest_spec_v1.md](assurance/experiment_manifest_spec_v1.md) | Experiment manifest specification |
 | [artifact_provenance_spec_v1.md](assurance/artifact_provenance_spec_v1.md) | Artifact provenance specification |
@@ -111,6 +112,7 @@ The numbered series is the primary reading path.
 | [benchmarks/stat_tests.md](benchmarks/stat_tests.md) | Statistical test methodology |
 | [benchmarks/toolcall_consensus_benchmark_v2.md](benchmarks/toolcall_consensus_benchmark_v2.md) | Tool-call benchmark v2 |
 | [research/routing_benchmark_v1_design.md](research/routing_benchmark_v1_design.md) | Tool-routing benchmark design: predicates, frozen routing, leakage gates |
+| [research/task_intent_authority_v1.md](research/task_intent_authority_v1.md) | Gate 1 / 1A: two legitimate TaskIntent sources, UNKNOWN rules, EFFECT_VOCABULARY authority |
 | [research/research_control_matrix.generated.md](research/research_control_matrix.generated.md) | Research-line → control → code → test matrix (generated) |
 | [research/research_control_matrix_v1.yaml](research/research_control_matrix_v1.yaml) | Matrix source |
 | [research/research_shelf_v1.yaml](research/research_shelf_v1.yaml) | Vetted external-component shelf: source, retrieval status, adoption verdict per candidate |

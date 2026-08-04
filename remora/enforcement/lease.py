@@ -100,6 +100,12 @@ class ExecutionLease:
     expires_at: str
     signature: str
     is_signed: bool
+    #: Hash of the frozen ToolContractRegistry bundle active at issue time.
+    #: Empty string means no bundle was declared (legacy / pre-SHELF-020 path).
+    tool_contract_bundle_hash: str = ""
+    #: Hash identifying the frozen intent-authority source (model version +
+    #: prompt + decoding params + cache SHA) active at issue time.
+    intent_authority_hash: str = ""
 
     @classmethod
     def issue(
@@ -114,6 +120,8 @@ class ExecutionLease:
         policy_bundle_hash: str,
         issued_at: str,
         expires_at: str | None = None,
+        tool_contract_bundle_hash: str = "",
+        intent_authority_hash: str = "",
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -151,6 +159,8 @@ class ExecutionLease:
             "nonce": str(uuid.uuid4()),
             "issued_at": issued_at,
             "expires_at": expires_at,
+            "tool_contract_bundle_hash": tool_contract_bundle_hash,
+            "intent_authority_hash": intent_authority_hash,
         }
         key = _get_signing_key()
         if key:
@@ -175,6 +185,8 @@ class ExecutionLease:
             "nonce": self.nonce,
             "issued_at": self.issued_at,
             "expires_at": self.expires_at,
+            "tool_contract_bundle_hash": self.tool_contract_bundle_hash,
+            "intent_authority_hash": self.intent_authority_hash,
         }
 
     def verify(
@@ -270,6 +282,7 @@ class ExecutionLease:
         "decision", "tenant_id", "actor_identity", "tool_name", "tool_args_hash",
         "target_environment", "policy_bundle_hash", "nonce", "issued_at",
         "expires_at", "signature", "is_signed",
+        "tool_contract_bundle_hash", "intent_authority_hash",
     })
 
     @classmethod
