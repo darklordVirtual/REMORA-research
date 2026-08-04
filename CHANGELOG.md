@@ -27,6 +27,19 @@ releases.
 
 ## [Unreleased]
 
+### Policy identity: API hash bound to the canonical policy source set (2026-08-05)
+
+- `_policy_component_hashes()` in `servers/api.py` hashed only
+  `decision_engine.py`, although `remora/policy/versioning.py` defines the
+  canonical seven-file policy source set and promises full coverage. A change
+  to e.g. `thresholds.py` could therefore move governance outcomes while
+  outstanding leases kept verifying — and the audit trail kept recording —
+  an unchanged policy identity. The composite is now bound to
+  `compute_policy_bundle_hash()`.
+- Consequence stated plainly: replaying envelopes recorded before this change
+  reports `stable_policy_hash: false`. That is correct — the effective policy
+  identity they were recorded under is not the current one.
+
 ### OT pilot: evidence archive and design-system console (2026-08-05)
 
 - **Console UI is the frontend's design system, not a hand-rolled page.**

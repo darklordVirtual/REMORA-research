@@ -691,8 +691,19 @@ def _sha256_file(path: Path) -> str | None:
     return f"sha256:{digest}"
 
 
+from remora.policy.versioning import compute_policy_bundle_hash
+
+#: Canonical policy source set (7 files, remora/policy/versioning.py) hashed
+#: once at import — the files are static at runtime. Hashing decision_engine.py
+#: alone let a thresholds.py change move governance outcomes while leases kept
+#: verifying, and the audit trail kept recording, the old policy identity.
+#: Resolution failure here must stop startup: an unhashable policy set may not
+#: serve decisions.
+_POLICY_SOURCE_BUNDLE_HASH = "sha256:" + compute_policy_bundle_hash()
+
+
 def _policy_component_hashes() -> dict[str, str | None]:
-    policy_engine_hash = _sha256_file(_REPO_ROOT / "remora" / "policy" / "decision_engine.py")
+    policy_engine_hash = _POLICY_SOURCE_BUNDLE_HASH
     risk_profile_hash = _sha256_file(_REPO_ROOT / "schemas" / "risk-profiles.yaml")
     schema_hash = _sha256_file(_REPO_ROOT / "schemas" / "decision_envelope_schema.yaml")
 

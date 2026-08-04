@@ -675,6 +675,26 @@ def test_policy_version_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
     assert payload["runtime_mode"] in {"development", "production"}
 
 
+def test_policy_hash_covers_canonical_policy_source_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The API composite must bind to the canonical 7-file policy source set
+    (remora/policy/versioning.py), not decision_engine.py alone — otherwise a
+    thresholds.py change moves governance outcomes while outstanding leases
+    keep verifying, and the audit trail records, an unchanged policy identity."""
+    import hashlib as _hashlib
+
+    from remora.policy.versioning import compute_policy_bundle_hash
+
+    api = _load_api_module(monkeypatch, token="test-token")
+
+    comps = api._policy_component_hashes()
+    engine = "sha256:" + compute_policy_bundle_hash()
+    parts = [engine, comps["risk_profile_hash"], comps["schema_hash"]]
+    if comps["opa_policy_hash"]:
+        parts.append(comps["opa_policy_hash"])
+    expected = "sha256:" + _hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
+    assert comps["policy_hash"] == expected
+
+
 def test_assess_populates_envelope_audit_chain_and_signature(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "signing-key")
     api = _load_api_module(monkeypatch, token="test-token")
