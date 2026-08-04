@@ -166,7 +166,9 @@
         "policy_bundle_hash":  { "type": ["string", "null"] },
         "tool_args_hash":      { "type": ["string", "null"] },
         "data_classification": { "type": ["string", "null"] },
-        "retention_policy":    { "type": ["string", "null"] }
+        "retention_policy":    { "type": ["string", "null"] },
+        "tool_contract_bundle_hash": { "type": ["string", "null"] },
+        "intent_authority_hash":     { "type": ["string", "null"] }
       }
     }
   }

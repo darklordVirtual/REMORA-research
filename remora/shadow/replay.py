@@ -30,6 +30,7 @@ from remora.governance.envelope import (
     FollowUpBlock,
     GateBlock,
     HistoryBlock,
+    normalize_audit_for_hash,
     PolicyLearningBlock,
     RequestBlock,
     ReviewerContextBlock,
@@ -263,6 +264,7 @@ def _build_envelope(
     audit_block = payload.get("audit")
     if isinstance(audit_block, dict):
         audit_block["hash"] = None
+    normalize_audit_for_hash(payload)
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     chain_input = f"{previous_hash or '0' * 64}:{canonical}"
     envelope_hash = hashlib.sha256(chain_input.encode()).hexdigest()
@@ -310,6 +312,7 @@ def describe_envelope_hash_chain_breaks(
         audit_block = payload.get("audit")
         if isinstance(audit_block, dict):
             audit_block["hash"] = None
+        normalize_audit_for_hash(payload)
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         expected_hash = hashlib.sha256(
             f"{previous_hash or '0' * 64}:{canonical}".encode()
