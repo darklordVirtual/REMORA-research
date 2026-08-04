@@ -50,8 +50,15 @@ from remora.governance.review_queue import (
 )
 from remora.governance.tenant_chain import TenantAuditChain
 from remora.policy.decision_engine import RemoraDecisionEngine
-from remora.policy.observation import PolicyObservation
+from remora.policy.observation import PolicyObservation, canonical_tool_call_hash
 from remora.policy.report import DecisionAction
+from remora.toolcall.semantic_bundle import (
+    IntentResolver,
+    SemanticBundle,
+    compute_intent_authority_hash,
+    load_intent_resolver,
+    load_semantic_bundle,
+)
 
 router = APIRouter(prefix="/v1/execution", tags=["execution"])
 
@@ -354,6 +361,35 @@ def _reset_tool_dispatcher() -> None:
     _DISPATCHER = None
 
 
+# ── Semantic bundle (SHELF-020) ────────────────────────────────────────────
+#
+# With REMORA_SEMANTIC_BUNDLE_MODULE configured, the assess/execute
+# observation is built by build_full_observation — the same authoritative
+# context builder the benchmarks lock — over the deployment-declared
+# contract bundle. The cache is keyed on the module spec so a test (or a
+# redeployment) that unsets the variable falls back to the registry-only
+# path instead of consulting a stale bundle.
+
+_SEMANTIC: "tuple[str, SemanticBundle | None, IntentResolver | None] | None" = None
+
+
+def _semantic_bundle() -> "tuple[SemanticBundle | None, IntentResolver | None]":
+    global _SEMANTIC
+    spec = _os.environ.get("REMORA_SEMANTIC_BUNDLE_MODULE", "").strip()
+    if _SEMANTIC is None or _SEMANTIC[0] != spec:
+        if not spec:
+            _SEMANTIC = (spec, None, None)
+        else:
+            _SEMANTIC = (spec, load_semantic_bundle(), load_intent_resolver())
+    return _SEMANTIC[1], _SEMANTIC[2]
+
+
+def _reset_semantic_bundle() -> None:
+    """Test hook: drop the cached bundle (e.g. after env changes)."""
+    global _SEMANTIC
+    _SEMANTIC = None
+
+
 def _jsonable(value: Any) -> Any:
     """Best-effort JSON projection of a tool result for response/audit."""
     try:
@@ -383,14 +419,126 @@ class ToolCallRequest(BaseModel):
     schema_valid: bool | None = None       # only false is honored (downgrade)
     rollback_available: bool | None = None  # only false is honored (downgrade)
     idempotency_key: str | None = None
+    # SHELF-020: an OPAQUE reference into the deployment's intent source
+    # (signed work order, approved workflow template). The intent itself can
+    # never ride in this request (task_intent_authority_v1.md §2.3) — the
+    # server resolves the reference against a source the caller does not
+    # control, so a fabricated intent cannot be delivered alongside the call
+    # it would justify.
+    intent_ref: str | None = Field(None, max_length=200)
+    # Downgrade-only, like schema_valid: declaring untrusted context marks
+    # every argument as potentially tainted. Omitting it never raises trust —
+    # absence is the same default the legacy path had.
+    untrusted_context: str | None = Field(None, max_length=20_000)
 
 
-def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
+#: Semantic context with no bundle configured: absent, never defaulted.
+_NO_SEMANTIC_CONTEXT: dict[str, Any] = {
+    "tool_contract_bundle_hash": "",
+    "state_hash": "",
+    "intent_authority_hash": "",
+    "tool_matches_goal": None,
+    "expected_effect_matches": None,
+}
+
+
+def _observation_with_context(
+    req: ToolCallRequest, tenant: str
+) -> tuple[PolicyObservation, dict[str, Any]]:
+    """The authoritative observation plus the semantic-binding context.
+
+    With a semantic bundle configured, every task-tool safety field comes
+    from ``build_full_observation`` — the execution path never assembles
+    semantic fields by hand, and no request field can set one. The
+    executive metadata the builder does not produce (risk tier, target
+    environment, downgrade-only flags, session binding) is then overlaid
+    from the server-side registry, exactly as the legacy path derived it.
+    """
     registry_entry = TOOL_REGISTRY.get(req.tool_name, {
         "risk_tier": "critical",
         "domain": "unknown",
         "action_type": "unknown"
     })
+    bundle, resolver = _semantic_bundle()
+    if bundle is None:
+        return _registry_only_observation(req, tenant, registry_entry), dict(
+            _NO_SEMANTIC_CONTEXT
+        )
+
+    from remora.toolcall.routing.episode import RoutingEpisode
+    from remora.toolcall.routing.evaluate import build_full_observation
+
+    resolved = (
+        resolver(req.intent_ref) if (resolver is not None and req.intent_ref) else None
+    )
+    episode = RoutingEpisode(
+        id=f"exec:{tenant}:{req.tool_name}",
+        source_dataset="execution_api",
+        source_commit="",
+        cluster_id=f"exec:{tenant}",
+        user_task=resolved.task_text if resolved else "",
+        available_tools=tuple(sorted(bundle.registry.signatures)),
+        untrusted_context=req.untrusted_context or None,
+        proposed_tool_name=req.tool_name,
+        proposed_tool_args=dict(req.arguments),
+        domain=str(registry_entry.get("domain", "unknown")),
+    )
+    validators = (
+        bundle.validators.scoped(tenant) if bundle.validators is not None else None
+    )
+    full = build_full_observation(
+        episode,
+        bundle.registry,
+        bundle.state,
+        validators=validators,
+        contracts=bundle.contracts,
+        intent=resolved.intent if resolved else None,
+    )
+    target_environment = str(
+        registry_entry.get("target_environment", req.target_environment)
+    )
+    args_preview = json.dumps(
+        req.arguments, sort_keys=True, separators=(",", ":"), default=str
+    )[:120]
+    obs = dataclasses.replace(
+        full,
+        question=full.question or f"{req.tool_name}({args_preview})",
+        risk_tier=str(registry_entry.get("risk_tier", "critical")),
+        action_type=str(registry_entry.get("action_type")) if req.tool_name in TOOL_REGISTRY else full.action_type,
+        target_environment=target_environment,
+        schema_valid=_downgrade_only_bool(
+            registry_entry.get("schema_valid"), req.schema_valid
+        ),
+        rollback_available=_downgrade_only_bool(
+            registry_entry.get("rollback_available"), req.rollback_available
+        ),
+        session_id=tenant,
+        tool_call_hash=canonical_tool_call_hash(
+            name=req.tool_name,
+            arguments=req.arguments,
+            tenant=tenant,
+            target=target_environment,
+        ),
+    )
+    context = {
+        "tool_contract_bundle_hash": bundle.bundle_hash,
+        "state_hash": bundle.state_hash,
+        "intent_authority_hash": (
+            compute_intent_authority_hash(resolved) if resolved else ""
+        ),
+        "tool_matches_goal": full.tool_matches_goal,
+        "expected_effect_matches": full.expected_effect_matches,
+    }
+    return obs, context
+
+
+def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
+    return _observation_with_context(req, tenant)[0]
+
+
+def _registry_only_observation(
+    req: ToolCallRequest, tenant: str, registry_entry: dict[str, Any]
+) -> PolicyObservation:
     return PolicyObservation.from_tool_call(
         name=req.tool_name,
         arguments=req.arguments,
@@ -446,7 +594,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "assess")
-    obs = _observation(req, tenant)
+    obs, semantic = _observation_with_context(req, tenant)
     report = _ENGINE.decide(obs)
     now = datetime.now(UTC)
     record: dict[str, Any] = {
@@ -457,11 +605,18 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         "decision": report.action.value,
         "reasons": [r.value for r in report.reasons],
         "policy_version": report.policy_version,
+        # SHELF-020: the decision names the declaration set and intent source
+        # it was made under. Empty strings mean "no bundle configured" — the
+        # registry-only path, recorded rather than assumed away.
+        "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
+        "state_hash": semantic["state_hash"],
+        "intent_authority_hash": semantic["intent_authority_hash"],
     }
     response: dict[str, Any] = {
         "decision": report.action.value,
         "reasons": [r.value for r in report.reasons],
         "tool_call_hash": obs.tool_call_hash,
+        "semantic": dict(semantic),
     }
     if report.action is DecisionAction.ACCEPT:
         token = PolicyDecisionToken.issue(
@@ -574,7 +729,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
-    fresh_obs = _observation(req.tool_call, tenant)
+    fresh_obs, fresh_semantic = _observation_with_context(req.tool_call, tenant)
     try:
         # Tenant-binding check inside the transaction: _ITEM_TENANT is
         # rehydrated from the durable store by the load (review finding 2a).
@@ -629,6 +784,8 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         "tool_call_hash": fresh_obs.tool_call_hash,
         "grant_jti": token.jti,
         "pep_allowed": gate_result.allowed,
+        "tool_contract_bundle_hash": fresh_semantic["tool_contract_bundle_hash"],
+        "intent_authority_hash": fresh_semantic["intent_authority_hash"],
     })
 
     # Issue #13: actually dispatch the tool through the governed dispatcher —
@@ -652,6 +809,10 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
                     target_environment=req.tool_call.target_environment,
                     policy_bundle_hash=_current_policy_bundle_hash(),
                     issued_at=now.isoformat(),
+                    tool_contract_bundle_hash=fresh_semantic[
+                        "tool_contract_bundle_hash"
+                    ],
+                    intent_authority_hash=fresh_semantic["intent_authority_hash"],
                 )
             except (LeaseRefused, ValueError) as exc:
                 tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
