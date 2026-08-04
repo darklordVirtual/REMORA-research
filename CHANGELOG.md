@@ -27,6 +27,14 @@ releases.
 
 ## [Unreleased]
 
+### Frontend: typecheck clean and CI-gated (2026-08-05)
+
+- Fixed the pre-existing TypeScript errors (recharts 3.x Tooltip/Legend
+  content-prop types, react-day-picker v10 `month_grid` slot rename, and a
+  discriminated-union collapse in `benchmarks.tsx` — plus a latent React
+  `key` bug in the chart tooltip that the typing exposed) and added
+  `tsc --noEmit` to the verify job, so frontend type drift now fails CI.
+
 ### Typed OpenAPI contract for /v1/execution (2026-08-05)
 
 - The four execution operations now carry documentation-typed response

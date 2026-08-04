@@ -106,6 +106,13 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
+      - name: Typecheck frontend
+        # Went clean 2026-08-05 (recharts 3.x / react-day-picker v10 / one
+        # discriminated-union fix); gated here so type drift fails the
+        # pipeline instead of accumulating until deploy time.
+        working-directory: frontend
+        run: npx tsc --noEmit
+
       - name: Test frontend
         working-directory: frontend
         run: npm run test

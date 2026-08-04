@@ -460,11 +460,11 @@ function useBenchmarkArtifacts() {
   });
 
   const load = useCallback(async () => {
-    setArtifactState((prev) => ({
-      state: prev.state === "live" ? "live" : "loading",
-      dashboard: prev.dashboard,
-      updatedAt: prev.updatedAt,
-    }));
+    setArtifactState((prev) =>
+      prev.state === "live"
+        ? { state: "live", dashboard: prev.dashboard, updatedAt: prev.updatedAt }
+        : { state: "loading", dashboard: prev.dashboard, updatedAt: null },
+    );
 
     try {
       const entries = await Promise.all(
