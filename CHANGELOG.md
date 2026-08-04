@@ -48,6 +48,12 @@ releases.
   — conditional keys absent (never null), semantic booleans present even
   when null, timestamps as pre-serialized ISO strings — stays byte-identical.
   Pinned by `tests/test_execution_openapi_contract.py`.
+- The contract is now a committed artifact: `schemas/openapi.json`, exported
+  deterministically by `scripts/export_openapi.py` and drift-gated in CI
+  (`--check`), so client generators consume a reviewed document rather than
+  a runtime snapshot. Identity-shaped request fields document their
+  unverified-metadata semantics, the pilot tokens are marked demo-only, and
+  `ToolCallRequest` ships worked examples for Swagger try-out.
 
 ### Policy identity: API hash bound to the canonical policy source set (2026-08-05)
 

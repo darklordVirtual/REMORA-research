@@ -70,6 +70,12 @@ jobs:
       - name: Claim provenance gate (register/artifact/manifest/doc binding)
         run: python scripts/check_claim_provenance.py
 
+      - name: OpenAPI contract drift gate
+        # schemas/openapi.json is the committed, reviewable contract a client
+        # generator consumes; drift between it and the live app is a red
+        # build, not a surprise downstream.
+        run: python scripts/export_openapi.py --check
+
       - name: README-claim and leakage gates (need the installed package)
         # Also `make audit`-only until 2026-07-31. check_readme_claims imports
         # the modules the README names, so a README claiming a component that
