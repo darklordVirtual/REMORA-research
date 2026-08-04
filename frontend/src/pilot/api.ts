@@ -58,7 +58,9 @@ export type EvidenceRunSummary = {
 
 export type EvidenceRunAudit = {
   tenant_chain_valid?: boolean;
+  tenant_chain_records_checked?: number;
   execution_chain_valid?: boolean;
+  execution_chain_records_checked?: number;
 };
 
 export type EvidenceRunRow = {

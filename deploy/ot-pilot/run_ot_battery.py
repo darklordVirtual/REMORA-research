@@ -146,6 +146,14 @@ def build_evidence_bundle(results: list[dict], version: dict | None = None,
     failed = len(results) - passed
     created_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     run_identifier = run_id or str(uuid4())
+    # The execution chain reports break details under `problems`; the envelope
+    # chain (/v1/audit/chain/verify) reports them under `breaks`.
+    execution_problems = list((verify or {}).get("problems") or [])
+    envelope_breaks = list((control_plane_verify or {}).get("breaks") or [])
+    # SHELF-020 semantic hashes are measured per assess result; record them
+    # from the first result that carries them rather than asserting None.
+    semantic = next((r.get("semantic") for r in results
+                     if isinstance(r.get("semantic"), dict) and r.get("semantic")), {})
     return {
         "schema_version": "remora-evidence-run-v1",
         "run_id": run_identifier,
@@ -157,7 +165,9 @@ def build_evidence_bundle(results: list[dict], version: dict | None = None,
         "source": {
             "repository": os.environ.get("GITHUB_REPOSITORY", "darklordVirtual/REMORA-research"),
             "commit_sha": os.environ.get("GITHUB_SHA", "local"),
-            "dirty_worktree": False,
+            # The battery runs where git is unavailable; provenance it cannot
+            # measure is recorded as unknown, never asserted clean.
+            "dirty_worktree": None,
         },
         "runtime": {
             "remora_version": version.get("version") if isinstance(version, dict) else None,
@@ -168,8 +178,8 @@ def build_evidence_bundle(results: list[dict], version: dict | None = None,
         },
         "governance": {
             "policy_hash": (version or {}).get("policy_hash") if isinstance(version, dict) else None,
-            "tool_contract_bundle_hash": None,
-            "intent_authority_hash": None,
+            "tool_contract_bundle_hash": semantic.get("tool_contract_bundle_hash") or None,
+            "intent_authority_hash": semantic.get("intent_authority_hash") or None,
             "tenant": "ot-pilot",
         },
         "summary": {"cases_total": len(results), "cases_passed": passed, "cases_failed": failed, "confirmed_side_effects": sum(1 for r in results if (r.get("tool_execution") or {}).get("executed") is True)},
@@ -178,7 +188,7 @@ def build_evidence_bundle(results: list[dict], version: dict | None = None,
             "tenant_chain_records_checked": (control_plane_verify or {}).get("records_checked") or 0,
             "execution_chain_valid": bool((verify or {}).get("valid")),
             "execution_chain_records_checked": (verify or {}).get("records_checked") or 0,
-            "problems": list((verify or {}).get("problems") or []) + list((control_plane_verify or {}).get("problems") or []),
+            "problems": execution_problems + envelope_breaks,
         },
         "results": results,
         "execution_audit_chain": {
@@ -189,7 +199,7 @@ def build_evidence_bundle(results: list[dict], version: dict | None = None,
         "envelope_chain": {
             "valid": bool((control_plane_verify or {}).get("chain_valid")),
             "records_checked": (control_plane_verify or {}).get("records_checked") or 0,
-            "problems": [],
+            "problems": envelope_breaks,
         },
         "metrics": metrics or {},
         "limitations": limitations or ["No authoritative postcondition reader was exercised in this run."],

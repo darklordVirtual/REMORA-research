@@ -49,6 +49,11 @@ releases.
 - **Hardened pilot images.** Both pilot images run as uid 10001 with
   healthchecks and OCI labels; CI builds the pilot UI bundle so a frontend
   change cannot silently break the pilot's Docker build.
+- **Evidence fidelity.** The bundle now maps the envelope chain's `breaks`
+  into its problems lists (they were silently dropped), records the measured
+  SHELF-020 semantic hashes instead of `None`, reports `dirty_worktree` as
+  unknown rather than asserting clean, and the console run history shows an
+  empty chain as `empty`, never as green proof.
 
 ### SHELF-020: semantic layer wired into /v1/execution (2026-08-04)
 

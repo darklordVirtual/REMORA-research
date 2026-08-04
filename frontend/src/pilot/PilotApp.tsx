@@ -176,6 +176,8 @@ function EvidenceRow({
   }
   const s = run.summary ?? {};
   const a = run.audit ?? {};
+  const chainRecords =
+    (a.tenant_chain_records_checked ?? 0) + (a.execution_chain_records_checked ?? 0);
   const chainsOk = Boolean(a.tenant_chain_valid && a.execution_chain_valid);
   return (
     <TableRow>
@@ -190,9 +192,16 @@ function EvidenceRow({
         )}
       </TableCell>
       <TableCell
-        className={cn("font-mono text-xs", chainsOk ? "text-state-accept" : "text-state-escalate")}
+        className={cn(
+          "font-mono text-xs",
+          chainRecords === 0
+            ? "text-state-abstain"
+            : chainsOk
+              ? "text-state-accept"
+              : "text-state-escalate",
+        )}
       >
-        {chainsOk ? "valid" : "check"}
+        {chainRecords === 0 ? "empty" : chainsOk ? "valid" : "check"}
       </TableCell>
       <TableCell className="text-right font-mono text-sm tabular-nums">
         {run.exit_code ?? "?"}

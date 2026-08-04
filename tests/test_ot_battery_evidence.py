@@ -37,6 +37,44 @@ def test_build_evidence_bundle_writes_structured_artifact(tmp_path: Path) -> Non
     assert payload["audit"]["tenant_chain_valid"] is True
 
 
+def test_envelope_chain_breaks_reach_the_bundle() -> None:
+    """/v1/audit/chain/verify reports break details under `breaks`; the bundle
+    must carry them, not silently record an empty problems list."""
+    bundle = module.build_evidence_bundle(
+        results=[{"name": "Case A", "ok": True}],
+        verify={"valid": True, "problems": ["execution_gap_at:3"]},
+        control_plane_verify={"chain_valid": False, "records_checked": 4,
+                              "breaks": ["hash_mismatch_at:2"]},
+    )
+
+    assert bundle["envelope_chain"]["valid"] is False
+    assert bundle["envelope_chain"]["problems"] == ["hash_mismatch_at:2"]
+    assert bundle["audit"]["problems"] == ["execution_gap_at:3", "hash_mismatch_at:2"]
+
+
+def test_governance_hashes_come_from_measured_semantics() -> None:
+    """SHELF-020 semantic hashes exist per assess result; the bundle must
+    record them instead of hardcoding None."""
+    results = [
+        {"name": "Case A", "ok": True, "semantic": {
+            "tool_contract_bundle_hash": "f6d74252", "intent_authority_hash": "b32f50e0"}},
+        {"name": "Case B", "ok": True},
+    ]
+
+    bundle = module.build_evidence_bundle(results=results)
+
+    assert bundle["governance"]["tool_contract_bundle_hash"] == "f6d74252"
+    assert bundle["governance"]["intent_authority_hash"] == "b32f50e0"
+
+
+def test_dirty_worktree_is_unknown_not_asserted_clean() -> None:
+    """The battery runs where git is unavailable; provenance it cannot
+    measure must be recorded as unknown (None), never asserted False."""
+    bundle = module.build_evidence_bundle(results=[{"name": "Case A", "ok": True}])
+
+    assert bundle["source"]["dirty_worktree"] is None
+
+
 def _bundle(run_id: str) -> dict:
     return module.build_evidence_bundle(
         results=[{"name": "Case A", "ok": True, "decision": "verify"}],
