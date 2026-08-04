@@ -407,11 +407,32 @@ components:
       negation → UNKNOWN, conditional ("before closing") → UNKNOWN.
       effect_consistent() still uses only spans_verifiable_in() for this check;
       match_tool_to_intent is the primary gate and the more critical path.
-      SHELF-020 itself (wiring into /v1/execution) remains open.
-    adoption: SCOPED
+
+      2026-08-04 wiring landed: with REMORA_SEMANTIC_BUNDLE_MODULE configured,
+      /v1/execution/assess and /execute build their observation through
+      build_full_observation over a deployment-declared SemanticBundle
+      (signatures + contracts + validators + state; hashes computed from the
+      declarations, never declared). The intent arrives only as an opaque
+      intent_ref resolved server-side per task_intent_authority_v1.md — it can
+      never ride in the request, and request extras asserting semantic verdicts
+      are ignored. bundle/state/intent-authority hashes are recorded in the
+      assess audit record and bound into the ExecutionLease at execute time.
+      Parity 4 in tests/test_shelf020_parity.py pins field-identity between the
+      execution path and the builder.
+    adoption: PARTIAL
+    remora_evidence:
+      - remora/toolcall/semantic_bundle.py
+      - servers/execution_api.py
+      - servers/semantic_bundle_research.py
+      - tests/test_shelf020_parity.py
+      - tests/test_execution_semantic_wiring.py
+      - tests/test_semantic_bundle.py
     remaining: >-
-      One authoritative context builder used by both the benchmarks and
-      /v1/execution/assess, so the system under test is the system enforced.
-      Invariants to hold: no production path builds safety fields by hand, no
-      caller can set tool_matches_goal=True, and the contract/state/validator
-      hashes bind into the lease and envelope.
+      The wiring is configuration-gated: a deployment without
+      REMORA_SEMANTIC_BUNDLE_MODULE still runs the registry-only path, recorded
+      as empty hashes. Discrimination through the wired path is UNMEASURED —
+      SAP v4 has not run, so no accuracy or wrong-call number may be cited for
+      it. The /v1/assess DecisionEnvelope does not yet carry the bundle hash
+      (the execution path's record is the tenant audit chain + lease). The
+      executive metadata registry (risk tier, in TOOL_REGISTRY) is still a
+      declaration separate from the semantic bundle.

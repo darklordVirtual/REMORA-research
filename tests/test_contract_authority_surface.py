@@ -8,8 +8,6 @@ duplicate declaration cannot be called an authority.
 """
 from __future__ import annotations
 
-import json
-
 import pytest
 
 from remora.toolcall.routing.tool_contract import ToolContract, ToolContractRegistry

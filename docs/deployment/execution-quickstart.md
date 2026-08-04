@@ -39,6 +39,8 @@ fail-closed set is complete:
 | `REMORA_AUDIT_SIGNING_KEY` | HMAC over tenant-chain entries | recommended |
 | `REMORA_ENVELOPE_SIGNING_KEY` | HMAC over envelope hashes | recommended |
 | `REMORA_TOOL_REGISTRY_MODULE` | Deployment-owned tool registry (section 3) | required for dispatch |
+| `REMORA_SEMANTIC_BUNDLE_MODULE` | Deployment-owned semantic bundle: tool contracts + signatures + validators + state, hashed and consulted by `build_full_observation` on assess/execute (SHELF-020) | optional — without it the registry-only path runs |
+| `REMORA_INTENT_SOURCE_FILE` | Research-profile intent source: JSON map of `intent_ref` → approved workflow intent (`servers/semantic_bundle_research.py`) | optional |
 
 Key generation: `python -c "import secrets; print(secrets.token_hex(32))"`.
 Rotation policy: [`../assurance/rbac_policy_v1.md`](../assurance/rbac_policy_v1.md).

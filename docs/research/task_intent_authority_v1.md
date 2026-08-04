@@ -124,13 +124,19 @@ change to the vocabulary must:
 
 ## 5. Relation to SHELF-020 and Gate 1
 
-`match_tool_to_intent` currently runs only in the research/benchmark path
-(`build_full_observation`), not in `/v1/execution`. This document defines the
-authority rules that must hold in the execution path once SHELF-020 is closed.
+`match_tool_to_intent` runs in both paths since 2026-08-04: the
+research/benchmark path (`build_full_observation` directly) and
+`/v1/execution`, which builds its observation through the same function
+whenever `REMORA_SEMANTIC_BUNDLE_MODULE` is configured
+(`remora/toolcall/semantic_bundle.py`). The intent enters the execution path
+only as an opaque `intent_ref` resolved server-side against a source declared
+in §2 — never inside the tool-call request, per §2.3.
 
 **Gate 1 acceptance status (this criterion):** ✓ defined and documented here.  
-**SHELF-020 closure criterion:** `/v1/execution/assess` calls
-`build_full_observation` with a registered, hashed contract bundle and an
-intent constructed from a source declared in this document. Until then,
-`tool_matches_goal` is `None` in the execution path (authoritative absence, not
-a fabricated signal).
+**SHELF-020 closure criterion:** ✓ met 2026-08-04 — `/v1/execution/assess`
+calls `build_full_observation` with a registered, hashed contract bundle and
+an intent resolved from a declared source; Parity 4 in
+`tests/test_shelf020_parity.py` and `tests/test_execution_semantic_wiring.py`
+pin it. Without a configured bundle, `tool_matches_goal` remains `None` in the
+execution path (authoritative absence, not a fabricated signal), and no
+request field can set it.

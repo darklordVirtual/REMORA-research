@@ -217,7 +217,6 @@ def test_registry_rejects_a_role_that_is_not_a_declared_argument() -> None:
 from remora.toolcall.routing.goal_match import (  # noqa: E402
     EFFECT_VOCABULARY,
     EFFECT_VOCABULARY_VERSION,
-    match_tool_to_intent,
 )
 
 _SHOW_TASK = "Show me booking B-104."

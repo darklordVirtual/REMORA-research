@@ -267,7 +267,7 @@ inter-rater agreement and adjudication procedure.
 
 | Gate | Criterion | Status at pre-registration |
 |------|-----------|--------------------------|
-| Gate 1 | Authority ready (see `docs/research/task_intent_authority_v1.md`, `tests/test_contract_authority_surface.py`, `tests/test_shelf020_parity.py`) | Partially met (1A ✓, linting ✓, parity ✓; bundle→lease binding ✓; SHELF-020 wiring open) |
+| Gate 1 | Authority ready (see `docs/research/task_intent_authority_v1.md`, `tests/test_contract_authority_surface.py`, `tests/test_shelf020_parity.py`) | Met (1A ✓, linting ✓, parity ✓; bundle→lease binding ✓; SHELF-020 wiring closed 2026-08-04 — `REMORA_SEMANTIC_BUNDLE_MODULE`, Parity 4) |
 | Gate 2 | This document committed before any scenario is opened | ✓ (this commit) |
 | Gate 3 | Pilot only: format bugs, technical errors, scorer bugs; no protocol changes | Open |
 | Gate 4 | Frozen SHA + frozen contract hash + frozen dataset hash + frozen intent-authority hash + determinism proof (two runs, empty diff) + one-time execution + raw output stored before labels opened | Open |

@@ -645,7 +645,9 @@ claims:
       unmeasured. CAP-014 and CLAIM-016 are not affected: those claims were
       made under conditions where no TaskIntent or ToolContract was supplied,
       so tool_matches_goal=None for all episodes and the gap was inert.
-      SHELF-020 (wiring into /v1/execution) remains open.
+      SHELF-020 wiring landed 2026-08-04 (REMORA_SEMANTIC_BUNDLE_MODULE;
+      tests/test_execution_semantic_wiring.py); discrimination through the
+      wired path is unmeasured pending SAP v4.
     reproduce: >
       python -m pytest tests/test_goal_match.py -v
 

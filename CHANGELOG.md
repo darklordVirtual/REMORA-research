@@ -27,6 +27,33 @@ releases.
 
 ## [Unreleased]
 
+### SHELF-020: semantic layer wired into /v1/execution (2026-08-04)
+
+- **One authoritative context builder.** With `REMORA_SEMANTIC_BUNDLE_MODULE`
+  configured, `/v1/execution/assess` and `/execute` build their observation
+  through `build_full_observation` — the same function the routing benchmarks
+  lock — over a deployment-declared `SemanticBundle` (tool signatures,
+  contracts, validator bindings, state index). New module
+  `remora/toolcall/semantic_bundle.py`; shipped research profile
+  `servers/semantic_bundle_research.py`. Parity 4 in
+  `tests/test_shelf020_parity.py` pins field-identity between the execution
+  path and the builder.
+- **Hashes computed, never declared.** `bundle_hash` (signatures + contracts
+  + validators) and `state_hash` are derived from the declarations;
+  constructing a bundle with an asserted hash refuses. Both are recorded in
+  the assess audit record, and `bundle_hash` + `intent_authority_hash` bind
+  into the `ExecutionLease` at execute time (fields added 2026-08-04).
+- **Intent provenance enforced.** The request may carry only an opaque
+  `intent_ref`, resolved server-side against a source declared in
+  `docs/research/task_intent_authority_v1.md`; an inline intent or a
+  `tool_matches_goal` assertion in the request body is ignored. New
+  request field `untrusted_context` is downgrade-only (declares taint,
+  never raises trust).
+- **Honest absence preserved.** Without a bundle module the registry-only
+  path runs unchanged and the audit record carries empty hashes; semantic
+  fields stay `None`. Discrimination through the wired path is unmeasured
+  (SAP v4 pending) — no accuracy number exists for it.
+
 ### DecisionEnvelope persistence and execution-state durability (2026-08-03)
 
 - **Durable envelope storage.** Added `SQLiteControlPlaneStore`: until now the
