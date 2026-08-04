@@ -568,6 +568,25 @@ class ToolCallRequest(BaseModel):
     # absence is the same default the legacy path had.
     untrusted_context: str | None = Field(None, max_length=20_000)
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "tool_name": "set_valve_position",
+                    "arguments": {"valve": "V-12", "position_pct": 35},
+                    "target_environment": "prod",
+                    "intent_ref": "WO-1204",
+                },
+                {
+                    "tool_name": "read_sensor",
+                    "arguments": {"sensor_id": "PT-101"},
+                    "target_environment": "prod",
+                    "intent_ref": "MON-ROUND",
+                },
+            ]
+        }
+    }
+
 
 #: Semantic context with no bundle configured: absent, never defaulted.
 _NO_SEMANTIC_CONTEXT: dict[str, Any] = {
@@ -805,7 +824,12 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
 class ApproveRequest(BaseModel):
     item_id: str
     approval_ttl_seconds: int = Field(900, gt=0, le=86400)
-    on_behalf_of: str | None = None
+    on_behalf_of: str | None = Field(
+        None,
+        description="Client-declared annotation only, recorded in the audit "
+                    "chain as unverified metadata. The audited approver "
+                    "identity is always the authenticated principal from the "
+                    "bearer token — this field can never delegate authority.")
 
 
 @router.post("/approve", responses={

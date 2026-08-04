@@ -219,7 +219,10 @@ app = FastAPI(
         "**Authenticating here:** press *Authorize* and paste a bearer token. "
         "In the shipped OT pilot the tokens are `ot-agent` (operator), "
         "`ot-approver` (admin, can approve) and `ot-viewer` (read-only) — "
-        "try approving with `ot-agent` to watch role separation refuse it."
+        "try approving with `ot-agent` to watch role separation refuse it. "
+        "**Demo profile only:** these literal tokens exist for the "
+        "localhost-bound pilot and must never be exposed outside it; a real "
+        "deployment mints its own token table (or fronts an IdP)."
     ),
     version=_PACKAGE_VERSION,
     license_info={"name": "Business Source License 1.1", "identifier": "BUSL-1.1"},
@@ -1067,7 +1070,12 @@ class HealthResponse(BaseModel):
 
 class ReviewRequest(BaseModel):
     request_id: str = Field(..., min_length=8, max_length=128)
-    reviewer_id: str = Field(..., min_length=1, max_length=128)
+    reviewer_id: str = Field(
+        ..., min_length=1, max_length=128,
+        description="Client-declared annotation only: when it differs from "
+                    "the authenticated principal it is recorded as unverified "
+                    "metadata. The audited reviewer identity is always the "
+                    "principal from the bearer token.")
     decision: Literal["approved", "rejected", "needs_more_evidence"]
     reason: str = Field(..., min_length=3, max_length=4096)
     evidence_refs: list[str] = Field(default_factory=list, max_length=64)
@@ -1077,14 +1085,22 @@ class FollowUpRequest(BaseModel):
     request_id: str = Field(..., min_length=8, max_length=128)
     follow_up_type: Literal["evidence_request", "override_request", "manual_escalation", "incident"]
     payload: dict[str, Any] = Field(default_factory=dict)
-    requested_by: str | None = Field(None, max_length=128)
+    requested_by: str | None = Field(
+        None, max_length=128,
+        description="Client-declared annotation only, stored as unverified "
+                    "metadata; the audited actor is always the authenticated "
+                    "principal.")
 
 
 class EvidenceRequest(BaseModel):
     request_id: str = Field(..., min_length=8, max_length=128)
     evidence_type: str = Field(..., min_length=1, max_length=128)
     payload: dict[str, Any] = Field(default_factory=dict)
-    submitted_by: str | None = Field(None, max_length=128)
+    submitted_by: str | None = Field(
+        None, max_length=128,
+        description="Client-declared annotation only, stored as unverified "
+                    "metadata; the audited actor is always the authenticated "
+                    "principal.")
 
 
 class RerunRequest(BaseModel):

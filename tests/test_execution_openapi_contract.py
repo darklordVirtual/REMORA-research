@@ -66,6 +66,37 @@ def test_every_execution_operation_has_a_description() -> None:
         assert len(text) > 40, f"{method.upper()} {path} has no real description"
 
 
+def test_identity_fields_document_their_trust_semantics() -> None:
+    """Actor identity comes from the authenticated principal, never the body.
+    The server already enforces this; the contract must SAY it, so a client
+    developer cannot mistake the fields for authoritative identity."""
+    schemas = _openapi()["components"]["schemas"]
+    for model, field in (("ApproveRequest", "on_behalf_of"),
+                         ("ReviewRequest", "reviewer_id"),
+                         ("EvidenceRequest", "submitted_by"),
+                         ("FollowUpRequest", "requested_by")):
+        desc = str(schemas[model]["properties"][field].get("description", ""))
+        assert "unverified" in desc and "principal" in desc, (
+            f"{model}.{field} does not document its trust semantics")
+
+
+def test_demo_tokens_are_marked_demo_only() -> None:
+    info = _openapi()["info"]
+    text = str(info.get("description", ""))
+    assert "ot-agent" in text, "pilot tokens left the description entirely?"
+    assert "Demo profile only" in text, (
+        "the pilot tokens must be explicitly marked as demo-only credentials")
+
+
+def test_tool_call_request_carries_a_worked_example() -> None:
+    schema = _openapi()["components"]["schemas"]["ToolCallRequest"]
+    examples = schema.get("examples") or schema.get("example")
+    assert examples, "ToolCallRequest has no example for Swagger try-out"
+    first = examples[0] if isinstance(examples, list) else examples
+    assert first.get("tool_name") and first.get("arguments"), (
+        "the example must show a complete realistic call")
+
+
 def test_error_statuses_are_documented() -> None:
     spec = _openapi()
     expected = {
