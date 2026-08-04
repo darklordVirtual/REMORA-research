@@ -1,8 +1,17 @@
 # REMORA OT pilot — the whole thing, locally, in production mode.
 #
+# One command, nothing to configure:
+#
 #   docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
-#   python deploy/ot-pilot/run_ot_battery.py          # drives the cases
-#   docker compose -f deploy/ot-pilot/docker-compose.yml down -v
+#
+# Then open http://localhost:8081 — operator console with live metrics, the
+# scenario buttons and a one-click run of the 15-case OT battery.
+# Swagger is at http://localhost:8080/docs (press Authorize, paste `ot-agent`).
+#
+#   docker compose -f deploy/ot-pilot/docker-compose.yml down -v   # tear down
+#
+# Every credential, database, registry and work order below is preset. There
+# is nothing to fill in before it runs.
 #
 # Production mode is not decoration here. REMORA_ENV=production makes the
 # fail-closed prerequisites binding: durable execution state, a durable
@@ -77,3 +86,21 @@ services:
       # Prometheus scrape without a bearer token (local pilot only).
       REMORA_PROMETHEUS_PUBLIC: "1"
       PYTHONPATH: /app
+
+  # Operator console: live metrics, scenario buttons, one-click OT battery.
+  # Holds the demo tokens because this is a local pilot — a real deployment
+  # puts an identity provider here instead, and the page says so.
+  console:
+    build:
+      context: ../..
+      dockerfile: deploy/ot-pilot/console/Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8081:8090"
+    environment:
+      REMORA_API_URL: http://api:8000
+      PILOT_TOKEN_OPERATOR: ot-agent
+      PILOT_TOKEN_APPROVER: ot-approver
+      PILOT_TOKEN_VIEWER: ot-viewer
