@@ -190,17 +190,78 @@ from remora.policy.report import DecisionReport
 # App definition
 # ---------------------------------------------------------------------------
 
+#: Declared so the interactive docs can actually authenticate. Without a
+#: security scheme Swagger renders no "Authorize" button, so every governed
+#: call from the UI returned 401 with no way to fix it from the page — the
+#: interactive docs were unusable for the one thing they exist for. ReDoc has
+#: the same dependency: it renders what the schema declares, and the schema
+#: declared nothing about auth.
+_BEARER_SCHEME = {
+    "type": "http",
+    "scheme": "bearer",
+    "description": (
+        "Bearer token. In production the token table `REMORA_API_TOKENS` maps "
+        "each token to a fixed (tenant, role) pair — the caller cannot assert "
+        "either, which is why this is the only mode with real role "
+        "separation. Roles: `operator` (assess/execute), `reviewer` and "
+        "`domain_expert`/`senior_authority` (approve), `admin` (all), "
+        "`viewer` (read). In development, `REMORA_API_BEARER_TOKEN` enables "
+        "single-token mode, which has NO role separation. "
+        "`/` and `/v1/health` need no token."
+    ),
+}
+
 app = FastAPI(
     title="REMORA API",
     description=(
         "Multi-oracle consensus governance layer for agentic AI. "
-        "Provides structured ACCEPT / VERIFY / ABSTAIN / ESCALATE decisions."
+        "Provides structured ACCEPT / VERIFY / ABSTAIN / ESCALATE decisions.\n\n"
+        "**Authenticating here:** press *Authorize* and paste a bearer token. "
+        "In the shipped OT pilot the tokens are `ot-agent` (operator), "
+        "`ot-approver` (admin, can approve) and `ot-viewer` (read-only) — "
+        "try approving with `ot-agent` to watch role separation refuse it."
     ),
     version=_PACKAGE_VERSION,
     license_info={"name": "Business Source License 1.1", "identifier": "BUSL-1.1"},
     contact={"name": "REMORA Commercial Licensing (Licensor: Stian Skogbrott)",
              "email": "support@luftfiber.no"},
+    # Applied globally; the open endpoints override it with `security=[]`
+    # rather than the scheme being absent, so the docs state which routes are
+    # deliberately unauthenticated instead of leaving it ambiguous.
+    openapi_tags=[
+        {"name": "governance", "description": "Assessment and decision endpoints."},
+        {"name": "execution", "description": "Enforcement path: assess → approve → execute."},
+        {"name": "infrastructure", "description": "Health, metrics, policy version."},
+    ],
 )
+
+
+def _custom_openapi() -> dict:
+    """OpenAPI with the bearer scheme declared and applied by default."""
+    if app.openapi_schema:
+        return app.openapi_schema
+    from fastapi.openapi.utils import get_openapi
+
+    schema = get_openapi(
+        title=app.title, version=app.version, description=app.description,
+        routes=app.routes, tags=app.openapi_tags,
+        license_info=app.license_info, contact=app.contact,
+    )
+    schema.setdefault("components", {}).setdefault("securitySchemes", {})[
+        "bearerAuth"
+    ] = _BEARER_SCHEME
+    schema["security"] = [{"bearerAuth": []}]
+    # Liveness and navigation must stay reachable without a credential: a
+    # health probe that needs a token is not a health probe.
+    for path in ("/", "/v1/health"):
+        for operation in schema.get("paths", {}).get(path, {}).values():
+            if isinstance(operation, dict):
+                operation["security"] = []
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = _custom_openapi  # type: ignore[method-assign]
 
 
 @app.exception_handler(Exception)
@@ -1390,6 +1451,32 @@ def _prometheus_metrics_text() -> str:
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
+@app.get("/", tags=["infrastructure"])
+def index() -> dict:
+    """Navigation index for the root path.
+
+    Without this, ``/`` returned ``{"detail":"Not Found"}`` — the first
+    address anyone types, answering in a way that is indistinguishable from a
+    dead server. Deliberately navigation only: no counters, no tenant, no
+    policy internals, so it stays safe to serve without a token. Anything a
+    caller could learn here is already visible to a port scan.
+    """
+    return {
+        "service": "REMORA API",
+        "version": _PACKAGE_VERSION,
+        "runtime_mode": "production" if _is_production_mode() else "development",
+        "status": "ok",
+        "links": {
+            "docs": "/docs",
+            "openapi": "/openapi.json",
+            "health": "/v1/health",
+            "metrics": "/v1/metrics",
+            "prometheus": "/metrics",
+            "policy_version": "/v1/policy/version",
+        },
+    }
+
 
 @app.get("/v1/health", response_model=HealthResponse, tags=["infrastructure"])
 def health() -> HealthResponse:
