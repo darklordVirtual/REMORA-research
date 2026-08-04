@@ -605,6 +605,12 @@ def _canonical_envelope_for_hash(envelope_payload: dict[str, Any]) -> dict[str, 
     if isinstance(audit, dict):
         for key in ("hash", "previous_hash", "signature", "timestamp_utc"):
             audit.pop(key, None)
+    # Post-v2 audit keys are omitted when unset so control-plane chains
+    # recorded before those fields existed keep verifying (see
+    # remora/governance/envelope.py::POST_V2_AUDIT_KEYS).
+    from remora.governance.envelope import normalize_audit_for_hash
+
+    normalize_audit_for_hash(canonical)
     return canonical
 
 

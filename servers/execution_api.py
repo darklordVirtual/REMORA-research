@@ -43,6 +43,7 @@ from remora.enforcement.lease import (
     GovernedToolDispatcher,
     LeaseRefused,
 )
+from remora.enforcement.result_envelope import capture_tool_result
 from remora.enforcement.token import PolicyDecisionToken
 from remora.governance.review_queue import (
     ExecutionDecision,
@@ -391,7 +392,12 @@ def _reset_semantic_bundle() -> None:
 
 
 def _jsonable(value: Any) -> Any:
-    """Best-effort JSON projection of a tool result for response/audit."""
+    """Best-effort JSON projection of a tool result for response/audit.
+
+    Kept for callers that want the raw projection. The governed dispatch path
+    uses :func:`capture_tool_result` instead, which bounds what is retained
+    while still hashing the full result.
+    """
     try:
         return json.loads(json.dumps(value, default=str))
     except (TypeError, ValueError):
@@ -833,7 +839,14 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
                 else:
                     tool_execution["executed"] = dres.executed
                     if dres.executed:
-                        tool_execution["result"] = _jsonable(dres.result)
+                        # Bounded retention, unbounded verification: the hash
+                        # covers the full result even when the preview is
+                        # truncated, so an oversized or hostile tool output
+                        # cannot inflate the audit chain or the response while
+                        # still being provable in replay.
+                        captured = capture_tool_result(dres.result)
+                        tool_execution["result"] = captured.preview
+                        tool_execution["result_envelope"] = captured.to_dict()
                     else:
                         tool_execution["refusal_reason"] = dres.refusal_reason
 
@@ -856,6 +869,13 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         "intent_sequence_no": intent_entry.sequence_no,
         "tool_executed": tool_execution["executed"],
     }
+    # The chain records the result's identity, never the result body: a
+    # verbose tool must not be able to grow the audit chain without bound.
+    envelope_meta = tool_execution.get("result_envelope")
+    if envelope_meta:
+        result_record["result_sha256"] = envelope_meta["sha256"]
+        result_record["result_size_bytes"] = envelope_meta["size_bytes"]
+        result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
     entry = _CHAIN.append(tenant, result_record)

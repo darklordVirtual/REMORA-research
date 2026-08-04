@@ -136,6 +136,15 @@ jobs:
         # your production policy in your deployment pipeline).
         run: python scripts/opa_conformance.py
 
+      - name: Rule-conflict sweep (hard gate)
+        # A golden set pins the cases someone thought of. This sweeps the
+        # combinations the gate rules branch on and fails if ANY input makes
+        # two complete rules disagree — Rego answers that with
+        # eval_conflict_error and no decision at all, which the adapter's
+        # floor cannot correct because there is no verdict to floor.
+        # Added after the 2026-08-04 OT/Rego test set found seven such inputs.
+        run: python scripts/opa_conflict_sweep.py
+
       - name: Pytest conformance gate (must run, not skip)
         # With opa on PATH the opa_gate test must actually execute; a skip
         # here would mean the harness silently lost its binary detection.
