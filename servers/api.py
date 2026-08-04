@@ -702,10 +702,44 @@ from remora.policy.versioning import compute_policy_bundle_hash
 _POLICY_SOURCE_BUNDLE_HASH = "sha256:" + compute_policy_bundle_hash()
 
 
+def _tool_registry_component_hash() -> str:
+    """Identity of the effective tool policy (F-03 slice 2).
+
+    Covers the authoritative TOOL_REGISTRY metadata (risk/action/domain per
+    tool) plus, for each configured deployment module
+    (REMORA_TOOL_REGISTRY_MODULE, REMORA_SEMANTIC_BUNDLE_MODULE), the module
+    spec string and a digest of its source — resolved without importing, so
+    hashing has no side effects. A module that cannot be resolved is recorded
+    as an explicit marker: it must move the hash, not vanish from it.
+    """
+    import importlib.util
+
+    from servers.execution_api import TOOL_REGISTRY
+
+    hasher = hashlib.sha256()
+    hasher.update(json.dumps(TOOL_REGISTRY, sort_keys=True,
+                             separators=(",", ":")).encode("utf-8"))
+    for env_name in ("REMORA_TOOL_REGISTRY_MODULE", "REMORA_SEMANTIC_BUNDLE_MODULE"):
+        spec = os.getenv(env_name, "").strip()
+        hasher.update(f"|{env_name}={spec}".encode("utf-8"))
+        if not spec:
+            continue
+        try:
+            found = importlib.util.find_spec(spec)
+            origin = getattr(found, "origin", None)
+            digest = (hashlib.sha256(Path(origin).read_bytes()).hexdigest()
+                      if origin and Path(origin).is_file() else "no-source")
+        except (ImportError, OSError, TypeError, ValueError):
+            digest = "unresolved"
+        hasher.update(f":{digest}".encode("utf-8"))
+    return "sha256:" + hasher.hexdigest()
+
+
 def _policy_component_hashes() -> dict[str, str | None]:
     policy_engine_hash = _POLICY_SOURCE_BUNDLE_HASH
     risk_profile_hash = _sha256_file(_REPO_ROOT / "schemas" / "risk-profiles.yaml")
     schema_hash = _sha256_file(_REPO_ROOT / "schemas" / "decision_envelope_schema.yaml")
+    tool_registry_hash = _tool_registry_component_hash()
 
     opa_policy_hash = None
     opa_path_env = os.getenv("REMORA_OPA_POLICY_PATH", "").strip()
@@ -715,7 +749,8 @@ def _policy_component_hashes() -> dict[str, str | None]:
             opa_path = (_REPO_ROOT / opa_path).resolve()
         opa_policy_hash = _sha256_file(opa_path)
 
-    parts = [v for v in (policy_engine_hash, risk_profile_hash, schema_hash, opa_policy_hash) if v]
+    parts = [v for v in (policy_engine_hash, risk_profile_hash, schema_hash,
+                         tool_registry_hash, opa_policy_hash) if v]
     composite = None
     if parts:
         composite = "sha256:" + hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
@@ -724,6 +759,7 @@ def _policy_component_hashes() -> dict[str, str | None]:
         "policy_hash": composite,
         "risk_profile_hash": risk_profile_hash,
         "schema_hash": schema_hash,
+        "tool_registry_hash": tool_registry_hash,
         "opa_policy_hash": opa_policy_hash,
     }
 
@@ -1870,6 +1906,7 @@ def policy_version(request: Request) -> dict:
         "policy_hash": hashes["policy_hash"],
         "risk_profile_hash": hashes["risk_profile_hash"],
         "schema_hash": hashes["schema_hash"],
+        "tool_registry_hash": hashes["tool_registry_hash"],
         "opa_policy_hash": hashes["opa_policy_hash"],
         "source": "python_decision_engine",
         "runtime_mode": "production" if _is_production_mode() else "development",

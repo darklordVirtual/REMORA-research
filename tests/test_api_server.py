@@ -688,11 +688,45 @@ def test_policy_hash_covers_canonical_policy_source_set(monkeypatch: pytest.Monk
 
     comps = api._policy_component_hashes()
     engine = "sha256:" + compute_policy_bundle_hash()
-    parts = [engine, comps["risk_profile_hash"], comps["schema_hash"]]
+    # F-03: the composite must also carry the effective tool-policy identity
+    # (TOOL_REGISTRY metadata + configured deployment-module sources).
+    assert comps["tool_registry_hash"].startswith("sha256:")
+    parts = [engine, comps["risk_profile_hash"], comps["schema_hash"],
+             comps["tool_registry_hash"]]
     if comps["opa_policy_hash"]:
         parts.append(comps["opa_policy_hash"])
     expected = "sha256:" + _hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
     assert comps["policy_hash"] == expected
+
+
+def test_tool_registry_module_source_moves_the_policy_hash(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    """F-03 slice 2: changing which deployment registry module is active, or a
+    single byte of its source, must move the composite — otherwise a trusted
+    module can change what a low/read tool name does while outstanding leases
+    keep verifying the old policy identity."""
+    import importlib
+
+    api = _load_api_module(monkeypatch, token="test-token")
+
+    module_file = tmp_path / "pilot_registry_mod.py"
+    module_file.write_text("def register_tools(register):\n    pass\n", encoding="utf-8")
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    baseline = api._policy_component_hashes()["policy_hash"]
+
+    monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "pilot_registry_mod")
+    importlib.invalidate_caches()
+    with_module = api._policy_component_hashes()["policy_hash"]
+
+    module_file.write_text("def register_tools(register):\n    pass  # v2\n", encoding="utf-8")
+    importlib.invalidate_caches()
+    edited_module = api._policy_component_hashes()["policy_hash"]
+
+    assert baseline != with_module
+    assert with_module != edited_module
+    assert baseline != edited_module
 
 
 def test_assess_populates_envelope_audit_chain_and_signature(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -39,6 +39,14 @@ releases.
 - Consequence stated plainly: replaying envelopes recorded before this change
   reports `stable_policy_hash: false`. That is correct — the effective policy
   identity they were recorded under is not the current one.
+- **F-03 slice 2 (#83):** the composite now also carries the effective
+  tool-policy identity — the authoritative `TOOL_REGISTRY` metadata plus the
+  spec and source digest of `REMORA_TOOL_REGISTRY_MODULE` and
+  `REMORA_SEMANTIC_BUNDLE_MODULE` (resolved without importing; an
+  unresolvable module is an explicit marker in the hash). Changing what a
+  tool name means now refuses outstanding leases. `/v1/policy/version`
+  exposes the new `tool_registry_hash` component. Residual under #83:
+  registry signing, per-tool argument schema and credential scope.
 
 ### OT pilot: evidence archive and design-system console (2026-08-05)
 
