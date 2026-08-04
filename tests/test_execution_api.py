@@ -205,6 +205,21 @@ def test_full_verify_approve_execute_flow_with_one_time_grant(client) -> None:
     assert events == ["assessed", "approved", "execution_authorized", "execution_result"]
 
 
+def test_audit_verify_reports_record_count_and_empty_flag(client) -> None:
+    """The evidence bundle records records_checked; an empty chain is
+    trivially valid and must say so rather than pose as verified history."""
+    body = client.get("/v1/execution/audit/verify").json()
+    assert body["valid"] is True
+    assert body["records_checked"] == 0
+    assert body["empty"] is True
+
+    client.post("/v1/execution/assess", json=LOW_READ)
+    body = client.get("/v1/execution/audit/verify").json()
+    assert body["valid"] is True
+    assert body["records_checked"] == 1
+    assert body["empty"] is False
+
+
 def _approved_item(client, payload=PROD_WRITE) -> str:
     item_id = client.post("/v1/execution/assess", json=payload).json()["review_item_id"]
     client.post("/v1/execution/approve", json={"item_id": item_id, "approval_ttl_seconds": 900})

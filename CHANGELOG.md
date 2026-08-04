@@ -27,6 +27,29 @@ releases.
 
 ## [Unreleased]
 
+### OT pilot: evidence archive and design-system console (2026-08-05)
+
+- **Console UI is the frontend's design system, not a hand-rolled page.**
+  The pilot console is a Vite SPA under `frontend/src/pilot/` sharing
+  `styles.css` tokens, primitives and the component library with the main
+  site (`npm run pilot:dev` / `pilot:build`). The console image builds it in
+  a node stage; `app.py` serves the bundle and answers 503 with build
+  instructions when it is missing.
+- **Immutable evidence archive with retrieval.** Every battery run writes a
+  run directory (manifest, results, metrics, chain verification, report)
+  under `REMORA_EVIDENCE_ROOT`; the console exposes run history, manifest
+  retrieval and zip download (`/api/evidence/runs[...]`) with strict run-id
+  validation. Retention keeps the newest `REMORA_EVIDENCE_KEEP` runs and
+  names every directory it prunes.
+- **`GET /v1/execution/audit/verify` reports `records_checked` and `empty`.**
+  An empty chain is trivially valid and must be distinguishable from
+  verified history; the evidence bundle's
+  `execution_chain_records_checked` field previously always recorded 0
+  because the endpoint never returned a count.
+- **Hardened pilot images.** Both pilot images run as uid 10001 with
+  healthchecks and OCI labels; CI builds the pilot UI bundle so a frontend
+  change cannot silently break the pilot's Docker build.
+
 ### SHELF-020: semantic layer wired into /v1/execution (2026-08-04)
 
 - **One authoritative context builder.** With `REMORA_SEMANTIC_BUNDLE_MODULE`

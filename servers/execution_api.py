@@ -901,4 +901,13 @@ def audit_verify(request: Request) -> dict[str, Any]:
 
     api_mod._require_tenant_capability(role, tenant, "read")
     ok, problems = _CHAIN.verify(tenant)
-    return {"tenant": tenant, "valid": ok, "problems": problems}
+    records_checked = len(_CHAIN.entries(tenant))
+    return {
+        "tenant": tenant,
+        "valid": ok,
+        "problems": problems,
+        # An empty chain is trivially valid; auditors and the evidence bundle
+        # must be able to tell "verified history" from "nothing to verify".
+        "records_checked": records_checked,
+        "empty": records_checked == 0,
+    }

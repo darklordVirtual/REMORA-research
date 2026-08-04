@@ -6,6 +6,12 @@
 # start. docker-compose.yml supplies all four.
 FROM python:3.12-slim
 
+LABEL org.opencontainers.image.title="REMORA OT Pilot API" \
+      org.opencontainers.image.description="REMORA governance API in production mode: fail-closed prerequisites (durable execution state, durable envelope store, token table, non-mock oracle backend) are binding at startup." \
+      org.opencontainers.image.source="https://github.com/darklordVirtual/REMORA-research" \
+      org.opencontainers.image.licenses="BUSL-1.1" \
+      org.opencontainers.image.vendor="Stian Skogbrott"
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1

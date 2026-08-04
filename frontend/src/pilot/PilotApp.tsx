@@ -249,7 +249,10 @@ export function PilotApp() {
   const durable = Boolean(policy.execution_state_durable);
   const refusals = Object.entries(m.execution_refusals ?? {}).filter(([, v]) => v > 0);
   const refusalTotal = refusals.reduce((acc, [, v]) => acc + v, 0);
-  const chainValid = Boolean(state.data?.chain?.chain_valid);
+  const chain = state.data?.chain ?? {};
+  // An empty chain is trivially valid — show it as such, never as green proof.
+  const chainEmpty = (chain.records_checked ?? 0) === 0;
+  const chainValid = Boolean(chain.chain_valid);
 
   useEffect(() => {
     if (state.data === undefined) return;
@@ -378,13 +381,21 @@ export function PilotApp() {
             sub="policy, replay, and lease checks"
           />
           <Kpi
-            label="Audit chain"
+            label="Envelope chain"
             value={
-              <span className={chainValid ? "text-state-accept" : "text-state-escalate"}>
-                {chainValid ? "valid" : "check"}
-              </span>
+              chainEmpty ? (
+                <span className="text-state-abstain">empty</span>
+              ) : (
+                <span className={chainValid ? "text-state-accept" : "text-state-escalate"}>
+                  {chainValid ? "valid" : "check"}
+                </span>
+              )
             }
-            sub="hash-chain verification status"
+            sub={
+              chainEmpty
+                ? "no envelopes yet — trivially valid"
+                : `hash-chain verified, ${chain.records_checked} records`
+            }
           />
         </div>
 

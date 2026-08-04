@@ -251,8 +251,9 @@ mandatory bounded TTL; profile-specific approval role enforced), `POST
 /execute` (re-gates the fresh observation, binds the exact payload, consumes a
 one-time grant, then dispatches the tool through the app-lifecycle
 `GovernedToolDispatcher`), `GET /audit/verify` (recomputes the per-tenant
-chain). RBAC: `assess`/`execute` capabilities gate assess/execute; `review`
-gates approve; `read` gates audit.
+chain and reports `records_checked`; an `empty` chain is flagged because it is
+trivially valid). RBAC: `assess`/`execute` capabilities gate assess/execute;
+`review` gates approve; `read` gates audit.
 
 **Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
 bearer token to a fixed tenant and role — callers cannot forge either.

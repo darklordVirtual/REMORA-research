@@ -123,6 +123,11 @@ A replayed token must come back `token_already_consumed`; a crash mid-dispatch
 must leave an authorization row with no result row, never a side effect with
 no record.
 
+The complete production-mode stack — API, Postgres and operator console with
+a 15-case OT battery and an immutable evidence archive — ships as one command:
+`docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d`
+(console at `localhost:8081`, Swagger at `localhost:8080/docs`).
+
 ## Known limits (the honest part of the label)
 
 - Advisory until the dispatcher fronts your real tool credentials (REM-024).
