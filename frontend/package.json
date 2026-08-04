@@ -9,6 +9,8 @@
     "benchmarks:sync": "python ../scripts/build_frontend_benchmark_snapshot.py",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "pilot:dev": "vite --config vite.pilot.config.ts",
+    "pilot:build": "vite build --config vite.pilot.config.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

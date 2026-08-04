@@ -15,21 +15,30 @@ pattern for production credential handling and says so on the page.
 from __future__ import annotations
 
 import asyncio
+import io
 import json
 import os
+import re
 import sys
+import zipfile
 from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
-from pathlib import Path
-import json
+from fastapi.responses import (HTMLResponse, JSONResponse, PlainTextResponse,
+                               Response)
+from fastapi.staticfiles import StaticFiles
 
 API = os.environ.get("REMORA_API_URL", "http://api:8000")
 HERE = Path(__file__).parent
+#: Vite build of frontend/src/pilot (`npm run pilot:build`); the console
+#: Dockerfile produces it in a node build stage and copies it here.
+DIST = HERE / "dist"
 
 app = FastAPI(title="REMORA OT Pilot Console", docs_url=None, redoc_url=None)
+
+if (DIST / "assets").is_dir():
+    app.mount("/assets", StaticFiles(directory=str(DIST / "assets")), name="assets")
 
 #: Demo tokens, matching docker-compose.yml. The console never mints these.
 TOKENS = {
@@ -40,8 +49,18 @@ TOKENS = {
 
 
 @app.get("/", response_class=HTMLResponse)
-async def index() -> HTMLResponse:
-    return HTMLResponse((HERE / "index.html").read_text(encoding="utf-8"))
+async def index() -> Response:
+    """Serve the built pilot UI — loudly absent when it has not been built."""
+    page = DIST / "pilot.html"
+    if page.exists():
+        return HTMLResponse(page.read_text(encoding="utf-8"))
+    return PlainTextResponse(
+        "Pilot console UI is not built.\n\n"
+        "Run `npm run pilot:build` in frontend/ and copy dist-pilot/ to "
+        "deploy/ot-pilot/console/dist/ — the console Docker image does this "
+        "automatically in its build stage.\n",
+        status_code=503,
+    )
 
 
 @app.get("/api/state")
@@ -173,6 +192,83 @@ async def battery_evidence() -> JSONResponse:
     if not artifact_path.exists():
         return JSONResponse({"error": "No evidence artifact yet"}, status_code=404)
     return JSONResponse(json.loads(artifact_path.read_text(encoding="utf-8")))
+
+
+#: Run ids are uuid4 strings from the battery; anything outside this shape is
+#: refused before it can touch the filesystem.
+_RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+
+
+def _evidence_root() -> Path:
+    return Path(os.environ.get("REMORA_EVIDENCE_ROOT", "/var/lib/remora/evidence"))
+
+
+def _safe_run_dir(run_id: str) -> Path | None:
+    """Resolve a run directory, or None if the id is malformed or absent."""
+    if not _RUN_ID.match(run_id) or ".." in run_id:
+        return None
+    root = _evidence_root()
+    run_dir = (root / run_id).resolve()
+    if run_dir.parent != root.resolve() or not run_dir.is_dir():
+        return None
+    return run_dir
+
+
+@app.get("/api/evidence/runs")
+async def evidence_runs() -> JSONResponse:
+    """Run history: one row per archived battery run, newest first.
+
+    A run directory whose manifest is missing or unreadable is still listed,
+    flagged with an error — a broken artifact is a finding, not something to
+    hide from the operator.
+    """
+    root = _evidence_root()
+    runs: list[dict] = []
+    if root.is_dir():
+        run_dirs = sorted((p for p in root.iterdir() if p.is_dir()),
+                          key=lambda p: p.stat().st_mtime, reverse=True)
+        for run_dir in run_dirs:
+            row: dict = {"run_id": run_dir.name}
+            try:
+                manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+                row.update({k: manifest.get(k) for k in
+                            ("started_at", "finished_at", "exit_code",
+                             "summary", "audit", "suite_id")})
+            except (OSError, ValueError) as exc:
+                row["error"] = f"{type(exc).__name__}: manifest unreadable"
+            runs.append(row)
+    return JSONResponse({"evidence_root": str(root), "runs": runs})
+
+
+@app.get("/api/evidence/runs/{run_id}")
+async def evidence_run(run_id: str) -> JSONResponse:
+    """Full manifest for one archived run."""
+    run_dir = _safe_run_dir(run_id)
+    if run_dir is None:
+        return JSONResponse({"error": "unknown run_id"}, status_code=404)
+    manifest_path = run_dir / "manifest.json"
+    if not manifest_path.exists():
+        return JSONResponse({"error": "run has no manifest"}, status_code=404)
+    return JSONResponse(json.loads(manifest_path.read_text(encoding="utf-8")))
+
+
+@app.get("/api/evidence/runs/{run_id}/archive")
+async def evidence_run_archive(run_id: str) -> Response:
+    """Download one run directory as a zip bundle for offline audit review."""
+    run_dir = _safe_run_dir(run_id)
+    if run_dir is None:
+        return JSONResponse({"error": "unknown run_id"}, status_code=404)
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for item in sorted(run_dir.iterdir()):
+            if item.is_file():
+                archive.write(item, arcname=item.name)
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition":
+                 f'attachment; filename="remora-evidence-{run_id}.zip"'},
+    )
 
 
 @app.get("/api/scenarios")

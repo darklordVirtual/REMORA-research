@@ -10,7 +10,15 @@ __pycache__/
 .venv/
 venv/
 node_modules/
-frontend/
+# The console image builds frontend/src/pilot in its node stage; keep the
+# source in the build context but never the installed or built trees.
+frontend/node_modules/
+frontend/dist/
+frontend/dist-pilot/
+frontend/.output/
+frontend/.nitro/
+frontend/.tanstack/
+frontend/.wrangler/
 dist/
 artifacts/figures/
 artifacts/demo/
