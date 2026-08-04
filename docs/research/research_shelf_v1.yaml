@@ -432,7 +432,71 @@ components:
       REMORA_SEMANTIC_BUNDLE_MODULE still runs the registry-only path, recorded
       as empty hashes. Discrimination through the wired path is UNMEASURED —
       SAP v4 has not run, so no accuracy or wrong-call number may be cited for
-      it. The /v1/assess DecisionEnvelope does not yet carry the bundle hash
-      (the execution path's record is the tenant audit chain + lease). The
-      executive metadata registry (risk tier, in TOOL_REGISTRY) is still a
-      declaration separate from the semantic bundle.
+      it. The DecisionEnvelope's AuditBlock now CARRIES tool_contract_bundle_hash
+      and intent_authority_hash (2026-08-04), but nothing populates them: the
+      envelope producer is /v1/assess, which does not run the semantic bundle,
+      while /v1/execution records to the tenant chain and builds no envelope.
+      Wiring /v1/assess through build_full_observation is the follow-up that
+      makes the field live. The executive metadata registry (risk tier, in
+      TOOL_REGISTRY) is still a declaration separate from the semantic bundle.
+
+  # ── Deferred adoptions, kept visible rather than forgotten ─────────────────
+
+  - id: SHELF-021
+    name: "Postcondition observation after a governed side effect"
+    source:
+      title: "Internal finding — no external source"
+      authors: "REMORA OT simulation + external pattern proposal, 2026-08-04"
+      venue: internal
+      verification: INTERNAL
+      verified: "2026-08-04"
+      reported_results: >-
+        No external result. Observed in the 2026-08-04 OT shift simulation:
+        close_work_order against a work order that did not exist was assessed,
+        approved, authorised and dispatched, and surfaced only because the tool
+        itself raised. Nothing in the governed path reads the world back to
+        check that the declared post-state actually holds.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      Half of the mechanism exists. ToolContract.state_delta already declares
+      the intended post-state, and the execution API separates authorised from
+      executed (execution_authorized before the side effect,
+      execution_result after). What is absent is an authoritative reader per
+      write tool, and a policy for the disagreement case.
+    adoption: SCOPED
+    remaining: >-
+      Deliberately not half-built. Observing a postcondition without deciding
+      what happens when observation and declaration disagree — including when
+      the re-read itself fails — would produce a field nobody can act on, which
+      is the failure mode CallCompatibility's docstring warns about: a guessed
+      field is worse than an absent one. Needs: a declared reader per write
+      tool, a disagreement policy, and a decision on whether a failed
+      postcondition can retroactively change a recorded decision (it cannot —
+      the chain is append-only, so it must append a contradiction record).
+
+  - id: SHELF-022
+    name: "Adversarial filesystem and shell corpus for tool-call safety"
+    source:
+      title: "Internal finding — no external source"
+      authors: "External pattern proposal, 2026-08-04"
+      venue: internal
+      verification: INTERNAL
+      verified: "2026-08-04"
+      reported_results: >-
+        No external result. Proposed categories: path traversal, symlink
+        escape, Windows path confusion (UNC, 8.3 names, alternate data streams,
+        trailing dots), shell startup-file injection, credential exfiltration
+        via redirection.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      Partial coverage exists: remora/agent_hook/shell_ast.py parses shell
+      commands structurally rather than by pattern match, and remora/safety/
+      covers adversarial text. There is no corpus that exercises the
+      filesystem-confusion categories as a measurable benchmark.
+    adoption: UNEVALUATED
+    remaining: >-
+      Real value, but a corpus that produces a number is a claimed benchmark:
+      it needs committed artifacts, a claim-register entry, and a
+      pre-registered scoring rule, or it becomes exactly the kind of
+      unfalsifiable "we tested it" statement this repository refuses. Its own
+      round, not a side effect of another one.
