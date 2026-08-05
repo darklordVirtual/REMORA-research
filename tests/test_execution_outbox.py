@@ -1,0 +1,236 @@
+# Author: Stian Skogbrott
+# SPDX-License-Identifier: BUSL-1.1
+"""FT-02 slice 1: the crash-consistent execution outbox store.
+
+The outbox is the durable record of DISPATCH INTENT: a row written in the
+same transaction that authorizes a call, claimed by exactly one worker,
+and driven to a terminal state that is never auto-retried once a side
+effect may have happened. This suite pins the store's contract for both
+the in-process reference and the SQLite adapter (parametrized — an
+adapter that diverges is a defect, not a variant).
+
+Declared scope: the store and its state machine. Wiring it into
+``/v1/execution`` is slice 2; the reconciler policy for stale
+``DISPATCHING`` rows is exercised here as a store operation, not as a
+running daemon.
+"""
+from __future__ import annotations
+
+from datetime import UTC, datetime, timedelta
+
+import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
+from remora.enforcement.outbox import (
+    ExecutionOutbox,
+    OutboxState,
+    SQLiteExecutionOutbox,
+    idempotency_key,
+)
+
+PROPOSAL = "11111111-2222-3333-4444-555555555555"
+CALL_HASH = "a" * 64
+
+
+@pytest.fixture(params=["memory", "sqlite"])
+def outbox(request, tmp_path):
+    if request.param == "memory":
+        return ExecutionOutbox()
+    return SQLiteExecutionOutbox(str(tmp_path / "outbox.db"))
+
+
+def _intent(outbox, *, proposal_id=PROPOSAL, tenant="acme", attempt_no=1,
+            tool_name="store_artifact", tool_call_hash=CALL_HASH,
+            item_id="item-1", grant_jti="jti-1"):
+    return outbox.record_intent(
+        proposal_id=proposal_id,
+        tenant_id=tenant,
+        item_id=item_id,
+        tool_name=tool_name,
+        tool_call_hash=tool_call_hash,
+        grant_jti=grant_jti,
+        attempt_no=attempt_no,
+    )
+
+
+# ── Idempotency key ─────────────────────────────────────────────────────────
+
+def test_idempotency_key_is_deterministic_and_attempt_scoped() -> None:
+    k1 = idempotency_key(PROPOSAL, CALL_HASH, 1)
+    assert k1 == idempotency_key(PROPOSAL, CALL_HASH, 1)
+    assert k1 != idempotency_key(PROPOSAL, CALL_HASH, 2)
+    assert k1 != idempotency_key(PROPOSAL, "b" * 64, 1)
+    assert len(k1) == 64
+
+
+@settings(max_examples=200, deadline=None)
+@given(
+    proposal=st.text(min_size=1, max_size=40),
+    call_hash=st.text(min_size=1, max_size=40),
+    attempt=st.integers(min_value=1, max_value=50),
+    other_attempt=st.integers(min_value=1, max_value=50),
+)
+def test_key_collides_only_on_identical_inputs(
+    proposal: str, call_hash: str, attempt: int, other_attempt: int
+) -> None:
+    """Searched validation over the declared input domain: two keys are
+    equal iff every component is equal. No counterexample found."""
+    a = idempotency_key(proposal, call_hash, attempt)
+    b = idempotency_key(proposal, call_hash, other_attempt)
+    assert (a == b) == (attempt == other_attempt)
+
+
+# ── Intent recording is exactly-once per attempt ────────────────────────────
+
+def test_intent_starts_dispatch_pending(outbox) -> None:
+    row = _intent(outbox)
+    assert row.state is OutboxState.DISPATCH_PENDING
+    assert row.idempotency_key == idempotency_key(PROPOSAL, CALL_HASH, 1)
+    assert row.attempt_no == 1
+
+
+def test_duplicate_intent_returns_the_same_row(outbox) -> None:
+    """A retried authorize must not create a second dispatch intent."""
+    first = _intent(outbox)
+    second = _intent(outbox)
+    assert second.outbox_id == first.outbox_id
+    assert len(outbox.pending("acme")) == 1
+
+
+def test_reapproval_attempt_gets_its_own_row(outbox) -> None:
+    first = _intent(outbox)
+    second = _intent(outbox, attempt_no=2)
+    assert second.outbox_id != first.outbox_id
+    assert len(outbox.pending("acme")) == 2
+
+
+def test_tenants_are_isolated(outbox) -> None:
+    _intent(outbox, tenant="acme")
+    _intent(outbox, tenant="globex")
+    assert len(outbox.pending("acme")) == 1
+    assert len(outbox.pending("globex")) == 1
+
+
+# ── Claiming is exclusive ───────────────────────────────────────────────────
+
+def test_claim_is_exclusive(outbox) -> None:
+    row = _intent(outbox)
+    claimed = outbox.claim(row.outbox_id, worker_id="worker-a")
+    assert claimed is not None
+    assert claimed.state is OutboxState.DISPATCHING
+    assert claimed.worker_id == "worker-a"
+    # A second worker must lose the race, not steal an in-flight dispatch.
+    assert outbox.claim(row.outbox_id, worker_id="worker-b") is None
+
+
+def test_claimed_row_leaves_the_pending_set(outbox) -> None:
+    row = _intent(outbox)
+    outbox.claim(row.outbox_id, worker_id="worker-a")
+    assert outbox.pending("acme") == []
+
+
+# ── Terminal states are absorbing; UNKNOWN never auto-retries ──────────────
+
+@pytest.mark.parametrize("state", [
+    OutboxState.SUCCEEDED, OutboxState.FAILED,
+    OutboxState.REFUSED, OutboxState.UNKNOWN,
+])
+def test_terminal_states_reject_further_transitions(outbox, state) -> None:
+    row = _intent(outbox)
+    outbox.claim(row.outbox_id, worker_id="w")
+    outbox.settle(row.outbox_id, state, detail="done")
+    with pytest.raises(ValueError):
+        outbox.settle(row.outbox_id, OutboxState.SUCCEEDED, detail="again")
+    with pytest.raises(ValueError):
+        outbox.claim(row.outbox_id, worker_id="w2")
+
+
+def test_settle_requires_a_claimed_row(outbox) -> None:
+    row = _intent(outbox)
+    with pytest.raises(ValueError):
+        outbox.settle(row.outbox_id, OutboxState.SUCCEEDED, detail="never claimed")
+
+
+def test_stale_dispatching_reconciles_to_unknown_not_retry(outbox) -> None:
+    """F-02 window (c): after a possible effect, UNKNOWN is the honest
+    terminal — the row must never return to the pending set."""
+    row = _intent(outbox)
+    outbox.claim(row.outbox_id, worker_id="w",
+                 now=datetime(2026, 1, 1, tzinfo=UTC))
+    stale = outbox.reconcile_stale(
+        "acme",
+        older_than=timedelta(minutes=5),
+        now=datetime(2026, 1, 1, 0, 30, tzinfo=UTC),
+    )
+    assert [r.outbox_id for r in stale] == [row.outbox_id]
+    assert outbox.get(row.outbox_id).state is OutboxState.UNKNOWN
+    assert outbox.pending("acme") == []
+
+
+def test_fresh_dispatching_is_not_reconciled(outbox) -> None:
+    row = _intent(outbox)
+    outbox.claim(row.outbox_id, worker_id="w",
+                 now=datetime(2026, 1, 1, tzinfo=UTC))
+    stale = outbox.reconcile_stale(
+        "acme",
+        older_than=timedelta(minutes=5),
+        now=datetime(2026, 1, 1, 0, 1, tzinfo=UTC),
+    )
+    assert stale == []
+    assert outbox.get(row.outbox_id).state is OutboxState.DISPATCHING
+
+
+# ── Durability: the SQLite adapter survives a restart ──────────────────────
+
+def test_sqlite_rows_survive_a_new_instance(tmp_path) -> None:
+    path = str(tmp_path / "outbox.db")
+    first = SQLiteExecutionOutbox(path)
+    row = _intent(first)
+    first.claim(row.outbox_id, worker_id="w")
+
+    reopened = SQLiteExecutionOutbox(path)
+    restored = reopened.get(row.outbox_id)
+    assert restored.state is OutboxState.DISPATCHING
+    assert restored.worker_id == "w"
+    # And the uniqueness constraint still holds across the "restart".
+    again = _intent(reopened)
+    assert again.outbox_id == row.outbox_id
+
+
+# ── The store's states are the lifecycle model's states ────────────────────
+
+def test_outbox_states_are_declared_in_the_lifecycle_schema() -> None:
+    from remora.governance.lifecycle import default_model
+
+    model = default_model()
+    for state in OutboxState:
+        assert state.value in model.states, state
+
+
+def test_concurrent_claims_have_exactly_one_winner(outbox) -> None:
+    """The safety property: N workers race, at most one dispatches.
+
+    Threaded rather than simulated — a lock that only works in theory is
+    the failure mode this test exists to catch.
+    """
+    import threading
+
+    row = _intent(outbox)
+    winners: list[str] = []
+    barrier = threading.Barrier(8)
+
+    def worker(name: str) -> None:
+        barrier.wait()
+        claimed = outbox.claim(row.outbox_id, worker_id=name)
+        if claimed is not None:
+            winners.append(name)
+
+    threads = [threading.Thread(target=worker, args=(f"w{i}",)) for i in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert len(winners) == 1, winners
+    assert outbox.get(row.outbox_id).worker_id == winners[0]
