@@ -34,8 +34,8 @@ mode-degradation rule, [`../01-architecture.md`](../01-architecture.md)).
 | PDP → oracle pool | Quorum gate: consultation attempted but < 2 valid votes → VERIFY (`INSUFFICIENT_ORACLE_VOTES`). `remora/policy/decision_engine.py` | **Implemented** |
 | PDP → PEP (token) | Signed token; expiry (when set) is inside the signed payload; enforcement gate recomputes the observation hash and refuses on mismatch, tamper, or expiry. `remora/enforcement/` | **Implemented** (expiry optional, see §3) |
 | A2A counterparty | Envelope expiry, clock-skew bounds, nonce replay guard, fail-closed verification. `remora/governance/a2a_envelope.py` | **Implemented** |
-| Agent hook → control plane | `REMORA_HOOK_PROFILE=production` refuses every above-LOW action when the control plane is unreachable (G4) and implies fail-closed error paths; the research default keeps the documented fail-open local behavior. `scripts/remora_hook.py`, `tests/test_hook_production_profile.py` | **Implemented (REM-032)** |
-| Control plane → human review channel | Queue TTL: unattended VERIFY/ESCALATE items resolve to ABSTAIN with a recorded `review_expired_to_abstain` event. `remora/governance/review_queue.py` | **Implemented (REM-032)** |
+| Agent hook → control plane | `REMORA_HOOK_PROFILE=production` refuses every above-LOW action when the control plane is unreachable (G4) and implies fail-closed error paths; file-writing tools (`Write`/`Edit`/`MultiEdit`/`NotebookEdit`) additionally never take the LOW fast-exit in this profile, so a mutation the classifier scored LOW still meets the G4 refusal (2026-08-05). The research default keeps the documented fail-open local behavior. `scripts/remora_hook.py`, `tests/test_hook_production_profile.py` | **Implemented (REM-032)** |
+| Control plane → human review channel | Queue TTL: overdue VERIFY/ESCALATE items resolve to ABSTAIN with a recorded `review_expired_to_abstain` event, swept lazily on every queue interaction in `servers/execution_api.py` (`remora/governance/review_queue.py::expire_due`). A fully idle queue expires on its next touch; wall-clock idle expiry requires scheduling `expire_due()`. | **Implemented (REM-032)** |
 | Control plane → AROMER telemetry | Engine operates on REMORA defaults when telemetry is absent (advisory-only by design); the outage is now recordable as a G1 transition via `DegradationRecorder`. | **Implemented (REM-032)** |
 
 ## 2. Required behavior: the degradation ladder (REM-032)
@@ -54,6 +54,27 @@ and which links report into it, see section 6.
 | G2 No external PDP | OPA unreachable/malformed | Python engine authoritative (already implemented per-call; G2 adds the recorded mode transition when outage persists) |
 | G3 No oracle pool | quorum unreachable | Hard blocks + risk-tier floors only; every consensus-dependent path → VERIFY |
 | G4 Control plane unreachable | hook cannot reach PDP | **Read-only actions:** configurable, default allow-with-warning. **Mutating/production actions: refuse (fail closed).** The current hook default (fail-open for everything) is the documented research-mode exception and must be explicit opt-out in any deployment |
+
+G4 mutation coverage note (2026-08-05): in the production profile the
+file-writing tools (`Write`/`Edit`/`MultiEdit`/`NotebookEdit`) never take the
+LOW fast-exit, so those mutations always meet the G4 refusal. Shell-borne
+mutations are covered to the extent the risk classifier scores the command
+above LOW (`remora/agent_hook/risk_classifier.py` patterns) — a shell command
+the classifier does not recognize as mutating still exits on the LOW fast
+path.
+
+### Hook configuration (env, `scripts/remora_hook.py`)
+
+| Variable | Default | Effect |
+|---|---|---|
+| `REMORA_HOOK_PROFILE` | `research` | `production` = fail-closed error paths + G4 refusal for everything above LOW and for LOW file-writing tools |
+| `REMORA_HOOK_FAIL_CLOSED` | `0` | `1` blocks on hook error paths; implied by the production profile |
+| `REMORA_HOOK_REQUIRE_REMOTE` | `1` | `0` opts HIGH-risk out of mandatory remote verification |
+| `REMORA_HOOK_MEDIUM_BLOCK_THRESHOLD` | `0.35` | Confidence floor under which MEDIUM-risk verdicts block |
+| `REMORA_HOOK_DRIFT_WARN_THRESHOLD` | `0.75` | Intent-drift score that prints a warning |
+| `REMORA_HOOK_DRIFT_BLOCK_THRESHOLD` | `0.92` | Intent-drift score that blocks the action |
+| `REMORA_SESSION_DIR` | platform temp | Where the intent anchor and Lyapunov session state live |
+| `AROMER_WORKER_URL` | AROMER worker default | Result-scanner telemetry endpoint (`remora/agent_hook/result_scanner.py`) |
 
 Review-channel outage (orthogonal to G-modes): pending VERIFY/ESCALATE items
 MUST carry a queue TTL. On TTL expiry without human contact the item resolves

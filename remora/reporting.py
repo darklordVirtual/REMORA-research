@@ -345,6 +345,19 @@ def build_decision_envelope(
     return _build_envelope(state, observation, decision, rep)
 
 
+_POLICY_BUNDLE_HASH_CACHE: str | None = None
+
+
+def _policy_bundle_hash() -> str:
+    """Canonical policy source composite, computed once per process."""
+    global _POLICY_BUNDLE_HASH_CACHE
+    if _POLICY_BUNDLE_HASH_CACHE is None:
+        from remora.policy.versioning import compute_policy_bundle_hash
+
+        _POLICY_BUNDLE_HASH_CACHE = compute_policy_bundle_hash()
+    return _POLICY_BUNDLE_HASH_CACHE
+
+
 def _build_envelope(
     state: RemoraState,
     obs: "PolicyObservation",
@@ -431,11 +444,19 @@ def _build_envelope(
 
     history = HistoryBlock(synthetic=True)  # live case history not yet wired
 
+    # Unlike the server path (servers/api.py::_finalize_envelope_audit) this
+    # envelope is NOT hash-chained or signed — previous_hash/signature stay
+    # None by design on the library path. The policy identity and the exact
+    # assessed arguments, however, are measured here exactly like the server
+    # records them: the policy bundle composite and the observation's
+    # full-argument binding hash (TOCTOU defence, AuditBlock.tool_args_hash).
     audit = AuditBlock(
         policy_version=getattr(decision, "policy_version", ""),
         hash=rep.get("state_hash"),
         previous_hash=None,
         signature=None,
+        policy_bundle_hash=_policy_bundle_hash(),
+        tool_args_hash=getattr(obs, "tool_call_hash", None),
     )
 
     return DecisionEnvelope(

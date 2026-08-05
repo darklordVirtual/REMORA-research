@@ -25,7 +25,7 @@ loosening, the checks split into two tiers:
     * Schema-v2 verification fields (id/version/code_synced/verdict) and the
       verified/verdict consistency signals. A document may be edited without
       re-stamping its verification state.
-    * README line budget.
+    * README line budget (soft cap advisory; hard cap is a HARD violation).
 
   There is intentionally NO time-based staleness clock: documents are not
   nagged for "aging" against an arbitrary review window.
@@ -95,8 +95,12 @@ VINTAGE_BANNER_RE = re.compile(
 # carry their own stub semantics).
 LIVE_STATUSES = {"canonical", "generated", "supporting", "proposal"}
 PLACEHOLDER_RE = re.compile(r"^#*\s*placeholder[.!]?\s*$", re.IGNORECASE)
-# Advisory only: README over this size prints a hint, it does not fail CI.
-README_LINE_CAP = 300
+# Two-level front-page budget (2026-08-04 README simplification): above the
+# soft cap CI prints an advisory hint; above the hard cap CI FAILS. The front
+# page is a landing page, not the project dossier — detail belongs in docs/
+# with a link from the README.
+README_LINE_SOFT_CAP = 160
+README_LINE_HARD_CAP = 200
 
 
 def _load(path: Path):
@@ -527,11 +531,17 @@ def check_index_completeness(errors: list[str]) -> None:
             )
 
 
-def check_readme_budget(warnings: list[str]) -> None:
+def check_readme_budget(errors: list[str], warnings: list[str]) -> None:
     n = len((ROOT / "README.md").read_text(encoding="utf-8").splitlines())
-    if n > README_LINE_CAP:
+    if n > README_LINE_HARD_CAP:
+        errors.append(
+            f"README.md is {n} lines, over the hard cap "
+            f"{README_LINE_HARD_CAP}: the front page must stay a landing "
+            f"page — move detail into docs/ and link it"
+        )
+    elif n > README_LINE_SOFT_CAP:
         warnings.append(
-            f"README.md is {n} lines (soft cap {README_LINE_CAP}): consider "
+            f"README.md is {n} lines (soft cap {README_LINE_SOFT_CAP}): consider "
             f"moving detail into docs/ and linking it — advisory, not a failure"
         )
 
@@ -545,7 +555,7 @@ def main() -> int:
     check_release_profiles(errors)
     check_release_gates_table(errors)
     check_index_completeness(errors)
-    check_readme_budget(warnings)
+    check_readme_budget(errors, warnings)
     if warnings:
         for w in warnings:
             print(f"WARN: {w}", file=sys.stderr)

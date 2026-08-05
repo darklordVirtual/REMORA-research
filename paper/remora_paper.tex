@@ -622,17 +622,26 @@ triggers a human-review workflow.
 
 \begin{table}[h]
 \centering\small
-\caption{Policy hard blocks, evaluated before any routing logic.}
+\caption{Priority-ordered policy gates: unconditional hard blocks
+  (1--3, \texttt{hard\_guard\_floor()}) and conditional policy gates
+  (4--7, \texttt{\_CONDITIONAL\_GATES}). Both sets take precedence
+  over the probabilistic ACCEPT decision; only the unconditional
+  blocks are evaluated before all routing logic.}
 \fitcolumn{%
 \begin{tabular}{@{}clll@{}}
 \toprule
 Pri. & Condition & Reason Code & Action \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Unconditional hard blocks (\texttt{hard\_guard\_floor()})}} \\
 \midrule
 1 & Adversarial detected       & ADM\_FIREWALL    & ESC. \\
 2 & Counterfactual failed      & CF\_FAILED       & ESC. \\
 3a& Evidence contradicted +    &                  &      \\
   & \quad contradiction cycles & EV\_CONTRAD.     & ESC. \\
 3b& Evidence contradictions    & EV\_CONTRAD.     & ABS. \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Conditional policy gates (\texttt{\_CONDITIONAL\_GATES})}} \\
+\midrule
 4 & Refuse parametric + no ev. & THM\_REQ\_EV.    & VER. \\
 5 & Distribution shift         & DIST\_SHIFT      & VER. \\
 6 & Phase=critical + risk=crit.& CRITICAL\_PHASE  & ESC. \\
@@ -1239,8 +1248,10 @@ $\trust = 0.31$.
 sign-off. Citation coverage = 0.18 $<$ 0.50 threshold.
 Evidence router: \textsc{Escalate}.
 
-\textbf{Policy engine:} Hard block \#6 fires immediately
+\textbf{Policy engine:} Conditional policy gate fires
 (phase=critical AND risk=critical) $\Rightarrow$ \textsc{Escalate}.
+This gate resides in \texttt{\_CONDITIONAL\_GATES}, after the
+unconditional \texttt{hard\_guard\_floor()}; the outcome is identical.
 
 \textbf{Follow-up generated:} type=on\_site\_inspection;
 assign\_to=Independent Well Engineer; required\_evidence = \{ECD
@@ -1807,7 +1818,7 @@ Correlation weighting & Yes & Per-request & Fresh engine per API request \\
 $H$, $D$, $\eta$, $T$, $F$, $\trust$ & Yes & Yes & \texttt{thermodynamics.py} \\
 $V(t)$ Lyapunov tracking & Yes & Yes & Abort on $\Delta V$ \\
 Phase classification & Yes & Yes & 3-class \\
-Policy engine (7 headline controls) & Yes & Yes & Full gate inventory in code \\
+Policy engine (7 headline controls: 3 unconditional + 4 conditional) & Yes & Yes & Full gate inventory in code \\
 OPA/Rego adapter & Adapter & No & API calls Python engine directly \\
 Governance Intelligence & Offline & No & Optional pre-policy helper \\
 \texttt{PhaseAwareGuardrail} & Offline & No & Committed $N=544$ artifact \\

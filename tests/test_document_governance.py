@@ -274,17 +274,36 @@ def test_placeholder_check_ignores_real_content(tmp_path: Path) -> None:
     assert not any("placeholder" in e.lower() for e in errors), errors
 
 
-def test_readme_over_budget_warns_not_fails(tmp_path: Path) -> None:
-    """README line budget is advisory."""
+def test_readme_between_soft_and_hard_cap_warns_not_fails(tmp_path: Path) -> None:
+    """Between the soft and hard cap the budget is advisory."""
     mod = _load_module()
     mod.ROOT = tmp_path
-    mod.README_LINE_CAP = 5
+    mod.README_LINE_SOFT_CAP = 5
+    mod.README_LINE_HARD_CAP = 50
     (tmp_path / "README.md").write_text(
         "\n".join(str(i) for i in range(20)), encoding="utf-8"
     )
+    errors: list[str] = []
     warnings: list[str] = []
-    mod.check_readme_budget(warnings)
+    mod.check_readme_budget(errors, warnings)
+    assert not errors
     assert any("README.md" in w and "advisory" in w for w in warnings)
+
+
+def test_readme_over_hard_cap_fails(tmp_path: Path) -> None:
+    """The front page must not regrow into a dossier: the hard cap is a
+    HARD violation, so detail has to move into docs/ and be linked."""
+    mod = _load_module()
+    mod.ROOT = tmp_path
+    mod.README_LINE_SOFT_CAP = 5
+    mod.README_LINE_HARD_CAP = 10
+    (tmp_path / "README.md").write_text(
+        "\n".join(str(i) for i in range(20)), encoding="utf-8"
+    )
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_readme_budget(errors, warnings)
+    assert any("README.md" in e and "hard cap" in e for e in errors)
 
 
 def test_release_gates_table_drift_is_refused(tmp_path: Path) -> None:

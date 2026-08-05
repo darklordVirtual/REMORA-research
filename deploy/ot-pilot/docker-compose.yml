@@ -1,0 +1,122 @@
+# REMORA OT pilot — the whole thing, locally, in production mode.
+#
+# One command, nothing to configure:
+#
+#   docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
+#
+# Then open http://localhost:8081 — operator console with live metrics, the
+# scenario buttons and a one-click run of the 15-case OT battery.
+# Swagger is at http://localhost:8080/docs (press Authorize, paste `ot-agent`).
+#
+#   docker compose -f deploy/ot-pilot/docker-compose.yml down -v   # tear down
+#
+# Every credential, database, registry and work order below is preset. There
+# is nothing to fill in before it runs.
+#
+# Production mode is not decoration here. REMORA_ENV=production makes the
+# fail-closed prerequisites binding: durable execution state, a durable
+# envelope store, a token table with real role separation, and a non-mock
+# oracle backend. Remove any one of them and the API refuses to start —
+# that refusal is the property, so this file supplies all four rather than
+# weakening the check.
+#
+# The signing keys below are DEVELOPMENT VALUES for a local pilot. A real
+# deployment injects them from a secret manager; they are the difference
+# between a tamper-evident chain and a decorative one.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: remora
+      POSTGRES_PASSWORD: remora-local-pilot
+      POSTGRES_DB: remora
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remora -d remora"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Not published to the host: only the API needs it.
+    expose:
+      - "5432"
+
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/ot-pilot/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Host 8080 to stay clear of anything already on 8000.
+    ports:
+      - "8080:8000"
+    environment:
+      REMORA_ENV: production
+
+      # --- Fail-closed prerequisites (all four are required) --------------
+      # Durable execution state: tenant audit chain, review queue, and the
+      # one-time-grant ledger. Without it a consumed grant is replayable.
+      REMORA_PG_DSN: postgresql://remora:remora-local-pilot@postgres:5432/remora
+      # Durable DecisionEnvelope store.
+      REMORA_CONTROL_PLANE_DSN: postgresql://remora:remora-local-pilot@postgres:5432/remora
+      # Token table — the only mode with real role separation. The operator
+      # token cannot approve; the approver token cannot execute.
+      REMORA_API_TOKENS: >-
+        {"ot-agent":{"tenant":"ot-pilot","role":"operator"},
+         "ot-approver":{"tenant":"ot-pilot","role":"admin"},
+         "ot-viewer":{"tenant":"ot-pilot","role":"viewer"}}
+      REMORA_API_BEARER_TOKEN: ot-agent
+      # Non-mock backend is required in production. The execution path is
+      # policy-only and never calls an oracle, so the pilot runs without
+      # network egress; /v1/assess would need a real key.
+      REMORA_ORACLE_BACKEND: groq
+
+      # --- Signing (local pilot values — inject from a vault in reality) ---
+      REMORA_PDP_SIGNING_KEY: pilot-pdp-key-change-me
+      REMORA_LEASE_SIGNING_KEY: pilot-lease-key-change-me
+      REMORA_AUDIT_SIGNING_KEY: pilot-audit-key-change-me
+      REMORA_ENVELOPE_SIGNING_KEY: pilot-envelope-key-change-me
+
+      # --- Deployment-owned semantics --------------------------------------
+      REMORA_TOOL_REGISTRY_MODULE: ot_registry
+      REMORA_SEMANTIC_BUNDLE_MODULE: ot_bundle
+      REMORA_INTENT_SOURCE_FILE: /app/work_orders.json
+      REMORA_EXECUTION_ARTIFACT_DIR: /var/lib/remora/artifacts
+
+      # Prometheus scrape without a bearer token (local pilot only).
+      REMORA_PROMETHEUS_PUBLIC: "1"
+      PYTHONPATH: /app
+
+  # Operator console: live metrics, scenario buttons, one-click OT battery.
+  # Holds the demo tokens because this is a local pilot — a real deployment
+  # puts an identity provider here instead, and the page says so.
+  console:
+    build:
+      context: ../..
+      dockerfile: deploy/ot-pilot/console/Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
+    ports:
+      - "8081:8090"
+    environment:
+      REMORA_API_URL: http://api:8000
+      PILOT_TOKEN_OPERATOR: ot-agent
+      PILOT_TOKEN_APPROVER: ot-approver
+      PILOT_TOKEN_VIEWER: ot-viewer
+      REMORA_EVIDENCE_ROOT: /var/lib/remora/evidence
+      # Retention: keep the newest N battery runs on the evidence volume.
+      # Pruned directories are named in the battery output — never silent.
+      REMORA_EVIDENCE_KEEP: "20"
+    volumes:
+      - remora-evidence:/var/lib/remora/evidence
+
+volumes:
+  remora-evidence:

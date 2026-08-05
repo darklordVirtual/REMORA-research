@@ -27,6 +27,308 @@ releases.
 
 ## [Unreleased]
 
+### Fasttrack definition-of-done enforced machinally in the register (2026-08-05)
+
+- Maintainer review 2026-08-05: a fasttrack slice counts as delivered only
+  when ten reusability criteria hold (single module/responsibility, no
+  duplicated abstraction, documented public API, unit+integration tests,
+  negative/failure paths, ADR on contract change, OpenAPI/schema updates,
+  runnable external example, stability classification, clean-install wheel
+  test). `docs/assurance/fasttrack_register_v1.yaml` now declares the
+  criteria (`definition_of_done`, `dod_enforced_from`), and the new
+  `tests/test_fasttrack_register.py` fails CI if an item is flipped to DONE
+  without a per-criterion `dod:` evidence mapping (pre-enforcement gate0
+  closures are explicitly grandfathered). The review's structural goal — a
+  small stable SDK surface (`remora.core_api` et al.) separated from
+  experimental/research namespaces — is tracked as FT-13 rather than left
+  as prose.
+
+### FT-01/02: lifecycle state machine as a committed model (2026-08-05)
+
+- `schemas/execution_lifecycle_v1.yaml` declares the canonical
+  proposal-to-effect states, legal transitions, terminal set and the
+  maintainer's v1 decisions (synchronous execute, append-only envelope
+  revisions, UNKNOWN as explicit terminal with manual+optional-probe
+  resolution). Honestly scoped: assess/review/authorize stages are realized
+  today (FT-01 slices 1–2); outbox states are declared AHEAD of FT-02 and
+  claimed nowhere as wired; EFFECT_* states are deliberately absent until
+  FT-04. Structural invariants pinned by
+  `tests/test_execution_lifecycle_schema.py` (reachability, terminal-state
+  closure, decision recording).
+
+### FT-01 slice 2: the envelope path adopts the proposal identity (2026-08-05)
+
+- `/v1/assess` now mints the same canonical `proposal_id` vocabulary as
+  `/v1/execution`: one uuid4 is both the `proposal_id` and the
+  `request_id`, and the stored DecisionEnvelope's request identity is that
+  value. The former `q_hash-` prefix was informational only (nothing parses
+  `request_id`; the question hash remains in `question_hash`). Additive:
+  `AssessResponse` gains `proposal_id`.
+
+### FT-01 slice 1: proposal_id threads the execution lifecycle (2026-08-05)
+
+- Per the merged lifecycle design (PR #135) and the maintainer's contract
+  decisions: `/v1/execution/assess` mints one canonical `proposal_id`,
+  carried on the observation (surviving the durable review queue), returned
+  in every response, stamped on every tenant-chain record (assessed,
+  approved, execution_authorized, execution_result and refusal events), and
+  set as the execution grant's `request_id`. Additive only: pre-lifecycle
+  items report `proposal_id: null`. An external reviewer can now start from
+  a proposal_id and follow the action across records without out-of-band
+  reconstruction — envelope adoption, outbox states and effect verification
+  are the next slices.
+
+### Property-based invariant testing of the PEP one-time-grant contract (2026-08-05)
+
+- Proof-depth slice 4 (`tests/test_gate_replay_properties.py`): a consumed
+  grant refused every searched later attempt (replay counts 1–10,
+  in-process) with `token_already_consumed`, and non-consuming checks never
+  spent the grant. No counterexample in 50 examples per property, three
+  seeds. Searched validation over the declared domain — cross-process and
+  durable-ledger paths are not covered here.
+
+### Property-based invariant testing of the review-queue TTL contract (2026-08-05)
+
+- Proof-depth slice 3 (`tests/test_review_queue_properties.py`): across
+  searched integer-hour TTL/advance combinations, one sweep expired exactly
+  the overdue items to `EXPIRED_TO_ABSTAIN` — never a non-overdue one — and
+  an expired item was never approvable afterwards. No counterexample in 60
+  examples per property, three seeds; covers the public in-memory surface
+  only (not the durable adapters, concurrency, or crash boundaries).
+
+### Property-based invariant testing of the engine's hard-guard floor (2026-08-05)
+
+- Proof-depth slice 2 (`tests/test_policy_engine_properties.py`): over a
+  declared domain of seven signal groups (not the full PolicyObservation
+  surface), no counterexample was found to the hard guards — critical risk
+  never ACCEPTed, a production target with unknown risk never ACCEPTed, and
+  a detected adversarial pattern always ESCALATEd (100 examples per
+  property, three fixed seeds). Searched validation, not formal proof.
+  hypothesis added to the dev extras/lock after the first property push
+  revealed it was never installed in CI.
+
+### Property-based invariant testing for the enforcement core (2026-08-05)
+
+- New `tests/test_enforcement_properties.py` (Hypothesis) searches a
+  declared generated domain (flat str/int/bool dicts, additive top-level
+  mutations) instead of hand-picked examples: the tenant chain verified
+  after every searched append sequence and detected every searched
+  single-entry tamper; a lease refused the searched argument mutations with
+  `tool_args_hash_mismatch`; an expired token never verified. No
+  counterexample found; searched validation, not formal proof. First slice
+  of the core-component proof-depth track.
+
+### MCP session status emits the documented fields (2026-08-05)
+
+- `remora_session_status` documented drift score, autonomy level
+  (FULL/SUPERVISED/HUMAN_REQUIRED) and the consecutive-critical-phase count
+  as outputs, but the handler emitted none of them although the tracker
+  implements and tests all three. `LyapunovTracker.summary()` now carries
+  `latest_drift`, `consecutive_critical` and `autonomy_level`, and the MCP
+  handler prints them — the previously computed-but-unconsumed autonomy tier
+  gains its documented reporting consumer.
+
+### Hook G4: mutations meet the refusal regardless of risk tier (2026-08-05)
+
+- In the production profile, file-writing tools (`Write`/`Edit`/`MultiEdit`/
+  `NotebookEdit`) previously took the LOW fast-exit when the risk classifier
+  scored the path LOW (unlisted extensions outside code directories) — a real
+  mutation bypassed the documented G4 fail-closed refusal during a
+  control-plane partition. Those tools now always reach the remote/G4 stage
+  in production; read-only LOW tools keep the fast path, and the research
+  profile is unchanged. Honest residual stated in the resilience plan:
+  shell-borne mutations are covered only as far as the classifier scores
+  them above LOW. The five hook env knobs are now documented.
+
+### Assurance case: degradation-recording claim scoped to reality (2026-08-05)
+
+- The G3 stop-argument asserted "mode degradation is always recorded" as
+  implemented evidence, but `DegradationRecorder` has no production caller —
+  the mechanism is built and tested, and no live path emits transition
+  events. The assurance case now carries the same wiring caveat as the
+  capability register (WIRED_REFERENCE_PATH): tracked integration work, not
+  an implemented guarantee. Wiring the recorder into hook and control-plane
+  link monitors is queued.
+
+### AuditBlock.hash preimage documented per producer (2026-08-05)
+
+- The `hash` field's docstring claimed one preimage; the two live producers
+  compute different ones (server: chained SHA-256 over previous_hash + full
+  envelope JSON; library: unchained state digest with a truncated question
+  preimage — full arguments bound by `tool_args_hash`). The docstring now
+  states both, and that verifiers must key the recompute on the producer.
+
+### Policy layer: honest field status, unreachable reason removed (2026-08-05)
+
+- Four `PolicyObservation` fields (`majority_support`,
+  `rho_response_agreement`, `conformal_score`, `gainability_score`) are
+  marked offline-analysis-only in the schema: always `None` from the live
+  producer, read by no live decision path. `DecisionReason.CONFORMAL_VERIFY`
+  removed — both conformal branches only ever emit ACCEPT or ABSTAIN, and a
+  reason that cannot occur is contract noise. These edits move
+  `policy_bundle_hash` (policy source files), by design.
+
+### Library envelopes carry the measured policy identity (2026-08-05)
+
+- `remora.assess_tool_call`'s envelope — documented as the canonical
+  auditable record — shipped `policy_bundle_hash=None` and never used the
+  full-argument `tool_call_hash` the observation already computed. Both are
+  now populated exactly as the server path records them; the remaining,
+  stated limitation is that library-path envelopes are unchained/unsigned.
+
+### Security claims match the enforced mechanism (2026-08-05)
+
+- `docs/08-security.md` credited "allowlist-only tool execution" to
+  `schemas/risk-profiles.yaml` (`approved_tools`) — a key the runtime never
+  reads. The enforced allowlist is the dispatcher registry (only
+  deployment-registered callables execute; unknown tools refuse); the OWASP
+  rows now cite that mechanism, and the risk-profiles header states which
+  keys are read at runtime versus declarative policy intent. Editing the
+  YAML moves `policy_bundle_hash`, by design.
+- `policy_engine_audit_v1.md` F-4 scoped by path: server envelopes now carry
+  the canonical bundle hash (closed); the library path
+  (`remora/reporting.py`) still ships `None` and is named as the open half.
+
+### Nonce failures are readable, refusals name the real cause (2026-08-05)
+
+- `NonceLedger` recorded tool-failure reasons write-only; `failure(nonce)`
+  now exposes them, and a retry after a tool that raised refuses with
+  `nonce_consumed_by_failed_execution` (state unknown) instead of posing as
+  a plain replay. The Swagger contract enumerates the refusal-reason sets
+  and names their canonical sources (`lease.py`, `token.py`).
+
+### Review-queue TTL→ABSTAIN is now reachable in the served API (2026-08-05)
+
+- `ReviewQueue.expire_due()` existed and was tested, but nothing in
+  `servers/execution_api.py` ever called it: an overdue PENDING item that no
+  one touched stayed PENDING indefinitely, while the assurance docs claimed
+  unattended items expire. Every queue interaction (assess enqueue, approve,
+  execute) now sweeps overdue items to `EXPIRED_TO_ABSTAIN` first, inside
+  the durable transaction. Docs restated precisely: a fully idle queue
+  expires on its next touch; wall-clock idle expiry requires scheduling
+  `expire_due()`.
+
+### Contract honesty: EffectBlock relabeled, config gap closed (2026-08-05)
+
+- `EffectBlock` on the canonical DecisionEnvelope was documented as
+  decision-to-effect execution state, but no producer populates it: the
+  envelope producer never dispatches, and the dispatching path records its
+  outcome in the tenant audit chain without building an envelope. Docstring
+  and API reference now say exactly that (reserved, unpopulated); wiring the
+  outcome into the envelope is tracked follow-up work.
+- `REMORA_MAX_TOOL_RESULT_BYTES` (result retention cap, default 65536,
+  full result always hashed) was read by the code but missing from the
+  execution quickstart's configuration table — added.
+
+### Frontend: typecheck clean and CI-gated (2026-08-05)
+
+- Fixed the pre-existing TypeScript errors (recharts 3.x Tooltip/Legend
+  content-prop types, react-day-picker v10 `month_grid` slot rename, and a
+  discriminated-union collapse in `benchmarks.tsx` — plus a latent React
+  `key` bug in the chart tooltip that the typing exposed) and added
+  `tsc --noEmit` to the verify job, so frontend type drift now fails CI.
+
+### Typed OpenAPI contract for /v1/execution (2026-08-05)
+
+- The four execution operations now carry documentation-typed response
+  models (`ExecutionAssessResponse`, `ExecutionApproveResponse`,
+  `ExecutionExecuteResponse`, `ExecutionAuditVerifyResponse`), closed enums
+  for `decision` and `outcome`, a shared `ErrorDetail` model with documented
+  401/403/404/409 statuses, and real operation descriptions — the contract a
+  generated client needs instead of `Record<string, unknown>`.
+- Deliberately attached via `responses={200: {"model": ...}}`, not
+  `response_model=`: handlers keep returning plain dicts, so the wire format
+  — conditional keys absent (never null), semantic booleans present even
+  when null, timestamps as pre-serialized ISO strings — stays byte-identical.
+  Pinned by `tests/test_execution_openapi_contract.py`.
+- The contract is now a committed artifact: `schemas/openapi.json`, exported
+  deterministically by `scripts/export_openapi.py` and drift-gated in CI
+  (`--check`), so client generators consume a reviewed document rather than
+  a runtime snapshot. Identity-shaped request fields document their
+  unverified-metadata semantics, the pilot tokens are marked demo-only, and
+  `ToolCallRequest` ships worked examples for Swagger try-out.
+- Generated TypeScript client types: `frontend/src/generated/remora-api.ts`
+  is produced from the committed contract by `npm run api:types`
+  (openapi-typescript) and drift-gated in CI — a contract change that skips
+  regeneration is a red build. Generated code is excluded from lint and
+  covered by the frontend typecheck gate.
+
+### Policy identity: API hash bound to the canonical policy source set (2026-08-05)
+
+- `_policy_component_hashes()` in `servers/api.py` hashed only
+  `decision_engine.py`, although `remora/policy/versioning.py` defines the
+  canonical seven-file policy source set and promises full coverage. A change
+  to e.g. `thresholds.py` could therefore move governance outcomes while
+  outstanding leases kept verifying — and the audit trail kept recording —
+  an unchanged policy identity. The composite is now bound to
+  `compute_policy_bundle_hash()`.
+- Consequence stated plainly: replaying envelopes recorded before this change
+  reports `stable_policy_hash: false`. That is correct — the effective policy
+  identity they were recorded under is not the current one.
+- **F-03 slice 2 (#83):** the composite now also carries the effective
+  tool-policy identity — the authoritative `TOOL_REGISTRY` metadata plus the
+  spec and source digest of `REMORA_TOOL_REGISTRY_MODULE` and
+  `REMORA_SEMANTIC_BUNDLE_MODULE` (resolved without importing; an
+  unresolvable module is an explicit marker in the hash). Changing what a
+  tool name means now refuses outstanding leases. `/v1/policy/version`
+  exposes the new `tool_registry_hash` component. Residual under #83:
+  registry signing, per-tool argument schema and credential scope.
+
+### OT pilot: evidence archive and design-system console (2026-08-05)
+
+- **Console UI is the frontend's design system, not a hand-rolled page.**
+  The pilot console is a Vite SPA under `frontend/src/pilot/` sharing
+  `styles.css` tokens, primitives and the component library with the main
+  site (`npm run pilot:dev` / `pilot:build`). The console image builds it in
+  a node stage; `app.py` serves the bundle and answers 503 with build
+  instructions when it is missing.
+- **Immutable evidence archive with retrieval.** Every battery run writes a
+  run directory (manifest, results, metrics, chain verification, report)
+  under `REMORA_EVIDENCE_ROOT`; the console exposes run history, manifest
+  retrieval and zip download (`/api/evidence/runs[...]`) with strict run-id
+  validation. Retention keeps the newest `REMORA_EVIDENCE_KEEP` runs and
+  names every directory it prunes.
+- **`GET /v1/execution/audit/verify` reports `records_checked` and `empty`.**
+  An empty chain is trivially valid and must be distinguishable from
+  verified history; the evidence bundle's
+  `execution_chain_records_checked` field previously always recorded 0
+  because the endpoint never returned a count.
+- **Hardened pilot images.** Both pilot images run as uid 10001 with
+  healthchecks and OCI labels; CI builds the pilot UI bundle so a frontend
+  change cannot silently break the pilot's Docker build.
+- **Evidence fidelity.** The bundle now maps the envelope chain's `breaks`
+  into its problems lists (they were silently dropped), records the measured
+  SHELF-020 semantic hashes instead of `None`, reports `dirty_worktree` as
+  unknown rather than asserting clean, and the console run history shows an
+  empty chain as `empty`, never as green proof.
+
+### SHELF-020: semantic layer wired into /v1/execution (2026-08-04)
+
+- **One authoritative context builder.** With `REMORA_SEMANTIC_BUNDLE_MODULE`
+  configured, `/v1/execution/assess` and `/execute` build their observation
+  through `build_full_observation` — the same function the routing benchmarks
+  lock — over a deployment-declared `SemanticBundle` (tool signatures,
+  contracts, validator bindings, state index). New module
+  `remora/toolcall/semantic_bundle.py`; shipped research profile
+  `servers/semantic_bundle_research.py`. Parity 4 in
+  `tests/test_shelf020_parity.py` pins field-identity between the execution
+  path and the builder.
+- **Hashes computed, never declared.** `bundle_hash` (signatures + contracts
+  + validators) and `state_hash` are derived from the declarations;
+  constructing a bundle with an asserted hash refuses. Both are recorded in
+  the assess audit record, and `bundle_hash` + `intent_authority_hash` bind
+  into the `ExecutionLease` at execute time (fields added 2026-08-04).
+- **Intent provenance enforced.** The request may carry only an opaque
+  `intent_ref`, resolved server-side against a source declared in
+  `docs/research/task_intent_authority_v1.md`; an inline intent or a
+  `tool_matches_goal` assertion in the request body is ignored. New
+  request field `untrusted_context` is downgrade-only (declares taint,
+  never raises trust).
+- **Honest absence preserved.** Without a bundle module the registry-only
+  path runs unchanged and the audit record carries empty hashes; semantic
+  fields stay `None`. Discrimination through the wired path is unmeasured
+  (SAP v4 pending) — no accuracy number exists for it.
+
 ### DecisionEnvelope persistence and execution-state durability (2026-08-03)
 
 - **Durable envelope storage.** Added `SQLiteControlPlaneStore`: until now the

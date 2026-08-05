@@ -628,3 +628,33 @@ claims:
       c3a8e27b..., upstream file hashes pinned in
       data/routing_bench_bfcl/manifest.json).
 
+  - id: CLAIM-017
+    title: "Semantic binding gap in match_tool_to_intent: source_spans verified presence, not entailment (finding registered 2026-08-04)"
+    statement: >
+      Before 2026-08-04, TaskIntent.source_spans verified only that the
+      quoted text appeared in the task. A model could claim
+      requested_effect="cancel" with source_spans=("booking B-104",) for a
+      task saying "Show me booking B-104" and reach SUPPORTED: the entity
+      span verified, the resource type matched, the effect label matched the
+      contract. The fix adds action_spans (a separate, mandatory effect-grounding
+      field), EFFECT_VOCABULARY v1 (frozen keyword mapping), and
+      negation/conditionality detection. Seven pinning tests cover the attack
+      surface. Effect on benchmark metrics is unmeasured pending the new
+      sealed OT track; the BFCL population is spent.
+    evidence_level: regression_tested
+    status: active
+    artifact:
+      - "remora/toolcall/routing/goal_match.py"
+      - "tests/test_goal_match.py"
+    caveat: >
+      The fix is in code and regression-tested (28 tests, 7 new). Its effect
+      on the §34 residue (30/258 wrong-call accepts after value grounding) is
+      unmeasured. CAP-014 and CLAIM-016 are not affected: those claims were
+      made under conditions where no TaskIntent or ToolContract was supplied,
+      so tool_matches_goal=None for all episodes and the gap was inert.
+      SHELF-020 wiring landed 2026-08-04 (REMORA_SEMANTIC_BUNDLE_MODULE;
+      tests/test_execution_semantic_wiring.py); discrimination through the
+      wired path is unmeasured pending SAP v4.
+    reproduce: >
+      python -m pytest tests/test_goal_match.py -v
+

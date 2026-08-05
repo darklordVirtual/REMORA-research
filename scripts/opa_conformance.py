@@ -118,6 +118,23 @@ def golden_observations() -> list[tuple[str, PolicyObservation]]:
             question="summarize incident", risk_tier="low", action_type="qa",
             phase="disordered", trust_score=0.2,
         )),
+        # Added 2026-08-04 (OT/Rego test set): a HIGH-risk simulate-family
+        # action outside production matched both the dry-run ACCEPT rule and
+        # the high/critical-missing-evidence VERIFY rule, so the shipped
+        # policy raised eval_conflict_error and produced NO decision at all.
+        # The golden set only carried a MEDIUM dry-run, so CI never saw it.
+        ("preview_high_risk_staging", PolicyObservation(
+            question="preview valve sequence", risk_tier="high",
+            action_type="preview", target_environment="staging",
+            phase="ordered", trust_score=0.72,
+        )),
+        # Same rule pair, critical tier: pins that the precedence holds across
+        # the whole fail-closed band rather than for "high" alone.
+        ("simulate_critical_staging", PolicyObservation(
+            question="simulate trip logic", risk_tier="critical",
+            action_type="simulate", target_environment="staging",
+            phase="ordered", trust_score=0.8,
+        )),
     ])
     return cases
 
@@ -131,10 +148,32 @@ def opa_eval(opa: str, policy: Path, obs: PolicyObservation) -> str:
         input=json.dumps(input_doc),
         capture_output=True, text=True, timeout=30,
     )
+    # OPA reports policy-level failures (conflicting complete rules, type
+    # errors) as an `errors` document on stdout with a non-zero exit and an
+    # EMPTY stderr. Reading only stderr produced a bare "opa eval failed:"
+    # with no cause; surface the actual code and location instead.
+    payload: dict = {}
+    if proc.stdout:
+        try:
+            payload = json.loads(proc.stdout)
+        except ValueError:
+            payload = {}
+    if payload.get("errors"):
+        err = payload["errors"][0]
+        loc = err.get("location") or {}
+        raise RuntimeError(
+            f"opa policy error [{err.get('code', 'unknown')}]: "
+            f"{err.get('message', '')} "
+            f"({loc.get('file', '?')}:{loc.get('row', '?')})"
+        )
     if proc.returncode != 0:
-        raise RuntimeError(f"opa eval failed: {proc.stderr.strip()}")
-    result = json.loads(proc.stdout)
-    expressions = result["result"][0]["expressions"]
+        raise RuntimeError(f"opa eval failed: {proc.stderr.strip() or 'no stderr'}")
+    if not payload.get("result"):
+        raise RuntimeError(
+            "opa returned an undefined result — the policy has no rule and no "
+            "default for this input"
+        )
+    expressions = payload["result"][0]["expressions"]
     return str(expressions[0]["value"]).lower()
 
 

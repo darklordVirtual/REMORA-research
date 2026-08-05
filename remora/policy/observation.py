@@ -109,6 +109,13 @@ class PolicyObservation:
 
     question: str
 
+    # FT-01 (design docs/design/execution-lifecycle-outbox-v1.md, direction
+    # approved 2026-08-05): the canonical proposal identity minted at
+    # /v1/execution/assess. Carried on the observation so it survives the
+    # durable review queue and threads every downstream record without
+    # out-of-band reconstruction. None on paths that predate the lifecycle.
+    proposal_id: str | None = None
+
     # Thermodynamic state
     phase: str | None = None
     trust_score: float | None = None
@@ -117,6 +124,10 @@ class PolicyObservation:
     susceptibility: float | None = None
     hallucination_bound: float | None = None
     weighted_support: float | None = None
+    # OFFLINE-ANALYSIS ONLY (verified 2026-08-05): the live engine producer
+    # (remora/reporting.py) always leaves majority_support and
+    # rho_response_agreement None, and no live decision path reads them —
+    # they are populated only by offline experiment tooling.
     majority_support: float | None = None
     rho_response_agreement: float | None = None
     final_V: float | None = None
@@ -128,6 +139,9 @@ class PolicyObservation:
     refuse_parametric_verdict: bool = False
     evidence_request_reason: str | None = None
     distribution_shift_detected: bool = False
+    # OFFLINE-ANALYSIS ONLY (verified 2026-08-05): always None from the live
+    # producer; gainability feeds only experiments/gainability_routing.py and
+    # DecisionReason.GAINABILITY_ROUTE has never been emitted by the engine.
     conformal_score: float | None = None
     gainability_score: float | None = None
 

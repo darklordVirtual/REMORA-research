@@ -8,6 +8,11 @@ on:
     branches: [main, master]
   pull_request:
 
+# CI-economics review 2026-08-05: supersede outdated PR runs; never cancel master.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -70,6 +75,12 @@ jobs:
       - name: Claim provenance gate (register/artifact/manifest/doc binding)
         run: python scripts/check_claim_provenance.py
 
+      - name: OpenAPI contract drift gate
+        # schemas/openapi.json is the committed, reviewable contract a client
+        # generator consumes; drift between it and the live app is a red
+        # build, not a surprise downstream.
+        run: python scripts/export_openapi.py --check
+
       - name: README-claim and leakage gates (need the installed package)
         # Also `make audit`-only until 2026-07-31. check_readme_claims imports
         # the modules the README names, so a README claiming a component that
@@ -106,6 +117,13 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
+      - name: Typecheck frontend
+        # Went clean 2026-08-05 (recharts 3.x / react-day-picker v10 / one
+        # discriminated-union fix); gated here so type drift fails the
+        # pipeline instead of accumulating until deploy time.
+        working-directory: frontend
+        run: npx tsc --noEmit
+
       - name: Test frontend
         working-directory: frontend
         run: npm run test
@@ -113,6 +131,22 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+
+      - name: Build pilot console UI
+        # The OT pilot's console image builds this same bundle in its node
+        # stage (deploy/ot-pilot/console/Dockerfile); gating it here means a
+        # frontend change cannot silently break the pilot's Docker build.
+        working-directory: frontend
+        run: npm run pilot:build
+
+      - name: Generated API types drift gate
+        # src/generated/remora-api.ts is generated from schemas/openapi.json
+        # (itself drift-gated above). Regenerate and diff: a contract change
+        # that skips regeneration is a red build, not silent client drift.
+        working-directory: frontend
+        run: |
+          npm run api:types
+          git diff --exit-code -- src/generated/remora-api.ts
 
   worker-envelope-parity:
     # The agent-control Worker writes the live DecisionEnvelope hash chain in

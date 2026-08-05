@@ -28,7 +28,7 @@ blocks without updating the envelope hash and schema.
 | `history` | Session-level history references |
 | `policy_learning` | Signals exported to the (experimental) learning layer |
 | `audit` | SHA-256 hash-chain linkage and audit metadata |
-| `effect` | Decision-to-effect execution state: `executed`, `tool_call_hash`, `effect_outcome`, `ledger_entry` |
+| `effect` | Reserved for decision-to-effect execution state (`executed`, `tool_call_hash`, `effect_outcome`, `ledger_entry`) — **no producer populates it yet**: the execution outcome is recorded in the tenant audit chain, not in the envelope |
 | `causal_explanation` | Optional policy-only what-if analysis (`decision_scope="policy_only"`) |
 
 Serialise with `envelope.to_dict()`. The audit hash chain
@@ -95,7 +95,7 @@ one dispatcher process must not rely on it as a global guarantee (REM-025).
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 68 fields; on the research `/v1/assess` path **all fields except
+with 69 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe"). On `/v1/execution/*` this does NOT hold: trust-bearing fields are
@@ -251,8 +251,9 @@ mandatory bounded TTL; profile-specific approval role enforced), `POST
 /execute` (re-gates the fresh observation, binds the exact payload, consumes a
 one-time grant, then dispatches the tool through the app-lifecycle
 `GovernedToolDispatcher`), `GET /audit/verify` (recomputes the per-tenant
-chain). RBAC: `assess`/`execute` capabilities gate assess/execute; `review`
-gates approve; `read` gates audit.
+chain and reports `records_checked`; an `empty` chain is flagged because it is
+trivially valid). RBAC: `assess`/`execute` capabilities gate assess/execute;
+`review` gates approve; `read` gates audit.
 
 **Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
 bearer token to a fixed tenant and role — callers cannot forge either.
@@ -270,7 +271,8 @@ record.
 
 **Trust boundary (issue #34):** the execution request is a PROPOSAL only —
 `tool_name`, exact `arguments`, requested `target_environment` (+
-`idempotency_key`). Every authoritative safety signal (risk tier, domain,
+`idempotency_key`, and optionally `intent_ref` / `untrusted_context`, both
+covered below). Every authoritative safety signal (risk tier, domain,
 action type, trust, phase, evidence status, schema validity, rollback
 capability) is derived server-side from the tool registry; the legacy
 client fields (`trust_score`, `phase`, `evidence_action`,
@@ -282,6 +284,27 @@ registry does not pin. Since the policy-only kernel has no oracle or
 evidence pipeline, trust/phase/evidence are unknown at assess time and the
 engine fails toward VERIFY/ABSTAIN — no probabilistic ACCEPT can fire from
 this path (server-side signal sources are #35/#39 scope).
+
+**Semantic bundle (SHELF-020):** with `REMORA_SEMANTIC_BUNDLE_MODULE`
+configured (module contract: `build_semantic_bundle()` and optionally
+`resolve_intent(intent_ref)`, see `remora/toolcall/semantic_bundle.py`;
+shipped research profile: `servers/semantic_bundle_research.py`), the
+assess/execute observation is built by `build_full_observation` — the same
+authoritative context builder the routing benchmarks lock — over the
+deployment-declared tool signatures, contracts, validator bindings and state
+index. The request may carry an opaque `intent_ref`, resolved server-side
+against a deployment-controlled source (`docs/research/task_intent_authority_v1.md`);
+the intent itself can never ride in the request, and request extras asserting
+`tool_matches_goal` or an inline intent are ignored. `untrusted_context` is
+downgrade-only: declaring it marks the call's arguments tainted, omitting it
+raises nothing. The response's `semantic` block reports the computed
+`tool_contract_bundle_hash`, `state_hash`, `intent_authority_hash` and the
+tri-state `tool_matches_goal` / `expected_effect_matches`; the same hashes are
+appended to the tenant audit chain at assess time and bound into the
+`ExecutionLease` at execute time. Without a bundle module the legacy
+registry-only path runs, recorded as empty hashes — absent semantics stay
+`None`, never defaulted. Discrimination through this path is unmeasured
+(SAP v4 pending); no accuracy number may be cited for it.
 
 **Tool dispatch (issue #13):** tool callables are registered exclusively via
 trusted deployment configuration — the module named by

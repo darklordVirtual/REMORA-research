@@ -62,11 +62,24 @@ class ToolContract:
     #: ``("closure_approved",)``. Checked against an authoritative fact set;
     #: a precondition nobody can adjudicate yields UNKNOWN, never "met".
     preconditions: tuple[str, ...] = ()
+    #: Declared value transformations per argument role, e.g.
+    #: ``{"pressure": "bar\u2194kPa", "timestamp": "ISO-8601 normalisation"}``.
+    #: Written by the contract author from tool documentation before test
+    #: scenarios are seen.  The transforms are not evaluated here — this is a
+    #: declaration, not an engine.  Any change to canonicalisations changes the
+    #: contract hash, preventing silent weakening through omission.
+    canonicalisations: Mapping[str, str] = None  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "argument_roles", dict(self.argument_roles or {}))
         object.__setattr__(self, "state_delta", dict(self.state_delta or {}))
         object.__setattr__(self, "preconditions", tuple(self.preconditions or ()))
+        object.__setattr__(self, "canonicalisations", dict(self.canonicalisations or {}))
+        if any(v == "" for v in self.canonicalisations.values()):
+            raise ValueError(
+                f"{self.tool}: canonicalisations must have non-empty descriptions; "
+                f"an empty string is indistinguishable from an absent entry"
+            )
         if self.is_read and self.state_delta:
             # A read that declares a post-state is self-contradictory. As with
             # the mutation check below, the contradiction is refused at
@@ -109,6 +122,7 @@ class ToolContract:
             "argument_roles": dict(sorted(self.argument_roles.items())),
             "state_delta": dict(sorted(self.state_delta.items())),
             "preconditions": list(self.preconditions),
+            "canonicalisations": dict(sorted(self.canonicalisations.items())),
         }
 
 
@@ -125,10 +139,19 @@ class ToolContractRegistry:
     contracts: Mapping[str, ToolContract]
 
     def __init__(self, contracts: Iterable[ToolContract] | Mapping[str, ToolContract]):
+        resolved: dict[str, ToolContract]
         if isinstance(contracts, Mapping):
             resolved = dict(contracts)
         else:
-            resolved = {c.tool: c for c in contracts}
+            resolved = {}
+            for c in contracts:
+                if c.tool in resolved:
+                    raise ValueError(
+                        f"duplicate tool declaration: {c.tool!r} appears more "
+                        f"than once in the contract bundle; a tool must have "
+                        f"exactly one contract"
+                    )
+                resolved[c.tool] = c
         object.__setattr__(self, "contracts", resolved)
 
     def __contains__(self, tool: str) -> bool:
@@ -158,6 +181,9 @@ class ToolContractRegistry:
                 preconditions, Iterable
             ):
                 raise ValueError(f"{tool}: 'preconditions' must be a list of names")
+            canonicalisations = entry.get("canonicalisations") or {}
+            if not isinstance(canonicalisations, Mapping):
+                raise ValueError(f"{tool}: 'canonicalisations' must be a map")
             contracts.append(
                 ToolContract(
                     tool=tool,
@@ -168,6 +194,7 @@ class ToolContractRegistry:
                     argument_roles={str(k): str(v) for k, v in roles.items()},
                     state_delta={str(k): str(v) for k, v in delta.items()},
                     preconditions=tuple(str(p) for p in preconditions),
+                    canonicalisations={str(k): str(v) for k, v in canonicalisations.items()},
                 )
             )
         return cls(contracts)

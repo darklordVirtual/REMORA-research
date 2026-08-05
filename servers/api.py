@@ -190,17 +190,81 @@ from remora.policy.report import DecisionReport
 # App definition
 # ---------------------------------------------------------------------------
 
+#: Declared so the interactive docs can actually authenticate. Without a
+#: security scheme Swagger renders no "Authorize" button, so every governed
+#: call from the UI returned 401 with no way to fix it from the page — the
+#: interactive docs were unusable for the one thing they exist for. ReDoc has
+#: the same dependency: it renders what the schema declares, and the schema
+#: declared nothing about auth.
+_BEARER_SCHEME = {
+    "type": "http",
+    "scheme": "bearer",
+    "description": (
+        "Bearer token. In production the token table `REMORA_API_TOKENS` maps "
+        "each token to a fixed (tenant, role) pair — the caller cannot assert "
+        "either, which is why this is the only mode with real role "
+        "separation. Roles: `operator` (assess/execute), `reviewer` and "
+        "`domain_expert`/`senior_authority` (approve), `admin` (all), "
+        "`viewer` (read). In development, `REMORA_API_BEARER_TOKEN` enables "
+        "single-token mode, which has NO role separation. "
+        "`/` and `/v1/health` need no token."
+    ),
+}
+
 app = FastAPI(
     title="REMORA API",
     description=(
         "Multi-oracle consensus governance layer for agentic AI. "
-        "Provides structured ACCEPT / VERIFY / ABSTAIN / ESCALATE decisions."
+        "Provides structured ACCEPT / VERIFY / ABSTAIN / ESCALATE decisions.\n\n"
+        "**Authenticating here:** press *Authorize* and paste a bearer token. "
+        "In the shipped OT pilot the tokens are `ot-agent` (operator), "
+        "`ot-approver` (admin, can approve) and `ot-viewer` (read-only) — "
+        "try approving with `ot-agent` to watch role separation refuse it. "
+        "**Demo profile only:** these literal tokens exist for the "
+        "localhost-bound pilot and must never be exposed outside it; a real "
+        "deployment mints its own token table (or fronts an IdP)."
     ),
     version=_PACKAGE_VERSION,
     license_info={"name": "Business Source License 1.1", "identifier": "BUSL-1.1"},
     contact={"name": "REMORA Commercial Licensing (Licensor: Stian Skogbrott)",
              "email": "support@luftfiber.no"},
+    # Applied globally; the open endpoints override it with `security=[]`
+    # rather than the scheme being absent, so the docs state which routes are
+    # deliberately unauthenticated instead of leaving it ambiguous.
+    openapi_tags=[
+        {"name": "governance", "description": "Assessment and decision endpoints."},
+        {"name": "execution", "description": "Enforcement path: assess → approve → execute."},
+        {"name": "infrastructure", "description": "Health, metrics, policy version."},
+    ],
 )
+
+
+def _custom_openapi() -> dict:
+    """OpenAPI with the bearer scheme declared and applied by default."""
+    if app.openapi_schema:
+        return app.openapi_schema
+    from fastapi.openapi.utils import get_openapi
+
+    schema = get_openapi(
+        title=app.title, version=app.version, description=app.description,
+        routes=app.routes, tags=app.openapi_tags,
+        license_info=app.license_info, contact=app.contact,
+    )
+    schema.setdefault("components", {}).setdefault("securitySchemes", {})[
+        "bearerAuth"
+    ] = _BEARER_SCHEME
+    schema["security"] = [{"bearerAuth": []}]
+    # Liveness and navigation must stay reachable without a credential: a
+    # health probe that needs a token is not a health probe.
+    for path in ("/", "/v1/health"):
+        for operation in schema.get("paths", {}).get(path, {}).values():
+            if isinstance(operation, dict):
+                operation["security"] = []
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = _custom_openapi  # type: ignore[method-assign]
 
 
 @app.exception_handler(Exception)
@@ -245,7 +309,89 @@ _METRICS: dict[str, Any] = {
         "escalation_rate": 0,
         "oracle_cost": 0,
     },
+    # ── Enforcement path (/v1/execution) ────────────────────────────────────
+    # Kept separate from the assess counters above on purpose: the advisory
+    # plane and the enforcing plane answer different questions, and a pilot
+    # needs to know which one produced a decision. Before these existed, a
+    # deployment could run fifteen governed decisions and six real side
+    # effects while every metric still read zero (found running the OT pilot
+    # in production mode, 2026-08-04).
+    "execution_assess_total": 0,
+    "execution_decision_counts": {
+        "accept": 0,
+        "verify": 0,
+        "abstain": 0,
+        "escalate": 0,
+    },
+    "execution_approvals_total": 0,
+    "execution_executes_total": 0,
+    # Counted only after the dispatcher confirms a side effect actually
+    # happened — authorised-to-run and did-run are different states, and
+    # conflating them would let a dead dispatcher look healthy.
+    "execution_tool_calls_executed": 0,
+    "execution_refusals": {
+        "binding_refused": 0,
+        "approval_expired": 0,
+        "approval_invalidated": 0,
+        "pep_denied": 0,
+        "tool_failed": 0,
+        "no_dispatcher": 0,
+        "unknown_tool": 0,
+    },
 }
+
+#: Snapshot of the initial counter shape, so tests and long-lived processes can
+#: reset without reconstructing the literal above.
+_METRICS_INITIAL = deepcopy(_METRICS)
+
+
+def reset_metrics() -> None:
+    """Reset every counter to its initial value (test/support hook)."""
+    _METRICS.clear()
+    _METRICS.update(deepcopy(_METRICS_INITIAL))
+
+
+def record_execution_assess(action: str) -> None:
+    """Count one /v1/execution/assess decision."""
+    _METRICS["execution_assess_total"] = _metric_int("execution_assess_total") + 1
+    counts = _METRICS.setdefault("execution_decision_counts", {})
+    if isinstance(counts, dict):
+        key = str(action).strip().lower()
+        counts[key] = int(counts.get(key, 0)) + 1
+
+
+def record_execution_approval() -> None:
+    _METRICS["execution_approvals_total"] = (
+        _metric_int("execution_approvals_total") + 1
+    )
+
+
+def record_execution_execute(*, executed: bool, refusal: str | None = None) -> None:
+    """Count one /v1/execution/execute call and what it actually did."""
+    _METRICS["execution_executes_total"] = (
+        _metric_int("execution_executes_total") + 1
+    )
+    if executed:
+        _METRICS["execution_tool_calls_executed"] = (
+            _metric_int("execution_tool_calls_executed") + 1
+        )
+        return
+    if not refusal:
+        return
+    refusals = _METRICS.setdefault("execution_refusals", {})
+    if isinstance(refusals, dict):
+        key = str(refusal).strip().lower()
+        # tool_failed_nonce_burned and friends collapse to their family so the
+        # metric stays a bounded label set rather than growing per message.
+        for known in ("binding_refused", "approval_expired",
+                      "approval_invalidated", "pep_denied", "tool_failed",
+                      "unknown_tool"):
+            if key.startswith(known):
+                key = known
+                break
+        else:
+            key = key if key in refusals else "no_dispatcher"
+        refusals[key] = int(refusals.get(key, 0)) + 1
 
 _SLO_TARGETS = {
     "latency_p95_ms": float(os.getenv("REMORA_SLO_LATENCY_P95_MS", "2000")),
@@ -548,10 +694,55 @@ def _sha256_file(path: Path) -> str | None:
     return f"sha256:{digest}"
 
 
+from remora.policy.versioning import compute_policy_bundle_hash
+
+#: Canonical policy source set (7 files, remora/policy/versioning.py) hashed
+#: once at import — the files are static at runtime. Hashing decision_engine.py
+#: alone let a thresholds.py change move governance outcomes while leases kept
+#: verifying, and the audit trail kept recording, the old policy identity.
+#: Resolution failure here must stop startup: an unhashable policy set may not
+#: serve decisions.
+_POLICY_SOURCE_BUNDLE_HASH = "sha256:" + compute_policy_bundle_hash()
+
+
+def _tool_registry_component_hash() -> str:
+    """Identity of the effective tool policy (F-03 slice 2).
+
+    Covers the authoritative TOOL_REGISTRY metadata (risk/action/domain per
+    tool) plus, for each configured deployment module
+    (REMORA_TOOL_REGISTRY_MODULE, REMORA_SEMANTIC_BUNDLE_MODULE), the module
+    spec string and a digest of its source — resolved without importing, so
+    hashing has no side effects. A module that cannot be resolved is recorded
+    as an explicit marker: it must move the hash, not vanish from it.
+    """
+    import importlib.util
+
+    from servers.execution_api import TOOL_REGISTRY
+
+    hasher = hashlib.sha256()
+    hasher.update(json.dumps(TOOL_REGISTRY, sort_keys=True,
+                             separators=(",", ":")).encode("utf-8"))
+    for env_name in ("REMORA_TOOL_REGISTRY_MODULE", "REMORA_SEMANTIC_BUNDLE_MODULE"):
+        spec = os.getenv(env_name, "").strip()
+        hasher.update(f"|{env_name}={spec}".encode("utf-8"))
+        if not spec:
+            continue
+        try:
+            found = importlib.util.find_spec(spec)
+            origin = getattr(found, "origin", None)
+            digest = (hashlib.sha256(Path(origin).read_bytes()).hexdigest()
+                      if origin and Path(origin).is_file() else "no-source")
+        except (ImportError, OSError, TypeError, ValueError):
+            digest = "unresolved"
+        hasher.update(f":{digest}".encode("utf-8"))
+    return "sha256:" + hasher.hexdigest()
+
+
 def _policy_component_hashes() -> dict[str, str | None]:
-    policy_engine_hash = _sha256_file(_REPO_ROOT / "remora" / "policy" / "decision_engine.py")
+    policy_engine_hash = _POLICY_SOURCE_BUNDLE_HASH
     risk_profile_hash = _sha256_file(_REPO_ROOT / "schemas" / "risk-profiles.yaml")
     schema_hash = _sha256_file(_REPO_ROOT / "schemas" / "decision_envelope_schema.yaml")
+    tool_registry_hash = _tool_registry_component_hash()
 
     opa_policy_hash = None
     opa_path_env = os.getenv("REMORA_OPA_POLICY_PATH", "").strip()
@@ -561,7 +752,8 @@ def _policy_component_hashes() -> dict[str, str | None]:
             opa_path = (_REPO_ROOT / opa_path).resolve()
         opa_policy_hash = _sha256_file(opa_path)
 
-    parts = [v for v in (policy_engine_hash, risk_profile_hash, schema_hash, opa_policy_hash) if v]
+    parts = [v for v in (policy_engine_hash, risk_profile_hash, schema_hash,
+                         tool_registry_hash, opa_policy_hash) if v]
     composite = None
     if parts:
         composite = "sha256:" + hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
@@ -570,6 +762,7 @@ def _policy_component_hashes() -> dict[str, str | None]:
         "policy_hash": composite,
         "risk_profile_hash": risk_profile_hash,
         "schema_hash": schema_hash,
+        "tool_registry_hash": tool_registry_hash,
         "opa_policy_hash": opa_policy_hash,
     }
 
@@ -605,6 +798,12 @@ def _canonical_envelope_for_hash(envelope_payload: dict[str, Any]) -> dict[str, 
     if isinstance(audit, dict):
         for key in ("hash", "previous_hash", "signature", "timestamp_utc"):
             audit.pop(key, None)
+    # Post-v2 audit keys are omitted when unset so control-plane chains
+    # recorded before those fields existed keep verifying (see
+    # remora/governance/envelope.py::POST_V2_AUDIT_KEYS).
+    from remora.governance.envelope import normalize_audit_for_hash
+
+    normalize_audit_for_hash(canonical)
     return canonical
 
 
@@ -848,6 +1047,10 @@ class PolicyDecision(BaseModel):
 
 class AssessResponse(BaseModel):
     request_id: str
+    # FT-01: the canonical proposal identity; equals request_id on this path
+    # (the envelope adopts it) — present so both API families speak one ID
+    # vocabulary.
+    proposal_id: str
     question_hash: str
     elapsed_ms: float
     policy_decision: PolicyDecision
@@ -871,7 +1074,12 @@ class HealthResponse(BaseModel):
 
 class ReviewRequest(BaseModel):
     request_id: str = Field(..., min_length=8, max_length=128)
-    reviewer_id: str = Field(..., min_length=1, max_length=128)
+    reviewer_id: str = Field(
+        ..., min_length=1, max_length=128,
+        description="Client-declared annotation only: when it differs from "
+                    "the authenticated principal it is recorded as unverified "
+                    "metadata. The audited reviewer identity is always the "
+                    "principal from the bearer token.")
     decision: Literal["approved", "rejected", "needs_more_evidence"]
     reason: str = Field(..., min_length=3, max_length=4096)
     evidence_refs: list[str] = Field(default_factory=list, max_length=64)
@@ -881,14 +1089,22 @@ class FollowUpRequest(BaseModel):
     request_id: str = Field(..., min_length=8, max_length=128)
     follow_up_type: Literal["evidence_request", "override_request", "manual_escalation", "incident"]
     payload: dict[str, Any] = Field(default_factory=dict)
-    requested_by: str | None = Field(None, max_length=128)
+    requested_by: str | None = Field(
+        None, max_length=128,
+        description="Client-declared annotation only, stored as unverified "
+                    "metadata; the audited actor is always the authenticated "
+                    "principal.")
 
 
 class EvidenceRequest(BaseModel):
     request_id: str = Field(..., min_length=8, max_length=128)
     evidence_type: str = Field(..., min_length=1, max_length=128)
     payload: dict[str, Any] = Field(default_factory=dict)
-    submitted_by: str | None = Field(None, max_length=128)
+    submitted_by: str | None = Field(
+        None, max_length=128,
+        description="Client-declared annotation only, stored as unverified "
+                    "metadata; the audited actor is always the authenticated "
+                    "principal.")
 
 
 class RerunRequest(BaseModel):
@@ -1221,6 +1437,29 @@ def _prometheus_metrics_text() -> str:
         "# HELP remora_followups_total Number of follow-up requests submitted.",
         "# TYPE remora_followups_total counter",
         f"remora_followups_total {_metric_int('follow_up_total')}",
+        "# HELP remora_execution_assess_total Governed tool-call assessments on /v1/execution.",
+        "# TYPE remora_execution_assess_total counter",
+        f"remora_execution_assess_total {_metric_int('execution_assess_total')}",
+        "# HELP remora_execution_approvals_total Human approvals granted on /v1/execution.",
+        "# TYPE remora_execution_approvals_total counter",
+        f"remora_execution_approvals_total {_metric_int('execution_approvals_total')}",
+        "# HELP remora_execution_executes_total Execute calls on /v1/execution (any outcome).",
+        "# TYPE remora_execution_executes_total counter",
+        f"remora_execution_executes_total {_metric_int('execution_executes_total')}",
+        "# HELP remora_execution_tool_calls_executed_total Tool calls with a CONFIRMED side effect.",
+        "# TYPE remora_execution_tool_calls_executed_total counter",
+        f"remora_execution_tool_calls_executed_total {_metric_int('execution_tool_calls_executed')}",
+        *[
+            line
+            for action, count in sorted(_dict_metric("execution_decision_counts").items())
+            for line in (
+                f'remora_execution_decisions_total{{action="{action}"}} {int(count)}',
+            )
+        ],
+        *[
+            f'remora_execution_refusals_total{{reason="{reason}"}} {int(count)}'
+            for reason, count in sorted(_dict_metric("execution_refusals").items())
+        ],
         "# HELP remora_assess_latency_mean_ms Mean assessment latency in milliseconds.",
         "# TYPE remora_assess_latency_mean_ms gauge",
         f"remora_assess_latency_mean_ms {round(mean_elapsed, 3)}",
@@ -1279,6 +1518,32 @@ def _prometheus_metrics_text() -> str:
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
+@app.get("/", tags=["infrastructure"])
+def index() -> dict:
+    """Navigation index for the root path.
+
+    Without this, ``/`` returned ``{"detail":"Not Found"}`` — the first
+    address anyone types, answering in a way that is indistinguishable from a
+    dead server. Deliberately navigation only: no counters, no tenant, no
+    policy internals, so it stays safe to serve without a token. Anything a
+    caller could learn here is already visible to a port scan.
+    """
+    return {
+        "service": "REMORA API",
+        "version": _PACKAGE_VERSION,
+        "runtime_mode": "production" if _is_production_mode() else "development",
+        "status": "ok",
+        "links": {
+            "docs": "/docs",
+            "openapi": "/openapi.json",
+            "health": "/v1/health",
+            "metrics": "/v1/metrics",
+            "prometheus": "/metrics",
+            "policy_version": "/v1/policy/version",
+        },
+    }
+
 
 @app.get("/v1/health", response_model=HealthResponse, tags=["infrastructure"])
 def health() -> HealthResponse:
@@ -1357,11 +1622,15 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
     last = traj[-1] if traj else {}
 
     q_hash = hashlib.sha256(req.question.encode()).hexdigest()[:16]
-    # uuid4 suffix, never a time-derived one: the previous monotonic-ms
-    # modulo suffix repeated every ~16.7 minutes, so an identical question
-    # could collide and interleave evidence/review/audit records under one
-    # request_id (external review 2026-07-24, F-08).
-    request_id = f"{q_hash}-{uuid.uuid4().hex}"
+    # FT-01 slice 2 (maintainer decision 2026-08-05): the envelope path
+    # adopts the canonical proposal identity. One uuid4 minted here is BOTH
+    # the proposal_id and the request_id, unifying the ID vocabulary with
+    # /v1/execution. The former q_hash prefix was informational only —
+    # nothing parses request_id (verified), and the question hash is still
+    # returned separately as question_hash. uuid4, never time-derived
+    # (external review 2026-07-24, F-08: time-derived suffixes collided).
+    proposal_id = str(uuid.uuid4())
+    request_id = proposal_id
     env = report.get("envelope")
     if env is not None and hasattr(env, "to_dict"):
         envelope_payload = env.to_dict()
@@ -1416,6 +1685,7 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
 
     return AssessResponse(
         request_id=request_id,
+        proposal_id=proposal_id,
         question_hash=q_hash,
         elapsed_ms=elapsed_ms,
         policy_decision=PolicyDecision(
@@ -1613,6 +1883,14 @@ def metrics(request: Request) -> dict:
         "execution_state_durable": _execution_state_backend() != "in_process",
         "decision_counts": decision_counts,
         "decision_counts_by_risk": _dict_metric("decision_counts_by_risk"),
+        # Enforcement path, reported separately from the advisory path above
+        # so an operator can tell which plane produced a decision.
+        "execution_assess_total": _metric_int("execution_assess_total"),
+        "execution_decision_counts": _dict_metric("execution_decision_counts"),
+        "execution_approvals_total": _metric_int("execution_approvals_total"),
+        "execution_executes_total": _metric_int("execution_executes_total"),
+        "execution_tool_calls_executed": _metric_int("execution_tool_calls_executed"),
+        "execution_refusals": _dict_metric("execution_refusals"),
         "latency_buckets_ms": _dict_metric("latency_bucket_counts"),
         "mean_assess_latency_ms": mean_elapsed,
         "escalation_rate": escalation_rate,
@@ -1653,6 +1931,7 @@ def policy_version(request: Request) -> dict:
         "policy_hash": hashes["policy_hash"],
         "risk_profile_hash": hashes["risk_profile_hash"],
         "schema_hash": hashes["schema_hash"],
+        "tool_registry_hash": hashes["tool_registry_hash"],
         "opa_policy_hash": hashes["opa_policy_hash"],
         "source": "python_decision_engine",
         "runtime_mode": "production" if _is_production_mode() else "development",

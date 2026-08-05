@@ -92,11 +92,22 @@ gate := "ACCEPT" if {
 	input.trust_score >= 0.8
 }
 
-# ACCEPT: dry-run in non-production
+# ACCEPT: dry-run in non-production, outside the fail-closed risk band.
+#
+# The risk-tier exclusion is required, not cosmetic: without it a HIGH or
+# CRITICAL simulate-family action outside production matched both this rule
+# and the "missing evidence on high/critical" VERIFY rule below. Two complete
+# rules producing different values is an `eval_conflict_error` in Rego, so OPA
+# returned NO decision at all for that input — a policy crash, not a verdict
+# (found by the OT/Rego test set, 2026-08-04; golden set only carried a MEDIUM
+# dry-run, so CI never reached it). Precedence resolves the same way the
+# disordered-ABSTAIN rule already documents: the risk-tier evidence floor wins.
 gate := "ACCEPT" if {
 	clean_signals
 	input.action_type in {"dry_run", "plan", "preview", "simulate"}
 	not input.target_environment in {"production", "prod", "live"}
+	not input.risk_tier in {"high", "critical"}
+	not disordered_abstain
 }
 
 # VERIFY: medium risk in a known phase (dry-runs are handled by ACCEPT above)
@@ -129,12 +140,24 @@ gate := "VERIFY" if {
 # ABSTAIN: disordered phase, no evidence, low trust.
 # High/critical risk routes to the VERIFY rule above instead (engine parity:
 # the risk-tier evidence floor has priority over the disordered abstain).
-gate := "ABSTAIN" if {
-	clean_signals
+#
+# Expressed as a named condition so the dry-run ACCEPT rule above can exclude
+# it explicitly. Without that exclusion the two rules co-fired on
+# simulate-family actions in a disordered, low-trust, non-production state
+# (six inputs, found by scripts/opa_conflict_sweep.py on 2026-08-04) and the
+# policy produced no verdict at all. Precedence goes to the stricter rule:
+# a disordered phase with no evidence and low trust is not a state to act
+# autonomously in, dry run or not.
+disordered_abstain if {
 	input.phase == "disordered"
 	input.evidence_action == null
 	input.trust_score < 0.4
 	not input.risk_tier in {"high", "critical"}
+}
+
+gate := "ABSTAIN" if {
+	clean_signals
+	disordered_abstain
 }
 
 # ---------------------------------------------------------------------------

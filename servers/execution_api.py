@@ -32,7 +32,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -43,6 +43,7 @@ from remora.enforcement.lease import (
     GovernedToolDispatcher,
     LeaseRefused,
 )
+from remora.enforcement.result_envelope import capture_tool_result
 from remora.enforcement.token import PolicyDecisionToken
 from remora.governance.review_queue import (
     ExecutionDecision,
@@ -50,8 +51,15 @@ from remora.governance.review_queue import (
 )
 from remora.governance.tenant_chain import TenantAuditChain
 from remora.policy.decision_engine import RemoraDecisionEngine
-from remora.policy.observation import PolicyObservation
+from remora.policy.observation import PolicyObservation, canonical_tool_call_hash
 from remora.policy.report import DecisionAction
+from remora.toolcall.semantic_bundle import (
+    IntentResolver,
+    SemanticBundle,
+    compute_intent_authority_hash,
+    load_intent_resolver,
+    load_semantic_bundle,
+)
 
 router = APIRouter(prefix="/v1/execution", tags=["execution"])
 
@@ -178,6 +186,7 @@ def _auth(request: Request) -> tuple[str, str, str]:
 
 import json
 import dataclasses
+from uuid import uuid4
 from enum import Enum
 from contextlib import contextmanager
 
@@ -354,12 +363,195 @@ def _reset_tool_dispatcher() -> None:
     _DISPATCHER = None
 
 
+# ── Semantic bundle (SHELF-020) ────────────────────────────────────────────
+#
+# With REMORA_SEMANTIC_BUNDLE_MODULE configured, the assess/execute
+# observation is built by build_full_observation — the same authoritative
+# context builder the benchmarks lock — over the deployment-declared
+# contract bundle. The cache is keyed on the module spec so a test (or a
+# redeployment) that unsets the variable falls back to the registry-only
+# path instead of consulting a stale bundle.
+
+_SEMANTIC: "tuple[str, SemanticBundle | None, IntentResolver | None] | None" = None
+
+
+def _semantic_bundle() -> "tuple[SemanticBundle | None, IntentResolver | None]":
+    global _SEMANTIC
+    spec = _os.environ.get("REMORA_SEMANTIC_BUNDLE_MODULE", "").strip()
+    if _SEMANTIC is None or _SEMANTIC[0] != spec:
+        if not spec:
+            _SEMANTIC = (spec, None, None)
+        else:
+            _SEMANTIC = (spec, load_semantic_bundle(), load_intent_resolver())
+    return _SEMANTIC[1], _SEMANTIC[2]
+
+
+def _reset_semantic_bundle() -> None:
+    """Test hook: drop the cached bundle (e.g. after env changes)."""
+    global _SEMANTIC
+    _SEMANTIC = None
+
+
 def _jsonable(value: Any) -> Any:
-    """Best-effort JSON projection of a tool result for response/audit."""
+    """Best-effort JSON projection of a tool result for response/audit.
+
+    Kept for callers that want the raw projection. The governed dispatch path
+    uses :func:`capture_tool_result` instead, which bounds what is retained
+    while still hashing the full result.
+    """
     try:
         return json.loads(json.dumps(value, default=str))
     except (TypeError, ValueError):
         return repr(value)
+
+
+# ── OpenAPI contract models (documentation-only) ───────────────────────────
+#
+# These models type the wire contract for Swagger and generated clients. They
+# are attached via `responses={200: {"model": ...}}`, NOT `response_model=`,
+# deliberately: the handlers build their dicts incrementally and conditional
+# keys are ABSENT, never null (pinned by test_execution_api.py), while the
+# semantic booleans are always present even when None. A response_model would
+# either inject null keys or, with exclude_none, drop the nullable-but-present
+# fields — both are wire-format changes. Timestamps stay `str`: they are
+# pre-serialized ISO-8601 and retyping them as datetime would let Pydantic
+# re-normalize the string form.
+
+GovernanceAction = Literal["accept", "verify", "abstain", "escalate"]
+ExecutionOutcome = Literal["execute", "approval_expired", "binding_refused",
+                           "approval_invalidated"]
+
+
+class ErrorDetail(BaseModel):
+    detail: str
+
+
+class AuditRef(BaseModel):
+    sequence_no: int
+    entry_hash: str
+
+
+class SemanticAssessment(BaseModel):
+    tool_contract_bundle_hash: str = Field(
+        "", description="Empty string means no semantic bundle is configured "
+                        "(registry-only path) — recorded, never assumed away.")
+    state_hash: str = ""
+    intent_authority_hash: str = Field(
+        "", description="Empty string when no intent_ref was resolved.")
+    tool_matches_goal: bool | None = Field(
+        None, description="None means not evaluated; the key is always present.")
+    expected_effect_matches: bool | None = Field(
+        None, description="None means not evaluated; the key is always present.")
+
+
+class ExecutionGrant(BaseModel):
+    """Signed single-use policy decision token (PolicyDecisionToken)."""
+
+    action: str
+    observation_hash: str
+    request_id: str
+    issued_at: str
+    expires_at: str | None
+    jti: str
+    audience: str
+    signature: str
+    is_signed: bool
+
+
+class PepResult(BaseModel):
+    allowed: bool
+    reason: str = Field(description="e.g. accept, token_already_consumed")
+
+
+class ToolResultEnvelopeModel(BaseModel):
+    sha256: str
+    size_bytes: int
+    truncated: bool
+    preview: Any = None
+    media_type: str
+
+
+class ToolExecutionResult(BaseModel):
+    executed: bool
+    refusal_reason: str | None = Field(
+        None, description="Present only when executed is false: pep_denied, "
+                          "policy_bundle_unavailable, lease_unavailable:*, "
+                          "tool_failed_nonce_burned, or a dispatcher/lease "
+                          "refusal such as unknown_tool, "
+                          "nonce_already_consumed, "
+                          "nonce_consumed_by_failed_execution (retry after a "
+                          "tool that raised — state unknown), "
+                          "policy_bundle_mismatch. Canonical reason sets: "
+                          "remora/enforcement/lease.py (lease/dispatcher) and "
+                          "remora/enforcement/token.py (PEP token reasons, "
+                          "surfaced under pep.reason, e.g. token_expired, "
+                          "token_not_yet_valid, observation_hash_mismatch, "
+                          "token_already_consumed).")
+    error: str | None = None
+    result: Any = Field(
+        None, description="Tool return value (deployment-defined shape); "
+                          "present only when executed is true.")
+    result_envelope: ToolResultEnvelopeModel | None = None
+
+
+class ExecutionAssessResponse(BaseModel):
+    proposal_id: str = Field(
+        description="FT-01: the canonical proposal identity minted here — "
+                    "the join key across every chain record, grant and "
+                    "response for this action.")
+    decision: GovernanceAction
+    reasons: list[str]
+    tool_call_hash: str
+    semantic: SemanticAssessment
+    execution_token: ExecutionGrant | None = Field(
+        None, description="Present only on accept; key absent otherwise.")
+    review_item_id: str | None = Field(
+        None, description="Present only on verify/escalate; key absent "
+                          "otherwise (abstain has neither).")
+    audit: AuditRef
+
+
+class ExecutionApproveResponse(BaseModel):
+    status: Literal["approved"]
+    proposal_id: str | None = Field(
+        None, description="Canonical proposal identity; null only for items "
+                          "enqueued before the lifecycle existed.")
+    item_id: str
+    expires_at: str
+    audit: AuditRef
+
+
+class ExecutionExecuteResponse(BaseModel):
+    proposal_id: str | None = Field(
+        None, description="Canonical proposal identity from the queued item; "
+                          "null only for pre-lifecycle items.")
+    outcome: ExecutionOutcome
+    detail: str
+    execution_grant: ExecutionGrant | None = Field(
+        None, description="Present only when outcome is execute.")
+    pep: PepResult | None = Field(
+        None, description="Present only when outcome is execute.")
+    tool_execution: ToolExecutionResult | None = Field(
+        None, description="Present only when outcome is execute.")
+    audit: AuditRef
+
+
+class ExecutionAuditVerifyResponse(BaseModel):
+    tenant: str
+    valid: bool
+    problems: list[str]
+    records_checked: int
+    empty: bool = Field(
+        description="True when no records exist: an empty chain is trivially "
+                    "valid and must not pose as verified history.")
+
+
+_AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {
+    401: {"model": ErrorDetail,
+          "description": "Missing or invalid bearer token."},
+    403: {"model": ErrorDetail,
+          "description": "Role lacks the required capability for this tenant."},
+}
 
 
 class ToolCallRequest(BaseModel):
@@ -383,14 +575,145 @@ class ToolCallRequest(BaseModel):
     schema_valid: bool | None = None       # only false is honored (downgrade)
     rollback_available: bool | None = None  # only false is honored (downgrade)
     idempotency_key: str | None = None
+    # SHELF-020: an OPAQUE reference into the deployment's intent source
+    # (signed work order, approved workflow template). The intent itself can
+    # never ride in this request (task_intent_authority_v1.md §2.3) — the
+    # server resolves the reference against a source the caller does not
+    # control, so a fabricated intent cannot be delivered alongside the call
+    # it would justify.
+    intent_ref: str | None = Field(None, max_length=200)
+    # Downgrade-only, like schema_valid: declaring untrusted context marks
+    # every argument as potentially tainted. Omitting it never raises trust —
+    # absence is the same default the legacy path had.
+    untrusted_context: str | None = Field(None, max_length=20_000)
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "tool_name": "set_valve_position",
+                    "arguments": {"valve": "V-12", "position_pct": 35},
+                    "target_environment": "prod",
+                    "intent_ref": "WO-1204",
+                },
+                {
+                    "tool_name": "read_sensor",
+                    "arguments": {"sensor_id": "PT-101"},
+                    "target_environment": "prod",
+                    "intent_ref": "MON-ROUND",
+                },
+            ]
+        }
+    }
 
 
-def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
+#: Semantic context with no bundle configured: absent, never defaulted.
+_NO_SEMANTIC_CONTEXT: dict[str, Any] = {
+    "tool_contract_bundle_hash": "",
+    "state_hash": "",
+    "intent_authority_hash": "",
+    "tool_matches_goal": None,
+    "expected_effect_matches": None,
+}
+
+
+def _observation_with_context(
+    req: ToolCallRequest, tenant: str
+) -> tuple[PolicyObservation, dict[str, Any]]:
+    """The authoritative observation plus the semantic-binding context.
+
+    With a semantic bundle configured, every task-tool safety field comes
+    from ``build_full_observation`` — the execution path never assembles
+    semantic fields by hand, and no request field can set one. The
+    executive metadata the builder does not produce (risk tier, target
+    environment, downgrade-only flags, session binding) is then overlaid
+    from the server-side registry, exactly as the legacy path derived it.
+    """
     registry_entry = TOOL_REGISTRY.get(req.tool_name, {
         "risk_tier": "critical",
         "domain": "unknown",
         "action_type": "unknown"
     })
+    bundle, resolver = _semantic_bundle()
+    if bundle is None:
+        return _registry_only_observation(req, tenant, registry_entry), dict(
+            _NO_SEMANTIC_CONTEXT
+        )
+
+    from remora.toolcall.routing.episode import RoutingEpisode
+    from remora.toolcall.routing.evaluate import build_full_observation
+
+    resolved = (
+        resolver(req.intent_ref) if (resolver is not None and req.intent_ref) else None
+    )
+    episode = RoutingEpisode(
+        id=f"exec:{tenant}:{req.tool_name}",
+        source_dataset="execution_api",
+        source_commit="",
+        cluster_id=f"exec:{tenant}",
+        user_task=resolved.task_text if resolved else "",
+        available_tools=tuple(sorted(bundle.registry.signatures)),
+        untrusted_context=req.untrusted_context or None,
+        proposed_tool_name=req.tool_name,
+        proposed_tool_args=dict(req.arguments),
+        domain=str(registry_entry.get("domain", "unknown")),
+    )
+    validators = (
+        bundle.validators.scoped(tenant) if bundle.validators is not None else None
+    )
+    full = build_full_observation(
+        episode,
+        bundle.registry,
+        bundle.state,
+        validators=validators,
+        contracts=bundle.contracts,
+        intent=resolved.intent if resolved else None,
+    )
+    target_environment = str(
+        registry_entry.get("target_environment", req.target_environment)
+    )
+    args_preview = json.dumps(
+        req.arguments, sort_keys=True, separators=(",", ":"), default=str
+    )[:120]
+    obs = dataclasses.replace(
+        full,
+        question=full.question or f"{req.tool_name}({args_preview})",
+        risk_tier=str(registry_entry.get("risk_tier", "critical")),
+        action_type=str(registry_entry.get("action_type")) if req.tool_name in TOOL_REGISTRY else full.action_type,
+        target_environment=target_environment,
+        schema_valid=_downgrade_only_bool(
+            registry_entry.get("schema_valid"), req.schema_valid
+        ),
+        rollback_available=_downgrade_only_bool(
+            registry_entry.get("rollback_available"), req.rollback_available
+        ),
+        session_id=tenant,
+        tool_call_hash=canonical_tool_call_hash(
+            name=req.tool_name,
+            arguments=req.arguments,
+            tenant=tenant,
+            target=target_environment,
+        ),
+    )
+    context = {
+        "tool_contract_bundle_hash": bundle.bundle_hash,
+        "state_hash": bundle.state_hash,
+        "intent_authority_hash": (
+            compute_intent_authority_hash(resolved) if resolved else ""
+        ),
+        "tool_matches_goal": full.tool_matches_goal,
+        "expected_effect_matches": full.expected_effect_matches,
+    }
+    return obs, context
+
+
+def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
+    return _observation_with_context(req, tenant)[0]
+
+
+def _registry_only_observation(
+    req: ToolCallRequest, tenant: str, registry_entry: dict[str, Any]
+) -> PolicyObservation:
     return PolicyObservation.from_tool_call(
         name=req.tool_name,
         arguments=req.arguments,
@@ -434,8 +757,21 @@ def _downgrade_only_bool(registry_value: bool | None, request_value: bool | None
 
 
 
-@router.post("/assess")
+@router.post("/assess", responses={
+    200: {"model": ExecutionAssessResponse,
+          "description": "Governance decision; conditional keys are absent, never null."},
+    **_AUTH_RESPONSES,
+})
 def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
+    """Assess a proposed tool call — nothing executes here.
+
+    Authoritative signals (risk tier, action type, domain, semantic context)
+    are derived server-side from the tool registry and the deployment's
+    semantic bundle; the request is a proposal and can only lower trust,
+    never raise it. ACCEPT returns a signed single-use execution token;
+    VERIFY/ESCALATE enqueue a review item for a human; ABSTAIN returns
+    neither. Every assessment appends to the tenant audit chain.
+    """
     tenant, role, principal = _auth(request)
     idemp_key = f"assess:{tenant}:{req.idempotency_key}" if req.idempotency_key else None
     if idemp_key:
@@ -446,28 +782,42 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "assess")
-    obs = _observation(req, tenant)
+    obs, semantic = _observation_with_context(req, tenant)
+    # FT-01: mint the canonical proposal identity here — every downstream
+    # record, response and grant for this action carries it. Attached to the
+    # observation so it survives the durable review queue.
+    proposal_id = str(uuid4())
+    obs = dataclasses.replace(obs, proposal_id=proposal_id)
     report = _ENGINE.decide(obs)
     now = datetime.now(UTC)
     record: dict[str, Any] = {
         "event": "assessed",
+        "proposal_id": proposal_id,
         "actor": principal,
         "tool_name": req.tool_name,
         "tool_call_hash": obs.tool_call_hash,
         "decision": report.action.value,
         "reasons": [r.value for r in report.reasons],
         "policy_version": report.policy_version,
+        # SHELF-020: the decision names the declaration set and intent source
+        # it was made under. Empty strings mean "no bundle configured" — the
+        # registry-only path, recorded rather than assumed away.
+        "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
+        "state_hash": semantic["state_hash"],
+        "intent_authority_hash": semantic["intent_authority_hash"],
     }
     response: dict[str, Any] = {
+        "proposal_id": proposal_id,
         "decision": report.action.value,
         "reasons": [r.value for r in report.reasons],
         "tool_call_hash": obs.tool_call_hash,
+        "semantic": dict(semantic),
     }
     if report.action is DecisionAction.ACCEPT:
         token = PolicyDecisionToken.issue(
             action="accept",
             observation_hash=obs.tool_call_hash or "",
-            request_id=f"{tenant}:{obs.tool_call_hash}",
+            request_id=proposal_id,
             issued_at=now.isoformat(),
             expires_at=(now + timedelta(seconds=EXECUTION_TOKEN_TTL_SECONDS)).isoformat(),
             audience=PEP_AUDIENCE,
@@ -476,6 +826,12 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         response["execution_token"] = token.to_dict()
     else:
         with db_transaction_state(tenant) as q:
+            # REM-032 lazy sweep: every queue interaction first resolves
+            # overdue PENDING items to ABSTAIN (with their events), so an
+            # unattended item cannot outlive its TTL past the tenant's next
+            # touch. Idle-queue wall-clock expiry needs a scheduled
+            # expire_due() — documented in the quickstart.
+            q.expire_due()
             item = q.enqueue(obs, report.action) if report.action in (
                 DecisionAction.VERIFY, DecisionAction.ESCALATE
             ) else None
@@ -490,6 +846,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
             response["review_item_id"] = item.item_id
     entry = _CHAIN.append(tenant, record)
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+    api_mod.record_execution_assess(report.action.value)
 
     if idemp_key:
         _idempotency_put(idemp_key, response)
@@ -499,11 +856,31 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
 class ApproveRequest(BaseModel):
     item_id: str
     approval_ttl_seconds: int = Field(900, gt=0, le=86400)
-    on_behalf_of: str | None = None
+    on_behalf_of: str | None = Field(
+        None,
+        description="Client-declared annotation only, recorded in the audit "
+                    "chain as unverified metadata. The audited approver "
+                    "identity is always the authenticated principal from the "
+                    "bearer token — this field can never delegate authority.")
 
 
-@router.post("/approve")
+@router.post("/approve", responses={
+    200: {"model": ExecutionApproveResponse},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "Review item not found for this tenant."},
+    409: {"model": ErrorDetail,
+          "description": "Item not pending, queue TTL exceeded, or invalid approval TTL."},
+})
 def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
+    """Record an approval by the authenticated reviewer.
+
+    The approver identity comes from the credential, never from the request
+    body; `on_behalf_of` is recorded in the audit chain as client-declared,
+    unverified metadata. Role separation is enforced: the operator role that
+    proposed the action cannot approve it, and a tenant's risk profile may
+    reserve approval for domain_expert/senior_authority. The approval TTL is
+    mandatory and bounded.
+    """
     tenant, role, principal = _auth(request)
     from servers import api as api_mod
 
@@ -539,21 +916,28 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
         # discarded when the next transaction reloaded the queue from the
         # database — approve->execute was broken in Postgres/SQLite mode.
         with db_transaction_state(tenant) as q:
+            # REM-032 lazy sweep (see assess); an expired target then fails
+            # q.approve with "not pending", surfaced as 409.
+            q.expire_due()
             approval = q.approve(
                 req.item_id, approver=principal,
                 approval_ttl=timedelta(seconds=req.approval_ttl_seconds),
             )
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    proposal_id = getattr(item.observation, "proposal_id", None)
     entry = _CHAIN.append(tenant, {
         "event": "approved",
+        "proposal_id": proposal_id,
         "actor": principal,
         "on_behalf_of": req.on_behalf_of,
         "item_id": req.item_id,
         "expires_at": approval.expires_at.isoformat(),
     })
+    api_mod.record_execution_approval()
     return {
         "status": "approved",
+        "proposal_id": proposal_id,
         "item_id": req.item_id,
         "expires_at": approval.expires_at.isoformat(),
         "audit": {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash},
@@ -568,36 +952,66 @@ class ExecuteRequest(BaseModel):
     tool_call: ToolCallRequest
 
 
-@router.post("/execute")
+@router.post("/execute", responses={
+    200: {"model": ExecutionExecuteResponse,
+          "description": "Outcome of enforcement; refusal outcomes carry no "
+                         "grant/pep/tool_execution keys."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "Review item not found for this tenant."},
+    409: {"model": ErrorDetail, "description": "Item not in an executable state."},
+})
 def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
+    """Execute a previously approved item under full re-gating.
+
+    The complete payload is re-presented and freshly re-decided: an
+    equal-or-safer world state executes, a stricter one invalidates the
+    approval, and changed arguments are refused by exact payload binding. A
+    single-use grant is consumed atomically, and the tool is dispatched
+    through the governed dispatcher under a lease bound to the current
+    policy bundle hash. Both the pre-dispatch authorization and the result
+    are separate records in the tenant audit chain.
+    """
     tenant, role, principal = _auth(request)
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
-    fresh_obs = _observation(req.tool_call, tenant)
+    fresh_obs, fresh_semantic = _observation_with_context(req.tool_call, tenant)
     try:
         # Tenant-binding check inside the transaction: _ITEM_TENANT is
         # rehydrated from the durable store by the load (review finding 2a).
         with db_transaction_state(tenant) as q:
             if _ITEM_TENANT.get(req.item_id) != tenant:
                 raise HTTPException(status_code=404, detail="review item not found")
+            # REM-032 lazy sweep (see assess): overdue PENDING items resolve
+            # to ABSTAIN before any execution is considered.
+            q.expire_due()
+            # FT-01: the canonical proposal identity rides the QUEUED
+            # observation (minted at assess) — the fresh re-presented
+            # payload never carries one the caller could assert.
+            proposal_id = getattr(q.item(req.item_id).observation,
+                                  "proposal_id", None)
             outcome = q.execute(req.item_id, fresh_obs)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     response: dict[str, Any] = {
+        "proposal_id": proposal_id,
         "outcome": outcome.decision.value,
         "detail": outcome.detail,
     }
     if outcome.decision is not ExecutionDecision.EXECUTE:
         entry = _CHAIN.append(tenant, {
             "event": f"execution_{outcome.decision.value}",
+            "proposal_id": proposal_id,
             "actor": principal,
             "item_id": req.item_id,
             "tool_call_hash": fresh_obs.tool_call_hash,
             "detail": outcome.detail,
         })
         response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+        api_mod.record_execution_execute(
+            executed=False, refusal=outcome.decision.value
+        )
         return response
 
     # The re-gate only AUTHORIZED the call (persisted above); EXECUTED is
@@ -608,7 +1022,9 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     token = PolicyDecisionToken.issue(
         action="accept",
         observation_hash=fresh_obs.tool_call_hash or "",
-        request_id=f"{tenant}:{req.item_id}",
+        # FT-01: the grant carries the canonical proposal identity; the
+        # legacy composite only for pre-lifecycle items with no proposal.
+        request_id=proposal_id or f"{tenant}:{req.item_id}",
         issued_at=now.isoformat(),
         expires_at=(now + timedelta(seconds=EXECUTION_TOKEN_TTL_SECONDS)).isoformat(),
         audience=PEP_AUDIENCE,
@@ -624,11 +1040,14 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     # execution_result — never a real side effect without any record.
     intent_entry = _CHAIN.append(tenant, {
         "event": "execution_authorized",
+        "proposal_id": proposal_id,
         "actor": principal,
         "item_id": req.item_id,
         "tool_call_hash": fresh_obs.tool_call_hash,
         "grant_jti": token.jti,
         "pep_allowed": gate_result.allowed,
+        "tool_contract_bundle_hash": fresh_semantic["tool_contract_bundle_hash"],
+        "intent_authority_hash": fresh_semantic["intent_authority_hash"],
     })
 
     # Issue #13: actually dispatch the tool through the governed dispatcher —
@@ -652,6 +1071,10 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
                     target_environment=req.tool_call.target_environment,
                     policy_bundle_hash=_current_policy_bundle_hash(),
                     issued_at=now.isoformat(),
+                    tool_contract_bundle_hash=fresh_semantic[
+                        "tool_contract_bundle_hash"
+                    ],
+                    intent_authority_hash=fresh_semantic["intent_authority_hash"],
                 )
             except (LeaseRefused, ValueError) as exc:
                 tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
@@ -672,7 +1095,14 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
                 else:
                     tool_execution["executed"] = dres.executed
                     if dres.executed:
-                        tool_execution["result"] = _jsonable(dres.result)
+                        # Bounded retention, unbounded verification: the hash
+                        # covers the full result even when the preview is
+                        # truncated, so an oversized or hostile tool output
+                        # cannot inflate the audit chain or the response while
+                        # still being provable in replay.
+                        captured = capture_tool_result(dres.result)
+                        tool_execution["result"] = captured.preview
+                        tool_execution["result_envelope"] = captured.to_dict()
                     else:
                         tool_execution["refusal_reason"] = dres.refusal_reason
 
@@ -688,6 +1118,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
 
     result_record: dict[str, Any] = {
         "event": "execution_result",
+        "proposal_id": proposal_id,
         "actor": principal,
         "item_id": req.item_id,
         "tool_call_hash": fresh_obs.tool_call_hash,
@@ -695,20 +1126,51 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         "intent_sequence_no": intent_entry.sequence_no,
         "tool_executed": tool_execution["executed"],
     }
+    # The chain records the result's identity, never the result body: a
+    # verbose tool must not be able to grow the audit chain without bound.
+    envelope_meta = tool_execution.get("result_envelope")
+    if envelope_meta:
+        result_record["result_sha256"] = envelope_meta["sha256"]
+        result_record["result_size_bytes"] = envelope_meta["size_bytes"]
+        result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
     entry = _CHAIN.append(tenant, result_record)
 
     response["tool_execution"] = tool_execution
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+    api_mod.record_execution_execute(
+        executed=bool(tool_execution["executed"]),
+        refusal=tool_execution.get("refusal_reason"),
+    )
     return response
 
 
-@router.get("/audit/verify")
+@router.get("/audit/verify", responses={
+    200: {"model": ExecutionAuditVerifyResponse},
+    **_AUTH_RESPONSES,
+})
 def audit_verify(request: Request) -> dict[str, Any]:
+    """Verify this tenant's execution audit chain.
+
+    Distinct from `/v1/audit/chain/verify`, which verifies the
+    DecisionEnvelope chain in the control-plane store: this chain records
+    the execution lifecycle (assessed → approved → execution_authorized →
+    execution_result). Reports how many records were checked; an empty
+    chain is trivially valid and is flagged as such.
+    """
     tenant, role, _principal = _auth(request)
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "read")
     ok, problems = _CHAIN.verify(tenant)
-    return {"tenant": tenant, "valid": ok, "problems": problems}
+    records_checked = len(_CHAIN.entries(tenant))
+    return {
+        "tenant": tenant,
+        "valid": ok,
+        "problems": problems,
+        # An empty chain is trivially valid; auditors and the evidence bundle
+        # must be able to tell "verified history" from "nothing to verify".
+        "records_checked": records_checked,
+        "empty": records_checked == 0,
+    }

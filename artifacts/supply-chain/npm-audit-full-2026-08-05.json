@@ -1,4 +1,4 @@
-﻿{
+{
   "auditReportVersion": 2,
   "vulnerabilities": {
     "@lovable.dev/vite-tanstack-config": {
@@ -52,8 +52,7 @@
       ],
       "range": ">=4.20250906.1",
       "nodes": [
-        "node_modules/miniflare",
-        "node_modules/wrangler/node_modules/miniflare"
+        "node_modules/miniflare"
       ],
       "fixAvailable": {
         "name": "wrangler",
@@ -175,8 +174,7 @@
       ],
       "range": "7.0.0 - 7.28.0",
       "nodes": [
-        "node_modules/miniflare/node_modules/undici",
-        "node_modules/wrangler/node_modules/undici"
+        "node_modules/miniflare/node_modules/undici"
       ],
       "fixAvailable": {
         "name": "wrangler",
@@ -213,12 +211,12 @@
       "total": 6
     },
     "dependencies": {
-      "prod": 245,
-      "dev": 402,
-      "optional": 187,
-      "peer": 36,
+      "prod": 257,
+      "dev": 344,
+      "optional": 142,
+      "peer": 1,
       "peerOptional": 0,
-      "total": 746
+      "total": 666
     }
   }
 }

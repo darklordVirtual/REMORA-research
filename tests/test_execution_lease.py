@@ -380,6 +380,32 @@ def test_round_trip_and_unknown_field_rejection() -> None:
         ExecutionLease.from_dict({**lease.to_dict(), "extra": 1})
 
 
+def test_replay_after_tool_failure_names_the_failed_execution() -> None:
+    """A nonce burned by a raising tool is not a plain replay: the refusal
+    must say the previous attempt failed with unknown state, and the ledger
+    must expose the recorded failure reason for post-mortem — recording it
+    write-only helps nobody."""
+    lease = _issue()
+    dispatcher = GovernedToolDispatcher(expected_policy_bundle_hash=BUNDLE)
+
+    def exploding(arguments: dict) -> str:
+        raise RuntimeError("plc timeout")
+
+    dispatcher.register(TOOL, exploding)
+    with pytest.raises(RuntimeError):
+        dispatcher.dispatch(lease, TOOL, ARGS, tenant_id=TENANT,
+                            target_environment=TARGET, now=ISSUED_AT,
+                            actor_identity=ACTOR)
+
+    assert dispatcher._ledger.failure(lease.nonce) == "plc timeout"
+
+    replay = dispatcher.dispatch(lease, TOOL, ARGS, tenant_id=TENANT,
+                                 target_environment=TARGET, now=ISSUED_AT,
+                                 actor_identity=ACTOR)
+    assert replay.executed is False
+    assert replay.refusal_reason == "nonce_consumed_by_failed_execution"
+
+
 def test_nonce_ledger_is_atomic_single_use() -> None:
     ledger = NonceLedger()
     assert ledger.consume("n-1") is True

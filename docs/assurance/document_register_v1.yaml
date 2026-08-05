@@ -1,4 +1,4 @@
-schema_version: '1'
+﻿schema_version: '1'
 updated: '2026-08-03'
 documents:
 - id: DOC-001
@@ -2131,10 +2131,67 @@ documents:
   audience:
   - operators
   - evaluator
+- id: DOC-296
+  version: v1
+  path: docs/assurance/statistical_analysis_plan_v4.md
+  status: canonical
+  topic: docs_assurance_statistical_analysis_plan_v4_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-08-04'
+  last_reviewed: '2026-08-04'
+  audience:
+  - researchers
+- id: DOC-297
+  version: v1
+  path: docs/research/task_intent_authority_v1.md
+  status: canonical
+  topic: docs_research_task_intent_authority_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-08-04'
+  last_reviewed: '2026-08-04'
+  audience:
+  - researchers
+- id: DOC-298
+  version: v1
+  path: docs/design/execution-lifecycle-outbox-v1.md
+  status: proposal
+  topic: docs_design_execution-lifecycle-outbox-v1_md
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: '2026-08-05'
+  audience:
+  - maintainer
+  - evaluator
+- id: DOC-299
+  version: v1
+  path: docs/assurance/fasttrack_register_v1.yaml
+  status: canonical
+  topic: docs_assurance_fasttrack_register_v1_yaml
+  code_synced: unreviewed
+  verdict: current
+  last_reviewed: '2026-08-05'
+  audience:
+  - maintainer
+  - evaluator
+- id: DOC-300
+  version: v1
+  path: docs/design/toolspec-signed-registry-v1.md
+  status: proposal
+  topic: docs_design_toolspec-signed-registry-v1_md
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: '2026-08-05'
+  audience:
+  - maintainer
+  - evaluator
 
 topics:
 - docs_assurance_superseded_claims_md
 - docs_research_routing_benchmark_v1_design_md
+- docs_assurance_statistical_analysis_plan_v4_md
+- docs_research_task_intent_authority_v1_md
 - docs_cli_md
 - docs_validation_pilot_evaluation_protocol_v1_md
 - docs_enterprise_audit-anchoring-guide_md
@@ -2367,3 +2424,6 @@ topics:
 - docs_remora_architecture_html
 - docs_research_research_shelf_v1_yaml
 - docs_deployment_execution-quickstart_md
+- docs_assurance_statistical_analysis_plan_v4_md
+- docs_research_task_intent_authority_v1_md
+- docs_assurance_fasttrack_register_v1_yaml

@@ -396,10 +396,107 @@ components:
       benchmark path and is absent from the path that actually enforces.
       Everything measured about it is therefore measured about a component the
       production route does not run.
+
+      2026-08-04 partial fix: the semantic-binding gap in match_tool_to_intent
+      was patched.  source_spans only verified entity presence; a model could
+      claim requested_effect="cancel" with source_span="booking B-104" and reach
+      SUPPORTED because "booking B-104" appeared in the task.  The fix adds
+      action_spans (a separate span field for the effect claim), a versioned
+      EFFECT_VOCABULARY (v1), and negation/conditionality detection.  Seven new
+      tests pin the attack surface: real-entity-span-wrong-effect → UNKNOWN,
+      negation → UNKNOWN, conditional ("before closing") → UNKNOWN.
+      effect_consistent() still uses only spans_verifiable_in() for this check;
+      match_tool_to_intent is the primary gate and the more critical path.
+
+      2026-08-04 wiring landed: with REMORA_SEMANTIC_BUNDLE_MODULE configured,
+      /v1/execution/assess and /execute build their observation through
+      build_full_observation over a deployment-declared SemanticBundle
+      (signatures + contracts + validators + state; hashes computed from the
+      declarations, never declared). The intent arrives only as an opaque
+      intent_ref resolved server-side per task_intent_authority_v1.md — it can
+      never ride in the request, and request extras asserting semantic verdicts
+      are ignored. bundle/state/intent-authority hashes are recorded in the
+      assess audit record and bound into the ExecutionLease at execute time.
+      Parity 4 in tests/test_shelf020_parity.py pins field-identity between the
+      execution path and the builder.
+    adoption: PARTIAL
+    remora_evidence:
+      - remora/toolcall/semantic_bundle.py
+      - servers/execution_api.py
+      - servers/semantic_bundle_research.py
+      - tests/test_shelf020_parity.py
+      - tests/test_execution_semantic_wiring.py
+      - tests/test_semantic_bundle.py
+    remaining: >-
+      The wiring is configuration-gated: a deployment without
+      REMORA_SEMANTIC_BUNDLE_MODULE still runs the registry-only path, recorded
+      as empty hashes. Discrimination through the wired path is UNMEASURED —
+      SAP v4 has not run, so no accuracy or wrong-call number may be cited for
+      it. The DecisionEnvelope's AuditBlock now CARRIES tool_contract_bundle_hash
+      and intent_authority_hash (2026-08-04), but nothing populates them: the
+      envelope producer is /v1/assess, which does not run the semantic bundle,
+      while /v1/execution records to the tenant chain and builds no envelope.
+      Wiring /v1/assess through build_full_observation is the follow-up that
+      makes the field live. The executive metadata registry (risk tier, in
+      TOOL_REGISTRY) is still a declaration separate from the semantic bundle.
+
+  # ── Deferred adoptions, kept visible rather than forgotten ─────────────────
+
+  - id: SHELF-021
+    name: "Postcondition observation after a governed side effect"
+    source:
+      title: "Internal finding — no external source"
+      authors: "REMORA OT simulation + external pattern proposal, 2026-08-04"
+      venue: internal
+      verification: INTERNAL
+      verified: "2026-08-04"
+      reported_results: >-
+        No external result. Observed in the 2026-08-04 OT shift simulation:
+        close_work_order against a work order that did not exist was assessed,
+        approved, authorised and dispatched, and surfaced only because the tool
+        itself raised. Nothing in the governed path reads the world back to
+        check that the declared post-state actually holds.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      Half of the mechanism exists. ToolContract.state_delta already declares
+      the intended post-state, and the execution API separates authorised from
+      executed (execution_authorized before the side effect,
+      execution_result after). What is absent is an authoritative reader per
+      write tool, and a policy for the disagreement case.
     adoption: SCOPED
     remaining: >-
-      One authoritative context builder used by both the benchmarks and
-      /v1/execution/assess, so the system under test is the system enforced.
-      Invariants to hold: no production path builds safety fields by hand, no
-      caller can set tool_matches_goal=True, and the contract/state/validator
-      hashes bind into the lease and envelope.
+      Deliberately not half-built. Observing a postcondition without deciding
+      what happens when observation and declaration disagree — including when
+      the re-read itself fails — would produce a field nobody can act on, which
+      is the failure mode CallCompatibility's docstring warns about: a guessed
+      field is worse than an absent one. Needs: a declared reader per write
+      tool, a disagreement policy, and a decision on whether a failed
+      postcondition can retroactively change a recorded decision (it cannot —
+      the chain is append-only, so it must append a contradiction record).
+
+  - id: SHELF-022
+    name: "Adversarial filesystem and shell corpus for tool-call safety"
+    source:
+      title: "Internal finding — no external source"
+      authors: "External pattern proposal, 2026-08-04"
+      venue: internal
+      verification: INTERNAL
+      verified: "2026-08-04"
+      reported_results: >-
+        No external result. Proposed categories: path traversal, symlink
+        escape, Windows path confusion (UNC, 8.3 names, alternate data streams,
+        trailing dots), shell startup-file injection, credential exfiltration
+        via redirection.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      Partial coverage exists: remora/agent_hook/shell_ast.py parses shell
+      commands structurally rather than by pattern match, and remora/safety/
+      covers adversarial text. There is no corpus that exercises the
+      filesystem-confusion categories as a measurable benchmark.
+    adoption: UNEVALUATED
+    remaining: >-
+      Real value, but a corpus that produces a number is a claimed benchmark:
+      it needs committed artifacts, a claim-register entry, and a
+      pre-registered scoring rule, or it becomes exactly the kind of
+      unfalsifiable "we tested it" statement this repository refuses. Its own
+      round, not a side effect of another one.

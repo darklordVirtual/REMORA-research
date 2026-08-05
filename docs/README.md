@@ -19,7 +19,7 @@ AROMER are EXPERIMENTAL; statistical-physics models are RESEARCH_ONLY.
 
 | Document | What it gives you |
 |---|---|
-| [Project front page](../README.md) | What REMORA is, headline evidence, quickstart, key terms |
+| [Project front page](../README.md) | What REMORA is, headline results, quickstart, status |
 | [CLI reference](cli.md) | Every `remora` command: try/demo/assess/explain/replay, exit codes, live mode |
 | [Plain-language overview](plain_language_overview.md) | Non-technical introduction |
 | [Executive one-pager](executive_onepager.md) | One-page summary for decision-makers |
@@ -44,6 +44,8 @@ The numbered series is the primary reading path.
 | [11-benchmark-validation-plan.md](11-benchmark-validation-plan.md) | Plan for external benchmark validation |
 | [12-agentharm-validation.md](12-agentharm-validation.md) | AgentHarm external-benchmark validation |
 | [13-research-frontier-roadmap.md](13-research-frontier-roadmap.md) | Research frontier roadmap: RF-01–RF-10 work packages (PROPOSED, except RF-10 slice 1 = CAP-014) |
+| [design/execution-lifecycle-outbox-v1.md](design/execution-lifecycle-outbox-v1.md) | DRAFT design: unified proposal-to-effect lifecycle + crash-consistent outbox (issues #37/#82; nothing implemented) |
+| [design/toolspec-signed-registry-v1.md](design/toolspec-signed-registry-v1.md) | DRAFT ADR: one immutable signed ToolSpec (issue #83/FT-03; MCPTox threat mapping; nothing implemented) |
 | [AI_USE.md](AI_USE.md) | Disclosure of AI-assisted development |
 
 ## Evidence and results
@@ -68,6 +70,7 @@ The numbered series is the primary reading path.
 | [document_register_v1.yaml](assurance/document_register_v1.yaml) | Every governed document |
 | [remediation_register.yaml](assurance/remediation_register.yaml) | Open gaps (REM ids) |
 | [capability_register_v1.yaml](assurance/capability_register_v1.yaml) | Capability wiring status (CAP ids) |
+| [fasttrack_register_v1.yaml](assurance/fasttrack_register_v1.yaml) | World-class fasttrack program status (FT ids; merged code alone never means DONE) |
 | [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml) | Deployment maturity ladder |
 | [release_gates.md](assurance/release_gates.md) | Gate status per profile |
 | [artifact_manifest_v1.md](assurance/artifact_manifest_v1.md) | SHA-256 manifest of result artifacts |
@@ -82,6 +85,7 @@ The numbered series is the primary reading path.
 | [evidence_levels.md](assurance/evidence_levels.md) | Evidence-level taxonomy |
 | [metric_definitions_v1.md](assurance/metric_definitions_v1.md) | Canonical metric definitions and denominators |
 | [statistical_analysis_plan_v3.md](assurance/statistical_analysis_plan_v3.md) | Pre-registered statistical analysis plan (in force) |
+| [statistical_analysis_plan_v4.md](assurance/statistical_analysis_plan_v4.md) | SAP v4 — OT semantic track: co-primary targets, cluster failure rule, ablation arms A–D |
 | [rebenchmark_protocol_v1.md](assurance/rebenchmark_protocol_v1.md) | Protocol for the next clean benchmark round |
 | [experiment_manifest_spec_v1.md](assurance/experiment_manifest_spec_v1.md) | Experiment manifest specification |
 | [artifact_provenance_spec_v1.md](assurance/artifact_provenance_spec_v1.md) | Artifact provenance specification |
@@ -111,6 +115,7 @@ The numbered series is the primary reading path.
 | [benchmarks/stat_tests.md](benchmarks/stat_tests.md) | Statistical test methodology |
 | [benchmarks/toolcall_consensus_benchmark_v2.md](benchmarks/toolcall_consensus_benchmark_v2.md) | Tool-call benchmark v2 |
 | [research/routing_benchmark_v1_design.md](research/routing_benchmark_v1_design.md) | Tool-routing benchmark design: predicates, frozen routing, leakage gates |
+| [research/task_intent_authority_v1.md](research/task_intent_authority_v1.md) | Gate 1 / 1A: two legitimate TaskIntent sources, UNKNOWN rules, EFFECT_VOCABULARY authority |
 | [research/research_control_matrix.generated.md](research/research_control_matrix.generated.md) | Research-line → control → code → test matrix (generated) |
 | [research/research_control_matrix_v1.yaml](research/research_control_matrix_v1.yaml) | Matrix source |
 | [research/research_shelf_v1.yaml](research/research_shelf_v1.yaml) | Vetted external-component shelf: source, retrieval status, adoption verdict per candidate |

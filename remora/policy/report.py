@@ -19,8 +19,11 @@ class DecisionAction(str, Enum):
 
 
 class DecisionReason(str, Enum):
+    # CONFORMAL_VERIFY was removed 2026-08-05: both conformal branches in
+    # decide() only ever emit ACCEPT or ABSTAIN, and the member had never
+    # been produced, tested, or documented — a reason that cannot occur is
+    # contract noise, not coverage.
     CONFORMAL_ACCEPT = "conformal_accept"
-    CONFORMAL_VERIFY = "conformal_verify"
     CONFORMAL_ABSTAIN = "conformal_abstain"
     THERMO_REQUIRE_EVIDENCE = "thermo_require_evidence"
     LOW_TRUST = "low_trust"

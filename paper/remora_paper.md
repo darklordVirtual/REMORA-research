@@ -213,11 +213,12 @@ REMORA processes each gate request through six decision stages, followed by Deci
                                  │
                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ 6. POLICY ENGINE (hard-block priority, then routing)            │
-│    Hard-block invariants evaluated with absolute precedence     │
-│    (Table 3 lists the 7 headline blocks; the audited engine     │
-│    contains further hard gates — see                            │
-│    docs/assurance/policy_engine_audit_v1.md for the full        │
+│ 6. POLICY ENGINE (deterministic gates first, then routing)      │
+│    Unconditional hard blocks (hard_guard_floor) evaluated first  │
+│    then conditional policy gates (_CONDITIONAL_GATES)           │
+│    (Table 3 lists the 7 headline controls: 3 unconditional +    │
+│    4 conditional; the audited engine contains further gates —   │
+│    see docs/assurance/policy_engine_audit_v1.md for the full    │
 │    priority-ordered inventory)                                  │
 │    Accept / Verify / Abstain paths evaluated in order           │
 │    OPA/Rego adapter (fail-closed to Python fallback)            │
@@ -908,7 +909,7 @@ Risk context: Well barrier modification. NORSOK D-010 requires independent barri
 
 **Stage 5 (Evidence):** No field inspection report, no independent ECD calculation, no OIM sign-off in context. Evidence signal: `citation_coverage = 0.18` (below 0.50 threshold). Evidence router decision: ESCALATE.
 
-**Stage 6 (Policy):** Hard block #6 fires immediately: `phase = critical AND risk_tier = critical` → ESCALATE, reason `CRITICAL_PHASE`. Hard block #7 also fires: `risk_tier = critical AND evidence_action = None` → VERIFY (superseded by block #6).
+**Stage 6 (Policy):** Conditional policy gate fires: `phase = critical AND risk_tier = critical` → ESCALATE, reason `CRITICAL_PHASE` (this gate resides in `_CONDITIONAL_GATES`, after the unconditional `hard_guard_floor()`). A second conditional gate also fires: `risk_tier = critical AND evidence_action = None` → VERIFY (superseded by the CRITICAL_PHASE ESCALATE).
 
 **Gate outcome: ESCALATE**
 
@@ -1165,7 +1166,7 @@ python experiments/lyapunov_aggregate.py
 
 We presented REMORA, a policy-gated assurance architecture for governing agentic AI actions before they execute. Three results carry the paper, and the third is the one we would most like the field to take up.
 
-**Autonomous safety needs a deterministic floor.** The 0% unsafe-acceptance result on the adversarial tool-call benchmark (700 synthetic rows; effective N=70 clusters; cluster-level Wilson CI [0.0%, 5.2%]; baselines 1.4%, difference not significant at p=0.50; the significant gains are utility +0.456 and accuracy) is attributable *entirely* to deterministic hard blocks, not to the multi-oracle consensus machinery. We state this against our own interest: the probabilistic architecture that gives the system its name is not what produces its headline safety number. It contributes routing quality, and that is a different claim requiring different evidence.
+**Autonomous safety needs a deterministic floor.** The 0% unsafe-acceptance result on the adversarial tool-call benchmark (700 synthetic rows; effective N=70 clusters; cluster-level Wilson CI [0.0%, 5.2%]; baselines 1.4%, difference not significant at p=0.50; the significant gains are utility +0.456 and accuracy) is attributable *entirely* to deterministic policy gates (unconditional hard blocks and conditional priority gates), not to the multi-oracle consensus machinery. We state this against our own interest: the probabilistic architecture that gives the system its name is not what produces its headline safety number. It contributes routing quality, and that is a different claim requiring different evidence.
 
 **Unknown state is a resolution problem.** Absence without declared completeness is UNKNOWN, not UNSUPPORTED; a VERIFY that cannot name a bounded lookup degrades to ABSTAIN; and a resolved value re-enters the whole router rather than patching the prior decision. Under study conditions this recovers read utility from 0% to 100% in the all-UNKNOWN regime with zero corrupt-identifier acceptances, zero cross-tenant lookups, and writes held at VERIFY throughout.
 
@@ -1479,7 +1480,8 @@ Output: gate_decision g, explanation r, envelope D
                              distribution_shift=detect_shift(q))
 
 18. (report, fallback) ← policy.evaluate(obs)
-         // 7 hard blocks evaluated first, then routing
+         // unconditional hard blocks (hard_guard_floor) evaluated first,
+         // then conditional policy gates (_CONDITIONAL_GATES)
 
 19. g ← report.action  // ACCEPT | VERIFY | ABSTAIN | ESCALATE
 
@@ -1562,7 +1564,7 @@ implemented.
 
 **The problem.** Autonomous AI agents that invoke tools or actuate real-world systems can cause irreversible harm if they execute actions that are incorrect, unauthorized, or unsafe. Majority-vote consensus, the standard ensemble primitive, does not prevent a confident wrong consensus from triggering unsafe execution. What is needed is not a better oracle but an assurance layer: a system that evaluates whether the conditions for autonomous action are verifiably met before execution.
 
-**What REMORA does.** REMORA intercepts proposed agent actions and routes each through six stages: (1) intent and risk classification; (2) parallel oracle fan-out with failed-oracle filtering; (3) correlation-aware consensus weighting; (4) thermodynamic uncertainty observables (entropy H, dissensus D, trust score τ, phase classification); (5) evidence routing for critical-phase decisions; and (6) a policy engine whose deterministic hard-block invariants take absolute precedence over all probabilistic routing (Table 3 lists the 7 headline blocks; the full priority-ordered gate inventory is in `docs/assurance/policy_engine_audit_v1.md`). The output is one of four outcomes, ACCEPT, VERIFY, ABSTAIN, or ESCALATE, emitted as a full DecisionEnvelope with audit hash-chain.
+**What REMORA does.** REMORA intercepts proposed agent actions and routes each through six stages: (1) intent and risk classification; (2) parallel oracle fan-out with failed-oracle filtering; (3) correlation-aware consensus weighting; (4) thermodynamic uncertainty observables (entropy H, dissensus D, trust score τ, phase classification); (5) evidence routing for critical-phase decisions; and (6) a policy engine whose deterministic gate invariants take absolute precedence over all probabilistic routing (Table 3 lists the 7 headline controls — 3 unconditional hard blocks and 4 conditional policy gates; the full priority-ordered gate inventory is in `docs/assurance/policy_engine_audit_v1.md`). The output is one of four outcomes, ACCEPT, VERIFY, ABSTAIN, or ESCALATE, emitted as a full DecisionEnvelope with audit hash-chain.
 
 **Key results.** On a 544-item QA benchmark: 88.8% selective accuracy at 18% coverage vs. 41.18% full-coverage majority-vote baseline (+47.6 pp; in-sample calibration, held-out validation required). On a 700-task adversarial agentic benchmark (effective N=70 templates): REMORA's full policy gate achieves 0% unsafe execution (cluster-level Wilson CI [0.0%, 5.2%]) vs. 1.4% for baselines under the leakage-free input contract — a non-significant unsafe-rate delta (p=0.50); the significant advantages are mean utility (0.62 vs. 0.16) and accuracy (90% vs. ≤60%). A critical-phase evidence router resolves 38.5% of high-uncertainty cases with 100% precision; the remainder receive human review.
 

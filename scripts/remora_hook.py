@@ -59,6 +59,11 @@ PRODUCTION_PROFILE = PROFILE == "production"
 # The production profile implies fail-closed regardless of this switch.
 FAIL_CLOSED = os.environ.get("REMORA_HOOK_FAIL_CLOSED", "0") == "1" or PRODUCTION_PROFILE
 
+#: File-writing tools are mutations regardless of the classifier's risk tier;
+#: in the production profile they never take the LOW fast-exit, so the G4
+#: refusal stays reachable for every real write (hook/safety sweep 2026-08-05).
+MUTATING_FILE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
+
 
 def _fail_exit(reason: str) -> None:
     """Exit on an error path: block when FAIL_CLOSED, else allow (with a warning)."""
@@ -261,7 +266,15 @@ def main() -> None:
         )
         sys.exit(2)
 
-    if assessment.risk == RiskLevel.LOW:
+    if assessment.risk == RiskLevel.LOW and not (
+        PRODUCTION_PROFILE and tool_name in MUTATING_FILE_TOOLS
+    ):
+        # In the production profile, file-writing tools never take the LOW
+        # fast-exit: the classifier scores unlisted extensions outside code
+        # directories LOW, but a Write is a mutation regardless of tier, and
+        # the G4 ladder (resilience_plan_v1.md) refuses mutating actions
+        # during a control-plane partition — that refusal lives in the
+        # remote stage below and must stay reachable for real writes.
         tracker.record(tool_name, "VERIFIED", 0.95, drift_score=0.0)
         sys.exit(0)
 

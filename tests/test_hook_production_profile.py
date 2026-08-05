@@ -57,18 +57,20 @@ class _StubAnchor:
     intent = ""
 
 
-def _run_hook(module, monkeypatch, risk_level) -> int:
-    """Drive main() with a mutating tool call and an unreachable control plane."""
+def _run_hook(module, monkeypatch, risk_level, tool_name="Bash",
+              tool_input=None) -> int:
+    """Drive main() with a tool call and an unreachable control plane."""
     monkeypatch.setattr(module, "assess_tool_call",
-                        lambda name, tool_input: _StubAssessment(risk_level))
+                        lambda name, ti: _StubAssessment(risk_level))
     monkeypatch.setattr(module, "LyapunovTracker", _StubTracker)
     monkeypatch.setattr(module, "IntentAnchor", _StubAnchor)
     # Control plane unreachable — governance mode G4.
     monkeypatch.setattr(module, "remora_verify",
                         lambda claim, context, session_id: {"error": "connection refused"})
     payload = json.dumps({
-        "tool_name": "Bash",
-        "tool_input": {"command": "curl -X POST https://prod.internal/api/apply"},
+        "tool_name": tool_name,
+        "tool_input": tool_input if tool_input is not None else
+            {"command": "curl -X POST https://prod.internal/api/apply"},
         "session_id": "s-1",
     })
     monkeypatch.setattr(sys, "stdin", io.StringIO(payload))
@@ -91,6 +93,39 @@ def test_production_profile_refuses_mutating_action_under_g4(monkeypatch, capsys
 def test_production_profile_refuses_high_risk_under_g4(monkeypatch) -> None:
     module = _load_hook(monkeypatch, "production")
     assert _run_hook(module, monkeypatch, module.RiskLevel.HIGH) == 2
+
+
+def test_production_profile_refuses_low_risk_write_under_g4(monkeypatch, capsys) -> None:
+    """Risk tier is not mutation: a Write the classifier scored LOW (e.g. an
+    unlisted file extension outside code directories) is still a real
+    mutation and must reach the G4 refusal in the production profile — the
+    LOW fast-exit previously bypassed the documented fail-closed behavior."""
+    module = _load_hook(monkeypatch, "production")
+    exit_code = _run_hook(module, monkeypatch, module.RiskLevel.LOW,
+                          tool_name="Write",
+                          tool_input={"file_path": "notes/plan.md", "content": "x"})
+    assert exit_code == 2
+    assert "G4" in capsys.readouterr().err
+
+
+def test_production_profile_low_risk_readonly_keeps_fast_path(monkeypatch) -> None:
+    """Read-only LOW-risk tools must NOT pay a remote round-trip in
+    production — the mutating-tool carve-out is exactly scoped."""
+    module = _load_hook(monkeypatch, "production")
+    exit_code = _run_hook(module, monkeypatch, module.RiskLevel.LOW,
+                          tool_name="Read",
+                          tool_input={"file_path": "notes/plan.md"})
+    assert exit_code == 0
+
+
+def test_research_profile_low_risk_write_keeps_fast_path(monkeypatch) -> None:
+    """The documented local-development exception is unchanged: default
+    profile keeps the LOW fast-exit even for writes."""
+    module = _load_hook(monkeypatch, None)
+    exit_code = _run_hook(module, monkeypatch, module.RiskLevel.LOW,
+                          tool_name="Write",
+                          tool_input={"file_path": "notes/plan.md", "content": "x"})
+    assert exit_code == 0
 
 
 def test_research_profile_fails_open_for_medium_risk(monkeypatch, capsys) -> None:

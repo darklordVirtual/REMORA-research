@@ -205,6 +205,69 @@ def test_full_verify_approve_execute_flow_with_one_time_grant(client) -> None:
     assert events == ["assessed", "approved", "execution_authorized", "execution_result"]
 
 
+def test_unattended_overdue_items_expire_on_next_queue_interaction(client) -> None:
+    """REM-032 fail-closed: an overdue PENDING item must not stay PENDING
+    forever. Any queue interaction for the tenant (here: an unrelated assess)
+    sweeps it to EXPIRED_TO_ABSTAIN, and late approval is refused."""
+    from datetime import timedelta
+
+    import servers.execution_api as exec_mod
+    from remora.governance.review_queue import ItemStatus
+
+    item_id = client.post("/v1/execution/assess", json=PROD_WRITE).json()["review_item_id"]
+    q = exec_mod._QUEUES["acme"]
+    item = q.item(item_id)
+    item.queue_deadline = item.queue_deadline - timedelta(days=30)
+
+    client.post("/v1/execution/assess", json=LOW_READ)
+
+    assert q.item(item_id).status is ItemStatus.EXPIRED_TO_ABSTAIN
+    late = client.post("/v1/execution/approve",
+                       json={"item_id": item_id, "approval_ttl_seconds": 900})
+    assert late.status_code == 409
+
+
+def test_proposal_id_threads_through_the_full_lifecycle(client) -> None:
+    """FT-01 slice 1 (design PR #135 merged; maintainer decisions
+    2026-08-05): one proposal_id minted at assess is the canonical join key.
+    It must appear in the assess response, ride every tenant-chain record
+    for the action, and become the execution grant's request_id — no
+    out-of-band reconstruction."""
+    import servers.execution_api as exec_mod
+
+    r = client.post("/v1/execution/assess", json=PROD_WRITE).json()
+    pid = r.get("proposal_id")
+    assert isinstance(pid, str) and len(pid) >= 8
+    item_id = r["review_item_id"]
+
+    client.post("/v1/execution/approve",
+                json={"item_id": item_id, "approval_ttl_seconds": 900})
+    ex = client.post("/v1/execution/execute",
+                     json={"item_id": item_id, "tool_call": PROD_WRITE}).json()
+
+    assert ex.get("proposal_id") == pid
+    assert ex["execution_grant"]["request_id"] == pid
+    payloads = [e.payload for e in exec_mod._CHAIN.entries("acme")]
+    assert payloads, "no chain records written"
+    assert all(p.get("proposal_id") == pid for p in payloads), (
+        [(p.get("event"), p.get("proposal_id")) for p in payloads])
+
+
+def test_audit_verify_reports_record_count_and_empty_flag(client) -> None:
+    """The evidence bundle records records_checked; an empty chain is
+    trivially valid and must say so rather than pose as verified history."""
+    body = client.get("/v1/execution/audit/verify").json()
+    assert body["valid"] is True
+    assert body["records_checked"] == 0
+    assert body["empty"] is True
+
+    client.post("/v1/execution/assess", json=LOW_READ)
+    body = client.get("/v1/execution/audit/verify").json()
+    assert body["valid"] is True
+    assert body["records_checked"] == 1
+    assert body["empty"] is False
+
+
 def _approved_item(client, payload=PROD_WRITE) -> str:
     item_id = client.post("/v1/execution/assess", json=payload).json()["review_item_id"]
     client.post("/v1/execution/approve", json={"item_id": item_id, "approval_ttl_seconds": 900})

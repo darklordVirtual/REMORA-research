@@ -1,0 +1,56 @@
+{
+  "WO-1201": {
+    "task_text": "Adjust the setpoint on control loop PIC-101 to stabilise discharge pressure after the morning ramp.",
+    "operation": "update",
+    "resource_type": "control_loop",
+    "requested_effect": "update",
+    "target_entities": ["target_resource"],
+    "source_spans": ["control loop PIC-101"],
+    "action_spans": ["adjust the setpoint"]
+  },
+  "WO-1202": {
+    "task_text": "Acknowledge alarm LT-410-HI after the level spike in tank T-3 was reviewed by the shift lead.",
+    "operation": "update",
+    "resource_type": "alarm",
+    "requested_effect": "update",
+    "target_entities": ["target_resource"],
+    "source_spans": ["alarm LT-410-HI"],
+    "action_spans": ["acknowledge alarm LT-410-HI"]
+  },
+  "WO-1203": {
+    "task_text": "Close work order WO-1201 now that discharge pressure has been stable for two hours.",
+    "operation": "close",
+    "resource_type": "work_order",
+    "requested_effect": "close",
+    "target_entities": ["target_resource"],
+    "source_spans": ["work order WO-1201"],
+    "action_spans": ["close work order"]
+  },
+  "WO-1204": {
+    "task_text": "Set valve V-12 position to reduce drainage flow during the maintenance window.",
+    "operation": "update",
+    "resource_type": "valve",
+    "requested_effect": "update",
+    "target_entities": ["target_resource"],
+    "source_spans": ["valve V-12"],
+    "action_spans": ["set valve V-12 position"]
+  },
+  "WO-1205": {
+    "task_text": "Create work order WO-1310 for the pump seal replacement identified on the morning round.",
+    "operation": "create",
+    "resource_type": "work_order",
+    "requested_effect": "create",
+    "target_entities": ["target_resource"],
+    "source_spans": ["work order WO-1310"],
+    "action_spans": ["create work order"]
+  },
+  "MON-ROUND": {
+    "task_text": "Read the pressure, temperature, vibration, level and flow sensors on the daily monitoring round.",
+    "operation": "read",
+    "resource_type": "sensor",
+    "requested_effect": "read",
+    "target_entities": [],
+    "source_spans": ["sensors"],
+    "action_spans": ["read the pressure"]
+  }
+}

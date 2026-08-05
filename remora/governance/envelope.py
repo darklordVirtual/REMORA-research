@@ -103,7 +103,17 @@ class AuditBlock:
     Fields
     ------
     policy_version:      Version string from RemoraDecisionEngine.
-    hash:                SHA-256 of canonical safety-relevant request fields.
+    hash:                SHA-256 digest whose PREIMAGE DEPENDS ON THE PRODUCER
+                         (verified 2026-08-05) — the two live producers are
+                         not hash-comparable. Server path
+                         (servers/api.py::_compute_envelope_chain_hash):
+                         SHA-256(previous_hash ‖ full envelope JSON), the
+                         chained form. Library path (remora/reporting.py):
+                         state_hash() over question/iteration/candidate
+                         support — no chaining, and the question preimage
+                         truncates the proposed action to 120 chars (the
+                         full arguments are bound by tool_args_hash instead).
+                         Verifiers must key the recompute on the producer.
     previous_hash:       Prior envelope hash for this tenant (hash-chain linkage).
     signature:           HMAC-SHA256 of hash when REMORA_ENVELOPE_SIGNING_KEY is set.
     schema_version:      Envelope schema version (always "2" for v2 envelopes).
@@ -125,6 +135,29 @@ class AuditBlock:
                          must key the recompute on the producing path.
     data_classification: e.g. "confidential", "restricted" (set by integration layer).
     retention_policy:    e.g. "7y", "legal_hold" (set by integration layer).
+    tool_contract_bundle_hash:
+                         SHA-256 of the deployment-declared SemanticBundle
+                         (tool signatures + contracts + validator bindings)
+                         active at decision time, computed from the
+                         declarations themselves — see
+                         remora/toolcall/semantic_bundle.py. ``None`` means no
+                         bundle was configured and the registry-only path ran;
+                         it is never an empty string, because a blank hash
+                         would read as "declared but empty" rather than
+                         "not declared". Production status (research shelf,
+                         SHELF-020 remaining): no producer populates this
+                         envelope field yet — /v1/assess builds the envelope
+                         but does not run the semantic bundle, while
+                         /v1/execution records the hash into the tenant audit
+                         chain without building an envelope. Wiring /v1/assess
+                         through build_full_observation makes it live.
+    intent_authority_hash:
+                         SHA-256 identifying the frozen task intent and the
+                         source that vouched for it
+                         (docs/research/task_intent_authority_v1.md).
+                         ``None`` when no intent was resolved. Same production
+                         status as tool_contract_bundle_hash: carried by the
+                         schema, not yet populated by the envelope producer.
 
     Roadmap gaps (require external infrastructure):
     - approver_identity: OIDC/JWT-bound approver identity (needs IdP integration).
@@ -144,11 +177,53 @@ class AuditBlock:
     tool_args_hash: str | None = None
     data_classification: str | None = None
     retention_policy: str | None = None
+    tool_contract_bundle_hash: str | None = None
+    intent_authority_hash: str | None = None
+
+
+#: Audit keys introduced after the v2 chain preimage was first fixed
+#: (2026-08-04, semantic-bundle binding). The envelope chain hash covers the
+#: whole payload, so adding a field would otherwise invalidate every trail
+#: recorded before it existed — a stored chain would stop verifying because
+#: the verifier gained a field, not because anyone tampered with it.
+#:
+#: The rule: omit these keys from the preimage when they are unset, include
+#: them like any other field when they carry a value. Trails from before the
+#: change hash byte-for-byte as they did; a decision that names its bundle is
+#: bound to that name.
+POST_V2_AUDIT_KEYS: tuple[str, ...] = (
+    "tool_contract_bundle_hash",
+    "intent_authority_hash",
+)
+
+
+def normalize_audit_for_hash(payload: dict[str, Any]) -> dict[str, Any]:
+    """Drop post-v2 audit keys that carry no value, in place.
+
+    Call on the payload dict already prepared for hashing (after the usual
+    ``hash``/``signature`` handling). Returns the same dict for chaining.
+    """
+    audit = payload.get("audit")
+    if isinstance(audit, dict):
+        for key in POST_V2_AUDIT_KEYS:
+            if audit.get(key) is None:
+                audit.pop(key, None)
+    return payload
 
 
 @dataclass(frozen=True)
 class EffectBlock:
-    """Reconstructs decision-to-effect execution state."""
+    """Decision-to-effect execution state — RESERVED, not yet populated.
+
+    Production status (verified 2026-08-05): no producer sets these fields.
+    The envelope producer (/v1/assess) never dispatches a tool, and the
+    dispatching path (/v1/execution) records its outcome in the tenant audit
+    chain (``tool_execution`` / ``execution_result`` records) without
+    building an envelope. Every shipped envelope therefore carries this
+    block at its defaults; treat a non-default instance as external input,
+    not as REMORA-attested execution state. Wiring the execution outcome
+    into the envelope is tracked follow-up work on the /v1/execution path.
+    """
     executed: bool = False
     tool_call_hash: str | None = None
     effect_outcome: str | None = None

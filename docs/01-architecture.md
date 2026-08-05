@@ -20,30 +20,67 @@ produces in benchmarks.
 
 ```mermaid
 flowchart TD
-    A[Agent action / question] --> B[Stage 1: Admission check\nadversarial / coercion firewall]
-    B --> C[Stage 2: Multi-oracle consensus\ndisagreement diagnostics: H, D, phase]
-    C --> D[Stage 3: Evidence enrichment\nRAG / cyber / finance / AI-governance]
-    D --> E[Stage 4: Policy decision\nhard guards → conditional guards → trust + conformal routing]
-    E --> F{Decision}
-    F -->|ACCEPT| G[Execute / answer]
-    F -->|VERIFY| H[Seek additional evidence]
-    F -->|ABSTAIN| I[Refuse — trust too low]
-    F -->|ESCALATE| J[Human review]
-    G --> K[Stage 5: DecisionEnvelope + audit block]
+    A["<b>Proposed action</b><br/>tool + arguments + risk tier + environment"] --> B
+    B["<b>1 · Admission firewall</b><br/>remora/safety/adversarial.py + remora/engine.py<br/>prompt injection, coercion, blackmail patterns<br/>runs before any model is called"]
+    B -->|"clean"| C
+    B -.->|"injection found: adversarial_detected set,<br/>models never consulted"| E
+    C["<b>2 · Multi-oracle consensus</b><br/>remora/engine.py<br/>independent models judge the same action,<br/>merged into one trust score"] --> D
+    D["<b>3 · Evidence verification</b><br/>remora/oracles/evidence_verifier.py<br/>do the cited sources support or contradict it?"] --> E
+    E["<b>4 · Policy decision</b><br/>RemoraDecisionEngine.decide()<br/>hard_guard_floor() first, and it wins outright,<br/>then conditional guards and trust routing,<br/>then the argument gates on whatever is left"]
+    E --> F{"Answer"}
+    F -->|ACCEPT| G["<b>Run it</b>: GovernedToolDispatcher<br/>under a single-use ExecutionLease tied to tenant,<br/>actor, tool, exact arguments, environment, policy hash"]
+    F -->|VERIFY| H["<b>Wait</b>: a ResolutionPlan names exactly what<br/>may be looked up, and which source may supply it"]
+    F -->|ABSTAIN| I["<b>Stop</b>: nothing to decide on"]
+    F -->|ESCALATE| J["<b>Ask a person</b>: time-limited approval,<br/>re-checked against a fresh observation first"]
+    H -.->|"answer comes back:<br/>step 4 re-runs on a fresh observation"| E
+    G --> K["<b>5 · DecisionEnvelope</b><br/>appended to a hash-chained audit log,<br/>every answer is recorded, whether or not anything ran"]
     H --> K
     I --> K
     J --> K
 ```
 
-The admission check (Stage 1) screens for adversarial and coercion patterns
-before any oracle call. The remaining deterministic hard guards (schema,
+**Why the firewall's arrow is dotted.** The admission firewall does not issue the
+verdict itself. It sets `adversarial_detected` and suppresses the model fan-out, and
+then the first hard guard in step 4 turns that flag into ESCALATE
+(`ADMISSION_FIREWALL_BLOCKED`). Every verdict comes out of one place, which is why the
+explanation of a decision can never disagree with the decision.
+
+**Why hard guards "win outright".** The deterministic hard guards (schema,
 forbidden-tool, tainted-argument, contradicting-evidence, counterfactual,
-production-write) run first *inside* the policy decision (Stage 4) with absolute
-priority — no probabilistic oracle result can override a hard block — even though
-that decision is evaluated after the consensus and evidence machinery. This is
-why the 0% unsafe execution claim is an architectural property of the policy
-layer, not of the consensus machinery: see `02-evidence-and-claims.md` §1
-architectural caveat.
+production-write) are checked at the top of `RemoraDecisionEngine.decide()`, which runs
+*after* the models have spoken, so first means *first in priority*, not first in time.
+A confident model cannot buy its way past a forbidden tool: no confidence score or
+model majority can unlock a forbidden tool, a malformed call, a detected injection, or
+an untrusted instruction that would choose the recipient, the command or the
+credential. The argument gates sit at the other end of the ladder, after every blocking
+rule, so they can only ever make a would-be ACCEPT more cautious, never unblock
+something. `decide()` and `explain()` walk the same ordered list, so the trace you read
+is the path that was taken. This is why the 0% unsafe execution claim is an
+architectural property of the policy layer, not of the consensus machinery: see
+`02-evidence-and-claims.md` §1 architectural caveat.
+
+**What VERIFY promises.** It is not a shrug. A VERIFY from the argument gates carries a
+`ResolutionPlan`: the named lookup, the exact arguments it may fill in, and the sources
+allowed to supply them. The lookup cannot switch tools or write anything outside its
+plan, and if no lookup exists at all the answer is ABSTAIN instead: promising a check
+that cannot happen is worse than stopping. When the answer comes back, step 4 runs
+again from scratch on a fresh view. In today's execution API, VERIFY still means "queue
+for a person"; the automatic-lookup contract is measured (CLAIM-016) but not yet wired
+into that path.
+
+**What running it means.** `/v1/execution/execute` spends a single-use grant and calls
+the tool through `GovernedToolDispatcher`. Permission is welded to the exact call it
+was granted for: approval to run `{"motor": "M1", "mode": "read"}` cannot be reused for
+`{"motor": "*", "mode": "shutdown"}` — the arguments are re-hashed and re-checked in
+the instant before the tool runs, and the permission expires and is single-use. Tools
+come **only** from deployment configuration (`REMORA_TOOL_REGISTRY_MODULE`), never from
+the request, so an agent cannot introduce a tool or the credentials behind it. With no
+registry configured, dispatch reports `executed: false` and nothing happens.
+
+**About the disagreement metrics.** Fields named `temperature` and `phase` are logged
+for analysis only. They are legacy physics-flavoured names for how much the models
+disagreed, and they lost their pre-registered test against a simpler
+calibrated-confidence baseline (`NEGATIVE_RESULTS.md` §18). They influence nothing.
 
 ---
 

@@ -40,7 +40,7 @@ Details: [reference_architecture.md](reference_architecture.md).
 ## Demo (5 minutes, no keys, no network)
 
 ```bash
-pip install -e ".[dev]" && make test        # full deterministic suite
+pip install -e ".[dev]" && python -m pytest tests/ -q   # full deterministic suite (no make needed)
 python scripts/demo_industrial_maintenance.py
 ```
 

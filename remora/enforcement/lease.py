@@ -100,6 +100,12 @@ class ExecutionLease:
     expires_at: str
     signature: str
     is_signed: bool
+    #: Hash of the frozen ToolContractRegistry bundle active at issue time.
+    #: Empty string means no bundle was declared (legacy / pre-SHELF-020 path).
+    tool_contract_bundle_hash: str = ""
+    #: Hash identifying the frozen intent-authority source (model version +
+    #: prompt + decoding params + cache SHA) active at issue time.
+    intent_authority_hash: str = ""
 
     @classmethod
     def issue(
@@ -114,6 +120,8 @@ class ExecutionLease:
         policy_bundle_hash: str,
         issued_at: str,
         expires_at: str | None = None,
+        tool_contract_bundle_hash: str = "",
+        intent_authority_hash: str = "",
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -151,6 +159,8 @@ class ExecutionLease:
             "nonce": str(uuid.uuid4()),
             "issued_at": issued_at,
             "expires_at": expires_at,
+            "tool_contract_bundle_hash": tool_contract_bundle_hash,
+            "intent_authority_hash": intent_authority_hash,
         }
         key = _get_signing_key()
         if key:
@@ -175,6 +185,8 @@ class ExecutionLease:
             "nonce": self.nonce,
             "issued_at": self.issued_at,
             "expires_at": self.expires_at,
+            "tool_contract_bundle_hash": self.tool_contract_bundle_hash,
+            "intent_authority_hash": self.intent_authority_hash,
         }
 
     def verify(
@@ -270,6 +282,7 @@ class ExecutionLease:
         "decision", "tenant_id", "actor_identity", "tool_name", "tool_args_hash",
         "target_environment", "policy_bundle_hash", "nonce", "issued_at",
         "expires_at", "signature", "is_signed",
+        "tool_contract_bundle_hash", "intent_authority_hash",
     })
 
     @classmethod
@@ -310,8 +323,19 @@ class NonceLedger:
             return True
 
     def fail_consume(self, nonce: str, reason: str) -> None:
+        """Record that this nonce was burned by a tool that raised."""
         with self._lock:
             self._failed[nonce] = reason
+
+    def failure(self, nonce: str) -> str | None:
+        """The recorded failure for a burned nonce, or None.
+
+        Lets the dispatcher distinguish a plain replay from a retry after a
+        failed execution with unknown state — and gives post-mortems the
+        original error instead of a write-only record.
+        """
+        with self._lock:
+            return self._failed.get(nonce)
 
 
 @dataclass(frozen=True)
@@ -384,6 +408,14 @@ class GovernedToolDispatcher:
         if not verdict.verified:
             return DispatchResult(executed=False, refusal_reason=verdict.reason)
         if not self._ledger.consume(lease.nonce):
+            # A nonce burned by a raising tool is not a plain replay: the
+            # caller must learn the previous attempt failed with unknown
+            # state, not merely that the nonce was used.
+            failure = getattr(self._ledger, "failure", lambda _n: None)(lease.nonce)
+            if failure is not None:
+                return DispatchResult(
+                    executed=False,
+                    refusal_reason="nonce_consumed_by_failed_execution")
             return DispatchResult(executed=False, refusal_reason="nonce_already_consumed")
 
         # execution
@@ -391,7 +423,8 @@ class GovernedToolDispatcher:
             res = fn(arguments)
             return DispatchResult(executed=True, result=res)
         except Exception as e:
-            # write FAILED to ledger
+            # Burn is recorded with its reason so failure() can surface it;
+            # the nonce stays consumed — state at the tool is unknown.
             if hasattr(self._ledger, "fail_consume"):
                 self._ledger.fail_consume(lease.nonce, str(e))
             raise RuntimeError(f"Tool execution failed, nonce burned and state unknown/failed: {e}") from e
