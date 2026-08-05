@@ -52,7 +52,7 @@ mcp = ["httpx>=0.25"]
 # REST API gateway (servers/api.py) — FastAPI + ASGI server
 api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
 # Data analysis and visualisation
-analysis = ["matplotlib>=3.8", "numpy>=2.4.6"]
+analysis = ["matplotlib>=3.11.1", "numpy>=2.4.6"]
 stats = ["scipy>=1.17.1"]
 datasets = ["datasets>=2.0"]
 # NLI semantic-entropy backend (NLISemanticBackend in remora/semantic_entropy.py).
