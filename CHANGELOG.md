@@ -27,6 +27,34 @@ releases.
 
 ## [Unreleased]
 
+### FT-03 PR 2: signed ToolSpec runtime (2026-08-05)
+
+- `remora/toolcall/toolspec.py` implements the frozen contract. Every
+  drift the handoff gate names is refused with a published reason code:
+  description rug-pull (the tool-poisoning shape — callable untouched,
+  only the text an agent reasons about swapped), argument-schema drift,
+  callable replacement, credential-scope drift, target outside the
+  allowlist, arguments failing the schema, a stale-but-validly-signed
+  bundle, an unknown or revoked signing identity, an unknown tool, and a
+  spec that changed between assessment and dispatch.
+- Three details that are easy to get subtly wrong, and are tested:
+  **revocation is checked before trust**, because a revoked identity may
+  still sit in a stale allowlist and the stronger statement must win;
+  **the description digest is computed, never read from the bundle**,
+  because a declared digest is a claim and a computed one is a check; and
+  **staleness is separate from signature failure**, because "correctly
+  signed but not current" is a different finding that deserves its own
+  code — a signature proves authenticity, never currency.
+- The JSON Schema subset enforced is deliberately small and legible
+  (required, additionalProperties, scalar types) and says so, so nobody
+  assumes a construct outside it is being checked.
+- Enforcement receives specs as **data**; this module never imports
+  `remora.enforcement` and is never imported by it, so no new import
+  direction is created.
+- 19 tests RED→GREEN. Not yet wired into the execution path — that and
+  the lease/token binding are the rest of PR 2's scope.
+
+
 ### FT-03 PR 1: the signed-ToolSpec ADR is accepted and its contract frozen (2026-08-05)
 
 - All eight questions the ADR left open are decided, and recorded where

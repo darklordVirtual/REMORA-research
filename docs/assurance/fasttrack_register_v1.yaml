@@ -141,9 +141,18 @@ items:
     default, nullable-but-present postcondition_reader, and
     remora/toolcall/toolspec.py as the home so no new import direction is
     created. Fourteen stable reason codes published as a public contract.
-    NOT DONE: runtime enforcement (handoff PR 2), the binding chain through
-    lease/token (PR 2), and the SDK surface (PR 5). The contract file
-    states realization: runtime_enforcement not_implemented.
+    Handoff PR 2 (2026-08-05): remora/toolcall/toolspec.py implements the
+    contract — signed bundle load with revocation checked before trust,
+    computed description digest, pinned-digest staleness, callable-digest,
+    credential-scope, target-allowlist, argument-schema and
+    assess-vs-dispatch checks, every refusal carrying a published reason
+    code (19 tests covering description rug-pull, schema drift, callable
+    replacement, scope drift, stale-but-signed, revoked identity, strict
+    mode without a bundle, and duplicate ids). Enforcement receives specs
+    as DATA, so no new import direction from remora.enforcement.
+    NOT DONE: wiring the loader into servers/execution_api.py assess and
+    dispatch, binding toolspec_hash into lease and execution token, and
+    the SDK surface (handoff PR 5).
 - id: FT-04
   title: Closed-loop postcondition verification (one deep integration)
   priority: p0
