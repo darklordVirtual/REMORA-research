@@ -1,7 +1,7 @@
 # REMORA Artifact Manifest v1
 
 **Generated:** 2026-06-30
-**Revised:** 2026-07-02, 2026-07-20 (see Revision Notes below)
+**Revised:** 2026-07-02, 2026-07-20, 2026-07-27, 2026-07-30, 2026-07-31 (see Revision/Addition Notes below)
 **Repository commit:** `2cd573d6a7c98e87c1781fd599469d9d46e132e2` (original), revised at working tree of 2026-07-02
 **Checksum encoding:** SHA-256, lowercase hex, computed over committed (LF) file bytes
 

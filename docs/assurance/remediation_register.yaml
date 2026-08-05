@@ -3,7 +3,7 @@
 # Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility) → P4 (hardening/roadmap)
 
 schema_version: "1"
-last_updated: "2026-07-20T12:00Z"
+last_updated: "2026-08-03T23:00Z"
 
 items:
   - id: REM-001
@@ -325,6 +325,7 @@ items:
       All P0 items (REM-001..008, REM-013, REM-016) are DONE.
       All P0 blockers are DONE as of 2026-06-29 (REM-014, REM-019).
       Remaining: REM-020/021/022 (P3, production deployment gates).
+      (UPDATE 2026-07-30: REM-020 and REM-022 are DONE; only REM-021 remains.)
 
   - id: REM-020
     section: "§12"
@@ -801,7 +802,10 @@ items:
       role; (4) an on-call/coverage mechanism pages on Sev-1; (5) reviewer
       identity is bound to a federated IdP (OIDC, also REM-022 Section 8).
       Current queue is in-memory; routing is design-only in
-      artifacts/credibility-pack/policy-model.md.
+      artifacts/credibility-pack/policy-model.md. (UPDATE 2026-07-30: queue,
+      item->tenant binding and approvals persist in one transaction under
+      REMORA_CHAIN_DB/REMORA_PG_DSN — SQLite restart-proven, Postgres branch
+      not yet contract-tested; in-process by default. See CAP-007.)
 
   - id: REM-043
     section: "compendium-audit P7"
@@ -980,3 +984,24 @@ items:
       entrypoint OK, and /v1/health answers. DONE 2026-07-30: the
       wheel-contract job is green on master (run 30497123043, commit
       d94ceb0), fulfilling the closure criterion.
+
+  - id: REM-047
+    section: "external-review-2026-08-03 P1"
+    title: "Business state transition and audit append are not one atomic transaction"
+    gate: P4
+    status: NOT_STARTED
+    artifacts:
+      - servers/execution_api.py
+      - remora/governance/tenant_chain.py
+    notes: >
+      External review 2026-08-03: review-queue state commits inside
+      db_transaction_state() while the audit entry is appended afterwards via
+      _CHAIN.append(). The audit append is atomic in itself, but the domain
+      transaction is not: a process crash between the two can leave a state
+      transition without its audit event, an approval without an audit post,
+      or an execution state and audit chain at different stages. DONE when
+      one of: (1) the audit record is written in the same database
+      transaction as the state transition; (2) a transactional outbox
+      carries the audit event; (3) the transition is event-sourced with the
+      audit event as the state authority. Related but distinct: REM-035
+      (durable chain integrity: per-tenant sequence, WORM, anchoring).

@@ -1,3 +1,7 @@
+> **Historical snapshot — do not cite as current state.** Generated 2026-05-20,
+> before the N=302 extended benchmark became the primary result set. Preserved
+> as record only; for current headline metrics, use README and whitepaper.
+
 # REMORA — Empirical Analysis Report (Legacy Snapshot)
 
 **Generated:** 2026-05-20T05:09:19Z

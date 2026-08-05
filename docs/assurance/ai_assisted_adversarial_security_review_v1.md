@@ -1,5 +1,12 @@
 # AI-Assisted Adversarial Security Review: Findings & Disposition v1
 
+> **Historical findings snapshot (2026-07-03) — do not cite dispositions as current state.**
+> ROADMAP dispositions below reflect the codebase at review
+> time; several have since shipped (governed dispatch through the API path is
+> CAP-013 `WIRED_API_PATH`, durable audit/execution state exists behind
+> `REMORA_PG_DSN`/`REMORA_CHAIN_DB`). Current status authority:
+> `capability_register_v1.yaml` and `remediation_register.yaml`.
+
 > **Renamed 2026-07-20** from `external_security_audit_v1.md`: the source is an
 > AI-assisted internal review (ChatGPT), not an independent external audit, and
 > the filename should not suggest otherwise. "Independent" and "external audit"
