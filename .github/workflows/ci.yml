@@ -359,10 +359,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip wheel . --no-deps -w dist/
 
-      - name: Install wheel with [api] into a clean venv
+      - name: Install wheel with [api,sdk] into a clean venv
         run: |
           python -m venv "$RUNNER_TEMP/wheelenv"
-          "$RUNNER_TEMP/wheelenv/bin/pip" install --quiet "$(ls dist/remora-*.whl)[api]"
+          "$RUNNER_TEMP/wheelenv/bin/pip" install --quiet "$(ls dist/remora-*.whl)[api,sdk]"
 
       - name: Contract smoke from an empty directory
         working-directory: ${{ runner.temp }}
@@ -378,6 +378,19 @@ jobs:
           import servers.api                      # the serve entrypoint imports
           from remora.governance.envelope import load_decision_envelope_schema
           load_decision_envelope_schema()         # packaged schemas/ resolves
+          CHECK
+
+          # FT-13: the SDK surface must hold from the installed wheel too —
+          # every snapshot-declared public symbol importable, and the client
+          # constructible without a server.
+          "$PY" - <<CHECK
+          import json
+          import remora.sdk as sdk
+          snapshot = json.load(open("$GITHUB_WORKSPACE/artifacts/sdk/public_api_v1.json"))
+          missing = [s for s in snapshot["symbols"] if not hasattr(sdk, s)]
+          assert not missing, f"wheel is missing public SDK symbols: {missing}"
+          client = sdk.RemoraClient("http://localhost:1", token="t")
+          client.close()
           CHECK
 
           # doctor must report the api entrypoint as genuinely importable.
