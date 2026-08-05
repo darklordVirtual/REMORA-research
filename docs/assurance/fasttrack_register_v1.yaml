@@ -128,18 +128,28 @@ items:
 - id: FT-13
   title: Stable public SDK surface separated from experimental/research code
   priority: p1
-  status: NOT_STARTED
+  status: IN_PROGRESS
   notes: >-
     Maintainer review 2026-08-05: remora/__init__.py exposes core engine,
     policy, governance, evidence, domains, integrations, adapters and
     observability in one flat surface, so a third party cannot tell which
-    imports carry a compatibility guarantee. Target layout: remora.core_api
-    (small stable SDK surface), remora.policy (stable policy contract),
-    remora.governance (stable envelope/audit contract), remora.adapters
-    (framework adapters), remora.experimental and remora.research (no BC
-    guarantee). Existing imports stay for compatibility; documentation must
-    state which are stable. Extends the existing CORE/EXPERIMENTAL/
-    RESEARCH_ONLY module classification with import-path enforcement.
+    imports carry a compatibility guarantee. The review's target layout
+    (remora.core_api stable surface, remora.adapters, remora.experimental /
+    remora.research without BC guarantee) was refined by the user directive
+    2026-08-05: ONE small stable surface named remora.sdk, contract over
+    internal code, typed errors, public-API snapshot in CI; the
+    adapters/experimental namespace split remains queued. Slice 1 MERGED (PR #161,
+    master 9db5881): remora/sdk/ with RemoraClient (sync, remote mode),
+    frozen wire-bound models, typed error hierarchy rooted in RemoraError,
+    snapshot gate artifacts/sdk/public_api_v1.json +
+    tests/test_sdk_public_api.py + scripts/export_sdk_public_api.py, sdk
+    extra in pyproject, 30 tests incl. end-to-end review loop against the
+    in-process ASGI app. DoD criteria still missing for DONE: documented
+    public API in docs/ (no docs/ page references remora.sdk yet), runnable
+    external example (examples/ has none), stability classification /
+    semver+deprecation policy, clean-install wheel test exercising the sdk
+    extra. Queued slices per CHANGELOG: async client, OpenAPI-generated
+    transport, framework adapters, remora.sdk.testing, external quickstart.
 - id: FT-11
   title: Path- and temporal governance
   priority: p2
