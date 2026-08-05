@@ -133,8 +133,13 @@ class AuditBlock:
                          args, tenant, target) — the same preimage the
                          execution API and ExecutionLease enforce. Verifiers
                          must key the recompute on the producing path.
-    data_classification: e.g. "confidential", "restricted" (set by integration layer).
-    retention_policy:    e.g. "7y", "legal_hold" (set by integration layer).
+    data_classification: e.g. "confidential", "restricted". Extension point
+                         for a deployment's integration layer; no in-repo
+                         producer populates it — /v1/assess writes ``None``
+                         (servers/api.py defaults it explicitly).
+    retention_policy:    e.g. "7y", "legal_hold". Same status as
+                         data_classification: an integration-layer extension
+                         point, ``None`` from every in-repo producer.
     tool_contract_bundle_hash:
                          SHA-256 of the deployment-declared SemanticBundle
                          (tool signatures + contracts + validator bindings)
