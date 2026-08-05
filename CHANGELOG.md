@@ -27,6 +27,26 @@ releases.
 
 ## [Unreleased]
 
+### FT-03/FT-04 PR 6: release artifacts a product can actually pin (2026-08-05)
+
+- The release manifest now pins **both frozen contracts** —
+  `schemas/tool_spec_v1.yaml` and `schemas/postcondition_contract_v1.yaml`
+  — alongside the wheel, OpenAPI export, SDK surface snapshot and
+  lifecycle schema. A manifest that listed the code but not the contracts
+  let a product pin the wheel and still disagree with REMORA about what a
+  ToolSpec is or what an effect status means, which is exactly the drift
+  the pin exists to prevent. `tests/test_release_manifest.py` asserts the
+  artifact set by equality, so a future contract cannot be added to the
+  repository and quietly left out of the release.
+- Two runnable offline examples ship with the release and are smoke-tested
+  in CI: `examples/toolspec_signing_quickstart.py`, which demonstrates
+  four real tamper shapes (widened target allowlist, rewritten description,
+  escalated credential scope, revoked signer) and **exits non-zero if any
+  of them loads**, so a signature that stopped binding fails the build
+  rather than printing reassuring output; and
+  `examples/effect_verification_quickstart.py`, which shows the verified,
+  mismatched and unobservable outcomes.
+
 ### FT-04 PR 5: the product surface for spec identity and effect verification (2026-08-05)
 
 - A consuming product can now declare a postcondition, verify it with its

@@ -66,7 +66,10 @@ def build_manifest(wheel: Path, *, generated_at: str | None = None) -> dict:
     openapi = ROOT / "schemas" / "openapi.json"
     sdk_surface = ROOT / "artifacts" / "sdk" / "public_api_v1.json"
     lifecycle = ROOT / "schemas" / "execution_lifecycle_v1.yaml"
-    for required in (openapi, sdk_surface, lifecycle):
+    tool_spec = ROOT / "schemas" / "tool_spec_v1.yaml"
+    postcondition = ROOT / "schemas" / "postcondition_contract_v1.yaml"
+    for required in (openapi, sdk_surface, lifecycle, tool_spec,
+                     postcondition):
         if not required.is_file():
             raise SystemExit(f"required artifact missing: {required}")
 
@@ -97,6 +100,19 @@ def build_manifest(wheel: Path, *, generated_at: str | None = None) -> dict:
             "execution_lifecycle_schema": {
                 "filename": "execution_lifecycle_v1.yaml",
                 "sha256": sha256_file(lifecycle),
+            },
+            # The two frozen contracts a consumer verifies against. Without
+            # them in the manifest, a product could pin the wheel and still
+            # disagree with REMORA about what a ToolSpec is or what an
+            # effect status means — which is precisely the drift the pin
+            # exists to prevent.
+            "tool_spec_schema": {
+                "filename": "tool_spec_v1.yaml",
+                "sha256": sha256_file(tool_spec),
+            },
+            "postcondition_contract_schema": {
+                "filename": "postcondition_contract_v1.yaml",
+                "sha256": sha256_file(postcondition),
             },
         },
         "sdk": {
