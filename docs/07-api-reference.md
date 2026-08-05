@@ -98,9 +98,22 @@ one dispatcher process must not rely on it as a global guarantee (REM-025).
 with 69 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
-safe"). On `/v1/execution/*` this does NOT hold: trust-bearing fields are
-derived server-side and client values can only lower trust, never raise it
-— see the Trust boundary section below. Selected fields by group:
+safe"). Two server-side authorities cut into that caller freedom
+(2026-08-05): a request may carry an optional `tool_call` block
+(`tool_name`, `arguments`, `intent_ref`, `untrusted_context`;
+`extra="forbid"`) — with `REMORA_SEMANTIC_BUNDLE_MODULE` configured the
+same authoritative context builder as `/v1/execution/assess` runs, the
+computed `tool_contract_bundle_hash` / `intent_authority_hash` are
+recorded into the envelope's audit block and `tool_args_hash` upgrades to
+the canonical execution preimage (verdicts are RECORDED on this path; the
+gate decision still comes from the engine pipeline). And on the library
+path (`assess_tool_call`), declared metadata is raise-only: a `risk_tier`
+weaker than the deterministic name-heuristic floor is clamped up and the
+clamp is recorded in `ToolCallAssessment.floored` — never silently.
+On `/v1/execution/*` caller freedom does NOT hold at all: trust-bearing
+fields are derived server-side and client values can only lower trust,
+never raise it — see the Trust boundary section below. Selected fields by
+group:
 
 | Group | Fields (selection) |
 |---|---|
@@ -109,7 +122,7 @@ derived server-side and client values can only lower trust, never raise it
 | Evidence | `evidence_action`, `evidence_confidence`, `evidence_contradictions`, `evidence_supporters`, `evidence_signal_source`, `require_rag` |
 | Risk & action | `risk_tier`, `action_type`, `target_environment`, `rollback_available`, `state_transition_uncertain`, `proposed_tool_name` |
 | Resolution | `missing_required_arguments`, `argument_resolver_tools`, `unvalidated_required_arguments` — required parameters absent from the call and the authoritative tools that could supply them. Non-empty with resolvers available yields VERIFY carrying a `ResolutionPlan`; without them, ABSTAIN |
-| Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected`, `arguments_satisfiable`, `argument_values_supported`, `argument_values_grounded`, `tool_matches_goal`, `untrusted_controlled_arguments` |
+| Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected`, `arguments_satisfiable`, `argument_values_supported`, `argument_values_grounded` (a derived value can ground via a verified `DerivationReceipt`: verbatim source span + whitelisted deterministic transform, re-executed server-side — `remora/toolcall/routing/derivation.py`), `tool_matches_goal`, `untrusted_controlled_arguments` |
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
 | Binding | `tool_call_hash`, SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
