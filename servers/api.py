@@ -92,6 +92,7 @@ try:
     )
     from pydantic import (  # type: ignore[import-not-found]
         BaseModel,
+        ConfigDict,
         Field,
         field_validator,
     )
@@ -872,6 +873,68 @@ def _finalize_envelope_audit(
     return audit_block
 
 
+def _assess_semantic_overlay(
+    *,
+    envelope_payload: dict[str, Any],
+    tool_call: "AssessToolCall",
+    tenant_id: str,
+    question: str,
+) -> dict[str, Any] | None:
+    """SHELF-020 wiring: bind the semantic authority into the assess envelope.
+
+    Runs the SAME authoritative context builder as ``/v1/execution/assess``
+    (``semantic_call_context`` → ``build_full_observation``) for the
+    request's ``tool_call`` and records the computed hashes into the
+    envelope's audit block:
+
+    - ``tool_contract_bundle_hash`` / ``intent_authority_hash``: the
+      deployment-declared bundle and resolved-intent identities. ``None``
+      when not configured/resolved — recorded absence, never ``""``
+      (the envelope contract reserves empty-string as meaningless).
+    - ``tool_args_hash``: upgraded from the question-based preimage to
+      ``canonical_tool_call_hash`` — the same preimage the execution API
+      and ExecutionLease enforce — because with a concrete tool call the
+      stronger binding is available.
+
+    Returns the semantic context for the response, or ``None`` when no
+    bundle is configured. The verdicts are RECORDED on this path; the gate
+    decision itself still comes from the question-based engine pipeline.
+    """
+    from remora.policy.observation import canonical_tool_call_hash
+    from servers.execution_api import TOOL_REGISTRY, semantic_call_context
+
+    registry_entry = TOOL_REGISTRY.get(tool_call.tool_name, {})
+    full, context = semantic_call_context(
+        tool_name=tool_call.tool_name,
+        arguments=tool_call.arguments,
+        tenant=tenant_id,
+        intent_ref=tool_call.intent_ref,
+        untrusted_context=tool_call.untrusted_context,
+        domain=str(registry_entry.get("domain", "unknown")),
+        user_task=question,
+    )
+    if full is None:
+        return None
+    audit_block = (
+        envelope_payload.get("audit") if isinstance(envelope_payload, dict) else None
+    )
+    if isinstance(audit_block, dict):
+        audit_block["tool_contract_bundle_hash"] = (
+            context.get("tool_contract_bundle_hash") or None
+        )
+        audit_block["intent_authority_hash"] = (
+            context.get("intent_authority_hash") or None
+        )
+        target = str(registry_entry.get("target_environment", "prod"))
+        audit_block["tool_args_hash"] = canonical_tool_call_hash(
+            name=tool_call.tool_name,
+            arguments=tool_call.arguments,
+            tenant=tenant_id,
+            target=target,
+        )
+    return context
+
+
 def _resolve_tenant_policy_profile(tenant_id: str, risk_tier: str | None) -> tuple[str, dict[str, Any]]:
     profiles = _RISK_PROFILE_CONFIG.get("profiles", {})
     tenant_profiles = _RISK_PROFILE_CONFIG.get("tenant_profiles", {})
@@ -1015,6 +1078,26 @@ def _enforce_review_approval_role(
 # Request / response models
 # ---------------------------------------------------------------------------
 
+class AssessToolCall(BaseModel):
+    """Optional concrete tool call accompanying an assess question.
+
+    When present and a semantic bundle is configured
+    (``REMORA_SEMANTIC_BUNDLE_MODULE``), the assess path runs the same
+    authoritative context builder as ``/v1/execution/assess`` and records
+    the computed bundle/intent hashes and semantic verdicts into the
+    DecisionEnvelope. ``extra="forbid"``: semantic verdicts
+    (``tool_matches_goal`` etc.) are computed server-side and can never be
+    smuggled in through this block.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    tool_name: str = Field(..., min_length=1, max_length=256)
+    arguments: dict[str, Any] = Field(default_factory=dict)
+    intent_ref: str | None = Field(None, max_length=256)
+    untrusted_context: str | None = Field(None, max_length=16384)
+
+
 class AssessRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=4096)
     context: str | None = Field(None, max_length=16384)
@@ -1022,6 +1105,7 @@ class AssessRequest(BaseModel):
     risk_tier: str | None = Field(None, pattern=r"^(low|medium|high|critical)$")
     action_type: str | None = Field(None, max_length=128)
     target_environment: str | None = Field(None, max_length=128)
+    tool_call: AssessToolCall | None = None
 
     @field_validator("question")
     @classmethod
@@ -1063,6 +1147,12 @@ class AssessResponse(BaseModel):
     envelope: dict
     policy_profile: str
     review_requirements: dict[str, Any]
+    # SHELF-020 wiring: present only when the request carried a tool_call
+    # AND a semantic bundle is configured — the computed bundle/intent
+    # hashes and semantic verdicts (tool_matches_goal etc.). None means
+    # "not run", never "checked and empty". RECORDED for audit; on this
+    # question-based path the gate decision comes from the engine pipeline.
+    semantic: dict[str, Any] | None = None
 
 
 class HealthResponse(BaseModel):
@@ -1650,6 +1740,17 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
         actor_identity=_actor_identity,
     )
 
+    semantic_context = (
+        _assess_semantic_overlay(
+            envelope_payload=envelope_payload,
+            tool_call=req.tool_call,
+            tenant_id=tenant_id,
+            question=req.question,
+        )
+        if req.tool_call is not None
+        else None
+    )
+
     _record_artifacts(
         request_id=request_id,
         tenant_id=tenant_id,
@@ -1716,6 +1817,7 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
         envelope=envelope_payload,
         policy_profile=profile_name,
         review_requirements=review_requirements,
+        semantic=semantic_context,
     )
 
 

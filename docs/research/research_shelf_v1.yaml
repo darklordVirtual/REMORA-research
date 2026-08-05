@@ -426,18 +426,22 @@ components:
       - servers/semantic_bundle_research.py
       - tests/test_shelf020_parity.py
       - tests/test_execution_semantic_wiring.py
+      - tests/test_assess_semantic_wiring.py
       - tests/test_semantic_bundle.py
     remaining: >-
       The wiring is configuration-gated: a deployment without
       REMORA_SEMANTIC_BUNDLE_MODULE still runs the registry-only path, recorded
       as empty hashes. Discrimination through the wired path is UNMEASURED —
       SAP v4 has not run, so no accuracy or wrong-call number may be cited for
-      it. The DecisionEnvelope's AuditBlock now CARRIES tool_contract_bundle_hash
-      and intent_authority_hash (2026-08-04), but nothing populates them: the
-      envelope producer is /v1/assess, which does not run the semantic bundle,
-      while /v1/execution records to the tenant chain and builds no envelope.
-      Wiring /v1/assess through build_full_observation is the follow-up that
-      makes the field live. The executive metadata registry (risk tier, in
+      it. 2026-08-05: the envelope producer gap is closed — /v1/assess accepts
+      an optional tool_call block and runs the SAME builder
+      (semantic_call_context → build_full_observation), recording
+      tool_contract_bundle_hash / intent_authority_hash into the envelope's
+      AuditBlock and upgrading tool_args_hash to the canonical execution
+      preimage (tests/test_assess_semantic_wiring.py). On that question-based
+      path the verdicts are RECORDED for audit; the gate decision still comes
+      from the engine pipeline — decision impact there is a separate,
+      unshipped step. The executive metadata registry (risk tier, in
       TOOL_REGISTRY) is still a declaration separate from the semantic bundle.
 
   # ── Deferred adoptions, kept visible rather than forgotten ─────────────────

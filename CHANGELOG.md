@@ -27,6 +27,31 @@ releases.
 
 ## [Unreleased]
 
+### /v1/assess runs the semantic authority: envelope hashes go live (2026-08-05)
+
+- SHELF-020 follow-up (paper abstract, third finding — mechanism side):
+  `/v1/assess` accepts an optional `tool_call` block
+  (`tool_name`, `arguments`, `intent_ref`, `untrusted_context`;
+  `extra="forbid"` so semantic verdicts can never be smuggled in). With
+  `REMORA_SEMANTIC_BUNDLE_MODULE` configured it runs the SAME authoritative
+  context builder as `/v1/execution/assess` — the new shared
+  `semantic_call_context()` in `servers/execution_api.py`
+  (`build_full_observation` underneath; no endpoint assembles semantic
+  fields by hand) — and records the results into the DecisionEnvelope:
+  `tool_contract_bundle_hash` and `intent_authority_hash` now have a live
+  producer (they were carried-but-never-populated), and `tool_args_hash`
+  upgrades to the canonical execution/lease preimage when a concrete call
+  is present. Response gains a `semantic` block mirroring the execution
+  path; OpenAPI export and generated TS client regenerated.
+- Honesty boundary, stated in code and shelf: on this question-based path
+  the semantic verdicts are RECORDED for audit; the gate decision still
+  comes from the engine pipeline. Decision impact of semantic verdicts on
+  /v1/assess is a separate unshipped step, and discrimination through the
+  wired path remains UNMEASURED until SAP v4 (no numbers cited).
+- Tests: `tests/test_assess_semantic_wiring.py` (computed-hash recording,
+  None-absence without bundle or tool_call, 422 on verdict smuggling,
+  canonical args-hash binding); execution-path parity suite unchanged and
+  green after the refactor.
 ### Cloudflare workflows guard on secret presence instead of failing red (2026-08-05)
 
 - `sync-papers-to-r2.yml` failed hard on its first-ever run (the old
