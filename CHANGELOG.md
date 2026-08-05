@@ -27,6 +27,14 @@ releases.
 
 ## [Unreleased]
 
+### Nonce failures are readable, refusals name the real cause (2026-08-05)
+
+- `NonceLedger` recorded tool-failure reasons write-only; `failure(nonce)`
+  now exposes them, and a retry after a tool that raised refuses with
+  `nonce_consumed_by_failed_execution` (state unknown) instead of posing as
+  a plain replay. The Swagger contract enumerates the refusal-reason sets
+  and names their canonical sources (`lease.py`, `token.py`).
+
 ### Review-queue TTL→ABSTAIN is now reachable in the served API (2026-08-05)
 
 - `ReviewQueue.expire_due()` existed and was tested, but nothing in

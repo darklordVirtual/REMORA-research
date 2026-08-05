@@ -477,7 +477,15 @@ class ToolExecutionResult(BaseModel):
                           "policy_bundle_unavailable, lease_unavailable:*, "
                           "tool_failed_nonce_burned, or a dispatcher/lease "
                           "refusal such as unknown_tool, "
-                          "nonce_already_consumed, policy_bundle_mismatch.")
+                          "nonce_already_consumed, "
+                          "nonce_consumed_by_failed_execution (retry after a "
+                          "tool that raised — state unknown), "
+                          "policy_bundle_mismatch. Canonical reason sets: "
+                          "remora/enforcement/lease.py (lease/dispatcher) and "
+                          "remora/enforcement/token.py (PEP token reasons, "
+                          "surfaced under pep.reason, e.g. token_expired, "
+                          "token_not_yet_valid, observation_hash_mismatch, "
+                          "token_already_consumed).")
     error: str | None = None
     result: Any = Field(
         None, description="Tool return value (deployment-defined shape); "
