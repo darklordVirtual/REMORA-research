@@ -27,6 +27,14 @@ releases.
 
 ## [Unreleased]
 
+### AuditBlock.hash preimage documented per producer (2026-08-05)
+
+- The `hash` field's docstring claimed one preimage; the two live producers
+  compute different ones (server: chained SHA-256 over previous_hash + full
+  envelope JSON; library: unchained state digest with a truncated question
+  preimage — full arguments bound by `tool_args_hash`). The docstring now
+  states both, and that verifiers must key the recompute on the producer.
+
 ### Policy layer: honest field status, unreachable reason removed (2026-08-05)
 
 - Four `PolicyObservation` fields (`majority_support`,

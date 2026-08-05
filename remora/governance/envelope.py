@@ -103,7 +103,17 @@ class AuditBlock:
     Fields
     ------
     policy_version:      Version string from RemoraDecisionEngine.
-    hash:                SHA-256 of canonical safety-relevant request fields.
+    hash:                SHA-256 digest whose PREIMAGE DEPENDS ON THE PRODUCER
+                         (verified 2026-08-05) — the two live producers are
+                         not hash-comparable. Server path
+                         (servers/api.py::_compute_envelope_chain_hash):
+                         SHA-256(previous_hash ‖ full envelope JSON), the
+                         chained form. Library path (remora/reporting.py):
+                         state_hash() over question/iteration/candidate
+                         support — no chaining, and the question preimage
+                         truncates the proposed action to 120 chars (the
+                         full arguments are bound by tool_args_hash instead).
+                         Verifiers must key the recompute on the producer.
     previous_hash:       Prior envelope hash for this tenant (hash-chain linkage).
     signature:           HMAC-SHA256 of hash when REMORA_ENVELOPE_SIGNING_KEY is set.
     schema_version:      Envelope schema version (always "2" for v2 envelopes).
