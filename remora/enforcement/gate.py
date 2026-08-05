@@ -37,6 +37,17 @@ class EnforcementResult:
     strict_mode: bool
 
 
+
+def _scalar(row: "tuple[Any, ...] | None", default: Any) -> Any:
+    """First column of a single-row result, or *default* when there is none.
+
+    COUNT(*) always returns a row, but the type checker cannot know that,
+    and an unguarded subscript here is the same latent defect fixed in
+    tenant_chain.py: an opaque 'NoneType' failure instead of a usable one.
+    """
+    return default if row is None else row[0]
+
+
 class EnforcementGate:
     """Policy Enforcement Point — verifies signed PDP tokens before execution.
 
@@ -76,6 +87,9 @@ class EnforcementGate:
                 conn.execute(
                     "CREATE TABLE IF NOT EXISTS pep_consumed (jti TEXT PRIMARY KEY, consumed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP)"
                 )
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS pep_ledger_watermark (id INTEGER PRIMARY KEY, issued_count BIGINT NOT NULL DEFAULT 0, last_reset_at TIMESTAMP WITH TIME ZONE, last_reset_reason TEXT)"
+                )
                 conn.commit()
         elif self._db_path:
             import sqlite3
@@ -83,7 +97,151 @@ class EnforcementGate:
                 conn.execute(
                     "CREATE TABLE IF NOT EXISTS pep_consumed (jti TEXT PRIMARY KEY, consumed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
                 )
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS pep_ledger_watermark (id INTEGER PRIMARY KEY, issued_count INTEGER NOT NULL DEFAULT 0, last_reset_at TIMESTAMP, last_reset_reason TEXT)"
+                )
                 conn.commit()
+
+    # -- ledger integrity (architect review 2026-08-05) --------------------
+    #
+    # The consumed-grant ledger is what makes a one-time grant one-time. A
+    # deleted row does not fail anything — it silently re-authorizes an
+    # execution that was already spent, which is the quietest failure in
+    # the enforcement path. The audit chain is tamper-evident; moving the
+    # tamper target to the ledger without giving it the same property just
+    # relocates the problem.
+    #
+    # This does not prevent deletion (a database owner always can). It
+    # makes deletion EVIDENT: a durable high-water mark counts grants ever
+    # consumed, and a ledger holding fewer rows than that has lost some.
+    # Legitimate pruning stays possible through an explicit reset, so the
+    # discipline is "operator-authorized", not "impossible".
+
+    def _bump_watermark(self, conn) -> None:
+        """Count one more consumed grant, in the caller's transaction.
+
+        Same statement on both backends: no parameters, so no placeholder
+        dialect difference to carry.
+        """
+        conn.execute(
+            "INSERT INTO pep_ledger_watermark (id, issued_count) "
+            "VALUES (1, 1) ON CONFLICT (id) DO UPDATE SET "
+            "issued_count = pep_ledger_watermark.issued_count + 1"
+        )
+
+    def verify_ledger(self) -> dict[str, Any]:
+        """Report whether the consumed-grant ledger still holds every grant.
+
+        ``intact`` is ``True`` when the row count matches the high-water
+        mark, ``False`` when rows are missing, and ``None`` when there is
+        no durable ledger to verify — ``None`` means *unknown*, never
+        *fine*, because an in-process ledger loses everything on restart
+        and reporting it as intact would be a false comfort.
+        """
+        if self._dsn:
+            import psycopg  # type: ignore
+
+            with psycopg.connect(self._dsn) as conn:
+                rows = _scalar(
+                    conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone(), 0
+                )
+                mark = conn.execute(
+                    "SELECT issued_count, last_reset_reason FROM "
+                    "pep_ledger_watermark WHERE id = 1"
+                ).fetchone()
+        elif self._db_path:
+            import sqlite3
+
+            with sqlite3.connect(self._db_path) as conn:
+                rows = _scalar(
+                    conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone(), 0
+                )
+                mark = conn.execute(
+                    "SELECT issued_count, last_reset_reason FROM "
+                    "pep_ledger_watermark WHERE id = 1"
+                ).fetchone()
+        else:
+            return {
+                "durable": False,
+                "intact": None,
+                "consumed_rows": len(self._consumed),
+                "high_water_mark": None,
+                "last_reset_reason": None,
+                "problems": [
+                    "in-process ledger: consumed grants are lost on restart, "
+                    "so integrity cannot be verified. Set REMORA_PG_DSN or "
+                    "REMORA_CHAIN_DB."
+                ],
+            }
+
+        issued = int(mark[0]) if mark else 0
+        reason = mark[1] if mark else None
+        problems: list[str] = []
+        if rows < issued:
+            problems.append(
+                f"ledger holds {rows} consumed grants but {issued} were "
+                f"consumed: {issued - rows} missing. A deleted grant is "
+                "replayable — investigate before trusting one-time "
+                "authorization, and reset the watermark only if the removal "
+                "was a deliberate, authorized prune."
+            )
+        return {
+            "durable": True,
+            "intact": not problems,
+            "consumed_rows": int(rows),
+            "high_water_mark": issued,
+            "last_reset_reason": reason,
+            "problems": problems,
+        }
+
+    def reset_ledger_watermark(self, *, reason: str) -> None:
+        """Re-baseline the mark after an authorized prune. Reason required.
+
+        Deliberately explicit: an unexplained reset is indistinguishable
+        from covering up a deletion, so the reason is stored alongside the
+        new mark and surfaced by :meth:`verify_ledger`.
+        """
+        if not reason or not reason.strip():
+            raise ValueError("resetting the ledger watermark requires a reason")
+        if self._dsn:
+            import psycopg  # type: ignore
+
+            with psycopg.connect(self._dsn) as conn:
+                count = _scalar(
+                    conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone(), 0
+                )
+                conn.execute(
+                    "INSERT INTO pep_ledger_watermark "
+                    "(id, issued_count, last_reset_at, last_reset_reason) "
+                    "VALUES (1, %s, CURRENT_TIMESTAMP, %s) "
+                    "ON CONFLICT (id) DO UPDATE SET issued_count = EXCLUDED.issued_count, "
+                    "last_reset_at = EXCLUDED.last_reset_at, "
+                    "last_reset_reason = EXCLUDED.last_reset_reason",
+                    (count, reason),
+                )
+                conn.commit()
+        elif self._db_path:
+            import sqlite3
+
+            with sqlite3.connect(self._db_path) as conn:
+                count = _scalar(
+                    conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone(), 0
+                )
+                conn.execute(
+                    "INSERT INTO pep_ledger_watermark "
+                    "(id, issued_count, last_reset_at, last_reset_reason) "
+                    "VALUES (1, ?, CURRENT_TIMESTAMP, ?) "
+                    "ON CONFLICT (id) DO UPDATE SET issued_count = excluded.issued_count, "
+                    "last_reset_at = excluded.last_reset_at, "
+                    "last_reset_reason = excluded.last_reset_reason",
+                    (count, reason),
+                )
+                conn.commit()
+        else:
+            raise RuntimeError(
+                "no durable ledger to re-baseline; the in-process ledger has "
+                "no watermark"
+            )
 
     def check(
         self,
@@ -172,6 +330,7 @@ class EnforcementGate:
                         if allowed and consume:
                             with conn.transaction():
                                 conn.execute("INSERT INTO pep_consumed (jti) VALUES (%s)", (token.jti,))
+                                self._bump_watermark(conn)
                         else:
                             row = conn.execute("SELECT 1 FROM pep_consumed WHERE jti = %s", (token.jti,)).fetchone()
                             if row:
@@ -190,6 +349,7 @@ class EnforcementGate:
                     with sqlite3.connect(self._db_path) as conn:
                         if allowed and consume:
                             conn.execute("INSERT INTO pep_consumed (jti) VALUES (?)", (token.jti,))
+                            self._bump_watermark(conn)
                             conn.commit()
                         else:
                             row = conn.execute("SELECT 1 FROM pep_consumed WHERE jti = ?", (token.jti,)).fetchone()
