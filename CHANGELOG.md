@@ -27,6 +27,32 @@ releases.
 
 ## [Unreleased]
 
+### FT-03: the signed ToolSpec is enforced on the live execution path (2026-08-05)
+
+- With `REMORA_TOOLSPEC_BUNDLE` configured, `/v1/execution/assess`
+  resolves the signed spec and enforces it — target allowlist and
+  argument schema, refused with HTTP 409 whose detail **starts with the
+  published reason code** so a consumer branches on the code rather than
+  parsing prose — records `toolspec_hash` into the audit chain, and
+  returns a `toolspec` identity block. `/execute` re-resolves the spec in
+  force and compares it against the hash the **assessment** recorded,
+  read back from the chain and never taken from the request: a caller
+  that could tell us which spec it was assessed under would make the
+  comparison prove nothing.
+- A redeployed bundle therefore refuses a prior approval with
+  `toolspec_changed_between_assess_and_dispatch` **before** anything is
+  authorized, and the resolved hash and version bind into the
+  `ExecutionLease`.
+- Opt-in by configuration, as PR 1 decided: without a bundle the legacy
+  registry path runs unchanged and the response reports
+  `toolspec.enforced = false`. Recorded degradation, never silent
+  equivalence, and never an upgrade that breaks a running deployment.
+- Found by the durable-mode tests: reading the audit chain **inside** the
+  execute transaction deadlocks against SQLite's `BEGIN EXCLUSIVE` on the
+  same file — the same trap the outbox hit earlier. The lookup now runs
+  before the transaction opens and is keyed on `review_item_id`.
+
+
 ### FT-03: the ToolSpec identity is bound into the execution lease (2026-08-05)
 
 - `ExecutionLease` now carries and **signs** `toolspec_hash` and

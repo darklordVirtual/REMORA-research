@@ -63,6 +63,7 @@ from remora.governance.tenant_chain import TenantAuditChain
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation, canonical_tool_call_hash
 from remora.policy.report import DecisionAction
+from remora.toolcall.toolspec import ToolSpecBundle, ToolSpecRefused
 from remora.toolcall.semantic_bundle import (
     IntentResolver,
     SemanticBundle,
@@ -311,6 +312,115 @@ def reconcile_stale_dispatches(tenant: str, *, now=None) -> list:
     return settled
 
 
+# ── Signed ToolSpec (FT-03) ────────────────────────────────────────────────
+#
+# Opt-in by configuration, exactly as PR 1 decided: with
+# REMORA_TOOLSPEC_BUNDLE set, the signed spec is the authority for
+# arguments, target and callable identity, and its hash binds the whole
+# chain. Without it the legacy registry path runs unchanged and the
+# response RECORDS that enforcement is off — never silently equivalent,
+# and never a trust-on-first-use upgrade that breaks a running deployment.
+
+_TOOLSPECS: "ToolSpecBundle | None" = None
+_TOOLSPECS_SPEC: str | None = None
+
+
+def _toolspec_bundle() -> "ToolSpecBundle | None":
+    """The verified bundle, or None when none is configured.
+
+    Loaded once and cached on the configured path, so a load failure is
+    raised on the first request rather than swallowed at import — a
+    deployment that mis-signs its bundle should find out loudly.
+    """
+    global _TOOLSPECS, _TOOLSPECS_SPEC
+    path = _os.environ.get("REMORA_TOOLSPEC_BUNDLE", "").strip()
+    if _TOOLSPECS_SPEC != path:
+        _TOOLSPECS_SPEC = path
+        if not path:
+            _TOOLSPECS = None
+        else:
+            raw = json.loads(Path(path).read_text(encoding="utf-8"))
+            identities = [
+                i.strip() for i in
+                _os.environ.get("REMORA_TOOLSPEC_TRUSTED_IDENTITIES", "").split(",")
+                if i.strip()
+            ]
+            revoked = [
+                i.strip() for i in
+                _os.environ.get("REMORA_TOOLSPEC_REVOKED_IDENTITIES", "").split(",")
+                if i.strip()
+            ]
+            _TOOLSPECS = ToolSpecBundle.load(
+                raw,
+                key=_os.environ.get("REMORA_TOOLSPEC_SIGNING_KEY", ""),
+                trusted_identities=identities,
+                revoked_identities=revoked,
+                pinned_bundle_digest=(
+                    _os.environ.get("REMORA_TOOLSPEC_PINNED_DIGEST", "").strip()
+                    or None
+                ),
+            )
+    return _TOOLSPECS
+
+
+def _reset_toolspec_bundle() -> None:
+    """Test hook: drop the cached bundle (e.g. after env changes)."""
+    global _TOOLSPECS, _TOOLSPECS_SPEC
+    _TOOLSPECS = None
+    _TOOLSPECS_SPEC = None
+
+
+def _resolve_toolspec(
+    tool_name: str, arguments: dict[str, Any], target_environment: str
+) -> dict[str, Any]:
+    """Enforce the signed spec for one call and return its identity.
+
+    Every refusal is an HTTP 409 whose detail STARTS with the published
+    reason code, so a consumer branches on the code rather than parsing
+    prose. Returns the identity block the response and audit record carry;
+    with no bundle configured it reports enforced=False rather than
+    pretending a spec was checked.
+    """
+    bundle = _toolspec_bundle()
+    if bundle is None:
+        return {"enforced": False, "tool_id": tool_name, "version": 0,
+                "hash": "", "bundle_digest": ""}
+    try:
+        spec = bundle.get(tool_name)
+        bundle.verify_target(tool_name, target_environment)
+        bundle.validate_arguments(tool_name, arguments)
+    except ToolSpecRefused as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {
+        "enforced": True,
+        "tool_id": spec.tool_id,
+        "version": spec.version,
+        "hash": spec.toolspec_hash,
+        "bundle_digest": bundle.bundle_digest,
+    }
+
+
+def _assessed_toolspec(tenant: str, item_id: str) -> str:
+    """The ToolSpec hash recorded at assessment for this review item.
+
+    Read back from the audit chain rather than carried in the request: the
+    caller must not be able to tell us which spec it was assessed under,
+    or the comparison proves nothing.
+
+    Keyed on review_item_id and called BEFORE the execute transaction
+    opens. Reading the chain inside that transaction deadlocks against
+    SQLite's BEGIN EXCLUSIVE on the same database file — the same trap the
+    outbox hit, found again by the durable-mode tests.
+    """
+    if not item_id:
+        return ""
+    for entry in _CHAIN.entries(tenant):
+        payload = entry.payload
+        if payload.get("event") == "assessed" and                 payload.get("review_item_id") == item_id:
+            return str(payload.get("toolspec_hash") or "")
+    return ""
+
+
 def _record_dispatch_intent(
     *,
     proposal_id: str,
@@ -377,6 +487,7 @@ def _auth(request: Request) -> tuple[str, str, str]:
 
 import json
 import dataclasses
+from pathlib import Path
 from uuid import uuid4
 from enum import Enum
 from contextlib import contextmanager
@@ -1079,6 +1190,9 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     # FT-01: mint the canonical proposal identity here — every downstream
     # record, response and grant for this action carries it. Attached to the
     # observation so it survives the durable review queue.
+    toolspec_identity = _resolve_toolspec(
+        req.tool_name, req.arguments, req.target_environment
+    )
     proposal_id = str(uuid4())
     obs = dataclasses.replace(obs, proposal_id=proposal_id)
     report = _ENGINE.decide(obs)
@@ -1098,6 +1212,8 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
         "state_hash": semantic["state_hash"],
         "intent_authority_hash": semantic["intent_authority_hash"],
+        "toolspec_hash": toolspec_identity["hash"],
+        "toolspec_version": toolspec_identity["version"],
     }
     response: dict[str, Any] = {
         "proposal_id": proposal_id,
@@ -1105,6 +1221,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         "reasons": [r.value for r in report.reasons],
         "tool_call_hash": obs.tool_call_hash,
         "semantic": dict(semantic),
+        "toolspec": dict(toolspec_identity),
     }
     # FT-01 conformance: the assess flow's shape must match the declared
     # machine (PROPOSED → ASSESSED → branch) before anything is recorded.
@@ -1332,6 +1449,7 @@ def _dispatch_under_lease(
     semantic: dict[str, Any],
     now: datetime,
     gate_allowed: bool = True,
+    toolspec: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Dispatch one authorized call through the governed dispatcher.
 
@@ -1363,6 +1481,8 @@ def _dispatch_under_lease(
             issued_at=now.isoformat(),
             tool_contract_bundle_hash=semantic["tool_contract_bundle_hash"],
             intent_authority_hash=semantic["intent_authority_hash"],
+            toolspec_hash=(toolspec or {}).get("hash", ""),
+            toolspec_version=int((toolspec or {}).get("version", 0)),
         )
     except (LeaseRefused, ValueError) as exc:
         tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
@@ -1427,6 +1547,15 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
 
     api_mod._require_tenant_capability(role, tenant, "execute")
     reconcile_stale_dispatches(tenant)  # FT-02 lazy sweep (see assess)
+    # FT-03: the spec in force NOW, re-checked against the same call. A
+    # redeployed bundle is caught below by comparing it with the hash the
+    # assessment recorded — an approval granted under one spec must never
+    # execute under another.
+    toolspec_identity = _resolve_toolspec(
+        req.tool_call.tool_name, req.tool_call.arguments,
+        req.tool_call.target_environment,
+    )
+    _assessed_toolspec_hash = _assessed_toolspec(tenant, req.item_id)
     fresh_obs, fresh_semantic = _observation_with_context(req.tool_call, tenant)
     try:
         # Tenant-binding check inside the transaction: _ITEM_TENANT is
@@ -1462,10 +1591,29 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
+    if toolspec_identity["enforced"] and _assessed_toolspec_hash:
+        if toolspec_identity["hash"] != _assessed_toolspec_hash:
+            _CHAIN.append(tenant, {
+                "event": "execution_toolspec_changed",
+                "proposal_id": proposal_id,
+                "actor": principal,
+                "item_id": req.item_id,
+                "assessed_toolspec_hash": _assessed_toolspec_hash,
+                "current_toolspec_hash": toolspec_identity["hash"],
+            })
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "toolspec_changed_between_assess_and_dispatch: the spec "
+                    "in force is not the one this approval was granted under"
+                ),
+            )
+
     response: dict[str, Any] = {
         "proposal_id": proposal_id,
         "outcome": outcome.decision.value,
         "detail": outcome.detail,
+        "toolspec": dict(toolspec_identity),
     }
     if outcome.decision is not ExecutionDecision.EXECUTE:
         # FT-01 conformance: every re-gate refusal is a declared move from
@@ -1538,6 +1686,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         semantic=fresh_semantic,
         now=now,
         gate_allowed=gate_result.allowed,
+        toolspec=toolspec_identity,
     )
 
     # FT-02: settle the dispatch intent with what actually happened. The
