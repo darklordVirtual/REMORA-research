@@ -134,4 +134,12 @@ class LifecycleMachine(RuleBasedStateMachine):
 
 
 TestLifecycleProperties = LifecycleMachine.TestCase
-TestLifecycleProperties.settings = settings(max_examples=200)
+# deadline=None matches every other property suite in this repository
+# (enforcement, outbox, gate replay, policy engine, review queue). A
+# wall-clock deadline makes a property test partly a measurement of the
+# machine it runs on: under full-suite load one example failed here once
+# and never reproduced, and Hypothesis replays saved counterexamples, so
+# that failure was a timing artifact rather than a violated property.
+# Searched validation should fail on what the model does, not on how busy
+# the runner was.
+TestLifecycleProperties.settings = settings(max_examples=200, deadline=None)
