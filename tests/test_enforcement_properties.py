@@ -59,7 +59,9 @@ def test_chain_detects_any_single_entry_tamper(payloads, data) -> None:
         chain.append(TENANT, payload)
     entries = chain.entries(TENANT)
     victim = entries[data.draw(st.integers(0, len(entries) - 1), label="victim")]
-    victim.payload["__tampered__"] = data.draw(_json_values, label="tamper")
+    # Key is longer than the strategy's max key size (12), so it is
+    # guaranteed absent — the mutation can never be a no-op.
+    victim.payload["___tamper_marker___"] = data.draw(_json_values, label="tamper")
     ok, problems = chain.verify(TENANT)
     assert not ok
     assert any("hash_mismatch" in p for p in problems)
@@ -82,7 +84,9 @@ def test_lease_refuses_any_argument_mutation(arguments, data) -> None:
     assert same.verified, same.reason
 
     mutated = dict(arguments)
-    mutated["__extra__"] = data.draw(_json_values, label="extra")
+    # Guaranteed-absent key (longer than the strategy's max key size), so
+    # the mutation always changes the argument set.
+    mutated["___extra_argument___"] = data.draw(_json_values, label="extra")
     diff = lease.verify(
         tool_name="adjust_setpoint", arguments=mutated,
         tenant_id=TENANT, target_environment="prod", now=ISSUED_AT,
