@@ -675,6 +675,23 @@ def test_policy_version_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
     assert payload["runtime_mode"] in {"development", "production"}
 
 
+def test_assess_envelope_adopts_the_proposal_identity(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FT-01 slice 2 (maintainer decision 2026-08-05): the envelope path
+    adopts the canonical proposal identity — /v1/assess returns a
+    proposal_id, and the stored envelope's request identity IS that value,
+    unifying the ID vocabulary with /v1/execution."""
+    api = _load_api_module(monkeypatch, token="test-token")
+    client = TestClient(api.app)
+
+    r = client.post("/v1/assess", json={"question": "Deploy the staging build"},
+                    headers={"Authorization": "Bearer test-token"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body.get("proposal_id"), "assess response carries no proposal_id"
+    assert body["proposal_id"] == body["request_id"]
+    assert body["envelope"]["request"]["request_id"] == body["proposal_id"]
+
+
 def test_policy_hash_covers_canonical_policy_source_set(monkeypatch: pytest.MonkeyPatch) -> None:
     """The API composite must bind to the canonical 7-file policy source set
     (remora/policy/versioning.py), not decision_engine.py alone — otherwise a
