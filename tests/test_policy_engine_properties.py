@@ -1,13 +1,15 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Property-based proof of the decision engine's hard invariants.
+"""Property-based invariant testing of the decision engine's hard guards.
 
-The example suite pins hand-picked cases; these properties assert the
-universal claims over searched observation space: critical risk never
-ACCEPTs no matter how favorable every other signal looks, a production
-target with unknown risk never ACCEPTs, and a detected adversarial pattern
-always ESCALATEs — the documented hard-guard floor no model signal can
-override (proof-depth track, slice 2).
+The example suite pins hand-picked cases; these properties search a
+declared signal domain — seven signal groups, NOT the full
+PolicyObservation surface — for counterexamples: critical risk never
+ACCEPTed, a production target with unknown risk never ACCEPTed, and a
+detected adversarial pattern always ESCALATEd, within the generated
+domain. No counterexample found in the stated example counts; searched
+validation over a declared strategy domain, not formal proof
+(proof-depth track, slice 2).
 """
 from __future__ import annotations
 

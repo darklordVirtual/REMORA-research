@@ -1,13 +1,14 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Property-based proof of the review-queue TTL contract.
+"""Property-based invariant testing of the review-queue TTL contract.
 
 The documented claim (resilience plan, REM-032): an overdue PENDING item
 resolves to ABSTAIN — never auto-accept, never indefinite silent pending.
-These properties assert it universally: for any mix of item TTLs and any
-clock advance, one sweep expires exactly the overdue items, never a
-non-overdue one, and an expired item can never be approved afterwards
-(proof-depth track, slice 3).
+These properties search integer-hour TTL/advance combinations on the
+public in-memory surface — NOT SQLite/Postgres adapters, concurrent
+approvers, or crash boundaries: one sweep expires exactly the overdue
+items, never a non-overdue one, and an expired item is never approvable
+afterwards within the generated domain (proof-depth track, slice 3).
 """
 from __future__ import annotations
 

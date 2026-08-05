@@ -1,12 +1,16 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Property-based proof depth for the enforcement core.
+"""Property-based invariant testing for the enforcement core.
 
-Example-based tests pin hand-picked cases; these properties assert the
-*universal* claims the architecture makes: a tenant chain verifies after any
-sequence of appends and detects any single-entry tamper; a lease refuses any
-argument mutation whatsoever; an expired token never verifies. Hypothesis
-searches the input space instead of trusting our imagination.
+Example-based tests pin hand-picked cases; these properties search a
+DECLARED generated domain for counterexamples to the architecture's claims:
+chain verification across generated append sequences with single-entry
+tampers, lease refusal of the searched argument mutations, token expiry.
+Scope stated honestly: flat dicts of str/int/bool values (max five keys)
+and an additive top-level mutation — nested structures, deletions,
+value edits, floats, None and unicode-normalization equivalences are NOT
+covered. No counterexample found in the stated example counts; this is
+searched validation, not formal proof.
 """
 from __future__ import annotations
 

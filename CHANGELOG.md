@@ -27,42 +27,45 @@ releases.
 
 ## [Unreleased]
 
-### Property-based proof of the PEP one-time-grant contract (2026-08-05)
+### Property-based invariant testing of the PEP one-time-grant contract (2026-08-05)
 
 - Proof-depth slice 4 (`tests/test_gate_replay_properties.py`): a consumed
-  grant refuses every later attempt (any replay count) with
-  `token_already_consumed`, and non-consuming checks never spend the grant —
-  the peek/spend distinction is exact. 50 examples per property, three
-  seeds.
+  grant refused every searched later attempt (replay counts 1–10,
+  in-process) with `token_already_consumed`, and non-consuming checks never
+  spent the grant. No counterexample in 50 examples per property, three
+  seeds. Searched validation over the declared domain — cross-process and
+  durable-ledger paths are not covered here.
 
-### Property-based proof of the review-queue TTL contract (2026-08-05)
+### Property-based invariant testing of the review-queue TTL contract (2026-08-05)
 
-- Proof-depth slice 3 (`tests/test_review_queue_properties.py`): for any mix
-  of item TTLs and any clock advance, one sweep expires exactly the overdue
-  items to `EXPIRED_TO_ABSTAIN` — never a non-overdue one — and an expired
-  item can never be approved afterwards. The "never indefinite silent
-  pending, never auto-accept" claim now has searched-input coverage behind
-  it (60 examples per property, three seeds).
+- Proof-depth slice 3 (`tests/test_review_queue_properties.py`): across
+  searched integer-hour TTL/advance combinations, one sweep expired exactly
+  the overdue items to `EXPIRED_TO_ABSTAIN` — never a non-overdue one — and
+  an expired item was never approvable afterwards. No counterexample in 60
+  examples per property, three seeds; covers the public in-memory surface
+  only (not the durable adapters, concurrency, or crash boundaries).
 
-### Property-based proof of the engine's hard-guard floor (2026-08-05)
+### Property-based invariant testing of the engine's hard-guard floor (2026-08-05)
 
-- Proof-depth slice 2 (`tests/test_policy_engine_properties.py`): the
-  documented hard guards hold universally over searched signal space, not
-  just on curated examples — critical risk never ACCEPTs regardless of how
-  favorable every other signal is, a production target with unknown risk
-  never ACCEPTs, and a detected adversarial pattern always ESCALATEs
-  (100 examples per property, three fixed seeds verified locally).
+- Proof-depth slice 2 (`tests/test_policy_engine_properties.py`): over a
+  declared domain of seven signal groups (not the full PolicyObservation
+  surface), no counterexample was found to the hard guards — critical risk
+  never ACCEPTed, a production target with unknown risk never ACCEPTed, and
+  a detected adversarial pattern always ESCALATEd (100 examples per
+  property, three fixed seeds). Searched validation, not formal proof.
   hypothesis added to the dev extras/lock after the first property push
   revealed it was never installed in CI.
 
-### Property-based proof depth for the enforcement core (2026-08-05)
+### Property-based invariant testing for the enforcement core (2026-08-05)
 
-- New `tests/test_enforcement_properties.py` (Hypothesis) asserts the
-  universal claims the architecture makes rather than hand-picked examples:
-  the tenant chain verifies after any append sequence and detects any
-  single-entry payload tamper; a lease refuses any argument mutation with
-  `tool_args_hash_mismatch`; an expired token never verifies. First slice of
-  the core-component proof-depth track.
+- New `tests/test_enforcement_properties.py` (Hypothesis) searches a
+  declared generated domain (flat str/int/bool dicts, additive top-level
+  mutations) instead of hand-picked examples: the tenant chain verified
+  after every searched append sequence and detected every searched
+  single-entry tamper; a lease refused the searched argument mutations with
+  `tool_args_hash_mismatch`; an expired token never verified. No
+  counterexample found; searched validation, not formal proof. First slice
+  of the core-component proof-depth track.
 
 ### MCP session status emits the documented fields (2026-08-05)
 

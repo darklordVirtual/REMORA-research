@@ -1,11 +1,12 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Property-based proof of the PEP one-time-grant contract.
+"""Property-based invariant testing of the PEP one-time-grant contract.
 
 The documented claim: an ACCEPT token authorizes at most one execution —
-a consumed jti refuses every later attempt, while non-consuming checks
-never spend the grant. These properties assert it for any number of
-attempts, not just the single-replay example (proof-depth track, slice 4).
+a consumed jti refuses later attempts, while non-consuming checks never
+spend the grant. These properties search replay counts 1-10 in-process —
+NOT cross-process or durable-ledger paths. No counterexample found;
+searched validation, not formal proof (proof-depth track, slice 4).
 """
 from __future__ import annotations
 
