@@ -384,6 +384,28 @@ jobs:
           load_decision_envelope_schema()         # packaged schemas/ resolves
           CHECK
 
+          # FT-01/FT-02 DoD: the execution lifecycle and outbox must work
+          # from the installed distribution, including the packaged
+          # lifecycle schema the model loads at runtime.
+          "$PY" - <<CHECK
+          from remora.governance.lifecycle import LifecycleTracker, default_model
+          from remora.enforcement.outbox import ExecutionOutbox, OutboxState
+          model = default_model()
+          assert "DISPATCH_PENDING" in model.states, "packaged schema not loaded"
+          tracker = LifecycleTracker()
+          tracker.apply("engine_decision")
+          tracker.apply("verify_or_escalate")
+          assert tracker.state == "REVIEW_PENDING"
+          outbox = ExecutionOutbox()
+          row = outbox.record_intent(
+              proposal_id="p", tenant_id="t", item_id="i", tool_name="n",
+              tool_call_hash="h" * 64, grant_jti="j",
+          )
+          outbox.claim(row.outbox_id, worker_id="w")
+          outbox.settle(row.outbox_id, OutboxState.SUCCEEDED)
+          assert outbox.get(row.outbox_id).state is OutboxState.SUCCEEDED
+          CHECK
+
           # FT-13: the SDK surface must hold from the installed wheel too —
           # every snapshot-declared public symbol importable, and the client
           # constructible without a server.
