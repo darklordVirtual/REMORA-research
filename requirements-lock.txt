@@ -78,7 +78,7 @@ httpx-sse==0.4.3
 huggingface_hub==1.26.0
 hyperframe==6.1.0
 hypothesis==6.155.7
-idna==3.11
+idna==3.18
 ifcopenshell==0.8.4
 ijson==3.5.0
 importlib_metadata==8.7.1
