@@ -718,12 +718,36 @@ def _deep_merge_dict(base: dict[str, Any], override: dict[str, Any]) -> dict[str
     return merged
 
 
+#: Installed package root. In a checkout this is the repository root; from a
+#: wheel it is site-packages, where `schemas/` is force-included at the same
+#: top-level position (REM-045). Defined HERE rather than further down because
+#: _load_risk_profile_config runs at import and needs it — it used to be
+#: declared after its first use, which is why that loader resolved paths
+#: against the working directory instead.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
 def _load_risk_profile_config() -> dict[str, Any]:
-    cfg_path = Path(os.getenv("REMORA_RISK_PROFILE_PATH", "schemas/risk-profiles.yaml")).resolve()
+    # Package-relative, not CWD-relative. `schemas/` is force-included in the
+    # wheel at the same top-level position it has in a checkout (REM-045), so
+    # _REPO_ROOT resolves it correctly in BOTH install modes — which was the
+    # whole point of shipping it. Resolving "schemas/risk-profiles.yaml"
+    # against the working directory undid that: an editable install run from
+    # the repo root found it by coincidence, and a wheel install running from
+    # anywhere else refused to start in production mode with "risk profile
+    # config file is missing" while the file sat in site-packages.
+    #
+    # Its neighbours (_policy_component_hashes) already used _REPO_ROOT. This
+    # was the one that did not.
+    override = os.getenv("REMORA_RISK_PROFILE_PATH", "").strip()
+    cfg_path = (Path(override).resolve() if override
+                else (_REPO_ROOT / "schemas" / "risk-profiles.yaml").resolve())
     if not cfg_path.exists():
         if _is_production_mode():
             raise RuntimeError(
-                "REMORA API production mode fail-closed: risk profile config file is missing."
+                "REMORA API production mode fail-closed: risk profile config "
+                f"file is missing (looked in {cfg_path}). Set "
+                f"REMORA_RISK_PROFILE_PATH if it lives elsewhere."
             )
         return {}
 
@@ -777,7 +801,6 @@ def _make_retrieval_provider() -> StaticJsonlEvidenceProvider | None:
 
 
 _RETRIEVAL_EVIDENCE_PROVIDER = _make_retrieval_provider()
-_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _sha256_file(path: Path) -> str | None:

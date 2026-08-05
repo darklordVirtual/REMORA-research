@@ -65,6 +65,18 @@ produce three, for two independent reasons.
   surface is now unmounted, not merely unchecked; the served OpenAPI
   document follows. Durable-state prerequisites are never scoped away.
 
+- **Fixed** `_load_risk_profile_config` resolving
+  `schemas/risk-profiles.yaml` against the **working directory** instead of
+  the installed package root. `schemas/` is force-included in the wheel at
+  the same top-level position it has in a checkout (REM-045) precisely so
+  path resolution is identical in both install modes; this loader was the one
+  that did not use `_REPO_ROOT`, so an editable install run from the repo
+  root found the file by coincidence and a wheel install running from
+  anywhere else refused to start in production mode with "risk profile config
+  file is missing" while the file sat unreferenced in site-packages.
+  `_REPO_ROOT` also had to move above its first import-time use — it was
+  declared after it, which is how the CWD-relative version survived. The
+  error message now names the path it looked at.
 - **Fixed** a pinned `target_environment` winning outright, which let a
   declaration *lower* risk: a tool pinned `staging` stayed staging even
   when the call said `prod`. Harmless while only REMORA wrote those pins;
