@@ -27,6 +27,19 @@ releases.
 
 ## [Unreleased]
 
+### FT-02 slice 3: Postgres outbox adapter (multi-worker) (2026-08-05)
+
+- `PostgresExecutionOutbox` completes the adapter set: `SELECT ... FOR
+  UPDATE` inside one transaction gives the same exclusivity contract the
+  tenant chain uses, plus the enlisted path so a multi-worker deployment
+  gets the same authorize-atomicity as single-node. Without it the
+  outbox was SQLite-only, and wiring it into the execution path would
+  have produced a guarantee that silently held on one backend only.
+- 6 DSN-gated contract tests (idempotency per attempt, exclusive claim,
+  terminal absorption, stale→UNKNOWN reconciliation, enlisted
+  commit/rollback), verified locally against a real Postgres 16 service
+  before push — 43/43 in the outbox suite.
+
 ### FT-02 slice 2: the outbox row enlists in the caller's transaction (2026-08-05)
 
 - `SQLiteExecutionOutbox.record_intent_enlisted(conn, ...)` writes the

@@ -342,3 +342,114 @@ def test_memory_outbox_refuses_enlistment_rather_than_faking_it() -> None:
             object(), proposal_id=PROPOSAL, tenant_id="acme", item_id="i",
             tool_name="t", tool_call_hash=CALL_HASH, grant_jti="j",
         )
+
+
+# ── Postgres adapter: contract-tested against a real service ───────────────
+#
+# DSN-gated like the tenant-chain contract tests; the CI job that provides a
+# real Postgres service runs them with a hard no-skip check, so "the
+# multi-worker adapter is unverified" can never quietly become true again.
+
+pg_dsn = pytest.mark.skipif(
+    not __import__("os").environ.get("REMORA_PG_DSN", "").strip(),
+    reason="REMORA_PG_DSN not set (contract test needs a real Postgres)",
+)
+
+
+@pytest.fixture()
+def pg_outbox():
+    import os
+    import uuid as _uuid
+
+    from remora.enforcement.outbox import PostgresExecutionOutbox
+
+    dsn = os.environ["REMORA_PG_DSN"]
+    outbox = PostgresExecutionOutbox(dsn)
+    # Tenant per test: the table is shared, isolation must not be assumed.
+    return outbox, f"acme-{_uuid.uuid4().hex[:8]}"
+
+
+@pg_dsn
+def test_postgres_intent_is_idempotent_per_attempt(pg_outbox) -> None:
+    outbox, tenant = pg_outbox
+    first = _intent(outbox, tenant=tenant)
+    second = _intent(outbox, tenant=tenant)
+    assert second.outbox_id == first.outbox_id
+    assert len(outbox.pending(tenant)) == 1
+    third = _intent(outbox, tenant=tenant, attempt_no=2)
+    assert third.outbox_id != first.outbox_id
+
+
+@pg_dsn
+def test_postgres_claim_is_exclusive(pg_outbox) -> None:
+    outbox, tenant = pg_outbox
+    row = _intent(outbox, tenant=tenant)
+    assert outbox.claim(row.outbox_id, worker_id="a") is not None
+    assert outbox.claim(row.outbox_id, worker_id="b") is None
+    assert outbox.get(row.outbox_id).worker_id == "a"
+
+
+@pg_dsn
+def test_postgres_terminal_states_are_absorbing(pg_outbox) -> None:
+    outbox, tenant = pg_outbox
+    row = _intent(outbox, tenant=tenant)
+    outbox.claim(row.outbox_id, worker_id="a")
+    outbox.settle(row.outbox_id, OutboxState.SUCCEEDED, detail="ok")
+    with pytest.raises(ValueError):
+        outbox.settle(row.outbox_id, OutboxState.FAILED, detail="again")
+    with pytest.raises(ValueError):
+        outbox.claim(row.outbox_id, worker_id="b")
+
+
+@pg_dsn
+def test_postgres_stale_dispatching_reconciles_to_unknown(pg_outbox) -> None:
+    outbox, tenant = pg_outbox
+    row = _intent(outbox, tenant=tenant)
+    outbox.claim(row.outbox_id, worker_id="a",
+                 now=datetime(2026, 1, 1, tzinfo=UTC))
+    stale = outbox.reconcile_stale(
+        tenant, older_than=timedelta(minutes=5),
+        now=datetime(2026, 1, 1, 0, 30, tzinfo=UTC),
+    )
+    assert [r.outbox_id for r in stale] == [row.outbox_id]
+    assert outbox.get(row.outbox_id).state is OutboxState.UNKNOWN
+    assert outbox.pending(tenant) == []
+
+
+@pg_dsn
+def test_postgres_enlisted_intent_rolls_back_with_the_caller(pg_outbox) -> None:
+    """The multi-worker atomicity property: authorization aborts, the
+    dispatch intent goes with it."""
+    import os
+
+    import psycopg
+
+    outbox, tenant = pg_outbox
+    with psycopg.connect(os.environ["REMORA_PG_DSN"]) as conn:
+        # psycopg rolls the block back on Rollback — the idiomatic
+        # equivalent of an authorization that aborts mid-transaction.
+        with conn.transaction():
+            outbox.record_intent_enlisted(
+                conn, proposal_id=PROPOSAL, tenant_id=tenant, item_id="i",
+                tool_name="store_artifact", tool_call_hash=CALL_HASH,
+                grant_jti="j",
+            )
+            raise psycopg.Rollback
+    assert outbox.pending(tenant) == []
+
+
+@pg_dsn
+def test_postgres_enlisted_intent_commits_with_the_caller(pg_outbox) -> None:
+    import os
+
+    import psycopg
+
+    outbox, tenant = pg_outbox
+    with psycopg.connect(os.environ["REMORA_PG_DSN"]) as conn:
+        with conn.transaction():
+            row = outbox.record_intent_enlisted(
+                conn, proposal_id=PROPOSAL, tenant_id=tenant, item_id="i",
+                tool_name="store_artifact", tool_call_hash=CALL_HASH,
+                grant_jti="j",
+            )
+    assert outbox.get(row.outbox_id).state is OutboxState.DISPATCH_PENDING

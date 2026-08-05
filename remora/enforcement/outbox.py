@@ -25,22 +25,20 @@ Resolving an ``UNKNOWN`` is a manual operator decision that produces a
 NEW record (maintainer contract decision 2026-08-05) — it never rewrites
 the terminal state, because the uncertainty genuinely happened.
 
-Two adapters, one contract: :class:`ExecutionOutbox` (in-process
-reference, for tests and development) and
-:class:`SQLiteExecutionOutbox` (durable single-node). A Postgres adapter
-for multi-worker deployments is the next slice; until it exists, a
-multi-worker deployment has no durable outbox and must not claim one.
+Three adapters, one contract: :class:`ExecutionOutbox` (in-process
+reference, for tests and development), :class:`SQLiteExecutionOutbox`
+(durable single-node) and :class:`PostgresExecutionOutbox` (durable
+multi-worker, contract-tested against a real service in CI).
 
 **Realization status:** this module is the store, its state machine, and
-its transactional enlistment path
-(:meth:`SQLiteExecutionOutbox.record_intent_enlisted`, which makes "the
-row is written in the same transaction that authorizes the call" a
-verified property rather than an aspiration). Nothing in
-``servers/execution_api.py`` writes to it yet — that wiring, the dispatch
-worker/reconciler, and the Postgres adapter for multi-worker deployments
-are the remaining FT-02 slices. The fasttrack register remains the status
-authority; no crash-consistency property may be claimed for the live path
-until the wiring lands.
+its transactional enlistment path (``record_intent_enlisted`` on both
+durable adapters, which makes "the row is written in the same transaction
+that authorizes the call" a verified property rather than an aspiration —
+a rollback of the authorization removes the row). Nothing in
+``servers/execution_api.py`` writes to it yet: that wiring and the
+dispatch worker/reconciler are the remaining FT-02 slices. The fasttrack
+register remains the status authority; no crash-consistency property may
+be claimed for the live path until the wiring lands.
 """
 from __future__ import annotations
 
@@ -56,9 +54,40 @@ __all__ = [
     "ExecutionOutbox",
     "OutboxRow",
     "OutboxState",
+    "PostgresExecutionOutbox",
     "SQLiteExecutionOutbox",
     "idempotency_key",
 ]
+
+POSTGRES_DDL = """
+-- FT-02: crash-consistent dispatch intent (multi-worker adapter).
+CREATE TABLE IF NOT EXISTS execution_outbox (
+    outbox_id       TEXT PRIMARY KEY,
+    proposal_id     TEXT NOT NULL,
+    tenant_id       TEXT NOT NULL,
+    item_id         TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    tool_name       TEXT NOT NULL,
+    tool_call_hash  TEXT NOT NULL,
+    grant_jti       TEXT NOT NULL,
+    state           TEXT NOT NULL,
+    attempt_no      INTEGER NOT NULL,
+    created_at      TEXT NOT NULL,
+    worker_id       TEXT,
+    claimed_at      TEXT,
+    settled_at      TEXT,
+    detail          TEXT,
+    UNIQUE (tenant_id, idempotency_key)
+);
+CREATE INDEX IF NOT EXISTS execution_outbox_pending_idx
+    ON execution_outbox (tenant_id, state, created_at);
+"""
+
+_COLUMNS = (
+    "outbox_id", "proposal_id", "tenant_id", "item_id", "idempotency_key",
+    "tool_name", "tool_call_hash", "grant_jti", "state", "attempt_no",
+    "created_at", "worker_id", "claimed_at", "settled_at", "detail",
+)
 
 
 class OutboxState(str, Enum):
@@ -606,3 +635,224 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             )
             record = dict(zip(columns, record))  # type: ignore[assignment]
         return cls._row(record)  # type: ignore[arg-type]
+
+
+class PostgresExecutionOutbox(ExecutionOutbox):
+    """Multi-worker durable outbox.
+
+    Atomicity comes from ``SELECT ... FOR UPDATE`` on the row inside one
+    transaction — the same contract ``PostgresTenantChain`` uses: two
+    workers cannot both claim a row, and a retried authorization cannot
+    insert a second intent (``UNIQUE (tenant_id, idempotency_key)`` is the
+    second line of defense).
+
+    This is the adapter a multi-worker deployment needs; the SQLite one is
+    single-node by construction. Contract-tested against a real Postgres
+    service in CI with a hard no-skip check, so "the multi-worker adapter
+    is unverified" cannot quietly become true.
+    """
+
+    _SELECT = "SELECT " + ", ".join(_COLUMNS) + " FROM execution_outbox"
+
+    def __init__(self, dsn: str) -> None:  # noqa: D107 - see class doc
+        import psycopg  # type: ignore[import-not-found]
+
+        self._psycopg = psycopg
+        self._dsn = dsn
+        with psycopg.connect(dsn) as conn:
+            conn.execute(POSTGRES_DDL)
+            conn.commit()
+
+    @staticmethod
+    def _row_tuple(record: tuple) -> OutboxRow:
+        data = dict(zip(_COLUMNS, record))
+
+        def _dt(value: str | None) -> datetime | None:
+            return datetime.fromisoformat(value) if value else None
+
+        return OutboxRow(
+            outbox_id=data["outbox_id"],
+            proposal_id=data["proposal_id"],
+            tenant_id=data["tenant_id"],
+            item_id=data["item_id"],
+            idempotency_key=data["idempotency_key"],
+            tool_name=data["tool_name"],
+            tool_call_hash=data["tool_call_hash"],
+            grant_jti=data["grant_jti"],
+            state=OutboxState(data["state"]),
+            attempt_no=int(data["attempt_no"]),
+            created_at=_dt(data["created_at"]),  # type: ignore[arg-type]
+            worker_id=data["worker_id"],
+            claimed_at=_dt(data["claimed_at"]),
+            settled_at=_dt(data["settled_at"]),
+            detail=data["detail"],
+        )
+
+    def record_intent(
+        self,
+        *,
+        proposal_id: str,
+        tenant_id: str,
+        item_id: str,
+        tool_name: str,
+        tool_call_hash: str,
+        grant_jti: str,
+        attempt_no: int = 1,
+        now: datetime | None = None,
+    ) -> OutboxRow:
+        with self._psycopg.connect(self._dsn) as conn:
+            with conn.transaction():
+                return self.record_intent_enlisted(
+                    conn,
+                    proposal_id=proposal_id,
+                    tenant_id=tenant_id,
+                    item_id=item_id,
+                    tool_name=tool_name,
+                    tool_call_hash=tool_call_hash,
+                    grant_jti=grant_jti,
+                    attempt_no=attempt_no,
+                    now=now,
+                )
+
+    def record_intent_enlisted(
+        self,
+        connection,  # psycopg.Connection; loose to avoid a hard import
+        *,
+        proposal_id: str,
+        tenant_id: str,
+        item_id: str,
+        tool_name: str,
+        tool_call_hash: str,
+        grant_jti: str,
+        attempt_no: int = 1,
+        now: datetime | None = None,
+    ) -> OutboxRow:
+        """Record the intent inside the caller's open transaction.
+
+        Same guarantee as the SQLite adapter: the row commits with the
+        caller's authorization write and rolls back with it. Issues no
+        transaction-control statement of its own — the caller owns the
+        transaction.
+        """
+        key = idempotency_key(proposal_id, tool_call_hash, attempt_no)
+        found = connection.execute(
+            self._SELECT + " WHERE tenant_id = %s AND idempotency_key = %s",
+            (tenant_id, key),
+        ).fetchone()
+        if found is not None:
+            return self._row_tuple(found)
+        outbox_id = str(uuid.uuid4())
+        created = _now(now)
+        connection.execute(
+            "INSERT INTO execution_outbox (outbox_id, proposal_id, tenant_id, "
+            "item_id, idempotency_key, tool_name, tool_call_hash, grant_jti, "
+            "state, attempt_no, created_at) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            (outbox_id, proposal_id, tenant_id, item_id, key, tool_name,
+             tool_call_hash, grant_jti, OutboxState.DISPATCH_PENDING.value,
+             attempt_no, created.isoformat()),
+        )
+        return OutboxRow(
+            outbox_id=outbox_id,
+            proposal_id=proposal_id,
+            tenant_id=tenant_id,
+            item_id=item_id,
+            idempotency_key=key,
+            tool_name=tool_name,
+            tool_call_hash=tool_call_hash,
+            grant_jti=grant_jti,
+            state=OutboxState.DISPATCH_PENDING,
+            attempt_no=attempt_no,
+            created_at=created,
+        )
+
+    def claim(
+        self, outbox_id: str, *, worker_id: str, now: datetime | None = None
+    ) -> OutboxRow | None:
+        with self._psycopg.connect(self._dsn) as conn:
+            with conn.transaction():
+                record = conn.execute(
+                    self._SELECT + " WHERE outbox_id = %s FOR UPDATE",
+                    (outbox_id,),
+                ).fetchone()
+                if record is None:
+                    raise KeyError("unknown outbox row: " + outbox_id)
+                row = self._row_tuple(record)
+                _check_claimable(row)
+                if row.state is not OutboxState.DISPATCH_PENDING:
+                    return None
+                conn.execute(
+                    "UPDATE execution_outbox SET state = %s, worker_id = %s, "
+                    "claimed_at = %s WHERE outbox_id = %s",
+                    (OutboxState.DISPATCHING.value, worker_id,
+                     _now(now).isoformat(), outbox_id),
+                )
+        return self.get(outbox_id)
+
+    def settle(
+        self,
+        outbox_id: str,
+        state: OutboxState,
+        *,
+        detail: str | None = None,
+        now: datetime | None = None,
+    ) -> OutboxRow:
+        with self._psycopg.connect(self._dsn) as conn:
+            with conn.transaction():
+                record = conn.execute(
+                    self._SELECT + " WHERE outbox_id = %s FOR UPDATE",
+                    (outbox_id,),
+                ).fetchone()
+                if record is None:
+                    raise KeyError("unknown outbox row: " + outbox_id)
+                _check_settleable(self._row_tuple(record), state)
+                conn.execute(
+                    "UPDATE execution_outbox SET state = %s, detail = %s, "
+                    "settled_at = %s WHERE outbox_id = %s",
+                    (state.value, detail, _now(now).isoformat(), outbox_id),
+                )
+        return self.get(outbox_id)
+
+    def reconcile_stale(
+        self,
+        tenant_id: str,
+        *,
+        older_than: timedelta,
+        now: datetime | None = None,
+    ) -> list[OutboxRow]:
+        moment = _now(now)
+        cutoff = moment - older_than
+        with self._psycopg.connect(self._dsn) as conn:
+            records = conn.execute(
+                self._SELECT + " WHERE tenant_id = %s AND state = %s",
+                (tenant_id, OutboxState.DISPATCHING.value),
+            ).fetchall()
+        out: list[OutboxRow] = []
+        for record in records:
+            row = self._row_tuple(record)
+            if row.claimed_at is not None and row.claimed_at > cutoff:
+                continue
+            out.append(self.settle(
+                row.outbox_id, OutboxState.UNKNOWN,
+                detail="reconciler: dispatch outcome undeterminable",
+                now=moment,
+            ))
+        return out
+
+    def get(self, outbox_id: str) -> OutboxRow:
+        with self._psycopg.connect(self._dsn) as conn:
+            record = conn.execute(
+                self._SELECT + " WHERE outbox_id = %s", (outbox_id,)
+            ).fetchone()
+        if record is None:
+            raise KeyError("unknown outbox row: " + outbox_id)
+        return self._row_tuple(record)
+
+    def pending(self, tenant_id: str) -> list[OutboxRow]:
+        with self._psycopg.connect(self._dsn) as conn:
+            records = conn.execute(
+                self._SELECT + " WHERE tenant_id = %s AND state = %s "
+                "ORDER BY created_at",
+                (tenant_id, OutboxState.DISPATCH_PENDING.value),
+            ).fetchall()
+        return [self._row_tuple(r) for r in records]
