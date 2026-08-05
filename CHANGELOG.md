@@ -27,6 +27,20 @@ releases.
 
 ## [Unreleased]
 
+### FT-01/FT-02: clean-install wheel coverage closes the DoD (2026-08-05)
+
+- The wheel-contract CI job now exercises the lifecycle model and the
+  outbox from the **installed distribution** — including the packaged
+  `execution_lifecycle_v1.yaml` the model loads at runtime, which is the
+  part a checkout-only test would never catch. Verified locally against a
+  built wheel in a clean venv before push.
+- With that, all ten DoD criteria hold for both fasttrack items. Both
+  stay `IN_PROGRESS` deliberately: DoD completion is not scope
+  completion, and the open scope (direct-ACCEPT dispatch #36,
+  EffectBlock #37, reconciler daemon, artifact-producing fault-injection
+  round) is recorded in the register.
+
+
 ### FT-01/FT-02 DoD: docs, example and stability classification (2026-08-05)
 
 - New `docs/execution-lifecycle.md` (DOC-302, indexed): the contract for
