@@ -51,6 +51,10 @@ from remora.enforcement.outbox import (
     PostgresExecutionOutbox,
     SQLiteExecutionOutbox,
 )
+from remora.governance.effect_verification import (
+    EffectStatus,
+    EffectVerification,
+)
 from remora.governance.lifecycle import (
     IllegalTransition,
     check_transition,
@@ -2019,7 +2023,8 @@ def _dispatch_projection(tenant: str, proposal_id: str) -> dict[str, Any] | None
     }
 
 
-def record_effect_verification(tenant: str, verification: Any) -> dict[str, Any]:
+def record_effect_verification(tenant: str, verification: Any, *,
+                               submitted_by: str = "") -> dict[str, Any]:
     """Append one effect verification to the tenant audit chain.
 
     Appends; never edits the execution record it verifies. A verifier that
@@ -2035,7 +2040,10 @@ def record_effect_verification(tenant: str, verification: Any) -> dict[str, Any]
     record = verification.to_dict()
     entry = _CHAIN.append(tenant, {
         "event": "effect_verified",
-        "actor": "effect_verifier",
+        # Who OBSERVED is the verifier identity inside the record; this is
+        # who submitted it. Keeping them separate matters when a record
+        # arrives over the API: an auditor needs both.
+        "actor": submitted_by or "effect_verifier",
         **record,
     })
     return {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
@@ -2145,6 +2153,80 @@ def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
         "event_count": len(events),
         "dispatch": dispatch,
         "effect": _effect_projection(events),
+    }
+
+
+class EffectVerificationRequest(BaseModel):
+    """A verification observed by the deployment, submitted for recording.
+
+    Verification runs where the credentials are, which is the product's
+    process — REMORA never reaches into a customer's system of record to
+    check on it. What crosses back is this record, and the chain stores it
+    as an **attestation by a named verifier**, not as an independent proof
+    by REMORA. ``verifier_identity`` is therefore mandatory: an
+    attestation nobody signed is not evidence, because an auditor could
+    not tell who claimed to have looked.
+    """
+
+    execution_id: str = Field(..., min_length=1, max_length=200)
+    tool_id: str = Field(..., min_length=1, max_length=200)
+    toolspec_hash: str = Field("", max_length=128)
+    status: EffectStatus
+    reason_code: str = Field(..., min_length=1, max_length=100)
+    verifier_identity: str = Field(..., min_length=1, max_length=200)
+    expected_sha256: str = Field("", max_length=64)
+    observed_sha256: str = Field("", max_length=64)
+    verified_at: str = Field("", max_length=64)
+    detail: str = Field("", max_length=2000)
+
+
+@router.post("/proposals/{proposal_id}/effect", responses={
+    200: {"description": "The verification was appended to the audit chain."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "No such proposal for this tenant."},
+})
+def record_effect(proposal_id: str, req: EffectVerificationRequest,
+                  request: Request) -> dict[str, Any]:
+    """Append one effect verification to this proposal's trail.
+
+    The verdict is recorded exactly as reported, including a mismatch. A
+    product reporting one is reporting bad news about itself, and an
+    overlay that softened those would be worse than not having one.
+
+    What is refused is anything that would make the record unreadable
+    later: an unknown proposal, another tenant's proposal (a 404, never a
+    redacted 200 that leaks its existence), a status outside the published
+    five, and a record that does not say who observed it.
+    """
+    tenant, role, principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "execute")
+    if not _proposal_events(tenant, proposal_id):
+        raise HTTPException(status_code=404, detail="proposal not found")
+
+    verification = EffectVerification(
+        proposal_id=proposal_id,
+        execution_id=req.execution_id,
+        tool_id=req.tool_id,
+        toolspec_hash=req.toolspec_hash,
+        status=req.status,
+        reason_code=req.reason_code,
+        verifier_identity=req.verifier_identity,
+        expected={}, observed={},
+        expected_sha256=req.expected_sha256,
+        observed_sha256=req.observed_sha256,
+        verified_at=req.verified_at or datetime.now(UTC).isoformat(),
+        detail=req.detail,
+    )
+    audit = record_effect_verification(tenant, verification,
+                                       submitted_by=principal)
+    return {
+        "proposal_id": proposal_id,
+        "status": req.status.value,
+        "reason_code": req.reason_code,
+        "verifier_identity": req.verifier_identity,
+        "audit": audit,
     }
 
 

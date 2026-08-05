@@ -38,6 +38,7 @@ from remora.sdk.errors import (
     ReplayRefusedError,
     ServerError,
 )
+from remora.sdk.effects import EffectVerificationView
 from remora.sdk.models import (
     ApprovalResult,
     AssessmentResult,
@@ -202,6 +203,26 @@ class RemoraClient:
             "tool_call": tool_call.to_payload(),
         })
         return ExecutionResult.from_payload(payload)
+
+    def record_effect(self, proposal_id: str,
+                      verification: "EffectVerificationView") -> "EffectVerificationView":
+        """Hand a verification you performed back to REMORA for recording.
+
+        Verification runs in YOUR process because the reader holds the
+        credentials; REMORA never reaches into your system of record. The
+        chain therefore stores this as an attestation by the verifier
+        named in the record, and only its hashes cross the boundary — the
+        observed values stay with you.
+
+        Recorded exactly as reported, mismatches included.
+        """
+        payload = self._request(
+            "POST", f"/v1/execution/proposals/{proposal_id}/effect",
+            json=verification.to_dict(),
+        )
+        return EffectVerificationView.from_payload(
+            {**verification.to_dict(), **payload}
+        )
 
     def get_proposal(self, proposal_id: str) -> ProposalView:
         """The decision and current state of one proposal."""

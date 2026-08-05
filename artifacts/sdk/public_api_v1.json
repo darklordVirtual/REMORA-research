@@ -13,10 +13,13 @@
     "ConflictError": "exception",
     "DecisionAction": "class",
     "DerivationProposal": "class",
+    "EffectStatus": "class",
+    "EffectVerificationView": "class",
     "ExecutionResult": "class",
     "InvalidRequestError": "exception",
     "LifecycleTrail": "class",
     "NotFoundError": "exception",
+    "PostconditionSpec": "class",
     "ProposalView": "class",
     "RateLimitedError": "exception",
     "RejectionResult": "class",
@@ -28,7 +31,11 @@
     "SemanticAssessment": "class",
     "ServerError": "exception",
     "ToolCall": "class",
-    "UnknownExecutionStateError": "exception"
+    "ToolSpecIdentity": "class",
+    "UnknownExecutionStateError": "exception",
+    "build_postcondition": "function",
+    "content_digest": "function",
+    "verify_effect": "function"
   },
   "version": 1
 }

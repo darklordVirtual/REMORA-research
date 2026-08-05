@@ -331,6 +331,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/proposals/{proposal_id}/effect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Effect
+         * @description Append one effect verification to this proposal's trail.
+         *
+         *     The verdict is recorded exactly as reported, including a mismatch. A
+         *     product reporting one is reporting bad news about itself, and an
+         *     overlay that softened those would be worse than not having one.
+         *
+         *     What is refused is anything that would make the record unreadable
+         *     later: an unknown proposal, another tenant's proposal (a 404, never a
+         *     redacted 200 that leaks its existence), a status outside the published
+         *     five, and a record that does not say who observed it.
+         */
+        post: operations["record_effect_v1_execution_proposals__proposal_id__effect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/execution/proposals/{proposal_id}/evidence": {
         parameters: {
             query?: never;
@@ -658,6 +687,61 @@ export interface components {
             transform: string;
             /** Value */
             value?: unknown;
+        };
+        /**
+         * EffectStatus
+         * @description Five outcomes. Collapsing any pair loses a distinction an operator
+         *     needs in order to choose what to do next.
+         * @enum {string}
+         */
+        EffectStatus: "EFFECT_VERIFIED" | "EFFECT_MISMATCH" | "EFFECT_UNOBSERVABLE" | "EFFECT_VERIFIER_FAILED" | "EFFECT_UNSUPPORTED";
+        /**
+         * EffectVerificationRequest
+         * @description A verification observed by the deployment, submitted for recording.
+         *
+         *     Verification runs where the credentials are, which is the product's
+         *     process — REMORA never reaches into a customer's system of record to
+         *     check on it. What crosses back is this record, and the chain stores it
+         *     as an **attestation by a named verifier**, not as an independent proof
+         *     by REMORA. ``verifier_identity`` is therefore mandatory: an
+         *     attestation nobody signed is not evidence, because an auditor could
+         *     not tell who claimed to have looked.
+         */
+        EffectVerificationRequest: {
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /** Execution Id */
+            execution_id: string;
+            /**
+             * Expected Sha256
+             * @default
+             */
+            expected_sha256: string;
+            /**
+             * Observed Sha256
+             * @default
+             */
+            observed_sha256: string;
+            /** Reason Code */
+            reason_code: string;
+            status: components["schemas"]["EffectStatus"];
+            /** Tool Id */
+            tool_id: string;
+            /**
+             * Toolspec Hash
+             * @default
+             */
+            toolspec_hash: string;
+            /**
+             * Verified At
+             * @default
+             */
+            verified_at: string;
+            /** Verifier Identity */
+            verifier_identity: string;
         };
         /** ErrorDetail */
         ErrorDetail: {
@@ -1553,6 +1637,70 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description The decision and where the proposal stands. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description No such proposal for this tenant. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_effect_v1_execution_proposals__proposal_id__effect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EffectVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description The verification was appended to the audit chain. */
             200: {
                 headers: {
                     [name: string]: unknown;

@@ -23,6 +23,7 @@ from typing import Any, Mapping
 
 
 from remora.policy.report import DecisionAction
+from remora.sdk.effects import EffectVerificationView
 
 
 def _frozen(payload: Any) -> Mapping[str, Any] | None:
@@ -45,7 +46,37 @@ __all__ = [
     "ResolutionPlan",
     "SemanticAssessment",
     "ToolCall",
+    "ToolSpecIdentity",
 ]
+
+
+@dataclass(frozen=True)
+class ToolSpecIdentity:
+    """Which signed ToolSpec authorized an action.
+
+    ``enforced`` is not decoration. A deployment running without signed
+    specs is not silently equivalent to one running with them, and a
+    consumer must be able to SEE which mode produced a decision rather
+    than infer it from an empty hash.
+    """
+
+    tool_id: str
+    version: int
+    hash: str
+    enforced: bool
+
+    @classmethod
+    def from_payload(
+        cls, payload: Mapping[str, Any] | None
+    ) -> "ToolSpecIdentity | None":
+        if not payload:
+            return None
+        return cls(
+            tool_id=str(payload.get("tool_id", "")),
+            version=int(payload.get("version", 0)),
+            hash=str(payload.get("hash", "")),
+            enforced=bool(payload.get("enforced", False)),
+        )
 
 
 @dataclass(frozen=True)
@@ -257,6 +288,7 @@ class AssessmentResult:
     execution_token: Mapping[str, Any] | None = None
     review_item_id: str | None = None
     resolution_plan: "ResolutionPlan | None" = None
+    toolspec: ToolSpecIdentity | None = None
     raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
 
     @classmethod
@@ -274,6 +306,7 @@ class AssessmentResult:
                 ResolutionPlan.from_payload(payload["resolution_plan"])
                 if payload.get("resolution_plan") else None
             ),
+            toolspec=ToolSpecIdentity.from_payload(payload.get("toolspec")),
             raw=_frozen(payload) or MappingProxyType({}),
         )
 
@@ -320,6 +353,7 @@ class ExecutionResult:
     execution_grant: Mapping[str, Any] | None = None
     pep: Mapping[str, Any] | None = None
     tool_execution: Mapping[str, Any] | None = None
+    toolspec: ToolSpecIdentity | None = None
     raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
 
     @classmethod
@@ -332,6 +366,7 @@ class ExecutionResult:
             execution_grant=_frozen(payload.get("execution_grant")),
             pep=_frozen(payload.get("pep")),
             tool_execution=_frozen(payload.get("tool_execution")),
+            toolspec=ToolSpecIdentity.from_payload(payload.get("toolspec")),
             raw=_frozen(payload) or MappingProxyType({}),
         )
 
@@ -354,6 +389,9 @@ class ProposalView:
     reasons: tuple[str, ...] = ()
     review_item_id: str | None = None
     dispatch: Mapping[str, Any] | None = None
+    #: The latest effect verification, or None when nothing has been
+    #: verified. Absence must never read as a passing verdict.
+    effect: EffectVerificationView | None = None
     raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
 
     @classmethod
@@ -368,6 +406,10 @@ class ProposalView:
             reasons=tuple(str(r) for r in payload.get("reasons", ())),
             review_item_id=payload.get("review_item_id"),
             dispatch=_frozen(payload.get("dispatch")),
+            effect=(
+                EffectVerificationView.from_payload(payload["effect"])
+                if (payload.get("effect") or {}).get("status") else None
+            ),
             raw=_frozen(payload) or MappingProxyType({}),
         )
 
