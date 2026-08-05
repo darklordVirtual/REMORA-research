@@ -27,6 +27,31 @@ releases.
 
 ## [Unreleased]
 
+### DerivationReceipt: derived argument values become machine-verifiable (2026-08-05)
+
+- NEGATIVE_RESULTS theme 3 (§35), mechanism side: new
+  `remora/toolcall/routing/derivation.py` — a `DerivationReceipt` declares
+  WHERE a derived value came from (source span, must occur verbatim in the
+  task text) and HOW (a transform from the versioned v1 whitelist: English
+  dates → ISO via an internal locale-independent month table, number
+  normalization, exact unit conversions, case transforms). Verification
+  re-executes the transform server-side and compares exactly; a model may
+  PROPOSE a receipt, only deterministic re-execution accepts it.
+  Fail-closed: unknown transform, foreign span, or output mismatch rejects
+  the receipt, and rejection only leaves the value ungrounded. Arithmetic
+  and ambiguous conversions (gb→mb) are deliberately excluded as
+  receipt-craftable/guessy.
+- `values_grounded` accepts receipts (a verified receipt grounds AND
+  anchors); `RoutingEpisode` gains observable `proposed_derivations`
+  (proposals leak no ground truth), threaded through
+  `build_full_observation` with malformed proposals dropped, not raised.
+- Honesty boundary: mechanism only — the effect on the §35 autonomy loss
+  (86.1% → 56.8%) is UNMEASURED until a new sealed round (theme 2); no
+  number is cited. Server-path threading (AssessToolCall/ToolCallRequest
+  carrying receipts) is a queued slice.
+- 14 new tests (`tests/test_derivation_receipt.py`); NEGATIVE_RESULTS
+  backlog and open-table updated with the mechanism-exists note.
+
 ### /v1/assess runs the semantic authority: envelope hashes go live (2026-08-05)
 
 - SHELF-020 follow-up (paper abstract, third finding — mechanism side):

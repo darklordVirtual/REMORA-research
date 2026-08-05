@@ -40,6 +40,7 @@ OBSERVABLE_FIELDS: frozenset[str] = frozenset(
         "proposed_tool_name",
         "proposed_tool_args",
         "args_statically_unavailable",
+        "proposed_derivations",
     }
 )
 
@@ -68,6 +69,12 @@ class RoutingEpisode:
     #: (AgentDojo computes them at runtime). Observable so the limitation is
     #: visible in the data, not only in the design document.
     args_statically_unavailable: bool = False
+    #: Proposed derivation receipts (theme 3): JSON-shaped dicts with
+    #: argument/value/transform/source_span[/params]. Observable — they are
+    #: agent PROPOSALS; only deterministic re-execution in
+    #: derivation.verify_receipt can accept one, so carrying them here leaks
+    #: no ground truth.
+    proposed_derivations: tuple[dict[str, Any], ...] = ()
 
     # Sealed ground truth
     predicates: NativePredicates | None = None
@@ -105,6 +112,7 @@ class RoutingEpisode:
             "proposed_tool_name": self.proposed_tool_name,
             "proposed_tool_args": dict(self.proposed_tool_args),
             "args_statically_unavailable": self.args_statically_unavailable,
+            "proposed_derivations": [dict(r) for r in self.proposed_derivations],
         }
 
     def to_json_dict(self) -> dict[str, Any]:
@@ -120,6 +128,7 @@ class RoutingEpisode:
             "proposed_tool_args": dict(self.proposed_tool_args),
             "domain": self.domain,
             "args_statically_unavailable": self.args_statically_unavailable,
+            "proposed_derivations": [dict(r) for r in self.proposed_derivations],
             "predicates": self.predicates.to_json_dict() if self.predicates else None,
             "route": self.route.value if self.route else None,
             "route_table_version": self.route_table_version,
@@ -146,6 +155,9 @@ class RoutingEpisode:
             proposed_tool_args=dict(d["proposed_tool_args"]),
             domain=d["domain"],
             args_statically_unavailable=d.get("args_statically_unavailable", False),
+            proposed_derivations=tuple(
+                dict(r) for r in d.get("proposed_derivations", ())
+            ),
             predicates=(
                 NativePredicates.from_json_dict(d["predicates"])
                 if d.get("predicates")

@@ -49,9 +49,16 @@ cites only `open` sections and that no `open` section is missing a theme.
    where every value is grounded and the effect is still wrong.
 3. **Legitimate autonomy lost to derived values** (§35) — grounding cost
    read autonomy 86.1% → 56.8%, mostly dates, unit conversions and computed
-   values that are correct but not literally in the user's text. Needs a
-   machine-verifiable `DerivationReceipt` over whitelisted deterministic
-   transforms. A model's explanation is not a derivation proof.
+   values that are correct but not literally in the user's text. **The
+   mechanism now exists** (`derivation.py`, 2026-08-05: `DerivationReceipt`
+   over a versioned whitelist of deterministic transforms — English dates,
+   number normalization, exact unit conversions; verification re-executes
+   the transform against a source span that must be verbatim in the task
+   text, so a model may propose but never accept a receipt, and arithmetic
+   is deliberately excluded as receipt-craftable). A model's explanation is
+   still not a derivation proof — that is the design. Its effect on the
+   §35 autonomy loss is unmeasured; measuring it requires theme 2's sealed
+   set, so this theme stays open on the measurement.
 4. **Contextual harm across a trajectory** (§2, §8) — 30.7% false accepts under
    neutral metadata is residual harm that is not visible in any single call.
    Another per-call classifier cannot close it; it needs governance over the
@@ -2187,7 +2194,7 @@ sections again.
 | Well-formed wrong calls pass structural gates (§34) | Blind: 86.8% of substituted-but-valid calls accepted. Mitigated on development by value grounding (§35), 11.6%; 30/258 still pass on coincidental value overlap. Needs task–tool semantic compatibility, not tuning | **High** |
 | Grounding is development-measured only (§35) | 86.8% → 11.6% and the 86.1% → 56.8% autonomy cost are both re-measurements on a spent set. Needs a new sealed track | **High** |
 | Semantic binding gap: span-existence ≠ span-entailment (§36) | Code-fixed 2026-08-04 (`action_spans` + `EFFECT_VOCABULARY` v1 + negation/conditionality detection, 7 pinning tests). Effect on §34 residue unmeasured pending new sealed track | **High** |
-| Derived values lose legitimate autonomy (§35) | Dates, unit conversions and computed values are correct but not literal, so they route VERIFY. Needs a verifiable `DerivationReceipt` over deterministic transforms | Medium |
+| Derived values lose legitimate autonomy (§35) | Mechanism code-fixed 2026-08-05 (`DerivationReceipt`, versioned deterministic-transform whitelist, verbatim source spans, re-execution verify, 14 pinning tests). Effect on the autonomy loss unmeasured pending new sealed track | Medium |
 | Contextual harm invisible in a single call (§2, §8) | FA=30.7% under neutral metadata; semantic enrichment cut it but the residual needs trajectory-level governance, not another per-call classifier | **High** |
 | Entropy backend is a token fingerprint, not Semantic Entropy (§3) | NLI backend executes and disagrees on 12/24 of the smoke corpus; full benchmark parity unmeasured. Solvable now | Medium |
 | Production validator quality unmeasured (§33) | Mechanism recovers read utility 0% → 100%, but the study validator is correct by construction. Real validators need their own contracts | Medium |
