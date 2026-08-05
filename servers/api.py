@@ -1047,6 +1047,10 @@ class PolicyDecision(BaseModel):
 
 class AssessResponse(BaseModel):
     request_id: str
+    # FT-01: the canonical proposal identity; equals request_id on this path
+    # (the envelope adopts it) — present so both API families speak one ID
+    # vocabulary.
+    proposal_id: str
     question_hash: str
     elapsed_ms: float
     policy_decision: PolicyDecision
@@ -1618,11 +1622,15 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
     last = traj[-1] if traj else {}
 
     q_hash = hashlib.sha256(req.question.encode()).hexdigest()[:16]
-    # uuid4 suffix, never a time-derived one: the previous monotonic-ms
-    # modulo suffix repeated every ~16.7 minutes, so an identical question
-    # could collide and interleave evidence/review/audit records under one
-    # request_id (external review 2026-07-24, F-08).
-    request_id = f"{q_hash}-{uuid.uuid4().hex}"
+    # FT-01 slice 2 (maintainer decision 2026-08-05): the envelope path
+    # adopts the canonical proposal identity. One uuid4 minted here is BOTH
+    # the proposal_id and the request_id, unifying the ID vocabulary with
+    # /v1/execution. The former q_hash prefix was informational only —
+    # nothing parses request_id (verified), and the question hash is still
+    # returned separately as question_hash. uuid4, never time-derived
+    # (external review 2026-07-24, F-08: time-derived suffixes collided).
+    proposal_id = str(uuid.uuid4())
+    request_id = proposal_id
     env = report.get("envelope")
     if env is not None and hasattr(env, "to_dict"):
         envelope_payload = env.to_dict()
@@ -1677,6 +1685,7 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse:
 
     return AssessResponse(
         request_id=request_id,
+        proposal_id=proposal_id,
         question_hash=q_hash,
         elapsed_ms=elapsed_ms,
         policy_decision=PolicyDecision(
