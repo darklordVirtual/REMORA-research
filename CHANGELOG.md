@@ -27,6 +27,15 @@ releases.
 
 ## [Unreleased]
 
+### CI: the Postgres job now covers the outbox contract too (2026-08-05)
+
+- The real-service Postgres job ran only `test_execution_api.py -k
+  postgres`, so the outbox adapter's DSN-gated contract tests would have
+  skipped in CI while looking covered. The job's selection now includes
+  `test_execution_outbox.py`; the existing hard no-skip check applies to
+  both. Verified by running the exact CI command against a local
+  Postgres 16: 8 passed, 0 skipped.
+
 ### FT-02 slice 3: Postgres outbox adapter (multi-worker) (2026-08-05)
 
 - `PostgresExecutionOutbox` completes the adapter set: `SELECT ... FOR
