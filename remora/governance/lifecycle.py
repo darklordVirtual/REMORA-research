@@ -112,3 +112,37 @@ class LifecycleTracker:
         self.trail = self.trail + ((self.state, event, nxt),)
         self.state = nxt
         return nxt
+
+
+# ── Runtime conformance (FT-01 slice 4) ─────────────────────────────────────
+
+#: ReviewQueue ItemStatus value -> lifecycle state. The model collapses
+#: human approval and post-re-gate authorization into AUTHORIZED; the two
+#: dispatch-refusal terminals map onto the model's terminals.
+ITEM_STATUS_STATE: dict[str, str] = {
+    "pending": "REVIEW_PENDING",
+    "approved": "AUTHORIZED",
+    "expired_to_abstain": "EXPIRED_TO_ABSTAIN",
+    "authorized": "AUTHORIZED",
+    "executed": "SUCCEEDED",
+    "dispatch_refused": "REFUSED",
+    "dispatch_failed": "FAILED",
+}
+
+
+def check_transition(state: str, event: str) -> str:
+    """Validate one runtime transition against the declared model.
+
+    Returns the destination state, or raises :class:`IllegalTransition`.
+    Used by /v1/execution as defense-in-depth: the queue's own guards stay
+    the primary refusal path; this catches drift between the declared
+    machine and what the endpoints actually do.
+    """
+    model = default_model()
+    nxt = model.transitions.get((state, event))
+    if nxt is None:
+        raise IllegalTransition(
+            f"runtime performed {event!r} from {state!r}, which lifecycle "
+            f"v{model.version} does not declare"
+        )
+    return nxt
