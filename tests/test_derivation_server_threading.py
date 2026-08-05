@@ -171,3 +171,21 @@ def test_assess_tool_call_rejects_smuggled_verdict_in_receipt(client):
         },
     })
     assert r.status_code == 422
+
+
+def test_sdk_tool_call_carries_receipts_end_to_end(client):
+    """The SDK's typed proposal rides the same wire contract."""
+    from remora.sdk import DerivationProposal, RemoraClient, ToolCall
+
+    sdk = RemoraClient("http://demo", token="t", http_client=client)
+    result = sdk.assess(ToolCall(
+        tool_name="store_artifact",
+        arguments={"artifact_id": "WIRED-1"},
+        intent_ref="wo-artifact-1",
+        derivations=(DerivationProposal(
+            argument="artifact_id", value="WIRED-1",
+            transform="uppercase", source_span="wired-1",
+        ),),
+    ))
+    assert result.proposal_id
+    assert result.action.name in {"ACCEPT", "VERIFY", "ABSTAIN", "ESCALATE"}

@@ -174,3 +174,39 @@ def test_error_hierarchy_contract() -> None:
     down = RemoraUnavailableError("connect failed")
     assert down.retryable is True
     assert down.request_id is None
+
+
+def test_derivation_proposal_payload_and_tool_call_threading() -> None:
+    from remora.sdk import DerivationProposal, ToolCall
+
+    receipt = DerivationProposal(
+        argument="artifact_id", value="WIRED-1",
+        transform="uppercase", source_span="wired-1",
+    )
+    assert receipt.to_payload() == {
+        "argument": "artifact_id", "value": "WIRED-1",
+        "transform": "uppercase", "source_span": "wired-1",
+    }
+    call = ToolCall(
+        tool_name="store_artifact", arguments={"artifact_id": "WIRED-1"},
+        derivations=(receipt,),
+    )
+    payload = call.to_payload()
+    assert payload["derivations"] == [receipt.to_payload()]
+
+
+def test_tool_call_without_derivations_omits_the_key() -> None:
+    from remora.sdk import ToolCall
+
+    payload = ToolCall(tool_name="t", arguments={}).to_payload()
+    assert "derivations" not in payload
+
+
+def test_derivation_proposal_params_ride_when_set() -> None:
+    from remora.sdk import DerivationProposal
+
+    receipt = DerivationProposal(
+        argument="length_m", value=5000, transform="unit_convert",
+        source_span="5 km", params={"from_unit": "km", "to_unit": "m"},
+    )
+    assert receipt.to_payload()["params"] == {"from_unit": "km", "to_unit": "m"}

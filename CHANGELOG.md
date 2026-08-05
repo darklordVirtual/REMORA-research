@@ -27,6 +27,15 @@ releases.
 
 ## [Unreleased]
 
+### SDK: typed DerivationProposal on ToolCall (2026-08-05)
+
+- `remora.sdk` gains `DerivationProposal` (frozen, wire-bound; 19th
+  public symbol, snapshot deliberately updated) and
+  `ToolCall.derivations`; proposals serialize onto the same
+  `/v1/execution/assess` contract the server verifies by deterministic
+  re-execution. End-to-end SDK test added; `docs/sdk.md` surface table
+  updated. 4 new tests; full SDK suites green.
+
 ### DerivationReceipt proposals ride the server APIs (2026-08-05)
 
 - Queued slice from the theme-3 mechanism: `/v1/execution/assess` and
