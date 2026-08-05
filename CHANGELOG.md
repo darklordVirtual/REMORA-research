@@ -27,6 +27,14 @@ releases.
 
 ## [Unreleased]
 
+### Library envelopes carry the measured policy identity (2026-08-05)
+
+- `remora.assess_tool_call`'s envelope — documented as the canonical
+  auditable record — shipped `policy_bundle_hash=None` and never used the
+  full-argument `tool_call_hash` the observation already computed. Both are
+  now populated exactly as the server path records them; the remaining,
+  stated limitation is that library-path envelopes are unchained/unsigned.
+
 ### Security claims match the enforced mechanism (2026-08-05)
 
 - `docs/08-security.md` credited "allowlist-only tool execution" to

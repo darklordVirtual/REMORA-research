@@ -72,6 +72,23 @@ def test_model_pool_hash_is_sha256_hex():
 
 
 # ---------------------------------------------------------------------------
+# 6b. Library-path audit block carries the measured hashes (sweep 2026-08-05)
+
+def test_library_envelope_carries_policy_bundle_and_tool_args_hash():
+    """remora.assess_tool_call's envelope claimed to be canonical and
+    auditable, but its AuditBlock shipped policy_bundle_hash=None and never
+    used the tool_call_hash the observation already computed. Both must be
+    populated like the server path."""
+    from remora import assess_tool_call
+    from remora.policy.versioning import compute_policy_bundle_hash
+
+    a = assess_tool_call("drop_database", {"db": "prod-main"},
+                         risk_tier="critical", action_type="destructive_write")
+    audit = a.envelope.audit
+    assert audit.policy_bundle_hash == compute_policy_bundle_hash()
+    assert isinstance(audit.tool_args_hash, str) and len(audit.tool_args_hash) == 64
+
+
 # 7. policy_hash is a 64-char hex string
 # ---------------------------------------------------------------------------
 def test_policy_hash_is_sha256_hex():

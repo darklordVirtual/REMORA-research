@@ -304,13 +304,12 @@ A captured valid `PolicyDecisionToken` for a specific observation is permanently
   `compute_policy_bundle_hash()` (the canonical seven-file policy source
   set), the same composite the execution leases bind to; `servers/execution_api.py`
   records it in the tenant chain.
-- **Library path: STILL OPEN.** `remora/reporting.py::_build_envelope`
-  (the envelope behind `remora.assess_tool_call`) never sets it — envelopes
-  from that path carry `None` and are unchained/unsigned.
-
-**Recommendation (remaining):** route `remora/reporting.py` through the same
-`compute_policy_bundle_hash()` population, or document that the library-path
-envelope must not be persisted as an audit record as-is.
+- **Library path: CLOSED (2026-08-05).** `remora/reporting.py::_build_envelope`
+  now populates `policy_bundle_hash` from the same canonical composite and
+  `tool_args_hash` from the observation's full-argument binding hash.
+  Remaining, stated in the code: library-path envelopes are still
+  unchained/unsigned (`previous_hash`/`signature` are None by design there);
+  hash-chaining and signatures require the server path or external tooling.
 
 ---
 
