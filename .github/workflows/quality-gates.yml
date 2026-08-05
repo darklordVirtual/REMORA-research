@@ -8,6 +8,11 @@ on:
     branches: [main, master]
   pull_request:
 
+# CI-economics review 2026-08-05: supersede outdated PR runs; never cancel master.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 

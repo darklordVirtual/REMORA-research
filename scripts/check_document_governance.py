@@ -76,8 +76,19 @@ ROOT_DOCS = (
     "EVIDENCE_OF_CAPABILITY.md",
     "NOTICE",
 )
-# Markers that satisfy the historical-banner requirement (case-insensitive).
-HISTORICAL_MARKERS = ("historical", "archived", "snapshot", "superseded", "do not cite")
+# Structured vintage-banner contract (case-insensitive). A historical entry
+# must open with a clearly separated banner: a block-quote line carrying a
+# bold span with a vintage keyword, e.g. "> **Historical audit snapshot ...**",
+# "> **NOTICE:** ... **HISTORICAL** ..." or "> **ARCHIVED — historical ...**".
+# HTML assets use the equivalent comment banner ("<!-- ARCHIVED - ... -->").
+# A bare token ("This is not a historical document.") must NOT satisfy it.
+# Shared with tests/test_doc_truth_contracts.py — keep the two in sync.
+VINTAGE_BANNER_RE = re.compile(
+    r"^>.*\*\*[^*\n]*(?:historical|archived|snapshot|superseded|"
+    r"verification-vintage|do not cite)[^*\n]*\*\*"
+    r"|^\s*<!--.*(?:historical|archived|snapshot|superseded)",
+    re.IGNORECASE | re.MULTILINE,
+)
 # Statuses that present a document as live knowledge. A live document whose
 # entire content is a bare placeholder stub is a HARD violation: either the
 # content must be restored or the entry moved to historical/superseded (which
@@ -179,11 +190,13 @@ def check_document_register(errors: list[str], warnings: list[str]) -> None:
                 head = "\n".join(
                     (ROOT / path).read_text(encoding="utf-8", errors="ignore")
                     .splitlines()[:15]
-                ).lower()
-                if not any(m in head for m in HISTORICAL_MARKERS):
+                )
+                if not VINTAGE_BANNER_RE.search(head):
                     errors.append(
-                        f"document-register: historical {path} lacks a banner in "
-                        f"its first 15 lines (one of {sorted(HISTORICAL_MARKERS)})"
+                        f"document-register: historical {path} lacks a "
+                        f"structured vintage banner in its first 15 lines "
+                        f"(a '> **Historical/ARCHIVED ...**' block quote, or "
+                        f"an HTML-comment banner for HTML assets)"
                     )
         if status == "superseded":
             successor = e.get("superseded_by")

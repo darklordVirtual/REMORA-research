@@ -510,12 +510,12 @@ documents:
 - id: DOC-071
   version: v1
   path: docs/assurance/policy_engine_audit_v1.md
-  status: canonical
+  status: historical
   topic: docs_assurance_policy_engine_audit_v1_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-29'
-  last_reviewed: '2026-07-29'
+  code_synced: mismatch
+  verdict: stale
+  last_audited: '2026-08-03'
+  last_reviewed: '2026-08-03'
   audience:
   - researchers
 - id: DOC-072
@@ -576,12 +576,12 @@ documents:
 - id: DOC-076
   version: v1
   path: docs/assurance/ai_assisted_adversarial_security_review_v1.md
-  status: canonical
+  status: historical
   topic: docs_assurance_ai_assisted_adversarial_security_review_v1_md
-  code_synced: verified
-  verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  code_synced: mismatch
+  verdict: stale
+  last_audited: '2026-08-03'
+  last_reviewed: '2026-08-03'
   audience:
   - researchers
 - id: DOC-077
@@ -1048,10 +1048,10 @@ documents:
 - id: DOC-192
   version: v1
   path: docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md
-  status: canonical
+  status: supporting
   topic: docs_aromer_REMORA_AROMER_MASTER_DOCUMENT_md
   code_synced: unreviewed
-  verdict: pending
+  verdict: stale
   audience:
   - researchers
 - id: DOC-193
@@ -2171,6 +2171,17 @@ documents:
   topic: docs_assurance_fasttrack_register_v1_yaml
   code_synced: unreviewed
   verdict: current
+  last_reviewed: '2026-08-05'
+  audience:
+  - maintainer
+  - evaluator
+- id: DOC-300
+  version: v1
+  path: docs/design/toolspec-signed-registry-v1.md
+  status: proposal
+  topic: docs_design_toolspec-signed-registry-v1_md
+  code_synced: unreviewed
+  verdict: pending
   last_reviewed: '2026-08-05'
   audience:
   - maintainer

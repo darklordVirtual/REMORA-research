@@ -1,4 +1,12 @@
-# REMORA + AROMER: Authoritative Technical Reference
+# REMORA + AROMER: Technical Reference (verification vintage 2026-06-05)
+
+> **Verification-vintage notice.** This reference was last verified against
+> commit `cc567fc` (2026-06-05) of the *main implementation repo* and has not
+> been revalidated since; sections describing the research-repo control plane
+> (execution API, durable stores, enforcement) lag the current code. It is a
+> supporting reference for AROMER concepts, not the status authority — current
+> wiring status lives in `docs/assurance/capability_register_v1.yaml`, current
+> claims in `docs/assurance/claim_register_v1.yaml`.
 
 **Repository:** `darklordVirtual/REMORA`  
 **Status:** Research-grade prototype, v0.10.0, BUSL-1.1 (source-available; commercial use requires a REMORA Commercial License)

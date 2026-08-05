@@ -27,6 +27,64 @@ releases.
 
 ## [Unreleased]
 
+### FT-13 slice 1: `remora.sdk` — the third-party client surface (2026-08-05)
+
+- New `remora/sdk/` package: `RemoraClient` (sync, httpx, remote mode),
+  frozen wire-bound models (`ToolCall`, `AssessmentResult`,
+  `ApprovalResult`, `ExecutionResult`, `AuditVerification`,
+  `SemanticAssessment`, `AuditRef`) and a typed error hierarchy rooted in
+  `RemoraError(code, request_id, retryable)`. `DecisionAction` is
+  re-exported from the canonical policy enum — no parallel vocabulary.
+  Covers assess → approve → execute → audit-verify against
+  `/v1/execution/*`; no server contract changed.
+- The public surface is snapshot-gated: `artifacts/sdk/public_api_v1.json`
+  (regenerate with `scripts/export_sdk_public_api.py`) +
+  `tests/test_sdk_public_api.py` fail CI on any unreviewed symbol change.
+- New `sdk` extra (`pip install "remora[sdk]"`); models and errors import
+  without httpx. 30 new tests, including the full review loop end-to-end
+  through the SDK against the in-process ASGI app.
+- Remaining for FT-13 (queued slices): async client, OpenAPI-generated
+  transport layer, framework adapters, `remora.sdk.testing`, external
+  quickstart example, semver/deprecation policy.
+
+### Fasttrack definition-of-done enforced machinally in the register (2026-08-05)
+
+- Maintainer review 2026-08-05: a fasttrack slice counts as delivered only
+  when ten reusability criteria hold (single module/responsibility, no
+  duplicated abstraction, documented public API, unit+integration tests,
+  negative/failure paths, ADR on contract change, OpenAPI/schema updates,
+  runnable external example, stability classification, clean-install wheel
+  test). `docs/assurance/fasttrack_register_v1.yaml` now declares the
+  criteria (`definition_of_done`, `dod_enforced_from`), and the new
+  `tests/test_fasttrack_register.py` fails CI if an item is flipped to DONE
+  without a per-criterion `dod:` evidence mapping (pre-enforcement gate0
+  closures are explicitly grandfathered). The review's structural goal — a
+  small stable SDK surface (`remora.core_api` et al.) separated from
+  experimental/research namespaces — is tracked as FT-13 rather than left
+  as prose.
+
+### FT-01/02: lifecycle state machine as a committed model (2026-08-05)
+
+- `schemas/execution_lifecycle_v1.yaml` declares the canonical
+  proposal-to-effect states, legal transitions, terminal set and the
+  maintainer's v1 decisions (synchronous execute, append-only envelope
+  revisions, UNKNOWN as explicit terminal with manual+optional-probe
+  resolution). Honestly scoped: assess/review/authorize stages are realized
+  today (FT-01 slices 1–2); outbox states are declared AHEAD of FT-02 and
+  claimed nowhere as wired; EFFECT_* states are deliberately absent until
+  FT-04. Structural invariants pinned by
+  `tests/test_execution_lifecycle_schema.py` (reachability, terminal-state
+  closure, decision recording).
+
+### FT-01 slice 2: the envelope path adopts the proposal identity (2026-08-05)
+
+- `/v1/assess` now mints the same canonical `proposal_id` vocabulary as
+  `/v1/execution`: one uuid4 is both the `proposal_id` and the
+  `request_id`, and the stored DecisionEnvelope's request identity is that
+  value. The former `q_hash-` prefix was informational only (nothing parses
+  `request_id`; the question hash remains in `question_hash`). Additive:
+  `AssessResponse` gains `proposal_id`.
+
 ### FT-01 slice 1: proposal_id threads the execution lifecycle (2026-08-05)
 
 - Per the merged lifecycle design (PR #135) and the maintainer's contract
