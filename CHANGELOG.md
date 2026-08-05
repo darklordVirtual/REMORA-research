@@ -27,6 +27,19 @@ releases.
 
 ## [Unreleased]
 
+### FT-01/02: lifecycle state machine as a committed model (2026-08-05)
+
+- `schemas/execution_lifecycle_v1.yaml` declares the canonical
+  proposal-to-effect states, legal transitions, terminal set and the
+  maintainer's v1 decisions (synchronous execute, append-only envelope
+  revisions, UNKNOWN as explicit terminal with manual+optional-probe
+  resolution). Honestly scoped: assess/review/authorize stages are realized
+  today (FT-01 slices 1–2); outbox states are declared AHEAD of FT-02 and
+  claimed nowhere as wired; EFFECT_* states are deliberately absent until
+  FT-04. Structural invariants pinned by
+  `tests/test_execution_lifecycle_schema.py` (reachability, terminal-state
+  closure, decision recording).
+
 ### FT-01 slice 1: proposal_id threads the execution lifecycle (2026-08-05)
 
 - Per the merged lifecycle design (PR #135) and the maintainer's contract
