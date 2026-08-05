@@ -1,0 +1,71 @@
+# Execution lifecycle v1 — the canonical proposal-to-effect state machine.
+#
+# Source design: docs/design/execution-lifecycle-outbox-v1.md (direction
+# approved 2026-08-05, PR 135). This file is the machine-readable model the
+# implementation is tested against (tests/test_execution_lifecycle_schema.py
+# pins its structural invariants). STATUS: the model is DECLARED; the
+# implementation currently realizes the assess/review/authorize stages
+# (proposal_id threading, FT-01 slices 1-2). Outbox states
+# (DISPATCH_PENDING onward) are DECLARED AHEAD of implementation (FT-02) —
+# nothing here claims they are wired yet; the fasttrack register is the
+# status authority.
+#
+# EFFECT_* verification states are deliberately ABSENT from v1: they arrive
+# with FT-04 (postcondition verification) as a v2 of this schema, so the
+# model never declares states no component can reach even in design.
+
+version: 1
+design: docs/design/execution-lifecycle-outbox-v1.md
+
+# Maintainer contract decisions (2026-08-05) this model encodes.
+v1_decisions:
+  proposal_id: new_canonical_uuid4          # minted at assess; envelope adopts
+  execute_api: synchronous                  # execute waits for outcome up to timeout
+  envelope_updates: append_only_revisions   # never in-place mutation
+  unknown_resolution: manual_with_optional_probe
+
+states:
+- PROPOSED            # request received, proposal_id minted
+- ASSESSED            # engine decision recorded
+- REVIEW_PENDING      # VERIFY/ESCALATE enqueued for a human
+- AUTHORIZED          # approval granted OR direct ACCEPT token issued
+- REFUSED             # refused at assess, re-gate, binding or approval stage
+- EXPIRED_TO_ABSTAIN  # review TTL expired (REM-032 sweep)
+- DISPATCH_PENDING    # outbox row written in the authorization transaction
+- DISPATCHING         # worker claimed the row; side effect may be in flight
+- SUCCEEDED           # dispatcher-confirmed execution
+- FAILED              # tool raised before any confirmed effect; nonce burned
+- UNKNOWN             # crash/timeout after possible effect; explicitly terminal
+
+terminal_states:
+- REFUSED
+- EXPIRED_TO_ABSTAIN
+- SUCCEEDED
+- FAILED
+- UNKNOWN
+
+transitions:
+- {from: PROPOSED, to: ASSESSED, on: engine_decision}
+- {from: ASSESSED, to: REVIEW_PENDING, on: verify_or_escalate}
+- {from: ASSESSED, to: AUTHORIZED, on: direct_accept_token}
+- {from: ASSESSED, to: REFUSED, on: abstain_or_hard_refusal}
+- {from: REVIEW_PENDING, to: AUTHORIZED, on: human_approval}
+- {from: REVIEW_PENDING, to: REFUSED, on: human_rejection}
+- {from: REVIEW_PENDING, to: EXPIRED_TO_ABSTAIN, on: queue_ttl_sweep}
+- {from: AUTHORIZED, to: REFUSED, on: regate_binding_or_freshness_refusal}
+- {from: AUTHORIZED, to: DISPATCH_PENDING, on: outbox_row_committed}
+- {from: DISPATCH_PENDING, to: DISPATCHING, on: worker_claim}
+- {from: DISPATCHING, to: SUCCEEDED, on: dispatcher_confirmed}
+- {from: DISPATCHING, to: FAILED, on: tool_raised_pre_effect}
+- {from: DISPATCHING, to: REFUSED, on: lease_or_pep_refusal}
+- {from: DISPATCHING, to: UNKNOWN, on: crash_or_timeout_after_possible_effect}
+
+# UNKNOWN resolution (v1): a manual operator decision — optionally informed
+# by a deployment-supplied reconciliation probe — produces a NEW resolution
+# record referencing the proposal_id. It never transitions the original
+# item out of UNKNOWN: the uncertainty happened and stays recorded.
+unknown_resolution:
+  mode: manual
+  probe_interface: optional
+  produces: resolution_record
+  mutates_terminal_state: false
