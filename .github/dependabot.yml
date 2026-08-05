@@ -10,7 +10,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 8
+    # CI-economics review 2026-08-05: 3 concurrent PRs keeps the queue
+    # reviewable; the merged 15-package ml-stack bump was still too broad
+    # for causal attribution, so it is split into three narrower stacks.
+    open-pull-requests-limit: 3
     groups:
       security-fixes:
         applies-to: security-updates
@@ -25,23 +28,29 @@ updates:
           - "httpx*"
           - "psycopg*"
           - "anyio"
-      ml-stack:
+      numerical-core:
+        applies-to: version-updates
+        patterns:
+          - "numpy"
+          - "scipy"
+          - "scikit-learn"
+      huggingface-stack:
         applies-to: version-updates
         patterns:
           - "torch*"
           - "transformers*"
           - "sentence-transformers"
-          - "numpy"
-          - "scipy"
-          - "scikit-learn"
           - "huggingface*"
           - "hf-*"
-          - "langchain*"
-          - "langsmith"
-          - "openai"
-          - "groq"
           - "tokenizers"
           - "safetensors"
+      agent-sdk:
+        applies-to: version-updates
+        patterns:
+          - "openai"
+          - "groq"
+          - "langchain*"
+          - "langsmith"
       dev-tools:
         applies-to: version-updates
         patterns:
