@@ -98,22 +98,11 @@ one dispatcher process must not rely on it as a global guarantee (REM-025).
 with 69 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
-safe"). Two server-side authorities cut into that caller freedom
-(2026-08-05): a request may carry an optional `tool_call` block
-(`tool_name`, `arguments`, `intent_ref`, `untrusted_context`;
-`extra="forbid"`) — with `REMORA_SEMANTIC_BUNDLE_MODULE` configured the
-same authoritative context builder as `/v1/execution/assess` runs, the
-computed `tool_contract_bundle_hash` / `intent_authority_hash` are
-recorded into the envelope's audit block and `tool_args_hash` upgrades to
-the canonical execution preimage (verdicts are RECORDED on this path; the
-gate decision still comes from the engine pipeline). And on the library
-path (`assess_tool_call`), declared metadata is raise-only: a `risk_tier`
-weaker than the deterministic name-heuristic floor is clamped up and the
-clamp is recorded in `ToolCallAssessment.floored` — never silently.
-On `/v1/execution/*` caller freedom does NOT hold at all: trust-bearing
-fields are derived server-side and client values can only lower trust,
-never raise it — see the Trust boundary section below. Selected fields by
-group:
+safe") — see the assess-time authorities subsection below for the two
+server-side cuts into that freedom. On `/v1/execution/*` it does NOT hold:
+trust-bearing fields are derived server-side and client values can only
+lower trust, never raise it — see the Trust boundary section below.
+Selected fields by group:
 
 | Group | Fields (selection) |
 |---|---|
@@ -130,6 +119,31 @@ group:
 Construct from a dict with `PolicyObservation.from_json_record(record)`
 (unknown keys are ignored, misspelled safety flags therefore silently default
 to their permissive value; validate producer-side).
+
+---
+
+### Assess-time authorities on the research path (2026-08-05)
+
+Two server-side authorities cut into `/v1/assess`'s caller freedom:
+
+- **Semantic authority on request.** An assess request may carry an
+  optional `tool_call` block (`tool_name`, `arguments`, `intent_ref`,
+  `untrusted_context`; unknown keys rejected with 422, so semantic
+  verdicts cannot be smuggled in). With `REMORA_SEMANTIC_BUNDLE_MODULE`
+  configured, the same authoritative context builder as
+  `/v1/execution/assess` runs; the computed `tool_contract_bundle_hash`
+  and `intent_authority_hash` are recorded into the envelope's audit
+  block, and `tool_args_hash` upgrades to the canonical execution/lease
+  preimage. The semantic verdicts are RECORDED on this path — the gate
+  decision still comes from the question-based engine pipeline, and
+  discrimination through the wired path is unmeasured (SAP v4 pending).
+- **Raise-only metadata on the library path.** `assess_tool_call`
+  (`remora/assess.py`) clamps a declared `risk_tier` that undercuts the
+  deterministic name-heuristic floor UP to the floor, and floors a
+  declared read on a write-verb tool to the inferred write family. Every
+  clamp is recorded in `ToolCallAssessment.floored` — never silent. The
+  floor clamps explicit declarations only; unset fields stay unset and
+  the engine fail-closes on them.
 
 ---
 
