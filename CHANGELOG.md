@@ -27,6 +27,25 @@ releases.
 
 ## [Unreleased]
 
+### Execution coverage for the SDK effect loop (2026-08-06)
+
+- `record_effect` — the one call a product makes to close the loop — had
+  **never issued a request in any test**, on either client. The endpoint
+  was tested against raw JSON, the models against hand-built dicts, and
+  the product's compatibility gate against `hasattr`. None of those can
+  catch a client and server disagreeing about the wire shape, and a method
+  nobody has called is a method nobody knows works.
+- `tests/test_sdk_effect_roundtrip.py` drives assess → approve → execute →
+  verify → `record_effect` → read-back through `remora.sdk` alone against
+  the real ASGI app, including the mismatch and unobservable paths and the
+  evidence bundle. `tests/test_sdk_async_client.py` exercises the async
+  twin against a mock transport, asserting method, path, auth header and
+  body — it was produced by a mechanical transform of the sync method,
+  which is exactly where a lost `await` hides.
+- Both worked unchanged; the gap was in verification, not behaviour.
+  Lineage is also now parsed from a real server response rather than only
+  from a dict written by the same test that asserts on it.
+
 ### ABSTAIN lineage: resubmit-until-accept probing becomes visible (2026-08-05)
 
 - An ABSTAIN is terminal, which stops the individual call and does nothing
