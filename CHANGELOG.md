@@ -27,6 +27,16 @@ releases.
 
 ## [Unreleased]
 
+### API reference synced with the three mechanism fixes (2026-08-05)
+
+- `docs/07-api-reference.md` now documents the `/v1/assess` `tool_call`
+  block and its envelope-hash recording, the raise-only metadata clamp on
+  the library path (`ToolCallAssessment.floored`), and
+  `DerivationReceipt` grounding in the PolicyObservation security-flag
+  table. Paper deliberately untouched: it is a dated snapshot (revision
+  2026-07-31) whose statements remain true for their date, and the
+  mechanisms change no measured numbers.
+
 ### Advisory path: callers can raise risk, never lower it (2026-08-05)
 
 - NEGATIVE_RESULTS theme 8 (§14/M4), raise-only slice: `assess_tool_call`
