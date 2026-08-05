@@ -155,9 +155,19 @@ items:
     either. An ABSENT binding is not a wildcard — a lease issued before
     spec binding must not verify against a spec-bearing check, so
     upgrading the check cannot silently amnesty old leases (8 tests).
-    NOT DONE: wiring the loader into servers/execution_api.py assess and
-    dispatch (so a real spec hash flows into the lease), and the SDK
-    surface (handoff PR 5).
+    Execution wiring landed 2026-08-05: with REMORA_TOOLSPEC_BUNDLE
+    configured, /v1/execution/assess resolves the signed spec, enforces
+    target and argument schema (409 with the published reason code as the
+    detail prefix), records toolspec_hash in the audit chain and returns a
+    toolspec identity block; /execute re-resolves, compares against the
+    hash the ASSESSMENT recorded (read from the chain, never from the
+    request) and refuses toolspec_changed_between_assess_and_dispatch
+    before authorizing; the resolved hash and version bind into the
+    ExecutionLease. Without a bundle the legacy path runs unchanged and
+    the response reports enforced=false — recorded degradation, never
+    silent equivalence (8 wiring tests).
+    NOT DONE: the SDK surface for ToolSpec identity and typed errors
+    (handoff PR 5).
 - id: FT-04
   title: Closed-loop postcondition verification (one deep integration)
   priority: p0
