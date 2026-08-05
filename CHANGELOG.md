@@ -50,6 +50,17 @@ releases.
   unversioned change to a consumer that branches on them.
 - Nothing is implemented yet, and the contract says so
   (`realization.runtime_enforcement: not_implemented`). Runtime is PR 2.
+### Consumed-grant ledger is tamper-evident (2026-08-05)
+
+- Architect review: the audit log is append-only but the grants ledger was
+  not, so the tamper target had simply moved. A deleted row does not fail
+  anything — it silently re-authorizes a spent grant. `verify_ledger()`
+  now compares the row count against a durable high-water mark and reports
+  missing grants; `reset_ledger_watermark(reason=...)` keeps legitimate
+  pruning possible as an explicit, recorded act. In-process reports
+  `intact: None` — unknown, never "fine".
+- Verified against a real Postgres 16 service: clean 3/3, one row deleted
+  → `intact=False, rows=2, mark=3`, reset → intact again.
 
 
 ### Chain-head absence fails by name, not as an opaque TypeError (2026-08-05)
