@@ -50,6 +50,8 @@ updated: "2026-07-21"
 
 maturity_levels:
   - implemented_and_tested
+  - empirically_evaluated_adaptation
+  - conceptual_translation_implemented
   - reference_design
 
 entries:
@@ -83,7 +85,7 @@ entries:
       - tests/test_causal_search_attribution.py
     evidence: "PS/PN in {0,1}, minimality, verdict-change, and global mean-PS ordering are unit-tested; result carried on DecisionEnvelope.causal_explanation."
     maturity: implemented_and_tested
-    scope_boundary: "Policy causality only: counterfactuals evaluated against the policy model, not the world. No real-world causal-effect or safety claim."
+    scope_boundary: "Deterministic policy-level PS/PN operationalisation: binary per-instance indicators evaluated against the policy model, not population-level probabilities and not the world. No real-world causal-effect or safety claim."
     related_work_section: "docs/09-related-work.md §9"
     in_code_citation: true
     citation_anchor: "Bjøru"
@@ -122,14 +124,13 @@ entries:
       - ltt-2021
 
   - id: RES-003
-    title: "Conformal risk control"
+    title: "CRC-inspired weighted empirical selective routing"
     source:
       citation: "Angelopoulos, A. N., Bates, S., Fisch, A., Lei, L., & Schuster, T. (2022). Conformal risk control. arXiv:2208.02814."
       sections:
-        - "Theorem 1 (referenced in remora/selective/crc.py)"
+        - "Framework the router is inspired by, not implementing: the crc.py module docstring documents the two structural gaps (no finite-sample term in the selector; non-monotone selective loss), so Theorem 1 does not attach."
     concepts:
-      - split_conformal_calibration
-      - finite_sample_risk_control
+      - weighted_empirical_threshold_selection
       - repeated_split_robustness
     controls:
       - conformal_thresholding
@@ -140,9 +141,9 @@ entries:
       - tests/test_crc.py
       - tests/test_conformal_repeated_splits.py
       - tests/test_binomial_bounds.py
-    evidence: "Repeated-split robustness artifacts and negative results preserved in the claim ledger; treated as exchangeability-dependent."
-    maturity: implemented_and_tested
-    scope_boundary: "Guarantees hold under exchangeability; repeated-split failures are recorded as negative evidence, not hidden."
+    evidence: "Repeated-split holdout results in committed artifacts; all quality evidence for this component is empirical, and negative results are preserved in the claim ledger."
+    maturity: empirically_evaluated_adaptation
+    scope_boundary: "CRC-inspired, NOT a CRC procedure (external review R3-01): deterministic importance-weighted empirical threshold selector with hand-tuned phase weights, no finite-sample correction and a non-monotone selective loss - no distribution-free guarantee is claimed."
     related_work_section: "docs/09-related-work.md §2"
     in_code_citation: true
     citation_anchor: "Angelopoulos"
@@ -155,7 +156,7 @@ entries:
     source:
       citation: "Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents."
       sections:
-        - "cited at remora/cascade/stages.py (self-consistency, mixture-of-agents synthesizer)"
+        - "cited at remora/cascade/stages.py (self-consistency; single-stage aggregation inspired by MoA, not the multi-layer architecture)"
     concepts:
       - self_consistency_sampling
       - verifier_model
@@ -290,8 +291,8 @@ entries:
       - tests/test_governance_memory_layers.py
       - tests/test_nested_governance.py
     evidence: "Context flow as a governed information stream; update frequency as a policy boundary; self-modification as reviewed policy proposals."
-    maturity: implemented_and_tested
-    scope_boundary: "Does not implement the Hope architecture, does not train foundation models, does not claim to solve catastrophic forgetting."
+    maturity: conceptual_translation_implemented
+    scope_boundary: "A governance translation of the Nested Learning ideas, not the architecture: does not implement Hope or nested optimisation problems, does not train foundation models, does not claim to solve catastrophic forgetting."
     related_work_section: "docs/09-related-work.md §7"
     in_code_citation: false
     compendium_refs: []
@@ -347,7 +348,7 @@ entries:
       - tests/test_confidence_sequence.py
     evidence: "Used by REM-020 to monitor the operational false-accept rate continuously without inflating the coverage guarantee under optional stopping (peeking); supplementary anytime-valid FAR bound in results/far_confidence_sequence_v1.json (CLAIM-011)."
     maturity: implemented_and_tested
-    scope_boundary: "A time-uniform Bernoulli-rate bound, distinct from the split-conformal risk control of RES-003; conservative by construction and valid only under the stated Beta-binomial mixture assumptions."
+    scope_boundary: "A time-uniform Bernoulli-rate bound, distinct from the CRC-inspired empirical selective routing of RES-003; conservative by construction and valid only under the stated Beta-binomial mixture assumptions."
     related_work_section: "docs/09-related-work.md §2"
     in_code_citation: true
     citation_anchor: "Howard"

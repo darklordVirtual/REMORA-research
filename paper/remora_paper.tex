@@ -251,7 +251,7 @@ resolved through iterative exchange.
 \subsection{LLM-as-Judge and Verifier Models}
 Zheng et al.\ (2023) \cite{zheng2023judging} established the
 LLM-as-judge paradigm. Cobbe et al.\ (2021) \cite{cobbe2021training}
-trained process reward models as verifiers. REMORA differs by using a \emph{structured policy engine} rather than a
+trained outcome verifiers that rank complete model solutions. REMORA differs by using a \emph{structured policy engine} rather than a
 learned verifier, enabling interpretable hard blocks that cannot be
 overridden by a confident oracle.
 
@@ -262,20 +262,19 @@ tradeoff for binary classifiers. El-Yaniv \& Wiener (2010)
 selective classification framework; their coverage--accuracy bound is
 the foundational result that Geifman \& El-Yaniv (2017)
 \cite{geifman2017selective} apply to deep networks. Kadavath
-et al.\ (2022) \cite{kadavath2022language} show that LLM
-self-uncertainty estimates are unreliable under distribution shift.
+et al.\ (2022) \cite{kadavath2022language} find promising LLM
+self-knowledge on tasks resembling training data, with weaker
+calibration and self-evaluation on novel tasks.
 REMORA's abstention is grounded in structural oracle disagreement
-rather than self-reported confidence, which aligns with the observation
-in \cite{elyaniv2010selective} that selection rules based on model-reported
-softmax scores are insufficient under covariate shift.
+rather than self-reported confidence.
 
 \subsection{Conformal Prediction}
 Angelopoulos \& Bates (2021) \cite{angelopoulos2021gentle} provide a
 distribution-free framework for coverage guarantees. REMORA implements
 Mondrian phase-stratified conformal calibration for the ordered phase,
-and Conformal Risk Control \cite{angelopoulos2022crc} with
-importance weights for the critical phase
-(\S\ref{sec:crc}). The exchangeability violation in the critical phase
+and a CRC-inspired weighted empirical selective router
+\cite{angelopoulos2022crc} with importance weights for the critical
+phase (\S\ref{sec:crc}). The exchangeability violation in the critical phase
 is documented as a negative result (\S\ref{sec:negative}).
 
 \subsection{Prover-Verifier Games}
@@ -304,8 +303,11 @@ to populate one node of such a case with a specific gate decision's
 evidence chain.
 
 \subsection{Human-in-the-Loop / Human-on-the-Loop}
-Endsley (1995) \cite{endsley1995toward} defines supervisory control
-levels. REMORA's four-outcome schema directly implements this
+Endsley (1995) \cite{endsley1995toward} provides the
+situation-awareness theory underpinning human supervision of dynamic
+systems; the automation-oversight literature distinguishes
+human-in-the-loop confirmation from human-on-the-loop monitoring.
+REMORA's four-outcome schema implements this
 spectrum: \textsc{accept} (human-on-the-loop) through
 \textsc{escalate} (human-in-the-loop), with \textsc{verify} and
 \textsc{abstain} as intermediate states.

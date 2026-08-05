@@ -27,6 +27,32 @@ releases.
 
 ## [Unreleased]
 
+### Research truth sync P0/P1: matrix and paper match the code (2026-08-05)
+
+- External review (2026-08-05) found the control matrix lagging the code
+  and four literature misattributions. RES-003 no longer claims CRC as
+  implemented: retitled "CRC-inspired weighted empirical selective
+  routing", `finite_sample_risk_control` removed, new maturity
+  `empirically_evaluated_adaptation` (crc.py's own docstring is the
+  authority); RES-008 reclassified `conceptual_translation_implemented`
+  (governance translation, not the Hope architecture); RES-001 scope
+  states the deterministic, binary policy-level PS/PN
+  operationalisation. Regression tests pin all three.
+- Paper (.md and .tex in lockstep): Cobbe et al. corrected to outcome
+  verifiers ranking complete solutions (not process reward models);
+  Kadavath et al. nuanced (promising self-knowledge, weaker calibration
+  on novel tasks); Endsley 1995 attributed to situation-awareness
+  theory (not "supervisory control levels"); the .tex-only claim that
+  El-Yaniv & Wiener discuss softmax under covariate shift removed; two
+  intro sentences claiming CRC as implemented reworded to CRC-inspired.
+- `MixtureOfAgentsSynth` docstring: single-stage aggregation inspired
+  by MoA, not an implementation of the multi-layer architecture; Wang
+  et al.'s MMLU gains attributed to their setup, not this component.
+- Queued from the same review (not in this change): RES-004 split,
+  per-source `relationship` field, unique source ids + bibliography
+  keys, function-level registration, bidirectional CI scan, generated
+  .tex.
+
 ### FT-13 slice 1: `remora.sdk` — the third-party client surface (2026-08-05)
 
 - New `remora/sdk/` package: `RemoraClient` (sync, httpx, remote mode),

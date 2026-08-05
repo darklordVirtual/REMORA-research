@@ -87,11 +87,11 @@ Du et al. (2024) demonstrated that having LLMs debate each other, iteratively ex
 
 ### 2.3 LLM-as-Judge and Verifier Models
 
-Zheng et al. (2023) introduced the LLM-as-judge paradigm for evaluating model outputs (Zheng et al., 2023). Cobbe et al. (2021) trained a process reward model as a verifier for mathematical reasoning (Cobbe et al., 2021). REMORA differs by using a structured policy engine, not a learned verifier, to gate decisions, enabling interpretable hard blocks that cannot be overridden by a confident oracle.
+Zheng et al. (2023) introduced the LLM-as-judge paradigm for evaluating model outputs (Zheng et al., 2023). Cobbe et al. (2021) trained outcome verifiers that rank complete model solutions to math word problems (Cobbe et al., 2021). REMORA differs by using a structured policy engine, not a learned verifier, to gate decisions, enabling interpretable hard blocks that cannot be overridden by a confident oracle.
 
 ### 2.4 Selective Prediction and Abstention
 
-The literature on selective prediction (Geifman & El-Yaniv, 2017; El-Yaniv & Wiener, 2010) establishes the risk-coverage tradeoff (equivalently, quality-coverage tradeoff) as the fundamental metric for systems that may abstain. El-Yaniv & Wiener (2010) prove that unanimous-hypothesis rejection is the coverage-optimal zero-risk strategy (Consistent Selective Strategy, Theorem 7): no other strategy achieving zero risk can improve on it in coverage. This formalizes REMORA's abstain-on-oracle-disagreement design as theoretically optimal for the zero-false-accept goal. Kadavath et al. (2022) showed that LLMs can estimate their own uncertainty, but this estimate is unreliable in adversarial or out-of-distribution contexts (Kadavath et al., 2022). REMORA's abstention mechanism is grounded in this literature: uncertainty is measured structurally (via oracle disagreement) rather than through self-reported confidence.
+The literature on selective prediction (Geifman & El-Yaniv, 2017; El-Yaniv & Wiener, 2010) establishes the risk-coverage tradeoff (equivalently, quality-coverage tradeoff) as the fundamental metric for systems that may abstain. El-Yaniv & Wiener (2010) prove that unanimous-hypothesis rejection is the coverage-optimal zero-risk strategy (Consistent Selective Strategy, Theorem 7): no other strategy achieving zero risk can improve on it in coverage. This formalizes REMORA's abstain-on-oracle-disagreement design as theoretically optimal for the zero-false-accept goal. Kadavath et al. (2022) found promising LLM self-knowledge on tasks resembling training data, with weaker calibration and self-evaluation on novel tasks (Kadavath et al., 2022). REMORA's abstention mechanism is grounded in this literature: uncertainty is measured structurally (via oracle disagreement) rather than through self-reported confidence.
 
 ### 2.5 Conformal Prediction
 
@@ -111,7 +111,7 @@ Software assurance cases (Kelly, 1998; Bloomfield & Bishop, 2010) structure safe
 
 ### 2.9 Human-in-the-Loop and Human-on-the-Loop Systems
 
-Endsley (1995) defines levels of human supervisory control; "human-in-the-loop" requires confirmation for each action, while "human-on-the-loop" allows autonomous action with human monitoring. REMORA's ACCEPT/VERIFY/ABSTAIN/ESCALATE schema directly implements a spectrum from human-on-the-loop (ACCEPT) to human-in-the-loop (ESCALATE), with VERIFY and ABSTAIN as intermediate states.
+Endsley (1995) provides the situation-awareness theory that underpins effective human supervision of dynamic systems. In the automation-oversight literature, "human-in-the-loop" requires confirmation for each action, while "human-on-the-loop" allows autonomous action with human monitoring. REMORA's ACCEPT/VERIFY/ABSTAIN/ESCALATE schema implements a spectrum from human-on-the-loop (ACCEPT) to human-in-the-loop (ESCALATE), with VERIFY and ABSTAIN as intermediate states.
 
 ### 2.10 Industrial AI Safety
 
@@ -430,7 +430,7 @@ A +3.9 pp coverage gain with 1.9 pp accuracy cost; still +43.8 pp above the 41.1
 
 Standard Mondrian conformal calibration assumes exchangeability between calibration and test samples: a condition violated in the critical phase. Applying standard conformal to critical-phase items yields 100% observed risk and 0% coverage (negative result, §6).
 
-REMORA resolves this with **Conformal Risk Control** (CRC; Angelopoulos et al., 2022), which extends split-conformal prediction to covariate-shifted test distributions via per-item importance weights (building on weighted conformal prediction; Tibshirani et al., 2019). For the phase-shift setting, REMORA uses:
+REMORA addresses this with a **CRC-inspired weighted empirical selective router** (inspired by Conformal Risk Control; Angelopoulos et al., 2022, which extends split-conformal prediction to covariate-shifted test distributions via per-item importance weights, building on weighted conformal prediction; Tibshirani et al., 2019). For the phase-shift setting, REMORA uses:
 
 $$w_i = \begin{cases} 1.0 & \text{if phase}(i) = p_{\text{test}} \\ \beta = 0.10 & \text{otherwise} \end{cases}$$
 
