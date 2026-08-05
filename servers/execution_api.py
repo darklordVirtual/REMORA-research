@@ -45,6 +45,10 @@ from remora.enforcement.lease import (
 )
 from remora.enforcement.result_envelope import capture_tool_result
 from remora.enforcement.token import PolicyDecisionToken
+from remora.governance.lifecycle import (
+    IllegalTransition,
+    check_transition,
+)
 from remora.governance.review_queue import (
     ExecutionDecision,
     ReviewQueue,
@@ -175,6 +179,22 @@ _GATE = EnforcementGate(
 _QUEUES: dict[str, ReviewQueue] = {}
 # item_id -> (tenant, ToolCallRequest fields) so execute() can rebuild hashes.
 _ITEM_TENANT: dict[str, str] = {}
+
+
+def _lifecycle_guard(start: str, *events: str) -> None:
+    """FT-01 conformance: the transition this endpoint is about to perform
+    must be declared by the lifecycle model. Defense-in-depth — the queue's
+    own guards stay primary; an undeclared move here means the runtime and
+    the declared machine have drifted, which is an internal inconsistency
+    surfaced loudly (HTTP 500), never silently absorbed."""
+    state = start
+    try:
+        for event in events:
+            state = check_transition(state, event)
+    except IllegalTransition as exc:
+        raise HTTPException(
+            status_code=500, detail=f"lifecycle conformance violation: {exc}"
+        ) from exc
 
 
 def _auth(request: Request) -> tuple[str, str, str]:
@@ -888,6 +908,16 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         "tool_call_hash": obs.tool_call_hash,
         "semantic": dict(semantic),
     }
+    # FT-01 conformance: the assess flow's shape must match the declared
+    # machine (PROPOSED → ASSESSED → branch) before anything is recorded.
+    _branch_event = {
+        DecisionAction.ACCEPT: "direct_accept_token",
+        DecisionAction.VERIFY: "verify_or_escalate",
+        DecisionAction.ESCALATE: "verify_or_escalate",
+        DecisionAction.ABSTAIN: "abstain_or_hard_refusal",
+    }.get(report.action, "abstain_or_hard_refusal")
+    _lifecycle_guard("PROPOSED", "engine_decision", _branch_event)
+
     if report.action is DecisionAction.ACCEPT:
         token = PolicyDecisionToken.issue(
             action="accept",
@@ -1000,6 +1030,11 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
             )
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    # FT-01 conformance, AFTER the queue accepted: the move the queue just
+    # performed (pending → approved) must be one the declared machine
+    # allows. Client errors (expired/unknown items) stay the queue's 409s;
+    # this catches drift between runtime and model — a loud 500.
+    _lifecycle_guard("REVIEW_PENDING", "human_approval")
     proposal_id = getattr(item.observation, "proposal_id", None)
     entry = _CHAIN.append(tenant, {
         "event": "approved",
@@ -1075,6 +1110,10 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         "detail": outcome.detail,
     }
     if outcome.decision is not ExecutionDecision.EXECUTE:
+        # FT-01 conformance: every re-gate refusal is a declared move from
+        # AUTHORIZED (approval and post-re-gate authorization collapse there
+        # in the model). Dispatch-stage conformance arrives with FT-02.
+        _lifecycle_guard("AUTHORIZED", "regate_binding_or_freshness_refusal")
         entry = _CHAIN.append(tenant, {
             "event": f"execution_{outcome.decision.value}",
             "proposal_id": proposal_id,

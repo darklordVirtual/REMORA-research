@@ -27,6 +27,23 @@ releases.
 
 ## [Unreleased]
 
+### FT-01 slice 4: /v1/execution conforms to the lifecycle model at runtime (2026-08-05)
+
+- The declared machine now checks the live path: assess validates its
+  whole flow shape (PROPOSED → ASSESSED → branch) before recording
+  anything; approve validates the move the queue just accepted
+  (pending → human_approval); every re-gate refusal validates
+  AUTHORIZED → REFUSED. An undeclared move is an internal inconsistency
+  surfaced as a loud HTTP 500 (`lifecycle conformance violation`),
+  never silent drift — pinned by a test that cripples the model and
+  watches assess refuse.
+- Boundary discipline: client errors stay the queue's 409s (the guard
+  runs after the queue accepts, so an expired-item approval is still a
+  409, not a fake drift-500); dispatch-stage conformance explicitly
+  arrives with the FT-02 outbox. `ITEM_STATUS_STATE` maps every
+  ReviewQueue status onto the model (covered by test).
+- 6 new tests; full suite 4833 passed.
+
 ### FT-01 slice 3: the lifecycle schema becomes a runtime authority (2026-08-05)
 
 - New `remora/governance/lifecycle.py`: loads
