@@ -27,6 +27,29 @@ releases.
 
 ## [Unreleased]
 
+### FT-03 PR 1: the signed-ToolSpec ADR is accepted and its contract frozen (2026-08-05)
+
+- All eight questions the ADR left open are decided, and recorded where
+  they can be checked: `schemas/tool_spec_v1.yaml` is a frozen
+  machine-readable contract, pinned by 16 tests, so the ADR and what
+  runtime enforces cannot drift apart in prose.
+- The decisions that carry the most weight: the signing key is held by the
+  **deployment**, never the agent (an agent that can sign its own ToolSpec
+  can grant itself any capability); an unverifiable signature fails closed
+  with **no legacy fallback**, because a fallback that executes anyway
+  reads as protection and is not; argument-schema failure becomes a **hard
+  refusal** in strict mode, since `schema_valid` was only downgrade-only
+  because nothing validated it; and **no trust-on-first-use** — without a
+  bundle the legacy path runs and is recorded as degraded, never as
+  equivalent.
+- The source-span `callable_digest` records what it **cannot** see —
+  swapped closure variables and module globals verify clean — rather than
+  leaving that to be discovered in an incident.
+- Fourteen reason codes are published as a public contract, tested for
+  exact equality rather than containment: a silently added code is an
+  unversioned change to a consumer that branches on them.
+- Nothing is implemented yet, and the contract says so
+  (`realization.runtime_enforcement: not_implemented`). Runtime is PR 2.
 ### Consumed-grant ledger is tamper-evident (2026-08-05)
 
 - Architect review: the audit log is append-only but the grants ledger was

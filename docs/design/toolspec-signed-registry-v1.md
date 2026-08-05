@@ -2,12 +2,37 @@
 
 ## Status
 
-**DRAFT.** Every decision below is a PROPOSAL. Nothing here is implemented;
-no schema, module, or test named in this document exists on disk unless
-marked "already landed." Before this becomes an accepted ADR it must be
-assigned an id in `docs/assurance/document_register_v1.yaml` (last assigned:
-`DOC-297`; this would be `DOC-298`) with `status: proposed`, not `canonical`,
-until slice 3 (below) lands.
+**ACCEPTED 2026-08-05** (REMORA → AAE handoff gate, PR 1).
+
+All eight open questions below are now decided. The decisions are not
+recorded here in prose alone — they live in `schemas/tool_spec_v1.yaml`
+as a frozen, machine-readable contract, pinned by
+`tests/test_toolspec_schema_v1.py`, so runtime and ADR cannot drift apart
+without a test failing. Read that file for the authoritative answer to any
+"Open decision" heading further down; the prose is kept because the
+*reasoning* is worth preserving even where the conclusion has moved.
+
+**Nothing is implemented yet.** The contract is frozen; runtime
+enforcement is PR 2 of the handoff gate, and the SDK surface is PR 5. The
+fasttrack register remains the authority on what is wired.
+
+| Open question | Decision | Why |
+|---|---|---|
+| 1. Signing model | HMAC-SHA256, deployment-held key | Same trust model as PDP tokens, leases and audit entries; asymmetric/KMS deferred rather than shipped half-exercised |
+| 2. Effect cardinality | Singular | `ToolContract` enforces one today; pluralising with no multi-effect tool invents an unexercised invariant |
+| 3. Tool-id namespace | Flat | Namespacing touches every call site passing a bare name; uniqueness enforced at load instead |
+| 4. Argument-schema failure | Hard refuse in strict mode | `schema_valid` was downgrade-only *because nothing validated it*; a computed failure that only lowers trust would let a malformed call run |
+| 5. `callable_digest` basis | Source span | Human-auditable and version-stable; its blindness to closures and module globals is recorded in the contract rather than discovered later |
+| 6. Pin-mode default | Strict when a bundle is configured; no TOFU | Without a bundle the legacy path runs and is **recorded as degraded**, never treated as equivalent |
+| 7. `postcondition_reader` mandatory | Present but nullable in v1 | No reader exists yet (FT-04 builds the first); an explicit `null` is a decision, a missing key is an oversight |
+| 8. Module home | `remora/toolcall/toolspec.py` | The assess path already imports `remora.toolcall`; enforcement receives a resolved spec as **data**, so no new import direction is created |
+
+Additional decisions the handoff gate required beyond the original eight:
+key ownership (deployment — an agent that can sign its own spec can grant
+itself anything), trust-bundle distribution, key rotation and revocation
+via an identity allowlist, stale-version rejection by pinned bundle
+digest, and the canonical signing byte definition. All are in the frozen
+contract.
 
 This closes issue #83 (F-03) and issue #38 (same finding, discovered
 independently), not by merging — by giving the maintainer a design to

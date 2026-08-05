@@ -126,12 +126,24 @@ items:
   title: One immutable signed ToolSpec
   priority: p0
   consolidates: ['#83', 'RF-01']
-  status: NOT_STARTED
+  status: IN_PROGRESS
   notes: >-
     Hash-binding slices landed earlier (policy source set + registry
-    identity in policy_bundle_hash); the full signed ToolSpec (argument
-    schema, credential scope, callable digest, idempotency contract,
-    signing) needs its own ADR before code.
+    identity in policy_bundle_hash). ADR ACCEPTED 2026-08-05 (handoff-gate
+    PR 1): all eight open questions decided, recorded as a frozen
+    machine-readable contract in schemas/tool_spec_v1.yaml and pinned by
+    tests/test_toolspec_schema_v1.py (16 tests) so ADR and runtime cannot
+    drift. Decisions: HMAC-SHA256 with a deployment-held key (agent never
+    signs), identity-allowlist rotation/revocation, pinned-bundle-digest
+    staleness, fail-closed with NO legacy fallback in strict mode, source-
+    span callable digest with its blindness recorded, singular effect,
+    flat tool ids, hard schema refusal in strict mode, strict-not-TOFU
+    default, nullable-but-present postcondition_reader, and
+    remora/toolcall/toolspec.py as the home so no new import direction is
+    created. Fourteen stable reason codes published as a public contract.
+    NOT DONE: runtime enforcement (handoff PR 2), the binding chain through
+    lease/token (PR 2), and the SDK surface (PR 5). The contract file
+    states realization: runtime_enforcement not_implemented.
 - id: FT-04
   title: Closed-loop postcondition verification (one deep integration)
   priority: p0
