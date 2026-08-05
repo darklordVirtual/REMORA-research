@@ -168,8 +168,11 @@ def test_evidence_hashes_both_sides_and_never_overwrites() -> None:
 
 
 def test_realization_does_not_overclaim() -> None:
+    """Runtime and the first integration landed in handoff PR 4; the SDK
+    surface has not. The register must under-claim, never the reverse."""
     realization = CONTRACT["realization"]
     assert realization["contract"] == "frozen"
-    assert realization["runtime"] == "not_implemented"
-    assert realization["sdk_surface"] == "not_implemented"
+    assert realization["runtime"] == "implemented"
     assert realization["first_integration"] == "github_issue_creation"
+    assert realization["first_integration_status"] == "implemented"
+    assert realization["sdk_surface"] == "not_implemented"

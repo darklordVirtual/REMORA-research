@@ -132,5 +132,6 @@ evidence:
 realization:
   contract: frozen
   first_integration: github_issue_creation
-  runtime: not_implemented
+  first_integration_status: implemented
+  runtime: implemented
   sdk_surface: not_implemented

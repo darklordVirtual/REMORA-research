@@ -189,9 +189,22 @@ items:
     Both expected and observed are hashed so a reader can re-derive the
     comparison instead of trusting the verdict. execution_lifecycle_v1.yaml
     gains EFFECT_PENDING/VERIFIED/MISMATCH/UNKNOWN with transitions.
-    NOT DONE: the GitHub integration itself (handoff PR 4), EffectBlock
-    population in DecisionEnvelope, evidence-export inclusion, and the SDK
-    surface (PR 5). The contract states runtime: not_implemented.
+    Handoff PR 4 landed: remora/integrations/github_issue.py closes the
+    first loop (16 tests) against a deployment-supplied reader PROTOCOL —
+    governance never holds the credentials and no test contacts GitHub, so
+    the suite is not hostage to a third party's availability. Every §2.7
+    failure is exercised: absent issue, read timeout, lost authorization,
+    malformed response, unforeseen reader exception, and a missing issue
+    number all resolve to UNOBSERVABLE or VERIFIER_FAILED — never to
+    MISMATCH. Verification appends to the tenant audit chain
+    (record_effect_verification), drives the proposal's lifecycle state,
+    and ships in the evidence bundle's hashed manifest (10 wiring tests).
+    Two overclaims removed on the way: the lifecycle transition
+    SUCCEEDED -> EFFECT_VERIFIED on postcondition_not_declared (recorded
+    "we never looked" as "we checked"), and a test asserting the expected
+    and observed hashes are equal, which cannot hold under a hash rule.
+    NOT DONE: EffectBlock population in DecisionEnvelope and the SDK
+    surface (PR 5). The contract states sdk_surface: not_implemented.
 - id: FT-05
   title: External review recruited now, closed after P0
   priority: p0

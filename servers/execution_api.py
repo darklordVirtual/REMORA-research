@@ -2019,14 +2019,76 @@ def _dispatch_projection(tenant: str, proposal_id: str) -> dict[str, Any] | None
     }
 
 
+def record_effect_verification(tenant: str, verification: Any) -> dict[str, Any]:
+    """Append one effect verification to the tenant audit chain.
+
+    Appends; never edits the execution record it verifies. A verifier that
+    could rewrite what it verifies produces no evidence, only a claim —
+    so a later observation adds a record rather than correcting an
+    earlier one, and the trail keeps the uncertainty that genuinely
+    happened.
+
+    Deployment-facing: the reader lives with the deployment (it holds the
+    credentials), so runtime hands the resulting record back here rather
+    than reaching out to a third party from inside governance.
+    """
+    record = verification.to_dict()
+    entry = _CHAIN.append(tenant, {
+        "event": "effect_verified",
+        "actor": "effect_verifier",
+        **record,
+    })
+    return {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+
+
+#: EffectStatus -> lifecycle state. UNOBSERVABLE and VERIFIER_FAILED both
+#: mean "we do not know", which is EFFECT_UNKNOWN and never a mismatch.
+#: UNSUPPORTED is absent on purpose: a tool that declares no postcondition
+#: was never observed, so it stays at its dispatch state. Mapping it to
+#: EFFECT_VERIFIED would record "we did not look" as "we checked".
+_EFFECT_STATE = {
+    "EFFECT_VERIFIED": "EFFECT_VERIFIED",
+    "EFFECT_MISMATCH": "EFFECT_MISMATCH",
+    "EFFECT_UNOBSERVABLE": "EFFECT_UNKNOWN",
+    "EFFECT_VERIFIER_FAILED": "EFFECT_UNKNOWN",
+}
+
+
+def _effect_projection(events: list[dict[str, Any]]) -> dict[str, Any]:
+    """The verification history for one proposal, latest verdict first.
+
+    Always returns a section, even with nothing in it: a reader who finds
+    no key cannot tell "not verified" from "this export predates the
+    feature", and that ambiguity is exactly what the UNSUPPORTED status
+    exists to remove.
+    """
+    history = [e["payload"] for e in events
+               if e.get("event") == "effect_verified"]
+    latest = history[-1] if history else None
+    return {
+        "status": latest["status"] if latest else None,
+        "reason_code": latest["reason_code"] if latest else None,
+        "verified_at": latest["verified_at"] if latest else None,
+        "verifier_identity": latest["verifier_identity"] if latest else None,
+        "expected_sha256": latest["expected_sha256"] if latest else None,
+        "observed_sha256": latest["observed_sha256"] if latest else None,
+        "history": history,
+    }
+
+
 def _current_state(events: list[dict[str, Any]],
                    dispatch: dict[str, Any] | None) -> str:
     """Where the proposal stands, in lifecycle-model vocabulary.
 
     Derived, never stored: a stored copy could drift from the chain it is
-    supposed to describe. The dispatch verdict wins when present, because
-    it is the later fact.
+    supposed to describe. The latest fact wins, which is why an effect
+    verification outranks the dispatch verdict: "the dispatcher returned
+    without raising" and "the approved change is present" are different
+    claims, and only the second is about the world.
     """
+    effect = _effect_projection(events)
+    if effect["status"] in _EFFECT_STATE:
+        return _EFFECT_STATE[str(effect["status"])]
     if dispatch is not None and dispatch["terminal"]:
         return str(dispatch["state"])
     names = [str(e.get("event")) for e in events]
@@ -2082,6 +2144,7 @@ def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
         "current_state": _current_state(events, dispatch),
         "event_count": len(events),
         "dispatch": dispatch,
+        "effect": _effect_projection(events),
     }
 
 
@@ -2142,6 +2205,9 @@ def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
             "tenant": tenant,
         },
         "lifecycle": {"events": events, "dispatch": dispatch},
+        # Always present, even when empty: a missing section cannot be
+        # distinguished from an export that predates verification.
+        "effect_verification": _effect_projection(events),
         "policy_identity": api_mod._policy_component_hashes(),
         "audit_verification": {
             "valid": valid,
