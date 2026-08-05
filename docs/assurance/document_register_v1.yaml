@@ -1,4 +1,4 @@
-schema_version: '1'
+﻿schema_version: '1'
 updated: '2026-08-03'
 documents:
 - id: DOC-001
@@ -2153,6 +2153,17 @@ documents:
   last_reviewed: '2026-08-04'
   audience:
   - researchers
+- id: DOC-298
+  version: v1
+  path: docs/design/execution-lifecycle-outbox-v1.md
+  status: proposal
+  topic: docs_design_execution-lifecycle-outbox-v1_md
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: '2026-08-05'
+  audience:
+  - maintainer
+  - evaluator
 
 topics:
 - docs_assurance_superseded_claims_md
