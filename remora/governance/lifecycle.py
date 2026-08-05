@@ -1,0 +1,114 @@
+# Author: Stian Skogbrott
+# SPDX-License-Identifier: BUSL-1.1
+"""Execution lifecycle as a runtime authority (FT-01).
+
+``schemas/execution_lifecycle_v1.yaml`` is the canonical proposal-to-effect
+state machine (maintainer contract decisions 2026-08-05; design
+``docs/design/execution-lifecycle-outbox-v1.md``). This module loads that
+schema — the transition table is NEVER duplicated in code — and exposes:
+
+- :class:`LifecycleModel`: the parsed model (states, terminal states,
+  ``(state, event) -> state`` transition map);
+- :class:`LifecycleTracker`: a per-proposal cursor that applies declared
+  events and raises :class:`IllegalTransition` on anything the model does
+  not allow — an illegal transition is a bug surfacing, never a silent
+  drift.
+
+Realization status is honest by construction: the schema declares the
+outbox states (``DISPATCH_PENDING`` onward) AHEAD of their implementation
+(FT-02), so this module can model them while the fasttrack register
+remains the authority on what is actually wired. Conformance of the live
+``/v1/execution`` event stream against this model is the next FT-01
+slice (it touches the protected execution path).
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pathlib import Path
+
+import yaml
+
+_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2] / "schemas" / "execution_lifecycle_v1.yaml"
+)
+
+INITIAL_STATE = "PROPOSED"
+
+
+class IllegalTransition(Exception):
+    """A declared event was applied in a state the model does not allow."""
+
+
+@dataclass(frozen=True)
+class LifecycleModel:
+    """The parsed lifecycle schema: single source of truth for transitions."""
+
+    states: frozenset[str]
+    terminal_states: frozenset[str]
+    #: ``(from_state, event) -> to_state``
+    transitions: dict[tuple[str, str], str]
+    version: int
+
+    @classmethod
+    def load(cls, path: Path | None = None) -> "LifecycleModel":
+        raw = yaml.safe_load((path or _SCHEMA_PATH).read_text(encoding="utf-8"))
+        transitions: dict[tuple[str, str], str] = {}
+        for row in raw["transitions"]:
+            # YAML 1.1 parses a bare `on` key as boolean True (the GitHub
+            # workflow gotcha); accept both spellings of the event key.
+            event = row.get("on", row.get(True))
+            key = (str(row["from"]), str(event))
+            if key in transitions:
+                raise ValueError(
+                    f"ambiguous transition: {key} maps to both "
+                    f"{transitions[key]} and {row['to']}"
+                )
+            transitions[key] = str(row["to"])
+        return cls(
+            states=frozenset(str(s) for s in raw["states"]),
+            terminal_states=frozenset(str(s) for s in raw["terminal_states"]),
+            transitions=transitions,
+            version=int(raw["version"]),
+        )
+
+
+_DEFAULT_MODEL: LifecycleModel | None = None
+
+
+def default_model() -> LifecycleModel:
+    global _DEFAULT_MODEL
+    if _DEFAULT_MODEL is None:
+        _DEFAULT_MODEL = LifecycleModel.load()
+    return _DEFAULT_MODEL
+
+
+@dataclass
+class LifecycleTracker:
+    """Cursor over one proposal's lifecycle; refuses undeclared moves."""
+
+    model: LifecycleModel = field(default_factory=default_model)
+    state: str = INITIAL_STATE
+    trail: tuple[tuple[str, str, str], ...] = ()
+
+    @property
+    def is_terminal(self) -> bool:
+        return self.state in self.model.terminal_states
+
+    def transitions_key(self, state: str, event: str) -> str | None:
+        return self.model.transitions.get((state, event))
+
+    def apply(self, event: str) -> str:
+        """Apply a declared event; return the new state or raise.
+
+        A refused application leaves the tracker unchanged — the refusal
+        itself is the signal, and callers decide whether it is fatal.
+        """
+        nxt = self.model.transitions.get((self.state, event))
+        if nxt is None:
+            raise IllegalTransition(
+                f"event {event!r} is not legal in state {self.state!r} "
+                f"(lifecycle v{self.model.version})"
+            )
+        self.trail = self.trail + ((self.state, event, nxt),)
+        self.state = nxt
+        return nxt

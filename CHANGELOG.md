@@ -27,6 +27,24 @@ releases.
 
 ## [Unreleased]
 
+### FT-01 slice 3: the lifecycle schema becomes a runtime authority (2026-08-05)
+
+- New `remora/governance/lifecycle.py`: loads
+  `schemas/execution_lifecycle_v1.yaml` (single source of truth — the
+  transition table is never duplicated in code) into a `LifecycleModel`
+  and a per-proposal `LifecycleTracker` that raises `IllegalTransition`
+  on any undeclared move, leaving state unchanged on refusal.
+- Property suite (Hypothesis `RuleBasedStateMachine`, 3 fixed seeds
+  locally): searched validation over the declared event domain — no
+  sequence of declared events reaches an undeclared state, terminal
+  states are absorbing, UNKNOWN is reachable only through DISPATCHING,
+  every state is reachable from PROPOSED. Stated as searched validation,
+  not proof.
+- Explicitly NOT in this slice: conformance-wiring of the live
+  `/v1/execution` event stream against this model (next FT-01 slice —
+  protected path), and the outbox states' realization (FT-02). The
+  fasttrack register remains the status authority.
+
 ### DerivationReceipt v1 hardened — no new transforms (2026-08-05)
 
 - External evolve-review 2026-08-05, all six receipt findings in one
