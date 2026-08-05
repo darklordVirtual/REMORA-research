@@ -125,6 +125,30 @@ def build_observation(
     )
 
 
+def _derivation_receipts(episode) -> "tuple[Any, ...]":
+    """Parse the episode's proposed derivation dicts into typed receipts.
+
+    Malformed proposals are dropped, not raised: a receipt is an untrusted
+    agent proposal, and a proposal too malformed to parse is simply not a
+    proof — the value it claimed to ground stays ungrounded.
+    """
+    from remora.toolcall.routing.derivation import DerivationReceipt
+
+    receipts = []
+    for raw in getattr(episode, "proposed_derivations", ()) or ():
+        try:
+            receipts.append(DerivationReceipt(
+                argument=str(raw["argument"]),
+                value=raw["value"],
+                transform=str(raw["transform"]),
+                source_span=str(raw["source_span"]),
+                params=dict(raw.get("params", {})),
+            ))
+        except (KeyError, TypeError, ValueError):
+            continue
+    return tuple(receipts)
+
+
 def build_full_observation(
     episode: RoutingEpisode,
     registry: ToolRegistry,
@@ -205,6 +229,7 @@ def build_full_observation(
             state=state,
             domain=episode.domain,
             signature=signature,
+            receipts=_derivation_receipts(episode),
         ),
         missing_required_arguments=missing,
         argument_resolver_tools=resolvers or validation_resolvers,

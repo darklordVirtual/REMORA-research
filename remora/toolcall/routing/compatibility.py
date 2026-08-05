@@ -241,6 +241,7 @@ def values_grounded(
     state: StateIndex,
     domain: str,
     signature: Any = None,
+    receipts: "tuple[Any, ...] | None" = None,
 ) -> bool | None:
     """Are the call's judgeable argument values traceable to this context?
 
@@ -259,8 +260,14 @@ def values_grounded(
     strings and numbers; free text is not an identifier and is never judged.
     Comparison is otherwise exact, matching the declaration layer's refusal
     of canonicalisation promises (§30) — a *derived* value (``2023-04-03``
-    from "April 3rd") stays ungrounded, because the engine cannot check the
-    derivation; verifying it is a cost kept, not a defect.
+    from "April 3rd") stays ungrounded by itself, because the engine cannot
+    check an unexplained derivation. With a verified
+    :class:`~remora.toolcall.routing.derivation.DerivationReceipt` (theme 3)
+    the derivation IS checkable — the declared source span must be verbatim
+    in the task text and the whitelisted transform re-executes to exactly
+    the claimed value — and the value then grounds AND anchors (its span
+    ties it to this task). A rejected receipt just leaves the value
+    ungrounded; it never un-grounds anything.
 
     Tri-state: ``True`` all judgeable values grounded, ``False`` at least one
     is not, ``None`` nothing was judgeable — and None must never behave like
@@ -325,6 +332,11 @@ def values_grounded(
                 continue
             judged = True
             grounded_one, anchors = verdict
+            if not grounded_one and receipts:
+                from remora.toolcall.routing.derivation import receipt_grounds
+
+                if receipt_grounds(name, item, receipts, task_text=task_text):
+                    grounded_one, anchors = True, True
             if not grounded_one:
                 return False
             anchored = anchored or anchors
