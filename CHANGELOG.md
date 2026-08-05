@@ -27,6 +27,24 @@ releases.
 
 ## [Unreleased]
 
+### Release manifest for downstream product pinning (AAE §2/§22) (2026-08-05)
+
+- New `scripts/build_release_manifest.py`: emits the hash-identified
+  artifact set a product repository pins instead of installing from
+  `master` — wheel, `openapi.json`, the SDK public-API snapshot and the
+  lifecycle schema, each with SHA-256, plus the exact commit and whether
+  the worktree was clean.
+- A dirty worktree is *recorded*, not silently omitted: the build warns
+  and sets `worktree_clean: false` so a downstream consumer can see it,
+  while the promotion gate (`check_claim_provenance.py`) remains the
+  place where dirtiness disqualifies.
+- The manifest carries an explicit `consumer_contract`: `remora.sdk` is
+  the stable namespace, `remora.policy` / `remora.enforcement` /
+  `remora.governance` / `servers` are internal, and pre-1.0 compatibility
+  is stated rather than implied — so a consumer pins a promise, not a
+  guess.
+
+
 ### Contract test: policy that tightens during review voids the approval (2026-08-05)
 
 - Architect review of the AAE plan asked for this to be an explicit
