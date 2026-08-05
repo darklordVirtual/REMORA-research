@@ -27,6 +27,35 @@ releases.
 
 ## [Unreleased]
 
+### FT-02 slice 1: crash-consistent execution outbox store (2026-08-05)
+
+- New `remora/enforcement/outbox.py` — the durable record of dispatch
+  intent that closes F-02's three crash windows. State machine
+  `DISPATCH_PENDING → DISPATCHING → {SUCCEEDED, FAILED, REFUSED,
+  UNKNOWN}`, all terminals absorbing and **none auto-retrying**;
+  `UNKNOWN` is first-class, produced by reconciliation when the side
+  effect is undeterminable, because re-running a call that may already
+  have taken effect is the one thing this component must never do.
+- Idempotency key = length-prefixed SHA-256 over
+  (`proposal_id`, `tool_call_hash`, `attempt_no`) — a retried
+  authorization cannot insert a second dispatch intent, while a
+  legitimately re-approved call after `APPROVAL_INVALIDATED` gets its
+  own row.
+- Two adapters, one contract, one parametrized suite: in-process
+  reference (explicitly not durable) and SQLite (`BEGIN IMMEDIATE` makes
+  every read-then-write transition atomic; restart-verified). State
+  names are the lifecycle model's, asserted by test — no parallel
+  vocabulary.
+- 32 tests: exclusive claim under a real 8-thread race, terminal
+  absorption, stale-reconciliation to UNKNOWN, tenant isolation,
+  restart durability, and a searched validation over the key domain
+  (200 examples × 3 fixed seeds, no counterexample).
+- Explicitly NOT in this slice: wiring the authorize transaction to
+  insert the row, the dispatch worker, and the Postgres adapter for
+  multi-worker deployments. No crash-consistency property may be
+  claimed for the live path until slice 2 lands; the fasttrack register
+  remains the status authority.
+
 ### FT-01 slice 4: /v1/execution conforms to the lifecycle model at runtime (2026-08-05)
 
 - The declared machine now checks the live path: assess validates its
