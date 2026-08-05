@@ -9,6 +9,16 @@
 #
 # Profiles are ordered from lowest to highest risk. In multi-tenant deployments,
 # tenants reference profiles by name and may override individual fields.
+#
+# RUNTIME STATUS (verified 2026-08-05): the served API reads ONLY
+# action.require_human_approval, action.approval_role and
+# action.enforce_human_in_the_loop (servers/api.py::_extract_review_requirements).
+# Every other key — approved_tools, permitted_outcomes, autonomous_act,
+# thresholds.*, oracle.*, evidence.*, cascade.*, output.*, remaining audit.* —
+# is DECLARATIVE: reviewed policy intent, not enforced configuration. The
+# enforced tool allowlist is the dispatcher registry (only deployment-
+# registered callables execute; unknown tools refuse). Wiring the remaining
+# keys is tracked work; do not present them as active controls until then.
 
 version: "1.0.0"
 

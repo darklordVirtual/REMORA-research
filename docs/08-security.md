@@ -41,12 +41,12 @@ not prevent host-level attacks, model extraction, or infrastructure compromise.
 | OWASP Risk | Controls implemented | Status | Known gap |
 |---|---|---|---|
 | LLM01 Prompt Injection | PreToolUse hook AST guard (`remora/agent_hook/`), retrieved text treated as data, injection-indicator escalation, audit log of detection | Partial | No semantic NLI injection detection yet |
-| LLM02 Insecure Output | Tool-call schema validation (`remora/toolcall/`), allowlist-only tool execution (`schemas/risk-profiles.yaml`), dry-run simulation | Implemented for tool calls | No HTML-output escaping (integrator responsibility for rendered output) |
+| LLM02 Insecure Output | Tool-call schema validation (`remora/toolcall/`), dispatcher registry allowlist — only deployment-registered callables can execute, unknown tools refuse (`remora/enforcement/lease.py`), dry-run simulation | Implemented for tool calls | `approved_tools` in `schemas/risk-profiles.yaml` is declarative only — not read at runtime; no HTML-output escaping (integrator responsibility) |
 | LLM03 Training Data Poisoning | Multi-oracle consensus (3 independent families), `OracleDiversityTracker` (warns at ρ > 0.60), independent judge verification (Stage 3) | Partial | No corpus poisoning detection in retrieval store |
 | LLM04 Model DoS | `budget_oracle_calls` hard cap, stage short-circuit on terminal verdict, tenant isolation (infra-level) | Budget cap implemented | Tenant isolation is infrastructure-level |
 | LLM05 Supply Chain | Pure Python core, pinned `pyproject.toml` deps, signed artifacts, deterministic locked benchmarks | Implemented at code level | Infra signing is deployer responsibility |
 | LLM06 Sensitive Disclosure | Secret-pattern detection in file risk classifier (`remora/safety/`), context isolation, audit redaction runbook | Partial | No PII detection in free-form model output |
-| LLM07 Insecure Plugin | Policy gate + OPA (`remora/policy/`), risk-profile allowlist, default-deny on missing policy | Implemented | — |
+| LLM07 Insecure Plugin | Policy gate + OPA (`remora/policy/`), dispatcher registry allowlist (deployment-registered callables only), default-deny on missing policy | Implemented | Per-tier `approved_tools` in risk-profiles.yaml is declarative, not enforced |
 | LLM08 Excessive Agency | Autonomy degradation (`remora/governance/`), human approval workflow (`enterprise/human-approval-workflow.md`), `ESCALATE` on high uncertainty, Lyapunov V(t) drift detection | Implemented | — |
 | LLM09 Overreliance | Selective abstention, Platt-scaled confidence calibration, uncertainty decomposition (epistemic vs aleatoric), explicit `VERIFY` verdict | Implemented | — |
 | LLM10 Model Theft | System prompt isolation (programmatic construction, not user-accessible), audit trail (question hash logged by default) | Application-layer only | Model extraction protection is inference-infrastructure responsibility |

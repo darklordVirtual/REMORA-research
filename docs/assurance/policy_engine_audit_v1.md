@@ -296,11 +296,21 @@ A captured valid `PolicyDecisionToken` for a specific observation is permanently
 | Version bump on policy change | Manual, no tooling enforces a bump on git changes to decision_engine.py | Gap: silent version-string drift |
 | Previous envelope hash (`previous_hash`) | Field exists; populated externally | Not enforced in engine |
 
-**Finding F-4 (Medium): Policy bundle hash not auto-computed**
+**Finding F-4 (Medium): Policy bundle hash not auto-computed — status by path (updated 2026-08-05)**
 
-`AuditBlock.policy_bundle_hash` is declared as "SHA-256 composite of active policy files" but is always `None` unless the integration layer explicitly sets it. A policy change that is not surfaced in the bundle hash allows policy drift without audit trail change.
+`AuditBlock.policy_bundle_hash` is declared as "SHA-256 composite of active policy files". Status is now path-dependent:
 
-**Recommendation:** Add a utility function `compute_policy_bundle_hash()` that hashes `decision_engine.py`, `invariants.py`, `trap_classifier.py`, and `observation.py` deterministically. This would let the integration layer populate `AuditBlock.policy_bundle_hash` automatically.
+- **Server paths: CLOSED.** `servers/api.py` populates it from
+  `compute_policy_bundle_hash()` (the canonical seven-file policy source
+  set), the same composite the execution leases bind to; `servers/execution_api.py`
+  records it in the tenant chain.
+- **Library path: STILL OPEN.** `remora/reporting.py::_build_envelope`
+  (the envelope behind `remora.assess_tool_call`) never sets it — envelopes
+  from that path carry `None` and are unchained/unsigned.
+
+**Recommendation (remaining):** route `remora/reporting.py` through the same
+`compute_policy_bundle_hash()` population, or document that the library-path
+envelope must not be persisted as an audit record as-is.
 
 ---
 

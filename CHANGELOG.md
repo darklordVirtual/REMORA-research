@@ -27,6 +27,19 @@ releases.
 
 ## [Unreleased]
 
+### Security claims match the enforced mechanism (2026-08-05)
+
+- `docs/08-security.md` credited "allowlist-only tool execution" to
+  `schemas/risk-profiles.yaml` (`approved_tools`) — a key the runtime never
+  reads. The enforced allowlist is the dispatcher registry (only
+  deployment-registered callables execute; unknown tools refuse); the OWASP
+  rows now cite that mechanism, and the risk-profiles header states which
+  keys are read at runtime versus declarative policy intent. Editing the
+  YAML moves `policy_bundle_hash`, by design.
+- `policy_engine_audit_v1.md` F-4 scoped by path: server envelopes now carry
+  the canonical bundle hash (closed); the library path
+  (`remora/reporting.py`) still ships `None` and is named as the open half.
+
 ### Nonce failures are readable, refusals name the real cause (2026-08-05)
 
 - `NonceLedger` recorded tool-failure reasons write-only; `failure(nonce)`
