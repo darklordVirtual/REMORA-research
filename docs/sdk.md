@@ -200,6 +200,40 @@ Runnable, offline, zero configuration:
 python examples/effect_verification_quickstart.py
 ```
 
+## Seeing repeated refusals
+
+An ABSTAIN is terminal, which stops the call and says nothing about the
+pattern. An agent refused once can adjust an argument and propose again,
+and because each proposal is minted fresh, the tenth attempt looks like
+the first. `AssessmentResult.lineage` makes that visible:
+
+```python
+result = client.assess(call)
+if result.lineage and result.lineage.escalation_eligible:
+    # Advisory. REMORA recorded the pattern; it did not route on it.
+    notify_operator(result.lineage.probe_sequence_no)
+```
+
+REMORA derives this from its own audit chain, never from anything the
+caller sends — a `supersedes` request field would be defeated by the one
+caller it exists to catch, who omits it.
+
+Two fields decide how much weight the verdict deserves:
+
+- **`shadow_only`** is true while REMORA records the signal without acting
+  on it. Treating eligibility as an escalation would mean acting on a
+  false-positive rate nobody has measured. When it is absent from a
+  response the SDK defaults it to `True`, so an omission is never read as
+  "this was escalated";
+- **`lineage_key_basis`** is `semantic_target` when a signed ToolSpec
+  declared which argument names the target — two calls about different
+  objects are then two actions, not one retried. It is `tool_only` when
+  nothing declared it, and that key cannot tell repeated legitimate use
+  from probing.
+
+`lineage` is `None` on a server that does not report it. That means **not
+reported**, never "no probing".
+
 ## Public surface
 
 | Group | Symbols |
@@ -208,6 +242,7 @@ python examples/effect_verification_quickstart.py
 | Request models | `ToolCall`, `DerivationProposal` (a proposed derivation receipt for a derived argument value — verified server-side by deterministic re-execution, never by explanation) |
 | Result models | `AssessmentResult`, `ApprovalResult`, `RejectionResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef`, `ResolutionPlan`, `ProposalView`, `LifecycleTrail`, `ToolSpecIdentity` (which signed spec authorized the action, and whether specs are enforced at all) |
 | Effect verification | `PostconditionSpec`, `EffectStatus`, `EffectVerificationView`, `build_postcondition`, `verify_effect`, `content_digest` |
+| Proposal ancestry | `ProposalLineageView` — derived server-side; advisory while `shadow_only` is true |
 | Decisions | `DecisionAction` (canonical policy enum) |
 | Errors | `RemoraError` + typed subclasses (below), including the execution refusals `BindingRefusedError`, `ReplayRefusedError`, `ApprovalExpiredError` and `UnknownExecutionStateError` |
 

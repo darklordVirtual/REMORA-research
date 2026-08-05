@@ -27,6 +27,41 @@ releases.
 
 ## [Unreleased]
 
+### ABSTAIN lineage: resubmit-until-accept probing becomes visible (2026-08-05)
+
+- An ABSTAIN is terminal, which stops the individual call and does nothing
+  about the pattern. An agent refused once can adjust an argument and
+  propose again, and because each proposal is minted fresh, the tenth
+  attempt looked exactly like the first. The refusals worked; the probing
+  was invisible. `remora/governance/proposal_lineage.py` derives
+  `superseded_proposal_id` and a probe sequence from the audit chain, and
+  `/v1/execution/assess` records and returns them.
+- **Lineage is derived, never declared.** A `supersedes_proposal_id`
+  request field would be defeated by the one caller it exists to catch —
+  a prober simply omits it. Nothing reads the request, and a wiring test
+  asserts that client-supplied lineage fields change nothing.
+- **Escalation eligibility is shadow only.** The key is only as precise as
+  the deployment's declarations allow: with a signed ToolSpec declaring
+  the target-resource argument role it names the object, and without one
+  it falls back to actor plus tool plus environment, which cannot tell
+  repeated legitimate use from probing. So the verdict is recorded with
+  `shadow_only: true` and the decision stays exactly what the engine
+  returned. Routing on a signal whose false-positive rate nobody has
+  measured is the mistake this layer exists to prevent — the same
+  discipline the ESCALATE→VERIFY routing change was held to.
+- **The product can see it.** `AssessmentResult.lineage` exposes
+  `ProposalLineageView` through `remora.sdk` (36 symbols) — a governance
+  signal a consumer cannot reach through the stable namespace would exist
+  only for whoever reads raw JSON. `None` means *not reported*, never "no
+  probing", and an omitted `shadow_only` defaults to `True` so an older
+  server's silence is never read as "this was escalated".
+- Every record states its key basis and its window, so a reader can weigh
+  the verdict instead of taking it. Abstains outside the window do not
+  accumulate (otherwise the signal decays into a function of account age),
+  and an entry whose timestamp cannot be parsed is excluded rather than
+  counted — a record that cannot be placed in time cannot support a claim
+  about a rate.
+
 ### Prerelease core-candidate-2026.08.05.3 — the handoff gate closes (2026-08-05)
 
 - Published from a clean checkout of `9866436` and consumed by

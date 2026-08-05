@@ -20,6 +20,7 @@
     "LifecycleTrail": "class",
     "NotFoundError": "exception",
     "PostconditionSpec": "class",
+    "ProposalLineageView": "class",
     "ProposalView": "class",
     "RateLimitedError": "exception",
     "RejectionResult": "class",

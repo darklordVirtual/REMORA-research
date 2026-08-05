@@ -41,6 +41,7 @@ __all__ = [
     "DerivationProposal",
     "ExecutionResult",
     "LifecycleTrail",
+    "ProposalLineageView",
     "ProposalView",
     "RejectionResult",
     "ResolutionPlan",
@@ -48,6 +49,52 @@ __all__ = [
     "ToolCall",
     "ToolSpecIdentity",
 ]
+
+
+@dataclass(frozen=True)
+class ProposalLineageView:
+    """What the chain says about this proposal's ancestry.
+
+    Present so a product can SEE resubmit-until-accept probing: without
+    lineage, an agent refused once can adjust an argument and propose
+    again, and every attempt looks like a first one.
+
+    ``escalation_eligible`` is advisory. ``shadow_only`` is true while
+    REMORA records the signal without routing on it — a product that
+    treated eligibility as an escalation would be acting on a
+    false-positive rate nobody has measured yet. ``lineage_key_basis``
+    says how precise the grouping could be: ``semantic_target`` names the
+    object a signed ToolSpec declared, ``tool_only`` cannot tell repeated
+    legitimate use from probing and deserves less weight.
+    """
+
+    superseded_proposal_id: str
+    prior_abstain_count: int
+    probe_sequence_no: int
+    escalation_eligible: bool
+    lineage_key_basis: str
+    window_seconds: int
+    shadow_only: bool
+
+    @classmethod
+    def from_payload(
+        cls, payload: Mapping[str, Any] | None
+    ) -> "ProposalLineageView | None":
+        if not payload:
+            return None
+        return cls(
+            superseded_proposal_id=str(
+                payload.get("superseded_proposal_id", "")),
+            prior_abstain_count=int(payload.get("prior_abstain_count", 0)),
+            probe_sequence_no=int(payload.get("probe_sequence_no", 1)),
+            escalation_eligible=bool(payload.get("escalation_eligible", False)),
+            lineage_key_basis=str(payload.get("lineage_key_basis", "")),
+            window_seconds=int(payload.get("window_seconds", 0)),
+            # Absent means an older server that does not route on lineage
+            # either. Defaulting to True keeps a consumer from reading an
+            # omission as "this WAS escalated".
+            shadow_only=bool(payload.get("shadow_only", True)),
+        )
 
 
 @dataclass(frozen=True)
@@ -289,6 +336,9 @@ class AssessmentResult:
     review_item_id: str | None = None
     resolution_plan: "ResolutionPlan | None" = None
     toolspec: ToolSpecIdentity | None = None
+    #: Ancestry of this proposal, when the server reports it. None on an
+    #: older server — never read as "no probing", only as "not reported".
+    lineage: "ProposalLineageView | None" = None
     raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
 
     @classmethod
@@ -307,6 +357,7 @@ class AssessmentResult:
                 if payload.get("resolution_plan") else None
             ),
             toolspec=ToolSpecIdentity.from_payload(payload.get("toolspec")),
+            lineage=ProposalLineageView.from_payload(payload.get("lineage")),
             raw=_frozen(payload) or MappingProxyType({}),
         )
 
