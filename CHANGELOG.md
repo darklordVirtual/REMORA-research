@@ -27,6 +27,22 @@ releases.
 
 ## [Unreleased]
 
+### Chain-head absence fails by name, not as an opaque TypeError (2026-08-05)
+
+- `PostgresTenantChain.append` indexed the head-row SELECT unguarded. In
+  practice the preceding upsert guarantees the row, which is why it went
+  unnoticed — but if it is ever absent (truncated table, a migration that
+  dropped it, a tenant the connection cannot see) the append crashed with
+  `'NoneType' object is not subscriptable`: an error that says nothing
+  about audit chains and sends the reader to the wrong place. It now
+  refuses by name, and says why appending without a predecessor would be
+  worse than failing — it would silently start a second chain for the
+  tenant.
+- This was the one finding in CI's `mypy remora --ignore-missing-imports`,
+  flagged in two earlier PRs and deliberately not bundled into them.
+  **mypy is now clean across all 306 source files.**
+
+
 ### Release manifest for downstream product pinning (AAE §2/§22) (2026-08-05)
 
 - New `scripts/build_release_manifest.py`: emits the hash-identified
