@@ -24,7 +24,7 @@ pip install "remora[api,sdk]"    # + in-process server for the offline demo
 
 | Aspect | Guarantee |
 |---|---|
-| Surface | The 19 symbols in `artifacts/sdk/public_api_v1.json` — nothing else |
+| Surface | The 20 symbols in `artifacts/sdk/public_api_v1.json` — nothing else |
 | Gate | `tests/test_sdk_public_api.py` fails CI on any unreviewed symbol change |
 | Pre-1.0 semantics | Breaking changes are allowed in minor versions, always CHANGELOG-recorded; removals require a deliberate, reviewed snapshot update |
 | Additions | New symbols/fields arrive additively; `raw` on result models retains the full response body for forward compatibility |
@@ -72,7 +72,7 @@ in-process.
 
 | Group | Symbols |
 |---|---|
-| Client | `RemoraClient` (sync; `assess`, `approve`, `execute`, `verify_audit_chain`, context manager) |
+| Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `execute`, `verify_audit_chain`, context managers |
 | Request models | `ToolCall`, `DerivationProposal` (a proposed derivation receipt for a derived argument value — verified server-side by deterministic re-execution, never by explanation) |
 | Result models | `AssessmentResult`, `ApprovalResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef` |
 | Decisions | `DecisionAction` (canonical policy enum) |
@@ -102,6 +102,6 @@ never on detail strings.
 - The nested mappings on `ExecutionResult` (`execution_grant`, `pep`,
   `tool_execution`) are passed through verbatim in this SDK version;
   typed models for them are planned, additively.
-- Async client, OpenAPI-generated transport, framework adapters and
+- OpenAPI-generated transport, framework adapters and
   `remora.sdk.testing` are queued FT-13 slices
   (`docs/assurance/fasttrack_register_v1.yaml`).

@@ -3,6 +3,7 @@
   "symbols": {
     "ApprovalResult": "class",
     "AssessmentResult": "class",
+    "AsyncRemoraClient": "class",
     "AuditRef": "class",
     "AuditVerification": "class",
     "AuthenticationError": "exception",

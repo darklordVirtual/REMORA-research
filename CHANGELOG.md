@@ -27,6 +27,17 @@ releases.
 
 ## [Unreleased]
 
+### SDK: AsyncRemoraClient (2026-08-05)
+
+- FT-13 queued slice: `AsyncRemoraClient` mirrors the sync client
+  operation for operation over `httpx.AsyncClient` — same paths, headers,
+  bodies, result models, and a SHARED `error_for_response` mapping
+  extracted from the sync client so the two can never drift on error
+  semantics. 20th public symbol; snapshot deliberately updated; docs
+  surface table synced. Tests use `asyncio.run` inside sync functions —
+  no async test plugin, no new CI dependency — including an
+  `ASGITransport` full-loop test against the real app in-process.
+
 ### Research shelf: DerivationReceipt anchored (2026-08-05)
 
 - New SHELF-023 (INTERNAL): the derivation-receipt mechanism's
