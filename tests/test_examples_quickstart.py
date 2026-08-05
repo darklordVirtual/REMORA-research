@@ -88,3 +88,32 @@ def test_examples_execution_lifecycle_demo_runs_clean():
     # The closing line must not claim an empty outbox while a row remains.
     assert "Nothing is left in flight" not in r.stdout
     assert "Still pending (fresh, not stranded): 1" in r.stdout
+
+
+def test_examples_effect_verification_quickstart_runs_clean():
+    """FT-04: the closed-loop example must run clean and offline.
+
+    It has to show all three outcomes an operator actually meets — the
+    approved change present, a tampered body caught, and an object that
+    could not be read — because the third is the one systems usually get
+    wrong by quietly calling it a failure.
+    """
+    r = _run_example("examples/effect_verification_quickstart.py")
+    assert r.returncode == 0, r.stderr
+    assert "EFFECT_VERIFIED" in r.stdout
+    assert "EFFECT_MISMATCH" in r.stdout
+    assert "EFFECT_UNOBSERVABLE" in r.stdout
+    assert "never a reason to run the action again" in r.stdout
+
+
+def test_examples_toolspec_signing_quickstart_runs_clean():
+    """FT-03: the signing example must refuse every tamper it demonstrates.
+
+    The script exits non-zero if any tamper loads successfully, so a
+    signature that stopped binding fails this test rather than printing a
+    reassuring wall of text.
+    """
+    r = _run_example("examples/toolspec_signing_quickstart.py")
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.count("refused:") == 4
+    assert "toolspec_signing_identity_revoked" in r.stdout
