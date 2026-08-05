@@ -27,6 +27,21 @@ releases.
 
 ## [Unreleased]
 
+### Paper PDF ships via PR, never a direct master push (2026-08-05)
+
+- Fixed the red `compile` job on master: `compile-paper.yml` auto-committed
+  the recompiled `paper/remora_paper.pdf` straight to master, which branch
+  protection (PRs only) rejects with GH006. The refreshed PDF now ships as an
+  auto-maintained PR on the `ci/paper-pdf` branch; merging stays a human
+  decision. Known limitation (documented in the workflow): `GITHUB_TOKEN`
+  PRs do not trigger required checks — close/reopen the PR or use the admin
+  override.
+- Added `tests/test_workflow_master_push_guard.py`: a static scan over the
+  workflow YAML that fails on the two known direct-push mechanisms
+  (`git-auto-commit-action` targeting master, explicit `git push` to master
+  in run-steps). Declared-pattern guard, not an exhaustive proof; branch
+  protection remains the runtime backstop.
+
 ### Research truth sync P0/P1: matrix and paper match the code (2026-08-05)
 
 - External review (2026-08-05) found the control matrix lagging the code
