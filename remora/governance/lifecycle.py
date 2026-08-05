@@ -123,6 +123,10 @@ ITEM_STATUS_STATE: dict[str, str] = {
     "pending": "REVIEW_PENDING",
     "approved": "AUTHORIZED",
     "expired_to_abstain": "EXPIRED_TO_ABSTAIN",
+    # A reviewer's explicit refusal maps to the model's REFUSED, the same
+    # terminal a re-gate refusal reaches: both mean "authorization was
+    # withheld". The queue keeps them distinct in its own vocabulary.
+    "rejected": "REFUSED",
     "authorized": "AUTHORIZED",
     "executed": "SUCCEEDED",
     "dispatch_refused": "REFUSED",

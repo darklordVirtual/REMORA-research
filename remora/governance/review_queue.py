@@ -37,7 +37,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 
@@ -69,6 +69,11 @@ class ItemStatus(str, Enum):
     # dispatches get their own terminal states so the persisted record never
     # claims an execution that did not happen.
     AUTHORIZED = "authorized"
+    # A reviewer's explicit refusal. Terminal, and deliberately distinct
+    # from EXPIRED_TO_ABSTAIN: "a human looked and said no" is not the same
+    # record as "nobody looked in time", and conflating them would erase
+    # the review that actually happened.
+    REJECTED = "rejected"
     EXECUTED = "executed"
     DISPATCH_REFUSED = "dispatch_refused"
     DISPATCH_FAILED = "dispatch_failed"
@@ -223,6 +228,35 @@ class ReviewQueue:
     # ------------------------------------------------------------------
     # 3. Approval (REM-033 — mandatory bounded expiry)
     # ------------------------------------------------------------------
+
+    def reject(self, item_id: str, reviewer: str, reason: str) -> PendingReview:
+        """Record a reviewer's explicit refusal. Terminal.
+
+        Mirrors :meth:`approve` in its guards: only a PENDING item can be
+        rejected, so a refusal can neither race an approval nor overwrite
+        one. ``reason`` is mandatory — an unexplained refusal is not
+        reviewable after the fact.
+        """
+        with self._lock:
+            if not reason or not reason.strip():
+                raise ValueError("a rejection must carry a reason")
+            item = self._items[item_id]
+            if item.status is not ItemStatus.PENDING:
+                raise ValueError(
+                    f"item {item_id} is {item.status.value}, not pending; "
+                    "only a pending review can be rejected"
+                )
+            rejected = replace(item, status=ItemStatus.REJECTED)
+            self._items[item_id] = rejected
+            self._log.append(
+                "review_rejected",
+                {
+                    "item_id": item_id,
+                    "reviewer": reviewer,
+                    "reason": reason,
+                },
+            )
+            return rejected
 
     def approve(
         self,

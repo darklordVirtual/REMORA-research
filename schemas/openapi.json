@@ -913,6 +913,27 @@
         "title": "PolicyDecision",
         "type": "object"
       },
+      "RejectRequest": {
+        "description": "Record a reviewer's refusal of a pending item.",
+        "properties": {
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "reason"
+        ],
+        "title": "RejectRequest",
+        "type": "object"
+      },
       "RerunRequest": {
         "properties": {
           "request_id": {
@@ -1882,6 +1903,90 @@
           }
         },
         "summary": "Execute Accepted",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/reject": {
+      "post": {
+        "description": "Refuse a pending review item, terminally.\n\nThe counterpart to :func:`approve`, and subject to the same identity\nrule: the recorded reviewer is the authenticated principal, never a\nvalue from the body. A rejected item can never be approved or executed\nafterwards — the queue refuses any later transition, so a refusal\ncannot be worked around by calling approve again.",
+        "operationId": "reject_v1_execution_reject_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Reject V1 Execution Reject Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The refusal was recorded; the item is terminal."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Review item not found for this tenant."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Item is not pending."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reject",
         "tags": [
           "execution"
         ]

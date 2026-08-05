@@ -307,6 +307,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject
+         * @description Refuse a pending review item, terminally.
+         *
+         *     The counterpart to :func:`approve`, and subject to the same identity
+         *     rule: the recorded reviewer is the authenticated principal, never a
+         *     value from the body. A rejected item can never be approved or executed
+         *     afterwards — the queue refuses any later transition, so a refusal
+         *     cannot be worked around by calling approve again.
+         */
+        post: operations["reject_v1_execution_reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/follow-up": {
         parameters: {
             query?: never;
@@ -784,6 +810,16 @@ export interface components {
             risk_estimate: number | null;
             /** Source Of Decision */
             source_of_decision: string;
+        };
+        /**
+         * RejectRequest
+         * @description Record a reviewer's refusal of a pending item.
+         */
+        RejectRequest: {
+            /** Item Id */
+            item_id: string;
+            /** Reason */
+            reason: string;
         };
         /** RerunRequest */
         RerunRequest: {
@@ -1415,6 +1451,77 @@ export interface operations {
                 };
             };
             /** @description Token refused: replayed/consumed, payload binding mismatch, expired, wrong audience, or not an ACCEPT. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_v1_execution_reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectRequest"];
+            };
+        };
+        responses: {
+            /** @description The refusal was recorded; the item is terminal. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Review item not found for this tenant. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Item is not pending. */
             409: {
                 headers: {
                     [name: string]: unknown;

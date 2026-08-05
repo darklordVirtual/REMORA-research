@@ -27,7 +27,7 @@ pip install "remora[api,sdk]"    # + in-process server for the offline demo
 
 | Aspect | Guarantee |
 |---|---|
-| Surface | The 24 symbols in `artifacts/sdk/public_api_v1.json` — nothing else |
+| Surface | The 26 symbols in `artifacts/sdk/public_api_v1.json` — nothing else |
 | Gate | `tests/test_sdk_public_api.py` fails CI on any unreviewed symbol change |
 | Pre-1.0 semantics | Breaking changes are allowed in minor versions, always CHANGELOG-recorded; removals require a deliberate, reviewed snapshot update |
 | Additions | New symbols/fields arrive additively; `raw` on result models retains the full response body for forward compatibility |
@@ -77,6 +77,26 @@ the token's binding. A different payload raises `BindingRefusedError`
 deployment-side PEP consuming the token out-of-band remains supported —
 the REST path is an addition, not a replacement.
 
+**What would resolve a VERIFY.** Every VERIFY and ESCALATE carries a
+machine-readable `ResolutionPlan`, discriminated by `type`:
+`human_approval` names the `required_role` and the deadline;
+`machine_resolution` names a bounded lookup the engine identified.
+ABSTAIN carries **no** plan — no bounded step is known, and promising one
+would be a lie. An ESCALATE's `required_role` is always higher than a
+VERIFY's: an escalation a normal reviewer may approve is not an
+escalation.
+
+```python
+plan = result.resolution_plan
+if plan and plan.type == "human_approval":
+    print(plan.required_role, plan.requirements, plan.expires_at)
+```
+
+`reject(review_item_id, reason=...)` records a reviewer's refusal
+terminally; the reason is mandatory, because an unexplained refusal
+cannot be reviewed afterwards, and a rejected item can never be approved
+or executed.
+
 Runnable end-to-end version, offline, zero configuration:
 
 ```bash
@@ -92,9 +112,9 @@ in-process.
 
 | Group | Symbols |
 |---|---|
-| Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `execute`, `execute_accepted`, `verify_audit_chain`, context managers |
+| Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `reject`, `execute`, `execute_accepted`, `verify_audit_chain`, context managers |
 | Request models | `ToolCall`, `DerivationProposal` (a proposed derivation receipt for a derived argument value — verified server-side by deterministic re-execution, never by explanation) |
-| Result models | `AssessmentResult`, `ApprovalResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef` |
+| Result models | `AssessmentResult`, `ApprovalResult`, `RejectionResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef`, `ResolutionPlan` |
 | Decisions | `DecisionAction` (canonical policy enum) |
 | Errors | `RemoraError` + typed subclasses (below), including the execution refusals `BindingRefusedError`, `ReplayRefusedError`, `ApprovalExpiredError` and `UnknownExecutionStateError` |
 
