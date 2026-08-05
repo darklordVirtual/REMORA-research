@@ -252,6 +252,57 @@ def _reset_outbox() -> None:
 _OUTBOX = _build_outbox()
 
 
+DEFAULT_OUTBOX_STALE_SECONDS = 900
+
+
+def reconcile_stale_dispatches(tenant: str) -> list:
+    """Settle dispatch intents whose worker never reported back.
+
+    A row stuck in ``DISPATCHING`` past the staleness threshold has an
+    undeterminable side effect: the worker may have invoked the tool before
+    dying. It is settled as ``UNKNOWN`` — never retried, because re-running
+    a call that may already have taken effect is the one move the execution
+    layer must never make — and each reconciliation is appended to the
+    tenant audit chain so an undeterminable outcome is visible rather than
+    silently absorbed.
+
+    Threshold: ``REMORA_OUTBOX_STALE_SECONDS`` (default 900). Called as a
+    lazy sweep on every execution-path interaction, exactly like REM-032's
+    review-queue TTL sweep; an IDLE tenant is not swept by that, so a
+    deployment wanting wall-clock reconciliation must call this on a
+    schedule. Resolving an UNKNOWN afterwards is a manual operator
+    decision that produces a new record (maintainer decision 2026-08-05) —
+    it never rewrites the terminal state.
+    """
+    raw = _os.environ.get("REMORA_OUTBOX_STALE_SECONDS", "").strip()
+    try:
+        seconds = int(raw) if raw else DEFAULT_OUTBOX_STALE_SECONDS
+    except ValueError:
+        seconds = DEFAULT_OUTBOX_STALE_SECONDS
+    try:
+        settled = _outbox().reconcile_stale(
+            tenant, older_than=timedelta(seconds=seconds)
+        )
+    except Exception:
+        # Reconciliation is a background courtesy on the request path: it
+        # must never turn a healthy assess/execute into a 500. The rows
+        # stay DISPATCHING and the next sweep retries them.
+        _LOGGER.exception("outbox reconciliation failed for tenant %s", tenant)
+        return []
+    for row in settled:
+        _CHAIN.append(tenant, {
+            "event": "dispatch_unknown",
+            "proposal_id": row.proposal_id,
+            "outbox_id": row.outbox_id,
+            "item_id": row.item_id,
+            "tool_name": row.tool_name,
+            "tool_call_hash": row.tool_call_hash,
+            "claimed_by": row.worker_id,
+            "detail": row.detail,
+        })
+    return settled
+
+
 def _record_dispatch_intent(
     *,
     proposal_id: str,
@@ -995,6 +1046,10 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "assess")
+    # FT-02 lazy sweep (same discipline as REM-032's TTL sweep): a dispatch
+    # whose worker never reported back is settled as UNKNOWN before new
+    # work is considered, so a stranded intent cannot linger unnoticed.
+    reconcile_stale_dispatches(tenant)
     obs, semantic = _observation_with_context(req, tenant)
     # FT-01: mint the canonical proposal identity here — every downstream
     # record, response and grant for this action carries it. Attached to the
@@ -1203,6 +1258,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
+    reconcile_stale_dispatches(tenant)  # FT-02 lazy sweep (see assess)
     fresh_obs, fresh_semantic = _observation_with_context(req.tool_call, tenant)
     try:
         # Tenant-binding check inside the transaction: _ITEM_TENANT is

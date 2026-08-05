@@ -27,6 +27,28 @@ releases.
 
 ## [Unreleased]
 
+### FT-02 slice 5: stale dispatch intents are reconciled (2026-08-05)
+
+- A row stuck in `DISPATCHING` (worker claimed it, never reported back)
+  is now settled as `UNKNOWN` and the reconciliation is appended to the
+  tenant audit chain as a `dispatch_unknown` event — an undeterminable
+  outcome becomes visible instead of lingering silently. Never retried:
+  re-running a call that may already have taken effect stays the one
+  forbidden move.
+- Swept lazily on every execution-path interaction, the same discipline
+  REM-032 uses for review-queue TTL. Deliberately not a claim that a
+  daemon runs: an **idle** tenant is not swept, so wall-clock
+  reconciliation needs `reconcile_stale_dispatches(tenant)` on a
+  schedule — documented in the execution quickstart alongside the new
+  `REMORA_OUTBOX_STALE_SECONDS` (default 900).
+- The sweep never fails a healthy request: a reconciliation error is
+  logged and the rows stay `DISPATCHING` for the next attempt.
+- 7 new tests, verified in both in-process and durable-SQLite modes.
+  Found while doing so: a fixed `proposal_id` in the fixture collided
+  with `record_intent`'s idempotency against a shared durable store —
+  test hygiene, not a production defect, now unique per row.
+
+
 ### FT-02 slice 4: /v1/execution drives the outbox (2026-08-05)
 
 - The dispatch intent is now recorded in the SAME transaction that
