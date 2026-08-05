@@ -39,6 +39,8 @@ __all__ = [
     "DecisionAction",
     "DerivationProposal",
     "ExecutionResult",
+    "RejectionResult",
+    "ResolutionPlan",
     "SemanticAssessment",
     "ToolCall",
 ]
@@ -159,6 +161,75 @@ class SemanticAssessment:
 
 
 @dataclass(frozen=True)
+class ResolutionPlan:
+    """What would resolve a VERIFY or ESCALATE, in machine-readable form.
+
+    ``type`` discriminates two genuinely different resolutions rather than
+    merging them: ``human_approval`` (a person holding ``required_role``
+    must act, before ``expires_at``) and ``machine_resolution`` (a bounded
+    lookup the engine named — ``resolver`` plus the arguments it may
+    establish). ABSTAIN carries no plan at all, because no bounded step is
+    known and promising one would be a lie.
+
+    An ESCALATE's ``required_role`` is always higher than a VERIFY's: an
+    escalation a normal reviewer may approve is not an escalation.
+    """
+
+    type: str
+    required_role: str | None = None
+    requirements: tuple[str, ...] = ()
+    decision_reasons: tuple[str, ...] = ()
+    expires_at: str | None = None
+    resubmit_required: bool = False
+    resolver: str | None = None
+    target_arguments: tuple[str, ...] = ()
+    source_tools: tuple[str, ...] = ()
+    raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> "ResolutionPlan":
+        return cls(
+            type=str(payload["type"]),
+            required_role=payload.get("required_role"),
+            requirements=tuple(str(r) for r in payload.get("requirements", ())),
+            decision_reasons=tuple(
+                str(r) for r in payload.get("decision_reasons", ())
+            ),
+            expires_at=payload.get("expires_at"),
+            resubmit_required=bool(payload.get("resubmit_required", False)),
+            resolver=payload.get("resolver"),
+            target_arguments=tuple(
+                str(a) for a in payload.get("target_arguments", ())
+            ),
+            source_tools=tuple(str(s) for s in payload.get("source_tools", ())),
+            raw=_frozen(payload) or MappingProxyType({}),
+        )
+
+
+@dataclass(frozen=True)
+class RejectionResult:
+    """Outcome of refusing a review item; terminal."""
+
+    status: str
+    proposal_id: str | None
+    item_id: str
+    reason: str
+    audit: AuditRef
+    raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> "RejectionResult":
+        return cls(
+            status=str(payload["status"]),
+            proposal_id=payload.get("proposal_id"),
+            item_id=str(payload["item_id"]),
+            reason=str(payload.get("reason", "")),
+            audit=AuditRef.from_payload(payload["audit"]),
+            raw=_frozen(payload) or MappingProxyType({}),
+        )
+
+
+@dataclass(frozen=True)
 class AssessmentResult:
     """The governance decision for one proposed tool call.
 
@@ -183,6 +254,7 @@ class AssessmentResult:
     audit: AuditRef
     execution_token: Mapping[str, Any] | None = None
     review_item_id: str | None = None
+    resolution_plan: "ResolutionPlan | None" = None
     raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
 
     @classmethod
@@ -196,6 +268,10 @@ class AssessmentResult:
             audit=AuditRef.from_payload(payload["audit"]),
             execution_token=_frozen(payload.get("execution_token")),
             review_item_id=payload.get("review_item_id"),
+            resolution_plan=(
+                ResolutionPlan.from_payload(payload["resolution_plan"])
+                if payload.get("resolution_plan") else None
+            ),
             raw=_frozen(payload) or MappingProxyType({}),
         )
 

@@ -43,6 +43,7 @@ from remora.sdk.models import (
     AssessmentResult,
     AuditVerification,
     ExecutionResult,
+    RejectionResult,
     ToolCall,
 )
 
@@ -151,6 +152,18 @@ class RemoraClient:
             body["on_behalf_of"] = on_behalf_of
         payload = self._request("POST", "/v1/execution/approve", json=body)
         return ApprovalResult.from_payload(payload)
+
+    def reject(self, review_item_id: str, *, reason: str) -> RejectionResult:
+        """Refuse a pending review item, terminally.
+
+        The counterpart to :meth:`approve`. ``reason`` is mandatory: an
+        unexplained refusal cannot be reviewed after the fact. A rejected
+        item can never be approved or executed afterwards.
+        """
+        payload = self._request("POST", "/v1/execution/reject", json={
+            "item_id": review_item_id, "reason": reason,
+        })
+        return RejectionResult.from_payload(payload)
 
     def execute(self, review_item_id: str, tool_call: ToolCall) -> ExecutionResult:
         """Execute an approved review item by re-presenting the full call.

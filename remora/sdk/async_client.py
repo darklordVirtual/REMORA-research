@@ -30,6 +30,7 @@ from remora.sdk.models import (
     AssessmentResult,
     AuditVerification,
     ExecutionResult,
+    RejectionResult,
     ToolCall,
 )
 
@@ -105,6 +106,13 @@ class AsyncRemoraClient:
             body["on_behalf_of"] = on_behalf_of
         payload = await self._request("POST", "/v1/execution/approve", json=body)
         return ApprovalResult.from_payload(payload)
+
+    async def reject(self, review_item_id: str, *, reason: str) -> RejectionResult:
+        """Async :meth:`RemoraClient.reject`; same mandatory reason."""
+        payload = await self._request("POST", "/v1/execution/reject", json={
+            "item_id": review_item_id, "reason": reason,
+        })
+        return RejectionResult.from_payload(payload)
 
     async def execute(
         self, review_item_id: str, tool_call: ToolCall

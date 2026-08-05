@@ -1147,6 +1147,10 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         if item is not None:
             record["review_item_id"] = item.item_id
             response["review_item_id"] = item.item_id
+    response["resolution_plan"] = _resolution_plan_for(
+        action=report.action, report=report, tenant=tenant,
+        item=item if report.action is not DecisionAction.ACCEPT else None,
+    )
     entry = _CHAIN.append(tenant, record)
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
     api_mod.record_execution_assess(report.action.value)
@@ -1249,6 +1253,74 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
         "item_id": req.item_id,
         "expires_at": approval.expires_at.isoformat(),
         "audit": {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash},
+    }
+
+
+def _resolution_plan_for(
+    *,
+    action: "DecisionAction",
+    report: Any,
+    tenant: str,
+    item: Any,
+) -> dict[str, Any] | None:
+    """What would resolve this decision, in machine-readable form.
+
+    Two kinds exist and are discriminated by ``type`` rather than merged:
+
+    - ``machine_resolution`` — the engine produced a bounded lookup
+      (``remora.policy.resolution.ResolutionPlan``); it is surfaced
+      verbatim, not re-invented, so there is one vocabulary for it;
+    - ``human_approval`` — a person holding a named role must act.
+
+    ``None`` for ACCEPT (nothing to resolve) and for ABSTAIN, where no
+    bounded step is known: promising a resolution that does not exist is
+    the failure mode ABSTAIN exists to avoid.
+    """
+    from servers import api as api_mod
+
+    engine_plan = getattr(report, "resolution_plan", None)
+    if engine_plan is not None:
+        return {
+            "type": "machine_resolution",
+            "resolver": engine_plan.resolver,
+            "target_arguments": list(engine_plan.target_arguments),
+            "source_tools": list(engine_plan.source_tools),
+            "max_attempts": engine_plan.max_attempts,
+            "reenter_router": engine_plan.reenter_router,
+            "resubmit_required": False,
+        }
+    if action not in (DecisionAction.VERIFY, DecisionAction.ESCALATE):
+        return None
+    if item is None:
+        return None
+
+    risk_tier = getattr(item.observation, "risk_tier", None)
+    _, profile_cfg = api_mod._resolve_tenant_policy_profile(
+        tenant, str(risk_tier) if risk_tier is not None else None
+    )
+    requirements = api_mod._extract_review_requirements(profile_cfg)
+    required_role = requirements.get("approval_role") or "reviewer"
+    if action is DecisionAction.ESCALATE and required_role == "reviewer":
+        # An escalation a normal reviewer may approve is not an escalation
+        # (AAE §5). When the tenant profile does not name a higher role,
+        # fall back to the security reviewer rather than silently letting
+        # ESCALATE collapse into VERIFY.
+        required_role = "security_reviewer"
+
+    checks = ["confirm_intent_ref", "confirm_target", "confirm_argument_values"]
+    reasons = [r.value for r in getattr(report, "reasons", [])]
+    if reasons:
+        checks.append("address_decision_reasons")
+    return {
+        "type": "human_approval",
+        "requirements": checks,
+        "decision_reasons": reasons,
+        "required_role": required_role,
+        "expires_at": item.queue_deadline.isoformat(),
+        # The proposal already carries everything the reviewer needs; a
+        # resubmission would mint a new proposal id and detach the review
+        # from what was assessed.
+        "resubmit_required": False,
     }
 
 
@@ -1702,6 +1774,62 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
         refusal=tool_execution.get("refusal_reason"),
     )
     return response
+
+
+class RejectRequest(BaseModel):
+    """Record a reviewer's refusal of a pending item."""
+
+    item_id: str
+    # Mandatory: an unexplained refusal cannot be reviewed after the fact.
+    reason: str = Field(..., min_length=1, max_length=2000)
+
+
+@router.post("/reject", responses={
+    200: {"description": "The refusal was recorded; the item is terminal."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "Review item not found for this tenant."},
+    409: {"model": ErrorDetail, "description": "Item is not pending."},
+})
+def reject(req: RejectRequest, request: Request) -> dict[str, Any]:
+    """Refuse a pending review item, terminally.
+
+    The counterpart to :func:`approve`, and subject to the same identity
+    rule: the recorded reviewer is the authenticated principal, never a
+    value from the body. A rejected item can never be approved or executed
+    afterwards — the queue refuses any later transition, so a refusal
+    cannot be worked around by calling approve again.
+    """
+    tenant, role, principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "review")
+    try:
+        with db_transaction_state(tenant) as q:
+            if _ITEM_TENANT.get(req.item_id) != tenant:
+                raise KeyError(req.item_id)
+            q.expire_due()
+            item = q.reject(req.item_id, reviewer=principal, reason=req.reason)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="review item not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    _lifecycle_guard("REVIEW_PENDING", "human_rejection")
+    proposal_id = getattr(item.observation, "proposal_id", None)
+    entry = _CHAIN.append(tenant, {
+        "event": "rejected",
+        "proposal_id": proposal_id,
+        "actor": principal,
+        "item_id": req.item_id,
+        "reason": req.reason,
+    })
+    return {
+        "status": "rejected",
+        "proposal_id": proposal_id,
+        "item_id": req.item_id,
+        "reason": req.reason,
+        "audit": {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash},
+    }
 
 
 @router.get("/audit/verify", responses={

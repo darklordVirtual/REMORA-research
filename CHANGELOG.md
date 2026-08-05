@@ -27,6 +27,33 @@ releases.
 
 ## [Unreleased]
 
+### VERIFY says what would resolve it, and a review can be rejected (AAE §5/§12) (2026-08-05)
+
+- Every VERIFY/ESCALATE assessment now carries a machine-readable
+  `resolution_plan`, discriminated by `type`: `human_approval` (the role
+  that must act, the requirements, the deadline) or `machine_resolution`
+  (the engine's existing `remora.policy.resolution.ResolutionPlan`,
+  surfaced verbatim rather than re-invented — two resolutions genuinely
+  differ, and one name meaning both would be parallel vocabulary in
+  reverse). ABSTAIN carries none: no bounded step is known, and naming
+  one would be a lie.
+- **ESCALATE is now distinct from VERIFY in practice, not just in name**
+  (AAE §5): its `required_role` comes from the tenant profile and falls
+  back to `security_reviewer` when the profile names only `reviewer` —
+  an escalation a normal reviewer may approve is not an escalation.
+- `POST /v1/execution/reject` and `ReviewQueue.reject()`: the lifecycle
+  model already declared `REVIEW_PENDING → REFUSED on human_rejection`,
+  but nothing implemented it, so a reviewer could approve and never
+  record a refusal. Terminal, reason mandatory, reviewer taken from the
+  authenticated principal, and a rejected item can neither be approved
+  nor executed afterwards. New `ItemStatus.REJECTED` is deliberately
+  distinct from `EXPIRED_TO_ABSTAIN`: "a human said no" is not the same
+  record as "nobody looked in time".
+- SDK: `ResolutionPlan` and `RejectionResult` models, `reject()` on both
+  clients, `AssessmentResult.resolution_plan`. Snapshot 24 → 26 symbols.
+- 8 new tests; OpenAPI and TS client regenerated.
+
+
 ### The ACCEPT execution contract closes (issue #36 / AAE Gate B) (2026-08-05)
 
 - New `POST /v1/execution/execute-accepted`: an ACCEPT decision produced a
