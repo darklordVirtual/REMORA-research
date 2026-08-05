@@ -36,10 +36,17 @@ until a new sealed round (backlog theme 2); no number may be cited.
 """
 from __future__ import annotations
 
+import datetime as _dt
+import hashlib
+import json
+import logging
 import re
 from dataclasses import dataclass, field
 from fractions import Fraction
+from types import MappingProxyType
 from typing import Any, Callable, Mapping
+
+_LOGGER = logging.getLogger("remora.toolcall.derivation")
 
 DERIVATION_TRANSFORMS_VERSION = "v1"
 
@@ -78,13 +85,31 @@ _UNIT_FACTORS: dict[tuple[str, str], Fraction] = {
 
 @dataclass(frozen=True)
 class DerivationReceipt:
-    """One proposed derivation: value = transform(source_span, params)."""
+    """One proposed derivation: value = transform(source_span, params).
+
+    ``source_start``/``source_end`` (optional) bind the span to an exact
+    offset range in the task text: when both are set, verification
+    requires ``task_text[source_start:source_end] == source_span``. When
+    absent, the weaker verbatim-substring binding applies (any
+    occurrence). Document-level identity is carried one level up: the
+    task text itself comes from the resolved intent, whose source is
+    hash-identified by ``intent_authority_hash``; per-receipt document
+    ids/hashes arrive with the signed ToolSpec identity (FT-03).
+
+    ``params`` is wrapped in an immutable mapping at construction so a
+    receipt's identity cannot drift after creation.
+    """
 
     argument: str
     value: Any
     transform: str
     source_span: str
     params: Mapping[str, Any] = field(default_factory=dict)
+    source_start: int | None = None
+    source_end: int | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "params", MappingProxyType(dict(self.params)))
 
 
 def _parse_en_date(span: str) -> str | None:
@@ -99,10 +124,14 @@ def _parse_en_date(span: str) -> str | None:
     month = _EN_MONTHS.get(month_name.lower())
     if month is None:
         return None
-    day_i = int(day)
-    if not 1 <= day_i <= 31:
+    # datetime.date is the authoritative calendar validator (review
+    # 2026-08-05): "April 31st" and "February 30th" are rejections, not
+    # dates. A range check alone let impossible dates through.
+    try:
+        parsed = _dt.date(int(year), month, int(day))
+    except ValueError:
         return None
-    return f"{int(year):04d}-{month:02d}-{day_i:02d}"
+    return parsed.isoformat()
 
 
 def _en_date_to_iso(span: str, params: Mapping[str, Any]) -> str | None:
@@ -176,11 +205,27 @@ def verify_receipt(receipt: DerivationReceipt, *, task_text: str) -> bool:
     transform = _TRANSFORMS.get(receipt.transform)
     if transform is None:
         return False
-    if not receipt.source_span or receipt.source_span not in task_text:
+    if not receipt.source_span:
+        return False
+    if receipt.source_start is not None and receipt.source_end is not None:
+        # Exact offset binding: the declared range must reproduce the span.
+        if task_text[receipt.source_start:receipt.source_end] != receipt.source_span:
+            return False
+    elif receipt.source_span not in task_text:
         return False
     try:
         computed = transform(receipt.source_span, receipt.params or {})
+    except (ValueError, TypeError, KeyError, ArithmeticError, OverflowError):
+        # INVALID_RECEIPT: expected parse/shape failures reject quietly.
+        return False
     except Exception:
+        # VERIFIER_ERROR: an implementation bug must reject fail-closed AND
+        # be visible — swallowing it would hide the defect forever. No span
+        # content is logged (it may carry user text).
+        _LOGGER.exception(
+            "verifier_error transform=%s argument=%s",
+            receipt.transform, receipt.argument,
+        )
         return False
     return _values_equal(computed, receipt.value)
 
@@ -203,8 +248,47 @@ def receipt_grounds(
     for receipt in receipts:
         if receipt.argument != name:
             continue
-        if receipt.value != value and str(receipt.value) != str(value):
+        if not _same_typed_value(receipt.value, value):
             continue
         if verify_receipt(receipt, task_text=task_text):
             return True
     return False
+
+
+def _same_typed_value(claimed: Any, actual: Any) -> bool:
+    """Type-aware equality: no cross-type str() equivalence (review finding).
+
+    Booleans never match numbers; int and float compare numerically;
+    strings compare only against strings. ``1`` and ``"1"`` are DIFFERENT
+    values until a ToolSpec schema (FT-03) declares a canonical type.
+    """
+    if isinstance(claimed, bool) or isinstance(actual, bool):
+        return claimed is actual
+    if isinstance(claimed, (int, float)) and isinstance(actual, (int, float)):
+        return claimed == actual
+    if isinstance(claimed, str) and isinstance(actual, str):
+        return claimed == actual
+    return False
+
+
+def transforms_digest() -> str:
+    """Deterministic identity of the transform registry's semantics.
+
+    Hashes the version, the transform names, the month table and the unit
+    factors — the behavior-defining data. Recorded into the semantic audit
+    context so a receipt verified under one vocabulary can never silently
+    mean something else later; binding it into lease/ToolSpec identity is
+    FT-03 scope.
+    """
+    payload = json.dumps({
+        "version": DERIVATION_TRANSFORMS_VERSION,
+        "transforms": sorted(_TRANSFORMS),
+        "months": _EN_MONTHS,
+        "unit_factors": {
+            f"{a}->{b}": str(f) for (a, b), f in sorted(_UNIT_FACTORS.items())
+        },
+    }, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+DERIVATION_TRANSFORMS_DIGEST = transforms_digest()

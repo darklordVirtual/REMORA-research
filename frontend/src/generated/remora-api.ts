@@ -512,8 +512,12 @@ export interface components {
             params?: {
                 [key: string]: unknown;
             };
+            /** Source End */
+            source_end?: number | null;
             /** Source Span */
             source_span: string;
+            /** Source Start */
+            source_start?: number | null;
             /** Transform */
             transform: string;
             /** Value */

@@ -137,12 +137,16 @@ def _derivation_receipts(episode) -> "tuple[Any, ...]":
     receipts = []
     for raw in getattr(episode, "proposed_derivations", ()) or ():
         try:
+            start = raw.get("source_start")
+            end = raw.get("source_end")
             receipts.append(DerivationReceipt(
                 argument=str(raw["argument"]),
                 value=raw["value"],
                 transform=str(raw["transform"]),
                 source_span=str(raw["source_span"]),
                 params=dict(raw.get("params", {})),
+                source_start=int(start) if start is not None else None,
+                source_end=int(end) if end is not None else None,
             ))
         except (KeyError, TypeError, ValueError):
             continue

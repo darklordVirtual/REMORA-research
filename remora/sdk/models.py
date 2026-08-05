@@ -61,6 +61,10 @@ class DerivationProposal:
     transform: str
     source_span: str
     params: Mapping[str, Any] = field(default_factory=dict)
+    #: Optional exact offset binding into the resolved task text; when both
+    #: are set the server requires task_text[start:end] == source_span.
+    source_start: int | None = None
+    source_end: int | None = None
 
     def to_payload(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -71,6 +75,9 @@ class DerivationProposal:
         }
         if self.params:
             payload["params"] = dict(self.params)
+        if self.source_start is not None and self.source_end is not None:
+            payload["source_start"] = self.source_start
+            payload["source_end"] = self.source_end
         return payload
 
 
