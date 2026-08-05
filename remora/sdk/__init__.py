@@ -54,6 +54,7 @@ from remora.sdk.models import (
 __all__ = [
     "ApprovalResult",
     "AssessmentResult",
+    "AsyncRemoraClient",
     "AuditRef",
     "AuditVerification",
     "AuthenticationError",
@@ -75,10 +76,14 @@ __all__ = [
 
 
 def __getattr__(name: str) -> object:
-    # RemoraClient needs httpx (the ``sdk`` extra); import lazily so the
+    # The clients need httpx (the ``sdk`` extra); import lazily so the
     # models and errors stay importable in dependency-free environments.
     if name == "RemoraClient":
         from remora.sdk.client import RemoraClient
 
         return RemoraClient
+    if name == "AsyncRemoraClient":
+        from remora.sdk.async_client import AsyncRemoraClient
+
+        return AsyncRemoraClient
     raise AttributeError(f"module 'remora.sdk' has no attribute {name!r}")

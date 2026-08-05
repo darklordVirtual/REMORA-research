@@ -178,21 +178,30 @@ class RemoraClient:
 
     @staticmethod
     def _error_for(response: httpx.Response) -> RemoraError:
-        try:
-            body = response.json()
-        except (json.JSONDecodeError, ValueError):
-            body = {}
-        detail = str(body.get("detail") or f"HTTP {response.status_code}")
-        if response.status_code == 429:
-            retry_after: float | None = None
-            header = response.headers.get("Retry-After")
-            if header is not None:
-                try:
-                    retry_after = float(header)
-                except ValueError:
-                    retry_after = None
-            return RateLimitedError(detail, retry_after=retry_after)
-        if response.status_code >= 500:
-            return ServerError(detail, request_id=body.get("correlation_id"))
-        exc_type = _STATUS_ERRORS.get(response.status_code, RemoraError)
-        return exc_type(detail)
+        return error_for_response(response)
+
+
+def error_for_response(response: "httpx.Response") -> RemoraError:
+    """Map an HTTP error response to the typed hierarchy.
+
+    Shared by the sync and async clients so the two can never drift on
+    error semantics.
+    """
+    try:
+        body = response.json()
+    except (json.JSONDecodeError, ValueError):
+        body = {}
+    detail = str(body.get("detail") or f"HTTP {response.status_code}")
+    if response.status_code == 429:
+        retry_after: float | None = None
+        header = response.headers.get("Retry-After")
+        if header is not None:
+            try:
+                retry_after = float(header)
+            except ValueError:
+                retry_after = None
+        return RateLimitedError(detail, retry_after=retry_after)
+    if response.status_code >= 500:
+        return ServerError(detail, request_id=body.get("correlation_id"))
+    exc_type = _STATUS_ERRORS.get(response.status_code, RemoraError)
+    return exc_type(detail)
