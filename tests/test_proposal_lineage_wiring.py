@@ -190,3 +190,51 @@ def test_the_record_states_how_precise_the_key_was(client) -> None:
     api, _state = client
     body = _assess(api)
     assert body["lineage"]["lineage_key_basis"] == "tool_only"
+
+
+# ── The product can see it through the SDK ─────────────────────────────────
+
+def test_the_sdk_exposes_the_lineage_a_product_must_act_on() -> None:
+    """A governance signal a consumer cannot see through remora.sdk is
+    half-shipped: it would exist only for whoever reads raw JSON."""
+    from remora import sdk
+
+    assert "ProposalLineageView" in sdk.__all__
+    result = sdk.AssessmentResult.from_payload({
+        "proposal_id": "p-9", "decision": "abstain", "reasons": [],
+        "tool_call_hash": "h", "semantic": {},
+        "audit": {"sequence_no": 1, "entry_hash": "e" * 64},
+        "lineage": {"superseded_proposal_id": "p-8", "prior_abstain_count": 3,
+                    "probe_sequence_no": 4, "escalation_eligible": True,
+                    "lineage_key_basis": "tool_only", "window_seconds": 3600,
+                    "shadow_only": True},
+    })
+    assert result.lineage is not None
+    assert result.lineage.superseded_proposal_id == "p-8"
+    assert result.lineage.escalation_eligible is True
+    assert result.lineage.shadow_only is True
+
+
+def test_an_omitted_shadow_flag_is_not_read_as_an_escalation() -> None:
+    """An older server reports no shadow flag because it does not route on
+    lineage either. Defaulting the other way would tell a product an
+    escalation happened when none did."""
+    from remora import sdk
+
+    view = sdk.ProposalLineageView.from_payload(
+        {"superseded_proposal_id": "p-1", "escalation_eligible": True})
+    assert view is not None
+    assert view.shadow_only is True
+
+
+def test_a_server_that_reports_no_lineage_is_not_reported_as_clean() -> None:
+    """None means "not reported", never "no probing" — the distinction a
+    product's incident handling depends on."""
+    from remora import sdk
+
+    result = sdk.AssessmentResult.from_payload({
+        "proposal_id": "p-9", "decision": "abstain", "reasons": [],
+        "tool_call_hash": "h", "semantic": {},
+        "audit": {"sequence_no": 1, "entry_hash": "e" * 64},
+    })
+    assert result.lineage is None

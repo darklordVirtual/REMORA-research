@@ -49,6 +49,12 @@ releases.
   returned. Routing on a signal whose false-positive rate nobody has
   measured is the mistake this layer exists to prevent — the same
   discipline the ESCALATE→VERIFY routing change was held to.
+- **The product can see it.** `AssessmentResult.lineage` exposes
+  `ProposalLineageView` through `remora.sdk` (36 symbols) — a governance
+  signal a consumer cannot reach through the stable namespace would exist
+  only for whoever reads raw JSON. `None` means *not reported*, never "no
+  probing", and an omitted `shadow_only` defaults to `True` so an older
+  server's silence is never read as "this was escalated".
 - Every record states its key basis and its window, so a reader can weigh
   the verdict instead of taking it. Abstains outside the window do not
   accumulate (otherwise the signal decays into a function of account age),
