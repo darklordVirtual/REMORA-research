@@ -6,8 +6,9 @@
 operation for operation over ``httpx.AsyncClient``: same paths, same
 headers, same request bodies, same result models, and the SAME
 status→error mapping (shared ``error_for_response``, so the two clients
-cannot drift on error semantics). The application still owns no tool
-credentials and cannot bypass a decision.
+cannot drift on error semantics). The SDK provides no bypass operation;
+actual non-bypassability depends on deploying REMORA as the exclusive
+credential-holding execution path.
 
 Requires the ``sdk`` extra (``pip install "remora[sdk]"``) for httpx.
 """
@@ -40,7 +41,8 @@ class AsyncRemoraClient:
 
     Constructor parameters are identical to the sync client; the
     ``http_client`` override takes an ``httpx.AsyncClient`` (e.g. wrapping
-    ``httpx.ASGITransport`` for in-process testing).
+    ``httpx.ASGITransport`` for in-process testing). An injected client is
+    owned by the caller — :meth:`aclose` never closes it.
     """
 
     def __init__(
@@ -60,6 +62,7 @@ class AsyncRemoraClient:
             self._headers["X-Remora-Tenant"] = tenant
         if role:
             self._headers["X-Remora-Role"] = role
+        self._owns_http = http_client is None
         self._http = http_client or httpx.AsyncClient(
             base_url=base_url, timeout=timeout,
         )
@@ -67,7 +70,9 @@ class AsyncRemoraClient:
     # -- lifecycle ---------------------------------------------------------
 
     async def aclose(self) -> None:
-        await self._http.aclose()
+        """Close the transport this client created; never an injected one."""
+        if self._owns_http:
+            await self._http.aclose()
 
     async def __aenter__(self) -> AsyncRemoraClient:
         return self

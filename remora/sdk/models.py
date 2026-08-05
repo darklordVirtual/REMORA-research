@@ -8,16 +8,28 @@ Conditional response keys are absent on the wire and ``None`` on the
 models. ``DecisionAction`` is re-exported from the canonical policy enum
 — the SDK introduces no parallel decision vocabulary.
 
-Instances are shallowly immutable: the dataclasses are frozen, but
-mapping-valued fields (``arguments``, ``execution_token``, ``raw``) are
-plain dicts. Treat them as read-only.
+Result-model mappings (``execution_token``, ``raw``, ``execution_grant``,
+``pep``, ``tool_execution``) are wrapped in ``MappingProxyType`` at parse
+time, so top-level mutation (``result.raw["decision"] = ...``) raises
+``TypeError`` instead of silently lying to downstream consumers (review
+2026-08-05). Nested values are not deep-frozen; request-side ``ToolCall``
+fields stay caller-owned plain mappings and are copied at serialization.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any, Mapping
 
+
 from remora.policy.report import DecisionAction
+
+
+def _frozen(payload: Any) -> Mapping[str, Any] | None:
+    """Top-level immutable view of a response mapping (None passes through)."""
+    if payload is None:
+        return None
+    return MappingProxyType(dict(payload))
 
 __all__ = [
     "ApprovalResult",
@@ -147,6 +159,14 @@ class AssessmentResult:
     grant); ``review_item_id`` only on VERIFY/ESCALATE (a human review
     item); ABSTAIN carries neither. ``raw`` retains the full response
     body for forward compatibility with additive server fields.
+
+    CONTRACT BOUNDARY (review 2026-08-05): the REST API currently has NO
+    token-redemption endpoint — the ACCEPT token is consumed by a
+    deployment-side PEP (``remora.enforcement``), not by this client, and
+    the SDK's ``execute()`` covers only the review path
+    (VERIFY → approve → execute). A governed REST dispatch path for
+    direct-ACCEPT proposals is tracked as issue #36 / FT-01; until it
+    ships, this SDK is NOT a complete client for the ACCEPT lifecycle.
     """
 
     proposal_id: str
@@ -168,9 +188,9 @@ class AssessmentResult:
             tool_call_hash=str(payload.get("tool_call_hash", "")),
             semantic=SemanticAssessment.from_payload(payload.get("semantic", {})),
             audit=AuditRef.from_payload(payload["audit"]),
-            execution_token=payload.get("execution_token"),
+            execution_token=_frozen(payload.get("execution_token")),
             review_item_id=payload.get("review_item_id"),
-            raw=dict(payload),
+            raw=_frozen(payload) or MappingProxyType({}),
         )
 
 
@@ -193,7 +213,7 @@ class ApprovalResult:
             item_id=str(payload["item_id"]),
             expires_at=str(payload["expires_at"]),
             audit=AuditRef.from_payload(payload["audit"]),
-            raw=dict(payload),
+            raw=_frozen(payload) or MappingProxyType({}),
         )
 
 
@@ -225,10 +245,10 @@ class ExecutionResult:
             outcome=str(payload["outcome"]),
             detail=str(payload.get("detail", "")),
             audit=AuditRef.from_payload(payload["audit"]),
-            execution_grant=payload.get("execution_grant"),
-            pep=payload.get("pep"),
-            tool_execution=payload.get("tool_execution"),
-            raw=dict(payload),
+            execution_grant=_frozen(payload.get("execution_grant")),
+            pep=_frozen(payload.get("pep")),
+            tool_execution=_frozen(payload.get("tool_execution")),
+            raw=_frozen(payload) or MappingProxyType({}),
         )
 
 
@@ -251,5 +271,5 @@ class AuditVerification:
             problems=tuple(str(p) for p in payload.get("problems", [])),
             records_checked=int(payload.get("records_checked", 0)),
             empty=bool(payload.get("empty", False)),
-            raw=dict(payload),
+            raw=_frozen(payload) or MappingProxyType({}),
         )

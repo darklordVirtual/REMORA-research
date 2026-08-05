@@ -266,3 +266,41 @@ def test_non_json_error_body_still_raises_typed_error() -> None:
     with _client_for(handler) as client:
         with pytest.raises(ServerError):
             client.assess(CALL)
+
+
+# ── Review 2026-08-05: ownership and immutability contracts ─────────────────
+
+def test_injected_http_client_is_not_closed() -> None:
+    """An injected transport belongs to the caller (shared pools survive)."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=ACCEPT_BODY)
+
+    http_client = httpx.Client(
+        transport=httpx.MockTransport(handler), base_url="http://remora.test",
+    )
+    client = RemoraClient("http://remora.test", token="t", http_client=http_client)
+    client.close()
+    assert not http_client.is_closed
+    http_client.request("POST", "/v1/execution/assess")  # still usable
+    http_client.close()
+
+
+def test_owned_http_client_is_closed() -> None:
+    client = RemoraClient("http://remora.test", token="t")
+    inner = client._http
+    client.close()
+    assert inner.is_closed
+
+
+def test_result_mappings_refuse_mutation() -> None:
+    """result.raw['decision'] = 'accept' must be an error, not a silent lie."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=ACCEPT_BODY)
+
+    with _client_for(handler) as client:
+        result = client.assess(CALL)
+
+    with pytest.raises(TypeError):
+        result.raw["decision"] = "accept"
+    with pytest.raises(TypeError):
+        result.execution_token["jti"] = "forged"

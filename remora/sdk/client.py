@@ -5,7 +5,10 @@
 ``RemoraClient`` is the remote-mode entry point: the application sends
 proposals over HTTPS; policy evaluation, human review, token/lease
 binding, enforcement and the audit chain stay inside the REMORA control
-plane. The client owns no tool credentials and cannot bypass a decision.
+plane. The SDK provides no bypass operation; actual non-bypassability
+depends on deploying REMORA as the exclusive credential-holding
+execution path (the agent holds no tool credentials and no direct
+route to the governed side effects).
 
 Requires the ``sdk`` extra (``pip install "remora[sdk]"``) for httpx.
 """
@@ -68,8 +71,11 @@ class RemoraClient:
         Per-request timeout in seconds.
     http_client:
         Optional pre-configured ``httpx.Client`` (its ``base_url`` wins);
-        used for in-process testing against an ASGI app. The caller-
-        provided client is still closed by :meth:`close`.
+        used for in-process testing against an ASGI app. An injected
+        client is OWNED BY THE CALLER: :meth:`close` never closes it, so
+        shared transports and connection pools survive (review
+        2026-08-05). Only a client this constructor created itself is
+        closed.
     """
 
     def __init__(
@@ -89,6 +95,7 @@ class RemoraClient:
             self._headers["X-Remora-Tenant"] = tenant
         if role:
             self._headers["X-Remora-Role"] = role
+        self._owns_http = http_client is None
         self._http = http_client or httpx.Client(
             base_url=base_url, timeout=timeout,
         )
@@ -96,7 +103,9 @@ class RemoraClient:
     # -- lifecycle ---------------------------------------------------------
 
     def close(self) -> None:
-        self._http.close()
+        """Close the transport this client created; never an injected one."""
+        if self._owns_http:
+            self._http.close()
 
     def __enter__(self) -> RemoraClient:
         return self

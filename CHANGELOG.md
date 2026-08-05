@@ -27,6 +27,23 @@ releases.
 
 ## [Unreleased]
 
+### SDK contract honesty: ACCEPT-lifecycle boundary, ownership, immutability (2026-08-05)
+
+- External evolve-review 2026-08-05, all four SDK findings fixed in one
+  deliverable: (1) the ACCEPT/execute gap is now stated as a contract
+  boundary — the REST API has no token-redemption endpoint, `execute()`
+  covers the review path only, and the docs/docstrings say so with a
+  pointer to issue #36 / FT-01 instead of presenting the SDK as a
+  complete lifecycle client; (2) "cannot bypass a decision" reworded
+  everywhere to the accurate form (the SDK provides no bypass operation;
+  non-bypassability is a deployment property); (3) an injected
+  `httpx.Client`/`AsyncClient` is caller-owned — `close()`/`aclose()`
+  no longer close it (behavioral fix, pre-1.0); (4) result-model
+  mappings (`raw`, `execution_token`, `execution_grant`, `pep`,
+  `tool_execution`) are `MappingProxyType`-wrapped at parse time, so
+  top-level mutation raises `TypeError` instead of silently corrupting
+  audit-relevant data. Nested values are not deep-frozen; stated.
+
 ### SDK: AsyncRemoraClient (2026-08-05)
 
 - FT-13 queued slice: `AsyncRemoraClient` mirrors the sync client
