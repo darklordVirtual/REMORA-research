@@ -52,6 +52,22 @@ releases.
   None-absence without bundle or tool_call, 422 on verdict smuggling,
   canonical args-hash binding); execution-path parity suite unchanged and
   green after the refactor.
+### Cloudflare workflows guard on secret presence instead of failing red (2026-08-05)
+
+- `sync-papers-to-r2.yml` failed hard on its first-ever run (the old
+  paper-PDF auto-commit carried `[skip ci]`, so the sync trigger had been
+  silently dead since creation; no repo Actions secrets are configured).
+  Both it and push-triggered `deploy-aromer-worker.yml` now use the
+  established presence-guard convention (`codegraph-index.yml`,
+  `deploy-frontend.yml`): dependent steps skip with a visible
+  `::warning::` annotation naming the consequence (stale public PDFs /
+  stale live worker) instead of redding master.
+- New static guard `tests/test_workflow_secret_guards.py`: unattended
+  (push/schedule) workflows referencing `CLOUDFLARE_API_TOKEN` must
+  contain a recognized presence-guard; `workflow_dispatch`-only workflows
+  are exempt — there a hard failure IS the loud surface.
+- Publishing to R2 / deploying workers from CI requires the maintainer to
+  add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repo secrets.
 
 ### FT-13 slice 2: SDK documentation, external example, stability policy (2026-08-05)
 
