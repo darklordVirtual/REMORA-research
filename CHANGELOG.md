@@ -27,6 +27,15 @@ releases.
 
 ## [Unreleased]
 
+### Property-based proof depth for the enforcement core (2026-08-05)
+
+- New `tests/test_enforcement_properties.py` (Hypothesis) asserts the
+  universal claims the architecture makes rather than hand-picked examples:
+  the tenant chain verifies after any append sequence and detects any
+  single-entry payload tamper; a lease refuses any argument mutation with
+  `tool_args_hash_mismatch`; an expired token never verifies. First slice of
+  the core-component proof-depth track.
+
 ### MCP session status emits the documented fields (2026-08-05)
 
 - `remora_session_status` documented drift score, autonomy level
