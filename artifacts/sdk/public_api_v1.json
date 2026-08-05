@@ -9,6 +9,7 @@
     "AuthorizationError": "exception",
     "ConflictError": "exception",
     "DecisionAction": "class",
+    "DerivationProposal": "class",
     "ExecutionResult": "class",
     "InvalidRequestError": "exception",
     "NotFoundError": "exception",

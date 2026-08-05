@@ -25,10 +25,41 @@ __all__ = [
     "AuditRef",
     "AuditVerification",
     "DecisionAction",
+    "DerivationProposal",
     "ExecutionResult",
     "SemanticAssessment",
     "ToolCall",
 ]
+
+
+@dataclass(frozen=True)
+class DerivationProposal:
+    """A proposed derivation receipt for one derived argument value.
+
+    Declares WHERE the value came from (``source_span``, which must occur
+    verbatim in the resolved task text) and HOW (``transform``, a name
+    from the server's versioned whitelist). A proposal only: the server
+    accepts it exclusively by deterministic re-execution — an explanation
+    is never a proof, and an invalid receipt simply leaves the value
+    ungrounded.
+    """
+
+    argument: str
+    value: Any
+    transform: str
+    source_span: str
+    params: Mapping[str, Any] = field(default_factory=dict)
+
+    def to_payload(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "argument": self.argument,
+            "value": self.value,
+            "transform": self.transform,
+            "source_span": self.source_span,
+        }
+        if self.params:
+            payload["params"] = dict(self.params)
+        return payload
 
 
 @dataclass(frozen=True)
@@ -51,6 +82,7 @@ class ToolCall:
     idempotency_key: str | None = None
     schema_valid: bool | None = None
     rollback_available: bool | None = None
+    derivations: "tuple[DerivationProposal, ...] | None" = None
 
     def to_payload(self) -> dict[str, Any]:
         """Serialize to the wire shape, omitting unset optional fields."""
@@ -64,6 +96,8 @@ class ToolCall:
             value = getattr(self, key)
             if value is not None:
                 payload[key] = value
+        if self.derivations:
+            payload["derivations"] = [d.to_payload() for d in self.derivations]
         return payload
 
 
