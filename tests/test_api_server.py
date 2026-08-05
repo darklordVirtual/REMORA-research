@@ -708,12 +708,45 @@ def test_policy_hash_covers_canonical_policy_source_set(monkeypatch: pytest.Monk
     # F-03: the composite must also carry the effective tool-policy identity
     # (TOOL_REGISTRY metadata + configured deployment-module sources).
     assert comps["tool_registry_hash"].startswith("sha256:")
+    # The policy SOURCE hash covers the code; the engine-mode hash covers
+    # which of that code may fire. Two deployments running identical files
+    # with different opt-in ACCEPT paths enabled are running different
+    # policies, and must not share a policy identity.
+    assert comps["engine_mode_hash"].startswith("sha256:")
     parts = [engine, comps["risk_profile_hash"], comps["schema_hash"],
-             comps["tool_registry_hash"]]
+             comps["tool_registry_hash"], comps["engine_mode_hash"]]
     if comps["opa_policy_hash"]:
         parts.append(comps["opa_policy_hash"])
     expected = "sha256:" + _hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
     assert comps["policy_hash"] == expected
+
+
+def test_enabling_an_accept_path_moves_the_policy_hash(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Flipping an opt-in ACCEPT path must invalidate outstanding leases.
+
+    The policy source bundle hashes files, and the flag is not a file. Without
+    this component an operator could enable the grounded-read ACCEPT path and
+    every lease issued under the stricter policy would keep verifying — same
+    files, different decisions, identical hash.
+    """
+    api = _load_api_module(monkeypatch, token="test-token")
+    from servers import execution_api as exec_mod
+
+    before = api._policy_component_hashes()["policy_hash"]
+
+    original = exec_mod._ENGINE.grounded_read_accept
+    try:
+        exec_mod._ENGINE.grounded_read_accept = not original
+        after = api._policy_component_hashes()["policy_hash"]
+    finally:
+        exec_mod._ENGINE.grounded_read_accept = original
+
+    assert before != after, (
+        "enabling an ACCEPT path left the policy identity unchanged"
+    )
+    assert api._policy_component_hashes()["policy_hash"] == before
 
 
 def test_tool_registry_module_source_moves_the_policy_hash(

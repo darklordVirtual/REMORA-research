@@ -173,6 +173,13 @@ class OPAContext:
     # could not write the rule even where the engine enforces it.
     tool_matches_goal: bool | None
     expected_effect_matches: bool | None
+    # Whether the deployment's own intent source recognised this call's
+    # intent_ref. Read by the grounded-read ACCEPT path, so a Rego author must
+    # be able to see it: a policy that could not distinguish "acting under a
+    # resolved work order" from "acting under text the agent supplied" cannot
+    # express the rule the engine enforces. Tri-state, and None is never
+    # "authorized".
+    intent_authority_present: bool | None
 
     # Misspecification context
     environment_confidence: float | None

@@ -44,6 +44,7 @@ from remora.enforcement.lease import (
     LeaseRefused,
 )
 from remora.enforcement.result_envelope import capture_tool_result
+from remora.toolcall.deployment_registry import resolve_tool_metadata
 from remora.enforcement.token import PolicyDecisionToken
 from remora.enforcement.outbox import (
     ExecutionOutbox,
@@ -85,7 +86,26 @@ router = APIRouter(prefix="/v1/execution", tags=["execution"])
 PEP_AUDIENCE = "pep://remora-execution"
 EXECUTION_TOKEN_TTL_SECONDS = 300
 
-_ENGINE = RemoraDecisionEngine()
+def _engine_from_env() -> RemoraDecisionEngine:
+    """The decision engine, with its opt-in ACCEPT paths read from the env.
+
+    Both default OFF, so an unconfigured deployment keeps the fail-closed
+    behaviour it had. ``REMORA_GROUNDED_READ_ACCEPT`` is the deterministic
+    path: it is only meaningful once the deployment declares tool contracts,
+    a state index and an intent source, and it accepts nothing without them.
+    """
+    import os as _env
+
+    def _flag(name: str) -> bool:
+        return _env.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+    return RemoraDecisionEngine(
+        low_consequence_accept=_flag("REMORA_LOW_CONSEQUENCE_ACCEPT"),
+        grounded_read_accept=_flag("REMORA_GROUNDED_READ_ACCEPT"),
+    )
+
+
+_ENGINE = _engine_from_env()
 # Bounded LRU (external review 2026-07-28, N2): previously an unbounded dict
 # that grew for the process lifetime. On overflow the oldest entry is
 # evicted; a replayed key after eviction simply re-runs assess, which is
@@ -1012,11 +1032,10 @@ def _observation_with_context(
     environment, downgrade-only flags, session binding) is then overlaid
     from the server-side registry, exactly as the legacy path derived it.
     """
-    registry_entry = TOOL_REGISTRY.get(req.tool_name, {
-        "risk_tier": "critical",
-        "domain": "unknown",
-        "action_type": "unknown"
-    })
+    # REMORA's own classification wins; a deployment may additionally
+    # classify tools REMORA has never heard of (REMORA_TOOL_METADATA_FILE).
+    # Neither → critical/unknown, the fail-closed floor, unchanged.
+    registry_entry, tool_is_classified = resolve_tool_metadata(req.tool_name)
     full, context = semantic_call_context(
         tool_name=req.tool_name,
         arguments=req.arguments,
@@ -1031,8 +1050,8 @@ def _observation_with_context(
     if full is None:
         return _registry_only_observation(req, tenant, registry_entry), context
 
-    target_environment = str(
-        registry_entry.get("target_environment", req.target_environment)
+    target_environment = _effective_target_environment(
+        registry_entry.get("target_environment"), req.target_environment
     )
     args_preview = json.dumps(
         req.arguments, sort_keys=True, separators=(",", ":"), default=str
@@ -1041,7 +1060,15 @@ def _observation_with_context(
         full,
         question=full.question or f"{req.tool_name}({args_preview})",
         risk_tier=str(registry_entry.get("risk_tier", "critical")),
-        action_type=str(registry_entry.get("action_type")) if req.tool_name in TOOL_REGISTRY else full.action_type,
+        action_type=(str(registry_entry.get("action_type"))
+                     if tool_is_classified else full.action_type),
+        # Server-resolved, never client-asserted: the hash is non-empty only
+        # when THIS deployment's intent source recognised the intent_ref. An
+        # intent_ref that was presented and did not resolve is False, which is
+        # not the same as None (none presented) and must not read as one.
+        intent_authority_present=(
+            bool(context.get("intent_authority_hash"))
+            if req.intent_ref else None),
         target_environment=target_environment,
         schema_valid=_downgrade_only_bool(
             registry_entry.get("schema_valid"), req.schema_valid
@@ -1151,7 +1178,8 @@ def _registry_only_observation(
         risk_tier=registry_entry.get("risk_tier", "critical"),
         domain=registry_entry.get("domain", "unknown"),
         action_type=registry_entry.get("action_type", "unknown"),
-        target_environment=registry_entry.get("target_environment", req.target_environment),
+        target_environment=_effective_target_environment(
+            registry_entry.get("target_environment"), req.target_environment),
         # Trust boundary (issue #34): the policy-only execution kernel has
         # no oracle/evidence pipeline, and the CLIENT is never a trust
         # source — trust, phase and evidence status are unknown here, so
@@ -1173,6 +1201,39 @@ def _registry_only_observation(
         ),
         session_id=tenant,
     )
+
+
+#: Environment names that mean "live", from the policy engine's canonical set.
+#: Restated as a local frozenset only to avoid importing the private engine
+#: constant across the server boundary; the test suite asserts they agree.
+_PRODUCTION_ENVIRONMENTS = frozenset({"prod", "production", "live"})
+
+
+def _effective_target_environment(
+    declared: str | None, requested: str | None
+) -> str:
+    """The riskier of the declared and requested environments.
+
+    A pinned environment used to win outright, which made the pin a way to
+    LOWER risk: a tool declared ``staging`` stayed staging even when the call
+    said ``prod``, and a read pinned that way could reach the grounded ACCEPT
+    path while actually touching live data. Now that deployments can write
+    their own declarations, that pin would be a self-service trust upgrade.
+
+    Same principle as ``_downgrade_only_bool``, in the direction that matters
+    for an environment: a declaration may raise risk, never lower it. If
+    either side says production, the call is production.
+
+    Not symmetric with "declared wins" for non-production values: a tool
+    declared ``staging`` and requested ``dev`` stays ``staging``, because the
+    declaration is still the authority on where the tool actually operates —
+    it just cannot deny a production claim.
+    """
+    declared_norm = (declared or "").strip().lower()
+    requested_norm = (requested or "").strip().lower()
+    if requested_norm in _PRODUCTION_ENVIRONMENTS:
+        return requested_norm
+    return declared_norm or requested_norm
 
 
 def _downgrade_only_bool(registry_value: bool | None, request_value: bool | None) -> bool | None:

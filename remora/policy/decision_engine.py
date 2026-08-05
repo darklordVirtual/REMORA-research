@@ -272,6 +272,66 @@ def _is_low_consequence(obs: PolicyObservation) -> bool:
     return True
 
 
+#: Every grounding signal that must be POSITIVELY confirmed before a read can
+#: execute without a human. Listed as attribute names so the check below cannot
+#: quietly stop covering one of them.
+_GROUNDING_SIGNALS: tuple[str, ...] = (
+    "tool_matches_goal",
+    "expected_effect_matches",
+    "argument_values_supported",
+    "argument_values_grounded",
+)
+
+
+def _is_grounded_read(obs: PolicyObservation) -> bool:
+    """True when a read is confirmed to be *this* task's read, on real data.
+
+    The policy-only execution kernel has no oracle and no trust score, so the
+    probabilistic ACCEPT path cannot fire there — every call fell to
+    VERIFY/ABSTAIN regardless of how well-founded it was. This is the
+    deterministic alternative: not "we estimate this is safe", but "every
+    question we can answer from declared data has been answered, positively".
+
+    All of these must hold:
+
+    - ``_is_low_consequence``: positively declared read-only semantics and no
+      recorded safety concern (taint, coercion, adversarial detection, invalid
+      schema, contradicted evidence, unsatisfiable arguments);
+    - ``risk_tier`` is ``low`` — declared by REMORA or by the deployment, and
+      folded into the policy bundle hash either way;
+    - the target environment is not production, for which no read-only
+      guarantee covers the disclosure blast radius;
+    - an intent authority resolved server-side: the call is made under a work
+      order the deployment recognises, not under text the agent supplied;
+    - the four grounding signals are all ``True`` — the tool matches the goal,
+      its declared effect matches the requested one, every argument value
+      exists in the system of record, and every value traces to this context;
+    - nothing required is missing or unvalidated.
+
+    ``None`` never satisfies any clause. Unknown is not grounded.
+
+    What this does NOT assert: that the read returns a correct answer, or that
+    reading is free. It asserts that the call is the declared call for a
+    declared authority over declared data — which is what makes a human
+    approval on it ceremony rather than control.
+    """
+    if not _is_low_consequence(obs):
+        return False
+    if _normalize_risk_tier(obs.risk_tier) != "low":
+        return False
+    # _is_low_consequence already excludes prod/production; "live" is the
+    # third alias in the canonical set and must not slip through here.
+    if (obs.target_environment or "").strip().lower() in _PROD_ENVS:
+        return False
+    if obs.intent_authority_present is not True:
+        return False
+    if any(getattr(obs, signal) is not True for signal in _GROUNDING_SIGNALS):
+        return False
+    if obs.missing_required_arguments or obs.unvalidated_required_arguments:
+        return False
+    return True
+
+
 def _normalize_observation(obs: PolicyObservation) -> PolicyObservation:
     """Return a copy of *obs* with context fields normalised for fail-closed handling.
 
@@ -629,11 +689,18 @@ class RemoraDecisionEngine:
         conformal_trust_threshold: float | None = None,
         conformal_phase_thresholds: dict[str, float] | None = None,
         low_consequence_accept: bool = False,
+        grounded_read_accept: bool = False,
     ) -> None:
         # Opt-in: lets bounded, reversible action semantics reach ACCEPT without
         # an oracle consensus signal. Off by default — see the path itself for
         # what it does and does not assert.
         self.low_consequence_accept = low_consequence_accept
+        # Opt-in: the deterministic ACCEPT for a read whose every grounding
+        # signal is confirmed under a server-resolved intent authority. Off by
+        # default because it is only meaningful once a deployment has declared
+        # tool contracts, a state index and an intent source; enabling it
+        # without those declarations grounds nothing and accepts nothing.
+        self.grounded_read_accept = grounded_read_accept
         self.temperature_threshold = temperature_threshold
         self.conformal_trust_threshold = conformal_trust_threshold
         self.conformal_phase_thresholds = conformal_phase_thresholds
@@ -1025,6 +1092,20 @@ class RemoraDecisionEngine:
         # read-only calls that are the *wrong* call for the task, including
         # cases another source annotates as unanswerable. A deployment that
         # cannot tolerate a wasted or mildly disclosing read must leave it off.
+        # ── GROUNDED READ ACCEPT (opt-in, 2026-08-06) ───────────────────────
+        # Checked before the low-consequence path because it is strictly
+        # stronger and deserves its own reason in the audit record: a decision
+        # that says "grounded_read_accept" states which signals carried it,
+        # where "low_consequence_accept" only states that nothing objected.
+        #
+        # Same placement guarantee as that path — after every hard guard and
+        # blocking gate, so it can only convert a fall-through and can never
+        # preempt a block.
+        if self.grounded_read_accept and _is_grounded_read(obs):
+            reasons.append(DecisionReason.GROUNDED_READ_ACCEPT)
+            return self._build(DecisionAction.ACCEPT, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
+
         if self.low_consequence_accept and _is_low_consequence(obs):
             reasons.append(DecisionReason.LOW_CONSEQUENCE_ACCEPT)
             return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
@@ -1267,6 +1348,16 @@ class RemoraDecisionEngine:
           f"trust={obs.trust_score}",
           "ABSTAIN")
 
+        r("grounded_read_accept",
+          DecisionReason.GROUNDED_READ_ACCEPT in report.reasons,
+          f"intent_authority_present={obs.intent_authority_present}, "
+          f"tool_matches_goal={obs.tool_matches_goal}, "
+          f"expected_effect_matches={obs.expected_effect_matches}, "
+          f"argument_values_supported={obs.argument_values_supported}, "
+          f"argument_values_grounded={obs.argument_values_grounded}, "
+          f"risk_tier={obs.risk_tier!r}, action_type={obs.action_type!r}",
+          "ACCEPT")
+
         r("default_safe_abstain",
           DecisionReason.DEFAULT_SAFE_ABSTAIN in report.reasons,
           "no prior rule matched",
@@ -1391,6 +1482,14 @@ class RemoraDecisionEngine:
                 # false statement about why the action was permitted.
                 "bounded consequence — read-only action, no evidence/trust signal used"
                 if DecisionReason.LOW_CONSEQUENCE_ACCEPT in reasons
+                # Also not evidence/trust based, but for the opposite reason:
+                # it asserts more than the generic wording, not less. Saying
+                # "accepted based on evidence/trust state" would name signals
+                # this path deliberately does not consult.
+                else "grounded declaration — read confirmed against declared "
+                     "contracts, system of record and a resolved intent "
+                     "authority; no evidence/trust signal used"
+                if DecisionReason.GROUNDED_READ_ACCEPT in reasons
                 else {
                     DecisionAction.ACCEPT: "selective — accepted based on evidence/trust state",
                     DecisionAction.VERIFY: "held for verification",

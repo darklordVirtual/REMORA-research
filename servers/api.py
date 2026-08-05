@@ -588,6 +588,32 @@ def _make_control_plane_store() -> tuple[ControlPlaneStore, str]:
 
 
 _validate_production_prerequisites()
+
+
+def _validate_deployment_tool_metadata() -> None:
+    """Refuse to start on a configured-but-unusable tool declaration.
+
+    Checked in every environment, not only production. The failure mode this
+    prevents is an operator who believes their tools are classified while the
+    file silently failed to load: every one of them would run at the
+    critical/unknown floor, the deployment would look like policy is refusing
+    its work, and nothing would say the classification never loaded.
+    """
+    from remora.toolcall.deployment_registry import (
+        ENV_VAR as _TOOL_METADATA_ENV,
+        load_deployment_tool_metadata,
+    )
+
+    if not os.getenv(_TOOL_METADATA_ENV, "").strip():
+        return
+    declared = load_deployment_tool_metadata()  # raises on anything untrusted
+    logging.getLogger("remora.api").info(
+        "deployment tool metadata loaded: %d tool(s) classified from %s",
+        len(declared), os.getenv(_TOOL_METADATA_ENV, ""),
+    )
+
+
+_validate_deployment_tool_metadata()
 _CONTROL_PLANE_STORE, _CONTROL_PLANE_BACKEND = _make_control_plane_store()
 _CONTROL_PLANE_DURABLE = bool(getattr(_CONTROL_PLANE_STORE, "durable", False))
 if not _CONTROL_PLANE_DURABLE:
@@ -736,7 +762,42 @@ def _tool_registry_component_hash() -> str:
         except (ImportError, OSError, TypeError, ValueError):
             digest = "unresolved"
         hasher.update(f":{digest}".encode("utf-8"))
+
+    # Deployment-declared tool risk metadata (REMORA_TOOL_METADATA_FILE).
+    # It changes what a tool IS to the policy engine, so it belongs in the
+    # signed identity: editing the file moves this hash, and every lease
+    # issued under the old classification stops verifying. Relabelling a
+    # tool must not be a way to keep executing under an authorization
+    # granted before the relabel.
+    from remora.toolcall.deployment_registry import (
+        ENV_VAR as _TOOL_METADATA_ENV,
+        deployment_registry_digest,
+    )
+    hasher.update(
+        f"|{_TOOL_METADATA_ENV}={deployment_registry_digest()}".encode("utf-8")
+    )
     return "sha256:" + hasher.hexdigest()
+
+
+def _engine_mode_component_hash() -> str:
+    """Identity of the engine's opt-in ACCEPT paths.
+
+    The policy source bundle hashes the *code*; these two env flags decide
+    which of that code can fire. A deployment that turns on an ACCEPT path is
+    running a different policy than one that has not, and a lease issued
+    before the flip must not keep verifying after it. Hashing the source alone
+    left exactly that gap: same files, different decisions, identical hash.
+    """
+    from servers.execution_api import _ENGINE
+
+    modes = {
+        "low_consequence_accept": bool(
+            getattr(_ENGINE, "low_consequence_accept", False)),
+        "grounded_read_accept": bool(
+            getattr(_ENGINE, "grounded_read_accept", False)),
+    }
+    canonical = json.dumps(modes, sort_keys=True, separators=(",", ":"))
+    return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _policy_component_hashes() -> dict[str, str | None]:
@@ -744,6 +805,7 @@ def _policy_component_hashes() -> dict[str, str | None]:
     risk_profile_hash = _sha256_file(_REPO_ROOT / "schemas" / "risk-profiles.yaml")
     schema_hash = _sha256_file(_REPO_ROOT / "schemas" / "decision_envelope_schema.yaml")
     tool_registry_hash = _tool_registry_component_hash()
+    engine_mode_hash = _engine_mode_component_hash()
 
     opa_policy_hash = None
     opa_path_env = os.getenv("REMORA_OPA_POLICY_PATH", "").strip()
@@ -754,7 +816,8 @@ def _policy_component_hashes() -> dict[str, str | None]:
         opa_policy_hash = _sha256_file(opa_path)
 
     parts = [v for v in (policy_engine_hash, risk_profile_hash, schema_hash,
-                         tool_registry_hash, opa_policy_hash) if v]
+                         tool_registry_hash, engine_mode_hash,
+                         opa_policy_hash) if v]
     composite = None
     if parts:
         composite = "sha256:" + hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
@@ -764,6 +827,7 @@ def _policy_component_hashes() -> dict[str, str | None]:
         "risk_profile_hash": risk_profile_hash,
         "schema_hash": schema_hash,
         "tool_registry_hash": tool_registry_hash,
+        "engine_mode_hash": engine_mode_hash,
         "opa_policy_hash": opa_policy_hash,
     }
 
@@ -901,9 +965,10 @@ def _assess_semantic_overlay(
     decision itself still comes from the question-based engine pipeline.
     """
     from remora.policy.observation import canonical_tool_call_hash
-    from servers.execution_api import TOOL_REGISTRY, semantic_call_context
+    from remora.toolcall.deployment_registry import resolve_tool_metadata
+    from servers.execution_api import semantic_call_context
 
-    registry_entry = TOOL_REGISTRY.get(tool_call.tool_name, {})
+    registry_entry, _ = resolve_tool_metadata(tool_call.tool_name)
     full, context = semantic_call_context(
         tool_name=tool_call.tool_name,
         arguments=tool_call.arguments,
