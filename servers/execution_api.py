@@ -634,41 +634,17 @@ def _observation_with_context(
         "domain": "unknown",
         "action_type": "unknown"
     })
-    bundle, resolver = _semantic_bundle()
-    if bundle is None:
-        return _registry_only_observation(req, tenant, registry_entry), dict(
-            _NO_SEMANTIC_CONTEXT
-        )
-
-    from remora.toolcall.routing.episode import RoutingEpisode
-    from remora.toolcall.routing.evaluate import build_full_observation
-
-    resolved = (
-        resolver(req.intent_ref) if (resolver is not None and req.intent_ref) else None
-    )
-    episode = RoutingEpisode(
-        id=f"exec:{tenant}:{req.tool_name}",
-        source_dataset="execution_api",
-        source_commit="",
-        cluster_id=f"exec:{tenant}",
-        user_task=resolved.task_text if resolved else "",
-        available_tools=tuple(sorted(bundle.registry.signatures)),
-        untrusted_context=req.untrusted_context or None,
-        proposed_tool_name=req.tool_name,
-        proposed_tool_args=dict(req.arguments),
+    full, context = semantic_call_context(
+        tool_name=req.tool_name,
+        arguments=req.arguments,
+        tenant=tenant,
+        intent_ref=req.intent_ref,
+        untrusted_context=req.untrusted_context,
         domain=str(registry_entry.get("domain", "unknown")),
     )
-    validators = (
-        bundle.validators.scoped(tenant) if bundle.validators is not None else None
-    )
-    full = build_full_observation(
-        episode,
-        bundle.registry,
-        bundle.state,
-        validators=validators,
-        contracts=bundle.contracts,
-        intent=resolved.intent if resolved else None,
-    )
+    if full is None:
+        return _registry_only_observation(req, tenant, registry_entry), context
+
     target_environment = str(
         registry_entry.get("target_environment", req.target_environment)
     )
@@ -695,6 +671,62 @@ def _observation_with_context(
             target=target_environment,
         ),
     )
+    return obs, context
+
+
+def semantic_call_context(
+    *,
+    tool_name: str,
+    arguments: dict[str, Any],
+    tenant: str,
+    intent_ref: str | None = None,
+    untrusted_context: str | None = None,
+    domain: str = "unknown",
+    user_task: str = "",
+) -> "tuple[PolicyObservation | None, dict[str, Any]]":
+    """Authoritative semantic observation + context for one proposed call.
+
+    Shared by ``/v1/execution/assess`` and ``/v1/assess`` so both endpoints
+    run the SAME context builder (``build_full_observation``) over the same
+    deployment-declared bundle — no endpoint assembles semantic fields by
+    hand, and no request field can set one. Returns ``(None, no-semantic
+    context)`` when no bundle is configured: recorded absence, never a
+    fabricated verdict. ``user_task`` is the fallback task text when no
+    intent resolves; a resolved intent's ``task_text`` always wins.
+    """
+    bundle, resolver = _semantic_bundle()
+    if bundle is None:
+        return None, dict(_NO_SEMANTIC_CONTEXT)
+
+    from remora.toolcall.routing.episode import RoutingEpisode
+    from remora.toolcall.routing.evaluate import build_full_observation
+
+    resolved = (
+        resolver(intent_ref) if (resolver is not None and intent_ref) else None
+    )
+    episode = RoutingEpisode(
+        id=f"exec:{tenant}:{tool_name}",
+        source_dataset="execution_api",
+        source_commit="",
+        cluster_id=f"exec:{tenant}",
+        user_task=resolved.task_text if resolved else user_task,
+        available_tools=tuple(sorted(bundle.registry.signatures)),
+        untrusted_context=untrusted_context or None,
+        proposed_tool_name=tool_name,
+        proposed_tool_args=dict(arguments),
+        domain=domain,
+    )
+    validators = (
+        bundle.validators.scoped(tenant) if bundle.validators is not None else None
+    )
+    full = build_full_observation(
+        episode,
+        bundle.registry,
+        bundle.state,
+        validators=validators,
+        contracts=bundle.contracts,
+        intent=resolved.intent if resolved else None,
+    )
     context = {
         "tool_contract_bundle_hash": bundle.bundle_hash,
         "state_hash": bundle.state_hash,
@@ -704,7 +736,7 @@ def _observation_with_context(
         "tool_matches_goal": full.tool_matches_goal,
         "expected_effect_matches": full.expected_effect_matches,
     }
-    return obs, context
+    return full, context
 
 
 def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:

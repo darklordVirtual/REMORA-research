@@ -100,6 +100,16 @@
               }
             ],
             "title": "Target Environment"
+          },
+          "tool_call": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssessToolCall"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -155,6 +165,18 @@
             "title": "Review Requirements",
             "type": "object"
           },
+          "semantic": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semantic"
+          },
           "state_hash": {
             "title": "State Hash",
             "type": "string"
@@ -186,6 +208,52 @@
           "review_requirements"
         ],
         "title": "AssessResponse",
+        "type": "object"
+      },
+      "AssessToolCall": {
+        "additionalProperties": false,
+        "description": "Optional concrete tool call accompanying an assess question.\n\nWhen present and a semantic bundle is configured\n(``REMORA_SEMANTIC_BUNDLE_MODULE``), the assess path runs the same\nauthoritative context builder as ``/v1/execution/assess`` and records\nthe computed bundle/intent hashes and semantic verdicts into the\nDecisionEnvelope. ``extra=\"forbid\"``: semantic verdicts\n(``tool_matches_goal`` etc.) are computed server-side and can never be\nsmuggled in through this block.",
+        "properties": {
+          "arguments": {
+            "additionalProperties": true,
+            "title": "Arguments",
+            "type": "object"
+          },
+          "intent_ref": {
+            "anyOf": [
+              {
+                "maxLength": 256,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Ref"
+          },
+          "tool_name": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Tool Name",
+            "type": "string"
+          },
+          "untrusted_context": {
+            "anyOf": [
+              {
+                "maxLength": 16384,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Untrusted Context"
+          }
+        },
+        "required": [
+          "tool_name"
+        ],
+        "title": "AssessToolCall",
         "type": "object"
       },
       "AuditRef": {

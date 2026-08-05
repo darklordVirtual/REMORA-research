@@ -149,20 +149,21 @@ class AuditBlock:
                          bundle was configured and the registry-only path ran;
                          it is never an empty string, because a blank hash
                          would read as "declared but empty" rather than
-                         "not declared". Production status (research shelf,
-                         SHELF-020 remaining): no producer populates this
-                         envelope field yet — /v1/assess builds the envelope
-                         but does not run the semantic bundle, while
-                         /v1/execution records the hash into the tenant audit
-                         chain without building an envelope. Wiring /v1/assess
-                         through build_full_observation makes it live.
+                         "not declared". Producer (SHELF-020, wired
+                         2026-08-05): /v1/assess populates it when the
+                         request carries a tool_call block AND
+                         REMORA_SEMANTIC_BUNDLE_MODULE is configured;
+                         question-only assess records None. /v1/execution
+                         additionally records the hash into the tenant audit
+                         chain (it builds no envelope).
     intent_authority_hash:
                          SHA-256 identifying the frozen task intent and the
                          source that vouched for it
                          (docs/research/task_intent_authority_v1.md).
-                         ``None`` when no intent was resolved. Same production
-                         status as tool_contract_bundle_hash: carried by the
-                         schema, not yet populated by the envelope producer.
+                         ``None`` when no intent was resolved. Same producer
+                         as tool_contract_bundle_hash: /v1/assess populates
+                         it for tool_call requests with a configured bundle
+                         and a resolved intent_ref (wired 2026-08-05).
 
     Roadmap gaps (require external infrastructure):
     - approver_identity: OIDC/JWT-bound approver identity (needs IdP integration).

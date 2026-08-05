@@ -421,6 +421,7 @@ export interface components {
             risk_tier?: string | null;
             /** Target Environment */
             target_environment?: string | null;
+            tool_call?: components["schemas"]["AssessToolCall"] | null;
         };
         /** AssessResponse */
         AssessResponse: {
@@ -449,6 +450,10 @@ export interface components {
             review_requirements: {
                 [key: string]: unknown;
             };
+            /** Semantic */
+            semantic?: {
+                [key: string]: unknown;
+            } | null;
             /** State Hash */
             state_hash: string;
             /** Thermodynamic */
@@ -457,6 +462,30 @@ export interface components {
             };
             /** Total Cost Usd */
             total_cost_usd: number;
+        };
+        /**
+         * AssessToolCall
+         * @description Optional concrete tool call accompanying an assess question.
+         *
+         *     When present and a semantic bundle is configured
+         *     (``REMORA_SEMANTIC_BUNDLE_MODULE``), the assess path runs the same
+         *     authoritative context builder as ``/v1/execution/assess`` and records
+         *     the computed bundle/intent hashes and semantic verdicts into the
+         *     DecisionEnvelope. ``extra="forbid"``: semantic verdicts
+         *     (``tool_matches_goal`` etc.) are computed server-side and can never be
+         *     smuggled in through this block.
+         */
+        AssessToolCall: {
+            /** Arguments */
+            arguments?: {
+                [key: string]: unknown;
+            };
+            /** Intent Ref */
+            intent_ref?: string | null;
+            /** Tool Name */
+            tool_name: string;
+            /** Untrusted Context */
+            untrusted_context?: string | null;
         };
         /** AuditRef */
         AuditRef: {
