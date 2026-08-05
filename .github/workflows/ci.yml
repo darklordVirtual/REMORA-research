@@ -212,10 +212,14 @@ jobs:
           pip install -e ".[dev,causal,api,postgres]" -c /tmp/constraints.txt
 
       - name: Postgres contract tests (must run, not skip)
-        # With the DSN set, the two DSN-gated tests must actually execute —
-        # a skip here means the signing fix is unverified again.
+        # With the DSN set, the DSN-gated tests must actually execute —
+        # a skip here means the signing fix is unverified again. The outbox
+        # file joined 2026-08-05 (FT-02): its multi-worker adapter carries
+        # the crash-consistency contract, so "verified against a real
+        # service" must not depend on a developer remembering to run it.
         run: |
-          python -m pytest tests/test_execution_api.py -q -rs -k "postgres" | tee out.txt
+          python -m pytest tests/test_execution_api.py tests/test_execution_outbox.py \
+            -q -rs -k "postgres" | tee out.txt
           if grep -qiE "skipped|no tests ran" out.txt; then
             echo "ERROR: Postgres contract tests skipped despite service DSN" >&2
             exit 1
