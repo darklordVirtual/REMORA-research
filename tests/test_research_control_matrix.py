@@ -148,3 +148,30 @@ def test_covers_related_work_sections() -> None:
         if m:
             cited.add(m.group(1))
     assert section_nums <= cited, f"related-work sections not in matrix: {section_nums - cited}"
+
+
+def test_res003_does_not_claim_crc_implementation() -> None:
+    """External review 2026-08-05: crc.py states 'CRC-inspired, NOT a CRC
+    procedure' (no finite-sample term, non-monotone loss, hand-tuned
+    weights). The matrix must not claim the CRC guarantee as implemented."""
+    entry = next(e for e in _data()["entries"] if e["id"] == "RES-003")
+    assert entry["maturity"] == "empirically_evaluated_adaptation", entry["maturity"]
+    assert "finite_sample_risk_control" not in entry["concepts"]
+    assert "CRC-inspired" in entry["title"]
+
+
+def test_res008_is_a_conceptual_translation_not_the_architecture() -> None:
+    """External review 2026-08-05: REMORA implements a governance translation
+    of Nested Learning, not the Hope architecture. The maturity label must
+    say so."""
+    entry = next(e for e in _data()["entries"] if e["id"] == "RES-008")
+    assert entry["maturity"] == "conceptual_translation_implemented", entry["maturity"]
+
+
+def test_res001_scope_names_deterministic_psn_operationalisation() -> None:
+    """External review 2026-08-05: the code computes binary per-instance
+    PS/PN indicators, not population-level probabilities; the scope boundary
+    must carry that distinction."""
+    entry = next(e for e in _data()["entries"] if e["id"] == "RES-001")
+    assert "Deterministic" in entry["scope_boundary"]
+    assert "binary" in entry["scope_boundary"].lower()

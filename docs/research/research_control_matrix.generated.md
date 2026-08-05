@@ -14,12 +14,12 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 |----|---------------|----------|----------|
 | RES-001 | Causal post-hoc explainability and concept interventions | `causal_policy_explanation` | `implemented_and_tested` |
 | RES-002 | Selective prediction and abstention | `phase_aware_guardrail`, `selective_routing` | `implemented_and_tested` |
-| RES-003 | Conformal risk control | `conformal_thresholding` | `implemented_and_tested` |
+| RES-003 | CRC-inspired weighted empirical selective routing | `conformal_thresholding` | `empirically_evaluated_adaptation` |
 | RES-004 | Multi-oracle consensus and cross-model verification | `multi_oracle_consensus`, `independent_verifier_gate` | `implemented_and_tested` |
 | RES-005 | Tool-use safety and agent guardrails | `toolcall_gate`, `action_type_mapping` | `implemented_and_tested` |
 | RES-006 | Evidence grounding and retrieval-augmented verification | `evidence_verifier` | `implemented_and_tested` |
 | RES-007 | Statistical-physics control signals (entropy, phase, Lyapunov) | `phase_classification`, `thermodynamic_braking` | `implemented_and_tested` |
-| RES-008 | Nested learning, context flow, continuum memory | `context_flow_governance`, `governed_memory_layers`, `reviewed_policy_proposals` | `implemented_and_tested` |
+| RES-008 | Nested learning, context flow, continuum memory | `context_flow_governance`, `governed_memory_layers`, `reviewed_policy_proposals` | `conceptual_translation_implemented` |
 | RES-009 | Enterprise AI governance and audit | `enterprise_rollout_reference` | `reference_design` |
 | RES-010 | Anytime-valid confidence sequences (optional-stopping-safe monitoring) | `continuous_far_monitoring` | `implemented_and_tested` |
 
@@ -38,7 +38,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - **Tests:** [`tests/test_causal.py`](../../tests/test_causal.py), [`tests/test_causal_search_attribution.py`](../../tests/test_causal_search_attribution.py)
 - **Evidence:** PS/PN in {0,1}, minimality, verdict-change, and global mean-PS ordering are unit-tested; result carried on DecisionEnvelope.causal_explanation.
 - **Maturity:** `implemented_and_tested`
-- **Scope boundary:** Policy causality only: counterfactuals evaluated against the policy model, not the world. No real-world causal-effect or safety claim.
+- **Scope boundary:** Deterministic policy-level PS/PN operationalisation: binary per-instance indicators evaluated against the policy model, not population-level probabilities and not the world. No real-world causal-effect or safety claim.
 - **Literature:** [docs/09-related-work.md](../../docs/09-related-work.md) §9
 - **Landscape (local compendium):** No anchor in the local compendium: its interpretability chapter covers mechanistic interpretability (superposition, monosemanticity, circuit tracing), not causal post-hoc concept XAI. This line's sources (Bjøru 2026; Pearl; Galhotra et al.) sit outside the compendium's scope.
 
@@ -55,24 +55,24 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - **Literature:** [docs/09-related-work.md](../../docs/09-related-work.md) §1
 - **Landscape (local compendium):** `selective-2017`, `gentle-conformal-2021`, `ltt-2021`
 
-## RES-003 — Conformal risk control
+## RES-003 — CRC-inspired weighted empirical selective routing
 
 - **Source:** Angelopoulos, A. N., Bates, S., Fisch, A., Lei, L., & Schuster, T. (2022). Conformal risk control. arXiv:2208.02814. (cited in code; anchor `Angelopoulos` — CI-verified)
-  - Theorem 1 (referenced in remora/selective/crc.py)
-- **Concepts:** split_conformal_calibration, finite_sample_risk_control, repeated_split_robustness
+  - Framework the router is inspired by, not implementing: the crc.py module docstring documents the two structural gaps (no finite-sample term in the selector; non-monotone selective loss), so Theorem 1 does not attach.
+- **Concepts:** weighted_empirical_threshold_selection, repeated_split_robustness
 - **REMORA controls:** conformal_thresholding
 - **Code:** [`remora/selective/crc.py`](../../remora/selective/crc.py), [`remora/selective/binomial_bounds.py`](../../remora/selective/binomial_bounds.py)
 - **Tests:** [`tests/test_crc.py`](../../tests/test_crc.py), [`tests/test_conformal_repeated_splits.py`](../../tests/test_conformal_repeated_splits.py), [`tests/test_binomial_bounds.py`](../../tests/test_binomial_bounds.py)
-- **Evidence:** Repeated-split robustness artifacts and negative results preserved in the claim ledger; treated as exchangeability-dependent.
-- **Maturity:** `implemented_and_tested`
-- **Scope boundary:** Guarantees hold under exchangeability; repeated-split failures are recorded as negative evidence, not hidden.
+- **Evidence:** Repeated-split holdout results in committed artifacts; all quality evidence for this component is empirical, and negative results are preserved in the claim ledger.
+- **Maturity:** `empirically_evaluated_adaptation`
+- **Scope boundary:** CRC-inspired, NOT a CRC procedure (external review R3-01): deterministic importance-weighted empirical threshold selector with hand-tuned phase weights, no finite-sample correction and a non-monotone selective loss - no distribution-free guarantee is claimed.
 - **Literature:** [docs/09-related-work.md](../../docs/09-related-work.md) §2
 - **Landscape (local compendium):** `conformal-risk-2022`, `ltt-2021`
 
 ## RES-004 — Multi-oracle consensus and cross-model verification
 
 - **Source:** Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents. (cited in code; anchor `Wang et al.` — CI-verified)
-  - cited at remora/cascade/stages.py (self-consistency, mixture-of-agents synthesizer)
+  - cited at remora/cascade/stages.py (self-consistency; single-stage aggregation inspired by MoA, not the multi-layer architecture)
 - **Concepts:** self_consistency_sampling, verifier_model, cross_model_dissensus, multi_agent_debate
 - **REMORA controls:** multi_oracle_consensus, independent_verifier_gate
 - **Code:** [`remora/cascade/stages.py`](../../remora/cascade/stages.py), [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py), [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py)
@@ -130,8 +130,8 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - **Code:** [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py)
 - **Tests:** [`tests/test_governance_context_flow.py`](../../tests/test_governance_context_flow.py), [`tests/test_governance_memory_layers.py`](../../tests/test_governance_memory_layers.py), [`tests/test_nested_governance.py`](../../tests/test_nested_governance.py)
 - **Evidence:** Context flow as a governed information stream; update frequency as a policy boundary; self-modification as reviewed policy proposals.
-- **Maturity:** `implemented_and_tested`
-- **Scope boundary:** Does not implement the Hope architecture, does not train foundation models, does not claim to solve catastrophic forgetting.
+- **Maturity:** `conceptual_translation_implemented`
+- **Scope boundary:** A governance translation of the Nested Learning ideas, not the architecture: does not implement Hope or nested optimisation problems, does not train foundation models, does not claim to solve catastrophic forgetting.
 - **Literature:** [docs/09-related-work.md](../../docs/09-related-work.md) §7
 - **Landscape (local compendium):** No anchor in the local compendium: the Nested Learning source (Behrouz et al., 2025) is newer than / outside the compendium's catalogue. REMORA implements only the governance framing (context-flow, reviewed memory layers), not the architecture itself.
 
@@ -160,7 +160,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - **Tests:** [`tests/test_confidence_sequence.py`](../../tests/test_confidence_sequence.py)
 - **Evidence:** Used by REM-020 to monitor the operational false-accept rate continuously without inflating the coverage guarantee under optional stopping (peeking); supplementary anytime-valid FAR bound in results/far_confidence_sequence_v1.json (CLAIM-011).
 - **Maturity:** `implemented_and_tested`
-- **Scope boundary:** A time-uniform Bernoulli-rate bound, distinct from the split-conformal risk control of RES-003; conservative by construction and valid only under the stated Beta-binomial mixture assumptions.
+- **Scope boundary:** A time-uniform Bernoulli-rate bound, distinct from the CRC-inspired empirical selective routing of RES-003; conservative by construction and valid only under the stated Beta-binomial mixture assumptions.
 - **Literature:** [docs/09-related-work.md](../../docs/09-related-work.md) §2
 - **Landscape (local compendium):** `confidence-seq-2021`, `game-theoretic-stat-2023`
 

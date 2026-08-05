@@ -591,18 +591,23 @@ Synthesize the best answer. Return ONLY valid JSON:
 
 
 class MixtureOfAgentsSynth:
-    """Stage 6: Mixture-of-Agents (MoA) synthesis oracle.
+    """Stage 6: single-stage aggregation inspired by Mixture-of-Agents.
 
-    Implements Wang et al. (2024) "Mixture-of-Agents Enhances Large Language
-    Model Capabilities" for the REMORA cascade.  After K oracle agents each
-    produce an independent answer (captured in the engine's oracle_log), a
-    dedicated *synthesis oracle* (ideally from a different model family) reads
-    all K raw answers together and produces a single synthesized response.
+    Inspired by, NOT an implementation of, Wang et al. (2024)
+    "Mixture-of-Agents Enhances Large Language Model Capabilities": the
+    original MoA is a multi-layer architecture in which each layer's agents
+    receive the previous layer's outputs. This module is a single synthesis
+    stage — after K oracle agents each produce an independent answer
+    (captured in the engine's oracle_log), one *synthesis oracle* (ideally
+    from a different model family) reads all K raw answers together and
+    produces a single synthesized response.
 
-    Empirically, MoA outperforms majority voting by 8–15 pp on MMLU
-    (Wang et al., 2024) because the synthesizer can reconcile partial
-    agreements and filter confidently-wrong answers that happen to form a
-    majority.
+    Wang et al. report multi-point MMLU gains over majority voting for their
+    multi-layer setup; that result attaches to their architecture, not to
+    this single-stage aggregation, and no such gain is claimed or measured
+    here. The design rationale carried over is that a synthesizer can
+    reconcile partial agreements and filter confidently-wrong answers that
+    happen to form a majority.
 
     When to use
     -----------
