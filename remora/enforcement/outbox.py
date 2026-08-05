@@ -205,8 +205,16 @@ class ExecutionOutbox:
 
     def record_intent_enlisted(
         self,
-        connection: object,
-        **kwargs: object,
+        connection: "sqlite3.Connection",
+        *,
+        proposal_id: str,
+        tenant_id: str,
+        item_id: str,
+        tool_name: str,
+        tool_call_hash: str,
+        grant_jti: str,
+        attempt_no: int = 1,
+        now: datetime | None = None,
     ) -> OutboxRow:
         """Not available in-process: there is no transaction to join.
 
