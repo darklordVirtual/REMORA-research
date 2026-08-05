@@ -27,6 +27,60 @@ releases.
 
 ## [Unreleased]
 
+### A deployment can classify its own tools, and a read can reach ACCEPT (2026-08-06)
+
+Found while building Assured Agent Execution on this core. The product's
+claim is four decisions; on `/v1/execution` the kernel could only ever
+produce three, for two independent reasons.
+
+- **Added** `REMORA_TOOL_METADATA_FILE`. `TOOL_REGISTRY` classifies six
+  names; everything else — including every tool registered through
+  `REMORA_TOOL_REGISTRY_MODULE` — fell to `critical`/`unknown` with no way
+  to declare otherwise. `deploy/ot-pilot/run_ot_battery.py` records the
+  consequence: even `read_sensor` expects `verify_or_abstain`. The
+  declaration is additive only (a name REMORA classified may not be
+  redeclared), validated against the engine's own vocabulary sets, folded
+  into the policy bundle hash so relabelling a tool stops every lease
+  issued before it, and fail-closed at startup in every environment when
+  the file is configured but unloadable.
+- **Added** `DecisionReason.GROUNDED_READ_ACCEPT` and
+  `RemoraDecisionEngine(grounded_read_accept=...)`, exposed as
+  `REMORA_GROUNDED_READ_ACCEPT`. Classification alone changed nothing: the
+  policy-only kernel has no oracle and no trust score, so the
+  probabilistic ACCEPT cannot fire there. This is the deterministic
+  alternative — read-only semantics, low risk, non-production, an intent
+  authority resolved server-side, and all four grounding signals `True`.
+  `None` never satisfies a clause. Strictly stronger than
+  `LOW_CONSEQUENCE_ACCEPT`, and it closes that path's measured cost: it
+  cannot accept a read-only call that is the wrong call for the task. Off
+  by default; asserted over a grid to only ever move ABSTAIN → ACCEPT.
+- **Added** `PolicyObservation.intent_authority_present` (documented in
+  `docs/07-api-reference.md`, exported to `OPAContext` so a Rego author
+  can express the rule the engine enforces).
+- **Added** `REMORA_ENABLED_SURFACES`. Production mode demanded the
+  oracle-backed surface's prerequisites from every deployment, so an
+  execution-only product had to name a backend it would never call and
+  ship a retrieval evidence pack it would never read —
+  `deploy/ot-pilot/docker-compose.yml` did exactly that. A disabled
+  surface is now unmounted, not merely unchecked; the served OpenAPI
+  document follows. Durable-state prerequisites are never scoped away.
+
+- **Fixed** a pinned `target_environment` winning outright, which let a
+  declaration *lower* risk: a tool pinned `staging` stayed staging even
+  when the call said `prod`. Harmless while only REMORA wrote those pins;
+  a self-service trust upgrade the moment deployments can. The riskier of
+  the two now wins.
+- **Fixed** the policy composite not covering the engine's enabled ACCEPT
+  paths. Same files, different decisions, identical policy identity — and
+  leases issued under the stricter policy kept verifying.
+- **Fixed** `tests/conftest.py` skipping on `"live" in item.keywords`,
+  which also matches parametrization ids. Two tests in
+  `test_fail_closed_normalization.py` — that an unknown risk tier in a
+  **production** environment must never ACCEPT — had their
+  `target_env="live"` case silently skipped, leaving that alias untested
+  in that suite. Now uses `get_closest_marker`; both run and pass.
+
+
 ### Execution coverage for the SDK effect loop (2026-08-06)
 
 - `record_effect` — the one call a product makes to close the loop — had
