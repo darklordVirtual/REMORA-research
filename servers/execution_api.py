@@ -186,6 +186,7 @@ def _auth(request: Request) -> tuple[str, str, str]:
 
 import json
 import dataclasses
+from uuid import uuid4
 from enum import Enum
 from contextlib import contextmanager
 
@@ -494,6 +495,10 @@ class ToolExecutionResult(BaseModel):
 
 
 class ExecutionAssessResponse(BaseModel):
+    proposal_id: str = Field(
+        description="FT-01: the canonical proposal identity minted here — "
+                    "the join key across every chain record, grant and "
+                    "response for this action.")
     decision: GovernanceAction
     reasons: list[str]
     tool_call_hash: str
@@ -508,12 +513,18 @@ class ExecutionAssessResponse(BaseModel):
 
 class ExecutionApproveResponse(BaseModel):
     status: Literal["approved"]
+    proposal_id: str | None = Field(
+        None, description="Canonical proposal identity; null only for items "
+                          "enqueued before the lifecycle existed.")
     item_id: str
     expires_at: str
     audit: AuditRef
 
 
 class ExecutionExecuteResponse(BaseModel):
+    proposal_id: str | None = Field(
+        None, description="Canonical proposal identity from the queued item; "
+                          "null only for pre-lifecycle items.")
     outcome: ExecutionOutcome
     detail: str
     execution_grant: ExecutionGrant | None = Field(
@@ -772,10 +783,16 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
 
     api_mod._require_tenant_capability(role, tenant, "assess")
     obs, semantic = _observation_with_context(req, tenant)
+    # FT-01: mint the canonical proposal identity here — every downstream
+    # record, response and grant for this action carries it. Attached to the
+    # observation so it survives the durable review queue.
+    proposal_id = str(uuid4())
+    obs = dataclasses.replace(obs, proposal_id=proposal_id)
     report = _ENGINE.decide(obs)
     now = datetime.now(UTC)
     record: dict[str, Any] = {
         "event": "assessed",
+        "proposal_id": proposal_id,
         "actor": principal,
         "tool_name": req.tool_name,
         "tool_call_hash": obs.tool_call_hash,
@@ -790,6 +807,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         "intent_authority_hash": semantic["intent_authority_hash"],
     }
     response: dict[str, Any] = {
+        "proposal_id": proposal_id,
         "decision": report.action.value,
         "reasons": [r.value for r in report.reasons],
         "tool_call_hash": obs.tool_call_hash,
@@ -799,7 +817,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         token = PolicyDecisionToken.issue(
             action="accept",
             observation_hash=obs.tool_call_hash or "",
-            request_id=f"{tenant}:{obs.tool_call_hash}",
+            request_id=proposal_id,
             issued_at=now.isoformat(),
             expires_at=(now + timedelta(seconds=EXECUTION_TOKEN_TTL_SECONDS)).isoformat(),
             audience=PEP_AUDIENCE,
@@ -907,8 +925,10 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
             )
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    proposal_id = getattr(item.observation, "proposal_id", None)
     entry = _CHAIN.append(tenant, {
         "event": "approved",
+        "proposal_id": proposal_id,
         "actor": principal,
         "on_behalf_of": req.on_behalf_of,
         "item_id": req.item_id,
@@ -917,6 +937,7 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
     api_mod.record_execution_approval()
     return {
         "status": "approved",
+        "proposal_id": proposal_id,
         "item_id": req.item_id,
         "expires_at": approval.expires_at.isoformat(),
         "audit": {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash},
@@ -964,17 +985,24 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
             # REM-032 lazy sweep (see assess): overdue PENDING items resolve
             # to ABSTAIN before any execution is considered.
             q.expire_due()
+            # FT-01: the canonical proposal identity rides the QUEUED
+            # observation (minted at assess) — the fresh re-presented
+            # payload never carries one the caller could assert.
+            proposal_id = getattr(q.item(req.item_id).observation,
+                                  "proposal_id", None)
             outcome = q.execute(req.item_id, fresh_obs)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     response: dict[str, Any] = {
+        "proposal_id": proposal_id,
         "outcome": outcome.decision.value,
         "detail": outcome.detail,
     }
     if outcome.decision is not ExecutionDecision.EXECUTE:
         entry = _CHAIN.append(tenant, {
             "event": f"execution_{outcome.decision.value}",
+            "proposal_id": proposal_id,
             "actor": principal,
             "item_id": req.item_id,
             "tool_call_hash": fresh_obs.tool_call_hash,
@@ -994,7 +1022,9 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     token = PolicyDecisionToken.issue(
         action="accept",
         observation_hash=fresh_obs.tool_call_hash or "",
-        request_id=f"{tenant}:{req.item_id}",
+        # FT-01: the grant carries the canonical proposal identity; the
+        # legacy composite only for pre-lifecycle items with no proposal.
+        request_id=proposal_id or f"{tenant}:{req.item_id}",
         issued_at=now.isoformat(),
         expires_at=(now + timedelta(seconds=EXECUTION_TOKEN_TTL_SECONDS)).isoformat(),
         audience=PEP_AUDIENCE,
@@ -1010,6 +1040,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     # execution_result — never a real side effect without any record.
     intent_entry = _CHAIN.append(tenant, {
         "event": "execution_authorized",
+        "proposal_id": proposal_id,
         "actor": principal,
         "item_id": req.item_id,
         "tool_call_hash": fresh_obs.tool_call_hash,
@@ -1087,6 +1118,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
 
     result_record: dict[str, Any] = {
         "event": "execution_result",
+        "proposal_id": proposal_id,
         "actor": principal,
         "item_id": req.item_id,
         "tool_call_hash": fresh_obs.tool_call_hash,

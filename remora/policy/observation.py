@@ -109,6 +109,13 @@ class PolicyObservation:
 
     question: str
 
+    # FT-01 (design docs/design/execution-lifecycle-outbox-v1.md, direction
+    # approved 2026-08-05): the canonical proposal identity minted at
+    # /v1/execution/assess. Carried on the observation so it survives the
+    # durable review queue and threads every downstream record without
+    # out-of-band reconstruction. None on paths that predate the lifecycle.
+    proposal_id: str | None = None
+
     # Thermodynamic state
     phase: str | None = None
     trust_score: float | None = None
