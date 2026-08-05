@@ -1,0 +1,216 @@
+# Signed immutable ToolSpec — frozen v1 contract (FT-03).
+#
+# ADR: docs/design/toolspec-signed-registry-v1.md (accepted 2026-08-05).
+# This file is the MACHINE-READABLE contract: field requirements, the
+# signing model, and the stable reason codes. It is not a tool registry —
+# a deployment's actual signed bundle is its own file, validated against
+# this. tests/test_toolspec_schema_v1.py pins every invariant below, so
+# the contract cannot drift from what runtime enforces.
+#
+# One ToolSpec replaces four sources that could disagree today: the static
+# TOOL_REGISTRY metadata, the callable registry, the SemanticBundle
+# contract, and the client-asserted schema_valid flag. Disagreement
+# between them was never detectable; a single signed spec makes it
+# impossible by construction.
+
+schema_version: 1
+status: frozen
+frozen_at: "2026-08-05"
+
+# ── Decisions (ADR open questions 1-8, resolved) ───────────────────────────
+decisions:
+  signing_model:
+    choice: hmac_sha256_deployment_key
+    key_env: REMORA_TOOLSPEC_SIGNING_KEY
+    rationale: >-
+      Same trust model the repository already uses for PDP tokens, leases
+      and audit entries. Asymmetric/KMS signing is deferred to v2: it adds
+      infrastructure the pilot does not have, and shipping two signing
+      models at once means neither is exercised properly.
+    key_owner: deployment
+    key_owner_note: >-
+      Neither REMORA nor the agent holds the signing key. An agent able to
+      sign its own ToolSpec could grant itself any capability, which is the
+      whole attack this component exists to stop.
+  trust_bundle_distribution:
+    choice: deployment_supplied_file
+    env: REMORA_TOOLSPEC_BUNDLE
+    rationale: >-
+      Mirrors REMORA_TOOL_REGISTRY_MODULE and REMORA_SEMANTIC_BUNDLE_MODULE:
+      the deployment supplies it out of band, the agent cannot influence it.
+  key_rotation:
+    choice: identity_allowlist
+    mechanism: >-
+      signing_identity is a key id. The trust bundle lists the identities
+      currently accepted. Rotation adds the new id and re-signs; revocation
+      removes the id, after which every spec signed by it fails closed.
+    rationale: >-
+      No CRL infrastructure for a single-signer pilot. Removing an id is a
+      deployment action with immediate, total effect — which is the correct
+      blast radius for a compromised signing key.
+  stale_version_rejection:
+    choice: pinned_bundle_digest
+    mechanism: >-
+      Runtime pins the bundle digest it was configured with. A spec that is
+      correctly signed but belongs to a different bundle is refused. Within
+      a bundle, tool_id + version must be unique and monotonic.
+    rationale: >-
+      A validly-signed OLD spec is the subtle attack: the signature proves
+      authenticity, not currency. Pinning the digest makes currency the
+      thing that is checked.
+  unverifiable_signature:
+    choice: fail_closed
+    fallback: none
+    rationale: >-
+      In strict mode there is no legacy-registry fallback. A fallback that
+      executes the action anyway turns every signature failure into a
+      no-op, which is worse than having no signature at all because it
+      reads as protection.
+  canonical_signing_bytes:
+    choice: sorted_compact_json_utf8
+    definition: >-
+      JSON of the tool_specs array, each object key-sorted, array sorted by
+      (tool_id, version), separators (",", ":"), UTF-8, LF only. The
+      registry_signature block is excluded from its own preimage.
+  callable_digest_basis:
+    choice: source_span
+    rationale: >-
+      Auditable by a human, and stable across Python versions in a way
+      bytecode is not.
+    known_blindness: >-
+      A source-span digest cannot see closure variables or module globals
+      the callable reads. A callable whose SOURCE is unchanged but whose
+      captured state was swapped verifies clean. Recorded here rather than
+      discovered later.
+  effect_cardinality:
+    choice: singular
+    rationale: >-
+      ToolContract enforces exactly one effect and resource_type today.
+      Pluralising without a multi-effect tool to model would invent an
+      invariant nothing exercises; v2 can widen it when one exists.
+  tool_id_namespace:
+    choice: flat
+    rationale: >-
+      TOOL_REGISTRY is one flat dict; namespacing touches every call site
+      passing a bare name. Uniqueness is enforced at bundle load instead.
+  argument_schema_failure:
+    choice: hard_refuse_in_strict_mode
+    rationale: >-
+      schema_valid was a client-asserted downgrade-only hint because
+      nothing validated it. With a real JSON Schema in the spec, validation
+      is computed, and a computed failure that only lowers trust would let
+      a malformed call execute.
+  pin_mode_default:
+    choice: strict_when_bundle_configured
+    rationale: >-
+      No trust-on-first-use. With a bundle configured, strict enforcement
+      applies; without one, the legacy registry path runs and is RECORDED
+      as degraded rather than silently equivalent.
+  postcondition_reader_requirement:
+    choice: explicit_but_nullable_in_v1
+    rationale: >-
+      No reader implementation exists in the repository yet (FT-04 builds
+      the first). The field must be present and explicitly null, so its
+      absence is a recorded decision rather than a forgotten key.
+  module_home:
+    choice: remora/toolcall/toolspec.py
+    import_direction_note: >-
+      The assess path already imports remora.toolcall. The enforcement path
+      does not, and must not start: it receives a resolved spec as DATA,
+      never by importing the module, so no new import direction is created.
+
+# ── Required fields per ToolSpec ───────────────────────────────────────────
+# Every field is REQUIRED to be present. Fields that may legitimately have
+# no value must be explicitly null — a missing key and a declared absence
+# are different facts, and only one of them is a decision.
+required_fields:
+  - tool_id
+  - version
+  - callable_digest
+  - implementation_identity
+  - description
+  - description_sha256
+  - argument_schema
+  - risk_tier
+  - action_type
+  - domain
+  - capabilities
+  - semantic_contract
+  - credential_scope
+  - allowed_targets
+  - idempotency_contract
+  - postcondition_reader
+  - compensation_tool
+  - timeout_policy
+  - network_policy
+  - signing_identity
+
+nullable_fields:
+  - postcondition_reader
+  - compensation_tool
+
+registry_signature_fields:
+  - signing_identity
+  - algorithm
+  - signed_at
+  - signature
+
+# ── Stable reason codes ────────────────────────────────────────────────────
+# These are a PUBLIC contract: the SDK maps them to typed errors and AAE
+# branches on them. Adding a code is additive; changing or removing one is
+# a breaking change and must be CHANGELOG-recorded.
+reason_codes:
+  - code: toolspec_trust_bundle_missing
+    meaning: strict mode is on but no signed bundle is configured
+  - code: toolspec_signature_invalid
+    meaning: the bundle signature does not verify under the named identity
+  - code: toolspec_signing_identity_unknown
+    meaning: the signing identity is not in the trust allowlist
+  - code: toolspec_signing_identity_revoked
+    meaning: the signing identity was removed from the trust allowlist
+  - code: toolspec_bundle_stale
+    meaning: correctly signed, but not the pinned bundle
+  - code: toolspec_version_stale
+    meaning: an older spec version than the bundle's current one
+  - code: toolspec_unknown_tool
+    meaning: no spec exists for the proposed tool
+  - code: toolspec_description_changed
+    meaning: description_sha256 does not match the description
+  - code: toolspec_argument_schema_changed
+    meaning: the argument schema differs from the one assessed
+  - code: toolspec_callable_digest_mismatch
+    meaning: the registered callable is not the one the spec attests
+  - code: toolspec_credential_scope_mismatch
+    meaning: the dispatch credential scope exceeds the declared scope
+  - code: toolspec_target_not_allowed
+    meaning: the target environment is outside allowed_targets
+  - code: toolspec_arguments_schema_invalid
+    meaning: the call's arguments do not validate against argument_schema
+  - code: toolspec_changed_between_assess_and_dispatch
+    meaning: the spec hash at dispatch differs from the one assessed
+
+# ── Binding chain (handoff gate §1.3/§1.5) ─────────────────────────────────
+# The same ToolSpec hash must appear at every stage. Any difference means
+# the action executing is not the action reviewed.
+binding_chain:
+  - assessment
+  - authorization_token
+  - execution_lease
+  - dispatch
+lease_bound_fields:
+  - tool_id
+  - toolspec_version
+  - toolspec_hash
+  - canonical_tool_call_hash
+  - policy_bundle_hash
+  - tenant
+  - target_environment
+
+# ── Realization status ─────────────────────────────────────────────────────
+# Honest by construction: this file freezes the CONTRACT. Runtime
+# enforcement is PR 2 of the handoff gate. The fasttrack register is the
+# authority on what is wired; nothing here claims implementation.
+realization:
+  contract: frozen
+  runtime_enforcement: not_implemented
+  sdk_surface: not_implemented
