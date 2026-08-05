@@ -27,6 +27,29 @@ releases.
 
 ## [Unreleased]
 
+### Handoff gate §3: the end-to-end vertical, and what it found (2026-08-05)
+
+- `tests/test_end_to_end_vertical.py` drives the real ASGI app through the
+  whole chain — signed ToolSpec at assessment, human review, a lease bound
+  to that spec, dispatch through the outbox, effect verification against
+  the declared delta, evidence export — and asserts the properties that
+  only exist **across** layers. Every layer below already passed in
+  isolation, which is exactly the condition under which a vertical breaks:
+  the seams are where assumptions differ, and no unit test looks at a seam.
+- **It found one.** The "spec changed between assess and dispatch" refusal
+  ran *after* the authorizing transaction, so a call that was never
+  allowed to happen still left a dispatch intent behind. Harmless only
+  because an unclaimed intent provably never ran — a thin thing to rely
+  on. The check now runs before the transaction, where it always had
+  everything it needed, and the vertical asserts that a refused proposal
+  leaves no dispatch row at all.
+- Also pinned across layers: one ToolSpec hash travels from assessment
+  into the lease and into the effect record (a layer minting its own would
+  make the binding look intact while proving nothing); an unobservable
+  effect becomes neither a failure nor a second dispatch; a mismatch is
+  appended without rewriting the execution record; and another tenant can
+  neither read the proposal nor annotate it with a verification.
+
 ### FT-03/FT-04 PR 6: release artifacts a product can actually pin (2026-08-05)
 
 - The release manifest now pins **both frozen contracts** —
