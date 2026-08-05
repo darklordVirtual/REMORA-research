@@ -480,6 +480,8 @@ export interface components {
             arguments?: {
                 [key: string]: unknown;
             };
+            /** Derivations */
+            derivations?: components["schemas"]["DerivationProposal"][] | null;
             /** Intent Ref */
             intent_ref?: string | null;
             /** Tool Name */
@@ -493,6 +495,29 @@ export interface components {
             entry_hash: string;
             /** Sequence No */
             sequence_no: number;
+        };
+        /**
+         * DerivationProposal
+         * @description One proposed derivation receipt (theme 3): value = transform(span).
+         *
+         *     A PROPOSAL only — acceptance happens exclusively in
+         *     ``remora.toolcall.routing.derivation.verify_receipt``'s deterministic
+         *     re-execution. ``extra="forbid"``: semantic verdicts or any other
+         *     unknown key cannot ride along inside a receipt.
+         */
+        DerivationProposal: {
+            /** Argument */
+            argument: string;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+            /** Source Span */
+            source_span: string;
+            /** Transform */
+            transform: string;
+            /** Value */
+            value?: unknown;
         };
         /** ErrorDetail */
         ErrorDetail: {
@@ -792,6 +817,8 @@ export interface components {
             arguments?: {
                 [key: string]: unknown;
             };
+            /** Derivations */
+            derivations?: components["schemas"]["DerivationProposal"][] | null;
             /** Idempotency Key */
             idempotency_key?: string | null;
             /** Intent Ref */
