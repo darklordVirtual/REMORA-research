@@ -4,8 +4,11 @@
 It talks to a REMORA control plane over the versioned REST contract
 (`schemas/openapi.json`, drift-gated in CI) and deliberately owns no tool
 credentials: policy evaluation, human review, token/lease binding,
-enforcement and the audit chain stay server-side, so the client cannot
-bypass a decision.
+enforcement and the audit chain stay server-side. The SDK provides no
+bypass operation — but actual non-bypassability is a *deployment*
+property: it holds only when REMORA is the exclusive credential-holding
+execution path and the agent has no direct route to the governed side
+effects.
 
 Everything outside this namespace (`remora.policy`, `remora.enforcement`,
 `servers.*`, ...) is internal and may change without notice.
@@ -56,6 +59,13 @@ execution token; VERIFY/ESCALATE queue a review item; ABSTAIN returns
 neither. Client-declared trust signals (`schema_valid`,
 `rollback_available`) can only lower trust, never raise it — with no
 server-side evidence even a low-risk read lands on ABSTAIN.
+
+**Lifecycle coverage (honest boundary):** the SDK's `execute()` covers
+the review path only (VERIFY → approve → execute). The ACCEPT token has
+**no REST redemption endpoint** — it is consumed by a deployment-side
+PEP (`remora.enforcement`), not by this client. A governed REST dispatch
+path for direct-ACCEPT proposals is tracked as issue #36 / FT-01; until
+it ships, this SDK is not a complete client for the ACCEPT lifecycle.
 
 Runnable end-to-end version, offline, zero configuration:
 
