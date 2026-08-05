@@ -27,6 +27,26 @@ releases.
 
 ## [Unreleased]
 
+### FT-13 slice 1: `remora.sdk` — the third-party client surface (2026-08-05)
+
+- New `remora/sdk/` package: `RemoraClient` (sync, httpx, remote mode),
+  frozen wire-bound models (`ToolCall`, `AssessmentResult`,
+  `ApprovalResult`, `ExecutionResult`, `AuditVerification`,
+  `SemanticAssessment`, `AuditRef`) and a typed error hierarchy rooted in
+  `RemoraError(code, request_id, retryable)`. `DecisionAction` is
+  re-exported from the canonical policy enum — no parallel vocabulary.
+  Covers assess → approve → execute → audit-verify against
+  `/v1/execution/*`; no server contract changed.
+- The public surface is snapshot-gated: `artifacts/sdk/public_api_v1.json`
+  (regenerate with `scripts/export_sdk_public_api.py`) +
+  `tests/test_sdk_public_api.py` fail CI on any unreviewed symbol change.
+- New `sdk` extra (`pip install "remora[sdk]"`); models and errors import
+  without httpx. 30 new tests, including the full review loop end-to-end
+  through the SDK against the in-process ASGI app.
+- Remaining for FT-13 (queued slices): async client, OpenAPI-generated
+  transport layer, framework adapters, `remora.sdk.testing`, external
+  quickstart example, semver/deprecation policy.
+
 ### Fasttrack definition-of-done enforced machinally in the register (2026-08-05)
 
 - Maintainer review 2026-08-05: a fasttrack slice counts as delivered only

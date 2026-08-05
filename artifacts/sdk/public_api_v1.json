@@ -1,0 +1,24 @@
+{
+  "module": "remora.sdk",
+  "symbols": {
+    "ApprovalResult": "class",
+    "AssessmentResult": "class",
+    "AuditRef": "class",
+    "AuditVerification": "class",
+    "AuthenticationError": "exception",
+    "AuthorizationError": "exception",
+    "ConflictError": "exception",
+    "DecisionAction": "class",
+    "ExecutionResult": "class",
+    "InvalidRequestError": "exception",
+    "NotFoundError": "exception",
+    "RateLimitedError": "exception",
+    "RemoraClient": "class",
+    "RemoraError": "exception",
+    "RemoraUnavailableError": "exception",
+    "SemanticAssessment": "class",
+    "ServerError": "exception",
+    "ToolCall": "class"
+  },
+  "version": 1
+}
