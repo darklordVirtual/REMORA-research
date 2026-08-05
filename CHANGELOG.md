@@ -27,6 +27,17 @@ releases.
 
 ## [Unreleased]
 
+### Property-based proof of the engine's hard-guard floor (2026-08-05)
+
+- Proof-depth slice 2 (`tests/test_policy_engine_properties.py`): the
+  documented hard guards hold universally over searched signal space, not
+  just on curated examples — critical risk never ACCEPTs regardless of how
+  favorable every other signal is, a production target with unknown risk
+  never ACCEPTs, and a detected adversarial pattern always ESCALATEs
+  (100 examples per property, three fixed seeds verified locally).
+  hypothesis added to the dev extras/lock after the first property push
+  revealed it was never installed in CI.
+
 ### Property-based proof depth for the enforcement core (2026-08-05)
 
 - New `tests/test_enforcement_properties.py` (Hypothesis) asserts the
