@@ -27,6 +27,14 @@ releases.
 
 ## [Unreleased]
 
+### Property-based proof of the PEP one-time-grant contract (2026-08-05)
+
+- Proof-depth slice 4 (`tests/test_gate_replay_properties.py`): a consumed
+  grant refuses every later attempt (any replay count) with
+  `token_already_consumed`, and non-consuming checks never spend the grant —
+  the peek/spend distinction is exact. 50 examples per property, three
+  seeds.
+
 ### Property-based proof of the review-queue TTL contract (2026-08-05)
 
 - Proof-depth slice 3 (`tests/test_review_queue_properties.py`): for any mix
