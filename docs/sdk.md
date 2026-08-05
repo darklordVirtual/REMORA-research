@@ -131,13 +131,83 @@ not impossible: a party who rewrites bundle *and* manifest produces a
 self-consistent forgery, which is why the audit chain's own verification
 travels inside the bundle rather than being replaced by it.
 
+## Verifying that it actually happened
+
+Everything above governs *authorization*: what may run, bound to an exact
+payload, under a signed spec. None of it looks at the world afterwards, so
+"executed" means only "the dispatcher returned without raising". Closing
+that gap is what the effect surface is for.
+
+**The reader stays yours.** REMORA never reaches into your system of
+record, because the credentials belong with you. You observe, the SDK
+compares, and the record crosses back:
+
+```python
+from remora.sdk import build_postcondition, content_digest, verify_effect
+
+spec = build_postcondition(
+    tool_id="create_github_issue",
+    target_selector={"repository": "acme/operations"},
+    expected_fields={
+        "title": approved_title,
+        "body": content_digest(approved_body),   # compared, not stored
+        "author": "acme-automation[bot]",
+    },
+    comparison_rules={"body": "hash"},
+)
+
+result = verify_effect(
+    spec, your_reader.read_issue(number),        # None if you could not look
+    proposal_id=proposal_id, execution_id=execution_id,
+    toolspec_hash=assessment.toolspec.hash,
+    verifier_identity="acme.github_reader/v1",
+)
+client.record_effect(proposal_id, result)
+```
+
+Only the fields you declared are compared. Everything else is out of
+scope **by construction, not by tolerance**: a system of record has other
+legitimate writers, and reporting their changes as drift would make
+mismatch a noise channel operators soon learn to ignore.
+
+`EffectStatus` keeps five outcomes apart, and the distinction that matters
+most is between *we looked and it was wrong* and *we could not look*:
+
+| Status | Terminal | Means |
+|---|---|---|
+| `EFFECT_VERIFIED` | yes | the declared delta is present |
+| `EFFECT_MISMATCH` | yes | the object was read and differs — investigate; compensation may apply |
+| `EFFECT_UNOBSERVABLE` | **no** | it could not be read in time; the effect status is unknown |
+| `EFFECT_VERIFIER_FAILED` | **no** | your reader itself failed; still unknown |
+| `EFFECT_UNSUPPORTED` | yes | this tool declares no postcondition — recorded so the absence is visible |
+
+Failing to read a result is not evidence that the wrong thing happened.
+Neither unknown is ever a reason to run the action again: the side effect
+may already have occurred, and repeating it is the one thing this layer
+must not do.
+
+`record_effect` **appends** to the audit chain — a verifier that could
+edit the record it verifies produces a claim, not evidence — and only the
+hashes cross the boundary; the observed values stay with you. REMORA
+stores the result as an attestation by the verifier named in the record,
+not as an independent proof of its own, which is why
+`verifier_identity` is mandatory. Verdicts are recorded exactly as
+reported, mismatches included.
+
+Runnable, offline, zero configuration:
+
+```bash
+python examples/effect_verification_quickstart.py
+```
+
 ## Public surface
 
 | Group | Symbols |
 |---|---|
-| Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `reject`, `execute`, `execute_accepted`, `get_proposal`, `get_lifecycle`, `export_evidence`, `verify_audit_chain`, context managers |
+| Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `reject`, `execute`, `execute_accepted`, `record_effect`, `get_proposal`, `get_lifecycle`, `export_evidence`, `verify_audit_chain`, context managers |
 | Request models | `ToolCall`, `DerivationProposal` (a proposed derivation receipt for a derived argument value — verified server-side by deterministic re-execution, never by explanation) |
-| Result models | `AssessmentResult`, `ApprovalResult`, `RejectionResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef`, `ResolutionPlan`, `ProposalView`, `LifecycleTrail` |
+| Result models | `AssessmentResult`, `ApprovalResult`, `RejectionResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef`, `ResolutionPlan`, `ProposalView`, `LifecycleTrail`, `ToolSpecIdentity` (which signed spec authorized the action, and whether specs are enforced at all) |
+| Effect verification | `PostconditionSpec`, `EffectStatus`, `EffectVerificationView`, `build_postcondition`, `verify_effect`, `content_digest` |
 | Decisions | `DecisionAction` (canonical policy enum) |
 | Errors | `RemoraError` + typed subclasses (below), including the execution refusals `BindingRefusedError`, `ReplayRefusedError`, `ApprovalExpiredError` and `UnknownExecutionStateError` |
 

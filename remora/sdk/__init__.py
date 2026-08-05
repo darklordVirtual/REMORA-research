@@ -43,6 +43,14 @@ from remora.sdk.errors import (
     ServerError,
     UnknownExecutionStateError,
 )
+from remora.sdk.effects import (
+    EffectStatus,
+    EffectVerificationView,
+    PostconditionSpec,
+    build_postcondition,
+    content_digest,
+    verify_effect,
+)
 from remora.sdk.models import (
     ApprovalResult,
     AssessmentResult,
@@ -57,6 +65,7 @@ from remora.sdk.models import (
     ResolutionPlan,
     SemanticAssessment,
     ToolCall,
+    ToolSpecIdentity,
 )
 
 __all__ = [
@@ -72,10 +81,13 @@ __all__ = [
     "ConflictError",
     "DecisionAction",
     "DerivationProposal",
+    "EffectStatus",
+    "EffectVerificationView",
     "ExecutionResult",
     "InvalidRequestError",
     "LifecycleTrail",
     "NotFoundError",
+    "PostconditionSpec",
     "ProposalView",
     "RateLimitedError",
     "RejectionResult",
@@ -87,7 +99,11 @@ __all__ = [
     "SemanticAssessment",
     "ServerError",
     "ToolCall",
+    "ToolSpecIdentity",
     "UnknownExecutionStateError",
+    "build_postcondition",
+    "content_digest",
+    "verify_effect",
 ]
 
 

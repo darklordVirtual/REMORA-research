@@ -203,8 +203,22 @@ items:
     SUCCEEDED -> EFFECT_VERIFIED on postcondition_not_declared (recorded
     "we never looked" as "we checked"), and a test asserting the expected
     and observed hashes are equal, which cannot hold under a hash rule.
-    NOT DONE: EffectBlock population in DecisionEnvelope and the SDK
-    surface (PR 5). The contract states sdk_surface: not_implemented.
+    Handoff PR 5 landed the product surface: remora/sdk/effects.py owns
+    the vocabulary a consumer sees (PostconditionSpec, EffectStatus,
+    EffectVerificationView, build_postcondition, verify_effect,
+    content_digest) plus ToolSpecIdentity on assessment and execution
+    results and the verdict on ProposalView. The SDK defines its own
+    status enum rather than re-exporting the internal one, and a test
+    compares it against the frozen schema on disk so the two cannot
+    drift. Verification runs in the CONSUMER's process because the reader
+    holds the credentials; POST /v1/execution/proposals/{id}/effect takes
+    the record back and the chain stores it as an attestation by a named
+    verifier, never as an independent proof by REMORA. Only hashes cross
+    the boundary. 23 tests (14 surface + 9 endpoint), a runnable offline
+    example, docs/sdk.md, and regenerated OpenAPI, TS client and public
+    API snapshot (35 symbols).
+    NOT DONE: EffectBlock population in DecisionEnvelope, and the release
+    that carries this to the product repo (PR 6).
 - id: FT-05
   title: External review recruited now, closed after P0
   priority: p0

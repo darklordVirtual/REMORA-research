@@ -352,6 +352,89 @@
         "title": "DerivationProposal",
         "type": "object"
       },
+      "EffectStatus": {
+        "description": "Five outcomes. Collapsing any pair loses a distinction an operator\nneeds in order to choose what to do next.",
+        "enum": [
+          "EFFECT_VERIFIED",
+          "EFFECT_MISMATCH",
+          "EFFECT_UNOBSERVABLE",
+          "EFFECT_VERIFIER_FAILED",
+          "EFFECT_UNSUPPORTED"
+        ],
+        "title": "EffectStatus",
+        "type": "string"
+      },
+      "EffectVerificationRequest": {
+        "description": "A verification observed by the deployment, submitted for recording.\n\nVerification runs where the credentials are, which is the product's\nprocess — REMORA never reaches into a customer's system of record to\ncheck on it. What crosses back is this record, and the chain stores it\nas an **attestation by a named verifier**, not as an independent proof\nby REMORA. ``verifier_identity`` is therefore mandatory: an\nattestation nobody signed is not evidence, because an auditor could\nnot tell who claimed to have looked.",
+        "properties": {
+          "detail": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Detail",
+            "type": "string"
+          },
+          "execution_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Execution Id",
+            "type": "string"
+          },
+          "expected_sha256": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Expected Sha256",
+            "type": "string"
+          },
+          "observed_sha256": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Observed Sha256",
+            "type": "string"
+          },
+          "reason_code": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EffectStatus"
+          },
+          "tool_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Tool Id",
+            "type": "string"
+          },
+          "toolspec_hash": {
+            "default": "",
+            "maxLength": 128,
+            "title": "Toolspec Hash",
+            "type": "string"
+          },
+          "verified_at": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Verified At",
+            "type": "string"
+          },
+          "verifier_identity": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Verifier Identity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "execution_id",
+          "tool_id",
+          "status",
+          "reason_code",
+          "verifier_identity"
+        ],
+        "title": "EffectVerificationRequest",
+        "type": "object"
+      },
       "ErrorDetail": {
         "properties": {
           "detail": {
@@ -1978,6 +2061,91 @@
           }
         },
         "summary": "Get Proposal",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/proposals/{proposal_id}/effect": {
+      "post": {
+        "description": "Append one effect verification to this proposal's trail.\n\nThe verdict is recorded exactly as reported, including a mismatch. A\nproduct reporting one is reporting bad news about itself, and an\noverlay that softened those would be worse than not having one.\n\nWhat is refused is anything that would make the record unreadable\nlater: an unknown proposal, another tenant's proposal (a 404, never a\nredacted 200 that leaks its existence), a status outside the published\nfive, and a record that does not say who observed it.",
+        "operationId": "record_effect_v1_execution_proposals__proposal_id__effect_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EffectVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Record Effect V1 Execution Proposals  Proposal Id  Effect Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The verification was appended to the audit chain."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "No such proposal for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Effect",
         "tags": [
           "execution"
         ]

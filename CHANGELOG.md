@@ -27,6 +27,41 @@ releases.
 
 ## [Unreleased]
 
+### FT-04 PR 5: the product surface for spec identity and effect verification (2026-08-05)
+
+- A consuming product can now declare a postcondition, verify it with its
+  own reader, read the ToolSpec identity that authorized the action, and
+  see the verdict on a proposal — entirely through `remora.sdk`. That
+  boundary is the deliverable: a product that reaches into
+  `remora.governance` or `remora.enforcement` is coupled to internals we
+  intend to keep changing, and could not be upgraded independently.
+- `remora/sdk/effects.py` owns the vocabulary the product sees
+  (`PostconditionSpec`, `EffectStatus`, `EffectVerificationView`,
+  `build_postcondition`, `verify_effect`, `content_digest`) and wraps the
+  governance implementation rather than re-exporting it. The cost of two
+  definitions is drift, so a test compares the SDK's statuses and their
+  terminality against the **frozen schema on disk**, not against the
+  internal class it happens to wrap today.
+- `ToolSpecIdentity` travels with assessments and executions, carrying
+  `enforced` explicitly: a deployment running without signed specs is not
+  silently equivalent to one running with them, and a consumer must be
+  able to see which mode produced a decision rather than infer it from an
+  empty hash. `ProposalView.effect` is `None` when nothing was verified —
+  an absent verdict must never read as a passing one.
+- **Verification runs in the consumer's process**, because the reader
+  holds the credentials; REMORA never reaches into a customer's system of
+  record. `POST /v1/execution/proposals/{id}/effect` takes the record
+  back, and the chain stores it as an **attestation by a named verifier**,
+  not as an independent proof by REMORA — which is why
+  `verifier_identity` is mandatory and why only the hashes cross the
+  boundary. Verdicts are recorded exactly as reported, mismatches
+  included: a product reporting one is reporting bad news about itself,
+  and an overlay that softened those would be worse than not having one.
+- 23 tests (14 surface, 9 endpoint), a runnable offline example
+  (`examples/effect_verification_quickstart.py`), `docs/sdk.md`, and
+  regenerated OpenAPI, TypeScript client and public API snapshot
+  (28 -> 35 symbols).
+
 ### FT-04 PR 4: the first closed loop — create an issue, then read it back (2026-08-05)
 
 - `remora/integrations/github_issue.py` closes the loop end to end for the

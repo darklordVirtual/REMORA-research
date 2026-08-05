@@ -25,6 +25,7 @@ except ImportError as exc:  # pragma: no cover - exercised only without extra
 
 from remora.sdk.client import error_for_response
 from remora.sdk.errors import RemoraUnavailableError
+from remora.sdk.effects import EffectVerificationView
 from remora.sdk.models import (
     ApprovalResult,
     AssessmentResult,
@@ -137,6 +138,26 @@ class AsyncRemoraClient:
             },
         )
         return ExecutionResult.from_payload(payload)
+
+    async def record_effect(self, proposal_id: str,
+                      verification: "EffectVerificationView") -> "EffectVerificationView":
+        """Hand a verification you performed back to REMORA for recording.
+
+        Verification runs in YOUR process because the reader holds the
+        credentials; REMORA never reaches into your system of record. The
+        chain therefore stores this as an attestation by the verifier
+        named in the record, and only its hashes cross the boundary — the
+        observed values stay with you.
+
+        Recorded exactly as reported, mismatches included.
+        """
+        payload = await self._request(
+            "POST", f"/v1/execution/proposals/{proposal_id}/effect",
+            json=verification.to_dict(),
+        )
+        return EffectVerificationView.from_payload(
+            {**verification.to_dict(), **payload}
+        )
 
     async def get_proposal(self, proposal_id: str) -> ProposalView:
         """Async :meth:`RemoraClient.get_proposal`."""
