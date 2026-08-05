@@ -79,8 +79,15 @@ cites only `open` sections and that no `open` section is missing a theme.
    server-side registry, but the library path judges the metadata it is handed.
    A caller should be able to raise risk and never lower it. The
    `assign`/`close`/`approve` write bug showed why verb heuristics must be the
-   fallback, not the authority. This one is a production gap rather than a
-   research gap, and is also tracked in
+   fallback, not the authority. **Raise-only clamp implemented 2026-08-05**
+   (`remora/assess.py`: declared `risk_tier` weaker than the name-heuristic
+   floor is clamped up and the clamp is RECORDED in
+   `ToolCallAssessment.floored`; declared read on a write-verb tool floors to
+   the write family; the M4 verbs are now in the inference table; the floor
+   never fills unset fields, so fail-closed semantics are untouched). The
+   full authority — a signed tool-schema registry on the advisory path
+   (FT-03 ToolSpec) — remains open, so this theme stays open; it is also
+   tracked in
    [remediation_register.yaml](docs/assurance/remediation_register.yaml).
 <!-- backlog-end -->
 
@@ -2199,7 +2206,7 @@ sections again.
 | Entropy backend is a token fingerprint, not Semantic Entropy (§3) | NLI backend executes and disagrees on 12/24 of the smoke corpus; full benchmark parity unmeasured. Solvable now | Medium |
 | Production validator quality unmeasured (§33) | Mechanism recovers read utility 0% → 100%, but the study validator is correct by construction. Real validators need their own contracts | Medium |
 | MCE bucket bias and absent cross-domain episodes (§15, §16) | Structural AROMER ceilings: the buckets get no organic traffic and crossDomainCases=0. Needs diverse deployment context | Medium |
-| Authoritative tool metadata still caller-supplied on the advisory path (§14/M4) | Enforcement path is server-side; the library path judges what it is handed. The `assign`/`close`/`approve` bug showed verb heuristics must be fallback | Medium |
+| Authoritative tool metadata still caller-supplied on the advisory path (§14/M4) | Raise-only clamp shipped 2026-08-05 (declared risk cannot undercut the heuristic floor; clamps recorded, unset stays unset). Full authority still needs the signed ToolSpec registry (FT-03) | Medium |
 | External replication, REM-021, field evidence (§1, §4) | Cannot be closed from inside this repository | Medium |
 
 ### Accepted negative results — do not "fix" these
