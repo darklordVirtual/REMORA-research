@@ -27,6 +27,24 @@ releases.
 
 ## [Unreleased]
 
+### Contract test: policy that tightens during review voids the approval (2026-08-05)
+
+- Architect review of the AAE plan asked for this to be an explicit
+  contract test rather than implicit behaviour. It is now one, and the
+  finding is that **the behaviour already held** — the re-gate's
+  equal-or-safer rule correctly discards an approval when the fresh
+  decision escalates. The value is the pin: a future change that loses
+  the guarantee now fails a test instead of shipping quietly.
+- The tests change the tool's classification through the server-side
+  registry between approve and execute, so the real engine re-decides;
+  stubbing the decision would only have proved that the code calls a
+  function. They also assert that a voided approval leaves **no** side
+  effect and **no** dispatch intent, that the invalidation is audited with
+  both decisions, that an unchanged policy still executes (the guard is
+  not so eager that normal approvals break), and that a *relaxed* policy
+  does not widen what was approved — monotonicity runs one way.
+
+
 ### Reading a proposal back: lifecycle APIs and evidence export (AAE §12/§16) (2026-08-05)
 
 - One `proposal_id` already followed a call from assessment to effect, but
