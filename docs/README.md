@@ -69,6 +69,7 @@ The numbered series is the primary reading path.
 | [document_register_v1.yaml](assurance/document_register_v1.yaml) | Every governed document |
 | [remediation_register.yaml](assurance/remediation_register.yaml) | Open gaps (REM ids) |
 | [capability_register_v1.yaml](assurance/capability_register_v1.yaml) | Capability wiring status (CAP ids) |
+| [fasttrack_register_v1.yaml](assurance/fasttrack_register_v1.yaml) | World-class fasttrack program status (FT ids; merged code alone never means DONE) |
 | [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml) | Deployment maturity ladder |
 | [release_gates.md](assurance/release_gates.md) | Gate status per profile |
 | [artifact_manifest_v1.md](assurance/artifact_manifest_v1.md) | SHA-256 manifest of result artifacts |

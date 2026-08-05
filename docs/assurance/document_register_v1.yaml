@@ -2164,6 +2164,17 @@ documents:
   audience:
   - maintainer
   - evaluator
+- id: DOC-299
+  version: v1
+  path: docs/assurance/fasttrack_register_v1.yaml
+  status: canonical
+  topic: docs_assurance_fasttrack_register_v1_yaml
+  code_synced: unreviewed
+  verdict: current
+  last_reviewed: '2026-08-05'
+  audience:
+  - maintainer
+  - evaluator
 
 topics:
 - docs_assurance_superseded_claims_md
@@ -2404,3 +2415,4 @@ topics:
 - docs_deployment_execution-quickstart_md
 - docs_assurance_statistical_analysis_plan_v4_md
 - docs_research_task_intent_authority_v1_md
+- docs_assurance_fasttrack_register_v1_yaml
