@@ -219,6 +219,21 @@
             "title": "Arguments",
             "type": "object"
           },
+          "derivations": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DerivationProposal"
+                },
+                "maxItems": 32,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivations"
+          },
           "intent_ref": {
             "anyOf": [
               {
@@ -272,6 +287,45 @@
           "entry_hash"
         ],
         "title": "AuditRef",
+        "type": "object"
+      },
+      "DerivationProposal": {
+        "additionalProperties": false,
+        "description": "One proposed derivation receipt (theme 3): value = transform(span).\n\nA PROPOSAL only — acceptance happens exclusively in\n``remora.toolcall.routing.derivation.verify_receipt``'s deterministic\nre-execution. ``extra=\"forbid\"``: semantic verdicts or any other\nunknown key cannot ride along inside a receipt.",
+        "properties": {
+          "argument": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Argument",
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "source_span": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Source Span",
+            "type": "string"
+          },
+          "transform": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Transform",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value"
+          }
+        },
+        "required": [
+          "argument",
+          "transform",
+          "source_span"
+        ],
+        "title": "DerivationProposal",
         "type": "object"
       },
       "ErrorDetail": {
@@ -952,6 +1006,21 @@
             "additionalProperties": true,
             "title": "Arguments",
             "type": "object"
+          },
+          "derivations": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DerivationProposal"
+                },
+                "maxItems": 32,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivations"
           },
           "idempotency_key": {
             "anyOf": [

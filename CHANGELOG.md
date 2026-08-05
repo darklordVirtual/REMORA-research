@@ -27,6 +27,21 @@ releases.
 
 ## [Unreleased]
 
+### DerivationReceipt proposals ride the server APIs (2026-08-05)
+
+- Queued slice from the theme-3 mechanism: `/v1/execution/assess` and
+  `/v1/assess`'s `tool_call` block accept an optional `derivations` list
+  (max 32) of proposed receipts — one shared `DerivationProposal` model
+  (`extra="forbid"`, so semantic verdicts cannot ride inside a receipt;
+  422 on unknown keys). Threaded through `semantic_call_context` into the
+  episode the authoritative builder grounds against: a verified receipt
+  grounds a derived argument value end-to-end; an absent or invalid one
+  leaves it ungrounded. Proposals only — acceptance happens exclusively
+  in `derivation.verify_receipt`'s deterministic re-execution.
+- OpenAPI export and generated TS client regenerated. 7 new tests
+  (`tests/test_derivation_server_threading.py`), TDD RED→GREEN; full
+  suite 4800 passed.
+
 ### API reference synced with the three mechanism fixes (2026-08-05)
 
 - `docs/07-api-reference.md` now documents the `/v1/assess` `tool_call`

@@ -912,6 +912,9 @@ def _assess_semantic_overlay(
         untrusted_context=tool_call.untrusted_context,
         domain=str(registry_entry.get("domain", "unknown")),
         user_task=question,
+        derivations=tuple(
+            d.model_dump() for d in (tool_call.derivations or ())
+        ),
     )
     if full is None:
         return None
@@ -1078,6 +1081,9 @@ def _enforce_review_approval_role(
 # Request / response models
 # ---------------------------------------------------------------------------
 
+from servers.execution_api import DerivationProposal as _DerivationProposal
+
+
 class AssessToolCall(BaseModel):
     """Optional concrete tool call accompanying an assess question.
 
@@ -1096,6 +1102,10 @@ class AssessToolCall(BaseModel):
     arguments: dict[str, Any] = Field(default_factory=dict)
     intent_ref: str | None = Field(None, max_length=256)
     untrusted_context: str | None = Field(None, max_length=16384)
+    # Theme 3: proposed derivation receipts; proposals only, verified by
+    # deterministic re-execution server-side. Same model as the execution
+    # path — no parallel vocabulary.
+    derivations: list[_DerivationProposal] | None = Field(None, max_length=32)
 
 
 class AssessRequest(BaseModel):

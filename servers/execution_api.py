@@ -554,6 +554,24 @@ _AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {
 }
 
 
+class DerivationProposal(BaseModel):
+    """One proposed derivation receipt (theme 3): value = transform(span).
+
+    A PROPOSAL only — acceptance happens exclusively in
+    ``remora.toolcall.routing.derivation.verify_receipt``'s deterministic
+    re-execution. ``extra="forbid"``: semantic verdicts or any other
+    unknown key cannot ride along inside a receipt.
+    """
+
+    argument: str = Field(..., min_length=1, max_length=200)
+    value: Any = None
+    transform: str = Field(..., min_length=1, max_length=64)
+    source_span: str = Field(..., min_length=1, max_length=2000)
+    params: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = {"extra": "forbid"}
+
+
 class ToolCallRequest(BaseModel):
     """The PROPOSAL only (issue #34 trust boundary; full-args binding kept).
 
@@ -586,6 +604,10 @@ class ToolCallRequest(BaseModel):
     # every argument as potentially tainted. Omitting it never raises trust —
     # absence is the same default the legacy path had.
     untrusted_context: str | None = Field(None, max_length=20_000)
+    # Theme 3: proposed derivation receipts for derived argument values.
+    # Proposals only — verified by deterministic re-execution server-side;
+    # an invalid receipt just leaves its value ungrounded.
+    derivations: list[DerivationProposal] | None = Field(None, max_length=32)
 
     model_config = {
         "json_schema_extra": {
@@ -641,6 +663,9 @@ def _observation_with_context(
         intent_ref=req.intent_ref,
         untrusted_context=req.untrusted_context,
         domain=str(registry_entry.get("domain", "unknown")),
+        derivations=tuple(
+            d.model_dump() for d in (req.derivations or ())
+        ),
     )
     if full is None:
         return _registry_only_observation(req, tenant, registry_entry), context
@@ -683,6 +708,7 @@ def semantic_call_context(
     untrusted_context: str | None = None,
     domain: str = "unknown",
     user_task: str = "",
+    derivations: "tuple[dict[str, Any], ...]" = (),
 ) -> "tuple[PolicyObservation | None, dict[str, Any]]":
     """Authoritative semantic observation + context for one proposed call.
 
@@ -715,6 +741,7 @@ def semantic_call_context(
         proposed_tool_name=tool_name,
         proposed_tool_args=dict(arguments),
         domain=domain,
+        proposed_derivations=derivations,
     )
     validators = (
         bundle.validators.scoped(tenant) if bundle.validators is not None else None
