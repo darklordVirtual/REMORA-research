@@ -45,6 +45,12 @@ from remora.enforcement.lease import (
 )
 from remora.enforcement.result_envelope import capture_tool_result
 from remora.enforcement.token import PolicyDecisionToken
+from remora.enforcement.outbox import (
+    ExecutionOutbox,
+    OutboxState,
+    PostgresExecutionOutbox,
+    SQLiteExecutionOutbox,
+)
 from remora.governance.lifecycle import (
     IllegalTransition,
     check_transition,
@@ -181,6 +187,112 @@ _QUEUES: dict[str, ReviewQueue] = {}
 _ITEM_TENANT: dict[str, str] = {}
 
 
+import contextvars as _contextvars
+
+# FT-02: the connection of the CURRENTLY OPEN db_transaction_state, exposed
+# so the outbox row can be written inside that same transaction. A
+# contextvar rather than a changed yield signature: the transaction is
+# ambient state for the duration of the block, and threading it through
+# six call sites (plus tests) would obscure the one place that needs it.
+# None means the in-process branch is active — there is no transaction to
+# join, and the outbox falls back to its own write.
+# Typed Any deliberately: the connection is a sqlite3.Connection or a
+# psycopg.Connection depending on the configured backend, and the outbox
+# adapter that receives it is chosen by the same switch.
+_ACTIVE_TX_CONNECTION: "_contextvars.ContextVar[Any]" = (
+    _contextvars.ContextVar("remora_active_tx_connection", default=None)
+)
+
+# Built eagerly, like _CHAIN and _GATE: a durable adapter runs its DDL on
+# its own connection, and doing that lazily inside an open transaction
+# deadlocks against SQLite's BEGIN EXCLUSIVE write lock.
+_OUTBOX: "ExecutionOutbox | None" = None
+
+
+def _outbox() -> ExecutionOutbox:
+    """The dispatch-intent store, chosen by the same durability switches
+    that govern the chain, queue and jti ledger (REM-034/REM-025).
+
+    An in-process outbox is a development fallback: it loses the record
+    that a dispatch was authorized, which is precisely what FT-02 exists
+    to make durable. Production mode already refuses to start without one
+    of these variables set.
+    """
+    global _OUTBOX
+    if _OUTBOX is None:
+        _OUTBOX = _build_outbox()
+    return _OUTBOX
+
+
+def _build_outbox() -> ExecutionOutbox:
+    dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+    db = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    if dsn:
+        return PostgresExecutionOutbox(dsn)
+    if db:
+        return SQLiteExecutionOutbox(db)
+    return ExecutionOutbox()
+
+
+def _reset_outbox() -> None:
+    """Test hook: rebuild the outbox eagerly (e.g. after env changes).
+
+    Eager, not lazy: constructing a durable adapter runs its DDL on its own
+    connection, and doing that lazily inside an open ``db_transaction_state``
+    deadlocks against SQLite's ``BEGIN EXCLUSIVE`` write lock until the
+    driver timeout. Building it up front keeps schema work out of every
+    request path (found by running the wiring suite against a real
+    REMORA_CHAIN_DB, 2026-08-05).
+    """
+    global _OUTBOX
+    _OUTBOX = _build_outbox()
+
+
+# Eager, at import — same discipline as _CHAIN/_GATE above.
+_OUTBOX = _build_outbox()
+
+
+def _record_dispatch_intent(
+    *,
+    proposal_id: str,
+    tenant: str,
+    item_id: str,
+    tool_name: str,
+    tool_call_hash: str,
+    grant_jti: str,
+):
+    """Record the dispatch intent, inside the authorize transaction when one
+    is open.
+
+    With a durable backend the row commits with the authorization and rolls
+    back with it, so "authorized" and "a dispatch was intended" can never
+    disagree. Without one (development), the in-process store records it
+    non-atomically — a limitation of that configuration, not of the design.
+    """
+    outbox = _outbox()
+    connection = _ACTIVE_TX_CONNECTION.get()
+    # Only the durable adapters can join a transaction; the in-process base
+    # class refuses enlistment by design rather than faking the guarantee.
+    if connection is not None and type(outbox) is not ExecutionOutbox:
+        return outbox.record_intent_enlisted(
+            connection,
+            proposal_id=proposal_id,
+            tenant_id=tenant,
+            item_id=item_id,
+            tool_name=tool_name,
+            tool_call_hash=tool_call_hash,
+            grant_jti=grant_jti,
+        )
+    return outbox.record_intent(
+        proposal_id=proposal_id,
+        tenant_id=tenant,
+        item_id=item_id,
+        tool_name=tool_name,
+        tool_call_hash=tool_call_hash,
+        grant_jti=grant_jti,
+    )
+
+
 def _lifecycle_guard(start: str, *events: str) -> None:
     """FT-01 conformance: the transition this endpoint is about to perform
     must be declared by the lifecycle model. Defense-in-depth — the queue's
@@ -277,6 +389,7 @@ def db_transaction_state(tenant: str):
                 # commit (self-review 2026-07-28).
                 items_snapshot = dict(q._items)
                 tenant_snapshot = dict(_ITEM_TENANT)
+                _tx_token = _ACTIVE_TX_CONNECTION.set(conn)
                 try:
                     yield q
                 except BaseException:
@@ -290,6 +403,8 @@ def db_transaction_state(tenant: str):
                         "ON CONFLICT (tenant_id) DO UPDATE SET qs_json = EXCLUDED.qs_json, it_json = EXCLUDED.it_json",
                         (tenant, json.dumps({k: to_dict(v) for k, v in q._items.items()}), json.dumps(_ITEM_TENANT))
                     )
+                finally:
+                    _ACTIVE_TX_CONNECTION.reset(_tx_token)
     elif db_path:
         import sqlite3
         with sqlite3.connect(db_path) as conn:
@@ -305,6 +420,7 @@ def db_transaction_state(tenant: str):
             # Snapshot in-memory mirrors (see Postgres branch comment).
             items_snapshot = dict(q._items)
             tenant_snapshot = dict(_ITEM_TENANT)
+            _tx_token = _ACTIVE_TX_CONNECTION.set(conn)
             try:
                 yield q
             except BaseException:
@@ -325,6 +441,8 @@ def db_transaction_state(tenant: str):
                     (tenant, json.dumps({k: to_dict(v) for k, v in q._items.items()}), json.dumps(_ITEM_TENANT))
                 )
                 conn.commit()
+            finally:
+                _ACTIVE_TX_CONNECTION.reset(_tx_token)
     else:
         with q._lock:
             yield q
@@ -1101,6 +1219,22 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
             proposal_id = getattr(q.item(req.item_id).observation,
                                   "proposal_id", None)
             outcome = q.execute(req.item_id, fresh_obs)
+            # FT-02: the dispatch intent is recorded in THIS transaction —
+            # the one that authorizes the call. If anything below crashes,
+            # a durable row says a dispatch was authorized, and a
+            # reconciler can settle it as UNKNOWN instead of the effect
+            # going unrecorded. A refusal never gets here, so a refused
+            # re-gate records no intent (nothing was ever intended).
+            intent = None
+            if outcome.decision is ExecutionDecision.EXECUTE:
+                intent = _record_dispatch_intent(
+                    proposal_id=str(proposal_id or req.item_id),
+                    tenant=tenant,
+                    item_id=req.item_id,
+                    tool_name=req.tool_call.tool_name,
+                    tool_call_hash=fresh_obs.tool_call_hash or "",
+                    grant_jti="",
+                )
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
@@ -1167,6 +1301,12 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     # Issue #13: actually dispatch the tool through the governed dispatcher —
     # the response reports what REALLY happened instead of implying
     # execution. Every refusal path is explicit and audited.
+    # FT-02: claim the intent before anything can take effect. The claim is
+    # exclusive, so a concurrent worker (or a retried request that got past
+    # the grant) can never dispatch the same authorized call twice.
+    if intent is not None:
+        _outbox().claim(intent.outbox_id, worker_id=f"api:{_os.getpid()}")
+
     tool_execution: dict[str, Any] = {"executed": False}
     if not gate_result.allowed:
         tool_execution["refusal_reason"] = "pep_denied"
@@ -1219,6 +1359,20 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
                         tool_execution["result_envelope"] = captured.to_dict()
                     else:
                         tool_execution["refusal_reason"] = dres.refusal_reason
+
+    # FT-02: settle the dispatch intent with what actually happened. The
+    # terminal state is derived from the observed outcome, never assumed:
+    # a confirmed side effect is SUCCEEDED, a burned nonce with no effect
+    # is FAILED, and a pre-effect refusal is REFUSED.
+    if intent is not None:
+        reason = tool_execution.get("refusal_reason")
+        if tool_execution["executed"]:
+            settled_state = OutboxState.SUCCEEDED
+        elif reason == "tool_failed_nonce_burned":
+            settled_state = OutboxState.FAILED
+        else:
+            settled_state = OutboxState.REFUSED
+        _outbox().settle(intent.outbox_id, settled_state, detail=reason)
 
     # Persist the REAL outcome as the item's terminal state (EXECUTED only
     # after a confirmed side effect; refusals/failures get their own states).

@@ -345,6 +345,20 @@ class ExecutionOutbox:
                 key=lambda r: r.created_at,
             )
 
+    def rows_for_proposal(self, tenant_id: str, proposal_id: str) -> list[OutboxRow]:
+        """Every dispatch intent recorded for one proposal, oldest first.
+
+        More than one row means more than one authorized attempt (a
+        re-approval after invalidation), which is legitimate and must stay
+        visible rather than be collapsed into a single "last" row.
+        """
+        with self._lock:
+            return sorted(
+                (r for r in self._rows.values()
+                 if r.tenant_id == tenant_id and r.proposal_id == proposal_id),
+                key=lambda r: r.created_at,
+            )
+
     def _require(self, outbox_id: str) -> OutboxRow:
         row = self._rows.get(outbox_id)
         if row is None:
@@ -547,6 +561,14 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             "SELECT * FROM execution_outbox WHERE tenant_id = ? AND state = ? "
             "ORDER BY created_at",
             (tenant_id, OutboxState.DISPATCH_PENDING.value),
+        ).fetchall()
+        return [self._row(r) for r in rows]
+
+    def rows_for_proposal(self, tenant_id: str, proposal_id: str) -> list[OutboxRow]:
+        rows = self._conn().execute(
+            "SELECT * FROM execution_outbox WHERE tenant_id = ? AND "
+            "proposal_id = ? ORDER BY created_at",
+            (tenant_id, proposal_id),
         ).fetchall()
         return [self._row(r) for r in rows]
 
@@ -854,5 +876,14 @@ class PostgresExecutionOutbox(ExecutionOutbox):
                 self._SELECT + " WHERE tenant_id = %s AND state = %s "
                 "ORDER BY created_at",
                 (tenant_id, OutboxState.DISPATCH_PENDING.value),
+            ).fetchall()
+        return [self._row_tuple(r) for r in records]
+
+    def rows_for_proposal(self, tenant_id: str, proposal_id: str) -> list[OutboxRow]:
+        with self._psycopg.connect(self._dsn) as conn:
+            records = conn.execute(
+                self._SELECT + " WHERE tenant_id = %s AND proposal_id = %s "
+                "ORDER BY created_at",
+                (tenant_id, proposal_id),
             ).fetchall()
         return [self._row_tuple(r) for r in records]

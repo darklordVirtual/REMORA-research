@@ -27,6 +27,34 @@ releases.
 
 ## [Unreleased]
 
+### FT-02 slice 4: /v1/execution drives the outbox (2026-08-05)
+
+- The dispatch intent is now recorded in the SAME transaction that
+  authorizes the call (enlisted on durable backends), claimed exclusively
+  before the tool can run, and settled with the observed outcome:
+  SUCCEEDED on a confirmed side effect, FAILED on a burned nonce with no
+  effect, REFUSED pre-effect. A crash between authorize and outcome now
+  leaves a durable row a reconciler can settle as UNKNOWN instead of an
+  unrecorded side effect.
+- A refused re-gate records no intent at all (nothing was ever intended),
+  and a replayed execute cannot grow a second row for the same attempt —
+  both pinned.
+- The transaction connection is exposed to the outbox through a
+  contextvar rather than a changed `db_transaction_state` yield: the
+  transaction is ambient for the block, and threading it through six call
+  sites would obscure the one place that needs it.
+- Deadlock found and fixed while verifying against a real durable backend:
+  building an adapter runs DDL on its own connection, and doing that
+  lazily inside the open authorize transaction blocked on SQLite's
+  `BEGIN EXCLUSIVE` until the driver timeout. The outbox is now built
+  eagerly like `_CHAIN`/`_GATE`, and a regression test runs the full flow
+  with `REMORA_CHAIN_DB` set — the in-process suite could never have
+  caught it.
+- Response shape and API contract unchanged (execute stays synchronous
+  per the maintainer decision). Still open in FT-02: the background
+  reconciler that settles stale rows in a live deployment.
+
+
 ### CI: the Postgres job now covers the outbox contract too (2026-08-05)
 
 - The real-service Postgres job ran only `test_execution_api.py -k
