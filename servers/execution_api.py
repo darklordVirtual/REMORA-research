@@ -416,13 +416,29 @@ def _assessed_toolspec(tenant: str, item_id: str) -> str:
     SQLite's BEGIN EXCLUSIVE on the same database file — the same trap the
     outbox hit, found again by the durable-mode tests.
     """
+    return _assessed_record(tenant, item_id)[0]
+
+
+def _assessed_record(tenant: str, item_id: str) -> tuple[str, str]:
+    """The (toolspec_hash, proposal_id) recorded at assessment.
+
+    Read back from the audit chain rather than carried in the request: the
+    caller must not be able to tell us which spec it was assessed under,
+    or the comparison proves nothing.
+
+    Called BEFORE the execute transaction opens. Reading the chain inside
+    that transaction deadlocks against SQLite's BEGIN EXCLUSIVE on the
+    same database file — the same trap the outbox hit, found again by the
+    durable-mode tests.
+    """
     if not item_id:
-        return ""
+        return "", ""
     for entry in _CHAIN.entries(tenant):
         payload = entry.payload
         if payload.get("event") == "assessed" and                 payload.get("review_item_id") == item_id:
-            return str(payload.get("toolspec_hash") or "")
-    return ""
+            return (str(payload.get("toolspec_hash") or ""),
+                    str(payload.get("proposal_id") or ""))
+    return "", ""
 
 
 def _record_dispatch_intent(
@@ -1559,7 +1575,31 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         req.tool_call.tool_name, req.tool_call.arguments,
         req.tool_call.target_environment,
     )
-    _assessed_toolspec_hash = _assessed_toolspec(tenant, req.item_id)
+    _assessed_toolspec_hash, _assessed_proposal_id = _assessed_record(
+        tenant, req.item_id)
+    # Refuse BEFORE authorizing, not after. The check has everything it
+    # needs here, and running it later left a dispatch intent behind for a
+    # call that was never allowed to happen — harmless only because an
+    # unclaimed intent provably never ran, which is a thin thing to rely
+    # on. Found by the end-to-end vertical (handoff gate §3).
+    if (toolspec_identity["enforced"] and _assessed_toolspec_hash
+            and toolspec_identity["hash"] != _assessed_toolspec_hash):
+        _CHAIN.append(tenant, {
+            "event": "execution_toolspec_changed",
+            "proposal_id": _assessed_proposal_id,
+            "actor": principal,
+            "item_id": req.item_id,
+            "assessed_toolspec_hash": _assessed_toolspec_hash,
+            "current_toolspec_hash": toolspec_identity["hash"],
+        })
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "toolspec_changed_between_assess_and_dispatch: the spec "
+                "in force is not the one this approval was granted under"
+            ),
+        )
+
     fresh_obs, fresh_semantic = _observation_with_context(req.tool_call, tenant)
     try:
         # Tenant-binding check inside the transaction: _ITEM_TENANT is
@@ -1594,24 +1634,6 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
                 )
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-
-    if toolspec_identity["enforced"] and _assessed_toolspec_hash:
-        if toolspec_identity["hash"] != _assessed_toolspec_hash:
-            _CHAIN.append(tenant, {
-                "event": "execution_toolspec_changed",
-                "proposal_id": proposal_id,
-                "actor": principal,
-                "item_id": req.item_id,
-                "assessed_toolspec_hash": _assessed_toolspec_hash,
-                "current_toolspec_hash": toolspec_identity["hash"],
-            })
-            raise HTTPException(
-                status_code=409,
-                detail=(
-                    "toolspec_changed_between_assess_and_dispatch: the spec "
-                    "in force is not the one this approval was granted under"
-                ),
-            )
 
     response: dict[str, Any] = {
         "proposal_id": proposal_id,
