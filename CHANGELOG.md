@@ -27,6 +27,37 @@ releases.
 
 ## [Unreleased]
 
+### FT-04 PR 3: the postcondition contract and EffectVerification (2026-08-05)
+
+- Everything upstream governs *authorization*. Nothing observed the world
+  afterwards, so "executed" meant only "the dispatcher returned without
+  raising" — a weaker claim than it reads as, and exactly where an
+  ungoverned outcome hides. `schemas/postcondition_contract_v1.yaml` is
+  now frozen (15 pinning tests) and
+  `remora/governance/effect_verification.py` implements it (12 tests).
+- **The load-bearing rule, from the architect review, is encoded and
+  tested:** compare the DECLARED DELTA against the version your own write
+  produced — never global unchangedness. A system of record has other
+  legitimate writers; checking that nothing else changed would make
+  EFFECT_MISMATCH a noise channel, and a signal operators learn to ignore
+  costs attention while providing nothing.
+- **Not observed is not mismatch.** Five statuses are kept distinct, and
+  UNOBSERVABLE / VERIFIER_FAILED are deliberately **not terminal**:
+  failing to read a result is not a verdict, and collapsing it into
+  "mismatch" would both manufacture incidents and make a real mismatch
+  indistinguishable from a timeout.
+- Expected and observed are **both hashed**, so a later reader can
+  re-derive the comparison rather than trust this record's verdict; the
+  contract also states that verification never re-executes the action.
+- `execution_lifecycle_v1.yaml` gains EFFECT_PENDING / VERIFIED /
+  MISMATCH / UNKNOWN with their transitions — added *with* the contract,
+  never ahead of it, since a declared state nothing can reach reads as a
+  capability the system does not have. SUCCEEDED stops being terminal.
+- FT-04's integration target is recorded as chosen: GitHub issue
+  creation. The integration itself is PR 4; the contract says
+  `runtime: not_implemented`.
+
+
 ### FT-03: the signed ToolSpec is enforced on the live execution path (2026-08-05)
 
 - With `REMORA_TOOLSPEC_BUNDLE` configured, `/v1/execution/assess`
