@@ -50,7 +50,7 @@ security = ["cryptography>=41.0"]
 # MCP server transport (httpx is the only hard dep for the MCP workers)
 mcp = ["httpx>=0.25"]
 # REST API gateway (servers/api.py) — FastAPI + ASGI server
-api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
+api = ["fastapi>=0.141.1", "uvicorn[standard]>=0.52.1"]
 # Data analysis and visualisation
 analysis = ["matplotlib>=3.8", "numpy>=1.26"]
 stats = ["scipy>=1.11"]
@@ -67,7 +67,7 @@ docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
 # Postgres-backed runtime paths (REM-045): tenant audit chain + enforcement
 # gate import psycopg (v3); control-plane storage + audit adapter import
 # psycopg2. A wheel-only install of the documented durable storage needs both.
-postgres = ["psycopg[binary]>=3.2,<3.4", "psycopg2-binary>=2.9"]
+postgres = ["psycopg[binary]>=3.3.4,<3.4", "psycopg2-binary>=2.9.12"]
 # dev must cover everything `make test` collects: the causal test modules
 # import pyyaml at collection time, so a bare ".[dev]" install must include it.
 # types-PyYAML is a mypy requirement, not a runtime one: without it the
