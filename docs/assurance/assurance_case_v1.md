@@ -91,14 +91,21 @@ closed to VERIFY.
 
 **Argument.** Execution can be withheld and the system degrades safely rather
 than failing open. Enforcement is a separate, fail-closed point; the review
-channel resolves inaction to ABSTAIN; mode degradation is always recorded.
+channel resolves inaction to ABSTAIN; the degradation ladder provides a
+recordable mode-transition mechanism (see the wiring caveat below).
 
 **Evidence.**
 - PDP/PEP split with HMAC-signed, audience-bound, one-time, expiring token:
   `remora/enforcement/gate.py`, `remora/enforcement/token.py`.
-- G0–G4 degradation ladder, every transition hash-chained; `g4_refuses()` blocks
-  mutating/production actions when the control plane is unreachable:
-  `remora/governance/degradation.py`.
+- G0–G4 degradation ladder with hash-chained transition records and
+  `g4_refuses()` for mutating/production actions:
+  `remora/governance/degradation.py`. **Wiring caveat (verified
+  2026-08-05, matches `capability_register_v1.yaml` REM-032 status
+  WIRED_REFERENCE_PATH):** no production call site instantiates
+  `DegradationRecorder` today — the mechanism is implemented and tested,
+  but no live path emits transition events, so "always recorded" holds
+  only once a deployment wires the recorder into its link monitors. This
+  is tracked integration work, not an implemented guarantee.
 - Review queue TTL resolves unattended VERIFY/ESCALATE to ABSTAIN (never
   auto-accept): `remora/governance/review_queue.py`.
 - Opt-in PreToolUse hook blocks locally destructive patterns pre-execution:

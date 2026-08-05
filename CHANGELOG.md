@@ -27,6 +27,16 @@ releases.
 
 ## [Unreleased]
 
+### Assurance case: degradation-recording claim scoped to reality (2026-08-05)
+
+- The G3 stop-argument asserted "mode degradation is always recorded" as
+  implemented evidence, but `DegradationRecorder` has no production caller —
+  the mechanism is built and tested, and no live path emits transition
+  events. The assurance case now carries the same wiring caveat as the
+  capability register (WIRED_REFERENCE_PATH): tracked integration work, not
+  an implemented guarantee. Wiring the recorder into hook and control-plane
+  link monitors is queued.
+
 ### AuditBlock.hash preimage documented per producer (2026-08-05)
 
 - The `hash` field's docstring claimed one preimage; the two live producers
