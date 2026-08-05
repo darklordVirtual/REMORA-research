@@ -27,6 +27,28 @@ releases.
 
 ## [Unreleased]
 
+### FT-01/FT-02 DoD: docs, example and stability classification (2026-08-05)
+
+- New `docs/execution-lifecycle.md` (DOC-302, indexed): the contract for
+  both modules — the declared state machine and how conformance checking
+  uses it, the outbox states and why none auto-retries, idempotency, the
+  three adapters and transactional enlistment, reconciliation semantics,
+  and an explicit "what is verified and what is not" section.
+- New `examples/execution_lifecycle_demo.py`: offline walkthrough of the
+  lifecycle (including a refused illegal transition) and the outbox
+  (authorize → claim → settle, idempotency, and both reconciliation
+  outcomes). Smoke-tested. It ends by naming the row that is still
+  legitimately pending rather than claiming an empty outbox — a nicer
+  ending would have been a false one.
+- Stability classification added to `ARCHITECTURE.md` §9 for both modules:
+  CORE by maturity, with the caveat stated in place that CORE is not an
+  external compatibility guarantee — only `remora.sdk` carries one.
+- Register updated: three of four DoD criteria closed for both items;
+  clean-install wheel coverage remains, and the fault-injection scope
+  line now says the crash matrix is executed as tests but not as an
+  artifact-producing round.
+
+
 ### FT-02: the design doc's crash matrix is executed, and it found three defects (2026-08-05)
 
 - `tests/test_execution_fault_injection.py` turns
