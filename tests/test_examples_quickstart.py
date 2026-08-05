@@ -75,3 +75,16 @@ def test_examples_agent_gate_runs_clean():
     assert "ESCALATE" in r.stdout
     assert "executed read_file" in r.stdout          # ACCEPT path actually ran
     assert "executed drop_database" not in r.stdout  # blocked call never runs
+
+
+def test_examples_execution_lifecycle_demo_runs_clean():
+    """FT-01/FT-02 example: offline, and honest about what is left pending."""
+    r = _run_example("examples/execution_lifecycle_demo.py")
+    assert r.returncode == 0, r.stderr
+    assert "DISPATCH_PENDING" in r.stdout
+    assert "UNKNOWN: reconciler" in r.stdout          # claimed, then silent
+    assert "FAILED: reconciler" in r.stdout           # never dispatched
+    assert "refused:" in r.stdout                     # illegal transition
+    # The closing line must not claim an empty outbox while a row remains.
+    assert "Nothing is left in flight" not in r.stdout
+    assert "Still pending (fresh, not stranded): 1" in r.stdout

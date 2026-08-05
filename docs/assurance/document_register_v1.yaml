@@ -2199,7 +2199,20 @@ documents:
   topic: docs_sdk_md
   verdict: current
   version: v1
+- audience:
+  - operators
+  - integrator
+  code_synced: verified
+  id: DOC-302
+  last_audited: '2026-08-05'
+  last_reviewed: '2026-08-05'
+  path: docs/execution-lifecycle.md
+  status: canonical
+  topic: docs_execution-lifecycle_md
+  verdict: current
+  version: v1
 topics:
+- docs_execution-lifecycle_md
 - docs_sdk_md
 - docs_assurance_superseded_claims_md
 - docs_research_routing_benchmark_v1_design_md

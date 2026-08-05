@@ -21,6 +21,7 @@ AROMER are EXPERIMENTAL; statistical-physics models are RESEARCH_ONLY.
 |---|---|
 | [Project front page](../README.md) | What REMORA is, headline results, quickstart, status |
 | [CLI reference](cli.md) | Every `remora` command: try/demo/assess/explain/replay, exit codes, live mode |
+| [Execution lifecycle & outbox](execution-lifecycle.md) | Proposal to effect: the declared state machine, the crash-consistent dispatch-intent store, reconciliation |
 | [SDK reference](sdk.md) | `remora.sdk` — the stable integration surface: install, stability policy, governed loop, error taxonomy |
 | [Plain-language overview](plain_language_overview.md) | Non-technical introduction |
 | [Executive one-pager](executive_onepager.md) | One-page summary for decision-makers |

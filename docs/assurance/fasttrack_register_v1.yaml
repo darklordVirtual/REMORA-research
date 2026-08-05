@@ -79,9 +79,13 @@ items:
     searched-validation over the declared event domain, PR 183); and
     /v1/execution validating its own transitions against that model, where
     an undeclared move is a loud 500 rather than silent drift (PR 184).
-    NOT DONE — missing DoD criteria: documented public API page for the
-    lifecycle module, runnable external example, stability classification,
-    clean-install wheel coverage. Also still open in scope: the governed
+    NOT DONE — remaining DoD criterion: clean-install wheel coverage.
+    Closed 2026-08-05: documented public API (docs/execution-lifecycle.md,
+    DOC-302), runnable external example
+    (examples/execution_lifecycle_demo.py, smoke-tested), stability
+    classification (ARCHITECTURE.md §9 — CORE maturity, and explicitly no
+    external backward-compatibility guarantee, since only remora.sdk
+    carries one). Also still open in scope: the governed
     REST dispatch path for direct-ACCEPT proposals (#36) and
     DecisionEnvelope EffectBlock population (#37), which is why the SDK
     documents an ACCEPT-lifecycle boundary rather than claiming coverage.
@@ -101,12 +105,19 @@ items:
     (PR 188); the live /v1/execution/execute path recording, claiming and
     settling intents (PR 189); and reconciliation of stale DISPATCHING rows
     to UNKNOWN, audit-chain recorded (PR 190).
-    NOT DONE — missing DoD criteria: documented public API page, runnable
-    external example, stability classification, clean-install wheel
-    coverage. Honest scope limits: reconciliation is a lazy sweep on the
+    NOT DONE — remaining DoD criterion: clean-install wheel coverage.
+    Closed 2026-08-05: documented public API (docs/execution-lifecycle.md,
+    DOC-302), runnable external example, stability classification
+    (ARCHITECTURE.md §9, same no-guarantee caveat as FT-01). The design
+    doc's crash matrix is now EXECUTED as tests
+    (tests/test_execution_fault_injection.py), which found and fixed three
+    defects: no rollback in the in-process transaction branch, unclaimed
+    intents never reconciled, and that reconciliation missing from both
+    durable adapters. Honest scope limits: reconciliation is a lazy sweep on the
     execution path plus a callable operation, NOT a running daemon (an idle
-    tenant needs a scheduled call); the fault-injection matrix from the
-    design doc has not been executed as an artifact-producing round; and
+    tenant needs a scheduled call); the crash matrix is executed as tests but
+    not as an artifact-producing round with committed fault-injection
+    evidence; and
     REM-025's in-process NonceLedger is untouched by this work.
 - id: FT-03
   title: One immutable signed ToolSpec

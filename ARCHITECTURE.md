@@ -409,6 +409,8 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/safety/` | **CORE** | Adversarial firewall, AST guard |
 | `remora/audit/` | **CORE** | SHA-256 hash-chain (tamper-evident) |
 | `remora/enforcement/` | **CORE** | PolicyDecisionToken + EnforcementGate + ExecutionLease/PEP (REM-013/024/034/035) |
+| `remora/governance/lifecycle.py` | **CORE** | Execution lifecycle model + tracker, loaded from `schemas/execution_lifecycle_v1.yaml` (FT-01). CORE is a *maturity* rating: like everything outside `remora.sdk`, this module carries no external backward-compatibility guarantee — see [docs/sdk.md](docs/sdk.md) |
+| `remora/enforcement/outbox.py` | **CORE** | Crash-consistent dispatch-intent store, in-process + SQLite + Postgres adapters (FT-02). Same stability caveat as above |
 | `remora/selective/` | **CORE** | Conformal / CRC / PhaseAwareGuardrail |
 | `remora/lyapunov.py` | **EXPERIMENTAL** | Lyapunov stability controller for consensus iteration |
 | `remora/thermodynamics.py` | **EXPERIMENTAL** | Thermodynamic uncertainty-routing proxy |
