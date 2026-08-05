@@ -435,6 +435,8 @@ export interface components {
             policy_decision: components["schemas"]["PolicyDecision"];
             /** Policy Profile */
             policy_profile: string;
+            /** Proposal Id */
+            proposal_id: string;
             /** Question Hash */
             question_hash: string;
             /** Refuse Parametric Verdict */
