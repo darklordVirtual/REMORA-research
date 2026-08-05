@@ -1,6 +1,7 @@
 {
   "module": "remora.sdk",
   "symbols": {
+    "ApprovalExpiredError": "exception",
     "ApprovalResult": "class",
     "AssessmentResult": "class",
     "AsyncRemoraClient": "class",
@@ -8,6 +9,7 @@
     "AuditVerification": "class",
     "AuthenticationError": "exception",
     "AuthorizationError": "exception",
+    "BindingRefusedError": "exception",
     "ConflictError": "exception",
     "DecisionAction": "class",
     "DerivationProposal": "class",
@@ -18,9 +20,11 @@
     "RemoraClient": "class",
     "RemoraError": "exception",
     "RemoraUnavailableError": "exception",
+    "ReplayRefusedError": "exception",
     "SemanticAssessment": "class",
     "ServerError": "exception",
-    "ToolCall": "class"
+    "ToolCall": "class",
+    "UnknownExecutionStateError": "exception"
   },
   "version": 1
 }

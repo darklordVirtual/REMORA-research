@@ -1252,6 +1252,77 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
     }
 
 
+def _dispatch_under_lease(
+    *,
+    tenant: str,
+    principal: str,
+    tool_call: "ToolCallRequest",
+    semantic: dict[str, Any],
+    now: datetime,
+    gate_allowed: bool = True,
+) -> dict[str, Any]:
+    """Dispatch one authorized call through the governed dispatcher.
+
+    Shared by the review path (/execute) and the ACCEPT path
+    (/execute-accepted) so both get identical enforcement: a lease bound to
+    tenant, actor, tool, exact arguments, target and the current policy
+    bundle, dispatched by the component that holds the credentials — never
+    the caller. Every refusal is named rather than collapsed into a
+    generic failure, and the return value reports what REALLY happened
+    instead of implying execution.
+    """
+    tool_execution: dict[str, Any] = {"executed": False}
+    if not gate_allowed:
+        tool_execution["refusal_reason"] = "pep_denied"
+        return tool_execution
+    dispatcher = _tool_dispatcher()
+    if dispatcher is None:
+        tool_execution["refusal_reason"] = "policy_bundle_unavailable"
+        return tool_execution
+    try:
+        lease = ExecutionLease.issue(
+            decision="accept",
+            tenant_id=tenant,
+            actor_identity=principal,
+            tool_name=tool_call.tool_name,
+            arguments=tool_call.arguments,
+            target_environment=tool_call.target_environment,
+            policy_bundle_hash=_current_policy_bundle_hash(),
+            issued_at=now.isoformat(),
+            tool_contract_bundle_hash=semantic["tool_contract_bundle_hash"],
+            intent_authority_hash=semantic["intent_authority_hash"],
+        )
+    except (LeaseRefused, ValueError) as exc:
+        tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
+        return tool_execution
+    try:
+        dres = dispatcher.dispatch(
+            lease,
+            tool_call.tool_name,
+            tool_call.arguments,
+            tenant_id=tenant,
+            target_environment=tool_call.target_environment,
+            actor_identity=principal,
+        )
+    except RuntimeError as exc:
+        # Tool raised: the nonce is burned, state is unknown.
+        tool_execution["refusal_reason"] = "tool_failed_nonce_burned"
+        tool_execution["error"] = str(exc)
+        return tool_execution
+    tool_execution["executed"] = dres.executed
+    if dres.executed:
+        # Bounded retention, unbounded verification: the hash covers the
+        # full result even when the preview is truncated, so an oversized
+        # or hostile tool output cannot inflate the audit chain or the
+        # response while still being provable in replay.
+        captured = capture_tool_result(dres.result)
+        tool_execution["result"] = captured.preview
+        tool_execution["result_envelope"] = captured.to_dict()
+    else:
+        tool_execution["refusal_reason"] = dres.refusal_reason
+    return tool_execution
+
+
 class ExecuteRequest(BaseModel):
     """Execute an approved item — the FULL payload is re-presented and the
     fresh world state re-gated; the grant is single-use."""
@@ -1388,58 +1459,14 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     if intent is not None:
         _outbox().claim(intent.outbox_id, worker_id=f"api:{_os.getpid()}")
 
-    tool_execution: dict[str, Any] = {"executed": False}
-    if not gate_result.allowed:
-        tool_execution["refusal_reason"] = "pep_denied"
-    else:
-        dispatcher = _tool_dispatcher()
-        if dispatcher is None:
-            tool_execution["refusal_reason"] = "policy_bundle_unavailable"
-        else:
-            try:
-                lease = ExecutionLease.issue(
-                    decision="accept",
-                    tenant_id=tenant,
-                    actor_identity=principal,
-                    tool_name=req.tool_call.tool_name,
-                    arguments=req.tool_call.arguments,
-                    target_environment=req.tool_call.target_environment,
-                    policy_bundle_hash=_current_policy_bundle_hash(),
-                    issued_at=now.isoformat(),
-                    tool_contract_bundle_hash=fresh_semantic[
-                        "tool_contract_bundle_hash"
-                    ],
-                    intent_authority_hash=fresh_semantic["intent_authority_hash"],
-                )
-            except (LeaseRefused, ValueError) as exc:
-                tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
-            else:
-                try:
-                    dres = dispatcher.dispatch(
-                        lease,
-                        req.tool_call.tool_name,
-                        req.tool_call.arguments,
-                        tenant_id=tenant,
-                        target_environment=req.tool_call.target_environment,
-                        actor_identity=principal,
-                    )
-                except RuntimeError as exc:
-                    # Tool raised: the nonce is burned, state is unknown.
-                    tool_execution["refusal_reason"] = "tool_failed_nonce_burned"
-                    tool_execution["error"] = str(exc)
-                else:
-                    tool_execution["executed"] = dres.executed
-                    if dres.executed:
-                        # Bounded retention, unbounded verification: the hash
-                        # covers the full result even when the preview is
-                        # truncated, so an oversized or hostile tool output
-                        # cannot inflate the audit chain or the response while
-                        # still being provable in replay.
-                        captured = capture_tool_result(dres.result)
-                        tool_execution["result"] = captured.preview
-                        tool_execution["result_envelope"] = captured.to_dict()
-                    else:
-                        tool_execution["refusal_reason"] = dres.refusal_reason
+    tool_execution = _dispatch_under_lease(
+        tenant=tenant,
+        principal=principal,
+        tool_call=req.tool_call,
+        semantic=fresh_semantic,
+        now=now,
+        gate_allowed=gate_result.allowed,
+    )
 
     # FT-02: settle the dispatch intent with what actually happened. The
     # terminal state is derived from the observed outcome, never assumed:
@@ -1488,6 +1515,188 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
 
     response["tool_execution"] = tool_execution
     response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+    api_mod.record_execution_execute(
+        executed=bool(tool_execution["executed"]),
+        refusal=tool_execution.get("refusal_reason"),
+    )
+    return response
+
+
+class ExecuteAcceptedRequest(BaseModel):
+    """Redeem an ACCEPT execution token (issue #36).
+
+    The token IS the authorization: it was bound to the exact tool call at
+    assess time, so no review item exists or is needed. The full payload is
+    re-presented so the server can verify that binding rather than trust
+    the caller's word about what was approved.
+    """
+
+    execution_token: dict[str, Any]
+    tool_call: ToolCallRequest
+
+
+@router.post("/execute-accepted", responses={
+    200: {"model": ExecutionExecuteResponse,
+          "description": "Outcome of governed dispatch under an ACCEPT token."},
+    **_AUTH_RESPONSES,
+    409: {"model": ErrorDetail,
+          "description": "Token refused: replayed/consumed, payload binding "
+                         "mismatch, expired, wrong audience, or not an ACCEPT."},
+})
+def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str, Any]:
+    """Execute a directly-ACCEPTed proposal under its single-use token.
+
+    The governed dispatch path for ACCEPT, closing the gap where an ACCEPT
+    decision produced a token no endpoint could redeem. Every guarantee the
+    review path enforces applies here too, in this order:
+
+    1. the payload is re-hashed and must match the token's binding — a
+       mutated call is a different act and is refused before anything runs;
+    2. the grant is consumed exactly once, so a replayed token cannot
+       dispatch twice;
+    3. a dispatch intent is recorded before the side effect and settled
+       after it (FT-02), so a crash leaves a durable record;
+    4. dispatch goes through the same GovernedToolDispatcher under a lease
+       bound to the current policy bundle — the caller never holds the
+       credentials.
+
+    What it deliberately does NOT do: re-run the decision engine. The token
+    is a short-lived, exactly-bound authorization; re-deciding here would
+    make the token meaningless and reintroduce the assess/execute drift the
+    binding exists to prevent. Freshness is the token's TTL.
+    """
+    tenant, role, principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "execute")
+    reconcile_stale_dispatches(tenant)
+
+    try:
+        token = PolicyDecisionToken.from_dict(req.execution_token)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=409, detail=f"malformed execution token: {exc}"
+        ) from exc
+
+    obs, semantic = _observation_with_context(req.tool_call, tenant)
+    proposal_id = token.request_id or None
+
+    # (1) Binding first, and WITHOUT consuming: a mismatched payload must not
+    # burn the grant for the call the token actually authorizes.
+    if token.observation_hash != (obs.tool_call_hash or ""):
+        _CHAIN.append(tenant, {
+            "event": "execution_binding_refused",
+            "proposal_id": proposal_id,
+            "actor": principal,
+            "tool_call_hash": obs.tool_call_hash,
+            "detail": "payload does not match the token binding",
+        })
+        api_mod.record_execution_execute(executed=False, refusal="binding_refused")
+        raise HTTPException(
+            status_code=409,
+            detail="binding refused: the presented tool call does not match "
+                   "the one this token authorizes",
+        )
+
+    if str(token.action).lower() != "accept":
+        raise HTTPException(
+            status_code=409,
+            detail=f"token authorizes {token.action!r}, not an autonomous "
+                   "execution; only an ACCEPT may be redeemed here",
+        )
+
+    # (2) Consume exactly once. A refused check here is expiry, audience
+    # mismatch, a bad signature, or a replay — all terminal for this token.
+    gate_result = _GATE.check(token, obs.tool_call_hash, consume=True)
+    if not gate_result.allowed:
+        _CHAIN.append(tenant, {
+            "event": "execution_grant_refused",
+            "proposal_id": proposal_id,
+            "actor": principal,
+            "grant_jti": token.jti,
+            "detail": gate_result.reason,
+        })
+        api_mod.record_execution_execute(executed=False, refusal=str(gate_result.reason))
+        raise HTTPException(
+            status_code=409, detail=f"execution grant refused: {gate_result.reason}"
+        )
+
+    _lifecycle_guard("ASSESSED", "direct_accept_token")
+
+    now = datetime.now(UTC)
+    response: dict[str, Any] = {
+        "proposal_id": proposal_id,
+        "outcome": ExecutionDecision.EXECUTE.value,
+        "detail": "authorized by single-use ACCEPT token",
+        "execution_grant": token.to_dict(),
+        "pep": {"allowed": gate_result.allowed, "reason": gate_result.reason},
+    }
+
+    # (3) Durable dispatch intent before any side effect (FT-02).
+    intent = _record_dispatch_intent(
+        proposal_id=str(proposal_id or token.jti),
+        tenant=tenant,
+        item_id=f"accept:{token.jti}",
+        tool_name=req.tool_call.tool_name,
+        tool_call_hash=obs.tool_call_hash or "",
+        grant_jti=token.jti,
+    )
+    intent_entry = _CHAIN.append(tenant, {
+        "event": "execution_authorized",
+        "proposal_id": proposal_id,
+        "actor": principal,
+        "item_id": f"accept:{token.jti}",
+        "tool_call_hash": obs.tool_call_hash,
+        "grant_jti": token.jti,
+        "pep_allowed": gate_result.allowed,
+        "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
+        "intent_authority_hash": semantic["intent_authority_hash"],
+    })
+    if intent is not None:
+        _outbox().claim(intent.outbox_id, worker_id=f"api:{_os.getpid()}")
+
+    # (4) Governed dispatch — same dispatcher, same lease discipline.
+    tool_execution = _dispatch_under_lease(
+        tenant=tenant,
+        principal=principal,
+        tool_call=req.tool_call,
+        semantic=semantic,
+        now=now,
+    )
+
+    if intent is not None:
+        reason = tool_execution.get("refusal_reason")
+        if tool_execution["executed"]:
+            settled_state = OutboxState.SUCCEEDED
+        elif reason == "tool_failed_nonce_burned":
+            settled_state = OutboxState.FAILED
+        else:
+            settled_state = OutboxState.REFUSED
+        _outbox().settle(intent.outbox_id, settled_state, detail=reason)
+
+    result_record: dict[str, Any] = {
+        "event": "execution_result",
+        "proposal_id": proposal_id,
+        "actor": principal,
+        "item_id": f"accept:{token.jti}",
+        "tool_call_hash": obs.tool_call_hash,
+        "grant_jti": token.jti,
+        "intent_sequence_no": intent_entry.sequence_no,
+        "tool_executed": tool_execution["executed"],
+    }
+    envelope_meta = tool_execution.get("result_envelope")
+    if envelope_meta:
+        result_record["result_sha256"] = envelope_meta["sha256"]
+        result_record["result_size_bytes"] = envelope_meta["size_bytes"]
+        result_record["result_truncated"] = envelope_meta["truncated"]
+    if tool_execution.get("refusal_reason"):
+        result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    entry = _CHAIN.append(tenant, result_record)
+
+    response["tool_execution"] = tool_execution
+    response["audit"] = {
+        "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
+    }
     api_mod.record_execution_execute(
         executed=bool(tool_execution["executed"]),
         refusal=tool_execution.get("refusal_reason"),

@@ -88,3 +88,55 @@ class RemoraUnavailableError(RemoraError):
 
     code = "unavailable"
     retryable = True
+
+
+# ── Execution-refusal errors (AAE §12) ─────────────────────────────────────
+#
+# The server answers every one of these with HTTP 409, because they are all
+# "your request was well-formed but this authorization cannot be honoured".
+# Collapsing them into one ConflictError would force integrators to parse
+# detail strings to tell a replay from a payload mismatch — exactly what a
+# typed hierarchy exists to prevent. They are subclasses of ConflictError so
+# existing `except ConflictError` handlers keep working.
+
+
+class BindingRefusedError(ConflictError):
+    """The presented tool call is not the one the authorization covers.
+
+    Not retryable by re-sending: the authorization is bound to an exact
+    payload, so a different payload needs its own assessment.
+    """
+
+    code = "binding_refused"
+
+
+class ReplayRefusedError(ConflictError):
+    """The execution grant was already consumed.
+
+    The side effect may well have happened on the first redemption — this
+    is a refusal to run it twice, not evidence that nothing ran.
+    """
+
+    code = "replay_refused"
+
+
+class ApprovalExpiredError(ConflictError):
+    """The approval or execution token is no longer valid in time.
+
+    Retryable only through a fresh decision: re-approving the same stale
+    grant would defeat the TTL it exists to enforce.
+    """
+
+    code = "approval_expired"
+    retryable = True
+
+
+class UnknownExecutionStateError(RemoraError):
+    """The outcome of an execution is undeterminable.
+
+    Deliberately NOT retryable: the side effect may already have happened,
+    and re-running is the one move the execution layer must never make.
+    Resolution is an operator decision.
+    """
+
+    code = "unknown_execution_state"

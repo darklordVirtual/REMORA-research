@@ -27,6 +27,35 @@ releases.
 
 ## [Unreleased]
 
+### The ACCEPT execution contract closes (issue #36 / AAE Gate B) (2026-08-05)
+
+- New `POST /v1/execution/execute-accepted`: an ACCEPT decision produced a
+  signed single-use token that no endpoint could redeem, so the ACCEPT
+  branch had no governed dispatch path at all. It now does, with the same
+  guarantees the review path enforces, in this order: payload binding
+  verified **before** consumption (a mutated call is refused **without**
+  burning the grant for the real one), one-time consumption, durable
+  dispatch intent (FT-02), then dispatch through the same
+  `GovernedToolDispatcher` under a policy-bundle-bound lease.
+- It deliberately does not re-run the decision engine: the token is a
+  short-lived exactly-bound authorization, and re-deciding at redemption
+  would make the binding meaningless. Freshness is the token's TTL.
+- The dispatch block is now a shared `_dispatch_under_lease` helper used
+  by both paths — one enforcement implementation, not two that can drift.
+- SDK: `execute_accepted(execution_token, tool_call)` on both clients, and
+  four typed refusals (`BindingRefusedError`, `ReplayRefusedError`,
+  `ApprovalExpiredError`, `UnknownExecutionStateError`). All 409s today,
+  so integrators would otherwise have to parse detail prose to tell a
+  replay from a payload mismatch; they subclass `ConflictError` so
+  existing handlers keep working. `UnknownExecutionStateError` is
+  explicitly **not** retryable.
+- Snapshot 20 → 24 symbols; the SDK docs and `AssessmentResult` docstring
+  that described the ACCEPT gap as a standing boundary are corrected —
+  that statement is no longer true.
+- 7 server tests + 3 SDK tests, TDD RED→GREEN; OpenAPI and TS client
+  regenerated.
+
+
 ### FT-01/FT-02: clean-install wheel coverage closes the DoD (2026-08-05)
 
 - The wheel-contract CI job now exercises the lifecycle model and the
