@@ -27,6 +27,18 @@ releases.
 
 ## [Unreleased]
 
+### Hook G4: mutations meet the refusal regardless of risk tier (2026-08-05)
+
+- In the production profile, file-writing tools (`Write`/`Edit`/`MultiEdit`/
+  `NotebookEdit`) previously took the LOW fast-exit when the risk classifier
+  scored the path LOW (unlisted extensions outside code directories) — a real
+  mutation bypassed the documented G4 fail-closed refusal during a
+  control-plane partition. Those tools now always reach the remote/G4 stage
+  in production; read-only LOW tools keep the fast path, and the research
+  profile is unchanged. Honest residual stated in the resilience plan:
+  shell-borne mutations are covered only as far as the classifier scores
+  them above LOW. The five hook env knobs are now documented.
+
 ### Assurance case: degradation-recording claim scoped to reality (2026-08-05)
 
 - The G3 stop-argument asserted "mode degradation is always recorded" as
