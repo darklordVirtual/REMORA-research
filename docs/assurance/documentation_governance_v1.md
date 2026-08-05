@@ -57,13 +57,27 @@ statuses:
 | `generated` | Produced by a script; edit the generator | `generated_by` must exist |
 | `supporting` | Explanatory; must not contradict canonical sources | — |
 | `proposal` | Proposed/roadmap content, not implemented claims | — |
-| `historical` | Dated snapshot, preserved unedited, not current | — |
+| `historical` | Dated snapshot; body immutable, not current | banner required in the first 15 lines |
 | `superseded` | Kept so old links resolve | `superseded_by` must exist; the stub must point readers to it |
 
 The register is a sidecar (not per-file frontmatter) deliberately:
-historical snapshots are never edited, so their governance status must live
-outside them. Gitignored local working documents are out of scope by
-construction (the validator enumerates `git ls-files`).
+historical snapshot *bodies* are immutable — the findings, numbers and
+dispositions they recorded must never be rewritten to match the present —
+so their governance status must live outside them. One narrowly scoped
+exception exists: a clearly separated governance banner (a `> **Historical
+…**` block quote above the original content) may be *prepended* when a
+document is reclassified, so a reader landing on the file sees its vintage
+before its findings. The banner may name what has changed since; it may not
+alter, delete or reword anything below it. The machine-enforced form
+(`VINTAGE_BANNER_RE` in `scripts/check_document_governance.py`) requires a
+block-quote line carrying a bold span with a vintage keyword — `>
+**Historical …**`, `> **ARCHIVED — historical …**` or `> **NOTICE:** …
+**HISTORICAL** …` all qualify; the bold span must close on one line. HTML
+assets use the equivalent `<!-- ARCHIVED - … -->` comment banner. A bare
+mention of the words ("This is not a historical document.") does not count.
+Gitignored local working
+documents are out of scope by construction (the validator enumerates
+`git ls-files`).
 
 ## 3. Release profiles instead of a diffuse "production ready"
 
@@ -85,7 +99,8 @@ The `documentation-governance` gate checks, as HARD failures:
 
 1. Statuses are from the enum; `superseded` entries name an existing
    successor and the stub points to it; `generated` entries name an existing
-   generator; `historical` entries carry a banner in their first 15 lines.
+   generator; `historical` entries carry a structured vintage banner in
+   their first 15 lines (see §2).
 2. Canonical topics come from the controlled `topics:` registry, and at most
    one `canonical` document claims each topic. Caveat (2026-07-28 audit):
    topics are currently path-derived for effectively all entries, so the

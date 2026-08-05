@@ -21,16 +21,37 @@ delivery_contract:
   - ui_explanation
   - external_review_for_verified_status
 
+# Reusability-side definition of done (maintainer review 2026-08-05): a
+# fasttrack slice is not finished as *reusable engineering* until all ten
+# hold. Enforced by tests/test_fasttrack_register.py — an item flipped to
+# DONE on or after dod_enforced_from must carry a `dod:` mapping with an
+# evidence string per criterion; gate0 items closed before enforcement are
+# marked dod_grandfathered instead.
+definition_of_done:
+  - single_module_single_responsibility
+  - no_duplicate_abstraction_or_vocabulary
+  - documented_public_api
+  - unit_and_integration_tests
+  - negative_and_failure_paths
+  - architecture_or_adr_on_contract_change
+  - openapi_schema_updates_when_relevant
+  - runnable_external_example
+  - stability_classification
+  - clean_install_wheel_test
+dod_enforced_from: '2026-08-05'
+
 items:
 - id: FT-00-1
   title: Merge PR 134 (searched-validation terminology)
   priority: gate0
   status: DONE
+  dod_grandfathered: true
   evidence: merged as efea682 by the maintainer, 2026-08-05
 - id: FT-00-2
   title: Protect master (branch protection + CODEOWNERS)
   priority: gate0
   status: DONE
+  dod_grandfathered: true
   evidence: >-
     Branch protection active (PR required, 5 required status checks,
     enforce_admins false); CODEOWNERS pre-existing with critical-surface
@@ -40,6 +61,7 @@ items:
   title: Stop combined mega dependency upgrades
   priority: gate0
   status: DONE
+  dod_grandfathered: true
   evidence: >-
     PR 136 groups dependabot updates by risk class; PR 133 (168 packages)
     closed with rationale.
@@ -103,6 +125,21 @@ items:
   priority: p1
   status: NOT_STARTED
   notes: TLA+/model checking on lifecycle, outbox, token/lease, nonce — the only place "proof" language is permitted, scoped to the declared model.
+- id: FT-13
+  title: Stable public SDK surface separated from experimental/research code
+  priority: p1
+  status: NOT_STARTED
+  notes: >-
+    Maintainer review 2026-08-05: remora/__init__.py exposes core engine,
+    policy, governance, evidence, domains, integrations, adapters and
+    observability in one flat surface, so a third party cannot tell which
+    imports carry a compatibility guarantee. Target layout: remora.core_api
+    (small stable SDK surface), remora.policy (stable policy contract),
+    remora.governance (stable envelope/audit contract), remora.adapters
+    (framework adapters), remora.experimental and remora.research (no BC
+    guarantee). Existing imports stay for compatibility; documentation must
+    state which are stable. Extends the existing CORE/EXPERIMENTAL/
+    RESEARCH_ONLY module classification with import-path enforcement.
 - id: FT-11
   title: Path- and temporal governance
   priority: p2
