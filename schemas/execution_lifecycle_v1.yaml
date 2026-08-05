@@ -55,6 +55,11 @@ transitions:
 - {from: AUTHORIZED, to: REFUSED, on: regate_binding_or_freshness_refusal}
 - {from: AUTHORIZED, to: DISPATCH_PENDING, on: outbox_row_committed}
 - {from: DISPATCH_PENDING, to: DISPATCHING, on: worker_claim}
+# An intent that was authorized but never claimed past the staleness
+# threshold was never dispatched: the claim strictly precedes the tool
+# invocation, so the side effect provably did not happen. FAILED is the
+# honest terminal here, not UNKNOWN (crash matrix row 2).
+- {from: DISPATCH_PENDING, to: FAILED, on: reconciled_never_dispatched}
 - {from: DISPATCHING, to: SUCCEEDED, on: dispatcher_confirmed}
 - {from: DISPATCHING, to: FAILED, on: tool_raised_pre_effect}
 - {from: DISPATCHING, to: REFUSED, on: lease_or_pep_refusal}
