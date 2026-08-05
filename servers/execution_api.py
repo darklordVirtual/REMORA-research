@@ -1832,6 +1832,202 @@ def reject(req: RejectRequest, request: Request) -> dict[str, Any]:
     }
 
 
+def _proposal_events(tenant: str, proposal_id: str) -> list[dict[str, Any]]:
+    """Every chain entry belonging to one proposal, in chain order.
+
+    A projection over the tenant audit chain — the store of record — not a
+    second copy of it. Ordering is the chain's own sequence, so the trail
+    cannot disagree with what was actually appended.
+    """
+    out: list[dict[str, Any]] = []
+    for entry in _CHAIN.entries(tenant):
+        payload = entry.payload
+        if payload.get("proposal_id") != proposal_id:
+            continue
+        out.append({
+            "sequence_no": entry.sequence_no,
+            "entry_hash": entry.entry_hash,
+            "event": payload.get("event"),
+            "actor": payload.get("actor"),
+            "payload": payload,
+        })
+    return out
+
+
+def _dispatch_projection(tenant: str, proposal_id: str) -> dict[str, Any] | None:
+    """The outbox's verdict for this proposal, if a dispatch was intended."""
+    rows = _outbox().rows_for_proposal(tenant, proposal_id)
+    if not rows:
+        return None
+    row = rows[-1]
+    return {
+        "outbox_id": row.outbox_id,
+        "state": row.state.value,
+        "attempt_no": row.attempt_no,
+        "worker_id": row.worker_id,
+        "detail": row.detail,
+        "terminal": row.is_terminal,
+    }
+
+
+def _current_state(events: list[dict[str, Any]],
+                   dispatch: dict[str, Any] | None) -> str:
+    """Where the proposal stands, in lifecycle-model vocabulary.
+
+    Derived, never stored: a stored copy could drift from the chain it is
+    supposed to describe. The dispatch verdict wins when present, because
+    it is the later fact.
+    """
+    if dispatch is not None and dispatch["terminal"]:
+        return str(dispatch["state"])
+    names = [str(e.get("event")) for e in events]
+    if any(n.startswith("execution_") and n != "execution_authorized"
+           for n in names):
+        return "REFUSED"
+    if "execution_authorized" in names:
+        return "DISPATCHING"
+    if "rejected" in names:
+        return "REFUSED"
+    if "approved" in names:
+        return "AUTHORIZED"
+    if "review_enqueued" in names or any(
+        e["payload"].get("review_item_id") for e in events
+    ):
+        return "REVIEW_PENDING"
+    if "assessed" in names:
+        return "ASSESSED"
+    return "PROPOSED"
+
+
+@router.get("/proposals/{proposal_id}", responses={
+    200: {"description": "The decision and where the proposal stands."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "No such proposal for this tenant."},
+})
+def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
+    """One proposal's decision and current lifecycle state.
+
+    Tenant-scoped by construction: the chain is read per tenant, so a
+    proposal belonging to someone else is simply absent — a 404, never a
+    redacted 200 that leaks its existence.
+    """
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "read")
+    events = _proposal_events(tenant, proposal_id)
+    if not events:
+        raise HTTPException(status_code=404, detail="proposal not found")
+    assessed = next(
+        (e["payload"] for e in events if e["event"] == "assessed"), {}
+    )
+    dispatch = _dispatch_projection(tenant, proposal_id)
+    return {
+        "proposal_id": proposal_id,
+        "decision": assessed.get("decision"),
+        "reasons": assessed.get("reasons", []),
+        "tool_name": assessed.get("tool_name"),
+        "tool_call_hash": assessed.get("tool_call_hash"),
+        "actor": assessed.get("actor"),
+        "review_item_id": assessed.get("review_item_id"),
+        "current_state": _current_state(events, dispatch),
+        "event_count": len(events),
+        "dispatch": dispatch,
+    }
+
+
+@router.get("/proposals/{proposal_id}/lifecycle", responses={
+    200: {"description": "The ordered event trail for one proposal."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "No such proposal for this tenant."},
+})
+def get_lifecycle(proposal_id: str, request: Request) -> dict[str, Any]:
+    """The full ordered trail: every chain entry plus the dispatch verdict."""
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "read")
+    events = _proposal_events(tenant, proposal_id)
+    if not events:
+        raise HTTPException(status_code=404, detail="proposal not found")
+    dispatch = _dispatch_projection(tenant, proposal_id)
+    return {
+        "proposal_id": proposal_id,
+        "events": events,
+        "dispatch": dispatch,
+        "current_state": _current_state(events, dispatch),
+    }
+
+
+@router.get("/proposals/{proposal_id}/evidence", responses={
+    200: {"description": "Exportable evidence bundle with a hashed manifest."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "No such proposal for this tenant."},
+})
+def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
+    """Everything recorded about one proposal, with a hashed manifest.
+
+    The manifest hashes each section it lists, so a bundle cannot be
+    edited without the manifest disagreeing. That is tamper-EVIDENCE:
+    anyone recomputing the hashes sees the change. It is not tamper-proof
+    — a party who rewrites both bundle and manifest produces a
+    self-consistent forgery, which is why the audit chain's own
+    verification travels with the bundle rather than being replaced by it.
+    """
+    import hashlib as _hashlib
+
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "read")
+    events = _proposal_events(tenant, proposal_id)
+    if not events:
+        raise HTTPException(status_code=404, detail="proposal not found")
+
+    dispatch = _dispatch_projection(tenant, proposal_id)
+    valid, problems = _CHAIN.verify(tenant)
+    sections: dict[str, Any] = {
+        "proposal": {
+            "proposal_id": proposal_id,
+            "current_state": _current_state(events, dispatch),
+            "tenant": tenant,
+        },
+        "lifecycle": {"events": events, "dispatch": dispatch},
+        "policy_identity": api_mod._policy_component_hashes(),
+        "audit_verification": {
+            "valid": valid,
+            "problems": problems,
+            "records_checked": len(_CHAIN.entries(tenant)),
+        },
+    }
+
+    def _digest(value: Any) -> str:
+        canonical = json.dumps(value, sort_keys=True, separators=(",", ":"),
+                               default=str)
+        return _hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    bundle: dict[str, Any] = dict(sections)
+    bundle["manifest"] = {
+        "proposal_id": proposal_id,
+        "tenant": tenant,
+        "remora_version": api_mod.__dict__.get("__version__")
+        or _remora_version(),
+        "exported_at": datetime.now(UTC).isoformat(),
+        "event_count": len(events),
+        "section_sha256": {name: _digest(v) for name, v in sections.items()},
+    }
+    return bundle
+
+
+def _remora_version() -> str:
+    try:
+        import remora
+
+        return str(getattr(remora, "__version__", "unknown"))
+    except Exception:  # pragma: no cover - version lookup must never fail a read
+        return "unknown"
+
+
 @router.get("/audit/verify", responses={
     200: {"model": ExecutionAuditVerifyResponse},
     **_AUTH_RESPONSES,

@@ -43,6 +43,8 @@ from remora.sdk.models import (
     AssessmentResult,
     AuditVerification,
     ExecutionResult,
+    LifecycleTrail,
+    ProposalView,
     RejectionResult,
     ToolCall,
 )
@@ -200,6 +202,31 @@ class RemoraClient:
             "tool_call": tool_call.to_payload(),
         })
         return ExecutionResult.from_payload(payload)
+
+    def get_proposal(self, proposal_id: str) -> ProposalView:
+        """The decision and current state of one proposal."""
+        payload = self._request(
+            "GET", f"/v1/execution/proposals/{proposal_id}",
+        )
+        return ProposalView.from_payload(payload)
+
+    def get_lifecycle(self, proposal_id: str) -> LifecycleTrail:
+        """The ordered event trail for one proposal."""
+        payload = self._request(
+            "GET", f"/v1/execution/proposals/{proposal_id}/lifecycle",
+        )
+        return LifecycleTrail.from_payload(payload)
+
+    def export_evidence(self, proposal_id: str) -> "dict[str, Any]":
+        """The evidence bundle: every recorded section plus a hashed manifest.
+
+        Returned as the raw mapping on purpose — the manifest's hashes are
+        computed over the exact JSON sections, so re-shaping them into
+        typed models here would break independent verification.
+        """
+        return self._request(
+            "GET", f"/v1/execution/proposals/{proposal_id}/evidence",
+        )
 
     def verify_audit_chain(self) -> AuditVerification:
         """Verify the authenticated tenant's audit chain end to end."""

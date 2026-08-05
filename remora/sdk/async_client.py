@@ -30,6 +30,8 @@ from remora.sdk.models import (
     AssessmentResult,
     AuditVerification,
     ExecutionResult,
+    LifecycleTrail,
+    ProposalView,
     RejectionResult,
     ToolCall,
 )
@@ -135,6 +137,26 @@ class AsyncRemoraClient:
             },
         )
         return ExecutionResult.from_payload(payload)
+
+    async def get_proposal(self, proposal_id: str) -> ProposalView:
+        """Async :meth:`RemoraClient.get_proposal`."""
+        payload = await self._request(
+            "GET", f"/v1/execution/proposals/{proposal_id}",
+        )
+        return ProposalView.from_payload(payload)
+
+    async def get_lifecycle(self, proposal_id: str) -> LifecycleTrail:
+        """Async :meth:`RemoraClient.get_lifecycle`."""
+        payload = await self._request(
+            "GET", f"/v1/execution/proposals/{proposal_id}/lifecycle",
+        )
+        return LifecycleTrail.from_payload(payload)
+
+    async def export_evidence(self, proposal_id: str) -> "dict[str, Any]":
+        """Async :meth:`RemoraClient.export_evidence`; raw by design."""
+        return await self._request(
+            "GET", f"/v1/execution/proposals/{proposal_id}/evidence",
+        )
 
     async def verify_audit_chain(self) -> AuditVerification:
         """Async :meth:`RemoraClient.verify_audit_chain`."""

@@ -1908,6 +1908,231 @@
         ]
       }
     },
+    "/v1/execution/proposals/{proposal_id}": {
+      "get": {
+        "description": "One proposal's decision and current lifecycle state.\n\nTenant-scoped by construction: the chain is read per tenant, so a\nproposal belonging to someone else is simply absent — a 404, never a\nredacted 200 that leaks its existence.",
+        "operationId": "get_proposal_v1_execution_proposals__proposal_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Proposal V1 Execution Proposals  Proposal Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The decision and where the proposal stands."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "No such proposal for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Proposal",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/proposals/{proposal_id}/evidence": {
+      "get": {
+        "description": "Everything recorded about one proposal, with a hashed manifest.\n\nThe manifest hashes each section it lists, so a bundle cannot be\nedited without the manifest disagreeing. That is tamper-EVIDENCE:\nanyone recomputing the hashes sees the change. It is not tamper-proof\n— a party who rewrites both bundle and manifest produces a\nself-consistent forgery, which is why the audit chain's own\nverification travels with the bundle rather than being replaced by it.",
+        "operationId": "export_evidence_v1_execution_proposals__proposal_id__evidence_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Export Evidence V1 Execution Proposals  Proposal Id  Evidence Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Exportable evidence bundle with a hashed manifest."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "No such proposal for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Evidence",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/proposals/{proposal_id}/lifecycle": {
+      "get": {
+        "description": "The full ordered trail: every chain entry plus the dispatch verdict.",
+        "operationId": "get_lifecycle_v1_execution_proposals__proposal_id__lifecycle_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Lifecycle V1 Execution Proposals  Proposal Id  Lifecycle Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The ordered event trail for one proposal."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "No such proposal for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Lifecycle",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
     "/v1/execution/reject": {
       "post": {
         "description": "Refuse a pending review item, terminally.\n\nThe counterpart to :func:`approve`, and subject to the same identity\nrule: the recorded reviewer is the authenticated principal, never a\nvalue from the body. A rejected item can never be approved or executed\nafterwards — the queue refuses any later transition, so a refusal\ncannot be worked around by calling approve again.",
