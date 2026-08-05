@@ -45,6 +45,7 @@ The numbered series is the primary reading path.
 | [12-agentharm-validation.md](12-agentharm-validation.md) | AgentHarm external-benchmark validation |
 | [13-research-frontier-roadmap.md](13-research-frontier-roadmap.md) | Research frontier roadmap: RF-01–RF-10 work packages (PROPOSED, except RF-10 slice 1 = CAP-014) |
 | [design/execution-lifecycle-outbox-v1.md](design/execution-lifecycle-outbox-v1.md) | DRAFT design: unified proposal-to-effect lifecycle + crash-consistent outbox (issues #37/#82; nothing implemented) |
+| [design/toolspec-signed-registry-v1.md](design/toolspec-signed-registry-v1.md) | DRAFT ADR: one immutable signed ToolSpec (issue #83/FT-03; MCPTox threat mapping; nothing implemented) |
 | [AI_USE.md](AI_USE.md) | Disclosure of AI-assisted development |
 
 ## Evidence and results
