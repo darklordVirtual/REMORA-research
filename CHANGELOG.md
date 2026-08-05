@@ -27,6 +27,15 @@ releases.
 
 ## [Unreleased]
 
+### Property-based proof of the review-queue TTL contract (2026-08-05)
+
+- Proof-depth slice 3 (`tests/test_review_queue_properties.py`): for any mix
+  of item TTLs and any clock advance, one sweep expires exactly the overdue
+  items to `EXPIRED_TO_ABSTAIN` — never a non-overdue one — and an expired
+  item can never be approved afterwards. The "never indefinite silent
+  pending, never auto-accept" claim now has searched-input coverage behind
+  it (60 examples per property, three seeds).
+
 ### Property-based proof of the engine's hard-guard floor (2026-08-05)
 
 - Proof-depth slice 2 (`tests/test_policy_engine_properties.py`): the
