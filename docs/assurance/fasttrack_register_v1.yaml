@@ -232,9 +232,27 @@ items:
     transaction. Two runnable offline examples ship and are smoke-tested;
     the signing example exits non-zero if any of its four tamper shapes
     loads.
-    NOT DONE: EffectBlock population in DecisionEnvelope; compensation
-    governance; ABSTAIN lineage (superseded_proposal_id); ESCALATED
-    resolution semantics. No external review has run against this build.
+    ABSTAIN lineage landed 2026-08-05 (architect-review lock-point):
+    remora/governance/proposal_lineage.py derives superseded_proposal_id
+    and a probe sequence from the audit chain, so resubmit-until-accept
+    probing is visible instead of looking like N unrelated first attempts.
+    Two decisions are load-bearing and tested. Lineage is DERIVED, never
+    declared: a client-supplied supersedes-field would be defeated by the
+    one caller it exists to catch, who omits it, so nothing reads the
+    request and a wiring test asserts client-supplied fields change
+    nothing. And escalation_eligible is SHADOW ONLY, recorded with
+    shadow_only:true while the decision stays exactly what the engine
+    returned — the key is only as precise as the deployment's declarations
+    allow, so routing on an unmeasured false-positive rate would be the
+    mistake this layer exists to prevent (same discipline as the rejected
+    ESCALATE->VERIFY routing change). The record states its key basis
+    (semantic_target when a signed ToolSpec declares the target-resource
+    argument role, tool_only otherwise) and its window. 27 tests.
+    NOT DONE: EffectBlock population in DecisionEnvelope (touches the
+    canonical contract — maintainer decision pending); compensation
+    governance; ESCALATED resolution semantics; and MEASURING the
+    false-positive rate that would justify promoting lineage escalation
+    out of shadow. No external review has run against this build.
 - id: FT-05
   title: External review recruited now, closed after P0
   priority: p0

@@ -55,6 +55,10 @@ from remora.governance.effect_verification import (
     EffectStatus,
     EffectVerification,
 )
+from remora.governance.proposal_lineage import (
+    derive_lineage,
+    lineage_key_for,
+)
 from remora.governance.lifecycle import (
     IllegalTransition,
     check_transition,
@@ -401,6 +405,13 @@ def _resolve_toolspec(
         "version": spec.version,
         "hash": spec.toolspec_hash,
         "bundle_digest": bundle.bundle_digest,
+        # Which argument the spec DECLARES as the target. Proposal lineage
+        # keys on it so two calls about different objects are not counted
+        # as one attempt retried; without a spec there is nothing to
+        # declare it, and the lineage record says the key is coarser.
+        "argument_roles": dict(
+            (spec.semantic_contract or {}).get("argument_roles", {})
+        ),
     }
 
 
@@ -1213,16 +1224,45 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     toolspec_identity = _resolve_toolspec(
         req.tool_name, req.arguments, req.target_environment
     )
+    # Popped, not recorded: the roles are spec data the lineage key needs,
+    # and copying them into every audit record and response would grow
+    # both without telling a reader anything the spec hash does not.
+    _argument_roles = toolspec_identity.pop("argument_roles", {})
     proposal_id = str(uuid4())
     obs = dataclasses.replace(obs, proposal_id=proposal_id)
     report = _ENGINE.decide(obs)
     now = datetime.now(UTC)
+    # Derived from the chain, never from the request: a caller-declared
+    # "this supersedes X" would be defeated by the one caller it exists to
+    # catch, who simply omits it. Read BEFORE any transaction opens —
+    # reading the chain inside one deadlocks against SQLite's exclusive
+    # write lock, the trap the outbox and the ToolSpec lookup both hit.
+    _lineage_key = lineage_key_for(
+        actor=principal,
+        tool_name=req.tool_name,
+        target_environment=req.target_environment or "",
+        arguments=req.arguments,
+        argument_roles=_argument_roles,
+    )
+    _lineage = derive_lineage(
+        [{"timestamp": e.timestamp, "payload": e.payload}
+         for e in _CHAIN.entries(tenant)],
+        _lineage_key, now=datetime.now(UTC).isoformat(),
+    )
+
     record: dict[str, Any] = {
         "event": "assessed",
         "proposal_id": proposal_id,
         "actor": principal,
         "tool_name": req.tool_name,
         "tool_call_hash": obs.tool_call_hash,
+        # Carried so a LATER derivation can match this proposal. Without
+        # them the lineage key could never be reconstructed from the
+        # chain, and every proposal would look like a first attempt.
+        "target_environment": req.target_environment or "",
+        "lineage_resource": _lineage_key.resource,
+        "superseded_proposal_id": _lineage.superseded_proposal_id,
+        "lineage": _lineage.to_dict(),
         "decision": report.action.value,
         "reasons": [r.value for r in report.reasons],
         "policy_version": report.policy_version,
@@ -1284,6 +1324,10 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         if item is not None:
             record["review_item_id"] = item.item_id
             response["review_item_id"] = item.item_id
+    # Shadow only: the decision above was NOT influenced by this. A
+    # consumer must be able to see the probing signal without being misled
+    # into thinking it changed the routing.
+    response["lineage"] = _lineage.to_dict()
     response["resolution_plan"] = _resolution_plan_for(
         action=report.action, report=report, tenant=tenant,
         item=item if report.action is not DecisionAction.ACCEPT else None,
@@ -1575,6 +1619,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         req.tool_call.tool_name, req.tool_call.arguments,
         req.tool_call.target_environment,
     )
+    toolspec_identity.pop("argument_roles", None)
     _assessed_toolspec_hash, _assessed_proposal_id = _assessed_record(
         tenant, req.item_id)
     # Refuse BEFORE authorizing, not after. The check has everything it
