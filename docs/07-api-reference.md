@@ -95,7 +95,7 @@ one dispatcher process must not rely on it as a global guarantee (REM-025).
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 68 fields; on the research `/v1/assess` path **all fields except
+with 69 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe"). On `/v1/execution/*` this does NOT hold: trust-bearing fields are

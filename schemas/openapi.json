@@ -285,6 +285,18 @@
             "title": "Item Id",
             "type": "string"
           },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Canonical proposal identity; null only for items enqueued before the lifecycle existed.",
+            "title": "Proposal Id"
+          },
           "status": {
             "const": "approved",
             "title": "Status",
@@ -326,6 +338,11 @@
             ],
             "description": "Present only on accept; key absent otherwise."
           },
+          "proposal_id": {
+            "description": "FT-01: the canonical proposal identity minted here — the join key across every chain record, grant and response for this action.",
+            "title": "Proposal Id",
+            "type": "string"
+          },
           "reasons": {
             "items": {
               "type": "string"
@@ -354,6 +371,7 @@
           }
         },
         "required": [
+          "proposal_id",
           "decision",
           "reasons",
           "tool_call_hash",
@@ -440,6 +458,18 @@
               }
             ],
             "description": "Present only when outcome is execute."
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Canonical proposal identity from the queued item; null only for pre-lifecycle items.",
+            "title": "Proposal Id"
           },
           "tool_execution": {
             "anyOf": [

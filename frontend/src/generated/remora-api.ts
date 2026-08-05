@@ -502,6 +502,11 @@ export interface components {
             /** Item Id */
             item_id: string;
             /**
+             * Proposal Id
+             * @description Canonical proposal identity; null only for items enqueued before the lifecycle existed.
+             */
+            proposal_id?: string | null;
+            /**
              * Status
              * @constant
              */
@@ -517,6 +522,11 @@ export interface components {
             decision: "accept" | "verify" | "abstain" | "escalate";
             /** @description Present only on accept; key absent otherwise. */
             execution_token?: components["schemas"]["ExecutionGrant"] | null;
+            /**
+             * Proposal Id
+             * @description FT-01: the canonical proposal identity minted here — the join key across every chain record, grant and response for this action.
+             */
+            proposal_id: string;
             /** Reasons */
             reasons: string[];
             /**
@@ -558,6 +568,11 @@ export interface components {
             outcome: "execute" | "approval_expired" | "binding_refused" | "approval_invalidated";
             /** @description Present only when outcome is execute. */
             pep?: components["schemas"]["PepResult"] | null;
+            /**
+             * Proposal Id
+             * @description Canonical proposal identity from the queued item; null only for pre-lifecycle items.
+             */
+            proposal_id?: string | null;
             /** @description Present only when outcome is execute. */
             tool_execution?: components["schemas"]["ToolExecutionResult"] | null;
         };
