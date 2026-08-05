@@ -27,6 +27,16 @@ releases.
 
 ## [Unreleased]
 
+### MCP session status emits the documented fields (2026-08-05)
+
+- `remora_session_status` documented drift score, autonomy level
+  (FULL/SUPERVISED/HUMAN_REQUIRED) and the consecutive-critical-phase count
+  as outputs, but the handler emitted none of them although the tracker
+  implements and tests all three. `LyapunovTracker.summary()` now carries
+  `latest_drift`, `consecutive_critical` and `autonomy_level`, and the MCP
+  handler prints them — the previously computed-but-unconsumed autonomy tier
+  gains its documented reporting consumer.
+
 ### Hook G4: mutations meet the refusal regardless of risk tier (2026-08-05)
 
 - In the production profile, file-writing tools (`Write`/`Edit`/`MultiEdit`/

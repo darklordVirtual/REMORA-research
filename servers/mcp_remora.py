@@ -1606,6 +1606,10 @@ def handle_remora_session_status(args: dict) -> str:
             f"- D (dissensus):  `{d:.4f}`   — oracle disagreement level",
             f"- Converging:     {'Yes — V(t) is decreasing' if conv else 'No — V(t) is flat or rising'}",
             f"- Total V reduction: `{reduct:+.4f}`",
+            f"- Drift score: `{s['latest_drift']:.2f}`" if s.get("latest_drift") is not None
+                else "- Drift score: n/a (no anchored intent)",
+            f"- Consecutive critical phases: {s['consecutive_critical']}",
+            f"- Autonomy level: **{s['autonomy_level']}**",
             "",
         ]
 

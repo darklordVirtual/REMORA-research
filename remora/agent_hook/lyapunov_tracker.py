@@ -181,6 +181,15 @@ class LyapunovTracker:
             "D": round(latest.D, 4) if latest else None,
             "converging": self.is_converging(),
             "total_V_reduction": round(self._controller.total_reduction(), 4),
+            # Surfaced so status consumers report what the docs promise
+            # (hook/safety sweep 2026-08-05): the autonomy tier and its two
+            # inputs are computed here, not re-derived by every caller.
+            "latest_drift": (round(self._observations[-1].drift_score, 4)
+                             if self._observations else None),
+            "consecutive_critical": self._consecutive_critical_phases(),
+            # Uppercased to match the documented vocabulary
+            # (FULL / SUPERVISED / HUMAN_REQUIRED).
+            "autonomy_level": str(self.autonomy_level()).upper(),
         }
 
     def _consecutive_critical_phases(self) -> int:
