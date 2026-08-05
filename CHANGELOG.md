@@ -27,6 +27,27 @@ releases.
 
 ## [Unreleased]
 
+### FT-13 slice 2: SDK documentation, external example, stability policy (2026-08-05)
+
+- New `docs/sdk.md` (DOC-301): the stable-surface contract for
+  `remora.sdk` — install, stability classification and deprecation policy
+  (snapshot-gated surface, CHANGELOG-announced deprecations), the governed
+  loop, public-symbol groups, error taxonomy, and an explicit list of what
+  is NOT stable.
+- New `examples/sdk_quickstart.py`: runnable external example driving the
+  full governed loop through `remora.sdk` only — offline demo against the
+  real ASGI app in-process (dev single-token mode, research tool registry,
+  two personas: agent credential + reviewer credential), or remote mode via
+  `REMORA_URL`. Shows the honest outcomes: evidence-free read ABSTAINs,
+  prod write routes to review, the agent's self-approval is a typed
+  `authorization_denied` refusal, the reviewer approves, execution
+  dispatches, and the audit chain verifies.
+- Smoke test `test_examples_sdk_quickstart_runs_clean` pins the example's
+  outcome spread (ABSTAIN / VERIFY / refused self-approval / executed tool
+  / valid audit chain) alongside the existing quickstart tests.
+- Remaining FT-13 DoD criteria after this slice: clean-install wheel test
+  exercising the sdk extra (CI workflow change, ships separately), async
+  client, OpenAPI-generated transport, adapters, `remora.sdk.testing`.
 ### Paper PDF ships via PR, never a direct master push (2026-08-05)
 
 - Fixed the red `compile` job on master: `compile-paper.yml` auto-committed

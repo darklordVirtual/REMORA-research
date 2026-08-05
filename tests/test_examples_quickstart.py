@@ -44,6 +44,29 @@ def test_examples_aromer_quickstart_runs_clean():
     assert "false_accept_rate" in r.stdout
 
 
+def test_examples_sdk_quickstart_runs_clean():
+    """FT-13: the external SDK example must run clean and offline.
+
+    Demo mode spins up the real ASGI app in-process (dev no-auth mode,
+    research tool registry) and drives the governed loop through
+    ``remora.sdk`` only — the outcome spread and the audit verification
+    must be visible in the output.
+    """
+    r = _run_example("examples/sdk_quickstart.py")
+    assert r.returncode == 0, r.stderr
+    # No server-side evidence in the demo: the read must ABSTAIN, never
+    # ACCEPT on client-asserted trust alone.
+    assert "decision: ABSTAIN" in r.stdout
+    # The prod write goes through the full review loop.
+    assert "decision: VERIFY" in r.stdout
+    assert "agent approval refused (authorization_denied)" in r.stdout
+    assert "execution outcome: execute" in r.stdout
+    assert "tool executed: True" in r.stdout
+    # The unknown tool never receives an execution token.
+    assert "UNEXPECTED" not in r.stdout
+    assert "audit chain valid: True" in r.stdout
+
+
 def test_examples_agent_gate_runs_clean():
     """The three-line integration example must show the full outcome spread."""
     r = _run_example("examples/agent_gate.py")

@@ -2187,7 +2187,20 @@ documents:
   - maintainer
   - evaluator
 
+- audience:
+  - integrator
+  - researchers
+  code_synced: verified
+  id: DOC-301
+  last_audited: '2026-08-05'
+  last_reviewed: '2026-08-05'
+  path: docs/sdk.md
+  status: canonical
+  topic: docs_sdk_md
+  verdict: current
+  version: v1
 topics:
+- docs_sdk_md
 - docs_assurance_superseded_claims_md
 - docs_research_routing_benchmark_v1_design_md
 - docs_assurance_statistical_analysis_plan_v4_md
