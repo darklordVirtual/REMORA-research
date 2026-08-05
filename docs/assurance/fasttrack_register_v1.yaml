@@ -217,8 +217,24 @@ items:
     the boundary. 23 tests (14 surface + 9 endpoint), a runnable offline
     example, docs/sdk.md, and regenerated OpenAPI, TS client and public
     API snapshot (35 symbols).
-    NOT DONE: EffectBlock population in DecisionEnvelope, and the release
-    that carries this to the product repo (PR 6).
+    Handoff PR 6 + gate section 3 (2026-08-05): the release manifest now
+    pins both frozen contracts alongside the wheel, OpenAPI export, SDK
+    snapshot and lifecycle schema, asserted by EQUALITY so a future
+    contract cannot be added to the repository and left out of the
+    release. Prerelease core-candidate-2026.08.05.3 published from a
+    clean checkout of 9866436 and consumed by
+    darklordVirtual/assured-agent-execution (pin verified, 43
+    compatibility tests green against the wheel installed from the
+    verified assets). The end-to-end vertical test drives the real ASGI
+    app across every layer and FOUND ONE DEFECT: the spec-changed refusal
+    ran after the authorizing transaction, leaving a dispatch intent
+    behind for a call never allowed to happen; the check now precedes the
+    transaction. Two runnable offline examples ship and are smoke-tested;
+    the signing example exits non-zero if any of its four tamper shapes
+    loads.
+    NOT DONE: EffectBlock population in DecisionEnvelope; compensation
+    governance; ABSTAIN lineage (superseded_proposal_id); ESCALATED
+    resolution semantics. No external review has run against this build.
 - id: FT-05
   title: External review recruited now, closed after P0
   priority: p0

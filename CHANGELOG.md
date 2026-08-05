@@ -27,6 +27,24 @@ releases.
 
 ## [Unreleased]
 
+### Prerelease core-candidate-2026.08.05.3 — the handoff gate closes (2026-08-05)
+
+- Published from a clean checkout of `9866436` and consumed by
+  `darklordVirtual/assured-agent-execution`, which verified the pin
+  against the published assets and ran its compatibility suite (43 tests)
+  against the wheel installed **from those verified assets** — not from a
+  convenient local copy.
+- It supersedes `core-candidate-2026.08.05.2`, cut hours earlier, because
+  the end-to-end vertical found the dispatch-intent defect after that tag
+  existed. Re-cutting was cheaper than shipping a known defect with a note
+  attached.
+- The product repository's `test_effect_verification_is_honestly_absent`
+  did its job and fired. It was replaced by positive contract tests rather
+  than deleted: the five statuses, the non-terminality of both unknowns,
+  declared-delta-only comparison, and the rule that an unreadable object
+  is never a mismatch. Those are the properties a consumer's incident
+  handling depends on, so a future core that changed them must fail there.
+
 ### Handoff gate §3: the end-to-end vertical, and what it found (2026-08-05)
 
 - `tests/test_end_to_end_vertical.py` drives the real ASGI app through the
