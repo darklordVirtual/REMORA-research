@@ -304,11 +304,35 @@
             "title": "Params",
             "type": "object"
           },
+          "source_end": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source End"
+          },
           "source_span": {
             "maxLength": 2000,
             "minLength": 1,
             "title": "Source Span",
             "type": "string"
+          },
+          "source_start": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Start"
           },
           "transform": {
             "maxLength": 64,

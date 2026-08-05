@@ -568,6 +568,11 @@ class DerivationProposal(BaseModel):
     transform: str = Field(..., min_length=1, max_length=64)
     source_span: str = Field(..., min_length=1, max_length=2000)
     params: dict[str, Any] = Field(default_factory=dict)
+    # Optional exact offset binding into the resolved task text (review
+    # 2026-08-05 hardening): when both are set, verification requires
+    # task_text[source_start:source_end] == source_span.
+    source_start: int | None = Field(None, ge=0)
+    source_end: int | None = Field(None, ge=0)
 
     model_config = {"extra": "forbid"}
 
@@ -754,6 +759,11 @@ def semantic_call_context(
         contracts=bundle.contracts,
         intent=resolved.intent if resolved else None,
     )
+    from remora.toolcall.routing.derivation import (
+        DERIVATION_TRANSFORMS_DIGEST,
+        DERIVATION_TRANSFORMS_VERSION,
+    )
+
     context = {
         "tool_contract_bundle_hash": bundle.bundle_hash,
         "state_hash": bundle.state_hash,
@@ -762,6 +772,12 @@ def semantic_call_context(
         ),
         "tool_matches_goal": full.tool_matches_goal,
         "expected_effect_matches": full.expected_effect_matches,
+        # Receipt-vocabulary identity (review 2026-08-05): a receipt
+        # verified under one transform semantics must never silently mean
+        # something else later. Rides the audit record with the other
+        # semantic hashes; lease/ToolSpec binding is FT-03 scope.
+        "derivation_transforms_version": DERIVATION_TRANSFORMS_VERSION,
+        "derivation_transforms_digest": DERIVATION_TRANSFORMS_DIGEST,
     }
     return full, context
 

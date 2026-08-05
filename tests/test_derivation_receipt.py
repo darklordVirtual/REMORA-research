@@ -169,3 +169,73 @@ def test_receipt_for_other_argument_does_not_ground() -> None:
         receipts=(_receipt(argument="deadline"),),
     )
     assert verdict is False
+
+
+# ── Review 2026-08-05: v1 hardening (no new transforms) ─────────────────────
+
+def test_impossible_calendar_dates_are_rejected() -> None:
+    task = "Deliver by April 31st, 2024 or by February 30th, 2023."
+    r1 = DerivationReceipt(argument="d", value="2024-04-31",
+                           transform="en_date_to_iso",
+                           source_span="April 31st, 2024")
+    r2 = DerivationReceipt(argument="d", value="2023-02-30",
+                           transform="en_date_to_iso",
+                           source_span="February 30th, 2023")
+    assert verify_receipt(r1, task_text=task) is False
+    assert verify_receipt(r2, task_text=task) is False
+
+
+def test_span_offsets_bind_exactly_when_provided() -> None:
+    ok = _receipt(source_start=TASK.index("April 3rd, 2024"),
+                  source_end=TASK.index("April 3rd, 2024") + len("April 3rd, 2024"))
+    assert verify_receipt(ok, task_text=TASK) is True
+    wrong = _receipt(source_start=0, source_end=len("April 3rd, 2024"))
+    assert verify_receipt(wrong, task_text=TASK) is False
+
+
+def test_no_cross_type_string_equivalence_in_grounding() -> None:
+    """An int argument is not grounded by a receipt claiming the string form."""
+    from remora.toolcall.routing.derivation import receipt_grounds
+
+    receipt = DerivationReceipt(
+        argument="budget", value="1299", transform="number_normalize",
+        source_span="$1,299",
+    )
+    assert receipt_grounds("budget", 1299, (receipt,), task_text=TASK) is False
+
+
+def test_receipt_params_are_immutable() -> None:
+    import pytest as _pytest
+
+    r = DerivationReceipt(
+        argument="length_m", value=5000, transform="unit_convert",
+        source_span="5 km", params={"from_unit": "km", "to_unit": "m"},
+    )
+    with _pytest.raises(TypeError):
+        r.params["to_unit"] = "cm"
+
+
+def test_verifier_error_is_logged_not_swallowed(monkeypatch, caplog) -> None:
+    import logging
+
+    from remora.toolcall.routing import derivation as mod
+
+    def boom(span, params):
+        raise RuntimeError("implementation bug")
+
+    monkeypatch.setitem(mod._TRANSFORMS, "uppercase", boom)
+    r = DerivationReceipt(argument="a", value="X", transform="uppercase",
+                          source_span="April")
+    with caplog.at_level(logging.ERROR):
+        assert verify_receipt(r, task_text=TASK) is False
+    assert any("verifier_error" in rec.message for rec in caplog.records)
+
+
+def test_transform_registry_digest_is_deterministic() -> None:
+    from remora.toolcall.routing.derivation import (
+        DERIVATION_TRANSFORMS_DIGEST,
+        transforms_digest,
+    )
+
+    assert len(DERIVATION_TRANSFORMS_DIGEST) == 64
+    assert transforms_digest() == DERIVATION_TRANSFORMS_DIGEST

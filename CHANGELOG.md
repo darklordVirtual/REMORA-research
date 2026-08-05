@@ -27,6 +27,25 @@ releases.
 
 ## [Unreleased]
 
+### DerivationReceipt v1 hardened — no new transforms (2026-08-05)
+
+- External evolve-review 2026-08-05, all six receipt findings in one
+  deliverable: `datetime.date` is now the authoritative calendar
+  validator (April 31st rejects); optional `source_start`/`source_end`
+  give exact offset binding into the task text (document identity rides
+  `intent_authority_hash` one level up; per-receipt document hashes are
+  FT-03 scope); cross-type `str()` equivalence removed from grounding
+  (`1` ≠ `"1"` until a ToolSpec declares canonical types); `params` is
+  immutable at construction; INVALID_RECEIPT (expected parse failures,
+  quiet reject) is separated from VERIFIER_ERROR (implementation bugs —
+  fail-closed AND logged, span content never logged); and the transform
+  registry gains a deterministic `transforms_digest()` recorded with the
+  semantic audit context so receipt vocabulary can never silently shift
+  meaning — lease/ToolSpec binding stays FT-03 scope, stated.
+- Offsets ride the wire (server model, SDK model fields — no new public
+  symbols); OpenAPI + TS client regenerated. 6 new tests RED→GREEN; full
+  suite 4817 passed.
+
 ### SDK contract honesty: ACCEPT-lifecycle boundary, ownership, immutability (2026-08-05)
 
 - External evolve-review 2026-08-05, all four SDK findings fixed in one
