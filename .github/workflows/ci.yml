@@ -1,13 +1,24 @@
 name: CI — Deterministic Test Suite
 
-# Minimal CI: runs the full deterministic test suite on every push and PR.
+# Runs the full deterministic test suite on pull requests and on master.
 # No API keys, no network access, no cloud resources required.
 # For the full quality-gates pipeline (lint, coverage, frontend, replay), see quality-gates.yml.
+#
+# CI-economics review 2026-08-05: the former push-to-every-branch trigger
+# double-ran the identical SHA (push + pull_request) — the PR event is the
+# single verification path for feature branches; master keeps its own run.
 
 on:
-  push:
-    branches: ["**"]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [master]
+
+# A new push to a PR supersedes the previous SHA's run; master runs are never
+# cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
