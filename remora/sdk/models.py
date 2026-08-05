@@ -39,6 +39,8 @@ __all__ = [
     "DecisionAction",
     "DerivationProposal",
     "ExecutionResult",
+    "LifecycleTrail",
+    "ProposalView",
     "RejectionResult",
     "ResolutionPlan",
     "SemanticAssessment",
@@ -333,6 +335,63 @@ class ExecutionResult:
             raw=_frozen(payload) or MappingProxyType({}),
         )
 
+
+@dataclass(frozen=True)
+class ProposalView:
+    """One proposal's decision and where it currently stands.
+
+    ``current_state`` is DERIVED from the audit chain and the dispatch
+    verdict, never stored — a stored copy could drift from the records it
+    claims to describe.
+    """
+
+    proposal_id: str
+    decision: str | None
+    current_state: str
+    event_count: int
+    tool_name: str | None = None
+    tool_call_hash: str | None = None
+    reasons: tuple[str, ...] = ()
+    review_item_id: str | None = None
+    dispatch: Mapping[str, Any] | None = None
+    raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> "ProposalView":
+        return cls(
+            proposal_id=str(payload["proposal_id"]),
+            decision=payload.get("decision"),
+            current_state=str(payload["current_state"]),
+            event_count=int(payload.get("event_count", 0)),
+            tool_name=payload.get("tool_name"),
+            tool_call_hash=payload.get("tool_call_hash"),
+            reasons=tuple(str(r) for r in payload.get("reasons", ())),
+            review_item_id=payload.get("review_item_id"),
+            dispatch=_frozen(payload.get("dispatch")),
+            raw=_frozen(payload) or MappingProxyType({}),
+        )
+
+
+@dataclass(frozen=True)
+class LifecycleTrail:
+    """The ordered event trail for one proposal, plus its dispatch verdict."""
+
+    proposal_id: str
+    events: tuple[Mapping[str, Any], ...]
+    current_state: str
+    dispatch: Mapping[str, Any] | None = None
+    raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> "LifecycleTrail":
+        return cls(
+            proposal_id=str(payload["proposal_id"]),
+            events=tuple(_frozen(e) or MappingProxyType({})
+                         for e in payload.get("events", ())),
+            current_state=str(payload.get("current_state", "")),
+            dispatch=_frozen(payload.get("dispatch")),
+            raw=_frozen(payload) or MappingProxyType({}),
+        )
 
 @dataclass(frozen=True)
 class AuditVerification:

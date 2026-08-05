@@ -27,7 +27,7 @@ pip install "remora[api,sdk]"    # + in-process server for the offline demo
 
 | Aspect | Guarantee |
 |---|---|
-| Surface | The 26 symbols in `artifacts/sdk/public_api_v1.json` — nothing else |
+| Surface | The 28 symbols in `artifacts/sdk/public_api_v1.json` — nothing else |
 | Gate | `tests/test_sdk_public_api.py` fails CI on any unreviewed symbol change |
 | Pre-1.0 semantics | Breaking changes are allowed in minor versions, always CHANGELOG-recorded; removals require a deliberate, reviewed snapshot update |
 | Additions | New symbols/fields arrive additively; `raw` on result models retains the full response body for forward compatibility |
@@ -108,13 +108,36 @@ typed refusal when the agent credential tries to approve its own call,
 governed execution, audit-chain verification — against the real ASGI app
 in-process.
 
+## Reading a proposal back
+
+Acting on a decision is half the contract; reviewing what happened is the
+other half.
+
+```python
+view = client.get_proposal(proposal_id)      # decision + current state
+trail = client.get_lifecycle(proposal_id)    # ordered event trail
+bundle = client.export_evidence(proposal_id) # sections + hashed manifest
+```
+
+All three are **projections** over the stores of record (audit chain and
+outbox), never a fourth store, so they cannot disagree with what actually
+happened. `current_state` is derived for the same reason. They are
+tenant-scoped: another tenant's proposal is a 404, not a redacted 200.
+
+`export_evidence` returns the raw mapping on purpose — the manifest hashes
+each section over its exact JSON, so re-shaping into typed models would
+break independent verification. The manifest makes editing **evident**,
+not impossible: a party who rewrites bundle *and* manifest produces a
+self-consistent forgery, which is why the audit chain's own verification
+travels inside the bundle rather than being replaced by it.
+
 ## Public surface
 
 | Group | Symbols |
 |---|---|
-| Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `reject`, `execute`, `execute_accepted`, `verify_audit_chain`, context managers |
+| Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `reject`, `execute`, `execute_accepted`, `get_proposal`, `get_lifecycle`, `export_evidence`, `verify_audit_chain`, context managers |
 | Request models | `ToolCall`, `DerivationProposal` (a proposed derivation receipt for a derived argument value — verified server-side by deterministic re-execution, never by explanation) |
-| Result models | `AssessmentResult`, `ApprovalResult`, `RejectionResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef`, `ResolutionPlan` |
+| Result models | `AssessmentResult`, `ApprovalResult`, `RejectionResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef`, `ResolutionPlan`, `ProposalView`, `LifecycleTrail` |
 | Decisions | `DecisionAction` (canonical policy enum) |
 | Errors | `RemoraError` + typed subclasses (below), including the execution refusals `BindingRefusedError`, `ReplayRefusedError`, `ApprovalExpiredError` and `UnknownExecutionStateError` |
 

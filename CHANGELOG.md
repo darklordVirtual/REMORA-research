@@ -27,6 +27,31 @@ releases.
 
 ## [Unreleased]
 
+### Reading a proposal back: lifecycle APIs and evidence export (AAE §12/§16) (2026-08-05)
+
+- One `proposal_id` already followed a call from assessment to effect, but
+  nothing could read it back — an integrator could act and not review, and
+  an auditor had no way to get a proposal's record out. Three endpoints
+  close that: `GET /v1/execution/proposals/{id}`, `.../lifecycle` and
+  `.../evidence`.
+- All three are **projections** over the stores of record (tenant audit
+  chain + outbox), never a fourth store, and `current_state` is derived
+  rather than stored — a stored copy could drift from the records it
+  claims to describe. Tenant scoping is a 404, not a redacted 200.
+- The evidence bundle carries a manifest that SHA-256 hashes every section
+  it lists, and a test verifies the hashes actually cover the content — a
+  manifest whose digests do not match the payload proves nothing. Stated
+  in the docstring: this is tamper-**evidence**, not tamper-proofing; a
+  party rewriting both bundle and manifest produces a self-consistent
+  forgery, which is why the chain's own verification travels inside the
+  bundle rather than replacing it.
+- SDK: `ProposalView`, `LifecycleTrail`, and `get_proposal` /
+  `get_lifecycle` / `export_evidence` on both clients. `export_evidence`
+  returns the raw mapping deliberately, so independent hash verification
+  still works. Snapshot 26 → 28 symbols.
+- 9 new tests; OpenAPI and TS client regenerated.
+
+
 ### VERIFY says what would resolve it, and a review can be rejected (AAE §5/§12) (2026-08-05)
 
 - Every VERIFY/ESCALATE assessment now carries a machine-readable
