@@ -27,6 +27,17 @@ releases.
 
 ## [Unreleased]
 
+### Review-queue TTL→ABSTAIN is now reachable in the served API (2026-08-05)
+
+- `ReviewQueue.expire_due()` existed and was tested, but nothing in
+  `servers/execution_api.py` ever called it: an overdue PENDING item that no
+  one touched stayed PENDING indefinitely, while the assurance docs claimed
+  unattended items expire. Every queue interaction (assess enqueue, approve,
+  execute) now sweeps overdue items to `EXPIRED_TO_ABSTAIN` first, inside
+  the durable transaction. Docs restated precisely: a fully idle queue
+  expires on its next touch; wall-clock idle expiry requires scheduling
+  `expire_due()`.
+
 ### Contract honesty: EffectBlock relabeled, config gap closed (2026-08-05)
 
 - `EffectBlock` on the canonical DecisionEnvelope was documented as

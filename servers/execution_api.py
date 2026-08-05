@@ -800,6 +800,12 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         response["execution_token"] = token.to_dict()
     else:
         with db_transaction_state(tenant) as q:
+            # REM-032 lazy sweep: every queue interaction first resolves
+            # overdue PENDING items to ABSTAIN (with their events), so an
+            # unattended item cannot outlive its TTL past the tenant's next
+            # touch. Idle-queue wall-clock expiry needs a scheduled
+            # expire_due() — documented in the quickstart.
+            q.expire_due()
             item = q.enqueue(obs, report.action) if report.action in (
                 DecisionAction.VERIFY, DecisionAction.ESCALATE
             ) else None
@@ -884,6 +890,9 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
         # discarded when the next transaction reloaded the queue from the
         # database — approve->execute was broken in Postgres/SQLite mode.
         with db_transaction_state(tenant) as q:
+            # REM-032 lazy sweep (see assess); an expired target then fails
+            # q.approve with "not pending", surfaced as 409.
+            q.expire_due()
             approval = q.approve(
                 req.item_id, approver=principal,
                 approval_ttl=timedelta(seconds=req.approval_ttl_seconds),
@@ -944,6 +953,9 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         with db_transaction_state(tenant) as q:
             if _ITEM_TENANT.get(req.item_id) != tenant:
                 raise HTTPException(status_code=404, detail="review item not found")
+            # REM-032 lazy sweep (see assess): overdue PENDING items resolve
+            # to ABSTAIN before any execution is considered.
+            q.expire_due()
             outcome = q.execute(req.item_id, fresh_obs)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc

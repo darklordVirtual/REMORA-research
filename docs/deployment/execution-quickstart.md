@@ -122,7 +122,9 @@ python scripts/verify_envelope_chain.py --store-db <path>   # offline, no server
 
 A replayed token must come back `token_already_consumed`; a crash mid-dispatch
 must leave an authorization row with no result row, never a side effect with
-no record.
+no record. Overdue review items sweep to ABSTAIN on every queue interaction;
+a deployment whose queues can sit fully idle past the review TTL should
+schedule `ReviewQueue.expire_due()` for wall-clock expiry.
 
 The complete production-mode stack — API, Postgres and operator console with
 a 15-case OT battery and an immutable evidence archive — ships as one command:

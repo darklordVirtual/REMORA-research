@@ -26,7 +26,7 @@ These are real, tested controls — the substrate this design builds on.
 | Capability | Behaviour | Path |
 |---|---|---|
 | Enqueue gating | Only VERIFY/ESCALATE enqueue; ACCEPT executes, ABSTAIN never executes | `remora/governance/review_queue.py` |
-| Fail-closed timeout | Unattended items expire to ABSTAIN with a recorded `review_expired_to_abstain` event (default 4h) | `remora/governance/review_queue.py` |
+| Fail-closed timeout | Overdue items expire to ABSTAIN with a recorded `review_expired_to_abstain` event (default 4h). Expiry is evaluated on every queue interaction for the tenant (assess/approve/execute); a fully idle queue expires on its next touch — wall-clock expiry for idle queues requires scheduling `expire_due()` | `remora/governance/review_queue.py`, swept in `servers/execution_api.py` |
 | Approval freshness | Approvals carry mandatory bounded expiry (0 < ttl ≤ 24h); `execute()` re-gates on fresh world state and voids an approval that no longer dominates | `remora/governance/review_queue.py` |
 | Action binding | Approval bound to the exact `tool_call_hash`; mismatch is refused | `remora/governance/review_queue.py`, `servers/execution_api.py` |
 | Role reservation | Per-profile `approval_role` (domain_expert / senior_authority / soc_analyst / legal_counsel) enforced from the authenticated credential | `servers/execution_api.py`, `schemas/risk-profiles.yaml`, `servers/api.py` |
