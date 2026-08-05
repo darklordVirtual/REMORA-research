@@ -27,6 +27,16 @@ releases.
 
 ## [Unreleased]
 
+### Policy layer: honest field status, unreachable reason removed (2026-08-05)
+
+- Four `PolicyObservation` fields (`majority_support`,
+  `rho_response_agreement`, `conformal_score`, `gainability_score`) are
+  marked offline-analysis-only in the schema: always `None` from the live
+  producer, read by no live decision path. `DecisionReason.CONFORMAL_VERIFY`
+  removed — both conformal branches only ever emit ACCEPT or ABSTAIN, and a
+  reason that cannot occur is contract noise. These edits move
+  `policy_bundle_hash` (policy source files), by design.
+
 ### Library envelopes carry the measured policy identity (2026-08-05)
 
 - `remora.assess_tool_call`'s envelope — documented as the canonical
