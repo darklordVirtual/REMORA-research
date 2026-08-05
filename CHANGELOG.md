@@ -27,6 +27,25 @@ releases.
 
 ## [Unreleased]
 
+### FT-03: the ToolSpec identity is bound into the execution lease (2026-08-05)
+
+- `ExecutionLease` now carries and **signs** `toolspec_hash` and
+  `toolspec_version`, and `verify()` refuses a mismatch of either. A
+  signed spec that nothing binds is a document, not a control: without
+  this, a redeployed spec could be substituted between approval and
+  dispatch and every upstream check would be decoration.
+- **An absent binding is not a wildcard.** A lease issued before spec
+  binding existed must not verify against a spec-bearing check —
+  otherwise upgrading the check would silently amnesty every old lease.
+  Pinned by test.
+- The fields are inside the signature preimage, not alongside it; binding
+  a field the signature does not cover would leave it editable, which is
+  the opposite of the point.
+- Found by the existing suite: `from_dict`'s fail-closed field allowlist
+  rejected the new keys, exactly as designed. Updated deliberately rather
+  than loosened.
+
+
 ### FT-03 PR 2: signed ToolSpec runtime (2026-08-05)
 
 - `remora/toolcall/toolspec.py` implements the frozen contract. Every
