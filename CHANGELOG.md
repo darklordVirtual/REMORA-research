@@ -27,6 +27,19 @@ releases.
 
 ## [Unreleased]
 
+### FT-01 slice 1: proposal_id threads the execution lifecycle (2026-08-05)
+
+- Per the merged lifecycle design (PR #135) and the maintainer's contract
+  decisions: `/v1/execution/assess` mints one canonical `proposal_id`,
+  carried on the observation (surviving the durable review queue), returned
+  in every response, stamped on every tenant-chain record (assessed,
+  approved, execution_authorized, execution_result and refusal events), and
+  set as the execution grant's `request_id`. Additive only: pre-lifecycle
+  items report `proposal_id: null`. An external reviewer can now start from
+  a proposal_id and follow the action across records without out-of-band
+  reconstruction — envelope adoption, outbox states and effect verification
+  are the next slices.
+
 ### Property-based invariant testing of the PEP one-time-grant contract (2026-08-05)
 
 - Proof-depth slice 4 (`tests/test_gate_replay_properties.py`): a consumed
