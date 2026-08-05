@@ -27,6 +27,22 @@ releases.
 
 ## [Unreleased]
 
+### Fasttrack definition-of-done enforced machinally in the register (2026-08-05)
+
+- Maintainer review 2026-08-05: a fasttrack slice counts as delivered only
+  when ten reusability criteria hold (single module/responsibility, no
+  duplicated abstraction, documented public API, unit+integration tests,
+  negative/failure paths, ADR on contract change, OpenAPI/schema updates,
+  runnable external example, stability classification, clean-install wheel
+  test). `docs/assurance/fasttrack_register_v1.yaml` now declares the
+  criteria (`definition_of_done`, `dod_enforced_from`), and the new
+  `tests/test_fasttrack_register.py` fails CI if an item is flipped to DONE
+  without a per-criterion `dod:` evidence mapping (pre-enforcement gate0
+  closures are explicitly grandfathered). The review's structural goal — a
+  small stable SDK surface (`remora.core_api` et al.) separated from
+  experimental/research namespaces — is tracked as FT-13 rather than left
+  as prose.
+
 ### FT-01/02: lifecycle state machine as a committed model (2026-08-05)
 
 - `schemas/execution_lifecycle_v1.yaml` declares the canonical
