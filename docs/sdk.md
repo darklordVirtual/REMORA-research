@@ -27,7 +27,7 @@ pip install "remora[api,sdk]"    # + in-process server for the offline demo
 
 | Aspect | Guarantee |
 |---|---|
-| Surface | The 20 symbols in `artifacts/sdk/public_api_v1.json` — nothing else |
+| Surface | The 24 symbols in `artifacts/sdk/public_api_v1.json` — nothing else |
 | Gate | `tests/test_sdk_public_api.py` fails CI on any unreviewed symbol change |
 | Pre-1.0 semantics | Breaking changes are allowed in minor versions, always CHANGELOG-recorded; removals require a deliberate, reviewed snapshot update |
 | Additions | New symbols/fields arrive additively; `raw` on result models retains the full response body for forward compatibility |
@@ -60,12 +60,22 @@ neither. Client-declared trust signals (`schema_valid`,
 `rollback_available`) can only lower trust, never raise it — with no
 server-side evidence even a low-risk read lands on ABSTAIN.
 
-**Lifecycle coverage (honest boundary):** the SDK's `execute()` covers
-the review path only (VERIFY → approve → execute). The ACCEPT token has
-**no REST redemption endpoint** — it is consumed by a deployment-side
-PEP (`remora.enforcement`), not by this client. A governed REST dispatch
-path for direct-ACCEPT proposals is tracked as issue #36 / FT-01; until
-it ships, this SDK is not a complete client for the ACCEPT lifecycle.
+**Lifecycle coverage.** Both branches are redeemable from this client
+(issue #36, closed 2026-08-05):
+
+```python
+if result.action is DecisionAction.ACCEPT:
+    client.execute_accepted(result.execution_token, call)   # same call!
+elif result.action is DecisionAction.VERIFY:
+    client.execute(result.review_item_id, call)             # after approval
+```
+
+`execute_accepted` re-presents the full payload so the server can verify
+the token's binding. A different payload raises `BindingRefusedError`
+**without** burning the grant; a second redemption raises
+`ReplayRefusedError`; an expired token raises `ApprovalExpiredError`. A
+deployment-side PEP consuming the token out-of-band remains supported —
+the REST path is an addition, not a replacement.
 
 Runnable end-to-end version, offline, zero configuration:
 
@@ -82,11 +92,11 @@ in-process.
 
 | Group | Symbols |
 |---|---|
-| Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `execute`, `verify_audit_chain`, context managers |
+| Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `execute`, `execute_accepted`, `verify_audit_chain`, context managers |
 | Request models | `ToolCall`, `DerivationProposal` (a proposed derivation receipt for a derived argument value — verified server-side by deterministic re-execution, never by explanation) |
 | Result models | `AssessmentResult`, `ApprovalResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef` |
 | Decisions | `DecisionAction` (canonical policy enum) |
-| Errors | `RemoraError` + typed subclasses (below) |
+| Errors | `RemoraError` + typed subclasses (below), including the execution refusals `BindingRefusedError`, `ReplayRefusedError`, `ApprovalExpiredError` and `UnknownExecutionStateError` |
 
 ## Error taxonomy
 
@@ -104,6 +114,10 @@ never on detail strings.
 | `ServerError` | `server_error` | 5xx (`request_id` for correlation) |
 | `RemoraUnavailableError` | `unavailable` | transport failure |
 | `RemoraError` | `remora_error` | base class / unmapped status |
+| `BindingRefusedError` | `binding_refused` | 409 — the presented call is not the one authorized |
+| `ReplayRefusedError` | `replay_refused` | 409 — the grant was already consumed (the effect may have happened) |
+| `ApprovalExpiredError` | `approval_expired` | 409 — approval or token past its TTL |
+| `UnknownExecutionStateError` | `unknown_execution_state` | the outcome is undeterminable; deliberately **not** retryable |
 
 ## Not part of the stable surface
 

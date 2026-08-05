@@ -405,6 +405,25 @@
         "title": "EvidenceRequest",
         "type": "object"
       },
+      "ExecuteAcceptedRequest": {
+        "description": "Redeem an ACCEPT execution token (issue #36).\n\nThe token IS the authorization: it was bound to the exact tool call at\nassess time, so no review item exists or is needed. The full payload is\nre-presented so the server can verify that binding rather than trust\nthe caller's word about what was approved.",
+        "properties": {
+          "execution_token": {
+            "additionalProperties": true,
+            "title": "Execution Token",
+            "type": "object"
+          },
+          "tool_call": {
+            "$ref": "#/components/schemas/ToolCallRequest"
+          }
+        },
+        "required": [
+          "execution_token",
+          "tool_call"
+        ],
+        "title": "ExecuteAcceptedRequest",
+        "type": "object"
+      },
       "ExecuteRequest": {
         "description": "Execute an approved item — the FULL payload is re-presented and the\nfresh world state re-gated; the grant is single-use.",
         "properties": {
@@ -1788,6 +1807,81 @@
           }
         },
         "summary": "Execute",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/execute-accepted": {
+      "post": {
+        "description": "Execute a directly-ACCEPTed proposal under its single-use token.\n\nThe governed dispatch path for ACCEPT, closing the gap where an ACCEPT\ndecision produced a token no endpoint could redeem. Every guarantee the\nreview path enforces applies here too, in this order:\n\n1. the payload is re-hashed and must match the token's binding — a\n   mutated call is a different act and is refused before anything runs;\n2. the grant is consumed exactly once, so a replayed token cannot\n   dispatch twice;\n3. a dispatch intent is recorded before the side effect and settled\n   after it (FT-02), so a crash leaves a durable record;\n4. dispatch goes through the same GovernedToolDispatcher under a lease\n   bound to the current policy bundle — the caller never holds the\n   credentials.\n\nWhat it deliberately does NOT do: re-run the decision engine. The token\nis a short-lived, exactly-bound authorization; re-deciding here would\nmake the token meaningless and reintroduce the assess/execute drift the\nbinding exists to prevent. Freshness is the token's TTL.",
+        "operationId": "execute_accepted_v1_execution_execute_accepted_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteAcceptedRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionExecuteResponse",
+                  "additionalProperties": true,
+                  "title": "Response Execute Accepted V1 Execution Execute Accepted Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Outcome of governed dispatch under an ACCEPT token."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Token refused: replayed/consumed, payload binding mismatch, expired, wrong audience, or not an ACCEPT."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Execute Accepted",
         "tags": [
           "execution"
         ]

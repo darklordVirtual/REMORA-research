@@ -15,7 +15,7 @@ Requires the ``sdk`` extra (``pip install "remora[sdk]"``) for httpx.
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Mapping
 
 try:
     import httpx
@@ -25,14 +25,17 @@ except ImportError as exc:  # pragma: no cover - exercised only without extra
     ) from exc
 
 from remora.sdk.errors import (
+    ApprovalExpiredError,
     AuthenticationError,
     AuthorizationError,
+    BindingRefusedError,
     ConflictError,
     InvalidRequestError,
     NotFoundError,
     RateLimitedError,
     RemoraError,
     RemoraUnavailableError,
+    ReplayRefusedError,
     ServerError,
 )
 from remora.sdk.models import (
@@ -163,6 +166,28 @@ class RemoraClient:
         })
         return ExecutionResult.from_payload(payload)
 
+    def execute_accepted(
+        self, execution_token: Mapping[str, Any], tool_call: ToolCall
+    ) -> ExecutionResult:
+        """Redeem an ACCEPT token and dispatch the call it authorizes.
+
+        The direct-ACCEPT counterpart of :meth:`execute`: no review item is
+        involved, because the token itself is the authorization. Pass the
+        ``execution_token`` from :class:`AssessmentResult` together with the
+        SAME ``tool_call`` that was assessed — the server re-hashes the
+        payload and refuses a mismatch (:class:`BindingRefusedError`)
+        before anything runs.
+
+        Raises :class:`ReplayRefusedError` if the grant was already
+        consumed, :class:`ApprovalExpiredError` if the token is past its
+        TTL, and :class:`BindingRefusedError` on payload drift.
+        """
+        payload = self._request("POST", "/v1/execution/execute-accepted", json={
+            "execution_token": dict(execution_token),
+            "tool_call": tool_call.to_payload(),
+        })
+        return ExecutionResult.from_payload(payload)
+
     def verify_audit_chain(self) -> AuditVerification:
         """Verify the authenticated tenant's audit chain end to end."""
         payload = self._request("GET", "/v1/execution/audit/verify")
@@ -212,5 +237,16 @@ def error_for_response(response: "httpx.Response") -> RemoraError:
         return RateLimitedError(detail, retry_after=retry_after)
     if response.status_code >= 500:
         return ServerError(detail, request_id=body.get("correlation_id"))
+    if response.status_code == 409:
+        # The server says 409 for every "authorization cannot be honoured";
+        # the detail names WHICH one, and integrators must not have to
+        # parse prose to tell a replay from a payload mismatch.
+        lowered = detail.lower()
+        if "binding refused" in lowered:
+            return BindingRefusedError(detail)
+        if "consumed" in lowered or "replay" in lowered:
+            return ReplayRefusedError(detail)
+        if "expired" in lowered or "too old" in lowered:
+            return ApprovalExpiredError(detail)
     exc_type = _STATUS_ERRORS.get(response.status_code, RemoraError)
     return exc_type(detail)

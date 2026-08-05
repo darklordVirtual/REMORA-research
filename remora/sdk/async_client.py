@@ -14,7 +14,7 @@ Requires the ``sdk`` extra (``pip install "remora[sdk]"``) for httpx.
 """
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Mapping
 
 try:
     import httpx
@@ -114,6 +114,18 @@ class AsyncRemoraClient:
             "item_id": review_item_id,
             "tool_call": tool_call.to_payload(),
         })
+        return ExecutionResult.from_payload(payload)
+
+    async def execute_accepted(
+        self, execution_token: Mapping[str, Any], tool_call: ToolCall
+    ) -> ExecutionResult:
+        """Async :meth:`RemoraClient.execute_accepted`; same refusals."""
+        payload = await self._request(
+            "POST", "/v1/execution/execute-accepted", json={
+                "execution_token": dict(execution_token),
+                "tool_call": tool_call.to_payload(),
+            },
+        )
         return ExecutionResult.from_payload(payload)
 
     async def verify_audit_chain(self) -> AuditVerification:

@@ -304,3 +304,62 @@ def test_result_mappings_refuse_mutation() -> None:
         result.raw["decision"] = "accept"
     with pytest.raises(TypeError):
         result.execution_token["jti"] = "forged"
+
+
+# ── ACCEPT execution contract (AAE §12 / issue #36) ────────────────────────
+
+def test_execute_accepted_sends_token_and_call() -> None:
+    seen: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["path"] = request.url.path
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={
+            "proposal_id": "p-1", "outcome": "execute", "detail": "ok",
+            "audit": {"sequence_no": 1, "entry_hash": "e" * 64},
+            "tool_execution": {"executed": True},
+        })
+
+    with _client_for(handler) as client:
+        result = client.execute_accepted({"jti": "j-1"}, CALL)
+
+    assert seen["path"] == "/v1/execution/execute-accepted"
+    assert seen["body"]["execution_token"] == {"jti": "j-1"}
+    assert seen["body"]["tool_call"]["tool_name"] == "read_telemetry"
+    assert result.outcome == "execute"
+
+
+def test_execution_refusals_map_to_distinct_typed_errors() -> None:
+    """409 covers several refusals; integrators must not parse prose."""
+    from remora.sdk import (
+        ApprovalExpiredError,
+        BindingRefusedError,
+        ConflictError,
+        ReplayRefusedError,
+    )
+
+    cases = [
+        ("binding refused: the presented tool call does not match",
+         BindingRefusedError, "binding_refused"),
+        ("execution grant refused: token_already_consumed",
+         ReplayRefusedError, "replay_refused"),
+        ("execution grant refused: token expired",
+         ApprovalExpiredError, "approval_expired"),
+    ]
+    for detail, expected, code in cases:
+        def handler(request: httpx.Request, _d=detail) -> httpx.Response:
+            return httpx.Response(409, json={"detail": _d})
+
+        with _client_for(handler) as client:
+            with pytest.raises(expected) as exc:
+                client.execute_accepted({"jti": "j"}, CALL)
+        assert exc.value.code == code
+        # Still a ConflictError, so existing handlers keep working.
+        assert isinstance(exc.value, ConflictError)
+
+
+def test_unknown_execution_state_is_not_retryable() -> None:
+    """Re-running a call that may have taken effect is the forbidden move."""
+    from remora.sdk import UnknownExecutionStateError
+
+    assert UnknownExecutionStateError("x").retryable is False

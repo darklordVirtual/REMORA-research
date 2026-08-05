@@ -167,13 +167,12 @@ class AssessmentResult:
     item); ABSTAIN carries neither. ``raw`` retains the full response
     body for forward compatibility with additive server fields.
 
-    CONTRACT BOUNDARY (review 2026-08-05): the REST API currently has NO
-    token-redemption endpoint — the ACCEPT token is consumed by a
-    deployment-side PEP (``remora.enforcement``), not by this client, and
-    the SDK's ``execute()`` covers only the review path
-    (VERIFY → approve → execute). A governed REST dispatch path for
-    direct-ACCEPT proposals is tracked as issue #36 / FT-01; until it
-    ships, this SDK is NOT a complete client for the ACCEPT lifecycle.
+    Both lifecycle branches are now redeemable from this client
+    (issue #36, closed 2026-08-05): pass ``execution_token`` to
+    :meth:`RemoraClient.execute_accepted` for a direct ACCEPT, or take
+    ``review_item_id`` through approve → :meth:`RemoraClient.execute`.
+    A deployment-side PEP consuming the token out-of-band remains
+    supported; the REST path is an addition, not a replacement.
     """
 
     proposal_id: str

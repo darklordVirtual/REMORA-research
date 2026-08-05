@@ -268,6 +268,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/execute-accepted": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Execute Accepted
+         * @description Execute a directly-ACCEPTed proposal under its single-use token.
+         *
+         *     The governed dispatch path for ACCEPT, closing the gap where an ACCEPT
+         *     decision produced a token no endpoint could redeem. Every guarantee the
+         *     review path enforces applies here too, in this order:
+         *
+         *     1. the payload is re-hashed and must match the token's binding — a
+         *        mutated call is a different act and is refused before anything runs;
+         *     2. the grant is consumed exactly once, so a replayed token cannot
+         *        dispatch twice;
+         *     3. a dispatch intent is recorded before the side effect and settled
+         *        after it (FT-02), so a crash leaves a durable record;
+         *     4. dispatch goes through the same GovernedToolDispatcher under a lease
+         *        bound to the current policy bundle — the caller never holds the
+         *        credentials.
+         *
+         *     What it deliberately does NOT do: re-run the decision engine. The token
+         *     is a short-lived, exactly-bound authorization; re-deciding here would
+         *     make the token meaningless and reintroduce the assess/execute drift the
+         *     binding exists to prevent. Freshness is the token's TTL.
+         */
+        post: operations["execute_accepted_v1_execution_execute_accepted_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/follow-up": {
         parameters: {
             query?: never;
@@ -543,6 +582,22 @@ export interface components {
              * @description Client-declared annotation only, stored as unverified metadata; the audited actor is always the authenticated principal.
              */
             submitted_by?: string | null;
+        };
+        /**
+         * ExecuteAcceptedRequest
+         * @description Redeem an ACCEPT execution token (issue #36).
+         *
+         *     The token IS the authorization: it was bound to the exact tool call at
+         *     assess time, so no review item exists or is needed. The full payload is
+         *     re-presented so the server can verify that binding rather than trust
+         *     the caller's word about what was approved.
+         */
+        ExecuteAcceptedRequest: {
+            /** Execution Token */
+            execution_token: {
+                [key: string]: unknown;
+            };
+            tool_call: components["schemas"]["ToolCallRequest"];
         };
         /**
          * ExecuteRequest
@@ -1300,6 +1355,66 @@ export interface operations {
                 };
             };
             /** @description Item not in an executable state. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    execute_accepted_v1_execution_execute_accepted_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExecuteAcceptedRequest"];
+            };
+        };
+        responses: {
+            /** @description Outcome of governed dispatch under an ACCEPT token. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutionExecuteResponse"];
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Token refused: replayed/consumed, payload binding mismatch, expired, wrong audience, or not an ACCEPT. */
             409: {
                 headers: {
                     [name: string]: unknown;

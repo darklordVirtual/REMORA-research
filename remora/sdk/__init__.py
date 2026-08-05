@@ -29,15 +29,19 @@ Typical use::
 from __future__ import annotations
 
 from remora.sdk.errors import (
+    ApprovalExpiredError,
     AuthenticationError,
     AuthorizationError,
+    BindingRefusedError,
     ConflictError,
     InvalidRequestError,
     NotFoundError,
     RateLimitedError,
     RemoraError,
     RemoraUnavailableError,
+    ReplayRefusedError,
     ServerError,
+    UnknownExecutionStateError,
 )
 from remora.sdk.models import (
     ApprovalResult,
@@ -52,6 +56,7 @@ from remora.sdk.models import (
 )
 
 __all__ = [
+    "ApprovalExpiredError",
     "ApprovalResult",
     "AssessmentResult",
     "AsyncRemoraClient",
@@ -59,6 +64,7 @@ __all__ = [
     "AuditVerification",
     "AuthenticationError",
     "AuthorizationError",
+    "BindingRefusedError",
     "ConflictError",
     "DecisionAction",
     "DerivationProposal",
@@ -69,9 +75,11 @@ __all__ = [
     "RemoraClient",
     "RemoraError",
     "RemoraUnavailableError",
+    "ReplayRefusedError",
     "SemanticAssessment",
     "ServerError",
     "ToolCall",
+    "UnknownExecutionStateError",
 ]
 
 
