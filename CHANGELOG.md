@@ -27,6 +27,21 @@ releases.
 
 ## [Unreleased]
 
+### Register truth-sync: FT-01 and FT-02 are IN_PROGRESS, not DESIGN_IN_REVIEW (2026-08-05)
+
+- Both still read `DESIGN_IN_REVIEW` while substantial implementation had
+  landed. Set to `IN_PROGRESS` with what shipped (per PR) and the DoD
+  criteria still missing — documented public API page, runnable external
+  example, stability classification, clean-install wheel coverage — so
+  neither can be mistaken for delivered.
+- Scope limits recorded rather than glossed: FT-01 still lacks the
+  governed REST dispatch path for direct-ACCEPT proposals (#36) and
+  EffectBlock population (#37); FT-02's reconciliation is a lazy sweep
+  plus a callable operation, **not** a running daemon, its design-doc
+  fault-injection matrix has not been executed as an artifact-producing
+  round, and REM-025's in-process NonceLedger is untouched by this work.
+
+
 ### FT-02 slice 5: stale dispatch intents are reconciled (2026-08-05)
 
 - A row stuck in `DISPATCHING` (worker claimed it, never reported back)

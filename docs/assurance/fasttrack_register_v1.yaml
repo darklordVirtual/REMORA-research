@@ -69,17 +69,45 @@ items:
   title: Unified proposal-to-effect lifecycle
   priority: p0
   consolidates: ['#36', '#37', '#45(core)']
-  status: DESIGN_IN_REVIEW
+  status: IN_PROGRESS
   notes: >-
-    Design draft in docs/design/execution-lifecycle-outbox-v1.md (PR 135)
-    with contract-touching choices as open decisions. Implementation
-    starts only after maintainer approves the direction.
+    Design approved by the maintainer (PR 135). SHIPPED: proposal_id minted
+    once at assess and carried through assess/approve/execute records,
+    responses and tokens (slices 1-2); schemas/execution_lifecycle_v1.yaml
+    as the declared machine; remora/governance/lifecycle.py loading it as a
+    RUNTIME authority (LifecycleModel + LifecycleTracker, Hypothesis
+    searched-validation over the declared event domain, PR 183); and
+    /v1/execution validating its own transitions against that model, where
+    an undeclared move is a loud 500 rather than silent drift (PR 184).
+    NOT DONE — missing DoD criteria: documented public API page for the
+    lifecycle module, runnable external example, stability classification,
+    clean-install wheel coverage. Also still open in scope: the governed
+    REST dispatch path for direct-ACCEPT proposals (#36) and
+    DecisionEnvelope EffectBlock population (#37), which is why the SDK
+    documents an ACCEPT-lifecycle boundary rather than claiming coverage.
 - id: FT-02
   title: Crash-consistent execution with transactional outbox
   priority: p0
   consolidates: ['#82', 'REM-024', 'REM-025']
-  status: DESIGN_IN_REVIEW
-  notes: Same design document as FT-01; fault-injection matrix specified.
+  status: IN_PROGRESS
+  notes: >-
+    Same design document as FT-01; fault-injection matrix specified.
+    SHIPPED: remora/enforcement/outbox.py with the DISPATCH_PENDING ->
+    DISPATCHING -> {SUCCEEDED,FAILED,REFUSED,UNKNOWN} machine, all terminals
+    absorbing and none auto-retrying (PR 185); transactional enlistment so
+    the intent row commits and rolls back WITH the authorization (PR 186);
+    SQLite and Postgres adapters under one contract, the latter verified
+    against a real service (PR 187) and covered by the no-skip CI job
+    (PR 188); the live /v1/execution/execute path recording, claiming and
+    settling intents (PR 189); and reconciliation of stale DISPATCHING rows
+    to UNKNOWN, audit-chain recorded (PR 190).
+    NOT DONE — missing DoD criteria: documented public API page, runnable
+    external example, stability classification, clean-install wheel
+    coverage. Honest scope limits: reconciliation is a lazy sweep on the
+    execution path plus a callable operation, NOT a running daemon (an idle
+    tenant needs a scheduled call); the fault-injection matrix from the
+    design doc has not been executed as an artifact-producing round; and
+    REM-025's in-process NonceLedger is untouched by this work.
 - id: FT-03
   title: One immutable signed ToolSpec
   priority: p0
