@@ -1,24 +1,93 @@
 version: 2
 updates:
   # Python package dependencies (root pyproject.toml / requirements).
+  #
+  # Grouped by RISK CLASS (fasttrack Gate 0.3), not as one universe-bump: a
+  # world-class assurance kernel must be able to attribute a regression to a
+  # concrete change. PR #133 (168 packages in one PR) is the failure mode
+  # this prevents. Anything not matching a group arrives as its own PR.
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 8
     groups:
-      python-dependencies:
+      security-fixes:
+        applies-to: security-updates
         patterns: ["*"]
+      runtime-framework:
+        applies-to: version-updates
+        patterns:
+          - "fastapi"
+          - "starlette"
+          - "uvicorn*"
+          - "pydantic*"
+          - "httpx*"
+          - "psycopg*"
+          - "anyio"
+      ml-stack:
+        applies-to: version-updates
+        patterns:
+          - "torch*"
+          - "transformers*"
+          - "sentence-transformers"
+          - "numpy"
+          - "scipy"
+          - "scikit-learn"
+          - "huggingface*"
+          - "hf-*"
+          - "langchain*"
+          - "langsmith"
+          - "openai"
+          - "groq"
+          - "tokenizers"
+          - "safetensors"
+      dev-tools:
+        applies-to: version-updates
+        patterns:
+          - "pytest*"
+          - "ruff"
+          - "mypy"
+          - "hypothesis"
+          - "coverage*"
+          - "types-*"
+          - "sqlglot"
 
-  # Frontend control-room dependencies.
+  # Frontend dependencies, same risk-class principle.
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 8
     groups:
-      frontend-dependencies:
+      security-fixes:
+        applies-to: security-updates
         patterns: ["*"]
+      ui-libraries:
+        applies-to: version-updates
+        patterns:
+          - "@radix-ui/*"
+          - "react*"
+          - "@tanstack/*"
+          - "tailwind*"
+          - "@tailwindcss/*"
+          - "lucide-react"
+          - "class-variance-authority"
+          - "clsx"
+      build-tools:
+        applies-to: version-updates
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+          - "vitest*"
+          - "@vitest/*"
+          - "typescript*"
+          - "eslint*"
+          - "@eslint/*"
+          - "prettier*"
+          - "wrangler"
+          - "nitro"
+          - "openapi-typescript"
 
   # Keep the SHA-pinned GitHub Actions current (security hardening).
   - package-ecosystem: "github-actions"
