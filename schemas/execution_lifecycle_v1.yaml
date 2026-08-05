@@ -36,13 +36,26 @@ states:
 - SUCCEEDED           # dispatcher-confirmed execution
 - FAILED              # tool raised before any confirmed effect; nonce burned
 - UNKNOWN             # crash/timeout after possible effect; explicitly terminal
+# FT-04 effect states. Added WITH the postcondition contract
+# (schemas/postcondition_contract_v1.yaml), never ahead of it: a
+# declared state no component can reach reads as capability the
+# system does not have.
+- EFFECT_PENDING      # execution succeeded; observation not run yet
+- EFFECT_VERIFIED     # observed state matches the DECLARED DELTA
+- EFFECT_MISMATCH     # object read, and it differs from what was approved
+- EFFECT_UNKNOWN      # object could not be observed; NOT a mismatch
 
 terminal_states:
 - REFUSED
 - EXPIRED_TO_ABSTAIN
-- SUCCEEDED
 - FAILED
 - UNKNOWN
+- EFFECT_VERIFIED
+- EFFECT_MISMATCH
+# SUCCEEDED is no longer terminal: a confirmed dispatch is now followed by
+# the observation. EFFECT_UNKNOWN is deliberately NOT terminal — failing to
+# read a result is not a verdict, and freezing it as one would lose the
+# operator's ability to resolve it later.
 
 transitions:
 - {from: PROPOSED, to: ASSESSED, on: engine_decision}
@@ -64,6 +77,13 @@ transitions:
 - {from: DISPATCHING, to: FAILED, on: tool_raised_pre_effect}
 - {from: DISPATCHING, to: REFUSED, on: lease_or_pep_refusal}
 - {from: DISPATCHING, to: UNKNOWN, on: crash_or_timeout_after_possible_effect}
+- {from: SUCCEEDED, to: EFFECT_PENDING, on: postcondition_declared}
+- {from: SUCCEEDED, to: EFFECT_VERIFIED, on: postcondition_not_declared}
+- {from: EFFECT_PENDING, to: EFFECT_VERIFIED, on: declared_delta_observed}
+- {from: EFFECT_PENDING, to: EFFECT_MISMATCH, on: declared_delta_differs}
+- {from: EFFECT_PENDING, to: EFFECT_UNKNOWN, on: effect_unobservable}
+- {from: EFFECT_UNKNOWN, to: EFFECT_VERIFIED, on: later_observation_succeeded}
+- {from: EFFECT_UNKNOWN, to: EFFECT_MISMATCH, on: later_observation_differs}
 
 # UNKNOWN resolution (v1): a manual operator decision — optionally informed
 # by a deployment-supplied reconciliation probe — produces a NEW resolution

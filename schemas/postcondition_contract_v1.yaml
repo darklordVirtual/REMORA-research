@@ -1,0 +1,136 @@
+# Postcondition verification — frozen v1 contract (FT-04).
+#
+# Handoff gate §2.2/§2.3. Machine-readable so the contract and what runtime
+# produces cannot drift; tests/test_postcondition_contract_v1.py pins every
+# invariant here.
+#
+# The load-bearing decision, from the architect review 2026-08-05:
+#
+#   Verify the DECLARED DELTA against the version YOUR write produced —
+#   never global unchangedness.
+#
+# A system of record has other legitimate writers. Checking that nothing
+# else changed turns every concurrent update into an EFFECT_MISMATCH, the
+# mismatch rate becomes dominated by noise, and operators learn to ignore
+# the signal. A verification nobody trusts is worse than none, because it
+# still costs attention.
+
+schema_version: 1
+status: frozen
+frozen_at: "2026-08-05"
+
+comparison_semantics:
+  mode: declared_delta_against_own_version
+  rationale: >-
+    Concurrent legitimate writes must not be reported as effect mismatches.
+    The contract names the fields the action claimed to change; everything
+    else is out of scope by construction rather than by tolerance tuning.
+  forbidden_mode: global_unchangedness
+  forbidden_rationale: >-
+    Would make EFFECT_MISMATCH a noise channel in any system with more than
+    one writer, which is every system of record worth governing.
+
+# ── What a contract must express ───────────────────────────────────────────
+required_contract_fields:
+  - tool_id                 # which ToolSpec this postcondition belongs to
+  - reader                  # the tool that reads the object back
+  - target_selector         # how to identify the object the action touched
+  - expected_fields         # the declared delta: field -> expected value/rule
+  - comparison_rules        # exact | hash | present | absent | version_increment
+  - observation_deadline_seconds
+  - repeatable              # is re-reading safe? (never re-executes the action)
+  - evidence_fields         # what is stored as evidence of the observation
+  - unobservable_is_not_mismatch   # must be true; see below
+
+invariants:
+  unobservable_is_not_mismatch: true
+  unobservable_rationale: >-
+    Failing to READ a result is not evidence that the wrong thing happened.
+    Collapsing "could not observe" into "mismatch" would manufacture false
+    incidents and, worse, make a genuine mismatch indistinguishable from a
+    network timeout.
+  verification_never_re_executes: true
+  verification_never_re_executes_rationale: >-
+    The verifier reads; it never retries the action. A side effect that may
+    already have happened is the one thing this layer must not repeat.
+
+# ── Verification statuses ──────────────────────────────────────────────────
+# Five, deliberately: collapsing any pair loses a distinction an operator
+# needs in order to choose what to do next.
+statuses:
+  - status: EFFECT_VERIFIED
+    meaning: the observed state matches the declared delta
+    terminal: true
+    operator_action: none
+  - status: EFFECT_MISMATCH
+    meaning: the object was read and does NOT match the declared delta
+    terminal: true
+    operator_action: investigate; compensation may apply
+  - status: EFFECT_UNOBSERVABLE
+    meaning: the object could not be read within the deadline
+    terminal: false
+    operator_action: retry the read, or resolve manually; never assume failure
+  - status: EFFECT_VERIFIER_FAILED
+    meaning: the reader itself errored or returned malformed data
+    terminal: false
+    operator_action: fix the verifier; the effect status stays unknown
+  - status: EFFECT_UNSUPPORTED
+    meaning: this tool declares no postcondition contract
+    terminal: true
+    operator_action: none; recorded so absence is visible, not assumed
+
+# ── Reason codes (public contract, like the ToolSpec ones) ─────────────────
+reason_codes:
+  - code: postcondition_verified
+    meaning: declared delta observed
+  - code: postcondition_field_mismatch
+    meaning: a declared field holds a different value than approved
+  - code: postcondition_object_absent
+    meaning: the target object does not exist after execution
+  - code: postcondition_version_not_advanced
+    meaning: the object exists but its version did not advance as declared
+  - code: postcondition_read_timeout
+    meaning: the reader did not answer within observation_deadline_seconds
+  - code: postcondition_reader_error
+    meaning: the reader raised or returned malformed data
+  - code: postcondition_reader_unauthorized
+    meaning: the verifier lost the access it needs to observe
+  - code: postcondition_not_declared
+    meaning: the ToolSpec declares no postcondition_reader
+
+# ── Lifecycle integration ──────────────────────────────────────────────────
+# States are added ONLY as runtime can produce them (handoff gate §2.5).
+lifecycle:
+  added_states:
+    - EFFECT_PENDING
+    - EFFECT_VERIFIED
+    - EFFECT_MISMATCH
+    - EFFECT_UNKNOWN
+  terminal_states:
+    - EFFECT_VERIFIED
+    - EFFECT_MISMATCH
+  non_terminal_states:
+    - EFFECT_PENDING
+    - EFFECT_UNKNOWN
+  unknown_resolution: >-
+    EFFECT_UNKNOWN resolves by a manual operator decision that produces a
+    NEW record referencing the proposal. It never rewrites the terminal
+    state, for the same reason dispatch UNKNOWN does not: the uncertainty
+    genuinely happened.
+
+# ── Evidence ───────────────────────────────────────────────────────────────
+evidence:
+  hashes_expected_and_observed: true
+  appends_to_audit_chain: true
+  included_in_evidence_export: true
+  never_overwrites_history: true
+  rationale: >-
+    A verification that could edit the record it verifies proves nothing.
+    Expected and observed are both hashed so a later reader can check the
+    comparison rather than trust its verdict.
+
+realization:
+  contract: frozen
+  first_integration: github_issue_creation
+  runtime: not_implemented
+  sdk_surface: not_implemented
