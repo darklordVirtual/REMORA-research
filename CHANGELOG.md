@@ -27,6 +27,25 @@ releases.
 
 ## [Unreleased]
 
+### Advisory path: callers can raise risk, never lower it (2026-08-05)
+
+- NEGATIVE_RESULTS theme 8 (§14/M4), raise-only slice: `assess_tool_call`
+  clamps a declared `risk_tier` that undercuts the deterministic
+  name-heuristic floor up to the floor, and floors a declared read on a
+  write-verb tool to the inferred write family. Every clamp is recorded in
+  the new `ToolCallAssessment.floored` field — silent correction is how
+  the `assign`/`close`/`approve` write bug hid. The floor clamps explicit
+  declarations only; unset fields stay unset and the engine fail-closes as
+  before, so `infer=False` semantics are untouched.
+- The M4 bug verbs (`assign`, `close`, `approve`, plus `set`, `change`,
+  `modify`, `cancel`, `book`, `exchange`; `suspend` → security_change) are
+  now in the name-inference table.
+- Honesty boundary: heuristic floor, not authority — the full fix (signed
+  ToolSpec registry on the advisory path, FT-03) stays open and the
+  NEGATIVE_RESULTS theme stays open on it.
+- 6 new tests (`tests/test_assess_raise_only.py`), TDD RED→GREEN; full
+  suite 4793 passed.
+
 ### DerivationReceipt: derived argument values become machine-verifiable (2026-08-05)
 
 - NEGATIVE_RESULTS theme 3 (§35), mechanism side: new

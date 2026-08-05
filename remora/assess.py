@@ -70,17 +70,28 @@ from remora.policy.report import DecisionReport
 _NAME_INFERENCE: tuple[tuple[tuple[str, ...], str, str], ...] = (
     (("drop", "delete", "remove", "truncate", "destroy", "wipe", "purge"),
      "destructive_write", "critical"),
-    (("disable", "revoke", "unlock", "mfa", "firewall", "permission"),
+    (("disable", "revoke", "unlock", "mfa", "firewall", "permission", "suspend"),
      "security_change", "critical"),
     (("wire", "transfer", "payment", "payout", "refund", "charge"),
      "financial_transaction", "high"),
     (("deploy", "release", "rollout", "restart", "scale", "migrate"),
      "deploy", "medium"),
-    (("send", "publish", "notify", "write", "update", "create", "insert", "upload"),
+    # assign/close/approve: the §14/M4 write bug — verbs that read as
+    # bookkeeping but mutate state. Encoded here so the heuristic floor
+    # covers them; see NEGATIVE_RESULTS.md backlog theme 8.
+    (("send", "publish", "notify", "write", "update", "create", "insert",
+      "upload", "assign", "close", "approve", "set", "change", "modify",
+      "cancel", "book", "exchange"),
      "write", "medium"),
     (("read", "get", "list", "fetch", "query", "search", "view", "describe"),
      "read", "low"),
 )
+
+
+#: Strictness order for the raise-only clamp. Anything outside this map
+#: (typos, custom tiers) is never clamped — the engine's own validation
+#: owns unknown tiers.
+_RISK_ORDER = {"low": 0, "medium": 1, "high": 2, "critical": 3}
 
 
 def infer_risk_and_type(name: str) -> tuple[str | None, str | None]:
@@ -114,6 +125,10 @@ class ToolCallAssessment:
     """The canonical auditable DecisionEnvelope — persist this."""
     inferred: dict[str, str] = field(default_factory=dict)
     """Fields filled by name inference (empty unless ``infer=True`` matched)."""
+    floored: dict[str, str] = field(default_factory=dict)
+    """Declared metadata clamped UP to the heuristic floor (§14/M4,
+    raise-only): key → the floor value that replaced a weaker declaration.
+    Recorded, never silent. Empty when nothing was clamped."""
 
     @property
     def action(self) -> str:
@@ -197,6 +212,27 @@ def assess_tool_call(
             risk_tier = inf_risk
             inferred["risk_tier"] = inf_risk
 
+    # Raise-only clamp (§14/M4, NEGATIVE_RESULTS theme 8): a caller may
+    # RAISE risk above the deterministic name-heuristic floor, never lower
+    # it below. The floor clamps explicit declarations only — unset fields
+    # stay unset (the engine fail-closes on them), so infer=False semantics
+    # are untouched. Every clamp is recorded in ``floored``; a silent
+    # correction is how the assign/close/approve write bug hid.
+    floored: dict[str, str] = {}
+    floor_type, floor_risk = infer_risk_and_type(name)
+    if (
+        risk_tier is not None and floor_risk is not None
+        and risk_tier in _RISK_ORDER
+        and _RISK_ORDER[risk_tier] < _RISK_ORDER[floor_risk]
+    ):
+        risk_tier = floor_risk
+        floored["risk_tier"] = floor_risk
+    if (
+        action_type == "read" and floor_type is not None and floor_type != "read"
+    ):
+        action_type = floor_type
+        floored["action_type"] = floor_type
+
     probe = f"{name} {json.dumps(arguments, sort_keys=True, default=str)}"
     obs = PolicyObservation.from_tool_call(
         name=name,
@@ -214,4 +250,5 @@ def assess_tool_call(
     envelope = build_decision_envelope(obs, decision, question=obs.question)
     return ToolCallAssessment(
         decision=decision, trace=trace, envelope=envelope, inferred=inferred,
+        floored=floored,
     )
