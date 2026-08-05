@@ -31,12 +31,16 @@ reference, for tests and development) and
 for multi-worker deployments is the next slice; until it exists, a
 multi-worker deployment has no durable outbox and must not claim one.
 
-**Realization status:** this module is the store and its state machine.
-Nothing in ``servers/execution_api.py`` writes to it yet — wiring the
-authorize transaction to insert the row, and a worker/reconciler to drive
-it, is FT-02 slice 2. The fasttrack register remains the status
-authority; no crash-consistency property may be claimed for the live
-path until that lands.
+**Realization status:** this module is the store, its state machine, and
+its transactional enlistment path
+(:meth:`SQLiteExecutionOutbox.record_intent_enlisted`, which makes "the
+row is written in the same transaction that authorizes the call" a
+verified property rather than an aspiration). Nothing in
+``servers/execution_api.py`` writes to it yet — that wiring, the dispatch
+worker/reconciler, and the Postgres adapter for multi-worker deployments
+are the remaining FT-02 slices. The fasttrack register remains the status
+authority; no crash-consistency property may be claimed for the live path
+until the wiring lands.
 """
 from __future__ import annotations
 
@@ -198,6 +202,31 @@ class ExecutionOutbox:
             self._rows[row.outbox_id] = row
             self._by_key[(tenant_id, key)] = row.outbox_id
             return row
+
+    def record_intent_enlisted(
+        self,
+        connection: "sqlite3.Connection",
+        *,
+        proposal_id: str,
+        tenant_id: str,
+        item_id: str,
+        tool_name: str,
+        tool_call_hash: str,
+        grant_jti: str,
+        attempt_no: int = 1,
+        now: datetime | None = None,
+    ) -> OutboxRow:
+        """Not available in-process: there is no transaction to join.
+
+        Refusing is the honest answer. Silently ignoring *connection* would
+        let a caller believe the row is atomic with their authorization
+        write when it is not — precisely the false guarantee FT-02 exists
+        to remove.
+        """
+        raise NotImplementedError(
+            "the in-process outbox cannot enlist in a database transaction; "
+            "use SQLiteExecutionOutbox (or configure REMORA_CHAIN_DB)"
+        )
 
     def claim(
         self, outbox_id: str, *, worker_id: str, now: datetime | None = None
@@ -501,3 +530,79 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         if record is None:
             raise KeyError(f"unknown outbox row: {outbox_id}")
         return self._row(record)
+
+    def record_intent_enlisted(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        proposal_id: str,
+        tenant_id: str,
+        item_id: str,
+        tool_name: str,
+        tool_call_hash: str,
+        grant_jti: str,
+        attempt_no: int = 1,
+        now: datetime | None = None,
+    ) -> OutboxRow:
+        """Record the intent INSIDE the caller's open transaction.
+
+        This is what makes "the outbox row is written in the same
+        transaction that authorizes the call" true rather than aspirational:
+        the row commits with the caller's authorization write and is rolled
+        back with it. The caller owns the transaction — this method never
+        commits, never rolls back, and never opens one of its own.
+
+        Requires the connection to address the same database file as this
+        adapter, whose constructor already created the table. Idempotent by
+        ``(tenant_id, idempotency_key)`` exactly like :meth:`record_intent`,
+        including against rows committed earlier by another connection.
+
+        Deliberately issues NO transaction-control statement, not even DDL:
+        ``executescript`` implicitly commits, which would silently end the
+        caller's transaction and turn the atomicity guarantee into a lie
+        while every test still passed. Pinned by the rollback test.
+        """
+        key = idempotency_key(proposal_id, tool_call_hash, attempt_no)
+        found = connection.execute(
+            "SELECT * FROM execution_outbox "
+            "WHERE tenant_id = ? AND idempotency_key = ?",
+            (tenant_id, key),
+        ).fetchone()
+        if found is not None:
+            return self._row_any(found)
+        outbox_id = str(uuid.uuid4())
+        created = _now(now)
+        connection.execute(
+            "INSERT INTO execution_outbox (outbox_id, proposal_id, tenant_id, "
+            "item_id, idempotency_key, tool_name, tool_call_hash, grant_jti, "
+            "state, attempt_no, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            (outbox_id, proposal_id, tenant_id, item_id, key, tool_name,
+             tool_call_hash, grant_jti, OutboxState.DISPATCH_PENDING.value,
+             attempt_no, created.isoformat()),
+        )
+        return OutboxRow(
+            outbox_id=outbox_id,
+            proposal_id=proposal_id,
+            tenant_id=tenant_id,
+            item_id=item_id,
+            idempotency_key=key,
+            tool_name=tool_name,
+            tool_call_hash=tool_call_hash,
+            grant_jti=grant_jti,
+            state=OutboxState.DISPATCH_PENDING,
+            attempt_no=attempt_no,
+            created_at=created,
+        )
+
+    @classmethod
+    def _row_any(cls, record: "sqlite3.Row | tuple") -> OutboxRow:
+        """Parse a row from a caller connection, which may lack row_factory."""
+        if not isinstance(record, sqlite3.Row):
+            columns = (
+                "outbox_id", "proposal_id", "tenant_id", "item_id",
+                "idempotency_key", "tool_name", "tool_call_hash", "grant_jti",
+                "state", "attempt_no", "created_at", "worker_id", "claimed_at",
+                "settled_at", "detail",
+            )
+            record = dict(zip(columns, record))  # type: ignore[assignment]
+        return cls._row(record)  # type: ignore[arg-type]

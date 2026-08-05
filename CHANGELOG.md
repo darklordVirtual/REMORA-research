@@ -27,6 +27,27 @@ releases.
 
 ## [Unreleased]
 
+### FT-02 slice 2: the outbox row enlists in the caller's transaction (2026-08-05)
+
+- `SQLiteExecutionOutbox.record_intent_enlisted(conn, ...)` writes the
+  dispatch intent INSIDE an open caller transaction, making "the outbox
+  row is written in the same transaction that authorizes the call" a
+  verified property instead of an aspiration: a rollback of the
+  authorization removes the row (crash-matrix row 1 — the client may
+  safely re-call), a commit keeps it. Idempotent within the transaction
+  and against rows committed earlier by another connection.
+- The method issues no transaction-control statement at all, deliberately.
+  Found while building: `sqlite3.executescript` implicitly COMMITs, so
+  ensuring DDL on the caller's connection silently ended their
+  transaction while every other test still passed — the atomicity
+  guarantee would have been a lie. Pinned by the rollback test.
+- The in-process store REFUSES enlistment (`NotImplementedError`) rather
+  than ignoring the connection and letting a caller believe a
+  non-existent guarantee.
+- 5 new tests (37 total in the outbox suite). Still not wired into
+  `servers/execution_api.py` — that, the dispatch worker and the
+  Postgres adapter remain the open FT-02 slices.
+
 ### FT-02 slice 1: crash-consistent execution outbox store (2026-08-05)
 
 - New `remora/enforcement/outbox.py` — the durable record of dispatch

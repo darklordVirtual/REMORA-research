@@ -234,3 +234,111 @@ def test_concurrent_claims_have_exactly_one_winner(outbox) -> None:
 
     assert len(winners) == 1, winners
     assert outbox.get(row.outbox_id).worker_id == winners[0]
+
+
+# ── Enlistment: the row lives or dies with the caller's transaction ─────────
+#
+# This is the atomicity property FT-02 needs from the store: "outbox row
+# written in the SAME transaction that authorizes the call" is only true if
+# a rollback of that transaction also removes the row. Proven here at store
+# level, independent of the execution API, so the wiring slice inherits a
+# verified guarantee instead of asserting one.
+
+def test_enlisted_intent_commits_with_the_callers_transaction(tmp_path) -> None:
+    import sqlite3
+
+    path = str(tmp_path / "shared.db")
+    outbox = SQLiteExecutionOutbox(path)
+    conn = sqlite3.connect(path, isolation_level=None)
+    conn.execute("CREATE TABLE IF NOT EXISTS caller_state (k TEXT PRIMARY KEY)")
+
+    conn.execute("BEGIN IMMEDIATE")
+    row = outbox.record_intent_enlisted(
+        conn,
+        proposal_id=PROPOSAL, tenant_id="acme", item_id="item-1",
+        tool_name="store_artifact", tool_call_hash=CALL_HASH,
+        grant_jti="jti-1",
+    )
+    conn.execute("INSERT INTO caller_state (k) VALUES ('authorized')")
+    conn.execute("COMMIT")
+    conn.close()
+
+    assert outbox.get(row.outbox_id).state is OutboxState.DISPATCH_PENDING
+    assert len(outbox.pending("acme")) == 1
+
+
+def test_enlisted_intent_rolls_back_with_the_callers_transaction(tmp_path) -> None:
+    """The load-bearing case: authorization aborts, no dispatch intent
+    survives — the client can safely re-call, exactly crash-matrix row 1."""
+    import sqlite3
+
+    path = str(tmp_path / "shared.db")
+    outbox = SQLiteExecutionOutbox(path)
+    conn = sqlite3.connect(path, isolation_level=None)
+
+    conn.execute("BEGIN IMMEDIATE")
+    row = outbox.record_intent_enlisted(
+        conn,
+        proposal_id=PROPOSAL, tenant_id="acme", item_id="item-1",
+        tool_name="store_artifact", tool_call_hash=CALL_HASH,
+        grant_jti="jti-1",
+    )
+    conn.execute("ROLLBACK")
+    conn.close()
+
+    assert outbox.pending("acme") == []
+    with pytest.raises(KeyError):
+        outbox.get(row.outbox_id)
+
+
+def test_enlisted_intent_is_idempotent_within_the_transaction(tmp_path) -> None:
+    import sqlite3
+
+    path = str(tmp_path / "shared.db")
+    outbox = SQLiteExecutionOutbox(path)
+    conn = sqlite3.connect(path, isolation_level=None)
+
+    conn.execute("BEGIN IMMEDIATE")
+    first = outbox.record_intent_enlisted(
+        conn, proposal_id=PROPOSAL, tenant_id="acme", item_id="item-1",
+        tool_name="store_artifact", tool_call_hash=CALL_HASH, grant_jti="j",
+    )
+    second = outbox.record_intent_enlisted(
+        conn, proposal_id=PROPOSAL, tenant_id="acme", item_id="item-1",
+        tool_name="store_artifact", tool_call_hash=CALL_HASH, grant_jti="j",
+    )
+    conn.execute("COMMIT")
+    conn.close()
+
+    assert second.outbox_id == first.outbox_id
+    assert len(outbox.pending("acme")) == 1
+
+
+def test_enlisted_intent_sees_a_committed_row_from_another_connection(tmp_path) -> None:
+    """A retried authorize on a fresh connection must find the prior row."""
+    import sqlite3
+
+    path = str(tmp_path / "shared.db")
+    outbox = SQLiteExecutionOutbox(path)
+    first = _intent(outbox)
+
+    conn = sqlite3.connect(path, isolation_level=None)
+    conn.execute("BEGIN IMMEDIATE")
+    again = outbox.record_intent_enlisted(
+        conn, proposal_id=PROPOSAL, tenant_id="acme", item_id="item-1",
+        tool_name="store_artifact", tool_call_hash=CALL_HASH, grant_jti="jti-1",
+    )
+    conn.execute("COMMIT")
+    conn.close()
+    assert again.outbox_id == first.outbox_id
+
+
+def test_memory_outbox_refuses_enlistment_rather_than_faking_it() -> None:
+    """The in-process store cannot join a database transaction; saying so
+    is the honest answer, not silently ignoring the connection."""
+    outbox = ExecutionOutbox()
+    with pytest.raises(NotImplementedError):
+        outbox.record_intent_enlisted(
+            object(), proposal_id=PROPOSAL, tenant_id="acme", item_id="i",
+            tool_name="t", tool_call_hash=CALL_HASH, grant_jti="j",
+        )
