@@ -150,9 +150,14 @@ items:
     replacement, scope drift, stale-but-signed, revoked identity, strict
     mode without a bundle, and duplicate ids). Enforcement receives specs
     as DATA, so no new import direction from remora.enforcement.
+    Binding chain landed 2026-08-05: ExecutionLease carries and SIGNS
+    toolspec_hash + toolspec_version, and verify() refuses a mismatch of
+    either. An ABSENT binding is not a wildcard — a lease issued before
+    spec binding must not verify against a spec-bearing check, so
+    upgrading the check cannot silently amnesty old leases (8 tests).
     NOT DONE: wiring the loader into servers/execution_api.py assess and
-    dispatch, binding toolspec_hash into lease and execution token, and
-    the SDK surface (handoff PR 5).
+    dispatch (so a real spec hash flows into the lease), and the SDK
+    surface (handoff PR 5).
 - id: FT-04
   title: Closed-loop postcondition verification (one deep integration)
   priority: p0

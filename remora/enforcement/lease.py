@@ -106,6 +106,12 @@ class ExecutionLease:
     #: Hash identifying the frozen intent-authority source (model version +
     #: prompt + decoding params + cache SHA) active at issue time.
     intent_authority_hash: str = ""
+    #: FT-03 binding chain (handoff gate §1.5): the identity of the signed
+    #: ToolSpec this authorization was granted under. Bound and SIGNED, so a
+    #: redeployed spec cannot be substituted at dispatch — an approval must
+    #: never be reusable with a different ToolSpec.
+    toolspec_hash: str = ""
+    toolspec_version: int = 0
 
     @classmethod
     def issue(
@@ -122,6 +128,8 @@ class ExecutionLease:
         expires_at: str | None = None,
         tool_contract_bundle_hash: str = "",
         intent_authority_hash: str = "",
+        toolspec_hash: str = "",
+        toolspec_version: int = 0,
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -161,6 +169,8 @@ class ExecutionLease:
             "expires_at": expires_at,
             "tool_contract_bundle_hash": tool_contract_bundle_hash,
             "intent_authority_hash": intent_authority_hash,
+            "toolspec_hash": toolspec_hash,
+            "toolspec_version": toolspec_version,
         }
         key = _get_signing_key()
         if key:
@@ -187,6 +197,8 @@ class ExecutionLease:
             "expires_at": self.expires_at,
             "tool_contract_bundle_hash": self.tool_contract_bundle_hash,
             "intent_authority_hash": self.intent_authority_hash,
+            "toolspec_hash": self.toolspec_hash,
+            "toolspec_version": self.toolspec_version,
         }
 
     def verify(
@@ -199,6 +211,8 @@ class ExecutionLease:
         now: str | None = None,
         expected_policy_bundle_hash: str | None = None,
         actor_identity: str | None = None,
+        toolspec_hash: str | None = None,
+        toolspec_version: int | None = None,
     ) -> LeaseVerificationResult:
         """Verify signature, expiry, and the full binding against a concrete call.
 
@@ -254,6 +268,17 @@ class ExecutionLease:
                 return LeaseVerificationResult(False, "actor_identity_mismatch")
         if (target_environment or "") != self.target_environment:
             return LeaseVerificationResult(False, "target_environment_mismatch")
+        # FT-03: the spec at dispatch must be the spec the authorization was
+        # granted under. An absent binding is NOT a wildcard — a lease issued
+        # before spec binding existed must not verify against a spec-bearing
+        # check, or upgrading the check would silently amnesty old leases.
+        if toolspec_hash is not None:
+            if not hmac.compare_digest(
+                (self.toolspec_hash or "").encode(), toolspec_hash.encode()
+            ):
+                return LeaseVerificationResult(False, "toolspec_hash_mismatch")
+        if toolspec_version is not None and toolspec_version != self.toolspec_version:
+            return LeaseVerificationResult(False, "toolspec_version_mismatch")
         recomputed = canonical_tool_call_hash(
             name=tool_name,
             arguments=arguments,
@@ -283,6 +308,7 @@ class ExecutionLease:
         "target_environment", "policy_bundle_hash", "nonce", "issued_at",
         "expires_at", "signature", "is_signed",
         "tool_contract_bundle_hash", "intent_authority_hash",
+        "toolspec_hash", "toolspec_version",
     })
 
     @classmethod
