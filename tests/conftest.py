@@ -28,5 +28,12 @@ def pytest_collection_modifyitems(config, items):
         reason="live test: set REMORA_LIVE=1 to run against the deployed Worker",
     )
     for item in items:
-        if "live" in item.keywords or "live_replay_heavy" in item.keywords:
+        # get_closest_marker, NOT `in item.keywords`: keywords also contain
+        # parametrization ids, so a test parametrized over the string "live"
+        # (e.g. the production-environment aliases prod/production/live) was
+        # silently skipped as a network test. A gate that skips itself when an
+        # unrelated parameter happens to share its name is worse than no gate —
+        # it reports green for a case that never ran.
+        if (item.get_closest_marker("live") is not None
+                or item.get_closest_marker("live_replay_heavy") is not None):
             item.add_marker(skip_live)

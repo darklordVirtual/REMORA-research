@@ -7,7 +7,7 @@
 FROM python:3.12-slim
 
 LABEL org.opencontainers.image.title="REMORA OT Pilot API" \
-      org.opencontainers.image.description="REMORA governance API in production mode: fail-closed prerequisites (durable execution state, durable envelope store, token table, non-mock oracle backend) are binding at startup." \
+      org.opencontainers.image.description="REMORA governance API in production mode, execution surface only: fail-closed prerequisites (durable execution state, durable envelope store, token table) are binding at startup. No oracle, no retrieval store, no network egress." \
       org.opencontainers.image.source="https://github.com/darklordVirtual/REMORA-research" \
       org.opencontainers.image.licenses="BUSL-1.1" \
       org.opencontainers.image.vendor="Stian Skogbrott"
@@ -33,12 +33,6 @@ RUN pip install --upgrade pip \
  && pip install -e ".[api,postgres]"
 
 COPY scripts /app/scripts
-
-# Production mode refuses to start on an empty retrieval evidence store
-# (servers/api.py::_make_retrieval_provider). The shipped knowledge pack is
-# what /v1/assess retrieves against; the execution path does not use it, but
-# the fail-closed check runs at import time regardless.
-COPY datasets/remora_knowledge_v1/evidence_packs /app/datasets/remora_knowledge_v1/evidence_packs
 
 # Deployment-owned configuration: the tool registry and the semantic bundle.
 # These are the two modules a deployment writes itself; everything else is

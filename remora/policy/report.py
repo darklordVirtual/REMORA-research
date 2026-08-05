@@ -37,6 +37,12 @@ class DecisionReason(str, Enum):
     GAINABILITY_ROUTE = "gainability_route"
     DEFAULT_SAFE_ABSTAIN = "default_safe_abstain"
     LOW_CONSEQUENCE_ACCEPT = "low_consequence_accept"
+    # A read whose every grounding signal is positively confirmed under a
+    # signed intent authority. Strictly stronger than LOW_CONSEQUENCE_ACCEPT,
+    # and specifically closes that path's measured cost: it cannot accept a
+    # read-only call that is the wrong call for the task, because
+    # tool_matches_goal and expected_effect_matches must both be True.
+    GROUNDED_READ_ACCEPT = "grounded_read_accept"
     ARGUMENT_RESOLUTION_REQUIRED = "argument_resolution_required"
     NO_RESOLVER_AVAILABLE = "no_resolver_available"
     # An argument policy requires validated is unconfirmed, and a bounded

@@ -95,7 +95,7 @@ one dispatcher process must not rely on it as a global guarantee (REM-025).
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 69 fields; on the research `/v1/assess` path **all fields except
+with 70 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe") — see the assess-time authorities subsection below for the two
@@ -110,6 +110,7 @@ Selected fields by group:
 | Consensus observables | `trust_score`, `temperature`, `final_H`, `final_D`, `final_V`, `phase`, `valid_oracle_count`, `oracle_failures` |
 | Evidence | `evidence_action`, `evidence_confidence`, `evidence_contradictions`, `evidence_supporters`, `evidence_signal_source`, `require_rag` |
 | Risk & action | `risk_tier`, `action_type`, `target_environment`, `rollback_available`, `state_transition_uncertain`, `proposed_tool_name` |
+| Intent authority | `intent_authority_present` — did this call arrive under an intent the deployment resolved from a source it controls (a signed work order, a ticket of record)? Resolved server-side from `intent_ref`; the agent may name which authority it acts under and can never assert that it exists. `True` only when resolution succeeded; `False` when an `intent_ref` was presented and did not resolve; `None` when none was presented. Required for `GROUNDED_READ_ACCEPT` |
 | Resolution | `missing_required_arguments`, `argument_resolver_tools`, `unvalidated_required_arguments` — required parameters absent from the call and the authoritative tools that could supply them. Non-empty with resolvers available yields VERIFY carrying a `ResolutionPlan`; without them, ABSTAIN |
 | Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected`, `arguments_satisfiable`, `argument_values_supported`, `argument_values_grounded` (a derived value can ground via a verified `DerivationReceipt`: verbatim source span + whitelisted deterministic transform, re-executed server-side — `remora/toolcall/routing/derivation.py`), `tool_matches_goal`, `untrusted_controlled_arguments` |
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |

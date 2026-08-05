@@ -253,6 +253,20 @@ class PolicyObservation:
     # may set it to True.
     expected_effect_matches: bool | None = None
 
+    # Did this call arrive under an intent the deployment resolved from a
+    # source it controls (a signed work order, a ticket of record), rather
+    # than from free text the agent supplied?
+    # True  → an authority was resolved and hashed into the audit record.
+    # False → an intent_ref was presented and did not resolve.
+    # None  → no intent_ref was presented, or the deployment declares no
+    #         intent source. Never read as "authorized".
+    #
+    # The agent may name which authority it acts under; it can never assert
+    # that the authority exists. Resolution happens server-side against the
+    # deployment's own source, and only a True here can carry an autonomous
+    # ACCEPT (see GROUNDED_READ_ACCEPT).
+    intent_authority_present: bool | None = None
+
     # Required parameters of the proposed call that are absent from it, and the
     # authoritative tools that could supply them. Both caller-populated from a
     # tool registry. A non-empty missing list with resolver tools available is

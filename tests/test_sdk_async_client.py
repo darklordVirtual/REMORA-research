@@ -132,3 +132,52 @@ def test_async_full_loop_against_inprocess_app(monkeypatch) -> None:
     result = asyncio.run(run())
     assert result.proposal_id
     assert result.action.name in {"ACCEPT", "VERIFY", "ABSTAIN", "ESCALATE"}
+
+
+def test_async_record_effect_matches_the_sync_wire_contract() -> None:
+    """The async twin was derived from the sync method; that is precisely
+    the kind of transform that silently loses an ``await`` or a path.
+
+    ``hasattr`` on both clients — all the product's compatibility gate can
+    check — would pass either way, so the call is made here for real.
+    """
+    from remora.sdk import EffectStatus, PostconditionSpec, verify_effect
+
+    seen: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["method"] = request.method
+        seen["path"] = request.url.path
+        seen["auth"] = request.headers.get("Authorization")
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={
+            "proposal_id": "p-1", "status": "EFFECT_VERIFIED",
+            "reason_code": "postcondition_verified",
+            "verifier_identity": "acme.reader/v1",
+            "audit": {"sequence_no": 4, "entry_hash": "c" * 64},
+        })
+
+    record = verify_effect(
+        PostconditionSpec(tool_id="t", target_selector={},
+                          expected_fields={"a": 1}),
+        {"a": 1}, proposal_id="p-1", execution_id="e-1",
+        toolspec_hash="d" * 64, verifier_identity="acme.reader/v1",
+    )
+
+    async def run():
+        client = _client_for(handler)
+        try:
+            return await client.record_effect("p-1", record)
+        finally:
+            await client.aclose()
+
+    result = asyncio.run(run())
+
+    assert seen["method"] == "POST"
+    assert seen["path"] == "/v1/execution/proposals/p-1/effect"
+    assert seen["auth"] == "Bearer operator-token"
+    # The observed values stay with the product; only the hashes cross.
+    assert seen["body"]["verifier_identity"] == "acme.reader/v1"
+    assert len(seen["body"]["expected_sha256"]) == 64
+    assert "observed" not in seen["body"]
+    assert result.status is EffectStatus.VERIFIED
