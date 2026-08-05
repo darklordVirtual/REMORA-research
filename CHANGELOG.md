@@ -27,6 +27,38 @@ releases.
 
 ## [Unreleased]
 
+### FT-02: the design doc's crash matrix is executed, and it found three defects (2026-08-05)
+
+- `tests/test_execution_fault_injection.py` turns
+  `execution-lifecycle-outbox-v1.md` §3.4 from a table of promises into
+  executed evidence: each crash point is injected and the promised
+  recovery asserted. Declared scope — the process is not actually killed,
+  so this validates ordering and rollback semantics, not OS-level
+  durability; matrix rows 3/4/6 are deliberately indistinguishable and
+  the conflation is asserted rather than papered over.
+- **Defect 1 (row 1):** the in-process transaction branch had no rollback
+  at all, so a failed authorization left the item `AUTHORIZED` and not
+  re-executable — the matrix's row-1 promise was false in that
+  configuration. Fixed, and the snapshot is now a DEEP copy: `q.execute()`
+  mutates the item in place, so a shallow dict copy restored the mapping
+  while leaving the item mutated. The durable branches survive this only
+  because their next transaction reloads from the store.
+- **Defect 2 (row 2):** an intent committed by the authorize transaction
+  but never claimed was never reconciled. Since claiming strictly
+  precedes tool invocation, such a row provably produced no side effect —
+  it now settles as `FAILED` (not `UNKNOWN`, which would overstate the
+  uncertainty) via a newly declared
+  `DISPATCH_PENDING → FAILED, on: reconciled_never_dispatched` transition
+  in the lifecycle schema, audited as `dispatch_never_dispatched`.
+- **Defect 3:** that new reconciliation existed only on the in-process
+  store; the durable adapters hit the swallow-and-log path and silently
+  reconciled nothing. Found by running the suite against a real backend.
+  Both SQLite and Postgres now implement it, the latter verified against
+  a real Postgres service.
+- `reconcile_stale_dispatches` gains an injectable clock so
+  time-dependent recovery is testable without waiting.
+
+
 ### Register truth-sync: FT-01 and FT-02 are IN_PROGRESS, not DESIGN_IN_REVIEW (2026-08-05)
 
 - Both still read `DESIGN_IN_REVIEW` while substantial implementation had

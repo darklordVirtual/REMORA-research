@@ -161,12 +161,30 @@ def _check_claimable(row: OutboxRow) -> None:
         )
 
 
-def _check_settleable(row: OutboxRow, state: OutboxState) -> None:
+def _check_settleable(
+    row: OutboxRow, state: OutboxState, *, from_pending: bool = False
+) -> None:
     if row.is_terminal:
         raise ValueError(
             f"outbox row {row.outbox_id} is already terminal "
             f"({row.state.value}); terminal states are absorbing"
         )
+    if from_pending:
+        # The declared reconciled_never_dispatched transition: an intent
+        # that was never claimed was never dispatched (claim strictly
+        # precedes invocation), so it settles straight from
+        # DISPATCH_PENDING. Only the reconciler may use this path.
+        if row.state is not OutboxState.DISPATCH_PENDING:
+            raise ValueError(
+                f"outbox row {row.outbox_id} is {row.state.value}; the "
+                "never-dispatched transition starts at DISPATCH_PENDING"
+            )
+        if state is not OutboxState.FAILED:
+            raise ValueError(
+                "an unclaimed intent reconciles to FAILED, never "
+                f"{state.value}: nothing was dispatched"
+            )
+        return
     if row.state is not OutboxState.DISPATCHING:
         raise ValueError(
             f"outbox row {row.outbox_id} is {row.state.value}; only a claimed "
@@ -328,6 +346,40 @@ class ExecutionOutbox:
                     detail="reconciler: dispatch outcome undeterminable",
                     now=moment,
                 ))
+        return out
+
+    def reconcile_unclaimed(
+        self,
+        tenant_id: str,
+        *,
+        older_than: timedelta,
+        now: datetime | None = None,
+    ) -> list[OutboxRow]:
+        """Settle intents that were authorized but never claimed as FAILED.
+
+        Crash matrix row 2. Claiming strictly precedes tool invocation, so
+        an unclaimed intent provably produced no side effect — FAILED is
+        the honest terminal, and calling it UNKNOWN would overstate the
+        uncertainty.
+        """
+        moment = _now(now)
+        cutoff = moment - older_than
+        out: list[OutboxRow] = []
+        with self._lock:
+            for row in list(self._rows.values()):
+                if row.tenant_id != tenant_id:
+                    continue
+                if row.state is not OutboxState.DISPATCH_PENDING:
+                    continue
+                if row.created_at > cutoff:
+                    continue
+                _check_settleable(row, OutboxState.FAILED, from_pending=True)
+                settled = replace(
+                    row, state=OutboxState.FAILED, settled_at=moment,
+                    detail="reconciler: authorized but never dispatched",
+                )
+                self._rows[row.outbox_id] = settled
+                out.append(settled)
         return out
 
     # -- reads -------------------------------------------------------------
@@ -563,6 +615,47 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             (tenant_id, OutboxState.DISPATCH_PENDING.value),
         ).fetchall()
         return [self._row(r) for r in rows]
+
+    def reconcile_unclaimed(
+        self,
+        tenant_id: str,
+        *,
+        older_than: timedelta,
+        now: datetime | None = None,
+    ) -> list[OutboxRow]:
+        """Durable twin of the in-process never-dispatched reconciliation."""
+        moment = _now(now)
+        cutoff = moment - older_than
+        records = self._conn().execute(
+            "SELECT * FROM execution_outbox WHERE tenant_id = ? AND state = ?",
+            (tenant_id, OutboxState.DISPATCH_PENDING.value),
+        ).fetchall()
+        out: list[OutboxRow] = []
+        for record in records:
+            row = self._row(record)
+            if row.created_at > cutoff:
+                continue
+            out.append(self._settle_unclaimed(row.outbox_id, moment))
+        return out
+
+    def _settle_unclaimed(self, outbox_id: str, moment: datetime) -> OutboxRow:
+        conn = self._conn()
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            row = self._require_conn(conn, outbox_id)
+            _check_settleable(row, OutboxState.FAILED, from_pending=True)
+            conn.execute(
+                "UPDATE execution_outbox SET state = ?, detail = ?, "
+                "settled_at = ? WHERE outbox_id = ?",
+                (OutboxState.FAILED.value,
+                 "reconciler: authorized but never dispatched",
+                 moment.isoformat(), outbox_id),
+            )
+            conn.execute("COMMIT")
+        except Exception:
+            conn.execute("ROLLBACK")
+            raise
+        return self.get(outbox_id)
 
     def rows_for_proposal(self, tenant_id: str, proposal_id: str) -> list[OutboxRow]:
         rows = self._conn().execute(
@@ -887,3 +980,45 @@ class PostgresExecutionOutbox(ExecutionOutbox):
                 (tenant_id, proposal_id),
             ).fetchall()
         return [self._row_tuple(r) for r in records]
+
+    def reconcile_unclaimed(
+        self,
+        tenant_id: str,
+        *,
+        older_than: timedelta,
+        now: datetime | None = None,
+    ) -> list[OutboxRow]:
+        """Multi-worker twin of the never-dispatched reconciliation."""
+        moment = _now(now)
+        cutoff = moment - older_than
+        with self._psycopg.connect(self._dsn) as conn:
+            records = conn.execute(
+                self._SELECT + " WHERE tenant_id = %s AND state = %s",
+                (tenant_id, OutboxState.DISPATCH_PENDING.value),
+            ).fetchall()
+        out: list[OutboxRow] = []
+        for record in records:
+            row = self._row_tuple(record)
+            if row.created_at > cutoff:
+                continue
+            with self._psycopg.connect(self._dsn) as conn:
+                with conn.transaction():
+                    locked = conn.execute(
+                        self._SELECT + " WHERE outbox_id = %s FOR UPDATE",
+                        (row.outbox_id,),
+                    ).fetchone()
+                    if locked is None:
+                        continue
+                    _check_settleable(
+                        self._row_tuple(locked), OutboxState.FAILED,
+                        from_pending=True,
+                    )
+                    conn.execute(
+                        "UPDATE execution_outbox SET state = %s, detail = %s, "
+                        "settled_at = %s WHERE outbox_id = %s",
+                        (OutboxState.FAILED.value,
+                         "reconciler: authorized but never dispatched",
+                         moment.isoformat(), row.outbox_id),
+                    )
+            out.append(self.get(row.outbox_id))
+        return out

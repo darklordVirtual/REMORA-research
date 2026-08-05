@@ -188,6 +188,7 @@ _ITEM_TENANT: dict[str, str] = {}
 
 
 import contextvars as _contextvars
+import copy as _copy
 
 # FT-02: the connection of the CURRENTLY OPEN db_transaction_state, exposed
 # so the outbox row can be written inside that same transaction. A
@@ -255,7 +256,7 @@ _OUTBOX = _build_outbox()
 DEFAULT_OUTBOX_STALE_SECONDS = 900
 
 
-def reconcile_stale_dispatches(tenant: str) -> list:
+def reconcile_stale_dispatches(tenant: str, *, now=None) -> list:
     """Settle dispatch intents whose worker never reported back.
 
     A row stuck in ``DISPATCHING`` past the staleness threshold has an
@@ -280,8 +281,14 @@ def reconcile_stale_dispatches(tenant: str) -> list:
     except ValueError:
         seconds = DEFAULT_OUTBOX_STALE_SECONDS
     try:
-        settled = _outbox().reconcile_stale(
-            tenant, older_than=timedelta(seconds=seconds)
+        window = timedelta(seconds=seconds)
+        settled = _outbox().reconcile_stale(tenant, older_than=window, now=now)
+        # Crash matrix row 2: an intent committed by the authorize
+        # transaction but never claimed. The claim strictly precedes the
+        # tool invocation, so nothing was dispatched and FAILED is
+        # provable — UNKNOWN would overstate the uncertainty.
+        settled = settled + _outbox().reconcile_unclaimed(
+            tenant, older_than=window, now=now
         )
     except Exception:
         # Reconciliation is a background courtesy on the request path: it
@@ -291,7 +298,8 @@ def reconcile_stale_dispatches(tenant: str) -> list:
         return []
     for row in settled:
         _CHAIN.append(tenant, {
-            "event": "dispatch_unknown",
+            "event": ("dispatch_never_dispatched"
+                      if row.state.value == "FAILED" else "dispatch_unknown"),
             "proposal_id": row.proposal_id,
             "outbox_id": row.outbox_id,
             "item_id": row.item_id,
@@ -495,8 +503,25 @@ def db_transaction_state(tenant: str):
             finally:
                 _ACTIVE_TX_CONNECTION.reset(_tx_token)
     else:
+        # In-process branch: no database to roll back, but the SAME
+        # all-or-nothing promise must hold or crash-matrix row 1 is false
+        # here — a failed authorization would leave the item AUTHORIZED and
+        # not re-executable (found by the fault-injection suite, 2026-08-05).
         with q._lock:
-            yield q
+            # DEEP copy: q.execute() mutates the PendingReview in place, so a
+            # shallow dict copy restores the mapping while leaving the item
+            # itself mutated. The durable branches survive this because their
+            # next transaction reloads every item from the store; in-process
+            # has no such reload, so the snapshot must own its objects.
+            items_snapshot = _copy.deepcopy(q._items)
+            tenant_snapshot = dict(_ITEM_TENANT)
+            try:
+                yield q
+            except BaseException:
+                q._items = items_snapshot
+                _ITEM_TENANT.clear()
+                _ITEM_TENANT.update(tenant_snapshot)
+                raise
 
 
 def _queue(tenant: str) -> ReviewQueue:
