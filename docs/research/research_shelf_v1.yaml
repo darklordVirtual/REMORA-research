@@ -446,6 +446,47 @@ components:
 
   # ── Deferred adoptions, kept visible rather than forgotten ─────────────────
 
+  - id: SHELF-023
+    name: "Machine-verifiable derivation receipts for derived argument values"
+    source:
+      title: "Internal finding — no external source"
+      authors: "NEGATIVE_RESULTS §35 backlog theme 3, resolved mechanism-side 2026-08-05"
+      venue: internal
+      verification: INTERNAL
+      verified: "2026-08-05"
+      reported_results: >-
+        No external result. Motivating internal measurement (development set,
+        spent): value grounding cost legitimate read autonomy 86.1% -> 56.8%,
+        dominated by dates, unit conversions and normalized numbers that are
+        correct but not literally in the user's text.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      DerivationReceipt makes the derivation itself checkable instead of
+      relaxing grounding: a proposal declares the source span (verbatim in
+      the task text, the same provenance discipline as goal_match's
+      source_spans) and a transform from a versioned deterministic whitelist
+      (v1: English dates via an internal locale-independent month table,
+      number normalization, exact unit conversions, case transforms);
+      verification re-executes the transform server-side and compares
+      exactly. Models may propose, only re-execution accepts; arithmetic and
+      ambiguous conversions are deliberately excluded as receipt-craftable.
+      Wired end to end: values_grounded consults verified receipts, episodes
+      carry observable proposals, both server APIs accept them
+      (extra=forbid), and remora.sdk ships a typed DerivationProposal.
+    adoption: ADOPTED
+    remora_evidence:
+      - remora/toolcall/routing/derivation.py
+      - remora/toolcall/routing/compatibility.py
+      - tests/test_derivation_receipt.py
+      - tests/test_derivation_server_threading.py
+    remaining: >-
+      Effect on the measured autonomy loss is UNMEASURED: the 86.1% -> 56.8%
+      cost was measured on a spent development set, and quantifying the
+      recovery requires the new sealed track (NEGATIVE_RESULTS backlog theme
+      2 / SAP v4 scope decision). Growing the transform vocabulary is a
+      reviewed change; DerivationReceipt numbers may not be cited until that
+      round runs.
+
   - id: SHELF-021
     name: "Postcondition observation after a governed side effect"
     source:

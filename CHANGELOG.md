@@ -27,6 +27,15 @@ releases.
 
 ## [Unreleased]
 
+### Research shelf: DerivationReceipt anchored (2026-08-05)
+
+- New SHELF-023 (INTERNAL): the derivation-receipt mechanism's
+  research/control mapping — motivation (§35 autonomy cost on a spent
+  set), authority model (propose vs re-execute), full wiring evidence
+  (module, grounding, server APIs, SDK), and the explicit UNMEASURED
+  boundary until the sealed round. A mechanism without its mapping is
+  unfinished work; this closes that for theme 3.
+
 ### SDK: typed DerivationProposal on ToolCall (2026-08-05)
 
 - `remora.sdk` gains `DerivationProposal` (frozen, wire-bound; 19th
