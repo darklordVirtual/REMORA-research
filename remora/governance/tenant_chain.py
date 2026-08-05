@@ -392,6 +392,19 @@ class PostgresTenantChain:
                     "SELECT head_hash, head_sequence FROM tenant_chain_head "
                     "WHERE tenant_id = %s FOR UPDATE", (tenant_id,),
                 ).fetchone()
+                if row is None:
+                    # The upsert above should guarantee this row. If it is
+                    # gone anyway — truncated table, a migration that
+                    # dropped it, a tenant the connection cannot see — the
+                    # chain has no predecessor to link to, and appending
+                    # would silently start a second chain for this tenant.
+                    # Refuse by name rather than crash on a None subscript,
+                    # which reports 'NoneType' and points nowhere useful.
+                    raise RuntimeError(
+                        f"no chain head for tenant {tenant_id!r} in "
+                        "tenant_chain_head immediately after upsert; refusing "
+                        "to append an entry with no predecessor"
+                    )
                 previous_hash, sequence_no = row[0], row[1] + 1
                 timestamp = self._now_fn().isoformat()
                 entry_hash = compute_entry_hash(
