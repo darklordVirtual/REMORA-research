@@ -78,7 +78,11 @@ transitions:
 - {from: DISPATCHING, to: REFUSED, on: lease_or_pep_refusal}
 - {from: DISPATCHING, to: UNKNOWN, on: crash_or_timeout_after_possible_effect}
 - {from: SUCCEEDED, to: EFFECT_PENDING, on: postcondition_declared}
-- {from: SUCCEEDED, to: EFFECT_VERIFIED, on: postcondition_not_declared}
+# There is deliberately NO transition for a tool that declares no
+# postcondition. Letting it reach EFFECT_VERIFIED would record "we never
+# looked" as "we checked and it was right", which is the exact overclaim
+# this layer exists to prevent. Such a proposal stays SUCCEEDED, and the
+# EFFECT_UNSUPPORTED verification record makes the absence visible.
 - {from: EFFECT_PENDING, to: EFFECT_VERIFIED, on: declared_delta_observed}
 - {from: EFFECT_PENDING, to: EFFECT_MISMATCH, on: declared_delta_differs}
 - {from: EFFECT_PENDING, to: EFFECT_UNKNOWN, on: effect_unobservable}

@@ -27,6 +27,38 @@ releases.
 
 ## [Unreleased]
 
+### FT-04 PR 4: the first closed loop — create an issue, then read it back (2026-08-05)
+
+- `remora/integrations/github_issue.py` closes the loop end to end for the
+  chosen first integration (16 tests). The reader is a **protocol, not a
+  client**: the deployment supplies something that can read an issue back,
+  so credentials stay with the deployment, governance never opens a
+  socket, and the suite is not hostage to a third party's availability.
+- Every failure mode from the handoff gate's list is exercised, and none
+  of them may become a mismatch: an absent issue, a read timeout, lost
+  authorization, a malformed response, an unforeseen reader exception and
+  a missing issue number all resolve to UNOBSERVABLE or VERIFIER_FAILED.
+  Not being able to look is a different fact from looking and finding it
+  wrong, and only one of them justifies compensation.
+- Verification now reaches evidence: `record_effect_verification()`
+  **appends** to the tenant audit chain (a verifier that could edit what
+  it verifies produces a claim, not evidence), the proposal's lifecycle
+  state follows the latest verdict, and the evidence bundle carries an
+  `effect_verification` section inside its hashed manifest. The section is
+  present even when empty — a missing key cannot be told apart from an
+  export that predates the feature.
+- **Two overclaims removed rather than shipped.** The lifecycle allowed
+  `SUCCEEDED -> EFFECT_VERIFIED on postcondition_not_declared`, which
+  recorded "we never looked" as "we checked and it was right"; a tool
+  without a postcondition now stays at its dispatch state and the
+  UNSUPPORTED record makes the absence visible. A test also asserted that
+  the expected and observed hashes are equal on success, which cannot
+  hold once a field is compared by hash; it now pins what is actually
+  true — the declared side is stable and the observed side tracks what
+  was read.
+- The contract's realization moves to `runtime: implemented`;
+  `sdk_surface` stays `not_implemented` until PR 5.
+
 ### FT-04 PR 3: the postcondition contract and EffectVerification (2026-08-05)
 
 - Everything upstream governs *authorization*. Nothing observed the world
