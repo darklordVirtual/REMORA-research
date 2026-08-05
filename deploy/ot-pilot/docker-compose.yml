@@ -14,11 +14,19 @@
 # is nothing to fill in before it runs.
 #
 # Production mode is not decoration here. REMORA_ENV=production makes the
-# fail-closed prerequisites binding: durable execution state, a durable
-# envelope store, a token table with real role separation, and a non-mock
-# oracle backend. Remove any one of them and the API refuses to start —
-# that refusal is the property, so this file supplies all four rather than
+# fail-closed prerequisites binding for the surfaces this deployment serves:
+# durable execution state, a durable envelope store, and a token table with
+# real role separation. Remove any one of them and the API refuses to start —
+# that refusal is the property, so this file supplies all three rather than
 # weakening the check.
+#
+# REMORA_ENABLED_SURFACES=execution says this pilot serves the policy-only
+# execution surface and not the oracle-backed /v1/assess research surface.
+# Those routes are UNMOUNTED, not merely unused, so their prerequisites (a
+# non-mock oracle backend, a non-empty retrieval evidence store) do not
+# apply. This file used to name a `groq` backend it never called and carry a
+# knowledge pack it never read, purely to get past startup — which is what a
+# prerequisite for a surface nobody serves teaches you to do.
 #
 # The signing keys below are DEVELOPMENT VALUES for a local pilot. A real
 # deployment injects them from a secret manager; they are the difference
@@ -66,10 +74,10 @@ services:
          "ot-approver":{"tenant":"ot-pilot","role":"admin"},
          "ot-viewer":{"tenant":"ot-pilot","role":"viewer"}}
       REMORA_API_BEARER_TOKEN: ot-agent
-      # Non-mock backend is required in production. The execution path is
-      # policy-only and never calls an oracle, so the pilot runs without
-      # network egress; /v1/assess would need a real key.
-      REMORA_ORACLE_BACKEND: groq
+
+      # --- Surfaces -------------------------------------------------------
+      # Execution only: no oracle, no retrieval store, no network egress.
+      REMORA_ENABLED_SURFACES: execution
 
       # --- Signing (local pilot values — inject from a vault in reality) ---
       REMORA_PDP_SIGNING_KEY: pilot-pdp-key-change-me

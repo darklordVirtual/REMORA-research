@@ -433,6 +433,64 @@ def _is_production_mode() -> bool:
     return _get_env_mode() in {"prod", "production"}
 
 
+# ---------------------------------------------------------------------------
+# Enabled surfaces
+# ---------------------------------------------------------------------------
+#
+# This process serves two different products out of one app. The *execution*
+# surface (/v1/execution/*) is policy-only: it makes governance decisions from
+# declared contracts and a system of record, calls no model, and needs no
+# network egress. The *assess* surface (/v1/assess, /v1/rerun) is the
+# oracle-backed research path, which needs a real backend and a non-empty
+# retrieval evidence store.
+#
+# Production mode used to demand all of it from everyone. A deployment that
+# only governs tool calls still had to name an oracle backend it would never
+# call and ship an evidence pack it would never retrieve, purely to get past
+# startup — deploy/ot-pilot/docker-compose.yml does exactly that, and says so
+# in a comment. Prerequisites for a surface nobody serves are not fail-closed,
+# they are noise, and noise is what teaches operators to work around checks.
+#
+# A disabled surface is UNMOUNTED, not merely unchecked. Leaving the route
+# reachable while dropping its prerequisites would be weakening a control
+# rather than scoping one: /v1/assess would still answer, now with a mock
+# oracle and an empty evidence store, in production.
+
+SURFACE_EXECUTION = "execution"
+SURFACE_ASSESS = "assess"
+_KNOWN_SURFACES = frozenset({SURFACE_EXECUTION, SURFACE_ASSESS})
+
+#: Paths that exist only on the assess surface. Kept as an explicit set, and
+#: pinned by a test that every route is classified, so a new route cannot end
+#: up silently reachable on a deployment that did not ask for its surface.
+_ASSESS_SURFACE_PATHS = frozenset({"/v1/assess", "/v1/rerun"})
+
+
+def enabled_surfaces() -> frozenset[str]:
+    """Which product surfaces this process serves.
+
+    Defaults to both, so an existing deployment that sets nothing keeps every
+    route and every prerequisite it had. Naming a surface REMORA does not have
+    is a startup failure rather than a silently ignored value: an operator who
+    misspells ``execution`` must not get a server with no surfaces at all.
+    """
+    raw = os.getenv("REMORA_ENABLED_SURFACES", "").strip()
+    if not raw:
+        return frozenset(_KNOWN_SURFACES)
+    requested = {part.strip().lower() for part in raw.split(",") if part.strip()}
+    if not requested:
+        raise RuntimeError(
+            "REMORA_ENABLED_SURFACES is set but names no surface; "
+            f"expected a comma-separated subset of {sorted(_KNOWN_SURFACES)}"
+        )
+    if unknown := requested - _KNOWN_SURFACES:
+        raise RuntimeError(
+            f"REMORA_ENABLED_SURFACES names unknown surface(s) {sorted(unknown)}; "
+            f"expected a comma-separated subset of {sorted(_KNOWN_SURFACES)}"
+        )
+    return frozenset(requested)
+
+
 def _normalize_oracle_backend(backend: str) -> str:
     raw = (backend or "").strip().lower()
     mapping = {
@@ -465,7 +523,11 @@ def _validate_production_prerequisites() -> None:
             "REMORA_PG_DSN or REMORA_CHAIN_DB (durable execution state: tenant "
             "audit chain, review queue, and one-time-grant ledger)"
         )
-    if not os.getenv("REMORA_ORACLE_BACKEND", "").strip():
+    # Only the assess surface consults an oracle. Demanding a backend from a
+    # deployment that does not serve /v1/assess taught it to name one at
+    # random, which is worse than not asking.
+    serves_assess = SURFACE_ASSESS in enabled_surfaces()
+    if serves_assess and not os.getenv("REMORA_ORACLE_BACKEND", "").strip():
         missing.append("REMORA_ORACLE_BACKEND")
     if not os.getenv("REMORA_API_TOKENS", "").strip():
         missing.append(
@@ -486,11 +548,12 @@ def _validate_production_prerequisites() -> None:
             "Unset REMORA_API_ALLOW_MOCK_ORACLES and configure a real oracle backend."
         )
 
-    backend = _normalize_oracle_backend(os.getenv("REMORA_ORACLE_BACKEND", ""))
-    if backend in {"", "mock", "auto"}:
-        raise RuntimeError(
-            "REMORA API production mode fail-closed: REMORA_ORACLE_BACKEND must be an explicit non-mock backend."
-        )
+    if serves_assess:
+        backend = _normalize_oracle_backend(os.getenv("REMORA_ORACLE_BACKEND", ""))
+        if backend in {"", "mock", "auto"}:
+            raise RuntimeError(
+                "REMORA API production mode fail-closed: REMORA_ORACLE_BACKEND must be an explicit non-mock backend."
+            )
 
 
 def _execution_state_dsn() -> str:
@@ -702,7 +765,10 @@ def _make_retrieval_provider() -> StaticJsonlEvidenceProvider | None:
     )
 
     if provider.store_size == 0:
-        if _is_production_mode():
+        # The store backs retrieval on /v1/assess only. A deployment serving
+        # just the execution surface never reads it, and requiring one made it
+        # ship a pack it would never open.
+        if _is_production_mode() and SURFACE_ASSESS in enabled_surfaces():
             raise RuntimeError(
                 "REMORA API production mode fail-closed: retrieval evidence store is empty."
             )
@@ -1698,6 +1764,11 @@ def index() -> dict:
         "service": "REMORA API",
         "version": _PACKAGE_VERSION,
         "runtime_mode": "production" if _is_production_mode() else "development",
+        # Which products this process serves. A caller that gets a 404 from
+        # /v1/assess should be able to see that the surface is off rather
+        # than conclude the server is broken — and the same fact is already
+        # derivable from /openapi.json, so publishing it discloses nothing.
+        "surfaces": sorted(enabled_surfaces()),
         "status": "ok",
         "links": {
             "docs": "/docs",
@@ -2288,3 +2359,34 @@ def rerun(req: RerunRequest, request: Request) -> dict:
 from servers.execution_api import router as _execution_router
 
 app.include_router(_execution_router)
+
+
+def _apply_surface_selection() -> None:
+    """Unmount the routes of any surface this deployment does not serve.
+
+    Runs after every route is registered, including the execution router, so
+    the set it filters is the complete one.
+
+    Removal, not a guard inside the handler: a 404 from a route that does not
+    exist and a 403 from one that does are different facts, and only the first
+    is true. It also means the OpenAPI document this process serves describes
+    what it actually offers — a consumer generating a client against it cannot
+    build calls into a surface that will never answer.
+    """
+    enabled = enabled_surfaces()
+    if SURFACE_ASSESS in enabled:
+        return
+    app.router.routes = [
+        route for route in app.router.routes
+        if getattr(route, "path", None) not in _ASSESS_SURFACE_PATHS
+    ]
+    # The cached schema, if anything has already generated one, would still
+    # advertise the removed paths.
+    app.openapi_schema = None
+    logging.getLogger("remora.api").info(
+        "surfaces enabled: %s (unmounted %d assess route(s))",
+        ",".join(sorted(enabled)), len(_ASSESS_SURFACE_PATHS),
+    )
+
+
+_apply_surface_selection()

@@ -53,7 +53,23 @@ def test_index_states_the_runtime_mode() -> None:
     assert body["runtime_mode"] in ("production", "development")
 
 
+def test_index_states_which_surfaces_are_served() -> None:
+    """A caller that gets 404 from /v1/assess must be able to tell "this
+    deployment does not serve that surface" from "this server is broken"."""
+    surfaces = client.get("/").json()["surfaces"]
+    assert surfaces == sorted(surfaces)
+    assert set(surfaces) <= {"execution", "assess"}
+
+
 def test_index_carries_no_decision_data() -> None:
-    """Navigation only: no counters, no tenant, no policy internals."""
+    """Navigation only: no counters, no tenant, no policy internals.
+
+    ``surfaces`` is on the allowlist deliberately: the identical fact is
+    already derivable from ``/openapi.json``, which is served without a token
+    too, so listing it here discloses nothing a caller could not read one
+    request later. Anything NOT on this list needs the same argument made
+    before it is added.
+    """
     body = client.get("/").json()
-    assert set(body) <= {"service", "version", "runtime_mode", "status", "links"}
+    assert set(body) <= {"service", "version", "runtime_mode", "status",
+                         "links", "surfaces"}
