@@ -43,6 +43,15 @@ releases.
   experimental/research namespaces — is tracked as FT-13 rather than left
   as prose.
 
+### FT-01 slice 2: the envelope path adopts the proposal identity (2026-08-05)
+
+- `/v1/assess` now mints the same canonical `proposal_id` vocabulary as
+  `/v1/execution`: one uuid4 is both the `proposal_id` and the
+  `request_id`, and the stored DecisionEnvelope's request identity is that
+  value. The former `q_hash-` prefix was informational only (nothing parses
+  `request_id`; the question hash remains in `question_hash`). Additive:
+  `AssessResponse` gains `proposal_id`.
+
 ### FT-01 slice 1: proposal_id threads the execution lifecycle (2026-08-05)
 
 - Per the merged lifecycle design (PR #135) and the maintainer's contract

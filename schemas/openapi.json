@@ -130,6 +130,10 @@
             "title": "Policy Profile",
             "type": "string"
           },
+          "proposal_id": {
+            "title": "Proposal Id",
+            "type": "string"
+          },
           "question_hash": {
             "title": "Question Hash",
             "type": "string"
@@ -167,6 +171,7 @@
         },
         "required": [
           "request_id",
+          "proposal_id",
           "question_hash",
           "elapsed_ms",
           "policy_decision",
