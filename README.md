@@ -1,6 +1,6 @@
 # REMORA: Policy-Gated Governance for Operational AI Agents
 
-[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
+[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE) [![Product: Assured Agent Execution](https://img.shields.io/badge/product-Assured_Agent_Execution-0b7285.svg)](https://github.com/darklordVirtual/assured-agent-execution)
 
 **An AI agent wants to do something. REMORA decides whether it may, before it happens.**
 
@@ -20,6 +20,9 @@ action, and records why.
 ```bash
 pip install -e ".[dev]" && python -m remora try     # try it, no API keys needed
 ```
+
+**Building on it rather than studying it?** [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution) —
+one command brings up a governed deployment consuming this repo as seven hash-pinned artifacts.
 
 Built for work where a wrong action costs something real: building automation, energy management, infrastructure control, regulated enterprise workflows.
 
@@ -158,11 +161,8 @@ closed-loop calibration layer, sits on top: nothing in the control plane depends
 metrics are **not** evidence for the core governance system
 ([docs/03-experiments.md](docs/03-experiments.md) §9 · [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16).
 
-**Productized downstream:** [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution)
-consumes this repository as seven hash-pinned release artifacts — never from `master`, import
-boundary enforced by a test. It is the working evidence that the SDK surface is consumable by a
-product, and where upstream gaps surface first: deployment-declared tool classification,
-`GROUNDED_READ_ACCEPT` and per-surface fail-closed prerequisites all came from there.
+Building the downstream product is also where core gaps surface first: deployment-declared tool
+classification, `GROUNDED_READ_ACCEPT` and per-surface fail-closed prerequisites came from there.
 
 ## AI use, citation, license
 
