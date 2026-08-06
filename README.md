@@ -1,6 +1,6 @@
 # REMORA: Policy-Gated Governance for Operational AI Agents
 
-[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
+[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE) [![Product: Assured Agent Execution](https://img.shields.io/badge/product-Assured_Agent_Execution-0b7285.svg)](https://github.com/darklordVirtual/assured-agent-execution)
 
 **An AI agent wants to do something. REMORA decides whether it may, before it happens.**
 
@@ -20,6 +20,9 @@ action, and records why.
 ```bash
 pip install -e ".[dev]" && python -m remora try     # try it, no API keys needed
 ```
+
+**Building on it rather than studying it?** [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution) —
+one command brings up a governed deployment consuming this repo as seven hash-pinned artifacts.
 
 Built for work where a wrong action costs something real: building automation, energy management, infrastructure control, regulated enterprise workflows.
 
@@ -128,41 +131,38 @@ Worked loop: [examples/agent_gate.py](examples/agent_gate.py) · scenarios:
 Shadow-mode research only; not certified for production. The load-bearing caveats:
 
 - **The safety numbers come from benchmarks, not from the field.** The 0% unsafe-execution
-  rate is a synthetic-benchmark result: a deterministic simulator and a controlled
-  internal corpus, with no real shell, network or database touched.
-- **Sample sizes are smaller than they look.** The simulator's 700 tasks are 70
-  templates × 10 cosmetic variants (effective N=70); every statistic uses the 70, and
-  the margin over baselines is not statistically significant (p=0.50).
-- **Nobody outside this project has reproduced any of it.** External replication is pending
-  — a distinct, still-open evidence level, and a prerequisite for any stronger label.
+  rate is a synthetic-benchmark result: a deterministic simulator and a controlled internal
+  corpus, with no real shell, network or database touched.
+- **Sample sizes are smaller than they look.** The simulator's 700 tasks are 70 templates
+  × 10 cosmetic variants (effective N=70); the margin over baselines is not significant (p=0.50).
+- **Nobody outside this project has reproduced any of it.** External replication is pending —
+  a distinct, still-open evidence level, and a prerequisite for any stronger label.
 - **REMORA cannot stop an agent that goes around it.** The guarantee holds only where a
-  deployment routes every tool call through the dispatcher and the agent has no
-  credentials of its own.
-- **The audit log detects tampering; it does not prevent it.** Prevention needs
-  append-only (WORM) storage, which is not included here.
+  deployment routes every tool call through the dispatcher and the agent has no credentials.
+- **The audit log detects tampering; it does not prevent it.** Prevention needs append-only
+  (WORM) storage, which is not included here.
 - **AROMER is experimental**; its numbers are not evidence for the core system.
 
-Everything still open, in one place: [remediation_register.yaml](docs/assurance/remediation_register.yaml).
-Full evidence and the leakage disclosures:
-[evidence & claims](docs/02-evidence-and-claims.md) · [experiments](docs/03-experiments.md) ·
-[reviewing this repo](docs/validation/external-review.md). Unfamiliar terms — FAR/FBR,
-effective N, Wilson interval, intent-gating, lease — are defined in the
-[glossary](docs/plain_language_overview.md#key-terms); exact denominators in
-[metric definitions](docs/assurance/metric_definitions_v1.md).
+Everything still open: [remediation_register.yaml](docs/assurance/remediation_register.yaml).
+Evidence and leakage disclosures: [evidence & claims](docs/02-evidence-and-claims.md) ·
+[experiments](docs/03-experiments.md) · [reviewing this repo](docs/validation/external-review.md).
+Terms — FAR/FBR, effective N, Wilson interval, intent-gating, lease — in the
+[glossary](docs/plain_language_overview.md#key-terms); denominators in [metric definitions](docs/assurance/metric_definitions_v1.md).
 
 ---
 
 ## Research foundation, and the experimental layer
 
-Every research line REMORA builds on maps to a concrete control, code file, and test in
-the machine-checked
-[research-control matrix](docs/research/research_control_matrix.generated.md).
+Every research line REMORA builds on maps to a concrete control, code file and test in the
+machine-checked [research-control matrix](docs/research/research_control_matrix.generated.md).
 Positioning: [docs/09-related-work.md](docs/09-related-work.md); derivations:
 [paper/remora_paper.md](paper/remora_paper.md). **AROMER**, the **experimental**
-closed-loop calibration layer, sits on top: nothing in the control plane depends on it,
-and its metrics are **not** evidence for the core governance system
-([docs/03-experiments.md](docs/03-experiments.md) §9 ·
-[NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16).
+closed-loop calibration layer, sits on top: nothing in the control plane depends on it, and its
+metrics are **not** evidence for the core governance system
+([docs/03-experiments.md](docs/03-experiments.md) §9 · [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16).
+
+Building the downstream product is also where core gaps surface first: deployment-declared tool
+classification, `GROUNDED_READ_ACCEPT` and per-surface fail-closed prerequisites came from there.
 
 ## AI use, citation, license
 
