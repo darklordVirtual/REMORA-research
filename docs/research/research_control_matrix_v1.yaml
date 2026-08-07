@@ -261,9 +261,25 @@ entries:
       - tests/test_statphys.py
       - tests/test_thermodynamics.py
       - tests/test_thermodynamic_braking.py
-    evidence: "Phase classification (ordered/critical/disordered) and selective-trust routing; explicit caveats (e.g. 'real oracles are not Potts spins')."
+    evidence: >-
+      Regime classification (ordered/critical/disordered) and selective-trust
+      routing exist as tested library code. NOT evidence of runtime effect:
+      verified 2026-08-07 that no governed path populates these signals —
+      servers/api.py never references the consensus state,
+      servers/execution_api.py passes trust_score=None and phase=None, and
+      build_full_observation leaves the fields at their None defaults, so the
+      critical_phase_critical_risk rule cannot fire in production.
     maturity: implemented_and_tested
-    scope_boundary: "Physics language is an operational analogy and feature family; some theoretical claims remain not-demonstrated or explicitly negative in the claim ledger."
+    scope_boundary: >-
+      Library-grade only, and the framing is withdrawn from the paper
+      (2026-08-07). The physics vocabulary (structural temperature, free
+      energy, Lyapunov observable) invited a physical reading the system does
+      not support, and the temperature signal it rested on FAILED its
+      pre-registered fresh-data confirmation (CLAIM-012, NEGATIVE_RESULTS
+      §18): temperature ranked worse than calibrated confidence. The paper now
+      presents only the information-theoretic observables (H, D, trust score);
+      the withdrawn material lives in the negative results. These signals are
+      not populated on any governed path and influence no runtime decision.
     related_work_section: "docs/09-related-work.md §6"
     in_code_citation: false
     compendium_refs: []
@@ -576,7 +592,6 @@ bibliography:
     - {id: inan-2023-llama, surname: "Inan", year: "2023", arxiv: "2312.06674", role: positioning_only, note: "Llama Guard - content guardrail, contrasted with action gating."}
     - {id: kadavath-2022-language, surname: "Kadavath", year: "2022", arxiv: "2207.05221", role: positioning_only, note: "Self-knowledge; motivates structural over self-reported uncertainty."}
     - {id: kelly-1998-arguing, surname: "Kelly", year: "1998", role: positioning_only, note: "Assurance cases; DecisionEnvelope populates one node."}
-    - {id: khalil-2002-nonlinear, surname: "Khalil", year: "2002", role: positioning_only, note: "Terminology anchor only - V(t) is an observable, not a certified Lyapunov function."}
     - {id: kuncheva-2003-measures, surname: "Kuncheva", year: "2003", role: positioning_only, note: "Ensemble diversity measures."}
     - {id: lakshminarayanan-2017-simple, surname: "Lakshminarayanan", year: "2017", role: positioning_only, note: "Deep ensembles."}
     - {id: mohri-2024-language, surname: "Mohri", year: "2024", role: positioning_only, note: "Conformal factuality; pre-empts the general LLM-abstention move."}

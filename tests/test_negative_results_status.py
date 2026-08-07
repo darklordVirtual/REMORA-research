@@ -38,8 +38,8 @@ def test_every_section_carries_a_status() -> None:
     lines = mod.DOC.read_text(encoding="utf-8").splitlines()
     statuses, errors = mod.parse_sections(lines)
     assert errors == [], errors
-    # 35 numbered sections, none unmarked.
-    assert len(statuses) == 37
+    # Every numbered section is marked; the count grows as findings land.
+    assert len(statuses) == 38
     assert set(statuses.values()) <= set(mod.VALID)
 
 

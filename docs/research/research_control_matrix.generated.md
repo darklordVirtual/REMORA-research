@@ -117,9 +117,9 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - **REMORA controls:** phase_classification, thermodynamic_braking
 - **Code:** [`remora/statphys/potts.py`](../../remora/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py), [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py)
 - **Tests:** [`tests/test_statphys.py`](../../tests/test_statphys.py), [`tests/test_thermodynamics.py`](../../tests/test_thermodynamics.py), [`tests/test_thermodynamic_braking.py`](../../tests/test_thermodynamic_braking.py)
-- **Evidence:** Phase classification (ordered/critical/disordered) and selective-trust routing; explicit caveats (e.g. 'real oracles are not Potts spins').
+- **Evidence:** Regime classification (ordered/critical/disordered) and selective-trust routing exist as tested library code. NOT evidence of runtime effect: verified 2026-08-07 that no governed path populates these signals — servers/api.py never references the consensus state, servers/execution_api.py passes trust_score=None and phase=None, and build_full_observation leaves the fields at their None defaults, so the critical_phase_critical_risk rule cannot fire in production.
 - **Maturity:** `implemented_and_tested`
-- **Scope boundary:** Physics language is an operational analogy and feature family; some theoretical claims remain not-demonstrated or explicitly negative in the claim ledger.
+- **Scope boundary:** Library-grade only, and the framing is withdrawn from the paper (2026-08-07). The physics vocabulary (structural temperature, free energy, Lyapunov observable) invited a physical reading the system does not support, and the temperature signal it rested on FAILED its pre-registered fresh-data confirmation (CLAIM-012, NEGATIVE_RESULTS §18): temperature ranked worse than calibrated confidence. The paper now presents only the information-theoretic observables (H, D, trust score); the withdrawn material lives in the negative results. These signals are not populated on any governed path and influence no runtime decision.
 - **Literature:** [docs/09-related-work.md](../../docs/09-related-work.md) §6
 - **Landscape (local compendium):** No anchor in the local compendium: the statistical-physics control signals (q-state Potts, Gibbs/Boltzmann, Lyapunov) are used as an operational analogy specific to REMORA and are not a catalogued research area in the assurance landscape.
 
@@ -235,7 +235,7 @@ Every reference in [`paper/remora_paper.md`](../../paper/remora_paper.md) with t
 | Grounds a module (no dedicated line) | 11 | present in the codebase |
 | Evaluation source | 4 | present in the codebase |
 | Standard, regulation or tool | 4 | no code claim |
-| Related-work positioning only | 37 | no code claim |
+| Related-work positioning only | 36 | no code claim |
 
 ### Implemented research line (8)
 
@@ -292,7 +292,7 @@ Aligned with or integrated, not a research result. Alignment is a mapping claim,
 | `open-2024-open` | — | — | [`remora/policy/opa_adapter.py`](../../remora/policy/opa_adapter.py) | OPA/Rego adapter, failing closed to the Python engine. |
 | `standards-2021-norsok` | — | — | — | NORSOK D-010 well-barrier framing in the case study. |
 
-### Related-work positioning only (37)
+### Related-work positioning only (36)
 
 Compared against or used as framing in the paper. No code, no evaluation — and that is the honest status, not an oversight.
 
@@ -315,7 +315,6 @@ Compared against or used as framing in the paper. No code, no evaluation — and
 | `inan-2023-llama` | arxiv:2312.06674 | — | — | Llama Guard - content guardrail, contrasted with action gating. |
 | `kadavath-2022-language` | arxiv:2207.05221 | — | — | Self-knowledge; motivates structural over self-reported uncertainty. |
 | `kelly-1998-arguing` | — | — | — | Assurance cases; DecisionEnvelope populates one node. |
-| `khalil-2002-nonlinear` | — | — | — | Terminology anchor only - V(t) is an observable, not a certified Lyapunov function. |
 | `kuncheva-2003-measures` | — | — | — | Ensemble diversity measures. |
 | `lakshminarayanan-2017-simple` | — | — | — | Deep ensembles. |
 | `mohri-2024-language` | — | — | — | Conformal factuality; pre-empts the general LLM-abstention move. |

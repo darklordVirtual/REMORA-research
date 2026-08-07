@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-07: **11 `open`**, **4 `accepted`**, **22 `superseded`**.
+Counts as of 2026-08-07: **11 `open`**, **5 `accepted`**, **22 `superseded`**.
 
 ## The actual backlog
 
@@ -2218,6 +2218,78 @@ not isolated causal efficacy of semantic intent matching.
 Registered as CLAIM-018.
 
 ---
+
+## §38 Thermodynamic framing withdrawn from the paper; Lyapunov observable retained here (2026-08-07)
+<!-- finding-status: accepted -->
+
+**What changed.** The paper presented its uncertainty observables under
+statistical-physics terminology: a structural temperature `T`, a critical
+temperature `T_c`, a free-energy proxy `F = λD − T·H`, a susceptibility `χ`,
+and a Lyapunov observable `V(t) = H(t) + λD(t)`. Section 5 was titled
+*Method: Thermodynamic Uncertainty Observables*. That framing has been
+withdrawn from the manuscript and the material moved here.
+
+**Why, in order of weight.**
+
+1. **The central quantity is falsified.** Regime assignment derived from
+   comparing `T` against `T_c`. The temperature signal failed its
+   pre-registered fresh-data confirmation (§18, CLAIM-012): on N=1,231 held-out
+   items temperature-AURC 0.0954 vs. confidence-AURC 0.0664, paired CI
+   excluding zero. A method section may not rest on a signal that lost its own
+   pre-registered test.
+
+2. **Nothing populates it on a governed path.** Verified 2026-08-07 by
+   inspection: `servers/api.py` contains no reference to the consensus state;
+   `servers/execution_api.py` passes `trust_score=None` and `phase=None`
+   explicitly (with a comment stating the client is never a trust source); and
+   `build_full_observation` — the observation builder shared by the assess and
+   execution routes — leaves `phase`, `temperature`, `order_parameter` and
+   `susceptibility` at their `None` defaults. The `critical_phase_critical_risk`
+   rule in `decision_engine.py` therefore cannot fire in production. The paper
+   was describing, as Method, machinery the enforced path does not run.
+
+3. **`χ` is algebraically constant in the live path.** It reduces to `1/T_c`
+   whenever the [0,1] clamps do not bind, independent of the oracle
+   distribution. As a standalone difficulty predictor it measured AUC 0.39 —
+   below chance (R10, above).
+
+**The Lyapunov measurement, preserved.** The observable was tracked across
+iterative oracle invocations, halting when `ΔV > ε_tol·|V|` (ε_tol = 0.05).
+Across 1,000 synthetic sessions of 5–20 steps:
+
+| Metric | Value |
+|--------|-------|
+| P(ΔV ≤ 0) throughout | 87.2% |
+| Mean ΔV | −0.329 |
+| P95 ΔV | +0.152 |
+| P99 ΔV | +0.308 |
+
+The 12.8% of sessions where `V` increased are cases where oracle consensus
+degraded within the session (simulated oracle failures, adversarial probes);
+the abort criterion terminates iteration there. Artifact:
+`results/lyapunov_aggregate_results.json`, reproduced by
+`experiments/lyapunov_aggregate.py`. **Configuration caveat:** the reported
+figure was computed with the library default `lambda_dissensus = 1.0`, while
+`λ = 0.3` appeared elsewhere as the free-energy coupling — two separate
+parameters that the withdrawn section conflated.
+
+This was never a formal stability proof and was captioned as such, but the
+name invited that reading. It is an empirical trend statistic over synthetic
+sessions, and it gated nothing in the governed path.
+
+**What survives in the paper.** Entropy `H` and dissensus `D` over the
+weighted verdict distribution, and the trust score `τ` derived from them —
+information theory, not physics. The three consensus regimes keep their names
+because they name existing code (`PhaseAwareGuardrail`,
+`results/phase_aware_guardrail_n544_results.json`), not a physical state.
+`remora/thermodynamics.py`, `remora/lyapunov.py` and `remora/statphys/potts.py`
+remain in the tree with their tests; RES-007 in the research control matrix
+now records that they influence no runtime decision.
+
+**Status:** the withdrawal is editorial and documentary. No code was removed,
+no measurement was retracted, and no claim-register entry changed status —
+CLAIM-012 already recorded the falsification. What changed is that the paper
+no longer presents the framing as method.
 
 ## Summary Table
 
