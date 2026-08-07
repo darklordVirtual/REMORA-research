@@ -98,13 +98,13 @@ def _md_references(md: str) -> tuple[list[str], str]:
     """Return (reference bullets, md text with the References block removed)."""
     lines = md.split("\n")
     try:
-        start = next(i for i, l in enumerate(lines)
-                     if l.strip() == "## References")
+        start = next(i for i, line in enumerate(lines)
+                     if line.strip() == "## References")
         end = next(i for i in range(start + 1, len(lines))
                    if lines[i].startswith("## "))
     except StopIteration:
         return [], md
-    refs = [l[2:].strip() for l in lines[start:end] if l.startswith("- ")]
+    refs = [ln[2:].strip() for ln in lines[start:end] if ln.startswith("- ")]
     rest = "\n".join(lines[:start] + lines[end:])
     return refs, rest
 
