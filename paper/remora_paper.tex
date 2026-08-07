@@ -1313,7 +1313,7 @@ One oracle failed; excluded.
 \textbf{Consensus:}
 $\hat{p}(\textsc{Escalate}) = 0.71$, $\hat{p}(\textsc{Verify}) = 0.29$.
 $H = 0.866$ bits; $D = 0.29$;
-phase = critical ($T = 0.85$, near $T_c$);
+regime = critical;
 $\trust = 0.31$.
 
 \textbf{Evidence:} No field inspection, no ECD calculation, no OIM
@@ -1479,8 +1479,11 @@ critical-phase decisions.
 \paragraph{$T$--$D$ circularity (resolved).}
 Legacy temperature estimator weighted $D$ at 18\% of $T$, creating
 a feedback loop ($D \rightarrow T \rightarrow F \rightarrow V$, all
-depending on $D$). Resolved by structural temperature (\S\ref{sec:method}),
-which computes $T$ from prompt structure alone.
+depending on $D$). Resolved by a prompt-only structural temperature estimator, which
+computes $T$ without reference to $D$. The estimator itself was
+subsequently withdrawn from the method (\S\ref{sec:method}): it failed
+its pre-registered fresh-data confirmation, so this circularity fix is
+recorded here as history rather than as a live mechanism.
 
 % =====================================================================
 \section{Threats to Validity}
@@ -2078,8 +2081,9 @@ Component & Impl. & Integrated & Notes \\
 Oracle fan-out & Yes & Yes & ThreadPoolExecutor \\
 Canonicalization ($\phi$) & Yes & Yes & NFKC, Semantic Entropy \cite{kuhn2023semantic} \\
 Correlation weighting & Yes & Per-request & Fresh engine per API request \\
-$H$, $D$, $\eta$, $T$, $F$, $\trust$ & Yes & Yes & \texttt{thermodynamics.py} \\
-$V(t)$ Lyapunov tracking & Yes & Yes & Abort on $\Delta V$ \\
+$H$, $D$, $\eta$, $\trust$ & Yes & Yes & \texttt{thermodynamics.py} \\
+$T$, $F$ (withdrawn, \S\ref{sec:negative}) & Yes & Yes & \texttt{thermodynamics.py} \\
+$V(t)$ session stability (withdrawn, \S\ref{sec:negative}) & Yes & Yes & Abort on $\Delta V$ \\
 Phase classification & Yes & Yes & 3-class \\
 Policy engine (7 headline controls: 3 unconditional + 4 conditional) & Yes & Yes & Full gate inventory in code \\
 OPA/Rego adapter & Adapter & No & API calls Python engine directly \\
