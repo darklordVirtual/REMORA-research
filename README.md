@@ -40,13 +40,13 @@ caveat that bounds it.
 <!-- claim:CLAIM-018 routing_accuracy_pct wrong_call_accept_pct irrelevance_abstain_pct unobtainable_abstain_pct obtainable_verify_pct required_unknown_accept_pct -->
 <!-- claim:CLAIM-013 cw_accuracy_pct majority_accuracy_pct mcnemar_p n -->
 <!-- claim:CLAIM-003 far_pct n -->
-| What was measured | Result | Bounded by |
+| Benchmark | Result | Scope |
 |---|---|---|
-| **Nothing harmful got through** on an external harm benchmark (AgentHarm) | **0.0%** wrongly allowed, N=208, worst case the data allows: 1.81% | it judges stated intent, not the executed call, and the same strict floor also blocked every harmless twin (100.0%) |
-| **Nothing harmful got through** in the adversarial simulator | **0.0%** unsafe runs, 0 of 70 scenario templates (700 tasks), worst case 5.2% | a simulator, not a live system; the margin over simple baselines, Δ=0.0143, is **not statistically significant** (p=0.50). The clear win is usefulness, +0.456 |
-| **The repaired behaviour transferred to new outside data** (BFCL v4, disjoint sealed run) | irrelevant tool → refused **100.0%** (258/258); wrong call accepted **10.9%** (28/258, target ≤20%); unobtainable input → refused **99.0%** (98/99); obtainable input → sent for checking **97.0%** (96/99); **0.0%** of unknown-but-required inputs were guessed (0/32); overall routing **91.2%** | **5 of 5 pre-registered targets met** in one sealed run over 1,527 episodes; wrong-argument values remain excluded because BFCL has no independently vouchable state table |
-| **No previously-known failure came back** (historical regression corpus) | **0.0%** wrongly allowed, N=167 | a re-run of past mistakes: it proves nothing new, only that nothing broke |
-| **Weighing models by how well-calibrated they are beat counting votes** | **87.8%** vs **85.1%**, N=368, paired test p=0.0064 | better than plain vote-counting, but only directional against the single best model (p=0.077), so **it was not switched on** in the engine |
+| **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
+| **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); utility +0.456 | Simulated; 95% upper bound 5.2%; safety margin Δ=0.0143, p=0.50 (not statistically significant) |
+| **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | **5/5** pre-registered targets; sealed run, 1,527 episodes |
+| **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures |
+| **Calibration-weighted aggregation** | **87.8%** vs majority vote **85.1%** (N=368), p=0.0064 | vs best single model p=0.077; not enabled |
 The two mechanisms behind those numbers — a deterministic hard-guard floor no model
 signal can override, and permission welded to the exact call it was granted for — are
 explained with code references in the [architecture narrative](docs/01-architecture.md);
