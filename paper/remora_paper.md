@@ -935,7 +935,7 @@ The current `EvidenceSignal` is built from oracle consensus statistics (agreemen
 
 ### 13.8 Demo Data vs. Production Data
 
-The Control Room frontend uses a deterministic simulator with seeded RNG to generate oracle votes, latencies, and evidence snippets. The case history and policy-learning panels in the frontend display synthetic data generated deterministically from scenario parameters. These features are clearly labelled as demo components in the source code. The policy engine, thermodynamic observables, and decision routing in the backend are genuine implementations that process real oracle responses.
+The Control Room frontend uses a deterministic simulator with seeded RNG to generate oracle votes, latencies, and evidence snippets. The case history and policy-learning panels in the frontend display synthetic data generated deterministically from scenario parameters. These features are clearly labelled as demo components in the source code. The policy engine, consensus observables, and decision routing in the backend are genuine implementations that process real oracle responses.
 
 ### 13.9 AROMER MetaJudge Evaluation Circularity (Active)
 
