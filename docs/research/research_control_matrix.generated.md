@@ -225,6 +225,127 @@ Claims named in a research line's evidence. Not every line cites a claim id in p
 |-------|------------------|
 | CLAIM-011 | RES-010 |
 
+## Bibliography reconciliation
+
+Every reference in [`paper/remora_paper.md`](../../paper/remora_paper.md) with the role it plays in REMORA. The research lines above are deliberately few (a line requires code **and** tests); this table accounts for the rest, so "absent from the matrix" is a stated decision rather than an unexplained gap. Roles describe how REMORA uses a work, not the work's importance. A positioning_only source can be central to the argument of the paper and still be absent from the code; that is the normal case for related work.
+
+| Role | Works | Asserts |
+|------|-------|---------|
+| Implemented research line | 8 | present in the codebase |
+| Grounds a module (no dedicated line) | 11 | present in the codebase |
+| Evaluation source | 4 | present in the codebase |
+| Standard, regulation or tool | 4 | no code claim |
+| Related-work positioning only | 37 | no code claim |
+
+### Implemented research line (8)
+
+Covered by a research line above, with code and tests. The `Line` column points at it.
+
+| Source | Line | Code | Note |
+|--------|------|------|------|
+| Angelopoulos (2022) | RES-003 | — | — |
+| Bjøru (2026) | RES-001 | — | — |
+| Cobbe (2021) | RES-004 | — | — |
+| Howard (2021) | RES-010 | — | — |
+| Pearl (2009) | RES-001 | — | — |
+| Ramdas (2023) | RES-010 | — | — |
+| Wang (2023a) | RES-004 | — | — |
+| Zheng (2023) | RES-004 | — | — |
+
+### Grounds a module (no dedicated line) (11)
+
+Cited in a code docstring as the basis for a module, but not large enough to be its own research line. CI verifies the surname appears in the named file.
+
+| Source | Line | Code | Note |
+|--------|------|------|------|
+| Darling (1967) | — | [`remora/selective/confidence_sequence.py`](../../remora/selective/confidence_sequence.py) | — |
+| El-Yaniv (2010) | — | [`remora/selective/risk_control.py`](../../remora/selective/risk_control.py) | Selective-classification foundations behind the RES-002 idea family. |
+| Farquhar (2024) | — | [`remora/semantic_entropy.py`](../../remora/semantic_entropy.py) | The Nature follow-up to Kuhn et al.; same clustering construct. |
+| Geifman (2017) | — | [`remora/selective/risk_control.py`](../../remora/selective/risk_control.py) | SGR Algorithm 1 is implemented directly (binary search over cut points). |
+| Greenblatt (2024) | — | [`remora/governance/control_protocols.py`](../../remora/governance/control_protocols.py) | AI-control taxonomy used to classify REMORA as a trusted-monitoring protocol. Classification only: the subversive-agent threat model is explicitly NOT covered. |
+| Kirchner (2024) | — | [`remora/selective/pvd.py`](../../remora/selective/pvd.py) | PVD framing only. REMORA does not run the training game; the module derives an offline agreement score from already-produced responses. This file carried a fabricated author list until 2026-08-07 while the paper had long been remediated, which is why tests/test_paper_no_stale_claims.py now also scans cited modules. |
+| Kuhn (2023) | — | [`remora/semantic_entropy.py`](../../remora/semantic_entropy.py) | Semantic Entropy is a core observable with no RES line of its own: it is an input to RES-002/RES-004 rather than a separate control. |
+| Shafer (2008) | — | [`remora/selective/confidence_sequence.py`](../../remora/selective/confidence_sequence.py) | — |
+| Tibshirani (2019) | — | [`remora/selective/crc.py`](../../remora/selective/crc.py) | Weighted conformal under covariate shift; source of the importance weights. |
+| Ville (1939) | — | [`remora/selective/confidence_sequence.py`](../../remora/selective/confidence_sequence.py) | Ville's inequality is the martingale bound the sequence rests on. |
+| Vovk (2005) | — | [`remora/selective/conformal.py`](../../remora/selective/conformal.py) | — |
+
+### Evaluation source (4)
+
+A dataset or benchmark REMORA is evaluated **on**. Not a method REMORA implements.
+
+| Source | Line | Code | Note |
+|--------|------|------|------|
+| Andriushchenko (2024) | — | [`scripts/run_agentharm_benchmark.py`](../../scripts/run_agentharm_benchmark.py) | AgentHarm external validation (CLAIM-002). Imported historical artifact: it cannot be regenerated from this repository. |
+| Clark (2019) | — | [`remora/benchmarks/extended_v2.py`](../../remora/benchmarks/extended_v2.py) | BoolQ items in the QA benchmark composition. |
+| Lin (2022) | — | [`remora/benchmarks/extended_v2.py`](../../remora/benchmarks/extended_v2.py) | TruthfulQA items in the QA benchmark composition. |
+| Williams (2018) | — | [`experiments/rag_critical_router_v1.py`](../../experiments/rag_critical_router_v1.py) | MultiNLI as the evidence-router proxy benchmark. |
+
+### Standard, regulation or tool (4)
+
+Aligned with or integrated, not a research result. Alignment is a mapping claim, never a conformity claim.
+
+| Source | Line | Code | Note |
+|--------|------|------|------|
+| European (2024) | — | [`remora/evidence/domains/ai_governance.py`](../../remora/evidence/domains/ai_governance.py) | EU AI Act Art. 12/14 mapped at runtime; no conformity assessment claimed. |
+| International (2016) | — | — | IEC 61511 SIL framing in the case study. |
+| Open (2024) | — | [`remora/policy/opa_adapter.py`](../../remora/policy/opa_adapter.py) | OPA/Rego adapter, failing closed to the Python engine. |
+| Standards (2021) | — | — | NORSOK D-010 well-barrier framing in the case study. |
+
+### Related-work positioning only (37)
+
+Compared against or used as framing in the paper. No code, no evaluation — and that is the honest status, not an oversight.
+
+| Source | Line | Code | Note |
+|--------|------|------|------|
+| Angelopoulos (2021) | — | — | Conformal tutorial; framing only. |
+| Bloomfield (2010) | — | — | — |
+| Chennabasappa (2025) | — | — | LlamaFirewall - closest industrial system in scope. |
+| Choi (2026) | — | — | Membrane; contrasted with AROMER's never-weaken constraint. |
+| Chow (1970) | — | — | Origin of the error-reject tradeoff. |
+| Corsi (2021) | — | — | — |
+| Debenedetti (2024) | — | — | AgentDojo - named as a required replication target, not run. |
+| Debenedetti (2025) | — | — | CaMeL; shelf SHELF-008. |
+| Dong (2025) | — | — | TEE attestation sketch; hardware integration pending. |
+| Du (2024) | — | — | Multi-agent debate; REMORA's dissensus is a one-shot analogue. |
+| Endsley (1995) | — | — | Situation awareness; supervision framing only. |
+| Ge (2026) | — | — | — |
+| Guldimann (2024) | — | — | COMPL-AI. |
+| Guo (2017) | — | — | Calibration; REMORA deliberately does not calibrate per-oracle. |
+| Inan (2023) | — | — | Llama Guard - content guardrail, contrasted with action gating. |
+| Kadavath (2022) | — | — | Self-knowledge; motivates structural over self-reported uncertainty. |
+| Kelly (1998) | — | — | Assurance cases; DecisionEnvelope populates one node. |
+| Khalil (2002) | — | — | Terminology anchor only - V(t) is an observable, not a certified Lyapunov function. |
+| Kuncheva (2003) | — | — | Ensemble diversity measures. |
+| Lakshminarayanan (2017) | — | — | Deep ensembles. |
+| Mohri (2024) | — | — | Conformal factuality; pre-empts the general LLM-abstention move. |
+| Mu (2024) | — | — | Rule-based rewards - safety rules in training, not enforcement. |
+| Raji (2022) | — | — | Audit-ecosystem design; motivates the replay/transparency framing. |
+| Rebedea (2023) | — | — | NeMo Guardrails. |
+| Ruan (2024) | — | — | ToolEmu anticipates the Shadow Mode counterfactual idea. |
+| Shamsujjoha (2024) | — | — | Swiss-cheese guardrail taxonomy. |
+| Sharma (2025) | — | — | Constitutional classifiers. |
+| Shi (2025) | — | — | Progent; shelf SHELF-009. Defines the (safety, friction) frontier. |
+| Wang (2023b) | — | — | LoRA ensembles; motivates but does not validate heterogeneous aggregation. |
+| Wang (2025) | — | — | AgentSpec - DSL near-isomorphic to REMORA's policy invariants. |
+| Xiang (2025) | — | — | GuardAgent. |
+| Yadkori (2024) | — | — | Conformal abstention for hallucination mitigation. |
+| Yang (2026) | — | — | AgentTrust; opposite corner of the safety/friction trade-off. |
+| Yao (2024) | — | — | tau-bench. |
+| Yuan (2024) | — | — | R-Judge. |
+| Zhan (2024) | — | — | InjecAgent. |
+| Zhang (2024) | — | — | Confidence elicitation by fidelity. |
+
+### Cited in code but not in the paper (3)
+
+The reconciliation runs both ways. These sources ground code or a research line while the paper carries no reference to them — recorded so the asymmetry is visible instead of hidden.
+
+| Source | Work | Code | Note |
+|--------|------|------|------|
+| Behrouz (2025) | Nested Learning | RES-008 (narrative attribution) | Source of RES-008 and absent from the paper. Deliberately NOT cited in code: RES-008 carries in_code_citation false because REMORA implements the governance framing, not the architecture, so the attribution lives in docs/09-related-work.md rather than in a module docstring. |
+| Galhotra (2021) | Contrastive explanations (SIGMOD) | [`remora/causal/search.py`](../../remora/causal/search.py) | builds_on source for RES-001. |
+| Wang (2024) | Mixture-of-Agents | [`remora/cascade/stages.py`](../../remora/cascade/stages.py) | Single-stage aggregation inspired by MoA. The paper no longer discusses MoA (the multi-layer architecture is not implemented), so it carries no paper reference. |
+
 ## Research landscape coverage
 
 Crosswalk to the broader AI-assurance landscape (`docs/researchpapers/kompendium_ai_assurance_3utgave.md`). local-only working document (gitignored, not published; ~201 works, 2. edition figure). compendium_refs are validated against this file when present locally and skipped in CI where it is absent. These are reference pointers, **not** implementation claims — a work appearing here means it informs a line, not that REMORA implements it.

@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Prover-Verifier Deliberation (PVD) for critical-phase routing.
 
-Implements a lightweight PVD protocol inspired by Kirsch et al. (2024)
+Implements a lightweight PVD protocol inspired by Kirchner et al. (2024)
 arXiv:2407.13692, adapted for REMORA's offline multi-oracle setting.
 
 Background
 ----------
-Kirsch et al. showed that prover-verifier games produce more legible LLM
+Kirchner et al. showed that prover-verifier games produce more legible LLM
 outputs: a "prover" oracle justifies a claim to a "verifier" oracle whose
 independent evaluation filters out low-quality reasoning.  In REMORA's
 critical phase, oracle responses cluster near a phase boundary; the prover-
@@ -40,8 +40,8 @@ existing oracle response text and pre-computed NLI entailment scores.
 
 Reference
 ---------
-Kirsch, A., Harrison, J., Misra, S., & Leike, J. (2024).
-Prover-verifier games improve legibility of LLM outputs.
+Kirchner, J. H., Chen, Y., Edwards, H., Leike, J., McAleese, N., & Burda, Y.
+(2024). Prover-verifier games improve legibility of LLM outputs.
 *arXiv:2407.13692*.
 """
 from __future__ import annotations
