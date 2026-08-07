@@ -271,3 +271,65 @@ def test_generated_view_renders_the_reconciliation() -> None:
     text = GENERATED.read_text(encoding="utf-8")
     assert "## Bibliography reconciliation" in text
     assert "### Cited in code but not in the paper" in text
+
+
+# ── Unambiguous source identity (added 2026-08-07) ──────────────────────────
+# Surname+year cannot separate two works by one author: an audit of the
+# reconciliation could not tell Angelopoulos 2021 from 2022, nor the three
+# distinct Wang publications, so every surname-based check was ambiguous.
+# A stable id is the unambiguous key; a declared arXiv/DOI/ISBN is a factual
+# claim and is therefore only accepted when the paper's own reference line
+# already carries it.
+
+
+def _all_bib_works() -> list[dict]:
+    b = _bib()
+    return list(b["works"]) + list(b.get("code_only") or [])
+
+
+def test_every_work_has_a_unique_wellformed_id() -> None:
+    mod = _load_module()
+    works = _all_bib_works()
+    ids = [w.get("id") for w in works]
+    assert all(ids), [w["surname"] for w in works if not w.get("id")]
+    dupes = sorted({i for i in ids if ids.count(i) > 1})
+    assert not dupes, f"duplicate source ids: {dupes}"
+    bad = [i for i in ids if not mod._ID_RE.match(str(i))]
+    assert not bad, f"ids must be lowercase-hyphenated ASCII: {bad}"
+
+
+def test_declared_identifiers_are_corroborated_by_the_paper() -> None:
+    """An arXiv/DOI/ISBN in the matrix must appear in the paper's reference
+    line. This is what makes an identifier unfabricatable."""
+    mod = _load_module()
+    bib = _bib()
+    lines = mod._paper_reference_lines(ROOT / bib["paper"])
+    offenders: list[str] = []
+    for w in bib["works"]:
+        ref = lines.get((w["surname"], str(w["year"])), "")
+        for field in mod.IDENTIFIER_FIELDS:
+            val = w.get(field)
+            if val and str(val) not in ref:
+                offenders.append(f"{w['id']}: {field}={val} absent from paper")
+    assert not offenders, "\n".join(offenders)
+
+
+def test_fabricated_identifier_is_rejected() -> None:
+    """The guard must actually fire — a plausible but invented arXiv id has to
+    fail validation, otherwise the corroboration rule is decorative."""
+    mod = _load_module()
+    data = _data()
+    target = next(w for w in data["bibliography"]["works"] if w.get("arxiv"))
+    target["arxiv"] = "2499.99999"  # plausible shape, not in the paper
+    errors = mod.validate(data)
+    assert any("2499.99999" in e for e in errors), (
+        "a fabricated arXiv id passed validation: the corroboration rule is "
+        "not enforcing anything"
+    )
+
+
+def test_missing_id_is_rejected() -> None:
+    mod = _load_module()
+    data = _data()
+    data["bibliography"]["works"][0].pop("id", None)
+    assert any("missing id" in e for e in mod.validate(data))
