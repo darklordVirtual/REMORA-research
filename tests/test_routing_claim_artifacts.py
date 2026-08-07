@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTER = ROOT / "docs" / "assurance" / "claim_register_v1.yaml"
 
 BFCL = ROOT / "results" / "routing_bench_bfcl_results.json"
+BFCL_V4 = ROOT / "results" / "routing_bench_bfcl_v4_results.json"
 DEMO = ROOT / "results" / "system_demonstration_v1.json"
 VALIDATORS = ROOT / "results" / "fleetops_validator_study_results.json"
 DEGRADATION = ROOT / "results" / "fleetops_degradation_results.json"
@@ -87,41 +88,65 @@ def test_bfcl_register_entry_matches_the_artifact() -> None:
     assert "externally_benchmarked" in block
     assert "blindness: blind" in block
     assert f"routing_accuracy_pct: {round(d['routing_accuracy_labelled'] * 100, 1)}" in block
-    assert f"wrong_call_accept_pct: {round(d['targets']['known_wrong_call_accept']['value'] * 100, 1)}" in block
+    wrong = d["targets"]["known_wrong_call_accept"]
+    assert f"wrong_call_accept_pct: {round(wrong['n'] / wrong['d'] * 100, 1)}" in block
     assert f"obtainable_verify_pct: {round(d['targets']['obtainable_verify_recall']['value'] * 100, 1)}" in block
     assert f"n_clusters: {d['n_clusters']}" in block
 
 
+def test_bfcl_v4_confirmation_is_sealed_and_all_five_targets_met() -> None:
+    d = _load(BFCL_V4)
+    assert d["schema"] == "routing_bench_bfcl_results_v1"
+    assert d["status"] == "evaluated_once"
+    assert d["holdout_sha256"] == (
+        "00ccd5384c14eee25797b8c683f16eb4e8cac856a81feeb228a254d5702d05d3"
+    )
+    assert d["n_episodes"] == 1527
+    assert d["n_labelled"] == 1170
+    assert d["all_targets_met"] is True
+    assert all(target["met"] for target in d["targets"].values())
+    assert d["targets"]["required_unknown_auto_accept"]["value"] == 0.0
+    assert d["targets"]["irrelevance_abstain_recall"]["value"] == 1.0
+    assert d["targets"]["known_wrong_call_accept"]["value"] == 0.1085
+    assert d["targets"]["obtainable_verify_recall"]["value"] == 0.9697
+    assert d["targets"]["unobtainable_abstain_recall"]["value"] == 0.9899
+
+
+def test_bfcl_v4_register_entry_matches_the_sealed_artifact() -> None:
+    block = _claim_block("CLAIM-018")
+    d = _load(BFCL_V4)
+    assert "externally_benchmarked" in block
+    assert "blindness: blind" in block
+    assert f"routing_accuracy_pct: {round(d['routing_accuracy_labelled'] * 100, 1)}" in block
+    wrong = d["targets"]["known_wrong_call_accept"]
+    assert f"wrong_call_accept_pct: {round(wrong['n'] / wrong['d'] * 100, 1)}" in block
+    assert f"obtainable_verify_pct: {round(d['targets']['obtainable_verify_recall']['value'] * 100, 1)}" in block
+
+
 # ---------------------------------------------------------------------------
-# CLAIM-015 — the development measurement that must never pose as blind
+# System demonstration and superseded CLAIM-015
 # ---------------------------------------------------------------------------
 
 def test_value_grounding_demonstration_labels_itself_development() -> None:
     d = _load(DEMO)
     assert d["schema"] == "system_demonstration_v1"
-    assert d["status"] == "development_measurement_not_blind"
+    assert d["status"] == "development_rerun_plus_sealed_artifact_reference"
 
     bfcl = d["bfcl_foreign_calls"]
-    # The blind record travels with the development number so the two can
-    # never be quoted apart.
-    assert round(bfcl["wrong_call_accept_blind_prefix"], 4) == 0.8682
-    assert bfcl["wrong_call_accept_post_grounding"] <= 0.20, (
-        "value grounding no longer meets the <=20% bar it was built to meet"
-    )
-    assert bfcl["wrong_call_accept_post_grounding"] < bfcl["wrong_call_accept_blind_prefix"]
+    assert bfcl["status"] == "sealed_artifact_reference_not_rerun"
+    assert bfcl["all_targets_met"] is True
+    assert bfcl["known_wrong_call_accept"]["met"] is True
+    assert "wrong_call_accept_post_grounding" not in bfcl
+    assert "wrong_call_accept_blind_prefix" not in bfcl
 
 
 def test_value_grounding_register_entry_carries_the_blind_caveat() -> None:
     block = _claim_block("CLAIM-015")
+    assert "status: superseded" in block
+    assert "superseded_by: CLAIM-018" in block
     assert "blindness: development" in block
-    assert "Development measurement, not blind holdout" in block
-    # The blind prefix must stay in the entry: 11.6% only means anything next
-    # to the 86.8% it improved on, and only if the reader can see that 86.8%
-    # was the sealed number and 11.6% was not.
-    assert "wrong_call_accept_blind_prefix_pct: 86.8" in block
-    d = _load(DEMO)["bfcl_foreign_calls"]
-    assert f"wrong_call_accept_post_grounding_pct: {round(d['wrong_call_accept_post_grounding'] * 100, 1)}" in block
-    assert f"identity_accept_post_grounding_pct: {round(d['identity_accept_post_grounding'] * 100, 1)}" in block
+    assert "NEGATIVE_RESULTS.md" in block
+    assert "The active external result is CLAIM-018" in block
 
 
 # ---------------------------------------------------------------------------

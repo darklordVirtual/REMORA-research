@@ -76,8 +76,8 @@ def test_parse_register_real_file() -> None:
     text = ccp.REGISTER_PATH.read_text(encoding="utf-8")
     claims = ccp.parse_register(text)
     ids = [c["id"] for c in claims]
-    assert len(claims) == 17
-    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-017"
+    assert len(claims) == 18
+    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-018"
     by_id = {c["id"]: c for c in claims}
     assert by_id["CLAIM-001"]["artifact"] == [
         "results/toolcall_benchmark_v2_results.json",
@@ -445,11 +445,10 @@ def test_real_readme_anchors_are_wired() -> None:
     # CLAIM-008 was dropped from this set on 2026-07-31: it was superseded by
     # CLAIM-013, and guardrail 5 now forbids anchoring a superseded claim here.
     # Its numbers moved to docs/03-experiments.md, anchored there. The sealed
-    # BFCL track is CLAIM-016: master had already claimed 014/015 for the
-    # system-demonstration and value-grounding claims, and master's numbering
-    # wins because it merged first and is what other documents cite.
+    # The superseded BFCL v3 result is CLAIM-016 and lives only in the negative
+    # record. The disjoint sealed BFCL v4 confirmation is CLAIM-018.
     assert {"CLAIM-001", "CLAIM-002", "CLAIM-003", "CLAIM-013",
-            "CLAIM-016"} <= _readme_anchored_claims()
+            "CLAIM-018"} <= _readme_anchored_claims()
 
 
 def test_readme_front_page_carries_no_superseded_claim() -> None:

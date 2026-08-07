@@ -291,7 +291,7 @@ claims:
       produced by Stage 1 hard-block invariants (CLAIM-001); this proxy result does
       not bear on that attribution.
     reproduce: >
-      python experiments/evaluate_toolcall_benchmark_v2.py --ablation
+      python experiments/toolcall_ablation_v2.py
       Artifact: artifacts/aromer/component_ablation_results.json
 
   - id: CLAIM-008
@@ -532,48 +532,25 @@ claims:
       results/system_demonstration_v1.json)
 
   - id: CLAIM-015
-    title: "Argument-value grounding reduces wrong-call ACCEPT from 86.8% to 11.6%"
+    title: "Superseded BFCL v3 development measurement"
     statement: >
-      On the BFCL foreign-call set used in section 34 (development measurement on
-      the spent blind set), enabling argument-value grounding reduces wrong-call
-      autonomous acceptance from 86.8% to 11.6%. All irrelevant-tool calls
-      abstain (100%). All unobtainable-argument calls abstain (100%).
-      Legitimate-identity post-grounding autonomy is 56.8% (utility cost: ~29 pp
-      vs blind record). The 86.8% blind record is not superseded; it stands as
-      the unaffected baseline.
+      Historical post-hoc measurements on the spent BFCL v3 set are superseded
+      by the sealed BFCL v4 result in CLAIM-018.
     evidence_level: internal_benchmark
-    status: active
+    status: superseded
+    superseded_by: CLAIM-018
     blindness: development
     artifact:
-      - "results/system_demonstration_v1.json"
+      - "NEGATIVE_RESULTS.md"
     n: null
-    n_detail: >
-      N not independently published. Development re-measurement on the spent
-      blind BFCL set from section 34. The wrong_call_accept_blind_prefix=86.8%
-      is from the sealed evaluation; grounding numbers are post-hoc re-measurement
-      on the same (now non-blind) set.
-    metrics:
-      wrong_call_accept_blind_prefix_pct: 86.8
-      wrong_call_accept_post_grounding_pct: 11.6
-      irrelevance_abstain_pct: 100.0
-      unobtainable_abstain_pct: 100.0
-      identity_accept_post_grounding_pct: 56.8
-      obtainable_verify_pct: 82.7
+    n_detail: "Historical record only; see NEGATIVE_RESULTS.md section 34."
+    metrics: {}
     caveat: >
-      Development measurement, not blind holdout. 11.6% is not an external
-      holdout result. Grounding does not prove the correct tool was selected.
-      The remaining ~30 wrong calls pass due to coincidental value overlap;
-      full resolution requires task-call semantic provenance. Utility cost is real:
-      relative dates, normalised formats, unit conversions and computed values are
-      not directly copied from context and cannot be grounded without derivation
-      provenance. Do not cite as blind generalisation evidence. Blind confirmation
-      requires a new sealed set covering the six categories documented in
-      NEGATIVE_RESULTS.md under the next experiment plan.
-    reproduce: >
-      python scripts/run_system_demonstration.py
-      (bfcl_foreign_calls block in results/system_demonstration_v1.json)
+      Do not cite or reproduce the spent-set development figures as current
+      evidence. The active external result is CLAIM-018.
+    reproduce: "Not rerunnable; the BFCL v3 set is spent."
   - id: CLAIM-016
-    title: "Sealed external routing track (BFCL v3): four of five pre-registered targets met, the fifth missed and published"
+    title: "Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018"
     statement: >
       Track C-ext was evaluated once, at locked commit cf02fa8, on sealed
       external data the system had never seen: BFCL v3 live categories
@@ -592,7 +569,8 @@ claims:
       a substituted call carrying its own complete, well-formed arguments
       gives the structural signals nothing to distrust.
     evidence_level: externally_benchmarked
-    status: active
+    status: superseded
+    superseded_by: CLAIM-018
     blindness: blind
     artifact:
       - "results/routing_bench_bfcl_results.json"
@@ -658,3 +636,48 @@ claims:
     reproduce: >
       python -m pytest tests/test_goal_match.py -v
 
+  - id: CLAIM-018
+    title: "Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met"
+    statement: >
+      Track C-ext2 was evaluated once on a sealed, ID-disjoint BFCL v4 sample
+      at ShishirPatil/gorilla commit 6ea57973c7a6 (Apache-2.0): 258
+      live_multiple tasks and 258 live_irrelevance tasks not present in the
+      spent BFCL v3 population. Across 1,527 episodes, all five unchanged
+      pre-registered targets met: required-but-unknown autonomous ACCEPT 0/32
+      = 0.0%; irrelevance ABSTAIN 258/258 = 100.0%; obtainable-argument VERIFY
+      96/99 = 97.0%; unobtainable-argument ABSTAIN 98/99 = 99.0%; and
+      known-wrong-call ACCEPT 28/258 = 10.9% against a <=20% bar. Labelled
+      routing accuracy was 91.2% (n=1,170; cluster-level Wilson 95% CI
+      [88.4%, 93.3%]).
+    evidence_level: externally_benchmarked
+    status: active
+    blindness: blind
+    artifact:
+      - "results/routing_bench_bfcl_v4_results.json"
+      - "data/routing_bench_bfcl_v4/manifest.json"
+    n: 1527
+    n_detail: >
+      1,527 episodes over 516 source clusters (508 effective labelled
+      clusters); 1,170 labelled and 357 unlabelled. Source-task ID overlap
+      with the spent BFCL v3 holdout is zero.
+    metrics:
+      routing_accuracy_pct: 91.2
+      irrelevance_abstain_pct: 100.0
+      unobtainable_abstain_pct: 99.0
+      obtainable_verify_pct: 97.0
+      required_unknown_accept_pct: 0.0
+      wrong_call_accept_pct: 10.9
+      optional_identity_accept_pct: 69.3
+      n_clusters: 508
+    caveat: >
+      Evaluated once; this BFCL v4 sample is now spent. The wrong-argument
+      value axis was excluded before sealing because BFCL provides no
+      independently vouchable state table. The track supplies no authoritative
+      TaskIntent/ToolContract bundle, so it confirms the current routing
+      pipeline and value-grounding mitigation, not isolated causal efficacy of
+      semantic intent matching. The original BFCL v3 86.8% miss remains an
+      immutable negative result under CLAIM-016.
+    reproduce: >
+      The sealed result must not be regenerated. Verify hashes and status in
+      data/routing_bench_bfcl_v4/manifest.json and run
+      python -m pytest tests/test_routing_claim_artifacts.py -v.

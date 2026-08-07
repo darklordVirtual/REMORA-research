@@ -109,21 +109,20 @@ note there).
 ## Addition Note (2026-07-31, routing track)
 
 Six new artifacts are added (additions, not re-issues) covering the tool-call
-routing track registered as CLAIM-014, CLAIM-015 and CLAIM-016:
+routing track registered as CLAIM-014 and the historical CLAIM-015/CLAIM-016
+records (both superseded by CLAIM-018):
 
 - `results/routing_bench_bfcl_results.json` + `data/routing_bench_bfcl/manifest.json`
-  are the **sealed blind record** (CLAIM-014). They were produced by a single
-  evaluation at locked commit `cf02fa8` and must never change. Any checksum
+  are the **sealed blind record** (CLAIM-016, superseded by CLAIM-018). They
+  were produced by a single evaluation at locked commit `cf02fa8` and must never change. Any checksum
   change here is a protocol violation, not a re-run: the set is spent and a
   second evaluation cannot restore blindness.
-- `results/system_demonstration_v1.json` (CLAIM-015) is an aggregated
-  re-execution of every committed routing study at HEAD; its own `status`
-  field records `development_measurement_not_blind`. It is expected to change
-  when the engine changes — that is what it is for — and the blind record above
-  is what it must never be confused with.
+- `results/system_demonstration_v1.json` (CLAIM-014) re-executes the open
+  routing mechanism studies at HEAD and references, but does not re-run, the
+  immutable BFCL v4 sealed artifact. Its own `status` records that distinction.
 - `results/fleetops_validator_study_results.json`,
   `results/fleetops_degradation_results.json` and
-  `results/fleetops_admission.json` (CLAIM-016) are the open mechanism study on
+  `results/fleetops_admission.json` (CLAIM-014) are the open mechanism study on
   the generated fleetops domain, whose blind budget was spent in
   NEGATIVE_RESULTS.md §31.
 
@@ -149,7 +148,7 @@ must not change unless the benchmark is re-run under a documented protocol.
 
 | File | SHA-256 | Size (bytes) | Last modified | Description |
 |------|---------|-------------|---------------|-------------|
-| `results/toolcall_blind_v3_results.json` | `5b26eb99c561eae06e79ee3569dd4753fa73aa837508b06927194de859036e63` | 1248 | 2026-07-31 | Blinded benchmark v3: FAR=0.0, N=700, two-phase decide/score (REM-009; re-issued 2026-07-31 for additive scoring keys n_false_accept/effective_n and portable decisions_file path — no metric value changed) |
+| `results/toolcall_blind_v3_results.json` | `dcdbcc587dc5b4520961d420523964272375c284326f850f87fcd97c29083ba3` | 1248 | 2026-08-07 | Blinded benchmark v3 rerun on clean HEAD worktree: FAR=0.0, N=700, two-phase decide/score; metrics unchanged |
 | `results/selective_n500_holdout_results.json` | `3ed9f7d61493fb564574202cb832c64f365b5ec015c509e639db0a0104d28a35` | 2404 | 2026-07-27 | Held-out selective accuracy (SAP v2, Workers AI trio): 100% at 16.7% coverage, N_accepted=18, p=0.052 vs p0=train baseline — directional only (re-issued 2026-07-27, clean round) |
 | `results/selective_n500_results.json` | `ba838b99eeedcbe707d5ebbac5b21dc63edf4f107efaeaaf423ed390b9ecf1fb` | 12725 | 2026-06-09T22:51:30 | Full N=500 selective trust evaluation |
 | `results/thermodynamic_eval_n500_calibrated_results.json` | `ec2eacf7ff6ce4e79467fed2f6f9f5cb103d6b0faaa97eac3c6f45e1bf97cce2` | 349515 | 2026-06-09T22:51:30 | N=500 thermodynamic calibration (data source for holdout) |
@@ -165,11 +164,13 @@ must not change unless the benchmark is re-run under a documented protocol.
 | `results/gainability_routing.json` | `7d5245f410ed360362abed0720aabed2c959a2383951f6cdc35be68536a611e7` | 291 | 2026-06-09T22:51:30 | Gainability routing result |
 | `results/evidence_v2_n500.json` | `322a4f8a90bd111e98a48a9ae6f58442395986f86d999afb799467b473d18b1e` | 406 | 2026-06-09T22:51:30 | Evidence routing N=500 |
 | `results/se_backend_parity_smoke.json` | `3842257f833aebb0e6c7d808fa4a60a6bfb3d248710417b5d652790a186492bb` | 9334 | 2026-07-30 | NLI vs TokenFingerprint SE-backend parity smoke (RF-06): 24-item fixture corpus, 12/24 cluster-count disagreements; fixture-scope only, provenance sidecar v3 (added 2026-07-30) |
-| `results/routing_bench_bfcl_results.json` | `922b6926a542cf1400164a6df31c724dc0adbc154337f936f745ae775c156c4c` | 3504 | 2026-07-31 | **SEALED BLIND RECORD** (CLAIM-014): BFCL v3 routing track evaluated once at commit `cf02fa8`; 4/5 pre-registered targets met, known-wrong-call ACCEPT 86.8% missed and published. Must never change (added 2026-07-31) |
+| `results/routing_bench_bfcl_results.json` | `922b6926a542cf1400164a6df31c724dc0adbc154337f936f745ae775c156c4c` | 3504 | 2026-07-31 | **SUPERSEDED SEALED RECORD** (CLAIM-016): BFCL v3 routing track evaluated once at commit `cf02fa8`; historical negative result retained immutably in `NEGATIVE_RESULTS.md` |
 | `data/routing_bench_bfcl/manifest.json` | `a9b4f044510d4ffc40d50986a90955d1b558e113ea7d54791c85d9f035c069b8` | 39122 | 2026-07-31 | Episode manifest for the sealed BFCL track: holdout sha256 `c3a8e27b…`, upstream gorilla file hashes pinned, admission verdict recorded (added 2026-07-31) |
-| `results/system_demonstration_v1.json` | `ccfa8246cd63f055540bec49d369a07864a133495e1be32ca3359839cbb5dc43` | 3500 | 2026-07-31 | Aggregated re-execution of every routing study at HEAD (CLAIM-015); `status = development_measurement_not_blind` — expected to move with the engine (added 2026-07-31) |
-| `results/fleetops_validator_study_results.json` | `d0a55ea4641b950f0089f5fc7f2c775c8e59fe66a1e2a46b7a37bea28ceab591` | 4686 | 2026-07-31 | Declared-validator study (CLAIM-016): read utility 0% → 100% in the UNKNOWN regime, all 8 pre-registered safety targets at bound (added 2026-07-31) |
-| `results/fleetops_degradation_results.json` | `6695d7d114be5faff21a131a8f09917aae6aed1569ba976a875d23df5913c394` | 22907 | 2026-07-31 | Seven-condition coverage-degradation study (CLAIM-016): what stale, truncated, re-vouched and cross-tenant state cost (added 2026-07-31) |
+| `results/routing_bench_bfcl_v4_results.json` | `04049e86979513fec041ee4096c92ec999bf13a000ca3675c21f9602562f2084` | 3599 | 2026-08-07 | **SEALED BLIND RECORD** (CLAIM-018): disjoint BFCL v4 confirmation, 5/5 targets met; wrong-call ACCEPT 28/258 = 10.9% |
+| `data/routing_bench_bfcl_v4/manifest.json` | `6f6e24404ab45e58b0f5b27c3f8fd5e622d7425a5865a1ee78a9bb6cf120f42a` | 44814 | 2026-08-07 | Manifest for the disjoint BFCL v4 track; zero overlap with spent v3 IDs; holdout sha256 `00ccd538…` |
+| `results/system_demonstration_v1.json` | `63fb21ddb9e0f7a3cf32e1321d4b072370d527bd2299e5ed350c458e0ab05c78` | 3555 | 2026-08-07 | Open routing studies rerun at HEAD (CLAIM-014), plus immutable BFCL v4 artifact reference; sealed track not rerun |
+| `results/fleetops_validator_study_results.json` | `43d8058e0f76bf8b4afb3b7f649688a6be08c4f393cec939c1e4b73a74c6e2b2` | 4686 | 2026-08-07 | Declared-validator study (CLAIM-014): read utility 0% → 100% in the UNKNOWN regime, all 8 pre-registered safety targets at bound |
+| `results/fleetops_degradation_results.json` | `6695d7d114be5faff21a131a8f09917aae6aed1569ba976a875d23df5913c394` | 22907 | 2026-07-31 | Seven-condition coverage-degradation mechanism study (CLAIM-014): what stale, truncated, re-vouched and cross-tenant state cost |
 | `results/fleetops_admission.json` | `ae2c3bbb62345113ad44a4c0383b6118d27e92377bc72d6452911d3870116a91` | 946 | 2026-07-31 | Admission verdict for the fleetops study: per-role judgeable fraction 1.0 against a 0.9 minimum (added 2026-07-31) |
 
 ---

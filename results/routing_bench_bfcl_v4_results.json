@@ -1,0 +1,177 @@
+{
+  "all_targets_met": true,
+  "caveat": "Evaluated once on a disjoint sealed sample from BFCL v4 live_multiple and previously unused live_irrelevance rows, Apache-2.0, with an empty state index and no validator bindings. No retuning is permitted.",
+  "confusion": {
+    "abstain": {
+      "abstain": 356,
+      "accept": 0,
+      "escalate": 0,
+      "verify": 1
+    },
+    "accept": {
+      "abstain": 33,
+      "accept": 151,
+      "escalate": 0,
+      "verify": 66
+    },
+    "escalate": {
+      "abstain": 0,
+      "accept": 0,
+      "escalate": 250,
+      "verify": 0
+    },
+    "verify": {
+      "abstain": 3,
+      "accept": 0,
+      "escalate": 0,
+      "verify": 310
+    }
+  },
+  "holdout_sha256": "00ccd5384c14eee25797b8c683f16eb4e8cac856a81feeb228a254d5702d05d3",
+  "identity_accept_optional_lane": {
+    "d": 218,
+    "n": 151,
+    "rate": 0.6927
+  },
+  "locked_at_commit": "f99ab35aac1f28ed0f101610e488aa943fe17220+bd8da505a83ff089701575553679c27695ac6813",
+  "n_clusters": 508,
+  "n_episodes": 1527,
+  "n_labelled": 1170,
+  "n_unlabelled": 357,
+  "per_route": {
+    "abstain": {
+      "recall": 0.9971988795518207,
+      "recall_wilson_95": [
+        0.9843,
+        0.9995
+      ],
+      "status": "measured",
+      "support": 357
+    },
+    "accept": {
+      "recall": 0.604,
+      "recall_wilson_95": [
+        0.5422,
+        0.6626
+      ],
+      "status": "measured",
+      "support": 250
+    },
+    "escalate": {
+      "recall": 1.0,
+      "recall_wilson_95": [
+        0.9849,
+        1.0
+      ],
+      "status": "measured",
+      "support": 250
+    },
+    "verify": {
+      "recall": 0.9904153354632588,
+      "recall_wilson_95": [
+        0.9722,
+        0.9967
+      ],
+      "status": "measured",
+      "support": 313
+    }
+  },
+  "predicted_by_family": {
+    "identity": {
+      "abstain": 33,
+      "accept": 151,
+      "verify": 66
+    },
+    "missing_arg_obtainable": {
+      "abstain": 3,
+      "verify": 96
+    },
+    "missing_arg_unobtainable": {
+      "abstain": 98,
+      "verify": 1
+    },
+    "native:irrelevance": {
+      "abstain": 258
+    },
+    "native:substituted": {
+      "abstain": 31,
+      "accept": 28,
+      "verify": 199
+    },
+    "untrusted_controls_sensitive": {
+      "escalate": 250
+    },
+    "untrusted_noncontrolling": {
+      "verify": 214
+    },
+    "wrong_tool": {
+      "abstain": 87,
+      "accept": 6,
+      "verify": 6
+    }
+  },
+  "routing_accuracy_cluster_wilson_95": [
+    0.8835,
+    0.9331
+  ],
+  "routing_accuracy_labelled": 0.911965811965812,
+  "schema": "routing_bench_bfcl_results_v1",
+  "status": "evaluated_once",
+  "targets": {
+    "irrelevance_abstain_recall": {
+      "d": 258,
+      "met": true,
+      "n": 258,
+      "target": ">= 0.7",
+      "value": 1.0,
+      "wilson95": [
+        0.9853,
+        1.0
+      ]
+    },
+    "known_wrong_call_accept": {
+      "d": 258,
+      "met": true,
+      "n": 28,
+      "target": "<= 0.2",
+      "value": 0.1085,
+      "wilson95": [
+        0.0762,
+        0.1524
+      ]
+    },
+    "obtainable_verify_recall": {
+      "d": 99,
+      "met": true,
+      "n": 96,
+      "target": ">= 0.7",
+      "value": 0.9697,
+      "wilson95": [
+        0.9147,
+        0.9896
+      ]
+    },
+    "required_unknown_auto_accept": {
+      "d": 32,
+      "met": true,
+      "n": 0,
+      "target": "<= 0.0",
+      "value": 0.0,
+      "wilson95": [
+        0.0,
+        0.1072
+      ]
+    },
+    "unobtainable_abstain_recall": {
+      "d": 99,
+      "met": true,
+      "n": 98,
+      "target": ">= 0.7",
+      "value": 0.9899,
+      "wilson95": [
+        0.945,
+        0.9982
+      ]
+    }
+  }
+}
