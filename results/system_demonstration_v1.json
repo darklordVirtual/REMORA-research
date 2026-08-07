@@ -1,14 +1,23 @@
 {
   "bfcl_foreign_calls": {
-    "identity_accept_post_grounding": 0.5681,
-    "irrelevance_abstain": 1.0,
-    "note": "development measurement on the spent \u00a734 set; the blind record stands at 86.8% and is not superseded by this number",
-    "obtainable_verify": 0.8271,
-    "unobtainable_abstain": 1.0,
-    "wrong_call_accept_blind_prefix": 0.8682,
-    "wrong_call_accept_post_grounding": 0.1163
+    "all_targets_met": true,
+    "holdout_sha256": "00ccd5384c14eee25797b8c683f16eb4e8cac856a81feeb228a254d5702d05d3",
+    "known_wrong_call_accept": {
+      "d": 258,
+      "met": true,
+      "n": 28,
+      "target": "<= 0.2",
+      "value": 0.1085,
+      "wilson95": [
+        0.0762,
+        0.1524
+      ]
+    },
+    "n_episodes": 1527,
+    "routing_accuracy_labelled": 0.911965811965812,
+    "status": "sealed_artifact_reference_not_rerun"
   },
-  "caveat": "Aggregated re-execution of the committed studies at current HEAD. Blind records (\u00a726\u2013\u00a728, \u00a731, \u00a734) were each evaluated once and are not superseded by anything here.",
+  "caveat": "The degradation and validator studies are development reruns. The BFCL v4 sealed result is referenced from its immutable artifact and is not re-executed here.",
   "degradation_study": {
     "all_expectations_met": true,
     "conditions": {
@@ -64,9 +73,9 @@
     },
     "n_conditions": 7
   },
-  "run_at_commit": "fc59a78",
+  "run_at_commit": "f99ab35",
   "schema": "system_demonstration_v1",
-  "status": "development_measurement_not_blind",
+  "status": "development_rerun_plus_sealed_artifact_reference",
   "validator_study": {
     "all_targets_met": true,
     "read_utility_with_validators": 1.0,

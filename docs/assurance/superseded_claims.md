@@ -20,6 +20,8 @@ diffed in CI.
 |-------|--------------|---------------|-----|
 | **CLAIM-004** | Temperature-selective holdout: 100% at 16.7% coverage — directional only, later contradicted on fresh data | [CLAIM-012](claim_register_v1.yaml) — NEGATIVE: consensus temperature failed pre-registered fresh-data confirmation (SAP v3) | see below |
 | **CLAIM-008** | Selective trust curve (N=302): 94.7% accuracy at 25% coverage | [CLAIM-013](claim_register_v1.yaml) — Calibrated confidence methods on fresh data: significant aggregation win; marginal per-arm certificates only | see below |
+| **CLAIM-015** | Superseded BFCL v3 development measurement | [CLAIM-018](claim_register_v1.yaml) — Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met | see below |
+| **CLAIM-016** | Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018 | [CLAIM-018](claim_register_v1.yaml) — Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met | see below |
 
 ---
 
@@ -46,4 +48,28 @@ diffed in CI.
 **Caveat.** Calibration-set result (not held-out). The baseline accuracy is 82.78% on this set. In-distribution optimism expected. Do not quote 94.7% without noting it is a calibration-set upper bound. Held-out validation uses the N500 artifact (CLAIM-004).
 
 **Artifacts (still on disk).** `results/selective_trust_curve_results.json`
+
+## CLAIM-015 — Superseded BFCL v3 development measurement
+
+**Superseded by:** CLAIM-018
+
+**Evidence level when archived:** `internal_benchmark`
+
+**Statement.** Historical post-hoc measurements on the spent BFCL v3 set are superseded by the sealed BFCL v4 result in CLAIM-018.
+
+**Caveat.** Do not cite or reproduce the spent-set development figures as current evidence. The active external result is CLAIM-018.
+
+**Artifacts (still on disk).** `NEGATIVE_RESULTS.md`
+
+## CLAIM-016 — Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018
+
+**Superseded by:** CLAIM-018
+
+**Evidence level when archived:** `externally_benchmarked`
+
+**Statement.** Track C-ext was evaluated once, at locked commit cf02fa8, on sealed external data the system had never seen: BFCL v3 live categories (ShishirPatil/gorilla @ c15b2a15, Apache-2.0), 1509 episodes over 515 clusters, under no authority at all (empty state index, no validator bindings, registry derived only from the tasks' own schemas). Four pre-registered targets were met: required-but-unknown autonomous ACCEPT 0/19 = 0.0% (target <=0%), irrelevance ABSTAIN recall 258/258 = 100.0% (target >=70%), unobtainable-argument ABSTAIN recall 133/133 = 100.0% (target >=70%), obtainable-argument VERIFY recall 110/133 = 82.7% (target >=70%). Labelled routing accuracy is 94.0% (n=1251, cluster-level Wilson 95% CI [91.6%, 95.7%]); both untrusted-provenance families routed at 100% (257/257 ESCALATE controls-sensitive, 213/213 VERIFY noncontrolling). The fifth target MISSED and is published as measured: known-wrong-call ACCEPT 224/258 = 86.8% against a <=20% bar — a substituted call carrying its own complete, well-formed arguments gives the structural signals nothing to distrust.
+
+**Caveat.** Evaluated once; this set is now spent and can never serve as a blind set again. The wrong-argument value axis was excluded BEFORE sealing (admission verdict recorded in the manifest): BFCL's ground-truth argument lists are the labels, so using them as a system of record would score the answer key against itself. The known-wrong-call miss is a measured architectural limit, not a tuning defect — closing it needs an authoritative task-call semantic source for tool_matches_goal, and no threshold change can substitute. A partial mitigation was measured afterwards on this same spent set and is registered separately as CLAIM-015 (development, NOT blind). Full analysis: NEGATIVE_RESULTS.md §34.
+
+**Artifacts (still on disk).** `results/routing_bench_bfcl_results.json`, `data/routing_bench_bfcl/manifest.json`
 

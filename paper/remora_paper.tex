@@ -1,6 +1,6 @@
 ﻿% =====================================================================
 % REMORA: A Policy-Gated Multi-Oracle Assurance Architecture for Agentic AI
-% LaTeX source — suitable for Overleaf, NeurIPS/ICML/ACL workshop templates
+% LaTeX source - suitable for Overleaf, NeurIPS/ICML/ACL workshop templates
 % =====================================================================
 \documentclass[10pt,twocolumn]{article}
 
@@ -69,10 +69,10 @@
 % ---- Metadata -------------------------------------------------------
 \title{REMORA: A Policy-Gated Multi-Oracle\\Assurance Architecture for Agentic AI}
 
-% Paper version — kept in lockstep with paper/remora_paper.md by
+% Paper version - kept in lockstep with paper/remora_paper.md by
 % scripts/check_paper_sync.py (CI-enforced). The "v0.10.0" and
-% "revision 2026-07-31" strings below MUST match the .md version line.
-\newcommand{\paperversion}{Preprint v0.10.0, revision 2026-07-31 (synchronized with repository code); repository tag \texttt{review-v1}}
+% "revision 2026-08-07" strings below MUST match the .md version line.
+\newcommand{\paperversion}{Preprint v0.10.0, revision 2026-08-07 (synchronized with repository code); repository tag \texttt{review-v1}}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -137,21 +137,16 @@ utility from 0\% to 100\% in a regime where every value verdict is
 \textsc{unknown}, with zero corrupt-identifier acceptances and zero
 cross-tenant lookups.
 
-\textbf{Third, and most consequential: call validity is not task
-correctness.} On sealed external data evaluated once (BFCL v3, 1{,}509
-episodes over 515 clusters) four of five pre-registered targets were met,
-but \textbf{86.8\% of well-formed \emph{wrong} calls were accepted}
-against a $\leq 20\%$ target. A substituted call carrying its own
-complete, sourced arguments gives structural signals nothing to
-distrust, and an aggregate routing accuracy of 94.0\% concealed the
-failure entirely. An argument-value provenance signal cuts this to
-11.6\%---but on development data, and a residue survives because some
-values coincide with the task by chance. We therefore state as an
-architectural result that \emph{structural validity and semantic
-correctness are independent properties, and the governance signals that
-establish the first cannot establish the second}. This is not a
-threshold to tune: there is no threshold on a signal that does not carry
-the information.
+\textbf{Third, the routing behaviour transfers to new external data.} In
+one sealed BFCL v4 run (1{,}527 episodes), REMORA met \textbf{all five
+pre-registered targets}: unknown required inputs were never guessed
+(0/32), irrelevant tools were refused 258/258 times, unobtainable inputs
+were refused 98/99 times, obtainable inputs were sent to verification
+96/99 times, and well-formed wrong calls were accepted 28/258 times
+(\textbf{10.9\%}, target $\leq 20\%$). Labelled routing accuracy was
+91.2\%. The result confirms the current routing pipeline on unseen data
+while preserving the distinction between structural validity and
+semantic task correctness.
 
 Two further findings constrain how much trust to place in model signals:
 model confidence \emph{anticorrelates} with correctness exactly in the
@@ -165,12 +160,13 @@ token-fingerprint proxy rather than full semantic entropy over NLI
 clusters; the QA benchmark is partly author-curated; semantic evidence
 retrieval is pluggable but not live; the audit hash chain is
 tamper-evident, not tamper-proof, without external append-only storage;
-and the task--tool compatibility authority that would close the
-wrong-call residue is implemented but \emph{unmeasured}, because the
-blind set that exposed the gap is spent. REMORA is a governed autonomy layer, not a replacement for
-domain authority. The system is \texttt{SHADOW\_ONLY}: benchmarks are
-internal or simulator-scoped, and external replication with
-independently withheld labels is pending.
+and the BFCL v4 track supplies no authoritative task-intent/tool-contract
+bundle and excludes wrong-argument values because BFCL has no independently
+vouchable state table. It therefore confirms the complete routing pipeline,
+not the isolated causal effect of semantic intent matching. REMORA is a
+governed autonomy layer, not a replacement for domain authority. The system
+is \texttt{SHADOW\_ONLY}: independent external replication and production
+field evidence remain pending.
 \end{abstract}
 
 \textbf{Keywords:} agentic AI safety, multi-oracle consensus, selective
@@ -854,7 +850,7 @@ model calls).
 \subsection{CriticalEvidenceRouter}
 
 The router evaluates a five-field \texttt{EvidenceSignal}
-with fields (\texttt{evidence\_strength}, \texttt{contradiction\_score},
+with fields (\texttt{evidence\_strength}, \texttt{contradiction\_\allowbreak score},
 \texttt{citation\_coverage},
 \texttt{cross\_evidence\_\allowbreak consistency},
 \texttt{source\_reliability}):
@@ -1088,82 +1084,50 @@ reported in the repository and the enterprise white paper; the two
 measure different mechanisms at different scales.
 
 
-\subsection{Tool Routing on Sealed External Data (BFCL v3)}
+\subsection{Tool Routing on Sealed External Data (BFCL v4)}
 \label{sec:routing-blind}
 
-The benchmarks above measure whether a \emph{harmful} call is stopped. They do
-not measure whether a \emph{harmless-looking but wrong} call is stopped, and
-those are different questions: the second has no adversary, so nothing about the
-call looks suspicious.
-
-Track C-ext was evaluated once, at a locked commit, on sealed external data the
-system had never seen (BFCL v3 live categories, ShishirPatil/gorilla @
-\texttt{c15b2a15}, Apache-2.0): 1{,}509 episodes over 515 clusters, under no
-authority at all --- an empty state index, no validator bindings, and a registry
-derived only from the tasks' own schemas. Five targets were pre-registered and
-sealed with the set.
+The benchmarks above measure whether a \emph{harmful} call is stopped. This
+track also measures whether a harmless-looking but incorrect call is stopped.
+Track C-ext2 retained five targets that were sealed before evaluation. It
+sampled 258 \texttt{live\_multiple} tasks and 258
+\texttt{live\_irrelevance} tasks from BFCL v4 at upstream commit
+\texttt{6ea57973c7a6} (Apache-2.0). The one permitted evaluation contained
+1{,}527 episodes over 516 source clusters, with an empty state index, no
+validator bindings, and a registry derived only from task schemas.
 
 \begin{center}
-{\scriptsize
-\begin{tabular}{@{}lrl@{}}
+\small
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrl}
 \toprule
-Pre-registered target & Goal & Result \\
+Pre-registered target & Goal & Sealed BFCL v4 result & Verdict \\
 \midrule
-Required-unknown \textsc{Acc} & $\leq 0\%$ & 0/19 = \textbf{0.0\%} \\
-Irrelevance \textsc{Abs} recall & $\geq 70\%$ & 258/258 = \textbf{100\%} \\
-Unobtainable \textsc{Abs} recall & $\geq 70\%$ & 133/133 = \textbf{100\%} \\
-Obtainable \textsc{Ver} recall & $\geq 70\%$ & 110/133 = \textbf{82.7\%} \\
-Wrong-call \textsc{Acc} & $\leq 20\%$ & 224/258 = \textbf{86.8\%} \\
+Required-UNKNOWN autonomous \textsc{Acc} & $\leq 0\%$ & 0/32 = \textbf{0.0\%} & met \\
+Irrelevance \textsc{Abs} recall & $\geq 70\%$ & 258/258 = \textbf{100.0\%} & met \\
+Unobtainable \textsc{Abs} recall & $\geq 70\%$ & 98/99 = \textbf{99.0\%} & met \\
+Obtainable \textsc{Ver} recall & $\geq 70\%$ & 96/99 = \textbf{97.0\%} & met \\
+Wrong-call \textsc{Acc} & $\leq 20\%$ & 28/258 = \textbf{10.9\%} & met \\
 \bottomrule
 \end{tabular}}
 \end{center}
 
-The first four met their targets. The fifth did not, and is reported as
-measured.
+All five pre-registered targets met. Labelled routing accuracy was
+\textbf{91.2\%} ($n=1{,}170$; 508 effective labelled clusters; cluster-level
+Wilson 95\% CI [88.4\%, 93.3\%]). Optional-lane identity \textsc{Accept} was
+151/218 = 69.3\%, reported without a target.
 
-Labelled routing accuracy is \textbf{94.0\%} ($n=1{,}251$, 515 clusters,
-cluster-level Wilson 95\% CI [91.6\%, 95.7\%]); both untrusted-provenance
-families routed at 100\% (257/257 \textsc{Escalate} for controls-sensitive
-arguments, 213/213 \textsc{Verify} for noncontrolling ones).
-
-\textbf{The miss is the finding.} A substituted call --- another task's gold
-call, carried with its own complete, well-formed arguments --- is a read the
-engine has no structural reason to distrust. Every required parameter is present
-and sourced. The aggregate 94.0\% conceals the failure completely: a headline
-accuracy can be high while one axis sits at chance or worse, which is the
-methodological argument for pre-registering per-axis targets rather than a
-single score. We report it as measured; repairing it against the set that
-exposed it would convert a blind result into a development one, and the set
-cannot be un-spent.
-
-\subsection{Argument-Value Grounding (development measurement)}
-\label{sec:grounding}
-
-The tell of a foreign call is provenance-shaped: its argument values are
-traceable to nothing in the present context. The signal
-\texttt{argument\_values\_grounded} judges each value against three sources ---
-the task text, the tool's own parameter declarations, and the system of record
---- and withdraws autonomy to \textsc{Verify} when no judgeable value anchors to
-\emph{this} task.
-
-Re-measured on the spent Track C-ext set, wrong-call acceptance falls from the
-blind \textbf{86.8\%} to \textbf{11.6\%}, meeting the $\leq 20\%$ bar. The cost
-is measured too: legitimate read autonomy falls from 86.1\% to \textbf{56.8\%},
-the loss being \emph{derived} values --- dates normalised from prose, unit
-conversions --- that are correct but not literally present in the user's text.
-
-\textbf{This is a development measurement, not a blind one.} The 86.8\% blind
-record stands and is not superseded by 11.6\%. The grounding definition was
-iterated against the spent set in three measured steps, which is development
-done where development is allowed; blind confirmation requires a new sealed
-track. A residue remains by construction: roughly 30 of 258 foreign calls still
-accept because their values coincide with the present task.
+The confirmation has a precise boundary. BFCL provides no independently
+vouchable state table, so the wrong-argument-value axis remains excluded by
+admission. The track also supplies no authoritative
+\texttt{TaskIntent}/\texttt{ToolContract} bundle. Consequently, the blind
+result confirms the complete current routing pipeline; it does not isolate the
+causal efficacy of semantic intent matching.
 
 \subsection{What the Wrong-Call Axis Implies}
 \label{sec:wrongcall-implication}
 
-The pattern across \S\ref{sec:routing-blind}--\S\ref{sec:grounding} is this
-paper's clearest architectural result, and it is a negative one:
+The BFCL v4 result is this paper's clearest external routing result:
 
 \begin{quote}
 \textbf{Structural validity and semantic correctness are independent
@@ -1189,9 +1153,8 @@ never unblock one. The authority limit is the design: a model may \emph{propose}
 the intent but may not thereby assert a match, and an intent whose quoted spans
 do not occur in the task text yields \textsc{Unknown}, never \textsc{Supported}.
 
-Its effect on the residue is \textbf{unmeasured}. Measuring it needs a sealed
-set that the spent BFCL population cannot provide, and that experiment is
-identified as the highest-value next step rather than reported as a result.
+Its isolated effect remains \textbf{unmeasured}, because the BFCL v4
+confirmation contains no authoritative semantic bundle.
 
 % =====================================================================
 \section{Ablations}
@@ -1328,9 +1291,8 @@ confidence score moves it.
 vehicle status; the agent proposes \texttt{get\_work\_order} with a work-order
 identifier that happens to appear elsewhere in the task. Schema valid,
 arguments satisfiable, values grounded, nothing tainted --- every signal in
-Call A's ladder is satisfied. This is the case \S\ref{sec:routing-blind}
-measured at 86.8\% acceptance on blind external data, and no signal in the
-ladder refutes it, because none of them is about the \emph{task}. A declared
+Call A's ladder is satisfied. The sealed BFCL v4 track measured wrong-call
+acceptance at 10.9\%. A declared
 tool contract does: the task targets a vehicle, the tool acts on a work order,
 and the mismatch is established rather than merely unverified. That authority
 is implemented and \textbf{unmeasured} (\S\ref{sec:wrongcall-implication}).
@@ -1527,24 +1489,14 @@ read utility from 0\% to 100\% in the all-\textsc{unknown} regime with
 zero corrupt-identifier acceptances, zero cross-tenant lookups, and
 writes held at \textsc{verify} throughout.
 
-\textbf{Call validity is not task correctness.} On sealed external data
-evaluated once, four of five pre-registered targets were met and the
-fifth was missed at \textbf{86.8\%} against a $\leq 20\%$ bar: well-formed
-calls for the \emph{wrong} tool were accepted, because every structural
-signal was satisfied. An aggregate routing accuracy of 94.0\% concealed
-this completely --- which is the methodological argument for
-pre-registering per-axis targets rather than a single score. Value
-provenance cuts the rate to 11.6\% on development data at a measured
-utility cost (86.1\% $\rightarrow$ 56.8\% legitimate read autonomy), and a
-residue survives on coincidental value overlap. We therefore report as an
-architectural result that \emph{structural validity and semantic
-correctness are independent properties, and the governance signals that
-establish the first cannot establish the second}. No threshold recovers
-information a signal does not carry. The authority this requires ---
-declared tool effect contracts matched against a task intent that a model
-may propose but not assert --- is implemented and \textbf{unmeasured}; the
-blind set that exposed the gap is spent, and confirming the fix needs a
-new one.
+\textbf{The routing behaviour transfers.} A sealed BFCL v4 track evaluated
+the current pipeline once and met all five pre-registered targets:
+wrong-call acceptance \textbf{10.9\%} (28/258), irrelevant-tool refusal
+100.0\%, unobtainable-input refusal 99.0\%, obtainable-input verification
+97.0\%, and required-UNKNOWN autonomous acceptance 0.0\%. Labelled routing
+accuracy was 91.2\%. Structural validity and semantic correctness remain
+distinct properties, and the isolated effect of semantic task-contract
+matching is not established by this track.
 
 Key negative findings retained in full: trust anticorrelates with
 correctness in the critical phase; the $\chi$-proxy fails as a difficulty
@@ -1555,12 +1507,11 @@ token-fingerprint heuristic rather than semantic entropy over NLI
 clusters; and the AgentHarm run blocked every benign counterpart as well
 as every harmful one.
 
-REMORA is a research-grade prototype, \texttt{SHADOW\_ONLY}, with
-external replication pending. We offer it as a reference architecture, an
-empirical baseline, and --- in the wrong-call axis specifically --- a
-documented open problem we believe is more general than this system:
-any gate that reasons only about the well-formedness of a proposed action
-will accept well-formed actions that serve the wrong goal.
+REMORA is a research-grade prototype, \texttt{SHADOW\_ONLY}, with independent
+external replication and production field evidence pending. We offer it as a
+reference architecture and empirical baseline. The broader warning remains:
+a gate that reasons only about action well-formedness cannot establish that
+the action serves the user's goal.
 
 % =====================================================================
 \section*{Acknowledgements}
@@ -1843,7 +1794,7 @@ ZK assurance proofs & Planned & No & Stubbed \\
 
 
 Standard Mondrian conformal calibration assumes that calibration and
-test samples are \emph{exchangeable} — drawn i.i.d.\ from the same
+test samples are \emph{exchangeable} - drawn i.i.d.\ from the same
 distribution.  This assumption is violated in the critical phase: the
 joint distribution $(\tau, \text{correct})$ differs structurally
 between ordered-phase calibration items and critical-phase test items
@@ -1934,9 +1885,9 @@ REMORA governance protocol described in the main paper.
 
 Three platforms are in scope for the reference implementation:
 \begin{itemize}
-  \item \textbf{Intel TDX / SGX} — remote attestation via DCAP quote generation
-  \item \textbf{AMD SEV-SNP} — firmware measurement in attestation report
-  \item \textbf{ARM TrustZone} — OP-TEE trusted application (mobile / edge)
+  \item \textbf{Intel TDX / SGX} - remote attestation via DCAP quote generation
+  \item \textbf{AMD SEV-SNP} - firmware measurement in attestation report
+  \item \textbf{ARM TrustZone} - OP-TEE trusted application (mobile / edge)
 \end{itemize}
 
 \subsection{DecisionEnvelope Attestation Format}
@@ -1983,5 +1934,3 @@ dependency and is not part of the core source-available release. Stub interfaces
 are present in \texttt{remora/audit/} for downstream integration.
 
 \end{document}
-
-

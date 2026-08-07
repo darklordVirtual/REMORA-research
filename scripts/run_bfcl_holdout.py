@@ -195,12 +195,13 @@ def run() -> int:
             "rate": round(opt_rate, 4),
         },
         "all_targets_met": all_met,
-        "caveat": (
+        "caveat": manifest.get(
+            "caveat",
             "Evaluated once on sealed external data (BFCL v3 live, Apache-2.0) "
             "with no authority: empty state index, no validator bindings. The "
             "wrong-argument value axis is excluded by admission (no vouchable "
             "state exists). No retuning against this set is permitted; misses "
-            "are published as measured."
+            "are published as measured.",
         ),
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

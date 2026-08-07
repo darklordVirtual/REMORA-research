@@ -24,16 +24,16 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-04: **12 `open`**, **4 `accepted`**, **20 `superseded`**.
+Counts as of 2026-08-07: **11 `open`**, **4 `accepted`**, **22 `superseded`**.
 
 ## The actual backlog
 
-Eight themes: seven research gaps and one production gap. The section numbers
+Seven themes: six research gaps and one production gap. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
 cites only `open` sections and that no `open` section is missing a theme.
 
 <!-- backlog-start -->
-1. **Full task–tool semantic compatibility** (§34, §36) — the highest-value open
+1. **Full task–tool semantic compatibility** (§36) — the highest-value open
    problem. Value grounding answers "do these argument values come from this
    context?"; it does not answer "is this the right tool and the right effect
    for the user's goal?". 30 of 258 foreign calls still pass because their
@@ -42,12 +42,10 @@ cites only `open` sections and that no `open` section is missing a theme.
    tri-state `tool_matches_goal` that a model may propose but not unilaterally
    set to SUPPORTED); the semantic binding gap (§36: `source_spans` proved
    entity presence, not effect entailment) has been patched in code but its
-   effect on the §34 residue remains unmeasured. What still remains is
-   measuring it, which requires theme 2's sealed set.
-2. **Blind confirmation of grounding** (§35) — 86.8% → 11.6% is a *development*
-   measurement on a spent set. It needs a new sealed track, including the case
-   where every value is grounded and the effect is still wrong.
-3. **Legitimate autonomy lost to derived values** (§35) — grounding cost
+   effect remains unmeasured. Section 37 confirms the complete routing pipeline
+   on a new blind population, but supplies no authoritative semantic contracts
+   and therefore cannot isolate this matcher.
+2. **Legitimate autonomy lost to derived values** (§35) — grounding cost
    read autonomy 86.1% → 56.8%, mostly dates, unit conversions and computed
    values that are correct but not literally in the user's text. **The
    mechanism now exists** (`derivation.py`, 2026-08-05: `DerivationReceipt`
@@ -57,24 +55,23 @@ cites only `open` sections and that no `open` section is missing a theme.
    text, so a model may propose but never accept a receipt, and arithmetic
    is deliberately excluded as receipt-craftable). A model's explanation is
    still not a derivation proof — that is the design. Its effect on the
-   §35 autonomy loss is unmeasured; measuring it requires theme 2's sealed
-   set, so this theme stays open on the measurement.
-4. **Contextual harm across a trajectory** (§2, §8) — 30.7% false accepts under
+   §35 autonomy loss is unmeasured, so this theme stays open on the measurement.
+3. **Contextual harm across a trajectory** (§2, §8) — 30.7% false accepts under
    neutral metadata is residual harm that is not visible in any single call.
    Another per-call classifier cannot close it; it needs governance over the
    action sequence, cumulative blast radius and cross-tenant data movement.
-5. **Full NLI-backend parity for Semantic Entropy** (§3) — technically solvable
+4. **Full NLI-backend parity for Semantic Entropy** (§3) — technically solvable
    now: re-run the same raw oracle responses through both backends and publish
    the per-episode cluster and route deltas. Explicitly **not** a route to
    reviving temperature as an authoritative selector (§18 stands).
-6. **Production validator quality** (§33) — the mechanism recovers read utility
+5. **Production validator quality** (§33) — the mechanism recovers read utility
    0% → 100%, but the study validator is correct by construction. Real
    validators need their own contracts and measurements: false-absent rate,
    staleness, tenant binding, timeout behaviour, response provenance.
-7. **External replication, REM-021, and live evidence** (§1, §4, §15, §16) —
+6. **External replication, REM-021, and live evidence** (§1, §4, §15, §16) —
    cannot be closed from inside this repository. Needs third-party replication,
    a named independent reviewer, and field traces.
-8. **Authoritative tool metadata on the advisory path** (§14) — the enforcement
+7. **Authoritative tool metadata on the advisory path** (§14) — the enforcement
    path already takes `effect`, risk class and validator bindings from a
    server-side registry, but the library path judges the metadata it is handed.
    A caller should be able to raise risk and never lower it. The
@@ -1997,7 +1994,7 @@ and fails closed when authoritative validation is unavailable.
 ---
 
 ## §34 External blind track (BFCL): four axes hold, wrong-call blindness measured cleanly (2026-07-31)
-<!-- finding-status: open -->
+<!-- finding-status: superseded -->
 
 **Result.** Track C-ext, evaluated once at locked commit `cf02fa8` on sealed
 external data the system had never seen: BFCL v3 live categories
@@ -2070,9 +2067,9 @@ unmeasured, and measuring it needs a **new sealed set**: the BFCL population is
 spent, and re-running it would report development, not generalisation. Until
 that track exists this section stays `open`.
 
-**Registered as** CLAIM-016 in `docs/assurance/claim_register_v1.yaml`
-(`blindness: blind` — the one claim in the register measured under sealed
-conditions); the sealed values are pinned by
+**Registered as** CLAIM-016 in `docs/assurance/claim_register_v1.yaml`, now
+**superseded by CLAIM-018** after the disjoint §37 confirmation met all five
+targets. The historical sealed values remain pinned by
 `tests/test_routing_claim_artifacts.py`, so an edit that quietly improves the
 published miss fails CI.
 
@@ -2121,14 +2118,13 @@ this task's context (common values, schema enums whose words the user
 happened to say). Below the 20% bar but not zero; a semantic task–call
 source remains the complete answer.
 
-**Registered as** CLAIM-015 (this mitigation) and CLAIM-014 (the validator and
-degradation studies) in `docs/assurance/claim_register_v1.yaml`, both carrying
+**Registered as** CLAIM-015, now **superseded by CLAIM-018**. The separate
+validator and degradation mechanism studies remain CLAIM-014 with
 `blindness: development`.
 
-**Artifacts.** `results/system_demonstration_v1.json` (aggregated
-re-execution of every study at HEAD),
-`results/fleetops_degradation_results.json`,
-`results/fleetops_validator_study_results.json`.
+**Historical record.** This section retains the spent-set development result;
+the current `results/system_demonstration_v1.json` intentionally no longer
+reproduces or republishes it.
 
 ---
 
@@ -2187,6 +2183,42 @@ benchmark metrics is unmeasured).
 
 ---
 
+## §37 Disjoint BFCL v4 sealed confirmation closes the wrong-call blind-test gap (2026-08-07)
+<!-- finding-status: superseded -->
+
+The confirmation track was frozen with the same five targets as §34 before
+evaluation. It sampled 258 `live_multiple` tasks and 258 previously unused
+`live_irrelevance` tasks from BFCL v4 at upstream commit `6ea57973c7a6`.
+An explicit ID gate measured **zero overlap** with the spent BFCL v3
+population. The sealed artifact contains 1,527 episodes over 516 source
+clusters and was evaluated once.
+
+| Pre-registered target | Bar | Sealed BFCL v4 result | Verdict |
+|---|---:|---:|---|
+| required-UNKNOWN autonomous ACCEPT | ≤ 0% | **0/32 = 0.0%** | MET |
+| irrelevance ABSTAIN recall | ≥ 70% | **258/258 = 100.0%** | MET |
+| obtainable VERIFY recall | ≥ 70% | **96/99 = 97.0%** | MET |
+| unobtainable ABSTAIN recall | ≥ 70% | **98/99 = 99.0%** | MET |
+| known-wrong-call ACCEPT | ≤ 20% | **28/258 = 10.9%** | MET |
+
+All five targets met. Labelled routing accuracy was **91.2%** (`n=1,170`;
+cluster-level Wilson 95% CI [88.4%, 93.3%]). Optional-lane identity ACCEPT was
+151/218 = 69.3%, reported without a target. The old 86.8% BFCL v3 miss remains
+immutable: this result confirms the repaired engine on a new population; it
+does not rewrite the first experiment.
+
+**Boundary.** The track still has no vouchable external state table, so the
+wrong-argument-value axis remains excluded by admission. It also supplies no
+authoritative `TaskIntent`/`ToolContract` bundle; the blind improvement therefore
+confirms the complete current routing pipeline (principally value grounding),
+not isolated causal efficacy of semantic intent matching.
+
+**Artifacts.** `results/routing_bench_bfcl_v4_results.json`,
+`data/routing_bench_bfcl_v4/manifest.json` (holdout SHA-256 `00ccd538…`).
+Registered as CLAIM-018.
+
+---
+
 ## Summary Table
 
 Grouped by status, not by age. `scripts/check_negative_results_status.py`
@@ -2198,8 +2230,6 @@ sections again.
 
 | Finding | Where it stands | Severity |
 |---------|-----------------|----------|
-| Well-formed wrong calls pass structural gates (§34) | Blind: 86.8% of substituted-but-valid calls accepted. Mitigated on development by value grounding (§35), 11.6%; 30/258 still pass on coincidental value overlap. Needs task–tool semantic compatibility, not tuning | **High** |
-| Grounding is development-measured only (§35) | 86.8% → 11.6% and the 86.1% → 56.8% autonomy cost are both re-measurements on a spent set. Needs a new sealed track | **High** |
 | Semantic binding gap: span-existence ≠ span-entailment (§36) | Code-fixed 2026-08-04 (`action_spans` + `EFFECT_VOCABULARY` v1 + negation/conditionality detection, 7 pinning tests). Effect on §34 residue unmeasured pending new sealed track | **High** |
 | Derived values lose legitimate autonomy (§35) | Mechanism code-fixed 2026-08-05 (`DerivationReceipt`, versioned deterministic-transform whitelist, verbatim source spans, re-execution verify, 14 pinning tests). Effect on the autonomy loss unmeasured pending new sealed track | Medium |
 | Contextual harm invisible in a single call (§2, §8) | FA=30.7% under neutral metadata; semantic enrichment cut it but the residual needs trajectory-level governance, not another per-call classifier | **High** |
@@ -2222,6 +2252,7 @@ sections again.
 
 | Finding | Resolved by | Outcome |
 |---------|-------------|---------|
+| BFCL v3 wrong-call blindness (§34) | §37 | Disjoint BFCL v4 sealed run met all five targets; wrong-call ACCEPT 28/258 = 10.9% against the pre-registered ≤20% bar. The original 86.8% miss remains published |
 | Routing is a near-constant predictor (§21) | §§22–35 | 25.0% accuracy and four families with identical predictions; the whole resolver/provenance/grounding line follows from this diagnosis |
 | No resolver layer, obtainable VERIFY 0% (§22) | §23 | `ResolutionPlan` and router re-entry took obtainable VERIFY recall 0% → 100% |
 | ESCALATE recall 0% on untrusted origin (§23) | §24 | Provenance split into noncontrolling/controls-sensitive; recall 0% → 100%, accuracy 56.9% → 85.5% |

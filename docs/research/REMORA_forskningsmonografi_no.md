@@ -350,15 +350,21 @@ Viktig negativt resultat: temperatur-/uenighetssignalet som så lovende ut på g
 - `ABSTAIN`: gapet kan ikke lukkes med tilgjengelig autoritet.
 - `ESCALATE`: risikoen eller policyen krever menneskelig beslutningsmyndighet.
 
-## 5.4 Blindsonen: korrekt kall, feil mål
+## 5.4 Korrekt kall, feil mål
 
-Den forseglede BFCL v3-evalueringen oppnådde høy samlet routing accuracy og møtte fire av fem forhåndsregistrerte mål. Samtidig aksepterte systemet 86,8 % av velutformede, men kjente feilaktige verktøykall på wrong-call-aksen.
+Den forseglede, ID-disjunkte BFCL v4-evalueringen møtte alle fem
+forhåndsregistrerte mål. På wrong-call-aksen ble 28 av 258 velutformede, men
+feilaktige verktøykall akseptert (10,9 %, mål ≤20 %). Samlet merket routing
+accuracy var 91,2 % på 1 170 episoder.
 
 Dette viser et generelt resultat:
 
 > En gate som bare vurderer om et kall er gyldig og godt forankret, kan fortsatt akseptere et gyldig kall som tjener feil oppgave.
 
-Grounding reduserte dette kraftig i utviklingsmåling, men med betydelig kostnad i legitim read-autonomi. Mekanismen `tool_matches_goal` er implementert som konsept/authority boundary, men effekten er uttrykkelig ikke ferdigmålt på ny forseglet data.
+Resultatet bekrefter hele den nåværende rutingkjeden på ny ekstern data. Det
+isolerer ikke effekten av `tool_matches_goal`, fordi BFCL ikke leverer en
+autoritativ `TaskIntent`/`ToolContract`-pakke eller en uavhengig verifiserbar
+tilstandstabell for wrong-argument-aksen.
 
 ---
 
@@ -431,7 +437,7 @@ Følgende resultater er aktive i claim-registeret ved kontrollpunktet:
 | Intern adversarial tool-call simulator | 0,0 % unsafe execution, effektiv N=70 | Syntetisk, ingen reell effekt, CI-øvre grense 5,2 % |
 | Ekstern AgentHarm | 0/208 harmful tillatt | Intent-gating; benign twins blokkeres også, FBR=100 % |
 | Historisk regresjonskorpus | 0/167 kjente tidligere feil tillatt | Beviser bare fravær av regresjon på kjente feil |
-| BFCL v3 blind routing | 94,0 % samlet routing accuracy, fire av fem mål møtt | Wrong-call ACCEPT 86,8 %, ett mål klart misset |
+| BFCL v4 blind routing | 91,2 % merket routing accuracy, fem av fem mål møtt | Wrong-call ACCEPT 10,9 %; ingen autoritativ tilstandstabell eller semantisk kontraktspakke |
 | Kalibreringsvektet konsensus | 87,8 % mot majority 85,1 %, N=368 | Ikke slått på som standard; bare retningsgivende mot beste enkeltmodell |
 
 Alle tall må siteres sammen med caveat og artefakt.
@@ -567,7 +573,7 @@ De kan være gode valg uten at hvert valg er bevist optimalt.
 Innenfor de angitte protokollene er følgende målt:
 
 - null observerte false accepts på enkelte simulator-, AgentHarm- og regresjonssett,
-- høy BFCL-ruting på fire akser,
+- fem av fem forhåndsregistrerte BFCL v4-rutingmål møtt,
 - stor feil på wrong-call-aksen,
 - forbedring fra argument-grounding på utviklingsdata med autonomy-kostnad,
 - kalibreringsvektet konsensus som slår majority i én evaluering,

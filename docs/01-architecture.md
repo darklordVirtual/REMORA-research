@@ -65,8 +65,8 @@ allowed to supply them. The lookup cannot switch tools or write anything outside
 plan, and if no lookup exists at all the answer is ABSTAIN instead: promising a check
 that cannot happen is worse than stopping. When the answer comes back, step 4 runs
 again from scratch on a fresh view. In today's execution API, VERIFY still means "queue
-for a person"; the automatic-lookup contract is measured (CLAIM-016) but not yet wired
-into that path.
+for a person"; the automatic-lookup mechanism demonstrated by CLAIM-014 is not
+yet wired into that path.
 
 **What running it means.** `/v1/execution/execute` spends a single-use grant and calls
 the tool through `GovernedToolDispatcher`. Permission is welded to the exact call it

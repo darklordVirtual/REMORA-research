@@ -131,7 +131,7 @@ below names the PDF, verify against the .md, which supersedes it.
 The six headline claims above are the narrative highlights, **not** the complete
 governed set. The authoritative, machine-checked list is
 [`docs/assurance/claim_register_v1.yaml`](assurance/claim_register_v1.yaml)
-(17 claims, CLAIM-001 … CLAIM-017; CLAIM-004 is superseded by CLAIM-012),
+(18 claims, CLAIM-001 … CLAIM-018; CLAIM-004 is superseded by CLAIM-012),
 verified by `scripts/check_claim_provenance.py`. The claims not expanded above,
 with their artifacts:
 
@@ -147,9 +147,10 @@ with their artifacts:
 | CLAIM-012 | NEGATIVE: consensus temperature failed pre-registered fresh-data confirmation (SAP v3) | internal_benchmark | `results/sap_v3_round_results.json` |
 | CLAIM-013 | Calibrated confidence-weighted voting: significant aggregation win; marginal per-arm certificates only | internal_benchmark | `results/sap_v3_round_results.json` |
 | CLAIM-014 | System demonstration: governance chain from tool call to enforcement | internal_benchmark | `results/system_demonstration_v1.json` |
-| CLAIM-015 | Argument-value grounding reduces wrong-call ACCEPT from 86.8% to 11.6% (development measurement) | internal_benchmark | `results/system_demonstration_v1.json` |
-| CLAIM-016 | Sealed external routing track (BFCL v3): 4 of 5 pre-registered targets met, the 5th missed and published | externally_benchmarked | `results/routing_bench_bfcl_results.json` |
+| CLAIM-015 | Superseded BFCL v3 development measurement; retained only as a negative-result record | internal_benchmark | `NEGATIVE_RESULTS.md` |
+| CLAIM-016 | Superseded BFCL v3 negative record: 4 of 5 targets met; resolved by CLAIM-018 | externally_benchmarked | `results/routing_bench_bfcl_results.json` |
 | CLAIM-017 | Semantic binding gap in match_tool_to_intent (finding, fixed and regression-tested) | regression_tested | `remora/toolcall/routing/goal_match.py` |
+| CLAIM-018 | Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met | externally_benchmarked | `results/routing_bench_bfcl_v4_results.json` |
 
 Baseline context for the selective-prediction numbers: the calibration benchmark
 is N=302 items, where one model alone scores 57.0% and plain vote-counting
