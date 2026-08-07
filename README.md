@@ -47,6 +47,7 @@ caveat that bounds it.
 | **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | **5/5** pre-registered targets; sealed run, 1,527 episodes |
 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures |
 | **Calibration-weighted aggregation** | **87.8%** vs majority vote **85.1%** (N=368), p=0.0064 | vs best single model p=0.077; not enabled |
+
 The two mechanisms behind those numbers — a deterministic hard-guard floor no model
 signal can override, and permission welded to the exact call it was granted for — are
 explained with code references in the [architecture narrative](docs/01-architecture.md);
