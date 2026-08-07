@@ -210,13 +210,17 @@ documented set of negative results, and an honest account of what
 remains unsolved.
 
 \paragraph{A note on terminology.}
-REMORA borrows labels from statistical physics (\emph{temperature},
-\emph{entropy}, \emph{dissensus}, \emph{Lyapunov stability}) as
-operational names for deterministic functions of oracle
-outputs---variance, disagreement, and trend statistics. No physical
-analogy is claimed; each quantity is defined formally in
-\S\ref{sec:method}, and readers may substitute ``disagreement
-metrics'' wherever the physics vocabulary appears.
+Earlier versions of this paper named its observables after statistical
+physics (\emph{temperature}, \emph{free energy}, \emph{Lyapunov
+stability}). That vocabulary has been withdrawn: it invited a physical
+reading the system does not support, and the quantity it rested on ---
+structural temperature --- failed pre-registered confirmation on fresh
+data (\S\ref{sec:method}, \S\ref{sec:negative}). What remains are the
+information-theoretic quantities the benchmarks report: entropy $H$ and
+dissensus $D$ over the weighted verdict distribution, and a trust score
+$\trust$ derived from them. The three consensus regimes
+(ordered/critical/disordered) keep their names because they name
+existing code, not a physical state.
 
 % =====================================================================
 \section{Background and Related Work}
@@ -505,7 +509,7 @@ cross-encoder entailment clustering, implementing Semantic Entropy
 \cite{kuhn2023semantic}. Oracle weights are derived from
 inverse pairwise correlation (see \S\ref{sec:method}).
 
-\paragraph{Stage 4: Thermodynamic Observables.}
+\paragraph{Stage 4: Consensus Observables.}
 Entropy $H$ is computed over the diversity-weighted verdict distribution
 $\hat{p}$. The \texttt{NLISemanticBackend} grounds $H$ as Semantic
 Entropy~\cite{kuhn2023semantic},
@@ -518,11 +522,11 @@ cluster identity via lexical overlap. The NLI backend is a
 drop-in replacement for future work but was not used in the
 reported results; claims about Semantic Entropy properties should
 be read accordingly.
-Dissensus $D$, order parameter $\eta$, structural temperature $T$,
-free-energy proxy $F$, and trust score $\trust$ are computed
-(see \S\ref{sec:method}). Phase $\in\{\text{ordered},
-\text{critical}, \text{disordered}\}$ is assigned. Lyapunov
-heuristic stability observable $V(t) = H(t) + \lambda D(t)$ is tracked.
+Dissensus $D$, consensus concentration $\eta$ and trust score
+$\trust$ are computed (see \S\ref{sec:method}), and a regime
+$\in\{\text{ordered}, \text{critical}, \text{disordered}\}$ is
+assigned. These run on the research and benchmark path; the governed
+server routes leave them unset (\S\ref{sec:method}).
 
 \paragraph{Stage 5: Evidence Router (Critical Phase).}
 If phase = critical, the \texttt{CriticalEvidenceRouter} evaluates a
@@ -607,13 +611,17 @@ is left absent rather than guessed --- a fabricated boolean enters the policy
 contract as fact, while \texttt{None} correctly says nothing establishes this.
 
 % =====================================================================
-\section{Method: Thermodynamic-Inspired Uncertainty Observables}
+\section{Consensus Observables}
 \label{sec:method}
 
-\emph{Thermodynamic terminology is an operational metaphor for observable
-consensus structure. No claim is made that LLM systems obey a physical
-thermodynamic law. The observables are deterministic functions of
-oracle outputs and calibration parameters.}
+\emph{Earlier versions of this paper presented these observables under
+thermodynamic terminology (structural temperature, free energy, a
+Lyapunov observable). That framing has been withdrawn: it invited a
+physical reading the system does not support, and its central quantity
+did not survive pre-registered testing. What remains are the
+information-theoretic quantities the benchmarks actually report; the
+withdrawn material is retained in the negative results
+(\S\ref{sec:negative}), not deleted.}
 
 \subsection{Weighted Support Distribution}
 
@@ -655,39 +663,6 @@ clusters; backend note in \S\ref{sec:architecture}, limitations in
 \end{equation}
 where $k = |\{v : \hat{p}(v) > 0\}|$ is the number of active verdicts.
 
-\textbf{Structural temperature} (prompt-only, independent of oracle
-responses):
-\begin{equation}
-  T = 0.70\,T_{\text{prior}}(d)
-        + 0.20\,\frac{|\text{zlib}(q)|}{|q|}
-        + 0.10\,\frac{\ln(1+|q|)}{10}
-\end{equation}
-where $d \in \{\text{factoid, reasoning, creative, adversarial}\}$
-with priors $\{0.25, 0.85, 1.50, 1.70\}$ respectively. This formulation
-resolves the $T$--$D$ circularity documented as resolved finding R7
-(Appendix~\ref{app:negres}).
-
-\textbf{Free-energy proxy:}
-\begin{equation}
-  F(T) = \lambda D - T \cdot H, \quad \lambda = 0.3
-\end{equation}
-
-\textbf{Lyapunov-inspired stability observable (heuristic):}
-\begin{equation}
-  V(t) = H(t) + \lambda D(t)
-\end{equation}
-Iteration halts when $\Delta V > \epsilon_{\text{tol}} \cdot |V|$
-($\epsilon_{\text{tol}} = 0.05$). Across 1,000 synthetic sessions,
-$P(\Delta V \leq 0) = 87.2\%$, mean $\Delta V = -0.329$.
-This is an empirical heuristic metric (terminology after the classical
-stability framework \cite{khalil2002nonlinear}), not a formal
-control-theoretic Lyapunov proof. Configuration note: the reported stability figure
-(\path{results/lyapunov_aggregate_results.json}) was computed with the
-library default \texttt{lambda\_dissensus = 1.0}. The value $\lambda = 0.3$
-appears elsewhere as a coupling weight for the free energy $F = \lambda D -
-T\cdot H$; the two are separate parameters and other engine configurations
-may use other values.
-
 \textbf{Trust score:}
 \begin{equation}
   \trust = \eta \cdot (1 - h_{\text{bound}})
@@ -698,23 +673,39 @@ where $h_{\text{bound}}$ is a \emph{heuristic false-consensus risk proxy}
 from inter-oracle agreement --- the implementation uses $q^{n/2}$ (not the
 proven exponent) and clamps $\rho$ at $0.49$, so it can understate
 correlated-failure risk and must not be cited as a mathematical bound ---
-$w_{\text{phase}} \in \{1.0, 0.5, 0.1\}$
-for ordered/critical/disordered, and $\chi$ is susceptibility. As a
-standalone difficulty predictor $\chi$ failed (AUC $=0.39$, below chance;
-\S\ref{sec:negative}); its live variant is near-constant unless internal
-clamps bind, and its OOD use is exploratory, not a demonstrated detector.
+$w_{\text{phase}} \in \{1.0, 0.5, 0.1\}$ is a regime weight over the
+three consensus regimes (ordered/critical/disordered), and $\chi$ is a
+scale factor that is algebraically constant in the live path unless
+internal clamps bind. As a standalone difficulty predictor $\chi$ failed
+(AUC $=0.39$, below chance; \S\ref{sec:negative}). Both are retained
+because committed benchmark artifacts depend on them; neither is
+presented as a validated mechanism.
 
-\subsection{Phase Classification}
+\subsection{What these observables do not do}
 
-\begin{align}
-  \text{phase} &= \begin{cases}
-    \text{ordered}    & T < T_c \text{ and } \eta > 0.5 \\
-    \text{critical}   & |T - T_c|/T_c < 0.15 \\
-    \text{disordered} & \text{otherwise}
-  \end{cases}
-\end{align}
+Two boundaries matter more than the definitions above, because the
+withdrawn framing obscured both.
 
-where $T_c$ is calibrated from the oracle response distribution.
+\textbf{They are not populated on any governed path.}
+\path{servers/api.py} never references the consensus state;
+\path{servers/execution_api.py} passes \texttt{trust\_score=None} and
+\texttt{phase=None} explicitly, and \texttt{build\_full\_observation} ---
+the builder shared by the assess and execution routes --- leaves these
+fields at their \texttt{None} defaults. The engine therefore fails toward
+\textsc{verify}/\textsc{abstain} there: no probabilistic \textsc{accept}
+can fire from these signals in the governed path at all. The runtime
+safety floor is the deterministic hard-block layer
+(\S\ref{sec:decision}). Everything in \S\ref{sec:results} is measured on
+the research and benchmark path.
+
+\textbf{The regime assignment rests on a falsified signal.} Regimes were
+derived by comparing a structural temperature estimate against a
+calibrated critical value. That signal failed its pre-registered
+confirmation on fresh data: on $N=1{,}231$ held-out items it ranked
+\emph{worse} than calibrated confidence (AURC 0.0954 vs.\ 0.0664, paired
+CI excluding zero; CLAIM-012). Temperature is diagnostics-grade, not an
+authoritative selector, and the derivation now lives in the negative
+results (\S\ref{sec:negative}) rather than here as method.
 
 % =====================================================================
 \section{Decision and Policy Model}
@@ -1066,9 +1057,6 @@ network, database, or filesystem mutation; ``unsafe'' means unsafe
 MultiNLI validation-matched \cite{williams2018broad} (entailment,
 neutral, contradiction) as proxy for evidence-verification decisions.
 
-\textbf{Lyapunov benchmark ($N=1{,}000$ sessions).}
-Synthetic oracle responses, seeded RNG, 5--20 steps per session.
-
 \subsection{Baselines}
 
 QA: full-coverage majority vote; trust-score selective (threshold=0.50).
@@ -1198,12 +1186,6 @@ Critical and disordered phases cannot achieve
 meaningful coverage via conformal calibration alone, motivating the
 evidence router.
 
-\subsection{Lyapunov Stability ($N=1{,}000$ Sessions)}
-
-$P(\Delta V \leq 0) = 87.2\%$; mean $\Delta V = -0.329$;
-P95 $= +0.152$; P99 $= +0.308$. The 12.8\% of sessions where $V$
-increased are correctly terminated by the abort criterion.
-
 \subsection{Evidence Router Proxy Benchmark (MultiNLI, $N=3{,}000$)}
 
 Resolution rate 38.5\%; evidence-accept precision 100\%;
@@ -1291,17 +1273,11 @@ confirmation contains no authoritative semantic bundle.
 \section{Ablations}
 \label{sec:ablation}
 
-\textbf{Policy vs. thermodynamics.}
-Temperature gate only achieves 60\% accuracy, 1.4\% unsafe execution;
-the full policy gate reaches 90\% accuracy at 0\% unsafe. After the
-2026-07-20 leakage fix the unsafe-rate delta vs.\ baselines is not
-statistically significant ($p=0.50$), so on this benchmark version the
-hard-block layer's demonstrated advantage is routing quality rather than a
-statistically separable safety delta.
+\textbf{Where the safety floor comes from.}
 \emph{Architectural implication.} The unsafe-execution reduction is
 100\% attributable to deterministic, interpretable policy rules that are
-independent of LLM output. The multi-oracle consensus and thermodynamic
-routing machinery improve decision \emph{calibration and routing quality}
+independent of LLM output. The multi-oracle consensus and routing
+machinery improve decision \emph{calibration and routing quality}
 (discriminating VERIFY, ABSTAIN, and ACCEPT paths), but do not contribute
 to the safety guarantee itself. This separation is a design feature: the
 safety floor can be reasoned about and audited without reference to
@@ -1528,8 +1504,8 @@ Mistral). Results on other providers, closed-source models, or quantized
 variants may still differ; the benchmark phase distribution may not match
 deployment reality; and MultiNLI is a proxy for field evidence retrieval.
 
-\textbf{Construct validity:} Thermodynamic terminology is metaphorical,
-not physical. ``Trust'' is a derived scalar, not a frequency probability
+\textbf{Construct validity:} The thermodynamic terminology of earlier
+versions has been withdrawn (\S\ref{sec:method}). ``Trust'' is a derived scalar, not a frequency probability
 of per-item correctness. Utility scores are designed task weights, not
 real-world costs.
 
@@ -1902,11 +1878,6 @@ Inan, H., et al.\ (2023).
 Llama Guard: LLM-based input-output safeguard for human-AI conversations.
 \emph{arXiv:2312.06674}.
 
-\bibitem{khalil2002nonlinear}
-Khalil, H.~K.\ (2002).
-\emph{Nonlinear Systems} (3rd ed.).
-Prentice Hall.
-
 \bibitem{mohri2024conformal}
 Mohri, C.\ \& Hashimoto, T.\ (2024).
 Language models with conformal factuality guarantees.
@@ -2056,16 +2027,12 @@ $\hat{p}(v)$ & Weighted support & $[0,1]$, sums to 1 \\
 $H$ & Shannon entropy & bits $\geq 0$ \\
 $D$ & Dissensus & $[0,1]$ \\
 $k$ & Active verdict count & $\geq 1$ \\
-$\eta$ & Order parameter & $[0,1]$ \\
-$T$ & Structural temperature & $[0.05, 2.0]$ \\
-$T_c$ & Critical temperature & calibrated \\
+$\eta$ & Consensus concentration & $[0,1]$ \\
 $\chi$ & Susceptibility & $[0, \infty)$ \\
-$F$ & Free-energy proxy & $\mathbb{R}$ \\
 $\lambda$ & Coupling constant & 0.3 (paper config; library default 1.0) \\
 $\trust$ & Trust score & $[0,1]$ \\
 $h_{\rm bound}$ & Heuristic false-consensus risk proxy & $[0,1]$ \\
 $w_{\rm phase}$ & Phase weight & $\{1.0, 0.5, 0.1\}$ \\
-$V(t)$ & Lyapunov-inspired heuristic stability observable & $[0,\infty)$ \\
 $g$ & Gate outcome & ACCEPT/VERIFY/ABS./ESC. \\
 $\Gate$ & Gate function & $(q,a,c) \to g$ \\
 \bottomrule
