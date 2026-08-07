@@ -84,6 +84,129 @@ def validate(data: dict) -> list[str]:
     for dup in sorted({i for i in ids if ids.count(i) > 1}):
         errors.append(f"duplicate entry id: {dup}")
     errors.extend(_validate_landscape(data))
+    errors.extend(_validate_bibliography(data, set(ids)))
+    return errors
+
+
+# ── Bibliography reconciliation ─────────────────────────────────────────────
+BIBLIOGRAPHY_ROLES = {
+    "implemented_line",
+    "grounds_implementation",
+    "evaluation_source",
+    "positioning_only",
+    "standard_or_regulation",
+}
+#: Roles whose claim is "this source is present in the codebase" and therefore
+#: must name a code path. positioning_only asserts the opposite and must not.
+ROLES_REQUIRING_CODE = {"grounds_implementation"}
+_PAPER_YEAR_RE = re.compile(r"\((\d{4}[ab]?)\)")
+
+
+def _paper_references(paper: Path) -> list[tuple[str, str]]:
+    """(surname, year) for every bullet in the paper's ## References block."""
+    if not paper.exists():
+        return []
+    lines = paper.read_text(encoding="utf-8").split("\n")
+    try:
+        start = next(i for i, ln in enumerate(lines)
+                     if ln.strip() == "## References")
+        end = next(i for i in range(start + 1, len(lines))
+                   if lines[i].startswith("## "))
+    except StopIteration:
+        return []
+    out: list[tuple[str, str]] = []
+    for ln in lines[start:end]:
+        if not ln.startswith("- "):
+            continue
+        ref = ln[2:].strip()
+        m = re.match(r"([\w'À-ſ-]+)[,.]", ref)
+        surname = m.group(1) if m else ref.split()[0]
+        ym = _PAPER_YEAR_RE.search(ref)
+        out.append((surname, ym.group(1) if ym else ""))
+    return out
+
+
+def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
+    """Every paper reference must carry exactly one declared role, and any role
+    that claims code presence must name a file that exists and mentions the
+    source. Without this, "not in the matrix" is an unexplained absence rather
+    than a stated decision (review finding, 2026-08-07)."""
+    errors: list[str] = []
+    bib = data.get("bibliography")
+    if not bib:
+        return ["bibliography: block is missing"]
+    works = bib.get("works") or []
+
+    seen: dict[tuple[str, str], int] = {}
+    for w in works:
+        surname, year = w.get("surname", "?"), str(w.get("year", ""))
+        key = (surname, year)
+        seen[key] = seen.get(key, 0) + 1
+        where = f"bibliography {surname} {year}"
+        role = w.get("role")
+        if role not in BIBLIOGRAPHY_ROLES:
+            errors.append(f"{where}: unknown role {role!r}")
+            continue
+        if role == "implemented_line":
+            ref = w.get("entry")
+            if ref not in entry_ids:
+                errors.append(
+                    f"{where}: role implemented_line names entry {ref!r}, "
+                    f"which is not a research line in this file")
+        code = w.get("code") or []
+        if role in ROLES_REQUIRING_CODE and not code:
+            errors.append(f"{where}: role {role} must name at least one code path")
+        if role == "positioning_only" and code:
+            errors.append(
+                f"{where}: role positioning_only must not name code — a source "
+                f"present in the codebase is not positioning-only")
+        anchor = w.get("anchor", surname)
+        for path in code:
+            p = ROOT / path
+            if not p.exists():
+                errors.append(f"{where}: referenced path does not exist: {path}")
+            elif anchor not in p.read_text(encoding="utf-8", errors="ignore"):
+                errors.append(
+                    f"{where}: anchor {anchor!r} not found in {path} — the "
+                    f"declared role and the code have drifted apart")
+    for key, n in sorted(seen.items()):
+        if n > 1:
+            errors.append(f"bibliography: duplicate work {key[0]} {key[1]} ({n}x)")
+
+    for w in bib.get("code_only") or []:
+        surname = w.get("surname", "?")
+        where = f"bibliography.code_only {surname} {w.get('year', '')}"
+        code = w.get("code") or []
+        entry = w.get("entry")
+        # A source absent from the paper must still be locatable: either it is
+        # cited in a named module, or it is the source of a research line whose
+        # attribution lives in the narrative companion (in_code_citation false).
+        if not code and not entry:
+            errors.append(f"{where}: must name either a code path or an entry")
+        if entry and entry not in entry_ids:
+            errors.append(f"{where}: entry {entry!r} is not a research line")
+        anchor = w.get("anchor", surname)
+        for path in code:
+            p = ROOT / path
+            if not p.exists():
+                errors.append(f"{where}: referenced path does not exist: {path}")
+            elif anchor not in p.read_text(encoding="utf-8", errors="ignore"):
+                errors.append(f"{where}: {anchor!r} not found in {path}")
+
+    paper = ROOT / str(bib.get("paper", "paper/remora_paper.md"))
+    refs = _paper_references(paper)
+    if refs:
+        declared = set(seen)
+        for key in refs:
+            if key not in declared:
+                errors.append(
+                    f"bibliography: paper reference {key[0]} {key[1]} has no "
+                    f"declared role — every reference must state how REMORA "
+                    f"uses it")
+        for key in sorted(declared - set(refs)):
+            errors.append(
+                f"bibliography: declared work {key[0]} {key[1]} is not a "
+                f"reference in {bib.get('paper')} — stale entry")
     return errors
 
 
@@ -274,6 +397,103 @@ def _landscape_coverage(data: dict) -> list[str]:
     return lines
 
 
+_ROLE_TITLES = [
+    ("implemented_line",
+     "Implemented research line",
+     "Covered by a research line above, with code and tests. The `Line` column "
+     "points at it."),
+    ("grounds_implementation",
+     "Grounds a module (no dedicated line)",
+     "Cited in a code docstring as the basis for a module, but not large enough "
+     "to be its own research line. CI verifies the surname appears in the named "
+     "file."),
+    ("evaluation_source",
+     "Evaluation source",
+     "A dataset or benchmark REMORA is evaluated **on**. Not a method REMORA "
+     "implements."),
+    ("standard_or_regulation",
+     "Standard, regulation or tool",
+     "Aligned with or integrated, not a research result. Alignment is a mapping "
+     "claim, never a conformity claim."),
+    ("positioning_only",
+     "Related-work positioning only",
+     "Compared against or used as framing in the paper. No code, no evaluation "
+     "— and that is the honest status, not an oversight."),
+]
+
+
+def _bibliography_section(data: dict) -> list[str]:
+    """Reconcile every paper reference against the matrix, so a source that is
+    not an implemented line still has a stated role."""
+    bib = data.get("bibliography") or {}
+    works = bib.get("works") or []
+    if not works:
+        return []
+    lines: list[str] = []
+    lines.append("## Bibliography reconciliation")
+    lines.append("")
+    lines.append(
+        f"Every reference in [`{bib.get('paper')}`](../../{bib.get('paper')}) "
+        f"with the role it plays in REMORA. The research lines above are "
+        f"deliberately few (a line requires code **and** tests); this table "
+        f"accounts for the rest, so \"absent from the matrix\" is a stated "
+        f"decision rather than an unexplained gap. "
+        f"{bib.get('note', '')}"
+    )
+    lines.append("")
+    counts = {r: sum(1 for w in works if w.get("role") == r)
+              for r, _, _ in _ROLE_TITLES}
+    lines.append("| Role | Works | Asserts |")
+    lines.append("|------|-------|---------|")
+    for role, title, _ in _ROLE_TITLES:
+        asserts = ("present in the codebase"
+                   if role in ("implemented_line", "grounds_implementation",
+                               "evaluation_source")
+                   else "no code claim")
+        lines.append(f"| {title} | {counts.get(role, 0)} | {asserts} |")
+    lines.append("")
+    for role, title, blurb in _ROLE_TITLES:
+        rows = [w for w in works if w.get("role") == role]
+        if not rows:
+            continue
+        lines.append(f"### {title} ({len(rows)})")
+        lines.append("")
+        lines.append(blurb)
+        lines.append("")
+        lines.append("| Source | Line | Code | Note |")
+        lines.append("|--------|------|------|------|")
+        for w in sorted(rows, key=lambda x: (x["surname"], str(x["year"]))):
+            code = ", ".join(_code_link(p) for p in (w.get("code") or [])) or "—"
+            entry = w.get("entry", "—")
+            note = (w.get("note", "") or "—").strip().replace("\n", " ")
+            lines.append(
+                f"| {w['surname']} ({w['year']}) | {entry} | {code} | {note} |")
+        lines.append("")
+
+    code_only = bib.get("code_only") or []
+    if code_only:
+        lines.append(f"### Cited in code but not in the paper ({len(code_only)})")
+        lines.append("")
+        lines.append(
+            "The reconciliation runs both ways. These sources ground code or a "
+            "research line while the paper carries no reference to them — "
+            "recorded so the asymmetry is visible instead of hidden."
+        )
+        lines.append("")
+        lines.append("| Source | Work | Code | Note |")
+        lines.append("|--------|------|------|------|")
+        for w in sorted(code_only, key=lambda x: (x["surname"], str(x["year"]))):
+            code = ", ".join(_code_link(p) for p in (w.get("code") or [])) \
+                or (f"{w['entry']} (narrative attribution)" if w.get("entry")
+                    else "—")
+            note = (w.get("note", "") or "—").strip().replace("\n", " ")
+            lines.append(
+                f"| {w['surname']} ({w['year']}) | {w.get('work', '—')} | "
+                f"{code} | {note} |")
+        lines.append("")
+    return lines
+
+
 def render(data: dict) -> str:
     lines: list[str] = []
     lines.append("<!-- GENERATED FILE — DO NOT EDIT.")
@@ -331,6 +551,7 @@ def render(data: dict) -> str:
         lines.append(f"- **Landscape (local compendium):** {_landscape_line(e)}")
         lines.append("")
     lines.extend(_reverse_indexes(data["entries"]))
+    lines.extend(_bibliography_section(data))
     lines.extend(_landscape_coverage(data))
     return "\n".join(lines).rstrip() + "\n"
 

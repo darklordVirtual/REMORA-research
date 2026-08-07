@@ -175,3 +175,99 @@ def test_res001_scope_names_deterministic_psn_operationalisation() -> None:
     entry = next(e for e in _data()["entries"] if e["id"] == "RES-001")
     assert "Deterministic" in entry["scope_boundary"]
     assert "binary" in entry["scope_boundary"].lower()
+
+
+# ── Bibliography reconciliation (added 2026-08-07) ──────────────────────────
+# The matrix maps 10 implemented research lines while the paper cites 64 works.
+# Review asked the obvious question: where are the rest used? These tests bind
+# the answer so it cannot rot into an unexplained gap again.
+
+
+def _bib() -> dict:
+    return _data()["bibliography"]
+
+
+def test_every_paper_reference_has_a_declared_role() -> None:
+    mod = _load_module()
+    paper = ROOT / _bib().get("paper", "paper/remora_paper.md")
+    refs = mod._paper_references(paper)
+    assert len(refs) >= 60, f"only {len(refs)} references parsed — parser broke"
+    declared = {(w["surname"], str(w["year"])) for w in _bib()["works"]}
+    missing = sorted(set(refs) - declared)
+    assert not missing, (
+        "paper references with no declared role in the control matrix: "
+        f"{missing}"
+    )
+
+
+def test_no_stale_declared_works() -> None:
+    """A work removed from the paper must not linger in the reconciliation."""
+    mod = _load_module()
+    paper = ROOT / _bib().get("paper", "paper/remora_paper.md")
+    refs = set(mod._paper_references(paper))
+    stale = sorted({(w["surname"], str(w["year"])) for w in _bib()["works"]} - refs)
+    assert not stale, f"declared works absent from the paper: {stale}"
+
+
+def test_roles_are_from_the_vocabulary() -> None:
+    mod = _load_module()
+    bad = [(w["surname"], w.get("role")) for w in _bib()["works"]
+           if w.get("role") not in mod.BIBLIOGRAPHY_ROLES]
+    assert not bad, f"works with an unknown role: {bad}"
+
+
+def test_code_claiming_roles_name_an_existing_anchored_file() -> None:
+    """A role that claims codebase presence must be verifiable: the file exists
+    and actually mentions the source. This is what stops the reconciliation
+    from becoming a list of assertions nobody checks."""
+    offenders: list[str] = []
+    for w in _bib()["works"]:
+        for path in w.get("code") or []:
+            p = ROOT / path
+            anchor = w.get("anchor", w["surname"])
+            if not p.exists():
+                offenders.append(f"{w['surname']}: missing file {path}")
+            elif anchor not in p.read_text(encoding="utf-8", errors="ignore"):
+                offenders.append(f"{w['surname']}: {anchor!r} absent from {path}")
+    assert not offenders, "\n".join(offenders)
+
+
+def test_positioning_only_claims_no_code() -> None:
+    """positioning_only asserts the source is NOT in the codebase; naming code
+    would contradict the role."""
+    bad = [w["surname"] for w in _bib()["works"]
+           if w.get("role") == "positioning_only" and w.get("code")]
+    assert not bad, f"positioning_only works naming code: {bad}"
+
+
+def test_implemented_line_points_at_a_real_entry() -> None:
+    ids = {e["id"] for e in _data()["entries"]}
+    bad = [(w["surname"], w.get("entry")) for w in _bib()["works"]
+           if w.get("role") == "implemented_line" and w.get("entry") not in ids]
+    assert not bad, f"implemented_line works naming an unknown entry: {bad}"
+
+
+def test_code_only_works_are_locatable() -> None:
+    """Sources absent from the paper must still be findable: a module that
+    cites them, or the research line whose narrative attribution carries them."""
+    ids = {e["id"] for e in _data()["entries"]}
+    offenders: list[str] = []
+    for w in _bib().get("code_only") or []:
+        code, entry = w.get("code") or [], w.get("entry")
+        if not code and not entry:
+            offenders.append(f"{w['surname']}: neither code nor entry")
+        if entry and entry not in ids:
+            offenders.append(f"{w['surname']}: unknown entry {entry}")
+        for path in code:
+            p = ROOT / path
+            anchor = w.get("anchor", w["surname"])
+            if not p.exists() or anchor not in p.read_text(
+                    encoding="utf-8", errors="ignore"):
+                offenders.append(f"{w['surname']}: {anchor!r} not in {path}")
+    assert not offenders, "\n".join(offenders)
+
+
+def test_generated_view_renders_the_reconciliation() -> None:
+    text = GENERATED.read_text(encoding="utf-8")
+    assert "## Bibliography reconciliation" in text
+    assert "### Cited in code but not in the paper" in text

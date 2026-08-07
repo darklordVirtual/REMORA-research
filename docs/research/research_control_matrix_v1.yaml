@@ -386,3 +386,220 @@ landscape:
       compendium_chapter: "Ch. 2 (interpretability subset)"
       representative_refs: [monosemanticity-2023, scaling-monosem-2024, biology-of-llm-2025]
       reason: "REMORA's causal explanation (RES-001) is post-hoc over the policy model, not model-internal feature/circuit analysis. Mechanistic interpretability of the governed model is out of scope."
+
+# ── Bibliography reconciliation ─────────────────────────────────────────────
+# The `entries:` block above maps the research lines REMORA IMPLEMENTS, and its
+# rule is deliberately strict: a line requires real code and tests on disk. The
+# paper cites far more works than that (64 references against 10 lines), which
+# left an unanswered question raised in review 2026-08-07: if a source is not an
+# implemented line, what role does it actually play?
+#
+# This block answers it for EVERY reference in paper/remora_paper.md, so "not in
+# the matrix" becomes a stated role rather than an unexplained absence. It is
+# NOT a second implementation claim: only `implemented_line` asserts
+# implementation, and it does so by pointing at an entry above.
+#
+# Roles:
+#   implemented_line       covered by a RES-xxx entry; `entry` names it
+#   grounds_implementation cited in a code docstring as the basis for a module,
+#                          but has no dedicated research line. `code` names the
+#                          file and CI verifies the surname appears in it - the
+#                          same drift-proofing as citation_anchor above
+#   evaluation_source      a dataset/benchmark REMORA evaluates ON, not a method
+#                          REMORA implements; `code` names where it is used
+#   positioning_only       related-work comparison or framing in the paper. No
+#                          code, no evaluation. The majority of paper 2.11
+#   standard_or_regulation a standard, regulation or third-party tool REMORA
+#                          aligns with or integrates, not a research result
+#
+# Verified by scripts/generate_research_control_matrix.py --check and
+# tests/test_research_control_matrix.py: every paper reference must appear here
+# exactly once, every `entry` must exist, and every `code` path must exist and
+# contain the surname.
+bibliography:
+  paper: "paper/remora_paper.md"
+  note: >-
+    Roles describe how REMORA uses a work, not the work's importance. A
+    positioning_only source can be central to the argument of the paper and
+    still be absent from the code; that is the normal case for related work.
+  works:
+    # ── Implemented research lines ──────────────────────────────────────────
+    - {surname: "Bjøru", year: "2026", role: implemented_line, entry: RES-001}
+    - {surname: "Pearl", year: "2009", role: implemented_line, entry: RES-001}
+    - {surname: "Angelopoulos", year: "2022", role: implemented_line, entry: RES-003}
+    - {surname: "Wang", year: "2023a", role: implemented_line, entry: RES-004}
+    - {surname: "Zheng", year: "2023", role: implemented_line, entry: RES-004}
+    - {surname: "Cobbe", year: "2021", role: implemented_line, entry: RES-004}
+    - {surname: "Howard", year: "2021", role: implemented_line, entry: RES-010}
+    - {surname: "Ramdas", year: "2023", role: implemented_line, entry: RES-010}
+
+    # ── Grounds a module, but has no dedicated research line ────────────────
+    - surname: "Kuhn"
+      year: "2023"
+      role: grounds_implementation
+      code: [remora/semantic_entropy.py]
+      note: >-
+        Semantic Entropy is a core observable with no RES line of its own: it is
+        an input to RES-002/RES-004 rather than a separate control.
+    - surname: "Farquhar"
+      year: "2024"
+      role: grounds_implementation
+      code: [remora/semantic_entropy.py]
+      note: "The Nature follow-up to Kuhn et al.; same clustering construct."
+    - surname: "Kirchner"
+      year: "2024"
+      role: grounds_implementation
+      code: [remora/selective/pvd.py]
+      note: >-
+        PVD framing only. REMORA does not run the training game; the module
+        derives an offline agreement score from already-produced responses.
+        This file carried a fabricated author list until 2026-08-07 while the
+        paper had long been remediated, which is why
+        tests/test_paper_no_stale_claims.py now also scans cited modules.
+    - surname: "Geifman"
+      year: "2017"
+      role: grounds_implementation
+      code: [remora/selective/risk_control.py]
+      note: "SGR Algorithm 1 is implemented directly (binary search over cut points)."
+    - surname: "El-Yaniv"
+      year: "2010"
+      role: grounds_implementation
+      code: [remora/selective/risk_control.py]
+      note: "Selective-classification foundations behind the RES-002 idea family."
+    - surname: "Tibshirani"
+      year: "2019"
+      role: grounds_implementation
+      code: [remora/selective/crc.py]
+      note: "Weighted conformal under covariate shift; source of the importance weights."
+    - surname: "Vovk"
+      year: "2005"
+      role: grounds_implementation
+      code: [remora/selective/conformal.py]
+    - surname: "Shafer"
+      year: "2008"
+      role: grounds_implementation
+      code: [remora/selective/confidence_sequence.py]
+    - surname: "Ville"
+      year: "1939"
+      role: grounds_implementation
+      code: [remora/selective/confidence_sequence.py]
+      note: "Ville's inequality is the martingale bound the sequence rests on."
+    - surname: "Darling"
+      year: "1967"
+      role: grounds_implementation
+      code: [remora/selective/confidence_sequence.py]
+    - surname: "Greenblatt"
+      year: "2024"
+      role: grounds_implementation
+      code: [remora/governance/control_protocols.py]
+      note: >-
+        AI-control taxonomy used to classify REMORA as a trusted-monitoring
+        protocol. Classification only: the subversive-agent threat model is
+        explicitly NOT covered.
+
+    # ── Datasets and benchmarks REMORA evaluates on ─────────────────────────
+    - surname: "Clark"
+      year: "2019"
+      role: evaluation_source
+      code: [remora/benchmarks/extended_v2.py]
+      note: "BoolQ items in the QA benchmark composition."
+    - surname: "Lin"
+      year: "2022"
+      role: evaluation_source
+      code: [remora/benchmarks/extended_v2.py]
+      note: "TruthfulQA items in the QA benchmark composition."
+    - surname: "Williams"
+      year: "2018"
+      role: evaluation_source
+      code: [experiments/rag_critical_router_v1.py]
+      anchor: "MultiNLI"
+      note: "MultiNLI as the evidence-router proxy benchmark."
+    - surname: "Andriushchenko"
+      year: "2024"
+      role: evaluation_source
+      code: [scripts/run_agentharm_benchmark.py]
+      note: >-
+        AgentHarm external validation (CLAIM-002). Imported historical artifact:
+        it cannot be regenerated from this repository.
+
+    # ── Standards, regulation and third-party tooling ───────────────────────
+    - surname: "European"
+      year: "2024"
+      role: standard_or_regulation
+      code: [remora/evidence/domains/ai_governance.py]
+      anchor: "EU AI Act"
+      note: "EU AI Act Art. 12/14 mapped at runtime; no conformity assessment claimed."
+    - {surname: "International", year: "2016", role: standard_or_regulation, note: "IEC 61511 SIL framing in the case study."}
+    - {surname: "Standards", year: "2021", role: standard_or_regulation, note: "NORSOK D-010 well-barrier framing in the case study."}
+    - surname: "Open"
+      year: "2024"
+      role: standard_or_regulation
+      code: [remora/policy/opa_adapter.py]
+      anchor: "OPA"
+      note: "OPA/Rego adapter, failing closed to the Python engine."
+
+    # ── Related-work positioning: argued against, not built on ──────────────
+    - {surname: "Angelopoulos", year: "2021", role: positioning_only, note: "Conformal tutorial; framing only."}
+    - {surname: "Bloomfield", year: "2010", role: positioning_only}
+    - {surname: "Chennabasappa", year: "2025", role: positioning_only, note: "LlamaFirewall - closest industrial system in scope."}
+    - {surname: "Choi", year: "2026", role: positioning_only, note: "Membrane; contrasted with AROMER's never-weaken constraint."}
+    - {surname: "Chow", year: "1970", role: positioning_only, note: "Origin of the error-reject tradeoff."}
+    - {surname: "Corsi", year: "2021", role: positioning_only}
+    - {surname: "Debenedetti", year: "2024", role: positioning_only, note: "AgentDojo - named as a required replication target, not run."}
+    - {surname: "Debenedetti", year: "2025", role: positioning_only, note: "CaMeL; shelf SHELF-008."}
+    - {surname: "Dong", year: "2025", role: positioning_only, note: "TEE attestation sketch; hardware integration pending."}
+    - {surname: "Du", year: "2024", role: positioning_only, note: "Multi-agent debate; REMORA's dissensus is a one-shot analogue."}
+    - {surname: "Endsley", year: "1995", role: positioning_only, note: "Situation awareness; supervision framing only."}
+    - {surname: "Ge", year: "2026", role: positioning_only}
+    - {surname: "Guldimann", year: "2024", role: positioning_only, note: "COMPL-AI."}
+    - {surname: "Guo", year: "2017", role: positioning_only, note: "Calibration; REMORA deliberately does not calibrate per-oracle."}
+    - {surname: "Inan", year: "2023", role: positioning_only, note: "Llama Guard - content guardrail, contrasted with action gating."}
+    - {surname: "Kadavath", year: "2022", role: positioning_only, note: "Self-knowledge; motivates structural over self-reported uncertainty."}
+    - {surname: "Kelly", year: "1998", role: positioning_only, note: "Assurance cases; DecisionEnvelope populates one node."}
+    - {surname: "Khalil", year: "2002", role: positioning_only, note: "Terminology anchor only - V(t) is an observable, not a certified Lyapunov function."}
+    - {surname: "Kuncheva", year: "2003", role: positioning_only, note: "Ensemble diversity measures."}
+    - {surname: "Lakshminarayanan", year: "2017", role: positioning_only, note: "Deep ensembles."}
+    - {surname: "Mohri", year: "2024", role: positioning_only, note: "Conformal factuality; pre-empts the general LLM-abstention move."}
+    - {surname: "Mu", year: "2024", role: positioning_only, note: "Rule-based rewards - safety rules in training, not enforcement."}
+    - {surname: "Raji", year: "2022", role: positioning_only, note: "Audit-ecosystem design; motivates the replay/transparency framing."}
+    - {surname: "Rebedea", year: "2023", role: positioning_only, note: "NeMo Guardrails."}
+    - {surname: "Ruan", year: "2024", role: positioning_only, note: "ToolEmu anticipates the Shadow Mode counterfactual idea."}
+    - {surname: "Shamsujjoha", year: "2024", role: positioning_only, note: "Swiss-cheese guardrail taxonomy."}
+    - {surname: "Sharma", year: "2025", role: positioning_only, note: "Constitutional classifiers."}
+    - {surname: "Shi", year: "2025", role: positioning_only, note: "Progent; shelf SHELF-009. Defines the (safety, friction) frontier."}
+    - {surname: "Wang", year: "2023b", role: positioning_only, note: "LoRA ensembles; motivates but does not validate heterogeneous aggregation."}
+    - {surname: "Wang", year: "2025", role: positioning_only, note: "AgentSpec - DSL near-isomorphic to REMORA's policy invariants."}
+    - {surname: "Xiang", year: "2025", role: positioning_only, note: "GuardAgent."}
+    - {surname: "Yadkori", year: "2024", role: positioning_only, note: "Conformal abstention for hallucination mitigation."}
+    - {surname: "Yang", year: "2026", role: positioning_only, note: "AgentTrust; opposite corner of the safety/friction trade-off."}
+    - {surname: "Yao", year: "2024", role: positioning_only, note: "tau-bench."}
+    - {surname: "Yuan", year: "2024", role: positioning_only, note: "R-Judge."}
+    - {surname: "Zhan", year: "2024", role: positioning_only, note: "InjecAgent."}
+    - {surname: "Zhang", year: "2024", role: positioning_only, note: "Confidence elicitation by fidelity."}
+
+  # Sources that ground code or a matrix line but are NOT cited in the paper.
+  # Recorded so the reconciliation is bidirectional: a code citation with no
+  # paper counterpart is a gap worth seeing rather than hiding.
+  code_only:
+    - surname: "Wang"
+      year: "2024"
+      work: "Mixture-of-Agents"
+      code: [remora/cascade/stages.py]
+      note: >-
+        Single-stage aggregation inspired by MoA. The paper no longer discusses
+        MoA (the multi-layer architecture is not implemented), so it carries no
+        paper reference.
+    - surname: "Galhotra"
+      year: "2021"
+      work: "Contrastive explanations (SIGMOD)"
+      code: [remora/causal/search.py]
+      note: "builds_on source for RES-001."
+    - surname: "Behrouz"
+      year: "2025"
+      work: "Nested Learning"
+      entry: RES-008
+      note: >-
+        Source of RES-008 and absent from the paper. Deliberately NOT cited in
+        code: RES-008 carries in_code_citation false because REMORA implements
+        the governance framing, not the architecture, so the attribution lives
+        in docs/09-related-work.md rather than in a module docstring.

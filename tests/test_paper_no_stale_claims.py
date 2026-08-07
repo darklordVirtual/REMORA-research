@@ -73,3 +73,27 @@ def test_supplement_has_no_superseded_claims() -> None:
         "superseded claims re-entered the mathematical supplement:\n"
         + "\n".join(offenders)
     )
+
+
+def test_cited_code_carries_no_wrong_attribution() -> None:
+    """The paper was remediated for the Kirsch/Kirchner misattribution but the
+    code that implements PVD kept it (found 2026-08-07), inventing an author
+    list for arXiv:2407.13692 that does not exist. A guard that only reads the
+    paper cannot catch that: the modules carrying in-code citations are
+    public-facing attribution too."""
+    cited_modules = [
+        ROOT / "remora" / "selective" / "pvd.py",
+        ROOT / "remora" / "selective" / "crc.py",
+        ROOT / "remora" / "selective" / "confidence_sequence.py",
+        ROOT / "remora" / "semantic_entropy.py",
+        ROOT / "remora" / "verifier" / "llm_judge.py",
+        ROOT / "remora" / "cascade" / "stages.py",
+    ]
+    offenders: list[str] = []
+    for path in cited_modules:
+        assert path.exists(), f"cited module missing: {path}"
+        offenders.extend(_offending_lines(path))
+    assert not offenders, (
+        "wrong or superseded attribution in code that carries an in-code "
+        "citation:\n" + "\n".join(offenders)
+    )
