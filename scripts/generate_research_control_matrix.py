@@ -102,6 +102,37 @@ ROLES_REQUIRING_CODE = {"grounds_implementation"}
 _PAPER_YEAR_RE = re.compile(r"\((\d{4}[ab]?)\)")
 
 
+_ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)+$")
+#: Identifier fields a work may carry. A value here is a factual claim about
+#: an external record, so it is only accepted when the paper's own reference
+#: line already carries it — an identifier can never be introduced here alone.
+IDENTIFIER_FIELDS = ("arxiv", "doi", "isbn")
+
+
+def _paper_reference_lines(paper: Path) -> dict[tuple[str, str], str]:
+    """(surname, year) -> the raw reference line, for identifier corroboration."""
+    if not paper.exists():
+        return {}
+    lines = paper.read_text(encoding="utf-8").split("\n")
+    try:
+        start = next(i for i, ln in enumerate(lines)
+                     if ln.strip() == "## References")
+        end = next(i for i in range(start + 1, len(lines))
+                   if lines[i].startswith("## "))
+    except StopIteration:
+        return {}
+    out: dict[tuple[str, str], str] = {}
+    for ln in lines[start:end]:
+        if not ln.startswith("- "):
+            continue
+        ref = ln[2:].strip()
+        m = re.match(r"([\w'À-ſ-]+)[,.]", ref)
+        surname = m.group(1) if m else ref.split()[0]
+        ym = _PAPER_YEAR_RE.search(ref)
+        out[(surname, ym.group(1) if ym else "")] = ref
+    return out
+
+
 def _paper_references(paper: Path) -> list[tuple[str, str]]:
     """(surname, year) for every bullet in the paper's ## References block."""
     if not paper.exists():
@@ -137,12 +168,47 @@ def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
         return ["bibliography: block is missing"]
     works = bib.get("works") or []
 
+    paper_lines = _paper_reference_lines(
+        ROOT / str(bib.get("paper", "paper/remora_paper.md")))
+
     seen: dict[tuple[str, str], int] = {}
+    seen_ids: dict[str, int] = {}
     for w in works:
         surname, year = w.get("surname", "?"), str(w.get("year", ""))
         key = (surname, year)
         seen[key] = seen.get(key, 0) + 1
         where = f"bibliography {surname} {year}"
+
+        # Stable id: surname+year alone cannot separate two works by the same
+        # author (Angelopoulos 2021 vs 2022; three different Wangs), which made
+        # every surname-based audit ambiguous. The id is the unambiguous key.
+        wid = w.get("id")
+        if not wid:
+            errors.append(f"{where}: missing id")
+        else:
+            seen_ids[wid] = seen_ids.get(wid, 0) + 1
+            if not _ID_RE.match(str(wid)):
+                errors.append(
+                    f"{where}: id {wid!r} must be lowercase-hyphenated ASCII")
+
+        # Anti-fabrication: an identifier must be corroborated by the paper's
+        # own reference line. Without this rule nothing stops a plausible-
+        # looking arXiv id from being written here and never checked.
+        ref_line = paper_lines.get(key, "")
+        for field in IDENTIFIER_FIELDS:
+            val = w.get(field)
+            if val is None:
+                continue
+            if not ref_line:
+                errors.append(
+                    f"{where}: declares {field} {val!r} but has no reference "
+                    f"line in the paper to corroborate it")
+            elif str(val) not in ref_line:
+                errors.append(
+                    f"{where}: {field} {val!r} does not appear in the paper's "
+                    f"reference line — an identifier may not be introduced "
+                    f"here alone")
+
         role = w.get("role")
         if role not in BIBLIOGRAPHY_ROLES:
             errors.append(f"{where}: unknown role {role!r}")
@@ -172,6 +238,9 @@ def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
     for key, n in sorted(seen.items()):
         if n > 1:
             errors.append(f"bibliography: duplicate work {key[0]} {key[1]} ({n}x)")
+    for wid, n in sorted(seen_ids.items()):
+        if n > 1:
+            errors.append(f"bibliography: duplicate id {wid!r} ({n}x)")
 
     for w in bib.get("code_only") or []:
         surname = w.get("surname", "?")
@@ -460,14 +529,16 @@ def _bibliography_section(data: dict) -> list[str]:
         lines.append("")
         lines.append(blurb)
         lines.append("")
-        lines.append("| Source | Line | Code | Note |")
-        lines.append("|--------|------|------|------|")
-        for w in sorted(rows, key=lambda x: (x["surname"], str(x["year"]))):
+        lines.append("| Source id | Identifier | Line | Code | Note |")
+        lines.append("|-----------|------------|------|------|------|")
+        for w in sorted(rows, key=lambda x: str(x.get("id", ""))):
             code = ", ".join(_code_link(p) for p in (w.get("code") or [])) or "—"
             entry = w.get("entry", "—")
             note = (w.get("note", "") or "—").strip().replace("\n", " ")
+            ident = next(
+                (f"{f}:{w[f]}" for f in IDENTIFIER_FIELDS if w.get(f)), "—")
             lines.append(
-                f"| {w['surname']} ({w['year']}) | {entry} | {code} | {note} |")
+                f"| `{w.get('id', '?')}` | {ident} | {entry} | {code} | {note} |")
         lines.append("")
 
     code_only = bib.get("code_only") or []
@@ -480,15 +551,15 @@ def _bibliography_section(data: dict) -> list[str]:
             "recorded so the asymmetry is visible instead of hidden."
         )
         lines.append("")
-        lines.append("| Source | Work | Code | Note |")
-        lines.append("|--------|------|------|------|")
-        for w in sorted(code_only, key=lambda x: (x["surname"], str(x["year"]))):
+        lines.append("| Source id | Work | Code | Note |")
+        lines.append("|-----------|------|------|------|")
+        for w in sorted(code_only, key=lambda x: str(x.get("id", ""))):
             code = ", ".join(_code_link(p) for p in (w.get("code") or [])) \
                 or (f"{w['entry']} (narrative attribution)" if w.get("entry")
                     else "—")
             note = (w.get("note", "") or "—").strip().replace("\n", " ")
             lines.append(
-                f"| {w['surname']} ({w['year']}) | {w.get('work', '—')} | "
+                f"| `{w.get('id', '?')}` | {w.get('work', '—')} | "
                 f"{code} | {note} |")
         lines.append("")
     return lines

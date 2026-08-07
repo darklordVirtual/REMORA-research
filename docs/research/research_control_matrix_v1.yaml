@@ -424,30 +424,35 @@ bibliography:
     still be absent from the code; that is the normal case for related work.
   works:
     # ── Implemented research lines ──────────────────────────────────────────
-    - {surname: "Bjøru", year: "2026", role: implemented_line, entry: RES-001}
-    - {surname: "Pearl", year: "2009", role: implemented_line, entry: RES-001}
-    - {surname: "Angelopoulos", year: "2022", role: implemented_line, entry: RES-003}
-    - {surname: "Wang", year: "2023a", role: implemented_line, entry: RES-004}
-    - {surname: "Zheng", year: "2023", role: implemented_line, entry: RES-004}
-    - {surname: "Cobbe", year: "2021", role: implemented_line, entry: RES-004}
-    - {surname: "Howard", year: "2021", role: implemented_line, entry: RES-010}
-    - {surname: "Ramdas", year: "2023", role: implemented_line, entry: RES-010}
+    - {id: bjru-2026-causal, surname: "Bjøru", year: "2026", isbn: "978-82-353-0022-5", role: implemented_line, entry: RES-001}
+    - {id: pearl-2009-causality, surname: "Pearl", year: "2009", role: implemented_line, entry: RES-001}
+    - {id: angelopoulos-2022-conformal, surname: "Angelopoulos", year: "2022", arxiv: "2208.02814", role: implemented_line, entry: RES-003}
+    - {id: wang-2023a-self, surname: "Wang", year: "2023a", role: implemented_line, entry: RES-004}
+    - {id: zheng-2023-judging, surname: "Zheng", year: "2023", role: implemented_line, entry: RES-004}
+    - {id: cobbe-2021-training, surname: "Cobbe", year: "2021", arxiv: "2110.14168", role: implemented_line, entry: RES-004}
+    - {id: howard-2021-time, surname: "Howard", year: "2021", role: implemented_line, entry: RES-010}
+    - {id: ramdas-2023-game, surname: "Ramdas", year: "2023", role: implemented_line, entry: RES-010}
 
     # ── Grounds a module, but has no dedicated research line ────────────────
-    - surname: "Kuhn"
+    - id: kuhn-2023-semantic
+      surname: "Kuhn"
       year: "2023"
+      arxiv: "2302.09664"
       role: grounds_implementation
       code: [remora/semantic_entropy.py]
       note: >-
         Semantic Entropy is a core observable with no RES line of its own: it is
         an input to RES-002/RES-004 rather than a separate control.
-    - surname: "Farquhar"
+    - id: farquhar-2024-detecting
+      surname: "Farquhar"
       year: "2024"
       role: grounds_implementation
       code: [remora/semantic_entropy.py]
       note: "The Nature follow-up to Kuhn et al.; same clustering construct."
-    - surname: "Kirchner"
+    - id: kirchner-2024-prover
+      surname: "Kirchner"
       year: "2024"
+      arxiv: "2407.13692"
       role: grounds_implementation
       code: [remora/selective/pvd.py]
       note: >-
@@ -456,39 +461,47 @@ bibliography:
         This file carried a fabricated author list until 2026-08-07 while the
         paper had long been remediated, which is why
         tests/test_paper_no_stale_claims.py now also scans cited modules.
-    - surname: "Geifman"
+    - id: geifman-2017-selective
+      surname: "Geifman"
       year: "2017"
       role: grounds_implementation
       code: [remora/selective/risk_control.py]
       note: "SGR Algorithm 1 is implemented directly (binary search over cut points)."
-    - surname: "El-Yaniv"
+    - id: el-yaniv-2010-foundations
+      surname: "El-Yaniv"
       year: "2010"
       role: grounds_implementation
       code: [remora/selective/risk_control.py]
       note: "Selective-classification foundations behind the RES-002 idea family."
-    - surname: "Tibshirani"
+    - id: tibshirani-2019-conformal
+      surname: "Tibshirani"
       year: "2019"
       role: grounds_implementation
       code: [remora/selective/crc.py]
       note: "Weighted conformal under covariate shift; source of the importance weights."
-    - surname: "Vovk"
+    - id: vovk-2005-algorithmic
+      surname: "Vovk"
       year: "2005"
       role: grounds_implementation
       code: [remora/selective/conformal.py]
-    - surname: "Shafer"
+    - id: shafer-2008-tutorial
+      surname: "Shafer"
       year: "2008"
       role: grounds_implementation
       code: [remora/selective/confidence_sequence.py]
-    - surname: "Ville"
+    - id: ville-1939-etude
+      surname: "Ville"
       year: "1939"
       role: grounds_implementation
       code: [remora/selective/confidence_sequence.py]
       note: "Ville's inequality is the martingale bound the sequence rests on."
-    - surname: "Darling"
+    - id: darling-1967-confidence
+      surname: "Darling"
       year: "1967"
       role: grounds_implementation
       code: [remora/selective/confidence_sequence.py]
-    - surname: "Greenblatt"
+    - id: greenblatt-2024-control
+      surname: "Greenblatt"
       year: "2024"
       role: grounds_implementation
       code: [remora/governance/control_protocols.py]
@@ -498,24 +511,29 @@ bibliography:
         explicitly NOT covered.
 
     # ── Datasets and benchmarks REMORA evaluates on ─────────────────────────
-    - surname: "Clark"
+    - id: clark-2019-boolq
+      surname: "Clark"
       year: "2019"
       role: evaluation_source
       code: [remora/benchmarks/extended_v2.py]
       note: "BoolQ items in the QA benchmark composition."
-    - surname: "Lin"
+    - id: lin-2022-truthfulqa
+      surname: "Lin"
       year: "2022"
       role: evaluation_source
       code: [remora/benchmarks/extended_v2.py]
       note: "TruthfulQA items in the QA benchmark composition."
-    - surname: "Williams"
+    - id: williams-2018-broad
+      surname: "Williams"
       year: "2018"
       role: evaluation_source
       code: [experiments/rag_critical_router_v1.py]
       anchor: "MultiNLI"
       note: "MultiNLI as the evidence-router proxy benchmark."
-    - surname: "Andriushchenko"
+    - id: andriushchenko-2024-agentharm
+      surname: "Andriushchenko"
       year: "2024"
+      arxiv: "2410.09024"
       role: evaluation_source
       code: [scripts/run_agentharm_benchmark.py]
       note: >-
@@ -523,15 +541,17 @@ bibliography:
         it cannot be regenerated from this repository.
 
     # ── Standards, regulation and third-party tooling ───────────────────────
-    - surname: "European"
+    - id: european-2024-regulation
+      surname: "European"
       year: "2024"
       role: standard_or_regulation
       code: [remora/evidence/domains/ai_governance.py]
       anchor: "EU AI Act"
       note: "EU AI Act Art. 12/14 mapped at runtime; no conformity assessment claimed."
-    - {surname: "International", year: "2016", role: standard_or_regulation, note: "IEC 61511 SIL framing in the case study."}
-    - {surname: "Standards", year: "2021", role: standard_or_regulation, note: "NORSOK D-010 well-barrier framing in the case study."}
-    - surname: "Open"
+    - {id: international-2016-iec, surname: "International", year: "2016", role: standard_or_regulation, note: "IEC 61511 SIL framing in the case study."}
+    - {id: standards-2021-norsok, surname: "Standards", year: "2021", role: standard_or_regulation, note: "NORSOK D-010 well-barrier framing in the case study."}
+    - id: open-2024-open
+      surname: "Open"
       year: "2024"
       role: standard_or_regulation
       code: [remora/policy/opa_adapter.py]
@@ -539,49 +559,50 @@ bibliography:
       note: "OPA/Rego adapter, failing closed to the Python engine."
 
     # ── Related-work positioning: argued against, not built on ──────────────
-    - {surname: "Angelopoulos", year: "2021", role: positioning_only, note: "Conformal tutorial; framing only."}
-    - {surname: "Bloomfield", year: "2010", role: positioning_only}
-    - {surname: "Chennabasappa", year: "2025", role: positioning_only, note: "LlamaFirewall - closest industrial system in scope."}
-    - {surname: "Choi", year: "2026", role: positioning_only, note: "Membrane; contrasted with AROMER's never-weaken constraint."}
-    - {surname: "Chow", year: "1970", role: positioning_only, note: "Origin of the error-reject tradeoff."}
-    - {surname: "Corsi", year: "2021", role: positioning_only}
-    - {surname: "Debenedetti", year: "2024", role: positioning_only, note: "AgentDojo - named as a required replication target, not run."}
-    - {surname: "Debenedetti", year: "2025", role: positioning_only, note: "CaMeL; shelf SHELF-008."}
-    - {surname: "Dong", year: "2025", role: positioning_only, note: "TEE attestation sketch; hardware integration pending."}
-    - {surname: "Du", year: "2024", role: positioning_only, note: "Multi-agent debate; REMORA's dissensus is a one-shot analogue."}
-    - {surname: "Endsley", year: "1995", role: positioning_only, note: "Situation awareness; supervision framing only."}
-    - {surname: "Ge", year: "2026", role: positioning_only}
-    - {surname: "Guldimann", year: "2024", role: positioning_only, note: "COMPL-AI."}
-    - {surname: "Guo", year: "2017", role: positioning_only, note: "Calibration; REMORA deliberately does not calibrate per-oracle."}
-    - {surname: "Inan", year: "2023", role: positioning_only, note: "Llama Guard - content guardrail, contrasted with action gating."}
-    - {surname: "Kadavath", year: "2022", role: positioning_only, note: "Self-knowledge; motivates structural over self-reported uncertainty."}
-    - {surname: "Kelly", year: "1998", role: positioning_only, note: "Assurance cases; DecisionEnvelope populates one node."}
-    - {surname: "Khalil", year: "2002", role: positioning_only, note: "Terminology anchor only - V(t) is an observable, not a certified Lyapunov function."}
-    - {surname: "Kuncheva", year: "2003", role: positioning_only, note: "Ensemble diversity measures."}
-    - {surname: "Lakshminarayanan", year: "2017", role: positioning_only, note: "Deep ensembles."}
-    - {surname: "Mohri", year: "2024", role: positioning_only, note: "Conformal factuality; pre-empts the general LLM-abstention move."}
-    - {surname: "Mu", year: "2024", role: positioning_only, note: "Rule-based rewards - safety rules in training, not enforcement."}
-    - {surname: "Raji", year: "2022", role: positioning_only, note: "Audit-ecosystem design; motivates the replay/transparency framing."}
-    - {surname: "Rebedea", year: "2023", role: positioning_only, note: "NeMo Guardrails."}
-    - {surname: "Ruan", year: "2024", role: positioning_only, note: "ToolEmu anticipates the Shadow Mode counterfactual idea."}
-    - {surname: "Shamsujjoha", year: "2024", role: positioning_only, note: "Swiss-cheese guardrail taxonomy."}
-    - {surname: "Sharma", year: "2025", role: positioning_only, note: "Constitutional classifiers."}
-    - {surname: "Shi", year: "2025", role: positioning_only, note: "Progent; shelf SHELF-009. Defines the (safety, friction) frontier."}
-    - {surname: "Wang", year: "2023b", role: positioning_only, note: "LoRA ensembles; motivates but does not validate heterogeneous aggregation."}
-    - {surname: "Wang", year: "2025", role: positioning_only, note: "AgentSpec - DSL near-isomorphic to REMORA's policy invariants."}
-    - {surname: "Xiang", year: "2025", role: positioning_only, note: "GuardAgent."}
-    - {surname: "Yadkori", year: "2024", role: positioning_only, note: "Conformal abstention for hallucination mitigation."}
-    - {surname: "Yang", year: "2026", role: positioning_only, note: "AgentTrust; opposite corner of the safety/friction trade-off."}
-    - {surname: "Yao", year: "2024", role: positioning_only, note: "tau-bench."}
-    - {surname: "Yuan", year: "2024", role: positioning_only, note: "R-Judge."}
-    - {surname: "Zhan", year: "2024", role: positioning_only, note: "InjecAgent."}
-    - {surname: "Zhang", year: "2024", role: positioning_only, note: "Confidence elicitation by fidelity."}
+    - {id: angelopoulos-2021-gentle, surname: "Angelopoulos", year: "2021", arxiv: "2107.07511", role: positioning_only, note: "Conformal tutorial; framing only."}
+    - {id: bloomfield-2010-safety, surname: "Bloomfield", year: "2010", role: positioning_only}
+    - {id: chennabasappa-2025-llamafirewall, surname: "Chennabasappa", year: "2025", arxiv: "2505.03574", role: positioning_only, note: "LlamaFirewall - closest industrial system in scope."}
+    - {id: choi-2026-membrane, surname: "Choi", year: "2026", arxiv: "2606.05743", role: positioning_only, note: "Membrane; contrasted with AROMER's never-weaken constraint."}
+    - {id: chow-1970-optimum, surname: "Chow", year: "1970", role: positioning_only, note: "Origin of the error-reject tradeoff."}
+    - {id: corsi-2021-formal, surname: "Corsi", year: "2021", role: positioning_only}
+    - {id: debenedetti-2024-agentdojo, surname: "Debenedetti", year: "2024", role: positioning_only, note: "AgentDojo - named as a required replication target, not run."}
+    - {id: debenedetti-2025-defeating, surname: "Debenedetti", year: "2025", arxiv: "2503.18813", role: positioning_only, note: "CaMeL; shelf SHELF-008."}
+    - {id: dong-2025-evaluating, surname: "Dong", year: "2025", arxiv: "2502.11347", role: positioning_only, note: "TEE attestation sketch; hardware integration pending."}
+    - {id: du-2024-improving, surname: "Du", year: "2024", role: positioning_only, note: "Multi-agent debate; REMORA's dissensus is a one-shot analogue."}
+    - {id: endsley-1995-toward, surname: "Endsley", year: "1995", role: positioning_only, note: "Situation awareness; supervision framing only."}
+    - {id: ge-2026-governance, surname: "Ge", year: "2026", arxiv: "2603.07191", role: positioning_only}
+    - {id: guldimann-2024-compl, surname: "Guldimann", year: "2024", arxiv: "2410.07959", role: positioning_only, note: "COMPL-AI."}
+    - {id: guo-2017-calibration, surname: "Guo", year: "2017", role: positioning_only, note: "Calibration; REMORA deliberately does not calibrate per-oracle."}
+    - {id: inan-2023-llama, surname: "Inan", year: "2023", arxiv: "2312.06674", role: positioning_only, note: "Llama Guard - content guardrail, contrasted with action gating."}
+    - {id: kadavath-2022-language, surname: "Kadavath", year: "2022", arxiv: "2207.05221", role: positioning_only, note: "Self-knowledge; motivates structural over self-reported uncertainty."}
+    - {id: kelly-1998-arguing, surname: "Kelly", year: "1998", role: positioning_only, note: "Assurance cases; DecisionEnvelope populates one node."}
+    - {id: khalil-2002-nonlinear, surname: "Khalil", year: "2002", role: positioning_only, note: "Terminology anchor only - V(t) is an observable, not a certified Lyapunov function."}
+    - {id: kuncheva-2003-measures, surname: "Kuncheva", year: "2003", role: positioning_only, note: "Ensemble diversity measures."}
+    - {id: lakshminarayanan-2017-simple, surname: "Lakshminarayanan", year: "2017", role: positioning_only, note: "Deep ensembles."}
+    - {id: mohri-2024-language, surname: "Mohri", year: "2024", role: positioning_only, note: "Conformal factuality; pre-empts the general LLM-abstention move."}
+    - {id: mu-2024-rule, surname: "Mu", year: "2024", role: positioning_only, note: "Rule-based rewards - safety rules in training, not enforcement."}
+    - {id: raji-2022-outsider, surname: "Raji", year: "2022", arxiv: "2206.04737", role: positioning_only, note: "Audit-ecosystem design; motivates the replay/transparency framing."}
+    - {id: rebedea-2023-nemo, surname: "Rebedea", year: "2023", role: positioning_only, note: "NeMo Guardrails."}
+    - {id: ruan-2024-identifying, surname: "Ruan", year: "2024", role: positioning_only, note: "ToolEmu anticipates the Shadow Mode counterfactual idea."}
+    - {id: shamsujjoha-2024-taxonomy, surname: "Shamsujjoha", year: "2024", arxiv: "2408.02205", role: positioning_only, note: "Swiss-cheese guardrail taxonomy."}
+    - {id: sharma-2025-constitutional, surname: "Sharma", year: "2025", arxiv: "2501.18837", role: positioning_only, note: "Constitutional classifiers."}
+    - {id: shi-2025-progent, surname: "Shi", year: "2025", arxiv: "2504.11703", role: positioning_only, note: "Progent; shelf SHELF-009. Defines the (safety, friction) frontier."}
+    - {id: wang-2023b-lora, surname: "Wang", year: "2023b", arxiv: "2310.00035", role: positioning_only, note: "LoRA ensembles; motivates but does not validate heterogeneous aggregation."}
+    - {id: wang-2025-agentspec, surname: "Wang", year: "2025", arxiv: "2503.18666", role: positioning_only, note: "AgentSpec - DSL near-isomorphic to REMORA's policy invariants."}
+    - {id: xiang-2025-guardagent, surname: "Xiang", year: "2025", role: positioning_only, note: "GuardAgent."}
+    - {id: yadkori-2024-mitigating, surname: "Yadkori", year: "2024", arxiv: "2405.01563", role: positioning_only, note: "Conformal abstention for hallucination mitigation."}
+    - {id: yang-2026-agenttrust, surname: "Yang", year: "2026", arxiv: "2606.08539", role: positioning_only, note: "AgentTrust; opposite corner of the safety/friction trade-off."}
+    - {id: yao-2024-bench, surname: "Yao", year: "2024", arxiv: "2406.12045", role: positioning_only, note: "tau-bench."}
+    - {id: yuan-2024-judge, surname: "Yuan", year: "2024", role: positioning_only, note: "R-Judge."}
+    - {id: zhan-2024-injecagent, surname: "Zhan", year: "2024", role: positioning_only, note: "InjecAgent."}
+    - {id: zhang-2024-calibrating, surname: "Zhang", year: "2024", arxiv: "2404.02655", role: positioning_only, note: "Confidence elicitation by fidelity."}
 
   # Sources that ground code or a matrix line but are NOT cited in the paper.
   # Recorded so the reconciliation is bidirectional: a code citation with no
   # paper counterpart is a gap worth seeing rather than hiding.
   code_only:
-    - surname: "Wang"
+    - id: wang-2024-moa
+      surname: "Wang"
       year: "2024"
       work: "Mixture-of-Agents"
       code: [remora/cascade/stages.py]
@@ -589,12 +610,14 @@ bibliography:
         Single-stage aggregation inspired by MoA. The paper no longer discusses
         MoA (the multi-layer architecture is not implemented), so it carries no
         paper reference.
-    - surname: "Galhotra"
+    - id: galhotra-2021-contrastive
+      surname: "Galhotra"
       year: "2021"
       work: "Contrastive explanations (SIGMOD)"
       code: [remora/causal/search.py]
       note: "builds_on source for RES-001."
-    - surname: "Behrouz"
+    - id: behrouz-2025-nested
+      surname: "Behrouz"
       year: "2025"
       work: "Nested Learning"
       entry: RES-008
