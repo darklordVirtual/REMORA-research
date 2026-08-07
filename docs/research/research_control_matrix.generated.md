@@ -6,7 +6,7 @@
 
 The machine-checked chain from research source to tested code, one row per research line. Every code and test path below is verified to exist on disk by CI; the literature narrative lives in [docs/09-related-work.md](../09-related-work.md).
 
-Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, updated 2026-07-21).
+Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, updated 2026-08-07).
 
 ## Summary
 
@@ -71,8 +71,9 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 
 ## RES-004 — Multi-oracle consensus and cross-model verification
 
-- **Source:** Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents. (cited in code; anchor `Wang et al.` — CI-verified)
+- **Source:** Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents; Zheng et al. (2023), Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena; Cobbe et al. (2021), Training Verifiers to Solve Math Word Problems. (cited in code; anchor `Wang et al.` — CI-verified)
   - cited at remora/cascade/stages.py (self-consistency; single-stage aggregation inspired by MoA, not the multi-layer architecture)
+  - cited at remora/verifier/llm_judge.py (LLM-as-judge verifier per Zheng et al. 2023; contrast with Cobbe et al. 2021 trained outcome verifiers)
 - **Concepts:** self_consistency_sampling, verifier_model, cross_model_dissensus, multi_agent_debate
 - **REMORA controls:** multi_oracle_consensus, independent_verifier_gate
 - **Code:** [`remora/cascade/stages.py`](../../remora/cascade/stages.py), [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py), [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py)

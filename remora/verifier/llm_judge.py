@@ -18,6 +18,14 @@ Usage:
     verdict.outcome   # JudgeOutcome.SUPPORTED
     verdict.confidence  # 0.97
     verdict.critique    # "Answer is accurate and consistent with cited evidence."
+
+References:
+    Zheng, L., et al. (2023). Judging LLM-as-a-judge with MT-Bench and
+    Chatbot Arena. NeurIPS 2023.  (LLM-as-judge paradigm this verifier
+    instantiates.)
+    Cobbe, K., et al. (2021). Training verifiers to solve math word problems.
+    arXiv:2110.14168.  (Outcome verifiers that rank complete solutions; the
+    judge here is prompted, not trained.)
 """
 from __future__ import annotations
 
