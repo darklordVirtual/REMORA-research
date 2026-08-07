@@ -169,7 +169,8 @@ The numbered series is the primary reading path.
 | [deployment/azure-reference-architecture.md](deployment/azure-reference-architecture.md) | Azure reference architecture |
 | [deployment/onprem-airgapped.md](deployment/onprem-airgapped.md) | On-prem / air-gapped deployment |
 | [enterprise/togaf-enterprise-rollout-plan.md](enterprise/togaf-enterprise-rollout-plan.md) | TOGAF enterprise rollout plan |
-| [enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md](enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md) · [PDF](enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.pdf) | Norwegian TOGAF 10-aligned enterprise architecture definition and migration plan (baseline commit pinned in the document) |
+| [TOGAF enterprise architecture — PDF](enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.pdf) | Clickable PDF edition of the Norwegian TOGAF 10-aligned enterprise architecture and migration plan |
+| [TOGAF enterprise architecture — Markdown](enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md) | Source edition with the document's pinned baseline commit |
 | [enterprise/audit-anchoring-guide.md](enterprise/audit-anchoring-guide.md) | Audit-chain Merkle checkpointing: coverage, verification, threat-model delta |
 | [policy_cookbook/README.md](policy_cookbook/README.md) | Policy cookbook (recipes: [cloud_ops](policy_cookbook/cloud_ops.md), [cyber](policy_cookbook/cyber.md), [database](policy_cookbook/database.md)) |
 | [security/pre-deployment-review.md](security/pre-deployment-review.md) | Pre-deployment security review |
