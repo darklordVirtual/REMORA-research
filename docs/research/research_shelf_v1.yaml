@@ -37,7 +37,7 @@
 # A `remora_results` key is a hard error.
 
 schema_version: "1"
-updated: "2026-08-03"
+updated: "2026-08-07"
 
 components:
 
@@ -202,11 +202,18 @@ components:
     name: "Capabilities bound to data, not only to tools"
     source:
       title: "Defeating Prompt Injections by Design (CaMeL)"
-      authors: "Edoardo Debenedetti et al."
+      authors: >-
+        Edoardo Debenedetti, Ilia Shumailov, Tianqi Fan, Jamie Hayes,
+        Nicholas Carlini, Daniel Fabian, Christoph Kern, Chongyang Shi,
+        Andreas Terzis, Florian Tramèr
       venue: "arXiv preprint"
       url: "https://arxiv.org/abs/2503.18813"
-      verification: UNVERIFIED
-      reported_results: "Not recorded — source not retrieved."
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-07"
+      reported_results: >-
+        Authors report CaMeL solves 77% of AgentDojo tasks with provable
+        security, against 84% for an undefended system. Their setup, their
+        numbers.
     roadmap_ref: "RF-02"
     remora_status: >-
       The propose/decide/execute separation already holds and the agent owns
@@ -219,12 +226,19 @@ components:
   - id: SHELF-009
     name: "Programmable fine-grained privilege policy"
     source:
-      title: "Progent: Programmable Privilege Control for LLM Agents"
-      authors: "Tianneng Shi et al."
+      title: "Progent: Securing AI Agents with Privilege Control"
+      authors: >-
+        Tianneng Shi, Jingxuan He, Zhun Wang, Hongwei Li, Linyu Wu,
+        Wenbo Guo, Dawn Song
       venue: "arXiv preprint"
       url: "https://arxiv.org/abs/2504.11703"
-      verification: UNVERIFIED
-      reported_results: "Not recorded — source not retrieved."
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-07"
+      reported_results: >-
+        Current version reports attack success rate on AgentDojo reduced from
+        39.9% (no defense) to 1.0% while maintaining utility; v1 (titled
+        "Progent: Programmable Privilege Control for LLM Agents") reported
+        41.2% to 2.2%. Their setup, their numbers.
     roadmap_ref: "RF-10"
     remora_status: >-
       Server-side tool registry, action types, risk tiers, hard guards, an OPA

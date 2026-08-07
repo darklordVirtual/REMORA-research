@@ -46,7 +46,7 @@
 # is documented, not invisible.
 
 schema_version: "1"
-updated: "2026-07-21"
+updated: "2026-08-07"
 
 maturity_levels:
   - implemented_and_tested
@@ -154,9 +154,10 @@ entries:
   - id: RES-004
     title: "Multi-oracle consensus and cross-model verification"
     source:
-      citation: "Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents."
+      citation: "Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents; Zheng et al. (2023), Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena; Cobbe et al. (2021), Training Verifiers to Solve Math Word Problems."
       sections:
         - "cited at remora/cascade/stages.py (self-consistency; single-stage aggregation inspired by MoA, not the multi-layer architecture)"
+        - "cited at remora/verifier/llm_judge.py (LLM-as-judge verifier per Zheng et al. 2023; contrast with Cobbe et al. 2021 trained outcome verifiers)"
     concepts:
       - self_consistency_sampling
       - verifier_model

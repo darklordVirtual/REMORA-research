@@ -237,6 +237,11 @@ treating them as exchangeable. Kuncheva \& Whitaker (2003)
 \cite{kuncheva2003measures} formalised diversity measures for classifier
 ensembles; REMORA's inverse-correlation weighting can be understood as an
 instance of this family applied to instruction-following LLMs.
+Wang, Aitchison \& Rudolph (2023) \cite{wang2023lora} show that
+parameter-efficient LoRA ensembles improve predictive accuracy and
+uncertainty quantification, with ensemble diversity as the key driver;
+this motivates, but does not independently validate, REMORA's
+heterogeneous oracle aggregation.
 
 \subsection{Multi-Agent Debate}
 Du et al.\ (2024) \cite{du2023improving} showed that inter-model
@@ -265,13 +270,22 @@ REMORA's abstention is grounded in structural oracle disagreement
 rather than self-reported confidence.
 
 \subsection{Conformal Prediction}
-Angelopoulos \& Bates (2021) \cite{angelopoulos2021gentle} provide a
-distribution-free framework for coverage guarantees. REMORA implements
-Mondrian phase-stratified conformal calibration for the ordered phase,
-and a CRC-inspired weighted empirical selective router
-\cite{angelopoulos2022crc} with importance weights for the critical
-phase (\S\ref{sec:crc}). The exchangeability violation in the critical phase
-is documented as a negative result (\S\ref{sec:negative}).
+Conformal prediction originates with Vovk, Gammerman \& Shafer (2005)
+\cite{vovk2005algorithmic}; Shafer \& Vovk (2008) \cite{shafer2008tutorial}
+and Angelopoulos \& Bates (2021) \cite{angelopoulos2021gentle} established
+it as a practical distribution-free framework for coverage guarantees.
+REMORA implements Mondrian phase-stratified conformal calibration for the
+ordered phase, and a CRC-inspired weighted empirical selective router
+\cite{angelopoulos2022crc} with importance weights (following weighted
+conformal prediction under covariate shift \cite{tibshirani2019conformal})
+for the critical phase (\S\ref{sec:crc}). The exchangeability violation in
+the critical phase is documented as a negative result
+(\S\ref{sec:negative}). Conformal methods have since been brought to LLM
+outputs directly: conformal factuality guarantees via claim back-off
+\cite{mohri2024conformal} and conformal abstention for hallucination
+mitigation \cite{yadkori2024abstention}; REMORA's contribution is narrower
+and different in object: phase-stratified calibration over multi-oracle
+governance observables for \emph{action gating}, not per-output factuality.
 
 \subsection{Prover-Verifier Games}
 Kirchner et al.\ (2024) \cite{kirsch2024prover} showed that prover-verifier
@@ -284,7 +298,13 @@ from already-produced responses, without additional API calls
 (\S\ref{sec:pvd}).
 
 \subsection{AI Governance and Policy-as-Code}
-The EU AI Act (2024) \cite{euaiact2024} mandates human oversight and
+Algorithmic-audit scholarship emphasizes institutionalized third-party
+oversight and audit-system design \cite{raji2022outsider}; Raji et al.\
+identify lack of audit data access as the most significant vulnerability
+of the current AI audit ecosystem. REMORA's DecisionEnvelope addresses
+this access gap by logging each governance decision with immutable
+hash-chaining, and the Replay Engine publishes governance episodes for
+third-party inspection. The EU AI Act (2024) \cite{euaiact2024} mandates human oversight and
 audit trails for high-risk AI systems. Open Policy Agent (OPA)
 \cite{opa} provides a production-grade Rego policy engine. REMORA
 ships an OPA adapter---failing closed to a Python fallback---as a
@@ -307,6 +327,115 @@ REMORA's four-outcome schema implements this
 spectrum: \textsc{accept} (human-on-the-loop) through
 \textsc{escalate} (human-in-the-loop), with \textsc{verify} and
 \textsc{abstain} as intermediate states.
+
+\subsection{Industrial AI Safety}
+The oil-and-gas sector has established quantitative risk frameworks
+(NORSOK D-010:2021 \cite{norsok2021d010}; IEC 61511:2016 \cite{iec61511})
+that define action classes requiring human sign-off. REMORA's case study
+(\S\ref{sec:casestudy}) uses this domain as an illustration of how
+policy-gated AI governance maps to existing industrial safety
+requirements. No domain-specific correctness is claimed.
+
+\subsection{Runtime Guardrails: Agent Permissioning, and AI Control}
+
+\paragraph{Content guardrails.}
+Llama Guard and its successors \cite{inan2023llamaguard} classify
+conversational inputs/outputs against a safety taxonomy; NeMo Guardrails
+\cite{rebedea2023nemo} provides programmable dialogue rails;
+Constitutional Classifiers \cite{sharma2025constitutional} defend against
+universal jailbreaks with classifiers trained on constitution-generated
+data; Rule-Based Rewards \cite{mu2024rules} move safety rules into
+training. These systems govern \emph{content}; REMORA governs
+\emph{actions}: its unit of decision is a proposed tool call with
+operational consequences, and its deterministic hard-block layer is, by
+design, not overridable by any learned component. A trained classifier
+and a policy floor fail differently, and REMORA's position is that action
+gating in consequential environments needs the latter beneath the former.
+
+\paragraph{Agent-level guardrail systems.}
+LlamaFirewall \cite{chennabasappa2025llamafirewall} is the closest
+industrial system in scope: a layered agent guardrail (prompt-injection
+detection, alignment checking, code screening). GuardAgent
+\cite{xiang2025guardagent} generates guardrail code with a guard LLM;
+AgentSpec \cite{wang2025agentspec} defines a DSL of runtime
+triggers/predicates/enforcement near-isomorphic to REMORA's policy
+invariants. Two 2026 systems share REMORA's learning ambition: AgentTrust
+\cite{yang2026agenttrust} splits threats into lexical (deterministic
+rules) and semantic (LLM judge with a guarded verdict cache), and
+\emph{self-distills judge decisions into its rule layer}; Membrane
+\cite{choi2026membrane} evolves a contrastive safety memory against
+jailbreaks. REMORA's differences are deliberate: (1) the hard-block floor
+is fixed, versioned, and hash-provenanced policy-as-code, learned outputs
+never become enforcement rules, and the learning layer (AROMER) is
+monotonicity-tested to \emph{never weaken} policy
+(\path{tests/policy/test_governance_intelligence_never_weakens_policy.py}),
+whereas AgentTrust's distillation pipeline makes learned judgments
+load-bearing for enforcement; (2) uncertainty is structural (multi-oracle
+disagreement with conformal abstention), not a single judge's confidence;
+(3) every decision emits a signed, hash-chained DecisionEnvelope.
+Conversely, AgentTrust reports zero benign hard-blocks across 45{,}000
+actions, the opposite end of the safety/friction trade-off from REMORA's
+FBR=100\% AgentHarm corner point (\S\ref{sec:results}), and an explicit
+target for REMORA's calibration roadmap.
+
+\paragraph{Permissioning and security by design.}
+Progent \cite{shi2025progent} enforces programmable least-privilege on
+agent tool calls, reducing attack success from 39.9\% to 1.0\% on
+AgentDojo \emph{while maintaining utility}; CaMeL
+\cite{debenedetti2025camel} defeats prompt injection by construction via
+control/data-flow separation, retaining 77\% task completion with
+provable security. These results define the current (safety, friction)
+frontier and pre-empt any reading of REMORA's zero-FAR corner point as
+sufficient: REMORA's contribution is not the corner but the governance
+machinery around it: uncertainty-routed escalation, auditability, and
+claim-governed evaluation. Capability-based enforcement in the
+Progent/CaMeL style is complementary and is the natural enforcement
+substrate for REMORA's \textsc{verify}/\textsc{escalate} outcomes.
+
+\paragraph{Benchmarks and environments.}
+Beyond AgentHarm \cite{andriushchenko2024agentharm}, the field evaluates
+on AgentDojo \cite{debenedetti2024agentdojo}, ToolEmu
+\cite{ruan2024toolemu}, InjecAgent \cite{zhan2024injecagent}, R-Judge
+\cite{yuan2024rjudge}, and $\tau$-bench \cite{yao2024taubench}. ToolEmu's
+LM-emulated sandbox anticipates the counterfactual-execution idea behind
+REMORA's Shadow Mode; REMORA's replay engine is therefore \emph{not}
+conceptually unique: its distinction is the governance framing (committed
+replay artifacts under claim governance). Replication of REMORA's results
+on these independently constructed environments is required future work
+and the honest boundary of every internal benchmark claim in this paper.
+
+\paragraph{AI control.}
+Greenblatt et al.\ (2024) \cite{greenblatt2024aicontrol} formalize safety
+protocols that remain effective when the \emph{policy model itself} is
+intentionally subversive, using trusted monitoring with limited audit
+budgets. In their taxonomy REMORA is a trusted-monitoring control
+protocol: a deterministic trusted layer plus weaker trusted monitors (the
+oracle swarm) gating an untrusted agent, with \textsc{escalate} as the
+audit budget. REMORA's threat model (injection, oracle compromise) does
+not yet include a strategically subversive agent: collusion and
+monitor-evasion failure modes from the control literature are open items
+for the red-team plan.
+
+\paragraph{Regulatory operationalization.}
+COMPL-AI \cite{guldimann2024complai} provides a technical interpretation
+of the EU AI Act as model-level benchmarks; REMORA operationalizes a
+complementary slice at runtime, Article 12 (logging) via the
+DecisionEnvelope hash chain, Article 14 (human oversight) via
+\textsc{verify}/\textsc{escalate} routing, without claiming conformity
+assessment.
+
+\paragraph{Multi-layer guardrail taxonomies.}
+A systematic literature review of runtime guardrails
+\cite{shamsujjoha2024taxonomy} frames multi-layer defense as a
+Swiss-cheese model; a layered governance architecture with OS-level
+enforcement is developed in Ge (2026) \cite{ge2026governance}; confidence
+elicitation by fidelity is treated in Zhang et al.\ (2024)
+\cite{zhang2024fidelity}; and formal verification of behavioral safety
+properties for neural policies in Corsi et al.\ (2021)
+\cite{corsi2021formal}. REMORA's position relative to these four is that
+it composes recognized layers (policy floor, ensemble uncertainty,
+conformal abstention, audit chain) with a claim-governance methodology,
+rather than introducing a new layer type.
 
 % =====================================================================
 \section{Problem Statement}
@@ -550,8 +679,9 @@ resolves the $T$--$D$ circularity documented as resolved finding R7
 Iteration halts when $\Delta V > \epsilon_{\text{tol}} \cdot |V|$
 ($\epsilon_{\text{tol}} = 0.05$). Across 1,000 synthetic sessions,
 $P(\Delta V \leq 0) = 87.2\%$, mean $\Delta V = -0.329$.
-This is an empirical heuristic metric, not a formal control-theoretic Lyapunov
-proof. Configuration note: the reported stability figure
+This is an empirical heuristic metric (terminology after the classical
+stability framework \cite{khalil2002nonlinear}), not a formal
+control-theoretic Lyapunov proof. Configuration note: the reported stability figure
 (\path{results/lyapunov_aggregate_results.json}) was computed with the
 library default \texttt{lambda\_dissensus = 1.0}. The value $\lambda = 0.3$
 appears elsewhere as a coupling weight for the free energy $F = \lambda D -
@@ -676,7 +806,7 @@ policy rule (no LLM calls): (1)~fail-closed normalization of
 caller-supplied labels (unknown is explicit, never coerced to a safe
 value); (2)~action-semantics extraction from the proposed action text
 and tool metadata; (3)~misspecification-risk inference from
-label/semantics disagreement; (4)~causal-consequence signals \cite{bjoru2026causal} (blast
+label/semantics disagreement; (4)~causal-consequence signals \cite{bjoru2026causal,pearl2009causality} (blast
 radius, expected loss); and (5)~policy-generalization risk---would
 repeatedly accepting this \emph{class} of action remain safe
 fleet-wide?
@@ -801,6 +931,7 @@ reference API (offline research component).
 \paragraph{Protocol.}
 \begin{enumerate}[leftmargin=*,label=\arabic*.]
   \item \textbf{Cluster} oracle responses via Semantic Entropy clustering
+        \cite{kuhn2023semantic,farquhar2024detecting}
         (\S\ref{sec:method}), producing semantic equivalence classes
         $\mathcal{C} = \{C_1, \ldots, C_K\}$ sorted by mass.
   \item \textbf{Prover} = the oracle whose response belongs to the
@@ -1402,6 +1533,18 @@ not physical. ``Trust'' is a derived scalar, not a frequency probability
 of per-item correctness. Utility scores are designed task weights, not
 real-world costs.
 
+\textbf{Statistical validity:} 95\% Wilson confidence intervals are
+reported for key accuracy figures; Wilson intervals are fixed-$N$
+constructions and are not valid under the continuous monitoring that the
+REM-020 longitudinal gate performs (optional stopping). A time-uniform
+confidence sequence
+\cite{ville1939etude,darling1967confidence,howard2021timeuniform,ramdas2023game}
+is therefore reported alongside for the gate's cycle-level false-accept
+indicator: $0/168$ cycles gives a 95\% time-uniform upper bound of
+4.72\% (\path{results/far_confidence_sequence_v1.json}, claim register
+CLAIM-011). The sequence is wider than Wilson at any fixed $N$: the
+price of validity under data-dependent stopping.
+
 % =====================================================================
 \section{Safety, Ethics, and Governance}
 \label{sec:safety}
@@ -1575,7 +1718,7 @@ Andriushchenko, M., et al.\ (2024).
 AgentHarm: A benchmark for measuring harmfulness of LLM agents.
 \emph{arXiv:2410.09024}.
 
-\bibitem{zhang2025tee}
+\bibitem{dong2025tee}
 Dong, B.\ \& Wang, Q.\ (2025).
 Evaluating the performance of the DeepSeek model in confidential computing
 environment.
@@ -1687,6 +1830,206 @@ Bjøru, A.~R.\ (2026).
 Causal Post-hoc Explainable AI.
 PhD thesis, Norwegian University of Science and Technology (NTNU).
 ISBN~978-82-353-0022-5.
+
+\bibitem{chennabasappa2025llamafirewall}
+Chennabasappa, S., et al.\ (2025).
+LlamaFirewall: An open source guardrail system for building secure AI agents.
+\emph{arXiv:2505.03574}.
+
+\bibitem{choi2026membrane}
+Choi, M., Yang, S., Kim, D., Kim, S., Son, J., Lee, Y., Choo, J.,
+\& Kwak, Y.\ (2026).
+Membrane: A self-evolving contrastive safety memory for LLM agent defense.
+\emph{arXiv:2606.05743}.
+
+\bibitem{corsi2021formal}
+Corsi, D., Marchesini, E., \& Farinelli, A.\ (2021).
+Formal verification of neural networks for safety-critical tasks in deep
+reinforcement learning.
+\emph{UAI 2021}, PMLR 161:333--343.
+
+\bibitem{darling1967confidence}
+Darling, D.~A.\ \& Robbins, H.\ (1967).
+Confidence sequences for mean, variance, and median.
+\emph{Proceedings of the National Academy of Sciences, 58}(1), 66--68.
+
+\bibitem{debenedetti2024agentdojo}
+Debenedetti, E., et al.\ (2024).
+AgentDojo: A dynamic environment to evaluate prompt injection attacks and
+defenses for LLM agents.
+\emph{NeurIPS 2024 Datasets \& Benchmarks}.
+
+\bibitem{debenedetti2025camel}
+Debenedetti, E., et al.\ (2025).
+Defeating prompt injections by design (CaMeL).
+\emph{arXiv:2503.18813}.
+
+\bibitem{farquhar2024detecting}
+Farquhar, S., Kossen, J., Kuhn, L., \& Gal, Y.\ (2024).
+Detecting hallucinations in large language models using semantic entropy.
+\emph{Nature, 630}, 625--630.
+
+\bibitem{ge2026governance}
+Ge, Y.\ (2026).
+Governance architecture for autonomous agent systems: Threats, framework,
+and engineering practice.
+\emph{arXiv:2603.07191}.
+
+\bibitem{greenblatt2024aicontrol}
+Greenblatt, R., Shlegeris, B., Sachan, K., \& Roger, F.\ (2024).
+AI control: Improving safety despite intentional subversion.
+\emph{ICML 2024}, PMLR 235:16295--16336.
+
+\bibitem{guldimann2024complai}
+Guldimann, P., et al.\ (2024).
+COMPL-AI framework: A technical interpretation and LLM benchmarking suite
+for the EU Artificial Intelligence Act.
+\emph{arXiv:2410.07959}.
+
+\bibitem{howard2021timeuniform}
+Howard, S.~R., Ramdas, A., McAuliffe, J., \& Sekhon, J.\ (2021).
+Time-uniform, nonparametric, nonasymptotic confidence sequences.
+\emph{Annals of Statistics, 49}(2), 1055--1080.
+
+\bibitem{iec61511}
+International Electrotechnical Commission.\ (2016).
+IEC 61511-1:2016, Functional safety: Safety instrumented systems for the
+process industry sector.
+IEC.
+
+\bibitem{inan2023llamaguard}
+Inan, H., et al.\ (2023).
+Llama Guard: LLM-based input-output safeguard for human-AI conversations.
+\emph{arXiv:2312.06674}.
+
+\bibitem{khalil2002nonlinear}
+Khalil, H.~K.\ (2002).
+\emph{Nonlinear Systems} (3rd ed.).
+Prentice Hall.
+
+\bibitem{mohri2024conformal}
+Mohri, C.\ \& Hashimoto, T.\ (2024).
+Language models with conformal factuality guarantees.
+\emph{ICML 2024}.
+
+\bibitem{mu2024rules}
+Mu, T., Helyar, A., et al.\ (2024).
+Rule based rewards for language model safety.
+\emph{NeurIPS 2024}.
+
+\bibitem{norsok2021d010}
+Standards Norway.\ (2021).
+NORSOK D-010:2021, Well integrity in drilling and well operations.
+Standards Norway.
+
+\bibitem{pearl2009causality}
+Pearl, J.\ (2009).
+\emph{Causality: Models, Reasoning, and Inference} (2nd ed.).
+Cambridge University Press.
+
+\bibitem{raji2022outsider}
+Raji, I.~D., Xu, P., Honigsberg, C., \& Ho, D.~E.\ (2022).
+Outsider oversight: Designing a third party audit ecosystem for AI
+governance.
+\emph{AIES '22}. arXiv:2206.04737.
+
+\bibitem{ramdas2023game}
+Ramdas, A., Gr\"unwald, P., Vovk, V., \& Shafer, G.\ (2023).
+Game-theoretic statistics and safe anytime-valid inference.
+\emph{Statistical Science, 38}(4), 576--601.
+
+\bibitem{rebedea2023nemo}
+Rebedea, T., et al.\ (2023).
+NeMo Guardrails: A toolkit for controllable and safe LLM applications with
+programmable rails.
+\emph{EMNLP 2023 System Demonstrations}.
+
+\bibitem{ruan2024toolemu}
+Ruan, Y., et al.\ (2024).
+Identifying the risks of LM agents with an LM-emulated sandbox (ToolEmu).
+\emph{ICLR 2024}.
+
+\bibitem{shafer2008tutorial}
+Shafer, G.\ \& Vovk, V.\ (2008).
+A tutorial on conformal prediction.
+\emph{Journal of Machine Learning Research, 9}, 371--421.
+
+\bibitem{shamsujjoha2024taxonomy}
+Shamsujjoha, M., Lu, Q., Zhao, D., \& Zhu, L.\ (2024).
+A taxonomy of multi-layered runtime guardrails for designing foundation
+model-based agents: Swiss cheese model for AI safety by design.
+\emph{arXiv:2408.02205}.
+
+\bibitem{sharma2025constitutional}
+Sharma, M., et al.\ (2025).
+Constitutional classifiers: Defending against universal jailbreaks across
+thousands of hours of red teaming.
+\emph{arXiv:2501.18837}.
+
+\bibitem{shi2025progent}
+Shi, T., He, J., Wang, Z., Li, H., Wu, L., Guo, W., \& Song, D.\ (2025).
+Progent: Securing AI agents with privilege control.
+\emph{arXiv:2504.11703}.
+
+\bibitem{ville1939etude}
+Ville, J.\ (1939).
+\emph{\'Etude critique de la notion de collectif.}
+Gauthier-Villars.
+
+\bibitem{vovk2005algorithmic}
+Vovk, V., Gammerman, A., \& Shafer, G.\ (2005).
+\emph{Algorithmic Learning in a Random World.}
+Springer.
+
+\bibitem{wang2023lora}
+Wang, X., Aitchison, L., \& Rudolph, M.\ (2023).
+LoRA ensembles for large language model fine-tuning.
+\emph{arXiv:2310.00035}.
+
+\bibitem{wang2025agentspec}
+Wang, H., Poskitt, C.~M., et al.\ (2025).
+AgentSpec: Customizable runtime enforcement for safe and reliable LLM
+agents.
+\emph{arXiv:2503.18666}.
+
+\bibitem{xiang2025guardagent}
+Xiang, Z., et al.\ (2025).
+GuardAgent: Safeguard LLM agents by a guard agent via knowledge-enabled
+reasoning.
+\emph{ICML 2025}.
+
+\bibitem{yadkori2024abstention}
+Yadkori, Y.~A., Kuzborskij, I., et al.\ (2024).
+Mitigating LLM hallucinations via conformal abstention.
+\emph{arXiv:2405.01563}.
+
+\bibitem{yang2026agenttrust}
+Yang, C.\ (2026).
+AgentTrust: A self-improving trust layer for AI-agent actions.
+\emph{arXiv:2606.08539}.
+
+\bibitem{yao2024taubench}
+Yao, S., Shinn, N., Razavi, P., \& Narasimhan, K.\ (2024).
+$\tau$-bench: A benchmark for tool-agent-user interaction in real-world
+domains.
+\emph{arXiv:2406.12045}.
+
+\bibitem{yuan2024rjudge}
+Yuan, T., et al.\ (2024).
+R-Judge: Benchmarking safety risk awareness for LLM agents.
+\emph{Findings of EMNLP 2024}.
+
+\bibitem{zhan2024injecagent}
+Zhan, Q., Liang, Z., et al.\ (2024).
+InjecAgent: Benchmarking indirect prompt injections in tool-integrated LLM
+agents.
+\emph{Findings of ACL 2024}.
+
+\bibitem{zhang2024fidelity}
+Zhang, M., Huang, M., Shi, R., Guo, L., Peng, C., Yan, P., Zhou, Y.,
+\& Qiu, X.\ (2024).
+Calibrating the confidence of large language models by eliciting fidelity.
+\emph{arXiv:2404.02655}.
 
 \end{thebibliography}
 
@@ -1863,7 +2206,7 @@ offline research component, not invoked by the reference API.
 \label{app:tee}
 
 \emph{This appendix describes tamper-resistant (not tamper-proof) audit hardening
-via hardware attestation \cite{zhang2025tee}. Implementation status: protocol specified; hardware
+via hardware attestation \cite{dong2025tee}. Implementation status: protocol specified; hardware
 integration pending. The term ``tamper-resistant'' is used throughout; the
 hash-chain in the main system is tamper-detecting only.}
 
