@@ -161,7 +161,7 @@ This is not a question of *accuracy*, REMORA does not know whether action $a$ is
 
 ## 4. REMORA Architecture
 
-REMORA processes each gate request through six decision stages, followed by DecisionEnvelope emission. **Stage numbering vs. enforcement precedence:** the stages below describe *data flow* (what is computed when); they do not describe *decision precedence*. In the implementation (`remora/policy/decision_engine.py`), the deterministic hard-block invariants are evaluated with absolute priority before any probabilistic ACCEPT path, and no consensus, thermodynamic, or conformal score can override them. ARCHITECTURE.md and README.md present the same system with the policy invariants as "Stage 1" for exactly this reason: the two numberings are different views of one pipeline, and the enforcement-precedence view (hard blocks first) is the authoritative one for safety claims.
+REMORA processes each gate request through six decision stages, followed by DecisionEnvelope emission. **Stage numbering vs. enforcement precedence:** the stages below describe *data flow* (what is computed when); they do not describe *decision precedence*. In the implementation (`remora/policy/decision_engine.py`), the deterministic hard-block invariants are evaluated with absolute priority before any probabilistic ACCEPT path, and no consensus or conformal score can override them. ARCHITECTURE.md and README.md present the same system with the policy invariants as "Stage 1" for exactly this reason: the two numberings are different views of one pipeline, and the enforcement-precedence view (hard blocks first) is the authoritative one for safety claims.
 
 ```
 [Agent Proposed Action]
@@ -360,7 +360,7 @@ The adversarial firewall checks for injection patterns in the prompt (e.g., "ign
 
 ### 6.3 Policy-as-Code Integration
 
-REMORA exports a `PolicyObservation` dataclass with 67 fields (risk tier, domain, action type, target environment, all thermodynamic observables, evidence signals, oracle failure counts) as a JSON structure to OPA. The OPA endpoint evaluates Rego policies against this context and returns a structured decision. The fail-closed contract: any OPA communication error (connection refused, timeout, parse failure) causes the system to silently fall back to the Python engine and record `source_of_decision = "python_fallback"` in the audit envelope. This ensures no decision is ever gated on a missing policy engine.
+REMORA exports a `PolicyObservation` dataclass with 67 fields (risk tier, domain, action type, target environment, all consensus observables, evidence signals, oracle failure counts) as a JSON structure to OPA. The OPA endpoint evaluates Rego policies against this context and returns a structured decision. The fail-closed contract: any OPA communication error (connection refused, timeout, parse failure) causes the system to silently fall back to the Python engine and record `source_of_decision = "python_fallback"` in the audit envelope. This ensures no decision is ever gated on a missing policy engine.
 
 ---
 
@@ -417,7 +417,7 @@ $$w_i = \begin{cases} 1.0 & \text{if phase}(i) = p_{\text{test}} \\ \beta = 0.10
 
 The selector picks the smallest threshold $\hat{\lambda}$ — i.e. it **maximises** accepted items (coverage) — subject to weighted empirical risk $\bar{L}(\hat{\lambda}) \leq \alpha$. **Theorem 1** (Angelopoulos et al., 2022) is stated for context only: the implemented selector does **not** instantiate the CRC procedure (external review R3-01), for two structural reasons that no weight specification can repair: (a) the threshold rule applies the raw constraint $\bar{L}(\lambda) \leq \alpha$ with no $B/(n+1)$ finite-sample term and no test-point weight $w_{n+1}$; (b) the controlled quantity — the conditional error rate among accepted items — is not monotone in $\lambda$, so the theorem does not attach even with correctly specified density-ratio weights. In addition, $\beta = 0.10$ is a hand-tuned constant, not a density ratio.
 
-Accordingly the component is named `WeightedEmpiricalSelectiveRouter` (formerly `CovariateShiftCRC`, retained as an alias): a deterministic, importance-weighted empirical operating-point selector whose quality evidence is exclusively empirical — for binary 0/1 loss, observed overshoot stayed within $1/(n+1)$ (5 pp for $n=19$, 1 pp for $n=99$) across 20 repeated splits on the synthetic Lyapunov benchmark, an observation, not a bound.
+Accordingly the component is named `WeightedEmpiricalSelectiveRouter` (formerly `CovariateShiftCRC`, retained as an alias): a deterministic, importance-weighted empirical operating-point selector whose quality evidence is exclusively empirical — for binary 0/1 loss, observed overshoot stayed within $1/(n+1)$ (5 pp for $n=19$, 1 pp for $n=99$) across 20 repeated splits on the synthetic session benchmark, an observation, not a bound.
 
 Implementation: `remora.selective.crc.WeightedEmpiricalSelectiveRouter.fit(scores, labels, phases, target_phase)` returns a `CRCReport` with `finite_sample_slack` ($= 1/(n_{\text{cal}}+1)$) and `nominal_risk_bound` ($= \alpha + \text{slack}$) as informational reference values (not applicable bounds), plus `holdout_risk` (plain unweighted holdout count). Tested: 45 unit tests. This module is an offline research component, not invoked by the reference API.
 
@@ -472,7 +472,7 @@ Every gate invocation produces a `DecisionEnvelope` (a serializable, frozen data
 | Block | Contents |
 |-------|----------|
 | `request` | request_id, timestamp, query, proposed_action, domain, risk_tier |
-| `assessment` | intent classification, oracle votes, thermodynamic observables |
+| `assessment` | intent classification, oracle votes, consensus observables |
 | `gate` | outcome, reasons, confidence, coverage_policy, blocked_action |
 | `reviewer_context` | asset information, evidence sources, why-escalated list |
 | `follow_up` | type, priority, assign_to, required_evidence, SLA |
@@ -824,7 +824,7 @@ Risk context: Well barrier modification. NORSOK D-010 requires independent barri
 
 **Stage 3 (Consensus):** After canonicalization and correlation-weighting, $\hat{p}(\text{ESCALATE}) = 0.71$, $\hat{p}(\text{VERIFY}) = 0.29$. $H = 0.866$ bits, $D = 0.29$.
 
-**Stage 4 (Thermodynamic):** Structural temperature $T = 0.85$ (reasoning domain prior). Phase = **critical** (T near $T_c$). Trust $\tau = 0.31$ (below autonomous threshold; phase weight $= 0.5$ for critical phase).
+**Stage 4 (Consensus):** Trust $\tau = 0.31$, below the autonomous threshold, and the regime is **critical**. This walkthrough reproduces a research-path run: the governed server routes leave these signals unset (§5.2), so a deployment reaches the same outcome through Stage 6 alone.
 
 **Stage 5 (Evidence):** No field inspection report, no independent ECD calculation, no OIM sign-off in context. Evidence signal: `citation_coverage = 0.18` (below 0.50 threshold). Evidence router decision: ESCALATE.
 
@@ -982,7 +982,7 @@ REMORA produces two explanation artifacts, the `PolicyTrace` rule ladder from `e
 - The MultiNLI benchmark is a reasonable proxy for evidence verification but is not equivalent to field evidence retrieval.
 
 **Construct validity:**
-- Thermodynamic terminology frames entropy and dissensus as observable properties of oracle consensus. No claim is made that these observables map to physical thermodynamics or that the phase classification is the unique correct formalism.
+- The thermodynamic terminology of earlier versions has been withdrawn (§5, NEGATIVE_RESULTS §38). Entropy and dissensus are observable properties of oracle consensus; no claim is made that the regime classification is the unique correct formalism.
 - "Trust score" is a derived scalar, not a frequency probability of correctness for any specific item.
 - Utility scores in the tool-call benchmark reflect designed task weights, not real-world deployment costs.
 - **AII (Autonomous Intelligence Index)** is a researcher-defined composite (calibration 0.30, friction 0.25, metajudge 0.20, transfer 0.15, stability 0.10) with weights chosen as heuristic estimates, not derived from theory or calibrated against an external governance quality measure. Alternative weight assignments would yield different AII values and different CAPABLE thresholds (AII ≥ 0.60). AII improvement over learning iterations describes internal optimization progress only; it has not been cross-validated against any independent outcome measure (e.g., downstream safety incident rate, human expert governance quality ratings). The CAPABLE threshold and phase names (WARMUP, LEARNING, CAPABLE, TRAINED) are qualitative labels, not scientifically calibrated levels. AII weight sensitivity is reported in Appendix F.2: varying each weight ±0.05 (proportionally renormalized) shows CAPABLE classification was fragile at the CAPABLE milestone (AII=0.6007, 2026-06-26), T2 Friction (±0.032) and T4 Transfer (±0.023) are the highest-sensitivity axes. AROMER has since reached TRAINED (AII=0.8442, 12+ organic cycles; see Appendix F.7). This supports treating AII ≥ 0.60 as a preliminary milestone rather than a stable certification boundary.
@@ -1066,7 +1066,7 @@ python experiments/lyapunov_aggregate.py
 - `results/toolcall_benchmark_v2_results.json`, Tool-call benchmark all conditions
 - `results/toolcall_llm_baselines_pilot_n100.json`, Real LLM baseline pilot (N=100, §9.2, REM-010)
 - `results/rag_critical_router_v1_results.json`, Evidence router metrics
-- `results/lyapunov_aggregate_results.json`, Lyapunov stability (N=1000)
+- `results/lyapunov_aggregate_results.json`, session-stability observable (N=1000). Withdrawn from the paper body; the measurement and its caveats are recorded in NEGATIVE_RESULTS §38.
 - `results/mondrian_v2_repeated_splits.json`, Conformal coverage (N=2161)
 - `artifacts/agentharm_trimode_results.json`, AgentHarm pilot results (intent-gating scope; see §10.6 and `docs/05-claim-hygiene.md`)
 - `artifacts/governance_intelligence/evaluation_results.json`, Governance Intelligence layer benchmark (§6.4; 50 tasks, 10 categories)
@@ -1264,6 +1264,8 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 ## Appendix B: DecisionEnvelope v2 Schema
 
+The `thermodynamic` block below keeps its name because that is the wire format: the field is `thermodynamic` in `schemas/decision_envelope_schema.yaml`, `schemas/openapi.json` and `remora/governance/envelope.py`. The terminology has been withdrawn from the paper (§5, NEGATIVE_RESULTS §38), but renaming a published contract field to match prose would break every consumer, so the name is historical rather than descriptive. On the governed server routes the block is emitted with its fields unset (§5.2).
+
 ```json
 {
   "request": {
@@ -1454,10 +1456,10 @@ implemented.
 | Canonical verdict extraction (φ) | Yes | Yes | NFKC normalization, claim hash |
 | Correlation-aware weighting | Yes | Per-request only | Rolling 200-window persists per engine instance; API builds a fresh engine per request |
 | Entropy H, Dissensus D | Yes | Yes | Shannon entropy, 1−max(p̂) |
-| Structural temperature T | Yes | Yes | Prompt-only, circularity-free |
+| Structural temperature T (withdrawn from paper; §38) | Yes | Yes | Prompt-only, circularity-free |
 | Order parameter η | Yes | Yes | Normalized consensus |
 | Trust score τ | Yes | Yes | Phase-weighted, fragility penalty |
-| Lyapunov V(t) tracking | Yes | Yes | Abort on ΔV > ε|V| |
+| Session-stability V(t) tracking (withdrawn from paper; §38) | Yes | Yes | Abort on ΔV > ε|V| |
 | Phase classification | Yes | Yes | Ordered/critical/disordered |
 | Phase-sensitive routing | Yes | Yes | Per-phase thresholds |
 | Evidence router (oracle-proxy signal) | Yes | Yes | Proxy, not live retrieval |
@@ -1490,7 +1492,7 @@ implemented.
 
 **Key limitations.** (1) Trust alone cannot route critical-phase decisions, an anticorrelation between trust and correctness is confirmed empirically. (2) Evidence retrieval is currently oracle-proxy based; semantic retrieval is pluggable but not live. (3) The audit hash-chain is tamper-evident but requires external WORM storage for tamper-proof guarantee. (4) The QA benchmark contains 13.8% author-curated items; generalizability claims require independent curation. (5) All results are from research experiments, not production deployments.
 
-**The contribution** is a system architecture and empirical evaluation for governed agentic AI decision control. REMORA demonstrates that governing autonomous AI action requires explicit uncertainty routing, not suppression, and that policy hard blocks are essential safety mechanisms that thermodynamic routing alone cannot replace.
+**The contribution** is a system architecture and empirical evaluation for governed agentic AI decision control. REMORA demonstrates that governing autonomous AI action requires explicit uncertainty routing, not suppression, and that policy hard blocks are essential safety mechanisms that consensus routing alone cannot replace.
 
 **Availability.** Code, results, and negative-results documentation are available at [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research). All deterministic benchmarks reproduce without API keys.
 
