@@ -42,7 +42,7 @@ caveat that bounds it.
 | Benchmark | Result | Scope |
 |---|---|---|
 | **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
-| **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); utility +0.456 | Simulated; 95% upper bound 5.2%; safety margin Δ=0.0143, p=0.50 (not statistically significant) |
+| **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); utility +0.456 | Simulated; effective N = 70 (70 templates x 10 cosmetic variants), not 700; 95% upper bound 5.2%; safety margin Δ=0.0143, p=0.50 (not statistically significant) |
 | **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | **5/5** pre-registered targets; sealed run, 1,527 episodes |
 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures |
 
@@ -75,7 +75,7 @@ the last one produces an answer:
 On ACCEPT, `/v1/execution/execute` spends a single-use grant and runs the call under a
 lease welded to the exact approved arguments. Tools come **only** from deployment
 configuration, never from the request — and REMORA cannot stop an agent that reaches a
-tool *outside* this API (see [Status](#status-and-what-is-not-proven)). The pipeline
+tool *outside* this API (see [Status](#status)). The pipeline
 diagram, hard-guard priority rules, what a VERIFY promises, and the diagnostic-only
 disagreement metrics: [architecture narrative](docs/01-architecture.md) ·
 [ARCHITECTURE.md](ARCHITECTURE.md) (canonical) · [API](docs/07-api-reference.md).
@@ -115,54 +115,42 @@ Worked loop: [examples/agent_gate.py](examples/agent_gate.py) · scenarios:
 
 ---
 
-## Status, and what is not proven
+## Status
 
-<!-- BEGIN GENERATED: status, source: assurance registers, via scripts/generate_readme_status.py --check. DO NOT EDIT. -->
-**Deployment profile:** `SHADOW_PILOT` (= `SHADOW_ONLY`), recomputed from the capability and remediation registers by CI; a profile cannot be raised by editing prose.
+Shadow-mode research only; **not certified for production**. The numbers above come from a
+deterministic simulator and controlled internal corpora, never the field, and are reported with
+Wilson confidence intervals. External replication is pending, and REMORA cannot stop an agent
+that reaches a tool outside its API.
 
-**To reach `CONTROLLED_PILOT`, still open:** REM-021, REM-023.
-
-**Capabilities:** 7 of 15 wired to the API path or deeper ([wiring register](docs/assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](docs/assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](docs/assurance/release_profiles_v1.yaml).
-<!-- END GENERATED: status -->
-
-Shadow-mode research only; not certified for production. The load-bearing caveats:
-
-- **The safety numbers come from benchmarks, not from the field.** The 0% unsafe-execution
-  rate is a synthetic-benchmark result: a deterministic simulator and a controlled internal
-  corpus, with no real shell, network or database touched.
-- **Sample sizes are smaller than they look.** The simulator's 700 tasks are 70 templates
-  × 10 cosmetic variants (effective N=70); the margin over baselines is not significant (p=0.50).
-- **Nobody outside this project has reproduced any of it.** External replication is pending —
-  a distinct, still-open evidence level, and a prerequisite for any stronger label.
-- **REMORA cannot stop an agent that goes around it.** The guarantee holds only where a
-  deployment routes every tool call through the dispatcher and the agent has no credentials.
-- **The audit log detects tampering; it does not prevent it.** Prevention needs append-only
-  (WORM) storage, which is not included here.
-- **AROMER is experimental**; its numbers are not evidence for the core system.
-- **Calibration-weighted aggregation is measured, not adopted.** It beat unweighted majority
-  on fresh data but not the best single model; no arm certifies under Bonferroni-3, and it is
-  not enabled (CLAIM-013; [NEGATIVE_RESULTS §18](NEGATIVE_RESULTS.md)).
-
-Everything still open: [remediation_register.yaml](docs/assurance/remediation_register.yaml).
-Evidence and leakage disclosures: [evidence & claims](docs/02-evidence-and-claims.md) ·
-[experiments](docs/03-experiments.md) · [reviewing this repo](docs/validation/external-review.md).
-Terms — FAR/FBR, effective N, Wilson interval, intent-gating, lease — in the
-[glossary](docs/plain_language_overview.md#key-terms); denominators in [metric definitions](docs/assurance/metric_definitions_v1.md).
+Deployment profile, which capabilities are actually wired, and the full caveat list:
+[what is proven and what is not](docs/02-evidence-and-claims.md#status-and-what-is-not-proven).
 
 ---
 
-## Research foundation, and the experimental layer
+## Research foundation
 
 Every research line REMORA builds on maps to a concrete control, code file and test in the
-machine-checked [research-control matrix](docs/research/research_control_matrix.generated.md).
-Positioning: [docs/09-related-work.md](docs/09-related-work.md); derivations:
-[paper/remora_paper.md](paper/remora_paper.md). **AROMER**, the **experimental**
-closed-loop calibration layer, sits on top: nothing in the control plane depends on it, and its
-metrics are **not** evidence for the core governance system
-([docs/03-experiments.md](docs/03-experiments.md) §9 · [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16).
+machine-checked [research-control matrix](docs/research/research_control_matrix.generated.md),
+which also records how each of the paper's references is used — implemented, grounding a
+module, evaluated against, or positioning only. Positioning:
+[docs/09-related-work.md](docs/09-related-work.md); derivations:
+[paper/remora_paper.md](paper/remora_paper.md).
 
 Building the downstream product is also where core gaps surface first: deployment-declared tool
 classification, `GROUNDED_READ_ACCEPT` and per-surface fail-closed prerequisites came from there.
+
+## Experimental: closed-loop calibration
+
+**AROMER** is a separate experimental layer that sits on top of the governance core. It replays
+past decisions and their recorded outcomes to adapt its own thresholds, then re-scores itself
+against a held-out set it never trains on — a closed loop over governance quality rather than a
+component of it.
+
+It is **not part of the system described above**: nothing in the control plane depends on it, it
+cannot weaken policy (enforced by a monotonicity test), and its metrics are **not** evidence for
+the core governance system. Design and results:
+[docs/03-experiments.md](docs/03-experiments.md) §9 ·
+[NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16.
 
 ## AI use, citation, license
 
