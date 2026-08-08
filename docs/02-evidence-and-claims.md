@@ -176,3 +176,38 @@ If you can break a claim, reproduce a different number, or show a caveat is
 understated, open an issue with the "external-review" template. Negative findings
 are first-class here, see `NEGATIVE_RESULTS.md` and
 → [04-negative-results-detail.md](04-negative-results-detail.md).
+
+---
+
+## Status, and what is not proven
+
+<!-- BEGIN GENERATED: status, source: assurance registers, via scripts/generate_readme_status.py --check. DO NOT EDIT. -->
+**Deployment profile:** `SHADOW_PILOT` (= `SHADOW_ONLY`), recomputed from the capability and remediation registers by CI; a profile cannot be raised by editing prose.
+
+**To reach `CONTROLLED_PILOT`, still open:** REM-021, REM-023.
+
+**Capabilities:** 7 of 15 wired to the API path or deeper ([wiring register](assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml).
+<!-- END GENERATED: status -->
+
+Shadow-mode research only; not certified for production. The load-bearing caveats:
+
+- **The safety numbers come from benchmarks, not from the field.** The 0% unsafe-execution
+  rate is a synthetic-benchmark result: a deterministic simulator and a controlled internal
+  corpus, with no real shell, network or database touched.
+- **Sample sizes are smaller than they look.** The simulator's 700 tasks are 70 templates
+  × 10 cosmetic variants (effective N=70); the margin over baselines is not significant (p=0.50).
+- **Nobody outside this project has reproduced any of it.** External replication is pending —
+  a distinct, still-open evidence level, and a prerequisite for any stronger label.
+- **REMORA cannot stop an agent that goes around it.** The guarantee holds only where a
+  deployment routes every tool call through the dispatcher and the agent has no credentials.
+- **The audit log detects tampering; it does not prevent it.** Prevention needs append-only
+  (WORM) storage, which is not included here.
+- **AROMER is experimental**; its numbers are not evidence for the core system.
+- **Calibration-weighted aggregation is measured, not adopted.** It beat unweighted majority
+  on fresh data but not the best single model; no arm certifies under Bonferroni-3, and it is
+  not enabled (CLAIM-013; [NEGATIVE_RESULTS §18](../NEGATIVE_RESULTS.md)).
+
+Everything still open: [remediation_register.yaml](assurance/remediation_register.yaml).
+Evidence and leakage disclosures: [experiments](03-experiments.md) · [reviewing this repo](validation/external-review.md).
+Terms — FAR/FBR, effective N, Wilson interval, intent-gating, lease — in the
+[glossary](plain_language_overview.md#key-terms); denominators in [metric definitions](assurance/metric_definitions_v1.md).

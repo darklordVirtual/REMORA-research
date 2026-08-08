@@ -24,7 +24,9 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-README = ROOT / "README.md"
+# The status block moved off the front page on 2026-08-08: the README is a
+# landing page, and the profile/caveat detail belongs with the evidence.
+README = ROOT / "docs" / "02-evidence-and-claims.md"
 PROFILES = ROOT / "docs" / "assurance" / "release_profiles_v1.yaml"
 CAP_REGISTER = ROOT / "docs" / "assurance" / "capability_register_v1.yaml"
 REM_REGISTER = ROOT / "docs" / "assurance" / "remediation_register.yaml"
@@ -100,10 +102,10 @@ def build_block() -> str:
     lines.append("")
     lines.append(
         f"**Capabilities:** {wired} of {total} wired to the API path or deeper "
-        f"([wiring register](docs/assurance/capability_register_v1.yaml)); full "
-        f"gate status in [release_gates.md](docs/assurance/release_gates.md), "
+        f"([wiring register](assurance/capability_register_v1.yaml)); full "
+        f"gate status in [release_gates.md](assurance/release_gates.md), "
         f"maturity ladder in "
-        f"[release_profiles_v1.yaml](docs/assurance/release_profiles_v1.yaml)."
+        f"[release_profiles_v1.yaml](assurance/release_profiles_v1.yaml)."
     )
     lines.append(END)
     return "\n".join(lines)
