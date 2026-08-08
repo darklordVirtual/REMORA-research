@@ -21,10 +21,10 @@ action, and records why.
 pip install -e ".[dev]" && python -m remora try     # try it, no API keys needed
 ```
 
-**Building on it rather than studying it?** [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution) —
-one command brings up a governed deployment consuming this repo as seven hash-pinned artifacts.
-
-Built for work where a wrong action costs something real: building automation, energy management, infrastructure control, regulated enterprise workflows.
+**Building on it rather than studying it?** [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution)
+brings up a governed deployment consuming this repo as seven hash-pinned artifacts. Built for
+work where a wrong action costs something real: building automation, energy management,
+infrastructure control, regulated enterprise workflows.
 
 **Start here:** [Plain-language overview](docs/plain_language_overview.md) · [Reference architecture](docs/reference_architecture.md) · [Executive one-pager](docs/executive_onepager.md) · [Docs index](docs/README.md)
 
@@ -32,28 +32,41 @@ Built for work where a wrong action costs something real: building automation, e
 ## What it does well
 
 Each result is measured on a committed artifact and governed by the
-[claim register](docs/assurance/claim_register_v1.yaml); every number carries the
-caveat that bounds it.
+[claim register](docs/assurance/claim_register_v1.yaml); every number carries the caveat that
+bounds it.
 
 <!-- claim:CLAIM-002 far_pct far_ci_high_pct fbr_pct n -->
 <!-- claim:CLAIM-001 far_pct n_effective n -->
 <!-- claim:CLAIM-018 routing_accuracy_pct wrong_call_accept_pct irrelevance_abstain_pct unobtainable_abstain_pct obtainable_verify_pct required_unknown_accept_pct -->
 <!-- claim:CLAIM-003 far_pct n -->
-| Benchmark | Result | Scope |
-|---|---|---|
-| **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
-| **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); utility +0.456 | Simulated; effective N = 70 (70 templates x 10 cosmetic variants), not 700; 95% upper bound 5.2%; safety margin Δ=0.0143, p=0.50 (not statistically significant) |
-| **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | **5/5** pre-registered targets; sealed run, 1,527 episodes |
-| **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures |
+| # | Benchmark | Result | Scope |
+|---|---|---|---|
+| 1 | **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
+| 2 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); utility +0.456 | Simulated; effective N = 70 (70 templates x 10 cosmetic variants), not 700; 95% upper bound 5.2%; safety margin Δ=0.0143, p=0.50 (not statistically significant) |
+| 3 | **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | **5/5** pre-registered targets; sealed run, 1,527 episodes |
+| 4 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures |
 
-The two mechanisms behind those numbers — a deterministic hard-guard floor no model
-signal can override, and permission welded to the exact call it was granted for — are
-explained with code references in the [architecture narrative](docs/01-architecture.md);
-baseline context is in [evidence & claims](docs/02-evidence-and-claims.md).
+**What each row actually says — and what it does not:**
 
-**Evidence discipline.** Replaced results are archived, never deleted
-([superseded claims](docs/assurance/superseded_claims.md)); failed results are
-published in full in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md). CI enforces both.
+1. **AgentHarm.** 208 harmful requests from an external benchmark REMORA did not build; none was
+   allowed, though with 208 samples the true rate could still be 1.81%. Note the scope column:
+   the *harmless* twin of every task was blocked too, all of them. So this measures a system that
+   refuses the whole category, not one that tells harmful and harmless apart.
+2. **Adversarial simulator.** Ours, and narrower than "700 tasks" suggests: 70 templates × 10
+   cosmetic variants, so the real sample is **70**. Nothing unsafe ran. Baselines ran 1.4% unsafe,
+   but that gap is **not** statistically separable (p=0.50); the significant gain is utility
+   (+0.46). The floor comes from the deterministic hard blocks, not the model ensemble.
+3. **BFCL v4.** External routing benchmark, run **once** on a sealed sample, five targets fixed
+   beforehand and all five met. It refused every irrelevant tool (258/258) and never invented a
+   missing input (0/32). The weakest number is the informative one: **10.9% of known-wrong calls
+   were accepted** (28/258, bar ≤20%) — a call can be structurally perfect and still aim wrong.
+4. **Historical regression.** 167 failures previously observed here, replayed; none is allowed
+   today. Proves old bugs stay fixed, says nothing about new ones.
+
+Two mechanisms produce rows 1–4: a deterministic hard-guard floor no model signal can override,
+and permission welded to the exact call it was granted for ([architecture](docs/01-architecture.md)).
+**Evidence discipline:** replaced results are archived ([superseded](docs/assurance/superseded_claims.md)),
+failed ones published in full in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md). CI enforces both.
 
 ---
 
@@ -92,10 +105,9 @@ python -m remora doctor               # environment self-check, with fixes
 ```
 
 Nothing above needs an API key: a critical production delete escalates to a person, an
-injected instruction is stopped at the firewall, a harmless read is accepted — and each
-result shows the rule that decided it. Add `--envelope` for the full audit record, or
-`--live` for real models (key in the environment; never printed or stored). Every
-command, exit code and option: [docs/cli.md](docs/cli.md).
+injected instruction is stopped at the firewall, a harmless read is accepted — and each result
+shows the rule that decided it. Add `--envelope` for the audit record, `--live` for real models
+(key in the environment; never printed or stored). Every command: [docs/cli.md](docs/cli.md).
 
 To govern your own agent, the risk and action type must come from **your tool
 registry**, bound to the callable, never guessed from the tool's name:
@@ -107,11 +119,11 @@ a = assess_tool_call("drop_database", {"db": "prod-main"},
 if a.should_execute: run_tool(...)   # ACCEPT only; a.envelope is the audit record
 ```
 
-That library path is *advisory*: it judges the facts you hand it. The enforcing path is
-the `/v1/execution` API ([deployment quickstart](docs/deployment/execution-quickstart.md)) — run it locally with the production-mode Docker OT pilot and operator console ([deploy/ot-pilot/docker-compose.yml](deploy/ot-pilot/docker-compose.yml)) or the lighter dev-mode [docker-compose.test.yml](docker-compose.test.yml).
-Worked loop: [examples/agent_gate.py](examples/agent_gate.py) · scenarios:
-[docs/use-cases/](docs/use-cases/README.md) · reproduce every benchmark:
-[docs/06-reproducibility.md](docs/06-reproducibility.md).
+That library path is *advisory*: it judges the facts you hand it. The enforcing path is the
+`/v1/execution` API ([quickstart](docs/deployment/execution-quickstart.md)), run locally via the
+[OT pilot](deploy/ot-pilot/docker-compose.yml) or [dev compose](docker-compose.test.yml). Worked
+loop: [examples/agent_gate.py](examples/agent_gate.py) · [scenarios](docs/use-cases/README.md) ·
+[reproduce every benchmark](docs/06-reproducibility.md).
 
 ---
 
