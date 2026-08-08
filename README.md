@@ -38,7 +38,6 @@ caveat that bounds it.
 <!-- claim:CLAIM-002 far_pct far_ci_high_pct fbr_pct n -->
 <!-- claim:CLAIM-001 far_pct n_effective n -->
 <!-- claim:CLAIM-018 routing_accuracy_pct wrong_call_accept_pct irrelevance_abstain_pct unobtainable_abstain_pct obtainable_verify_pct required_unknown_accept_pct -->
-<!-- claim:CLAIM-013 cw_accuracy_pct majority_accuracy_pct mcnemar_p n -->
 <!-- claim:CLAIM-003 far_pct n -->
 | Benchmark | Result | Scope |
 |---|---|---|
@@ -46,7 +45,6 @@ caveat that bounds it.
 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); utility +0.456 | Simulated; 95% upper bound 5.2%; safety margin Δ=0.0143, p=0.50 (not statistically significant) |
 | **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | **5/5** pre-registered targets; sealed run, 1,527 episodes |
 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures |
-| **Calibration-weighted aggregation** | **87.8%** vs majority vote **85.1%** (N=368), p=0.0064 | vs best single model p=0.077; not enabled |
 
 The two mechanisms behind those numbers — a deterministic hard-guard floor no model
 signal can override, and permission welded to the exact call it was granted for — are
@@ -141,6 +139,9 @@ Shadow-mode research only; not certified for production. The load-bearing caveat
 - **The audit log detects tampering; it does not prevent it.** Prevention needs append-only
   (WORM) storage, which is not included here.
 - **AROMER is experimental**; its numbers are not evidence for the core system.
+- **Calibration-weighted aggregation is measured, not adopted.** It beat unweighted majority
+  on fresh data but not the best single model; no arm certifies under Bonferroni-3, and it is
+  not enabled (CLAIM-013; [NEGATIVE_RESULTS §18](NEGATIVE_RESULTS.md)).
 
 Everything still open: [remediation_register.yaml](docs/assurance/remediation_register.yaml).
 Evidence and leakage disclosures: [evidence & claims](docs/02-evidence-and-claims.md) ·

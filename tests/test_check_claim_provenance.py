@@ -447,7 +447,14 @@ def test_real_readme_anchors_are_wired() -> None:
     # Its numbers moved to docs/03-experiments.md, anchored there. The sealed
     # The superseded BFCL v3 result is CLAIM-016 and lives only in the negative
     # record. The disjoint sealed BFCL v4 confirmation is CLAIM-018.
-    assert {"CLAIM-001", "CLAIM-002", "CLAIM-003", "CLAIM-013",
+    # CLAIM-013 was dropped from this set on 2026-08-08. It is not a positive
+    # headline claim: calibration-weighted aggregation beat unweighted majority
+    # (p=0.0064) but not the dev-selected best single model (p=0.077), no arm
+    # certifies under family-wise Bonferroni-3, and it is not enabled. Listing
+    # it under "What it does well" advertised a capability the system does not
+    # have; it is now a limitation bullet under "what is not proven", with the
+    # numbers held by the register and NEGATIVE_RESULTS §18.
+    assert {"CLAIM-001", "CLAIM-002", "CLAIM-003",
             "CLAIM-018"} <= _readme_anchored_claims()
 
 

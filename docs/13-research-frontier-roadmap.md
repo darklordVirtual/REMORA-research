@@ -667,8 +667,10 @@ calibrated confidence-weighted voting (CWV) survived pre-registration — 87.8%
 vs 85.1% majority accuracy on the untouched N=368 test split of the 1231-item
 fresh corpus, paired exact McNemar 11–1 discordants, p=0.0064 (CLAIM-013) —
 but vs the dev-selected best single model (85.6%) the improvement is
-directional only (p=0.077; the README already carries this qualifier, and this
-WP must too). CWV is not integrated. Both are close-the-loop items the frontier
+directional only (p=0.077), and under family-wise Bonferroni-3 no arm
+certifies at all. CWV is not integrated, and as of 2026-08-08 the README no
+longer lists it among measured capabilities — it is recorded there as measured
+but not adopted. Both are close-the-loop items the frontier
 literature sharpens: entropy alone is a demonstrably insufficient
 selective-prediction signal.
 
