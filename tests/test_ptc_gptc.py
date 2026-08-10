@@ -32,7 +32,6 @@ from remora.toolcall.ptc.call_graph import (
 )
 from remora.toolcall.ptc.governed_batch import (
     BatchOutcome,
-    CallResult,
     GovernedBatchExecutor,
 )
 
