@@ -237,7 +237,7 @@ def _make_dispatcher(results_map: dict[str, Any] | None = None):
 
 class TestGovernedBatch:
     def _run(self, coro):
-        return asyncio.get_event_loop().run_until_complete(coro)
+        return asyncio.run(coro)
 
     def test_all_accept(self):
         calls = [_make_call("read_sensor"), _make_call("update_work_order")]
