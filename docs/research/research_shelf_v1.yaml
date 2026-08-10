@@ -37,7 +37,7 @@
 # A `remora_results` key is a hard error.
 
 schema_version: "1"
-updated: "2026-08-07"
+updated: "2026-08-10"
 
 components:
 
@@ -559,3 +559,68 @@ components:
       pre-registered scoring rule, or it becomes exactly the kind of
       unfalsifiable "we tested it" statement this repository refuses. Its own
       round, not a side effect of another one.
+
+  # ── Programmatic Tool Calling ─────────────────────────────────────────────
+
+  - id: SHELF-024
+    name: "Programmatic Tool Calling (PTC) — Python as the tool-composition layer"
+    source:
+      title: "The Bitter Lesson of Tool Calling"
+      authors: "Ishan Patel, Sahil Sen, Elias Lumer, and Vamse Kumar Subbiah"
+      venue: "arXiv preprint (PricewaterhouseCoopers, Commercial Technology and Innovation Office)"
+      url: "https://arxiv.org/abs/2608.06370"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-10"
+      reported_results: >-
+        Authors' numbers on their own setup: PTC matches or outperforms JSON
+        tool calling on 13/14 models in fan-out scenarios; 18.8 pp advantage
+        over JSON at chain length ≥12; ~50% wall-clock latency reduction in
+        chaining tasks on 13/14 models; context-rot resistance under 128-tool
+        context. Paper also introduces the aggregation-accuracy vs enumeration-
+        accuracy distinction (correct answer vs tool actually called). Benchmark
+        of 200 tasks, 14 models. These are the source authors' numbers on their
+        setup; no REMORA measurement exists yet.
+    roadmap_ref: "RF-11"
+    remora_status: >-
+      REMORA already has the governance-and-execution boundary (signed ToolSpec,
+      lease-based dispatch, DecisionEnvelope, one-time grants, outbox,
+      postcondition evidence). PTC provides a complementary planning-layer
+      above that boundary. The key architectural rule adopted: stubs propose,
+      REMORA authorises. "Python is computation; REMORA owns authority."
+      Three components implemented as a planning-layer prototype:
+      (1) stub_generator.py — typed Python stubs from signed ToolSpec; stubs
+          return ProposedCall data objects only, never call real APIs;
+      (2) call_graph.py — pure AST extraction of the action DAG from an
+          LLM-generated plan (no eval/exec of untrusted code);
+      (3) governed_batch.py — submits each ProposedCall individually through
+          REMORA governance; parallelises independent ACCEPT nodes; full
+          per-call audit envelope.
+      The authors' subprocess execution model (echo-return stubs, no real
+      APIs, argument-serialisation measurement only) is explicitly NOT adopted
+      for REMORA's production path: REMORA stubs have no network/process
+      authority.
+    adoption: SCOPED
+    remora_evidence:
+      - remora/toolcall/ptc/__init__.py
+      - remora/toolcall/ptc/stub_generator.py
+      - remora/toolcall/ptc/call_graph.py
+      - remora/toolcall/ptc/governed_batch.py
+      - remora/toolcall/ptc/_broker.py
+      - tests/test_ptc_gptc.py
+    declined_parts: >-
+      Direct Python → production API: bypasses REMORA security model.
+      Authors' subprocess execution environment: no REMORA governance gate.
+      Any PTC result number as a REMORA claim: no artifact exists yet.
+    remaining: >-
+      (a) GPTC ablation benchmark: JSON vs PTC with the same REMORA gate
+      in front of both, on BFCL + existing wrong-call tests, with pre-
+      registered scoring. Required before any performance claim may enter
+      README. (b) Plan-level governance: pre-assess the full action DAG
+      (capability surface, resource scope, credential needs, data-flow from
+      untrusted sources) before any call executes. (c) New enumeration-
+      accuracy metrics: plan_call_recall, executed_call_recall,
+      unauthorized_call_rate, grant_binding_failure_rate,
+      postcondition_match_rate. (d) Context-rot / capability-surface
+      filtering: REMORA decides which tool subset is presented to the
+      planner based on current task scope (pairs with RF-01 tool integrity).
+

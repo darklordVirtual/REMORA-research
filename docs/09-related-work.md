@@ -84,7 +84,8 @@ Relevant ideas:
 - tool invocation safety,
 - dry-run and sandboxed evaluation,
 - critical-action routing,
-- prompt-injection and unsafe tool-call benchmarks.
+- prompt-injection and unsafe tool-call benchmarks,
+- programmatic tool calling and typed Python planning APIs.
 
 How REMORA uses this:
 
@@ -92,13 +93,81 @@ How REMORA uses this:
 - deterministic tool-call benchmark v1,
 - adversarial tool-call benchmark v2,
 - dry-run and sandbox execution metrics,
-- `EXECUTE / VERIFY / ABSTAIN / ESCALATE` action mapping.
+- `EXECUTE / VERIFY / ABSTAIN / ESCALATE` action mapping,
+- Governed Programmatic Tool Calling (GPTC, RF-11):
+  `remora/toolcall/ptc/` — stub generator, AST call-graph extractor,
+  governed batch executor.
 
 Boundary:
 
 - v1 is explicitly too easy for unsafe-execution differentiation.
 - v2 provides deterministic adversarial evidence, not production proof.
 - Live validation remains a separate research requirement.
+- GPTC is a planning-layer prototype (RF-11, SCOPED); stubs return
+  `ProposedCall` data objects only — no real API execution from the
+  planning surface. Governance and dispatch are unchanged.
+
+### 4a. Programmatic Tool Calling (PTC) — planning layer
+
+Patel, Sen, Lumer & Subbiah (2025). *The Bitter Lesson of Tool Calling.*
+arXiv:2608.06370. PricewaterhouseCoopers Commercial Technology and
+Innovation Office.
+
+The paper evaluates 14 LLMs on a benchmark of 200 tool-calling tasks spanning
+single-call, sequential-chain (up to 12+ steps), and parallel fan-out
+scenarios. Key empirical findings (authors' setup, authors' numbers):
+
+- PTC matches or outperforms JSON tool calling on 13/14 models in fan-out
+  tasks.
+- At chain length ≥ 12, PTC shows an 18.8 percentage-point advantage over
+  JSON calling.
+- ~50 % reduction in wall-clock latency for chaining on 13/14 models.
+- Under 128-tool context, PTC degrades far less than JSON calling
+  ("context rot" resistance).
+- Authors distinguish *aggregation accuracy* (correct final answer) from
+  *enumeration accuracy* (correct tool calls actually invoked) — models
+  can produce correct answers without executing the required tools.
+
+**What REMORA takes from this (RF-11).**
+
+REMORA already owns the governance-and-execution boundary; PTC provides a
+complementary composition surface *above* that boundary. The key architectural
+principle from ChatGPT analysis of this paper:
+
+> *Code for composition. Policy for authority.*
+
+Concretely:
+- `ToolSpec → stub_generator.py` generates typed Python planning stubs from
+  signed ToolSpec objects. Each stub returns a `ProposedCall` data object;
+  it never touches a real API.
+- `call_graph.py` extracts the full action DAG from a plan via pure AST
+  analysis (never `eval`/`exec`).
+- `governed_batch.py` submits each `ProposedCall` individually to REMORA
+  governance (ACCEPT/VERIFY/ESCALATE/ABSTAIN), parallelises independent
+  ACCEPT nodes, and preserves the full per-call audit envelope.
+
+The PTC execution model from the paper (running model Python in a subprocess
+against echo-return stubs) is explicitly *not* adopted: those stubs call no
+real APIs and are measuring argument serialisation only. In REMORA, the
+sandbox has no network, credentials, or arbitrary filesystem access; Python
+is computation; REMORA owns authority.
+
+The enumeration-accuracy finding motivates new GPTC metrics:
+`plan_call_recall`, `executed_call_recall`, `unauthorized_call_rate`,
+`grant_binding_failure_rate`, and `postcondition_match_rate` — planned as
+part of the RF-11 ablation benchmark.
+
+**What is not adopted.**
+
+- Direct Python → production API (bypasses REMORA's security model).
+- Authors' subprocess execution environment (no REMORA governance gate).
+- Any PTC result number as a REMORA claim (not yet run; no artifact exists).
+
+Boundary:
+
+- RF-11 is SCOPED; no performance claim is made. The ablation (JSON vs PTC
+  with the same REMORA gate in front of both) is the required next step
+  before any number enters `README.md`.
 
 ## 5. Evidence Grounding and Retrieval-Augmented Verification
 

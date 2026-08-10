@@ -17,11 +17,12 @@ entropy-backend mismatch; the AgentHarm FBR=100% corner; the tamper-evident
 limitation in the README Limitations section, registered as REM-025; the
 REM-020/REM-021 deployment gates; the SAP v3 CWV result, validated but not
 wired). RF-01…RF-09 were grounded against the working tree on 2026-07-30
-(master @ `0646a87`); RF-10 was added on 2026-08-03 (master @ `f510cde`). The
+(master @ `0646a87`); RF-10 was added on 2026-08-03 (master @ `f510cde`);
+RF-11 was added on 2026-08-10 (master, SHELF-024 VERIFIED_RETRIEVED). The
 "Already in the repo" subsections record what the draft's gap statements had to
 be corrected against.
 
-**Namespace note.** WP identifiers are RF-01…RF-10 (research frontier). The
+**Namespace note.** WP identifiers are RF-01…RF-11 (research frontier). The
 `REM-` prefix is deliberately not used: it is the namespace of
 `docs/assurance/remediation_register.yaml` (REM-001…REM-046, machine-consumed
 by release-profile gating), and roadmap WPs are not remediation items. Where a
@@ -1065,6 +1066,155 @@ they change what the system refuses.
 
 ---
 
+## RF-11 — Governed Programmatic Tool Calling (GPTC) `[gating+composition]` `[SCOPED, effort M]`
+
+**Source.** Patel, Sen, Lumer & Subbiah (2025). *The Bitter Lesson of Tool
+Calling.* arXiv:2608.06370. PricewaterhouseCoopers Commercial Technology and
+Innovation Office. (SHELF-024, VERIFIED_RETRIEVED 2026-08-10.)
+
+**Core idea.** The paper shows that LLMs produce better tool-calling programs
+when given a typed Python API instead of raw JSON schemas. The REMORA
+observation: this planning layer is orthogonal to governance. REMORA already
+owns the governance-and-execution boundary (signed `ToolSpec`, lease-based
+dispatch, `DecisionEnvelope`, one-time grants, outbox, postcondition evidence).
+PTC can sit *above* that boundary without restructuring it.
+
+The architectural rule:
+
+> **Python is computation. REMORA owns authority.**
+
+**What the paper gives REMORA (beyond speedup).**
+
+The most valuable adaptation is *plan-level governance* — not just the
+latency reduction the paper reports:
+
+```
+LLM generates Python plan
+       │
+       ▼
+CallGraphExtractor (pure AST, no eval/exec)
+       │
+       ▼
+ACTION DAG
+   ┌───┼─────┐
+   ▼   ▼     ▼
+ A     B     C     ← each ProposedCall: data only, no authority
+   └───┼─────┘
+       │
+       ▼
+  REMORA governance (per-call assess/dispatch)
+       │
+       ▼
+  parallel ACCEPT dispatch + per-call audit envelope
+```
+
+Before any call executes, REMORA can examine the full plan: capability surface,
+resource scope, credential requirements, data flow from untrusted sources,
+read→destructive write transitions, which nodes require VERIFY, and whether the
+entire plan must ESCALATE.
+
+**Enumeration accuracy (from the paper).** The paper distinguishes *aggregation
+accuracy* (correct final answer) from *enumeration accuracy* (required tools
+actually called). This motivates GPTC-specific assurance metrics that better
+match REMORA's evidence philosophy than a bare final-answer check:
+
+- `plan_call_recall` — fraction of planned calls extracted by the call-graph
+- `executed_call_recall` — fraction of planned calls that completed execution
+- `unauthorized_call_rate` — calls attempted without a valid REMORA grant
+- `grant_binding_failure_rate` — grants issued but rejected at dispatch
+- `postcondition_match_rate` — executed calls where the declared post-state matched
+
+**Context-rot / capability-surface filtering.** The paper shows PTC degrades
+less under 128-tool context than JSON calling, but the deeper fix is to show
+the model only the tool subset relevant to the current task scope. This pairs
+with RF-01 (tool-registry integrity): REMORA decides which tools appear in the
+generated planning module, not the agent.
+
+**Already in the repo (shipped with this WP, 2026-08-10).**
+
+- `remora/toolcall/ptc/stub_generator.py` — typed Python stubs from signed
+  `ToolSpec`; each stub calls `_remora_propose()` and returns a `ProposedCall`
+  data object; never imports `requests`, `subprocess`, or any network primitive;
+  forbidden-import guard enforced by `ast.parse` at render time.
+- `remora/toolcall/ptc/call_graph.py` — pure AST extraction (`ast.parse` only,
+  never `eval`/`exec`); extracts `ProposedCall` nodes from sequential, parallel
+  (`asyncio.gather`), and await patterns; 16 KiB safety cap; dynamic arguments
+  replaced with `"<dynamic>"` sentinel; unknown calls surfaced as warnings.
+- `remora/toolcall/ptc/governed_batch.py` — submits each `ProposedCall`
+  individually to a pluggable assessor (real: REMORA governance gate); dispatches
+  independent ACCEPT nodes concurrently (configurable semaphore); blocks
+  downstream nodes on VERIFY/ESCALATE/ABSTAIN; full per-call `CallResult` with
+  `to_envelope_block()` for the audit chain.
+- `remora/toolcall/ptc/_broker.py` — the *only* exit from the stub sandbox:
+  `remora_propose()` returns a `ProposedCall`, nothing else.
+- `tests/test_ptc_gptc.py` — 25 deterministic offline tests: stub type
+  annotations, forbidden-import guard, duplicate/unsafe-identifier detection,
+  sequential/parallel/dynamic call extraction, gather-in-assignment, ACCEPT
+  dispatch, VERIFY pause, ESCALATE, ABSTAIN abort, dependency ordering,
+  parallel fan-out, dispatcher error, envelope block keys, per-call re-assessment.
+
+**What is deliberately not shipped.**
+
+- Direct Python → production API: bypasses REMORA security model. Stubs have
+  no network, credentials, filesystem, or subprocess access.
+- Authors' subprocess execution environment: no REMORA governance gate; argument-
+  serialisation only — not what REMORA needs to measure.
+- Any performance claim: the ablation (JSON vs PTC with the same REMORA gate)
+  has not been run. No number may enter `README.md` or `EVIDENCE_OF_CAPABILITY.md`
+  until that artifact exists.
+
+**Literature.**
+
+- Patel, Sen, Lumer & Subbiah (2025). *The Bitter Lesson of Tool Calling.*
+  arXiv:2608.06370. PricewaterhouseCoopers — the primary source; 14 models,
+  200 tasks, JSON vs PTC comparison.
+- Patil et al. (2023). *Gorilla: Large Language Model Connected with Massive
+  APIs.* arXiv:2305.15334 — typed API documentation as model input.
+- Debenedetti et al. (2025). *Defeating Prompt Injections by Design (CaMeL).*
+  arXiv:2503.18813 — argument provenance labels; pairs with RF-02 (the call
+  graph is a natural point to attach taint labels to argument flows).
+
+**Artifact.**
+
+- `remora/toolcall/ptc/` package (shipped).
+- `tests/test_ptc_gptc.py` (25 tests, all green, `make test`).
+- `docs/research/research_shelf_v1.yaml` SHELF-024 entry.
+- `docs/09-related-work.md` §4 and §4a extended with PTC narrative and boundary.
+
+**Remaining (scoped, not claimed).**
+
+1. **GPTC ablation benchmark** — JSON vs PTC on BFCL + existing wrong-call
+   tests, with the same REMORA gate in front of both and pre-registered scoring.
+   This is the required artifact for any claim about PTC's governance impact.
+2. **Plan-level governance pass** — pre-assess the full action DAG before any
+   call executes; surface capability-surface, credential-scope, and data-flow
+   signals as a governance summary before the per-call loop.
+3. **Enumeration-accuracy metrics** — implement and wire the five GPTC metrics
+   listed above.
+4. **Context-rot filtering** — REMORA-controlled capability surface: generate
+   the stub module only for tools whose `ToolContract` matches the current task
+   scope (pairs with RF-01).
+5. **Sandbox hardening** — if the planning runtime ever receives a model-
+   generated program, enforce: no network, no `os`, no `subprocess`, no file I/O,
+   no `importlib` beyond the broker shim (a `RestrictedImporter` or
+   `sys.audit`-hook approach).
+
+**Test acceptance for remaining slices.**
+
+- Ablation: pre-committed target (write before running); failure ships in
+  `NEGATIVE_RESULTS.md`, not README.
+- Plan-level governance: a committed episode where a read→destructive-write
+  transition mid-DAG causes the entire batch to ESCALATE before execution, even
+  though the individual write call would be ACCEPT in isolation.
+- Sandbox hardening: a committed fixture program that attempts `import requests`
+  from a stub body and is refused before any AST extraction runs.
+
+**Verdict: prototype shipped, ablation is the gate.** The planning layer adds
+no new claim; it extends the existing governance path upward. No performance
+result may be cited until the ablation round runs and its artifact is committed.
+
+---
+
 ## 10. Sequencing rationale (post-grounding)
 
 **P0 — starts now, each closes something already published:**
@@ -1092,6 +1242,9 @@ is small; the full CaMeL-class lattice stays P2 behind the interception probe.
 can start opportunistically; the module work follows what the measurement
 shows. RF-09 fits immediately after the freeze as the next external-dataset
 step, with the honest caveat that it widens dataset independence only.
+RF-11 (GPTC) prototype is shipped; the ablation benchmark is the gate for
+any performance claim — scoped as P2 because it extends the composition
+layer rather than closing a published negative finding.
 
 **P3 — deferred on evidence:** RF-05's premise (drift-harden τ*) was
 invalidated — the temperature selector was falsified in the pre-registered
