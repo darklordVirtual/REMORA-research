@@ -72,25 +72,23 @@ failed ones published in full in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md). CI 
 
 ## How it works
 
-Everything the agent proposes goes through the same five steps, and nothing runs until
-the last one produces an answer:
+REMORA exposes **two surfaces that share the same policy core but do not run the same pipeline**.
+The enforcing `/v1/execution/*` surface is the path to use for operational tool calls:
 
-1. **Admission firewall** — injection, coercion and blackmail patterns are screened
-   before any model is called.
-2. **Multi-oracle consensus** — independent models judge the action; one trust score.
-3. **Evidence verification** — do the cited sources support or contradict it?
-4. **Policy decision** — deterministic hard guards first, and they win outright: no
-   confidence score or model majority can unlock a forbidden tool, a malformed call,
-   or a detected injection. Then conditional guards and calibrated trust routing.
-5. **DecisionEnvelope** — every answer joins a hash-chained audit log, whether or not
-   anything ran.
+1. **Authoritative context** — tool meaning, risk, contracts, target and approved intent come from deployment-owned sources such as Signed ToolSpec, never from the calling agent.
+2. **Policy decision** — deterministic hard guards run first and win outright; no confidence score can unlock a forbidden tool, malformed call or detected hard violation.
+3. **Review or grant** — VERIFY/ESCALATE enters bounded review; ACCEPT receives a short-lived, single-use grant bound to the exact proposal.
+4. **PEP and dispatch** — the grant is consumed, an `ExecutionLease` binds the call and policy identity, and `GovernedToolDispatcher` performs the registered callable under the recorded outbox lifecycle.
+5. **Effect and audit** — proposal, authorization, dispatch outcome and effect verification remain joinable in the tenant audit trail.
 
-On ACCEPT, `/v1/execution/execute` spends a single-use grant and runs the call under a
-lease welded to the exact approved arguments. Tools come **only** from deployment
-configuration, never from the request — and REMORA cannot stop an agent that reaches a
-tool *outside* this API (see [Status](#status)). The pipeline
-diagram, hard-guard priority rules, what a VERIFY promises, and the diagnostic-only
-disagreement metrics: [architecture narrative](docs/01-architecture.md) ·
+The separate `/v1/assess` research surface can add admission screening, multi-oracle consensus,
+evidence verification and uncertainty experiments. Those model signals can inform research/routing;
+they are **not prerequisites for the enforcing execution surface and cannot override its hard floor**.
+See [Developer handoff](DEVELOPER_OVERVIEW.md) for the exact CORE/OPTIONAL/EXPERIMENTAL split.
+
+Tools come **only** from deployment configuration, never from the request — and REMORA cannot
+stop an agent that reaches a tool *outside* this API (see [Status](#status)). Architecture,
+hard-guard priority rules and API details: [architecture narrative](docs/01-architecture.md) ·
 [ARCHITECTURE.md](ARCHITECTURE.md) (canonical) · [API](docs/07-api-reference.md).
 
 ---
