@@ -6,9 +6,20 @@ This allows AI assistants such as Claude Desktop and Claude Code to call REMORA
 tools directly, grounding AI answers in multi-oracle consensus, authoritative
 knowledge bases, and deterministic database lookups.
 
-Cloudflare services are optional accelerators, not hard requirements. The MCP
-server still works without Cloudflare by using local repository manifests and
-the Python code paths already in this repo.
+**Privacy profiles (default: `local`, zero egress).** The server resolves a
+profile at startup via `REMORA_MCP_PROFILE`:
+
+- `local` (default) — no external endpoints at all; endpoint env vars are
+  deliberately ignored, and every worker-backed tool refuses with a
+  machine-readable message instead of sending anything off the machine. The
+  repository tools (`remora_codegraph_scope`, `remora_repo_search`,
+  `remora_session_status`) work fully offline.
+- `demo` — explicit opt-in to the public demo workers below; a disclosure is
+  printed to stderr because tool content leaves the local environment. Never
+  send sensitive or customer data on this profile.
+- `enterprise` — your own deployed endpoints; every required `*_URL` must be
+  set or startup fails. There is no silent fallback between profiles in any
+  direction. (Contract tested in `tests/test_mcp_privacy_profiles.py`.)
 
 For a reproducible end-to-end setup, see [`cloudflare_workers_ai.md`](cloudflare_workers_ai.md) and the worker sources under `workers/`.
 
@@ -16,12 +27,16 @@ For a reproducible end-to-end setup, see [`cloudflare_workers_ai.md`](cloudflare
 
 ## Architecture
 
+The worker fan-out below applies **only** under `demo` (public endpoints) or
+`enterprise` (your endpoints); the default `local` profile binds none of it.
+
 ```
 Claude Desktop / Claude Code
         │
         │  JSON-RPC over stdio
         ▼
  servers/mcp_remora.py          ← MCP server (source-available, this repo)
+        │  (profile demo/enterprise only — local binds no upstreams)
         │
         ├── go-star-remora.razorsharp.workers.dev      Consensus engine
         │       3 independent LLMs (Groq LLaMA 8B, LLaMA 70B, Mistral 7B)
@@ -38,7 +53,10 @@ Claude Desktop / Claude Code
         │
         └── remora-agent-control.razorsharp.workers.dev  Agent control plane
                 Policy gating, D1 audit ledger, KV sessions, R2 artifacts
-                Bearer-auth (fail-closed)
+                Bearer-auth (fail-closed); WRITE_IMPACT_TOOLS structural
+                approval floor; POST /approvals reviewer surface with
+                verified Cloudflare Access identity (workload bearer refused
+                — see docs/architecture/ADR-single-authoritative-execution-path.md)
           Service bindings → go-star-remora + remora-law-search
           Codegraph endpoint → repo scope + relevant file suggestions
 ```
@@ -64,6 +82,12 @@ Add to `claude_desktop_config.json` (location: `%APPDATA%\Claude\` on Windows):
 ```
 
 Restart Claude Desktop. The REMORA tools will appear in the tool list.
+
+An empty `env` means profile `local`: fully offline, and every worker-backed
+tool refuses without touching the network. To use remote workers, set
+`"REMORA_MCP_PROFILE": "demo"` (public demo workers — content leaves this
+machine; a disclosure is printed) or `"enterprise"` together with
+`REMORA_WORKER_URL`, `RAG_WORKER_URL` and `LAW_SEARCH_WORKER_URL`.
 
 ### Claude Code / CLI
 
@@ -129,7 +153,9 @@ GO-STAR security finding?
 Agentic tool calls through policy gate + D1 audit?
   → 1. agent_start_session   — create session with 24 h TTL and audit trail
   → 2. agent_execute_tool    — execute tool call through egress policy + D1 audit
-  → 3. agent_audit_log       — retrieve audit log, approve/reject pending actions
+  → 3. agent_audit_log       — retrieve audit log (read-only; approvals happen
+                               out-of-band via the control plane's POST /approvals
+                               with verified Cloudflare Access reviewer identity)
 
 Live Lyapunov V(t) and session stability for running agent?
   → remora_session_status
@@ -363,9 +389,16 @@ remora_norwegian_law_search({
 
 ### `remora_verify_legal_citations`
 
-Extracts Norwegian legal citations from a document and verifies each one through
-a two-layer pipeline: (1) DCE knowledge base lookup, (2) multi-oracle consensus.
-Designed to catch AI-hallucinated court decisions before they enter formal documents.
+Extracts Norwegian legal citations from a document. **Existence is decided
+only by the authoritative DCE registry lookup**
+(`remora/legal/citation_existence.py`): `confirmed_authoritative`,
+`not_found_authoritative` or `cannot_verify`. The multi-oracle probe is a
+separate, clearly-labelled **advisory** signal — it can flag suspicion about a
+confirmed citation's claimed content, but it can never confirm or deny that a
+citation exists (unanimous, confident model agreement about a nonexistent
+citation stays unverified; regression-tested in
+`tests/test_citation_existence.py`). Designed to catch AI-hallucinated court
+decisions before they enter formal documents.
 
 > **Requires the DCE extension.** See [Extensions](#extensions) below.
 
@@ -376,26 +409,25 @@ Designed to catch AI-hallucinated court decisions before they enter formal docum
 | `document_text` | string | Yes | The document text containing citations to check |
 | `jurisdiction` | string | No | `Norway` (default) |
 
-**Returns:** Per-citation verdicts: FOUND_IN_DATABASE / NOT_FOUND / POSSIBLE_MATCH_VECTOR,
-oracle consensus (NEEDS_CONTENT_CHECK / CANNOT_VERIFY / LIKELY_HALLUCINATED),
-and a combined conclusion for each citation.
+**Returns:** Per-citation: the authoritative existence status plus a separate
+model-advisory field. Only `confirmed_authoritative` may ever be presented as
+verified existence.
 
-**Verdict matrix:**
+**Existence states (authoritative lookup only — the advisory never changes this column):**
 
-| DB result | Oracle result | Conclusion |
+| Existence status | Meaning | Conclusion shown |
 |-----------|---------------|------------|
-| FOUND_IN_DATABASE | NEEDS_CONTENT_CHECK | Partially verified, check content |
-| NOT_FOUND | CANNOT_VERIFY | Likely hallucinated |
-| NOT_FOUND | LIKELY_HALLUCINATED | Likely hallucinated |
-| FOUND_IN_DATABASE | LIKELY_HALLUCINATED | Exists, but claimed content is wrong |
+| `confirmed_authoritative` | registry holds the citation | Existence verified; advisory may still flag the claimed *content* |
+| `not_found_authoritative` | registry answered and does not hold it | Likely hallucinated |
+| `cannot_verify` | no authoritative answer (registry unreachable/ambiguous) | Cannot be verified — never treated as evidence either way |
 
 **Example:**
 ```
 remora_verify_legal_citations({
   "document_text": "Ref. Supreme Court HR-2019-928-A and HR-2022-9999-A ..."
 })
-→ HR-2019-928-A  FOUND IN DATABASE  NEEDS_CONTENT_CHECK  → PARTIALLY VERIFIED
-→ HR-2022-9999-A  NOT FOUND         CANNOT_VERIFY         → LIKELY HALLUCINATED
+→ HR-2019-928-A   EKSISTENS BEKREFTET (autoritativ)   advisory: sjekk prinsippet
+→ HR-2022-9999-A  IKKE FUNNET I AUTORITATIV KILDE     → sannsynlig hallusinert
 ```
 
 See the [use-case index](../use-cases/README.md) (public administration) for
@@ -442,8 +474,12 @@ and risk classification before execution.
 
 ### `agent_audit_log`
 
-Retrieves the D1 audit log for a session. Returns all recorded tool-call verdicts,
-timestamps, confidence scores, and any pending actions awaiting human approval.
+Retrieves the D1 audit log for a session (read-only). Returns all recorded
+tool-call verdicts, timestamps, confidence scores, and any pending actions
+awaiting human approval. Pending items can only be resolved by an independent
+human reviewer via the control plane's `POST /approvals` (verified Cloudflare
+Access identity; the proposing workload credential is refused — the old
+`audit_decision` self-approval tool was removed 2026-08-19).
 
 **Parameters:**
 
@@ -507,7 +543,9 @@ D1 database) is part of DCE and requires access to the DCE Cloudflare account.
 
 **Without the DCE extension:**
 - `remora_norwegian_law_search` returns an error (no index bound)
-- `remora_verify_legal_citations` cannot perform D1 citation lookups
+- `remora_verify_legal_citations` has no authoritative registry, so every
+  citation resolves to `cannot_verify` — the tool cannot assert existence at
+  all (it never falls back to oracle judgement)
 
 **With the DCE extension:** both tools use real Norwegian law data. The law-search
 bridge is already deployed at `https://remora-law-search.razorsharp.workers.dev`

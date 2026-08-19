@@ -103,7 +103,10 @@ calibrated-confidence baseline (`NEGATIVE_RESULTS.md` §18). They influence noth
 | `remora/safety/` | Adversarial detection, file-risk classification | `remora/safety/adversarial.py` |
 | `remora/toolcall/` | Tool-call schema validation and gating | `remora/toolcall/remora_gate.py` |
 | `remora/aromer/` | Closed-loop learning layer (EXPERIMENTAL) | `remora/aromer/orchestrator.py` |
-| `servers/mcp_remora.py` | MCP server exposing REMORA as Claude tools | 14 registered tools |
+| `servers/execution_api.py` | Enforcing `/v1/execution/*` surface (routes + orchestration; contracts in `servers/execution_contracts.py`) | `assess`/`approve`/`execute` |
+| `remora/persistence/execution_state.py` | All-or-nothing review-state transaction adapter | `transaction_state()` |
+| `remora/execution/authorization.py` | ToolSpec bundle verification + assessed-record read-back | `resolve_toolspec()` |
+| `servers/mcp_remora.py` | MCP server exposing REMORA as Claude tools | profile-gated tool set (see `docs/integrations/mcp-integration.md`) |
 
 ---
 
@@ -174,14 +177,16 @@ in `results/agentharm/mode_metadata.jsonl` and is never hidden from scoring.
 
 REMORA exposes its consensus and verification capabilities as an MCP server
 (`servers/mcp_remora.py`). This allows AI assistants (Claude Desktop, Claude
-Code) to call REMORA tools directly over JSON-RPC. The server connects to:
+Code) to call REMORA tools directly over JSON-RPC.
 
-- Cloudflare Workers AI for oracle routing (optional, local Python fallback
-  available without Cloudflare),
-- Cloudflare D1 for the audit ledger,
-- Cloudflare Vectorize for RAG evidence retrieval.
-
-Cloudflare services are accelerators, not hard requirements.
+The server resolves a privacy profile at startup (`REMORA_MCP_PROFILE`):
+`local` is the **default** — zero outbound network, endpoint variables
+ignored, worker-backed tools refuse offline; `demo` requires explicit opt-in
+and prints a disclosure that content leaves the machine; `enterprise`
+requires explicit endpoints and refuses startup when incomplete. No profile
+silently falls back to another. Under a remote profile the server connects to
+Cloudflare Workers AI (oracle routing), D1 (audit ledger) and Vectorize (RAG
+retrieval). See `docs/integrations/mcp-integration.md`.
 
 ---
 

@@ -420,6 +420,11 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/governance/lifecycle.py` | **CORE** | Execution lifecycle model + tracker, loaded from `schemas/execution_lifecycle_v1.yaml` (FT-01). CORE is a *maturity* rating: like everything outside `remora.sdk`, this module carries no external backward-compatibility guarantee — see [docs/sdk.md](docs/sdk.md) |
 | `remora/enforcement/outbox.py` | **CORE** | Crash-consistent dispatch-intent store, in-process + SQLite + Postgres adapters (FT-02). Same stability caveat as above |
 | `remora/selective/` | **CORE** | Conformal / CRC / PhaseAwareGuardrail |
+| `remora/persistence/` | **CORE** | Oracle response cache (package root) + `execution_state.py` review-state transaction adapter (issue #241 slice 2) |
+| `remora/execution/` | **CORE** | `authorization.py`: ToolSpec bundle verification + assessed-record read-back (issue #241 slice 3; no HTTP knowledge) |
+| `remora/legal/` | **CORE** | `CitationExistence`: citation existence is an authoritative-registry fact; model consensus is advisory only |
+| `servers/execution_api.py` | **CORE** | `/v1/execution/*` routes + orchestration (decomposition in progress, issue #241) |
+| `servers/execution_contracts.py` | **CORE** | Pydantic wire models for `/v1/execution/*` (issue #241 slice 1) |
 | `remora/lyapunov.py` | **EXPERIMENTAL** | Lyapunov stability controller for consensus iteration |
 | `remora/thermodynamics.py` | **EXPERIMENTAL** | Thermodynamic uncertainty-routing proxy |
 | `remora/causal/intervention.py` | **EXPERIMENTAL** | Do-calculus causal stress testing |

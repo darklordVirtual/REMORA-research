@@ -808,7 +808,9 @@ TOOLS = [
         "description": (
             "Retrieve the audit log for an agent session. "
             "Returns every tool call made, its verdict, confidence, approval status, and timestamp. "
-            "Use this to review what the agent did and approve/reject pending actions."
+            "Use this to review what the agent did (read-only). Pending actions are "
+            "approved/rejected only by an independent human reviewer via the control "
+            "plane's POST /approvals endpoint, never through a tool call."
         ),
         "inputSchema": {
             "type": "object",

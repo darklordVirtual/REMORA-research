@@ -51,7 +51,11 @@ effect verification -> tenant audit chain
 | Lifecycle | `remora/governance/lifecycle.py` |
 | Audit | `remora/governance/tenant_chain.py` |
 | Effect verification | `remora/governance/effect_verification.py` |
-| HTTP execution surface | `servers/execution_api.py` |
+| HTTP execution surface | `servers/execution_api.py` (routes + orchestration) |
+| Wire contracts | `servers/execution_contracts.py` (Pydantic request/response models) |
+| Review-state persistence | `remora/persistence/execution_state.py` (all-or-nothing transaction adapter) |
+| ToolSpec authorization context | `remora/execution/authorization.py` (bundle verify, assessed-record read-back) |
+| Legal citation existence | `remora/legal/citation_existence.py` (authoritative-registry fact; model output is advisory only) |
 
 Read those before the research modules.
 
@@ -130,6 +134,9 @@ Use `deploy/ot-pilot/` or the execution quickstart for a deployment-shaped test.
 Do not infer maturity from implementation size. Use:
 
 - `docs/assurance/capability_register_v1.yaml` — runtime wiring depth;
+- `docs/product/product_truth_contract.yaml` — capability classes (core/optional/experimental/legacy/demo), CI-checked against public copy;
+- `docs/architecture/ADR-single-authoritative-execution-path.md` — one authoritative execution path; edge workers are ingress;
+- `docs/commercial/PRODUCT_PACKAGING.md` — what is commercially offered (Shadow Pilot), bound to release profiles;
 - `docs/assurance/claim_register_v1.yaml` — governed numerical claims;
 - `docs/02-evidence-and-claims.md` — reviewer-readable evidence boundaries;
 - `NEGATIVE_RESULTS.md` — failed and superseded hypotheses.
@@ -138,7 +145,7 @@ A benchmark result is not field validation. A library implementation is not auto
 
 ## Known boundary
 
-`servers/execution_api.py` remains a large orchestration module. Issue #241 tracks staged decomposition into wire contracts, service orchestration, persistence, dispatch and lifecycle projection. Refactoring should preserve wire contracts, policy semantics, transaction boundaries and audit history.
+`servers/execution_api.py` is being decomposed by responsibility (issue #241). Extracted so far, each characterized against a byte-identical OpenAPI schema: wire contracts (`servers/execution_contracts.py`), the review-state transaction adapter (`remora/persistence/execution_state.py`) and the ToolSpec authorization context (`remora/execution/authorization.py`). Remaining: service orchestration, dispatch and lifecycle projection. Refactoring must preserve wire contracts, policy semantics, transaction boundaries and audit history.
 
 ## Reading order
 
