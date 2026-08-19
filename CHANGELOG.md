@@ -1,8 +1,6 @@
 # Changelog
 
-This file lists externally relevant changes by release. Fine-grained development history remains available in Git commits and pull requests.
-
-The pre-cleanup development log is preserved at `docs/archive/CHANGELOG_PRE_HYGIENE_2026-08-19.md`.
+This file lists externally relevant changes by release. Fine-grained development history remains available in Git commits and pull requests; the pre-cleanup changelog remains recoverable from repository history rather than being duplicated as a current documentation artifact.
 
 ## Unreleased
 
@@ -12,7 +10,7 @@ The pre-cleanup development log is preserved at `docs/archive/CHANGELOG_PRE_HYGI
 - Added explicit CORE / OPTIONAL / EXPERIMENTAL / HISTORICAL boundaries for developer handoff.
 - Added branch lifecycle and documentation-style rules to the contribution guide.
 - Removed committed local frontend planning state and ignored future `.lovable/` workspace files.
-- Added automatic deletion of merged branches and a safe sweep for branches already merged into the default branch.
+- Added automatic deletion of branches with merged-PR evidence while preserving open and unverified branches.
 - Preserved research history while removing older thermodynamic/statistical-physics work from the primary runtime documentation path.
 
 ### Execution assurance
@@ -34,4 +32,4 @@ The pre-cleanup development log is preserved at `docs/archive/CHANGELOG_PRE_HYGI
 - Continued the claim-register, capability-register, reproducibility and negative-result governance model.
 - Preserved benchmark caveats and superseded findings as part of the evidence record.
 
-For detailed changes between tagged revisions, use Git history, merged pull requests and the archived pre-cleanup changelog.
+For detailed changes between revisions, use Git history and merged pull requests.
