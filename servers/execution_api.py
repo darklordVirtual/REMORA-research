@@ -255,6 +255,26 @@ _ACTIVE_TX_CONNECTION: "_contextvars.ContextVar[Any]" = (
     _contextvars.ContextVar("remora_active_tx_connection", default=None)
 )
 
+# Phase 13 observability: the proposal identity this request is about, noted
+# by the execution handlers and surfaced by the gateway middleware as the
+# X-Remora-Proposal-Id response header — one stable id correlates ingress,
+# policy, review, grant, dispatch, effect and evidence (FT-01 join key) on
+# the transport layer too, without parsing bodies.
+#
+# The contextvar holds a MUTABLE holder dict, installed per request by the
+# middleware, because sync endpoints run in a threadpool with a COPY of the
+# context: a set() inside the handler never propagates back, but mutating
+# the shared holder object does.
+CURRENT_PROPOSAL_ID: "_contextvars.ContextVar[dict[str, str | None] | None]" = (
+    _contextvars.ContextVar("remora_current_proposal_id", default=None)
+)
+
+
+def _note_proposal_id(proposal_id: Any) -> None:
+    holder = CURRENT_PROPOSAL_ID.get()
+    if holder is not None and proposal_id:
+        holder["id"] = str(proposal_id)
+
 # Built eagerly, like _CHAIN and _GATE: a durable adapter runs its DDL on
 # its own connection, and doing that lazily inside an open transaction
 # deadlocks against SQLite's BEGIN EXCLUSIVE write lock.
@@ -881,6 +901,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     # both without telling a reader anything the spec hash does not.
     _argument_roles = toolspec_identity.pop("argument_roles", {})
     proposal_id = str(uuid4())
+    _note_proposal_id(proposal_id)
     obs = dataclasses.replace(obs, proposal_id=proposal_id)
     report = _ENGINE.decide(obs)
     now = datetime.now(UTC)
@@ -1060,6 +1081,7 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
     # this catches drift between runtime and model — a loud 500.
     _lifecycle_guard("REVIEW_PENDING", "human_approval")
     proposal_id = getattr(item.observation, "proposal_id", None)
+    _note_proposal_id(proposal_id)
     entry = _CHAIN.append(tenant, {
         "event": "approved",
         "proposal_id": proposal_id,
@@ -1207,6 +1229,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     toolspec_identity.pop("argument_roles", None)
     _assessed_toolspec_hash, _assessed_proposal_id = _assessed_record(
         tenant, req.item_id)
+    _note_proposal_id(_assessed_proposal_id)
     # Refuse BEFORE authorizing, not after. The check has everything it
     # needs here, and running it later left a dispatch intent behind for a
     # call that was never allowed to happen — harmless only because an
@@ -1245,6 +1268,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
             # payload never carries one the caller could assert.
             proposal_id = getattr(q.item(req.item_id).observation,
                                   "proposal_id", None)
+            _note_proposal_id(proposal_id)
             outcome = q.execute(req.item_id, fresh_obs)
             # FT-02: the dispatch intent is recorded in THIS transaction —
             # the one that authorizes the call. If anything below crashes,
@@ -1444,6 +1468,7 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
 
     obs, semantic = _observation_with_context(req.tool_call, tenant)
     proposal_id = token.request_id or None
+    _note_proposal_id(proposal_id)
 
     # (1) Binding first, and WITHOUT consuming: a mismatched payload must not
     # burn the grant for the call the token actually authorizes.
@@ -1600,6 +1625,7 @@ def reject(req: RejectRequest, request: Request) -> dict[str, Any]:
 
     _lifecycle_guard("REVIEW_PENDING", "human_rejection")
     proposal_id = getattr(item.observation, "proposal_id", None)
+    _note_proposal_id(proposal_id)
     entry = _CHAIN.append(tenant, {
         "event": "rejected",
         "proposal_id": proposal_id,
@@ -1761,6 +1787,7 @@ def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
     proposal belonging to someone else is simply absent — a 404, never a
     redacted 200 that leaks its existence.
     """
+    _note_proposal_id(proposal_id)
     tenant, role, _principal = _auth(request)
     from servers import api as api_mod
 
@@ -1805,6 +1832,7 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
     redacted 200 that leaks its existence), a status outside the published
     five, and a record that does not say who observed it.
     """
+    _note_proposal_id(proposal_id)
     tenant, role, principal = _auth(request)
     from servers import api as api_mod
 
@@ -1844,6 +1872,7 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
 })
 def get_lifecycle(proposal_id: str, request: Request) -> dict[str, Any]:
     """The full ordered trail: every chain entry plus the dispatch verdict."""
+    _note_proposal_id(proposal_id)
     tenant, role, _principal = _auth(request)
     from servers import api as api_mod
 
@@ -1875,6 +1904,7 @@ def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
     self-consistent forgery, which is why the audit chain's own
     verification travels with the bundle rather than being replaced by it.
     """
+    _note_proposal_id(proposal_id)
     import hashlib as _hashlib
 
     tenant, role, _principal = _auth(request)

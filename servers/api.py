@@ -2379,7 +2379,46 @@ def rerun(req: RerunRequest, request: Request) -> dict:
 
 # REM-035: end-to-end execution state machine (assess -> review -> re-gate
 # -> one-time grant -> PEP consume), wired as a first-class API path.
+from servers.execution_api import CURRENT_PROPOSAL_ID as _CURRENT_PROPOSAL_ID
 from servers.execution_api import router as _execution_router
+
+
+class _ProposalIdHeaderMiddleware:
+    """Phase 13 observability: surface the proposal identity this request was
+    about as X-Remora-Proposal-Id, so logs/traces/proxies correlate on the
+    same FT-01 join key the body and audit chain carry — without parsing
+    bodies. Raw ASGI (not BaseHTTPMiddleware): the endpoint must run in the
+    SAME task so its contextvar set is visible when response headers start.
+    Reset per request; absent when no proposal was involved."""
+
+    def __init__(self, asgi_app):
+        self.app = asgi_app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        holder: dict = {"id": None}
+        token = _CURRENT_PROPOSAL_ID.set(holder)
+
+        async def send_with_header(message):
+            if message["type"] == "http.response.start":
+                proposal_id = holder.get("id")
+                if proposal_id:
+                    headers = list(message.get("headers", []))
+                    headers.append(
+                        (b"x-remora-proposal-id", proposal_id.encode("ascii"))
+                    )
+                    message = {**message, "headers": headers}
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_with_header)
+        finally:
+            _CURRENT_PROPOSAL_ID.reset(token)
+
+
+app.add_middleware(_ProposalIdHeaderMiddleware)
 
 app.include_router(_execution_router)
 
