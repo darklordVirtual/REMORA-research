@@ -47,6 +47,14 @@ LAW_SEARCH_URL      = "https://remora-law-search.razorsharp.workers.dev"  # repl
 # Human-in-the-loop: tools that require approval before executing
 APPROVAL_REQUIRED_TOOLS = "store_artifact"
 
+# Canonical execution service (ADR migration step 3, optional). Bind a
+# service (or route) to the deployed canonical REMORA execution API and set
+# EXECUTION_API_TOKEN (wrangler secret) to make write-effect tools run the
+# canonical assess->grant->PEP->lease path instead of in-worker execution.
+# [[services]]
+# binding = "EXECUTION_SERVICE"
+# service = "remora-execution-api"
+
 # Human-reviewer identity (POST /approvals). All three must be set for the
 # approval surface to accept anyone; unset = the endpoint refuses every
 # caller (fail closed) and approval-gated tools cannot execute.
