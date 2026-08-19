@@ -691,6 +691,7 @@ class RemoraDecisionEngine:
         low_consequence_accept: bool = False,
         grounded_read_accept: bool = False,
         execution_profile: bool = False,
+        semantic_authority_floor: bool = False,
     ) -> None:
         # Opt-in: lets bounded, reversible action semantics reach ACCEPT without
         # an oracle consensus signal. Off by default — see the path itself for
@@ -709,6 +710,14 @@ class RemoraDecisionEngine:
         # low consequence) are unaffected: they read registry/state facts,
         # not model output.
         self.execution_profile = execution_profile
+        # Semantic-authority floor (opt-in): for a proposed tool call,
+        # tool_matches_goal / expected_effect_matches must be POSITIVELY
+        # established before any ACCEPT path may run - False already stops
+        # via the conditional gates; None (nothing establishes the fit)
+        # routes to VERIFY instead of silently passing through to
+        # low_consequence_accept. FALSE -> stop, UNKNOWN -> verify,
+        # TRUE -> the ordinary gates decide.
+        self.semantic_authority_floor = semantic_authority_floor
         self.temperature_threshold = temperature_threshold
         self.conformal_trust_threshold = conformal_trust_threshold
         self.conformal_phase_thresholds = conformal_phase_thresholds
@@ -898,6 +907,21 @@ class RemoraDecisionEngine:
         if obs.tool_not_in_available_set is True:
             reasons.append(DecisionReason.TOOL_NOT_IN_AVAILABLE_SET)
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+
+        # ── SEMANTIC-AUTHORITY FLOOR (opt-in) ───────────────────────────────
+        # Low consequence is not the same thing as correct purpose: a cheap
+        # read to the wrong tool is still a wrong execution. False fit was
+        # already refused by the conditional gates above; here an UNKNOWN fit
+        # for a proposed tool refuses to reach any ACCEPT path.
+        if (
+            self.semantic_authority_floor
+            and obs.proposed_tool_name
+            and (obs.tool_matches_goal is None
+                 or obs.expected_effect_matches is None)
+        ):
+            reasons.append(DecisionReason.SEMANTIC_AUTHORITY_UNKNOWN_VERIFY)
+            return self._build(DecisionAction.VERIFY, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
 
         # ── MONDRIAN PER-PHASE CONFORMAL ────────────────────────────────────
 
@@ -1261,6 +1285,15 @@ class RemoraDecisionEngine:
           obs.tool_not_in_available_set is True,
           f"proposed_tool={obs.proposed_tool_name!r} not in declared available_tools",
           "VERIFY")
+
+        r("semantic_authority_unknown_floor",
+          bool(self.semantic_authority_floor and obs.proposed_tool_name
+               and (obs.tool_matches_goal is None
+                    or obs.expected_effect_matches is None)),
+          f"tool_matches_goal={obs.tool_matches_goal}, "
+          f"expected_effect_matches={obs.expected_effect_matches}",
+          "VERIFY")
+
 
         if (
             self.conformal_phase_thresholds is not None
