@@ -1,0 +1,24 @@
+{
+  "schema_version": "1",
+  "frozen": "2026-08-19",
+  "note": "Frozen cross-language canonical-JSON vectors (Phase 6). 'agreed' entries MUST produce the identical canonical string in Python (json.dumps sort_keys separators) and TypeScript (workers/agent-control/src/envelope.ts canonicalJson). 'known_divergent' entries pin the CURRENT per-language output so neither side can drift silently; payloads on the envelope path must stay inside the agreed domain (see workers/agent-control/README.md numeric payload contract). Changing any expected string is a canonicalization change and therefore a hash-contract change: it requires an explicit migration, never an edit.",
+  "agreed": [
+    {"value": {"a": 1, "b": "x"}, "canonical": "{\"a\":1,\"b\":\"x\"}"},
+    {"value": {"z": [1, 2, {"k": null}], "nested": {"b": true, "a": false}}, "canonical": "{\"nested\":{\"a\":false,\"b\":true},\"z\":[1,2,{\"k\":null}]}"},
+    {"value": {"æøå": "Blåbærsyltetøy"}, "canonical": "{\"\\u00e6\\u00f8\\u00e5\":\"Bl\\u00e5b\\u00e6rsyltet\\u00f8y\"}"},
+    {"value": {"emoji": "🚀", "tab": "a\tb", "dash": "–"}, "canonical": "{\"dash\":\"\\u2013\",\"emoji\":\"\\ud83d\\ude80\",\"tab\":\"a\\tb\"}"},
+    {"value": {"empty_s": "", "empty_l": [], "empty_o": {}}, "canonical": "{\"empty_l\":[],\"empty_o\":{},\"empty_s\":\"\"}"},
+    {"value": {"f": 1.5}, "canonical": "{\"f\":1.5}"},
+    {"value": {"f": 0.1}, "canonical": "{\"f\":0.1}"},
+    {"value": {"f": -2.5}, "canonical": "{\"f\":-2.5}"},
+    {"value": {"n": -7}, "canonical": "{\"n\":-7}"},
+    {"value": {"max_safe": 9007199254740991}, "canonical": "{\"max_safe\":9007199254740991}"},
+    {"value": {"zero": 0}, "canonical": "{\"zero\":0}"}
+  ],
+  "known_divergent": [
+    {"value_json": "{\"a\": 1.0}", "python": "{\"a\":1.0}", "typescript": "{\"a\":1}", "reason": "integral-valued float: Python keeps .0, ECMAScript drops it (RFC 8785 follows ECMAScript)"},
+    {"value_json": "{\"a\": -0.0}", "python": "{\"a\":-0.0}", "typescript": "{\"a\":0}", "reason": "negative zero: ECMAScript serializes as 0"},
+    {"value_json": "{\"a\": 1e20}", "python": "{\"a\":1e+20}", "typescript": "{\"a\":100000000000000000000}", "reason": "ECMAScript uses positional notation up to 1e21"},
+    {"value_json": "{\"big\": 9007199254740993}", "python": "{\"big\":9007199254740993}", "typescript": "{\"big\":9007199254740992}", "reason": "beyond 2^53 JavaScript numbers lose integer precision"}
+  ]
+}
