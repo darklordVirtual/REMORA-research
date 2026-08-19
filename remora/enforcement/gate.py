@@ -293,6 +293,10 @@ class EnforcementGate:
             )
 
         # Maximum token age from issued_at (independent of the signed expiry).
+        # Malformed or ambiguous timestamps fail CLOSED with a machine-readable
+        # reason — check() must never raise an uncaught naive/aware TypeError
+        # (a naive issued_at parsed fine but exploded on subtraction against
+        # the aware clock; coerce both sides to UTC like token.verify does).
         from datetime import datetime
         try:
             issued = datetime.fromisoformat(token.issued_at.replace("Z", "+00:00"))
@@ -300,20 +304,37 @@ class EnforcementGate:
                 datetime.fromisoformat(now.replace("Z", "+00:00"))
                 if now is not None else datetime.now(UTC)
             )
-            if (current - issued).total_seconds() > self.MAX_TOKEN_AGE_SECONDS:
-                return EnforcementResult(
-                    allowed=False,
-                    action=token.action,
-                    token_verified=True,
-                    reason="token_too_old",
-                    strict_mode=self.strict,
-                )
-        except ValueError:
+            if issued.tzinfo is None:
+                issued = issued.replace(tzinfo=UTC)
+            if current.tzinfo is None:
+                current = current.replace(tzinfo=UTC)
+            age_seconds = (current - issued).total_seconds()
+        except (ValueError, TypeError):
             return EnforcementResult(
                 allowed=False,
                 action=token.action,
                 token_verified=True,
                 reason="issued_at_unparseable",
+                strict_mode=self.strict,
+            )
+        if age_seconds < 0:
+            # Future issued_at: clock-skewed or malicious issuer input. Same
+            # fail-closed posture as token.verify's current < issued check,
+            # enforced here too because non-strict unsigned flows can reach
+            # this point without a verified expiry window.
+            return EnforcementResult(
+                allowed=False,
+                action=token.action,
+                token_verified=True,
+                reason="token_issued_in_future",
+                strict_mode=self.strict,
+            )
+        if age_seconds > self.MAX_TOKEN_AGE_SECONDS:
+            return EnforcementResult(
+                allowed=False,
+                action=token.action,
+                token_verified=True,
+                reason="token_too_old",
                 strict_mode=self.strict,
             )
 
