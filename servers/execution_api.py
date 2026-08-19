@@ -374,53 +374,20 @@ def reconcile_stale_dispatches(tenant: str, *, now=None) -> list:
 # response RECORDS that enforcement is off — never silently equivalent,
 # and never a trust-on-first-use upgrade that breaks a running deployment.
 
-_TOOLSPECS: "ToolSpecBundle | None" = None
-_TOOLSPECS_SPEC: str | None = None
+# ToolSpec authorization context (issue #241, extraction slice 3): bundle
+# loading/verification and the assessed-record read-back live in
+# remora/execution/authorization.py. These wrappers bind this module's
+# ambient state (env, chain) and keep the HTTP conversion at the route layer.
+from remora.execution.authorization import (
+    assessed_record as _authz_assessed_record,
+    load_toolspec_bundle as _authz_load_bundle,
+    reset_toolspec_bundle_cache as _reset_toolspec_bundle,  # noqa: F401  (test hook name kept)
+    resolve_toolspec as _authz_resolve_toolspec,
+)
 
 
 def _toolspec_bundle() -> "ToolSpecBundle | None":
-    """The verified bundle, or None when none is configured.
-
-    Loaded once and cached on the configured path, so a load failure is
-    raised on the first request rather than swallowed at import — a
-    deployment that mis-signs its bundle should find out loudly.
-    """
-    global _TOOLSPECS, _TOOLSPECS_SPEC
-    path = _os.environ.get("REMORA_TOOLSPEC_BUNDLE", "").strip()
-    if _TOOLSPECS_SPEC != path:
-        _TOOLSPECS_SPEC = path
-        if not path:
-            _TOOLSPECS = None
-        else:
-            raw = json.loads(Path(path).read_text(encoding="utf-8"))
-            identities = [
-                i.strip() for i in
-                _os.environ.get("REMORA_TOOLSPEC_TRUSTED_IDENTITIES", "").split(",")
-                if i.strip()
-            ]
-            revoked = [
-                i.strip() for i in
-                _os.environ.get("REMORA_TOOLSPEC_REVOKED_IDENTITIES", "").split(",")
-                if i.strip()
-            ]
-            _TOOLSPECS = ToolSpecBundle.load(
-                raw,
-                key=_os.environ.get("REMORA_TOOLSPEC_SIGNING_KEY", ""),
-                trusted_identities=identities,
-                revoked_identities=revoked,
-                pinned_bundle_digest=(
-                    _os.environ.get("REMORA_TOOLSPEC_PINNED_DIGEST", "").strip()
-                    or None
-                ),
-            )
-    return _TOOLSPECS
-
-
-def _reset_toolspec_bundle() -> None:
-    """Test hook: drop the cached bundle (e.g. after env changes)."""
-    global _TOOLSPECS, _TOOLSPECS_SPEC
-    _TOOLSPECS = None
-    _TOOLSPECS_SPEC = None
+    return _authz_load_bundle(_os.environ)
 
 
 def _resolve_toolspec(
@@ -430,71 +397,23 @@ def _resolve_toolspec(
 
     Every refusal is an HTTP 409 whose detail STARTS with the published
     reason code, so a consumer branches on the code rather than parsing
-    prose. Returns the identity block the response and audit record carry;
-    with no bundle configured it reports enforced=False rather than
-    pretending a spec was checked.
+    prose (the domain refusal is raised by remora.execution.authorization).
     """
-    bundle = _toolspec_bundle()
-    if bundle is None:
-        return {"enforced": False, "tool_id": tool_name, "version": 0,
-                "hash": "", "bundle_digest": ""}
     try:
-        spec = bundle.get(tool_name)
-        bundle.verify_target(tool_name, target_environment)
-        bundle.validate_arguments(tool_name, arguments)
+        return _authz_resolve_toolspec(
+            _toolspec_bundle(), tool_name, arguments, target_environment
+        )
     except ToolSpecRefused as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    return {
-        "enforced": True,
-        "tool_id": spec.tool_id,
-        "version": spec.version,
-        "hash": spec.toolspec_hash,
-        "bundle_digest": bundle.bundle_digest,
-        # Which argument the spec DECLARES as the target. Proposal lineage
-        # keys on it so two calls about different objects are not counted
-        # as one attempt retried; without a spec there is nothing to
-        # declare it, and the lineage record says the key is coarser.
-        "argument_roles": dict(
-            (spec.semantic_contract or {}).get("argument_roles", {})
-        ),
-    }
 
 
 def _assessed_toolspec(tenant: str, item_id: str) -> str:
-    """The ToolSpec hash recorded at assessment for this review item.
-
-    Read back from the audit chain rather than carried in the request: the
-    caller must not be able to tell us which spec it was assessed under,
-    or the comparison proves nothing.
-
-    Keyed on review_item_id and called BEFORE the execute transaction
-    opens. Reading the chain inside that transaction deadlocks against
-    SQLite's BEGIN EXCLUSIVE on the same database file — the same trap the
-    outbox hit, found again by the durable-mode tests.
-    """
+    """The ToolSpec hash recorded at assessment for this review item."""
     return _assessed_record(tenant, item_id)[0]
 
 
 def _assessed_record(tenant: str, item_id: str) -> tuple[str, str]:
-    """The (toolspec_hash, proposal_id) recorded at assessment.
-
-    Read back from the audit chain rather than carried in the request: the
-    caller must not be able to tell us which spec it was assessed under,
-    or the comparison proves nothing.
-
-    Called BEFORE the execute transaction opens. Reading the chain inside
-    that transaction deadlocks against SQLite's BEGIN EXCLUSIVE on the
-    same database file — the same trap the outbox hit, found again by the
-    durable-mode tests.
-    """
-    if not item_id:
-        return "", ""
-    for entry in _CHAIN.entries(tenant):
-        payload = entry.payload
-        if payload.get("event") == "assessed" and                 payload.get("review_item_id") == item_id:
-            return (str(payload.get("toolspec_hash") or ""),
-                    str(payload.get("proposal_id") or ""))
-    return "", ""
+    return _authz_assessed_record(_CHAIN, tenant, item_id)
 
 
 def _record_dispatch_intent(
@@ -562,7 +481,6 @@ def _auth(request: Request) -> tuple[str, str, str]:
 
 
 import json
-from pathlib import Path
 from uuid import uuid4
 
 # Review-state persistence (issue #241 extraction slice 2): the transaction
