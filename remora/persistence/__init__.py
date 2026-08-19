@@ -1,6 +1,13 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Disk-based response cache for REMORA oracles."""
+"""Persistence package.
+
+Historically this was the flat module holding the disk-based oracle
+response cache (Store/CachedOracle); that content lives on below so every
+existing `from remora.persistence import CachedOracle` keeps working.
+Execution-layer adapters (issue #241) live in submodules with no HTTP
+knowledge, e.g. remora.persistence.execution_state.
+"""
 from __future__ import annotations
 import hashlib
 import json
