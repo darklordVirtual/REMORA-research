@@ -1,0 +1,83 @@
+name: Branch Hygiene
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Remove merged PR head
+        if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          default="$(gh api "repos/$REPO" --jq '.default_branch')"
+          if [[ "$HEAD_REF" == "$default" ]]; then
+            exit 0
+          fi
+          echo "Deleting merged PR branch: $HEAD_REF"
+          gh api -X DELETE "repos/$REPO/git/refs/heads/$HEAD_REF" || true
+
+      - name: Checkout full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Sweep branches already merged into default
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          default="$(gh api "repos/$REPO" --jq '.default_branch')"
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+
+          declare -A open_heads=()
+          while IFS= read -r head; do
+            [[ -n "$head" ]] && open_heads["$head"]=1
+          done < <(gh pr list --repo "$REPO" --state open --limit 1000 --json headRefName --jq '.[].headRefName')
+
+          deleted=0
+          skipped_open=0
+
+          while IFS= read -r remote_ref; do
+            branch="${remote_ref#origin/}"
+
+            [[ -z "$branch" || "$branch" == "$default" || "$branch" == "HEAD" ]] && continue
+
+            if [[ -n "${open_heads[$branch]:-}" ]]; then
+              echo "KEEP open PR: $branch"
+              skipped_open=$((skipped_open + 1))
+              continue
+            fi
+
+            echo "DELETE merged branch: $branch"
+            if gh api -X DELETE "repos/$REPO/git/refs/heads/$branch" >/dev/null 2>&1; then
+              deleted=$((deleted + 1))
+            else
+              echo "KEEP protected/unavailable: $branch"
+            fi
+          done < <(
+            git for-each-ref \
+              --format='%(refname:short)' \
+              --merged "origin/$default" \
+              refs/remotes/origin/ \
+            | sort -u
+          )
+
+          echo "Deleted: $deleted"
+          echo "Kept because an open PR exists: $skipped_open"
