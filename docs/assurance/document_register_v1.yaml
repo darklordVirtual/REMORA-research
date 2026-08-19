@@ -2305,7 +2305,19 @@ documents:
   topic: docs_architecture_multi_tenant_security_model_md
   verdict: current
   version: v1
+- audience:
+  - integrator
+  code_synced: verified
+  id: DOC-311
+  last_audited: '2026-08-19'
+  last_reviewed: '2026-08-19'
+  path: docs/architecture/cloudflare_state_architecture.md
+  status: canonical
+  topic: docs_architecture_cloudflare_state_architecture_md
+  verdict: current
+  version: v1
 topics:
+- docs_architecture_cloudflare_state_architecture_md
 - docs_architecture_multi_tenant_security_model_md
 - docs_commercial_product_packaging_md
 - docs_commercial_shadow_pilot_md
