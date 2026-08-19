@@ -70,6 +70,11 @@ def bench(tenant_count: int, items_per_tenant: int) -> dict:
                 pass
         reload_s = time.perf_counter() - t0
 
+        # The transaction adapter's own `with sqlite3.connect(...)` blocks
+        # commit but do not close; on Windows the dropped handles block
+        # TemporaryDirectory cleanup until they are collected.
+        import gc
+        gc.collect()
         # contextlib.closing: sqlite3's context manager commits but does NOT
         # close, and an open handle blocks TemporaryDirectory cleanup on
         # Windows.
