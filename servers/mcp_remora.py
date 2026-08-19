@@ -54,31 +54,116 @@ from pathlib import Path
 
 logging.basicConfig(level=logging.ERROR, stream=sys.stderr)
 
-# ── Worker URLs — resolved from environment, not hardcoded ───────────────────
-# Profiles (set REMORA_PROFILE or override each URL individually):
-#   local    → Python mock engine, no Cloudflare Workers required
-#   demo     → public demo workers (rate-limited, no write access)
-#   enterprise → your own deployed workers (set all _URL vars below)
+# ── Privacy profiles (Phase 9) ────────────────────────────────────────────────
+# The MCP server never sends content off the machine unless a remote profile
+# was EXPLICITLY selected. Three profiles, resolved at startup:
 #
-# Required for enterprise profile:
-#   export REMORA_WORKER_URL=https://your-remora.workers.dev
-#   export RAG_WORKER_URL=https://your-rag.workers.dev
-#   export LAW_SEARCH_WORKER_URL=https://your-law.workers.dev
-#   export AGENT_CONTROL_URL=https://your-control.workers.dev
-#   export AGENT_CONTROL_SECRET=<bearer-token>
-#   export CODEGRAPH_URL=https://your-control.workers.dev/codegraph
+#   local      → DEFAULT. No external endpoints at all; every remote-backed
+#                tool refuses with a machine-readable message. Zero outbound
+#                network calls (tested with the network monkey-patched away).
+#   demo       → public demo workers. Requires explicit opt-in
+#                (REMORA_MCP_PROFILE=demo) and prints a disclosure to stderr:
+#                tool content WILL leave the local environment.
+#   enterprise → your own deployed endpoints. Every required *_URL must be
+#                set explicitly; anything missing is a STARTUP FAILURE, never
+#                a silent fallback to demo or local.
+#
+# There is no fallback path between profiles in any direction.
 
 _DEMO_REMORA = "https://go-star-remora.razorsharp.workers.dev"
 _DEMO_RAG    = "https://remora-rag-oracle.razorsharp.workers.dev"
 _DEMO_LAW    = "https://remora-law-search.razorsharp.workers.dev"
 
-REMORA_WORKER = os.environ.get("REMORA_WORKER_URL", _DEMO_REMORA)
-RAG_WORKER    = os.environ.get("RAG_WORKER_URL",    _DEMO_RAG)
-# Set after deploying workers/agent-control:
-AGENT_CONTROL = os.environ.get("AGENT_CONTROL_URL", "")
-AGENT_SECRET  = os.environ.get("AGENT_CONTROL_SECRET", "")
-CODEGRAPH_URL = os.environ.get("CODEGRAPH_URL") or (f"{AGENT_CONTROL.rstrip('/')}/codegraph" if AGENT_CONTROL else "")
-REPO_SEARCH_URL = os.environ.get("REPO_SEARCH_URL") or (f"{AGENT_CONTROL.rstrip('/')}/search" if AGENT_CONTROL else "")
+MCP_PROFILES = ("local", "demo", "enterprise")
+
+_ENTERPRISE_REQUIRED = (
+    "REMORA_WORKER_URL",
+    "RAG_WORKER_URL",
+    "LAW_SEARCH_WORKER_URL",
+)
+
+DEMO_DISCLOSURE = (
+    "REMORA MCP profile 'demo': tool content (claims, documents, queries) WILL "
+    "be sent to the public demo workers at *.razorsharp.workers.dev — it leaves "
+    "this machine. Do not send sensitive or client data. Use the default "
+    "profile 'local' for offline operation, or 'enterprise' with your own "
+    "endpoints."
+)
+
+LOCAL_REFUSAL = (
+    "external calls are disabled: profile 'local' (the default) sends no data "
+    "off this machine. Explicitly opt in with REMORA_MCP_PROFILE=demo (public "
+    "demo workers — content leaves the local environment) or "
+    "REMORA_MCP_PROFILE=enterprise with your own endpoints."
+)
+
+
+def resolve_profile(environ: dict) -> tuple[str, dict[str, str]]:
+    """Resolve the privacy profile and endpoint set from the environment.
+
+    Fail-closed: an unknown profile or incomplete enterprise configuration
+    raises SystemExit (startup refusal). No profile ever silently substitutes
+    another profile's endpoints.
+    """
+    raw = (
+        environ.get("REMORA_MCP_PROFILE")
+        or environ.get("REMORA_PROFILE")
+        or "local"
+    ).strip().lower()
+    if raw not in MCP_PROFILES:
+        raise SystemExit(
+            f"REMORA MCP: unknown profile {raw!r}. "
+            f"Valid profiles: {', '.join(MCP_PROFILES)}. Refusing to start."
+        )
+
+    if raw == "local":
+        # Endpoint env vars are deliberately ignored in local: an inherited
+        # URL variable must not become a silent data path out of the machine.
+        return raw, {
+            "remora": "", "rag": "", "law": "",
+            "control_url": "", "control_secret": "",
+            "codegraph": "", "repo_search": "",
+        }
+
+    if raw == "demo":
+        print(DEMO_DISCLOSURE, file=sys.stderr)
+        return raw, {
+            "remora": _DEMO_REMORA, "rag": _DEMO_RAG, "law": _DEMO_LAW,
+            # No public demo control plane: write/agent tools stay disabled.
+            "control_url": "", "control_secret": "",
+            "codegraph": "", "repo_search": "",
+        }
+
+    # enterprise
+    missing = [k for k in _ENTERPRISE_REQUIRED if not environ.get(k)]
+    if missing:
+        raise SystemExit(
+            "REMORA MCP: profile 'enterprise' requires explicit endpoints; "
+            f"missing: {', '.join(missing)}. Refusing to start — there is no "
+            "fallback to the public demo workers."
+        )
+    agent_control = environ.get("AGENT_CONTROL_URL", "")
+    return raw, {
+        "remora": environ["REMORA_WORKER_URL"],
+        "rag": environ["RAG_WORKER_URL"],
+        "law": environ["LAW_SEARCH_WORKER_URL"],
+        "control_url": agent_control,
+        "control_secret": environ.get("AGENT_CONTROL_SECRET", ""),
+        "codegraph": environ.get("CODEGRAPH_URL")
+        or (f"{agent_control.rstrip('/')}/codegraph" if agent_control else ""),
+        "repo_search": environ.get("REPO_SEARCH_URL")
+        or (f"{agent_control.rstrip('/')}/search" if agent_control else ""),
+    }
+
+
+MCP_PROFILE, _ENDPOINTS = resolve_profile(dict(os.environ))
+
+REMORA_WORKER   = _ENDPOINTS["remora"]
+RAG_WORKER      = _ENDPOINTS["rag"]
+AGENT_CONTROL   = _ENDPOINTS["control_url"]
+AGENT_SECRET    = _ENDPOINTS["control_secret"]
+CODEGRAPH_URL   = _ENDPOINTS["codegraph"]
+REPO_SEARCH_URL = _ENDPOINTS["repo_search"]
 SSL_CTX       = ssl.create_default_context()
 UA            = "REMORA-MCP/1.0"
 
@@ -212,10 +297,14 @@ def verify_legal_principle(citation: str, attributed_principle: str) -> dict:
     }
 
 
-LAW_SEARCH_WORKER = os.environ.get("LAW_SEARCH_WORKER_URL", _DEMO_LAW)
+LAW_SEARCH_WORKER = _ENDPOINTS["law"]
 
 
 def _post(url: str, payload: dict, timeout: int = 90) -> dict:
+    if not url:
+        # Empty endpoint = the active profile provides none. Refuse without
+        # touching the network — this is the guard the zero-egress test pins.
+        return {"error": LOCAL_REFUSAL}
     body = json.dumps(payload).encode()
     req  = urllib.request.Request(
         url, data=body,
@@ -232,6 +321,8 @@ def _post(url: str, payload: dict, timeout: int = 90) -> dict:
 
 
 def _get(url: str, timeout: int = 15) -> dict:
+    if not url:
+        return {"error": LOCAL_REFUSAL}
     req = urllib.request.Request(url, headers={"User-Agent": UA}, method="GET")
     try:
         with urllib.request.urlopen(req, context=SSL_CTX, timeout=timeout) as r:
