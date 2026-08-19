@@ -42,7 +42,7 @@ dependencies = []
 
 [project.optional-dependencies]
 # Core LLM API clients
-llm = ["openai>=2.52.0", "groq>=1.6.0"]
+llm = ["openai>=3.1.0", "groq>=1.6.0"]
 # Cloud provider SDKs for storage / secrets
 cloud = ["boto3>=1.26"]
 # Cryptography for ZKP and audit integrity features
@@ -63,7 +63,7 @@ datasets = ["datasets>=2.0"]
 # Windows execution can be blocked by application control on torch's shm.dll
 # (WinError 4551) — see NEGATIVE_RESULTS.md section 3.
 nli = ["sentence-transformers>=5.7.0", "torch>=2.13.0"]
-agentharm = ["inspect-ai>=0.3", "inspect-evals", "openai>=2.52.0", "pyyaml>=6.0"]
+agentharm = ["inspect-ai>=0.3", "inspect-evals", "openai>=3.1.0", "pyyaml>=6.0"]
 causal = ["pyyaml>=6.0"]
 # Documentation
 docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
