@@ -2,11 +2,11 @@
 
 **Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research)
 
-*Paper version v0.10.0 · revision 2026-08-07 (synchronized with repository code) · repository review tag `review-v1`.*
+*Paper version v0.10.0 · revision 2026-08-19 (synchronized with repository code) · repository review tag `review-v1`.*
 
 <!-- PAPER_SYNC: this version + revision line is the single authority for the
      paper's version stamp. scripts/check_paper_sync.py requires the SAME
-     "v0.10.0" and "revision 2026-08-07" strings to appear in paper/remora_paper.tex
+     "v0.10.0" and "revision 2026-08-19" strings to appear in paper/remora_paper.tex
      (which compiles the PDF), so the .md, .tex and .pdf can never diverge on
      version, date, or the guarded process claims again. To revise the paper:
      bump both strings here, mirror them in the .tex \paperversion/\date, and
