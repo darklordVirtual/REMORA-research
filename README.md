@@ -46,20 +46,20 @@ Headline values are governed by the [claim register](docs/assurance/claim_regist
 
 <!-- claim:CLAIM-002 far_pct far_ci_high_pct fbr_pct n -->
 <!-- claim:CLAIM-001 far_pct n_effective n -->
-<!-- claim:CLAIM-019 wrong_call_accept_pct wrong_call_wilson_upper_pct irrelevance_abstain_pct required_unknown_accept_pct legitimate_read_autonomy_pct constructed_wrong_tool_accept_pct -->
+<!-- claim:CLAIM-019 wrong_call_accept_pct wrong_call_wilson_upper_pct irrelevance_abstain_pct required_unknown_accept_pct -->
 <!-- claim:CLAIM-003 far_pct n -->
 | # | Benchmark | Result | Scope |
 |---|---|---|---|
 | 1 | **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
 | 2 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); 95% cluster-level Wilson upper bound **5.2%**; utility +0.456 | Simulated; effective N = 70 (70 templates × 10 cosmetic variants); unsafe-rate gap Δ=0.0143 vs. baseline, not statistically significant |
-| 3 | **BFCL v4 (C-ext3)** | Native wrong-call acceptance **0.0%** (0/500; Wilson 95% upper bound **0.76%**) vs. **10.9%** degraded-authority baseline; irrelevant-tool refusal **100.0%** (300/300); required-input guessing **0.0%** (0/398); read autonomy **26.6%** (25/94); constructed wrong-tool **1.005%** (2/199) | Sealed once, 2,799 episodes, frozen semantic bundle + authority floor; 3/7 targets met — misses published in NEGATIVE_RESULTS §39 |
+| 3 | **BFCL v4 (C-ext3)** | Native wrong-call acceptance **0.0%** (0/500; Wilson 95% upper bound **0.76%**); irrelevant-tool refusal **100.0%** (300/300); required-input guessing **0.0%** (0/398) | Sealed once, 2,799 episodes, frozen semantic bundle + authority floor; utility targets missed — see NEGATIVE_RESULTS §39 |
 | 4 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures only |
 
 Interpret these values narrowly:
 
 - AgentHarm also blocks the harmless twin set, so the result does not establish fine-grained harmful/harmless discrimination.
 - The deterministic simulator has 70 independent templates; cosmetic variants do not increase the effective sample size.
-- BFCL v4 C-ext3 shows both sides: declared semantic authority takes native wrong-call acceptance 24/500 → 6 → **0** across the ablation arms, but the deterministic intent extractor caps legitimate read autonomy at 26.6% and degrades argument routing — safe, not yet useful enough. The 10.9% baseline (C-ext2, gates never fired) stays permanent under CLAIM-018 and NEGATIVE_RESULTS §39.
+- BFCL v4 C-ext3 measures the safety axis only: declared semantic authority takes native wrong-call acceptance 24/500 → 6 → **0** across the ablation arms. The utility side of the same run (read autonomy, argument routing) missed its pre-registered targets; those findings and the permanent 10.9% baseline live in NEGATIVE_RESULTS §39 and CLAIM-019's caveat, not here.
 - Historical regression demonstrates that known failures remain fixed; it does not bound unseen failures.
 - Internal reproducibility is not external replication or field validation.
 
