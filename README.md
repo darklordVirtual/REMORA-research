@@ -26,7 +26,7 @@ brings up a governed deployment consuming this repo as seven hash-pinned artifac
 work where a wrong action costs something real: building automation, energy management,
 infrastructure control, regulated enterprise workflows.
 
-**Start here:** [Plain-language overview](docs/plain_language_overview.md) · [Reference architecture](docs/reference_architecture.md) · [Executive one-pager](docs/executive_onepager.md) · [Docs index](docs/README.md)
+**Start here:** [Developer handoff](DEVELOPER_OVERVIEW.md) · [Plain-language overview](docs/plain_language_overview.md) · [Reference architecture](docs/reference_architecture.md) · [Executive one-pager](docs/executive_onepager.md) · [Docs index](docs/README.md)
 
 ---
 ## What it does well
