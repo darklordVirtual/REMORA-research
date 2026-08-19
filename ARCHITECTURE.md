@@ -59,7 +59,13 @@ distinct artifacts. See `docs/02-evidence-and-claims.md` §1 and
 
 ---
 
-## 3. The five-stage pipeline
+## 3. The five-stage assessment pipeline (`/v1/assess`, research surface)
+
+This section describes the **research assessment surface**. Its oracle-backed
+stages (consensus, evidence verification) are experimental augmentation: they
+are **not prerequisites** of the enforcing execution kernel (`/v1/execution/*`,
+see `DEVELOPER_OVERVIEW.md` and `docs/product/product_truth_contract.yaml`)
+and can never override the deterministic hard-guard floor.
 
 A proposed action passes through five stages. An adversarial/coercion **admission
 firewall runs first**, before any oracle call; the remaining deterministic
@@ -170,7 +176,7 @@ observation rather than patching the old one.
 | **Policy engine** | `remora/policy/decision_engine.py` | `RemoraDecisionEngine.decide(obs) -> DecisionReport`; ordered hard-block-first ladder; `explain()` reproduces the full rule-by-rule trace |
 | Policy support | `remora/policy/invariants.py`, `trap_classifier.py`, `opa_adapter.py` | machine-checked safety invariants; irreversibility/impact trap scoring; OPA/Rego integration with a Python fallback |
 | **Governance envelope** | `remora/governance/envelope.py` | `DecisionEnvelope` (v2) + `AuditBlock`, the canonical governance contract |
-| **Cascade pipeline** | `remora/cascade/` | staged execution: `FastGate` → `ConsensusGate` → `VerifierGate` → `CritiqueRevisionGate` → `SelfConsistencyGate` → `MixtureOfAgentsSynth` (see §5) |
+| Cascade pipeline (experimental, `/v1/assess` research surface) | `remora/cascade/` | staged assessment: `FastGate` → `ConsensusGate` → `VerifierGate` → `CritiqueRevisionGate` → `SelfConsistencyGate` → `MixtureOfAgentsSynth` (see §5) |
 | **Consensus core** | `remora/engine.py`, `remora/reporting.py`, `remora/state.py`, `remora/correlation.py` | multi-oracle consensus loop; report + `DecisionEnvelope` assembly (`build_report`) and the `RemoraState` session-state contract split out of `engine.py` (2026-07-29); rolling correlation matrix and diversity weights |
 | **Uncertainty observables** | `remora/thermodynamics.py`, `remora/statphys/` | entropy `H`, dissensus `D`, value `V` as an uncertainty-routing metaphor (not physics) |
 | **Selective prediction** | `remora/selective/` | `conformal.py`, `crc.py` (weight-corrected slack), `pvd.py`, `guardrail.py` (`PhaseAwareGuardrail`), `drift_detector.py` |
@@ -185,7 +191,9 @@ observation rather than patching the old one.
 
 ### 5.1 Cascade Pipeline (`remora/cascade/`)
 
-The cascade pipeline is the primary execution path. It invests compute
+The cascade pipeline is the primary path of the experimental `/v1/assess`
+research surface; it is not part of the enforcing execution kernel
+(`/v1/execution/*`). It invests compute
 proportionally to query difficulty: simple high-confidence actions exit at
 Stage 1; uncertain or contested ones pass through progressively more expensive
 verification stages.

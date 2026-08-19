@@ -59,7 +59,7 @@ Read those before the research modules.
 
 ### Core
 
-The modules above form the current execution/assurance kernel. Their maturity is still bounded by the capability register; “core” does not mean externally verified or production certified.
+The modules above form the current execution/assurance kernel. Their maturity is still bounded by the capability register; “core” does not mean externally verified or production certified. The per-capability classification is machine-checked against `docs/product/product_truth_contract.yaml` by `scripts/check_product_truth.py`.
 
 ### Optional
 

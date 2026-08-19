@@ -1,0 +1,152 @@
+schema_version: "1"
+updated: "2026-08-19"
+
+# Product Truth Contract
+# ----------------------
+# Canonical classification of every advertised REMORA capability. Validated by
+# scripts/check_product_truth.py (CI + `make audit`): public documentation and
+# frontend landing copy must not present a non-core capability as a mandatory
+# component of the canonical product execution path.
+#
+# Canonical product definition (the one sentence everything else must agree with):
+product_definition: >
+  REMORA is an authorization, policy and evidence layer between an AI agent's
+  proposed tool action and privileged execution.
+
+# The canonical production-oriented flow. Non-core capabilities may augment
+# assessment but are never prerequisites for this path and can never override
+# its deterministic hard-guard floor.
+canonical_flow:
+  - authenticated proposal
+  - authoritative context resolution
+  - PolicyObservation
+  - deterministic hard guards
+  - RemoraDecisionEngine
+  - decision (ACCEPT | VERIFY | ABSTAIN | ESCALATE)
+  - human review when required
+  - fresh re-gate
+  - signed capability/grant
+  - PEP verification
+  - exact-call ExecutionLease
+  - durable dispatch intent
+  - controlled tool dispatch
+  - authoritative effect verification
+  - immutable/tamper-evident evidence
+
+classes:
+  core: >
+    Required component of the canonical execution path. Removing it removes a
+    stated guarantee.
+  optional: >
+    Production-relevant integration or augmentation. The canonical path works
+    without it; enabling it must not weaken any guarantee.
+  experimental: >
+    Research machinery. May inform the /v1/assess research surface; never a
+    prerequisite for enforcement and never presented as such.
+  legacy: >
+    Superseded or naming-only remnant kept for historical/compatibility
+    reasons.
+  demo: >
+    Demonstration/simulation surface. Must always be visibly distinguishable
+    from live enforcement.
+
+capabilities:
+  - name: RemoraDecisionEngine
+    class: core
+    module: remora/policy/decision_engine.py
+  - name: PolicyObservation
+    class: core
+    module: remora/policy/observation.py
+  - name: hard guards
+    class: core
+    module: remora/policy/decision_engine.py
+  - name: review queue
+    class: core
+    module: remora/governance/review_queue.py
+  - name: PolicyDecisionToken
+    class: core
+    module: remora/enforcement/token.py
+  - name: EnforcementGate
+    class: core
+    module: remora/enforcement/gate.py
+  - name: ExecutionLease
+    class: core
+    module: remora/enforcement/lease.py
+  - name: GovernedToolDispatcher
+    class: core
+    module: remora/enforcement
+  - name: ExecutionOutbox
+    class: core
+    module: remora/enforcement/outbox.py
+  - name: effect verification
+    class: core
+    module: remora/governance/effect_verification.py
+  - name: tenant audit chain
+    class: core
+    module: remora/governance/tenant_chain.py
+  - name: ToolSpec
+    class: core
+    module: remora/toolcall/toolspec.py
+
+  - name: OPA
+    class: optional
+    module: remora/policy/opa_adapter.py
+    aliases: ["OPA", "Rego"]
+  - name: semantic bundle
+    class: optional
+    module: remora/toolcall/semantic_bundle.py
+    aliases: ["semantic bundle"]
+  - name: MCP
+    class: optional
+    module: servers/mcp_remora.py
+    aliases: ["MCP server", "Model Context Protocol"]
+
+  - name: multi-oracle consensus
+    class: experimental
+    module: remora/engine.py
+    aliases: ["multi-oracle", "multioracle", "oracle consensus", "ConsensusGate", "cascade pipeline"]
+  - name: thermodynamics
+    class: experimental
+    module: remora/thermodynamics.py
+    aliases: ["thermodynamic", "statphys"]
+  - name: AROMER
+    class: experimental
+    module: remora/aromer
+    aliases: ["AROMER"]
+  - name: RAG oracle
+    class: experimental
+    module: workers/rag-oracle
+    aliases: ["RAG oracle", "rag-oracle", "RAG query"]
+  - name: law search
+    class: experimental
+    module: workers/law-search
+    aliases: ["law search", "law-search"]
+
+  - name: frontend simulator
+    class: demo
+    module: frontend/src/routes
+    aliases: ["remora-sim"]
+  - name: Cloudflare agent-control
+    class: legacy
+    module: workers/agent-control
+    aliases: ["agent-control"]
+    note: >
+      Independent authorization/execution inside agent-control is being retired
+      in favour of edge ingress in front of the canonical REMORA execution
+      service (see remediation Phase 2). Classified legacy until that ADR
+      lands.
+
+# Files scanned by scripts/check_product_truth.py for lines that place a
+# non-core capability on the mandatory execution path.
+scan_files:
+  - README.md
+  - DEVELOPER_OVERVIEW.md
+  - ARCHITECTURE.md
+  - docs/README.md
+  - docs/01-architecture.md
+  - frontend/src/routes/index.tsx
+
+# Exempt lines (file + substring): known-safe mentions such as the paper title.
+exemptions:
+  - file: README.md
+    contains: "Multi-Oracle Assurance Architecture"

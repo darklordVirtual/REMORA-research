@@ -90,6 +90,8 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_research_shelf.py
 	@echo "\n-- NEGATIVE_RESULTS status taxonomy --"
 	$(PYTHON) scripts/check_negative_results_status.py
+	@echo "\n-- Product truth contract (capability classes vs public copy) --"
+	$(PYTHON) scripts/check_product_truth.py
 	@echo "\n-- Superseded-claims archive is current --"
 	$(PYTHON) scripts/generate_superseded_claims.py --check
 	@echo "\nFull audit passed. REMORA claims are consistent with code and artifacts."

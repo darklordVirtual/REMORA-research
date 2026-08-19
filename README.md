@@ -36,7 +36,7 @@ The operational path is intentionally small:
 
 The separate `/v1/assess` research surface can use oracle, evidence and uncertainty components. Those components are not prerequisites for the execution kernel and cannot override its deterministic hard-guard floor.
 
-See [DEVELOPER_OVERVIEW.md](DEVELOPER_OVERVIEW.md) for the CORE / OPTIONAL / EXPERIMENTAL / HISTORICAL boundary and [docs/deployment/execution-quickstart.md](docs/deployment/execution-quickstart.md) for a deployment-shaped walkthrough.
+See [DEVELOPER_OVERVIEW.md](DEVELOPER_OVERVIEW.md) for the CORE / OPTIONAL / EXPERIMENTAL / HISTORICAL boundary, the machine-checked [product truth contract](docs/product/product_truth_contract.yaml) for the per-capability classification, and [docs/deployment/execution-quickstart.md](docs/deployment/execution-quickstart.md) for a deployment-shaped walkthrough.
 
 ---
 

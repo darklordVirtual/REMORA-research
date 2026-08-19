@@ -66,10 +66,10 @@ function LandingPage() {
               <span className="text-muted-foreground/50">before they execute</span>
             </h1>
             <p className="text-[14px] md:text-[15px] text-foreground/75 leading-relaxed max-w-2xl mx-auto">
-              REMORA is an assurance layer for tool-calling AI agents. Before any action runs, it is
-              gated to one of four outcomes — with multi-oracle consensus, policy-as-code that
-              overrides a confident-but-wrong majority, and a tamper-evident audit trail. Human
-              authority at every safety threshold.
+              REMORA sits between AI agents and privileged tools. It applies deterministic policy,
+              verifies identity and context, routes uncertain actions to review, and produces
+              tamper-evident evidence from proposal to effect. Optional research oracles can inform
+              assessment — they are never required for enforcement.
             </p>
           </div>
 
@@ -206,8 +206,8 @@ function LandingPage() {
           {/* Flow line */}
           <div className="mt-9 text-center animate-fade-in" style={{ animationDelay: "0.25s" }}>
             <p className="font-mono text-[11px] text-muted-foreground/55">
-              Agent proposes action → Multi-oracle consensus → Policy gate → One of four outcomes →
-              Tamper-evident audit · Human-on-the-loop
+              PROPOSE → ASSESS → AUTHORIZE → EXECUTE → VERIFY EFFECT · Tamper-evident audit ·
+              Human-on-the-loop
             </p>
           </div>
         </div>
