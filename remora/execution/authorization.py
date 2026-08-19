@@ -3,9 +3,8 @@
 """Authoritative-context authorization helpers (issue #241, slice 3).
 
 ToolSpec bundle loading/verification and the assessed-record read-back moved
-from servers/execution_api.py. HTTP conversion stays in the route layer:
-refusals here are ``ToolSpecRefused`` (the route maps them to 409), never
-HTTPException.
+from servers/execution_api.py. Refusals here are ``ToolSpecRefused``; the
+route layer owns all HTTP conversion (it maps them to status 409).
 """
 from __future__ import annotations
 

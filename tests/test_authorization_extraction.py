@@ -35,7 +35,7 @@ def test_route_layer_converts_refusal_to_409(monkeypatch: pytest.MonkeyPatch) ->
 
     class _RefusingBundle:
         def get(self, name):
-            raise ToolSpecRefused("unknown_tool: " + name)
+            raise ToolSpecRefused("unknown_tool", f"no signed spec for {name}")
 
     monkeypatch.setattr(api, "_toolspec_bundle", lambda: _RefusingBundle())
     with pytest.raises(HTTPException) as exc:
