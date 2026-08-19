@@ -24,6 +24,10 @@ class DecisionReason(str, Enum):
     # been produced, tested, or documented — a reason that cannot occur is
     # contract noise, not coverage.
     CONFORMAL_ACCEPT = "conformal_accept"
+    # Issue #35: in the execution profile a probabilistic signal can never
+    # directly produce ACCEPT; the would-be ACCEPT routes to VERIFY with
+    # this reason so the trace states WHY the profile intervened.
+    EXECUTION_PROFILE_PROBABILISTIC_VERIFY = "execution_profile_probabilistic_verify"
     CONFORMAL_ABSTAIN = "conformal_abstain"
     THERMO_REQUIRE_EVIDENCE = "thermo_require_evidence"
     LOW_TRUST = "low_trust"

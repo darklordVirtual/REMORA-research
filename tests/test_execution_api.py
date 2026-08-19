@@ -666,22 +666,24 @@ def test_hash_field_boundaries_are_unambiguous() -> None:
     assert h1 != h2
 
 
-def test_idempotency_cache_dedups_and_evicts(monkeypatch):
-    """N2 (external review 2026-07-28): the idempotency store is a bounded
-    LRU — hits refresh recency, overflow evicts the least-recently-used key,
-    and an evicted key simply misses (assess re-runs)."""
-    import servers.execution_api as exec_mod
+def test_idempotency_store_dedups_and_evicts(monkeypatch):
+    """N2 (external review 2026-07-28): the in-process idempotency store is a
+    bounded LRU — hits refresh recency, overflow evicts the least-recently-
+    used key, and an evicted key simply misses (assess re-runs). The durable
+    adapters are covered in tests/test_idempotency_store.py."""
+    import remora.persistence.idempotency as idem_mod
+    from remora.persistence.idempotency import IdempotencyStore
 
-    exec_mod._IDEMPOTENCY.clear()
-    monkeypatch.setattr(exec_mod, "_IDEMPOTENCY_MAX_ENTRIES", 3)
+    monkeypatch.setattr(idem_mod, "_MAX_ENTRIES", 3)
+    store = IdempotencyStore()
 
     for i in range(3):
-        exec_mod._idempotency_put(f"k{i}", {"n": i})
-    assert exec_mod._idempotency_get("k0") == {"n": 0}  # refreshes k0
+        store.put("t1", f"k{i}", {"n": i})
+    assert store.get("t1", "k0") == {"n": 0}  # refreshes k0
 
-    exec_mod._idempotency_put("k3", {"n": 3})  # overflow: evicts k1 (LRU)
-    assert exec_mod._idempotency_get("k1") is None
-    assert exec_mod._idempotency_get("k0") == {"n": 0}
-    assert exec_mod._idempotency_get("k3") == {"n": 3}
-    assert len(exec_mod._IDEMPOTENCY) == 3
-    exec_mod._IDEMPOTENCY.clear()
+    store.put("t1", "k3", {"n": 3})  # overflow: evicts k1 (LRU)
+    assert store.get("t1", "k1") is None
+    assert store.get("t1", "k0") == {"n": 0}
+    assert store.get("t1", "k3") == {"n": 3}
+    # Tenant scoping: same key under another tenant is a different entry.
+    assert store.get("t2", "k0") is None

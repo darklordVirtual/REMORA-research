@@ -145,7 +145,7 @@ A benchmark result is not field validation. A library implementation is not auto
 
 ## Known boundary
 
-`servers/execution_api.py` is being decomposed by responsibility (issue #241). Extracted so far, each characterized against a byte-identical OpenAPI schema: wire contracts (`servers/execution_contracts.py`), the review-state transaction adapter (`remora/persistence/execution_state.py`) and the ToolSpec authorization context (`remora/execution/authorization.py`). Remaining: service orchestration, dispatch and lifecycle projection. Refactoring must preserve wire contracts, policy semantics, transaction boundaries and audit history.
+`servers/execution_api.py` decomposition is complete (issue #241, closed 2026-08-19, nine slices each characterized against a byte-identical OpenAPI schema): wire contracts in `servers/execution_contracts.py`; review-state persistence in `remora/persistence/execution_state.py`; ToolSpec authorization, dispatch, projections and all five use-case orchestrations (assess/approve/reject/execute/execute-accepted) in `remora/execution/`. The api module is routes + ambient bindings, pinned by route-thinness tests. The remaining engineering boundary is issue #82: dispatch still runs inside the HTTP request process; the durable outbox and the standalone reconciler exist, the decoupled dispatch worker does not yet.
 
 ## Reading order
 
