@@ -58,7 +58,7 @@ diffed in CI.
 
 **Statement.** Historical post-hoc measurements on the spent BFCL v3 set are superseded by the sealed BFCL v4 result in CLAIM-018.
 
-**Caveat.** Do not cite or reproduce the spent-set development figures as current evidence. The active external result is CLAIM-018.
+**Caveat.** Do not cite or reproduce the spent-set development figures as current evidence. The active external result is CLAIM-019.
 
 **Artifacts (still on disk).** `NEGATIVE_RESULTS.md`
 
