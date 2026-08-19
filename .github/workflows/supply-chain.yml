@@ -1,0 +1,142 @@
+name: Supply Chain
+
+# Phase 14 supply-chain hardening: dependency vulnerability scanning and SBOM
+# generation. Additive to the deterministic/research gates, never a
+# replacement. Vulnerability scans are blocking on PRs so a newly-introduced
+# vulnerable pin is caught at review time; the scheduled run catches CVEs
+# published after merge.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [master]
+  schedule:
+    - cron: "23 5 * * *" # daily: CVEs land without commits
+
+concurrency:
+  group: supply-chain-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  pip-audit:
+    name: Python dependency audit (pip-audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install package exactly like the test jobs
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e ".[dev,causal,api]" -c /tmp/constraints.txt
+
+      - name: Audit the installed environment against the committed baseline
+        # New vulnerability IDs fail the job; the committed baseline
+        # (.github/pip_audit_baseline.json) records the currently-known set
+        # explicitly so the backlog is visible and burn-down-able instead of
+        # silently accepted.
+        run: python scripts/check_pip_audit_baseline.py
+
+  npm-audit:
+    name: npm dependency audit (frontend + workers)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [frontend, workers/agent-control, workers/aromer, workers/law-search, workers/rag-oracle]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+
+      - name: Audit lockfile (critical blocks)
+        working-directory: ${{ matrix.dir }}
+        # `--omit=dev` is deliberately NOT used: the devDependencies
+        # (wrangler, esbuild, vite toolchain) run with repo credentials in
+        # CI/deploy, which is exactly the supply-chain surface to watch.
+        # Level CRITICAL for now — the current HIGH findings are all
+        # toolchain-transitive (wrangler 3 / miniflare / vitest-pool-workers
+        # pin exact undici and sharp/libvips versions) and `npm audit fix`
+        # cannot repair them without semver-major toolchain jumps that break
+        # `npm ci` sync (attempted 2026-08-19; miniflare 4 -> 5-alpha).
+        # Burn-down: the deliberate wrangler-4 / vite-toolchain migration.
+        # This acceptance is recorded here explicitly, never silently.
+        run: npm audit --audit-level=critical
+
+  secret-scan:
+    name: Secret scanning (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout (full history so a committed-then-removed secret is caught)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sbom:
+    name: SBOM generation (CycloneDX)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Generate Python SBOM from the lockfile
+        run: |
+          python -m pip install --upgrade pip cyclonedx-bom
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/sbom-reqs.txt
+          cyclonedx-py requirements /tmp/sbom-reqs.txt --of JSON -o sbom-python.cdx.json
+          python -c "import json; d=json.load(open('sbom-python.cdx.json')); print('components:', len(d.get('components', [])))"
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+
+      - name: Generate frontend SBOM from the lockfile
+        working-directory: frontend
+        # cyclonedx-npm shells out to `npm ls`, which flags two pre-existing
+        # lockfile quirks (platform-variant lightningcss stub, nested
+        # lru-cache) as ELSPROBLEMS even though `npm ci` — the same install
+        # the verify job trusts — succeeds. --ignore-npm-errors keeps the
+        # SBOM complete for the tree that actually installs.
+        run: |
+          npm ci
+          npx --yes @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file ../sbom-frontend.cdx.json
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: |
+            sbom-python.cdx.json
+            sbom-frontend.cdx.json
+          retention-days: 90
