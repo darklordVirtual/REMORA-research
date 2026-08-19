@@ -35,6 +35,12 @@ that keep the declaration from becoming a way to grant yourself anything:
    it; they are carried through the same ``_downgrade_only_bool`` path as
    before and are not special-cased here.
 
+For external handoff and controlled-pilot work, the execution path also checks
+``REMORA_RUNTIME_PROFILE`` before this metadata becomes authoritative. Strict
+profiles require signed ToolSpec authority and durable execution state; the
+legacy registry-only path remains available only to development/research
+profiles. See :mod:`remora.toolcall.runtime_profile`.
+
 The file is JSON, not YAML, so the ``[api]`` extra needs no new dependency.
 """
 from __future__ import annotations
@@ -44,6 +50,8 @@ import json
 import os
 from pathlib import Path
 from typing import Any, Mapping
+
+from remora.toolcall.runtime_profile import validate_runtime_profile_prerequisites
 
 __all__ = [
     "DeploymentRegistryError",
@@ -267,7 +275,13 @@ def resolve_tool_metadata(tool_name: str) -> tuple[dict[str, Any], bool]:
     ``declared`` is False only when neither REMORA nor the deployment has
     classified the name — the fail-closed critical/unknown case, unchanged.
     Callers use the flag where the old code tested ``in TOOL_REGISTRY``.
+
+    Strict handoff/pilot profiles are validated before any metadata is
+    returned, so a missing signed ToolSpec or durable store cannot quietly
+    fall back to the legacy registry-only path.
     """
+    validate_runtime_profile_prerequisites()
+
     from servers.execution_api import TOOL_REGISTRY
 
     if (core := TOOL_REGISTRY.get(tool_name)) is not None:
@@ -286,7 +300,13 @@ def deployment_registry_digest() -> str:
     differing only in whitespace or key order describe the same policy and must
     not produce different lease-invalidating hashes. A file that fails to load
     hashes as an explicit marker — it must move the hash, never vanish from it.
+
+    The runtime-profile check here makes the same trust prerequisite visible
+    during policy identity construction/startup, rather than waiting until the
+    first execution request whenever the API computes this digest eagerly.
     """
+    validate_runtime_profile_prerequisites()
+
     spec = os.getenv(ENV_VAR, "").strip()
     if not spec:
         return "none"

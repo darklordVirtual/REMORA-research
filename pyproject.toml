@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "remora"
 version = "0.10.0"
-description = "Research-grade governance overlay for agentic AI actions with multi-oracle consensus, policy gating, uncertainty routing, and audit-oriented controls"
+description = "Research-grade policy-gated execution assurance for agentic AI actions with signed tool authority, deterministic governance, verification routing, and audit controls"
 readme = "README.md"
 # PEP 639 SPDX expression. BUSL-1.1 is source-available, not OSI open source;
 # commercial use requires a separate REMORA Commercial License (LICENSING.md).
@@ -19,10 +19,10 @@ license-files = [
 ]
 authors = [{ name = "Stian Skogbrott", email = "support@luftfiber.no" }]
 keywords = [
-    "agentic-ai", "ai-safety", "ai-governance", "multi-oracle-consensus",
-    "lyapunov-stability", "conformal-prediction", "uncertainty-quantification",
-    "selective-prediction", "policy-as-code", "thermodynamic-ai",
-    "llm", "human-in-the-loop", "audit-trail",
+    "agentic-ai", "ai-safety", "ai-governance", "execution-assurance",
+    "tool-governance", "policy-enforcement", "signed-toolspec",
+    "selective-prediction", "policy-as-code", "human-in-the-loop",
+    "audit-trail", "llm",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
