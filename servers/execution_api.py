@@ -242,7 +242,7 @@ _ITEM_TENANT: dict[str, str] = {}
 
 
 import contextvars as _contextvars
-import copy as _copy
+import dataclasses
 
 # FT-02: the connection of the CURRENTLY OPEN db_transaction_state, exposed
 # so the outbox row can be written inside that same transaction. A
@@ -562,153 +562,35 @@ def _auth(request: Request) -> tuple[str, str, str]:
 
 
 import json
-import dataclasses
 from pathlib import Path
 from uuid import uuid4
-from enum import Enum
-from contextlib import contextmanager
 
-def to_dict(obj):
-    # Recurse into containers: dataclasses.asdict() leaves datetimes and
-    # Enums untouched inside NESTED dataclasses (e.g. PendingReview.approval),
-    # and the previous version never descended into plain dicts — approvals
-    # were unserializable, which went unnoticed exactly because they were
-    # never persisted (external review 2026-07-27, finding 2).
-    if dataclasses.is_dataclass(obj):
-        obj = dataclasses.asdict(obj)
-    if isinstance(obj, dict):
-        return {k: to_dict(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple)):
-        return [to_dict(v) for v in obj]
-    if isinstance(obj, datetime):
-        return obj.isoformat()
-    if isinstance(obj, Enum):
-        return obj.value
-    return obj
+# Review-state persistence (issue #241 extraction slice 2): the transaction
+# adapter lives in remora/persistence/execution_state.py. to_dict/from_dict
+# are re-imported so existing imports through this module keep working.
+from remora.persistence.execution_state import (  # noqa: F401
+    from_dict,
+    to_dict,
+    transaction_state as _transaction_state,
+)
 
-from remora.governance.review_queue import PendingReview, ItemStatus, Approval
 
-def from_dict(d, cls):
-    if hasattr(cls, "__dataclass_fields__"):
-        kwargs = {}
-        for k, v in d.items():
-            field_type = cls.__dataclass_fields__[k].type
-            if 'datetime' in str(field_type) and isinstance(v, str):
-                kwargs[k] = datetime.fromisoformat(v)
-            elif 'ItemStatus' in str(field_type):
-                kwargs[k] = ItemStatus(v)
-            elif 'DecisionAction' in str(field_type):
-                kwargs[k] = DecisionAction(v)
-            elif 'Observation' in str(field_type) and isinstance(v, dict):
-                kwargs[k] = PolicyObservation(**v)
-            elif 'Approval' in str(field_type) and isinstance(v, dict):
-                v['expires_at'] = datetime.fromisoformat(v['expires_at'])
-                v['issued_at'] = datetime.fromisoformat(v['issued_at'])
-                v['approved_action'] = DecisionAction(v['approved_action'])
-                kwargs[k] = Approval(**v)
-            else:
-                kwargs[k] = v
-        return cls(**kwargs)
-    return d
-
-@contextmanager
 def db_transaction_state(tenant: str):
-    global _ITEM_TENANT
-    q = _queue(tenant)
-    dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
-    db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    """One all-or-nothing review-state transaction (see remora.persistence).
 
-    if dsn:
-        import psycopg  # type: ignore
-        with psycopg.connect(dsn) as conn:
-            conn.execute("CREATE TABLE IF NOT EXISTS global_state (tenant_id TEXT PRIMARY KEY, qs_json TEXT, it_json TEXT)")
-            with conn.transaction():
-                row = conn.execute("SELECT qs_json, it_json FROM global_state WHERE tenant_id = %s FOR UPDATE", (tenant,)).fetchone()
-                if row and row[0]:
-                    q._items = {k: from_dict(v, PendingReview) for k, v in json.loads(row[0]).items()}
-                if row and row[1]:
-
-                    _ITEM_TENANT.update(json.loads(row[1]))
-                # Snapshot the in-memory mirrors: the DB transaction rolls
-                # back on exception, but q._items / _ITEM_TENANT would keep
-                # aborted mutations and leak them into the NEXT successful
-                # commit (self-review 2026-07-28).
-                items_snapshot = dict(q._items)
-                tenant_snapshot = dict(_ITEM_TENANT)
-                _tx_token = _ACTIVE_TX_CONNECTION.set(conn)
-                try:
-                    yield q
-                except BaseException:
-                    q._items = items_snapshot
-                    _ITEM_TENANT.clear()
-                    _ITEM_TENANT.update(tenant_snapshot)
-                    raise
-                else:
-                    conn.execute(
-                        "INSERT INTO global_state (tenant_id, qs_json, it_json) VALUES (%s, %s, %s) "
-                        "ON CONFLICT (tenant_id) DO UPDATE SET qs_json = EXCLUDED.qs_json, it_json = EXCLUDED.it_json",
-                        (tenant, json.dumps({k: to_dict(v) for k, v in q._items.items()}), json.dumps(_ITEM_TENANT))
-                    )
-                finally:
-                    _ACTIVE_TX_CONNECTION.reset(_tx_token)
-    elif db_path:
-        import sqlite3
-        with sqlite3.connect(db_path) as conn:
-            conn.execute("CREATE TABLE IF NOT EXISTS global_state (tenant_id TEXT PRIMARY KEY, qs_json TEXT, it_json TEXT)")
-            conn.commit()
-            conn.execute("BEGIN EXCLUSIVE TRANSACTION")
-            row = conn.execute("SELECT qs_json, it_json FROM global_state WHERE tenant_id = ?", (tenant,)).fetchone()
-            if row and row[0]:
-                q._items = {k: from_dict(v, PendingReview) for k, v in json.loads(row[0]).items()}
-            if row and row[1]:
-
-                _ITEM_TENANT.update(json.loads(row[1]))
-            # Snapshot in-memory mirrors (see Postgres branch comment).
-            items_snapshot = dict(q._items)
-            tenant_snapshot = dict(_ITEM_TENANT)
-            _tx_token = _ACTIVE_TX_CONNECTION.set(conn)
-            try:
-                yield q
-            except BaseException:
-                # An exception inside the handler must roll the WHOLE
-                # transaction back — the DB via rollback(), and the
-                # in-memory mirrors via snapshot restore — never persist
-                # partially mutated queue state (external review
-                # 2026-07-28, N1 + self-review follow-up).
-                conn.rollback()
-                q._items = items_snapshot
-                _ITEM_TENANT.clear()
-                _ITEM_TENANT.update(tenant_snapshot)
-                raise
-            else:
-                conn.execute(
-                    "INSERT INTO global_state (tenant_id, qs_json, it_json) VALUES (?, ?, ?) "
-                    "ON CONFLICT (tenant_id) DO UPDATE SET qs_json = excluded.qs_json, it_json = excluded.it_json",
-                    (tenant, json.dumps({k: to_dict(v) for k, v in q._items.items()}), json.dumps(_ITEM_TENANT))
-                )
-                conn.commit()
-            finally:
-                _ACTIVE_TX_CONNECTION.reset(_tx_token)
-    else:
-        # In-process branch: no database to roll back, but the SAME
-        # all-or-nothing promise must hold or crash-matrix row 1 is false
-        # here — a failed authorization would leave the item AUTHORIZED and
-        # not re-executable (found by the fault-injection suite, 2026-08-05).
-        with q._lock:
-            # DEEP copy: q.execute() mutates the PendingReview in place, so a
-            # shallow dict copy restores the mapping while leaving the item
-            # itself mutated. The durable branches survive this because their
-            # next transaction reloads every item from the store; in-process
-            # has no such reload, so the snapshot must own its objects.
-            items_snapshot = _copy.deepcopy(q._items)
-            tenant_snapshot = dict(_ITEM_TENANT)
-            try:
-                yield q
-            except BaseException:
-                q._items = items_snapshot
-                _ITEM_TENANT.clear()
-                _ITEM_TENANT.update(tenant_snapshot)
-                raise
+    Thin binding of this module's ambient state — queue, item→tenant mirror,
+    the outbox's transaction contextvar and the durability env switches —
+    onto the extracted adapter. Semantics unchanged and pinned by the
+    fault-injection suite.
+    """
+    return _transaction_state(
+        tenant,
+        queue=_queue(tenant),
+        item_tenant=_ITEM_TENANT,
+        active_tx_connection=_ACTIVE_TX_CONNECTION,
+        dsn=_os.environ.get("REMORA_PG_DSN", "").strip(),
+        db_path=_os.environ.get("REMORA_CHAIN_DB", "").strip(),
+    )
 
 
 def _queue(tenant: str) -> ReviewQueue:
