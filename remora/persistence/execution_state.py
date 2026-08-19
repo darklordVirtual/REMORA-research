@@ -68,6 +68,69 @@ def from_dict(d, cls):
     return d
 
 
+#: Normalized read-model projection of the review queue (Phase 8, slice 1).
+#: Written in the SAME transaction as global_state; reads still come from
+#: global_state, so authorization semantics are untouched while the
+#: normalized model accumulates. Historical facts stay in the append-only
+#: audit chain — this table is a rebuildable projection, never the record.
+_PROJECTION_DDL = (
+    "CREATE TABLE IF NOT EXISTS review_items_projection ("
+    "item_id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, "
+    "status TEXT NOT NULL, proposal_id TEXT, tool_name TEXT, "
+    "updated_at TEXT NOT NULL)"
+)
+_PROJECTION_INDEXES = (
+    "CREATE INDEX IF NOT EXISTS idx_review_proj_tenant "
+    "ON review_items_projection(tenant_id)",
+    "CREATE INDEX IF NOT EXISTS idx_review_proj_status "
+    "ON review_items_projection(tenant_id, status)",
+    "CREATE INDEX IF NOT EXISTS idx_review_proj_proposal "
+    "ON review_items_projection(proposal_id)",
+    "CREATE INDEX IF NOT EXISTS idx_review_proj_updated "
+    "ON review_items_projection(updated_at)",
+)
+
+
+def _projection_rows(tenant: str, items: dict[str, Any]) -> list[tuple]:
+    from datetime import UTC, datetime
+
+    now = datetime.now(UTC).isoformat()
+    rows: list[tuple] = []
+    for item_id, item in items.items():
+        status = getattr(getattr(item, "status", None), "value", None) or str(
+            getattr(item, "status", "")
+        )
+        obs = getattr(item, "observation", None)
+        rows.append((
+            str(item_id),
+            tenant,
+            status,
+            getattr(obs, "proposal_id", None),
+            getattr(obs, "proposed_tool_name", None),
+            now,
+        ))
+    return rows
+
+
+def _persist_projection(conn: Any, tenant: str, items: dict[str, Any],
+                        placeholder: str) -> None:
+    conn.execute(_PROJECTION_DDL)
+    for ddl in _PROJECTION_INDEXES:
+        conn.execute(ddl)
+    conn.execute(
+        f"DELETE FROM review_items_projection WHERE tenant_id = {placeholder}",
+        (tenant,),
+    )
+    for row in _projection_rows(tenant, items):
+        conn.execute(
+            "INSERT INTO review_items_projection "
+            "(item_id, tenant_id, status, proposal_id, tool_name, updated_at) "
+            f"VALUES ({placeholder},{placeholder},{placeholder},"
+            f"{placeholder},{placeholder},{placeholder})",
+            row,
+        )
+
+
 @contextmanager
 def transaction_state(
     tenant: str,
@@ -119,6 +182,7 @@ def transaction_state(
                         "ON CONFLICT (tenant_id) DO UPDATE SET qs_json = EXCLUDED.qs_json, it_json = EXCLUDED.it_json",
                         (tenant, json.dumps({k: to_dict(v) for k, v in q._items.items()}), json.dumps(item_tenant))
                     )
+                    _persist_projection(conn, tenant, q._items, "%s")
                 finally:
                     active_tx_connection.reset(_tx_token)
     elif db_path:
@@ -156,6 +220,7 @@ def transaction_state(
                     "ON CONFLICT (tenant_id) DO UPDATE SET qs_json = excluded.qs_json, it_json = excluded.it_json",
                     (tenant, json.dumps({k: to_dict(v) for k, v in q._items.items()}), json.dumps(item_tenant))
                 )
+                _persist_projection(conn, tenant, q._items, "?")
                 conn.commit()
             finally:
                 active_tx_connection.reset(_tx_token)
