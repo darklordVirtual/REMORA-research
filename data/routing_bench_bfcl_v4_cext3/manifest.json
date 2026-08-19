@@ -1,0 +1,2368 @@
+{
+  "admission": {
+    "eligible_argument_roles": [],
+    "excluded_argument_roles": [
+      "_class",
+      "_from",
+      "accepts_insurance",
+      "access_mode",
+      "access_token",
+      "additional_luggage",
+      "airlines",
+      "alarm_time",
+      "album",
+      "alert_type",
+      "apdexId",
+      "api_key",
+      "area",
+      "artist",
+      "autoplay",
+      "availability",
+      "available_for_pet",
+      "avg_rating",
+      "base_branch",
+      "brand",
+      "car_type",
+      "cast",
+      "category",
+      "check_in_date",
+      "check_out_date",
+      "cik",
+      "city",
+      "color",
+      "command",
+      "company_name",
+      "completion_date",
+      "component",
+      "contact_id",
+      "content",
+      "country",
+      "cuisine",
+      "currency",
+      "database",
+      "date",
+      "date_format",
+      "date_of_journey",
+      "date_range",
+      "dateortime",
+      "default_date",
+      "departure_date",
+      "departure_time",
+      "destination",
+      "destination_airport",
+      "details",
+      "device",
+      "directed_by",
+      "district_name",
+      "download",
+      "email_address",
+      "enabled",
+      "end_available_date",
+      "end_date",
+      "endingBefore",
+      "eventId",
+      "event_name",
+      "event_type",
+      "exchange",
+      "excludeInactive",
+      "excludeTriggeredBefore",
+      "experience_level",
+      "experience_or_education_name",
+      "experience_or_education_type",
+      "extra_service_id",
+      "filter",
+      "format",
+      "free_entry",
+      "from_city",
+      "game",
+      "genre",
+      "good_for_kids",
+      "has_garage",
+      "has_late_check_in",
+      "has_laundry_service",
+      "has_quality_problem",
+      "has_seating_outdoors",
+      "has_vegetarian_options",
+      "host",
+      "id",
+      "id_no",
+      "identification_number",
+      "identifier",
+      "image_format",
+      "image_quality",
+      "in_unit_laundry",
+      "include_archived",
+      "include_completed",
+      "include_condition",
+      "include_details",
+      "include_disabled",
+      "include_experiences",
+      "include_expired",
+      "include_financials",
+      "include_forecast",
+      "include_hidden",
+      "include_humidity",
+      "include_metadata",
+      "include_recurring",
+      "include_revoked",
+      "include_rules",
+      "input_text",
+      "insurance_accepted",
+      "intent",
+      "is_cleaning_condo",
+      "is_cleaning_home",
+      "is_cleaning_office",
+      "is_excellent",
+      "is_package",
+      "is_subscription",
+      "is_unisex",
+      "item_name",
+      "job_qty",
+      "journey_start_time",
+      "keyword",
+      "language",
+      "limit",
+      "loc",
+      "location",
+      "max_age",
+      "max_length",
+      "max_results",
+      "max_tokens",
+      "min_age",
+      "mission",
+      "movie_name",
+      "name",
+      "namespace",
+      "new_alarm_name",
+      "new_alarm_time",
+      "nickname",
+      "no_html",
+      "no_redirect",
+      "num_passengers",
+      "num_results",
+      "number_of_adults",
+      "number_of_rooms",
+      "number_of_seats",
+      "offset",
+      "onlyRoot",
+      "order",
+      "order_id",
+      "origin",
+      "origin_airport",
+      "page",
+      "pageSize",
+      "password",
+      "path",
+      "payment_method",
+      "person_id",
+      "person_name",
+      "phone_number",
+      "pickup_time",
+      "platform",
+      "point_name",
+      "port",
+      "price_max",
+      "price_min",
+      "price_range",
+      "private_visibility",
+      "product",
+      "product_id",
+      "professional_group_id",
+      "project",
+      "project_id",
+      "project_name",
+      "project_version",
+      "prompt",
+      "property_name",
+      "province_id",
+      "publisher",
+      "purpose",
+      "q",
+      "query",
+      "question",
+      "rating",
+      "receiver",
+      "releaseId",
+      "repeat",
+      "restaurant",
+      "restaurant_id",
+      "restaurant_name",
+      "retry_attempts",
+      "return_probabilities",
+      "ride_type",
+      "search_string",
+      "seating_class",
+      "section",
+      "serials",
+      "server_type",
+      "service_id",
+      "service_ids",
+      "service_name",
+      "show_date",
+      "show_time",
+      "show_type",
+      "shuffle",
+      "size",
+      "sizes",
+      "skill",
+      "skip_disambiguation",
+      "smoking_allowed",
+      "sort",
+      "sort_by",
+      "sort_order",
+      "source",
+      "src_lang",
+      "star_rating",
+      "starring",
+      "start_available_date",
+      "start_date",
+      "startingAfter",
+      "statement",
+      "status",
+      "status_filter",
+      "sub_district_name",
+      "t0",
+      "t1",
+      "temperature",
+      "temperature_unit",
+      "tenant_id",
+      "tgt_lang",
+      "theater_name",
+      "ticker",
+      "ticket_number",
+      "time",
+      "timeout",
+      "timezone",
+      "title",
+      "to",
+      "to_city",
+      "topic",
+      "track",
+      "trophy",
+      "type",
+      "unit",
+      "units",
+      "urgency_level",
+      "use_ssl",
+      "user_id",
+      "username",
+      "uuid",
+      "version",
+      "visit_date",
+      "volume",
+      "vulnerability",
+      "websiteId",
+      "where_to",
+      "windowSize",
+      "year",
+      "years_experience"
+    ],
+    "minimum_judgeable_fraction": 0.9,
+    "observed_judgeable_fraction": 0.0,
+    "per_role": [
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "_class",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 11,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "_from",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "accepts_insurance",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "access_mode",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "access_token",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "additional_luggage",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "airlines",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "alarm_time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 38,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "album",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "alert_type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "apdexId",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "api_key",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 20,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "area",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 38,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "artist",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "autoplay",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "availability",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 16,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "available_for_pet",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 12,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "avg_rating",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "base_branch",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "brand",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 6,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "car_type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 36,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "cast",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 31,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "category",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "check_in_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "check_out_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "cik",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 103,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "city",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 6,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "color",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "command",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "company_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "completion_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "component",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "contact_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "content",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "country",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "cuisine",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "currency",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "database",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 70,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "date_format",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 10,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "date_of_journey",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "date_range",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "dateortime",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "default_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 15,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "departure_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "departure_time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "destination",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "destination_airport",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "details",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 9,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "device",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 36,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "directed_by",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 17,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "district_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "download",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "email_address",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "enabled",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 17,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "end_available_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 10,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "end_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "endingBefore",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "eventId",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "event_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 46,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "event_type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "exchange",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "excludeInactive",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "excludeTriggeredBefore",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "experience_level",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "experience_or_education_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "experience_or_education_type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "extra_service_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "filter",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "format",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 11,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "free_entry",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 11,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "from_city",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "game",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 96,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "genre",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 11,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "good_for_kids",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 10,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "has_garage",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 17,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "has_late_check_in",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 9,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "has_laundry_service",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 17,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "has_quality_problem",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 8,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "has_seating_outdoors",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "has_vegetarian_options",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 9,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "host",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "id_no",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "identification_number",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "identifier",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "image_format",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "image_quality",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 15,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "in_unit_laundry",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_archived",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_completed",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_condition",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_details",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_disabled",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_experiences",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_expired",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_financials",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_forecast",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_hidden",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_humidity",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_metadata",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_recurring",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_revoked",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "include_rules",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "input_text",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "insurance_accepted",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 20,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "intent",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 16,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "is_cleaning_condo",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 17,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "is_cleaning_home",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 17,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "is_cleaning_office",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 15,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "is_excellent",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 15,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "is_package",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 17,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "is_subscription",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "is_unisex",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "item_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 16,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "job_qty",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "journey_start_time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "keyword",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "language",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "limit",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "loc",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 57,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "location",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 16,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "max_age",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "max_length",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "max_results",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "max_tokens",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 16,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "min_age",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "mission",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "movie_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 10,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "namespace",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "new_alarm_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "new_alarm_time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 10,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "nickname",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "no_html",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "no_redirect",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "num_passengers",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "num_results",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "number_of_adults",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "number_of_rooms",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "number_of_seats",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "offset",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "onlyRoot",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "order",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "order_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "origin",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "origin_airport",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "page",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "pageSize",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "password",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "path",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 14,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "payment_method",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "person_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "person_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "phone_number",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 6,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "pickup_time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "platform",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "point_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "port",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "price_max",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "price_min",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 8,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "price_range",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 6,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "private_visibility",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "product",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 6,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "product_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 16,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "professional_group_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "project",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "project_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "project_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "project_version",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "prompt",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "property_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "province_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "publisher",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "purpose",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "q",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 10,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "query",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "question",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "rating",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 18,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "receiver",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "releaseId",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "repeat",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "restaurant",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "restaurant_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "restaurant_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "retry_attempts",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "return_probabilities",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "ride_type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "search_string",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 4,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "seating_class",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "section",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "serials",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "server_type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 10,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "service_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "service_ids",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "service_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "show_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 5,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "show_time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 22,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "show_type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "shuffle",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "size",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "sizes",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "skill",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "skip_disambiguation",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "smoking_allowed",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "sort",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "sort_by",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "sort_order",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "source",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "src_lang",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 8,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "star_rating",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 14,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "starring",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 17,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "start_available_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 11,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "start_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "startingAfter",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "statement",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "status",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "status_filter",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 10,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "sub_district_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "t0",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "t1",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "temperature",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "temperature_unit",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "tenant_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "tgt_lang",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 17,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "theater_name",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "ticker",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "ticket_number",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "time",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "timeout",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "timezone",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "title",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 11,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "to",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 11,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "to_city",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "topic",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 9,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "track",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "trophy",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 20,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "type",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "unit",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "units",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "urgency_level",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "use_ssl",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "user_id",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 7,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "username",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "uuid",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "version",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "visit_date",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "volume",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 3,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "vulnerability",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "websiteId",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 10,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "where_to",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 2,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "windowSize",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 23,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "year",
+        "wrong_arg_n": 0
+      },
+      {
+        "eligible": false,
+        "identity_n": 1,
+        "judgeable_fraction": 0.0,
+        "judgeable_n": 0,
+        "role": "years_experience",
+        "wrong_arg_n": 0
+      }
+    ],
+    "status": "ineligible"
+  },
+  "caveat": "Evaluated once, sealed. Configuration: frozen deterministic semantic bundle (contracts from tool names only; intent from task text only), semantic_authority_floor on, low_consequence_accept on, EMPTY state index (BFCL provides no system of record and none is invented) \u2014 the accept property is SEMANTICALLY AUTHORIZED READ, explicitly weaker than SAP v4 grounded read. No retuning against this set is permitted; misses are published as measured.",
+  "excluded_axes": {
+    "wrong_argument_value": "No vouchable external state table; labels may not be used as authority."
+  },
+  "frozen_goal_match_sha256": "65c0b5473770a7c7c7e054b1d074589ffd0a0073dc6e434c6addaee75de8a0b1",
+  "frozen_semantic_bundle_sha256": "860768b6150c746af5b51df44b28108215ae1e080d554251ed95e6f687754dc0",
+  "n_clusters": 800,
+  "n_episodes": 2799,
+  "registry_sha256": "c0ba92e2034ab672836876d8f0743ba78ffa7f66db4a431ee2f7ce3d03c9542c",
+  "route_table_version_hash": "2b420160d0dfe0ce7e28a1eff2b3a9b85be77be1f089360d154b7c9de53b55c7",
+  "sap": "docs/assurance/statistical_analysis_plan_v5_bfcl_semantic.md",
+  "schema": "routing_bench_bfcl_v4_cext3_v1",
+  "sha256": "5fdd32c1e048935db0991157b223eb92dd51b61724cac79433c5f062c42b9ee6",
+  "status": "sealed_never_run",
+  "targets": {
+    "constructed_wrong_tool_accept": [
+      "<=",
+      0.01
+    ],
+    "irrelevance_abstain_recall": [
+      ">=",
+      0.95
+    ],
+    "known_wrong_call_accept": [
+      "<=",
+      0.01
+    ],
+    "legitimate_read_autonomy": [
+      ">=",
+      0.75
+    ],
+    "obtainable_verify_recall": [
+      ">=",
+      0.95
+    ],
+    "required_unknown_auto_accept": [
+      "<=",
+      0.0
+    ],
+    "unobtainable_abstain_recall": [
+      ">=",
+      0.95
+    ]
+  },
+  "track": "C-ext3 \u2014 BFCL v4 semantic-authority confirmation (SAP v5)",
+  "upstream": {
+    "commit": "6ea57973c7a6097fd7c5915698c54c17c5b1b6c8",
+    "disjoint_from": "spent v3 AND spent C-ext2 populations",
+    "files": {
+      "answers": "e9237516245599c2f017d9d4553f5e83a53cd40d65c9028b14372402a549f0bb",
+      "irrelevance": "c8bda00ddfd9469d16681403a2f674b67ffcc9d8e3bd619b3928131895694576",
+      "positive": "95fe6f0cc1a3555285bae6b3b549fc5c597781120eb9c4eecd990feac26c4ac4"
+    },
+    "license": "Apache-2.0",
+    "overlap_count": 0,
+    "repo": "https://github.com/ShishirPatil/gorilla",
+    "samples": {
+      "irrelevance": {
+        "n": 300,
+        "population": 368,
+        "sha256": "9861c90919c92a1fdd89433a2d0c208044adb0665b370849aed75a4a3a2e7303"
+      },
+      "positive": {
+        "n": 500,
+        "population": 795,
+        "sha256": "c19782fed5c0440fa5c256d85b2d4d82ded609e0966ad913a4acef45c53a0e0a"
+      },
+      "seed": 20260820
+    }
+  }
+}
