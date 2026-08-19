@@ -150,6 +150,18 @@ Refusal reason codes: `REVIEWER_IDENTITY_REQUIRED`, `SELF_APPROVAL_FORBIDDEN`,
 decided, and links each decision to the one before it, so a deleted or edited
 record is detectable instead of merely absent.
 
+**Numeric payload contract.** The chain is written in TypeScript and verified
+in Python, and the two languages serialize four numeric shapes differently:
+integral-valued floats (`1.0` vs `1`), negative zero, `1e20` (positional in
+ECMAScript), and integers beyond 2^53 (JavaScript precision loss). Payloads
+on the envelope path must stay inside the agreed domain — plain integers up
+to 2^53−1, non-integral floats, strings, booleans, null — or carry such
+values as strings. The agreement domain and the pinned divergences are frozen
+in `tests/golden/canonical_json_vectors_v1.json`
+(`tests/test_canonical_json_golden_vectors.py` runs both languages against
+them); changing a vector is a hash-contract change requiring an explicit
+migration.
+
 ```
 GET /envelopes?session_id=<id>&limit=50   List stored envelopes (admin)
 GET /envelopes/<request_id>               Fetch one envelope (admin)
