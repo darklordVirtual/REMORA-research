@@ -10,6 +10,7 @@ import { META } from "@/content/whitepaper";
  */
 
 const CONSOLE_NAV = [
+  { to: "/executions", label: "Executions" },
   { to: "/operations", label: "Operations" },
   { to: "/approvals", label: "Approvals" },
   { to: "/control-room", label: "Control Room" },
