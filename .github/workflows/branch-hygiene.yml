@@ -11,12 +11,12 @@ permissions:
 
 jobs:
   cleanup:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.action == 'closed'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - name: Delete branches whose same-repository PR has been merged
+      - name: Delete branches whose same-repository PR has been closed
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -34,17 +34,17 @@ jobs:
               --jq '.[] | [.head.repo.full_name, .head.ref] | @tsv'
           )
 
-          declare -A merged_heads=()
+          declare -A closed_heads=()
           while IFS=$'\t' read -r head_repo head; do
-            [[ "$head_repo" == "$REPO" && -n "$head" ]] && merged_heads["$head"]=1
+            [[ "$head_repo" == "$REPO" && -n "$head" ]] && closed_heads["$head"]=1
           done < <(
             gh api --paginate "repos/$REPO/pulls?state=closed&per_page=100" \
-              --jq '.[] | select(.merged_at != null) | [.head.repo.full_name, .head.ref] | @tsv'
+              --jq '.[] | [.head.repo.full_name, .head.ref] | @tsv'
           )
 
           deleted=0
           kept_open=0
-          kept_unmerged=0
+          kept_unverified=0
 
           while IFS= read -r branch; do
             [[ -z "$branch" || "$branch" == "$default" ]] && continue
@@ -55,13 +55,13 @@ jobs:
               continue
             fi
 
-            if [[ -z "${merged_heads[$branch]:-}" ]]; then
-              echo "KEEP no merged PR evidence: $branch"
-              kept_unmerged=$((kept_unmerged + 1))
+            if [[ -z "${closed_heads[$branch]:-}" ]]; then
+              echo "KEEP no closed PR evidence: $branch"
+              kept_unverified=$((kept_unverified + 1))
               continue
             fi
 
-            echo "DELETE merged PR branch: $branch"
+            echo "DELETE closed PR branch: $branch"
             if gh api -X DELETE "repos/$REPO/git/refs/heads/$branch" >/dev/null 2>&1; then
               deleted=$((deleted + 1))
             else
@@ -71,6 +71,6 @@ jobs:
             gh api --paginate "repos/$REPO/branches?per_page=100" --jq '.[].name'
           )
 
-          echo "Deleted merged PR branches: $deleted"
+          echo "Deleted closed PR branches: $deleted"
           echo "Kept because an open PR exists: $kept_open"
-          echo "Kept because no merged PR evidence exists: $kept_unmerged"
+          echo "Kept because no closed PR evidence exists: $kept_unverified"
