@@ -38,11 +38,8 @@ from fastapi import APIRouter, HTTPException, Request
 
 from remora.enforcement.gate import EnforcementGate
 from remora.enforcement.lease import (
-    ExecutionLease,
     GovernedToolDispatcher,
-    LeaseRefused,
 )
-from remora.enforcement.result_envelope import capture_tool_result
 from remora.toolcall.deployment_registry import resolve_tool_metadata
 from remora.enforcement.token import PolicyDecisionToken
 from remora.enforcement.outbox import (
@@ -378,6 +375,10 @@ def reconcile_stale_dispatches(tenant: str, *, now=None) -> list:
 # loading/verification and the assessed-record read-back live in
 # remora/execution/authorization.py. These wrappers bind this module's
 # ambient state (env, chain) and keep the HTTP conversion at the route layer.
+from remora.execution.dispatch import (
+    dispatch_under_lease as _dispatch_under_lease_impl,
+    record_dispatch_intent as _record_dispatch_intent_impl,
+)
 from remora.execution.authorization import (
     assessed_record as _authz_assessed_record,
     load_toolspec_bundle as _authz_load_bundle,
@@ -425,31 +426,13 @@ def _record_dispatch_intent(
     tool_call_hash: str,
     grant_jti: str,
 ):
-    """Record the dispatch intent, inside the authorize transaction when one
-    is open.
-
-    With a durable backend the row commits with the authorization and rolls
-    back with it, so "authorized" and "a dispatch was intended" can never
-    disagree. Without one (development), the in-process store records it
-    non-atomically — a limitation of that configuration, not of the design.
-    """
-    outbox = _outbox()
-    connection = _ACTIVE_TX_CONNECTION.get()
-    # Only the durable adapters can join a transaction; the in-process base
-    # class refuses enlistment by design rather than faking the guarantee.
-    if connection is not None and type(outbox) is not ExecutionOutbox:
-        return outbox.record_intent_enlisted(
-            connection,
-            proposal_id=proposal_id,
-            tenant_id=tenant,
-            item_id=item_id,
-            tool_name=tool_name,
-            tool_call_hash=tool_call_hash,
-            grant_jti=grant_jti,
-        )
-    return outbox.record_intent(
+    """Record the dispatch intent (see remora.execution.dispatch); binds this
+    module's outbox and the ambient transaction contextvar."""
+    return _record_dispatch_intent_impl(
+        _outbox(),
+        _ACTIVE_TX_CONNECTION.get(),
         proposal_id=proposal_id,
-        tenant_id=tenant,
+        tenant=tenant,
         item_id=item_id,
         tool_name=tool_name,
         tool_call_hash=tool_call_hash,
@@ -1173,68 +1156,20 @@ def _dispatch_under_lease(
     gate_allowed: bool = True,
     toolspec: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Dispatch one authorized call through the governed dispatcher.
-
-    Shared by the review path (/execute) and the ACCEPT path
-    (/execute-accepted) so both get identical enforcement: a lease bound to
-    tenant, actor, tool, exact arguments, target and the current policy
-    bundle, dispatched by the component that holds the credentials — never
-    the caller. Every refusal is named rather than collapsed into a
-    generic failure, and the return value reports what REALLY happened
-    instead of implying execution.
-    """
-    tool_execution: dict[str, Any] = {"executed": False}
-    if not gate_allowed:
-        tool_execution["refusal_reason"] = "pep_denied"
-        return tool_execution
-    dispatcher = _tool_dispatcher()
-    if dispatcher is None:
-        tool_execution["refusal_reason"] = "policy_bundle_unavailable"
-        return tool_execution
-    try:
-        lease = ExecutionLease.issue(
-            decision="accept",
-            tenant_id=tenant,
-            actor_identity=principal,
-            tool_name=tool_call.tool_name,
-            arguments=tool_call.arguments,
-            target_environment=tool_call.target_environment,
-            policy_bundle_hash=_current_policy_bundle_hash(),
-            issued_at=now.isoformat(),
-            tool_contract_bundle_hash=semantic["tool_contract_bundle_hash"],
-            intent_authority_hash=semantic["intent_authority_hash"],
-            toolspec_hash=(toolspec or {}).get("hash", ""),
-            toolspec_version=int((toolspec or {}).get("version", 0)),
-        )
-    except (LeaseRefused, ValueError) as exc:
-        tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
-        return tool_execution
-    try:
-        dres = dispatcher.dispatch(
-            lease,
-            tool_call.tool_name,
-            tool_call.arguments,
-            tenant_id=tenant,
-            target_environment=tool_call.target_environment,
-            actor_identity=principal,
-        )
-    except RuntimeError as exc:
-        # Tool raised: the nonce is burned, state is unknown.
-        tool_execution["refusal_reason"] = "tool_failed_nonce_burned"
-        tool_execution["error"] = str(exc)
-        return tool_execution
-    tool_execution["executed"] = dres.executed
-    if dres.executed:
-        # Bounded retention, unbounded verification: the hash covers the
-        # full result even when the preview is truncated, so an oversized
-        # or hostile tool output cannot inflate the audit chain or the
-        # response while still being provable in replay.
-        captured = capture_tool_result(dres.result)
-        tool_execution["result"] = captured.preview
-        tool_execution["result_envelope"] = captured.to_dict()
-    else:
-        tool_execution["refusal_reason"] = dres.refusal_reason
-    return tool_execution
+    """Governed dispatch (see remora.execution.dispatch); binds this module's
+    dispatcher and current policy bundle hash. Shared by /execute and
+    /execute-accepted so both get identical enforcement."""
+    return _dispatch_under_lease_impl(
+        tenant=tenant,
+        principal=principal,
+        tool_call=tool_call,
+        semantic=semantic,
+        now=now,
+        dispatcher=_tool_dispatcher(),
+        policy_bundle_hash=_current_policy_bundle_hash(),
+        gate_allowed=gate_allowed,
+        toolspec=toolspec,
+    )
 
 
 @router.post("/execute", responses={
