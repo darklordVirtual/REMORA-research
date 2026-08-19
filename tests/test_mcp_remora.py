@@ -6,6 +6,18 @@ import unittest.mock as mock
 sys.path.insert(0, str(Path(__file__).parent.parent / "servers"))
 import mcp_remora
 
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def _demo_endpoints(monkeypatch):
+    """These plumbing tests assert against demo endpoint URLs; the module now
+    defaults to profile 'local' (no endpoints), so simulate an explicit demo
+    profile. _post/_get are mocked in every test — nothing touches the network."""
+    monkeypatch.setattr(mcp_remora, "REMORA_WORKER", mcp_remora._DEMO_REMORA)
+    monkeypatch.setattr(mcp_remora, "RAG_WORKER", mcp_remora._DEMO_RAG)
+    monkeypatch.setattr(mcp_remora, "LAW_SEARCH_WORKER", mcp_remora._DEMO_LAW)
+
 
 def _rag_verdict(conf=0.88, models_agreed=True):
     return {
