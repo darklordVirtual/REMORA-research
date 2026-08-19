@@ -115,7 +115,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - **Source:** Generic statistical-physics constructs (q-state Potts model, Gibbs/Boltzmann distribution, Lyapunov objective) used as operational analogy. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
 - **Concepts:** entropy_order_parameter, phase_regime_classification, lyapunov_stability
 - **REMORA controls:** phase_classification, thermodynamic_braking
-- **Code:** [`remora/statphys/potts.py`](../../remora/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py), [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py)
+- **Code:** [`remora/research_attic/statphys/potts.py`](../../remora/research_attic/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py), [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py)
 - **Tests:** [`tests/test_statphys.py`](../../tests/test_statphys.py), [`tests/test_thermodynamics.py`](../../tests/test_thermodynamics.py), [`tests/test_thermodynamic_braking.py`](../../tests/test_thermodynamic_braking.py)
 - **Evidence:** Regime classification (ordered/critical/disordered) and selective-trust routing exist as tested library code. NOT evidence of runtime effect: verified 2026-08-07 that no governed path populates these signals — servers/api.py never references the consensus state, servers/execution_api.py passes trust_score=None and phase=None, and build_full_observation leaves the fields at their None defaults, so the critical_phase_critical_risk rule cannot fire in production.
 - **Maturity:** `implemented_and_tested`
@@ -183,13 +183,13 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | [`remora/oracles/evidence_v3.py`](../../remora/oracles/evidence_v3.py) | RES-006 |
 | [`remora/oracles/evidence_verifier.py`](../../remora/oracles/evidence_verifier.py) | RES-006 |
 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py) | RES-007 |
+| [`remora/research_attic/statphys/potts.py`](../../remora/research_attic/statphys/potts.py) | RES-007 |
 | [`remora/selective/binomial_bounds.py`](../../remora/selective/binomial_bounds.py) | RES-003 |
 | [`remora/selective/confidence_sequence.py`](../../remora/selective/confidence_sequence.py) | RES-010 |
 | [`remora/selective/conformal.py`](../../remora/selective/conformal.py) | RES-002 |
 | [`remora/selective/crc.py`](../../remora/selective/crc.py) | RES-003 |
 | [`remora/selective/guardrail.py`](../../remora/selective/guardrail.py) | RES-002 |
 | [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) | RES-002 |
-| [`remora/statphys/potts.py`](../../remora/statphys/potts.py) | RES-007 |
 | [`remora/thermodynamics.py`](../../remora/thermodynamics.py) | RES-007 |
 | [`remora/toolcall/remora_gate.py`](../../remora/toolcall/remora_gate.py) | RES-005 |
 | [`remora/toolcall/schema.py`](../../remora/toolcall/schema.py) | RES-005 |
@@ -211,10 +211,10 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | `independent_verifier_gate` | RES-004 | [`remora/cascade/stages.py`](../../remora/cascade/stages.py), [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py), [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py) |
 | `multi_oracle_consensus` | RES-004 | [`remora/cascade/stages.py`](../../remora/cascade/stages.py), [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py), [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py) |
 | `phase_aware_guardrail` | RES-002 | [`remora/selective/conformal.py`](../../remora/selective/conformal.py), [`remora/selective/guardrail.py`](../../remora/selective/guardrail.py), [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) |
-| `phase_classification` | RES-007 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py), [`remora/statphys/potts.py`](../../remora/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py) |
+| `phase_classification` | RES-007 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py), [`remora/research_attic/statphys/potts.py`](../../remora/research_attic/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py) |
 | `reviewed_policy_proposals` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
 | `selective_routing` | RES-002 | [`remora/selective/conformal.py`](../../remora/selective/conformal.py), [`remora/selective/guardrail.py`](../../remora/selective/guardrail.py), [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) |
-| `thermodynamic_braking` | RES-007 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py), [`remora/statphys/potts.py`](../../remora/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py) |
+| `thermodynamic_braking` | RES-007 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py), [`remora/research_attic/statphys/potts.py`](../../remora/research_attic/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py) |
 | `toolcall_gate` | RES-005 | [`remora/toolcall/remora_gate.py`](../../remora/toolcall/remora_gate.py), [`remora/toolcall/schema.py`](../../remora/toolcall/schema.py), [`remora/toolcall/scoring.py`](../../remora/toolcall/scoring.py) |
 
 ## Reverse index: claim → research

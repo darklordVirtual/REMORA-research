@@ -36,8 +36,8 @@ def test_zkp_module_import_emits_deprecation_warning():
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         import importlib
-        import remora.zkp
-        importlib.reload(remora.zkp)
+        import remora.research_attic.zkp
+        importlib.reload(remora.research_attic.zkp)
     assert any(issubclass(w.category, DeprecationWarning) for w in caught)
 
 

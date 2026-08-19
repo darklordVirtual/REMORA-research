@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from remora.calibration.trust_calibrator import TrustCalibrator, brier_score
-from remora.correlation_error import correlation_separation_report
+from remora.research_attic.correlation_error import correlation_separation_report
 from remora.selective.risk_coverage import SelectiveAction, SelectiveRouter, risk_coverage_curve
 
 

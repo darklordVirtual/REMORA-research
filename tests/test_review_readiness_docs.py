@@ -14,7 +14,7 @@ def test_agent_hook_docs_do_not_cite_canonical_v_value() -> None:
 
 
 def test_scaling_docs_match_current_k_star_formula() -> None:
-    text = (ROOT / "remora" / "theory" / "scaling_analysis.py").read_text(encoding="utf-8")
+    text = (ROOT / "remora" / "research_attic" / "theory" / "scaling_analysis.py").read_text(encoding="utf-8")
     assert "decreases as 1/log T" in text
     assert "grows sub-logarithmically" not in text
 

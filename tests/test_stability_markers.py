@@ -48,6 +48,6 @@ def test_topology_marked_experimental() -> None:
 
 
 def test_zkp_marked_research_only() -> None:
-    import remora.zkp as zkp
+    import remora.research_attic.zkp as zkp
     assert hasattr(zkp, "__stability__")
     assert zkp.__stability__ == "research_only"

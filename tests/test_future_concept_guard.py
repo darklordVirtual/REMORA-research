@@ -17,14 +17,14 @@ import sys
 class TestFutureConceptExperimentalMarking:
 
     def test_init_docstring_contains_experimental(self):
-        import remora.future_concept as fc
+        import remora.research_attic.future_concept as fc
         doc = fc.__doc__ or ""
         assert "EXPERIMENTAL" in doc.upper(), (
             "remora/future_concept/__init__.py docstring must contain EXPERIMENTAL"
         )
 
     def test_init_docstring_contains_not_functional(self):
-        import remora.future_concept as fc
+        import remora.research_attic.future_concept as fc
         doc = fc.__doc__ or ""
         keywords = ("not functional", "not production", "conceptual sketch",
                     "stub", "placeholder")
@@ -55,15 +55,15 @@ class TestNumpyGuardInWeightGrafting:
         """
         # Save original numpy if present
         original_numpy = sys.modules.get("numpy")
-        original_module = sys.modules.pop("remora.future_concept.weight_grafting", None)
+        original_module = sys.modules.pop("remora.research_attic.future_concept.weight_grafting", None)
         try:
             # Remove numpy from sys.modules to simulate absent package
             sys.modules["numpy"] = None  # type: ignore[assignment]
             # Force fresh import
-            if "remora.future_concept.weight_grafting" in sys.modules:
-                del sys.modules["remora.future_concept.weight_grafting"]
+            if "remora.research_attic.future_concept.weight_grafting" in sys.modules:
+                del sys.modules["remora.research_attic.future_concept.weight_grafting"]
             # Should not raise ImportError
-            import remora.future_concept.weight_grafting  # noqa: F401
+            import remora.research_attic.future_concept.weight_grafting  # noqa: F401
         except ImportError as exc:
             raise AssertionError(
                 f"weight_grafting must not raise ImportError when numpy is absent: {exc}"
@@ -76,20 +76,20 @@ class TestNumpyGuardInWeightGrafting:
                 del sys.modules["numpy"]
             # Restore original module state
             if original_module is not None:
-                sys.modules["remora.future_concept.weight_grafting"] = original_module
-            elif "remora.future_concept.weight_grafting" in sys.modules:
-                del sys.modules["remora.future_concept.weight_grafting"]
+                sys.modules["remora.research_attic.future_concept.weight_grafting"] = original_module
+            elif "remora.research_attic.future_concept.weight_grafting" in sys.modules:
+                del sys.modules["remora.research_attic.future_concept.weight_grafting"]
 
     def test_weight_grafting_gracefully_degrades_without_numpy(self):
         """NeuralSplicer must still be importable; methods may raise ImportError."""
         # This test verifies the class is accessible even without numpy
         original_numpy = sys.modules.get("numpy")
-        original_module = sys.modules.pop("remora.future_concept.weight_grafting", None)
+        original_module = sys.modules.pop("remora.research_attic.future_concept.weight_grafting", None)
         try:
             sys.modules["numpy"] = None  # type: ignore[assignment]
-            if "remora.future_concept.weight_grafting" in sys.modules:
-                del sys.modules["remora.future_concept.weight_grafting"]
-            import remora.future_concept.weight_grafting as wg
+            if "remora.research_attic.future_concept.weight_grafting" in sys.modules:
+                del sys.modules["remora.research_attic.future_concept.weight_grafting"]
+            import remora.research_attic.future_concept.weight_grafting as wg
             # Class must be accessible
             assert hasattr(wg, "NeuralSplicer"), "NeuralSplicer must exist after no-numpy import"
         finally:
@@ -98,6 +98,6 @@ class TestNumpyGuardInWeightGrafting:
             elif "numpy" in sys.modules:
                 del sys.modules["numpy"]
             if original_module is not None:
-                sys.modules["remora.future_concept.weight_grafting"] = original_module
-            elif "remora.future_concept.weight_grafting" in sys.modules:
-                del sys.modules["remora.future_concept.weight_grafting"]
+                sys.modules["remora.research_attic.future_concept.weight_grafting"] = original_module
+            elif "remora.research_attic.future_concept.weight_grafting" in sys.modules:
+                del sys.modules["remora.research_attic.future_concept.weight_grafting"]

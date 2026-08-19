@@ -8,9 +8,9 @@ import numpy as np
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from remora.future_concept.auto_formalization import Lean4Compiler
-from remora.future_concept.weight_grafting import NeuralSplicer
-from remora.future_concept.kv_intercept import SubTokenInterceptor
+from remora.research_attic.future_concept.auto_formalization import Lean4Compiler
+from remora.research_attic.future_concept.weight_grafting import NeuralSplicer
+from remora.research_attic.future_concept.kv_intercept import SubTokenInterceptor
 
 def main():
     print("==================================================")
