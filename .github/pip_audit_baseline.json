@@ -1,4 +1,15 @@
 {
-  "bootstrap": true,
-  "note": "Bootstrap mode: the first CI run of supply-chain.yml prints the generated baseline; replace this file with that output ({\"packages\": {...}}) to arm the gate. See scripts/check_pip_audit_baseline.py."
+  "frozen": "2026-08-19",
+  "note": "Known vulnerability ids in the locked dependency set, tracked explicitly (scripts/check_pip_audit_baseline.py). New ids fail CI; shrink this file as pins are upgraded.",
+  "packages": {
+    "click": [
+      "PYSEC-2026-2132"
+    ],
+    "pygments": [
+      "PYSEC-2026-2987"
+    ],
+    "python-dotenv": [
+      "PYSEC-2026-2270"
+    ]
+  }
 }

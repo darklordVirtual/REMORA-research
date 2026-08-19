@@ -123,12 +123,14 @@ jobs:
 
       - name: Generate frontend SBOM from the lockfile
         working-directory: frontend
-        # Plain `npm ci` (same as the verify job): cyclonedx-npm shells out to
-        # `npm ls`, which reports ELSPROBLEMS for the platform-variant stubs an
-        # --ignore-scripts install leaves behind.
+        # cyclonedx-npm shells out to `npm ls`, which flags two pre-existing
+        # lockfile quirks (platform-variant lightningcss stub, nested
+        # lru-cache) as ELSPROBLEMS even though `npm ci` — the same install
+        # the verify job trusts — succeeds. --ignore-npm-errors keeps the
+        # SBOM complete for the tree that actually installs.
         run: |
           npm ci
-          npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file ../sbom-frontend.cdx.json
+          npx --yes @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file ../sbom-frontend.cdx.json
 
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@v4
