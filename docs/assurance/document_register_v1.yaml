@@ -2223,7 +2223,20 @@ documents:
   topic: docs_product_product_truth_contract_yaml
   verdict: current
   version: v1
+- audience:
+  - integrator
+  - evaluator
+  code_synced: verified
+  id: DOC-304
+  last_audited: '2026-08-19'
+  last_reviewed: '2026-08-19'
+  path: docs/architecture/ADR-single-authoritative-execution-path.md
+  status: canonical
+  topic: docs_architecture_adr_single_authoritative_execution_path_md
+  verdict: current
+  version: v1
 topics:
+- docs_architecture_adr_single_authoritative_execution_path_md
 - docs_product_product_truth_contract_yaml
 - docs_execution-lifecycle_md
 - docs_sdk_md

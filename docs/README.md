@@ -79,6 +79,7 @@ The original [execution lifecycle/outbox design](design/execution-lifecycle-outb
 | [fasttrack_register_v1.yaml](assurance/fasttrack_register_v1.yaml) | Fast-track work-package status |
 | [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml) | Deployment maturity profiles |
 | [product_truth_contract.yaml](product/product_truth_contract.yaml) | Capability classes (core/optional/experimental/legacy/demo) vs public copy |
+| [ADR: single execution path](architecture/ADR-single-authoritative-execution-path.md) | One authoritative execution path; agent-control is ingress, not an engine |
 | [release_gates.md](assurance/release_gates.md) | Profile gate status |
 | [artifact_manifest_v1.md](assurance/artifact_manifest_v1.md) | Result artifact hashes |
 | [superseded_claims.md](assurance/superseded_claims.md) | Replaced claims and successors |
