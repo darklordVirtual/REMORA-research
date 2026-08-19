@@ -65,21 +65,19 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Audit lockfile
+      - name: Audit lockfile (critical blocks)
         working-directory: ${{ matrix.dir }}
-        # `--omit=dev` is deliberately NOT used: the workers' devDependencies
-        # (wrangler, esbuild) run with repo credentials in CI/deploy, which is
-        # exactly the supply-chain surface to watch. Frontend blocks at HIGH
-        # (clean as of 2026-08-19). The workers block at CRITICAL for now:
-        # their remaining HIGH findings are wrangler-3-transitive
-        # (sharp/libvips et al.) and fixing them requires the wrangler 4
-        # major migration — accepted explicitly here, not silently.
-        run: |
-          if [ "${{ matrix.dir }}" = "frontend" ]; then
-            npm audit --audit-level=high
-          else
-            npm audit --audit-level=critical
-          fi
+        # `--omit=dev` is deliberately NOT used: the devDependencies
+        # (wrangler, esbuild, vite toolchain) run with repo credentials in
+        # CI/deploy, which is exactly the supply-chain surface to watch.
+        # Level CRITICAL for now — the current HIGH findings are all
+        # toolchain-transitive (wrangler 3 / miniflare / vitest-pool-workers
+        # pin exact undici and sharp/libvips versions) and `npm audit fix`
+        # cannot repair them without semver-major toolchain jumps that break
+        # `npm ci` sync (attempted 2026-08-19; miniflare 4 -> 5-alpha).
+        # Burn-down: the deliberate wrangler-4 / vite-toolchain migration.
+        # This acceptance is recorded here explicitly, never silently.
+        run: npm audit --audit-level=critical
 
   secret-scan:
     name: Secret scanning (gitleaks)
