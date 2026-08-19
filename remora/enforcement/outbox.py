@@ -397,6 +397,11 @@ class ExecutionOutbox:
                 key=lambda r: r.created_at,
             )
 
+    def tenants(self) -> list[str]:
+        """Every tenant with at least one recorded intent (reconciler sweep)."""
+        with self._lock:
+            return sorted({r.tenant_id for r in self._rows.values()})
+
     def rows_for_proposal(self, tenant_id: str, proposal_id: str) -> list[OutboxRow]:
         """Every dispatch intent recorded for one proposal, oldest first.
 
@@ -656,6 +661,12 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             conn.execute("ROLLBACK")
             raise
         return self.get(outbox_id)
+
+    def tenants(self) -> list[str]:
+        rows = self._conn().execute(
+            "SELECT DISTINCT tenant_id FROM execution_outbox ORDER BY tenant_id"
+        ).fetchall()
+        return [str(r[0]) for r in rows]
 
     def rows_for_proposal(self, tenant_id: str, proposal_id: str) -> list[OutboxRow]:
         rows = self._conn().execute(
@@ -971,6 +982,14 @@ class PostgresExecutionOutbox(ExecutionOutbox):
                 (tenant_id, OutboxState.DISPATCH_PENDING.value),
             ).fetchall()
         return [self._row_tuple(r) for r in records]
+
+    def tenants(self) -> list[str]:
+        with self._psycopg.connect(self._dsn) as conn:
+            records = conn.execute(
+                "SELECT DISTINCT tenant_id FROM execution_outbox "
+                "ORDER BY tenant_id"
+            ).fetchall()
+        return [str(r[0]) for r in records]
 
     def rows_for_proposal(self, tenant_id: str, proposal_id: str) -> list[OutboxRow]:
         with self._psycopg.connect(self._dsn) as conn:
