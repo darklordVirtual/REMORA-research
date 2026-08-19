@@ -42,7 +42,7 @@ See [DEVELOPER_OVERVIEW.md](DEVELOPER_OVERVIEW.md) for the CORE / OPTIONAL / EXP
 
 ## Evidence
 
-Headline values are governed by the [claim register](docs/assurance/claim_register_v1.yaml) and must remain tied to committed result artifacts and scope caveats.
+Headline values are governed by the [claim register](docs/assurance/claim_register_v1.yaml) and must remain tied to committed result artifacts and scope caveats. Reported empirical results are **bounded by documented assumptions**, benchmark populations and evaluation protocols; they are not general safety guarantees.
 
 <!-- claim:CLAIM-002 far_pct far_ci_high_pct fbr_pct n -->
 <!-- claim:CLAIM-001 far_pct n_effective n -->
