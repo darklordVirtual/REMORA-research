@@ -124,6 +124,15 @@ ignore_missing_imports = true
 warn_unused_ignores = false
 warn_redundant_casts = true
 
+# The BFCL semantic bundle is a FROZEN evaluation artifact: its SHA-256 is
+# recorded in data/routing_bench_bfcl_v4_cext3/manifest.json and the sealed
+# C-ext3 result binds to those exact bytes (CLAIM-019). Type-annotation
+# cleanups would change the hash without changing behaviour, so the file is
+# excluded from the gate instead of edited.
+[[tool.mypy.overrides]]
+module = "remora.toolcall.routing.bfcl_semantic_bundle"
+ignore_errors = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short -m 'not live and not live_replay_heavy'"
