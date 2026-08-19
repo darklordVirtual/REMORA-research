@@ -62,6 +62,14 @@ class ToolContract:
     #: ``("closure_approved",)``. Checked against an authoritative fact set;
     #: a precondition nobody can adjudicate yields UNKNOWN, never "met".
     preconditions: tuple[str, ...] = ()
+    #: Alternative names the deployment declares for the same resource, e.g.
+    #: ``("reservation",)`` on a ``booking`` tool. Authored from tool
+    #: documentation BEFORE test scenarios are seen (SAP role separation);
+    #: empty means only the canonical resource_type matches.
+    resource_aliases: tuple[str, ...] = ()
+    #: Alternative capability names, same authorship discipline. Used only
+    #: when a TaskIntent declares a requested_capability.
+    capability_aliases: tuple[str, ...] = ()
     #: Declared value transformations per argument role, e.g.
     #: ``{"pressure": "bar\u2194kPa", "timestamp": "ISO-8601 normalisation"}``.
     #: Written by the contract author from tool documentation before test
@@ -74,6 +82,8 @@ class ToolContract:
         object.__setattr__(self, "argument_roles", dict(self.argument_roles or {}))
         object.__setattr__(self, "state_delta", dict(self.state_delta or {}))
         object.__setattr__(self, "preconditions", tuple(self.preconditions or ()))
+        object.__setattr__(self, "resource_aliases", tuple(self.resource_aliases or ()))
+        object.__setattr__(self, "capability_aliases", tuple(self.capability_aliases or ()))
         object.__setattr__(self, "canonicalisations", dict(self.canonicalisations or {}))
         if any(v == "" for v in self.canonicalisations.values()):
             raise ValueError(

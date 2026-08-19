@@ -28,6 +28,11 @@ class DecisionReason(str, Enum):
     # directly produce ACCEPT; the would-be ACCEPT routes to VERIFY with
     # this reason so the trace states WHY the profile intervened.
     EXECUTION_PROFILE_PROBABILISTIC_VERIFY = "execution_profile_probabilistic_verify"
+    # Semantic-authority floor (NEGATIVE_RESULTS section 34/36 remediation):
+    # a proposed tool whose fit to the goal or expected effect is UNKNOWN
+    # routes to VERIFY - low consequence is not the same thing as correct
+    # purpose, and a cheap read to the wrong tool is still a wrong execution.
+    SEMANTIC_AUTHORITY_UNKNOWN_VERIFY = "semantic_authority_unknown_verify"
     CONFORMAL_ABSTAIN = "conformal_abstain"
     THERMO_REQUIRE_EVIDENCE = "thermo_require_evidence"
     LOW_TRUST = "low_trust"

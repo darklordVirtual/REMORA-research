@@ -152,6 +152,17 @@ class TaskIntent:
     #: it cannot also prove "cancel" was requested.  An intent with no
     #: action_spans cannot reach SUPPORTED through the effect gate.
     action_spans: tuple[str, ...] = ()
+    #: The capability family the task calls for, e.g. ``booking_management``.
+    #: Optional: when set, a proposed tool whose contract declares a different
+    #: capability (and no matching alias) is UNSUPPORTED even when resource
+    #: and effect agree — this is what separates ``get_booking`` from
+    #: ``get_booking_payments`` when both read the same resource.
+    requested_capability: str | None = None
+    #: Verbatim spans grounding the RESOURCE claim, separate from source and
+    #: action spans. Empty keeps the pre-extension semantics (resource rides
+    #: on source_spans); when provided, every span must occur in the task or
+    #: the intent cannot establish a match.
+    resource_spans: tuple[str, ...] = ()
     #: Free-text note on where the intent came from. Audit only; it grants
     #: nothing, by design.
     proposed_by: str = "unspecified"
@@ -161,6 +172,18 @@ class TaskIntent:
             return False
         haystack = _normalise(task_text)
         return all(_normalise(span) in haystack for span in self.source_spans)
+
+    def resource_grounded_in(self, task_text: str | None) -> bool:
+        """Resource grounding: when resource_spans are declared, every span
+        must occur verbatim in the task. With no resource_spans this returns
+        True — the pre-extension semantics, where the resource claim rides on
+        source_spans — so existing intents are unaffected."""
+        if not self.resource_spans:
+            return True
+        if not task_text:
+            return False
+        haystack = _normalise(task_text)
+        return all(_normalise(span) in haystack for span in self.resource_spans)
 
     def action_grounded_in(self, task_text: str | None) -> bool:
         """Effect grounding: action_spans present, verifiable in task, and
@@ -267,13 +290,27 @@ def match_tool_to_intent(
             mutation=contract.mutation,
         )
 
-    # Established contradictions. Both are the §34 residue: a well-formed call
+    if not intent.resource_grounded_in(task_text):
+        return GoalMatchResult(
+            GoalMatch.UNKNOWN,
+            "the intent's resource span(s) do not occur in the task text, so "
+            "the resource claim is unverified and cannot establish a match",
+            mutation=contract.mutation,
+        )
+
+    # Established contradictions. All are the §34 residue: a well-formed call
     # whose only defect is that it does not serve the goal.
-    if _normalise(intent.resource_type) != _normalise(contract.resource_type):
+    _resource_names = {
+        _normalise(contract.resource_type),
+        *(_normalise(a) for a in contract.resource_aliases),
+    }
+    if _normalise(intent.resource_type) not in _resource_names:
         return GoalMatchResult(
             GoalMatch.UNSUPPORTED,
             f"resource mismatch: the task targets {intent.resource_type!r} but "
-            f"the tool acts on {contract.resource_type!r}",
+            f"the tool acts on {contract.resource_type!r}"
+            + (f" (aliases: {list(contract.resource_aliases)})"
+               if contract.resource_aliases else ""),
             mutation=contract.mutation,
         )
     if not _effect_reachable(intent.requested_effect, contract):
@@ -283,6 +320,20 @@ def match_tool_to_intent(
             f"the tool's declared effect is {contract.effect!r}",
             mutation=contract.mutation,
         )
+    if intent.requested_capability is not None:
+        _cap_names = {
+            _normalise(contract.capability),
+            *(_normalise(a) for a in contract.capability_aliases),
+        }
+        if _normalise(intent.requested_capability) not in _cap_names:
+            return GoalMatchResult(
+                GoalMatch.UNSUPPORTED,
+                f"capability mismatch: the task calls for "
+                f"{intent.requested_capability!r} but the tool belongs to "
+                f"{contract.capability!r} — same resource and effect do not "
+                f"make tools substitutes across capability families",
+                mutation=contract.mutation,
+            )
 
     # The call must actually act on what the intent says is targeted. A missing
     # role is unknown rather than refuted: the call may be incomplete for

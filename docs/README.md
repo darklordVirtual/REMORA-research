@@ -106,6 +106,7 @@ The original [execution lifecycle/outbox design](design/execution-lifecycle-outb
 | [metric_definitions_v1.md](assurance/metric_definitions_v1.md) | Metric definitions and denominators |
 | [statistical_analysis_plan_v3.md](assurance/statistical_analysis_plan_v3.md) | Statistical analysis plan v3 |
 | [statistical_analysis_plan_v4.md](assurance/statistical_analysis_plan_v4.md) | OT semantic-track statistical analysis plan |
+| [statistical_analysis_plan_v5_bfcl_semantic.md](assurance/statistical_analysis_plan_v5_bfcl_semantic.md) | Pre-registered BFCL semantic-authority confirmation (C-ext3; sealed run pending) |
 | [rebenchmark_protocol_v1.md](assurance/rebenchmark_protocol_v1.md) | Rebenchmark protocol |
 | [experiment_manifest_spec_v1.md](assurance/experiment_manifest_spec_v1.md) | Experiment manifest specification |
 | [artifact_provenance_spec_v1.md](assurance/artifact_provenance_spec_v1.md) | Artifact provenance specification |
