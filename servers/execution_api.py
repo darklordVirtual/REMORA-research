@@ -32,10 +32,9 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
-from typing import Any, Literal
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
 
 from remora.enforcement.gate import EnforcementGate
 from remora.enforcement.lease import (
@@ -53,7 +52,6 @@ from remora.enforcement.outbox import (
     SQLiteExecutionOutbox,
 )
 from remora.governance.effect_verification import (
-    EffectStatus,
     EffectVerification,
 )
 from remora.governance.proposal_lineage import (
@@ -79,6 +77,33 @@ from remora.toolcall.semantic_bundle import (
     compute_intent_authority_hash,
     load_intent_resolver,
     load_semantic_bundle,
+)
+# Wire contracts (issue #241 extraction slice 1): request/response Pydantic
+# models live in servers/execution_contracts.py; re-imported here so existing
+# `from servers.execution_api import ToolCallRequest` style access keeps
+# working (test suites patch through this module's namespace).
+from servers.execution_contracts import (  # noqa: F401
+    _AUTH_RESPONSES,
+    ApproveRequest,
+    AuditRef,
+    DerivationProposal,
+    EffectVerificationRequest,
+    ErrorDetail,
+    ExecuteAcceptedRequest,
+    ExecuteRequest,
+    ExecutionApproveResponse,
+    ExecutionAssessResponse,
+    ExecutionAuditVerifyResponse,
+    ExecutionExecuteResponse,
+    ExecutionGrant,
+    ExecutionOutcome,
+    GovernanceAction,
+    PepResult,
+    RejectRequest,
+    SemanticAssessment,
+    ToolCallRequest,
+    ToolExecutionResult,
+    ToolResultEnvelopeModel,
 )
 
 router = APIRouter(prefix="/v1/execution", tags=["execution"])
@@ -793,223 +818,6 @@ def _jsonable(value: Any) -> Any:
 # pre-serialized ISO-8601 and retyping them as datetime would let Pydantic
 # re-normalize the string form.
 
-GovernanceAction = Literal["accept", "verify", "abstain", "escalate"]
-ExecutionOutcome = Literal["execute", "approval_expired", "binding_refused",
-                           "approval_invalidated"]
-
-
-class ErrorDetail(BaseModel):
-    detail: str
-
-
-class AuditRef(BaseModel):
-    sequence_no: int
-    entry_hash: str
-
-
-class SemanticAssessment(BaseModel):
-    tool_contract_bundle_hash: str = Field(
-        "", description="Empty string means no semantic bundle is configured "
-                        "(registry-only path) — recorded, never assumed away.")
-    state_hash: str = ""
-    intent_authority_hash: str = Field(
-        "", description="Empty string when no intent_ref was resolved.")
-    tool_matches_goal: bool | None = Field(
-        None, description="None means not evaluated; the key is always present.")
-    expected_effect_matches: bool | None = Field(
-        None, description="None means not evaluated; the key is always present.")
-
-
-class ExecutionGrant(BaseModel):
-    """Signed single-use policy decision token (PolicyDecisionToken)."""
-
-    action: str
-    observation_hash: str
-    request_id: str
-    issued_at: str
-    expires_at: str | None
-    jti: str
-    audience: str
-    signature: str
-    is_signed: bool
-
-
-class PepResult(BaseModel):
-    allowed: bool
-    reason: str = Field(description="e.g. accept, token_already_consumed")
-
-
-class ToolResultEnvelopeModel(BaseModel):
-    sha256: str
-    size_bytes: int
-    truncated: bool
-    preview: Any = None
-    media_type: str
-
-
-class ToolExecutionResult(BaseModel):
-    executed: bool
-    refusal_reason: str | None = Field(
-        None, description="Present only when executed is false: pep_denied, "
-                          "policy_bundle_unavailable, lease_unavailable:*, "
-                          "tool_failed_nonce_burned, or a dispatcher/lease "
-                          "refusal such as unknown_tool, "
-                          "nonce_already_consumed, "
-                          "nonce_consumed_by_failed_execution (retry after a "
-                          "tool that raised — state unknown), "
-                          "policy_bundle_mismatch. Canonical reason sets: "
-                          "remora/enforcement/lease.py (lease/dispatcher) and "
-                          "remora/enforcement/token.py (PEP token reasons, "
-                          "surfaced under pep.reason, e.g. token_expired, "
-                          "token_not_yet_valid, observation_hash_mismatch, "
-                          "token_already_consumed).")
-    error: str | None = None
-    result: Any = Field(
-        None, description="Tool return value (deployment-defined shape); "
-                          "present only when executed is true.")
-    result_envelope: ToolResultEnvelopeModel | None = None
-
-
-class ExecutionAssessResponse(BaseModel):
-    proposal_id: str = Field(
-        description="FT-01: the canonical proposal identity minted here — "
-                    "the join key across every chain record, grant and "
-                    "response for this action.")
-    decision: GovernanceAction
-    reasons: list[str]
-    tool_call_hash: str
-    semantic: SemanticAssessment
-    execution_token: ExecutionGrant | None = Field(
-        None, description="Present only on accept; key absent otherwise.")
-    review_item_id: str | None = Field(
-        None, description="Present only on verify/escalate; key absent "
-                          "otherwise (abstain has neither).")
-    audit: AuditRef
-
-
-class ExecutionApproveResponse(BaseModel):
-    status: Literal["approved"]
-    proposal_id: str | None = Field(
-        None, description="Canonical proposal identity; null only for items "
-                          "enqueued before the lifecycle existed.")
-    item_id: str
-    expires_at: str
-    audit: AuditRef
-
-
-class ExecutionExecuteResponse(BaseModel):
-    proposal_id: str | None = Field(
-        None, description="Canonical proposal identity from the queued item; "
-                          "null only for pre-lifecycle items.")
-    outcome: ExecutionOutcome
-    detail: str
-    execution_grant: ExecutionGrant | None = Field(
-        None, description="Present only when outcome is execute.")
-    pep: PepResult | None = Field(
-        None, description="Present only when outcome is execute.")
-    tool_execution: ToolExecutionResult | None = Field(
-        None, description="Present only when outcome is execute.")
-    audit: AuditRef
-
-
-class ExecutionAuditVerifyResponse(BaseModel):
-    tenant: str
-    valid: bool
-    problems: list[str]
-    records_checked: int
-    empty: bool = Field(
-        description="True when no records exist: an empty chain is trivially "
-                    "valid and must not pose as verified history.")
-
-
-_AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {
-    401: {"model": ErrorDetail,
-          "description": "Missing or invalid bearer token."},
-    403: {"model": ErrorDetail,
-          "description": "Role lacks the required capability for this tenant."},
-}
-
-
-class DerivationProposal(BaseModel):
-    """One proposed derivation receipt (theme 3): value = transform(span).
-
-    A PROPOSAL only — acceptance happens exclusively in
-    ``remora.toolcall.routing.derivation.verify_receipt``'s deterministic
-    re-execution. ``extra="forbid"``: semantic verdicts or any other
-    unknown key cannot ride along inside a receipt.
-    """
-
-    argument: str = Field(..., min_length=1, max_length=200)
-    value: Any = None
-    transform: str = Field(..., min_length=1, max_length=64)
-    source_span: str = Field(..., min_length=1, max_length=2000)
-    params: dict[str, Any] = Field(default_factory=dict)
-    # Optional exact offset binding into the resolved task text (review
-    # 2026-08-05 hardening): when both are set, verification requires
-    # task_text[source_start:source_end] == source_span.
-    source_start: int | None = Field(None, ge=0)
-    source_end: int | None = Field(None, ge=0)
-
-    model_config = {"extra": "forbid"}
-
-
-class ToolCallRequest(BaseModel):
-    """The PROPOSAL only (issue #34 trust boundary; full-args binding kept).
-
-    The request carries what the agent proposes: tool, exact arguments,
-    requested target. Every authoritative safety signal — risk tier,
-    domain, action type, trust, phase, evidence status, schema validity,
-    rollback capability — is derived SERVER-SIDE from the tool registry;
-    the caller can never assert its way to an ACCEPT. The only inbound
-    safety influence permitted is a DOWNGRADE: schema_valid=false or
-    rollback_available=false lowers trust; true/None never raises it.
-    Legacy pre-#34 fields (trust_score, phase, evidence_action,
-    evidence_confidence, risk_tier, domain, action_type) are ignored as
-    unknown extras for wire compatibility.
-    """
-
-    tool_name: str = Field(..., min_length=1, max_length=200)
-    arguments: dict[str, Any] = Field(default_factory=dict)
-    target_environment: str = "prod"
-    schema_valid: bool | None = None       # only false is honored (downgrade)
-    rollback_available: bool | None = None  # only false is honored (downgrade)
-    idempotency_key: str | None = None
-    # SHELF-020: an OPAQUE reference into the deployment's intent source
-    # (signed work order, approved workflow template). The intent itself can
-    # never ride in this request (task_intent_authority_v1.md §2.3) — the
-    # server resolves the reference against a source the caller does not
-    # control, so a fabricated intent cannot be delivered alongside the call
-    # it would justify.
-    intent_ref: str | None = Field(None, max_length=200)
-    # Downgrade-only, like schema_valid: declaring untrusted context marks
-    # every argument as potentially tainted. Omitting it never raises trust —
-    # absence is the same default the legacy path had.
-    untrusted_context: str | None = Field(None, max_length=20_000)
-    # Theme 3: proposed derivation receipts for derived argument values.
-    # Proposals only — verified by deterministic re-execution server-side;
-    # an invalid receipt just leaves its value ungrounded.
-    derivations: list[DerivationProposal] | None = Field(None, max_length=32)
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "tool_name": "set_valve_position",
-                    "arguments": {"valve": "V-12", "position_pct": 35},
-                    "target_environment": "prod",
-                    "intent_ref": "WO-1204",
-                },
-                {
-                    "tool_name": "read_sensor",
-                    "arguments": {"sensor_id": "PT-101"},
-                    "target_environment": "prod",
-                    "intent_ref": "MON-ROUND",
-                },
-            ]
-        }
-    }
-
-
 #: Semantic context with no bundle configured: absent, never defaulted.
 _NO_SEMANTIC_CONTEXT: dict[str, Any] = {
     "tool_contract_bundle_hash": "",
@@ -1402,17 +1210,6 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     return response
 
 
-class ApproveRequest(BaseModel):
-    item_id: str
-    approval_ttl_seconds: int = Field(900, gt=0, le=86400)
-    on_behalf_of: str | None = Field(
-        None,
-        description="Client-declared annotation only, recorded in the audit "
-                    "chain as unverified metadata. The audited approver "
-                    "identity is always the authenticated principal from the "
-                    "bearer token — this field can never delegate authority.")
-
-
 @router.post("/approve", responses={
     200: {"model": ExecutionApproveResponse},
     **_AUTH_RESPONSES,
@@ -1638,14 +1435,6 @@ def _dispatch_under_lease(
     else:
         tool_execution["refusal_reason"] = dres.refusal_reason
     return tool_execution
-
-
-class ExecuteRequest(BaseModel):
-    """Execute an approved item — the FULL payload is re-presented and the
-    fresh world state re-gated; the grant is single-use."""
-
-    item_id: str
-    tool_call: ToolCallRequest
 
 
 @router.post("/execute", responses={
@@ -1875,19 +1664,6 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     return response
 
 
-class ExecuteAcceptedRequest(BaseModel):
-    """Redeem an ACCEPT execution token (issue #36).
-
-    The token IS the authorization: it was bound to the exact tool call at
-    assess time, so no review item exists or is needed. The full payload is
-    re-presented so the server can verify that binding rather than trust
-    the caller's word about what was approved.
-    """
-
-    execution_token: dict[str, Any]
-    tool_call: ToolCallRequest
-
-
 @router.post("/execute-accepted", responses={
     200: {"model": ExecutionExecuteResponse,
           "description": "Outcome of governed dispatch under an ACCEPT token."},
@@ -2055,14 +1831,6 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
         refusal=tool_execution.get("refusal_reason"),
     )
     return response
-
-
-class RejectRequest(BaseModel):
-    """Record a reviewer's refusal of a pending item."""
-
-    item_id: str
-    # Mandatory: an unexplained refusal cannot be reviewed after the fact.
-    reason: str = Field(..., min_length=1, max_length=2000)
 
 
 @router.post("/reject", responses={
@@ -2282,30 +2050,6 @@ def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
         "dispatch": dispatch,
         "effect": _effect_projection(events),
     }
-
-
-class EffectVerificationRequest(BaseModel):
-    """A verification observed by the deployment, submitted for recording.
-
-    Verification runs where the credentials are, which is the product's
-    process — REMORA never reaches into a customer's system of record to
-    check on it. What crosses back is this record, and the chain stores it
-    as an **attestation by a named verifier**, not as an independent proof
-    by REMORA. ``verifier_identity`` is therefore mandatory: an
-    attestation nobody signed is not evidence, because an auditor could
-    not tell who claimed to have looked.
-    """
-
-    execution_id: str = Field(..., min_length=1, max_length=200)
-    tool_id: str = Field(..., min_length=1, max_length=200)
-    toolspec_hash: str = Field("", max_length=128)
-    status: EffectStatus
-    reason_code: str = Field(..., min_length=1, max_length=100)
-    verifier_identity: str = Field(..., min_length=1, max_length=200)
-    expected_sha256: str = Field("", max_length=64)
-    observed_sha256: str = Field("", max_length=64)
-    verified_at: str = Field("", max_length=64)
-    detail: str = Field("", max_length=2000)
 
 
 @router.post("/proposals/{proposal_id}/effect", responses={
