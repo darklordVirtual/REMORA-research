@@ -1,0 +1,4 @@
+{
+  "bootstrap": true,
+  "note": "Bootstrap mode: the first CI run of supply-chain.yml prints the generated baseline; replace this file with that output ({\"packages\": {...}}) to arm the gate. See scripts/check_pip_audit_baseline.py."
+}
