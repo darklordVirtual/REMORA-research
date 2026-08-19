@@ -538,7 +538,7 @@ claims:
       by the sealed BFCL v4 result in CLAIM-018.
     evidence_level: internal_benchmark
     status: superseded
-    superseded_by: CLAIM-018
+    superseded_by: CLAIM-019
     blindness: development
     artifact:
       - "NEGATIVE_RESULTS.md"
@@ -547,7 +547,7 @@ claims:
     metrics: {}
     caveat: >
       Do not cite or reproduce the spent-set development figures as current
-      evidence. The active external result is CLAIM-018.
+      evidence. The active external result is CLAIM-019.
     reproduce: "Not rerunnable; the BFCL v3 set is spent."
   - id: CLAIM-016
     title: "Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018"
@@ -570,7 +570,7 @@ claims:
       gives the structural signals nothing to distrust.
     evidence_level: externally_benchmarked
     status: superseded
-    superseded_by: CLAIM-018
+    superseded_by: CLAIM-019
     blindness: blind
     artifact:
       - "results/routing_bench_bfcl_results.json"
@@ -650,7 +650,8 @@ claims:
       routing accuracy was 91.2% (n=1,170; cluster-level Wilson 95% CI
       [88.4%, 93.3%]).
     evidence_level: externally_benchmarked
-    status: active
+    status: superseded
+    superseded_by: CLAIM-019
     blindness: blind
     artifact:
       - "results/routing_bench_bfcl_v4_results.json"
@@ -681,3 +682,56 @@ claims:
       The sealed result must not be regenerated. Verify hashes and status in
       data/routing_bench_bfcl_v4/manifest.json and run
       python -m pytest tests/test_routing_claim_artifacts.py -v.
+
+  - id: CLAIM-019
+    title: "Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed"
+    statement: >
+      Track C-ext3 was evaluated once on a sealed, ID-disjoint BFCL v4 sample
+      (500 live_multiple clusters + 300 live_irrelevance tasks, disjoint from
+      both spent populations, 2,799 episodes) under the frozen deterministic
+      semantic bundle with the semantic-authority floor. Met: native non-gold
+      call ACCEPT 0/500 = 0.0% (Wilson 95% upper bound 0.76%; C-ext2
+      degraded-authority baseline 28/258 = 10.9%); irrelevance ABSTAIN 300/300
+      = 100.0%; required-unknown autonomous ACCEPT 0/398 = 0.0%. Missed and
+      published as measured: constructed wrong-tool ACCEPT 2/199 = 1.005%
+      (bar 1%); legitimate read autonomy 25/94 = 26.6% (bar 75%); obtainable
+      VERIFY 93/199 = 46.7%; unobtainable ABSTAIN 126/199 = 63.3%. Single-pass
+      ablation on the same episodes: structural-only 24/500 wrong-call
+      accepts, contracts+intent 6/500, with the UNKNOWN floor 0/500.
+    evidence_level: externally_benchmarked
+    status: active
+    blindness: blind
+    artifact:
+      - "results/routing_bench_bfcl_v4_cext3_results.json"
+      - "data/routing_bench_bfcl_v4_cext3/manifest.json"
+    n: 2799
+    n_detail: >
+      2,799 episodes over 800 source clusters (500 positive + 300
+      irrelevance), seed 20260820 drawn after the semantic bundle was frozen
+      and hashed into the manifest. Source-task ID overlap with the spent v3
+      and C-ext2 populations is zero.
+    metrics:
+      wrong_call_accept_pct: 0.0
+      wrong_call_wilson_upper_pct: 0.76
+      constructed_wrong_tool_accept_pct: 1.005
+      irrelevance_abstain_pct: 100.0
+      required_unknown_accept_pct: 0.0
+      legitimate_read_autonomy_pct: 26.6
+      obtainable_verify_pct: 46.7
+      unobtainable_abstain_pct: 63.3
+      n_clusters: 800
+    caveat: >
+      Evaluated once; the sample is spent. The accept property is
+      SEMANTICALLY AUTHORIZED READ (empty state index, no value grounding
+      against a system of record) — explicitly weaker than SAP v4 grounded
+      read. Contract authoring and intent extraction are deterministic
+      functions frozen before sampling, but their grammar was designed with
+      spent C-ext2 material visible (SAP v5 §12 deviation 2) — weaker than
+      three-human role separation. Four of seven pre-registered targets were
+      missed (NEGATIVE_RESULTS.md §39): the deterministic extractor caps read
+      autonomy at 26.6% and the semantic gates preempt argument routing. The
+      C-ext2 10.9% baseline remains permanent under CLAIM-018.
+    reproduce: >
+      The sealed result must not be regenerated. Verify hashes and status in
+      data/routing_bench_bfcl_v4_cext3/manifest.json; SAP:
+      docs/assurance/statistical_analysis_plan_v5_bfcl_semantic.md.

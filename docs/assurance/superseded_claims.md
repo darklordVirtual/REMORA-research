@@ -20,8 +20,9 @@ diffed in CI.
 |-------|--------------|---------------|-----|
 | **CLAIM-004** | Temperature-selective holdout: 100% at 16.7% coverage — directional only, later contradicted on fresh data | [CLAIM-012](claim_register_v1.yaml) — NEGATIVE: consensus temperature failed pre-registered fresh-data confirmation (SAP v3) | see below |
 | **CLAIM-008** | Selective trust curve (N=302): 94.7% accuracy at 25% coverage | [CLAIM-013](claim_register_v1.yaml) — Calibrated confidence methods on fresh data: significant aggregation win; marginal per-arm certificates only | see below |
-| **CLAIM-015** | Superseded BFCL v3 development measurement | [CLAIM-018](claim_register_v1.yaml) — Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met | see below |
-| **CLAIM-016** | Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018 | [CLAIM-018](claim_register_v1.yaml) — Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met | see below |
+| **CLAIM-015** | Superseded BFCL v3 development measurement | [CLAIM-019](claim_register_v1.yaml) — Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed | see below |
+| **CLAIM-016** | Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018 | [CLAIM-019](claim_register_v1.yaml) — Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed | see below |
+| **CLAIM-018** | Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met | [CLAIM-019](claim_register_v1.yaml) — Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed | see below |
 
 ---
 
@@ -51,19 +52,19 @@ diffed in CI.
 
 ## CLAIM-015 — Superseded BFCL v3 development measurement
 
-**Superseded by:** CLAIM-018
+**Superseded by:** CLAIM-019
 
 **Evidence level when archived:** `internal_benchmark`
 
 **Statement.** Historical post-hoc measurements on the spent BFCL v3 set are superseded by the sealed BFCL v4 result in CLAIM-018.
 
-**Caveat.** Do not cite or reproduce the spent-set development figures as current evidence. The active external result is CLAIM-018.
+**Caveat.** Do not cite or reproduce the spent-set development figures as current evidence. The active external result is CLAIM-019.
 
 **Artifacts (still on disk).** `NEGATIVE_RESULTS.md`
 
 ## CLAIM-016 — Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018
 
-**Superseded by:** CLAIM-018
+**Superseded by:** CLAIM-019
 
 **Evidence level when archived:** `externally_benchmarked`
 
@@ -72,4 +73,16 @@ diffed in CI.
 **Caveat.** Evaluated once; this set is now spent and can never serve as a blind set again. The wrong-argument value axis was excluded BEFORE sealing (admission verdict recorded in the manifest): BFCL's ground-truth argument lists are the labels, so using them as a system of record would score the answer key against itself. The known-wrong-call miss is a measured architectural limit, not a tuning defect — closing it needs an authoritative task-call semantic source for tool_matches_goal, and no threshold change can substitute. A partial mitigation was measured afterwards on this same spent set and is registered separately as CLAIM-015 (development, NOT blind). Full analysis: NEGATIVE_RESULTS.md §34.
 
 **Artifacts (still on disk).** `results/routing_bench_bfcl_results.json`, `data/routing_bench_bfcl/manifest.json`
+
+## CLAIM-018 — Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met
+
+**Superseded by:** CLAIM-019
+
+**Evidence level when archived:** `externally_benchmarked`
+
+**Statement.** Track C-ext2 was evaluated once on a sealed, ID-disjoint BFCL v4 sample at ShishirPatil/gorilla commit 6ea57973c7a6 (Apache-2.0): 258 live_multiple tasks and 258 live_irrelevance tasks not present in the spent BFCL v3 population. Across 1,527 episodes, all five unchanged pre-registered targets met: required-but-unknown autonomous ACCEPT 0/32 = 0.0%; irrelevance ABSTAIN 258/258 = 100.0%; obtainable-argument VERIFY 96/99 = 97.0%; unobtainable-argument ABSTAIN 98/99 = 99.0%; and known-wrong-call ACCEPT 28/258 = 10.9% against a <=20% bar. Labelled routing accuracy was 91.2% (n=1,170; cluster-level Wilson 95% CI [88.4%, 93.3%]).
+
+**Caveat.** Evaluated once; this BFCL v4 sample is now spent. The wrong-argument value axis was excluded before sealing because BFCL provides no independently vouchable state table. The track supplies no authoritative TaskIntent/ToolContract bundle, so it confirms the current routing pipeline and value-grounding mitigation, not isolated causal efficacy of semantic intent matching. The original BFCL v3 86.8% miss remains an immutable negative result under CLAIM-016.
+
+**Artifacts (still on disk).** `results/routing_bench_bfcl_v4_results.json`, `data/routing_bench_bfcl_v4/manifest.json`
 

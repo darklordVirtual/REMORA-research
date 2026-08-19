@@ -143,10 +143,10 @@ def test_value_grounding_demonstration_labels_itself_development() -> None:
 def test_value_grounding_register_entry_carries_the_blind_caveat() -> None:
     block = _claim_block("CLAIM-015")
     assert "status: superseded" in block
-    assert "superseded_by: CLAIM-018" in block
+    assert "superseded_by: CLAIM-019" in block
     assert "blindness: development" in block
     assert "NEGATIVE_RESULTS.md" in block
-    assert "The active external result is CLAIM-018" in block
+    assert "The active external result is CLAIM-019" in block
 
 
 # ---------------------------------------------------------------------------

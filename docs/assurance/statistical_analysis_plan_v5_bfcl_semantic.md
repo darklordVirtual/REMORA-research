@@ -144,5 +144,27 @@ this design buys. UNKNOWN/VERIFY volume is the pre-registered cost metric
 
 ## 12. Deviations
 
-Any deviation from this plan is recorded in this file's Deviations section
-before results are interpreted. (None yet.)
+Recorded BEFORE the sealed sample was drawn:
+
+1. **T2 denominator clarified** (2026-08-19, pre-seal): "legitimate read
+   autonomy" is measured over gold identity calls whose FROZEN contract
+   declares a read effect. Gold write calls are excluded from the
+   denominator because the accept path under test
+   (`low_consequence_accept` + floor) is read-only by construction —
+   counting writes would deflate the metric mechanically, not
+   informatively.
+2. **Single-agent role separation** (2026-08-19, pre-seal): contract
+   authoring and intent extraction are DETERMINISTIC FUNCTIONS
+   (`remora/toolcall/routing/bfcl_semantic_bundle.py`) of tool names and
+   task text respectively — structurally unable to read questions, gold
+   answers or predictions. The heuristic grammar was, however, designed
+   during the §8 post-hoc reanalysis with spent C-ext2 material visible to
+   the implementer. The C-ext3 rows are selected by a fresh seed after the
+   bundle is committed and are unseen. This is weaker than three-human
+   role separation and is disclosed as such.
+3. **Expected dev-projection** (2026-08-19, pre-seal, from spent data
+   only): the deterministic extractor's coverage suggests T1 will be met
+   and T2 (≥75%) will likely be MISSED (dev read-autonomy ≈35%). The run
+   proceeds anyway per the owner's instruction; a T2 miss is published as
+   measured, and the LLM-as-proposer arm (§7) is the pre-identified
+   follow-up for autonomy recovery.

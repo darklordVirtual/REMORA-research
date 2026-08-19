@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-07: **11 `open`**, **5 `accepted`**, **22 `superseded`**.
+Counts as of 2026-08-19: **11 `open`**, **5 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -33,18 +33,16 @@ after each theme are where its evidence lives, and CI checks that every theme
 cites only `open` sections and that no `open` section is missing a theme.
 
 <!-- backlog-start -->
-1. **Full task–tool semantic compatibility** (§36) — the highest-value open
-   problem. Value grounding answers "do these argument values come from this
-   context?"; it does not answer "is this the right tool and the right effect
-   for the user's goal?". 30 of 258 foreign calls still pass because their
-   values coincidentally occur in the task. **The mechanism now exists**
-   (`goal_match.py`: declared tool contracts, structured `TaskIntent`,
-   tri-state `tool_matches_goal` that a model may propose but not unilaterally
-   set to SUPPORTED); the semantic binding gap (§36: `source_spans` proved
-   entity presence, not effect entailment) has been patched in code but its
-   effect remains unmeasured. Section 37 confirms the complete routing pipeline
-   on a new blind population, but supplies no authoritative semantic contracts
-   and therefore cannot isolate this matcher.
+1. **Useful semantic autonomy** (§39) — safety is measured and met
+   (native wrong-call ACCEPT 0/500 on sealed C-ext3, arm ablation
+   24 → 6 → 0), which closed §36's measurement gap. What remains open is
+   utility: the frozen deterministic intent extractor grounds only 26.6%
+   of legitimate read calls (target ≥75%), and the semantic gates preempt
+   the argument-routing layer (obtainable VERIFY 46.7%, unobtainable
+   ABSTAIN 63.3%). The pre-identified follow-up is the LLM-as-proposer arm
+   (SAP v5 §7 — a model proposes intents, the deterministic matcher keeps
+   sole authority) plus an explicit gate-ordering design for combined
+   semantic+argument observations.
 2. **Legitimate autonomy lost to derived values** (§35) — grounding cost
    read autonomy 86.1% → 56.8%, mostly dates, unit conversions and computed
    values that are correct but not literally in the user's text. **The
@@ -2129,7 +2127,7 @@ reproduces or republishes it.
 ---
 
 ## §36 Semantic binding gap in `match_tool_to_intent`: span-existence is not span-entailment (2026-08-04)
-<!-- finding-status: open -->
+<!-- finding-status: superseded -->
 
 **The gap.** `TaskIntent.source_spans` verified only that the quoted text
 appeared verbatim in the task — not that the *claimed effect* was grounded
@@ -2215,7 +2213,7 @@ not isolated causal efficacy of semantic intent matching.
 
 **Artifacts.** `results/routing_bench_bfcl_v4_results.json`,
 `data/routing_bench_bfcl_v4/manifest.json` (holdout SHA-256 `00ccd538…`).
-Registered as CLAIM-018.
+Registered as CLAIM-018 (since superseded by CLAIM-019, the C-ext3 semantic-authority track; the baseline numbers here remain permanent).
 
 ---
 
@@ -2293,6 +2291,62 @@ no longer presents the framing as method.
 
 ## Summary Table
 
+## §39 C-ext3 semantic-authority confirmation: wrong-call ACCEPT eliminated; the deterministic extractor caps autonomy and degrades argument routing (2026-08-19)
+<!-- finding-status: open -->
+
+Track C-ext3 was pre-registered in SAP v5 (`docs/assurance/
+statistical_analysis_plan_v5_bfcl_semantic.md`) and evaluated once: 500
+fresh `live_multiple` clusters and 300 fresh `live_irrelevance` tasks from
+BFCL v4 at the same upstream commit, ID-disjoint from BOTH spent
+populations (overlap 0), 2,799 episodes over 800 clusters. Configuration:
+frozen deterministic semantic bundle (contracts authored from tool names
+only; intents extracted from task text only;
+`remora/toolcall/routing/bfcl_semantic_bundle.py`, hash sealed in the
+manifest), `semantic_authority_floor` on, empty state index.
+
+| Pre-registered target | Bar | Sealed C-ext3 result | Verdict |
+|---|---:|---:|---|
+| native wrong-call ACCEPT | ≤ 1% | **0/500 = 0.0%** (Wilson 95% ≤ 0.76%) | MET |
+| irrelevance ABSTAIN recall | ≥ 95% | **300/300 = 100.0%** | MET |
+| required-UNKNOWN autonomous ACCEPT | ≤ 0% | **0/398 = 0.0%** | MET |
+| constructed wrong-tool ACCEPT | ≤ 1% | **2/199 = 1.005%** | MISSED (by 0.005pp) |
+| legitimate read autonomy | ≥ 75% | **25/94 = 26.6%** | MISSED |
+| obtainable VERIFY recall | ≥ 95% | **93/199 = 46.7%** | MISSED |
+| unobtainable ABSTAIN recall | ≥ 95% | **126/199 = 63.3%** | MISSED |
+
+**What is established.** Purpose-bound authorization eliminates native
+wrong-tool acceptance on fresh sealed data. The single-pass ablation gives
+the attribution chain on the SAME episodes: structural-only (arm A)
+accepted 24/500 wrong calls; contracts+intent without the floor (arm C) 6;
+with the UNKNOWN floor (arm F) 0. This closes the §34/§36 measurement gap
+for the native axis: the improvement is carried by declared semantic
+authority, not by the earlier structural pipeline.
+
+**What failed, published as measured.**
+
+1. *Read autonomy 26.6% vs ≥75%.* The deterministic keyword extractor
+   grounds too few natural-language tasks (predicted pre-seal in SAP v5
+   deviation 3: dev estimate ≈35%). Purpose-bound authorization with a
+   deterministic extractor is SAFE but not USEFUL enough. The
+   pre-identified follow-up is the LLM-as-proposer arm (SAP v5 §7): a
+   model proposes intents, the deterministic matcher retains sole
+   authority.
+2. *Argument-routing degradation (obtainable 46.7%, unobtainable 63.3%).*
+   A mechanism interaction, not noise: the semantic gates fire BEFORE the
+   argument gates, so episodes the argument layer would have routed to
+   VERIFY-with-resolution-plan or ABSTAIN are intercepted as
+   goal-UNSUPPORTED/UNKNOWN first. Semantic strictness and fine-grained
+   argument routing trade against each other in this configuration; gate
+   ordering for combined semantic+argument observations is now an explicit
+   design question.
+3. *Constructed wrong-tool 2/199 = 1.005% vs ≤1%.* A hair-width miss on
+   our own mutants, reported as missed; the two accepts are in the result
+   artifact for inspection.
+
+The C-ext2 baseline (28/258 = 10.9%, degraded authority) remains permanent
+under §37/CLAIM-018 (superseded by CLAIM-019 but retained as the immutable baseline record). This section records the fresh-track misses; the met
+targets are claimed under CLAIM-019.
+
 Grouped by status, not by age. `scripts/check_negative_results_status.py`
 verifies that every section listed here carries the matching
 `<!-- finding-status: ... -->` marker, so this table cannot drift away from the
@@ -2302,7 +2356,9 @@ sections again.
 
 | Finding | Where it stands | Severity |
 |---------|-----------------|----------|
-| Semantic binding gap: span-existence ≠ span-entailment (§36) | Code-fixed 2026-08-04 (`action_spans` + `EFFECT_VOCABULARY` v1 + negation/conditionality detection, 7 pinning tests). Effect on §34 residue unmeasured pending new sealed track | **High** |
+| Deterministic intent extractor caps read autonomy at 26.6% (§39) | Safety confirmed (0/500) but autonomy target missed; LLM-as-proposer arm is the identified follow-up — the matcher keeps sole authority | **High** |
+| Semantic gates preempt argument routing (§39) | Obtainable VERIFY 46.7% and unobtainable ABSTAIN 63.3% under the floor; gate ordering for combined semantic+argument observations is an open design question | **High** |
+| Constructed wrong-tool mutants 2/199 = 1.005% (§39) | Missed the ≤1% bar by 0.005pp; the two accepts are itemized in the result artifact | Low |
 | Derived values lose legitimate autonomy (§35) | Mechanism code-fixed 2026-08-05 (`DerivationReceipt`, versioned deterministic-transform whitelist, verbatim source spans, re-execution verify, 14 pinning tests). Effect on the autonomy loss unmeasured pending new sealed track | Medium |
 | Contextual harm invisible in a single call (§2, §8) | FA=30.7% under neutral metadata; semantic enrichment cut it but the residual needs trajectory-level governance, not another per-call classifier | **High** |
 | Entropy backend is a token fingerprint, not Semantic Entropy (§3) | NLI backend executes and disagrees on 12/24 of the smoke corpus; full benchmark parity unmeasured. Solvable now | Medium |
@@ -2325,6 +2381,7 @@ sections again.
 | Finding | Resolved by | Outcome |
 |---------|-------------|---------|
 | BFCL v3 wrong-call blindness (§34) | §37 | Disjoint BFCL v4 sealed run met all five targets; wrong-call ACCEPT 28/258 = 10.9% against the pre-registered ≤20% bar. The original 86.8% miss remains published |
+| Semantic binding gap: span-existence ≠ span-entailment (§36) | §39 | Measured on sealed C-ext3: declared semantic authority takes native wrong-call ACCEPT 24/500 (structural) → 6 (contracts+intent) → 0 (with the UNKNOWN floor). The autonomy/routing costs are the open §39 findings |
 | Routing is a near-constant predictor (§21) | §§22–35 | 25.0% accuracy and four families with identical predictions; the whole resolver/provenance/grounding line follows from this diagnosis |
 | No resolver layer, obtainable VERIFY 0% (§22) | §23 | `ResolutionPlan` and router re-entry took obtainable VERIFY recall 0% → 100% |
 | ESCALATE recall 0% on untrusted origin (§23) | §24 | Provenance split into noncontrolling/controls-sensitive; recall 0% → 100%, accuracy 56.9% → 85.5% |
