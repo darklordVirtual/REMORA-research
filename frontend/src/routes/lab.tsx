@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { DemoBanner } from "@/components/demo-banner";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader, SectionLabel } from "@/components/primitives";
@@ -448,6 +449,7 @@ function LabPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 pt-16 pb-24">
+      <DemoBanner />
       <PageHeader
         eyebrow="REMORA · live tool-call lab"
         title="Invoke tools. Inspect the envelope."

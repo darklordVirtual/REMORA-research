@@ -1,4 +1,5 @@
 ﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { DemoBanner } from "@/components/demo-banner";
 import { cn } from "@/lib/utils";
 import { Suspense, lazy } from "react";
 
@@ -44,6 +45,7 @@ function ControlRoomPage() {
 
   return (
     <div className="h-dvh flex flex-col bg-background overflow-hidden">
+      <DemoBanner />
       {/* Header */}
       <header className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-border bg-background/98 backdrop-blur-sm">
         <div className="flex items-center gap-4">

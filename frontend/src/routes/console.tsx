@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { DemoBanner } from "@/components/demo-banner";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -100,6 +101,7 @@ function ConsolePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 pt-16 pb-24">
+      <DemoBanner />
       <PageHeader
         eyebrow="REMORA · live control plane"
         title="Console."

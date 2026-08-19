@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { DemoBanner } from "@/components/demo-banner";
 import { useMemo } from "react";
 import {
   Area,
@@ -108,6 +109,7 @@ function TelemetryPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 pt-16 pb-24">
+      <DemoBanner />
       <PageHeader
         eyebrow="REMORA · golden signals"
         title="Telemetry."
