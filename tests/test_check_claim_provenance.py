@@ -76,8 +76,8 @@ def test_parse_register_real_file() -> None:
     text = ccp.REGISTER_PATH.read_text(encoding="utf-8")
     claims = ccp.parse_register(text)
     ids = [c["id"] for c in claims]
-    assert len(claims) == 18
-    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-018"
+    assert len(claims) == 19
+    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-019"
     by_id = {c["id"]: c for c in claims}
     assert by_id["CLAIM-001"]["artifact"] == [
         "results/toolcall_benchmark_v2_results.json",
@@ -455,7 +455,7 @@ def test_real_readme_anchors_are_wired() -> None:
     # have; it is now a limitation bullet under "what is not proven", with the
     # numbers held by the register and NEGATIVE_RESULTS §18.
     assert {"CLAIM-001", "CLAIM-002", "CLAIM-003",
-            "CLAIM-018"} <= _readme_anchored_claims()
+            "CLAIM-019"} <= _readme_anchored_claims()
 
 
 def test_readme_front_page_carries_no_superseded_claim() -> None:

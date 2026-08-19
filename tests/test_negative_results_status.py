@@ -39,7 +39,7 @@ def test_every_section_carries_a_status() -> None:
     statuses, errors = mod.parse_sections(lines)
     assert errors == [], errors
     # Every numbered section is marked; the count grows as findings land.
-    assert len(statuses) == 38
+    assert len(statuses) == 39
     assert set(statuses.values()) <= set(mod.VALID)
 
 

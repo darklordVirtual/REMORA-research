@@ -2296,11 +2296,13 @@
     "status": "ineligible"
   },
   "caveat": "Evaluated once, sealed. Configuration: frozen deterministic semantic bundle (contracts from tool names only; intent from task text only), semantic_authority_floor on, low_consequence_accept on, EMPTY state index (BFCL provides no system of record and none is invented) \u2014 the accept property is SEMANTICALLY AUTHORIZED READ, explicitly weaker than SAP v4 grounded read. No retuning against this set is permitted; misses are published as measured.",
+  "evaluated_all_targets_met": false,
   "excluded_axes": {
     "wrong_argument_value": "No vouchable external state table; labels may not be used as authority."
   },
   "frozen_goal_match_sha256": "65c0b5473770a7c7c7e054b1d074589ffd0a0073dc6e434c6addaee75de8a0b1",
   "frozen_semantic_bundle_sha256": "860768b6150c746af5b51df44b28108215ae1e080d554251ed95e6f687754dc0",
+  "locked_at_commit": "6a1ae7121593c78213b6db149261d15ed839dd86",
   "n_clusters": 800,
   "n_episodes": 2799,
   "registry_sha256": "c0ba92e2034ab672836876d8f0743ba78ffa7f66db4a431ee2f7ce3d03c9542c",
@@ -2308,7 +2310,7 @@
   "sap": "docs/assurance/statistical_analysis_plan_v5_bfcl_semantic.md",
   "schema": "routing_bench_bfcl_v4_cext3_v1",
   "sha256": "5fdd32c1e048935db0991157b223eb92dd51b61724cac79433c5f062c42b9ee6",
-  "status": "sealed_never_run",
+  "status": "evaluated",
   "targets": {
     "constructed_wrong_tool_accept": [
       "<=",
