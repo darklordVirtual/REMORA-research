@@ -399,6 +399,12 @@ from remora.execution.dispatch import (
     dispatch_under_lease as _dispatch_under_lease_impl,
     record_dispatch_intent as _record_dispatch_intent_impl,
 )
+from remora.execution.review_service import (
+    ReviewConflict,
+    ReviewNotFound,
+    approve_item as _approve_item,
+    reject_item as _reject_item,
+)
 from remora.execution.authorization import (
     assessed_record as _authz_assessed_record,
     load_toolspec_bundle as _authz_load_bundle,
@@ -1035,69 +1041,39 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "review")
-    # Profile-specific approval role (review-8 finding): a generic reviewer
-    # must not approve what the tenant's risk profile reserves for
-    # domain_expert/senior_authority. The item's own observation carries the
-    # authoritative risk tier; same enforcement path as legacy /v1/review.
-    # The tenant-binding check runs INSIDE the transaction: after a process
-    # restart _ITEM_TENANT is rehydrated from the durable store by the
-    # transaction load, so checking before the load 404s real items
-    # (review finding 2a).
+
+    def _authorize_approval(item) -> None:
+        # Profile-specific approval role (review-8 finding): a generic
+        # reviewer must not approve what the tenant's risk profile reserves
+        # for domain_expert/senior_authority. Raises the same HTTP errors it
+        # always did — a route-layer policy injected into the service.
+        risk_tier = item.observation.risk_tier
+        _, profile_cfg = api_mod._resolve_tenant_policy_profile(
+            tenant, str(risk_tier) if risk_tier is not None else None
+        )
+        api_mod._enforce_review_approval_role(
+            role=role,
+            tenant_id=tenant,
+            decision="approved",
+            review_requirements=api_mod._extract_review_requirements(profile_cfg),
+        )
+
     try:
-        with db_transaction_state(tenant) as q:
-            if _ITEM_TENANT.get(req.item_id) != tenant:
-                raise KeyError(req.item_id)
-            item = q.item(req.item_id)
-    except KeyError as exc:
+        response = _approve_item(
+            tenant=tenant, principal=principal, item_id=req.item_id,
+            approval_ttl_seconds=req.approval_ttl_seconds,
+            on_behalf_of=req.on_behalf_of,
+            transaction=db_transaction_state, item_tenant=_ITEM_TENANT,
+            chain=_CHAIN, authorize_approval=_authorize_approval,
+            lifecycle_guard=_lifecycle_guard,
+            note_proposal_id=_note_proposal_id,
+        )
+    except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
-    risk_tier = item.observation.risk_tier
-    _, profile_cfg = api_mod._resolve_tenant_policy_profile(
-        tenant, str(risk_tier) if risk_tier is not None else None
-    )
-    api_mod._enforce_review_approval_role(
-        role=role,
-        tenant_id=tenant,
-        decision="approved",
-        review_requirements=api_mod._extract_review_requirements(profile_cfg),
-    )
-    try:
-        # Inside the durable transaction (external review 2026-07-27): the
-        # approval previously mutated only in-process state and was silently
-        # discarded when the next transaction reloaded the queue from the
-        # database — approve->execute was broken in Postgres/SQLite mode.
-        with db_transaction_state(tenant) as q:
-            # REM-032 lazy sweep (see assess); an expired target then fails
-            # q.approve with "not pending", surfaced as 409.
-            q.expire_due()
-            approval = q.approve(
-                req.item_id, approver=principal,
-                approval_ttl=timedelta(seconds=req.approval_ttl_seconds),
-            )
-    except (KeyError, ValueError) as exc:
+    except ReviewConflict as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    # FT-01 conformance, AFTER the queue accepted: the move the queue just
-    # performed (pending → approved) must be one the declared machine
-    # allows. Client errors (expired/unknown items) stay the queue's 409s;
-    # this catches drift between runtime and model — a loud 500.
-    _lifecycle_guard("REVIEW_PENDING", "human_approval")
-    proposal_id = getattr(item.observation, "proposal_id", None)
-    _note_proposal_id(proposal_id)
-    entry = _CHAIN.append(tenant, {
-        "event": "approved",
-        "proposal_id": proposal_id,
-        "actor": principal,
-        "on_behalf_of": req.on_behalf_of,
-        "item_id": req.item_id,
-        "expires_at": approval.expires_at.isoformat(),
-    })
     api_mod.record_execution_approval()
-    return {
-        "status": "approved",
-        "proposal_id": proposal_id,
-        "item_id": req.item_id,
-        "expires_at": approval.expires_at.isoformat(),
-        "audit": {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash},
-    }
+    return response
 
 
 def _resolution_plan_for(
@@ -1613,33 +1589,17 @@ def reject(req: RejectRequest, request: Request) -> dict[str, Any]:
 
     api_mod._require_tenant_capability(role, tenant, "review")
     try:
-        with db_transaction_state(tenant) as q:
-            if _ITEM_TENANT.get(req.item_id) != tenant:
-                raise KeyError(req.item_id)
-            q.expire_due()
-            item = q.reject(req.item_id, reviewer=principal, reason=req.reason)
-    except KeyError as exc:
+        return _reject_item(
+            tenant=tenant, principal=principal, item_id=req.item_id,
+            reason=req.reason,
+            transaction=db_transaction_state, item_tenant=_ITEM_TENANT,
+            chain=_CHAIN, lifecycle_guard=_lifecycle_guard,
+            note_proposal_id=_note_proposal_id,
+        )
+    except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
-    except ValueError as exc:
+    except ReviewConflict as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-
-    _lifecycle_guard("REVIEW_PENDING", "human_rejection")
-    proposal_id = getattr(item.observation, "proposal_id", None)
-    _note_proposal_id(proposal_id)
-    entry = _CHAIN.append(tenant, {
-        "event": "rejected",
-        "proposal_id": proposal_id,
-        "actor": principal,
-        "item_id": req.item_id,
-        "reason": req.reason,
-    })
-    return {
-        "status": "rejected",
-        "proposal_id": proposal_id,
-        "item_id": req.item_id,
-        "reason": req.reason,
-        "audit": {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash},
-    }
 
 
 # Lifecycle/effect projections (issue #241, extraction slice 5): the derived
