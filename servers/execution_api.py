@@ -51,10 +51,6 @@ from remora.enforcement.outbox import (
 from remora.governance.effect_verification import (
     EffectVerification,
 )
-from remora.governance.proposal_lineage import (
-    derive_lineage,
-    lineage_key_for,
-)
 from remora.governance.lifecycle import (
     IllegalTransition,
     check_transition,
@@ -399,6 +395,7 @@ from remora.execution.dispatch import (
     dispatch_under_lease as _dispatch_under_lease_impl,
     record_dispatch_intent as _record_dispatch_intent_impl,
 )
+from remora.execution.service import assess_proposal as _assess_proposal
 from remora.execution.review_service import (
     ReviewConflict,
     ReviewNotFound,
@@ -490,7 +487,6 @@ def _auth(request: Request) -> tuple[str, str, str]:
 
 
 import json
-from uuid import uuid4
 
 # Review-state persistence (issue #241 extraction slice 2): the transaction
 # adapter lives in remora/persistence/execution_state.py. to_dict/from_dict
@@ -895,125 +891,21 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     # whose worker never reported back is settled as UNKNOWN before new
     # work is considered, so a stranded intent cannot linger unnoticed.
     reconcile_stale_dispatches(tenant)
-    obs, semantic = _observation_with_context(req, tenant)
-    # FT-01: mint the canonical proposal identity here — every downstream
-    # record, response and grant for this action carries it. Attached to the
-    # observation so it survives the durable review queue.
-    toolspec_identity = _resolve_toolspec(
-        req.tool_name, req.arguments, req.target_environment
+    # Orchestration lives in remora.execution.service (issue #241, slice 7);
+    # this route binds the module's ambient state and stays HTTP conversion.
+    response = _assess_proposal(
+        tenant=tenant, principal=principal, proposal=req,
+        engine=_ENGINE, chain=_CHAIN,
+        transaction=db_transaction_state, item_tenant=_ITEM_TENANT,
+        build_observation=_observation_with_context,
+        resolve_toolspec=_resolve_toolspec,
+        lifecycle_guard=_lifecycle_guard,
+        resolution_plan_for=_resolution_plan_for,
+        note_proposal_id=_note_proposal_id,
+        token_audience=PEP_AUDIENCE,
+        token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
     )
-    # Popped, not recorded: the roles are spec data the lineage key needs,
-    # and copying them into every audit record and response would grow
-    # both without telling a reader anything the spec hash does not.
-    _argument_roles = toolspec_identity.pop("argument_roles", {})
-    proposal_id = str(uuid4())
-    _note_proposal_id(proposal_id)
-    obs = dataclasses.replace(obs, proposal_id=proposal_id)
-    report = _ENGINE.decide(obs)
-    now = datetime.now(UTC)
-    # Derived from the chain, never from the request: a caller-declared
-    # "this supersedes X" would be defeated by the one caller it exists to
-    # catch, who simply omits it. Read BEFORE any transaction opens —
-    # reading the chain inside one deadlocks against SQLite's exclusive
-    # write lock, the trap the outbox and the ToolSpec lookup both hit.
-    _lineage_key = lineage_key_for(
-        actor=principal,
-        tool_name=req.tool_name,
-        target_environment=req.target_environment or "",
-        arguments=req.arguments,
-        argument_roles=_argument_roles,
-    )
-    _lineage = derive_lineage(
-        [{"timestamp": e.timestamp, "payload": e.payload}
-         for e in _CHAIN.entries(tenant)],
-        _lineage_key, now=datetime.now(UTC).isoformat(),
-    )
-
-    record: dict[str, Any] = {
-        "event": "assessed",
-        "proposal_id": proposal_id,
-        "actor": principal,
-        "tool_name": req.tool_name,
-        "tool_call_hash": obs.tool_call_hash,
-        # Carried so a LATER derivation can match this proposal. Without
-        # them the lineage key could never be reconstructed from the
-        # chain, and every proposal would look like a first attempt.
-        "target_environment": req.target_environment or "",
-        "lineage_resource": _lineage_key.resource,
-        "superseded_proposal_id": _lineage.superseded_proposal_id,
-        "lineage": _lineage.to_dict(),
-        "decision": report.action.value,
-        "reasons": [r.value for r in report.reasons],
-        "policy_version": report.policy_version,
-        # SHELF-020: the decision names the declaration set and intent source
-        # it was made under. Empty strings mean "no bundle configured" — the
-        # registry-only path, recorded rather than assumed away.
-        "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
-        "state_hash": semantic["state_hash"],
-        "intent_authority_hash": semantic["intent_authority_hash"],
-        "toolspec_hash": toolspec_identity["hash"],
-        "toolspec_version": toolspec_identity["version"],
-    }
-    response: dict[str, Any] = {
-        "proposal_id": proposal_id,
-        "decision": report.action.value,
-        "reasons": [r.value for r in report.reasons],
-        "tool_call_hash": obs.tool_call_hash,
-        "semantic": dict(semantic),
-        "toolspec": dict(toolspec_identity),
-    }
-    # FT-01 conformance: the assess flow's shape must match the declared
-    # machine (PROPOSED → ASSESSED → branch) before anything is recorded.
-    _branch_event = {
-        DecisionAction.ACCEPT: "direct_accept_token",
-        DecisionAction.VERIFY: "verify_or_escalate",
-        DecisionAction.ESCALATE: "verify_or_escalate",
-        DecisionAction.ABSTAIN: "abstain_or_hard_refusal",
-    }.get(report.action, "abstain_or_hard_refusal")
-    _lifecycle_guard("PROPOSED", "engine_decision", _branch_event)
-
-    if report.action is DecisionAction.ACCEPT:
-        token = PolicyDecisionToken.issue(
-            action="accept",
-            observation_hash=obs.tool_call_hash or "",
-            request_id=proposal_id,
-            issued_at=now.isoformat(),
-            expires_at=(now + timedelta(seconds=EXECUTION_TOKEN_TTL_SECONDS)).isoformat(),
-            audience=PEP_AUDIENCE,
-        )
-        record["grant_jti"] = token.jti
-        response["execution_token"] = token.to_dict()
-    else:
-        with db_transaction_state(tenant) as q:
-            # REM-032 lazy sweep: every queue interaction first resolves
-            # overdue PENDING items to ABSTAIN (with their events), so an
-            # unattended item cannot outlive its TTL past the tenant's next
-            # touch. Idle-queue wall-clock expiry needs a scheduled
-            # expire_due() — documented in the quickstart.
-            q.expire_due()
-            item = q.enqueue(obs, report.action) if report.action in (
-                DecisionAction.VERIFY, DecisionAction.ESCALATE
-            ) else None
-            if item is not None:
-                # Inside the transaction (external review 2026-07-27): the
-                # item->tenant binding must be part of the same durable write
-                # as the item itself, or a restart leaves an item the API
-                # refuses as unknown.
-                _ITEM_TENANT[item.item_id] = tenant
-        if item is not None:
-            record["review_item_id"] = item.item_id
-            response["review_item_id"] = item.item_id
-    # Shadow only: the decision above was NOT influenced by this. A
-    # consumer must be able to see the probing signal without being misled
-    # into thinking it changed the routing.
-    response["lineage"] = _lineage.to_dict()
-    response["resolution_plan"] = _resolution_plan_for(
-        action=report.action, report=report, tenant=tenant,
-        item=item if report.action is not DecisionAction.ACCEPT else None,
-    )
-    entry = _CHAIN.append(tenant, record)
-    response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
-    api_mod.record_execution_assess(report.action.value)
+    api_mod.record_execution_assess(response["decision"])
 
     if idemp_key:
         _idempotency_put(idemp_key, response)
