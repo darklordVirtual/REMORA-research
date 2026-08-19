@@ -13,7 +13,7 @@ REMORA is a **policy-gated execution assurance layer for operational AI agents**
 
 The enforcing surface is `POST /v1/execution/*`. Authorization is bound to the approved proposal and consumed at the policy-enforcement point before governed dispatch.
 
-> **Status:** research/shadow-mode software with no production certification. External replication and deployment-specific validation remain required.
+> **Status:** research/shadow-mode software with no production certification. External replication is pending; deployment-specific validation remains required.
 
 ```bash
 python -m pip install -e '.[dev]'
@@ -58,7 +58,7 @@ Headline values are governed by the [claim register](docs/assurance/claim_regist
 Interpret these values narrowly:
 
 - AgentHarm also blocks the harmless twin set, so the result does not establish fine-grained harmful/harmless discrimination.
-- The simulator has 70 independent templates; cosmetic variants do not increase the effective sample size.
+- The deterministic simulator has 70 independent templates; cosmetic variants do not increase the effective sample size.
 - BFCL v4 exposes the current routing weakness directly: 10.9% of known-wrong calls were accepted in that track.
 - Historical regression demonstrates that known failures remain fixed; it does not bound unseen failures.
 - Internal reproducibility is not external replication or field validation.
