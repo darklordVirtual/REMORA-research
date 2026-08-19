@@ -18,6 +18,7 @@ import { Route as CascadeRouteImport } from './routes/cascade'
 import { Route as ConsoleRouteImport } from './routes/console'
 import { Route as ControlRoomRouteImport } from './routes/control-room'
 import { Route as EvidenceRouteImport } from './routes/evidence'
+import { Route as ExecutionsRouteImport } from './routes/executions'
 import { Route as EyeRouteImport } from './routes/eye'
 import { Route as GovernanceRouteImport } from './routes/governance'
 import { Route as LabRouteImport } from './routes/lab'
@@ -72,6 +73,11 @@ const ControlRoomRoute = ControlRoomRouteImport.update({
 const EvidenceRoute = EvidenceRouteImport.update({
   id: '/evidence',
   path: '/evidence',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExecutionsRoute = ExecutionsRouteImport.update({
+  id: '/executions',
+  path: '/executions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EyeRoute = EyeRouteImport.update({
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/console': typeof ConsoleRoute
   '/control-room': typeof ControlRoomRoute
   '/evidence': typeof EvidenceRoute
+  '/executions': typeof ExecutionsRoute
   '/eye': typeof EyeRoute
   '/governance': typeof GovernanceRoute
   '/lab': typeof LabRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/console': typeof ConsoleRoute
   '/control-room': typeof ControlRoomRoute
   '/evidence': typeof EvidenceRoute
+  '/executions': typeof ExecutionsRoute
   '/eye': typeof EyeRoute
   '/governance': typeof GovernanceRoute
   '/lab': typeof LabRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/console': typeof ConsoleRoute
   '/control-room': typeof ControlRoomRoute
   '/evidence': typeof EvidenceRoute
+  '/executions': typeof ExecutionsRoute
   '/eye': typeof EyeRoute
   '/governance': typeof GovernanceRoute
   '/lab': typeof LabRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/console'
     | '/control-room'
     | '/evidence'
+    | '/executions'
     | '/eye'
     | '/governance'
     | '/lab'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/console'
     | '/control-room'
     | '/evidence'
+    | '/executions'
     | '/eye'
     | '/governance'
     | '/lab'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/console'
     | '/control-room'
     | '/evidence'
+    | '/executions'
     | '/eye'
     | '/governance'
     | '/lab'
@@ -265,6 +277,7 @@ export interface RootRouteChildren {
   ConsoleRoute: typeof ConsoleRoute
   ControlRoomRoute: typeof ControlRoomRoute
   EvidenceRoute: typeof EvidenceRoute
+  ExecutionsRoute: typeof ExecutionsRoute
   EyeRoute: typeof EyeRoute
   GovernanceRoute: typeof GovernanceRoute
   LabRoute: typeof LabRoute
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       path: '/evidence'
       fullPath: '/evidence'
       preLoaderRoute: typeof EvidenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/executions': {
+      id: '/executions'
+      path: '/executions'
+      fullPath: '/executions'
+      preLoaderRoute: typeof ExecutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/eye': {
@@ -425,6 +445,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConsoleRoute: ConsoleRoute,
   ControlRoomRoute: ControlRoomRoute,
   EvidenceRoute: EvidenceRoute,
+  ExecutionsRoute: ExecutionsRoute,
   EyeRoute: EyeRoute,
   GovernanceRoute: GovernanceRoute,
   LabRoute: LabRoute,
