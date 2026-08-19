@@ -42,18 +42,18 @@ frontend/node_modules/
 .wrangler/
 workers/*/dist-check/
 
-# Logs and secrets
+# Logs, secrets and local agent/tool state
 *.log
 hotpotqa_yesno.json
 .env
 *.key
 .env.vars
 .claude/settings.local.json
+frontend/.lovable/
 .remora_session/
 docs/superpowers/
 .codex_tmp/
 .codex/config.toml
-.env.vars
 
 # Python virtual environments
 .venv/

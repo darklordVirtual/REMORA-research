@@ -2,10 +2,10 @@ version: 2
 updates:
   # Python package dependencies (root pyproject.toml / requirements).
   #
-  # Grouped by RISK CLASS (fasttrack Gate 0.3), not as one universe-bump: a
-  # world-class assurance kernel must be able to attribute a regression to a
-  # concrete change. PR #133 (168 packages in one PR) is the failure mode
-  # this prevents. Anything not matching a group arrives as its own PR.
+  # Grouped by risk class (fasttrack Gate 0.3), not as one universe-bump:
+  # regression attribution requires a reviewable, bounded dependency change.
+  # PR #133 (168 packages in one PR) is the failure mode this prevents.
+  # Anything not matching a group arrives as its own PR.
   - package-ecosystem: "pip"
     directory: "/"
     schedule:

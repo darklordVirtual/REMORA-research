@@ -1,39 +1,48 @@
 # REMORA: Policy-Gated Governance for Operational AI Agents
 
-[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE) [![Product: Assured Agent Execution](https://img.shields.io/badge/product-Assured_Agent_Execution-0b7285.svg)](https://github.com/darklordVirtual/assured-agent-execution)
+[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
 
-**An AI agent wants to do something. REMORA decides whether it may, before it happens.**
+REMORA is a **policy-gated execution assurance layer for operational AI agents**: a governance overlay placed between an agent proposal and the protected tool path. An agent proposes a tool call; REMORA evaluates the exact action before execution and returns one of four outcomes:
 
-Give an agent real tools and it will eventually reach for the wrong one: the wrong
-database, the wrong machine, an instruction that arrived inside a document it was
-reading. REMORA is a **governance overlay** — a checkpoint the proposed action must
-pass before anything runs. It does not replace the agent; it answers one question per
-action, and records why.
+| Decision | Meaning |
+|---|---|
+| **ACCEPT** | The action may proceed under the current policy and context. |
+| **VERIFY** | A defined check or review is required before execution. |
+| **ABSTAIN** | Required information is missing or insufficient. |
+| **ESCALATE** | The action requires a higher-authority decision. |
 
-| Answer | What it means |
-|--------|---------------|
-| **ACCEPT** | Safe to run on its own |
-| **VERIFY** | One specific thing must be checked first |
-| **ABSTAIN** | Not enough to go on, so stop |
-| **ESCALATE** | A person has to decide this |
+The enforcing surface is `POST /v1/execution/*`. Authorization is bound to the approved proposal and consumed at the policy-enforcement point before governed dispatch.
+
+> **Status:** research/shadow-mode software with no production certification. External replication is pending; deployment-specific validation remains required.
 
 ```bash
-pip install -e ".[dev]" && python -m remora try     # try it, no API keys needed
+python -m pip install -e '.[dev]'
+python -m remora try
 ```
 
-**Building on it rather than studying it?** [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution)
-brings up a governed deployment consuming this repo as seven hash-pinned artifacts. Built for
-work where a wrong action costs something real: building automation, energy management,
-infrastructure control, regulated enterprise workflows.
-
-**Start here:** [Developer handoff](DEVELOPER_OVERVIEW.md) · [Plain-language overview](docs/plain_language_overview.md) · [Reference architecture](docs/reference_architecture.md) · [Executive one-pager](docs/executive_onepager.md) · [Docs index](docs/README.md)
+**Start here:** [Developer handoff](DEVELOPER_OVERVIEW.md) · [Architecture](ARCHITECTURE.md) · [Evidence and claims](docs/02-evidence-and-claims.md) · [Reproducibility](docs/06-reproducibility.md) · [Documentation index](docs/README.md)
 
 ---
-## What it does well
 
-Each result is measured on a committed artifact and governed by the
-[claim register](docs/assurance/claim_register_v1.yaml); every number carries the caveat that
-bounds it.
+## Execution path
+
+The operational path is intentionally small:
+
+1. **Authoritative context** — tool meaning, target, risk and approved intent come from deployment-owned sources such as Signed ToolSpec, not from the calling agent.
+2. **Policy decision** — deterministic hard guards have precedence over model-derived signals.
+3. **Review or grant** — `VERIFY`/`ESCALATE` enters bounded review; `ACCEPT` receives a short-lived, single-use grant bound to the proposal.
+4. **PEP and dispatch** — the grant is consumed, an `ExecutionLease` binds policy identity and call identity, and `GovernedToolDispatcher` invokes the deployment-owned callable.
+5. **Lifecycle and evidence** — dispatch intent, outcome, effect verification and audit records remain joinable by proposal identity.
+
+The separate `/v1/assess` research surface can use oracle, evidence and uncertainty components. Those components are not prerequisites for the execution kernel and cannot override its deterministic hard-guard floor.
+
+See [DEVELOPER_OVERVIEW.md](DEVELOPER_OVERVIEW.md) for the CORE / OPTIONAL / EXPERIMENTAL / HISTORICAL boundary and [docs/deployment/execution-quickstart.md](docs/deployment/execution-quickstart.md) for a deployment-shaped walkthrough.
+
+---
+
+## Evidence
+
+Headline values are governed by the [claim register](docs/assurance/claim_register_v1.yaml) and must remain tied to committed result artifacts and scope caveats. Reported empirical results are **bounded by documented assumptions**, benchmark populations and evaluation protocols; they are not general safety guarantees.
 
 <!-- claim:CLAIM-002 far_pct far_ci_high_pct fbr_pct n -->
 <!-- claim:CLAIM-001 far_pct n_effective n -->
@@ -42,131 +51,82 @@ bounds it.
 | # | Benchmark | Result | Scope |
 |---|---|---|---|
 | 1 | **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
-| 2 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); utility +0.456 | Simulated; effective N = 70 (70 templates x 10 cosmetic variants), not 700; 95% upper bound 5.2%; safety margin Δ=0.0143, p=0.50 (not statistically significant) |
-| 3 | **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | **5/5** pre-registered targets; sealed run, 1,527 episodes |
-| 4 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures |
+| 2 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); 95% cluster-level Wilson upper bound **5.2%**; utility +0.456 | Simulated; effective N = 70 (70 templates × 10 cosmetic variants); unsafe-rate gap Δ=0.0143 vs. baseline, not statistically significant |
+| 3 | **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | Sealed run, 1,527 episodes; 5/5 pre-registered targets met |
+| 4 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures only |
 
-**What each row actually says — and what it does not:**
+Interpret these values narrowly:
 
-1. **AgentHarm.** 208 harmful requests from an external benchmark REMORA did not build; none was
-   allowed, though with 208 samples the true rate could still be 1.81%. Note the scope column:
-   the *harmless* twin of every task was blocked too, all of them. So this measures a system that
-   refuses the whole category, not one that tells harmful and harmless apart.
-2. **Adversarial simulator.** Ours, and narrower than "700 tasks" suggests: 70 templates × 10
-   cosmetic variants, so the real sample is **70**. Nothing unsafe ran. Baselines ran 1.4% unsafe,
-   but that gap is **not** statistically separable (p=0.50); the significant gain is utility
-   (+0.46). The floor comes from the deterministic hard blocks, not the model ensemble.
-3. **BFCL v4.** External routing benchmark, run **once** on a sealed sample, five targets fixed
-   beforehand and all five met. It refused every irrelevant tool (258/258) and never invented a
-   missing input (0/32). The weakest number is the informative one: **10.9% of known-wrong calls
-   were accepted** (28/258, bar ≤20%) — a call can be structurally perfect and still aim wrong.
-4. **Historical regression.** 167 failures previously observed here, replayed; none is allowed
-   today. Proves old bugs stay fixed, says nothing about new ones.
+- AgentHarm also blocks the harmless twin set, so the result does not establish fine-grained harmful/harmless discrimination.
+- The deterministic simulator has 70 independent templates; cosmetic variants do not increase the effective sample size.
+- BFCL v4 exposes the current routing weakness directly: 10.9% of known-wrong calls were accepted in that track.
+- Historical regression demonstrates that known failures remain fixed; it does not bound unseen failures.
+- Internal reproducibility is not external replication or field validation.
 
-Two mechanisms produce rows 1–4: a deterministic hard-guard floor no model signal can override,
-and permission welded to the exact call it was granted for ([architecture](docs/01-architecture.md)).
-**Evidence discipline:** replaced results are archived ([superseded](docs/assurance/superseded_claims.md)),
-failed ones published in full in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md). CI enforces both.
+Replaced claims are retained in [superseded claims](docs/assurance/superseded_claims.md). Failed hypotheses and limitations are retained in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
 
 ---
 
-## How it works
-
-REMORA exposes **two surfaces that share the same policy core but do not run the same pipeline**.
-The enforcing `/v1/execution/*` surface is the path to use for operational tool calls:
-
-1. **Authoritative context** — tool meaning, risk, contracts, target and approved intent come from deployment-owned sources such as Signed ToolSpec, never from the calling agent.
-2. **Policy decision** — deterministic hard guards run first and win outright; no confidence score can unlock a forbidden tool, malformed call or detected hard violation.
-3. **Review or grant** — VERIFY/ESCALATE enters bounded review; ACCEPT receives a short-lived, single-use grant bound to the exact proposal.
-4. **PEP and dispatch** — the grant is consumed, an `ExecutionLease` binds the call and policy identity, and `GovernedToolDispatcher` performs the registered callable under the recorded outbox lifecycle.
-5. **Effect and audit** — proposal, authorization, dispatch outcome and effect verification remain joinable in the tenant audit trail.
-
-The separate `/v1/assess` research surface can add admission screening, multi-oracle consensus,
-evidence verification and uncertainty experiments. Those model signals can inform research/routing;
-they are **not prerequisites for the enforcing execution surface and cannot override its hard floor**.
-See [Developer handoff](DEVELOPER_OVERVIEW.md) for the exact CORE/OPTIONAL/EXPERIMENTAL split.
-
-Tools come **only** from deployment configuration, never from the request — and REMORA cannot
-stop an agent that reaches a tool *outside* this API (see [Status](#status)). Architecture,
-hard-guard priority rules and API details: [architecture narrative](docs/01-architecture.md) ·
-[ARCHITECTURE.md](ARCHITECTURE.md) (canonical) · [API](docs/07-api-reference.md).
-
----
-
-## Try it
+## Run it
 
 ```bash
-python -m remora assess drop_database # one-shot verdict for a named tool
-python -m pytest tests/ -q            # full deterministic suite (~4,600 tests, no keys, ~80s)
-python scripts/demo_industrial_maintenance.py   # end-to-end walkthrough (dry-run)
-python -m remora doctor               # environment self-check, with fixes
+python -m remora assess drop_database
+python -m pytest tests/ -q
+python scripts/demo_industrial_maintenance.py
+python -m remora doctor
 ```
 
-Nothing above needs an API key: a critical production delete escalates to a person, an
-injected instruction is stopped at the firewall, a harmless read is accepted — and each result
-shows the rule that decided it. Add `--envelope` for the audit record, `--live` for real models
-(key in the environment; never printed or stored). Every command: [docs/cli.md](docs/cli.md).
-
-To govern your own agent, the risk and action type must come from **your tool
-registry**, bound to the callable, never guessed from the tool's name:
+`assess_tool_call(...)` is an advisory library surface. It evaluates the context supplied by the caller; it does not itself control downstream credentials. For enforcement, route the call through `/v1/execution/*` and make the governed dispatcher the authority path to the protected tool.
 
 ```python
 from remora import assess_tool_call
-a = assess_tool_call("drop_database", {"db": "prod-main"},
-                     risk_tier="critical", action_type="destructive_write")  # from your registry
-if a.should_execute: run_tool(...)   # ACCEPT only; a.envelope is the audit record
+
+assessment = assess_tool_call(
+    "drop_database",
+    {"db": "prod-main"},
+    risk_tier="critical",
+    action_type="destructive_write",
+)
 ```
 
-That library path is *advisory*: it judges the facts you hand it. The enforcing path is the
-`/v1/execution` API ([quickstart](docs/deployment/execution-quickstart.md)), run locally via the
-[OT pilot](deploy/ot-pilot/docker-compose.yml) or [dev compose](docker-compose.test.yml). Worked
-loop: [examples/agent_gate.py](examples/agent_gate.py) · [scenarios](docs/use-cases/README.md) ·
-[reproduce every benchmark](docs/06-reproducibility.md).
+For external review or pilot work, use `REMORA_RUNTIME_PROFILE=review` or `controlled_pilot`; those profiles require the stronger Signed ToolSpec and durable-state prerequisites described in the [execution quickstart](docs/deployment/execution-quickstart.md).
 
 ---
 
-## Status
+## Repository map
 
-Shadow-mode research only; **not certified for production**. The numbers above come from a
-deterministic simulator and controlled internal corpora, never the field, and are reported with
-Wilson confidence intervals. External replication is pending, and REMORA cannot stop an agent
-that reaches a tool outside its API.
+| Path | Purpose |
+|---|---|
+| `remora/policy/` | Policy observation and decision logic |
+| `remora/toolcall/` | Tool authority, ToolSpec and routing contracts |
+| `remora/enforcement/` | PDP→PEP grant, lease, dispatcher and outbox |
+| `remora/governance/` | Review, lifecycle, audit and effect verification |
+| `servers/` | HTTP surfaces and deployment wiring |
+| `tests/` | Deterministic regression and contract tests |
+| `docs/assurance/` | Claims, capabilities, release gates and review records |
+| `docs/research/` | Active research material and benchmark design |
+| `docs/archive/` | Superseded or historical material |
+| `paper/` | Research paper and supporting publication artifacts |
 
-Deployment profile, which capabilities are actually wired, and the full caveat list:
-[what is proven and what is not](docs/02-evidence-and-claims.md#status-and-what-is-not-proven).
+Research modules, AROMER, older thermodynamic/statistical-physics work and historical design documents remain in the repository for reproducibility and audit history. Their presence does **not** imply that they are part of the enforcing runtime path. Use the [capability register](docs/assurance/capability_register_v1.yaml) for wiring status.
 
 ---
 
-## Research foundation
+## Current boundaries
 
-Every research line REMORA builds on maps to a concrete control, code file and test in the
-machine-checked [research-control matrix](docs/research/research_control_matrix.generated.md),
-which also records how each of the paper's references is used — implemented, grounding a
-module, evaluated against, or positioning only. Positioning:
-[docs/09-related-work.md](docs/09-related-work.md); derivations:
-[paper/remora_paper.md](paper/remora_paper.md).
+REMORA cannot enforce against a credential path that bypasses its dispatcher. Deployment identity, credential custody, downstream authorization and operational controls remain deployment responsibilities. Capability maturity is tracked explicitly in `docs/assurance/capability_register_v1.yaml`.
 
-Building the downstream product is also where core gaps surface first: deployment-declared tool
-classification, `GROUNDED_READ_ACCEPT` and per-surface fail-closed prerequisites came from there.
+`servers/execution_api.py` is still a large orchestration module. Its staged decomposition is tracked in issue #241; this is a maintainability boundary, not a claim that the current module layout is the desired final architecture.
 
-## Experimental: closed-loop calibration
+For product-oriented integration, see [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution), which consumes pinned REMORA artifacts rather than copying the governance core.
 
-**AROMER** is a separate experimental layer that sits on top of the governance core. It replays
-past decisions and their recorded outcomes to adapt its own thresholds, then re-scores itself
-against a held-out set it never trains on — a closed loop over governance quality rather than a
-component of it.
+---
 
-It is **not part of the system described above**: nothing in the control plane depends on it, it
-cannot weaken policy (enforced by a monotonicity test), and its metrics are **not** evidence for
-the core governance system. Design and results:
-[docs/03-experiments.md](docs/03-experiments.md) §9 ·
-[NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) §12–§16.
+## Research, AI use and citation
 
-## AI use, citation, license
+The current research-to-control mapping is maintained in [docs/research/research_control_matrix.generated.md](docs/research/research_control_matrix.generated.md). Related work is summarized in [docs/09-related-work.md](docs/09-related-work.md).
 
-Built with the assistance of generative-AI development tools; no AI output was accepted
-as evidence without an independently confirmed committed artifact, a passing test, or a
-verified external source. Full disclosure: [docs/AI_USE.md](docs/AI_USE.md).
+Generative-AI tools have been used during development. AI-generated text or code is not treated as evidence by itself; claims must resolve to committed artifacts, tests or verified sources. Disclosure: [docs/AI_USE.md](docs/AI_USE.md).
 
 ```bibtex
 @misc{remora2026,
@@ -174,25 +134,14 @@ verified external source. Full disclosure: [docs/AI_USE.md](docs/AI_USE.md).
   author = {Skogbrott, Stian},
   year   = {2026},
   url    = {https://github.com/darklordVirtual/REMORA-research},
-  note   = {Research-grade reference architecture. Results are internally
-            replicated and bounded by documented assumptions. External
-            replication pending.}
+  note   = {Research-grade reference architecture; external replication pending.}
 }
 ```
 
-REMORA versions from `v0.10.0` are **source-available under the
-[Business Source License 1.1](LICENSE)**, which is not open source, or available under a
-separate written [REMORA Commercial License](COMMERCIAL_LICENSE.md). The Licensor is
-Stian Skogbrott; **no commercial use is permitted without a commercial license from
-the Licensor**.
+---
 
-The BSL permits source inspection, modification, redistribution and non-production
-use. **Research is expressly welcome**: studying, benchmarking, reproducing and
-publishing results (no benchmark clause) is granted to any person or organization,
-and 90-day observer-only shadow-mode research evaluation is granted even inside
-companies. Any commercial production use requires a separate commercial agreement —
-scope and examples: [LICENSING.md](LICENSING.md); contact: support@luftfiber.no.
+## License and contributions
 
-Before contributing, see [docs/10-contributing.md](docs/10-contributing.md): run the
-full quality gate, ensure every claim links to a committed artifact on disk, and do not
-remove negative results or caveats. Working agreement: [CLAUDE.md](CLAUDE.md).
+REMORA versions from `v0.10.0` are source-available under the [Business Source License 1.1](LICENSE), with separate commercial licensing available under [REMORA Commercial License](COMMERCIAL_LICENSE.md). Research, benchmarking and reproducibility work are permitted within the terms described in [LICENSING.md](LICENSING.md).
+
+Contribution requirements, branch lifecycle, documentation style and claim hygiene are defined in [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/10-contributing.md](docs/10-contributing.md).

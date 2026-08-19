@@ -53,7 +53,7 @@ function GovernancePage() {
       </section>
 
       <section className="border-t border-border py-12">
-        <SectionLabel number="14">Roadmap to world-class credibility</SectionLabel>
+        <SectionLabel number="14">Roadmap to external credibility</SectionLabel>
         <ol className="mt-8 grid gap-px bg-border md:grid-cols-2">
           {ROADMAP.map((step, i) => (
             <li key={step} className="bg-background p-6 flex gap-4">

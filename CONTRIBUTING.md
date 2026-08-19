@@ -1,47 +1,50 @@
 # Contributing
 
-The canonical contributor guide is
-[docs/10-contributing.md](docs/10-contributing.md). It covers how to add a
-result, an oracle, or a negative finding, the language rules, and the pull
-request checklist. Read it first; this file only states the repository-level
-expectations.
+The canonical contributor guide is [docs/10-contributing.md](docs/10-contributing.md). This file defines repository-level expectations.
 
-## How changes land
+## Change workflow
 
-All changes land via pull request with green CI. Direct pushes to `master` are
-not the workflow, even for the maintainer where avoidable. Changes touching
-the security-critical paths listed in [.github/CODEOWNERS](.github/CODEOWNERS)
-(`remora/policy/`, `remora/enforcement/`, `remora/governance/`, `servers/`,
-`schemas/`, `.github/`, `docs/assurance/`) require maintainer review before
-merge.
+- Changes land through pull requests with green CI.
+- `master` is the integration branch; do not use long-lived feature branches.
+- Create one branch per coherent change. Delete it after merge.
+- Do not keep a branch solely as historical evidence; Git commits, tags, PRs and archived artifacts already preserve history.
+- Freeze reproducibility milestones with tags or committed manifests, not permanent experiment branches.
+- Keep unrelated documentation, dependency and runtime changes in separate PRs when they have different review risks.
+
+Security-critical paths are listed in [.github/CODEOWNERS](.github/CODEOWNERS). Changes to those paths require maintainer review before merge.
+
+## Documentation
+
+Documentation is part of the governed surface. Keep it concise and assign one source of truth per topic.
+
+- `README.md` explains scope and status.
+- `DEVELOPER_OVERVIEW.md` is the developer handoff.
+- `ARCHITECTURE.md` is the canonical runtime architecture.
+- `docs/README.md` is navigation, not a second architecture document.
+- `docs/assurance/` owns claim, capability and release-state records.
+- `docs/research/` contains active research material.
+- `docs/archive/` contains superseded or historical material.
+
+Prefer direct statements over promotional language. Avoid unsupported adjectives such as “world-class”, “production-grade”, “safe”, “proven” or “enterprise-ready”. State the measured property, evidence source, status and limitation instead.
+
+Do not create a new overview, roadmap or architecture document when an existing canonical file can be updated. If a document becomes obsolete, mark or archive it rather than leaving two apparently current explanations.
+
+AI-assisted development is allowed and disclosed in `docs/AI_USE.md`; generated prose or code is not evidence by itself.
 
 ## Claim hygiene
 
-No claim without an artifact, no artifact without a reproduce command. Every
-number added to the README, the paper, or any claim document must be backed by
-a committed result artifact on disk, quoted with its sample size, confidence
-interval, and scope caveat; negative results and caveats must never be
-removed. The decision rule is in
-[docs/05-claim-hygiene.md](docs/05-claim-hygiene.md) (canonical), and the
-working agreement is in [CLAUDE.md](CLAUDE.md).
+No claim without an artifact; no artifact without a reproduce command. Numerical claims in README, paper or assurance documentation must resolve to committed evidence with sample size, denominator, uncertainty where applicable and a scope caveat.
+
+Negative results and limitations are part of the research record and must not be removed to improve presentation. See [docs/05-claim-hygiene.md](docs/05-claim-hygiene.md).
+
+## Before opening a PR
+
+Run the relevant focused tests, then the repository quality gates required by the changed surface. At minimum, behavioral changes require tests and documentation changes must pass the documentation/claim consistency checks.
+
+Do not commit secrets, private review notes, local agent state, generated IDE/AI-tool plans or local build output.
 
 ## Contribution licensing
 
-REMORA is dual-licensed: Business Source License 1.1 publicly, with
-separate commercial licenses issued by the Licensor (Stian Skogbrott).
-See [LICENSING.md](LICENSING.md).
+REMORA is dual-licensed under the Business Source License 1.1 and separate commercial licenses issued by the Licensor. See [LICENSING.md](LICENSING.md).
 
-By submitting a contribution, you confirm that you have the legal right
-to submit it and that it contains no undisclosed third-party material.
-
-Contributions are not accepted for inclusion in the dual-licensed
-REMORA codebase until the contributor has accepted the applicable
-REMORA Contributor License Agreement. The CLA grants the REMORA
-Licensor the right to distribute the contribution under:
-
-- the Business Source License;
-- future Change Licenses;
-- separate commercial licenses.
-
-A `Signed-off-by` line alone does not grant the relicensing rights
-required by the REMORA licensing model.
+By submitting a contribution, you confirm that you have the legal right to submit it and that it contains no undisclosed third-party material. Contributions are not accepted into the dual-licensed codebase until the applicable REMORA Contributor License Agreement has been accepted. A `Signed-off-by` line alone does not grant the relicensing rights required by this model.

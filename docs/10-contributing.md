@@ -1,80 +1,120 @@
-# How do I contribute a result, fix, or new oracle?
+# Contributing to REMORA
 
-## Contribution licensing
+This is the canonical contribution guide for results, runtime changes, integrations and documentation.
 
-REMORA is dual-licensed: Business Source License 1.1 publicly, with separate
-commercial licenses issued by the Licensor (Stian Skogbrott); see
-`LICENSING.md`. By submitting a contribution, you confirm that you have the
-legal right to submit it and that it contains no undisclosed third-party
-material. Contributions are not accepted for inclusion until the contributor
-has accepted the applicable REMORA Contributor License Agreement, which
-grants the Licensor the right to distribute the contribution under the
-Business Source License, future Change Licenses, and separate commercial
-licenses. A `Signed-off-by` line alone does not grant these rights.
+## Repository workflow
 
-## Adding a result
+1. Branch from `master` for one coherent change.
+2. Keep the branch short-lived.
+3. Add or update tests for behavioral changes.
+4. Run the relevant focused checks and required repository gates.
+5. Open a pull request with scope, rationale, validation and known limitations.
+6. Delete the branch after merge.
 
-1. Run the experiment using the commands in `06-reproducibility.md`.
+Do not keep merged feature, fix, documentation or experiment branches as permanent history. Use commits, PRs, tags and committed artifacts for traceability.
+
+## Documentation structure
+
+One topic should have one canonical source:
+
+- `README.md` — public project scope and current status.
+- `DEVELOPER_OVERVIEW.md` — developer/reviewer handoff.
+- `ARCHITECTURE.md` — canonical runtime architecture.
+- `docs/README.md` — navigation and document precedence.
+- `docs/assurance/` — machine-governed claims, capabilities and release state.
+- `docs/research/` — active research material.
+- `docs/archive/` — historical and superseded material.
+
+Do not add another overview or architecture narrative to avoid editing an existing canonical document.
+
+### Documentation style
+
+Use precise, testable language. Prefer:
+
+- `status: experimental`
+- `wired to /v1/execution`
+- `not externally validated`
+- `0/208 observed; 95% upper bound 1.81%`
+- `library implementation; not on the enforcing path`
+
+Avoid promotional or self-evaluative language such as:
+
+- `world-class`
+- `production-grade`
+- `revolutionary`
+- `proven safe`
+- `enterprise-ready`
+- `formal guarantee` unless a narrowly scoped formal proof actually exists
+
+Avoid filler such as “the key insight”, “what this really means”, “the honest part” or repeated restatements of the same caveat. State the evidence and boundary once, close to the claim.
+
+AI-assisted development is disclosed in `docs/AI_USE.md`. AI-generated output is not evidence without an independently verifiable artifact, test result or source.
+
+## Adding or changing a result
+
+1. Run the experiment using the applicable reproduction protocol.
 2. Commit the result artifact to `results/` or `artifacts/`.
-3. Update `docs/02-evidence-and-claims.md` with the claim, artifact pointer, and caveat.
-4. If the result is negative or a limitation, add it to `NEGATIVE_RESULTS.md`.
-5. Never add a number to README, the paper, or any claim document without the artifact.
+3. Update `docs/assurance/claim_register_v1.yaml` when the governed claim changes.
+4. Update `docs/02-evidence-and-claims.md` with the result and scope caveat.
+5. If the finding is negative, falsifies a hypothesis or reveals a limitation, update `NEGATIVE_RESULTS.md`.
+6. Do not add a numerical result to README, the paper or claim documentation without the underlying artifact.
 
-## Claim hygiene rule
+Every quantitative claim must identify the denominator/sample size, relevant uncertainty, scope and exact evidence artifact.
 
-See `docs/05-claim-hygiene.md`. No claim without an artifact. No artifact without a reproduce command.
+## Claim hygiene
 
-Every claim must include:
-- the N (sample size),
-- the confidence interval (Wilson 95% CI for proportions),
-- the caveat on scope (simulator-scoped, holdout-scoped, benchmark-scoped),
-- and a pointer to the exact artifact file.
+See `docs/05-claim-hygiene.md`. The short rule is:
 
-## Adding an oracle or backend
+> No claim without an artifact. No artifact without a reproduce command.
 
-1. Implement the oracle in `remora/` following existing patterns in `remora/oracles/`.
-2. Add a test in `tests/` with at least one negative case.
-3. Run `make test` and confirm all tests pass.
-4. Update `docs/07-api-reference.md` with the new interface.
-5. Add any new public API surface to the `Oracle` ABC, see `remora/core.py`.
+A benchmark result is not field validation. An implemented library component is not automatically part of the enforcing API path. A passing internal test is not external verification.
+
+## Runtime and integration changes
+
+For changes to `remora/policy/`, `remora/toolcall/`, `remora/enforcement/`, `remora/governance/`, `servers/` or `schemas/`:
+
+- identify the affected trust boundary;
+- add positive and negative tests;
+- preserve fail-closed behavior for strict profiles;
+- update API/schema contracts when the public contract changes;
+- update the capability register if wiring depth changes;
+- document any new degradation mode explicitly.
+
+Do not infer tool risk, target or authority from agent-provided prose when a deployment-owned contract exists.
+
+## Adding an oracle or research backend
+
+Research backends belong behind the existing research interfaces. Add tests, identify the stability class, and do not present a new research signal as part of the execution kernel unless it is deliberately wired and reflected in the capability register.
 
 ## Negative results
 
-Negative results are first-class. If you run an experiment and it does not replicate or shows a limitation:
-
-1. Do not discard the artifact.
-2. Add an entry to `NEGATIVE_RESULTS.md` with the finding, what was tried, and what remains open.
-3. Update the relevant caveat in `02-evidence-and-claims.md`.
-
-See `04-negative-results-detail.md` for examples of how active findings are documented.
-
-## Language rules
-
-Use these phrases:
-- "policy-modelled counterfactual"
-- "actionable policy requirement"
-- "bounded by documented assumptions"
-
-Never use:
-- "formal guarantee"
-- "proven safe"
-- "real-world causal proof"
-- "causally safe"
+Negative results are retained as first-class research evidence. Do not delete a failed experiment because a later design supersedes it. Mark the current status and link the successor instead.
 
 ## External review
 
-Open an issue with the "external-review" template (`docs/validation/external-review.md`). Provide:
-- the claim being tested,
-- the exact reproduce command,
-- the artifact you compared against,
-- your result (even if it matches: positive replications are also valuable).
+External review should identify:
 
-Negative findings are explicitly welcome and will not be suppressed.
+- the exact claim or capability under review;
+- the commit/release being reviewed;
+- the reproduce command;
+- the artifact or expected contract;
+- the observed result, including disagreements and failures.
+
+See `docs/validation/external-review.md` and `docs/assurance/independent_review_protocol_v1.md`.
 
 ## Pull request checklist
 
-- [ ] `make test` passes
-- [ ] `python scripts/check_claim_consistency.py` passes
-- [ ] Any new claim has an artifact pointer in `02-evidence-and-claims.md`
-- [ ] Any failure or limitation is in `NEGATIVE_RESULTS.md`
-- [ ] No secrets in committed files (see CLAUDE.md)
+- [ ] Scope is coherent and unrelated changes are excluded.
+- [ ] Relevant focused tests pass.
+- [ ] Required CI/quality gates pass.
+- [ ] New or changed claims resolve to committed evidence.
+- [ ] Limitations and negative findings are preserved.
+- [ ] Canonical documentation was updated instead of creating a parallel explanation.
+- [ ] No secrets, local agent state, AI-tool planning files or generated scratch output are committed.
+- [ ] Branch can be deleted after merge.
+
+## Contribution licensing
+
+REMORA is dual-licensed under the Business Source License 1.1 and separate commercial licenses; see `LICENSING.md`.
+
+By submitting a contribution, you confirm that you have the legal right to submit it and that it contains no undisclosed third-party material. Contributions are not accepted for inclusion until the applicable REMORA Contributor License Agreement has been accepted. A `Signed-off-by` line alone does not grant the relicensing rights required by the REMORA licensing model.
