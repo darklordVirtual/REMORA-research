@@ -24,9 +24,9 @@ Design principles
 from remora.stability import RESEARCH_ONLY
 __stability__ = RESEARCH_ONLY
 
-from remora.statphys.energy import consensus_energy, state_entropy
-from remora.statphys.gibbs import gibbs_probability, partition_function_approx
-from remora.statphys.potts import potts_energy, potts_order_parameter
+from remora.research_attic.statphys.energy import consensus_energy, state_entropy
+from remora.research_attic.statphys.gibbs import gibbs_probability, partition_function_approx
+from remora.research_attic.statphys.potts import potts_energy, potts_order_parameter
 
 __all__ = [
     "consensus_energy",

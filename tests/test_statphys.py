@@ -1,15 +1,15 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Tests for remora.statphys: Potts model, Gibbs distributions, and energy functions."""
+"""Tests for remora.research_attic.statphys: Potts model, Gibbs distributions, and energy functions."""
 from __future__ import annotations
 
 import math
 
 import pytest
 
-from remora.statphys.energy import consensus_energy, minimum_energy_verdict, state_entropy
-from remora.statphys.gibbs import free_energy_approx, gibbs_probability, partition_function_approx
-from remora.statphys.potts import potts_critical_temperature_approx, potts_energy, potts_order_parameter
+from remora.research_attic.statphys.energy import consensus_energy, minimum_energy_verdict, state_entropy
+from remora.research_attic.statphys.gibbs import free_energy_approx, gibbs_probability, partition_function_approx
+from remora.research_attic.statphys.potts import potts_critical_temperature_approx, potts_energy, potts_order_parameter
 
 
 # ── Potts energy ───────────────────────────────────────────────────────────────

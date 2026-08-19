@@ -106,7 +106,7 @@ def main() -> None:
     # -- 7. Thermodynamic trust ------------------------------------------------
     if "thermodynamic" in readme.lower():
         require_import("remora.thermodynamics")
-        require_import("remora.statphys")
+        require_import("remora.research_attic.statphys")
 
     # -- 8. Agent hook / tool-call safety -------------------------------------
     if "agent" in readme.lower() and ("hook" in readme.lower() or "tool" in readme.lower()):

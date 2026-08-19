@@ -470,7 +470,7 @@ def critical_exponent_gamma(k: int) -> float:
     These are the exact 2D Potts values (gamma = 7/4, 13/9, 7/6 for
     k = 2, 3, 4; the transition is first-order for k > 4, hence inf).
     They do NOT apply to REMORA's setting: the consensus model is mean-field
-    (fully connected, remora/statphys/potts.py) where gamma = 1, there is no
+    (fully connected, remora/research_attic/statphys/potts.py) where gamma = 1, there is no
     lattice, and n <= 5 oracles is nowhere near a scaling regime. The value
     is carried in PhaseDiagram for descriptive labeling only and feeds no
     routing decision (compute_phase_diagram is referenced only by tests).

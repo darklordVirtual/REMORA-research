@@ -1,4 +1,4 @@
-from remora.gaa import evaluate_gaa_loss
+from remora.research_attic.gaa import evaluate_gaa_loss
 
 def test_evaluate_gaa_loss():
     # Model had 0.6 confidence on standard prompt, but 0.9 on the deceptive one.

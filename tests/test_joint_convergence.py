@@ -6,7 +6,7 @@ import math
 
 import pytest
 
-from remora.theory import (
+from remora.research_attic.theory import (
     JointConvergenceTheorem,
     MaxEntropyGrounding,
     ScalingAnalysis,

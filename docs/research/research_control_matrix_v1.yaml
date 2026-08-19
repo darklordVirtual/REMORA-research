@@ -254,7 +254,7 @@ entries:
       - phase_classification
       - thermodynamic_braking
     code:
-      - remora/statphys/potts.py
+      - remora/research_attic/statphys/potts.py
       - remora/thermodynamics.py
       - remora/policy/thermodynamic_braking.py
     tests:

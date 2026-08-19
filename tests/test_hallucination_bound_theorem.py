@@ -5,7 +5,7 @@ import pathlib
 
 import pytest
 
-from remora.proofs.hallucination_bound_theorem import bound, verify_on_benchmark
+from remora.research_attic.proofs.hallucination_bound_theorem import bound, verify_on_benchmark
 
 
 class TestBoundFormula:

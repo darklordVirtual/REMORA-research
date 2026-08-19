@@ -1,8 +1,8 @@
 import pytest
 np = pytest.importorskip("numpy")
-from remora.future_concept.auto_formalization import Lean4Compiler, FormalProof
-from remora.future_concept.weight_grafting import NeuralSplicer, GraftedModel
-from remora.future_concept.kv_intercept import SubTokenInterceptor
+from remora.research_attic.future_concept.auto_formalization import Lean4Compiler, FormalProof
+from remora.research_attic.future_concept.weight_grafting import NeuralSplicer, GraftedModel
+from remora.research_attic.future_concept.kv_intercept import SubTokenInterceptor
 
 def test_auto_formalization():
     compiler = Lean4Compiler()

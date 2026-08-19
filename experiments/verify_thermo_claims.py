@@ -177,7 +177,7 @@ def main() -> int:
     # Verify correlation_error module is importable and the core contract holds
     try:
         sys.path.insert(0, str(ROOT))
-        from remora.correlation_error import (
+        from remora.research_attic.correlation_error import (
             response_agreement_rate,
             binary_error_correlation,
             error_indicators,
@@ -236,7 +236,7 @@ def main() -> int:
 
     # Verify false_consensus_bound_v2 is importable and returns a valid bound
     try:
-        from remora.proofs.false_consensus_bound_v2 import candidate_bound, BoundInputs
+        from remora.research_attic.proofs.false_consensus_bound_v2 import candidate_bound, BoundInputs
         inputs = BoundInputs(epsilon=0.264, rho_error=0.236, n_oracles=3)
         result = candidate_bound(inputs, assume_pair_independence=False)
         check(

@@ -10,7 +10,7 @@ Two backends:
 
 Usage
 -----
-    from remora.codegraph import search, get_file_summary
+    from remora.research_attic.codegraph import search, get_file_summary
 
     # Find files relevant to a query
     results = search("aromer orchestrator world model")
