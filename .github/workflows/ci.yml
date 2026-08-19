@@ -255,6 +255,13 @@ jobs:
         # register state, README stays under its line budget.
         run: python scripts/check_document_governance.py
 
+      - name: Product-truth gate
+        # docs/product/product_truth_contract.yaml classifies every advertised
+        # capability (core/optional/experimental/legacy/demo); public docs and
+        # the frontend landing page must not present a non-core capability as
+        # mandatory in the canonical execution path.
+        run: python scripts/check_product_truth.py
+
       - name: Paper sync gate (.md / .tex / PDF coherent)
         # remora_paper.md is the version authority; the .tex (which compiles
         # the PDF) must carry the same version+revision and no stale process

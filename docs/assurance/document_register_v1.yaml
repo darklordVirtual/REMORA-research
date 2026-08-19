@@ -2211,7 +2211,20 @@ documents:
   topic: docs_execution-lifecycle_md
   verdict: current
   version: v1
+- audience:
+  - integrator
+  - evaluator
+  code_synced: verified
+  id: DOC-303
+  last_audited: '2026-08-19'
+  last_reviewed: '2026-08-19'
+  path: docs/product/product_truth_contract.yaml
+  status: canonical
+  topic: docs_product_product_truth_contract_yaml
+  verdict: current
+  version: v1
 topics:
+- docs_product_product_truth_contract_yaml
 - docs_execution-lifecycle_md
 - docs_sdk_md
 - docs_assurance_superseded_claims_md
