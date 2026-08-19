@@ -81,8 +81,10 @@ const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0
 
 ## 5. Audit Log Integrity
 
-The D1 `audit_log` table is append-mostly but allows `UPDATE` via the `audit_decision`
-tool (to record human approval/rejection).
+The D1 `audit_log` table is append-mostly; `approved`/`approved_by` are
+display-only mirrors updated by the control plane's `POST /approvals` endpoint
+(the `audit_decision` tool was removed 2026-08-19 — it allowed self-approval).
+Authoritative approval state lives in the immutable `approvals` table.
 
 **Risk:** A compromised `CONTROL_SECRET` allows overwriting approval fields.  
 **Recommendation for regulated deployments:** Enable D1 point-in-time recovery, or
