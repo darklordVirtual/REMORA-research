@@ -39,6 +39,15 @@ from datetime import UTC
 from typing import Any
 
 _ENV_KEY = "REMORA_PDP_SIGNING_KEY"
+# Key lifecycle (Phase 6): a key id for the current signing key, a
+# comma-separated "kid=key" list of PREVIOUS verify-only keys (rotation
+# overlap: tokens signed before a rotation stay verifiable until they
+# expire), and a comma-separated revocation list that refuses a kid even if
+# its key is still present.
+_ENV_KID = "REMORA_PDP_SIGNING_KID"
+_ENV_PREVIOUS = "REMORA_PDP_PREVIOUS_KEYS"
+_ENV_REVOKED = "REMORA_PDP_REVOKED_KIDS"
+_ENV_ISSUER = "REMORA_PDP_ISSUER"
 
 # Every token now carries a signed expiry (review finding: replayable
 # no-expiry tokens). Default TTL when the issuer does not set one; hard cap
@@ -52,6 +61,29 @@ def _get_signing_key() -> bytes | None:
     return val.encode() if val else None
 
 
+def _current_kid() -> str:
+    return os.environ.get(_ENV_KID, "").strip()
+
+
+def _previous_keys() -> dict[str, bytes]:
+    """Verify-only keys from prior rotations, as {kid: key}."""
+    out: dict[str, bytes] = {}
+    for pair in os.environ.get(_ENV_PREVIOUS, "").split(","):
+        pair = pair.strip()
+        if not pair or "=" not in pair:
+            continue
+        kid, _, key = pair.partition("=")
+        if kid.strip() and key.strip():
+            out[kid.strip()] = key.strip().encode()
+    return out
+
+
+def _revoked_kids() -> frozenset[str]:
+    return frozenset(
+        k.strip() for k in os.environ.get(_ENV_REVOKED, "").split(",") if k.strip()
+    )
+
+
 def _canonical_payload(
     action: str,
     observation_hash: str,
@@ -60,12 +92,17 @@ def _canonical_payload(
     expires_at: str | None = None,
     jti: str = "",
     audience: str = "",
+    kid: str = "",
+    issuer: str = "",
 ) -> bytes:
     """Stable canonical serialization for signing (sorted keys, no whitespace).
 
     ``expires_at`` is included in the signed payload only when set, so tokens
     issued before expiry support remain verifiable, while an expiring token
     cannot have its ``expires_at`` stripped without invalidating the signature.
+    ``kid`` and ``issuer`` follow the same included-only-when-set discipline:
+    pre-lifecycle tokens verify unchanged, and a token carrying a key id
+    cannot have it stripped or swapped without invalidating the signature.
     """
     payload = {
         "action": action,
@@ -79,6 +116,10 @@ def _canonical_payload(
         payload["jti"] = jti
     if audience:
         payload["audience"] = audience
+    if kid:
+        payload["kid"] = kid
+    if issuer:
+        payload["issuer"] = issuer
     return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
 
 
@@ -125,6 +166,12 @@ class PolicyDecisionToken:
     # One-time-use id (consumed atomically by the PEP) and intended verifier.
     jti: str = ""
     audience: str = ""
+    # Key lifecycle (Phase 6): which signing key produced this signature, and
+    # who issued it. Both are signed-when-set: a token cannot have its kid
+    # stripped or swapped, and pre-lifecycle tokens (kid == "") verify
+    # unchanged against the current-then-previous key set.
+    kid: str = ""
+    issuer: str = ""
 
     @classmethod
     def issue(
@@ -165,10 +212,12 @@ class PolicyDecisionToken:
                 )
         jti = str(_uuid.uuid4())
         key = _get_signing_key()
+        kid = _current_kid()
+        issuer = os.environ.get(_ENV_ISSUER, "").strip()
         if key:
             payload = _canonical_payload(
                 action, observation_hash, request_id, issued_at, expires_at,
-                jti, audience,
+                jti, audience, kid, issuer,
             )
             sig = _compute_signature(payload, key)
             return cls(
@@ -181,6 +230,8 @@ class PolicyDecisionToken:
                 expires_at=expires_at,
                 jti=jti,
                 audience=audience,
+                kid=kid,
+                issuer=issuer,
             )
         return cls(
             action=action,
@@ -192,6 +243,8 @@ class PolicyDecisionToken:
             expires_at=expires_at,
             jti=jti,
             audience=audience,
+            kid=kid,
+            issuer=issuer,
         )
 
     def verify(
@@ -224,13 +277,44 @@ class PolicyDecisionToken:
                 is_signed=False,
             )
 
+        # Key lifecycle: a revoked kid refuses even if its key is still
+        # deployed; a token naming a kid must verify with EXACTLY that key
+        # (current or a previous rotation key); a pre-lifecycle token (no
+        # kid) verifies against the current key, then each previous key —
+        # the rotation-overlap window that keeps in-flight tokens valid
+        # across a rotation until they expire.
+        if self.kid and self.kid in _revoked_kids():
+            return TokenVerificationResult(
+                verified=False,
+                reason="kid_revoked",
+                is_signed=True,
+            )
+
         payload = _canonical_payload(
             self.action, self.observation_hash, self.request_id, self.issued_at,
-            self.expires_at, self.jti, self.audience,
+            self.expires_at, self.jti, self.audience, self.kid, self.issuer,
         )
-        expected = _compute_signature(payload, key)
-        sig_ok = hmac.compare_digest(expected, self.signature)
 
+        if self.kid:
+            current_kid = _current_kid()
+            if self.kid == current_kid:
+                candidate_keys = [key]
+            else:
+                prev = _previous_keys().get(self.kid)
+                if prev is None:
+                    return TokenVerificationResult(
+                        verified=False,
+                        reason="unknown_kid",
+                        is_signed=True,
+                    )
+                candidate_keys = [prev]
+        else:
+            candidate_keys = [key, *_previous_keys().values()]
+
+        sig_ok = any(
+            hmac.compare_digest(_compute_signature(payload, k), self.signature)
+            for k in candidate_keys
+        )
         if not sig_ok:
             return TokenVerificationResult(
                 verified=False,
@@ -314,13 +398,16 @@ class PolicyDecisionToken:
             "expires_at": self.expires_at,
             "jti": self.jti,
             "audience": self.audience,
+            "kid": self.kid,
+            "issuer": self.issuer,
             "signature": self.signature,
             "is_signed": self.is_signed,
         }
 
     _FIELDS = frozenset({
         "action", "observation_hash", "request_id", "issued_at",
-        "expires_at", "jti", "audience", "signature", "is_signed",
+        "expires_at", "jti", "audience", "kid", "issuer",
+        "signature", "is_signed",
     })
 
     @classmethod
