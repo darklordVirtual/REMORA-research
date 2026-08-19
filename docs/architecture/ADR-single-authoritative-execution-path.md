@@ -70,10 +70,15 @@ the guarantees of the other.
 
 1. Phase 1 (done): independent human approvals; no self-approval.
 2. This ADR (Phase 2 slice 1): structural write floor; config can only widen.
-3. Phase 2 slice 2: service binding `EXECUTION_SERVICE` from `agent-control`
-   to the deployed canonical execution API; `store_artifact` (and any future
-   write tool) dispatches via `/v1/execution/*` proposal→grant→lease instead
-   of executing in-worker. The consumed-approval flow becomes the review leg
-   of the canonical path rather than a worker-local mechanism.
+3. Phase 2 slice 2 (implemented 2026-08-19, activation per deployment):
+   `src/execution_adapter.ts` + the optional `EXECUTION_SERVICE` binding.
+   When bound with `EXECUTION_API_TOKEN`, write-effect tools run the
+   canonical assess → grant → PEP → lease path and never execute in-worker;
+   verify/escalate surfaces the canonical review item, and no failure shape
+   falls back to local execution
+   (`tests/test_agent_control_canonical_adapter.py`). Unbound deployments
+   keep the structural floor from step 2. The worker is re-classified from
+   `legacy` in the product truth contract only when a deployment actually
+   binds the service.
 4. Phase 4/5: durable dispatch intent and outbox move behind the same
    service; the worker never holds the only record of a pending effect.

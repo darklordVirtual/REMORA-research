@@ -73,6 +73,10 @@ import {
   grantApproval,
 } from "./approval";
 import { isHumanReviewer } from "./principal";
+import {
+  canonicalExecutionConfigured,
+  executeViaCanonicalService,
+} from "./execution_adapter";
 import { buildCodegraphPayload } from "./codegraph";
 import {
   appendEnvelope,
@@ -91,6 +95,12 @@ interface Env {
   SESSIONS:       KVNamespace;
   REMORA_SERVICE: Fetcher;   // Service binding: go-star-remora
   LAW_SERVICE:    Fetcher;   // Service binding: remora-law-search
+  // ADR migration step 3 (optional): the canonical REMORA execution API.
+  // When bound together with EXECUTION_API_TOKEN, write-effect tools run
+  // the canonical assess->grant->PEP->lease path instead of in-worker
+  // execution; without it the structural write floor stays in force.
+  EXECUTION_SERVICE?: Fetcher;
+  EXECUTION_API_TOKEN?: string;
 
   // Vars (display URLs in /status; approval routing list)
   REMORA_WORKER_URL:        string;
@@ -610,6 +620,55 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
   } catch (e) {
     console.error("proposal principal insert failed:", e instanceof Error ? e.message : String(e));
     return json({ error: "Audit infrastructure failed (principal record)" }, 502);
+  }
+
+  // ADR migration step 3: with the canonical execution service bound,
+  // write-effect tools NEVER execute in-worker — the proposal runs the
+  // canonical assess -> grant -> PEP -> lease path, and this worker is pure
+  // ingress for them. There is no fallback from canonical to local
+  // execution; verify/escalate surfaces the canonical review item.
+  if (approval_required === 1 && canonicalExecutionConfigured(env)) {
+    const canonical = await executeViaCanonicalService(
+      env, body.tool, hashableInput, env.TARGET_ENVIRONMENT ?? "cloudflare_worker",
+    );
+    try {
+      await recordEnvelope(env, {
+        requestId, tenantId, sessionId: body.session_id, actorIdentity,
+        toolName: body.tool, toolArgs: hashableInput,
+        outcome: canonical.decision === "accept" ? "accept"
+          : canonical.decision === "escalate" || canonical.decision === "verify"
+            ? "escalate" : "abstain",
+        policyTriggers: ["canonical_execution_service",
+                         ...(canonical.refusal_reason ? [canonical.refusal_reason] : [])],
+        approvalRequired: true,
+        executed: canonical.executed,
+        effectOutcome: canonical.executed ? "succeeded"
+          : canonical.review_item_id ? "awaiting_canonical_review" : "refused",
+        auditId: pre_audit_id,
+      });
+    } catch (e) {
+      return envelopeFailureResponse(body.session_id, body.tool, canonical.executed, e);
+    }
+    return json(
+      {
+        tool: body.tool,
+        success: canonical.executed,
+        output: canonical.executed
+          ? { status: "EXECUTED_VIA_CANONICAL", proposal_id: canonical.proposal_id,
+              result: canonical.result ?? null }
+          : { status: canonical.review_item_id ? "CANONICAL_REVIEW_REQUIRED" : "REFUSED",
+              proposal_id: canonical.proposal_id,
+              review_item_id: canonical.review_item_id,
+              refusal_reason: canonical.refusal_reason,
+              detail: canonical.detail },
+        session_id: body.session_id,
+        audit_id: pre_audit_id,
+        request_id: requestId,
+        approval_required: true,
+        canonical: true,
+      },
+      canonical.executed ? 200 : canonical.review_item_id ? 402 : 409,
+    );
   }
 
   if (approval_required === 1) {
