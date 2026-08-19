@@ -2,7 +2,7 @@
 
 [![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
 
-REMORA is a **policy-gated execution assurance layer for operational AI agents**. An agent proposes a tool call; REMORA evaluates the exact action before execution and returns one of four outcomes:
+REMORA is a **policy-gated execution assurance layer for operational AI agents**: a governance overlay placed between an agent proposal and the protected tool path. An agent proposes a tool call; REMORA evaluates the exact action before execution and returns one of four outcomes:
 
 | Decision | Meaning |
 |---|---|
