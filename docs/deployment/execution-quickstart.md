@@ -2,16 +2,20 @@
 
 The shortest path from a clean machine to a governed `assess → approve →
 execute → dispatch` round with a durable, verifiable audit trail. Everything
-here is the enforcement-grade path (`/v1/execution/*` + `GovernedToolDispatcher`
-under an `ExecutionLease`), not the advisory library call.
+here is the enforcing path (`/v1/execution/*` + `GovernedToolDispatcher` under
+an `ExecutionLease`), not the advisory library call.
+
+For a new developer, external reviewer or pilot partner, **use the strict
+runtime profile below**. It deliberately refuses the weaker registry-only path
+so a handoff cannot accidentally demonstrate a configuration that would never
+be acceptable for a controlled deployment.
 
 **Read this first — what this deployment is and is not.** REMORA governs the
 tools *you register with it*. The PEP is not unbypassable until the dispatcher
-fronts the real credentials for those tools (REM-024, in progress): an
-application that keeps a second, ungoverned path to the same side effects has
-opted out of enforcement. The lease nonce ledger is in-process (REM-025), so
-run one API process per tenant-critical deployment until that closes. Status
-ladder per capability: [`../assurance/capability_register_v1.yaml`](../assurance/capability_register_v1.yaml).
+fronts the real credentials for those tools: an application that keeps a
+second, ungoverned path to the same side effects has opted out of enforcement.
+Status per capability is recorded in
+[`../assurance/capability_register_v1.yaml`](../assurance/capability_register_v1.yaml).
 
 ## 1. Install
 
@@ -19,73 +23,153 @@ ladder per capability: [`../assurance/capability_register_v1.yaml`](../assurance
 python -m pip install <remora-wheel>[api,postgres]
 ```
 
-The wheel ships `remora/`, `servers/` and `schemas/` (contract-tested by
-`tests/test_packaging_contract.py`; REM-045). `api` pulls FastAPI/uvicorn;
-`postgres` pulls both Postgres drivers the durable paths import.
+The wheel ships `remora/`, `servers/` and `schemas/`. `api` pulls FastAPI and
+uvicorn; `postgres` pulls the drivers used by durable multi-worker paths.
 
-## 2. Configure
+For a source checkout:
 
-Production mode (`REMORA_ENV=production`) refuses to start unless the
-fail-closed set is complete:
+```bash
+python -m pip install -e '.[dev,api,postgres]'
+```
 
-| Variable | Purpose | Production |
-|---|---|---|
-| `REMORA_API_TOKENS` | Token → `(tenant, role)` map; the only mode with real role separation | required |
-| `REMORA_API_BEARER_TOKEN` | Also required in production, in addition to the token table above — the startup check asks for both. Set it to any token that appears in `REMORA_API_TOKENS`. | required |
-| `REMORA_RUNTIME_EVIDENCE_JSONL` (or the shipped `datasets/remora_knowledge_v1/evidence_packs/evidence_objects.jsonl`) | Retrieval evidence store. Production refuses to start when it resolves to an **empty** store, and the check runs at import time even for deployments that only use `/v1/execution`. Ship the pack or point this at your own. | required |
-| `REMORA_CONTROL_PLANE_DSN` (or `REMORA_CONTROL_PLANE_DB`) | Durable DecisionEnvelope store (`postgres://` / `sqlite:` / SQLite path) | required |
-| `REMORA_PG_DSN` (or `REMORA_CHAIN_DB`) | Durable execution state: tenant audit chain, review queue, one-time-grant ledger | required |
-| `REMORA_ORACLE_BACKEND` | Real oracle backend; `mock`/`auto` refused | required |
-| `REMORA_PDP_SIGNING_KEY` | Signs `PolicyDecisionToken` (mandatory expiry, jti) | required in practice — unsigned tokens are rejected by the strict gate |
-| `REMORA_LEASE_SIGNING_KEY` | Signs `ExecutionLease` (falls back to PDP key) | recommended |
-| `REMORA_AUDIT_SIGNING_KEY` | HMAC over tenant-chain entries | recommended |
-| `REMORA_ENVELOPE_SIGNING_KEY` | HMAC over envelope hashes | recommended |
-| `REMORA_TOOL_REGISTRY_MODULE` | Deployment-owned tool registry (section 3) | required for dispatch |
-| `REMORA_SEMANTIC_BUNDLE_MODULE` | Deployment-owned semantic bundle: tool contracts + signatures + validators + state, hashed and consulted by `build_full_observation` on assess/execute (SHELF-020) | optional — without it the registry-only path runs |
-| `REMORA_INTENT_SOURCE_FILE` | Research-profile intent source: JSON map of `intent_ref` → approved workflow intent (`servers/semantic_bundle_research.py`) | optional |
-| `REMORA_OUTBOX_STALE_SECONDS` | How long a dispatch may stay claimed before reconciliation settles it as `UNKNOWN` (never retried — the side effect may already have happened). Swept lazily on every execution-path interaction; an **idle** tenant needs `servers.execution_api.reconcile_stale_dispatches(tenant)` on a schedule | optional — default 900 |
-| `REMORA_MAX_TOOL_RESULT_BYTES` | Cap on how much of a tool result is retained in the response/audit record; the full result is always hashed (`remora/enforcement/result_envelope.py`) | optional — default 65536 |
+## 2. Select the handoff profile first
 
-Key generation: `python -c "import secrets; print(secrets.token_hex(32))"`.
-Rotation policy: [`../assurance/rbac_policy_v1.md`](../assurance/rbac_policy_v1.md).
+For technical review:
 
-Without durable state the server still starts in development mode, logs a
-warning, and reports `execution_state_durable: false` — and a consumed
-execution grant becomes replayable after a restart. That configuration is for
-development only.
+```bash
+export REMORA_RUNTIME_PROFILE=review
+export REMORA_ENABLED_SURFACES=execution
+```
 
-## 3. Write the tool registry module
+For a bounded pilot:
 
-Tools come **only** from this module — request payloads can never add or
-replace callables, so downstream credentials stay app-side. The contract:
+```bash
+export REMORA_RUNTIME_PROFILE=controlled_pilot
+export REMORA_ENV=production
+export REMORA_ENABLED_SURFACES=execution
+```
+
+The profiles mean:
+
+| Profile | Signed ToolSpec | Durable execution state | Intended use |
+|---|---:|---:|---|
+| `development` | optional | optional | local development/tests |
+| `research` | optional | optional | benchmarks/shadow research |
+| `review` | **required** | **required** | external developer/reviewer handoff |
+| `controlled_pilot` | **required** | **required** | bounded pilot; also requires `REMORA_ENV=production` |
+
+An unset `REMORA_RUNTIME_PROFILE` remains `research` for backward compatibility.
+Nothing is silently promoted into a stronger trust contract.
+
+## 3. Configure the strict execution path
+
+For `review` and `controlled_pilot`, the execution path refuses to resolve tool
+metadata unless these trust prerequisites are present:
+
+| Variable | Purpose | Strict profile |
+|---|---|---:|
+| `REMORA_TOOLSPEC_BUNDLE` | Signed authority for callable identity, schema, risk/action metadata, target policy, credential scope and idempotency contract | **required** |
+| `REMORA_TOOLSPEC_SIGNING_KEY` | Verifies the ToolSpec bundle signature | **required** |
+| `REMORA_TOOLSPEC_TRUSTED_IDENTITIES` | Explicit signer allowlist | **required** |
+| `REMORA_TOOL_REGISTRY_MODULE` | Deployment-owned callable registry; callers cannot inject tools | **required** |
+| `REMORA_PG_DSN` or `REMORA_CHAIN_DB` | Durable execution state: tenant chain, review state and one-time-grant ledger | **required** |
+| `REMORA_PDP_SIGNING_KEY` | Signs the short-lived PDP → PEP grant | **required** |
+
+Typical review configuration:
+
+```bash
+export REMORA_RUNTIME_PROFILE=review
+export REMORA_ENABLED_SURFACES=execution
+
+export REMORA_TOOLSPEC_BUNDLE=/run/remora/toolspec-bundle.json
+export REMORA_TOOLSPEC_SIGNING_KEY='replace-me'
+export REMORA_TOOLSPEC_TRUSTED_IDENTITIES='release-signer-v1'
+export REMORA_TOOL_REGISTRY_MODULE=my_app.remora_registry
+export REMORA_PDP_SIGNING_KEY='replace-me-too'
+export REMORA_LEASE_SIGNING_KEY='replace-me-three'
+
+# Multi-worker / partner-shaped review:
+export REMORA_PG_DSN='postgresql://remora:...@postgres/remora'
+
+# Or, for a single-node technical review:
+# export REMORA_CHAIN_DB=/var/lib/remora/execution.db
+```
+
+Key generation:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+### Production server prerequisites
+
+`REMORA_ENV=production` additionally requires the API/auth and control-plane
+settings enforced by `servers/api.py`, including tenant-aware tokens and a
+durable DecisionEnvelope store.
+
+If **only** `REMORA_ENABLED_SURFACES=execution` is mounted, an oracle backend
+and retrieval evidence pack are **not** required because `/v1/assess` and
+`/v1/rerun` are unmounted. If the `assess` surface is enabled, production mode
+requires an explicit non-mock oracle backend and a usable evidence store.
+
+Useful variables beyond the strict-profile minimum:
+
+| Variable | Purpose |
+|---|---|
+| `REMORA_API_TOKENS` | token → `(tenant, role)` mapping in production |
+| `REMORA_API_BEARER_TOKEN` | production bearer token prerequisite |
+| `REMORA_CONTROL_PLANE_DSN` or `REMORA_CONTROL_PLANE_DB` | durable DecisionEnvelope/control-plane store |
+| `REMORA_LEASE_SIGNING_KEY` | separate lease signing key; may fall back to PDP key |
+| `REMORA_AUDIT_SIGNING_KEY` | HMAC for tenant-chain entries |
+| `REMORA_ENVELOPE_SIGNING_KEY` | HMAC for envelope hashes |
+| `REMORA_SEMANTIC_BUNDLE_MODULE` | deployment-owned semantic contracts/state/validators |
+| `REMORA_INTENT_SOURCE_FILE` | approved intent reference source for the research bundle |
+| `REMORA_OUTBOX_STALE_SECONDS` | stale dispatch reconciliation window; default 900 s |
+| `REMORA_MAX_TOOL_RESULT_BYTES` | retained tool-result preview cap; full result remains hashed |
+
+## 4. Build a ToolSpec bundle
+
+A strict-profile tool is not authorized merely because a Python callable with
+that name exists. The ToolSpec is the deployment-owned statement of what that
+callable *means*.
+
+The schema is `schemas/tool_spec_v1.yaml`; the implementation and signing
+helpers are in `remora/toolcall/toolspec.py`. A ToolSpec covers, among other
+things:
+
+- stable tool/callable identity and implementation digest;
+- JSON argument schema;
+- risk tier, action type and domain;
+- allowed targets;
+- credential scope;
+- idempotency semantics;
+- optional semantic/effect metadata.
+
+The same signed identity is resolved at assessment and checked again before
+dispatch. A spec changed between those points is refused rather than silently
+reinterpreting an old approval.
+
+## 5. Write the callable registry module
+
+Tools come only from deployment configuration — request payloads cannot add or
+replace callables, so downstream credentials remain app-side.
 
 ```python
-def register_tools(register: Callable[[str, Callable], None]) -> None:
+def register_tools(register):
     register("my_tool", my_tool_callable)
 ```
 
-Start from the shipped research profile,
-[`servers/tool_registry_research.py`](../../servers/tool_registry_research.py):
-two side-effect-bounded tools (sandboxed artifact write, read-only telemetry)
-that make the full chain demonstrable, and an explicit list of what it refuses
-to register and why. Copy it, replace the tools with yours, and keep the
-discipline: governance metadata bound to callable identity, never to the
-caller or the tool's name.
+Start from [`../../servers/tool_registry_research.py`](../../servers/tool_registry_research.py)
+for the registry interface, but do not copy its research classifications as
+production policy. Your Signed ToolSpec is the authority for the strict path.
+
+## 6. Run
 
 ```bash
-export REMORA_TOOL_REGISTRY_MODULE=my_app.remora_registry
+uvicorn servers.api:app --host 0.0.0.0 --port 8000
 ```
 
-## 4. Run
-
-```bash
-uvicorn servers.api:app --host 0.0.0.0 --port 8000   # mounts /v1/execution/*
-```
-
-**Or run the whole thing in containers.** `deploy/ot-pilot/` is a working
-production-mode pilot: API plus PostgreSQL, an example tool registry and
-semantic bundle, and a battery of OT cases that drives the full chain and
-prints the metrics.
+For a deployment-shaped example, use the OT pilot stack:
 
 ```bash
 docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
@@ -93,54 +177,66 @@ python deploy/ot-pilot/run_ot_battery.py
 docker compose -f deploy/ot-pilot/docker-compose.yml down -v
 ```
 
-The compose file supplies every fail-closed prerequisite rather than weakening
-the check — removing any one of them and watching the API refuse to start is
-the fastest way to confirm the guarantee is real.
+A useful negative test is to remove one strict prerequisite and confirm that
+startup/policy identity construction or the first execution-path lookup fails
+closed instead of falling back to the legacy path.
 
-## 5. Verify before trusting
+## 7. Verify before trusting
 
 ```bash
-python -m remora doctor --json        # env self-check; warns on non-durable state
+python -m remora doctor --json
 curl -s localhost:8000/v1/health
 ```
 
-Then drive one full round and check the trail it leaves:
+Then drive one full round:
 
-1. `POST /v1/execution/assess` — ACCEPT returns a signed 300 s one-time token;
-   VERIFY/ESCALATE enqueues for review.
-2. `POST /v1/execution/approve` — authenticated approver role, bounded TTL.
-3. `POST /v1/execution/execute` — re-decides on a fresh observation
-   (equal-or-safer executes, stricter invalidates, changed args are refused),
-   consumes the grant atomically, dispatches through the lease-bound
-   dispatcher.
-4. Verify the chain, three independent ways:
+1. `POST /v1/execution/assess` — the server derives authoritative context and
+   resolves the signed ToolSpec. ACCEPT receives a short-lived single-use
+   grant; VERIFY/ESCALATE enters review.
+2. `POST /v1/execution/approve` — authenticated approval with bounded TTL.
+3. `POST /v1/execution/execute` — fresh re-gate, exact-call binding, PEP
+   consume, lease creation and governed dispatch.
+4. The dispatch outbox records `DISPATCH_PENDING → DISPATCHING →` a terminal
+   outcome. An undeterminable side effect becomes `UNKNOWN`; it is not blindly
+   retried.
+5. Effect verification and tenant audit records make the proposal-to-effect
+   lifecycle inspectable.
+
+Verify the chain:
 
 ```bash
 curl -s localhost:8000/v1/execution/audit/verify -H "Authorization: Bearer $TOK"
 curl -s localhost:8000/v1/audit/chain/verify     -H "Authorization: Bearer $TOK"
-python scripts/verify_envelope_chain.py --store-db <path>   # offline, no server
+python scripts/verify_envelope_chain.py --store-db <path>
 ```
 
-A replayed token must come back `token_already_consumed`; a crash mid-dispatch
-must leave an authorization row with no result row, never a side effect with
-no record. Overdue review items sweep to ABSTAIN on every queue interaction;
-a deployment whose queues can sit fully idle past the review TTL should
-schedule `ReviewQueue.expire_due()` for wall-clock expiry.
+Run the handoff-focused tests before the full suite:
 
-The complete production-mode stack — API, Postgres and operator console with
-a 15-case OT battery and an immutable evidence archive — ships as one command:
-`docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d`
-(console at `localhost:8081`, Swagger at `localhost:8080/docs`).
+```bash
+python -m pytest tests/test_runtime_profile.py -q
+python -m pytest tests/test_toolspec_execution_wiring.py -q
+python -m pytest tests/test_execution_outbox_wiring.py -q
+python -m pytest tests/test_token_hardening.py -q
+python -m pytest tests/test_execution_api.py -q
+```
 
-## Known limits (the honest part of the label)
+Then:
 
-- Advisory until the dispatcher fronts your real tool credentials (REM-024).
-- Lease nonces are per-process (REM-025); the jti ledger *is* durable when
-  section 2's state backend is configured.
-- Tool interception has not been independently validated (REM-030).
-- Shadow-mode research software: no production certification, no external
-  replication. See the README Limitations section.
+```bash
+python -m pytest tests/ -q
+```
 
-→ Air-gapped specifics: [`onprem-airgapped.md`](onprem-airgapped.md) ·
-Azure topology: [`azure-reference-architecture.md`](azure-reference-architecture.md) ·
-Full endpoint semantics: [`../07-api-reference.md`](../07-api-reference.md)
+## Known limits
+
+- REMORA cannot enforce a tool the agent can reach through another credential
+  or network path outside the governed dispatcher.
+- A benchmark or passing test suite is not external field validation.
+- Some capabilities in the repository are optional, experimental or only
+  wired to reference paths; use the capability register rather than code
+  presence as the maturity source of truth.
+- Shadow/research status and external-replication caveats remain in force; a
+  strict runtime profile is a configuration guard, not a certification.
+
+Start a review with [`../../DEVELOPER_OVERVIEW.md`](../../DEVELOPER_OVERVIEW.md),
+then `ARCHITECTURE.md`, then the capability/claim registers. Do not begin by
+reverse-engineering the experiments directory.
