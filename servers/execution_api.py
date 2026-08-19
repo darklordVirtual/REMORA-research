@@ -30,7 +30,6 @@ rather than assumed away.
 """
 from __future__ import annotations
 
-from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -128,26 +127,38 @@ def _engine_from_env() -> RemoraDecisionEngine:
 
 
 _ENGINE = _engine_from_env()
-# Bounded LRU (external review 2026-07-28, N2): previously an unbounded dict
-# that grew for the process lifetime. On overflow the oldest entry is
-# evicted; a replayed key after eviction simply re-runs assess, which is
-# idempotent-safe (assess has no side effects beyond the audit record).
-_IDEMPOTENCY: "OrderedDict[str, dict[str, Any]]" = OrderedDict()
-_IDEMPOTENCY_MAX_ENTRIES = 10_000
+# Durable when REMORA_PG_DSN/REMORA_CHAIN_DB is configured (review finding:
+# the previous process-local LRU forgot every key on restart, so a retried
+# idempotency key re-ran assess and FORKED the proposal identity with a new
+# chain record). In-process fallback keeps the bounded-LRU behavior.
+from remora.persistence.idempotency import (  # noqa: E402
+    IdempotencyStore,
+    build_idempotency_store,
+)
+
+_IDEMPOTENCY_STORE: IdempotencyStore | None = None
 
 
-def _idempotency_get(key: str) -> dict[str, Any] | None:
-    hit = _IDEMPOTENCY.get(key)
-    if hit is not None:
-        _IDEMPOTENCY.move_to_end(key)
-    return hit
+def _idempotency_store() -> IdempotencyStore:
+    global _IDEMPOTENCY_STORE
+    if _IDEMPOTENCY_STORE is None:
+        import os as _env
+        _IDEMPOTENCY_STORE = build_idempotency_store(_env.environ)
+    return _IDEMPOTENCY_STORE
 
 
-def _idempotency_put(key: str, response: dict[str, Any]) -> None:
-    _IDEMPOTENCY[key] = response
-    _IDEMPOTENCY.move_to_end(key)
-    while len(_IDEMPOTENCY) > _IDEMPOTENCY_MAX_ENTRIES:
-        _IDEMPOTENCY.popitem(last=False)
+def _reset_idempotency_store() -> None:
+    """Test hook: drop the cached store (e.g. after env changes)."""
+    global _IDEMPOTENCY_STORE
+    _IDEMPOTENCY_STORE = None
+
+
+def _idempotency_get(tenant: str, key: str) -> dict[str, Any] | None:
+    return _idempotency_store().get(tenant, key)
+
+
+def _idempotency_put(tenant: str, key: str, response: dict[str, Any]) -> None:
+    _idempotency_store().put(tenant, key, response)
 
 TOOL_REGISTRY: dict[str, dict[str, Any]] = {
     "delete_production_database": {
@@ -888,9 +899,9 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     neither. Every assessment appends to the tenant audit chain.
     """
     tenant, role, principal = _auth(request)
-    idemp_key = f"assess:{tenant}:{req.idempotency_key}" if req.idempotency_key else None
+    idemp_key = req.idempotency_key or None
     if idemp_key:
-        cached = _idempotency_get(idemp_key)
+        cached = _idempotency_get(tenant, idemp_key)
         if cached is not None:
             return cached
 
@@ -918,7 +929,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     api_mod.record_execution_assess(response["decision"])
 
     if idemp_key:
-        _idempotency_put(idemp_key, response)
+        _idempotency_put(tenant, idemp_key, response)
     return response
 
 
