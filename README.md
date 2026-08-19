@@ -116,7 +116,7 @@ Research modules, AROMER, older thermodynamic/statistical-physics work and histo
 
 REMORA cannot enforce against a credential path that bypasses its dispatcher. Deployment identity, credential custody, downstream authorization and operational controls remain deployment responsibilities. Capability maturity is tracked explicitly in `docs/assurance/capability_register_v1.yaml`.
 
-`servers/execution_api.py` is being decomposed by responsibility (issue #241): wire contracts, review-state persistence and ToolSpec authorization are already extracted, each verified against a byte-identical OpenAPI schema; service orchestration, dispatch and lifecycle projection remain.
+The `servers/execution_api.py` decomposition is complete (issue #241, closed): contracts, persistence, authorization, dispatch, projections and all use-case orchestration live under `remora/execution/` and `remora/persistence/`, verified against a byte-identical OpenAPI schema at every step. Dispatch still runs inside the API process — the decoupled dispatch worker is tracked in issue #82.
 
 For product-oriented integration, see [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution), which consumes pinned REMORA artifacts rather than copying the governance core.
 

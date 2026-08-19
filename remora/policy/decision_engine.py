@@ -690,6 +690,7 @@ class RemoraDecisionEngine:
         conformal_phase_thresholds: dict[str, float] | None = None,
         low_consequence_accept: bool = False,
         grounded_read_accept: bool = False,
+        execution_profile: bool = False,
     ) -> None:
         # Opt-in: lets bounded, reversible action semantics reach ACCEPT without
         # an oracle consensus signal. Off by default — see the path itself for
@@ -701,6 +702,13 @@ class RemoraDecisionEngine:
         # tool contracts, a state index and an intent source; enabling it
         # without those declarations grounds nothing and accepts nothing.
         self.grounded_read_accept = grounded_read_accept
+        # Issue #35: the execution profile makes it STRUCTURALLY impossible
+        # for a probabilistic signal (conformal/temperature/evidence/
+        # ordered-trust) to directly produce ACCEPT — those paths route to
+        # VERIFY instead. Deterministic opt-in ACCEPTs (grounded read,
+        # low consequence) are unaffected: they read registry/state facts,
+        # not model output.
+        self.execution_profile = execution_profile
         self.temperature_threshold = temperature_threshold
         self.conformal_trust_threshold = conformal_trust_threshold
         self.conformal_phase_thresholds = conformal_phase_thresholds
@@ -737,6 +745,19 @@ class RemoraDecisionEngine:
     # ------------------------------------------------------------------
     # Primary API
     # ------------------------------------------------------------------
+
+
+    def _probabilistic_accept(self, reasons, obs, *, credal, raw_obs):
+        """A probabilistic path concluded ACCEPT. In the execution profile
+        that conclusion is advisory only: the call routes to VERIFY with an
+        explicit reason (issue #35 invariant: PROBABILISTIC_SIGNAL can never
+        directly produce ACCEPT)."""
+        if self.execution_profile:
+            reasons.append(DecisionReason.EXECUTION_PROFILE_PROBABILISTIC_VERIFY)
+            return self._build(DecisionAction.VERIFY, reasons, obs,
+                               credal=credal, raw_obs=raw_obs)
+        return self._build(DecisionAction.ACCEPT, reasons, obs,
+                           credal=credal, raw_obs=raw_obs)
 
     def decide(
         self, obs: PolicyObservation, *, _skip_hard_floor: bool = False
@@ -888,7 +909,7 @@ class RemoraDecisionEngine:
             thresh = self.conformal_phase_thresholds[obs.phase]
             if obs.trust_score >= thresh:
                 reasons.append(DecisionReason.CONFORMAL_ACCEPT)
-                return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+                return self._probabilistic_accept(reasons, obs, credal=_credal, raw_obs=_raw_obs)
             else:
                 reasons.append(DecisionReason.CONFORMAL_ABSTAIN)
                 return self._build(DecisionAction.ABSTAIN, reasons, obs, credal=_credal, raw_obs=_raw_obs)
@@ -910,7 +931,7 @@ class RemoraDecisionEngine:
             and not (obs.evidence_contradictions or 0)
         ):
             reasons.append(DecisionReason.CONFORMAL_ACCEPT)
-            return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+            return self._probabilistic_accept(reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # Temperature ACCEPT carries the same critical-phase exclusion as the
         # marginal conformal path above, and for the same reason: temperature
@@ -927,7 +948,7 @@ class RemoraDecisionEngine:
             and not (obs.evidence_contradictions or 0)
         ):
             reasons.append(DecisionReason.TEMPERATURE_ACCEPT)
-            return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+            return self._probabilistic_accept(reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         if (
             obs.evidence_action in ("answer", "evidence_accept")
@@ -938,7 +959,7 @@ class RemoraDecisionEngine:
         ):
             reasons.append(DecisionReason.EVIDENCE_SUPPORTED)
             if obs.phase == "ordered" or (obs.trust_score or 0) >= ORDERED_HIGH_TRUST_MIN:
-                return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+                return self._probabilistic_accept(reasons, obs, credal=_credal, raw_obs=_raw_obs)
             reasons.append(DecisionReason.CRITICAL_PHASE)
             return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
@@ -960,7 +981,7 @@ class RemoraDecisionEngine:
             if _credal.adjusted_trust is not None and _credal.adjusted_trust < (obs.trust_score or 0):
                 reasons.append(DecisionReason.AMBIGUITY_PENALTY)
             reasons.append(DecisionReason.ORDERED_HIGH_TRUST)
-            return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+            return self._probabilistic_accept(reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── VERIFY PATHS ────────────────────────────────────────────────────
 
@@ -1232,6 +1253,10 @@ class RemoraDecisionEngine:
           f"action_type={obs.action_type!r} (not in known vocabulary, or unclassified tool call)",
           "VERIFY")
 
+        # Issue #35: in the execution profile the probabilistic rules
+        # conclude VERIFY, and the trace must say so.
+        _paccept = "VERIFY" if self.execution_profile else "ACCEPT"
+
         r("tool_not_in_available_set",
           obs.tool_not_in_available_set is True,
           f"proposed_tool={obs.proposed_tool_name!r} not in declared available_tools",
@@ -1247,7 +1272,7 @@ class RemoraDecisionEngine:
             r("mondrian_conformal",
               True,
               f"phase={obs.phase!r}, trust={obs.trust_score:.3f}, threshold={thresh:.3f}",
-              "ACCEPT" if above else "ABSTAIN")
+              _paccept if above else "ABSTAIN")
 
         if self.conformal_trust_threshold is not None:
             above_marginal = (
@@ -1261,7 +1286,7 @@ class RemoraDecisionEngine:
               above_marginal,
               f"trust={obs.trust_score}, threshold={self.conformal_trust_threshold}, "
               f"phase={obs.phase!r}",
-              "ACCEPT" if above_marginal else None)
+              _paccept if above_marginal else None)
 
         if self.temperature_threshold is not None:
             below_temp = (
@@ -1273,7 +1298,7 @@ class RemoraDecisionEngine:
             r("temperature_accept",
               bool(below_temp),
               f"temperature={obs.temperature}, threshold={self.temperature_threshold}",
-              "ACCEPT" if below_temp else None)
+              _paccept if below_temp else None)
 
         ev_accept = (
             obs.evidence_action in ("answer", "evidence_accept")
@@ -1283,7 +1308,7 @@ class RemoraDecisionEngine:
             and obs.counterfactual_passed is not False
         )
         ev_outcome = (
-            "ACCEPT"
+            _paccept
             if (obs.phase == "ordered" or (obs.trust_score or 0) >= ORDERED_HIGH_TRUST_MIN)
             else "VERIFY"
         )
@@ -1308,7 +1333,7 @@ class RemoraDecisionEngine:
           ordered_trust,
           f"phase={obs.phase!r}, trust={obs.trust_score}, "
           f"ambiguity_adjusted_trust={_effective_trust:.3f}",
-          "ACCEPT")
+          _paccept)
 
         r("ambiguity_penalty_verify",
           obs.phase == "ordered"

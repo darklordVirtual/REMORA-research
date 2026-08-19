@@ -118,6 +118,12 @@ def _engine_from_env() -> RemoraDecisionEngine:
     return RemoraDecisionEngine(
         low_consequence_accept=_flag("REMORA_LOW_CONSEQUENCE_ACCEPT"),
         grounded_read_accept=_flag("REMORA_GROUNDED_READ_ACCEPT"),
+        # Issue #35: the enforcing surface runs the execution profile — a
+        # probabilistic signal (conformal/temperature/evidence/ordered-trust)
+        # can STRUCTURALLY never produce ACCEPT here, independent of what a
+        # future adapter feeds the observation. Previously this depended on
+        # the execution observation builder leaving those fields None.
+        execution_profile=True,
     )
 
 
