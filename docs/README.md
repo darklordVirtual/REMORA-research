@@ -68,6 +68,16 @@ The original [execution lifecycle/outbox design](design/execution-lifecycle-outb
 | [evidence/authorship_evidence_report.md](evidence/authorship_evidence_report.md) | Authorship evidence |
 | [Paper](../paper/remora_paper.md) | Scientific paper |
 
+## Commercial
+
+| Document | Purpose |
+|---|---|
+| [PRODUCT_PACKAGING.md](commercial/PRODUCT_PACKAGING.md) | Product stages bound to release profiles; SHADOW_PILOT is the offering |
+| [SHADOW_PILOT.md](commercial/SHADOW_PILOT.md) | Customer lifecycle and exit criteria for the shadow pilot |
+| [SECURITY_OVERVIEW.md](commercial/SECURITY_OVERVIEW.md) | Security summary for customer reviewers |
+| [DEPLOYMENT_OPTIONS.md](commercial/DEPLOYMENT_OPTIONS.md) | Customer-hosted, local and demo deployment options |
+| [DATA_HANDLING.md](commercial/DATA_HANDLING.md) | Data categories, defaults, residency/retention/export |
+
 ## Assurance registers
 
 | Register | Purpose |

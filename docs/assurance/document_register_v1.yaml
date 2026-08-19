@@ -2235,7 +2235,70 @@ documents:
   topic: docs_architecture_adr_single_authoritative_execution_path_md
   verdict: current
   version: v1
+- audience:
+  - evaluator
+  - operators
+  code_synced: verified
+  id: DOC-305
+  last_audited: '2026-08-19'
+  last_reviewed: '2026-08-19'
+  path: docs/commercial/PRODUCT_PACKAGING.md
+  status: canonical
+  topic: docs_commercial_product_packaging_md
+  verdict: current
+  version: v1
+- audience:
+  - evaluator
+  - operators
+  code_synced: verified
+  id: DOC-306
+  last_audited: '2026-08-19'
+  last_reviewed: '2026-08-19'
+  path: docs/commercial/SHADOW_PILOT.md
+  status: canonical
+  topic: docs_commercial_shadow_pilot_md
+  verdict: current
+  version: v1
+- audience:
+  - evaluator
+  code_synced: verified
+  id: DOC-307
+  last_audited: '2026-08-19'
+  last_reviewed: '2026-08-19'
+  path: docs/commercial/SECURITY_OVERVIEW.md
+  status: canonical
+  topic: docs_commercial_security_overview_md
+  verdict: current
+  version: v1
+- audience:
+  - operators
+  code_synced: verified
+  id: DOC-308
+  last_audited: '2026-08-19'
+  last_reviewed: '2026-08-19'
+  path: docs/commercial/DEPLOYMENT_OPTIONS.md
+  status: canonical
+  topic: docs_commercial_deployment_options_md
+  verdict: current
+  version: v1
+- audience:
+  - evaluator
+  - operators
+  code_synced: verified
+  id: DOC-309
+  last_audited: '2026-08-19'
+  last_reviewed: '2026-08-19'
+  path: docs/commercial/DATA_HANDLING.md
+  status: canonical
+  topic: docs_commercial_data_handling_md
+  verdict: current
+  version: v1
 topics:
+- docs_commercial_product_packaging_md
+- docs_commercial_shadow_pilot_md
+- docs_commercial_security_overview_md
+- docs_commercial_deployment_options_md
+- docs_commercial_data_handling_md
 - docs_architecture_adr_single_authoritative_execution_path_md
 - docs_product_product_truth_contract_yaml
 - docs_execution-lifecycle_md
