@@ -270,7 +270,8 @@ never on detail strings.
 ## Not part of the stable surface
 
 - Internal modules: `remora.policy`, `remora.enforcement`,
-  `remora.governance`, `servers.*` — importable, no compatibility promise.
+  `remora.governance`, `remora.persistence`, `remora.execution`,
+  `remora.legal`, `servers.*` — importable, no compatibility promise.
 - The nested mappings on `ExecutionResult` (`execution_grant`, `pep`,
   `tool_execution`) are passed through verbatim in this SDK version;
   typed models for them are planned, additively.

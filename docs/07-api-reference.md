@@ -273,6 +273,11 @@ is inferred from the shared ledger rather than directly observed. See
 
 ### Execution state machine, `servers/execution_api.py` (`/v1/execution/*`)
 
+Wire models for these endpoints live in `servers/execution_contracts.py`
+(re-exported by `execution_api`); the transactional review-state writes below
+run through `remora/persistence/execution_state.py`, and ToolSpec
+resolution/binding through `remora/execution/authorization.py` (issue #241).
+
 The end-to-end path (REM-035): `POST /assess` (issues an ACCEPT token or
 enqueues a review item), `POST /approve` (records the authenticated principal;
 mandatory bounded TTL; profile-specific approval role enforced), `POST

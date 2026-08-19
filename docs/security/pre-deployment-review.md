@@ -84,7 +84,10 @@ const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0
 The D1 `audit_log` table is append-mostly; `approved`/`approved_by` are
 display-only mirrors updated by the control plane's `POST /approvals` endpoint
 (the `audit_decision` tool was removed 2026-08-19 — it allowed self-approval).
-Authoritative approval state lives in the immutable `approvals` table.
+Authoritative approval state lives in the immutable `approvals` table. The
+structural write floor and the single-authoritative-execution-path decision
+are documented in
+`docs/architecture/ADR-single-authoritative-execution-path.md`.
 
 **Risk:** A compromised `CONTROL_SECRET` allows overwriting approval fields.  
 **Recommendation for regulated deployments:** Enable D1 point-in-time recovery, or
