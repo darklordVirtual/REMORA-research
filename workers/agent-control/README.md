@@ -27,7 +27,11 @@ These are the tools actually in `TOOL_CATALOG` (`src/index.ts`):
 | `remora_verify_claim` | Multi-oracle consensus verification | No |
 | `dce_search_law` | Search Norwegian statutes (DCE) | No |
 | `store_artifact` | Write a file to R2 | **Yes** |
-| `audit_decision` | Record a human approval decision | No |
+
+`audit_decision` was **removed** (2026-08-19): it let the same shared bearer
+that proposes an action record its own approval, with `approved_by` as
+caller-supplied text. Approvals are now first-class records granted only by an
+authenticated, independent human reviewer via `POST /approvals` — see below.
 
 ## Deploy
 
@@ -98,6 +102,22 @@ Add to `claude_desktop_config.json`:
 }
 ```
 
+## Approvals (`POST /approvals`)
+
+```
+1. Agent proposes:   POST /execute {tool: store_artifact, input: {...}}   → 402 APPROVAL_REQUIRED + audit_id
+2. Human reviews:    POST /approvals {audit_id, approved: true}
+                     (Cloudflare Access identity; workload bearer refused)
+3. Agent re-submits: POST /execute {tool, input: {..., audit_id}}
+                     → the approval is consumed (single-use) after re-checking
+                       tenant, exact input hash, ToolSpec hash, policy hash, expiry
+```
+
+Refusal reason codes: `REVIEWER_IDENTITY_REQUIRED`, `SELF_APPROVAL_FORBIDDEN`,
+`TENANT_MISMATCH`, `PAYLOAD_CHANGED_AFTER_APPROVAL`,
+`TOOLSPEC_CHANGED_AFTER_APPROVAL`, `POLICY_CHANGED_AFTER_APPROVAL`,
+`APPROVAL_EXPIRED`, `APPROVAL_ALREADY_CONSUMED`, `APPROVAL_REJECTED`.
+
 ## Security Principles
 
 - **Bounded egress**: outbound calls go only to the statically-bound service
@@ -105,9 +125,17 @@ Add to `claude_desktop_config.json`:
   dynamic, request-controlled destination. (A configurable `EGRESS_ALLOWLIST`
   is roadmap, not implemented; earlier README wording overstated it — issue #55.)
 - **Secret injection**: API keys live in Worker Secrets, never in Claude's context.
-- **Human-in-the-loop**: destructive actions (R2 writes via `store_artifact`)
-  are held until a human approves via `audit_decision`. Approval binds the
-  exact input hash (audit_id excluded from the hash so re-submission matches).
+- **Human-in-the-loop, no self-approval**: destructive actions (R2 writes via
+  `store_artifact`) are held until an independent human reviewer approves via
+  `POST /approvals`. Reviewer identity comes only from a verified Cloudflare
+  Access JWT (`src/auth.ts`; `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD` +
+  `REVIEWER_EMAILS`); the workload bearer is explicitly refused on that
+  endpoint, and a reviewer whose identity equals the requester is refused
+  (`SELF_APPROVAL_FORBIDDEN`). Each approval (`src/approval.ts`) is immutable,
+  single-use, expires (`APPROVAL_TTL_SECONDS`, default 900), and is bound to
+  the exact tool-call hash, ToolSpec identity and policy identity — any of
+  those changing after approval refuses execution. Regression suite:
+  `tests/test_agent_control_approvals.py` runs the real TS modules.
 - **Audit trail**: Every tool call is written to D1 with a SHA-256 hash of the input/output pair.
 - **Governance record**: Every `/execute` also writes a hash-chained
   `DecisionEnvelope` v2 (`src/envelope.ts`), including the calls that were

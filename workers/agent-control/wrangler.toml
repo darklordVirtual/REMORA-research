@@ -47,6 +47,18 @@ LAW_SEARCH_URL      = "https://remora-law-search.razorsharp.workers.dev"  # repl
 # Human-in-the-loop: tools that require approval before executing
 APPROVAL_REQUIRED_TOOLS = "store_artifact"
 
+# Human-reviewer identity (POST /approvals). All three must be set for the
+# approval surface to accept anyone; unset = the endpoint refuses every
+# caller (fail closed) and approval-gated tools cannot execute.
+# ACCESS_TEAM_DOMAIN — your Cloudflare Access team domain, e.g. "team.cloudflareaccess.com"
+# ACCESS_AUD         — the Access application AUD tag protecting the review surface
+# REVIEWER_EMAILS    — comma-separated allowlist of reviewer identities
+# APPROVAL_TTL_SECONDS — approval validity window (default 900)
+# ACCESS_TEAM_DOMAIN   = "yourteam.cloudflareaccess.com"
+# ACCESS_AUD           = "<access-app-aud>"
+# REVIEWER_EMAILS      = "reviewer@example.com"
+# APPROVAL_TTL_SECONDS = "900"
+
 # Governance record context. TENANT_ID scopes the DecisionEnvelope hash chain
 # in D1 — change it only when you intend to start a separate chain, since
 # every entry binds the tenant it was written under. TARGET_ENVIRONMENT is

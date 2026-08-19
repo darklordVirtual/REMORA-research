@@ -669,7 +669,7 @@ TOOLS = [
             "Execute a tool on the REMORA Agent Control Plane. "
             "The control plane enforces egress policy, injects secrets, and logs every call "
             "to an immutable audit trail. Available tools: remora_verify_claim, dce_search_law, "
-            "store_artifact, audit_decision. "
+            "store_artifact. "
             "Requires AGENT_CONTROL_URL environment variable to be set."
         ),
         "inputSchema": {
@@ -677,12 +677,12 @@ TOOLS = [
             "properties": {
                 "tool": {
                     "type": "string",
-                    "description": "Tool name: remora_verify_claim | dce_search_law | store_artifact | audit_decision",
-                    "enum": ["remora_verify_claim", "dce_search_law", "store_artifact", "audit_decision"],
+                    "description": "Tool name: remora_verify_claim | dce_search_law | store_artifact",
+                    "enum": ["remora_verify_claim", "dce_search_law", "store_artifact"],
                 },
                 "arguments": {
                     "type": "object",
-                    "description": "Tool-specific parameters. remora_verify_claim: {claim, context?, domain?}. dce_search_law: {query, top_k?, domain?}. store_artifact: {key, content, approved?}. audit_decision: {audit_id, approved, approved_by, note?}.",
+                    "description": "Tool-specific parameters. remora_verify_claim: {claim, context?, domain?}. dce_search_law: {query, top_k?, domain?}. store_artifact: {key, content, audit_id?} (approval is granted by an independent human reviewer via the control plane's POST /approvals, never via a tool call).",
                 },
                 "session_id": {
                     "type": "string",
@@ -1357,7 +1357,8 @@ def handle_agent_execute_tool(args: dict) -> str:
 
     if result.get("approval_required"):
         lines += [
-            "⏳ **Venter på godkjenning** (bruk `audit_decision` med audit_id ovenfor)",
+            "⏳ **Venter på godkjenning** (en uavhengig menneskelig reviewer må godkjenne "
+            "audit_id ovenfor via kontrollplanets `POST /approvals`)",
             "",
         ]
 

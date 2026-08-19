@@ -24,6 +24,8 @@
  * ─────────
  *   GET  /tools              Tool catalog (for Claude discovery)
  *   POST /execute            Execute a tool by name
+ *   POST /approvals          Grant/reject a pending proposal (human reviewer only;
+ *                            Cloudflare Access identity — the workload bearer is refused)
  *   POST /sessions           Start a new agent session
  *   DELETE /sessions/:id     End a session
  *   GET  /audit              Query audit log (admin only)
@@ -38,8 +40,10 @@
  *   - Bearer token required on all write endpoints (CONTROL_SECRET)
  *   - Claude never sees API keys — they are injected by this Worker
  *   - All outbound requests checked against EGRESS_ALLOWLIST
- *   - Writes to R2 require explicit approval flag from caller
- *   - Sensitive tool calls marked approval_required in audit_log
+ *   - Approval-gated tools require a first-class approval (src/approval.ts):
+ *     granted only by an authenticated independent human reviewer, single-use,
+ *     expiring, bound to tenant + exact tool-call hash + ToolSpec + policy
+ *   - The proposing credential can never approve its own action (no self-approval)
  *   - Every /execute writes a hash-chained DecisionEnvelope v2 (see
  *     src/envelope.ts); a failed envelope write fails the request rather than
  *     returning a clean 200 on an unrecorded action
@@ -62,6 +66,13 @@
  * as if they did.
  */
 
+import { authenticate, cloudflareAccessVerifier } from "./auth";
+import {
+  consumeApproval,
+  D1ApprovalStore,
+  grantApproval,
+} from "./approval";
+import { isHumanReviewer } from "./principal";
 import { buildCodegraphPayload } from "./codegraph";
 import {
   appendEnvelope,
@@ -91,6 +102,13 @@ interface Env {
   // TARGET_ENVIRONMENT is recorded verbatim in every envelope.
   TENANT_ID?:          string;
   TARGET_ENVIRONMENT?: string;
+
+  // Human-reviewer identity (Cloudflare Access). All three must be set for
+  // the approval surface to accept reviewers; missing config fails closed.
+  ACCESS_TEAM_DOMAIN?: string;
+  ACCESS_AUD?: string;
+  REVIEWER_EMAILS?: string;
+  APPROVAL_TTL_SECONDS?: string;
 
   // Secrets — required in production; the auth guard fails closed if missing.
   CONTROL_SECRET?: string;
@@ -162,7 +180,8 @@ const TOOL_CATALOG = [
     name: "store_artifact",
     description:
       "Store a document, report, or evidence artifact to R2. " +
-      "REQUIRES APPROVAL — first submit with no audit_id to get one, then approve via audit_decision. " +
+      "REQUIRES APPROVAL — first submit with no audit_id to get one; an independent " +
+      "human reviewer then approves via POST /approvals (Cloudflare Access identity). " +
       "Returns the artifact key for future retrieval.",
     parameters: {
       type: "object",
@@ -175,24 +194,18 @@ const TOOL_CATALOG = [
       required: ["key", "content"],
     },
   },
-  {
-    name: "audit_decision",
-    description:
-      "Record a human decision or approval in the audit log. Use to mark that " +
-      "a specific action was reviewed, approved, or rejected by a human operator. " +
-      "Creates an immutable audit record.",
-    parameters: {
-      type: "object",
-      properties: {
-        audit_id:  { type: "number",  description: "The audit_log row ID to update" },
-        approved:  { type: "boolean", description: "True = approved, False = rejected" },
-        approved_by:{ type: "string", description: "Name or ID of the approving person" },
-        note:      { type: "string",  description: "Optional justification note" },
-      },
-      required: ["audit_id", "approved", "approved_by"],
-    },
-  },
 ] as const;
+
+// audit_decision was removed from the catalog (self-approval channel): it let
+// the same shared bearer that proposes an action also record its approval,
+// with approved_by as caller-supplied text. Approvals now require an
+// authenticated, independent human reviewer via POST /approvals.
+const RETIRED_TOOLS: Record<string, string> = {
+  audit_decision:
+    "SELF_APPROVAL_FORBIDDEN: audit_decision is retired. Approvals require an " +
+    "authenticated human reviewer via POST /approvals (Cloudflare Access identity); " +
+    "the proposing workload credential can never approve its own action.",
+};
 
 type ToolName = (typeof TOOL_CATALOG)[number]["name"];
 
@@ -208,15 +221,34 @@ const TOOL_RISK_TIER: Record<string, string> = {
   remora_verify_claim: "low",
   dce_search_law:      "low",
   store_artifact:      "high",
-  audit_decision:      "high",
 };
 
 const TOOL_DOMAIN: Record<string, string> = {
   remora_verify_claim: "verification",
   dce_search_law:      "legal_research",
   store_artifact:      "artifact_storage",
-  audit_decision:      "governance",
 };
+
+// ── Approval binding identities ────────────────────────────────────────────────
+// ToolSpec identity = hash of the catalog entry the approval was granted
+// against; policy identity = hash of the approval-routing config. Either
+// changing invalidates outstanding approvals at consumption time.
+
+const TOOLSPEC_VERSION = "catalog-v2-no-audit-decision";
+
+async function toolspecHashFor(tool: string): Promise<string> {
+  const entry = TOOL_CATALOG.find((t) => t.name === tool);
+  return sha256(TOOLSPEC_VERSION + ":" + JSON.stringify(entry ?? null));
+}
+
+async function policyBundleHash(env: Env): Promise<string> {
+  return sha256("approval_required_tools:" + (env.APPROVAL_REQUIRED_TOOLS ?? ""));
+}
+
+function approvalTtlSeconds(env: Env): number {
+  const n = Number(env.APPROVAL_TTL_SECONDS);
+  return Number.isFinite(n) && n > 0 ? n : 15 * 60;
+}
 
 // ── Utilities ──────────────────────────────────────────────────────────────────
 
@@ -378,28 +410,8 @@ async function runTool(
       };
     }
 
-    // ── audit_decision ───────────────────────────────────────────────────────
-    case "audit_decision": {
-      await env.AUDIT_DB
-        .prepare(
-          `UPDATE audit_log
-           SET approved = ?, approved_by = ?
-           WHERE id = ?`,
-        )
-        .bind(input.approved ? 1 : 0, input.approved_by, input.audit_id)
-        .run();
-
-      return {
-        output: {
-          status:     "RECORDED",
-          audit_id:   input.audit_id,
-          decision:   input.approved ? "APPROVED" : "REJECTED",
-          approved_by:input.approved_by,
-        },
-      };
-    }
-
     default:
+      if (name in RETIRED_TOOLS) throw new Error(RETIRED_TOOLS[name]);
       throw new Error(`Unknown tool: ${name}`);
   }
 }
@@ -570,6 +582,22 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
     return json({ error: "Audit infrastructure failed" }, 502);
   }
 
+  // Record the credential-derived requester principal for this proposal so
+  // the approval layer can enforce reviewer independence (reviewer must never
+  // equal the requester). Failure fails the request: without a recorded
+  // requester the no-self-approval guard cannot be enforced later.
+  try {
+    await env.AUDIT_DB
+      .prepare(
+        "INSERT OR IGNORE INTO proposal_principals (audit_id, tenant_id, principal) VALUES (?,?,?)",
+      )
+      .bind(pre_audit_id, tenantId, "control_secret_bearer")
+      .run();
+  } catch (e) {
+    console.error("proposal principal insert failed:", e instanceof Error ? e.message : String(e));
+    return json({ error: "Audit infrastructure failed (principal record)" }, 502);
+  }
+
   if (approval_required === 1) {
     if (!body.input.audit_id) {
       // Gate held the action pending human review: that IS a decision, and it
@@ -606,11 +634,20 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
       );
     }
 
-    const row = await env.AUDIT_DB.prepare("SELECT approved, input_hash FROM audit_log WHERE id = ?")
-      .bind(body.input.audit_id)
-      .first<{ approved: number; input_hash: string }>();
+    // Consume the first-class approval: single-use, expiring, and bound to
+    // tenant + exact tool-call hash + ToolSpec identity + policy identity.
+    // Every binding is re-checked here at execution time, not at grant time.
+    const store = new D1ApprovalStore(env.AUDIT_DB);
+    const consumed = await consumeApproval(store, {
+      proposalId: Number(body.input.audit_id),
+      tenantId,
+      toolCallHash: input_hash,
+      toolspecHash: await toolspecHashFor(body.tool),
+      policyBundleHash: await policyBundleHash(env),
+      signingKey: env.ENVELOPE_SIGNING_KEY,
+    });
 
-    if (!row || row.approved !== 1 || row.input_hash !== input_hash) {
+    if (!consumed.ok) {
       // A refused call is the outcome most worth recording: it is the evidence
       // that the gate actually held.
       try {
@@ -618,12 +655,7 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
           requestId, tenantId, sessionId: body.session_id, actorIdentity,
           toolName: body.tool, toolArgs: hashableInput,
           outcome: "abstain",
-          policyTriggers: [
-            "approval_required",
-            !row ? "approval_record_missing"
-              : row.approved !== 1 ? "approval_not_granted"
-              : "input_modified_after_approval",
-          ],
+          policyTriggers: ["approval_required", consumed.reason.toLowerCase()],
           approvalRequired: true,
           executed: false,
           effectOutcome: "refused",
@@ -634,7 +666,7 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
       }
       return json(
         {
-          error: "UNAUTHORIZED: audit_id not approved or input modified",
+          error: `UNAUTHORIZED: ${consumed.reason}`,
           audit_id: body.input.audit_id,
           request_id: requestId,
         },
@@ -852,6 +884,86 @@ async function handleEnvelopeVerify(url: URL, env: Env): Promise<Response> {
   });
 }
 
+// ── Approvals (independent human reviewer) ────────────────────────────────────
+
+/**
+ * POST /approvals — grant or reject a pending proposal.
+ *
+ * Authenticates its own caller: requires a verified human identity with the
+ * reviewer role (Cloudflare Access JWT in production; the workload bearer is
+ * explicitly NOT accepted here, which is the whole point). Reviewer identity
+ * comes only from the verified credential — any approved_by/user_id fields in
+ * the body are ignored.
+ */
+async function handleApprovals(req: Request, env: Env): Promise<Response> {
+  const ctx = await authenticate(req, env, cloudflareAccessVerifier(env));
+  if (!ctx) return err("Unauthorized", 401);
+  if (!isHumanReviewer(ctx)) {
+    return json(
+      {
+        error:
+          "REVIEWER_IDENTITY_REQUIRED: approvals require an authenticated human " +
+          "reviewer (Cloudflare Access) with the reviewer role. The workload " +
+          "credential cannot approve.",
+        principal_type: ctx.principalType,
+      },
+      403,
+    );
+  }
+
+  let body: { audit_id?: number; approved?: boolean; reason_code?: string };
+  try {
+    body = (await req.json()) as typeof body;
+  } catch {
+    return err("Invalid JSON body");
+  }
+  if (typeof body.audit_id !== "number" || typeof body.approved !== "boolean") {
+    return err("Required fields: audit_id (number), approved (boolean)");
+  }
+
+  const store = new D1ApprovalStore(env.AUDIT_DB);
+  const proposal = await store.getProposal(body.audit_id);
+  const result = await grantApproval(store, ctx, {
+    proposalId: body.audit_id,
+    decision: body.approved ? "approved" : "rejected",
+    reasonCode: body.reason_code ?? (body.approved ? "human_approved" : "human_rejected"),
+    toolspecHash: await toolspecHashFor(proposal?.toolName ?? ""),
+    toolspecVersion: TOOLSPEC_VERSION,
+    policyBundleHash: await policyBundleHash(env),
+    ttlSeconds: approvalTtlSeconds(env),
+    signingKey: env.ENVELOPE_SIGNING_KEY,
+  });
+
+  if (!result.ok) return json({ error: result.reason }, 403);
+
+  // Display-only mirror in audit_log for the legacy /audit read model. The
+  // authoritative record is the approvals row; authorization never reads this.
+  try {
+    await env.AUDIT_DB
+      .prepare("UPDATE audit_log SET approved = ?, approved_by = ? WHERE id = ?")
+      .bind(body.approved ? 1 : 0, ctx.principalId, body.audit_id)
+      .run();
+  } catch (e) {
+    console.error("audit_log approval mirror failed:", e instanceof Error ? e.message : String(e));
+  }
+
+  const a = result.approval;
+  return json(
+    {
+      approval_id: a.approvalId,
+      proposal_id: a.proposalId,
+      decision: a.decision,
+      reviewer_principal: a.reviewerPrincipal,
+      requester_principal: a.requesterPrincipal,
+      issued_at: a.issuedAt,
+      expires_at: a.expiresAt,
+      single_use: true,
+      signed: a.signature !== "",
+    },
+    201,
+  );
+}
+
 // ── Main fetch handler ─────────────────────────────────────────────────────────
 
 export default {
@@ -868,6 +980,13 @@ export default {
     // Sensitive GETs (/audit reads PII-adjacent session data;
     //  /test-bindings probes upstream connectivity) also require auth.
     // /tools, /status, /sessions GET are intentionally public.
+    // POST /approvals authenticates its own caller (human reviewer via
+    // Cloudflare Access — no workload bearer), so it is excluded from the
+    // shared-bearer guard and routed before it.
+    if (path === "/approvals" && request.method === "POST") {
+      return handleApprovals(request, env);
+    }
+
     const needsAuth =
       ["POST", "DELETE", "PATCH"].includes(request.method) ||
       (request.method === "GET" &&

@@ -68,6 +68,44 @@ CREATE INDEX IF NOT EXISTS idx_envelope_tenant_seq ON decision_envelopes(tenant_
 CREATE INDEX IF NOT EXISTS idx_envelope_session    ON decision_envelopes(session_id);
 CREATE INDEX IF NOT EXISTS idx_envelope_created    ON decision_envelopes(created_at);
 
+-- ── First-class approvals (no self-approval) ─────────────────────────────────
+-- Replaces approval-by-audit_log-flag. Every approval is an immutable record
+-- bound to the exact proposal, tool-call hash, ToolSpec identity and policy
+-- identity, with expiry and single-use consumption. audit_log.approved /
+-- approved_by remain as display-only mirrors; authorization reads ONLY these
+-- tables.
+
+CREATE TABLE IF NOT EXISTS proposal_principals (
+  audit_id   INTEGER PRIMARY KEY,          -- audit_log.id of the proposal
+  tenant_id  TEXT    NOT NULL,
+  principal  TEXT    NOT NULL,             -- credential-derived requester identity
+  created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+  FOREIGN KEY (audit_id) REFERENCES audit_log(id)
+);
+
+CREATE TABLE IF NOT EXISTS approvals (
+  approval_id         TEXT    PRIMARY KEY,
+  tenant_id           TEXT    NOT NULL,
+  proposal_id         INTEGER NOT NULL,
+  requester_principal TEXT    NOT NULL,
+  reviewer_principal  TEXT    NOT NULL,
+  reviewer_roles      TEXT    NOT NULL,    -- JSON array
+  tool_call_hash      TEXT    NOT NULL,
+  toolspec_hash       TEXT    NOT NULL,
+  toolspec_version    TEXT    NOT NULL,
+  policy_bundle_hash  TEXT    NOT NULL,
+  issued_at           TEXT    NOT NULL,
+  expires_at          TEXT    NOT NULL,
+  decision            TEXT    NOT NULL,    -- approved | rejected
+  reason_code         TEXT    NOT NULL,
+  signature           TEXT    NOT NULL DEFAULT '',
+  consumed_at         TEXT,                -- NULL until single-use consumption
+  FOREIGN KEY (proposal_id) REFERENCES audit_log(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_approvals_proposal ON approvals(proposal_id);
+CREATE INDEX IF NOT EXISTS idx_approvals_tenant   ON approvals(tenant_id, issued_at);
+
 CREATE TABLE IF NOT EXISTS envelope_chain_head (
   tenant_id     TEXT    PRIMARY KEY,
   head_hash     TEXT    NOT NULL,
