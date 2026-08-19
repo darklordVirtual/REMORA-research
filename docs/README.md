@@ -214,6 +214,6 @@ AROMER remains an experimental/research layer. Its documentation is retained sep
 
 ## Archive
 
-Anything under `docs/archive/` is historical unless a current canonical document explicitly references it as evidence. The full pre-cleanup development changelog is preserved at [archive/CHANGELOG_PRE_HYGIENE_2026-08-19.md](archive/CHANGELOG_PRE_HYGIENE_2026-08-19.md).
+Anything under `docs/archive/` is historical unless a current canonical document explicitly references it as evidence. Detailed development history remains available through Git commits and merged pull requests instead of duplicated archive files.
 
 Documentation changes should update or retire stale statements rather than add another parallel explanation. AI-assisted development is disclosed in [AI_USE.md](AI_USE.md); generated prose or code is not evidence by itself.
