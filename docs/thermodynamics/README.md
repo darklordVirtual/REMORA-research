@@ -1,6 +1,18 @@
 # REMORA v4 Thermodynamics
 
-This section documents the current v4 thermodynamic layer as it exists in code.
+> ⚠️ **Framing withdrawn (2026-08-07, PR #227).** The thermodynamic
+> interpretation is no longer part of the paper or of any active claim: the
+> temperature signal failed its pre-registered fresh-data confirmation
+> (`NEGATIVE_RESULTS.md` §18) and the framing withdrawal itself is recorded in
+> §38. This directory is retained as the historical record of that research
+> program; `claim_ledger.yaml` here governs thermodynamics sub-claims only and
+> its `not_supported` statuses are locked negative results. Module and field
+> names elsewhere in the repo (`remora/thermodynamics.py`, `entropy_H`,
+> `dissensus_D`, phase names) are legacy naming for uncertainty-routing
+> diagnostics, kept because they are wire format and code identity — not
+> because the physics interpretation stands.
+
+This section documents the v4 thermodynamic layer as it existed in code when the research program was active.
 
 It is important not to conflate two different things:
 
