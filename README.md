@@ -51,7 +51,7 @@ Headline values are governed by the [claim register](docs/assurance/claim_regist
 | # | Benchmark | Result | Scope |
 |---|---|---|---|
 | 1 | **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
-| 2 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); utility +0.456 | Simulated; effective N = 70 (70 templates × 10 cosmetic variants); safety gap vs. baseline not statistically significant |
+| 2 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); 95% cluster-level upper bound **5.2%**; utility +0.456 | Simulated; effective N = 70 (70 templates × 10 cosmetic variants); safety gap vs. baseline not statistically significant |
 | 3 | **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | Sealed run, 1,527 episodes; 5/5 pre-registered targets met |
 | 4 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures only |
 
