@@ -123,8 +123,11 @@ jobs:
 
       - name: Generate frontend SBOM from the lockfile
         working-directory: frontend
+        # Plain `npm ci` (same as the verify job): cyclonedx-npm shells out to
+        # `npm ls`, which reports ELSPROBLEMS for the platform-variant stubs an
+        # --ignore-scripts install leaves behind.
         run: |
-          npm ci --ignore-scripts
+          npm ci
           npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file ../sbom-frontend.cdx.json
 
       - name: Upload SBOM artifacts
