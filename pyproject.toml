@@ -50,7 +50,7 @@ security = ["cryptography>=41.0"]
 # MCP server transport (httpx is the only hard dep for the MCP workers)
 mcp = ["httpx>=0.25"]
 # REST API gateway (servers/api.py) — FastAPI + ASGI server
-api = ["fastapi>=0.141.1", "uvicorn[standard]>=0.52.1"]
+api = ["fastapi>=0.141.1", "uvicorn[standard]>=0.52.3"]
 # Third-party SDK client (remora/sdk) — httpx is its only dependency;
 # models and errors import without it (FT-13).
 sdk = ["httpx>=0.25"]
