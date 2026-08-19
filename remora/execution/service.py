@@ -370,3 +370,158 @@ def execute_approved_item(
         "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
     }
     return response
+
+
+class TokenRefused(Exception):
+    """The presented ACCEPT token does not authorize this call (route maps
+    to 409). ``refusal`` is the bounded metric label."""
+
+    def __init__(self, detail: str, refusal: str) -> None:
+        super().__init__(detail)
+        self.refusal = refusal
+
+
+def redeem_accept_token(
+    *,
+    tenant: str,
+    principal: str,
+    token: Any,
+    tool_call: Any,
+    chain: Any,
+    gate: Any,
+    outbox: Callable[[], Any],
+    worker_id: str,
+    build_observation: Callable[[Any, str], tuple[Any, dict[str, Any]]],
+    record_dispatch_intent: Callable[..., Any],
+    dispatch_under_lease: Callable[..., dict[str, Any]],
+    lifecycle_guard: Callable[..., None],
+    note_proposal_id: Callable[[Any], None],
+) -> dict[str, Any]:
+    """Execute a directly-ACCEPTed proposal under its single-use token.
+
+    Order is the guarantee: (1) exact payload binding checked first and
+    WITHOUT consuming - a mismatched payload must not burn the grant for
+    the call the token actually authorizes; (2) atomic single-use
+    consumption; (3) durable dispatch intent before any side effect;
+    (4) governed dispatch under the same lease discipline. Deliberately no
+    engine re-run: the token IS the exactly-bound authorization and its
+    TTL is the freshness.
+    """
+    obs, semantic = build_observation(tool_call, tenant)
+    proposal_id = token.request_id or None
+    note_proposal_id(proposal_id)
+
+    if token.observation_hash != (obs.tool_call_hash or ""):
+        chain.append(tenant, {
+            "event": "execution_binding_refused",
+            "proposal_id": proposal_id,
+            "actor": principal,
+            "tool_call_hash": obs.tool_call_hash,
+            "detail": "payload does not match the token binding",
+        })
+        raise TokenRefused(
+            "binding refused: the presented tool call does not match "
+            "the one this token authorizes",
+            "binding_refused",
+        )
+
+    if str(token.action).lower() != "accept":
+        raise TokenRefused(
+            f"token authorizes {token.action!r}, not an autonomous "
+            "execution; only an ACCEPT may be redeemed here",
+            "not_accept",
+        )
+
+    # Consume exactly once. A refused check here is expiry, audience
+    # mismatch, a bad signature, or a replay - all terminal for this token.
+    gate_result = gate.check(token, obs.tool_call_hash, consume=True)
+    if not gate_result.allowed:
+        chain.append(tenant, {
+            "event": "execution_grant_refused",
+            "proposal_id": proposal_id,
+            "actor": principal,
+            "grant_jti": token.jti,
+            "detail": gate_result.reason,
+        })
+        raise TokenRefused(
+            f"execution grant refused: {gate_result.reason}",
+            str(gate_result.reason),
+        )
+
+    lifecycle_guard("ASSESSED", "direct_accept_token")
+
+    now = datetime.now(UTC)
+    response: dict[str, Any] = {
+        "proposal_id": proposal_id,
+        "outcome": ExecutionDecision.EXECUTE.value,
+        "detail": "authorized by single-use ACCEPT token",
+        "execution_grant": token.to_dict(),
+        "pep": {"allowed": gate_result.allowed, "reason": gate_result.reason},
+    }
+
+    # Durable dispatch intent before any side effect (FT-02).
+    intent = record_dispatch_intent(
+        proposal_id=str(proposal_id or token.jti),
+        tenant=tenant,
+        item_id=f"accept:{token.jti}",
+        tool_name=tool_call.tool_name,
+        tool_call_hash=obs.tool_call_hash or "",
+        grant_jti=token.jti,
+    )
+    intent_entry = chain.append(tenant, {
+        "event": "execution_authorized",
+        "proposal_id": proposal_id,
+        "actor": principal,
+        "item_id": f"accept:{token.jti}",
+        "tool_call_hash": obs.tool_call_hash,
+        "grant_jti": token.jti,
+        "pep_allowed": gate_result.allowed,
+        "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
+        "intent_authority_hash": semantic["intent_authority_hash"],
+    })
+    if intent is not None:
+        outbox().claim(intent.outbox_id, worker_id=worker_id)
+
+    # Governed dispatch - same dispatcher, same lease discipline.
+    tool_execution = dispatch_under_lease(
+        tenant=tenant,
+        principal=principal,
+        tool_call=tool_call,
+        semantic=semantic,
+        now=now,
+    )
+
+    if intent is not None:
+        reason = tool_execution.get("refusal_reason")
+        if tool_execution["executed"]:
+            settled_state = OutboxState.SUCCEEDED
+        elif reason == "tool_failed_nonce_burned":
+            settled_state = OutboxState.FAILED
+        else:
+            settled_state = OutboxState.REFUSED
+        outbox().settle(intent.outbox_id, settled_state, detail=reason)
+
+    result_record: dict[str, Any] = {
+        "event": "execution_result",
+        "proposal_id": proposal_id,
+        "actor": principal,
+        "item_id": f"accept:{token.jti}",
+        "tool_call_hash": obs.tool_call_hash,
+        "grant_jti": token.jti,
+        "intent_sequence_no": intent_entry.sequence_no,
+        "tool_executed": tool_execution["executed"],
+    }
+    envelope_meta = tool_execution.get("result_envelope")
+    if envelope_meta:
+        result_record["result_sha256"] = envelope_meta["sha256"]
+        result_record["result_size_bytes"] = envelope_meta["size_bytes"]
+        result_record["result_truncated"] = envelope_meta["truncated"]
+    if tool_execution.get("refusal_reason"):
+        result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    entry = chain.append(tenant, result_record)
+
+    response["tool_execution"] = tool_execution
+    response["audit"] = {
+        "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
+    }
+    return response
