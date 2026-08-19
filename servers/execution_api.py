@@ -395,7 +395,11 @@ from remora.execution.dispatch import (
     dispatch_under_lease as _dispatch_under_lease_impl,
     record_dispatch_intent as _record_dispatch_intent_impl,
 )
-from remora.execution.service import assess_proposal as _assess_proposal
+from remora.execution.service import (
+    ToolSpecChanged,
+    assess_proposal as _assess_proposal,
+    execute_approved_item as _execute_approved_item,
+)
 from remora.execution.review_service import (
     ReviewConflict,
     ReviewNotFound,
@@ -1086,208 +1090,42 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
 
     api_mod._require_tenant_capability(role, tenant, "execute")
     reconcile_stale_dispatches(tenant)  # FT-02 lazy sweep (see assess)
-    # FT-03: the spec in force NOW, re-checked against the same call. A
-    # redeployed bundle is caught below by comparing it with the hash the
-    # assessment recorded — an approval granted under one spec must never
-    # execute under another.
-    toolspec_identity = _resolve_toolspec(
-        req.tool_call.tool_name, req.tool_call.arguments,
-        req.tool_call.target_environment,
-    )
-    toolspec_identity.pop("argument_roles", None)
-    _assessed_toolspec_hash, _assessed_proposal_id = _assessed_record(
-        tenant, req.item_id)
-    _note_proposal_id(_assessed_proposal_id)
-    # Refuse BEFORE authorizing, not after. The check has everything it
-    # needs here, and running it later left a dispatch intent behind for a
-    # call that was never allowed to happen — harmless only because an
-    # unclaimed intent provably never ran, which is a thin thing to rely
-    # on. Found by the end-to-end vertical (handoff gate §3).
-    if (toolspec_identity["enforced"] and _assessed_toolspec_hash
-            and toolspec_identity["hash"] != _assessed_toolspec_hash):
-        _CHAIN.append(tenant, {
-            "event": "execution_toolspec_changed",
-            "proposal_id": _assessed_proposal_id,
-            "actor": principal,
-            "item_id": req.item_id,
-            "assessed_toolspec_hash": _assessed_toolspec_hash,
-            "current_toolspec_hash": toolspec_identity["hash"],
-        })
-        raise HTTPException(
-            status_code=409,
-            detail=(
-                "toolspec_changed_between_assess_and_dispatch: the spec "
-                "in force is not the one this approval was granted under"
-            ),
-        )
-
-    fresh_obs, fresh_semantic = _observation_with_context(req.tool_call, tenant)
+    # Orchestration lives in remora.execution.service (issue #241, slice 8);
+    # this route binds the module's ambient state and maps domain errors.
     try:
-        # Tenant-binding check inside the transaction: _ITEM_TENANT is
-        # rehydrated from the durable store by the load (review finding 2a).
-        with db_transaction_state(tenant) as q:
-            if _ITEM_TENANT.get(req.item_id) != tenant:
-                raise HTTPException(status_code=404, detail="review item not found")
-            # REM-032 lazy sweep (see assess): overdue PENDING items resolve
-            # to ABSTAIN before any execution is considered.
-            q.expire_due()
-            # FT-01: the canonical proposal identity rides the QUEUED
-            # observation (minted at assess) — the fresh re-presented
-            # payload never carries one the caller could assert.
-            proposal_id = getattr(q.item(req.item_id).observation,
-                                  "proposal_id", None)
-            _note_proposal_id(proposal_id)
-            outcome = q.execute(req.item_id, fresh_obs)
-            # FT-02: the dispatch intent is recorded in THIS transaction —
-            # the one that authorizes the call. If anything below crashes,
-            # a durable row says a dispatch was authorized, and a
-            # reconciler can settle it as UNKNOWN instead of the effect
-            # going unrecorded. A refusal never gets here, so a refused
-            # re-gate records no intent (nothing was ever intended).
-            intent = None
-            if outcome.decision is ExecutionDecision.EXECUTE:
-                intent = _record_dispatch_intent(
-                    proposal_id=str(proposal_id or req.item_id),
-                    tenant=tenant,
-                    item_id=req.item_id,
-                    tool_name=req.tool_call.tool_name,
-                    tool_call_hash=fresh_obs.tool_call_hash or "",
-                    grant_jti="",
-                )
-    except (KeyError, ValueError) as exc:
+        response = _execute_approved_item(
+            tenant=tenant, principal=principal, item_id=req.item_id,
+            tool_call=req.tool_call,
+            transaction=db_transaction_state, item_tenant=_ITEM_TENANT,
+            chain=_CHAIN, gate=_GATE, outbox=_outbox,
+            worker_id=f"api:{_os.getpid()}",
+            build_observation=_observation_with_context,
+            resolve_toolspec=_resolve_toolspec,
+            assessed_record=_assessed_record,
+            record_dispatch_intent=_record_dispatch_intent,
+            dispatch_under_lease=_dispatch_under_lease,
+            lifecycle_guard=_lifecycle_guard,
+            note_proposal_id=_note_proposal_id,
+            not_found=ReviewNotFound, conflict=ReviewConflict,
+            token_audience=PEP_AUDIENCE,
+            token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
+        )
+    except ToolSpecChanged as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-
-    response: dict[str, Any] = {
-        "proposal_id": proposal_id,
-        "outcome": outcome.decision.value,
-        "detail": outcome.detail,
-        "toolspec": dict(toolspec_identity),
-    }
-    if outcome.decision is not ExecutionDecision.EXECUTE:
-        # FT-01 conformance: every re-gate refusal is a declared move from
-        # AUTHORIZED (approval and post-re-gate authorization collapse there
-        # in the model). Dispatch-stage conformance arrives with FT-02.
-        _lifecycle_guard("AUTHORIZED", "regate_binding_or_freshness_refusal")
-        entry = _CHAIN.append(tenant, {
-            "event": f"execution_{outcome.decision.value}",
-            "proposal_id": proposal_id,
-            "actor": principal,
-            "item_id": req.item_id,
-            "tool_call_hash": fresh_obs.tool_call_hash,
-            "detail": outcome.detail,
-        })
-        response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
+    except ReviewNotFound as exc:
+        raise HTTPException(status_code=404, detail="review item not found") from exc
+    except ReviewConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    tool_execution = response.get("tool_execution")
+    if tool_execution is None:
         api_mod.record_execution_execute(
-            executed=False, refusal=outcome.decision.value
+            executed=False, refusal=response["outcome"]
         )
-        return response
-
-    # The re-gate only AUTHORIZED the call (persisted above); EXECUTED is
-    # recorded separately after the dispatcher reports what actually
-    # happened (external review 2026-07-27: authorized-for-execution and
-    # actually-executed are distinct states).
-    now = datetime.now(UTC)
-    token = PolicyDecisionToken.issue(
-        action="accept",
-        observation_hash=fresh_obs.tool_call_hash or "",
-        # FT-01: the grant carries the canonical proposal identity; the
-        # legacy composite only for pre-lifecycle items with no proposal.
-        request_id=proposal_id or f"{tenant}:{req.item_id}",
-        issued_at=now.isoformat(),
-        expires_at=(now + timedelta(seconds=EXECUTION_TOKEN_TTL_SECONDS)).isoformat(),
-        audience=PEP_AUDIENCE,
-    )
-    # PEP consumption happens HERE: the grant is consumed atomically the
-    # moment it is honoured — a re-presented token can never execute twice.
-    gate_result = _GATE.check(token, fresh_obs.tool_call_hash, consume=True)
-    response["execution_grant"] = token.to_dict()
-    response["pep"] = {"allowed": gate_result.allowed, "reason": gate_result.reason}
-
-    # Durable INTENT record BEFORE the external side effect: if the process
-    # dies mid-dispatch, the chain shows an authorization with no matching
-    # execution_result — never a real side effect without any record.
-    intent_entry = _CHAIN.append(tenant, {
-        "event": "execution_authorized",
-        "proposal_id": proposal_id,
-        "actor": principal,
-        "item_id": req.item_id,
-        "tool_call_hash": fresh_obs.tool_call_hash,
-        "grant_jti": token.jti,
-        "pep_allowed": gate_result.allowed,
-        "tool_contract_bundle_hash": fresh_semantic["tool_contract_bundle_hash"],
-        "intent_authority_hash": fresh_semantic["intent_authority_hash"],
-    })
-
-    # Issue #13: actually dispatch the tool through the governed dispatcher —
-    # the response reports what REALLY happened instead of implying
-    # execution. Every refusal path is explicit and audited.
-    # FT-02: claim the intent before anything can take effect. The claim is
-    # exclusive, so a concurrent worker (or a retried request that got past
-    # the grant) can never dispatch the same authorized call twice.
-    if intent is not None:
-        _outbox().claim(intent.outbox_id, worker_id=f"api:{_os.getpid()}")
-
-    tool_execution = _dispatch_under_lease(
-        tenant=tenant,
-        principal=principal,
-        tool_call=req.tool_call,
-        semantic=fresh_semantic,
-        now=now,
-        gate_allowed=gate_result.allowed,
-        toolspec=toolspec_identity,
-    )
-
-    # FT-02: settle the dispatch intent with what actually happened. The
-    # terminal state is derived from the observed outcome, never assumed:
-    # a confirmed side effect is SUCCEEDED, a burned nonce with no effect
-    # is FAILED, and a pre-effect refusal is REFUSED.
-    if intent is not None:
-        reason = tool_execution.get("refusal_reason")
-        if tool_execution["executed"]:
-            settled_state = OutboxState.SUCCEEDED
-        elif reason == "tool_failed_nonce_burned":
-            settled_state = OutboxState.FAILED
-        else:
-            settled_state = OutboxState.REFUSED
-        _outbox().settle(intent.outbox_id, settled_state, detail=reason)
-
-    # Persist the REAL outcome as the item's terminal state (EXECUTED only
-    # after a confirmed side effect; refusals/failures get their own states).
-    with db_transaction_state(tenant) as q:
-        q.record_execution_outcome(
-            req.item_id,
-            executed=tool_execution["executed"],
-            failed=tool_execution.get("refusal_reason") == "tool_failed_nonce_burned",
-            reason=tool_execution.get("refusal_reason"),
+    else:
+        api_mod.record_execution_execute(
+            executed=bool(tool_execution["executed"]),
+            refusal=tool_execution.get("refusal_reason"),
         )
-
-    result_record: dict[str, Any] = {
-        "event": "execution_result",
-        "proposal_id": proposal_id,
-        "actor": principal,
-        "item_id": req.item_id,
-        "tool_call_hash": fresh_obs.tool_call_hash,
-        "grant_jti": token.jti,
-        "intent_sequence_no": intent_entry.sequence_no,
-        "tool_executed": tool_execution["executed"],
-    }
-    # The chain records the result's identity, never the result body: a
-    # verbose tool must not be able to grow the audit chain without bound.
-    envelope_meta = tool_execution.get("result_envelope")
-    if envelope_meta:
-        result_record["result_sha256"] = envelope_meta["sha256"]
-        result_record["result_size_bytes"] = envelope_meta["size_bytes"]
-        result_record["result_truncated"] = envelope_meta["truncated"]
-    if tool_execution.get("refusal_reason"):
-        result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
-    entry = _CHAIN.append(tenant, result_record)
-
-    response["tool_execution"] = tool_execution
-    response["audit"] = {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
-    api_mod.record_execution_execute(
-        executed=bool(tool_execution["executed"]),
-        refusal=tool_execution.get("refusal_reason"),
-    )
     return response
 
 
