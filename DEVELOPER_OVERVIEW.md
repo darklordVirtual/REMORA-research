@@ -165,7 +165,8 @@ REMORA is still research/shadow-mode software, not a certified production safety
 - external replication remains separate from internal reproducibility;
 - the dispatcher must front the real downstream authority for enforcement to be meaningful;
 - deployment-specific identity, credential and operational controls remain the deployer's responsibility;
-- optional and experimental modules must not be presented as proven kernel capability unless the capability register says they are wired.
+- optional and experimental modules must not be presented as proven kernel capability unless the capability register says they are wired;
+- `servers/execution_api.py` is still a large orchestration module. Its staged split into wire contracts, service orchestration, persistence, dispatch and lifecycle projection is tracked in **#241**; do not interpret module size as an intentional long-term architecture.
 
 ## 8. Repository reading order
 
