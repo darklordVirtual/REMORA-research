@@ -143,7 +143,7 @@ interface ToolResult {
 
 // ── Tool catalog ───────────────────────────────────────────────────────────────
 
-const TOOL_CATALOG = [
+export const TOOL_CATALOG = [
   {
     name: "remora_verify_claim",
     description:
@@ -217,7 +217,24 @@ type ToolName = (typeof TOOL_CATALOG)[number]["name"];
  * are "low". Anything not listed is "unspecified" — the governance record
  * must never invent a tier it does not know.
  */
-const TOOL_RISK_TIER: Record<string, string> = {
+/**
+ * Structural write floor (ADR-single-authoritative-execution-path):
+ * write-effect tools are unconditionally approval-gated in code. Deployment
+ * config (APPROVAL_REQUIRED_TOOLS) can only ADD gated tools, never remove
+ * one — an emptied or misconfigured variable can no longer turn a write
+ * tool into an ungoverned call.
+ */
+export const WRITE_IMPACT_TOOLS: ReadonlySet<string> = new Set(["store_artifact"]);
+
+export function requiresApproval(tool: string, configuredList: string): boolean {
+  const fromConfig = configuredList
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  return WRITE_IMPACT_TOOLS.has(tool) || fromConfig.includes(tool);
+}
+
+export const TOOL_RISK_TIER: Record<string, string> = {
   remora_verify_claim: "low",
   dce_search_law:      "low",
   store_artifact:      "high",
@@ -554,11 +571,8 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
     "control_secret_bearer" +
     (body.user_id ? ` (on_behalf_of=${body.user_id}, unverified)` : "");
 
-  const approvalTools = (env.APPROVAL_REQUIRED_TOOLS ?? "")
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean);
-  const approval_required = approvalTools.includes(body.tool) ? 1 : 0;
+  // Structural floor + config additions; config can never un-gate a write tool.
+  const approval_required = requiresApproval(body.tool, env.APPROVAL_REQUIRED_TOOLS ?? "") ? 1 : 0;
 
   // Hash the input WITHOUT the audit_id field (issue #55): the approval flow
   // resubmits the same input plus audit_id, so hashing the raw input made the

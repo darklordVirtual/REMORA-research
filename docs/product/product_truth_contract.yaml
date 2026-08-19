@@ -133,8 +133,10 @@ capabilities:
     note: >
       Independent authorization/execution inside agent-control is being retired
       in favour of edge ingress in front of the canonical REMORA execution
-      service (see remediation Phase 2). Classified legacy until that ADR
-      lands.
+      service — see docs/architecture/ADR-single-authoritative-execution-path.md.
+      Stays legacy until write dispatch goes through the canonical service
+      (ADR migration step 3); the structural write floor (WRITE_IMPACT_TOOLS)
+      is in force meanwhile.
 
 # Files scanned by scripts/check_product_truth.py for lines that place a
 # non-core capability on the mandatory execution path.
