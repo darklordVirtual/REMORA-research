@@ -62,7 +62,7 @@ datasets = ["datasets>=2.0"]
 # Executed on CI-Linux via .github/workflows/nli-parity.yml (RF-06); local
 # Windows execution can be blocked by application control on torch's shm.dll
 # (WinError 4551) — see NEGATIVE_RESULTS.md section 3.
-nli = ["sentence-transformers>=5.6.1", "torch>=2.13.0"]
+nli = ["sentence-transformers>=5.7.0", "torch>=2.13.0"]
 agentharm = ["inspect-ai>=0.3", "inspect-evals", "openai>=2.52.0", "pyyaml>=6.0"]
 causal = ["pyyaml>=6.0"]
 # Documentation
