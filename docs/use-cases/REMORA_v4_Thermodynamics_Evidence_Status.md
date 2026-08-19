@@ -1,5 +1,11 @@
 # REMORA v4 Thermodynamics: Evidence Status
 
+> ⚠️ **Framing withdrawn (2026-08-07, PR #227).** The thermodynamic
+> interpretation was withdrawn from the paper after the temperature signal
+> failed pre-registered confirmation (`NEGATIVE_RESULTS.md` §18, §38). This
+> document is retained as the historical evidence-status record of that
+> research program.
+
 > ⚠️ **Scope: illustrative scenario, not a deployment result.** REMORA is a
 > research-grade governance overlay in **SHADOW_ONLY** mode, it is not
 > production-certified and has not been deployed in the sector below. The

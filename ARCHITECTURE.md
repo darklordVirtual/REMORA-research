@@ -38,7 +38,7 @@ permission**, not truth.
 ## 2. The canonical research claim (stated honestly)
 
 **The safety floor is carried by the deterministic hard-block policy layer, not by
-the probabilistic consensus / disagreement-diagnostics / Lyapunov machinery.**
+the probabilistic consensus / disagreement-diagnostics / session-stability machinery.**
 
 On the 700-task adversarial tool-call benchmark (a deterministic simulator;
 70 unique templates × 10 cosmetic variants, effective N = 70), the
@@ -49,7 +49,7 @@ policy rules close unsafe execution to 0% (cluster-level Wilson CI
 significant at the template-cluster level (p = 0.50); the gate's significant
 advantage on this benchmark is decision utility and routing accuracy.
 
-The consensus, entropy/dissensus, phase-classification, and Lyapunov components do
+The consensus, entropy/dissensus, phase-classification, and session-stability (`remora/lyapunov.py`, legacy naming) components do
 **not** contribute to the unsafe-execution safety floor. What they contribute is
 **routing quality**: calibrated separation of the plausible-but-unverified cases
 into VERIFY versus ABSTAIN. Do not cite REMORA's safety result as evidence for

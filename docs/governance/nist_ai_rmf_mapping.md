@@ -114,10 +114,11 @@ response, and continuous improvement.
    human approval is written to the audit ledger (`enterprise/audit-ledger-schema.sql`),
    creating a tamper-evident (hash-chained) accountability record; true immutability requires external append-only/WORM storage, a deployment requirement not provided by this implementation (see README 'Tamper-evident, not tamper-proof').
 
-4. **Thermodynamic drift detection**, The Lyapunov function `V(t)` in
-   `remora/lyapunov.py` detects when an agent is drifting out of safe
-   operating bounds and triggers escalation before irreversible actions
-   are taken.
+4. **Session-stability drift detection**, The stability observable `V(t)` in
+   `remora/lyapunov.py` (legacy module name; the thermodynamic framing is
+   withdrawn, see `NEGATIVE_RESULTS.md` §38) detects when an agent is
+   drifting out of safe operating bounds and triggers escalation before
+   irreversible actions are taken.
 
 ---
 
