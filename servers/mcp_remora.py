@@ -52,6 +52,9 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from remora.legal.citation_existence import resolve_citation_existence  # noqa: E402
+
 logging.basicConfig(level=logging.ERROR, stream=sys.stderr)
 
 # ── Privacy profiles (Phase 9) ────────────────────────────────────────────────
@@ -1246,58 +1249,62 @@ def handle_remora_verify_legal_citations(args: dict) -> str:
         cit = c["citation"]
         lines.append(f"### `{cit}`")
 
-        # Step 1: Check DCE D1 database
+        # Step 1: AUTHORITATIVE existence — the DCE registry is the only
+        # source that can confirm or deny that a citation exists (Phase 10:
+        # model consensus can never establish existence).
         db_result = _post(LAW_SEARCH_WORKER + "/verify-citation", {"citation": cit}, timeout=15)
-        db_verdict  = db_result.get("verdict", "ERROR")
-        _found_d1   = db_result.get("found_in_d1", False)
-        _db_note    = db_result.get("note", "")
-        d1_snippets = db_result.get("d1_matches", [])
+        existence = resolve_citation_existence(cit, lambda _c: db_result)
+        d1_snippets = db_result.get("d1_matches", []) if isinstance(db_result, dict) else []
 
-        if db_verdict == "FOUND_IN_DATABASE":
-            db_status = "FUNNET i DCE databasen"
+        if existence.status == "confirmed_authoritative":
+            db_status = f"EKSISTENS BEKREFTET (autoritativ kilde: {existence.source})"
             db_icon   = "[OK]"
-        elif db_verdict == "NOT_FOUND":
-            db_status = "IKKE FUNNET i DCE databasen"
+        elif existence.status == "not_found_authoritative":
+            db_status = "IKKE FUNNET i autoritativ kilde (DCE)"
             db_icon   = "[!]"
             all_ok = False
         else:
-            db_status = "Mulig treff (vektor)"
+            db_status = "Ingen autoritativ bekreftelse tilgjengelig"
             db_icon   = "[?]"
 
-        lines.append(f"**{db_icon} Database:** {db_status}")
+        lines.append(f"**{db_icon} Autoritativ eksistens:** {db_status}")
         if d1_snippets:
             snippet = str(d1_snippets[0].get("snippet", ""))[:200]
             lines.append(f"> {snippet}")
 
-        # Step 2: Adversarial oracle — ask for specific case details
+        # Step 2: Model advisory — adversarial oracle probe. RÅDGIVENDE only:
+        # it can flag suspicion but never confirm nor deny existence.
         oracle_result = verify_citation_existence(cit)
         oracle_status = oracle_result.get("status", "ERROR")
         oracle_claim  = oracle_result.get("oracle_claim", "")[:300]
         oracle_conf   = oracle_result.get("confidence", 0.0)
 
-        if oracle_status in ("CANNOT_VERIFY", "LIKELY_HALLUCINATED"):
-            oracle_icon = "[!]"
-            all_ok = False
-        elif oracle_status == "SUSPICIOUS":
+        if oracle_status in ("CANNOT_VERIFY", "LIKELY_HALLUCINATED", "SUSPICIOUS"):
             oracle_icon = "[?]"
-            all_ok = False
         else:
             oracle_icon = "[~]"
 
-        lines.append(f"**{oracle_icon} Oracle-konsensus:** {oracle_status} (conf={oracle_conf:.0%})")
+        lines.append(
+            f"**{oracle_icon} Modell-advisory (ikke autoritativ):** "
+            f"{oracle_status} (conf={oracle_conf:.0%})"
+        )
         if oracle_claim:
             lines.append(f"> {oracle_claim[:200]}")
 
-        # Combined verdict
-        if db_verdict == "FOUND_IN_DATABASE" and oracle_status not in ("CANNOT_VERIFY", "LIKELY_HALLUCINATED"):
-            verdict = "DELVIS VERIFISERT"
-            icon = "[~]"
-        elif db_verdict == "NOT_FOUND" or oracle_status in ("CANNOT_VERIFY", "LIKELY_HALLUCINATED"):
-            verdict = "SANNSYNLIG HALLUSINERT eller FEIL"
+        # Verdict: existence comes ONLY from the authoritative lookup. The
+        # advisory can downgrade attention, never upgrade existence.
+        if existence.verified:
+            verdict = "EKSISTENS VERIFISERT (autoritativ)"
+            icon = "[OK]"
+            if oracle_status in ("LIKELY_HALLUCINATED", "SUSPICIOUS"):
+                verdict += " — advisory flagger innholdet, kontroller prinsippet"
+                icon = "[~]"
+        elif existence.status == "not_found_authoritative":
+            verdict = "IKKE FUNNET I AUTORITATIV KILDE — sannsynlig hallusinert"
             icon = "[!!]"
             all_ok = False
         else:
-            verdict = "KAN IKKE VERIFISERES"
+            verdict = "KAN IKKE VERIFISERES (ingen autoritativ kilde nådd)"
             icon = "[?]"
             all_ok = False
 
