@@ -61,9 +61,9 @@ function LandingPage() {
           {/* Hero */}
           <div className="text-center mb-10 animate-fade-in">
             <h1 className="font-serif text-4xl md:text-6xl tracking-tight leading-[1.08] mb-5">
-              Stop unsafe AI actions
+              Govern every AI action
               <br />
-              <span className="text-muted-foreground/50">before they execute</span>
+              <span className="text-muted-foreground/50">before execution</span>
             </h1>
             <p className="text-[14px] md:text-[15px] text-foreground/75 leading-relaxed max-w-2xl mx-auto">
               REMORA sits between AI agents and privileged tools. It applies deterministic policy,
