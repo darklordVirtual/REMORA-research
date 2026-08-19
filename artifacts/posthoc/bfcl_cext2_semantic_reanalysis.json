@@ -1,0 +1,26 @@
+{
+  "arm_F_residual_accepts": [],
+  "n_dev_contracts": 61,
+  "n_intents_extracted": 178,
+  "n_substituted": 258,
+  "per_arm_routes": {
+    "A_structural": {
+      "abstain": 31,
+      "accept": 28,
+      "verify": 199
+    },
+    "C_contracts_intent": {
+      "abstain": 144,
+      "accept": 9,
+      "escalate": 39,
+      "verify": 66
+    },
+    "F_unknown_floor": {
+      "abstain": 137,
+      "escalate": 39,
+      "verify": 82
+    }
+  },
+  "status": "post_hoc_development_only",
+  "warning": "NOT CONFIRMATORY. Spent C-ext2 data, dev heuristics that saw everything. Never cite as a result (docs/05-claim-hygiene.md; SAP v5 section 8)."
+}

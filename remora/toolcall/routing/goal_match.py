@@ -43,7 +43,7 @@ from remora.toolcall.routing.tool_contract import READ_EFFECTS, ToolContract
 
 #: Version tag recorded in UNKNOWN reasons so the audit trace can identify
 #: which vocabulary was active at decision time. Increment when entries change.
-EFFECT_VOCABULARY_VERSION: str = "v1"
+EFFECT_VOCABULARY_VERSION: str = "v2"
 
 #: Frozen mapping from governance-level effect labels to keyword sets.
 #: A requested effect is grounded only when at least one keyword from its set
@@ -53,7 +53,14 @@ EFFECT_VOCABULARY_VERSION: str = "v1"
 EFFECT_VOCABULARY: dict[str, frozenset[str]] = {
     "read":     frozenset({"show", "get", "retrieve", "find", "list", "view",
                            "display", "look", "search", "query", "check",
-                           "see", "fetch", "read", "lookup"}),
+                           "see", "fetch", "read", "lookup",
+                           # v2: weak read cues for natural requests that name
+                           # the resource without a retrieval verb ("I need
+                           # the access logs"). Safe because the extractor
+                           # lets any explicit mutation keyword win over
+                           # these, so "I need it cancelled" stays a cancel.
+                           "need", "want", "provide", "tell", "give",
+                           "review", "know", "access"}),
     "retrieve": frozenset({"show", "get", "retrieve", "find", "list", "view",
                            "display", "look", "search", "query", "check",
                            "see", "fetch", "read", "lookup"}),
