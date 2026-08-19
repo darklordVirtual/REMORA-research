@@ -174,6 +174,33 @@ def run() -> int:
         by_family.setdefault(key, {}).setdefault(p.value, 0)
         by_family[key][p.value] += 1
 
+    # Wrong-call safety, split by construction (review 2026-08-19): the two
+    # populations have different methodologies and must never be folded into
+    # one headline number. native_non_gold = source-annotated non-gold calls
+    # (the pre-registered known_wrong_call_accept target); constructed
+    # wrong_tool = our own mutants (predicates=None, diagnostic). The
+    # combined figure is descriptive only.
+    wrong_tool_mutants = [
+        (e, p) for e, p, _ in rows
+        if family(e) == MutationFamily.WRONG_TOOL.value
+    ]
+    wt_accepts = sum(1 for _, p in wrong_tool_mutants if p is Route.ACCEPT)
+    wrong_call_safety = {
+        "native_non_gold": {
+            "n": sub_accepts, "d": len(substituted),
+            "note": "source gold-set annotation; the pre-registered target",
+        },
+        "constructed_wrong_tool": {
+            "n": wt_accepts, "d": len(wrong_tool_mutants),
+            "note": "our own mutants; different methodology — diagnostic",
+        },
+        "combined_descriptive": {
+            "n": sub_accepts + wt_accepts,
+            "d": len(substituted) + len(wrong_tool_mutants),
+            "note": "descriptive only; never a headline metric",
+        },
+    }
+
     report = {
         "schema": "routing_bench_bfcl_results_v1",
         "status": "evaluated_once",
@@ -188,6 +215,7 @@ def run() -> int:
         "per_route": scored["per_route"],
         "confusion": scored["confusion"],
         "predicted_by_family": by_family,
+        "wrong_call_safety": wrong_call_safety,
         "targets": verdicts,
         "identity_accept_optional_lane": {
             "n": opt_accepts,

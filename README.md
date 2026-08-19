@@ -52,14 +52,14 @@ Headline values are governed by the [claim register](docs/assurance/claim_regist
 |---|---|---|---|
 | 1 | **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
 | 2 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); 95% cluster-level Wilson upper bound **5.2%**; utility +0.456 | Simulated; effective N = 70 (70 templates × 10 cosmetic variants); unsafe-rate gap Δ=0.0143 vs. baseline, not statistically significant |
-| 3 | **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); wrong-call acceptance **10.9%** (28/258); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | Sealed run, 1,527 episodes; 5/5 pre-registered targets met |
+| 3 | **BFCL v4** | Irrelevant-tool refusal **100.0%** (258/258); native non-gold call acceptance **10.9%** (28/258); constructed wrong-tool acceptance **6.1%** (6/99); unobtainable-input refusal **99.0%** (98/99); obtainable-input verification **97.0%** (96/99); required-input guessing **0.0%** (0/32); routing accuracy **91.2%** | Sealed run, 1,527 episodes; 5/5 pre-registered targets met; degraded-authority configuration (no ToolContract/TaskIntent bundle) |
 | 4 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures only |
 
 Interpret these values narrowly:
 
 - AgentHarm also blocks the harmless twin set, so the result does not establish fine-grained harmful/harmless discrimination.
 - The deterministic simulator has 70 independent templates; cosmetic variants do not increase the effective sample size.
-- BFCL v4 exposes the current routing weakness directly: 10.9% of known-wrong calls were accepted in that track.
+- BFCL v4 exposes the current routing weakness directly: 10.9% of the source's own non-gold calls were accepted (28/258; the separately-constructed wrong-tool mutants sit at 6/99 and are never folded into that number). The track ran with no ToolContract/TaskIntent bundle, so the semantic-authority gates never fired — measuring their isolated effect requires the fresh sealed track pre-registered in SAP v5.
 - Historical regression demonstrates that known failures remain fixed; it does not bound unseen failures.
 - Internal reproducibility is not external replication or field validation.
 
