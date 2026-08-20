@@ -96,6 +96,8 @@ class DecisionReason(str, Enum):
     HIGH_RISK_ALTERNATIVE      = "high_risk_alternative"      # high-risk type in classification_alternatives
     LOW_CLASSIFICATION_CONF    = "low_classification_conf"    # classification_confidence < 0.60
     MISSPECIFICATION_VERIFY    = "misspecification_verify"    # model_misspecification_risk > 0.60
+    # Runtime invariant enforcement (2026-08-20)
+    INVARIANT_VIOLATION_ESCALATE = "invariant_violation_escalate"
     # Coercion hard blocks (v0.9)
     COERCION_BLOCKED             = "coercion_blocked"              # coercion_detected
     BLACKMAIL_BLOCKED            = "blackmail_blocked"             # blackmail_pattern_detected

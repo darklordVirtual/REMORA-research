@@ -14,13 +14,14 @@ Design goals
 from __future__ import annotations
 
 import dataclasses
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from remora.credal import (
     MINIMAX_ESCALATE_THRESHOLD,
     CredalEnvelope,
     compute_from_obs,
 )
+from remora.policy.invariants import InvariantResult, check_all_invariants
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
 from remora.policy.resolution import ResolutionPlan
@@ -692,7 +693,15 @@ class RemoraDecisionEngine:
         grounded_read_accept: bool = False,
         execution_profile: bool = False,
         semantic_authority_floor: bool = False,
+        verify_invariants: bool = True,
     ) -> None:
+        # ON by default and deliberately not an "opt-in ACCEPT path" flag:
+        # it can only ever make a decision stricter. Every decision is checked
+        # against CORE_INVARIANTS at the single build choke point, and a
+        # violation is converted to ESCALATE. Turn it off only to measure the
+        # cost of the check itself; a deployment that disables it is running
+        # unverified decisions.
+        self.verify_invariants = verify_invariants
         # Opt-in: lets bounded, reversible action semantics reach ACCEPT without
         # an oracle consensus signal. Off by default — see the path itself for
         # what it does and does not assert.
@@ -1421,6 +1430,18 @@ class RemoraDecisionEngine:
           "no prior rule matched",
           "ABSTAIN")
 
+        # Runtime invariant enforcement overrides the ladder, so it belongs at
+        # the FRONT of the trace: a reader must not see conformal_accept fire
+        # and conclude the action was ACCEPT when the decision was withdrawn.
+        if DecisionReason.INVARIANT_VIOLATION_ESCALATE in report.reasons:
+            steps.insert(0, PolicyRuleEvaluation(
+                rule="invariant_enforcement",
+                triggered=True,
+                condition="a CORE_INVARIANTS check failed for this decision; "
+                          "the ladder's outcome was withdrawn",
+                outcome="ESCALATE",
+            ))
+
         # Decision path: first triggered rule that matches the final action
         final_action = report.action.value.upper()
         fired = [s for s in steps if s.triggered and s.outcome == final_action]
@@ -1460,6 +1481,7 @@ class RemoraDecisionEngine:
         credal: CredalEnvelope | None = None,
         raw_obs: PolicyObservation | None = None,
         resolution_plan: ResolutionPlan | None = None,
+        _invariant_recheck: bool = False,
     ) -> DecisionReport:
         if obs.assurance_root is not None and DecisionReason.TRACE_ATTACHED not in reasons:
             reasons = list(reasons) + [DecisionReason.TRACE_ATTACHED]
@@ -1529,7 +1551,7 @@ class RemoraDecisionEngine:
             DecisionAction.ESCALATE: "Hard failure detected — routing to human review.",
         }
 
-        return DecisionReport(
+        report = DecisionReport(
             action=action,
             reasons=tuple(reasons),
             risk_estimate=risk_estimate,
@@ -1571,6 +1593,58 @@ class RemoraDecisionEngine:
             ),
             credal=credal,
             resolution_plan=resolution_plan,
+        )
+
+        # ── RUNTIME INVARIANT ENFORCEMENT ───────────────────────────────────
+        # _build is the single choke point every decision passes through, so
+        # this is the one place that can hold the whole engine to the
+        # invariants. They were previously evaluated only in tests, which made
+        # them a description of intended behaviour rather than a guarantee:
+        # the same safety properties were implemented a second time inside
+        # decide(), and nothing would have noticed the two drifting apart.
+        #
+        # A violation fails CLOSED to ESCALATE rather than raising, so the
+        # decision stays inside the audit record instead of surfacing as an
+        # unhandled error with no trail. The recheck guard prevents recursion:
+        # the escalation itself is built with enforcement off.
+        if self.verify_invariants and not _invariant_recheck:
+            violations = [
+                r for r in check_all_invariants(obs, report) if r.violated
+            ]
+            if violations:
+                return self._escalate_invariant_violation(
+                    violations, obs, credal=credal, raw_obs=raw_obs
+                )
+        return report
+
+    def _escalate_invariant_violation(
+        self,
+        violations: list["InvariantResult"],
+        obs: PolicyObservation,
+        *,
+        credal: CredalEnvelope | None,
+        raw_obs: PolicyObservation | None,
+    ) -> DecisionReport:
+        """Replace a decision that broke an invariant with a human escalation.
+
+        The violated invariant names are carried in the report's explanation so
+        the audit record says which guarantee failed, not merely that one did.
+        """
+        names = ", ".join(sorted(v.invariant_name for v in violations))
+        report = self._build(
+            DecisionAction.ESCALATE,
+            [DecisionReason.INVARIANT_VIOLATION_ESCALATE],
+            obs,
+            credal=credal,
+            raw_obs=raw_obs,
+            _invariant_recheck=True,
+        )
+        return replace(
+            report,
+            explanation=(
+                "Decision withdrawn: policy invariant violated "
+                f"({names}). Routed to human review."
+            ),
         )
 
     def _source_of_decision(self, reasons: list[DecisionReason]) -> str:
