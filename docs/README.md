@@ -94,6 +94,7 @@ The original [execution lifecycle/outbox design](design/execution-lifecycle-outb
 | [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml) | Deployment maturity profiles |
 | [product_truth_contract.yaml](product/product_truth_contract.yaml) | Capability classes (core/optional/experimental/legacy/demo) vs public copy |
 | [ADR: single execution path](architecture/ADR-single-authoritative-execution-path.md) | One authoritative execution path; agent-control is ingress, not an engine |
+| [ADR: tainted arguments](architecture/ADR-tainted-argument-approval.md) | Approval suffices; sanitisation not required, with the residual stated (issue #40) |
 | [Multi-tenant security model](architecture/multi_tenant_security_model.md) | Tenant boundaries, threat table with test evidence, open gaps |
 | [Cloudflare state architecture](architecture/cloudflare_state_architecture.md) | Design: DO/D1/R2/KV/Workflows placement rules, tenant keying, secrets custody |
 | [release_gates.md](assurance/release_gates.md) | Profile gate status |
