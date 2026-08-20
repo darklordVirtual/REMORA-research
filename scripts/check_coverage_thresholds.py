@@ -32,12 +32,37 @@ THRESHOLDS: dict[str, float] = {
     "remora/policy": 92.0,
     "remora/execution": 90.0,
     "remora/governance": 88.0,
-    # Lower than its neighbours on purpose, and tracked: gate.py and
-    # outbox.py are the least-covered files in the trusted computing base.
-    # This floor is a ratchet to raise, not a standard to settle at.
-    "remora/enforcement": 80.0,
+    # Still the lowest floor in the trusted computing base, and the reason is
+    # now stated rather than left to be guessed at: see FILE_THRESHOLDS and
+    # the "what this run does not measure" note below.
+    "remora/enforcement": 83.0,
     "servers/api.py": 84.0,
     "servers/execution_api.py": 90.0,
+}
+
+#: What this run does not measure, stated so the package number is not
+#: misread. ``remora/enforcement`` sits below its neighbours almost entirely
+#: because two files carry a Postgres adapter that this job never executes:
+#: ``PostgresExecutionOutbox`` (outbox.py) and the psycopg branch of the
+#: one-time jti consumption (gate.py). Those paths are exercised against a
+#: real Postgres service in the dedicated contract job
+#: (.github/workflows — "Postgres tenant-chain contract (real service)"),
+#: which runs without coverage instrumentation. So the package percentage is
+#: "covered by the deterministic suite", not "the fraction of the enforcement
+#: path that is tested at all", and the gap between them is not dead code.
+#:
+#: Per-file floors make that visible: a regression in the in-process code of
+#: gate.py or outbox.py fails here even though the package average would
+#: absorb it, and nobody has to infer which files the package number is being
+#: dragged down by.
+FILE_THRESHOLDS: dict[str, float] = {
+    # Postgres adapter branches excluded from this run (see above).
+    "remora/enforcement/gate.py": 75.0,
+    "remora/enforcement/outbox.py": 73.0,
+    # Fully exercised in-process; these are ordinary floors.
+    "remora/enforcement/lease.py": 93.0,
+    "remora/enforcement/token.py": 94.0,
+    "remora/enforcement/result_envelope.py": 86.0,
 }
 
 #: Global floor over everything measured, including branches.
@@ -61,6 +86,21 @@ def package_coverage(report: dict) -> dict[str, tuple[int, int]]:
             covered += summary["covered_lines"] + summary.get("covered_branches", 0)
             total += summary["num_statements"] + summary.get("num_branches", 0)
         totals[prefix] = (covered, total)
+    return totals
+
+
+def file_coverage(report: dict) -> dict[str, tuple[int, int]]:
+    """covered, total per configured file path."""
+    totals: dict[str, tuple[int, int]] = {}
+    for raw_path, entry in report["files"].items():
+        path = _norm(raw_path)
+        if path not in FILE_THRESHOLDS:
+            continue
+        summary = entry["summary"]
+        totals[path] = (
+            summary["covered_lines"] + summary.get("covered_branches", 0),
+            summary["num_statements"] + summary.get("num_branches", 0),
+        )
     return totals
 
 
@@ -91,6 +131,24 @@ def main(argv: list[str]) -> int:
         print(f"[{status}] {prefix:<28} {pct:6.2f}% (floor {floor}%)")
         if pct < floor:
             failures.append(f"{prefix} {pct:.2f}% < {floor}%")
+
+    measured_files = file_coverage(report)
+    for path in sorted(FILE_THRESHOLDS):
+        floor = FILE_THRESHOLDS[path]
+        if path not in measured_files or measured_files[path][1] == 0:
+            failures.append(f"{path}: nothing measured — is it in the source list?")
+            print(f"[FAIL] {path:<28} not measured")
+            continue
+        covered, total = measured_files[path]
+        pct = 100.0 * covered / total
+        status = "OK " if pct >= floor else "FAIL"
+        print(f"[{status}] {path:<28} {pct:6.2f}% (floor {floor}%)")
+        if pct < floor:
+            failures.append(f"{path} {pct:.2f}% < {floor}%")
+
+    print("\nNote: the Postgres adapters in gate.py and outbox.py are not "
+          "executed by this run; they are contract-tested against a real "
+          "Postgres service in a separate job.")
 
     if failures:
         print("\n[FAIL] coverage floors not met:", file=sys.stderr)
