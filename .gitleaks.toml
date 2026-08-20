@@ -1,0 +1,48 @@
+# Author: Stian Skogbrott
+# SPDX-License-Identifier: BUSL-1.1
+#
+# gitleaks configuration for REMORA-research.
+#
+# The default ruleset stays ON (`useDefault = true`). Everything below is a
+# NARROW allowlist for findings that were inspected individually and confirmed
+# not to be credentials. Entries name the exact literal or the exact path;
+# never add a broad pattern here — a secret scanner that has been widened
+# until it is quiet is not a control.
+#
+# Each entry records what was verified. When an allowlisted literal changes,
+# the finding returns and must be re-inspected.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Verified non-secrets: identifier names, test fixtures and third-party benchmark corpora"
+
+# Committed evaluation corpora. These are verbatim third-party datasets whose
+# content is pinned by SHA-256 in their manifests; they hold tool catalogues
+# and adversarial prompts, never repository credentials. Their bytes cannot be
+# edited without invalidating a sealed holdout, so a real secret could not be
+# removed from them anyway — it must never be committed here in the first
+# place, which the pre-commit path and review cover.
+paths = [
+  # BFCL tool catalogues (Apache-2.0, ShishirPatil/gorilla). Trip cause: tool
+  # NAMES such as "CustomDashboardsApi.get_shareable_api_tokens".
+  '''data/routing_bench_bfcl.*/bfcl_holdout\.jsonl''',
+  # AgentHarm scored results (AI Safety Institute, arXiv:2410.09024). Trip
+  # cause: fictional harmful prompts that quote invented ransomware keys and
+  # wallet addresses. Verified at results/external_benchmark_agentharm_v1.json
+  # lines 626 and 638 — both are benchmark instruction text.
+  '''results/external_benchmark_agentharm_v1\.json''',
+]
+
+# Identifier NAMES that the generic-api-key rule reads as values.
+regexes = [
+  # remora/governance/a2a_envelope.py:72 — the name of the env var to read,
+  # not its value: _ENV_KEY = "REMORA_A2A_SIGNING_KEY".
+  '''REMORA_A2A_SIGNING_KEY''',
+  # workers/aromer/src/index.ts:292 — a Workers KV key name.
+  '''friction_thresholds_v1''',
+  # tests/test_rem013_pdp_pep_boundary.py:28 — a fixture literal for the
+  # PDP/PEP boundary test; self-describing and never a live key.
+  '''test-pdp-signing-key-rem013''',
+]
