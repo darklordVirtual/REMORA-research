@@ -142,6 +142,8 @@ The original [execution lifecycle/outbox design](design/execution-lifecycle-outb
 | [benchmarks/README.md](benchmarks/README.md) | Benchmark overview |
 | [benchmarks/stat_tests.md](benchmarks/stat_tests.md) | Statistical test methodology |
 | [benchmarks/toolcall_consensus_benchmark_v2.md](benchmarks/toolcall_consensus_benchmark_v2.md) | Tool-call benchmark v2 |
+| [benchmarks/agent-authority-conformance-v0.1.md](benchmarks/agent-authority-conformance-v0.1.md) | Agent Authority Conformance v0.1 (vendor-neutral A-G property model; draft) |
+| [benchmarks/aegis-remora-crosswalk.md](benchmarks/aegis-remora-crosswalk.md) | AEGIS Core 3.4.0 x REMORA A-G crosswalk (first application; not a ranking) |
 | [research/routing_benchmark_v1_design.md](research/routing_benchmark_v1_design.md) | Routing benchmark design |
 | [research/task_intent_authority_v1.md](research/task_intent_authority_v1.md) | TaskIntent authority rules |
 | [research/research_control_matrix.generated.md](research/research_control_matrix.generated.md) | Generated research-to-control map |
