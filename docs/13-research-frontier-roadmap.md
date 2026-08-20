@@ -1278,6 +1278,70 @@ unchanged P3, all grounded in the "Already in the repo" subsections above.
 - **SHADE-Arena as a first-class benchmark.** Breaks the deterministic
   no-API-keys test contract (see RF-09 note).
 
+## 12. Candidate intake 2026-08-20 (unassessed, not work packages)
+
+**Status: intake only.** The items below entered from an external reading brief
+on 2026-08-20 (arXiv cs.AI new-submissions batch). They are recorded here so
+the direction is not lost, and nothing more. None of them has been grounded
+against the working tree, none has an RF identifier, none is a proposal in the
+sense §0-§11 uses that word, and none may be cited in `README.md`,
+`EVIDENCE_OF_CAPABILITY.md`, or the paper.
+
+**Source-quality caveat (load-bearing).** The brief cited a listing page
+(`arxiv.org/list/cs.AI/new`) rather than per-paper identifiers, so at intake
+time no arXiv ID, version, or DOI is recorded for any entry, and no source was
+retrieved or read in this repository. Every number below is *as reported by the
+brief, attributed to the paper's own authors*. None of it is a REMORA result,
+none of it has been reproduced here, and several entries are preprints or
+workshop papers. Promoting any entry to an RF work package requires, at
+minimum: resolving the paper to a stable identifier, retrieving it, and adding
+a `docs/research/research_shelf_v1.yaml` entry under the normal shelf contract.
+
+| # | Candidate | Pillar it touches | Why it might matter to REMORA | Author-reported result (unverified) |
+|---|-----------|-------------------|-------------------------------|--------------------------------------|
+| C-01 | Task-conditioned least-privilege learning for terminal/MCP agents | gating | `required_authority` vs. `exercised_authority` per trajectory as an eval score; overlaps RF-10's minimal-frontier work | safe success 64.4% -> 98.5%, excess-authority events 4.6% -> 0.8% on a 4B model; authors state it does not replace permission gates or sandboxing |
+| C-02 | Composing stateful pre-action controls ("one gate is not enough") | gating/composition | If a gate remediates an action, verdicts already issued by other gates may be stale, and remediation operators need not commute, so control order becomes part of the safety semantics. Directly relevant to the Stage 1 / OPA / lease layering | formalization plus finite-model counterexamples; public code and data claimed |
+| C-03 | LEDGER: claim-to-evidence trace graphs for auditing agents | audit/evidence | Typed `claim -> evidence -> action -> effect -> verifier` graph, a natural extension of evidence export beyond flat tracing | systems/HCI preprint, case-based; narrower empirical base than the benchmark entries |
+| C-04 | Governance records as supervision | evidence/learning | Governance logs (task contract, attempts, verifier decision, accepted output) reused as training data. Speculative for this repo, and squarely against the "do not tune on test data" constraint unless the split is designed first | approved plans 1 -> 57 on 80 previously unsolved PlanBench cases; bounded planning only |
+| C-05 | FACET: source intent and executable state in terminal task synthesis | benchmarks | Pattern for generating regression tests from real ToolSpecs: initial state, task, verifier, expected effect from one shared grounding | Terminal-Bench 2.1 study across several model sizes |
+| C-06 | CTIFoundry: agent-native corpus scaffold | evidence/RAG | Typed ontology graph with provenance spans and typed tools instead of chunk-and-embed, argued as a substrate change rather than a model change | +0.19 to +0.28 F1 from the substrate swap at fixed harness; roughly halved tool calls on one model family |
+| C-07 | FraudBench: policy-grounded banking agents vs. adaptive fraud | routing/gating | Makes safety history-dependent: a locally valid request can be forbidden by earlier probes. Suggests `history-derived constraints` as first-class policy state, adjacent to the existing session-level cumulative-risk guards | 107 public graded scenarios; first four agents at 49-65% attack-security; single-trial |
+| C-08 | Semantics-preserving transformations against code agents | benchmarks/robustness | Argues release gates should include semantics-preserving perturbation tests, since rankings moved with the scaffold | up to 6.7pp drops; model ranking changed with scaffold, on SWE-bench Verified and Pro |
+| C-09 | SkillGate: in-policy skill selection credit assignment | routing | Separating selector quality from execution quality. The cheap half is logging `candidate_skills -> chosen_skill -> execution_result` and scoring the selector on its own | 40.8% -> 53.2% success for a 9B policy; training-side, so eval first |
+| C-10 | Adversarial review: structured disagreement for code review | verification | Naive multi-agent review produced false consensus; targeted disagreement over concrete claims did better. Relevant to verifier design, not persona count | ICML workshop paper; LiveCodeBench, SWE-PRBench, SWE-bench Verified |
+| C-11 | ComponentBench: component-level failures in computer-use agents | benchmarks/method | The transferable part is the methodology: hold the model fixed and ablate the observation/action interface. The MCP analogue is JSON tool calling vs. typed DSL vs. restricted code execution | >30pp success swing from interface changes at fixed model; COLM 2026 |
+| C-12 | Detecting covert coordination in latent multi-agent communication | multi-agent | Watch only. Assumes white-box latent access and an artificial arena; for MCP/A2A traffic, signed structured messages plus provenance is the practical boundary today | AUROC 0.993 homogeneous / 0.854 heterogeneous pairs, controlled auction benchmark |
+
+**Three prototype sketches carried over from the brief.** Recorded verbatim as
+directions, not as designs, and none is scheduled:
+
+1. **Re-gate engine (C-02).** Gates return `ALLOW | DENY | REMEDIATE`; a
+   remediation invalidates dependent verdicts and forces re-evaluation instead
+   of a single linear PDP pass. The test that would matter is that `sanitize
+   args`, `replace evidence`, and `downscope authority` applied in different
+   orders give an explicit and correct semantics rather than an accidental one.
+2. **Evidence graph (C-03).** Node types `Claim`, `Evidence`, `Effect` with
+   typed edges (`SUPPORTED_BY`, `PRODUCED_BY`, `VERIFIED_BY`,
+   `INVALIDATED_BY`); a DecisionEnvelope could not reach a success terminal
+   state while its final claim lacks an unbroken evidence path to authoritative
+   state.
+3. **Least-privilege scoring (C-01).** For an existing set of tool tasks,
+   declare `minimum_required_scope` and score
+   `safe_success = success and not (exercised_scope - required_scope)`, so the
+   metric rewards correct work at the smallest authority rather than completion
+   alone.
+
+**Overlap to resolve before promotion.** C-01 and the sketch in (3) overlap
+RF-10 (declared task-tool contracts, minimal frontier, slice 1 shipped as
+CAP-014). C-02 overlaps the existing Stage 1 / OPA-parity / enforcement-lease
+ordering and should be stated as a gap against that code, not against a blank
+page. C-03 overlaps RF-08 (audit anchoring) on the record side and the evidence
+router on the claim side. C-06 and C-07 overlap RF-07 and RF-09 respectively.
+An intake entry that turns out to restate an existing WP should be folded into
+that WP rather than given an identifier of its own.
+
+---
+
 ---
 
 Every WP above is a proposal. The claim-hygiene rule applies to this document
