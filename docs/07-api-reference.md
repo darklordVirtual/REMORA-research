@@ -26,13 +26,19 @@ export REMORA_API_ALLOW_MOCK_ORACLES=true
 python -m uvicorn servers.api:app --port 8000
 ```
 
+Read the token from the environment rather than pasting it into a command —
+a bearer token on a command line ends up in shell history and in process
+listings:
+
 ```bash
+AUTH="Authorization: Bearer ${REMORA_API_BEARER_TOKEN}"
+
 # 1. Is it up, and what policy is it running?
 curl -s localhost:8000/v1/health
-curl -s localhost:8000/v1/policy/version -H "Authorization: Bearer dev-token"
+curl -s localhost:8000/v1/policy/version -H "$AUTH"
 
 # 2. Gate a proposed tool call.
-curl -s localhost:8000/v1/assess   -H "Authorization: Bearer dev-token"   -H "Content-Type: application/json"   -d '{
+curl -s localhost:8000/v1/assess   -H "$AUTH"   -H "Content-Type: application/json"   -d '{
         "question": "Restart the payments worker in production",
         "tool_call": {
           "tool_name": "restart_service",
