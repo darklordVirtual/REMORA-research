@@ -4,9 +4,16 @@
 structurally validated so it cannot rot (external documentation review)."""
 from __future__ import annotations
 
+import pytest
+
 from pathlib import Path
 
 import yaml
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTER = ROOT / "docs" / "assurance" / "capability_register_v1.yaml"

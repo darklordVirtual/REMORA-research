@@ -17,6 +17,13 @@ from pathlib import Path
 
 import yaml
 
+import pytest
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
+
 ROOT = Path(__file__).resolve().parents[1]
 REGISTER = ROOT / "docs" / "research" / "research_control_matrix_v1.yaml"
 GENERATED = ROOT / "docs" / "research" / "research_control_matrix.generated.md"

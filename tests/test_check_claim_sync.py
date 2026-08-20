@@ -1,7 +1,14 @@
 from __future__ import annotations
 
+import pytest
+
 import importlib.util
 from pathlib import Path
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 
 def _load_check_claim_sync():

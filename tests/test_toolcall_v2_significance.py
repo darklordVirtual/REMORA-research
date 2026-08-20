@@ -4,6 +4,11 @@ import pytest
 
 from experiments.toolcall_v2_significance import run
 
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
+
 
 @pytest.fixture(scope="module")
 def result() -> dict:

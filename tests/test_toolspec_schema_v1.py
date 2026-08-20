@@ -15,9 +15,16 @@ error.
 """
 from __future__ import annotations
 
+import pytest
+
 from pathlib import Path
 
 import yaml
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 SPEC = yaml.safe_load(
     (Path(__file__).resolve().parents[1] / "schemas" / "tool_spec_v1.yaml")

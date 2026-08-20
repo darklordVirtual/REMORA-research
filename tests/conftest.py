@@ -37,3 +37,67 @@ def pytest_collection_modifyitems(config, items):
         if (item.get_closest_marker("live") is not None
                 or item.get_closest_marker("live_replay_heavy") is not None):
             item.add_marker(skip_live)
+
+
+# ---------------------------------------------------------------------------
+# Shared fixtures (self-review 2026-08-20)
+# ---------------------------------------------------------------------------
+#
+# This file held one hook and zero fixtures, and the cost was measurable:
+# RemoraDecisionEngine() was constructed 141 times across 41 files,
+# PolicyObservation 274 times across 43, and 83 files each recomputed the repo
+# root with their own parents[N] expression. These are the pieces that every
+# test needs and none of them should be re-deriving.
+#
+# They are deliberately few. A fixture that hides which observation a test
+# actually ran against would make the suite less readable, not more, so
+# `observation` is a FACTORY: the test still states the fields it cares about,
+# and only the boilerplate disappears.
+
+from pathlib import Path  # noqa: E402
+from typing import Any, Callable  # noqa: E402
+
+_ROOT = Path(__file__).resolve().parent.parent
+
+
+@pytest.fixture(scope="session")
+def repo_root() -> Path:
+    """The repository root.
+
+    83 test files computed this independently with `parents[1]` or
+    `parents[2]`, which silently breaks the moment a test moves into a
+    subdirectory.
+    """
+    return _ROOT
+
+
+@pytest.fixture
+def engine():
+    """A default RemoraDecisionEngine: every opt-in ACCEPT path off."""
+    from remora.policy.decision_engine import RemoraDecisionEngine
+
+    return RemoraDecisionEngine()
+
+
+@pytest.fixture
+def observation() -> "Callable[..., Any]":
+    """Factory for a PolicyObservation with a question already supplied.
+
+    A factory rather than a ready-made object on purpose: which fields a test
+    sets IS the test, so it must stay visible at the call site.
+
+        def test_x(engine, observation):
+            report = engine.decide(observation(risk_tier="critical"))
+    """
+    from remora.policy.observation import PolicyObservation
+
+    def _make(question: str = "probe question", **fields: Any) -> PolicyObservation:
+        return PolicyObservation(question=question, **fields)
+
+    return _make
+
+
+@pytest.fixture
+def signing_key() -> bytes:
+    """A deterministic HMAC key for signing tests. Never a real key."""
+    return b"test-signing-key-do-not-use-in-production"

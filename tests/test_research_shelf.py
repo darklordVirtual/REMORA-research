@@ -17,6 +17,11 @@ yaml = pytest.importorskip("yaml")
 
 from scripts.check_research_shelf import SHELF, _violations  # noqa: E402
 
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
+
 ROOT = Path(__file__).resolve().parents[1]
 
 

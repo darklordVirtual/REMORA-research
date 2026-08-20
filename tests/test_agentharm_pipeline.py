@@ -14,6 +14,11 @@ import pytest
 from experiments.agentharm import cf_compat
 from experiments.agentharm import score_guardrail as sg
 
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
+
 REPO = Path(__file__).resolve().parent.parent
 RISK_MAP = REPO / "experiments" / "agentharm" / "tool_risk_map.yaml"
 

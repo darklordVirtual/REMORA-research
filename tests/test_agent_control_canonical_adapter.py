@@ -25,6 +25,7 @@ _WORKER_DIR = _REPO_ROOT / "workers" / "agent-control"
 _DRIVER = """
 import { canonicalExecutionConfigured, executeViaCanonicalService } from BUNDLE;
 
+
 const results = {};
 const CALL = ["store_artifact", {key: "a.md", content: "x"}, "cloudflare_worker"];
 

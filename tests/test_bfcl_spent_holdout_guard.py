@@ -10,9 +10,16 @@ the constructed wrong-tool mutants.
 """
 from __future__ import annotations
 
+import pytest
+
 import json
 import sys
 from pathlib import Path
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 

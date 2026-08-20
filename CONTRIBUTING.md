@@ -59,6 +59,22 @@ that do not apply to the research modules:
   real number rises; never lower one to make a failing build pass — cover the
   code instead.
 
+### Test structure
+
+- **Shared fixtures live in `tests/conftest.py`**: `repo_root`, `engine`,
+  `observation` (a factory, so which fields a test sets stays visible at the
+  call site), `signing_key`. Do not re-derive the repo root with `parents[N]`.
+- **`@pytest.mark.docgate`** marks a test that asserts on repository documents
+  and registers rather than runtime behaviour. Those run as their own CI step
+  so a documentation drift and a governance regression do not fail the same
+  way, and so the headline test count means what it says.
+- **Assert invariants, not counts.** `assert len(sections) == 39` is
+  documented to break every time the work goes as planned, which teaches
+  people to bump the number without reading what changed. Assert that IDs are
+  unique and contiguous, that sets stay balanced, that the aggregate equals
+  the sum of its parts. Exact values are correct when they guard a specific
+  published correction from being reverted — say so in a comment when they do.
+
 ## Contribution licensing
 
 REMORA is dual-licensed under the Business Source License 1.1 and separate commercial licenses issued by the Licensor. See [LICENSING.md](LICENSING.md).
