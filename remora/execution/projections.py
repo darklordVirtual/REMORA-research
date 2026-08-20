@@ -142,3 +142,121 @@ def current_state(events: list[dict[str, Any]],
     if "assessed" in names:
         return "ASSESSED"
     return "PROPOSED"
+
+
+def envelope_projection(
+    events: list[dict[str, Any]],
+    dispatch: dict[str, Any] | None,
+    *,
+    proposal_id: str,
+    tenant: str,
+) -> "DecisionEnvelope":
+    """One DecisionEnvelope for one proposal, derived from the chain (#37).
+
+    The envelope is the canonical governance contract, but the execution path
+    never built one: it appended lifecycle records and left ``EffectBlock`` at
+    its defaults, so the contract described assessments and the chain described
+    executions, and nothing joined them.
+
+    This closes that as a **projection**, not a second store. The chain is the
+    record; an envelope assembled here is a view of it, so the two cannot
+    drift. The alternative — writing an envelope alongside the chain — creates
+    exactly the divergence the lifecycle records exist to prevent.
+
+    Nothing is invented. Every field comes from a recorded payload, and a field
+    with no record stays at its default: an envelope that guessed at a risk
+    tier would be worse than one that admits it does not have it.
+    """
+    from remora.governance.envelope import (
+        AssessmentBlock,
+        AuditBlock,
+        DecisionEnvelope,
+        EffectBlock,
+        GateBlock,
+        RequestBlock,
+    )
+
+    by_event: dict[str, dict[str, Any]] = {}
+    for event in events:
+        name = str(event.get("event") or "")
+        # Latest wins: a proposal may be assessed, refused and re-presented,
+        # and the envelope describes where it ended up.
+        by_event[name] = event
+    assessed = (by_event.get("assessed") or {}).get("payload", {})
+    result = (by_event.get("execution_result") or {}).get("payload", {})
+    authorized = (by_event.get("execution_authorized") or {}).get("payload", {})
+
+    effect = effect_projection(events)
+    state = current_state(events, dispatch)
+
+    executed = bool(result.get("executed"))
+    if not executed and dispatch is not None:
+        executed = dispatch.get("state") == "SUCCEEDED"
+
+    ledger: dict[str, Any] = {}
+    if "execution_result" in by_event:
+        ledger = {
+            "sequence_no": by_event["execution_result"]["sequence_no"],
+            "entry_hash": by_event["execution_result"]["entry_hash"],
+        }
+    if dispatch is not None:
+        ledger["outbox_id"] = dispatch.get("outbox_id")
+        ledger["outbox_state"] = dispatch.get("state")
+    if authorized.get("grant_jti"):
+        ledger["grant_jti"] = authorized["grant_jti"]
+    if effect["status"] is not None:
+        # Who observed, and what they reported. Carried separately from
+        # effect_outcome so a reader can tell a verified effect from an
+        # unverified dispatch without re-deriving the mapping.
+        ledger["effect_status"] = effect["status"]
+        ledger["effect_verifier_identity"] = effect["verifier_identity"]
+
+    return DecisionEnvelope(
+        request=RequestBlock(
+            request_id=proposal_id,
+            domain="",
+            risk_tier=str(assessed.get("risk_tier") or ""),
+            proposed_action=str(assessed.get("tool_name") or ""),
+            action_type=str(assessed.get("action_type") or ""),
+            target_environment=str(assessed.get("target_environment") or ""),
+        ),
+        assessment=AssessmentBlock(
+            # The execution surface runs no oracle swarm and no thermodynamic
+            # assessment: those belong to /v1/assess. Empty here is the honest
+            # value, not a gap to be filled from somewhere else.
+            oracle_votes=[],
+            thermodynamic={},
+            evidence_quality={},
+            policy_triggers=list(assessed.get("reasons") or []),
+        ),
+        gate=GateBlock(outcome=str(assessed.get("decision") or "")),
+        effect=EffectBlock(
+            executed=executed,
+            tool_call_hash=(result.get("tool_call_hash")
+                            or assessed.get("tool_call_hash")),
+            # The lifecycle state, which already ranks an effect verification
+            # above a dispatch verdict: "the dispatcher returned" and "the
+            # approved change is present" are different claims.
+            effect_outcome=state,
+            ledger_entry=ledger,
+        ),
+        audit=AuditBlock(
+            policy_version=str(assessed.get("policy_version") or ""),
+            tenant_id=tenant,
+            actor_identity=(assessed.get("actor") or None),
+            tool_args_hash=(assessed.get("tool_call_hash") or None),
+            tool_contract_bundle_hash=(
+                assessed.get("tool_contract_bundle_hash") or None),
+            intent_authority_hash=(
+                assessed.get("intent_authority_hash") or None),
+            # The chain entry hash of the last record for this proposal is the
+            # integrity anchor a reader can recheck; it is NOT an envelope
+            # chain hash, and the two are not comparable (see AuditBlock).
+            hash=(events[-1]["entry_hash"] if events else None),
+        ),
+    )
+
+
+if False:  # pragma: no cover - typing only, avoids a runtime import cycle
+    from remora.governance.envelope import DecisionEnvelope
+

@@ -1293,6 +1293,7 @@ from remora.execution.projections import (  # noqa: E402
     current_state as _current_state_impl,
     dispatch_projection as _dispatch_projection_impl,
     effect_projection as _effect_projection,  # noqa: F401  (pure; direct use)
+    envelope_projection as _envelope_projection,
     proposal_events as _proposal_events_impl,
     record_effect_verification as _record_effect_verification_impl,
 )
@@ -1432,6 +1433,36 @@ def get_lifecycle(proposal_id: str, request: Request) -> dict[str, Any]:
         "dispatch": dispatch,
         "current_state": _current_state(events, dispatch),
     }
+
+
+@router.get("/proposals/{proposal_id}/envelope", responses={
+    200: {"description": "The DecisionEnvelope for one proposal, derived from "
+                         "the audit chain."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "No such proposal for this tenant."},
+})
+def get_envelope(proposal_id: str, request: Request) -> dict[str, Any]:
+    """One envelope binding proposal to effect (issue #37).
+
+    Derived from the chain on read, never stored: a written copy could drift
+    from the records it describes, which is the divergence the lifecycle trail
+    exists to prevent. ``effect`` is populated from what was actually recorded
+    — the dispatch verdict, the outbox row and any effect verification — so an
+    envelope no longer stops at the decision.
+    """
+    _note_proposal_id(proposal_id)
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "read")
+    events = _proposal_events(tenant, proposal_id)
+    if not events:
+        raise HTTPException(status_code=404, detail="proposal not found")
+    envelope = _envelope_projection(
+        events, _dispatch_projection(tenant, proposal_id),
+        proposal_id=proposal_id, tenant=tenant,
+    )
+    return envelope.to_dict()
 
 
 @router.get("/proposals/{proposal_id}/evidence", responses={
