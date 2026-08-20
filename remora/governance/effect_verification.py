@@ -93,11 +93,28 @@ class PostconditionContract:
         )
 
 
-def _digest(value: Any) -> str:
+def effect_digest(value: Any) -> str:
+    """Canonical SHA-256 of an effect value.
+
+    Public because ``remora.sdk.effects`` depends on it: the SDK is a
+    snapshot-gated stable surface, and until 2026-08-20 it reached in here for
+    a private ``_digest``. A gate that protects the SDK's names but not the
+    signature of the internal function they call is not protecting much — an
+    ordinary refactor of a private helper could have broken the public
+    surface without tripping a single test.
+
+    Sorted keys and no whitespace, so two callers that agree on the value
+    agree on the digest. ``default=str`` keeps non-JSON scalars (datetimes,
+    Decimals) hashable rather than raising at verification time.
+    """
     return hashlib.sha256(
         json.dumps(value, sort_keys=True, separators=(",", ":"),
                    default=str).encode("utf-8")
     ).hexdigest()
+
+
+#: Deprecated private alias, kept so any out-of-tree caller keeps working.
+_digest = effect_digest
 
 
 @dataclass(frozen=True)

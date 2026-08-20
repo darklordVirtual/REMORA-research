@@ -553,7 +553,11 @@ def _extract_answer_from_log(oracle_log: list[OracleResponse], winning_fp: Optio
             if _phi(resp.extracted).fingerprint() == winning_fp:
                 return claim
         except Exception:
-            pass
+            # A response whose fingerprint cannot be computed simply does not
+            # match the winning cluster; falling through to first_claim is the
+            # conservative outcome, and raising here would let a malformed
+            # oracle response abort a whole cascade.
+            continue
     return first_claim
 
 

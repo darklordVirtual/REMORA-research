@@ -149,9 +149,9 @@ def content_digest(value: Any) -> str:
     the same digest REMORA will compute, and guessing the canonical form
     is not a reasonable thing to ask of a consumer.
     """
-    from remora.governance.effect_verification import _digest
+    from remora.governance.effect_verification import effect_digest
 
-    return _digest(value)
+    return effect_digest(value)
 
 
 def build_postcondition(

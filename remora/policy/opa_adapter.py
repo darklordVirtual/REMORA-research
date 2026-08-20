@@ -45,6 +45,7 @@ for a runnable example.
 """
 from __future__ import annotations
 
+import logging
 import json
 import urllib.error
 import urllib.request
@@ -52,6 +53,7 @@ from dataclasses import asdict, dataclass
 from dataclasses import fields as dataclasses_fields
 from typing import Any
 
+from remora.observability.events import governance_event
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
 
@@ -497,7 +499,15 @@ class OPAAdapter:
             try:
                 reasons.append(DecisionReason(r))
             except ValueError:
-                pass
+                # An external PDP must not be able to invent decision
+                # reasons, so an unknown one is dropped rather than
+                # trusted — but dropping it silently hid genuine
+                # policy-bundle drift between OPA and this engine.
+                governance_event(
+                    "opa.unknown_reason_dropped",
+                    level=logging.WARNING,
+                    reason=r,
+                )
         if not reasons:
             reasons = [DecisionReason.DEFAULT_SAFE_ABSTAIN]
 

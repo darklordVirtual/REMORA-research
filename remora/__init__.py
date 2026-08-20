@@ -63,131 +63,170 @@ __license__ = "BUSL-1.1"
 # ---------------------------------------------------------------------------
 # Core engine
 # ---------------------------------------------------------------------------
-from remora.engine import Remora, RemoraState
-from remora.genome import Genome
-from remora.core import Oracle, OracleResponse
 
 # ---------------------------------------------------------------------------
 # One-call tool-call assessment (the library form of `remora assess`)
 # ---------------------------------------------------------------------------
-from remora.assess import ToolCallAssessment, assess_tool_call, infer_risk_and_type
 
 # ---------------------------------------------------------------------------
 # Policy layer
 # ---------------------------------------------------------------------------
-from remora.policy import RemoraDecisionEngine, PolicyObservation
-from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
-from remora.policy.decision_engine import PolicyTrace, PolicyRuleEvaluation
 
 # ---------------------------------------------------------------------------
 # Governance contract
 # ---------------------------------------------------------------------------
-from remora.governance.envelope import (
-    DecisionEnvelope,
-    RequestBlock,
-    AssessmentBlock,
-    GateBlock,
-    AuditBlock,
-)
 
 # ---------------------------------------------------------------------------
 # Tamper-evident audit chain
 # ---------------------------------------------------------------------------
-from remora.governance.audit_chain import RemoraAuditChain, ChainEntry
 
 # ---------------------------------------------------------------------------
 # Machine-verifiable safety invariants
 # ---------------------------------------------------------------------------
-from remora.policy.invariants import (
-    CORE_INVARIANTS,
-    PolicyInvariant,
-    InvariantResult,
-    InvariantViolationError,
-    check_all_invariants,
-    assert_invariants,
-    invariant_summary,
-)
 
 # ---------------------------------------------------------------------------
 # Shadow-mode replay
 # ---------------------------------------------------------------------------
-from remora.shadow.replay import replay_action_log, GovernanceDeltaReport, ReplayResult
 
 # ---------------------------------------------------------------------------
 # Evidence providers
 # ---------------------------------------------------------------------------
-from remora.evidence import (
-    EvidenceProvider,
-    EvidenceProviderResult,
-    EvidenceSignal,
-    InMemoryRetrievalBackend,
-    JaccardNLIScorer,
-    RAGEvidenceProvider,
-    RAGProviderResult,
-    OracleProxyEvidenceProvider,
-    RetrievedPassage,
-    StaticJsonlEvidenceProvider,
-    CyberEvidenceMatch,
-    CyberEvidenceProvider,
-    CyberEvidenceRecord,
-    CyberTriageResult,
-    CyberTriageVerdict,
-    DefensivePoCPlan,
-    ExploitClassification,
-    PoCReadiness,
-    CyberFindingEnvelope,
-    DisclosureLedger,
-    DisclosureStatus,
-    ResearchArtifactRef,
-    TargetScanProfile,
-    AllDomainsBenchmarkResult,
-    BenchmarkCase,
-    DomainBenchmarkResult,
-    DomainBenchmarkRunner,
-    combine_results,
-    AIGovernanceClassification,
-    AIGovernanceEvidenceProvider,
-    AIGovernanceTriageResult,
-    AIGovernanceVerdict,
-    FinanceEvidenceProvider,
-    FinanceRiskClassification,
-    FinanceTriageResult,
-    FinanceVerdict,
-    DOMAIN_REGISTRY,
-    get_provider,
-)
 
 # ---------------------------------------------------------------------------
 # External integrations
 # ---------------------------------------------------------------------------
-from remora.integrations import (
-    FindingVerdict,
-    GoStarBridge,
-    GoStarFinding,
-    GoStarScanResult,
-    OracleSignal,
-    Severity,
-    SecurityGovernanceResult,
-)
 
 # ---------------------------------------------------------------------------
 # Framework adapters
 # ---------------------------------------------------------------------------
-from remora.adapters.gateway import LocalGateway, HttpGateway, GatewayResult
-from remora.adapters.action_gate import (
-    ActionGateResult,
-    AsyncLocalGateway,
-    AsyncActionGate,
-    LangGraphActionAdapter,
-    OpenAIToolCallingAdapter,
-    CrewAIActionAdapter,
-    AutoGenActionAdapter,
-)
 
 # ---------------------------------------------------------------------------
 # Observability
 # ---------------------------------------------------------------------------
-from remora.observability.otel import get_remora_tracer, RemoraTracer
+
+# ---------------------------------------------------------------------------
+# Lazy public surface (PEP 562)
+# ---------------------------------------------------------------------------
+#
+# These were eager top-level imports until 2026-08-20, which meant that
+# touching ANY part of remora — including `import remora.sdk`, the namespace
+# documented as "a small, stable entry point" — pulled in 62 modules: the
+# evidence providers, the GO-STAR bridge, the replay engine and the OTel
+# wrapper, whether the caller wanted them or not. That defeated the
+# embeddability the package otherwise earns by keeping every heavy dependency
+# behind a function-local import.
+#
+# The public surface is unchanged: the same 90 names resolve to the same
+# objects. They are now materialised on first attribute access.
+_LAZY_EXPORTS: dict[str, tuple[str, str]] = {
+    "AIGovernanceClassification": ("remora.evidence", "AIGovernanceClassification"),
+    "AIGovernanceEvidenceProvider": ("remora.evidence", "AIGovernanceEvidenceProvider"),
+    "AIGovernanceTriageResult": ("remora.evidence", "AIGovernanceTriageResult"),
+    "AIGovernanceVerdict": ("remora.evidence", "AIGovernanceVerdict"),
+    "ActionGateResult": ("remora.adapters.action_gate", "ActionGateResult"),
+    "AllDomainsBenchmarkResult": ("remora.evidence", "AllDomainsBenchmarkResult"),
+    "AssessmentBlock": ("remora.governance.envelope", "AssessmentBlock"),
+    "AsyncActionGate": ("remora.adapters.action_gate", "AsyncActionGate"),
+    "AsyncLocalGateway": ("remora.adapters.action_gate", "AsyncLocalGateway"),
+    "AuditBlock": ("remora.governance.envelope", "AuditBlock"),
+    "AutoGenActionAdapter": ("remora.adapters.action_gate", "AutoGenActionAdapter"),
+    "BenchmarkCase": ("remora.evidence", "BenchmarkCase"),
+    "CORE_INVARIANTS": ("remora.policy.invariants", "CORE_INVARIANTS"),
+    "ChainEntry": ("remora.governance.audit_chain", "ChainEntry"),
+    "CrewAIActionAdapter": ("remora.adapters.action_gate", "CrewAIActionAdapter"),
+    "CyberEvidenceMatch": ("remora.evidence", "CyberEvidenceMatch"),
+    "CyberEvidenceProvider": ("remora.evidence", "CyberEvidenceProvider"),
+    "CyberEvidenceRecord": ("remora.evidence", "CyberEvidenceRecord"),
+    "CyberFindingEnvelope": ("remora.evidence", "CyberFindingEnvelope"),
+    "CyberTriageResult": ("remora.evidence", "CyberTriageResult"),
+    "CyberTriageVerdict": ("remora.evidence", "CyberTriageVerdict"),
+    "DOMAIN_REGISTRY": ("remora.evidence", "DOMAIN_REGISTRY"),
+    "DecisionAction": ("remora.policy.report", "DecisionAction"),
+    "DecisionEnvelope": ("remora.governance.envelope", "DecisionEnvelope"),
+    "DecisionReason": ("remora.policy.report", "DecisionReason"),
+    "DecisionReport": ("remora.policy.report", "DecisionReport"),
+    "DefensivePoCPlan": ("remora.evidence", "DefensivePoCPlan"),
+    "DisclosureLedger": ("remora.evidence", "DisclosureLedger"),
+    "DisclosureStatus": ("remora.evidence", "DisclosureStatus"),
+    "DomainBenchmarkResult": ("remora.evidence", "DomainBenchmarkResult"),
+    "DomainBenchmarkRunner": ("remora.evidence", "DomainBenchmarkRunner"),
+    "EvidenceProvider": ("remora.evidence", "EvidenceProvider"),
+    "EvidenceProviderResult": ("remora.evidence", "EvidenceProviderResult"),
+    "EvidenceSignal": ("remora.evidence", "EvidenceSignal"),
+    "ExploitClassification": ("remora.evidence", "ExploitClassification"),
+    "FinanceEvidenceProvider": ("remora.evidence", "FinanceEvidenceProvider"),
+    "FinanceRiskClassification": ("remora.evidence", "FinanceRiskClassification"),
+    "FinanceTriageResult": ("remora.evidence", "FinanceTriageResult"),
+    "FinanceVerdict": ("remora.evidence", "FinanceVerdict"),
+    "FindingVerdict": ("remora.integrations", "FindingVerdict"),
+    "GateBlock": ("remora.governance.envelope", "GateBlock"),
+    "GatewayResult": ("remora.adapters.gateway", "GatewayResult"),
+    "Genome": ("remora.genome", "Genome"),
+    "GoStarBridge": ("remora.integrations", "GoStarBridge"),
+    "GoStarFinding": ("remora.integrations", "GoStarFinding"),
+    "GoStarScanResult": ("remora.integrations", "GoStarScanResult"),
+    "GovernanceDeltaReport": ("remora.shadow.replay", "GovernanceDeltaReport"),
+    "HttpGateway": ("remora.adapters.gateway", "HttpGateway"),
+    "InMemoryRetrievalBackend": ("remora.evidence", "InMemoryRetrievalBackend"),
+    "InvariantResult": ("remora.policy.invariants", "InvariantResult"),
+    "InvariantViolationError": ("remora.policy.invariants", "InvariantViolationError"),
+    "JaccardNLIScorer": ("remora.evidence", "JaccardNLIScorer"),
+    "LangGraphActionAdapter": ("remora.adapters.action_gate", "LangGraphActionAdapter"),
+    "LocalGateway": ("remora.adapters.gateway", "LocalGateway"),
+    "OpenAIToolCallingAdapter": ("remora.adapters.action_gate", "OpenAIToolCallingAdapter"),
+    "Oracle": ("remora.core", "Oracle"),
+    "OracleProxyEvidenceProvider": ("remora.evidence", "OracleProxyEvidenceProvider"),
+    "OracleResponse": ("remora.core", "OracleResponse"),
+    "OracleSignal": ("remora.integrations", "OracleSignal"),
+    "PoCReadiness": ("remora.evidence", "PoCReadiness"),
+    "PolicyInvariant": ("remora.policy.invariants", "PolicyInvariant"),
+    "PolicyObservation": ("remora.policy", "PolicyObservation"),
+    "PolicyRuleEvaluation": ("remora.policy.decision_engine", "PolicyRuleEvaluation"),
+    "PolicyTrace": ("remora.policy.decision_engine", "PolicyTrace"),
+    "RAGEvidenceProvider": ("remora.evidence", "RAGEvidenceProvider"),
+    "RAGProviderResult": ("remora.evidence", "RAGProviderResult"),
+    "Remora": ("remora.engine", "Remora"),
+    "RemoraAuditChain": ("remora.governance.audit_chain", "RemoraAuditChain"),
+    "RemoraDecisionEngine": ("remora.policy", "RemoraDecisionEngine"),
+    "RemoraState": ("remora.engine", "RemoraState"),
+    "RemoraTracer": ("remora.observability.otel", "RemoraTracer"),
+    "ReplayResult": ("remora.shadow.replay", "ReplayResult"),
+    "RequestBlock": ("remora.governance.envelope", "RequestBlock"),
+    "ResearchArtifactRef": ("remora.evidence", "ResearchArtifactRef"),
+    "RetrievedPassage": ("remora.evidence", "RetrievedPassage"),
+    "SecurityGovernanceResult": ("remora.integrations", "SecurityGovernanceResult"),
+    "Severity": ("remora.integrations", "Severity"),
+    "StaticJsonlEvidenceProvider": ("remora.evidence", "StaticJsonlEvidenceProvider"),
+    "TargetScanProfile": ("remora.evidence", "TargetScanProfile"),
+    "ToolCallAssessment": ("remora.assess", "ToolCallAssessment"),
+    "assert_invariants": ("remora.policy.invariants", "assert_invariants"),
+    "assess_tool_call": ("remora.assess", "assess_tool_call"),
+    "check_all_invariants": ("remora.policy.invariants", "check_all_invariants"),
+    "combine_results": ("remora.evidence", "combine_results"),
+    "get_provider": ("remora.evidence", "get_provider"),
+    "get_remora_tracer": ("remora.observability.otel", "get_remora_tracer"),
+    "infer_risk_and_type": ("remora.assess", "infer_risk_and_type"),
+    "invariant_summary": ("remora.policy.invariants", "invariant_summary"),
+    "replay_action_log": ("remora.shadow.replay", "replay_action_log"),
+}
+
+
+def __getattr__(name: str) -> object:
+    """Resolve a public symbol on first use (PEP 562)."""
+    target = _LAZY_EXPORTS.get(name)
+    if target is None:
+        raise AttributeError(f"module 'remora' has no attribute {name!r}")
+    module_name, attribute = target
+    from importlib import import_module
+
+    value = getattr(import_module(module_name), attribute)
+    globals()[name] = value  # cache: one import per symbol per process
+    return value
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(_LAZY_EXPORTS))
+
 
 __all__ = [
     "__version__",

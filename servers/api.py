@@ -2074,7 +2074,10 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONRespons
                 float(report.get("total_cost_usd") or 0.0) > _SLO_TARGETS["oracle_cost_per_assess_usd_max"],
             )
     except Exception:
-        pass
+        # Telemetry must never fail a governed decision, but a silent pass
+        # made an observability regression — including one caused by a
+        # malformed report — invisible. Record it and continue.
+        logger.warning("assess telemetry span failed", exc_info=True)
 
     return AssessResponse(
         request_id=request_id,
