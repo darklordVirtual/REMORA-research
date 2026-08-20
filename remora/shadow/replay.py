@@ -406,7 +406,11 @@ def _baseline_action(name: str, obs: PolicyObservation) -> str:
         # Risk-tier flooring is engine policy (not part of the floor), so even
         # this arm never autonomously accepts critical-tier actions. Shadow
         # analysis only — never an enforcement path.
-        engine = RemoraDecisionEngine()
+        # Runtime invariant enforcement is switched off here for the same
+        # reason the floor is: it is a separate guard, and leaving it on would
+        # make the delta measure "hard guards + invariants" while claiming to
+        # isolate the hard guards. Shadow analysis only.
+        engine = RemoraDecisionEngine(verify_invariants=False)
         return engine.decide(obs, _skip_hard_floor=True).action.value
     raise ValueError(f"Unknown baseline: {name}")
 

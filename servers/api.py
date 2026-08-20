@@ -882,33 +882,87 @@ def _tool_registry_component_hash() -> str:
     return "sha256:" + hasher.hexdigest()
 
 
-def _engine_mode_component_hash() -> str:
-    """Identity of the engine's opt-in ACCEPT paths.
+#: Every engine flag that changes which decisions are reachable. Adding a
+#: flag to RemoraDecisionEngine without adding it here reintroduces the gap
+#: this hash exists to close, so tests/test_policy_identity.py asserts the
+#: two stay in step.
+ENGINE_IDENTITY_FLAGS: tuple[str, ...] = (
+    "low_consequence_accept",
+    "grounded_read_accept",
+    # Issue #35: with the execution profile on, a probabilistic signal can
+    # structurally never produce ACCEPT. Omitting it meant the enforcing and
+    # the legacy surface reported the same policy identity while routing the
+    # same call differently.
+    "execution_profile",
+    "semantic_authority_floor",
+)
 
-    The policy source bundle hashes the *code*; these two env flags decide
-    which of that code can fire. A deployment that turns on an ACCEPT path is
-    running a different policy than one that has not, and a lease issued
-    before the flip must not keep verifying after it. Hashing the source alone
-    left exactly that gap: same files, different decisions, identical hash.
+
+def engine_mode_identity(engine: Any) -> dict[str, bool]:
+    """The ACCEPT-path flags of one engine, as hashed into its identity.
+
+    Reads with ``vars()`` rather than ``getattr(..., False)`` on purpose: a
+    renamed or removed flag must raise here, not silently report "off" and
+    freeze a stable, wrong hash.
     """
+    state = vars(engine)
+    return {name: bool(state[name]) for name in ENGINE_IDENTITY_FLAGS}
+
+
+def _execution_engine_mode_flags() -> dict[str, bool]:
+    """The enforcing surface's ACCEPT-path flags, for /v1/policy/version."""
     from servers.execution_api import _ENGINE
 
-    modes = {
-        "low_consequence_accept": bool(
-            getattr(_ENGINE, "low_consequence_accept", False)),
-        "grounded_read_accept": bool(
-            getattr(_ENGINE, "grounded_read_accept", False)),
-    }
+    return engine_mode_identity(_ENGINE)
+
+
+def _engine_mode_component_hash(
+    engine: Any | None = None, *, surface: str = SURFACE_EXECUTION
+) -> str:
+    """Identity of the engine's opt-in ACCEPT paths, per surface.
+
+    The policy source bundle hashes the *code*; these flags decide which of
+    that code can fire. A deployment that turns on an ACCEPT path is running a
+    different policy than one that has not, and a lease issued before the flip
+    must not keep verifying after it. Hashing the source alone left exactly
+    that gap: same files, different decisions, identical hash.
+
+    The surface is part of the identity because the two are not the same
+    engine. ``/v1/execution`` runs :class:`RemoraDecisionEngine` under the
+    execution profile; ``/v1/assess`` runs the :class:`~remora.engine.Remora`
+    consensus pipeline, which has no such flags at all. Reporting the
+    execution engine's flags for an assess envelope claimed a configuration
+    that decision never ran under.
+    """
+    if surface == SURFACE_ASSESS:
+        modes: dict[str, Any] = {
+            "surface": SURFACE_ASSESS,
+            "decision_path": "remora.engine.Remora",
+            "note": "consensus pipeline; RemoraDecisionEngine ACCEPT flags do "
+                    "not apply to this surface",
+        }
+    else:
+        if engine is None:
+            from servers.execution_api import _ENGINE as engine
+        modes = {"surface": SURFACE_EXECUTION, **engine_mode_identity(engine)}
+
     canonical = json.dumps(modes, sort_keys=True, separators=(",", ":"))
     return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _policy_component_hashes() -> dict[str, str | None]:
+def _policy_component_hashes(
+    *, surface: str = SURFACE_EXECUTION
+) -> dict[str, str | None]:
+    """Policy identity for one surface.
+
+    ``surface`` selects which decision path the engine-mode component
+    describes; see :func:`_engine_mode_component_hash`.
+    """
     policy_engine_hash = _POLICY_SOURCE_BUNDLE_HASH
     risk_profile_hash = _sha256_file(_REPO_ROOT / "schemas" / "risk-profiles.yaml")
     schema_hash = _sha256_file(_REPO_ROOT / "schemas" / "decision_envelope_schema.yaml")
     tool_registry_hash = _tool_registry_component_hash()
-    engine_mode_hash = _engine_mode_component_hash()
+    engine_mode_hash = _engine_mode_component_hash(surface=surface)
 
     opa_policy_hash = None
     opa_path_env = os.getenv("REMORA_OPA_POLICY_PATH", "").strip()
@@ -1060,7 +1114,10 @@ def _finalize_envelope_audit(
         audit_block["actor_identity"] = actor_identity
     elif "actor_identity" not in audit_block:
         audit_block["actor_identity"] = None
-    hashes = _policy_component_hashes()
+    # This helper serves /v1/assess and /v1/rerun only. Recording the
+    # execution engine's ACCEPT flags here claimed a configuration these
+    # decisions never ran under.
+    hashes = _policy_component_hashes(surface=SURFACE_ASSESS)
     audit_block["policy_bundle_hash"] = hashes.get("policy_hash")
 
     # Hash the assessed action for tamper-evident audit (no external infra needed)
@@ -2262,6 +2319,16 @@ def policy_version(request: Request) -> dict:
         "schema_hash": hashes["schema_hash"],
         "tool_registry_hash": hashes["tool_registry_hash"],
         "opa_policy_hash": hashes["opa_policy_hash"],
+        # The two surfaces run different decision paths, so they have
+        # different policy identities. Exposing both means an operator can
+        # see that rather than having to infer it from behaviour.
+        "policy_hash_by_surface": {
+            SURFACE_EXECUTION: _policy_component_hashes(
+                surface=SURFACE_EXECUTION)["policy_hash"],
+            SURFACE_ASSESS: _policy_component_hashes(
+                surface=SURFACE_ASSESS)["policy_hash"],
+        },
+        "engine_mode_flags": _execution_engine_mode_flags(),
         "source": "python_decision_engine",
         "runtime_mode": "production" if _is_production_mode() else "development",
         "control_plane_backend": _CONTROL_PLANE_BACKEND,

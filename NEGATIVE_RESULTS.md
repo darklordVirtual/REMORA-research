@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-19: **11 `open`**, **5 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-20: **11 `open`**, **6 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2347,6 +2347,50 @@ The C-ext2 baseline (28/258 = 10.9%, degraded authority) remains permanent
 under §37/CLAIM-018 (superseded by CLAIM-019 but retained as the immutable baseline record). This section records the fresh-track misses; the met
 targets are claimed under CLAIM-019.
 
+## §40 The invariant set and the decision ladder had silently diverged (2026-08-20)
+<!-- finding-status: accepted -->
+
+`remora/policy/invariants.py` documents itself as "machine-verifiable
+governance invariants" and is 408 lines of stated safety properties. An
+internal review on 2026-08-20 found that `check_all_invariants` had **no
+caller anywhere outside the test suite**: the module was a test fixture, not
+a runtime guard. The same properties were therefore implemented twice —
+once as invariants, once inside `decide` — with nothing able to notice the
+two drifting apart.
+
+They had drifted. Wiring enforcement into the engine's single build choke
+point immediately surfaced a real conflict:
+
+| | |
+|---|---|
+| Invariant | `DISORDERED_WITHOUT_EVIDENCE_NOT_ACCEPTED` — disordered phase without an evidence answer must not ACCEPT |
+| Ladder | the conformal ACCEPT path reaches ACCEPT in the disordered phase when `conformal_trust_threshold` is configured and trust clears it |
+| Observed | `phase="disordered", trust_score=0.73, risk_tier="low"` → `decide()` returned ACCEPT while the stated invariant said it must not |
+
+**Resolution: the invariant wins, and the decision is withdrawn to
+ESCALATE.** This tightens behaviour and never loosens it, and it is
+consistent with the ruling already made in issue #35, where the enforcing
+surface was given `execution_profile=True` precisely so that a probabilistic
+signal can never produce ACCEPT. The conformal path is a probabilistic
+signal; the disordered phase is the state in which oracle agreement is
+insufficient. Accepting on that combination was the gap, not the guard.
+
+Scope: only the research/assess surface could reach this combination,
+because the enforcing surface already blocks probabilistic ACCEPT
+structurally. No published result is affected — the sealed BFCL, AgentHarm
+and adversarial-simulator tracks do not configure
+`conformal_trust_threshold`. The shadow-replay `no_hard_guards` ablation arm
+runs with enforcement off, for the same reason it runs with the hard-guard
+floor off: the arm exists to isolate one guard's contribution, and leaving a
+second guard on would make the delta measure both.
+
+What generalises beyond this instance: **a safety property that is only
+asserted in tests is a description, not a guarantee.** Four of the highest
+findings in the same review shared that shape — an implemented, documented,
+tested mechanism that no production path called. The check that would have
+caught all of them is "which production path calls this?" as part of the
+definition of done.
+
 Grouped by status, not by age. `scripts/check_negative_results_status.py`
 verifies that every section listed here carries the matching
 `<!-- finding-status: ... -->` marker, so this table cannot drift away from the
@@ -2371,6 +2415,7 @@ sections again.
 
 | Finding | Why it is closed to further tuning | Severity |
 |---------|------------------------------------|----------|
+| Invariants and the decision ladder had diverged (§40) | The invariant set was never evaluated at runtime, so a conformal ACCEPT in the disordered phase contradicted a stated invariant unnoticed. Enforcement is now wired into the build choke point and the stricter invariant wins. A property asserted only in tests is a description, not a guarantee | Medium (methodological) |
 | Consensus temperature failed fresh-data confirmation (§18) | AURC 0.0954 vs 0.0664 for calibrated confidence, paired CI excludes zero, zero SGR-certifiable coverage. The hypothesis was pre-registered and it failed. Temperature stays diagnostic; reviving it needs entirely new evidence, not a threshold | **High (falsifies the thermodynamic-selection hypothesis)** |
 | AgentHarm cannot measure resolver friction (§19) | FAR=0.0% met; FBR=100% not met, because every source verdict is ESCALATE and the control protocols act on VERIFY. Rewriting ESCALATE→VERIFY moved 19 harmful and 0 benign. A different dataset is required | Medium |
 | Registry coverage without outcome change (§20) | 38 → 85 signatures moved no routing metric; `arguments_satisfiable` is orthogonal to call correctness. More signatures will not produce semantic correctness | Medium |

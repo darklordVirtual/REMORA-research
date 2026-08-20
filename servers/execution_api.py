@@ -136,14 +136,25 @@ from remora.persistence.idempotency import (  # noqa: E402
     build_idempotency_store,
 )
 
+import threading as _threading
+
+#: Guards every lazy singleton below. FastAPI runs sync endpoints in a
+#: threadpool, so "if X is None: X = build()" is a real check-then-set race:
+#: two concurrent first-requests each built an object and one of them was
+#: discarded — taking any state written into it with it. A review item
+#: enqueued into the losing ReviewQueue simply vanished.
+_LAZY_INIT_LOCK = _threading.RLock()
+
 _IDEMPOTENCY_STORE: IdempotencyStore | None = None
 
 
 def _idempotency_store() -> IdempotencyStore:
     global _IDEMPOTENCY_STORE
     if _IDEMPOTENCY_STORE is None:
-        import os as _env
-        _IDEMPOTENCY_STORE = build_idempotency_store(_env.environ)
+        with _LAZY_INIT_LOCK:
+            if _IDEMPOTENCY_STORE is None:
+                import os as _env
+                _IDEMPOTENCY_STORE = build_idempotency_store(_env.environ)
     return _IDEMPOTENCY_STORE
 
 
@@ -538,9 +549,14 @@ def db_transaction_state(tenant: str):
 
 
 def _queue(tenant: str) -> ReviewQueue:
-    if tenant not in _QUEUES:
-        _QUEUES[tenant] = ReviewQueue(engine=_ENGINE)
-    return _QUEUES[tenant]
+    queue = _QUEUES.get(tenant)
+    if queue is None:
+        with _LAZY_INIT_LOCK:
+            queue = _QUEUES.get(tenant)
+            if queue is None:
+                queue = ReviewQueue(engine=_ENGINE)
+                _QUEUES[tenant] = queue
+    return queue
 
 
 # ── Governed tool dispatch (issue #13) ─────────────────────────────────────
@@ -571,16 +587,22 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
     """App-lifecycle dispatcher; None when no policy bundle hash exists."""
     global _DISPATCHER
     if _DISPATCHER is None:
-        bundle = _current_policy_bundle_hash()
-        if not bundle:
-            return None
-        dispatcher = GovernedToolDispatcher(expected_policy_bundle_hash=bundle)
-        spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
-        if spec:
-            import importlib
+        with _LAZY_INIT_LOCK:
+            if _DISPATCHER is None:
+                bundle = _current_policy_bundle_hash()
+                if not bundle:
+                    return None
+                dispatcher = GovernedToolDispatcher(
+                    expected_policy_bundle_hash=bundle
+                )
+                spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
+                if spec:
+                    import importlib
 
-            importlib.import_module(spec).register_tools(dispatcher.register)
-        _DISPATCHER = dispatcher
+                    importlib.import_module(spec).register_tools(
+                        dispatcher.register
+                    )
+                _DISPATCHER = dispatcher
     return _DISPATCHER
 
 
@@ -605,12 +627,19 @@ _SEMANTIC: "tuple[str, SemanticBundle | None, IntentResolver | None] | None" = N
 def _semantic_bundle() -> "tuple[SemanticBundle | None, IntentResolver | None]":
     global _SEMANTIC
     spec = _os.environ.get("REMORA_SEMANTIC_BUNDLE_MODULE", "").strip()
-    if _SEMANTIC is None or _SEMANTIC[0] != spec:
-        if not spec:
-            _SEMANTIC = (spec, None, None)
-        else:
-            _SEMANTIC = (spec, load_semantic_bundle(), load_intent_resolver())
-    return _SEMANTIC[1], _SEMANTIC[2]
+    cached = _SEMANTIC
+    if cached is None or cached[0] != spec:
+        with _LAZY_INIT_LOCK:
+            cached = _SEMANTIC
+            if cached is None or cached[0] != spec:
+                if not spec:
+                    cached = (spec, None, None)
+                else:
+                    cached = (
+                        spec, load_semantic_bundle(), load_intent_resolver()
+                    )
+                _SEMANTIC = cached
+    return cached[1], cached[2]
 
 
 def _reset_semantic_bundle() -> None:

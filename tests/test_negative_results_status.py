@@ -38,8 +38,16 @@ def test_every_section_carries_a_status() -> None:
     lines = mod.DOC.read_text(encoding="utf-8").splitlines()
     statuses, errors = mod.parse_sections(lines)
     assert errors == [], errors
-    # Every numbered section is marked; the count grows as findings land.
-    assert len(statuses) == 39
+    # Structural invariants, not a count: a test documented to break every
+    # time a finding lands teaches people to bump the number without reading
+    # what changed. What must actually hold is that the section numbers are
+    # a contiguous run from 1 with no gaps or repeats, and that every one
+    # carries a valid status marker.
+    assert statuses, "no sections parsed — did the document format change?"
+    numbers = sorted(statuses)
+    assert numbers == list(range(1, len(numbers) + 1)), (
+        f"section numbers are not contiguous from 1: {numbers}"
+    )
     assert set(statuses.values()) <= set(mod.VALID)
 
 
