@@ -72,7 +72,7 @@ def _issue(**overrides) -> A2AGovernanceEnvelope:
 
 def test_valid_envelope_verifies() -> None:
     env = _issue()
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert result.valid, result.failures
     assert env.protocol == PROTOCOL_VERSION
     assert env.is_signed
@@ -81,7 +81,7 @@ def test_valid_envelope_verifies() -> None:
 def test_round_trip_json_preserves_verification() -> None:
     env = _issue()
     restored = A2AGovernanceEnvelope.from_json(env.to_json())
-    result = restored.verify(signing_key=KEY, now=NOW)
+    result = restored.verify(signing_key=KEY, now=NOW, strict=False)
     assert result.valid, result.failures
 
 
@@ -97,7 +97,7 @@ def test_effective_scope_is_chain_intersection() -> None:
 def test_unsigned_envelope_is_invalid(monkeypatch) -> None:
     monkeypatch.delenv("REMORA_A2A_SIGNING_KEY", raising=False)
     env = _issue(signing_key=None)  # no key available anywhere → unsigned
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "unsigned_envelope" in result.failures
 
@@ -107,14 +107,14 @@ def test_tampered_scope_breaks_signature() -> None:
     data = json.loads(env.to_json())
     data["requested_scope"] = ["workorder:read", "workorder:approve"]
     tampered = A2AGovernanceEnvelope.from_json(json.dumps(data))
-    result = tampered.verify(signing_key=KEY, now=NOW)
+    result = tampered.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "signature_mismatch" in result.failures
 
 
 def test_wrong_key_fails() -> None:
     env = _issue()
-    result = env.verify(signing_key=b"other-key", now=NOW)
+    result = env.verify(signing_key=b"other-key", now=NOW, strict=False)
     assert not result.valid
     assert "signature_mismatch" in result.failures
 
@@ -125,14 +125,14 @@ def test_wrong_key_fails() -> None:
 
 def test_missing_responsible_org_is_invalid() -> None:
     env = _issue(identity=_identity(responsible_org="  "))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "missing_responsible_org" in result.failures
 
 
 def test_missing_policy_version_is_invalid() -> None:
     env = _issue(policy_version="")
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "missing_policy_version" in result.failures
 
@@ -154,14 +154,14 @@ def test_scope_widening_is_rejected() -> None:
     )
     env = _issue(delegation_chain=widening_chain,
                  requested_scope=("workorder:read",))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert any(f.startswith("scope_widened_at_link:1") for f in result.failures)
 
 
 def test_request_outside_delegated_scope_is_rejected() -> None:
     env = _issue(requested_scope=("ot:actuate_valve",))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert any(f.startswith("scope_exceeds_delegation") for f in result.failures)
 
@@ -176,7 +176,7 @@ def test_wildcard_scope_is_rejected() -> None:
         ),
     )
     env = _issue(delegation_chain=chain, requested_scope=("workorder:read",))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert any(f.startswith("wildcard_scope_at_link") for f in result.failures)
 
@@ -192,7 +192,7 @@ def test_broken_delegation_chain_is_rejected() -> None:
         ),
     )
     env = _issue(delegation_chain=chain, requested_scope=("workorder:read",))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert any(f.startswith("broken_chain_at_link") for f in result.failures)
 
@@ -207,14 +207,14 @@ def test_final_delegatee_must_be_acting_agent() -> None:
         ),
     )
     env = _issue(delegation_chain=chain, requested_scope=("workorder:read",))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "final_delegatee_is_not_acting_agent" in result.failures
 
 
 def test_empty_delegation_chain_is_rejected() -> None:
     env = _issue(delegation_chain=())
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "empty_delegation_chain" in result.failures
 
@@ -225,7 +225,7 @@ def test_empty_delegation_chain_is_rejected() -> None:
 
 def test_expired_envelope_is_invalid() -> None:
     env = _issue(expires_at=(NOW - timedelta(minutes=1)).isoformat())
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "envelope_expired" in result.failures
 
@@ -241,7 +241,7 @@ def test_expired_delegation_link_is_invalid() -> None:
         ),
     )
     env = _issue(delegation_chain=chain, requested_scope=("workorder:read",))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert any(f.startswith("delegation_link_expired") for f in result.failures)
 
@@ -256,7 +256,7 @@ def test_all_failures_are_reported_together(monkeypatch) -> None:
         requested_scope=(),
         signing_key=None,
     )
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert {
         "unsigned_envelope",
@@ -273,7 +273,7 @@ def test_all_failures_are_reported_together(monkeypatch) -> None:
 
 def test_missing_audience_is_invalid() -> None:
     env = _issue(audience="")
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "missing_audience" in result.failures
 
@@ -281,7 +281,8 @@ def test_missing_audience_is_invalid() -> None:
 def test_audience_mismatch_is_invalid() -> None:
     env = _issue()
     result = env.verify(
-        signing_key=KEY, now=NOW, expected_audience="control-plane://someone-else"
+        signing_key=KEY, now=NOW, expected_audience="control-plane://someone-else",
+        strict=False,
     )
     assert not result.valid
     assert "audience_mismatch" in result.failures
@@ -296,9 +297,9 @@ def test_replay_guard_rejects_seen_nonce() -> None:
         seen.add(nonce)
         return replayed
 
-    first = env.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    first = env.verify(signing_key=KEY, now=NOW, replay_guard=guard, strict=False)
     assert first.valid, first.failures
-    second = env.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    second = env.verify(signing_key=KEY, now=NOW, replay_guard=guard, strict=False)
     assert not second.valid
     assert "replay_detected" in second.failures
 
@@ -306,7 +307,8 @@ def test_replay_guard_rejects_seen_nonce() -> None:
 def test_tool_call_binding_mismatch_is_invalid() -> None:
     env = _issue(tool_call_hash="a" * 64)
     result = env.verify(
-        signing_key=KEY, now=NOW, expected_tool_call_hash="b" * 64
+        signing_key=KEY, now=NOW, expected_tool_call_hash="b" * 64,
+        strict=False,
     )
     assert not result.valid
     assert "tool_call_binding_mismatch" in result.failures
@@ -315,7 +317,8 @@ def test_tool_call_binding_mismatch_is_invalid() -> None:
 def test_missing_tool_call_binding_when_required() -> None:
     env = _issue()  # no binding set
     result = env.verify(
-        signing_key=KEY, now=NOW, expected_tool_call_hash="b" * 64
+        signing_key=KEY, now=NOW, expected_tool_call_hash="b" * 64,
+        strict=False,
     )
     assert not result.valid
     assert "missing_tool_call_binding" in result.failures
@@ -324,14 +327,15 @@ def test_missing_tool_call_binding_when_required() -> None:
 def test_matching_tool_call_binding_is_valid() -> None:
     env = _issue(tool_call_hash="c" * 64)
     result = env.verify(
-        signing_key=KEY, now=NOW, expected_tool_call_hash="c" * 64
+        signing_key=KEY, now=NOW, expected_tool_call_hash="c" * 64,
+        strict=False,
     )
     assert result.valid, result.failures
 
 
 def test_malformed_timestamp_is_failure_not_exception() -> None:
     env = _issue(expires_at="not-a-timestamp")
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "malformed_timestamp:expires_at" in result.failures
 
@@ -343,7 +347,7 @@ def test_future_issued_at_is_rejected() -> None:
     data = _json.loads(env.to_json())
     data["issued_at"] = (NOW + timedelta(hours=2)).isoformat()
     tampered = Env.from_json(_json.dumps(data))
-    result = tampered.verify(signing_key=KEY, now=NOW)
+    result = tampered.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     # Both the future timestamp and the broken signature must surface.
     assert "issued_in_future" in result.failures
@@ -370,7 +374,7 @@ def test_link_registry_verifies_signed_chain() -> None:
         sign_delegation_link(hop, key=orch_key, kid="orch-2026"),
     )
     env = _issue(delegation_chain=chain)
-    result = env.verify(signing_key=KEY, now=NOW, link_keys=registry)
+    result = env.verify(signing_key=KEY, now=NOW, link_keys=registry, strict=False)
     assert result.valid, result.failures
 
 
@@ -387,7 +391,7 @@ def test_forged_link_signature_is_rejected() -> None:
         sign_delegation_link(hop, key=b"attacker-key", kid="orch-2026"),
     )
     env = _issue(delegation_chain=chain)
-    result = env.verify(signing_key=KEY, now=NOW, link_keys=registry)
+    result = env.verify(signing_key=KEY, now=NOW, link_keys=registry, strict=False)
     assert not result.valid
     assert "link_signature_mismatch:1" in result.failures
 
@@ -404,6 +408,7 @@ def test_revoked_kid_invalidates_chain() -> None:
     result = env.verify(
         signing_key=KEY, now=NOW,
         link_keys={"coe-2026": RegisteredKey(key=b"coe-key", principal="operator-coe")},
+        strict=False,
     )
     assert not result.valid
     assert any(
@@ -419,6 +424,7 @@ def test_revoked_kid_invalidates_chain() -> None:
                 revoked=True,
             ),
         },
+        strict=False,
     )
     assert not result2.valid
     assert any(f.startswith("revoked_kid_at_link:1") for f in result2.failures)
@@ -430,6 +436,7 @@ def test_unsigned_links_rejected_when_registry_supplied() -> None:
     result = env.verify(
         signing_key=KEY, now=NOW,
         link_keys={"coe-2026": RegisteredKey(key=b"coe-key", principal="operator-coe")},
+        strict=False,
     )
     assert not result.valid
     assert "unsigned_delegation_link:0" in result.failures
@@ -455,7 +462,7 @@ def test_valid_key_wrong_principal_is_rejected() -> None:
         "attacker-2026": RegisteredKey(key=b"attacker-key", principal="agent://attacker/66"),
     }
     env = _issue(delegation_chain=chain)
-    result = env.verify(signing_key=KEY, now=NOW, link_keys=registry)
+    result = env.verify(signing_key=KEY, now=NOW, link_keys=registry, strict=False)
     assert not result.valid
     assert any(
         f.startswith("kid_principal_mismatch_at_link:1") for f in result.failures
@@ -487,7 +494,7 @@ def test_numeric_identity_field_is_rejected_by_parser() -> None:
 def test_non_string_field_is_failure_not_exception_in_verify() -> None:
     """Directly constructed envelopes with wrong types fail closed."""
     env = _issue(identity=_identity(responsible_org=None))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert "malformed_field:responsible_org" in result.failures
 
@@ -502,7 +509,7 @@ def test_link_issued_in_future_is_rejected() -> None:
         ),
     )
     env = _issue(delegation_chain=chain, requested_scope=("workorder:read",))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert any(
         f.startswith("delegation_link_issued_in_future:0") for f in result.failures
@@ -519,7 +526,7 @@ def test_malformed_link_issued_at_is_failure_not_exception() -> None:
         ),
     )
     env = _issue(delegation_chain=chain, requested_scope=("workorder:read",))
-    result = env.verify(signing_key=KEY, now=NOW)
+    result = env.verify(signing_key=KEY, now=NOW, strict=False)
     assert not result.valid
     assert any(
         f.startswith("malformed_timestamp:delegation_link_issued_at:0")
@@ -546,16 +553,16 @@ def test_invalid_envelope_does_not_consume_nonce() -> None:
     data = json.loads(env.to_json())
     data["requested_scope"] = ["workorder:read", "ot:actuate_valve"]
     tampered = A2AGovernanceEnvelope.from_json(json.dumps(data))
-    attack = tampered.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    attack = tampered.verify(signing_key=KEY, now=NOW, replay_guard=guard, strict=False)
     assert not attack.valid
     assert "replay_detected" not in attack.failures
     assert env.nonce not in seen  # nonce NOT consumed by the invalid envelope
 
     # The legitimate envelope still verifies afterwards.
-    legit = env.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    legit = env.verify(signing_key=KEY, now=NOW, replay_guard=guard, strict=False)
     assert legit.valid, legit.failures
     # ...and a genuine replay is still caught.
-    replayed = env.verify(signing_key=KEY, now=NOW, replay_guard=guard)
+    replayed = env.verify(signing_key=KEY, now=NOW, replay_guard=guard, strict=False)
     assert not replayed.valid
     assert "replay_detected" in replayed.failures
 
@@ -584,3 +591,73 @@ def test_parser_rejects_wrong_typed_crypto_fields() -> None:
         data["delegation_chain"][0][field_name] = bad_value
         with pytest.raises(ValueError, match="malformed_envelope:"):
             A2AGovernanceEnvelope.from_json(json.dumps(data))
+
+
+# ---------------------------------------------------------------------------
+# strict mode: an omitted argument is a skipped check, never a passed one
+# ---------------------------------------------------------------------------
+
+
+def test_strict_is_the_default_and_refuses_an_unchecked_envelope() -> None:
+    """A perfectly valid envelope still fails when checks were skipped.
+
+    This is the point of strict mode: `verify(signing_key=...)` alone leaves
+    delegation signatures, replay protection, audience and tool-call binding
+    unchecked, and previously returned valid=True regardless.
+    """
+    env = _issue()
+    result = env.verify(signing_key=KEY, now=NOW)
+    assert not result.valid
+    assert set(result.failures) == {
+        "strict_missing_expected_audience",
+        "strict_missing_expected_tool_call_hash",
+        "strict_missing_link_keys",
+        "strict_missing_replay_guard",
+    }
+
+
+def test_strict_names_each_omitted_check_separately() -> None:
+    """Supplying some arguments removes exactly those complaints."""
+    env = _issue()
+    result = env.verify(
+        signing_key=KEY,
+        now=NOW,
+        expected_audience=AUDIENCE,
+        replay_guard=lambda _nonce: False,
+    )
+    assert not result.valid
+    assert "strict_missing_expected_audience" not in result.failures
+    assert "strict_missing_replay_guard" not in result.failures
+    assert "strict_missing_link_keys" in result.failures
+    assert "strict_missing_tool_call_hash" not in result.failures
+    assert "strict_missing_expected_tool_call_hash" in result.failures
+
+
+def test_strict_passes_when_every_check_is_supplied() -> None:
+    from remora.governance.a2a_envelope import RegisteredKey, sign_delegation_link
+    coe_key, orch_key = b"coe-key", b"orchestrator-key"
+    registry = {
+        "coe-2026": RegisteredKey(key=coe_key, principal="operator-coe"),
+        "orch-2026": RegisteredKey(key=orch_key, principal="agent://orchestrator/01"),
+    }
+    root, hop = _chain()
+    chain = (
+        sign_delegation_link(root, key=coe_key, kid="coe-2026"),
+        sign_delegation_link(hop, key=orch_key, kid="orch-2026"),
+    )
+    tool_call_hash = "d" * 64
+    env = _issue(delegation_chain=chain, tool_call_hash=tool_call_hash)
+    result = env.verify(
+        signing_key=KEY,
+        now=NOW,
+        expected_audience=AUDIENCE,
+        expected_tool_call_hash=tool_call_hash,
+        link_keys=registry,
+        replay_guard=lambda _nonce: False,
+    )
+    assert result.valid, result.failures
+
+
+def test_non_strict_still_available_for_integrity_only_inspection() -> None:
+    env = _issue()
+    assert env.verify(signing_key=KEY, now=NOW, strict=False).valid
