@@ -131,7 +131,8 @@ below names the PDF, verify against the .md, which supersedes it.
 The six headline claims above are the narrative highlights, **not** the complete
 governed set. The authoritative, machine-checked list is
 [`docs/assurance/claim_register_v1.yaml`](assurance/claim_register_v1.yaml)
-(18 claims, CLAIM-001 … CLAIM-018; CLAIM-004 is superseded by CLAIM-012),
+(19 claims, CLAIM-001 … CLAIM-019; CLAIM-004 is superseded by CLAIM-012,
+and CLAIM-016/CLAIM-018 by CLAIM-019),
 verified by `scripts/check_claim_provenance.py`. The claims not expanded above,
 with their artifacts:
 
@@ -148,9 +149,10 @@ with their artifacts:
 | CLAIM-013 | Calibrated confidence-weighted voting: significant aggregation win; marginal per-arm certificates only | internal_benchmark | `results/sap_v3_round_results.json` |
 | CLAIM-014 | System demonstration: governance chain from tool call to enforcement | internal_benchmark | `results/system_demonstration_v1.json` |
 | CLAIM-015 | Superseded BFCL v3 development measurement; retained only as a negative-result record | internal_benchmark | `NEGATIVE_RESULTS.md` |
-| CLAIM-016 | Superseded BFCL v3 negative record: 4 of 5 targets met; resolved by CLAIM-018 | externally_benchmarked | `results/routing_bench_bfcl_results.json` |
+| CLAIM-016 | Superseded BFCL v3 negative record: 4 of 5 targets met; superseded by CLAIM-019 | externally_benchmarked | `results/routing_bench_bfcl_results.json` |
 | CLAIM-017 | Semantic binding gap in match_tool_to_intent (finding, fixed and regression-tested) | regression_tested | `remora/toolcall/routing/goal_match.py` |
-| CLAIM-018 | Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met | externally_benchmarked | `results/routing_bench_bfcl_v4_results.json` |
+| CLAIM-018 | **Superseded by CLAIM-019.** Disjoint sealed BFCL v4 (C-ext2): all five pre-registered targets met, wrong-call ACCEPT 28/258 = 10.9%. Retained permanently as the degraded-authority baseline — that track ran with `contracts=None, intent=None`, so the semantic gates never fired | externally_benchmarked | `results/routing_bench_bfcl_v4_results.json` |
+| CLAIM-019 | Sealed BFCL v4 C-ext3 with declared semantic authority: native wrong-call ACCEPT **0/500 = 0.0%** (Wilson 95% upper 0.76%), irrelevance 300/300, required-unknown 0/398. **Four of seven targets MISSED** and published as measured — read autonomy 25/94 = 26.6% against a 75% bar, obtainable VERIFY 46.7%, unobtainable ABSTAIN 63.3%, constructed wrong-tool 2/199 = 1.005% (`NEGATIVE_RESULTS.md` §39) | externally_benchmarked | `results/routing_bench_bfcl_v4_cext3_results.json` |
 
 Baseline context for the selective-prediction numbers: the calibration benchmark
 is N=302 items, where one model alone scores 57.0% and plain vote-counting
@@ -186,7 +188,7 @@ are first-class here, see `NEGATIVE_RESULTS.md` and
 
 **To reach `CONTROLLED_PILOT`, still open:** REM-021, REM-023.
 
-**Capabilities:** 7 of 15 wired to the API path or deeper ([wiring register](assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml).
+**Capabilities:** 8 of 18 wired to the API path or deeper ([wiring register](assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml).
 <!-- END GENERATED: status -->
 
 Shadow-mode research only; not certified for production. The load-bearing caveats:

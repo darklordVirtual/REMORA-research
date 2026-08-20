@@ -137,7 +137,7 @@ is not sufficient.
 | Empirical selective router | `remora/selective/conformal.py`, `guardrail.py`, `risk_coverage.py` | Splits, threshold search, ties, unattainable thresholds, coverage, and accepted-set risk |
 | CRC status | `remora/selective/crc.py`, `tests/test_crc.py` | Confirm that `WeightedEmpiricalSelectiveRouter` receives no CRC guarantee; verify the missing finite-sample term and the non-monotone loss |
 | PVD status | `remora/selective/pvd.py`, `tests/test_pvd.py` | Verify that PVD is not presented as a validated uncertainty bound or online safety metric |
-| Correlation and thermodynamic measures | `remora/correlation.py`, `remora/thermodynamics.py`, `remora/statphys/potts.py` | Verify dependency assumptions, the ρ clamp, `h_bound`, the λ configuration, and analogy-versus-theorem language |
+| Correlation and thermodynamic measures | `remora/correlation.py`, `remora/thermodynamics.py`, `remora/research_attic/statphys/potts.py` | Verify dependency assumptions, the ρ clamp, `h_bound`, the λ configuration, and analogy-versus-theorem language |
 | Holdout and calibration | `results/selective_n500_holdout_results.json`, `results/selective_trust_curve_results.json` | Separate the calibration-set upper bound from true holdout; always report N accepted and CI |
 | Tool-call v2/v3 | `results/toolcall_benchmark_v2_results.json`, `results/toolcall_benchmark_v2_significance.json`, `results/toolcall_blind_v3_results.json` | Use the template cluster as the unit of analysis where 700 tasks are 70 templates × 10 variants |
 | REM-014 | `results/external_benchmark_agentharm_v1.json`, `tests/test_rem014_external_benchmark.py` | Separate the imported historical result from reproduction in this repository; verify FAR/FBR and the intent-gating scope |

@@ -110,10 +110,10 @@ note there).
 
 Six new artifacts are added (additions, not re-issues) covering the tool-call
 routing track registered as CLAIM-014 and the historical CLAIM-015/CLAIM-016
-records (both superseded by CLAIM-018):
+records (both superseded by CLAIM-018, which is in turn superseded by CLAIM-019):
 
 - `results/routing_bench_bfcl_results.json` + `data/routing_bench_bfcl/manifest.json`
-  are the **sealed blind record** (CLAIM-016, superseded by CLAIM-018). They
+  are the **sealed blind record** (CLAIM-016, superseded by CLAIM-018 and now by CLAIM-019). They
   were produced by a single evaluation at locked commit `cf02fa8` and must never change. Any checksum
   change here is a protocol violation, not a re-run: the set is spent and a
   second evaluation cannot restore blindness.

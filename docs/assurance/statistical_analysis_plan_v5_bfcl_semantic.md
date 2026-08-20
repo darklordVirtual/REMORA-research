@@ -1,6 +1,26 @@
 # Statistical Analysis Plan v5 — BFCL Semantic-Authority Confirmation (C-ext3)
 
-Status: **PRE-REGISTERED 2026-08-19 — sealed run NOT yet executed.**
+Status: **EXECUTED 2026-08-19.** The sealed run happened once and the
+holdout is spent; the manifest at `data/routing_bench_bfcl_v4_cext3/
+manifest.json` reads `evaluated` and refuses a second run forever.
+
+> **Execution record — appended, not edited.** Everything below §1 is the
+> pre-registration exactly as it was committed *before* the sample was drawn,
+> and it is not rewritten in hindsight: that immutability is what makes it a
+> pre-registration rather than a description. Outcome:
+>
+> | | |
+> |---|---|
+> | Result artifact | `results/routing_bench_bfcl_v4_cext3_results.json` |
+> | Claim | CLAIM-019 (active); CLAIM-018 superseded |
+> | Targets met | **3 of 7** |
+> | Met | native wrong-call ACCEPT 0/500 = 0.0% (Wilson 95% upper 0.76%); irrelevance ABSTAIN 300/300; required-unknown ACCEPT 0/398 |
+> | Missed, published as measured | legitimate read autonomy 25/94 = 26.6% (bar 75%); obtainable VERIFY 93/199 = 46.7%; unobtainable ABSTAIN 126/199 = 63.3%; constructed wrong-tool 2/199 = 1.005% |
+> | Misses recorded in | `NEGATIVE_RESULTS.md` §39 |
+>
+> The T2 miss was predicted before the seal (§12, deviation 3) and the run
+> proceeded anyway on the owner's instruction, which is why it is reported as
+> a measured result rather than a reason to retune.
 Scope: the isolated causal effect of declared semantic authority
 (ToolContract/TaskIntent/goal matching + the semantic-authority floor) on
 BFCL-style wrong-tool acceptance. Supplements SAP v3 (routing/selection) and

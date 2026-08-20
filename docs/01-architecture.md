@@ -1,5 +1,11 @@
 # How does REMORA work end to end?
 
+
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 > **Canonical architecture reference:** [`../ARCHITECTURE.md`](../ARCHITECTURE.md).
 > This page is the end-to-end narrative; [`reference_architecture.md`](reference_architecture.md)
 > details the assurance control plane. All three defer to `../ARCHITECTURE.md` for

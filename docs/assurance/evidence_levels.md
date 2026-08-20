@@ -28,7 +28,7 @@ or analytical argument, without empirical measurement.
 - May be verified numerically but the verification uses only symbolic/algebraic checks
 
 **How to cite:**
-> "Derived under assumptions A1–A4. See `remora/theory/`."
+> "Derived under assumptions A1–A4. See `remora/research_attic/theory/`."
 
 **Typical REMORA examples:**
 - MaxEnt/Gibbs free-energy identity for the vote-space model

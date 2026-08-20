@@ -107,7 +107,7 @@ Følgende forskningsideer er konkret representert i kode:
 | Selektiv beslutning/ruting | `remora/selective/`, policy engine | Aktiv |
 | Konformal risikokontroll | `remora/selective/conformal.py`, `crc.py` | Aktiv, men må skilles fra sikkerhetsgulvet |
 | Fleroracle-konsensus | `remora/engine.py`, `remora/correlation.py` | Aktiv |
-| Uenighetsmål | `remora/thermodynamics.py`, `remora/statphys/` | Diagnostikk/ruting; ikke sikkerhetsbevis |
+| Uenighetsmål | `remora/thermodynamics.py`, `remora/research_attic/statphys/` | Diagnostikk/ruting; ikke sikkerhetsbevis |
 | Evidensverifikasjon | `remora/oracles/evidence_verifier.py`, `evidence_v2.py`, `evidence_v3.py` | Aktiv, hovedsakelig leksikalsk |
 | Policy-gating | `remora/policy/decision_engine.py`, `invariants.py` | Aktiv og sikkerhetskritisk |
 | Bounded resolution | `remora/policy/resolution.py` | Implementert kontrakt og re-entry |
@@ -352,10 +352,20 @@ Viktig negativt resultat: temperatur-/uenighetssignalet som så lovende ut på g
 
 ## 5.4 Korrekt kall, feil mål
 
-Den forseglede, ID-disjunkte BFCL v4-evalueringen møtte alle fem
+Den forseglede, ID-disjunkte BFCL v4-evalueringen (C-ext2) møtte alle fem
 forhåndsregistrerte mål. På wrong-call-aksen ble 28 av 258 velutformede, men
 feilaktige verktøykall akseptert (10,9 %, mål ≤20 %). Samlet merket routing
 accuracy var 91,2 % på 1 170 episoder.
+
+> **Oppdatert 2026-08-19 (C-ext3, CLAIM-019).** Sporet over kjørte med
+> `contracts=None, intent=None`, så de semantiske gatene fyrte aldri. Et nytt
+> forseglet spor med frossen kontrakt-/intent-pakke og semantisk
+> autoritetsgulv målte **0 av 500** native feilkall akseptert (Wilson 95 %
+> øvre grense 0,76 %). Ablasjonen på samme episoder: 24 → 6 → 0. Fire av sju
+> mål ble likevel bommet og er publisert som målt — lese-autonomi 26,6 %,
+> obtainable VERIFY 46,7 %, unobtainable ABSTAIN 63,3 %, konstruert
+> feilverktøy 1,005 % (`NEGATIVE_RESULTS.md` §39). 10,9 %-tallet er permanent
+> som degradert-autoritet-baseline, ikke som gjeldende resultat.
 
 Dette viser et generelt resultat:
 
@@ -437,7 +447,8 @@ Følgende resultater er aktive i claim-registeret ved kontrollpunktet:
 | Intern adversarial tool-call simulator | 0,0 % unsafe execution, effektiv N=70 | Syntetisk, ingen reell effekt, CI-øvre grense 5,2 % |
 | Ekstern AgentHarm | 0/208 harmful tillatt | Intent-gating; benign twins blokkeres også, FBR=100 % |
 | Historisk regresjonskorpus | 0/167 kjente tidligere feil tillatt | Beviser bare fravær av regresjon på kjente feil |
-| BFCL v4 blind routing | 91,2 % merket routing accuracy, fem av fem mål møtt | Wrong-call ACCEPT 10,9 %; ingen autoritativ tilstandstabell eller semantisk kontraktspakke |
+| BFCL v4 blind routing, C-ext2 (superserte) | 91,2 % merket routing accuracy, fem av fem mål møtt | Wrong-call ACCEPT 10,9 %; kjørte uten semantisk kontraktspakke, så gatene fyrte aldri |
+| BFCL v4 blind routing, C-ext3 (gjeldende, CLAIM-019) | Native wrong-call ACCEPT **0/500 = 0,0 %** (Wilson øvre 0,76 %); irrelevans 300/300 | Tre av sju mål møtt; lese-autonomi 26,6 % og argumentruting degradert, se `NEGATIVE_RESULTS.md` §39 |
 | Kalibreringsvektet konsensus | 87,8 % mot majority 85,1 %, N=368 | Ikke slått på som standard; bare retningsgivende mot beste enkeltmodell |
 
 Alle tall må siteres sammen med caveat og artefakt.

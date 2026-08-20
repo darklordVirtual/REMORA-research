@@ -1,5 +1,11 @@
 # On-Premises and Air-Gapped Deployment
 
+
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 REMORA can run without depending on external SaaS, provided local or approved model endpoints are available. This document covers deployment in restricted environments where internet access is limited or prohibited.
 
 ---

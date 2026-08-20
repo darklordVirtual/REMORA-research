@@ -1,7 +1,7 @@
 # What didn't work and what remains open?
 
 Active findings are also indexed in `02-evidence-and-claims.md` caveat blocks.
-*Last synchronized with the canonical record: 2026-07-17.*
+*Last synchronized with the canonical record: 2026-08-20.*
 
 > **Why this document exists.**  Publishing negative results is standard
 > scientific practice and is almost never done in individual portfolio projects.
@@ -12,8 +12,16 @@ Active findings are also indexed in `02-evidence-and-claims.md` caveat blocks.
 gaps (external replication, holdout transfer, entropy backend), plus the
 resolved-findings archive (R1–R12). It is **not** the complete negative-results
 record, the canonical, complete record is
-[`../NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md) (16 findings including the
-operational event chronicles and the structural AII ceilings §15–§16).
+[`../NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md), which now runs to §41 —
+11 open, 7 accepted and 23 superseded — including the operational event
+chronicles and the structural AII ceilings §15–§16. Three sections landed
+after this document's earlier sync date and are summarised below rather than
+restated in depth: **§39** (sealed C-ext3 met the safety targets but missed
+four utility targets — the deterministic intent extractor caps read autonomy
+at 26.6% and the semantic gates preempt argument routing), **§40** (the
+invariant set and the decision ladder had silently diverged, which is why
+invariants are now enforced at runtime) and **§41** (three findings from the
+2026-08-20 self-review that did not survive verification).
 Statuses here are synchronized with that record; on any discrepancy the root
 record wins. All findings are registered in `docs/claim_register.md`.
 
@@ -142,6 +150,9 @@ intent, not of the implementation used in experiments.
 | External replication and live validation pending | Active, formal third-party replication still outstanding | Medium |
 | AROMER safety floor does not transfer to external holdout (proxy signals) | Active, largely de-risked, structural gates now intercept 100% of holdout harm with 0% false-accept; remaining before closure: (a) live-oracle trust/entropy for the non-structural margin, (b) external-corpus validation of injection-scanner rules. The ablation success criterion is already tightened. | High → Medium |
 | Entropy backend is token-fingerprint heuristic, not Semantic Entropy | Active, NLI backend not yet benchmarked; SE framing in paper is aspirational | Medium |
+| Deterministic intent extractor caps read autonomy at 26.6% (§39) | Active. Safety confirmed on sealed C-ext3 (native wrong-call ACCEPT 0/500); the LLM-as-proposer arm is the identified follow-up, with the deterministic matcher keeping sole authority | High |
+| Semantic gates preempt argument routing (§39) | Active. Obtainable VERIFY 46.7% and unobtainable ABSTAIN 63.3% under the authority floor; gate ordering for combined semantic+argument observations is an open design question | High |
+| Invariants and the decision ladder had diverged (§40) | Accepted and closed by enforcement at the build choke point; the stricter invariant wins. A safety property asserted only in tests is a description, not a guarantee | Medium (methodological) |
 
 ---
 

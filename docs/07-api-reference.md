@@ -48,30 +48,59 @@ curl -s localhost:8000/v1/assess   -H "$AUTH"   -H "Content-Type: application/js
 ```
 
 The response carries the decision, the reasons that produced it, and the
-envelope's audit block:
+envelope's audit block. Abridged — the full response has 15 top-level keys and
+`policy_decision` carries 11 fields; `schemas/openapi.json` is the complete
+contract:
 
 ```json
 {
   "request_id": "…",
-  "decision": {
-    "action": "escalate",
-    "reasons": ["risk_tier_critical_floor"],
-    "human_review_required": true
+  "proposal_id": "…",
+  "policy_decision": {
+    "action": "abstain",
+    "reasons": ["evidence_contradicted"],
+    "human_review_required": false,
+    "evidence_required": true,
+    "source_of_decision": "hard_block"
   },
   "envelope": {
     "audit": {
       "hash": "…",
       "previous_hash": null,
       "genesis": true,
-      "policy_bundle_hash": "sha256:…"
+      "signature": null,
+      "policy_bundle_hash": "sha256:…",
+      "schema_version": "2"
     }
   }
 }
 ```
 
-`action` is one of `accept`, `verify`, `abstain`, `escalate`. `reasons` names
-every rule that fired, in the order the ladder evaluated them — that list, not
-the action alone, is what an audit reads.
+The decision key is **`policy_decision`**, not `decision`. `action` is one of
+`accept`, `verify`, `abstain`, `escalate`. `reasons` names every rule that
+fired, in the order the ladder evaluated them — that list, not the action
+alone, is what an audit reads, and every value is a member of
+`DecisionReason` (`remora/policy/report.py`).
+
+**The action shown above is illustrative, not fixed for this request.**
+`/v1/assess` consults the evidence layer, and the same call returns `abstain`
+where a local NLI backend is installed and `verify` where evidence is merely
+inconclusive. That is the surface behaving as designed — an unresolved
+evidence question is a reason to hold, not to decide — but it means you must
+branch on the returned `action`, never on the one printed in a document. The
+enforcing `/v1/execution/*` path does not have this property: it runs the
+policy engine under the execution profile, where a probabilistic signal can
+structurally never produce ACCEPT.
+
+Two things in that response are worth reading closely. `signature` is `null`
+because the development profile has no `REMORA_ENVELOPE_SIGNING_KEY`;
+production refuses to start without one, precisely so this field is never
+null there. And `genesis: true` is *recorded*, not inferred from
+`previous_hash` being null — a failed chain lookup raises rather than
+silently restarting the chain.
+
+This exact round trip is executed by `tests/test_api_reference_examples.py`,
+so the response shown above cannot drift from the one the server returns.
 
 For the enforcing surface (`/v1/execution/*`: assess → approve → execute, with
 a single-use grant and an execution lease) see

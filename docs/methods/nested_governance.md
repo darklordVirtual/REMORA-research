@@ -1,5 +1,11 @@
 # Nested Governance for Agentic AI
 
+
+> **Note on `enterprise/*` references:** paths under `enterprise/` name design
+> artifacts maintained in the enterprise edition / main implementation repo; they
+> are not bundled in this research repo. Descriptive references are retained; the
+> files themselves live outside this repository.
+
 *(Some code examples below contain Norwegian legal text by design, the demonstration domain is Norwegian debt-collection law, `inkassoloven`.)*
 
 ## Purpose

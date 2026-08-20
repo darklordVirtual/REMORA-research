@@ -142,7 +142,9 @@ az containerapp update --name remora-assurance --resource-group rg-remora \
     "REMORA_API_TOKENS=secretref:remora-tokens" \
     "REMORA_CONTROL_PLANE_DSN=secretref:pg-dsn" \
     "REMORA_PG_DSN=secretref:pg-dsn" \
+    "REMORA_API_BEARER_TOKEN=secretref:bearer-token" \
     "REMORA_PDP_SIGNING_KEY=secretref:pdp-key" \
+    "REMORA_ENVELOPE_SIGNING_KEY=secretref:envelope-key" \
     "REMORA_TOOL_REGISTRY_MODULE=my_app.remora_registry"
 ```
 
