@@ -1,5 +1,5 @@
 ﻿schema_version: '1'
-updated: '2026-08-03'
+updated: '2026-08-20'
 documents:
 - id: DOC-001
   version: v1
@@ -2327,6 +2327,28 @@ documents:
   status: canonical
   topic: docs_assurance_statistical_analysis_plan_v5_bfcl_semantic_md
   verdict: current
+  version: v1
+- audience:
+  - researcher
+  - evaluator
+  code_synced: unreviewed
+  id: DOC-313
+  last_reviewed: '2026-08-20'
+  path: docs/research/REMORA_forskningsmonografi_no.md
+  status: supporting
+  topic: docs_research_REMORA_forskningsmonografi_no_md
+  verdict: pending
+  version: v1
+- audience:
+  - evaluator
+  - integrator
+  code_synced: unreviewed
+  id: DOC-314
+  last_reviewed: '2026-08-20'
+  path: docs/enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md
+  status: supporting
+  topic: docs_enterprise_no_REMORA_TOGAF_Enterprise_Architecture_v1_0_md
+  verdict: pending
   version: v1
 topics:
 - docs_assurance_statistical_analysis_plan_v5_bfcl_semantic_md
