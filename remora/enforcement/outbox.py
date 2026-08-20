@@ -42,7 +42,10 @@ be claimed for the live path until the wiring lands.
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+from remora.observability.events import governance_event
 import hashlib
 import sqlite3
 import threading
@@ -315,6 +318,18 @@ class ExecutionOutbox:
                 row, state=state, detail=detail, settled_at=_now(now)
             )
             self._rows[outbox_id] = settled
+            governance_event(
+                "dispatch.settled",
+                level=logging.INFO if state is OutboxState.SUCCEEDED
+                else logging.WARNING,
+                outbox_id=outbox_id,
+                tenant_id=settled.tenant_id,
+                proposal_id=settled.proposal_id,
+                tool_name=settled.tool_name,
+                state=state.value,
+                attempt_no=settled.attempt_no,
+                detail=detail,
+            )
             return settled
 
     def reconcile_stale(

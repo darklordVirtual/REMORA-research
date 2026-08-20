@@ -46,6 +46,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any, Callable
 
+from remora.observability.events import governance_event
 from remora.policy.observation import canonical_tool_call_hash
 
 _ENV_KEY = "REMORA_LEASE_SIGNING_KEY"
@@ -175,8 +176,21 @@ class ExecutionLease:
         key = _get_signing_key()
         if key:
             signature = cls._compute_signature(fields, key)
-            return cls(**fields, signature=signature, is_signed=True)
-        return cls(**fields, signature="", is_signed=False)
+            lease = cls(**fields, signature=signature, is_signed=True)
+        else:
+            lease = cls(**fields, signature="", is_signed=False)
+        governance_event(
+            "lease.issued",
+            decision=lease.decision,
+            tenant_id=lease.tenant_id,
+            tool_name=lease.tool_name,
+            tool_args_hash=lease.tool_args_hash,
+            target_environment=lease.target_environment,
+            policy_bundle_hash=lease.policy_bundle_hash,
+            expires_at=lease.expires_at,
+            signed=lease.is_signed,
+        )
+        return lease
 
     @staticmethod
     def _compute_signature(fields: dict[str, Any], key: bytes) -> str:

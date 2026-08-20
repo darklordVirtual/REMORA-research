@@ -227,6 +227,39 @@ Then:
 python -m pytest tests/ -q
 ```
 
+## 8. Operational logging
+
+The tenant audit chain and the operational log answer different questions.
+The chain is the governance record — what was authorised, under which policy,
+by whom — and it is what an auditor reads. The operational log is what an
+on-call engineer reads: what the process did, when, and whether it worked.
+
+The safety core emits structured events on the `remora.governance` logger.
+Nothing is emitted unless you configure a handler for it:
+
+```python
+import logging
+
+logging.getLogger("remora.governance").setLevel(logging.INFO)
+```
+
+| Event | Emitted when | Level |
+|---|---|---|
+| `decision.made` | every policy decision, at the engine's build choke point | INFO |
+| `decision.invariant_violated` | a decision broke a `CORE_INVARIANTS` check and was withdrawn to ESCALATE | ERROR |
+| `lease.issued` | an execution lease is minted | INFO |
+| `grant.checked` | the PEP accepts or refuses a grant; `consumed=true` marks a spent one-time grant | INFO / WARNING when refused |
+| `dispatch.settled` | an outbox row reaches a terminal state | INFO / WARNING unless SUCCEEDED |
+
+Each record carries a structured payload on the `remora` attribute for
+machine consumption, alongside the rendered message.
+
+**Field names are screened.** `governance_event` raises `SecretFieldError`
+rather than logging a field whose *name* looks like a credential. Log an
+identifier (`token_jti`), a digest (`tool_args_hash`) or a boolean
+(`token_verified`) — never the value. A logging call must never become the
+reason a key leaks.
+
 ## Known limits
 
 - REMORA cannot enforce a tool the agent can reach through another credential

@@ -14,6 +14,7 @@ Design goals
 from __future__ import annotations
 
 import dataclasses
+import logging
 from dataclasses import dataclass, replace
 
 from remora.credal import (
@@ -22,6 +23,7 @@ from remora.credal import (
     compute_from_obs,
 )
 from remora.policy.invariants import InvariantResult, check_all_invariants
+from remora.observability.events import governance_event
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
 from remora.policy.resolution import ResolutionPlan
@@ -1619,9 +1621,28 @@ class RemoraDecisionEngine:
                 r for r in check_all_invariants(obs, report) if r.violated
             ]
             if violations:
+                governance_event(
+                    "decision.invariant_violated",
+                    level=logging.ERROR,
+                    invariants=sorted(v.invariant_name for v in violations),
+                    withdrawn_action=action.value,
+                    risk_tier=obs.risk_tier,
+                    action_type=obs.action_type,
+                )
                 return self._escalate_invariant_violation(
                     violations, obs, credal=credal, raw_obs=raw_obs
                 )
+        if not _invariant_recheck:
+            governance_event(
+                "decision.made",
+                action=report.action.value,
+                reasons=[r.value for r in report.reasons],
+                source=report.source_of_decision,
+                risk_tier=obs.risk_tier,
+                action_type=obs.action_type,
+                target_environment=obs.target_environment,
+                human_review_required=report.human_review_required,
+            )
         return report
 
     def _escalate_invariant_violation(

@@ -22,7 +22,10 @@ import warnings
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC
+import logging
 from typing import Any
+
+from remora.observability.events import governance_event
 
 from remora.enforcement.token import PolicyDecisionToken, TokenVerificationResult
 
@@ -397,13 +400,27 @@ class EnforcementGate:
                     if allowed and consume:
                         self._consumed.add(token.jti)
 
-        return EnforcementResult(
+        result = EnforcementResult(
             allowed=allowed,
             action=token.action,
             token_verified=vr.verified or (not token.is_signed and not self.strict),
             reason=reason,
             strict_mode=self.strict,
         )
+        # The PEP decision is the single most operationally interesting event
+        # in the system: it is where an authorization is spent or refused.
+        governance_event(
+            "grant.checked",
+            level=logging.INFO if result.allowed else logging.WARNING,
+            allowed=result.allowed,
+            action=result.action,
+            reason=result.reason,
+            token_jti=token.jti,
+            consumed=bool(consume and result.allowed),
+            strict_mode=self.strict,
+            token_verified=result.token_verified,
+        )
+        return result
 
     def enforce(
         self,
