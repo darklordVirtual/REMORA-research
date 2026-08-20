@@ -78,7 +78,7 @@ postgres = ["psycopg[binary]>=3.3.4,<3.4", "psycopg2-binary>=2.9.12"]
 # and remora/audit_gates/api.py. It was pinned in requirements-lock.txt but
 # never declared by an extra, so `-c` pinned a version pip was never asked to
 # install (fixed 2026-07-31).
-dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.16.1", "sqlglot>=30.14.0", "mypy>=2.3.0", "pyyaml>=6.0", "types-PyYAML>=6.0.12.20260724", "httpx>=0.25", "hypothesis>=6.165.0"]
+dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.16.3", "sqlglot>=30.17.0", "mypy>=2.3.1", "pyyaml>=6.0", "types-PyYAML>=6.0.12.20260815", "httpx>=0.25", "hypothesis>=6.165.10"]
 
 [project.urls]
 Homepage = "https://github.com/darklordVirtual/REMORA-research"
