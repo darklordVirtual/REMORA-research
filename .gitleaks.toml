@@ -45,4 +45,10 @@ regexes = [
   # tests/test_rem013_pdp_pep_boundary.py:28 — a fixture literal for the
   # PDP/PEP boundary test; self-describing and never a live key.
   '''test-pdp-signing-key-rem013''',
+  # docs/07-api-reference.md — the curl example shows how to authenticate by
+  # READING the token from the environment, which is the practice we want
+  # documented. The default curl-auth-header rule matches the header string
+  # itself, so documenting authentication at all trips it; this allowlists the
+  # env-var reference, never a value.
+  '''Authorization: Bearer \$\{REMORA_API_BEARER_TOKEN\}''',
 ]
