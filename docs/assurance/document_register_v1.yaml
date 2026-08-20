@@ -2350,6 +2350,28 @@ documents:
   topic: docs_enterprise_no_REMORA_TOGAF_Enterprise_Architecture_v1_0_md
   verdict: pending
   version: v1
+- audience:
+  - researcher
+  - evaluator
+  code_synced: verified
+  id: DOC-315
+  last_reviewed: '2026-08-20'
+  path: docs/benchmarks/agent-authority-conformance-v0.1.md
+  status: proposal
+  topic: docs_benchmarks_agent-authority-conformance-v0_1_md
+  verdict: pending
+  version: v1
+- audience:
+  - researcher
+  - evaluator
+  code_synced: verified
+  id: DOC-316
+  last_reviewed: '2026-08-20'
+  path: docs/benchmarks/aegis-remora-crosswalk.md
+  status: proposal
+  topic: docs_benchmarks_aegis-remora-crosswalk_md
+  verdict: pending
+  version: v1
 topics:
 - docs_assurance_statistical_analysis_plan_v5_bfcl_semantic_md
 - docs_architecture_cloudflare_state_architecture_md
