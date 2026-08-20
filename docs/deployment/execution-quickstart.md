@@ -20,8 +20,16 @@ Status per capability is recorded in
 ## 1. Install
 
 ```bash
-python -m pip install <remora-wheel>[api,postgres]
+# From a clone (what every other document in this repo assumes):
+python -m pip install -e ".[api,postgres]"
+
+# Or build a wheel first and install that:
+python -m build            # writes dist/remora-<version>-py3-none-any.whl
+python -m pip install "dist/remora-<version>-py3-none-any.whl[api,postgres]"
 ```
+
+The package is not published to PyPI: REMORA is source-available under
+BUSL-1.1, so install from a clone or from a wheel you built.
 
 The wheel ships `remora/`, `servers/` and `schemas/`. `api` pulls FastAPI and
 uvicorn; `postgres` pulls the drivers used by durable multi-worker paths.

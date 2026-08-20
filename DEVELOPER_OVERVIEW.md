@@ -117,7 +117,7 @@ A reviewer should be able to answer these from code and tests:
 ## Reproduce the execution core
 
 ```bash
-python -m pip install -e '.[dev]'
+python -m pip install -e ".[dev]"
 python -m remora try
 python -m pytest tests/test_runtime_profile.py -q
 python -m pytest tests/test_toolspec_execution_wiring.py -q
@@ -149,10 +149,10 @@ A benchmark result is not field validation. A library implementation is not auto
 
 ## Reading order
 
-1. `README.md`
-2. `DEVELOPER_OVERVIEW.md`
-3. `ARCHITECTURE.md`
-4. `docs/deployment/execution-quickstart.md`
-5. core modules above
-6. `docs/02-evidence-and-claims.md`
-7. research, experiments and paper material as needed
+The ordered path lives in [README.md](README.md) — there were five competing
+"start here" lists in this repository and none of them agreed. After this
+document, continue there.
+
+The only addition for someone reading code rather than docs: work through the
+core modules listed above in the order the canonical path executes them
+(policy → enforcement → execution → servers), then the tests that pin each.

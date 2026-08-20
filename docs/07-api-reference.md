@@ -7,6 +7,72 @@ source is authoritative**; every signature below is verified against source by
 `tests/test_api_reference_doc.py`, if this document drifts from the code, CI
 fails.
 
+## The HTTP surface, concretely
+
+The machine-readable contract is [`schemas/openapi.json`](../schemas/openapi.json)
+(OpenAPI 3.1, 23 paths). CI fails on drift between it and the routes, so it is
+the authority for request and response shapes — this document explains them.
+
+A first round-trip against a development-profile server, which is the shortest
+path to a 200 before the strict-profile prerequisites are configured:
+
+```bash
+# Development profile: in-process stores, no ToolSpec bundle required.
+# Never use this configuration for anything you would not undo by hand.
+export REMORA_ENV=development
+export REMORA_API_BEARER_TOKEN=dev-token
+export REMORA_ORACLE_BACKEND=mock
+export REMORA_API_ALLOW_MOCK_ORACLES=true
+python -m uvicorn servers.api:app --port 8000
+```
+
+```bash
+# 1. Is it up, and what policy is it running?
+curl -s localhost:8000/v1/health
+curl -s localhost:8000/v1/policy/version -H "Authorization: Bearer dev-token"
+
+# 2. Gate a proposed tool call.
+curl -s localhost:8000/v1/assess   -H "Authorization: Bearer dev-token"   -H "Content-Type: application/json"   -d '{
+        "question": "Restart the payments worker in production",
+        "tool_call": {
+          "tool_name": "restart_service",
+          "arguments": {"service": "payments-worker", "environment": "prod"}
+        }
+      }'
+```
+
+The response carries the decision, the reasons that produced it, and the
+envelope's audit block:
+
+```json
+{
+  "request_id": "…",
+  "decision": {
+    "action": "escalate",
+    "reasons": ["risk_tier_critical_floor"],
+    "human_review_required": true
+  },
+  "envelope": {
+    "audit": {
+      "hash": "…",
+      "previous_hash": null,
+      "genesis": true,
+      "policy_bundle_hash": "sha256:…"
+    }
+  }
+}
+```
+
+`action` is one of `accept`, `verify`, `abstain`, `escalate`. `reasons` names
+every rule that fired, in the order the ladder evaluated them — that list, not
+the action alone, is what an audit reads.
+
+For the enforcing surface (`/v1/execution/*`: assess → approve → execute, with
+a single-use grant and an execution lease) see
+[deployment/execution-quickstart.md](deployment/execution-quickstart.md); it
+requires the strict-profile prerequisites and is not reachable from the
+development configuration above.
+
 → [01-architecture.md](01-architecture.md) for how these interfaces fit together.
 → [06-reproducibility.md](06-reproducibility.md) for the result JSONL schema.
 

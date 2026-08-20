@@ -35,9 +35,9 @@ limitations.
 
 | Claim | Current support | Caveat |
 |---|---|---|
-| Joint convergence bound couples Thompson Sampling oracle selection with adapter gradient variance. | `remora/theory/joint_convergence.py` and `tests/test_joint_convergence.py`. | Not peer reviewed or machine-checked; assumptions A1-A4 must be stated. |
+| Joint convergence bound couples Thompson Sampling oracle selection with adapter gradient variance. | `remora/research_attic/theory/joint_convergence.py` and `tests/test_joint_convergence.py`. | Not peer reviewed or machine-checked; assumptions A1-A4 must be stated. |
 | MaxEnt/Gibbs free-energy identity F = λD − H = −log Z holds for the implemented vote-space model at unit entropy coefficient (T=1). | `MaxEntropyGrounding.verify_free_energy_formula()` verifies error below `1e-9`. | Grounds the implemented model only. The runtime F(T)=λD−TH for T≠1 does NOT follow from this derivation (T is a heuristic dial, not a Lagrange multiplier); a prior overclaim to the contrary was withdrawn 2026-07-03, see the module docstring. |
-| Scaling laws quantify average regret, learning rate, and marginal oracle count. | `remora/theory/scaling_analysis.py` and `tests/test_joint_convergence.py`. | The current marginal `k*(T)` formula decreases as `1/log(T)`; it is not a claim that pool size grows automatically. |
+| Scaling laws quantify average regret, learning rate, and marginal oracle count. | `remora/research_attic/theory/scaling_analysis.py` and `tests/test_joint_convergence.py`. | The current marginal `k*(T)` formula decreases as `1/log(T)`; it is not a claim that pool size grows automatically. |
 
 ## Internal Empirical Observations
 

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 from datetime import datetime, timezone
@@ -36,6 +37,62 @@ PACKAGE_FILES = [
 # Dependency lockfiles hashed into the manifest so a reviewer can pin the exact
 # environment the pack was built against.
 LOCKFILES = ["requirements-lock.txt", "frontend/package-lock.json"]
+
+
+
+#: Canonical source for anything the pack links to but does not ship.
+REPO_URL = "https://github.com/darklordVirtual/REMORA-research"
+
+
+def _rewrite_external_links(out_dir: Path, packaged: set[str], commit: str | None) -> int:
+    """Point pack links at the canonical source when the target is not shipped.
+
+    The pack is the artifact external reviewers read, and it inherited the
+    repository's root-relative markdown links wholesale. Anything not in
+    PACKAGE_FILES therefore resolved to nothing — 31 dead links in the one
+    artifact whose audience is the one you least want to disappoint.
+
+    Links to files that ARE in the pack stay relative and keep working
+    offline. Everything else becomes a permalink pinned to the commit the
+    pack was built from, so it keeps resolving after the branch moves on.
+    """
+    ref = commit or "master"
+    # Badge-aware, matching scripts/_check_links.py: markdown badges nest one
+    # level of brackets, [![alt](image)](target), and a naive pattern rewrites
+    # the image instead of the target — or misses the target entirely.
+    pattern = re.compile(r"(\[(?:[^\[\]]|\[[^\]]*\])*\]\()([^)\s]+)(\))")
+    rewritten = 0
+
+    for md_path in sorted(out_dir.rglob("*.md")):
+        # Bytes, not text mode: on Windows, write_text translates the
+        # newline and would change every packaged hash, defeating the LF
+        # normalisation the rest of this builder is careful about.
+        text = md_path.read_bytes().decode("utf-8")
+
+        def replace(match: "re.Match[str]") -> str:
+            nonlocal rewritten
+            prefix, target, suffix = match.groups()
+            if target.startswith(("http://", "https://", "mailto:", "#")):
+                return match.group(0)
+            path_part, _, anchor = target.partition("#")
+            if not path_part:
+                return match.group(0)
+            resolved = (md_path.parent / path_part).resolve()
+            if resolved.exists():
+                return match.group(0)
+            # Resolve against the repository root the same way the source
+            # document did, then hand the reader the canonical location.
+            source_rel = path_part.lstrip("./")
+            if source_rel in packaged:
+                return match.group(0)
+            rewritten += 1
+            fragment = f"#{anchor}" if anchor else ""
+            return f"{prefix}{REPO_URL}/blob/{ref}/{source_rel}{fragment}{suffix}"
+
+        updated = pattern.sub(replace, text)
+        if updated != text:
+            md_path.write_bytes(updated.encode("utf-8"))
+    return rewritten
 
 
 def _read_lf(path: Path) -> bytes:
@@ -126,6 +183,22 @@ def build_package(
         "missing_files": missing,
         "file_count": len(copied),
     }
+    rewritten_links = _rewrite_external_links(out_dir, set(copied), commit_sha)
+    manifest["rewritten_external_links"] = rewritten_links
+    # Two hashes, two questions. file_sha256 answers "which repository file is
+    # this?" (provenance, and it is what the source-of-truth checks compare
+    # against). packaged_sha256 answers "is the bundle intact?" (integrity).
+    # They differ exactly where a link to an unshipped document was rewritten
+    # into a permalink, which is the whole reason the pack's links resolve.
+    manifest["packaged_sha256"] = {
+        rel: _sha256_lf(out_dir / rel) for rel in copied
+    }
+    manifest["file_sha256_note"] = (
+        "file_sha256 is the repository SOURCE hash (provenance). "
+        "packaged_sha256 is the hash of the bytes in this bundle (integrity). "
+        "They differ for markdown whose links were rewritten; see "
+        "rewritten_external_links."
+    )
     manifest_path = out_dir / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
