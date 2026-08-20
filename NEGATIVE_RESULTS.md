@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-20: **11 `open`**, **6 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-20: **11 `open`**, **7 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2391,6 +2391,35 @@ tested mechanism that no production path called. The check that would have
 caught all of them is "which production path calls this?" as part of the
 definition of done.
 
+## §41 Three of the self-review's complexity findings did not survive verification (2026-08-20)
+<!-- finding-status: accepted -->
+
+The 2026-08-20 self-review produced 34 findings. Most held up and were fixed
+in rounds A–G. Three did not survive being checked, and they are recorded
+here because a review that only preserves its hits is not a review.
+
+| Finding as reported | What verification showed |
+|---|---|
+| "`remora/toolcall/` carries three parallel generations with no deprecation markers" | The package docstring already orients the reader across all three generations, states which is current, and explains that the older ones are retained because their results are frozen artifacts. There was nothing to add. |
+| "23 `REMORA_*` env vars have one use site and no test" | A proper census over `remora/`, `servers/`, `scripts/`, `experiments/`, `tests/`, `docs/`, `.github/` and `workers/` finds 88 distinct variables, of which **five** appear only in archived documentation and none in live code. The original count excluded `experiments/` and `scripts/`, where most of them are genuinely used. |
+| "There is no `AuditSink` Protocol at all; audit backends are concrete siblings" | An `AuditAdapter` ABC already existed and both adapters inherit it. The real gap was narrower: no *structural* protocol, so a third party had to inherit rather than adapt. That gap was closed; the finding as stated was wrong. |
+
+Two further findings were **reframed rather than fixed**, and the reasoning
+is worth keeping:
+
+- *"`remora/aromer/` has zero importers"* is true and is not by itself a
+  defect: it is an overlay, not a component of the decision path. What is
+  missing is a decision about its position, now tracked as issue #297.
+- *"Replace the exact-value assertions in the claim-provenance test"* — four
+  of them are regression guards on specific published corrections
+  (effective N = 70 rather than 700; cluster-level CI 5.2% rather than the
+  withdrawn task-level 0.55%). Deleting them would have made a revert of
+  those corrections invisible. They were relabelled, not removed.
+
+The generalisable point: **an audit finding is a hypothesis.** Three of these
+were plausible, well-argued, and false, and acting on them without checking
+would have produced churn presented as improvement.
+
 Grouped by status, not by age. `scripts/check_negative_results_status.py`
 verifies that every section listed here carries the matching
 `<!-- finding-status: ... -->` marker, so this table cannot drift away from the
@@ -2415,6 +2444,7 @@ sections again.
 
 | Finding | Why it is closed to further tuning | Severity |
 |---------|------------------------------------|----------|
+| Three self-review complexity findings were wrong (§41) | Verified and refuted: the toolcall generations are already documented, the env-var census was miscounted by excluding experiments/ and scripts/, and an AuditAdapter ABC already existed. An audit finding is a hypothesis | Low (methodological) |
 | Invariants and the decision ladder had diverged (§40) | The invariant set was never evaluated at runtime, so a conformal ACCEPT in the disordered phase contradicted a stated invariant unnoticed. Enforcement is now wired into the build choke point and the stricter invariant wins. A property asserted only in tests is a description, not a guarantee | Medium (methodological) |
 | Consensus temperature failed fresh-data confirmation (§18) | AURC 0.0954 vs 0.0664 for calibrated confidence, paired CI excludes zero, zero SGR-certifiable coverage. The hypothesis was pre-registered and it failed. Temperature stays diagnostic; reviving it needs entirely new evidence, not a threshold | **High (falsifies the thermodynamic-selection hypothesis)** |
 | AgentHarm cannot measure resolver friction (§19) | FAR=0.0% met; FBR=100% not met, because every source verdict is ESCALATE and the control protocols act on VERIFY. Rewriting ESCALATE→VERIFY moved 19 harmful and 0 benign. A different dataset is required | Medium |
