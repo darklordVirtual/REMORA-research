@@ -1,77 +1,41 @@
-# Scripts Directory Guide
+# `scripts/`
 
-This folder contains operational scripts for benchmarking, documentation quality gates, demos, and one-off maintenance patches.
+121 scripts, of which 52 are referenced by CI or the Makefile. The rest are
+not dead — they are one-shot builders and demos — but a reader cannot tell
+which is which from the filenames, so this is the map.
 
-## Conventions
+## Gated (CI or `make` runs them)
 
-- All Python scripts must use UTF-8 source encoding.
-- Each script should have:
-  - `# Author: Stian Skogbrott`
-  - `# SPDX-License-Identifier: BUSL-1.1`
-  - A module docstring describing purpose and usage.
-- Prefer deterministic outputs for benchmark/report scripts.
-- One-off patch scripts should be treated as maintenance utilities, not runtime dependencies.
+Everything named in `.github/workflows/` or the `Makefile`. These are
+maintained: a change that breaks one fails the build. The claim, document and
+provenance checkers (`check_*.py`) are the largest group and are the
+repository's actual assurance surface.
 
-## Active Operational Scripts
+## One-shot, and deliberately never re-run
 
-These are expected to remain in regular use.
+Sealed-holdout builders and runners:
 
-- Benchmarking and evaluation:
-  - `build_benchmark.py`
-  - `build_rag_adversarial.py`
-  - `gen_toolcall_benchmark.py`
-  - `selective_n500_holdout.py`
-  - `statistical_tests.py`
-  - `validate_corpus.py`
-  - `phase_frontier.py`
-- Quality gates and consistency checks:
-  - `check_artifacts_exist.py`
-  - `check_claim_consistency.py`
-  - `check_no_overclaims.py`
-  - `check_readme_claims.py`
-  - `_check_conformal.py`
-  - `_check_imports.py`
-  - `_check_links.py`
-- Documentation and figure generation:
-  - `generate_analysis.py`
-  - `generate_n1000_figures.py`
-  - `generate_readme_figures.py`
-  - `generate_results_snapshot.py`
-  - `generate_usecase_visuals.py`
-  - `generate_asker_visual.py`
-- Runtime and integration tooling:
-  - `remora_hook.py`
-  - `remora_anchor.py`
-  - `setup_cloudflare_infra.py`
-  - `shadow_replay.py`
-  - `ingest_corpus.py`
-  - `enrich_corpus.py`
-  - `mcp_test.py`
-- Demos:
-  - `demo.py`
-  - `demo_building_lights.py`
-  - `demo_norwegian_law.py`
-  - `demo_future_concept.py` (experimental)
+- `build_bfcl_v4_cext3.py`, `run_bfcl_cext3.py` — built and evaluated the
+  C-ext3 track exactly once. The manifest is marked `evaluated`, the runner
+  refuses a second run, and a spent holdout can never serve as a blind set
+  again. The same applies to the earlier `build_bfcl_holdout.py`,
+  `build_bfcl_v4_holdout.py`, `build_routing_holdout.py` and
+  `build_grounding_holdout.py`.
+- `bfcl_posthoc_semantic_reanalysis.py` — labelled POST-HOC / DEVELOPMENT
+  ONLY; its output may not be cited as a result anywhere.
 
-## Maintenance / One-Off Patch Scripts
+Running one of these again does not reproduce a result — it destroys the
+property that made the result worth having. If you need a fresh measurement,
+build a new track with a new seed and pre-register it.
 
-These maintenance helpers are now located in `scripts/legacy/` to keep the root
-scripts folder focused on operational tooling.
+## Demos and generators
 
-- Paper/doc patching (`scripts/legacy/`):
-  - `patch_bibliography.py`
-  - `patch_citations.py`
-  - `patch_crc_paper.py`
-  - `patch_crc_paper_md.py`
-  - `patch_paper.py`
-  - `patch_paper_md.py`
-  - `patch_paper_md2.py`
-  - `patch_pvd_paper.py`
-  - `patch_stages.py`
-  - `patch_tee_paper.py`
-- Code patching helpers (`scripts/legacy/`):
-  - `_patch_ast_guard.py`
-  - `_patch_lyapunov.py`
-  - `_patch_lyapunov2.py`
-  - `_patch_thermodynamics.py`
-  - `fix_crc_tests.py`
+`demo_*.py`, `generate_*.py`, `export_*.py`: illustrative or artifact-
+producing, run by hand. A demo that stops working is a bug worth fixing, but
+it does not gate anything.
+
+## Adding a script
+
+State in the module docstring which of the three groups it belongs to. A
+one-shot script must say what makes it one-shot and what refusing a re-run
+protects — `scripts/run_bfcl_cext3.py` is the model.
