@@ -234,6 +234,7 @@ AROMER remains an experimental/research layer. Its documentation is retained sep
 
 | Document | Purpose |
 |---|---|
+| [aromer/SUBPROJECT.md](aromer/SUBPROJECT.md) | AROMER subproject charter: own version, one-way dependency, not product surface (issue #297) |
 | [aromer/quickstart_aromer.md](aromer/quickstart_aromer.md) | AROMER quickstart |
 | [aromer/REMORA_AROMER_MASTER_DOCUMENT.md](aromer/REMORA_AROMER_MASTER_DOCUMENT.md) | AROMER technical reference |
 
