@@ -82,6 +82,16 @@ fired, in the order the ladder evaluated them — that list, not the action
 alone, is what an audit reads, and every value is a member of
 `DecisionReason` (`remora/policy/report.py`).
 
+**The action shown above is illustrative, not fixed for this request.**
+`/v1/assess` consults the evidence layer, and the same call returns `abstain`
+where a local NLI backend is installed and `verify` where evidence is merely
+inconclusive. That is the surface behaving as designed — an unresolved
+evidence question is a reason to hold, not to decide — but it means you must
+branch on the returned `action`, never on the one printed in a document. The
+enforcing `/v1/execution/*` path does not have this property: it runs the
+policy engine under the execution profile, where a probabilistic signal can
+structurally never produce ACCEPT.
+
 Two things in that response are worth reading closely. `signature` is `null`
 because the development profile has no `REMORA_ENVELOPE_SIGNING_KEY`;
 production refuses to start without one, precisely so this field is never
