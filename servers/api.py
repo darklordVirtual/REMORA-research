@@ -910,7 +910,13 @@ def engine_mode_identity(engine: Any) -> dict[str, bool]:
 
 
 def _execution_engine_mode_flags() -> dict[str, bool]:
-    """The enforcing surface's ACCEPT-path flags, for /v1/policy/version."""
+    """The enforcing surface's ACCEPT-path flags.
+
+    The single place this module reaches into ``servers.execution_api``. The
+    import is function-local because the dependency is genuinely circular —
+    the execution surface owns the enforcing engine, and this module reports
+    on it — and crossing that edge once keeps the cycle legible.
+    """
     from servers.execution_api import _ENGINE
 
     return engine_mode_identity(_ENGINE)
@@ -942,9 +948,11 @@ def _engine_mode_component_hash(
                     "not apply to this surface",
         }
     else:
-        if engine is None:
-            from servers.execution_api import _ENGINE as engine
-        modes = {"surface": SURFACE_EXECUTION, **engine_mode_identity(engine)}
+        flags = (
+            _execution_engine_mode_flags() if engine is None
+            else engine_mode_identity(engine)
+        )
+        modes = {"surface": SURFACE_EXECUTION, **flags}
 
     canonical = json.dumps(modes, sort_keys=True, separators=(",", ":"))
     return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()

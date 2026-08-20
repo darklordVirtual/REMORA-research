@@ -642,6 +642,7 @@ def _semantic_bundle() -> "tuple[SemanticBundle | None, IntentResolver | None]":
                         spec, load_semantic_bundle(), load_intent_resolver()
                     )
                 _SEMANTIC = cached
+    assert cached is not None
     return cached[1], cached[2]
 
 
