@@ -89,10 +89,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      # SHA-pinned like every other action in this workflow: the mutable v2 tag
+      # changed scan behaviour under us on 2026-08-20 and turned master red
+      # without a repository change. A supply-chain workflow must not itself
+      # depend on a moving reference.
       - name: Run gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: ${{ github.workspace }}/.gitleaks.toml
 
   sbom:
     name: SBOM generation (CycloneDX)
