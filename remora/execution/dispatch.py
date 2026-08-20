@@ -32,8 +32,16 @@ def dispatch_under_lease(
     policy_bundle_hash: str,
     gate_allowed: bool = True,
     toolspec: dict[str, Any] | None = None,
+    proposal_id: str = "",
+    grant_jti: str = "",
 ) -> dict[str, Any]:
-    """Dispatch one authorized call through the governed dispatcher."""
+    """Dispatch one authorized call through the governed dispatcher.
+
+    ``proposal_id`` and ``grant_jti`` are the correlation half (issue #45):
+    they are signed into the lease and reported back on the result, so an
+    executed side effect joins to the decision that authorized it and to the
+    grant that was consumed, without re-deriving hashes out of band.
+    """
     tool_execution: dict[str, Any] = {"executed": False}
     if not gate_allowed:
         tool_execution["refusal_reason"] = "pep_denied"
@@ -55,6 +63,8 @@ def dispatch_under_lease(
             intent_authority_hash=semantic["intent_authority_hash"],
             toolspec_hash=(toolspec or {}).get("hash", ""),
             toolspec_version=int((toolspec or {}).get("version", 0)),
+            proposal_id=proposal_id,
+            grant_jti=grant_jti,
         )
     except (LeaseRefused, ValueError) as exc:
         tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
@@ -72,8 +82,12 @@ def dispatch_under_lease(
         # Tool raised: the nonce is burned, state is unknown.
         tool_execution["refusal_reason"] = "tool_failed_nonce_burned"
         tool_execution["error"] = str(exc)
+        tool_execution["proposal_id"] = proposal_id
         return tool_execution
     tool_execution["executed"] = dres.executed
+    # Read the identity back off the dispatch result rather than the local
+    # variable: what is reported is what the dispatcher actually acted under.
+    tool_execution["proposal_id"] = dres.proposal_id
     if dres.executed:
         # Bounded retention, unbounded verification: the hash covers the
         # full result even when the preview is truncated, so an oversized

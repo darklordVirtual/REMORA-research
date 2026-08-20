@@ -323,6 +323,8 @@ def execute_approved_item(
         now=now,
         gate_allowed=gate_result.allowed,
         toolspec=toolspec_identity,
+        proposal_id=str(proposal_id or item_id),
+        grant_jti=token.jti,
     )
 
     # FT-02: settle with what actually happened - derived, never assumed.
@@ -489,6 +491,8 @@ def redeem_accept_token(
         tool_call=tool_call,
         semantic=semantic,
         now=now,
+        proposal_id=str(proposal_id or token.jti),
+        grant_jti=token.jti,
     )
 
     if intent is not None:

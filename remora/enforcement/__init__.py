@@ -44,6 +44,7 @@ from remora.enforcement.lease import (
     ExecutionLease,
     GovernedToolDispatcher,
     LeaseRefused,
+    ToolExecutionStateUnknown,
     LeaseVerificationResult,
     NonceLedger,
 )
@@ -60,6 +61,7 @@ __all__ = [
     "ExecutionLease",
     "GovernedToolDispatcher",
     "LeaseRefused",
+    "ToolExecutionStateUnknown",
     "LeaseVerificationResult",
     "NonceLedger",
     "PolicyDecisionToken",
