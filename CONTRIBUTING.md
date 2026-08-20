@@ -43,6 +43,22 @@ Run the relevant focused tests, then the repository quality gates required by th
 
 Do not commit secrets, private review notes, local agent state, generated IDE/AI-tool plans or local build output.
 
+### Typing and coverage floors for the trusted computing base
+
+`remora/policy`, `remora/enforcement`, `remora/execution`, `remora/governance`
+and `servers/` are the code that decides and enforces. Two gates apply to them
+that do not apply to the research modules:
+
+- **`disallow_untyped_defs`** (pyproject `[[tool.mypy.overrides]]`). Default
+  mypy does not check the bodies of unannotated functions at all, so an
+  untyped function on the ACCEPT path is invisible no matter how wide the
+  gate's scope. Annotate; do not add a blanket ignore to get through.
+- **Per-package coverage floors** (`scripts/check_coverage_thresholds.py`,
+  branch coverage on). A single global number lets a well-covered research
+  module pay for a thinly covered enforcement module. Raise a floor when the
+  real number rises; never lower one to make a failing build pass — cover the
+  code instead.
+
 ## Contribution licensing
 
 REMORA is dual-licensed under the Business Source License 1.1 and separate commercial licenses issued by the Licensor. See [LICENSING.md](LICENSING.md).

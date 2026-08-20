@@ -34,6 +34,7 @@ import threading
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
+import sqlite3
 from typing import Any
 
 _GENESIS = "0" * 64
@@ -273,7 +274,7 @@ def verify_exported_chain(
     return (not problems), problems
 
 
-def _verify_generic(chain, tenant_id: str) -> tuple[bool, list[str]]:
+def _verify_generic(chain: Any, tenant_id: str) -> tuple[bool, list[str]]:
     problems: list[str] = []
     previous_hash = _GENESIS
     key = os.environ.get(_ENV_KEY, "").strip().encode()
@@ -310,7 +311,7 @@ class SQLiteTenantChain:
         self._local = threading.local()
         self._conn().executescript(_SQLITE_DDL)
 
-    def _conn(self):
+    def _conn(self) -> "sqlite3.Connection":
         import sqlite3
 
         conn = getattr(self._local, "conn", None)

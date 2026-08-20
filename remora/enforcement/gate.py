@@ -117,7 +117,7 @@ class EnforcementGate:
     # Legitimate pruning stays possible through an explicit reset, so the
     # discipline is "operator-authorized", not "impossible".
 
-    def _bump_watermark(self, conn) -> None:
+    def _bump_watermark(self, conn: Any) -> None:
         """Count one more consumed grant, in the caller's transaction.
 
         Same statement on both backends: no parameters, so no placeholder

@@ -94,3 +94,11 @@ mypy_errors.txt
 
 # Routing benchmark upstream source cache (never committed)
 .cache/
+
+# Scratch and generated report output (self-review 2026-08-20: these were
+# untracked but not ignored, so `git add -A` swept 63 scratch files into a
+# commit that had to be amended out).
+coverage.json
+infographic/
+ids_out.yaml
+tmp/

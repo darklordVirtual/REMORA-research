@@ -1931,7 +1931,7 @@ def health() -> HealthResponse:
 
 
 @app.post("/v1/assess", response_model=AssessResponse, tags=["governance"])
-def assess(req: AssessRequest, request: Request) -> AssessResponse:
+def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONResponse:
     """Assess an agent action proposal through the full REMORA pipeline.
 
     Returns a structured governance decision with thermodynamic observables,
@@ -2370,7 +2370,7 @@ def evidence(req: EvidenceRequest, request: Request) -> dict:
 
 
 @app.post("/v1/rerun", response_model=dict, tags=["governance"])
-def rerun(req: RerunRequest, request: Request) -> dict:
+def rerun(req: RerunRequest, request: Request) -> dict | JSONResponse:
     """Re-run governance assessment with the same persisted request context."""
     tenant_id, role = _authenticate(request)
     _require_tenant_capability(role, tenant_id, "rerun")
@@ -2516,17 +2516,17 @@ class _ProposalIdHeaderMiddleware:
     SAME task so its contextvar set is visible when response headers start.
     Reset per request; absent when no proposal was involved."""
 
-    def __init__(self, asgi_app):
+    def __init__(self, asgi_app: Any) -> None:
         self.app = asgi_app
 
-    async def __call__(self, scope, receive, send):
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
         holder: dict = {"id": None}
         token = _CURRENT_PROPOSAL_ID.set(holder)
 
-        async def send_with_header(message):
+        async def send_with_header(message: Any) -> None:
             if message["type"] == "http.response.start":
                 proposal_id = holder.get("id")
                 if proposal_id:
