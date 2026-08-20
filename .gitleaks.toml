@@ -35,6 +35,14 @@ paths = [
   '''results/external_benchmark_agentharm_v1\.json''',
 ]
 
+# Matched against the whole LINE, not the extracted secret. The default
+# target is the secret alone, which forces allowlist entries to be bare values
+# — and a bare value suppresses every future finding anywhere in the
+# repository that happens to contain that string, which is how a secret
+# scanner gets quietly disarmed. Matching the line is what lets each entry
+# below be anchored to the context it actually appears in.
+regexTarget = "line"
+
 # Identifier NAMES that the generic-api-key rule reads as values.
 regexes = [
   # remora/governance/a2a_envelope.py:72 — the name of the env var to read,

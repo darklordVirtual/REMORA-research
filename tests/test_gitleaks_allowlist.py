@@ -63,6 +63,17 @@ def test_no_catch_all_entries() -> None:
         )
 
 
+def test_regexes_are_matched_against_the_whole_line() -> None:
+    """Anchoring only works if the allowlist sees the context.
+
+    gitleaks matches allowlist regexes against the extracted SECRET by
+    default, which forces every entry to be a bare value — and a bare value
+    suppresses unrelated future findings. regexTarget = "line" is what makes
+    the anchoring in the entries above meaningful rather than decorative.
+    """
+    assert _config()["allowlist"].get("regexTarget") == "line"
+
+
 def test_every_regex_is_anchored_to_this_repository() -> None:
     """A bare value would suppress unrelated future findings."""
     for entry in _config()["allowlist"]["regexes"]:
