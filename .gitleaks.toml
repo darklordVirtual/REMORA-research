@@ -51,4 +51,13 @@ regexes = [
   # itself, so documenting authentication at all trips it; this allowlists the
   # env-var reference, never a value.
   '''Authorization: Bearer \$\{REMORA_API_BEARER_TOKEN\}''',
+  # docs/07-api-reference.md, commit 286ee24 — the curl example first shipped
+  # with an inline placeholder before being rewritten to read the token from
+  # the environment. gitleaks scans HISTORY, so a later fix does not remove an
+  # earlier commit's finding; this names the placeholder, which was never a
+  # credential in any environment.
+  '''dev-token''',
+  # The same block's unauthenticated health check, matched by the rule's
+  # multi-line region rather than by any secret in it.
+  '''curl -s localhost:8000/v1/health''',
 ]
