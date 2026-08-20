@@ -1,6 +1,6 @@
 # REMORA developer handoff
 
-Use this file to orient a new developer or external reviewer. Runtime behavior is defined by code, schemas and assurance registers; research files do not implicitly define the execution path.
+Runtime behavior is defined by code, schemas and assurance registers; research files do not implicitly define the execution path.
 
 ## Runtime path
 
