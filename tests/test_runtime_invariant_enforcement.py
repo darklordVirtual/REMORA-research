@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import pytest
 
+import remora.policy.decision_engine as engine_mod
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.invariants import (
     CORE_INVARIANTS,
@@ -61,11 +62,9 @@ def test_a_violated_invariant_escalates_instead_of_returning(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A decision that breaks an invariant is withdrawn, not delivered."""
-    import remora.policy.decision_engine as mod
-
     probe = _AlwaysViolated()
     monkeypatch.setattr(
-        mod, "check_all_invariants",
+        engine_mod, "check_all_invariants",
         lambda obs, report: [probe.check(obs, report)],
     )
     report = RemoraDecisionEngine().decide(_obs())
@@ -77,8 +76,6 @@ def test_a_violated_invariant_escalates_instead_of_returning(
 
 def test_escalation_does_not_recurse(monkeypatch: pytest.MonkeyPatch) -> None:
     """Building the escalation must not re-enter enforcement forever."""
-    import remora.policy.decision_engine as mod
-
     calls: list[int] = []
 
     def _always_violated(obs, report):
@@ -89,7 +86,7 @@ def test_escalation_does_not_recurse(monkeypatch: pytest.MonkeyPatch) -> None:
             )
         ]
 
-    monkeypatch.setattr(mod, "check_all_invariants", _always_violated)
+    monkeypatch.setattr(engine_mod, "check_all_invariants", _always_violated)
     report = RemoraDecisionEngine().decide(_obs())
     assert report.action is DecisionAction.ESCALATE
     # Exactly one evaluation: the original decision. The replacement is built
@@ -98,16 +95,14 @@ def test_escalation_does_not_recurse(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_enforcement_can_be_disabled_for_measurement() -> None:
-    import remora.policy.decision_engine as mod
-
     engine = RemoraDecisionEngine(verify_invariants=False)
-    original = mod.check_all_invariants
+    original = engine_mod.check_all_invariants
     seen: list[int] = []
-    mod.check_all_invariants = lambda obs, report: (seen.append(1), [])[1]
+    engine_mod.check_all_invariants = lambda obs, report: (seen.append(1), [])[1]
     try:
         engine.decide(_obs())
     finally:
-        mod.check_all_invariants = original
+        engine_mod.check_all_invariants = original
     assert seen == []
 
 

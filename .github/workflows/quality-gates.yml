@@ -53,7 +53,13 @@ jobs:
         run: ruff check .
 
       - name: Type check (mypy)
-        run: mypy remora --ignore-missing-imports
+        # servers/ joined the gate 2026-08-20: 4k lines of audit-chain
+        # hashing, signing and both API surfaces had never been type-checked.
+        # disallow_untyped_defs for the trusted computing base is configured
+        # in pyproject.toml — without it mypy skips unannotated function
+        # bodies entirely, so an untyped function on the ACCEPT path was
+        # invisible no matter how wide the scope.
+        run: mypy remora servers --ignore-missing-imports
 
       - name: Generate canonical results snapshot
         run: python scripts/generate_results_snapshot.py
@@ -93,10 +99,16 @@ jobs:
           python scripts/_check_imports.py
 
       - name: Run tests with coverage
-        # Raised 60 -> 75 (self-review 2026-07-28): actual coverage is 83%,
-        # so 60 let critical code hide behind slack. Next step per external
-        # review T1: per-package gates for remora/policy and remora/enforcement.
-        run: pytest -q --cov=remora --cov-report=term-missing --cov-fail-under=75
+        # 60 -> 75 (2026-07-28) -> per-package floors (2026-08-20). A single
+        # global number let a well-covered research module pay for a thinly
+        # covered enforcement module; branch coverage is on because a
+        # statement-only number counts a half-taken `if` as fully covered,
+        # which is exactly where fail-closed guards hide. Source and floors
+        # live in pyproject.toml and scripts/check_coverage_thresholds.py.
+        run: pytest -q --cov --cov-branch --cov-report=term-missing --cov-report=json:coverage.json
+
+      - name: Per-package coverage floors (trusted computing base)
+        run: python scripts/check_coverage_thresholds.py coverage.json
 
       - name: Safety gate (false accept rate must be zero)
         run: |

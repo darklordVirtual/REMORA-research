@@ -113,9 +113,11 @@ ignore = [
 ]
 
 [tool.mypy]
-# Gate scope: the safety-critical core (policy, enforcement, selective) and
-# what they transitively import — enforced in quality-gates.yml. Expand
-# package-by-package; do not add blanket ignores to get a package through.
+# Gate scope: `mypy remora servers` in quality-gates.yml. servers/ was
+# outside the gate until 2026-08-20 even though it holds the audit-chain
+# hashing, signing and both API surfaces — the largest untyped stretch of the
+# trusted computing base. Expand package-by-package; do not add blanket
+# ignores to get a package through.
 python_version = "3.12"
 ignore_missing_imports = true
 # warn_unused_ignores stays OFF: `# type: ignore` comments here guard
@@ -123,6 +125,20 @@ ignore_missing_imports = true
 # unused/used depending on which extras are installed in the environment.
 warn_unused_ignores = false
 warn_redundant_casts = true
+
+# Default mypy does not check the BODIES of unannotated functions, so an
+# untyped function on the ACCEPT path was invisible to the gate no matter how
+# wide its scope. These five packages are the trusted computing base and must
+# be annotated; the rest of the tree is expanded as it is cleaned up.
+[[tool.mypy.overrides]]
+module = [
+    "remora.policy.*",
+    "remora.enforcement.*",
+    "remora.execution.*",
+    "remora.governance.*",
+    "servers.*",
+]
+disallow_untyped_defs = true
 
 # The BFCL semantic bundle is a FROZEN evaluation artifact: its SHA-256 is
 # recorded in data/routing_bench_bfcl_v4_cext3/manifest.json and the sealed
@@ -132,6 +148,27 @@ warn_redundant_casts = true
 [[tool.mypy.overrides]]
 module = "remora.toolcall.routing.bfcl_semantic_bundle"
 ignore_errors = true
+
+[tool.coverage.run]
+# Branch coverage on: a statement-only number counts a half-taken `if` as
+# fully covered, which is exactly where fail-closed guards hide. servers/ is
+# measured too — it holds the audit-chain hashing, signing and both API
+# surfaces, and was outside the measurement entirely until 2026-08-20.
+branch = true
+source = ["remora", "servers"]
+omit = [
+    "*/__pycache__/*",
+    # Frozen evaluation artifact, hash-sealed in the C-ext3 manifest; it runs
+    # only inside the spent sealed track and must not be edited for coverage.
+    "remora/toolcall/routing/bfcl_semantic_bundle.py",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@overload",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

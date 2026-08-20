@@ -8,7 +8,7 @@ from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
 
 
-def enrich_then_decide(obs: PolicyObservation, **kwargs: Any):
+def enrich_then_decide(obs: PolicyObservation, **kwargs: Any) -> Any:
     """Optional Governance Intelligence path: enrich *obs*, then decide.
 
     Lazy delegate to :func:`remora.governance_intelligence.enrichment.enrich_then_decide`

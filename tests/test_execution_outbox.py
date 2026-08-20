@@ -453,3 +453,90 @@ def test_postgres_enlisted_intent_commits_with_the_caller(pg_outbox) -> None:
                 grant_jti="j",
             )
     assert outbox.get(row.outbox_id).state is OutboxState.DISPATCH_PENDING
+
+
+# ── State-machine refusals (self-review 2026-08-20) ─────────────────────────
+#
+# outbox.py is the file that decides whether a dispatch intent may be settled,
+# and it was the second-least-covered file in the trusted computing base
+# (69.7% with branches). These cover the refusal branches: every one of them
+# exists so a row cannot be moved to a state that misrepresents what actually
+# happened to the side effect.
+
+
+def test_settling_an_unclaimed_row_through_the_normal_path_is_refused(
+    outbox,
+) -> None:
+    """Only a claimed (DISPATCHING) row can be settled normally."""
+    row = _intent(outbox)
+    with pytest.raises(ValueError, match="only a claimed"):
+        outbox.settle(row.outbox_id, OutboxState.SUCCEEDED, detail="skipped claim")
+
+
+def test_settling_into_a_non_terminal_state_is_refused(outbox) -> None:
+    row = _intent(outbox)
+    outbox.claim(row.outbox_id, worker_id="w1")
+    with pytest.raises(ValueError, match="not a terminal"):
+        outbox.settle(
+            row.outbox_id, OutboxState.DISPATCH_PENDING, detail="backwards"
+        )
+
+
+def test_unknown_row_raises_key_error(outbox) -> None:
+    with pytest.raises(KeyError, match="unknown outbox row"):
+        outbox.claim("no-such-row", worker_id="w1")
+
+
+def test_reconcile_stale_only_touches_claimed_rows(outbox) -> None:
+    """An unclaimed intent is not the stale reconciler's business.
+
+    Claim strictly precedes invocation, so a never-claimed row has no
+    undeterminable side effect and must not be settled as UNKNOWN.
+    """
+    from datetime import timedelta
+
+    row = _intent(outbox)
+    settled = outbox.reconcile_stale("acme", older_than=timedelta(seconds=-1))
+    assert [r.outbox_id for r in settled] == []
+    assert outbox.get(row.outbox_id).state is OutboxState.DISPATCH_PENDING
+
+
+def test_reconcile_stale_settles_a_claimed_row_as_unknown(outbox) -> None:
+    """UNKNOWN, never a retry: the worker may have invoked the tool before dying."""
+    from datetime import timedelta
+
+    row = _intent(outbox)
+    outbox.claim(row.outbox_id, worker_id="w1")
+    settled = outbox.reconcile_stale("acme", older_than=timedelta(seconds=-1))
+    assert [r.outbox_id for r in settled] == [row.outbox_id]
+    assert outbox.get(row.outbox_id).state is OutboxState.UNKNOWN
+
+
+def test_reconcile_unclaimed_settles_a_pending_row_as_failed(outbox) -> None:
+    """Authorized but never claimed: nothing was dispatched, so FAILED is honest."""
+    from datetime import timedelta
+
+    row = _intent(outbox)
+    settled = outbox.reconcile_unclaimed("acme", older_than=timedelta(seconds=-1))
+    assert [r.outbox_id for r in settled] == [row.outbox_id]
+    assert outbox.get(row.outbox_id).state is OutboxState.FAILED
+
+
+def test_reconcile_unclaimed_leaves_claimed_rows_alone(outbox) -> None:
+    from datetime import timedelta
+
+    row = _intent(outbox)
+    outbox.claim(row.outbox_id, worker_id="w1")
+    settled = outbox.reconcile_unclaimed("acme", older_than=timedelta(seconds=-1))
+    assert [r.outbox_id for r in settled] == []
+    assert outbox.get(row.outbox_id).state is OutboxState.DISPATCHING
+
+
+def test_reconcilers_scope_to_one_tenant(outbox) -> None:
+    from datetime import timedelta
+
+    mine = _intent(outbox, tenant="acme", item_id="a", grant_jti="j-a")
+    theirs = _intent(outbox, tenant="other", item_id="b", grant_jti="j-b")
+    outbox.reconcile_unclaimed("acme", older_than=timedelta(seconds=-1))
+    assert outbox.get(mine.outbox_id).state is OutboxState.FAILED
+    assert outbox.get(theirs.outbox_id).state is OutboxState.DISPATCH_PENDING

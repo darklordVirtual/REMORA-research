@@ -910,7 +910,13 @@ def engine_mode_identity(engine: Any) -> dict[str, bool]:
 
 
 def _execution_engine_mode_flags() -> dict[str, bool]:
-    """The enforcing surface's ACCEPT-path flags, for /v1/policy/version."""
+    """The enforcing surface's ACCEPT-path flags.
+
+    The single place this module reaches into ``servers.execution_api``. The
+    import is function-local because the dependency is genuinely circular —
+    the execution surface owns the enforcing engine, and this module reports
+    on it — and crossing that edge once keeps the cycle legible.
+    """
     from servers.execution_api import _ENGINE
 
     return engine_mode_identity(_ENGINE)
@@ -942,9 +948,11 @@ def _engine_mode_component_hash(
                     "not apply to this surface",
         }
     else:
-        if engine is None:
-            from servers.execution_api import _ENGINE as engine
-        modes = {"surface": SURFACE_EXECUTION, **engine_mode_identity(engine)}
+        flags = (
+            _execution_engine_mode_flags() if engine is None
+            else engine_mode_identity(engine)
+        )
+        modes = {"surface": SURFACE_EXECUTION, **flags}
 
     canonical = json.dumps(modes, sort_keys=True, separators=(",", ":"))
     return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -1931,7 +1939,7 @@ def health() -> HealthResponse:
 
 
 @app.post("/v1/assess", response_model=AssessResponse, tags=["governance"])
-def assess(req: AssessRequest, request: Request) -> AssessResponse:
+def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONResponse:
     """Assess an agent action proposal through the full REMORA pipeline.
 
     Returns a structured governance decision with thermodynamic observables,
@@ -2370,7 +2378,7 @@ def evidence(req: EvidenceRequest, request: Request) -> dict:
 
 
 @app.post("/v1/rerun", response_model=dict, tags=["governance"])
-def rerun(req: RerunRequest, request: Request) -> dict:
+def rerun(req: RerunRequest, request: Request) -> dict | JSONResponse:
     """Re-run governance assessment with the same persisted request context."""
     tenant_id, role = _authenticate(request)
     _require_tenant_capability(role, tenant_id, "rerun")
@@ -2516,17 +2524,17 @@ class _ProposalIdHeaderMiddleware:
     SAME task so its contextvar set is visible when response headers start.
     Reset per request; absent when no proposal was involved."""
 
-    def __init__(self, asgi_app):
+    def __init__(self, asgi_app: Any) -> None:
         self.app = asgi_app
 
-    async def __call__(self, scope, receive, send):
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
         holder: dict = {"id": None}
         token = _CURRENT_PROPOSAL_ID.set(holder)
 
-        async def send_with_header(message):
+        async def send_with_header(message: Any) -> None:
             if message["type"] == "http.response.start":
                 proposal_id = holder.get("id")
                 if proposal_id:

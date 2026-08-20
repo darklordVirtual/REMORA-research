@@ -42,6 +42,7 @@ be claimed for the live path until the wiring lands.
 """
 from __future__ import annotations
 
+from typing import Any
 import hashlib
 import sqlite3
 import threading
@@ -842,7 +843,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
 
     def record_intent_enlisted(
         self,
-        connection,  # psycopg.Connection; loose to avoid a hard import
+        connection: Any,  # psycopg.Connection; loose to avoid a hard import
         *,
         proposal_id: str,
         tenant_id: str,

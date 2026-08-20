@@ -30,6 +30,7 @@ rather than assumed away.
 """
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -208,7 +209,7 @@ TOOL_REGISTRY: dict[str, dict[str, Any]] = {
 }
 
 
-def _build_chain():
+def _build_chain() -> Any:
     """Durable chain when configured (REM-034): REMORA_PG_DSN -> Postgres,
     REMORA_CHAIN_DB -> SQLite file; otherwise the in-process reference."""
     import os as _os
@@ -349,7 +350,9 @@ _OUTBOX = _build_outbox()
 DEFAULT_OUTBOX_STALE_SECONDS = 900
 
 
-def reconcile_stale_dispatches(tenant: str, *, now=None) -> list:
+def reconcile_stale_dispatches(
+    tenant: str, *, now: "datetime | None" = None
+) -> list[Any]:
     """Settle dispatch intents whose worker never reported back.
 
     A row stuck in ``DISPATCHING`` past the staleness threshold has an
@@ -480,7 +483,7 @@ def _record_dispatch_intent(
     tool_name: str,
     tool_call_hash: str,
     grant_jti: str,
-):
+) -> Any:
     """Record the dispatch intent (see remora.execution.dispatch); binds this
     module's outbox and the ambient transaction contextvar."""
     return _record_dispatch_intent_impl(
@@ -530,7 +533,7 @@ from remora.persistence.execution_state import (  # noqa: F401
 )
 
 
-def db_transaction_state(tenant: str):
+def db_transaction_state(tenant: str) -> AbstractContextManager[Any]:
     """One all-or-nothing review-state transaction (see remora.persistence).
 
     Thin binding of this module's ambient state — queue, item→tenant mirror,
@@ -639,6 +642,7 @@ def _semantic_bundle() -> "tuple[SemanticBundle | None, IntentResolver | None]":
                         spec, load_semantic_bundle(), load_intent_resolver()
                     )
                 _SEMANTIC = cached
+    assert cached is not None
     return cached[1], cached[2]
 
 
@@ -984,7 +988,7 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
 
     api_mod._require_tenant_capability(role, tenant, "review")
 
-    def _authorize_approval(item) -> None:
+    def _authorize_approval(item: Any) -> None:
         # Profile-specific approval role (review-8 finding): a generic
         # reviewer must not approve what the tenant's risk profile reserves
         # for domain_expert/senior_authority. Raises the same HTTP errors it
@@ -1332,7 +1336,7 @@ def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
     events = _proposal_events(tenant, proposal_id)
     if not events:
         raise HTTPException(status_code=404, detail="proposal not found")
-    assessed = next(
+    assessed: dict[str, Any] = next(
         (e["payload"] for e in events if e["event"] == "assessed"), {}
     )
     dispatch = _dispatch_projection(tenant, proposal_id)

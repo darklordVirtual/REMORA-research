@@ -765,7 +765,14 @@ class RemoraDecisionEngine:
     # ------------------------------------------------------------------
 
 
-    def _probabilistic_accept(self, reasons, obs, *, credal, raw_obs):
+    def _probabilistic_accept(
+        self,
+        reasons: list[DecisionReason],
+        obs: PolicyObservation,
+        *,
+        credal: CredalEnvelope | None,
+        raw_obs: PolicyObservation | None,
+    ) -> DecisionReport:
         """A probabilistic path concluded ACCEPT. In the execution profile
         that conclusion is advisory only: the call routes to VERIFY with an
         explicit reason (issue #35 invariant: PROBABILISTIC_SIGNAL can never

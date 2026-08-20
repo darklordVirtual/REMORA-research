@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import Any
 
 from remora.enforcement.lease import ExecutionLease, LeaseRefused
-from remora.enforcement.outbox import ExecutionOutbox
+from remora.enforcement.outbox import ExecutionOutbox, OutboxRow
 from remora.enforcement.result_envelope import capture_tool_result
 
 
@@ -97,7 +97,7 @@ def record_dispatch_intent(
     tool_name: str,
     tool_call_hash: str,
     grant_jti: str,
-):
+) -> "OutboxRow":
     """Record the dispatch intent, inside the caller's transaction when open.
 
     With a durable backend the row commits with the authorization and rolls

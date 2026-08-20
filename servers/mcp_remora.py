@@ -54,6 +54,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from remora.legal.citation_existence import resolve_citation_existence  # noqa: E402
+from typing import Any
 
 logging.basicConfig(level=logging.ERROR, stream=sys.stderr)
 
@@ -192,11 +193,12 @@ def extract_citations(text: str) -> list[dict]:
                 "start": m.start(),
             })
     # Deduplicate by citation string
-    seen = set()
-    unique = []
-    for c in sorted(found, key=lambda x: x["start"]):
-        if c["citation"].upper() not in seen:
-            seen.add(c["citation"].upper())
+    seen: set[str] = set()
+    unique: list[dict[str, object]] = []
+    for c in sorted(found, key=lambda x: int(str(x["start"]))):
+        citation = str(c["citation"]).upper()
+        if citation not in seen:
+            seen.add(citation)
             unique.append(c)
     return unique
 
@@ -1771,10 +1773,10 @@ def handle_request(request: dict) -> dict | None:
     if "id" not in request:
         return None
 
-    def ok(result):
+    def ok(result: Any) -> dict[str, Any]:
         return {"jsonrpc": "2.0", "id": rid, "result": result}
 
-    def err(code, msg):
+    def err(code: int, msg: str) -> dict[str, Any]:
         return {"jsonrpc": "2.0", "id": rid, "error": {"code": code, "message": msg}}
 
     if method == "initialize":
@@ -1803,7 +1805,7 @@ def handle_request(request: dict) -> dict | None:
     return err(-32601, f"Method not found: {method}")
 
 
-def main():
+def main() -> None:
     import sys
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):
