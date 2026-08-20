@@ -1,9 +1,16 @@
 from __future__ import annotations
 
+import pytest
+
 import hashlib
 import importlib.util
 import json
 from pathlib import Path
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 
 def _load_module():
@@ -76,8 +83,15 @@ def test_parse_register_real_file() -> None:
     text = ccp.REGISTER_PATH.read_text(encoding="utf-8")
     claims = ccp.parse_register(text)
     ids = [c["id"] for c in claims]
-    assert len(claims) == 19
-    assert ids[0] == "CLAIM-001" and ids[-1] == "CLAIM-019"
+    # Structural, not a count: a new claim is a normal event, a gap or a
+    # duplicate in the numbering is a bookkeeping failure.
+    assert claims, "no claims parsed — did the register format change?"
+    numbers = [int(i.split("-")[1]) for i in ids]
+    assert numbers == sorted(numbers), f"claim IDs out of order: {ids}"
+    assert len(set(numbers)) == len(numbers), "duplicate claim IDs"
+    assert numbers == list(range(1, len(numbers) + 1)), (
+        f"claim numbering is not contiguous from 1: {ids}"
+    )
     by_id = {c["id"]: c for c in claims}
     assert by_id["CLAIM-001"]["artifact"] == [
         "results/toolcall_benchmark_v2_results.json",
@@ -85,7 +99,11 @@ def test_parse_register_real_file() -> None:
         "results/toolcall_blind_v3_results.json",
         "results/toolcall_m1_clean_signal.json",
     ]
-    # REM-038: effective-N and cluster-level CI must be in the register.
+    # These four are REGRESSION guards on specific published corrections, not
+    # count pins: each replaced a number that overstated the result, and a
+    # revert would be invisible without an assertion here. REM-038 established
+    # that CLAIM-001 must carry the effective N (70 template clusters, not 700
+    # tasks) and the cluster-level CI (5.2%, not the task-level 0.55%).
     assert by_id["CLAIM-001"]["metrics"]["n_effective"] == 70
     assert by_id["CLAIM-001"]["metrics"]["far_ci_high_pct"] == 5.2
     assert by_id["CLAIM-002"]["metrics"]["fbr_pct"] == 100.0

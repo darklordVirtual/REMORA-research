@@ -1,9 +1,16 @@
 from __future__ import annotations
 
+import pytest
+
 import json
 from pathlib import Path
 
 from scripts.build_governance_benchmark_package import build_package
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 
 def test_build_package_writes_manifest_and_zip(tmp_path: Path) -> None:

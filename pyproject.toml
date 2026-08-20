@@ -176,10 +176,8 @@ addopts = "-v --tb=short -m 'not live and not live_replay_heavy'"
 markers = [
     "live: marks tests that require a live Cloudflare Worker (deselect with -m 'not live')",
     "live_replay_heavy: long-running deterministic replay/sandbox tests (run in dedicated job)",
-    "unit: fast isolated tests with no external dependencies",
-    "integration: tests that wire multiple modules together",
+    "docgate: asserts on repository documents and registers rather than runtime behaviour; run as its own CI job so documentation drift and a governance regression do not fail the same way",
     "slow: tests that take more than 10 seconds (deselect with -m 'not slow')",
-    "benchmark: reproducible benchmark runs against committed artifacts",
     "rem014_gate: REM-014 structural verification of the imported AgentHarm artifact",
     "opa_gate: OPA/Rego conformance tests (skip automatically when the opa binary is absent)",
 ]

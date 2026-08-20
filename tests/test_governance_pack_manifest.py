@@ -9,10 +9,17 @@ had no hashes, no commit SHA, and stale copied files.
 """
 from __future__ import annotations
 
+import pytest
+
 import hashlib
 import json
 import re
 from pathlib import Path
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 ROOT = Path(__file__).resolve().parents[1]
 PACK = ROOT / "artifacts" / "governance-benchmark-pack"

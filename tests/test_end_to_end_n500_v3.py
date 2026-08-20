@@ -8,6 +8,11 @@ from pathlib import Path
 
 import pytest
 
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
+
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _OUTPUT_PATH = _REPO_ROOT / "results" / "end_to_end_n500_v3.json"
 _INPUT_PATH = (

@@ -9,8 +9,10 @@ def test_load_benchmark_supports_canonical_module():
     items, meta_map, loader_name = load_benchmark("remora.benchmarks.extended_v2")
 
     assert loader_name == "load_all_extended_v2"
-    assert len(items) == 302
-    assert len(meta_map) == 302
+    # Not an exact pin: a corpus that GREW is not a defect, one that
+    # shrank or lost its metadata mapping is.
+    assert len(items) >= 302
+    assert len(meta_map) == len(items)
     assert all(item.item_id in meta_map for item in items)
 
 

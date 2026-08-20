@@ -11,8 +11,15 @@ move the module OUT of the attic with a capability-register entry.
 """
 from __future__ import annotations
 
+import pytest
+
 import re
 from pathlib import Path
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 ROOT = Path(__file__).resolve().parent.parent
 ATTIC = ROOT / "remora" / "research_attic"

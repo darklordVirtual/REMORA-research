@@ -110,6 +110,14 @@ jobs:
       - name: Per-package coverage floors (trusted computing base)
         run: python scripts/check_coverage_thresholds.py coverage.json
 
+      - name: Documentation and register gates
+        # Reported separately from the behaviour suite on purpose: 312 of the
+        # tests assert on repository documents and registers, and a
+        # documentation drift failing the same way as a governance regression
+        # made both harder to read. They still run in the main suite above;
+        # this step names them.
+        run: pytest -q -m docgate --no-cov
+
       - name: Safety gate (false accept rate must be zero)
         run: |
           python -m remora.aromer.evals.replay_runner --json | python scripts/check_safety_gate.py

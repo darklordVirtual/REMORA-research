@@ -16,11 +16,18 @@ the register is treated as live: unclassified must not mean unchecked.
 """
 from __future__ import annotations
 
+import pytest
+
 import importlib.util
 import re
 from pathlib import Path
 
 import yaml
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 ROOT = Path(__file__).resolve().parents[1]
 

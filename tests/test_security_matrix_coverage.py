@@ -111,4 +111,4 @@ def test_mandated_scenario_is_pinned_by_a_real_test(scenario: str) -> None:
 
 
 def test_matrix_covers_all_nineteen_mandated_scenarios() -> None:
-    assert len(MATRIX) == 19
+    assert len(MATRIX) >= 19  # rows are added as controls land; none may vanish

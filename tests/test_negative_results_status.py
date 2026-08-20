@@ -10,10 +10,17 @@ consistent, and that the gate still refuses each way it can go wrong.
 """
 from __future__ import annotations
 
+import pytest
+
 import importlib.util
 import subprocess
 import sys
 from pathlib import Path
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "check_negative_results_status.py"

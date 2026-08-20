@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+import pytest
+
 import json
 import re
 from pathlib import Path
 
 from scripts import sync_cyber_threat_feeds as sync
+
+#: Documentation/register consistency gate, not a behaviour test.
+#: Split out so a documentation drift and a governance regression do
+#: not fail the same way (self-review 2026-08-20).
+pytestmark = pytest.mark.docgate
 
 
 ROOT = Path(__file__).resolve().parents[1]

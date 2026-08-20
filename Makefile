@@ -28,10 +28,13 @@ help:  ## Show this help
 test:  ## Run full deterministic test suite; no API keys required
 	$(PYTEST) tests/ -q
 
-test-fast:  ## Reduced suite for constrained environments: skips slow-marked tests
+test-fast:  ## Reduced suite: skips slow tests and the documentation/register gates
 	# NOTE: a CLI -m expression REPLACES the addopts default, so the live
 	# exclusions must be repeated here or network tests would run and hang.
-	$(PYTEST) tests/ -q -m "not slow and not live and not live_replay_heavy" -p no:cacheprovider
+	$(PYTEST) tests/ -q -m "not slow and not live and not live_replay_heavy and not docgate" -p no:cacheprovider
+
+docgate:  ## Documentation and register consistency gates only
+	$(PYTEST) tests/ -q -m docgate
 
 test-core:  ## Smallest meaningful gate: envelope, policy engine, tool-call gate, API server (~5s)
 	$(PYTEST) tests/test_decision_envelope_v2.py tests/test_policy_decision_engine.py tests/test_remora_toolcall_gate.py tests/test_remora_toolcall_gate_v2.py tests/test_m1_leakage_absent.py tests/test_api_server.py -q
