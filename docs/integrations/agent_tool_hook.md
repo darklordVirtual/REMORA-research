@@ -93,16 +93,20 @@ The hook works without live API calls. In offline mode:
 
 - LOW-risk actions are allowed and recorded.
 - Clearly destructive shell patterns are locally blocked.
-- MEDIUM and non-destructive HIGH-risk actions are allowed unless
-  `REMORA_HOOK_REQUIRE_REMOTE=1` is set.
+- MEDIUM actions are allowed and recorded.
+- HIGH-risk actions **fail closed by default**: the hook requires the remote
+  verification it could not reach, so it refuses. `REMORA_HOOK_REQUIRE_REMOTE`
+  defaults to `1` (`scripts/remora_hook.py:41`); set it to `0` to opt out and
+  let HIGH-risk actions through offline.
 
 When `AGENT_CONTROL_SECRET` is configured, the hook can call the optional
 agent-control service for REMORA claim verification before high-risk actions.
 
-Set strict high-risk behavior:
+Strict high-risk behaviour is the default. To relax it — for local
+development only, never on a machine with production credentials:
 
 ```bash
-REMORA_HOOK_REQUIRE_REMOTE=1 python scripts/remora_hook.py
+REMORA_HOOK_REQUIRE_REMOTE=0 python scripts/remora_hook.py
 ```
 
 ## Limitations

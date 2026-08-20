@@ -116,7 +116,7 @@ assumption A5 was also added. The runtime routing proxy in
 `remora/thermodynamics.py` retains the tighter n/2 form plus a ρ̄-clamp as a
 disclosed heuristic and must not be cited as this theorem.)*
 
-**Proof sketch:** Pair-blocking gives P(X_i=1 ∧ X_j=1) ≤ ε² + ρ̄·ε(1−ε) =: q by assumption A2. Chaining over ⌊n/2⌋ disjoint pairs, independent by A5, yields P(all n wrong) ≤ q^⌊n/2⌋. See `remora/proofs/hallucination_bound_theorem.py` for the complete derivation.
+**Proof sketch:** Pair-blocking gives P(X_i=1 ∧ X_j=1) ≤ ε² + ρ̄·ε(1−ε) =: q by assumption A2. Chaining over ⌊n/2⌋ disjoint pairs, independent by A5, yields P(all n wrong) ≤ q^⌊n/2⌋. See `remora/research_attic/proofs/hallucination_bound_theorem.py` for the complete derivation.
 
 **Numerical consistency on N=302:**
 
@@ -143,10 +143,10 @@ P(all 3 wrong) cannot be directly observed from stored artifacts (per-oracle res
 
 **Reproducer:**
 ```bash
-python remora/proofs/hallucination_bound_theorem.py
+python remora/research_attic/proofs/hallucination_bound_theorem.py
 ```
 
-**Evidence anchor:** `remora/proofs/hallucination_bound_theorem.py`, 12/12 tests locked in `tests/test_hallucination_bound_theorem.py`.
+**Evidence anchor:** `remora/research_attic/proofs/hallucination_bound_theorem.py`, 12/12 tests locked in `tests/test_hallucination_bound_theorem.py`.
 
 ---
 
@@ -394,7 +394,7 @@ python experiments/selective_trust_curve.py
 python experiments/bootstrap_trust_curve.py --n-boot 2000
 python experiments/phase_stability.py
 python experiments/full_coverage_bound.py
-python remora/proofs/hallucination_bound_theorem.py
+python remora/research_attic/proofs/hallucination_bound_theorem.py
 python experiments/selective_n500.py
 
 # 4. Verify specific result files

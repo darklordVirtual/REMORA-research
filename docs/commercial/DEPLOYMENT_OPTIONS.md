@@ -16,7 +16,16 @@ Requirements:
 - Durable state: `REMORA_PG_DSN` (Postgres, multi-node) or
   `REMORA_CHAIN_DB` (SQLite, single-node). Production mode refuses to start
   without one — a volatile audit chain and grant ledger is not a pilot.
-- `REMORA_PDP_SIGNING_KEY` set, so decision tokens and the chain are signed.
+- `REMORA_API_BEARER_TOKEN` and `REMORA_API_TOKENS` for authentication and
+  tenant isolation, and `REMORA_CONTROL_PLANE_DSN` (or `_DB`) for the
+  DecisionEnvelope store.
+- **Two separate signing keys**, both required in production — the server
+  refuses to start without either:
+  - `REMORA_PDP_SIGNING_KEY` signs the PDP → PEP decision token, so the
+    enforcement point can verify where an authorization came from.
+  - `REMORA_ENVELOPE_SIGNING_KEY` signs each envelope's audit hash. Without
+    it every audit record is written with `signature: null` and the chain is
+    tamper-evident in name only.
 - Deployment-owned ToolSpec registry for the inventoried tools.
 
 ## 2. Local evaluation (single machine)

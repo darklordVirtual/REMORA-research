@@ -742,6 +742,21 @@ items:
       across policy/enforcement/governance/servers; enabling the rule sets
       as a CI gate awaits the ~25 remaining manual fixes. The npm/coverage/
       hash-lock items require a Linux environment.
+      PROGRESS 2026-08-20: two DONE criteria met. The mypy gate now covers
+      `remora servers` (it had never covered servers/, which holds the
+      audit-chain hashing, signing and both API surfaces), with
+      disallow_untyped_defs on policy/enforcement/execution/governance and
+      servers — without it mypy skips unannotated function bodies entirely,
+      so an untyped function on the ACCEPT path was invisible no matter how
+      wide the scope. Coverage moved from one global 75 percent line-coverage
+      number to BRANCH coverage with per-package floors including servers/
+      (scripts/check_coverage_thresholds.py): policy 92, execution 90,
+      governance 88, enforcement 80. The enforcement floor is deliberately
+      lower than its neighbours and is tracked as a ratchet in issue #298,
+      because the uncovered remainder is mostly Postgres branches measured in
+      a different CI job. Still open: hash-locked Python installs, npm ci on
+      a regenerated Linux lockfile, extended ruff rule sets as a gate, and
+      mutation coverage as a measured gate.
 
   # Assurance-polish wave (2026-07-20): compendium audit items P3-P8.
   # Governance/evidence artifacts are DONE deliverables; the code-level

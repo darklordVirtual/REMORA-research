@@ -83,7 +83,7 @@ claims:
       Pair-independence in chaining is unresolved in the current proof sketch.
       eps uses majority-implied rate, not direct per-oracle error measurement.
       P(all 3 wrong) cannot be directly observed from stored artifacts.
-    artifact: remora/proofs/false_consensus_bound_v2.py
+    artifact: remora/research_attic/proofs/false_consensus_bound_v2.py
     test: tests/test_hallucination_bound_theorem.py
 
   phase_stability_critical_disordered:
@@ -228,7 +228,7 @@ claims:
       how high response agreement is. The separation is mathematically necessary
       for valid use of any bound that depends on oracle error correlation.
       Verified by test_response_rho_not_error_rho.py.
-    artifact: remora/correlation_error.py
+    artifact: remora/research_attic/correlation_error.py
     test: tests/test_response_rho_not_error_rho.py::test_response_agreement_is_not_error_correlation_by_definition
     note: >
       This entry documents a mathematical separation, not an empirical claim.
@@ -284,7 +284,7 @@ claims:
       The order parameter η matches the Potts order parameter convention used
       in remora/thermodynamics.py. The Potts critical temperature in mean-field
       approximation is T_c(MF) = J(k-1)/k. This is an analogy, not a derivation.
-    artifact: remora/statphys/potts.py
+    artifact: remora/research_attic/statphys/potts.py
     test: tests/test_statphys.py::TestPottsEnergy, tests/test_statphys.py::TestPottsOrderParameter, tests/test_statphys.py::TestPottsCriticalTemperature
     limitations: |
       - Real oracles are correlated (shared training data). Mean-field Potts
@@ -305,7 +305,7 @@ claims:
       higher Gibbs probability. At T→0, all weight concentrates on the
       lowest-energy (most agreed) state. At T→∞, the distribution is uniform.
       This provides a theoretical grounding for trust score normalisation.
-    artifact: remora/statphys/gibbs.py
+    artifact: remora/research_attic/statphys/gibbs.py
     test: tests/test_statphys.py::TestPartitionFunction, tests/test_statphys.py::TestGibbsProbability, tests/test_statphys.py::TestFreeEnergy
     limitations: |
       - The effective question temperature T from thermodynamics.py is a

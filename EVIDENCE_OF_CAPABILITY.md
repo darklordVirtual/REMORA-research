@@ -38,7 +38,7 @@ Core implementation areas:
   proposed tool calls, checking drift, and fail-closing risky operations.
 - `remora/governance/`: memory layers, context flow, drift monitoring,
   governance-forgetting metrics, and policy proposal primitives.
-- `remora/theory/`: MaxEnt, joint-convergence, and scaling-analysis modules
+- `remora/research_attic/theory/`: MaxEnt, joint-convergence, and scaling-analysis modules
   used to document current theoretical assumptions and numerical checks.
 - `enterprise/`: policy-as-code examples, audit schema, threat model,
   deployment runbooks, observability model, and production-readiness plan.

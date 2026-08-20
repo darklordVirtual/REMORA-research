@@ -16,7 +16,7 @@
 # EXTERNALLY_VERIFIED — deployment_status is SHADOW_ONLY until REM-021.
 
 schema_version: "1"
-updated: "2026-08-03"
+updated: "2026-08-20"
 
 capabilities:
   - id: CAP-001
@@ -150,6 +150,35 @@ capabilities:
       - tests/test_effect_prediction.py
       - remora/policy/decision_engine.py
     caveat: "Fills the expected_effect_matches slot that CallCompatibility had left None. Refutes read-request-served-by-mutating-tool, change-request-served-by-read-only-tool, and a declared post-state writing an unnamed resource; tightens a mutating contract with no declared state_delta from SUPPORTED to UNKNOWN. Wired into the routing evaluation path (remora/toolcall/routing/evaluate.py) and the engine's conditional gates, NOT into the /v1/assess REST path, which has no tool contract to read. DISCRIMINATION IS UNMEASURED: no blind or development artifact quantifies what this catches on real data, so no accuracy or error-reduction number may be quoted for it anywhere. Design and source appraisal: docs/13-research-frontier-roadmap.md RF-10. Requires deployment-supplied contracts; absent a contract every verdict is UNKNOWN and nothing changes."
+
+  - id: CAP-015
+    name: "Runtime invariant enforcement (CORE_INVARIANTS evaluated on every decision)"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - remora/policy/invariants.py
+      - remora/policy/decision_engine.py
+      - tests/test_runtime_invariant_enforcement.py
+      - NEGATIVE_RESULTS.md
+    caveat: "Until 2026-08-20 check_all_invariants had NO caller outside the test suite: the module documented itself as machine-verifiable governance invariants while being, in fact, a test fixture. The same safety properties were therefore implemented twice — once as invariants, once inside decide() — with nothing able to notice the two drifting apart. They had drifted; see NEGATIVE_RESULTS section 40. Enforcement now runs at the engine's single build choke point and fails CLOSED to ESCALATE with the violated invariant named in the audit explanation (DecisionReason.INVARIANT_VIOLATION_ESCALATE). It can only make a decision stricter, never more permissive. Off only via verify_invariants=False, which is for measuring the check's own cost; a deployment that disables it is running unverified decisions. The shadow-replay no_hard_guards ablation arm disables it deliberately so the delta still isolates the hard guards."
+
+  - id: CAP-016
+    name: "Structured governance events (operational logging in the safety core)"
+    status: IMPLEMENTED_LIBRARY
+    evidence:
+      - remora/observability/events.py
+      - remora/enforcement/gate.py
+      - remora/policy/decision_engine.py
+      - tests/test_governance_events.py
+    caveat: "remora/policy, remora/enforcement and remora/execution held ZERO loggers between them before 2026-08-20, so a refused grant or a failed dispatch produced no log line in production — only whatever the tenant audit chain happened to record. The chain and this log answer different questions: the chain is the governance record (what was authorised, under which policy, by whom), this is the operational record (what the process did, when). Events: decision.made, decision.invariant_violated, lease.issued, grant.checked, dispatch.settled. Field NAMES are screened and governance_event raises SecretFieldError rather than logging a field whose name looks like a credential, while allowing the derived forms that make correlation possible (token_jti identifies a grant; token_verified says whether one checked out; neither can be replayed). Nothing is emitted unless a handler is configured for the remora.governance logger. NOT a substitute for the audit chain and not itself tamper-evident."
+
+  - id: CAP-017
+    name: "Production fail-closed on signing keys"
+    status: WIRED_API_PATH
+    evidence:
+      - servers/api.py
+      - tests/test_audit_chain_integrity.py
+      - docs/deployment/execution-quickstart.md
+    caveat: "Before 2026-08-20 a deployment with REMORA_ENV=production started without REMORA_ENVELOPE_SIGNING_KEY or REMORA_PDP_SIGNING_KEY and wrote every audit record with signature: null — tamper-evident in name only, while the code warned about it in a string it never acted on. Both keys are now in the production prerequisite list and the server refuses to start without either. Symmetric HMAC only: production still needs JWS/COSE and trust anchors (see CAP-006), and there is no KMS/HSM custody, so this closes the presence gap and not the key-management one."
 
   - id: CAP-META
     name: "Metatesting of the evidence regime (audit gates are mutation-tested)"

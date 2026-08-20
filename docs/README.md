@@ -108,9 +108,11 @@ The original [execution lifecycle/outbox design](design/execution-lifecycle-outb
 | [assurance_case_v1.md](assurance/assurance_case_v1.md) | Structured assurance case |
 | [evidence_levels.md](assurance/evidence_levels.md) | Evidence-level taxonomy |
 | [metric_definitions_v1.md](assurance/metric_definitions_v1.md) | Metric definitions and denominators |
+| [statistical_analysis_plan.md](assurance/statistical_analysis_plan.md) | Statistical analysis plan v1 (superseded; retained as the pre-registration record) |
+| [statistical_analysis_plan_v2.md](assurance/statistical_analysis_plan_v2.md) | Statistical analysis plan v2 (superseded; retained as the pre-registration record) |
 | [statistical_analysis_plan_v3.md](assurance/statistical_analysis_plan_v3.md) | Statistical analysis plan v3 |
 | [statistical_analysis_plan_v4.md](assurance/statistical_analysis_plan_v4.md) | OT semantic-track statistical analysis plan |
-| [statistical_analysis_plan_v5_bfcl_semantic.md](assurance/statistical_analysis_plan_v5_bfcl_semantic.md) | Pre-registered BFCL semantic-authority confirmation (C-ext3; sealed run pending) |
+| [statistical_analysis_plan_v5_bfcl_semantic.md](assurance/statistical_analysis_plan_v5_bfcl_semantic.md) | Pre-registered BFCL semantic-authority confirmation (C-ext3; **executed 2026-08-19**, 3 of 7 targets met, CLAIM-019) |
 | [rebenchmark_protocol_v1.md](assurance/rebenchmark_protocol_v1.md) | Rebenchmark protocol |
 | [experiment_manifest_spec_v1.md](assurance/experiment_manifest_spec_v1.md) | Experiment manifest specification |
 | [artifact_provenance_spec_v1.md](assurance/artifact_provenance_spec_v1.md) | Artifact provenance specification |
@@ -152,6 +154,7 @@ The original [execution lifecycle/outbox design](design/execution-lifecycle-outb
 | [research/misspecification_aware_governance.md](research/misspecification_aware_governance.md) | Misspecification-aware governance |
 | [research/policy_generalization_risk.md](research/policy_generalization_risk.md) | Policy generalization risk |
 | [research/research_modes.md](research/research_modes.md) | Research modes |
+| [research/REMORA_forskningsmonografi_no.md](research/REMORA_forskningsmonografi_no.md) | Norwegian research monograph: consolidated code-anchored description (language: Norwegian) |
 | [research/verify_control_protocols.md](research/verify_control_protocols.md) | VERIFY-control research |
 | [experiments/experiment3_phase_transition_study.md](experiments/experiment3_phase_transition_study.md) | Phase-transition study |
 | [experiments/experiment4_susceptibility_validation.md](experiments/experiment4_susceptibility_validation.md) | Susceptibility validation |

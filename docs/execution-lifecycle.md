@@ -125,8 +125,10 @@ that conflation rather than hiding it.
 
 Still open (see
 [assurance/fasttrack_register_v1.yaml](assurance/fasttrack_register_v1.yaml)):
-the governed REST dispatch path for direct-ACCEPT proposals (#36),
-`EffectBlock` population (#37), and a background reconciler daemon.
+`EffectBlock` population (#37) — no producer populates it yet — and a
+background reconciler daemon. The governed REST dispatch path for
+direct-ACCEPT proposals (#36) closed on 2026-08-05: `execute_accepted` is in
+the SDK snapshot and `/v1/execution/execute-accepted` is a live route.
 
 ## Runnable example
 

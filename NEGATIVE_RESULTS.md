@@ -2281,7 +2281,9 @@ information theory, not physics. The three consensus regimes keep their names
 because they name existing code (`PhaseAwareGuardrail`,
 `results/phase_aware_guardrail_n544_results.json`), not a physical state.
 `remora/thermodynamics.py`, `remora/lyapunov.py` and `remora/statphys/potts.py`
-remain in the tree with their tests; RES-007 in the research control matrix
+remain in the tree with their tests (the last of these moved to
+`remora/research_attic/statphys/` on 2026-08-19; the finding is unchanged, only
+the path); RES-007 in the research control matrix
 now records that they influence no runtime decision.
 
 **Status:** the withdrawal is editorial and documentary. No code was removed,

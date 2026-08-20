@@ -61,12 +61,13 @@ auth mode, and the two modes are not equivalent, see section 3.3.
 - **Current storage:** Environment variable on the server process. Not in any committed file.
 - **Algorithm:** HMAC-SHA256 over canonical JSON payload (sorted keys, no whitespace).
 - **Implemented in:** `remora/enforcement/token.py`
-- **If absent:** Token is issued UNSIGNED. `EnforcementGate(strict=True)` rejects all unsigned tokens. `EnforcementGate(strict=False)` logs a warning and allows (dev/test only).
+- **If absent:** In production this is now unreachable — `_validate_production_prerequisites` (`servers/api.py`) refuses to start the server without the key, so no unsigned token can be issued there. Outside production the token is issued UNSIGNED: `EnforcementGate(strict=True)` rejects all unsigned tokens; `EnforcementGate(strict=False)` logs a warning and allows (dev/test only).
 - **Gap (acknowledged):** No KMS/HSM integration. Key is a plaintext env var. Rotation requires a server restart. Formal rotation cadence, not yet defined.
 
 ### 3.2 REMORA_ENVELOPE_SIGNING_KEY
 
 - **Purpose:** HMAC-SHA256 of the DecisionEnvelope `hash` field. Enables offline audit verification of envelope integrity.
+- **Required in production (2026-08-20):** the server refuses to start without it. Before that change a production deployment wrote every audit record with `signature: null` — tamper-evident in name only — while the code warned about it in a string it never acted on.
 - **Current storage:** Environment variable on the server process.
 - **Algorithm:** HMAC-SHA256 over the envelope's `hash` (SHA-256 compact hash).
 - **Implemented in:** `servers/api.py:_finalize_envelope_audit()`, `remora/audit/merkle.py`
