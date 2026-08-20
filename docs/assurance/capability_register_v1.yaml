@@ -18,6 +18,19 @@
 schema_version: "1"
 updated: "2026-08-20"
 
+# Verification binding (issue #281). A capability's status and caveat are
+# claims about code, so they are bound to the revision that was audited.
+# `verified_at_sha` is checked by scripts/check_capability_freshness.py: if an
+# implementation source cited in `evidence` moved after that commit, the
+# capability is stale and CI fails.
+#
+# The backlog is deliberately not cleared by writing HEAD everywhere - that
+# would assert audits nobody performed. Unbound capabilities are counted
+# against `unbound_baseline`, which may fall as capabilities are audited and
+# may never rise, so a newly added capability must be bound from the start.
+verification_binding:
+  unbound_baseline: 16
+
 capabilities:
   - id: CAP-001
     name: "Decision engine (hard guards -> conditional gates -> trust routing)"
@@ -45,6 +58,10 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
+    verified_at_sha: ddc6293f0ad608d6b15abef4d6a6c4ac3b7bdc2c
+    verified_by: >-
+      crosswalk assessment 2026-08-20 (docs/benchmarks/aegis-remora-crosswalk.md row A):
+      gate.py one-time consumption path and tests/test_token_hardening.py read against the caveat
     caveat: "Issued and consumed via /v1/execution/*; jti one-time consumption persists to a pep_consumed table when REMORA_PG_DSN (Postgres) or REMORA_CHAIN_DB (SQLite) is configured (remora/enforcement/gate.py), in-process set by default. A second gate over the same durable ledger refuses the replay (tests/test_token_hardening.py::test_durable_ledger_refuses_the_replay_from_a_second_gate); no test spawns a new interpreter, so behaviour across an actual process restart is inferred from the shared ledger, not directly observed. The lease nonce ledger stays in-process (REM-025)."
 
   - id: CAP-004
@@ -139,6 +156,10 @@ capabilities:
       - servers/tool_registry_research.py
       - tests/test_execution_api.py
       - tests/test_tool_registry_research.py
+    verified_at_sha: ddc6293f0ad608d6b15abef4d6a6c4ac3b7bdc2c
+    verified_by: >-
+      crosswalk assessment 2026-08-20 (docs/benchmarks/aegis-remora-crosswalk.md row C):
+      lease.py binding set and refusal matrix read against the caveat
     caveat: "Wired 2026-07-27 (issue #13): /v1/execution/execute dispatches through GovernedToolDispatcher under an ExecutionLease after PEP consume; tool callables come only from REMORA_TOOL_REGISTRY_MODULE (research profile ships side-effect-bounded store_artifact/read_telemetry). Response/audit report the real outcome (tool_execution / tool_executed). Remaining: transport-anchored actor identity, durable multi-process nonce store (REM-025), deployment fronting real downstream credentials, external validation (REM-021/REM-030)."
 
   - id: CAP-014
