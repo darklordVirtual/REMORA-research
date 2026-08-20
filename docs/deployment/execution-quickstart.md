@@ -74,6 +74,7 @@ metadata unless these trust prerequisites are present:
 | `REMORA_TOOL_REGISTRY_MODULE` | Deployment-owned callable registry; callers cannot inject tools | **required** |
 | `REMORA_PG_DSN` or `REMORA_CHAIN_DB` | Durable execution state: tenant chain, review state and one-time-grant ledger | **required** |
 | `REMORA_PDP_SIGNING_KEY` | Signs the short-lived PDP → PEP grant | **required** |
+| `REMORA_ENVELOPE_SIGNING_KEY` | Signs each envelope's audit hash; without it every audit record is written with `signature: null` and the chain is tamper-evident in name only | **required** |
 
 Typical review configuration:
 
@@ -86,6 +87,7 @@ export REMORA_TOOLSPEC_SIGNING_KEY='replace-me'
 export REMORA_TOOLSPEC_TRUSTED_IDENTITIES='release-signer-v1'
 export REMORA_TOOL_REGISTRY_MODULE=my_app.remora_registry
 export REMORA_PDP_SIGNING_KEY='replace-me-too'
+export REMORA_ENVELOPE_SIGNING_KEY='replace-me-as-well'
 export REMORA_LEASE_SIGNING_KEY='replace-me-three'
 
 # Multi-worker / partner-shaped review:
@@ -121,7 +123,6 @@ Useful variables beyond the strict-profile minimum:
 | `REMORA_CONTROL_PLANE_DSN` or `REMORA_CONTROL_PLANE_DB` | durable DecisionEnvelope/control-plane store |
 | `REMORA_LEASE_SIGNING_KEY` | separate lease signing key; may fall back to PDP key |
 | `REMORA_AUDIT_SIGNING_KEY` | HMAC for tenant-chain entries |
-| `REMORA_ENVELOPE_SIGNING_KEY` | HMAC for envelope hashes |
 | `REMORA_SEMANTIC_BUNDLE_MODULE` | deployment-owned semantic contracts/state/validators |
 | `REMORA_INTENT_SOURCE_FILE` | approved intent reference source for the research bundle |
 | `REMORA_OUTBOX_STALE_SECONDS` | stale dispatch reconciliation window; default 900 s |

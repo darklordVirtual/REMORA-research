@@ -106,6 +106,7 @@ def test_delegation_chain_is_per_link_signed_and_verified() -> None:
         signing_key=demo.ENVELOPE_KEY,
         expected_audience=demo.AUDIENCE,
         link_keys=demo.LINK_KEYS,
+        strict=False,
     )
     assert good.valid, good.failures
     # Without the registry entry for the second hop, the chain is revoked.
@@ -113,6 +114,7 @@ def test_delegation_chain_is_per_link_signed_and_verified() -> None:
         signing_key=demo.ENVELOPE_KEY,
         expected_audience=demo.AUDIENCE,
         link_keys={"coe-2026": RegisteredKey(key=demo.COE_KEY, principal="operator-coe")},
+        strict=False,
     )
     assert not partial.valid
 

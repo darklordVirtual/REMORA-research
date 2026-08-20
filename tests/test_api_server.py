@@ -891,6 +891,10 @@ def test_production_mode_rejects_mock_oracle_flag(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setenv("REMORA_CHAIN_DB", "/tmp/remora-chain.db")
     monkeypatch.setenv("REMORA_ORACLE_BACKEND", "groq")
     monkeypatch.setenv("REMORA_API_TOKENS", '{"tok":{"tenant":"t","role":"operator"}}')
+    # Signing keys are production prerequisites too; set them so this test
+    # reaches the mock-oracle check it is actually about.
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "envelope-key")
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "pdp-key")
     monkeypatch.setenv("REMORA_API_ALLOW_MOCK_ORACLES", "true")
 
     with pytest.raises(RuntimeError, match="mock oracles are disabled"):

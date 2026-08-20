@@ -84,6 +84,8 @@ def _production_env(monkeypatch) -> None:
     monkeypatch.setenv("REMORA_API_BEARER_TOKEN", "t")
     monkeypatch.setenv("REMORA_API_TOKENS", "t:tenant:operator")
     monkeypatch.setenv("REMORA_ORACLE_BACKEND", "groq")
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "k")
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "k")
     for var in (
         "REMORA_CONTROL_PLANE_DSN",
         "REMORA_CONTROL_PLANE_DB",

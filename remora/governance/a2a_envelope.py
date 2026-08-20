@@ -247,6 +247,7 @@ class A2AGovernanceEnvelope:
         expected_tool_call_hash: str | None = None,
         link_keys: dict[str, RegisteredKey] | None = None,
         replay_guard: Callable[[str], bool] | None = None,
+        strict: bool = True,
     ) -> VerificationResult:
         """Verify integrity, accountability, and delegation attenuation.
 
@@ -255,6 +256,15 @@ class A2AGovernanceEnvelope:
 
         Parameters
         ----------
+        strict:
+            Default. Refuses to return ``valid=True`` when any of
+            ``expected_audience``, ``expected_tool_call_hash``, ``link_keys``
+            or ``replay_guard`` was omitted, because each omission silently
+            skips a check on a cross-organisation trust boundary: forged
+            delegation links, replayed nonces and unbound tool calls all
+            verify clean. Pass ``strict=False`` only for envelope-level
+            integrity checks (inspection tooling, tests), never on an
+            authorisation path.
         expected_audience:
             The verifier's own identity. When given, the envelope's
             ``audience`` must match exactly. Audience must be non-empty
@@ -276,6 +286,18 @@ class A2AGovernanceEnvelope:
             The caller owns nonce persistence (REMORA is stateless).
         """
         failures: list[str] = []
+
+        # 0. Strict mode: an omitted argument is a skipped check, and a
+        # skipped check must never read as a passed one.
+        if strict:
+            if expected_audience is None:
+                failures.append("strict_missing_expected_audience")
+            if expected_tool_call_hash is None:
+                failures.append("strict_missing_expected_tool_call_hash")
+            if link_keys is None:
+                failures.append("strict_missing_link_keys")
+            if replay_guard is None:
+                failures.append("strict_missing_replay_guard")
 
         # 1. Signature — unsigned never verifies.
         key = signing_key if signing_key is not None else _get_signing_key()

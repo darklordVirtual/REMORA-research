@@ -534,6 +534,20 @@ def _validate_production_prerequisites() -> None:
             "REMORA_API_TOKENS (required in production for tenant isolation; "
             "set REMORA_ENV=development to use single-token mode)"
         )
+    # Without these the chain is tamper-EVIDENT in name only: envelope audit
+    # records are written with signature=None and PDP tokens are unsigned, so
+    # nothing distinguishes an authentic record from a fabricated one. The
+    # durability check above keeps the chain; these keep it attributable.
+    if not os.getenv("REMORA_ENVELOPE_SIGNING_KEY", "").strip():
+        missing.append(
+            "REMORA_ENVELOPE_SIGNING_KEY (audit records are written unsigned "
+            "without it)"
+        )
+    if not os.getenv("REMORA_PDP_SIGNING_KEY", "").strip():
+        missing.append(
+            "REMORA_PDP_SIGNING_KEY (PDP decision tokens are unsigned without "
+            "it; the PEP cannot verify their origin)"
+        )
 
     if missing:
         vars_txt = ", ".join(missing)
@@ -921,17 +935,40 @@ def _policy_component_hashes() -> dict[str, str | None]:
     }
 
 
+class AuditChainLookupError(RuntimeError):
+    """The tenant's chain head exists but could not be read.
+
+    Distinct from "this tenant has no records yet". Collapsing the two lets a
+    failed or malformed lookup restart the chain at genesis with no signal —
+    the precise tampering shape a hash chain exists to expose.
+    """
+
+
 def _latest_tenant_audit_hash(tenant_id: str) -> str | None:
+    """Return the tenant's chain head, or ``None`` when the tenant has none.
+
+    Raises :class:`AuditChainLookupError` when the store returned a record
+    from which no usable hash could be read. A record without a linkable hash
+    is a broken chain, not a new one.
+    """
     latest = _CONTROL_PLANE_STORE.get_latest_audit_record_for_tenant(tenant_id=tenant_id)
-    if not isinstance(latest, dict):
+    if latest is None:
         return None
+    if not isinstance(latest, dict):
+        raise AuditChainLookupError(
+            f"control-plane store returned {type(latest).__name__} for the "
+            f"latest audit record; expected a mapping or None"
+        )
     envelope_hash = latest.get("envelope_audit_hash")
     if isinstance(envelope_hash, str) and envelope_hash.strip():
         return envelope_hash
     state_hash = latest.get("state_hash")
     if isinstance(state_hash, str) and state_hash.strip():
         return state_hash
-    return None
+    raise AuditChainLookupError(
+        "latest audit record carries neither envelope_audit_hash nor "
+        "state_hash; refusing to restart the tenant chain at genesis"
+    )
 
 
 def _sign_envelope_audit_hash(audit_hash: str) -> str | None:
@@ -946,11 +983,27 @@ def _sign_envelope_audit_hash(audit_hash: str) -> str | None:
 
 
 def _canonical_envelope_for_hash(envelope_payload: dict[str, Any]) -> dict[str, Any]:
-    """Return an envelope payload suitable for deterministic chain hashing."""
-    canonical = deepcopy(envelope_payload) if isinstance(envelope_payload, dict) else {}
+    """Return an envelope payload suitable for deterministic chain hashing.
+
+    A non-dict payload is an internal invariant violation, not user input:
+    silently canonicalising it to ``{}`` gave every malformed envelope the
+    same chain hash for a given predecessor, so the hash could not tell two
+    different bad inputs apart.
+    """
+    if not isinstance(envelope_payload, dict):
+        raise TypeError(
+            f"envelope payload must be a mapping to be chain-hashed, got "
+            f"{type(envelope_payload).__name__}"
+        )
+    canonical = deepcopy(envelope_payload)
     audit = canonical.get("audit") if isinstance(canonical, dict) else None
     if isinstance(audit, dict):
-        for key in ("hash", "previous_hash", "signature", "timestamp_utc"):
+        # ``genesis`` is a pure derivative of ``previous_hash``, which is
+        # already excluded here and instead prefixed into the preimage. Hashing
+        # it would change every envelope hash and break the committed tenant
+        # chains for no added binding.
+        for key in ("hash", "previous_hash", "signature", "timestamp_utc",
+                    "genesis"):
             audit.pop(key, None)
     # Post-v2 audit keys are omitted when unset so control-plane chains
     # recorded before those fields existed keep verifying (see
@@ -983,6 +1036,11 @@ def _finalize_envelope_audit(
 
     previous_hash = _latest_tenant_audit_hash(tenant_id)
     audit_block["previous_hash"] = previous_hash
+    # Recorded, not inferred: a verifier reading previous_hash=None must be
+    # able to tell a deliberate first link from a lost one. _latest_tenant_
+    # audit_hash raises rather than returning None when a head exists but is
+    # unreadable, so None here means genesis and nothing else.
+    audit_block["genesis"] = previous_hash is None
     audit_block["hash"] = _compute_envelope_chain_hash(
         previous_hash=previous_hash,
         envelope_payload=envelope_payload,

@@ -158,6 +158,7 @@
         "policy_version":      { "type": "string" },
         "hash":                { "type": ["string", "null"] },
         "previous_hash":       { "type": ["string", "null"] },
+        "genesis":             { "type": "boolean" },
         "signature":           { "type": ["string", "null"] },
         "schema_version":      { "type": "string" },
         "timestamp_utc":       { "type": ["string", "null"] },
