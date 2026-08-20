@@ -1099,6 +1099,8 @@ def _dispatch_under_lease(
     now: datetime,
     gate_allowed: bool = True,
     toolspec: dict[str, Any] | None = None,
+    proposal_id: str = "",
+    grant_jti: str = "",
 ) -> dict[str, Any]:
     """Governed dispatch (see remora.execution.dispatch); binds this module's
     dispatcher and current policy bundle hash. Shared by /execute and
@@ -1113,6 +1115,8 @@ def _dispatch_under_lease(
         policy_bundle_hash=_current_policy_bundle_hash(),
         gate_allowed=gate_allowed,
         toolspec=toolspec,
+        proposal_id=proposal_id,
+        grant_jti=grant_jti,
     )
 
 

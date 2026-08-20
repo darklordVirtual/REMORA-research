@@ -39,6 +39,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import logging
 import os
 import threading
 import uuid
@@ -56,6 +57,25 @@ _FALLBACK_ENV_KEY = "REMORA_PDP_SIGNING_KEY"
 # an operator misconfiguration from minting hour-plus standing authorizations.
 DEFAULT_LEASE_TTL_SECONDS = 120
 MAX_LEASE_TTL_SECONDS = 3600
+
+
+class ToolExecutionStateUnknown(RuntimeError):
+    """The tool raised after its nonce was consumed: state at the tool is unknown.
+
+    Subclasses ``RuntimeError`` so existing handlers keep working, but carries
+    the identifiers an operator needs to act — this is not a retryable error
+    and not a clean failure, it is the one case where REMORA knows it does not
+    know what happened (issue #45).
+    """
+
+    def __init__(
+        self, message: str, *, proposal_id: str = "", tenant_id: str = "",
+        tool_name: str = "",
+    ) -> None:
+        super().__init__(message)
+        self.proposal_id = proposal_id
+        self.tenant_id = tenant_id
+        self.tool_name = tool_name
 
 
 class LeaseRefused(Exception):
@@ -113,6 +133,16 @@ class ExecutionLease:
     #: never be reusable with a different ToolSpec.
     toolspec_hash: str = ""
     toolspec_version: int = 0
+    #: Issue #45/#37: the lifecycle identity this authorization belongs to.
+    #: Bound and SIGNED, so the audit chain can join an executed side effect
+    #: back to the decision that authorized it without re-deriving hashes out
+    #: of band. Empty string means the caller minted no proposal identity
+    #: (library use, legacy path) — it is carried, never invented here.
+    proposal_id: str = ""
+    #: The jti of the PolicyDecisionToken consumed at the PEP for this
+    #: execution. Signed for the same reason: a lease and the grant it was
+    #: redeemed against must be joinable from either end.
+    grant_jti: str = ""
 
     @classmethod
     def issue(
@@ -131,6 +161,8 @@ class ExecutionLease:
         intent_authority_hash: str = "",
         toolspec_hash: str = "",
         toolspec_version: int = 0,
+        proposal_id: str = "",
+        grant_jti: str = "",
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -172,6 +204,8 @@ class ExecutionLease:
             "intent_authority_hash": intent_authority_hash,
             "toolspec_hash": toolspec_hash,
             "toolspec_version": toolspec_version,
+            "proposal_id": proposal_id,
+            "grant_jti": grant_jti,
         }
         key = _get_signing_key()
         if key:
@@ -189,6 +223,8 @@ class ExecutionLease:
             policy_bundle_hash=lease.policy_bundle_hash,
             expires_at=lease.expires_at,
             signed=lease.is_signed,
+            proposal_id=lease.proposal_id,
+            grant_jti=lease.grant_jti,
         )
         return lease
 
@@ -213,6 +249,8 @@ class ExecutionLease:
             "intent_authority_hash": self.intent_authority_hash,
             "toolspec_hash": self.toolspec_hash,
             "toolspec_version": self.toolspec_version,
+            "proposal_id": self.proposal_id,
+            "grant_jti": self.grant_jti,
         }
 
     def verify(
@@ -227,6 +265,7 @@ class ExecutionLease:
         actor_identity: str | None = None,
         toolspec_hash: str | None = None,
         toolspec_version: int | None = None,
+        expected_proposal_id: str | None = None,
     ) -> LeaseVerificationResult:
         """Verify signature, expiry, and the full binding against a concrete call.
 
@@ -312,6 +351,16 @@ class ExecutionLease:
                 expected_policy_bundle_hash.encode(), self.policy_bundle_hash.encode()
             ):
                 return LeaseVerificationResult(False, "policy_bundle_mismatch")
+        if expected_proposal_id is not None:
+            # Same fail-closed shape as the bundle check above: a lease with no
+            # lifecycle identity can never satisfy a binding check, so an unset
+            # caller value cannot silently disable it.
+            if not self.proposal_id:
+                return LeaseVerificationResult(False, "proposal_binding_missing")
+            if not hmac.compare_digest(
+                expected_proposal_id.encode(), self.proposal_id.encode()
+            ):
+                return LeaseVerificationResult(False, "proposal_mismatch")
         return LeaseVerificationResult(True, "ok")
 
     def to_dict(self) -> dict[str, Any]:
@@ -323,6 +372,7 @@ class ExecutionLease:
         "expires_at", "signature", "is_signed",
         "tool_contract_bundle_hash", "intent_authority_hash",
         "toolspec_hash", "toolspec_version",
+        "proposal_id", "grant_jti",
     })
 
     @classmethod
@@ -385,6 +435,12 @@ class DispatchResult:
     executed: bool
     refusal_reason: str | None = None
     result: Any = None
+    #: Issue #45: the lifecycle identity carried out of the dispatcher, so a
+    #: recorded effect joins back to the decision without re-deriving hashes.
+    #: Empty when the refusal happened before a lease was available to read it
+    #: from — a missing lease has no identity to report, and inventing one here
+    #: would be worse than the gap.
+    proposal_id: str = ""
 
 
 class GovernedToolDispatcher:
@@ -432,9 +488,23 @@ class GovernedToolDispatcher:
         a matching identity.
         """
         if lease is None:
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason="missing_lease", tenant_id=tenant_id, tool_name=tool_name,
+                proposal_id="",
+            )
             return DispatchResult(executed=False, refusal_reason="missing_lease")
+        proposal_id = lease.proposal_id
         if tool_name not in self._tools:
-            return DispatchResult(executed=False, refusal_reason="unknown_tool")
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason="unknown_tool", tenant_id=tenant_id, tool_name=tool_name,
+                proposal_id=proposal_id,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason="unknown_tool",
+                proposal_id=proposal_id,
+            )
 
         fn = self._tools[tool_name]
         verdict = lease.verify(
@@ -446,25 +516,65 @@ class GovernedToolDispatcher:
             actor_identity=actor_identity,
         )
         if not verdict.verified:
-            return DispatchResult(executed=False, refusal_reason=verdict.reason)
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason=verdict.reason, tenant_id=tenant_id, tool_name=tool_name,
+                proposal_id=proposal_id, grant_jti=lease.grant_jti,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason=verdict.reason,
+                proposal_id=proposal_id,
+            )
         if not self._ledger.consume(lease.nonce):
             # A nonce burned by a raising tool is not a plain replay: the
             # caller must learn the previous attempt failed with unknown
             # state, not merely that the nonce was used.
             failure = getattr(self._ledger, "failure", lambda _n: None)(lease.nonce)
-            if failure is not None:
-                return DispatchResult(
-                    executed=False,
-                    refusal_reason="nonce_consumed_by_failed_execution")
-            return DispatchResult(executed=False, refusal_reason="nonce_already_consumed")
+            reason = (
+                "nonce_consumed_by_failed_execution"
+                if failure is not None
+                else "nonce_already_consumed"
+            )
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason=reason, tenant_id=tenant_id, tool_name=tool_name,
+                proposal_id=proposal_id, grant_jti=lease.grant_jti,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason=reason, proposal_id=proposal_id,
+            )
 
         # execution
         try:
             res = fn(arguments)
-            return DispatchResult(executed=True, result=res)
+            governance_event(
+                "dispatch.executed",
+                tenant_id=tenant_id, tool_name=tool_name,
+                proposal_id=proposal_id, grant_jti=lease.grant_jti,
+                tool_args_hash=lease.tool_args_hash,
+            )
+            return DispatchResult(
+                executed=True, result=res, proposal_id=proposal_id,
+            )
         except Exception as e:
             # Burn is recorded with its reason so failure() can surface it;
             # the nonce stays consumed — state at the tool is unknown.
             if hasattr(self._ledger, "fail_consume"):
                 self._ledger.fail_consume(lease.nonce, str(e))
-            raise RuntimeError(f"Tool execution failed, nonce burned and state unknown/failed: {e}") from e
+            # The single most alert-worthy condition in the system used to
+            # raise a bare RuntimeError with no log line and no distinct type
+            # (issue #45 item 2). It is now both: an ERROR-level governance
+            # event carrying the lifecycle identity, and a named exception a
+            # handler can route on without matching message text.
+            governance_event(
+                "dispatch.state_unknown", level=logging.ERROR,
+                tenant_id=tenant_id, tool_name=tool_name,
+                proposal_id=proposal_id, grant_jti=lease.grant_jti,
+                nonce_burned=True, error_type=type(e).__name__,
+            )
+            raise ToolExecutionStateUnknown(
+                f"Tool execution failed, nonce burned and state unknown/failed: {e}",
+                proposal_id=proposal_id,
+                tenant_id=tenant_id,
+                tool_name=tool_name,
+            ) from e
