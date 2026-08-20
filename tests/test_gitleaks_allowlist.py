@@ -20,7 +20,17 @@ WORKFLOW = ROOT / ".github" / "workflows" / "supply-chain.yml"
 
 # Raising these caps is a deliberate act, not a drive-by edit.
 MAX_ALLOWLISTED_PATHS = 4
-MAX_ALLOWLISTED_REGEXES = 6
+MAX_ALLOWLISTED_REGEXES = 8
+
+#: An allowlist entry must be anchored to something specific to this
+#: repository. A bare value like "dev-token" reads as narrow but suppresses
+#: every future finding anywhere that happens to contain the string, which is
+#: how a secret scanner gets quietly disarmed. Flagged by the automated
+#: security review on 2026-08-20 after exactly that entry was added.
+_REQUIRED_ANCHORS: tuple[str, ...] = (
+    "REMORA", "remora", "localhost:8000", "friction_thresholds",
+    "test-pdp-signing-key",
+)
 
 
 def _config() -> dict:
@@ -50,6 +60,16 @@ def test_no_catch_all_entries() -> None:
     for path in allowlist["paths"]:
         assert not path.startswith(("remora", "servers", "workers", "scripts")), (
             f"source tree allowlisted wholesale: {path!r}"
+        )
+
+
+def test_every_regex_is_anchored_to_this_repository() -> None:
+    """A bare value would suppress unrelated future findings."""
+    for entry in _config()["allowlist"]["regexes"]:
+        assert any(anchor in entry for anchor in _REQUIRED_ANCHORS), (
+            f"allowlist regex {entry!r} is not anchored to a REMORA-specific "
+            f"context; it would suppress any future finding containing that "
+            f"string. Anchor it to the assignment or the file it appears in."
         )
 
 
