@@ -16,8 +16,8 @@ Everything outside this namespace (`remora.policy`, `remora.enforcement`,
 ## Install
 
 ```bash
-pip install "remora[sdk]"        # client only (adds httpx)
-pip install "remora[api,sdk]"    # + in-process server for the offline demo
+python -m pip install -e ".[sdk]"       # client only (adds httpx)
+python -m pip install -e ".[api,sdk]"   # + in-process server for the offline demo
 ```
 
 `remora.sdk` models and errors import without the extra; only

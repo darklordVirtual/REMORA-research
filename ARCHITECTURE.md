@@ -178,7 +178,7 @@ observation rather than patching the old one.
 | **Governance envelope** | `remora/governance/envelope.py` | `DecisionEnvelope` (v2) + `AuditBlock`, the canonical governance contract |
 | Cascade pipeline (experimental, `/v1/assess` research surface) | `remora/cascade/` | staged assessment: `FastGate` → `ConsensusGate` → `VerifierGate` → `CritiqueRevisionGate` → `SelfConsistencyGate` → `MixtureOfAgentsSynth` (see §5) |
 | **Consensus core** | `remora/engine.py`, `remora/reporting.py`, `remora/state.py`, `remora/correlation.py` | multi-oracle consensus loop; report + `DecisionEnvelope` assembly (`build_report`) and the `RemoraState` session-state contract split out of `engine.py` (2026-07-29); rolling correlation matrix and diversity weights |
-| **Uncertainty observables** | `remora/thermodynamics.py`, `remora/statphys/` | entropy `H`, dissensus `D`, value `V` as an uncertainty-routing metaphor (not physics) |
+| **Uncertainty observables** | `remora/thermodynamics.py`, `remora/research_attic/statphys/` | entropy `H`, dissensus `D`, value `V` as an uncertainty-routing metaphor (not physics) |
 | **Selective prediction** | `remora/selective/` | `conformal.py`, `crc.py` (weight-corrected slack), `pvd.py`, `guardrail.py` (`PhaseAwareGuardrail`), `drift_detector.py` |
 | **Oracles (pluggable)** | `remora/oracles/` | interchangeable backends, see §6 |
 | **Audit chain** | `remora/audit/hash_chain.py` | SHA-256 hash chain; tamper-**evident** |
@@ -425,8 +425,8 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/legal/` | **CORE** | `CitationExistence`: citation existence is an authoritative-registry fact; model consensus is advisory only |
 | `servers/execution_api.py` | **CORE** | `/v1/execution/*` routes + orchestration (decomposition in progress, issue #241) |
 | `servers/execution_contracts.py` | **CORE** | Pydantic wire models for `/v1/execution/*` (issue #241 slice 1) |
-| `remora/lyapunov.py` | **EXPERIMENTAL** | Lyapunov stability controller for consensus iteration |
-| `remora/thermodynamics.py` | **EXPERIMENTAL** | Thermodynamic uncertainty-routing proxy |
+| `remora/lyapunov.py` | **EXPERIMENTAL** | Session-stability observable over consensus iteration (legacy module name; the thermodynamic framing is withdrawn, NEGATIVE_RESULTS §38) |
+| `remora/thermodynamics.py` | **EXPERIMENTAL** | Uncertainty-routing proxy (legacy naming; framing withdrawn, NEGATIVE_RESULTS §38 — the field names are wire format and stay) |
 | `remora/causal/intervention.py` | **EXPERIMENTAL** | Do-calculus causal stress testing |
 | `remora/topology.py` | **EXPERIMENTAL** | Topological Data Analysis (TDA) |
 | `remora/cascade/` | **EXPERIMENTAL** | Multi-stage cascade pipeline |
@@ -437,12 +437,38 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/graph/` | **EXPERIMENTAL** | Semantic claim-graph β1 / contradiction cycles |
 | `remora/knowledge_domains/` | **EXPERIMENTAL** | Multi-tenant scoping + cost routing (research fixtures) |
 | `remora/governance_intelligence/` | **EXPERIMENTAL** | Pre-policy enrichment (self-labelled research-grade) |
-| `remora/statphys/` | **RESEARCH_ONLY** | Statistical-physics uncertainty models |
-| `remora/future_concept/` | **RESEARCH_ONLY** | Forward-looking research concepts |
+| `remora/sdk/` | **STABLE** | The only namespace with an external backward-compatibility guarantee. Snapshot-gated against `artifacts/sdk/public_api_v1.json` and re-checked against the installed wheel in CI |
+| `remora/observability/` | **CORE** | OTel tracer (degrades to a documented no-op) + structured governance events |
+| `remora/toolcall/` | **EXPERIMENTAL** | Tool-call routing, semantic contracts and the benchmark harnesses |
+| `remora/shadow/` | **EXPERIMENTAL** | Counterfactual replay of an agent action log |
+| `remora/integrations/` | **EXPERIMENTAL** | Outbound integrations (GO-STAR MCP bridge) |
+| `remora/assess.py` | **CORE** | One-call tool-call assessment (the library form of `remora assess`) |
+| `remora/credal.py` | **CORE** | Credal risk envelope consumed by the decision engine |
+| `remora/calibration/`, `remora/confidence/` | **EXPERIMENTAL** | Trust calibration and confidence scoring |
+| `remora/verifier/`, `remora/oracles/` | **EXPERIMENTAL** | Oracle backends and verification stages for the `/v1/assess` surface |
+| `remora/cli.py`, `remora/__main__.py` | **CORE** | The `remora` command: assess, doctor, verify, demo |
+| `remora/canonical.py`, `remora/action_semantics.py` | **CORE** | Canonical hashing and action-semantics vocabulary used by the binding hashes |
+| `remora/provenance.py` | **CORE** | Build/commit provenance stamped into result artifacts |
+| `remora/agent_hook/` | **EXPERIMENTAL** | Cross-call session tracking for the agent hook and MCP surface |
+| `remora/assurance/` | **EXPERIMENTAL** | Assurance trace and stability markers |
+| `remora/audit_gates/` | **EXPERIMENTAL** | Gate definitions used by the claim-audit tooling |
+| `remora/benchmarks/` | **EXPERIMENTAL** | Deterministic benchmark corpora and scoring harnesses |
+| `remora/adaptation/` | **EXPERIMENTAL** | Adaptive threshold/bandit research; reachable only from AROMER |
+| `remora/semantic_entropy.py` | **EXPERIMENTAL** | Semantic entropy after Kuhn et al. 2023 (prior art, not a physics metaphor); NLI-backend parity is CI-gated |
+| `remora/correlation.py`, `remora/counterfactual.py`, `remora/scoring.py`, `remora/layers.py`, `remora/stability.py`, `remora/phase_controller.py` | **EXPERIMENTAL** | Research helpers for the `/v1/assess` surface |
+| `remora/research_attic/` | **RESEARCH_ONLY** | Retained research modules with no production importer; `tests/test_research_attic_isolation.py` refuses one |
 
-> **Backwards compatibility:** CORE modules follow semantic versioning.
-> EXPERIMENTAL APIs may change in minor releases. RESEARCH_ONLY modules carry no
-> BC guarantee and are not production-certified.
+> **Backwards compatibility:** `remora.sdk` is the only surface with an
+> external guarantee. CORE is a *maturity* rating, not a BC promise: those
+> modules are load-bearing and well covered, but callers outside this
+> repository should import through `remora.sdk`. EXPERIMENTAL APIs may change
+> in minor releases. RESEARCH_ONLY modules carry no BC guarantee and are not
+> production-certified.
+>
+> This table is machine-checked by `tests/test_module_stability_index.py`:
+> every path listed must exist, and every top-level module under `remora/`
+> must be classified. It previously listed two directories that no longer
+> existed and omitted `remora/sdk/` — the stable surface — entirely.
 
 ---
 

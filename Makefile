@@ -20,7 +20,8 @@ RUFF   ?= ruff
 PACK_DIR := artifacts/credibility-pack
 
 help:  ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \ awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 # Testing
 
@@ -302,15 +303,15 @@ tsf-synthetic:  ## Generate synthetic traces + evaluate TSF baselines
 	@echo "Synthetic harness only. Not evidence of predictive destabilization."
 
 quality-report:  ## Generate REMORA quality report
-	python3 scripts/quality_report.py
+	$(PYTHON) scripts/quality_report.py
 
 quality-report-strict:  ## Quality report with strict warnings-as-errors
-	python3 scripts/quality_report.py --fail-on-warnings
+	$(PYTHON) scripts/quality_report.py --fail-on-warnings
 
 .PHONY: verify
 
 verify:
-	python3 -m remora.cli verify
+	$(PYTHON) -m remora.cli verify
 
 .PHONY: docs docs-serve
 

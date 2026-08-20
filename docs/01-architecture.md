@@ -16,7 +16,30 @@ produces in benchmarks.
 
 ---
 
-## Five-stage pipeline
+## Which pipeline is the product?
+
+REMORA serves two surfaces, and this page has historically led with the wrong
+one. The **execution kernel** (`/v1/execution/*`) is the product: authoritative
+context, a deterministic policy decision, a single-use grant, a PEP, an
+execution lease, durable dispatch, effect verification. Its safety floor comes
+from hard-block policy rules and does not consult a model at all.
+
+The **five-stage pipeline below is the research surface** (`/v1/assess`).
+Multi-oracle consensus, evidence verification and the uncertainty observables
+contribute *routing quality* — separating the plausible-but-unverified from
+the confidently-fine — and are explicitly optional. They are not prerequisites
+for the execution kernel and cannot override its hard-guard floor. See
+[`../README.md`](../README.md) and [`../DEVELOPER_OVERVIEW.md`](../DEVELOPER_OVERVIEW.md)
+for that boundary, which the machine-checked
+[product truth contract](product/product_truth_contract.yaml) enforces.
+
+Read this page for how a decision is *reached*. Read
+[deployment/execution-quickstart.md](deployment/execution-quickstart.md) for
+how one is *enforced*.
+
+---
+
+## Five-stage pipeline (the `/v1/assess` research surface)
 
 ```mermaid
 flowchart TD

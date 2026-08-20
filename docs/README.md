@@ -4,6 +4,10 @@ This is the governed documentation index. The short reading path is intentionall
 
 ## Primary reading path
 
+The ordered path is in the [project front page](../README.md); it is repeated
+here only so this index is usable on its own. When the two disagree, the front
+page wins.
+
 1. [Project front page](../README.md) — scope, evidence summary and current limitations.
 2. [Developer handoff](../DEVELOPER_OVERVIEW.md) — shortest technical path through the repository.
 3. [Architecture](../ARCHITECTURE.md) — canonical runtime architecture and module stability.

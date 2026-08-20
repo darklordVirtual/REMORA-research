@@ -16,11 +16,21 @@ The enforcing surface is `POST /v1/execution/*`. Authorization is bound to the a
 > **Status:** research/shadow-mode software with no production certification. External replication is pending; deployment-specific validation remains required.
 
 ```bash
-python -m pip install -e '.[dev]'
+python -m pip install -e ".[dev]"
 python -m remora try
 ```
 
-**Start here:** [Developer handoff](DEVELOPER_OVERVIEW.md) · [Architecture](ARCHITECTURE.md) · [Evidence and claims](docs/02-evidence-and-claims.md) · [Reproducibility](docs/06-reproducibility.md) · [Documentation index](docs/README.md)
+**Start here.** This is the one ordered reading path; the other documents point back here rather than proposing their own.
+
+1. [Developer handoff](DEVELOPER_OVERVIEW.md) — shortest technical path through the repository
+2. [Architecture](ARCHITECTURE.md) — canonical components, data flow and module stability
+3. [Execution quickstart](docs/deployment/execution-quickstart.md) — configure and run the enforcing path
+4. [API reference](docs/07-api-reference.md) — public interfaces, with a `curl` round-trip; wire contract in [`schemas/openapi.json`](schemas/openapi.json)
+5. [Python SDK](docs/sdk.md) — the one namespace with a backward-compatibility guarantee
+6. [Evidence and claims](docs/02-evidence-and-claims.md) — what each result establishes, and what it does not
+7. [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) — failed hypotheses and limitations, kept permanently
+
+[Documentation index](docs/README.md) lists the complete registered set.
 
 ---
 

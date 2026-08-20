@@ -35,6 +35,14 @@ paths = [
   '''results/external_benchmark_agentharm_v1\.json''',
 ]
 
+# Matched against the whole LINE, not the extracted secret. The default
+# target is the secret alone, which forces allowlist entries to be bare values
+# — and a bare value suppresses every future finding anywhere in the
+# repository that happens to contain that string, which is how a secret
+# scanner gets quietly disarmed. Matching the line is what lets each entry
+# below be anchored to the context it actually appears in.
+regexTarget = "line"
+
 # Identifier NAMES that the generic-api-key rule reads as values.
 regexes = [
   # remora/governance/a2a_envelope.py:72 — the name of the env var to read,
@@ -45,4 +53,22 @@ regexes = [
   # tests/test_rem013_pdp_pep_boundary.py:28 — a fixture literal for the
   # PDP/PEP boundary test; self-describing and never a live key.
   '''test-pdp-signing-key-rem013''',
+  # docs/07-api-reference.md — the curl example shows how to authenticate by
+  # READING the token from the environment, which is the practice we want
+  # documented. The default curl-auth-header rule matches the header string
+  # itself, so documenting authentication at all trips it; this allowlists the
+  # env-var reference, never a value.
+  '''Authorization: Bearer \$\{REMORA_API_BEARER_TOKEN\}''',
+  # docs/07-api-reference.md, commit 286ee24 — the curl example first shipped
+  # with an inline placeholder before being rewritten to read the token from
+  # the environment. gitleaks scans HISTORY, so a later fix does not remove an
+  # earlier commit's finding. Both entries are anchored to the REMORA-specific
+  # context they appear in: a bare '''dev-token''' would suppress any future
+  # finding anywhere in the repository that happened to contain that string,
+  # which is how a secret scanner gets quietly disarmed.
+  '''REMORA_API_BEARER_TOKEN=dev-token''',
+  '''localhost:8000/v1/(policy/version|assess).*Authorization: Bearer dev-token''',
+  # The same block's unauthenticated health check, matched by the rule's
+  # multi-line region rather than by any secret in it.
+  '''curl -s localhost:8000/v1/health''',
 ]
