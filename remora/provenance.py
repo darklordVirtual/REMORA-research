@@ -29,6 +29,9 @@ def _get_commit_hash() -> str:
             if len(sha) == 40:
                 return sha
     except Exception:
+        # Provenance is best-effort by design: a repository without git, or a
+        # wheel installed outside one, still has to build a record. "unknown"
+        # is the honest answer and is what downstream consumers check for.
         pass
     return "unknown"
 
