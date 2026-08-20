@@ -67,7 +67,7 @@ regexes = [
   # finding anywhere in the repository that happened to contain that string,
   # which is how a secret scanner gets quietly disarmed.
   '''REMORA_API_BEARER_TOKEN=dev-token''',
-  '''localhost:8000/v1/policy/version -H "Authorization: Bearer dev-token"''',
+  '''localhost:8000/v1/(policy/version|assess).*Authorization: Bearer dev-token''',
   # The same block's unauthenticated health check, matched by the rule's
   # multi-line region rather than by any secret in it.
   '''curl -s localhost:8000/v1/health''',
