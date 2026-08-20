@@ -92,6 +92,8 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_claim_provenance.py
 	@echo "\n-- Research shelf (source verification, adoption evidence) --"
 	$(PYTHON) scripts/check_research_shelf.py
+	@echo "\n-- Capability verification binding (verified_at_sha freshness) --"
+	$(PYTHON) scripts/check_capability_freshness.py
 	@echo "\n-- NEGATIVE_RESULTS status taxonomy --"
 	$(PYTHON) scripts/check_negative_results_status.py
 	@echo "\n-- Product truth contract (capability classes vs public copy) --"

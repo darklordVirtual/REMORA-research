@@ -255,6 +255,13 @@ jobs:
         # register state, README stays under its line budget.
         run: python scripts/check_document_governance.py
 
+      - name: Capability verification binding
+        # Every capability status/caveat is a claim about code. A capability
+        # carrying verified_at_sha whose implementation moved since that commit
+        # is stale and fails here; unbound capabilities are ratcheted by
+        # unbound_baseline so the backlog can only shrink (issue #281).
+        run: python scripts/check_capability_freshness.py
+
       - name: Product-truth gate
         # docs/product/product_truth_contract.yaml classifies every advertised
         # capability (core/optional/experimental/legacy/demo); public docs and
