@@ -10,8 +10,8 @@ documents:
   topic: docs_01-architecture_md
   owner: darklordVirtual
   audience:
-  - researcher
-  - integrator
+  - researchers
+  - integrators
   last_validated: '2026-07-26'
   last_audited: '2026-07-26'
   validates_against: []
@@ -26,8 +26,8 @@ documents:
   topic: paper_remora_paper_md
   owner: darklordVirtual
   audience:
-  - researcher
-  - evaluator
+  - researchers
+  - evaluators
   last_validated: '2026-07-26'
   last_audited: '2026-07-26'
   last_reviewed: '2026-07-28'
@@ -51,7 +51,7 @@ documents:
   topic: docs_claim_register_md
   owner: darklordVirtual
   audience:
-  - evaluator
+  - evaluators
   validates_against:
   - docs/assurance/claim_register_v1.yaml
   last_audited: '2026-07-26'
@@ -2037,7 +2037,7 @@ documents:
   last_reviewed: '2026-07-29'
   audience:
   - researchers
-  - integrator
+  - integrators
 - id: DOC-288
   version: v1
   path: docs/validation/pilot_evaluation_protocol_v1.md
@@ -2049,7 +2049,7 @@ documents:
   last_reviewed: '2026-07-30'
   audience:
   - researchers
-  - evaluator
+  - evaluators
 - id: DOC-289
   version: v1
   path: docs/13-research-frontier-roadmap.md
@@ -2058,8 +2058,8 @@ documents:
   verdict: pending
   last_reviewed: '2026-07-30'
   audience:
-  - researcher
-  - evaluator
+  - researchers
+  - evaluators
 - id: DOC-290
   version: v1
   path: docs/enterprise/audit-anchoring-guide.md
@@ -2070,8 +2070,8 @@ documents:
   last_audited: '2026-07-30'
   last_reviewed: '2026-07-30'
   audience:
-  - integrator
-  - evaluator
+  - integrators
+  - evaluators
 - id: DOC-291
   version: v1
   path: docs/research/verify_control_protocols.md
@@ -2082,8 +2082,8 @@ documents:
   last_audited: '2026-07-30'
   last_reviewed: '2026-07-30'
   audience:
-  - researcher
-  - evaluator
+  - researchers
+  - evaluators
 - id: DOC-292
   version: v1
   path: docs/research/routing_benchmark_v1_design.md
@@ -2094,8 +2094,8 @@ documents:
   last_audited: '2026-07-31'
   last_reviewed: '2026-07-31'
   audience:
-  - researcher
-  - evaluator
+  - researchers
+  - evaluators
 - id: DOC-293
   version: v1
   path: docs/assurance/superseded_claims.md
@@ -2107,7 +2107,7 @@ documents:
   last_reviewed: '2026-07-31'
   audience:
   - researchers
-  - evaluator
+  - evaluators
 - id: DOC-294
   version: v1
   path: docs/research/research_shelf_v1.yaml
@@ -2130,7 +2130,7 @@ documents:
   last_reviewed: '2026-08-03'
   audience:
   - operators
-  - evaluator
+  - evaluators
 - id: DOC-296
   version: v1
   path: docs/assurance/statistical_analysis_plan_v4.md
@@ -2162,8 +2162,8 @@ documents:
   verdict: pending
   last_reviewed: '2026-08-05'
   audience:
-  - maintainer
-  - evaluator
+  - maintainers
+  - evaluators
 - id: DOC-299
   version: v1
   path: docs/assurance/fasttrack_register_v1.yaml
@@ -2173,8 +2173,8 @@ documents:
   verdict: current
   last_reviewed: '2026-08-05'
   audience:
-  - maintainer
-  - evaluator
+  - maintainers
+  - evaluators
 - id: DOC-300
   version: v1
   path: docs/design/toolspec-signed-registry-v1.md
@@ -2184,11 +2184,11 @@ documents:
   verdict: pending
   last_reviewed: '2026-08-05'
   audience:
-  - maintainer
-  - evaluator
+  - maintainers
+  - evaluators
 
 - audience:
-  - integrator
+  - integrators
   - researchers
   code_synced: verified
   id: DOC-301
@@ -2201,7 +2201,7 @@ documents:
   version: v1
 - audience:
   - operators
-  - integrator
+  - integrators
   code_synced: verified
   id: DOC-302
   last_audited: '2026-08-05'
@@ -2212,8 +2212,8 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - integrator
-  - evaluator
+  - integrators
+  - evaluators
   code_synced: verified
   id: DOC-303
   last_audited: '2026-08-19'
@@ -2224,8 +2224,8 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - integrator
-  - evaluator
+  - integrators
+  - evaluators
   code_synced: verified
   id: DOC-304
   last_audited: '2026-08-19'
@@ -2236,7 +2236,7 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - evaluator
+  - evaluators
   - operators
   code_synced: verified
   id: DOC-305
@@ -2248,7 +2248,7 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - evaluator
+  - evaluators
   - operators
   code_synced: verified
   id: DOC-306
@@ -2260,7 +2260,7 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - evaluator
+  - evaluators
   code_synced: verified
   id: DOC-307
   last_audited: '2026-08-19'
@@ -2282,7 +2282,7 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - evaluator
+  - evaluators
   - operators
   code_synced: verified
   id: DOC-309
@@ -2294,8 +2294,8 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - evaluator
-  - integrator
+  - evaluators
+  - integrators
   code_synced: verified
   id: DOC-310
   last_audited: '2026-08-19'
@@ -2306,7 +2306,7 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - integrator
+  - integrators
   code_synced: verified
   id: DOC-311
   last_audited: '2026-08-19'
@@ -2317,8 +2317,8 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - researcher
-  - evaluator
+  - researchers
+  - evaluators
   code_synced: verified
   id: DOC-312
   last_audited: '2026-08-19'
@@ -2329,8 +2329,8 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - researcher
-  - evaluator
+  - researchers
+  - evaluators
   code_synced: unreviewed
   id: DOC-313
   last_reviewed: '2026-08-20'
@@ -2340,8 +2340,8 @@ documents:
   verdict: pending
   version: v1
 - audience:
-  - evaluator
-  - integrator
+  - evaluators
+  - integrators
   code_synced: unreviewed
   id: DOC-314
   last_reviewed: '2026-08-20'
@@ -2351,8 +2351,8 @@ documents:
   verdict: pending
   version: v1
 - audience:
-  - researcher
-  - evaluator
+  - researchers
+  - evaluators
   code_synced: verified
   id: DOC-315
   last_reviewed: '2026-08-20'
@@ -2362,8 +2362,8 @@ documents:
   verdict: pending
   version: v1
 - audience:
-  - researcher
-  - evaluator
+  - researchers
+  - evaluators
   code_synced: verified
   id: DOC-316
   last_reviewed: '2026-08-20'
@@ -2373,8 +2373,8 @@ documents:
   verdict: pending
   version: v1
 - audience:
-  - maintainer
-  - evaluator
+  - maintainers
+  - evaluators
   code_synced: verified
   id: DOC-317
   last_reviewed: '2026-08-20'
