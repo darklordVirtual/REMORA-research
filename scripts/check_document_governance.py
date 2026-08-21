@@ -58,6 +58,23 @@ ALLOWED_STATUSES = {
 # Schema-v2 verification fields (advisory).
 ALLOWED_CODE_SYNCED = {"unreviewed", "verified", "mismatch"}
 ALLOWED_VERDICTS = {"pending", "current", "fixed", "consolidate", "stale"}
+#: Controlled audience vocabulary (issue #47). The field was free text, so the
+#: register carried "researcher" and "researchers" as if they named different
+#: audiences, and a filter written against one silently missed the other.
+#: Plural is the form the data already overwhelmingly uses.
+ALLOWED_AUDIENCES = {
+    "researchers", "evaluators", "integrators", "operators", "maintainers",
+}
+#: Singular forms that occurred in the register, mapped to the controlled term.
+#: An explicit map rather than naive de-pluralisation, so adding an audience
+#: stays a deliberate act.
+AUDIENCE_ALIASES = {
+    "researcher": "researchers",
+    "evaluator": "evaluators",
+    "integrator": "integrators",
+    "operator": "operators",
+    "maintainer": "maintainers",
+}
 DOC_ID_RE = re.compile(r"DOC-\d+")
 VERSION_RE = re.compile(r"v\d+")
 ISO_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -161,6 +178,16 @@ def check_document_register(errors: list[str], warnings: list[str]) -> None:
         if status not in ALLOWED_STATUSES:
             errors.append(f"document-register: {path}: invalid status {status!r}")
             continue
+        for audience in e.get("audience") or []:
+            if audience in ALLOWED_AUDIENCES:
+                continue
+            hint = AUDIENCE_ALIASES.get(audience)
+            errors.append(
+                f"document-register: {path}: audience {audience!r} is not in the "
+                f"controlled vocabulary"
+                + (f" — use {hint!r}" if hint else
+                   f" — one of {sorted(ALLOWED_AUDIENCES)}")
+            )
         if status == "canonical":
             topic = e.get("topic")
             if not topic:
