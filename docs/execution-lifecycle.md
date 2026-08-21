@@ -123,12 +123,21 @@ operating-system-level durability. Matrix rows 3, 4 and 6 are
 indistinguishable by design and collapse to `UNKNOWN`; the suite asserts
 that conflation rather than hiding it.
 
+`EffectBlock` population (#37) closed on 2026-08-20:
+`GET /v1/execution/proposals/{proposal_id}/envelope` derives a
+DecisionEnvelope from the tenant audit chain, with `effect` filled from the
+dispatch verdict, the outbox row and any recorded effect verification. It is a
+projection, not a second store: the chain stays the record, so the envelope
+cannot drift from it. `/v1/assess` still leaves the block at its defaults,
+because that surface dispatches nothing.
+
+The governed REST dispatch path for direct-ACCEPT proposals (#36) closed on
+2026-08-05: `execute_accepted` is in the SDK snapshot and
+`/v1/execution/execute-accepted` is a live route.
+
 Still open (see
 [assurance/fasttrack_register_v1.yaml](assurance/fasttrack_register_v1.yaml)):
-`EffectBlock` population (#37) — no producer populates it yet — and a
-background reconciler daemon. The governed REST dispatch path for
-direct-ACCEPT proposals (#36) closed on 2026-08-05: `execute_accepted` is in
-the SDK snapshot and `/v1/execution/execute-accepted` is a live route.
+a background reconciler daemon.
 
 ## Runnable example
 

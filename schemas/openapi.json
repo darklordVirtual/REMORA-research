@@ -2151,6 +2151,81 @@
         ]
       }
     },
+    "/v1/execution/proposals/{proposal_id}/envelope": {
+      "get": {
+        "description": "One envelope binding proposal to effect (issue #37).\n\nDerived from the chain on read, never stored: a written copy could drift\nfrom the records it describes, which is the divergence the lifecycle trail\nexists to prevent. ``effect`` is populated from what was actually recorded\n— the dispatch verdict, the outbox row and any effect verification — so an\nenvelope no longer stops at the decision.",
+        "operationId": "get_envelope_v1_execution_proposals__proposal_id__envelope_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Envelope V1 Execution Proposals  Proposal Id  Envelope Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The DecisionEnvelope for one proposal, derived from the audit chain."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "No such proposal for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Envelope",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
     "/v1/execution/proposals/{proposal_id}/evidence": {
       "get": {
         "description": "Everything recorded about one proposal, with a hashed manifest.\n\nThe manifest hashes each section it lists, so a bundle cannot be\nedited without the manifest disagreeing. That is tamper-EVIDENCE:\nanyone recomputing the hashes sees the change. It is not tamper-proof\n— a party who rewrites both bundle and manifest produces a\nself-consistent forgery, which is why the audit chain's own\nverification travels with the bundle rather than being replaced by it.",

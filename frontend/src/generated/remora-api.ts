@@ -360,6 +360,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/proposals/{proposal_id}/envelope": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Envelope
+         * @description One envelope binding proposal to effect (issue #37).
+         *
+         *     Derived from the chain on read, never stored: a written copy could drift
+         *     from the records it describes, which is the divergence the lifecycle trail
+         *     exists to prevent. ``effect`` is populated from what was actually recorded
+         *     — the dispatch verdict, the outbox row and any effect verification — so an
+         *     envelope no longer stops at the decision.
+         */
+        get: operations["get_envelope_v1_execution_proposals__proposal_id__envelope_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/execution/proposals/{proposal_id}/evidence": {
         parameters: {
             query?: never;
@@ -1701,6 +1727,66 @@ export interface operations {
         };
         responses: {
             /** @description The verification was appended to the audit chain. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description No such proposal for this tenant. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_envelope_v1_execution_proposals__proposal_id__envelope_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The DecisionEnvelope for one proposal, derived from the audit chain. */
             200: {
                 headers: {
                     [name: string]: unknown;
