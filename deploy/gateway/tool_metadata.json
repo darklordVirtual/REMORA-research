@@ -24,50 +24,58 @@
     "kg_find_subjects": "The reverse lookup over the same production data.",
     "kg_assert_fact": "Mutating, and further-reaching than one row: everything that reads the graph afterwards inherits the fact. Medium rather than high because it is reversible by kg_retract_fact, carries a mandatory source, and is verified by read-back after execution. Not low: a wrong fact with a confident source propagates.",
     "kg_retract_fact": "Mutating and destructive, but bounded: it can only reach facts this tenant owns, never the intent graph, and the retraction itself is recorded in the audit chain. Reversible by asserting the fact again.",
-    "_reads": "Reads are low: the tool returns rows and changes nothing. The disclosure concern that made these look higher belongs to target_environment, not to the tier — the tier says what the tool does, the environment says where. Recorded because this was got wrong twice in both directions. First declared low while the gateway hardcoded target_environment=prod, which made every read fall through to ABSTAIN, since the VERIFY routes are tier-driven and both ACCEPT paths exclude production. Then raised to high to restore a human route, which fixed the routing by mis-stating the tool. The actual fault was the hardcoded environment: this is a test deployment and was calling itself production. With the environment stated correctly the tier can be honest, and a production deployment sets prod and gets the exclusion back — which is the separation the two fields exist to express."
+    "_reads": "Reads are low: the tool returns rows and changes nothing. The disclosure concern that made these look higher belongs to target_environment, not to the tier — the tier says what the tool does, the environment says where. Recorded because this was got wrong twice in both directions. First declared low while the gateway hardcoded target_environment=prod, which made every read fall through to ABSTAIN, since the VERIFY routes are tier-driven and both ACCEPT paths exclude production. Then raised to high to restore a human route, which fixed the routing by mis-stating the tool. The actual fault was the hardcoded environment: this is a test deployment and was calling itself production. With the environment stated correctly the tier can be honest, and a production deployment sets prod and gets the exclusion back — which is the separation the two fields exist to express.",
+    "_schema": "schema_valid is declared true because it IS validated: every callable in kg_registry refuses missing triple fields, an absent source, a confidence outside 0..1 and an unknown object_kind before any statement runs, and the read paths are fixed parameterised shapes. The declaration states what the deployment enforces, not a hope."
   },
   "tools": {
     "kg_list_graphs": {
       "risk_tier": "low",
       "action_type": "list",
       "domain": "knowledge_graph",
-      "rollback_available": true
+      "rollback_available": true,
+      "schema_valid": true
     },
     "kg_list_predicates": {
       "risk_tier": "low",
       "action_type": "list",
       "domain": "knowledge_graph",
-      "rollback_available": true
+      "rollback_available": true,
+      "schema_valid": true
     },
     "kg_sample_subjects": {
       "risk_tier": "low",
       "action_type": "list",
       "domain": "knowledge_graph",
-      "rollback_available": true
+      "rollback_available": true,
+      "schema_valid": true
     },
     "kg_query_facts": {
       "risk_tier": "low",
       "action_type": "read",
       "domain": "knowledge_graph",
-      "rollback_available": true
+      "rollback_available": true,
+      "schema_valid": true
     },
     "kg_find_subjects": {
       "risk_tier": "low",
       "action_type": "read",
       "domain": "knowledge_graph",
-      "rollback_available": true
+      "rollback_available": true,
+      "schema_valid": true
     },
     "kg_assert_fact": {
       "risk_tier": "medium",
       "action_type": "write",
       "domain": "knowledge_graph",
-      "rollback_available": true
+      "rollback_available": true,
+      "schema_valid": true
     },
     "kg_retract_fact": {
       "risk_tier": "medium",
       "action_type": "delete",
       "domain": "knowledge_graph",
-      "rollback_available": true
+      "rollback_available": true,
+      "schema_valid": true
     }
   }
 }

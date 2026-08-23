@@ -227,6 +227,18 @@ def test_enabling_the_path_never_makes_any_decision_more_permissive() -> None:
         after = on.decide(obs).action
         if before == after:
             continue
+        # Two movements are the documented conversion. ABSTAIN -> ACCEPT is
+        # the original fall-through. VERIFY -> ACCEPT is allowed only when
+        # that VERIFY was itself the authority-resolved fall-through
+        # conversion (authority_resolved_review) — the same fall-through,
+        # which now routes to a person instead of ABSTAIN when a work order
+        # resolved. A VERIFY produced by any gate or guard must never move.
+        if (before, after) == (DecisionAction.VERIFY, DecisionAction.ACCEPT):
+            before_reasons = [r.value for r in off.decide(obs).reasons]
+            assert before_reasons == ["authority_resolved_review"], (
+                f"a gated VERIFY moved to ACCEPT: {before_reasons}"
+            )
+            continue
         assert (before, after) == (DecisionAction.ABSTAIN, DecisionAction.ACCEPT), (
             f"enabling the path moved {before} → {after} for "
             f"risk={obs.risk_tier!r} action={obs.action_type!r} "

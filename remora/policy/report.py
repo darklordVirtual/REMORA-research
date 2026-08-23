@@ -52,6 +52,14 @@ class DecisionReason(str, Enum):
     # read-only call that is the wrong call for the task, because
     # tool_matches_goal and expected_effect_matches must both be True.
     GROUNDED_READ_ACCEPT = "grounded_read_accept"
+    #: A call made under a server-resolved intent authority fell through every
+    #: gate without an ACCEPT. Routed to a person instead of ABSTAIN: the
+    #: deployment recognised the work order, so there is something for a
+    #: reviewer to decide — refusing outright left an accurately-declared
+    #: medium-risk call with no route to approval at all, while an inflated
+    #: high declaration got one. The incentive must not point toward
+    #: mis-declaring risk.
+    AUTHORITY_RESOLVED_REVIEW = "authority_resolved_review"
     ARGUMENT_RESOLUTION_REQUIRED = "argument_resolution_required"
     NO_RESOLVER_AVAILABLE = "no_resolver_available"
     # An argument policy requires validated is unconfirmed, and a bounded

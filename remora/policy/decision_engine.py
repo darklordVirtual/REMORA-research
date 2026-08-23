@@ -1173,6 +1173,18 @@ class RemoraDecisionEngine:
             reasons.append(DecisionReason.LOW_CONSEQUENCE_ACCEPT)
             return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
+        # A server-resolved authority means the deployment recognised the work
+        # order this call claims to act under. Falling through to ABSTAIN here
+        # left an accurately-declared low/medium-risk call with NO route to a
+        # person, while an inflated high/critical declaration got a VERIFY —
+        # an incentive pointing exactly the wrong way. This converts only the
+        # fall-through, only to VERIFY: a person still decides, nothing runs,
+        # and every hard guard and blocking gate above is untouched.
+        if obs.intent_authority_present is True:
+            reasons.append(DecisionReason.AUTHORITY_RESOLVED_REVIEW)
+            return self._build(DecisionAction.VERIFY, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
+
         # ── DEFAULT ─────────────────────────────────────────────────────────
 
         reasons.append(DecisionReason.DEFAULT_SAFE_ABSTAIN)

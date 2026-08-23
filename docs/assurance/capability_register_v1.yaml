@@ -58,7 +58,7 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: ddc6293f0ad608d6b15abef4d6a6c4ac3b7bdc2c
+    verified_at_sha: a410d6d9a66f7c2d06e1d4d1257121a80c92d73d
     verified_by: >-
       crosswalk assessment 2026-08-20 (docs/benchmarks/aegis-remora-crosswalk.md row A):
       gate.py one-time consumption path and tests/test_token_hardening.py read against the caveat
@@ -156,7 +156,7 @@ capabilities:
       - servers/tool_registry_research.py
       - tests/test_execution_api.py
       - tests/test_tool_registry_research.py
-    verified_at_sha: ddc6293f0ad608d6b15abef4d6a6c4ac3b7bdc2c
+    verified_at_sha: a410d6d9a66f7c2d06e1d4d1257121a80c92d73d
     verified_by: >-
       crosswalk assessment 2026-08-20 (docs/benchmarks/aegis-remora-crosswalk.md row C):
       lease.py binding set and refusal matrix read against the caveat
