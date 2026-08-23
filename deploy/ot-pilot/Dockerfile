@@ -18,10 +18,10 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# System deps for psycopg (durable Postgres execution state).
-RUN apt-get update \
- && apt-get install -y --no-install-recommends gcc libpq-dev curl \
- && rm -rf /var/lib/apt/lists/*
+# No apt layer. The postgres extra pins psycopg[binary] and psycopg2-binary,
+# which ship their own libpq, so gcc and libpq-dev are never used; they only
+# survived into the runtime image, where they cost 206 MB. The healthcheck
+# below uses the interpreter that is already present instead of adding curl.
 
 # pyproject force-includes servers/ and schemas/ in the wheel (REM-045), so
 # they must be present before the editable install resolves metadata.
@@ -49,6 +49,6 @@ USER remora
 EXPOSE 8000
 
 HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=5 \
-  CMD curl -fsS http://127.0.0.1:8000/v1/health || exit 1
+  CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/v1/health', timeout=4).status == 200 else 1)"
 
 CMD ["uvicorn", "servers.api:app", "--host", "0.0.0.0", "--port", "8000"]

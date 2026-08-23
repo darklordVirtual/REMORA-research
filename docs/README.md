@@ -47,6 +47,8 @@ File presence does not imply runtime wiring. Check the [capability register](ass
 
 The original [execution lifecycle/outbox design](design/execution-lifecycle-outbox-v1.md) and [Signed ToolSpec design](design/toolspec-signed-registry-v1.md) are retained as design history. Their introductory implementation status is historical; current status comes from code, tests and the capability register.
 
+The [governed MCP gateway design](design/cloudflare-mcp-gateway-v1.md) is an open proposal for the Cloudflare deployment, not a description of shipped behaviour.
+
 ## Developer and project references
 
 | Document | Purpose |
