@@ -210,6 +210,75 @@ refuses to start. That refusal is the feature. A gateway that came up without
 a durable one-time-grant ledger would accept a replayed grant after any
 restart, and the audit chain would be tamper-evident in name only.
 
+### European jurisdiction
+
+The execution state this container writes is not operational telemetry. It is
+the tenant audit chain, the one-time-grant ledger and the DecisionEnvelope
+store: a record of who authorised which action against which system.
+
+`wrangler.toml` therefore pins the container to a compliance boundary rather
+than to a region list:
+
+```toml
+[containers.constraints]
+jurisdiction = "eu"
+```
+
+`eu` maps to EEUR and WEUR. The proposal store is pinned the same way — a
+pending proposal holds the exact arguments of a call awaiting approval, which
+is the same class of record — via `PROPOSAL_JURISDICTION` and
+`DurableObjectNamespace.jurisdiction()`. A Durable Object's jurisdiction is
+fixed when the object is created and cannot be changed afterwards, which is
+the property that makes it worth setting.
+
+**Placement is not a GDPR guarantee.** It constrains where the container runs
+and where the proposal store lives. It says nothing about the database, which
+must be in the same jurisdiction and is a separate decision — see the
+"Database" section below.
+
+### Access
+
+The gateway is machine-to-machine. Claude Code and ChatGPT can send headers;
+they cannot complete an interactive browser sign-in. So the Access policy uses
+**service tokens**, not SSO.
+
+```sh
+# 1. a service token for this client
+wrangler access service-token create --name "remora-mcp-claude-code"
+# records CF-Access-Client-Id and CF-Access-Client-Secret; the secret is
+# shown once
+
+# 2. an Access application over the MCP endpoint, with a policy that admits
+#    that service token and nothing else
+```
+
+Then the client sends the pair as headers:
+
+```sh
+claude mcp add --transport http remora-gateway https://<host>/mcp   --header "CF-Access-Client-Id: <id>"   --header "CF-Access-Client-Secret: <secret>"
+```
+
+Two independent checks then stand between a model and a side effect: Access
+decides whether this client may reach the gateway at all, and REMORA decides
+whether this call may happen. The first is authentication, the second is
+authority. Neither substitutes for the other — a valid service token still
+gets `escalate` on a valve change under a monitoring round.
+
+A service token identifies a *client*, not a person. It is the right primitive
+for an agent, and the wrong one for approval: approving stays with a human
+holding the approver role, and the gateway's own token cannot approve at all.
+
+### Database
+
+The container connects directly to Postgres over TLS. Measured 2026-08-23:
+raw TCP egress works and psycopg completes a full wire-protocol session, so
+Hyperdrive is not in this path and no HTTP-shaped persistence backend is
+involved.
+
+For a European deployment the database must sit in the same jurisdiction as
+the container. The provider is a cost and data-processing decision rather than
+a technical one; every option speaks the same protocol.
+
 ### What this deployment is not
 
 It runs `REMORA_ENV=production` under the **default research profile**, not
