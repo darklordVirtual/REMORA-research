@@ -58,9 +58,15 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 3bb57973eca0a1c98568b1d98a50d1940883e4e0
+    verified_at_sha: 8877f7cc4cbd8592cf163bd514d71faba66bbc71
     verified_by: >-
-      re-audit 2026-08-23 (ADR-B, docs/architecture/ADR-authority-custody-and-lease-durability.md):
+      re-audit 2026-08-24: rebound because servers/execution_api.py moved when
+      the lease nonce store was wired into _tool_dispatcher. That change adds
+      _lease_nonce_store() and touches nothing on the token path -- _GATE, its
+      three backends and the jti consumption are unchanged -- so this
+      capability's status and evidence are re-read and unaltered.
+      Prior re-audit 2026-08-23 (ADR-B,
+      docs/architecture/ADR-authority-custody-and-lease-durability.md):
       rebound because the lease nonce half of the caveat changed. The token half
       was re-read against gate.py and tests/test_token_hardening.py and is
       unchanged; the token signature remains HMAC-SHA256 and is NOT covered by
@@ -163,9 +169,11 @@ capabilities:
       - tests/test_tool_registry_research.py
       - tests/test_lease_nonce_durability.py
       - tests/test_lease_authority_custody.py
-    verified_at_sha: ceb979f538704251cbe252b086e23b2e9f7bd51b
+      - docs/deployment/authority-custody-evidence.md
+    verified_at_sha: 8877f7cc4cbd8592cf163bd514d71faba66bbc71
     verified_by: >-
-      re-audit 2026-08-23 (ADR-A and ADR-B,
+      re-audit 2026-08-24 (deployment evidence,
+      docs/deployment/authority-custody-evidence.md; ADR-A and ADR-B,
       docs/architecture/ADR-authority-custody-and-lease-durability.md):
       lease.py binding set and refusal matrix re-read after the signature and
       nonce-consumption changes. Status deliberately NOT raised: both changes
