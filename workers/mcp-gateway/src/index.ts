@@ -63,6 +63,10 @@ export interface Env {
    *  a tool that accepted a tenant id would make cross-tenant access a matter
    *  of what the agent proposed. */
   REMORA_KG_TENANT?: string;
+  /** The environment a call targets. Describes this deployment, not the data.
+   *  Set to prod on a production deployment and the ACCEPT paths exclude it
+   *  again, deliberately. */
+  REMORA_TARGET_ENVIRONMENT?: string;
   /** The graph database. A binding, not a token: it cannot be read out of the
    *  container, because it is never in the container. */
   GRAPH_DB?: D1Database;
@@ -179,6 +183,26 @@ export class RemoraContainer extends Container<Env> {
       // rather than a work-order file, so there is no intent source to point
       // at: the bundle reads the issue named by intent_ref and digests its
       // text, which means an issue edited after approval stops matching.
+      // Risk metadata for the tools this deployment names. Without it every
+      // one of them falls to the fail-closed critical/unknown default, which
+      // is the right default and a useless classification — a predicate list
+      // and a write into a shared graph become the same thing, ACCEPT is
+      // structurally unreachable, and every call waits for a person.
+      //
+      // The file is hashed into the policy bundle: editing it moves the hash
+      // and invalidates every outstanding lease, so a tool cannot be
+      // relabelled and then executed under an older authorization.
+      // The deterministic ACCEPT for a read whose every grounding signal is
+      // confirmed under a server-resolved authority. Off by default because
+      // it is meaningless without declared tool contracts, a state index and
+      // an intent source; this deployment now has all three.
+      //
+      // It does not make production reads autonomous: _is_grounded_read
+      // requires a non-production target, because no read-only guarantee
+      // covers the disclosure blast radius of production data. That refusal
+      // is the active decision here, not a missing piece.
+      REMORA_GROUNDED_READ_ACCEPT: "1",
+      REMORA_TOOL_METADATA_FILE: "/app/deploy/gateway/tool_metadata.json",
       REMORA_TOOL_REGISTRY_MODULE: "deploy.gateway.registry",
       REMORA_SEMANTIC_BUNDLE_MODULE: "deploy.gateway.bundle",
       // Which tool sets are live is decided from whether their configuration

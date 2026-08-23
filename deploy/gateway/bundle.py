@@ -14,6 +14,8 @@ it followed" is exactly the case that needs a human-written reason behind it.
 """
 from __future__ import annotations
 
+import logging
+
 from remora.toolcall.routing.compatibility import CoverageScope, StateIndex
 from remora.toolcall.routing.tool_contract import ToolContract, ToolContractRegistry
 from remora.toolcall.routing.tool_registry import ToolRegistry, ToolSignature
@@ -21,6 +23,8 @@ from remora.toolcall.semantic_bundle import SemanticBundle
 
 from deploy.gateway import gh_bundle, kg_intent
 from deploy.gateway.registry import enabled_sets
+
+_log = logging.getLogger("remora.gateway.bundle")
 
 def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
     """Resolve authority, from whichever source this deployment has.
@@ -103,28 +107,62 @@ def build_semantic_bundle() -> SemanticBundle:
     signatures: dict[str, ToolSignature] = {}
     contracts: list[ToolContract] = []
     entities: set[str] = set()
-    fields: set[str] = set()
+    # A coverage scope is matched by DOMAIN, and the domain is the one the
+    # tool metadata declares — not a name chosen here. A scope whose domain
+    # matches nothing is never consulted, every value comes back UNKNOWN, and
+    # every call is ungrounded. That is how this was found: the scope was
+    # called "gateway" while the tools declared "knowledge_graph".
+    scopes: list[CoverageScope] = []
 
     if "github" in sets:
         github = gh_bundle.build_semantic_bundle()
         signatures.update(github.registry.signatures)
         contracts.extend(github.contracts.contracts.values())
-        fields |= {"repo", "number", "label", "title", "body", "state"}
+        scopes.append(CoverageScope(
+            "github",
+            frozenset({"repo", "number", "label", "title", "body", "state"}),
+            closed_world=False))
 
     if "graph" in sets:
         signatures.update(_GRAPH_SIGNATURES)
         contracts.extend(_GRAPH_CONTRACTS)
-        fields |= {"graph", "subject", "predicate", "object", "source",
-                   "confidence", "object_kind", "id", "contains", "limit"}
+        scopes.append(CoverageScope(
+            "knowledge_graph",
+            frozenset({"graph", "subject", "predicate", "object", "source",
+                       "object_kind", "id", "contains"}),
+            closed_world=False))
 
-    # Open world: subjects, predicates and issue numbers are not enumerable in
-    # advance, so a closed index would refuse every real call. The boundary
-    # that actually holds is in the registry modules — the repository
-    # allowlist and the non-negotiable tenant clause — not here.
-    state = StateIndex.from_values(
-        entities or {"__unbounded__"},
-        (CoverageScope("gateway", frozenset(fields), closed_world=False),),
-    )
+    if "graph" in sets:
+        # The graph is the system of record, so what exists in it is what the
+        # state index can confirm. Without this every argument value looks
+        # like it came from nowhere and every read waits for a person — the
+        # engine cannot tell a real subject from an invented one, so it
+        # correctly refuses to tell them apart.
+        #
+        # Failure here is not fatal: an empty index leaves values ungrounded,
+        # which sends calls to review. A bundle that refused to build because
+        # the graph was briefly unreachable would be worse.
+        # Imported outside the try on purpose: an import that fails is a
+        # programming error and must propagate, not be reported as a briefly
+        # unreachable graph. Catching it in the same clause also left
+        # GraphUnavailable unbound there, so the handler would have raised
+        # NameError instead of warning.
+        from deploy.gateway.kg_registry import known_values
+
+        try:
+            entities |= known_values()
+        except Exception as exc:  # noqa: BLE001
+            _log.warning(
+                "could not load known values from the graph (%s); argument "
+                "values will be ungrounded and every call will go to review",
+                exc)
+
+    # Open world: a value outside the index is ungrounded, not refused. The
+    # boundary that actually holds is in the registry modules — the tenant
+    # clause that is not a parameter, and the intent graph an agent cannot
+    # write — not here.
+    state = StateIndex.from_values(entities or {"__unbounded__"},
+                                   tuple(scopes))
     return SemanticBundle.build(
         registry=ToolRegistry(signatures=signatures),
         contracts=ToolContractRegistry(contracts),

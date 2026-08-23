@@ -326,6 +326,35 @@ def register_tools(register: Callable[[str, Callable[[Any], Any]], None]) -> Non
         register(name, fn)
 
 
+def known_values(limit: int = 4000) -> set[str]:
+    """Identifiers the graph confirms exist, for the policy engine's state index.
+
+    A call's argument value grounds when the state index confirms it. The
+    graph is the system of record here, so a subject or predicate that exists
+    in it is exactly the kind of confirmation that mechanism is asking for —
+    the alternative is that every value looks like it came from nowhere and
+    every read waits for a person.
+
+    Deliberately excludes the intent graph: an agent must not be able to
+    ground an argument by pointing at the authority namespace.
+
+    Bounded rather than exhaustive. A value outside the bound is not refused,
+    it is merely ungrounded, so the failure direction is a call sent to
+    review rather than one wrongly accepted.
+    """
+    rows = _query(
+        "SELECT DISTINCT subject AS v FROM knowledge_facts "
+        "WHERE tenant_id = ? AND graph != ? "
+        "UNION SELECT DISTINCT predicate FROM knowledge_facts "
+        "WHERE tenant_id = ? AND graph != ? "
+        "UNION SELECT DISTINCT graph FROM knowledge_facts "
+        "WHERE tenant_id = ? AND graph != ? "
+        "LIMIT ?",
+        [_tenant(), INTENT_GRAPH, _tenant(), INTENT_GRAPH,
+         _tenant(), INTENT_GRAPH, limit])
+    return {str(r["v"]) for r in rows if r.get("v")}
+
+
 def read_intent(subject: str) -> dict[str, Any]:
     """The task a call claims to act under, from the intent graph.
 

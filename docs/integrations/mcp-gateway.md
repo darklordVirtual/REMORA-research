@@ -37,21 +37,29 @@ Claude Code / Claude Desktop / ChatGPT
 
 ## The four decisions
 
-Every tool call is assessed before anything happens. There are four possible
-answers, and only one of them executes immediately.
+Every tool call is assessed before anything happens. Only one of the four
+executes without a person.
 
-| Decision | What the agent gets back | Side effect |
-| --- | --- | --- |
-| `accept` | `status: executed` with the result | yes, immediately |
-| `verify` | `status: pending_approval` with a `proposal_id` and an `approval_reference` | none |
-| `escalate` | `status: refused` with reasons | none |
-| `abstain` | `status: refused` with reasons | none |
+| Decision | Means | What the agent gets | Side effect |
+| --- | --- | --- | --- |
+| `accept` | run it | the result, plus the reasons that allowed it | yes |
+| `verify` | a person must decide | `proposal_id` and `approval_reference` | none yet |
+| `escalate` | **a person must decide**, and the call did not resolve under the intent it claimed | the same, with why | none yet |
+| `abstain` | nothing to decide on | refused | none |
 
-A refusal is **not** returned as a tool error. Flagging it as an error would
-invite the model to treat governance as a fault to be routed around, which is
-precisely the behaviour the system exists to prevent. The refusal text says so
-in as many words: do not retry, and do not look for another way to the same
-effect.
+**`escalate` is not a refusal.** `servers/execution_api.py` is explicit:
+"VERIFY/ESCALATE enqueue a review item for a human; ABSTAIN returns
+[nothing]". This gateway treated escalate as refused for most of its life,
+which threw away the one route a person had to say yes — and escalate is the
+case where a person is *most* needed, because something about the call did not
+line up. It now goes to approval with the mismatch stated, so whoever looks at
+it knows they are not rubber-stamping a routine call.
+
+`abstain` is the refusal. There is nothing for a person to approve, so no
+proposal is created.
+
+An `accept` carries its reasons and its grounding signals. It is the one
+outcome where nobody looked, so it is the one that must never be unexplained.
 
 ### VERIFY is the normal path, not the edge case
 
@@ -452,6 +460,63 @@ is implemented twice. A test pins the TypeScript output against hardcoded
 values from `remora.governance.effect_verification.effect_digest` — without
 it the two could drift and every verification would silently become a
 mismatch.
+
+### Why autonomy is zero, and what that cost to find out
+
+The gateway declares risk metadata for its own tools
+(`deploy/gateway/tool_metadata.json`) and grounds argument values in the graph
+itself, which is the system of record. Both were missing, and both are needed
+before `ACCEPT` is reachable at all: without them every tool falls to the
+fail-closed `critical`/`unknown` default and every value looks like it came
+from nowhere.
+
+`REMORA_GROUNDED_READ_ACCEPT` is enabled. The path is real and it fires:
+
+| Target | Risk | Outcome |
+| --- | --- | --- |
+| non-production | low | **`accept`** — `grounded_read_accept` |
+| production | low | `abstain` |
+| production | medium | `abstain` |
+| production | high | `verify` |
+
+**This gateway reads production, so it never reaches the first row.**
+`_is_grounded_read` requires a non-production target because no read-only
+guarantee covers the disclosure blast radius of live data. That refusal is the
+active decision here, not a missing piece, and `tests/test_gateway_grounded_read.py`
+pins it — including that it stays refused however well grounded the call is.
+
+**Two things were learned the hard way and are recorded rather than smoothed
+over.**
+
+The reads were first declared `low`. Measured effect: every read fell through
+to `abstain`. The VERIFY routes are driven by risk tier, both ACCEPT paths
+exclude production, and nothing else caught them — so an honest-looking
+downgrade made the gateway strictly *less* usable than the fail-closed
+default. They are now `high`, and the recorded reason is disclosure: REMORA's
+own `_is_low_consequence` refuses to call a production read low-consequence
+for exactly that reason, so `low` had contradicted the engine's own reasoning.
+A classification must not be chosen for the routing it produces, which is why
+the reason is written down next to it.
+
+The `CoverageScope` domain must equal the domain the tool metadata declares. A
+scope named something else is never consulted, every value returns `UNKNOWN`,
+and every call is ungrounded — silently. It was named `gateway` while the
+tools declared `knowledge_graph`, and nothing said so.
+
+### A gap in the decision engine
+
+A correctly declared low- or medium-risk read of production data has **no
+route to human approval**. It abstains. Only declaring it `high` or `critical`
+produces a `verify` where a person can decide.
+
+The incentive that creates points the wrong way: an accurate low-risk
+declaration is less usable than an inaccurate high-risk one. The missing piece
+is a path that converts a fall-through into `verify` when an authority
+resolved and the grounding signals hold, rather than to `abstain`.
+
+Not changed here. It is a loosening of a default on the security-critical
+path, and that is not something to do at the end of a session — but it is
+worth doing deliberately.
 
 ### What this deployment is not
 

@@ -52,10 +52,18 @@ def test_rollback_never_sends_anything(sent):
 
 
 def test_an_exception_in_the_block_discards_the_writes(sent):
-    with pytest.raises(ValueError):
+    # Written with an explicit try/except rather than pytest.raises around a
+    # with-block: static analysis does not model pytest.raises as catching, so
+    # it reads the assertion after it as unreachable and reports it.
+    raised = False
+    try:
         with d1.connect() as conn:
             conn.execute("INSERT INTO t (a) VALUES (?)", ("x",))
             raise ValueError("handler failed")
+    except ValueError:
+        raised = True
+
+    assert raised, "the exception must propagate out of the block"
     assert sent == [], "the write set must not survive the exception"
 
 

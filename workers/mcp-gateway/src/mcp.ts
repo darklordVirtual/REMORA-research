@@ -71,6 +71,11 @@ function renderDecision(a: AssessResult, proposalId?: string): unknown {
   const base = {
     decision: a.decision,
     reasons: a.reasons ?? [],
+    // The grounding signals, surfaced rather than swallowed. A refusal that
+    // says "nothing to decide on" without saying which question came back
+    // unanswered is not an explanation, and it is unusable for anyone trying
+    // to make the next call succeed.
+    ...(a.semantic ? { signals: a.semantic } : {}),
   };
   switch (a.decision) {
     case "abstain":
@@ -78,31 +83,33 @@ function renderDecision(a: AssessResult, proposalId?: string): unknown {
         ...base,
         status: "refused",
         explanation:
-          "REMORA refused this call and nothing was executed. This is a " +
-          "governance decision, not a failure: do not retry the same call, " +
-          "and do not try to reach the same effect another way.",
-      };
-    case "escalate":
-      return {
-        ...base,
-        status: "refused",
-        explanation:
-          "REMORA escalated this call and nothing was executed. The call did " +
-          "not resolve under the intent it claimed. Check that the work order " +
-          "actually authorises this action rather than retrying.",
+          "REMORA refused this call and nothing was executed. Abstain means " +
+          "there was nothing to decide on — not that a person should be " +
+          "asked. Do not retry the same call, and do not try to reach the " +
+          "same effect another way.",
       };
     case "verify":
+    case "escalate":
+      // Both enqueue a review item for a human. servers/execution_api.py is
+      // explicit: "VERIFY/ESCALATE enqueue a review item for a human;
+      // ABSTAIN returns [nothing]". Treating escalate as a refusal threw
+      // away the one route a person had to say yes.
       return {
         ...base,
         status: "pending_approval",
         proposal_id: proposalId,
         approval_reference: a.review_item_id,
-        explanation:
-          "Nothing has been executed. A human must approve this call first. " +
-          "Give them the approval_reference, then poll remora_proposal_status " +
-          "with the proposal_id above; once approved it will execute with " +
-          "exactly these arguments. Report the wait to the user rather than " +
-          "looking for another route.",
+        explanation: a.decision === "escalate"
+          ? "Nothing has been executed, and a person has to decide. REMORA " +
+            "escalated because the call did not resolve under the intent it " +
+            "claimed — so say plainly what you were trying to do and under " +
+            "which work order, rather than presenting this as routine. Give " +
+            "them the approval_reference, then poll remora_proposal_status."
+          : "Nothing has been executed. A person must approve this call " +
+            "first. Give them the approval_reference, then poll " +
+            "remora_proposal_status with the proposal_id above; once " +
+            "approved it will execute with exactly these arguments. Report " +
+            "the wait rather than looking for another route.",
       };
     default:
       return base;
@@ -128,7 +135,12 @@ async function callTool(
   const call: ToolCall = {
     tool_name: name,
     arguments: rest as Record<string, unknown>,
-    target_environment: "prod",
+    // Describes the DEPLOYMENT, not the data it reads. This gateway is a test
+    // deployment; hardcoding "prod" conflated the two and made every ACCEPT
+    // path structurally unreachable, because both of them exclude production
+    // for disclosure blast radius. A production deployment sets this to prod
+    // and gets that exclusion back.
+    target_environment: String(deps.env.REMORA_TARGET_ENVIRONMENT ?? "prod"),
     ...(intent_ref ? { intent_ref } : {}),
   };
 
@@ -144,6 +156,11 @@ async function callTool(
     const run = await deps.remora.executeAccepted(body.execution_token, call);
     return textResult({
       decision: "accept",
+      // An ACCEPT is the one outcome that must never be unexplained: it is
+      // the only one where nobody looked. Which path allowed it, and which
+      // signals carried it, belong in the answer.
+      reasons: body.reasons ?? [],
+      ...(body.semantic ? { signals: body.semantic } : {}),
       status: run.status === 200 ? "executed" : "execution_failed",
       outcome: run.body?.outcome,
       result: run.body?.tool_execution,
@@ -151,6 +168,8 @@ async function callTool(
   }
 
   // Anything that is not an outright ACCEPT leaves the side effect undone.
+  // VERIFY and ESCALATE both carry a review item; ABSTAIN does not, and gets
+  // no proposal to poll because there is nothing for a person to approve.
   let proposalId: string | undefined;
   if (body.review_item_id) {
     proposalId = deps.newId();
