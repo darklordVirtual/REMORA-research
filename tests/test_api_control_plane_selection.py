@@ -118,11 +118,18 @@ def test_production_refuses_volatile_execution_state(monkeypatch) -> None:
     _production_env(monkeypatch)
     monkeypatch.setenv("REMORA_CONTROL_PLANE_DB", "/tmp/remora-cp.db")
 
-    with pytest.raises(RuntimeError, match="REMORA_PG_DSN or REMORA_CHAIN_DB"):
+    # The message names all three durable options. REMORA_STATE_ENDPOINT was
+    # added for a container with no writable disk: it keeps state through a
+    # Worker binding, so there is no local file and no credential.
+    with pytest.raises(RuntimeError, match="REMORA_PG_DSN, REMORA_STATE_ENDPOINT"):
         api._validate_production_prerequisites()
 
     monkeypatch.setenv("REMORA_CHAIN_DB", "/tmp/remora-chain.db")
     api._validate_production_prerequisites()  # must not raise
+
+    monkeypatch.delenv("REMORA_CHAIN_DB")
+    monkeypatch.setenv("REMORA_STATE_ENDPOINT", "http://state.internal/query")
+    api._validate_production_prerequisites()  # also durable, also must not raise
 
 
 def test_execution_state_backend_is_reported(monkeypatch) -> None:
