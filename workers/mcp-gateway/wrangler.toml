@@ -14,6 +14,26 @@ image_build_context = "../.."
 instance_type = "basic"
 max_instances = 1
 
+# ── European jurisdiction ─────────────────────────────────────────────────────
+# The execution state this container writes is not operational telemetry. It is
+# the tenant audit chain, the one-time-grant ledger and the DecisionEnvelope
+# store: a record of who authorised which action against which system. Where it
+# is processed is a compliance question, so the constraint is expressed as a
+# jurisdiction rather than as a region list. `eu` maps to EEUR and WEUR and is
+# a boundary, not a preference.
+#
+# Placement alone is not a GDPR guarantee. It constrains where the container
+# runs; the database it connects to must be in the same jurisdiction, and that
+# is a separate decision recorded in DOC-319.
+[containers.constraints]
+jurisdiction = "eu"
+
+[vars]
+# Same boundary as the container above. Named here rather than hardcoded so a
+# deployment that must sit elsewhere changes one file, and so the two settings
+# are visibly next to each other.
+PROPOSAL_JURISDICTION = "eu"
+
 [[durable_objects.bindings]]
 name = "REMORA"
 class_name = "RemoraContainer"

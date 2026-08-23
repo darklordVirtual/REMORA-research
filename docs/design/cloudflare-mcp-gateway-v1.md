@@ -125,6 +125,25 @@ The Postgres provider remains open. It is a question of cost, region and data
 processing terms rather than of transport, and for a European pilot data
 residency is a real constraint.
 
+**European jurisdiction, decided 2026-08-23.** The container and the proposal
+store are both pinned to the `eu` compliance boundary — `constraints.jurisdiction`
+for the container, `DurableObjectNamespace.jurisdiction()` for the store, which
+fixes it at creation and cannot be changed afterwards. Expressed as a
+jurisdiction rather than a region list because the constraint is regulatory,
+not latency.
+
+The database must sit inside the same boundary, and this is where the slice
+stops. Cloudflare's own route to a managed Postgres is PlanetScale with
+unified billing, but it is **created from the dashboard only** — probing the
+API for a provisioning route returns no such endpoint — and it is a recurring
+paid commitment at PlanetScale's standard pricing. Any provider works: the
+container speaks the wire protocol directly, so nothing in the design depends
+on which one.
+
+Placement is not a GDPR guarantee. It constrains where the container runs and
+where the proposal store lives; a database outside the boundary would defeat
+both.
+
 ## Tool surface
 
 The OT registry's tools, exposed as ordinary MCP tools:

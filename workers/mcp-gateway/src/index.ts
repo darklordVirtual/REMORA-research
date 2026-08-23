@@ -20,6 +20,13 @@ export interface Env {
   REMORA?: DurableObjectNamespace<RemoraContainer>;
   PROPOSALS: DurableObjectNamespace<ProposalDO>;
   REMORA_AGENT_TOKEN: string;
+  /**
+   * Compliance boundary for the proposal store, e.g. "eu". Set in
+   * wrangler.toml alongside the container's own jurisdiction constraint so
+   * the two cannot drift apart. Unset means Cloudflare places the object
+   * without a constraint, which is only right for local development.
+   */
+  PROPOSAL_JURISDICTION?: string;
 
   // ── Container configuration, all supplied as Worker secrets ──────────────
   // Named individually rather than passed as one blob so a missing one is a
@@ -140,7 +147,17 @@ export class ProposalDO extends DurableObject {
 }
 
 function storeFor(env: Env, session: string): ProposalStore {
-  const stub = env.PROPOSALS.get(env.PROPOSALS.idFromName(session));
+  // A pending proposal holds the exact arguments of a call awaiting human
+  // approval — what someone asked to change, and on which system. That is the
+  // same class of record as the audit chain, so it is pinned to the same
+  // jurisdiction as the container rather than placed wherever is nearest.
+  //
+  // The jurisdiction is fixed at creation and cannot be changed afterwards,
+  // which is the property that makes it worth anything.
+  const ns = env.PROPOSAL_JURISDICTION
+    ? env.PROPOSALS.jurisdiction(env.PROPOSAL_JURISDICTION as DurableObjectJurisdiction)
+    : env.PROPOSALS;
+  const stub = ns.get(ns.idFromName(session));
   const at = (id: string) => `http://proposals/${encodeURIComponent(id)}`;
   return {
     async put(id, p) {
