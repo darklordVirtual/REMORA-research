@@ -278,3 +278,23 @@ def test_the_vocabulary_can_be_discovered(captured):
     for sql, params in captured:
         assert "tenant_id = ?" in sql and TENANT in params
         assert "GROUP BY" in sql
+
+
+def test_known_values_excludes_the_intent_graph(captured):
+    """An agent must not ground an argument by pointing at the authority.
+
+    A value grounds when the state index confirms it. If the intent namespace
+    were in that index, naming a task subject would be a way to make an
+    argument look confirmed by the system of record.
+    """
+    kg.known_values()
+    sql, params = captured[0]
+    assert sql.count("graph != ?") == 3, "every branch must exclude it"
+    assert params.count(kg.INTENT_GRAPH) == 3
+    assert params.count(TENANT) == 3
+
+
+def test_known_values_is_bounded(captured):
+    kg.known_values(limit=10)
+    _, params = captured[0]
+    assert 10 in params, "the query must carry the bound"

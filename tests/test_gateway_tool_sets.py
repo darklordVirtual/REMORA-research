@@ -175,3 +175,76 @@ def test_a_task_with_spans_is_not_warned_about(monkeypatch, caplog):
     with caplog.at_level(logging.WARNING):
         kg_intent.resolve_intent("task:rich")
     assert not [r for r in caplog.records if "cannot contradict" in r.message]
+
+
+def test_an_unreachable_graph_does_not_stop_the_bundle(monkeypatch, caplog):
+    """A briefly unreachable graph must not refuse to start the process.
+
+    An empty index leaves values ungrounded, which sends calls to review. A
+    bundle that refused to build would take the whole gateway down instead.
+    """
+    import logging
+
+    registry, bundle = _load(monkeypatch, GRAPH_VARS)
+    from deploy.gateway import kg_registry
+
+    def unavailable(limit=4000):
+        raise kg_registry.GraphUnavailable("D1 unreachable")
+
+    monkeypatch.setattr(kg_registry, "known_values", unavailable)
+    with caplog.at_level(logging.WARNING):
+        built = bundle.build_semantic_bundle()
+    assert built is not None
+    assert any("ungrounded" in r.message for r in caplog.records)
+
+
+def test_known_values_reach_the_state_index(monkeypatch):
+    registry, bundle = _load(monkeypatch, GRAPH_VARS)
+    from deploy.gateway import kg_registry
+
+    monkeypatch.setattr(kg_registry, "known_values",
+                        lambda limit=4000: {"urn:x:acme", "ex:hasStatus"})
+    built = bundle.build_semantic_bundle()
+    assert built.state.contains("urn:x:acme")
+    assert built.state.contains("ex:hasStatus")
+    assert not built.state.contains("urn:x:never-seen")
+
+
+def test_the_scope_domain_matches_what_the_tools_declare(monkeypatch):
+    """A scope is matched by domain, and the domain comes from the metadata.
+
+    A scope whose domain matches nothing is never consulted: every value comes
+    back UNKNOWN, every call is ungrounded, and every call waits for a person.
+    The mismatch is silent, which is why it is pinned here.
+    """
+    import json
+    from pathlib import Path
+
+    registry, bundle = _load(monkeypatch, GRAPH_VARS)
+    from deploy.gateway import kg_registry
+
+    monkeypatch.setattr(kg_registry, "known_values", lambda limit=4000: {"v"})
+    built = bundle.build_semantic_bundle()
+
+    declared = json.loads(
+        (Path(__file__).resolve().parents[1]
+         / "deploy/gateway/tool_metadata.json").read_text(encoding="utf-8"))
+    domains = {e["domain"] for e in declared["tools"].values()}
+    scope_domains = {s.domain for s in built.state.scopes}
+    assert domains <= scope_domains, (
+        f"tools declare {domains - scope_domains} with no matching scope; "
+        "their argument values can never ground"
+    )
+
+
+def test_a_known_value_grounds_for_the_declared_domain(monkeypatch):
+    from remora.toolcall.routing.compatibility import ArgumentValueStatus
+
+    registry, bundle = _load(monkeypatch, GRAPH_VARS)
+    from deploy.gateway import kg_registry
+
+    monkeypatch.setattr(kg_registry, "known_values",
+                        lambda limit=4000: {"urn:x:acme"})
+    state = bundle.build_semantic_bundle().state
+    assert state.status("knowledge_graph", "subject", "urn:x:acme") is         ArgumentValueStatus.SUPPORTED
+    assert state.status("knowledge_graph", "subject", "urn:x:invented") is         ArgumentValueStatus.UNKNOWN

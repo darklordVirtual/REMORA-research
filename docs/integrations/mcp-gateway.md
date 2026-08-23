@@ -453,6 +453,63 @@ values from `remora.governance.effect_verification.effect_digest` — without
 it the two could drift and every verification would silently become a
 mismatch.
 
+### Why autonomy is zero, and what that cost to find out
+
+The gateway declares risk metadata for its own tools
+(`deploy/gateway/tool_metadata.json`) and grounds argument values in the graph
+itself, which is the system of record. Both were missing, and both are needed
+before `ACCEPT` is reachable at all: without them every tool falls to the
+fail-closed `critical`/`unknown` default and every value looks like it came
+from nowhere.
+
+`REMORA_GROUNDED_READ_ACCEPT` is enabled. The path is real and it fires:
+
+| Target | Risk | Outcome |
+| --- | --- | --- |
+| non-production | low | **`accept`** — `grounded_read_accept` |
+| production | low | `abstain` |
+| production | medium | `abstain` |
+| production | high | `verify` |
+
+**This gateway reads production, so it never reaches the first row.**
+`_is_grounded_read` requires a non-production target because no read-only
+guarantee covers the disclosure blast radius of live data. That refusal is the
+active decision here, not a missing piece, and `tests/test_gateway_grounded_read.py`
+pins it — including that it stays refused however well grounded the call is.
+
+**Two things were learned the hard way and are recorded rather than smoothed
+over.**
+
+The reads were first declared `low`. Measured effect: every read fell through
+to `abstain`. The VERIFY routes are driven by risk tier, both ACCEPT paths
+exclude production, and nothing else caught them — so an honest-looking
+downgrade made the gateway strictly *less* usable than the fail-closed
+default. They are now `high`, and the recorded reason is disclosure: REMORA's
+own `_is_low_consequence` refuses to call a production read low-consequence
+for exactly that reason, so `low` had contradicted the engine's own reasoning.
+A classification must not be chosen for the routing it produces, which is why
+the reason is written down next to it.
+
+The `CoverageScope` domain must equal the domain the tool metadata declares. A
+scope named something else is never consulted, every value returns `UNKNOWN`,
+and every call is ungrounded — silently. It was named `gateway` while the
+tools declared `knowledge_graph`, and nothing said so.
+
+### A gap in the decision engine
+
+A correctly declared low- or medium-risk read of production data has **no
+route to human approval**. It abstains. Only declaring it `high` or `critical`
+produces a `verify` where a person can decide.
+
+The incentive that creates points the wrong way: an accurate low-risk
+declaration is less usable than an inaccurate high-risk one. The missing piece
+is a path that converts a fall-through into `verify` when an authority
+resolved and the grounding signals hold, rather than to `abstain`.
+
+Not changed here. It is a loosening of a default on the security-critical
+path, and that is not something to do at the end of a session — but it is
+worth doing deliberately.
+
 ### What this deployment is not
 
 It runs `REMORA_ENV=production` under the **default research profile**, not

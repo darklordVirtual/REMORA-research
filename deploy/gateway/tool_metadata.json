@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "_comment": [
+    "Risk metadata this deployment declares for its own tools.",
+    "",
+    "Without it every tool a deployment names falls to the fail-closed default",
+    "of critical/unknown, which is correct as a default and useless as a",
+    "classification: a read of a public predicate list and a write into a",
+    "shared knowledge base were the same thing to the policy engine, so ACCEPT",
+    "was structurally unreachable and every call waited for a person.",
+    "",
+    "This file is hashed into the policy bundle. Editing it moves the hash and",
+    "invalidates every outstanding lease, so a tool cannot be relabelled and",
+    "then executed under an authorization issued before the relabel.",
+    "",
+    "Declaring a tool LOWER than it is would be the way to grant yourself",
+    "something here, so each entry says why it is what it is."
+  ],
+  "_why": {
+    "kg_list_graphs": "Graph names for this tenant. High because it is production data, and enumerating what exists is itself disclosure.",
+    "kg_list_predicates": "The production vocabulary in use. Discloses the shape of real customer data.",
+    "kg_sample_subjects": "Real subject identifiers and counts. Discloses who is in the graph.",
+    "kg_query_facts": "Production customer facts. The clearest disclosure case of the set.",
+    "kg_find_subjects": "The reverse lookup over the same production data.",
+    "kg_assert_fact": "Mutating, and further-reaching than one row: everything that reads the graph afterwards inherits the fact. Medium rather than high because it is reversible by kg_retract_fact, carries a mandatory source, and is verified by read-back after execution. Not low: a wrong fact with a confident source propagates.",
+    "kg_retract_fact": "Mutating and destructive, but bounded: it can only reach facts this tenant owns, never the intent graph, and the retraction itself is recorded in the audit chain. Reversible by asserting the fact again.",
+    "_reads": "Reads are high, not low. They return production customer data, and disclosure is the consequence — REMORA's own _is_low_consequence refuses to call a production read low-consequence for exactly that reason, so declaring it low contradicted the engine's own reasoning. Recorded because the first attempt did declare them low: the measured effect was that every read fell through to ABSTAIN, since the VERIFY routes are driven by tier and both ACCEPT paths exclude production. An honest classification must not be chosen for the outcome it produces, so the reason here is disclosure, not routing."
+  },
+  "tools": {
+    "kg_list_graphs": {
+      "risk_tier": "high",
+      "action_type": "list",
+      "domain": "knowledge_graph",
+      "rollback_available": true
+    },
+    "kg_list_predicates": {
+      "risk_tier": "high",
+      "action_type": "list",
+      "domain": "knowledge_graph",
+      "rollback_available": true
+    },
+    "kg_sample_subjects": {
+      "risk_tier": "high",
+      "action_type": "list",
+      "domain": "knowledge_graph",
+      "rollback_available": true
+    },
+    "kg_query_facts": {
+      "risk_tier": "high",
+      "action_type": "read",
+      "domain": "knowledge_graph",
+      "rollback_available": true
+    },
+    "kg_find_subjects": {
+      "risk_tier": "high",
+      "action_type": "read",
+      "domain": "knowledge_graph",
+      "rollback_available": true
+    },
+    "kg_assert_fact": {
+      "risk_tier": "medium",
+      "action_type": "write",
+      "domain": "knowledge_graph",
+      "rollback_available": true
+    },
+    "kg_retract_fact": {
+      "risk_tier": "medium",
+      "action_type": "delete",
+      "domain": "knowledge_graph",
+      "rollback_available": true
+    }
+  }
+}

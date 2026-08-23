@@ -167,7 +167,6 @@ export const GRAPH_TOOLS: GovernedTool[] = [
       type: "object",
       properties: {
         graph: { type: "string", description: "Graph URI." },
-        limit: { type: "number", description: "Rows, 1-200. Defaults to 50." },
         ...INTENT,
       },
       required: ["graph", "intent_ref"],
@@ -182,7 +181,6 @@ export const GRAPH_TOOLS: GovernedTool[] = [
       type: "object",
       properties: {
         graph: { type: "string", description: "Graph URI." },
-        limit: { type: "number", description: "Rows, 1-200. Defaults to 50." },
         ...INTENT,
       },
       required: ["graph", "intent_ref"],
@@ -199,7 +197,6 @@ export const GRAPH_TOOLS: GovernedTool[] = [
         graph: { type: "string", description: "Graph URI." },
         subject: { type: "string", description: "Subject to look up." },
         predicate: { type: "string", description: "Optional predicate filter." },
-        limit: { type: "number", description: "Rows, 1-200. Defaults to 50." },
         ...INTENT,
       },
       required: ["graph", "subject", "intent_ref"],
@@ -216,7 +213,6 @@ export const GRAPH_TOOLS: GovernedTool[] = [
         graph: { type: "string", description: "Graph URI." },
         predicate: { type: "string", description: "Predicate to search on." },
         contains: { type: "string", description: "Optional object substring." },
-        limit: { type: "number", description: "Rows, 1-200. Defaults to 50." },
         ...INTENT,
       },
       required: ["graph", "predicate", "intent_ref"],
