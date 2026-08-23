@@ -115,8 +115,9 @@ describe("protocol", () => {
     const names = r.result.tools.map((t: any) => t.name);
     expect(names).toContain("gh_read_issue");
     expect(names).toContain("gh_close_issue");
+    expect(names).toContain("kg_assert_fact");
     expect(names).toContain("remora_proposal_status");
-    expect(r.result.tools).toHaveLength(7);
+    expect(r.result.tools).toHaveLength(12);
   });
 
   it("every governed tool requires an intent_ref", async () => {

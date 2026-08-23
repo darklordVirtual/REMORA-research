@@ -48,11 +48,18 @@ export interface Env {
   /** The credential for the governed tools. It lives in the container and
    *  nowhere else — the agent never holds it, which is what makes a refusal
    *  final rather than advisory. */
-  REMORA_GITHUB_TOKEN: string;
+  REMORA_GITHUB_TOKEN?: string;
   /** Repositories this deployment may touch, comma separated. A closed list
    *  rather than an open credential scope: the token may have wider access,
    *  and the deployment narrows it. */
-  REMORA_GITHUB_REPOS: string;
+  REMORA_GITHUB_REPOS?: string;
+  /** exeQta knowledge graph. The tenant is configuration, never an argument:
+   *  a tool that accepted a tenant id would make cross-tenant access a matter
+   *  of what the agent proposed. */
+  REMORA_KG_TENANT?: string;
+  REMORA_KG_DATABASE_ID?: string;
+  REMORA_CF_ACCOUNT_ID?: string;
+  REMORA_CF_API_TOKEN?: string;
   REMORA_PDP_SIGNING_KEY: string;
   REMORA_LEASE_SIGNING_KEY: string;
   REMORA_AUDIT_SIGNING_KEY: string;
@@ -153,10 +160,17 @@ export class RemoraContainer extends Container<Env> {
       // rather than a work-order file, so there is no intent source to point
       // at: the bundle reads the issue named by intent_ref and digests its
       // text, which means an issue edited after approval stops matching.
-      REMORA_TOOL_REGISTRY_MODULE: "deploy.gateway.gh_registry",
-      REMORA_SEMANTIC_BUNDLE_MODULE: "deploy.gateway.gh_bundle",
-      REMORA_GITHUB_TOKEN: env.REMORA_GITHUB_TOKEN,
-      REMORA_GITHUB_REPOS: env.REMORA_GITHUB_REPOS,
+      REMORA_TOOL_REGISTRY_MODULE: "deploy.gateway.registry",
+      REMORA_SEMANTIC_BUNDLE_MODULE: "deploy.gateway.bundle",
+      // Which tool sets are live is decided from whether their configuration
+      // is complete, so an absent credential means the set is not offered
+      // rather than offered and broken.
+      REMORA_GITHUB_TOKEN: env.REMORA_GITHUB_TOKEN ?? "",
+      REMORA_GITHUB_REPOS: env.REMORA_GITHUB_REPOS ?? "",
+      REMORA_KG_TENANT: env.REMORA_KG_TENANT ?? "",
+      REMORA_KG_DATABASE_ID: env.REMORA_KG_DATABASE_ID ?? "",
+      REMORA_CF_ACCOUNT_ID: env.REMORA_CF_ACCOUNT_ID ?? "",
+      REMORA_CF_API_TOKEN: env.REMORA_CF_API_TOKEN ?? "",
       REMORA_EXECUTION_ARTIFACT_DIR: "/var/lib/remora/artifacts",
       PYTHONPATH: "/app",
     };
