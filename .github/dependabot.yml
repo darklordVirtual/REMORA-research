@@ -62,6 +62,14 @@ updates:
           - "types-*"
           - "sqlglot"
 
+    # pydantic pins pydantic-core to an exact build (==2.46.4 for pydantic
+    # 2.13.4). Bumping it on its own makes the lockfile unresolvable, which is
+    # what happened in PR #311. The version is owned by the pydantic release,
+    # so it is only ever updated as a consequence of bumping pydantic itself.
+    ignore:
+      - dependency-name: "pydantic-core"
+      - dependency-name: "pydantic_core"
+
   # Frontend dependencies, same risk-class principle.
   - package-ecosystem: "npm"
     directory: "/frontend"

@@ -171,7 +171,7 @@ pycparser==2.23
 pycryptodome==3.23.0
 pydantic==2.13.4
 pydantic-settings==2.15.0
-pydantic_core==2.48.0
+pydantic_core==2.46.4
 pydot==4.0.1
 pyee==13.0.1
 PyGithub==2.8.1
