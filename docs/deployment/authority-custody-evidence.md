@@ -96,9 +96,14 @@ The requested experiment, run in order.
    `DurableNonceStore.try_consume` classifies this as *already consumed* and
    returns `False`; the dispatcher refuses with `nonce_already_consumed`.
 
-**Tenant isolation, same experiment.** The identical nonce string under a
+**Tenant-scoped nonce namespace, same experiment.** The identical nonce string under a
 different `tenant_id` was accepted (`success: true`), then deleted. Tenant A
-therefore cannot spend, block, or collide with tenant B's namespace.
+therefore cannot spend, block, or collide with tenant B's nonce namespace.
+
+This is a property of the nonce store and nothing more. It is **not** evidence
+of tenant isolation elsewhere in REMORA -- not for the audit chain, the review
+queue, the graph, or the decision path. Those need their own tests, and none
+were run here.
 
 ### What this does and does not show
 
