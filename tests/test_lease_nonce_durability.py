@@ -223,3 +223,48 @@ def test_the_durable_store_takes_precedence_over_the_in_process_ledger(db):
     probe = DurableNonceStore(db_path=db)
     assert probe.try_consume(lease.nonce, tenant_id=lease.tenant_id) is False, (
         "the consumption was recorded in the in-process set, not the store")
+
+
+# ── the deployed wiring, which is where the #350 defect class lives ─────────
+
+def test_the_execution_api_builds_a_durable_store_for_every_admitted_backend(
+        monkeypatch):
+    """The defect class, pinned at the wiring rather than at the store.
+
+    tests/test_gate_d1_ledger.py pins the same property for the jti ledger:
+    a durable backend that the durability guard admits and the consumer never
+    learns to use is worse than no backend, because the deployment passes its
+    own check and then silently uses memory.
+
+    This asserts the lease nonce store is built from the SAME three variables.
+    If a fourth backend is ever added to the guard, this test is where it must
+    also be given to the dispatcher.
+    """
+    import importlib
+
+    from servers import execution_api
+
+    for backend, kwarg in (("REMORA_PG_DSN", "_dsn"),
+                           ("REMORA_CHAIN_DB", "_db_path"),
+                           ("REMORA_STATE_ENDPOINT", "_state_endpoint")):
+        for name in ("REMORA_PG_DSN", "REMORA_CHAIN_DB",
+                     "REMORA_STATE_ENDPOINT"):
+            monkeypatch.delenv(name, raising=False)
+        monkeypatch.setenv(backend, "configured-value")
+        importlib.reload(execution_api) if False else None
+        store = execution_api._lease_nonce_store()
+        assert store is not None, (
+            f"{backend} is admitted by the durability guard but produced no "
+            f"lease nonce store; the dispatcher would fall back to the "
+            f"in-process NonceLedger"
+        )
+        assert getattr(store, kwarg) == "configured-value"
+
+
+def test_no_durable_backend_leaves_the_in_process_ledger(monkeypatch):
+    """Library and research use keeps the honest in-process ledger."""
+    from servers import execution_api
+
+    for name in ("REMORA_PG_DSN", "REMORA_CHAIN_DB", "REMORA_STATE_ENDPOINT"):
+        monkeypatch.delenv(name, raising=False)
+    assert execution_api._lease_nonce_store() is None
