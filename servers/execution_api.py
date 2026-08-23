@@ -254,7 +254,12 @@ _GATE = EnforcementGate(
     strict=True,
     audience=PEP_AUDIENCE,
     dsn=_os.environ.get("REMORA_PG_DSN", "").strip(),
-    db_path=_os.environ.get("REMORA_CHAIN_DB", "").strip()
+    db_path=_os.environ.get("REMORA_CHAIN_DB", "").strip(),
+    # The gate must know every backend the durability guard accepts. It knew
+    # the first two and not this one, so the Cloudflare deployment passed the
+    # guard while the jti ledger silently fell to the in-memory set — a
+    # replay-after-restart window on ACCEPT execution tokens.
+    state_endpoint=_os.environ.get("REMORA_STATE_ENDPOINT", "").strip(),
 )
 _QUEUES: dict[str, ReviewQueue] = {}
 # item_id -> (tenant, ToolCallRequest fields) so execute() can rebuild hashes.

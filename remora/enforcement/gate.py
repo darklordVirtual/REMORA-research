@@ -72,11 +72,20 @@ class EnforcementGate:
     # expiry is still in the future (defence in depth against long-TTL issuance).
     MAX_TOKEN_AGE_SECONDS = 3600
 
-    def __init__(self, strict: bool = True, audience: str = "", dsn: str = "", db_path: str = "") -> None:
+    def __init__(self, strict: bool = True, audience: str = "", dsn: str = "",
+                 db_path: str = "", state_endpoint: str = "") -> None:
         self.strict = strict
         self.audience = audience
         self._dsn = dsn
         self._db_path = db_path
+        # Durable ledger over the Worker's D1 binding, for a container with no
+        # writable disk and no database credential. Found via decision-os-min's
+        # HB-1 write-up: this gate knew REMORA_PG_DSN and REMORA_CHAIN_DB but
+        # not the state endpoint, so the Cloudflare deployment silently fell to
+        # the in-memory set — the exact replay-after-restart class the durable
+        # ledger exists to close, reintroduced by a backend the guard accepted
+        # but the gate never learned to use.
+        self._state_endpoint = state_endpoint
         # One-time consumption: jti values this PEP has already executed on.
         import threading
         self._consumed: set[str] = set()
@@ -97,6 +106,16 @@ class EnforcementGate:
         elif self._db_path:
             import sqlite3
             with sqlite3.connect(self._db_path) as conn:
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS pep_consumed (jti TEXT PRIMARY KEY, consumed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+                )
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS pep_ledger_watermark (id INTEGER PRIMARY KEY, issued_count INTEGER NOT NULL DEFAULT 0, last_reset_at TIMESTAMP, last_reset_reason TEXT)"
+                )
+                conn.commit()
+        elif self._state_endpoint:
+            from remora.persistence.d1_connection import connect
+            with connect() as conn:
                 conn.execute(
                     "CREATE TABLE IF NOT EXISTS pep_consumed (jti TEXT PRIMARY KEY, consumed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
                 )
@@ -162,6 +181,16 @@ class EnforcementGate:
                 mark = conn.execute(
                     "SELECT issued_count, last_reset_reason FROM "
                     "pep_ledger_watermark WHERE id = 1"
+                ).fetchone()
+        elif self._state_endpoint:
+            from remora.persistence.d1_connection import connect
+            with connect() as conn:
+                rows = _scalar(
+                    conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone(), 0
+                )
+                mark = conn.execute(
+                    "SELECT issued_count, last_reset_reason "
+                    "FROM pep_ledger_watermark WHERE id = 1"
                 ).fetchone()
         else:
             return {
@@ -385,6 +414,53 @@ class EnforcementGate:
                         action=token.action,
                         token_verified=True,
                         reason="token_already_consumed",
+                        strict_mode=self.strict,
+                    )
+            elif self._state_endpoint:
+                from remora.persistence.d1_connection import (
+                    D1Unavailable,
+                    connect,
+                )
+                try:
+                    with connect() as conn:
+                        if allowed and consume:
+                            # INSERT + watermark commit as ONE atomic batch:
+                            # the PRIMARY KEY is the compare-and-set, so of
+                            # two racers exactly one commit succeeds and the
+                            # other surfaces the UNIQUE violation below.
+                            conn.execute(
+                                "INSERT INTO pep_consumed (jti) VALUES (?)",
+                                (token.jti,))
+                            self._bump_watermark(conn)
+                        else:
+                            row = conn.execute(
+                                "SELECT 1 FROM pep_consumed WHERE jti = ?",
+                                (token.jti,)).fetchone()
+                            if row:
+                                return EnforcementResult(
+                                    allowed=False,
+                                    action=token.action,
+                                    token_verified=True,
+                                    reason="token_already_consumed",
+                                    strict_mode=self.strict,
+                                )
+                except D1Unavailable as exc:
+                    if "UNIQUE" in str(exc):
+                        return EnforcementResult(
+                            allowed=False,
+                            action=token.action,
+                            token_verified=True,
+                            reason="token_already_consumed",
+                            strict_mode=self.strict,
+                        )
+                    # The store the one-time property lives in cannot be
+                    # reached. Assuming unspent is exactly the double-spend
+                    # the ledger exists to prevent, so this fails closed.
+                    return EnforcementResult(
+                        allowed=False,
+                        action=token.action,
+                        token_verified=True,
+                        reason="consumed_ledger_unavailable",
                         strict_mode=self.strict,
                     )
             else:

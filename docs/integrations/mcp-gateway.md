@@ -518,6 +518,46 @@ Not changed here. It is a loosening of a default on the security-critical
 path, and that is not something to do at the end of a session — but it is
 worth doing deliberately.
 
+### External review: what decision-os-min surfaced
+
+`decision-os-min` is a compact capability-security kernel. Read as an external
+audit of this architecture rather than as a competitor, its HB-1 write-up —
+"the original executor tracked spent token_ids in an in-memory set, so a
+second executor starts empty and a captured decision can be spent again" —
+pointed straight at a live defect here.
+
+`EnforcementGate` knew two durable backends, `REMORA_PG_DSN` and
+`REMORA_CHAIN_DB`. The durability guard in `servers/api.py` admits three: the
+D1 state endpoint was added for a container with no writable disk, and the
+gate was never told about it. So this deployment **passed the guard and then
+kept its consumed-grant ledger in a process-local set** — a captured ACCEPT
+execution token was redeemable again after any container restart, inside its
+one-hour age window. Exactly the replay class the durable ledger exists to
+close, reintroduced by a backend the guard accepted and the gate could not
+use.
+
+Fixed: the gate takes `state_endpoint` and consumes through the same D1
+adapter, with the INSERT and the watermark bump in one atomic batch — the
+PRIMARY KEY is the compare-and-set, so of two racers exactly one commits.
+An unreachable store returns `consumed_ledger_unavailable` rather than
+assuming unspent, because assuming unspent *is* the double-spend, and a
+failed record does not burn the grant it could not write.
+
+Live after the fix: `pep_consumed` and `pep_ledger_watermark` are in D1 with
+matching counts.
+
+`tests/test_gate_d1_ledger.py` pins the defect class itself, not just this
+instance: it reads the backends the guard admits and asserts the gate has a
+field for each, so a fourth backend cannot be added to one and forgotten in
+the other.
+
+Two things from that repo are recorded as open rather than adopted tonight:
+**Ed25519** where REMORA's reference paths are HMAC (a real asymmetry gap —
+an HMAC verifier must hold a key that can also mint), and **ambient
+isolation** — their TM-A probes attempt `fork`, `exec`, `mmap` and `ptrace`
+after locking the agent runtime. REMORA answers the same question from
+credential custody; the two are complementary, not alternatives.
+
 ### What this deployment is not
 
 It runs `REMORA_ENV=production` under the **default research profile**, not
