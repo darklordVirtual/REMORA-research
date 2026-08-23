@@ -125,9 +125,17 @@ def _clamped_limit(value: Any) -> int:
 # ── reads ───────────────────────────────────────────────────────────────────
 
 def kg_list_graphs(_a: dict[str, Any]) -> dict[str, Any]:
+    """The graphs that actually contain facts, with a count for each.
+
+    Reads the fact store rather than the namespace registry: a registry row
+    with no facts behind it is not somewhere a query can go, and the count
+    tells the caller where the substance is. It also keeps the declared
+    resource type honest — this tool reads facts, aggregated, exactly like
+    the other discovery tools.
+    """
     rows = _query(
-        "SELECT graph_uri, class FROM knowledge_namespaces "
-        "WHERE tenant_id = ? ORDER BY graph_uri",
+        "SELECT graph AS graph_uri, COUNT(*) AS facts FROM knowledge_facts "
+        "WHERE tenant_id = ? GROUP BY graph ORDER BY facts DESC",
         [_tenant()])
     return {"tenant": _tenant(), "graphs": rows}
 
