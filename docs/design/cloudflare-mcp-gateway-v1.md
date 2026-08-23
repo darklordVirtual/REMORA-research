@@ -162,6 +162,27 @@ The tool returns immediately with a proposal ID and status
 poll. Blocking the MCP call until a human answers would time out in both
 Claude and ChatGPT.
 
+## Finding: the durability guard cannot see ephemeral disk
+
+Surfaced by deploying, 2026-08-23. `REMORA_ENV=production` requires
+`REMORA_PG_DSN` or `REMORA_CHAIN_DB` and refuses to start without one. It
+accepts a `REMORA_CHAIN_DB` path on the container's own filesystem.
+
+On Cloudflare that filesystem is ephemeral. The file is gone the next time the
+instance starts, so the tenant audit chain, the review queue and the
+one-time-grant ledger do not survive a restart — and a grant already consumed
+becomes replayable, which is precisely the failure the check was written to
+prevent. The check passes while providing none of the guarantee.
+
+This is a weakness in the guard, not a deployment mistake. The guard tests
+whether a path was configured, not whether the storage behind it persists. A
+stronger version would have to probe durability rather than accept a
+configured value, and that is a change to `servers/api.py` rather than to any
+deployment.
+
+Until then the gateway reports its own posture at `/health` and refuses to
+describe an ephemeral deployment as a pilot.
+
 ## Deploy sequence
 
 Each step is verified before the next begins.
@@ -174,10 +195,14 @@ Each step is verified before the next begins.
    reached over TLS. Step 2a settled the transport question; what remains is
    provisioning the database and proving the profile refuses to start without
    it.
-3. **MCP Worker in front**, connected to Claude Code locally.
-4. **OAuth via Cloudflare Access.**
-5. **End to end:** agent -> assess -> approve -> execute -> effect
-   verification -> evidence.
+3. **MCP Worker in front**, connected to Claude Code. Done; also connected to
+   the deployed gateway.
+4. **Cloudflare Access.** Done, with service tokens rather than SSO: an MCP
+   client can send headers but cannot complete an interactive sign-in.
+   Verified — unauthenticated requests get 403, the service token is admitted.
+5. **End to end:** done against the deployed gateway, with the ephemeral-state
+   caveat above. Effect verification and evidence remain to be exercised on a
+   durable deployment.
 
 ## Testing
 
