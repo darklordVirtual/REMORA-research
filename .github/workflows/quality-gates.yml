@@ -47,7 +47,7 @@ jobs:
           # extras drive what gets installed. Filter out -e/comment lines that
           # pip rejects in a constraints file.
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          pip install -e ".[dev,causal,api]" -c /tmp/constraints.txt
+          pip install -e ".[dev,causal,api,security]" -c /tmp/constraints.txt
 
       - name: Lint (ruff)
         run: ruff check .
@@ -105,6 +105,12 @@ jobs:
         # statement-only number counts a half-taken `if` as fully covered,
         # which is exactly where fail-closed guards hide. Source and floors
         # live in pyproject.toml and scripts/check_coverage_thresholds.py.
+        env:
+          # The Ed25519 custody tests are the evidence for the PDP->PEP
+          # boundary. Without the security extra they skipped here and the only
+          # symptom was a coverage floor -- a missing-evidence failure wearing a
+          # coverage-failure costume. This makes the skip impossible.
+          REMORA_REQUIRE_SECURITY_EXTRA: "1"
         run: pytest -q --cov --cov-branch --cov-report=term-missing --cov-report=json:coverage.json
 
       - name: Per-package coverage floors (trusted computing base)
@@ -286,7 +292,7 @@ jobs:
           # extras drive what gets installed. Filter out -e/comment lines that
           # pip rejects in a constraints file.
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          pip install -e ".[dev,causal,api]" -c /tmp/constraints.txt
+          pip install -e ".[dev,causal,api,security]" -c /tmp/constraints.txt
 
       - name: Run heavy live replay tests
         run: |

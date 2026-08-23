@@ -56,11 +56,13 @@ jobs:
           # WHAT gets installed. The lock file contains editable (-e) and comment
           # lines that pip rejects in a constraints file, so filter them out.
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          pip install -e ".[dev,causal,api]" -c /tmp/constraints.txt
+          pip install -e ".[dev,causal,api,security]" -c /tmp/constraints.txt
 
       - name: Run deterministic test suite
         # Markers 'live' and 'live_replay_heavy' are excluded by default in
         # pyproject.toml addopts — no API keys or network access required.
+        env:
+          REMORA_REQUIRE_SECURITY_EXTRA: "1"
         run: python -m pytest tests/ -q
 
       - name: Verify zero false-accept rate
@@ -124,7 +126,7 @@ jobs:
           # extras drive what gets installed. Filter out -e/comment lines that
           # pip rejects in a constraints file.
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          pip install -e ".[dev,causal,api]" -c /tmp/constraints.txt
+          pip install -e ".[dev,causal,api,security]" -c /tmp/constraints.txt
 
       - name: Install pinned OPA binary
         run: |

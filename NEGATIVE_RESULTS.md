@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-20: **11 `open`**, **7 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-23: **11 `open`**, **9 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2488,3 +2488,77 @@ list.  They are preserved here as scientific record.
 | R10 | χ-proxy difficulty signal below chance (AUC = 0.39) | Negative result preserved as empirical record; χ repurposed to OOD/adversarial escalation (`phase_decision()`, threshold 1.45) | 0.7.1 |
 | R11 | Full-coverage baseline framing risk (41.18 % vs selective 88.8 %) | Mixed-comparison caveat standardized in docs; held-out validation added (`results/selective_n500_holdout_results.json`); benchmark-scoped wording enforced | 0.7.1 |
 | R12 | Critical-phase trust score cannot safely gate decisions | Operationally mitigated via `CriticalEvidenceRouter` + escalation fallback; benchmark result: 38.5 % resolution on MultiNLI proxy, remainder ESCALATE | 0.7.1 |
+
+## §42 An adjacent-systems crosswalk reported four capabilities absent that were present, and one absent risk as a strength (2026-08-23)
+<!-- finding-status: accepted -->
+
+**Status:** methodological negative result. Preserved because the failure mode
+is the one this repository's claim discipline exists to prevent, and because it
+was produced by this project's own tooling rather than by an outside reviewer.
+
+**What happened.** A crosswalk of REMORA against sixteen adjacent agent-governance
+projects (working document, unpublished) was written by reading each comparison
+project and inferring what REMORA lacked. Checked against HEAD, five of its
+findings were wrong:
+
+| v1 claim | Evidence at HEAD |
+|---|---|
+| "No taint dimension at all" — rated CRITICAL | `observation.py:187,293`; `decision_engine.py:192-207`; `tests/test_untrusted_provenance.py` |
+| "No multi-agent delegation story at all" | `remora/governance/a2a_envelope.py` (566 lines), CAP-006, attenuation with wildcard refusal |
+| "Add a Merkle audit layer" | `remora/audit/checkpoint.py`, `merkle.py`; the limitation v1 "found" was already documented more precisely in `docs/enterprise/audit-anchoring-guide.md` |
+| "TOCTOU resistance absent", evidence tier NONE | `ExecutionLease` binds and signs nine authorization-state fields including `toolspec_hash` |
+| "No credential exists in the container" — rated a top strength | `workers/mcp-gateway/src/index.ts:76-77` supplies `REMORA_PDP_SIGNING_KEY` and `REMORA_LEASE_SIGNING_KEY` to the container |
+
+**The finding.** Four errors understated REMORA and one overstated it. The
+overstating one was the claim held with the most confidence, and it inverted a
+real vulnerability into a headline strength: because the PDP signing key is
+symmetric and is present in the executing container, the component that enforces
+authorization also held the material to author it. A compromised container could
+mint authority, not merely replay it. No test asserted otherwise until
+`tests/test_lease_authority_custody.py`.
+
+**Why it is recorded here rather than quietly fixed.** The direction of the
+errors is the result. Confidence tracked how much a finding flattered the
+system, not how much evidence supported it, and the single most flattering
+finding was the one that hid a live weakness. A review that only ever discovers
+that a system is stronger than believed is not measuring the system.
+
+**What was changed as a result.** A rule, applied in
+`docs/research/adjacent-systems-crosswalk-v2.md`: no gap or strength is recorded
+about REMORA without a file-and-line citation from REMORA, however strongly a
+comparison project suggests it. The corrected crosswalk lists every v1 error
+rather than silently superseding it.
+
+**Not resolved by this entry.** The credential topology is a mechanism change
+only (ADR-A). The deployed Cloudflare container is still supplied both signing
+keys; the custody split is available and is not in effect. That residual is
+recorded in CAP-013 and must not be read as closed.
+
+## §43 A verifier-only process silently issued unsigned authority instead of refusing (2026-08-23)
+<!-- finding-status: accepted -->
+
+**Status:** defect found by an adversarial test during ADR-A, fixed in the same
+change. Recorded because the failure was silent and the test that caught it was
+written to attack a different property.
+
+**What happened.** `tests/test_lease_authority_custody.py::test_a_verifier_holding_only_the_public_key_cannot_mint`
+strips a process to exactly the material a PEP holds and then asks it to issue a
+lease for an action nobody assessed. It was expected to raise. It returned a
+lease — `is_signed=False`, signature empty — because `ExecutionLease.issue()`
+resolved no issuer algorithm and fell through to the unsigned branch that exists
+for keyless library and research use.
+
+**Severity, stated accurately.** Not directly exploitable: `verify()` refuses an
+unsigned lease with `lease_not_signed`, so no unauthorized execution follows.
+The defect is that a component which must not be able to produce an authority
+object produced one, and a caller that asked for a lease and received one has no
+reason to suspect it is worthless. Silent degradation of an authority object is
+the failure mode ADR-A exists to remove.
+
+**Fix.** `issue()` now raises `LeaseRefused` when the process holds only
+verification material. The keyless path is unchanged for genuinely keyless use.
+
+**Generalisation not yet done.** The same unsigned-fallthrough shape exists for
+`PolicyDecisionToken` and the A2A envelope, which ADR-A does not convert. Whether
+they have the equivalent defect is untested and is recorded as open, not assumed
+absent.
