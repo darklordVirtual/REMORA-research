@@ -163,7 +163,7 @@ capabilities:
       - tests/test_tool_registry_research.py
       - tests/test_lease_nonce_durability.py
       - tests/test_lease_authority_custody.py
-    verified_at_sha: 3bb57973eca0a1c98568b1d98a50d1940883e4e0
+    verified_at_sha: ceb979f538704251cbe252b086e23b2e9f7bd51b
     verified_by: >-
       re-audit 2026-08-23 (ADR-A and ADR-B,
       docs/architecture/ADR-authority-custody-and-lease-durability.md):
