@@ -87,7 +87,7 @@ parity the thing to prove, and that is not a cost this slice should carry.
 `remora-mcp-gateway`. The account already holds a `remora` Worker and a
 `remora-audit` D1 database; neither is touched.
 
-## Open question: durable state transport
+## Resolved: durable state transport
 
 `remora/persistence/execution_state.py` speaks psycopg or sqlite3 directly.
 Container disk is ephemeral, so a container-local SQLite file is not durable
@@ -95,20 +95,35 @@ state — that is exactly the failure mode REMORA's own history records, where a
 volatile ledger made one-time grants replayable.
 
 Cloudflare's documentation describes `enableInternet` and outbound
-interception consistently in terms of **HTTP**. Whether a container may open a
-raw TCP connection for the Postgres wire protocol is not stated. This is
-unresolved and is the first thing step 2 tests.
+interception consistently in terms of **HTTP**, and does not state whether a
+container may open a raw TCP connection for the Postgres wire protocol.
 
-- **If raw TCP works:** the container connects directly to a managed Postgres
-  over TLS. No new persistence code. The provider is deliberately not chosen
-  here: it only matters once the transport is known, and choosing it earlier
-  would be a decision made without the fact that constrains it.
-- **If it does not:** the fallback is a Hyperdrive binding reached through the
-  Worker, which requires a new HTTP-backed durable-state backend in
-  `remora/persistence/`. That is real new code in the most
-  security-critical part of the codebase, and it changes this slice's size.
+**Measured 2026-08-23: it can.** A throwaway probe container deployed to this
+account, then deleted, reported:
 
-No work depending on the answer starts before step 2 reports it.
+| Probe | Result |
+| --- | --- |
+| HTTPS control | 200, 18 ms |
+| raw TCP `1.1.1.1:53` | connected, 2 ms |
+| raw TCP `8.8.8.8:53` | connected, 3 ms |
+| raw TCP `github.com:22` | connected, 13 ms |
+| raw TCP `:5432` | connected, 26 ms |
+| psycopg connect + `SELECT 1` | `(1,)`, 197 ms |
+
+The last row is the decisive one: a complete Postgres wire-protocol session
+through psycopg, not merely an open socket. Raw TCP egress on non-HTTP ports
+works, so the documentation's HTTP framing describes the interception
+mechanism rather than a limit on what the container may open.
+
+**Consequence:** the container connects directly to a managed Postgres over
+TLS, and `remora/persistence/execution_state.py` is used unchanged. The
+fallback — a Hyperdrive binding through the Worker plus a new HTTP-backed
+durable-state backend, real code in the most security-critical part of the
+repository — is not needed and is dropped from this slice.
+
+The Postgres provider remains open. It is a question of cost, region and data
+processing terms rather than of transport, and for a European pilot data
+residency is a real constraint.
 
 ## Tool surface
 
@@ -136,8 +151,10 @@ Each step is verified before the next begins.
    `gcc` and `libpq-dev` left in the runtime layer. Acceptance: the OT battery
    is still green locally, and the image is smaller.
 2. **Container alone on Cloudflare**, no MCP. Acceptance: the
-   `controlled_pilot` profile starts fail-closed, and the durable-state
-   transport question above is answered.
+   `controlled_pilot` profile starts fail-closed against a managed Postgres
+   reached over TLS. Step 2a settled the transport question; what remains is
+   provisioning the database and proving the profile refuses to start without
+   it.
 3. **MCP Worker in front**, connected to Claude Code locally.
 4. **OAuth via Cloudflare Access.**
 5. **End to end:** agent -> assess -> approve -> execute -> effect
