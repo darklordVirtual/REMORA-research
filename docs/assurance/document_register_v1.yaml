@@ -1,4 +1,4 @@
-﻿schema_version: '1'
+schema_version: '1'
 updated: '2026-08-20'
 documents:
 - id: DOC-001
@@ -2383,7 +2383,19 @@ documents:
   topic: docs_architecture_adr_tainted_argument_approval_md
   verdict: current
   version: v1
+- audience:
+  - maintainer
+  - researcher
+  code_synced: verified
+  id: DOC-318
+  last_reviewed: '2026-08-20'
+  path: docs/aromer/SUBPROJECT.md
+  status: canonical
+  topic: docs_aromer_subproject_md
+  verdict: current
+  version: v1
 topics:
+- docs_aromer_subproject_md
 - docs_architecture_adr_tainted_argument_approval_md
 - docs_assurance_statistical_analysis_plan_v5_bfcl_semantic_md
 - docs_architecture_cloudflare_state_architecture_md

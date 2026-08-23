@@ -301,6 +301,13 @@ are partly self-assigned and the world model defaults to shadow mode. It has **n
 external validation**. Do not cite AROMER numbers as production evidence. See
 `NEGATIVE_RESULTS.md` and `paper/remora_paper.md` Appendix F.6-F.7.
 
+Since 2026-08-20 (issue #297) AROMER is a **named subproject**, not part of the
+product surface: it carries its own version line (`AROMER_VERSION`), and the
+dependency runs one way only — AROMER may import the core, the core may never
+import AROMER. `tests/test_aromer_subproject_boundary.py` fails on a new
+importer under `remora/` or `servers/`. The charter is
+[docs/aromer/SUBPROJECT.md](docs/aromer/SUBPROJECT.md).
+
 ---
 
 ## 6. Oracles are pluggable backends, not the purpose
