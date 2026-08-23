@@ -32,7 +32,18 @@ export interface Env {
   // Named individually rather than passed as one blob so a missing one is a
   // deploy-time type error instead of a container that starts and then fails
   // its fail-closed check in production.
-  REMORA_PG_DSN: string;
+  /**
+   * Durable execution state. Exactly one of these is set.
+   *
+   * REMORA_PG_DSN is the real posture: Postgres over TLS, surviving restarts
+   * and replacements. REMORA_CHAIN_DB is a path on the container's own disk,
+   * which on Cloudflare is ephemeral — the file is gone the next time the
+   * instance starts. It exists so the deployment path can be exercised before
+   * a database is provisioned, and the gateway refuses to describe itself as
+   * anything else while it is in use.
+   */
+  REMORA_PG_DSN?: string;
+  REMORA_CHAIN_DB?: string;
   REMORA_API_TOKENS: string;
   REMORA_PDP_SIGNING_KEY: string;
   REMORA_LEASE_SIGNING_KEY: string;
@@ -101,8 +112,15 @@ export class RemoraContainer extends Container<Env> {
       ...(env.REMORA_RUNTIME_PROFILE
         ? { REMORA_RUNTIME_PROFILE: env.REMORA_RUNTIME_PROFILE }
         : {}),
-      REMORA_PG_DSN: env.REMORA_PG_DSN,
-      REMORA_CONTROL_PLANE_DSN: env.REMORA_PG_DSN,
+      ...(env.REMORA_PG_DSN
+        ? {
+            REMORA_PG_DSN: env.REMORA_PG_DSN,
+            REMORA_CONTROL_PLANE_DSN: env.REMORA_PG_DSN,
+          }
+        : {
+            REMORA_CHAIN_DB: env.REMORA_CHAIN_DB ?? "",
+            REMORA_CONTROL_PLANE_DB: env.REMORA_CHAIN_DB ?? "",
+          }),
       REMORA_API_TOKENS: env.REMORA_API_TOKENS,
       REMORA_API_BEARER_TOKEN: env.REMORA_AGENT_TOKEN,
       REMORA_PDP_SIGNING_KEY: env.REMORA_PDP_SIGNING_KEY,
@@ -178,15 +196,77 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/health") {
+      const durable = Boolean(env.REMORA_PG_DSN);
       return Response.json({
         status: "ok",
         service: "remora-mcp-gateway",
         transport: env.REMORA_API_URL ? "direct (development)" : "container",
+        jurisdiction: env.PROPOSAL_JURISDICTION ?? "unconstrained",
+        execution_state: durable ? "durable (postgres)" : "EPHEMERAL (container disk)",
+        ...(durable
+          ? {}
+          : {
+              warning:
+                "Execution state is on the container's own disk, which is " +
+                "ephemeral. The tenant audit chain and the one-time-grant " +
+                "ledger do not survive an instance restart, so a consumed " +
+                "grant becomes replayable. This deployment exercises the " +
+                "path; it is not a pilot. Set REMORA_PG_DSN to fix it.",
+            }),
       });
     }
 
+    // ── Human approval ────────────────────────────────────────────────────
+    // The container is reachable only through this Worker, so without this
+    // route nothing awaiting approval could ever be approved and every
+    // mutating call would wait forever. That is fail-closed, but it is not
+    // usable.
+    //
+    // The caller's own Authorization header is forwarded untouched and the
+    // Worker's operator token is deliberately not used here. REMORA decides
+    // whether the presented identity holds the approver role, exactly as it
+    // does for a direct caller — so this route relays authority, it does not
+    // confer any. A request arriving with the gateway's own operator token
+    // gets the same 403 it would get anywhere else.
+    if (url.pathname === "/approve" && request.method === "POST") {
+      const auth = request.headers.get("Authorization");
+      if (!auth) {
+        return Response.json(
+          {
+            error: "missing Authorization",
+            explanation:
+              "Approving requires a bearer token holding the approver role. " +
+              "The gateway cannot supply one; that is the point.",
+          },
+          { status: 401 },
+        );
+      }
+      if (env.REMORA_API_URL) {
+        return fetch(
+          new Request(`${env.REMORA_API_URL}/v1/execution/approve`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: auth,
+            },
+            body: await request.text(),
+          }),
+        );
+      }
+      return getContainer(env.REMORA!).fetch(
+        new Request("http://remora/v1/execution/approve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: auth },
+          body: await request.text(),
+        }),
+      );
+    }
+
     if (url.pathname !== "/mcp") {
-      return new Response("Not found. The MCP endpoint is /mcp.", { status: 404 });
+      return new Response(
+        "Not found. The MCP endpoint is /mcp; approvals go to /approve.",
+        { status: 404 },
+      );
     }
     if (request.method !== "POST") {
       // Streamable HTTP allows a GET listening stream; this server is

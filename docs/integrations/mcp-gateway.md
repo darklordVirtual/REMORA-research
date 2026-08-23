@@ -183,6 +183,17 @@ An approval console is a later slice. Until then, approving is a curl command,
 and the tokens in `docker-compose.yml` are local pilot values — a real
 deployment puts an identity provider there instead.
 
+On a deployed gateway the container is reachable only through the Worker, so
+approvals go to `POST /approve` on the gateway itself. The Worker forwards the
+caller's own `Authorization` header untouched and never uses its operator token
+for that route: REMORA decides whether the presented identity holds the approver
+role, exactly as it would for a direct caller. The route relays authority; it
+does not confer any.
+
+Measured against the deployed gateway: the gateway's own operator token gets
+**403** there, a viewer gets **403**, and a request with no credential gets
+**401**.
+
 ## Deploying to Cloudflare
 
 `wrangler.toml` is the production config: the container binding, `basic`
@@ -278,6 +289,55 @@ involved.
 For a European deployment the database must sit in the same jurisdiction as
 the container. The provider is a cost and data-processing decision rather than
 a technical one; every option speaks the same protocol.
+
+### Deployed, and what it proved
+
+Live at `remora-mcp-gateway.razorsharp.workers.dev`, container placed in
+`txl01` (Berlin) under the `eu` jurisdiction constraint. Full chain against the
+deployed gateway, 2026-08-23:
+
+| Step | Result |
+| --- | --- |
+| agent proposes a setpoint change | `verify` / `pending_approval` |
+| gateway's own operator token approves | **403** |
+| viewer approves | **403** |
+| no credential at all | **401** |
+| approver approves | 200 |
+| agent polls | `executed` — PIC-101 setpoint 4 → 3.8 |
+| replay the same proposal | `unknown_proposal` |
+| valve change under a read-only intent | `escalate`, `tool_does_not_match_goal` |
+
+Access refuses an unauthenticated request with 403 and admits the service
+token. Claude Code connects to the deployed URL and reports the seven tools.
+
+Deploying surfaced two things the local run could not.
+
+**There was no way to approve.** The container is reachable only through the
+Worker, so before `/approve` existed every mutating call would have waited
+forever. Fail-closed, but not usable — a governance system that can only ever
+refuse has not been tested against the case that matters.
+
+**The durability guard cannot see ephemeral disk.** `REMORA_ENV=production`
+requires `REMORA_PG_DSN` or `REMORA_CHAIN_DB`, and accepts a `REMORA_CHAIN_DB`
+path on the container's own filesystem. On Cloudflare that filesystem is
+ephemeral: the file is gone the next time the instance starts, so the tenant
+audit chain and the one-time-grant ledger do not survive a restart and a
+consumed grant becomes replayable. The check passes while providing none of
+the guarantee it exists to provide.
+
+That is a real weakness in the guard rather than a deployment mistake, and it
+is why `/health` reports `execution_state` and refuses to describe this
+deployment as anything other than what it is:
+
+```json
+{
+  "execution_state": "EPHEMERAL (container disk)",
+  "warning": "… a consumed grant becomes replayable. This deployment exercises the path; it is not a pilot. Set REMORA_PG_DSN to fix it."
+}
+```
+
+Setting `REMORA_PG_DSN` to a Postgres inside the same jurisdiction is the one
+remaining step, and it is a single secret plus a redeploy.
 
 ### What this deployment is not
 
