@@ -88,17 +88,17 @@
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
+    "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^17.8.0",
     "jsdom": "^30.0.1",
     "nitro": "3.0.260603-beta",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.56.1",
-    "vite": "^8.2.0",
+    "typescript-eslint": "^8.67.0",
+    "vite": "^8.2.2",
     "vitest": "^4.1.7",
-    "wrangler": "^4.118.0"
+    "wrangler": "^4.125.0"
   },
   "overrides": {
     "@emnapi/core": "1.11.3",

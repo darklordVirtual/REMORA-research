@@ -98,6 +98,15 @@ updates:
           - "nitro"
           - "openapi-typescript"
 
+    # openapi-typescript 7.x declares `typescript: ^5.x` as a peer, and the
+    # generated API client (`npm run api:types`) is the only consumer of that
+    # dependency. A TypeScript major therefore cannot be installed until
+    # openapi-typescript widens the peer range, so the majors are not offered.
+    # Tracked with the rest of the frontend lint/toolchain migration.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+
   # Keep the SHA-pinned GitHub Actions current (security hardening).
   - package-ecosystem: "github-actions"
     directory: "/"
