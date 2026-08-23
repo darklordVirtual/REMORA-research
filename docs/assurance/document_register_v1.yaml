@@ -2175,6 +2175,17 @@ documents:
   audience:
   - maintainers
   - evaluators
+- id: DOC-319
+  version: v1
+  path: docs/design/cloudflare-mcp-gateway-v1.md
+  status: proposal
+  topic: docs_design_cloudflare-mcp-gateway-v1_md
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: '2026-08-23'
+  audience:
+  - maintainers
+  - evaluators
 - id: DOC-300
   version: v1
   path: docs/design/toolspec-signed-registry-v1.md
@@ -2395,6 +2406,7 @@ documents:
   verdict: current
   version: v1
 topics:
+- docs_design_cloudflare-mcp-gateway-v1_md
 - docs_aromer_subproject_md
 - docs_architecture_adr_tainted_argument_approval_md
 - docs_assurance_statistical_analysis_plan_v5_bfcl_semantic_md
