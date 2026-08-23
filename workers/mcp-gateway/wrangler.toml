@@ -28,11 +28,21 @@ max_instances = 1
 [containers.constraints]
 jurisdiction = "eu"
 
+# ── The exeQta knowledge graph ────────────────────────────────────────────────
+# Bound to the Worker, never handed to the container. The container asks
+# graph.internal over plain HTTP and the outbound handler answers from here.
+[[d1_databases]]
+binding = "GRAPH_DB"
+database_name = "aion-hub"
+database_id = "71257339-0c51-4696-9567-d156cc9dcee3"
+
 [vars]
 # Same boundary as the container above. Named here rather than hardcoded so a
 # deployment that must sit elsewhere changes one file, and so the two settings
 # are visibly next to each other.
 PROPOSAL_JURISDICTION = "eu"
+# The tenant the graph tools speak for. Never an argument a caller can set.
+REMORA_KG_TENANT = "luftfiber"
 
 [[durable_objects.bindings]]
 name = "REMORA"

@@ -19,12 +19,29 @@ from remora.toolcall.routing.tool_contract import ToolContract, ToolContractRegi
 from remora.toolcall.routing.tool_registry import ToolRegistry, ToolSignature
 from remora.toolcall.semantic_bundle import SemanticBundle
 
-from deploy.gateway import gh_bundle
+from deploy.gateway import gh_bundle, kg_intent
 from deploy.gateway.registry import enabled_sets
 
-# Re-exported so the deployment has one intent resolver regardless of which
-# sets are live. See the module docstring for why it is the GitHub issue.
-resolve_intent = gh_bundle.resolve_intent
+def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
+    """Resolve authority, from whichever source this deployment has.
+
+    A reference like ``owner/repo#123`` is a GitHub issue; anything else is a
+    task subject in the graph's intent namespace. Both are written by a person
+    and neither can be manufactured by the agent proposing the call — that is
+    the property that matters, not which system holds it.
+
+    Trying GitHub first and falling through is deliberate: a deployment with
+    both sets live should not need the caller to know which resolver it is
+    talking to.
+    """
+    sets = enabled_sets()
+    if "github" in sets:
+        resolved = gh_bundle.resolve_intent(intent_ref)
+        if resolved is not None:
+            return resolved
+    if "graph" in sets:
+        return kg_intent.resolve_intent(intent_ref)
+    return None
 
 _GRAPH_SIGNATURES = {
     "kg_list_graphs": ToolSignature(

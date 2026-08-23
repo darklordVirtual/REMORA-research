@@ -70,6 +70,12 @@ function deps(
       remora: remora as unknown as Deps["remora"],
       store: new MemoryStore(),
       newId: () => "proposal-" + ++n,
+      // Both sets configured, so the protocol tests see the full surface.
+      env: {
+        REMORA_GITHUB_TOKEN: "t",
+        REMORA_GITHUB_REPOS: "o/r",
+        REMORA_KG_TENANT: "acme",
+      },
     },
   };
 }
@@ -133,6 +139,33 @@ describe("protocol", () => {
         t.name + " must require intent_ref",
       ).toContain("intent_ref");
     }
+  });
+
+  it("a set with no credential is not listed at all", async () => {
+    // An agent cannot tell "refused" from "broken". A governance refusal has
+    // to mean something, and it stops meaning anything if half the failures
+    // are configuration.
+    const { deps: d } = deps({});
+    d.env = { REMORA_KG_TENANT: "acme" };
+    const r: any = await handleRpc(
+      { jsonrpc: "2.0", id: 1, method: "tools/list" },
+      d,
+    );
+    const names = r.result.tools.map((t: any) => t.name);
+    expect(names).toContain("kg_assert_fact");
+    expect(names).not.toContain("gh_create_issue");
+    expect(names).toContain("remora_proposal_status");
+  });
+
+  it("a tool from an unconfigured set never reaches REMORA", async () => {
+    const { deps: d, rec } = deps({ decision: "accept" });
+    d.env = { REMORA_KG_TENANT: "acme" };
+    const r: any = await handleRpc(
+      call("gh_create_issue", { repo: "o/r", title: "t", intent_ref: "o/r#1" }),
+      d,
+    );
+    expect(r.result.isError).toBe(true);
+    expect(rec.assess).toHaveLength(0);
   });
 
   it("an unknown method is a JSON-RPC error, not a crash", async () => {

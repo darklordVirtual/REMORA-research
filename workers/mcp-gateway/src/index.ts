@@ -10,8 +10,13 @@
  *
  * See docs/design/cloudflare-mcp-gateway-v1.md (DOC-319).
  */
-import { Container, getContainer } from "@cloudflare/containers";
+import { Container, ContainerProxy, getContainer } from "@cloudflare/containers";
 import { DurableObject } from "cloudflare:workers";
+
+// Required by outbound interception: the runtime routes the container's
+// intercepted requests through this, so it has to be exported from the
+// entrypoint even though nothing here calls it directly.
+export { ContainerProxy };
 import { handleRpc, type JsonRpcRequest, type PendingProposal, type ProposalStore } from "./mcp";
 import { RemoraClient } from "./remora";
 
@@ -57,9 +62,9 @@ export interface Env {
    *  a tool that accepted a tenant id would make cross-tenant access a matter
    *  of what the agent proposed. */
   REMORA_KG_TENANT?: string;
-  REMORA_KG_DATABASE_ID?: string;
-  REMORA_CF_ACCOUNT_ID?: string;
-  REMORA_CF_API_TOKEN?: string;
+  /** The graph database. A binding, not a token: it cannot be read out of the
+   *  container, because it is never in the container. */
+  GRAPH_DB?: D1Database;
   REMORA_PDP_SIGNING_KEY: string;
   REMORA_LEASE_SIGNING_KEY: string;
   REMORA_AUDIT_SIGNING_KEY: string;
@@ -99,6 +104,19 @@ export class RemoraContainer extends Container<Env> {
   // HTTP-shaped persistence backend is needed.
   enableInternet = true;
 
+  /**
+   * The graph, reached without a credential in the container.
+   *
+   * The container makes a plain HTTP request to graph.internal; this handler
+   * runs in the Workers runtime, outside the container, and answers it from
+   * the D1 binding. No database token is ever inside the container, so there
+   * is nothing there to read out and reuse elsewhere — which is the
+   * difference between a binding and a secret.
+   *
+   * Only parameterised statements are accepted, and the tenant clause is the
+   * caller's to supply. That is not this layer's job to enforce: the registry
+   * module binds it into every statement, and a test pins that it does.
+   */
   /**
    * Configuration for the REMORA process.
    *
@@ -168,14 +186,80 @@ export class RemoraContainer extends Container<Env> {
       REMORA_GITHUB_TOKEN: env.REMORA_GITHUB_TOKEN ?? "",
       REMORA_GITHUB_REPOS: env.REMORA_GITHUB_REPOS ?? "",
       REMORA_KG_TENANT: env.REMORA_KG_TENANT ?? "",
-      REMORA_KG_DATABASE_ID: env.REMORA_KG_DATABASE_ID ?? "",
-      REMORA_CF_ACCOUNT_ID: env.REMORA_CF_ACCOUNT_ID ?? "",
-      REMORA_CF_API_TOKEN: env.REMORA_CF_API_TOKEN ?? "",
       REMORA_EXECUTION_ARTIFACT_DIR: "/var/lib/remora/artifacts",
       PYTHONPATH: "/app",
     };
   }
 }
+
+/**
+ * Give the container the graph without giving it a credential.
+ *
+ * Assigned after the class rather than declared as `static outboundByHost`
+ * inside it: the base class exposes this as a static accessor, and a static
+ * class field compiles to defineProperty, which shadows the setter instead of
+ * calling it. The handler then never registers and the container's request
+ * escapes to the public internet, where `graph.internal` fails DNS. That is
+ * how this was found.
+ */
+RemoraContainer.outboundByHost = {
+    "graph.internal": async (request: Request, env: Env): Promise<Response> => {
+      if (request.method !== "POST") {
+        return Response.json(
+          { success: false, errors: [{ message: "POST only" }] },
+          { status: 405 },
+        );
+      }
+      if (!env.GRAPH_DB) {
+        return Response.json(
+          {
+            success: false,
+            errors: [{
+              message:
+                "no GRAPH_DB binding on this deployment; the graph tool set " +
+                "should not have been offered",
+            }],
+          },
+          { status: 503 },
+        );
+      }
+      let body: { sql?: string; params?: unknown[] };
+      try {
+        body = await request.json();
+      } catch {
+        return Response.json(
+          { success: false, errors: [{ message: "malformed request" }] },
+          { status: 400 },
+        );
+      }
+      if (typeof body.sql !== "string" || !body.sql) {
+        return Response.json(
+          { success: false, errors: [{ message: "sql is required" }] },
+          { status: 400 },
+        );
+      }
+      try {
+        const statement = env.GRAPH_DB.prepare(body.sql);
+        const bound = Array.isArray(body.params) && body.params.length
+          ? statement.bind(...body.params)
+          : statement;
+        const result = await bound.all();
+        return Response.json({
+          success: true,
+          errors: [],
+          result: [{ results: result.results ?? [] }],
+        });
+      } catch (e) {
+        return Response.json(
+          {
+            success: false,
+            errors: [{ message: String(e instanceof Error ? e.message : e) }],
+          },
+          { status: 500 },
+        );
+      }
+    },
+  };
 
 /** Durable storage for proposals waiting on a human. */
 export class ProposalDO extends DurableObject {
@@ -335,6 +419,7 @@ export default {
           ),
       store: storeFor(env, session),
       newId: () => crypto.randomUUID(),
+      env: env as unknown as Record<string, unknown>,
     };
 
     const messages = Array.isArray(body) ? body : [body];

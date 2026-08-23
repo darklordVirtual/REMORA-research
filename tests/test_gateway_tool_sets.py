@@ -17,8 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 GITHUB_VARS = {"REMORA_GITHUB_TOKEN": "t",
                "REMORA_GITHUB_REPOS": "owner/repo"}
-GRAPH_VARS = {"REMORA_KG_TENANT": "acme", "REMORA_KG_DATABASE_ID": "db",
-              "REMORA_CF_API_TOKEN": "tok", "REMORA_CF_ACCOUNT_ID": "acct"}
+GRAPH_VARS = {"REMORA_KG_TENANT": "acme"}
 ALL_VARS = {**GITHUB_VARS, **GRAPH_VARS}
 
 
@@ -96,7 +95,44 @@ def test_asserting_a_fact_is_a_create_not_an_update(monkeypatch):
     assert contracts["kg_assert_fact"].effect == "create"
 
 
-def test_one_intent_resolver_regardless_of_set(monkeypatch):
+def test_a_github_reference_resolves_through_github(monkeypatch):
     _, bundle = _load(monkeypatch, ALL_VARS)
-    from deploy.gateway import gh_bundle
-    assert bundle.resolve_intent is gh_bundle.resolve_intent
+    from deploy.gateway import gh_bundle, kg_intent
+
+    seen: list[str] = []
+    monkeypatch.setattr(gh_bundle, "resolve_intent",
+                        lambda r: seen.append(("gh", r)) or "GH")
+    monkeypatch.setattr(kg_intent, "resolve_intent",
+                        lambda r: seen.append(("kg", r)) or "KG")
+
+    assert bundle.resolve_intent("owner/repo#7") == "GH"
+    assert seen == [("gh", "owner/repo#7")]
+
+
+def test_a_task_subject_falls_through_to_the_graph(monkeypatch):
+    """GitHub is tried first, so the caller need not know which resolver runs."""
+    _, bundle = _load(monkeypatch, ALL_VARS)
+    from deploy.gateway import gh_bundle, kg_intent
+
+    monkeypatch.setattr(gh_bundle, "resolve_intent", lambda r: None)
+    monkeypatch.setattr(kg_intent, "resolve_intent", lambda r: "KG")
+
+    assert bundle.resolve_intent("task:onboard-acme") == "KG"
+
+
+def test_a_graph_only_deployment_never_calls_github(monkeypatch):
+    _, bundle = _load(monkeypatch, GRAPH_VARS)
+    from deploy.gateway import gh_bundle, kg_intent
+
+    def explode(_r):  # pragma: no cover - reached only on failure
+        raise AssertionError("GitHub was consulted without the set being live")
+
+    monkeypatch.setattr(gh_bundle, "resolve_intent", explode)
+    monkeypatch.setattr(kg_intent, "resolve_intent", lambda r: "KG")
+    assert bundle.resolve_intent("task:x") == "KG"
+
+
+def test_no_sets_means_no_authority(monkeypatch):
+    """Unresolvable authority is UNKNOWN, which is review, not permission."""
+    _, bundle = _load(monkeypatch, {})
+    assert bundle.resolve_intent("anything") is None

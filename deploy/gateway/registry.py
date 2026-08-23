@@ -22,8 +22,10 @@ from deploy.gateway import gh_registry, kg_registry
 #: be present for it to be usable at all.
 _SETS: dict[str, tuple[tuple[str, ...], Any]] = {
     "github": (("REMORA_GITHUB_TOKEN", "REMORA_GITHUB_REPOS"), gh_registry),
-    "graph": (("REMORA_KG_TENANT", "REMORA_KG_DATABASE_ID",
-               "REMORA_CF_API_TOKEN", "REMORA_CF_ACCOUNT_ID"), kg_registry),
+    # The graph needs no credential here: the Worker holds the D1 binding and
+    # intercepts the container's request, so a tenant is the only thing this
+    # process has to be told.
+    "graph": (("REMORA_KG_TENANT",), kg_registry),
 }
 
 

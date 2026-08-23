@@ -27,9 +27,6 @@ TENANT = "luftfiber"
 @pytest.fixture(autouse=True)
 def _config(monkeypatch):
     monkeypatch.setenv("REMORA_KG_TENANT", TENANT)
-    monkeypatch.setenv("REMORA_CF_ACCOUNT_ID", "acct")
-    monkeypatch.setenv("REMORA_KG_DATABASE_ID", "db")
-    monkeypatch.setenv("REMORA_CF_API_TOKEN", "tok")
 
 
 @pytest.fixture()
@@ -184,3 +181,85 @@ def test_every_registered_tool_is_callable():
     registered: list[str] = []
     kg.register_tools(lambda n, f: registered.append(n))
     assert registered == [n for n, _ in kg.TOOLS]
+
+
+# ── the intent graph is not the agent's to touch ────────────────────────────
+
+def test_an_agent_cannot_write_its_own_work_order(captured):
+    """Authority has to come from somewhere the agent cannot manufacture."""
+    with pytest.raises(kg.GraphUnavailable) as exc:
+        kg.kg_assert_fact({"graph": kg.INTENT_GRAPH, "subject": "task:x",
+                           "predicate": "task_text", "object": "do anything",
+                           "source": "agent"})
+    assert "worth nothing" in str(exc.value)
+    assert not captured, "the refusal must happen before any statement runs"
+
+
+def test_a_retraction_cannot_reach_the_intent_graph(captured, monkeypatch):
+    """Retracting the authority a call was made under is not the call's to do."""
+    monkeypatch.setattr(kg, "_query", lambda sql, params: (
+        captured.append((sql, params)) or []))
+    with pytest.raises(kg.GraphUnavailable) as exc:
+        kg.kg_retract_fact({"id": "some-intent-fact"})
+    assert kg.INTENT_GRAPH in str(exc.value)
+    lookup_sql, lookup_params = captured[0]
+    assert "graph != ?" in lookup_sql
+    assert kg.INTENT_GRAPH in lookup_params
+
+
+def test_reading_an_intent_binds_tenant_and_intent_graph(captured):
+    kg.read_intent("task:onboard-acme")
+    sql, params = captured[0]
+    assert "tenant_id = ?" in sql and "graph = ?" in sql
+    assert TENANT in params and kg.INTENT_GRAPH in params
+
+
+def test_an_absent_task_reads_as_empty_not_permissive(captured):
+    assert kg.read_intent("task:does-not-exist") == {}
+
+
+def test_an_intent_is_assembled_from_its_predicates(monkeypatch):
+    monkeypatch.setattr(kg, "_query", lambda sql, params: [
+        {"predicate": "task_text", "object_json": '"Record Acme as active."'},
+        {"predicate": "operation", "object_json": '"create"'},
+    ])
+    task = kg.read_intent("task:onboard-acme")
+    assert task["task_text"] == "Record Acme as active."
+    assert task["operation"] == "create"
+
+
+# ── no credential in this process ───────────────────────────────────────────
+
+def test_the_graph_is_reached_through_the_worker_not_the_public_api():
+    """A binding cannot be read out of a process and reused; a token can."""
+    assert "api.cloudflare.com" not in kg._GRAPH_ENDPOINT
+    assert kg._GRAPH_ENDPOINT.startswith("http://")
+
+
+def test_no_database_credential_is_read_from_the_environment(monkeypatch):
+    """Only the tenant. Nothing here should be reachable with a stolen token."""
+    for leaked in ("REMORA_CF_API_TOKEN", "CLOUDFLARE_API_TOKEN",
+                   "REMORA_KG_DATABASE_ID"):
+        monkeypatch.setenv(leaked, "should-not-be-used")
+    source = (Path(kg.__file__)).read_text(encoding="utf-8")
+    for leaked in ("REMORA_CF_API_TOKEN", "CLOUDFLARE_API_TOKEN"):
+        assert leaked not in source, f"{leaked} is still read by the registry"
+
+
+def test_the_sequence_is_scoped_to_the_tenant_not_the_graph(captured):
+    """kg_seq is unique per tenant.
+
+    idx_knowledge_facts_tenant_seq_unique is on (tenant_id, kg_seq). Scoping
+    the next-value subquery to the graph as well produced a UNIQUE constraint
+    violation on the very first write, which is how this was found. The graph
+    carries one sequence across all of its namespaces.
+    """
+    kg.kg_assert_fact({"graph": "g", "subject": "s", "predicate": "p",
+                       "object": 1, "source": "test"})
+    sql, params = captured[0]
+    assert "MAX(kg_seq)" in sql
+    subquery = sql[sql.index("MAX(kg_seq)"):]
+    assert "graph = ?" not in subquery, (
+        "the sequence subquery must not be scoped to the graph"
+    )
+    assert subquery.count("tenant_id = ?") == 1

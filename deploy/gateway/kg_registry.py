@@ -17,6 +17,12 @@ proposal, however well-formed, can read or write across the boundary.
 **Reads and writes take different paths.** Reads are parameterised queries
 over a fixed set of shapes; there is no free-text SQL surface for an agent to
 reach, because a tool that accepts SQL is not a governed tool.
+
+The database is reached through the Worker that owns this container, not over
+the public API with a token. The container makes a plain HTTP request to an
+internal hostname; the Worker intercepts it and uses its D1 binding. There is
+therefore no database credential inside the container at all — a binding
+cannot be read out of a process and reused somewhere else, which a token can.
 """
 from __future__ import annotations
 
@@ -28,12 +34,21 @@ import urllib.request
 import uuid
 from typing import Any, Callable
 
-_CF_API = "https://api.cloudflare.com/client/v4"
+#: Intercepted by the Worker's outbound handler, which holds the D1 binding.
+#: Nothing resolves this name on the public internet; if the interception is
+#: not configured the request fails rather than escaping.
+_GRAPH_ENDPOINT = "http://graph.internal/query"
 _TIMEOUT = 20
 
 #: Object kinds the graph recognises. A fact whose kind is not one of these
 #: cannot be read back correctly by anything downstream.
 _OBJECT_KINDS = frozenset({"literal", "iri", "json", "number", "date"})
+
+#: The graph a human writes tasks into, and the one place an agent may never
+#: write. Authority has to come from somewhere the agent cannot manufacture;
+#: if a proposal could assert its own work order first and then act on it, the
+#: work order would be worth nothing.
+INTENT_GRAPH = "urn:remora:intents"
 
 #: Only ASSERTED is available to an agent. RETRACTED and INFERRED are produced
 #: by the graph's own machinery, and letting a proposal claim either would be
@@ -67,18 +82,14 @@ def _tenant() -> str:
 
 
 def _query(sql: str, params: list[Any]) -> list[dict[str, Any]]:
-    """Run one parameterised statement against the graph database."""
-    account = _config("REMORA_CF_ACCOUNT_ID")
-    database = _config("REMORA_KG_DATABASE_ID")
-    token = _config("REMORA_CF_API_TOKEN")
+    """Run one parameterised statement against the graph database.
 
+    Goes to the Worker rather than to Cloudflare's API: the Worker holds the
+    D1 binding, so this process never holds a credential for the graph.
+    """
     body = json.dumps({"sql": sql, "params": params}).encode()
-    req = urllib.request.Request(
-        f"{_CF_API}/accounts/{account}/d1/database/{database}/query",
-        data=body, method="POST")
-    req.add_header("Authorization", f"Bearer {token}")
+    req = urllib.request.Request(_GRAPH_ENDPOINT, data=body, method="POST")
     req.add_header("Content-Type", "application/json")
-    req.add_header("User-Agent", "remora-governed-gateway")
     try:
         with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
             payload = json.loads(resp.read() or b"{}")
@@ -184,6 +195,12 @@ def kg_assert_fact(a: dict[str, Any]) -> dict[str, Any]:
     object_kind = str(a.get("object_kind", "literal")).lower()
     source = str(a.get("source", ""))
 
+    if graph == INTENT_GRAPH:
+        raise GraphUnavailable(
+            f"{INTENT_GRAPH} is the intent graph and is not writable here. "
+            "An agent that could assert its own work order and then act on it "
+            "would make the work order worth nothing."
+        )
     if object_kind not in _OBJECT_KINDS:
         raise GraphUnavailable(
             f"object_kind {object_kind!r} is not one of {sorted(_OBJECT_KINDS)}"
@@ -214,11 +231,15 @@ def kg_assert_fact(a: dict[str, Any]) -> dict[str, Any]:
         "predicate, object_json, object_kind, source, confidence, "
         "assertion_kind, observed_at, kg_seq, created_at) VALUES "
         "(?,?,?,?,?,?,?,?,?,?,?,"
+        # kg_seq is unique per TENANT, not per graph: the graph carries one
+        # sequence across all of its namespaces. Scoping this to the graph
+        # produced a UNIQUE constraint violation on the first write, which is
+        # how the mistake was found.
         "(SELECT COALESCE(MAX(kg_seq),0)+1 FROM knowledge_facts "
-        " WHERE tenant_id = ? AND graph = ?),?)",
+        " WHERE tenant_id = ?),?)",
         [fact_id, _tenant(), graph, subject, predicate, object_json,
          object_kind, source, confidence, _AGENT_ASSERTION_KIND, now,
-         _tenant(), graph, now])
+         _tenant(), now])
 
     return {"tenant": _tenant(), "graph": graph, "id": fact_id,
             "subject": subject, "predicate": predicate,
@@ -241,14 +262,17 @@ def kg_retract_fact(a: dict[str, Any]) -> dict[str, Any]:
 
     existing = _query(
         "SELECT id, graph, subject, predicate FROM knowledge_facts "
-        "WHERE tenant_id = ? AND id = ?", [_tenant(), fact_id])
+        "WHERE tenant_id = ? AND id = ? AND graph != ?",
+        [_tenant(), fact_id, INTENT_GRAPH])
     if not existing:
         raise GraphUnavailable(
-            f"no fact {fact_id!r} belongs to this tenant"
+            f"no retractable fact {fact_id!r} belongs to this tenant. Facts "
+            f"in {INTENT_GRAPH} are excluded: retracting the authority a call "
+            "was made under is not something the call may do."
         )
 
-    _query("DELETE FROM knowledge_facts WHERE tenant_id = ? AND id = ?",
-           [_tenant(), fact_id])
+    _query("DELETE FROM knowledge_facts WHERE tenant_id = ? AND id = ? "
+           "AND graph != ?", [_tenant(), fact_id, INTENT_GRAPH])
     return {"tenant": _tenant(), "retracted": existing[0]}
 
 
@@ -264,3 +288,26 @@ TOOLS: tuple[tuple[str, Callable[[dict[str, Any]], Any]], ...] = (
 def register_tools(register: Callable[[str, Callable[[Any], Any]], None]) -> None:
     for name, fn in TOOLS:
         register(name, fn)
+
+
+def read_intent(subject: str) -> dict[str, Any]:
+    """The task a call claims to act under, from the intent graph.
+
+    Used by the semantic bundle, not exposed as a tool. Returns an empty dict
+    when the subject carries no intent: unresolvable authority means UNKNOWN,
+    which sends the call to review rather than letting it through.
+    """
+    rows = _query(
+        "SELECT predicate, object_json FROM knowledge_facts "
+        "WHERE tenant_id = ? AND graph = ? AND subject = ? "
+        "ORDER BY kg_seq ASC",
+        [_tenant(), INTENT_GRAPH, subject])
+    if not rows:
+        return {}
+    out: dict[str, Any] = {}
+    for row in rows:
+        try:
+            out[str(row["predicate"])] = json.loads(row["object_json"])
+        except (KeyError, ValueError):
+            continue
+    return out
