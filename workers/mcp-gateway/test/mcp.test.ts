@@ -113,8 +113,8 @@ describe("protocol", () => {
       d,
     );
     const names = r.result.tools.map((t: any) => t.name);
-    expect(names).toContain("read_sensor");
-    expect(names).toContain("set_valve_position");
+    expect(names).toContain("gh_read_issue");
+    expect(names).toContain("gh_close_issue");
     expect(names).toContain("remora_proposal_status");
     expect(r.result.tools).toHaveLength(7);
   });
@@ -151,7 +151,7 @@ describe("governance", () => {
       execution_token: { t: 1 },
     });
     const r = await handleRpc(
-      call("read_sensor", { sensor_id: "PT-101", intent_ref: "MON-ROUND" }),
+      call("gh_read_issue", { repo: "o/r", number: 1, intent_ref: "o/r#1" }),
       d,
     );
     expect(payload(r).status).toBe("executed");
@@ -165,10 +165,10 @@ describe("governance", () => {
       review_item_id: "item-1",
     });
     const r = await handleRpc(
-      call("adjust_setpoint", {
-        loop: "PIC-101",
-        value: 3.8,
-        intent_ref: "WO-1201",
+      call("gh_close_issue", {
+        repo: "o/r",
+        number: 7,
+        intent_ref: "o/r#7",
       }),
       d,
     );
@@ -183,7 +183,7 @@ describe("governance", () => {
     for (const decision of ["abstain", "escalate"] as const) {
       const { deps: d, rec } = deps({ decision, reasons: ["r"] });
       const r = await handleRpc(
-        call("close_work_order", { wo_id: "WO-1", intent_ref: "WO-9" }),
+        call("gh_close_issue", { repo: "o/r", number: 1, intent_ref: "o/r#9" }),
         d,
       );
       expect(payload(r).status).toBe("refused");
@@ -197,7 +197,7 @@ describe("governance", () => {
     // around. A refusal is the system working.
     const { deps: d } = deps({ decision: "abstain", reasons: ["r"] });
     const r: any = await handleRpc(
-      call("close_work_order", { wo_id: "W", intent_ref: "I" }),
+      call("gh_close_issue", { repo: "o/r", number: 1, intent_ref: "o/r#1" }),
       d,
     );
     expect(r.result.isError).toBe(false);
@@ -209,11 +209,11 @@ describe("governance", () => {
       review_item_id: "i",
     });
     await handleRpc(
-      call("read_sensor", { sensor_id: "PT-101", intent_ref: "MON-ROUND" }),
+      call("gh_add_label", { repo: "o/r", number: 3, label: "bug", intent_ref: "o/r#3" }),
       d,
     );
-    expect(rec.assess[0].intent_ref).toBe("MON-ROUND");
-    expect(rec.assess[0].arguments).toEqual({ sensor_id: "PT-101" });
+    expect(rec.assess[0].intent_ref).toBe("o/r#3");
+    expect(rec.assess[0].arguments).toEqual({ repo: "o/r", number: 3, label: "bug" });
   });
 
   it("an unknown tool is refused without reaching REMORA", async () => {
@@ -234,10 +234,11 @@ describe("proposal redemption", () => {
       review_item_id: "item-7",
     });
     await handleRpc(
-      call("set_valve_position", {
-        valve: "V-12",
-        position_pct: 35,
-        intent_ref: "WO-1204",
+      call("gh_comment_issue", {
+        repo: "o/r",
+        number: 5,
+        body: "as approved",
+        intent_ref: "o/r#5",
       }),
       d,
     );
@@ -248,8 +249,9 @@ describe("proposal redemption", () => {
     expect(payload(r).status).toBe("executed");
     expect(rec.execute[0][0]).toBe("item-7");
     expect(rec.execute[0][1].arguments).toEqual({
-      valve: "V-12",
-      position_pct: 35,
+      repo: "o/r",
+      number: 5,
+      body: "as approved",
     });
   });
 
@@ -259,7 +261,7 @@ describe("proposal redemption", () => {
       { executeStatus: 409, executeBody: { outcome: "not_approved" } },
     );
     await handleRpc(
-      call("acknowledge_alarm", { alarm_id: "A", intent_ref: "I" }),
+      call("gh_add_label", { repo: "o/r", number: 2, label: "x", intent_ref: "o/r#2" }),
       d,
     );
     const r: any = await handleRpc(
@@ -276,7 +278,7 @@ describe("proposal redemption", () => {
       review_item_id: "item-1",
     });
     await handleRpc(
-      call("create_work_order", { wo_id: "WO-1310", intent_ref: "WO-1205" }),
+      call("gh_create_issue", { repo: "o/r", title: "t", intent_ref: "o/r#1" }),
       d,
     );
     await handleRpc(
@@ -309,7 +311,7 @@ describe("failure handling", () => {
   it("an assess HTTP failure is an error and executes nothing", async () => {
     const { deps: d, rec } = deps({}, { assessStatus: 503 });
     const r: any = await handleRpc(
-      call("read_sensor", { sensor_id: "P", intent_ref: "I" }),
+      call("gh_read_issue", { repo: "o/r", number: 1, intent_ref: "o/r#1" }),
       d,
     );
     expect(r.result.isError).toBe(true);

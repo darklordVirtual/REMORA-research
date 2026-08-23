@@ -45,6 +45,14 @@ export interface Env {
   REMORA_PG_DSN?: string;
   REMORA_CHAIN_DB?: string;
   REMORA_API_TOKENS: string;
+  /** The credential for the governed tools. It lives in the container and
+   *  nowhere else — the agent never holds it, which is what makes a refusal
+   *  final rather than advisory. */
+  REMORA_GITHUB_TOKEN: string;
+  /** Repositories this deployment may touch, comma separated. A closed list
+   *  rather than an open credential scope: the token may have wider access,
+   *  and the deployment narrows it. */
+  REMORA_GITHUB_REPOS: string;
   REMORA_PDP_SIGNING_KEY: string;
   REMORA_LEASE_SIGNING_KEY: string;
   REMORA_AUDIT_SIGNING_KEY: string;
@@ -141,9 +149,14 @@ export class RemoraContainer extends Container<Env> {
               env.REMORA_TOOLSPEC_TRUSTED_IDENTITIES ?? "",
           }
         : {}),
-      REMORA_TOOL_REGISTRY_MODULE: "ot_registry",
-      REMORA_SEMANTIC_BUNDLE_MODULE: "ot_bundle",
-      REMORA_INTENT_SOURCE_FILE: "/app/work_orders.json",
+      // The governed GitHub tool set. Authority comes from a GitHub issue
+      // rather than a work-order file, so there is no intent source to point
+      // at: the bundle reads the issue named by intent_ref and digests its
+      // text, which means an issue edited after approval stops matching.
+      REMORA_TOOL_REGISTRY_MODULE: "deploy.gateway.gh_registry",
+      REMORA_SEMANTIC_BUNDLE_MODULE: "deploy.gateway.gh_bundle",
+      REMORA_GITHUB_TOKEN: env.REMORA_GITHUB_TOKEN,
+      REMORA_GITHUB_REPOS: env.REMORA_GITHUB_REPOS,
       REMORA_EXECUTION_ARTIFACT_DIR: "/var/lib/remora/artifacts",
       PYTHONPATH: "/app",
     };
