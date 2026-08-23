@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 
 from remora.toolcall.routing.goal_match import TaskIntent
 from remora.toolcall.semantic_bundle import ResolvedIntent
@@ -29,7 +30,23 @@ from remora.toolcall.semantic_bundle import ResolvedIntent
 #: Effects an intent may declare. Frozen deliberately: this is the
 #: deterministic side of the boundary, and an extractor that grows to match
 #: anything stops discriminating.
+_log = logging.getLogger("remora.gateway.intent")
+
 _EFFECTS = frozenset({"read", "create", "update", "delete", "close"})
+
+#: Predicates the goal matcher needs before it can contradict anything.
+#:
+#: Measured 2026-08-23: a task carrying only task_text, operation and
+#: resource_type produced identical decisions for the right task, the wrong
+#: task and no task at all — every call reached VERIFY with
+#: 'evidence_insufficient', so the intent was decorative. Adding source_spans
+#: and action_spans made a write proposed under a read-only task come back as
+#: ESCALATE with 'expected_effect_contradicted'.
+#:
+#: A task without these is not rejected — it still resolves and still sends
+#: the call for review — but it cannot cause a contradiction, so it buys
+#: nothing beyond a human in the loop.
+DISCRIMINATING_PREDICATES = ("source_spans", "action_spans")
 
 
 def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
@@ -74,6 +91,14 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
     targets = task.get("target_entities")
     source_spans = task.get("source_spans")
     action_spans = task.get("action_spans")
+
+    # Recorded rather than enforced: an under-specified task is weaker, not
+    # invalid, and refusing it would remove the human review it still gets.
+    if not any(task.get(k) for k in DISCRIMINATING_PREDICATES):
+        _log.warning(
+            "intent %s carries none of %s, so it cannot contradict a "
+            "mismatched call; every proposal under it will reach review "
+            "with no effect check", subject, DISCRIMINATING_PREDICATES)
 
     return ResolvedIntent(
         intent=TaskIntent(

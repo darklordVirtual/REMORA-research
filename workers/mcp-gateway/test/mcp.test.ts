@@ -123,7 +123,7 @@ describe("protocol", () => {
     expect(names).toContain("gh_close_issue");
     expect(names).toContain("kg_assert_fact");
     expect(names).toContain("remora_proposal_status");
-    expect(r.result.tools).toHaveLength(12);
+    expect(r.result.tools).toHaveLength(14);
   });
 
   it("every governed tool requires an intent_ref", async () => {

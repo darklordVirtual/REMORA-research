@@ -158,6 +158,37 @@ export const GRAPH_TOOLS: GovernedTool[] = [
     },
   },
   {
+    name: "kg_list_predicates",
+    description:
+      "The predicates in use in a graph, most-used first. Start here: the " +
+      "other query tools need a predicate or a subject, and this is how you " +
+      "find out what they look like.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        graph: { type: "string", description: "Graph URI." },
+        limit: { type: "number", description: "Rows, 1-200. Defaults to 50." },
+        ...INTENT,
+      },
+      required: ["graph", "intent_ref"],
+    },
+  },
+  {
+    name: "kg_sample_subjects",
+    description:
+      "Subjects in a graph with the most facts, so you can see what it is " +
+      "about before querying one of them.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        graph: { type: "string", description: "Graph URI." },
+        limit: { type: "number", description: "Rows, 1-200. Defaults to 50." },
+        ...INTENT,
+      },
+      required: ["graph", "intent_ref"],
+    },
+  },
+  {
     name: "kg_query_facts",
     description:
       "Facts about one subject, newest first. Optionally narrowed to a " +

@@ -46,6 +46,10 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
 _GRAPH_SIGNATURES = {
     "kg_list_graphs": ToolSignature(
         name="kg_list_graphs", effect="read", required_params=()),
+    "kg_list_predicates": ToolSignature(
+        name="kg_list_predicates", effect="read", required_params=("graph",)),
+    "kg_sample_subjects": ToolSignature(
+        name="kg_sample_subjects", effect="read", required_params=("graph",)),
     "kg_query_facts": ToolSignature(
         name="kg_query_facts", effect="read",
         required_params=("graph", "subject")),
@@ -63,6 +67,12 @@ _GRAPH_CONTRACTS = [
     ToolContract(tool="kg_list_graphs", capability="graph_read",
                  effect="read", resource_type="graph", mutation=False,
                  argument_roles={}),
+    ToolContract(tool="kg_list_predicates", capability="graph_read",
+                 effect="read", resource_type="graph", mutation=False,
+                 argument_roles={"graph": "target_resource"}),
+    ToolContract(tool="kg_sample_subjects", capability="graph_read",
+                 effect="read", resource_type="graph", mutation=False,
+                 argument_roles={"graph": "target_resource"}),
     ToolContract(tool="kg_query_facts", capability="graph_read",
                  effect="read", resource_type="fact", mutation=False,
                  argument_roles={"graph": "target_resource",
