@@ -136,3 +136,42 @@ def test_no_sets_means_no_authority(monkeypatch):
     """Unresolvable authority is UNKNOWN, which is review, not permission."""
     _, bundle = _load(monkeypatch, {})
     assert bundle.resolve_intent("anything") is None
+
+
+def test_an_under_specified_intent_is_recorded_not_hidden(monkeypatch, caplog):
+    """A task with no spans cannot contradict anything.
+
+    Measured against the deployed gateway on 2026-08-23: a task carrying only
+    task_text, operation and resource_type produced identical decisions for
+    the right task, the wrong task and no task at all. Adding source_spans and
+    action_spans made a write under a read-only task come back as ESCALATE
+    with expected_effect_contradicted.
+
+    It is a warning rather than a refusal: an under-specified task is weaker,
+    not invalid, and refusing it would remove the human review it still gets.
+    """
+    import logging
+
+    from deploy.gateway import kg_intent, kg_registry
+
+    monkeypatch.setattr(kg_registry, "read_intent", lambda s: {
+        "task_text": "Do the thing.", "operation": "read",
+    })
+    with caplog.at_level(logging.WARNING):
+        resolved = kg_intent.resolve_intent("task:thin")
+    assert resolved is not None, "a thin task still resolves"
+    assert any("cannot contradict" in r.message for r in caplog.records)
+
+
+def test_a_task_with_spans_is_not_warned_about(monkeypatch, caplog):
+    import logging
+
+    from deploy.gateway import kg_intent, kg_registry
+
+    monkeypatch.setattr(kg_registry, "read_intent", lambda s: {
+        "task_text": "Read the business graph.", "operation": "read",
+        "source_spans": ["business graph"], "action_spans": ["read"],
+    })
+    with caplog.at_level(logging.WARNING):
+        kg_intent.resolve_intent("task:rich")
+    assert not [r for r in caplog.records if "cannot contradict" in r.message]

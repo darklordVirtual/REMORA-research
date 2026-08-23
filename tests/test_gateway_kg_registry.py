@@ -263,3 +263,18 @@ def test_the_sequence_is_scoped_to_the_tenant_not_the_graph(captured):
         "the sequence subquery must not be scoped to the graph"
     )
     assert subquery.count("tenant_id = ?") == 1
+
+
+def test_the_vocabulary_can_be_discovered(captured):
+    """The query tools were unusable without this.
+
+    They take a subject or a predicate and nothing told you what either
+    looked like. A governed tool that cannot be used is not a control, it is
+    an obstacle.
+    """
+    kg.kg_list_predicates({"graph": "g"})
+    kg.kg_sample_subjects({"graph": "g"})
+    assert len(captured) == 2
+    for sql, params in captured:
+        assert "tenant_id = ?" in sql and TENANT in params
+        assert "GROUP BY" in sql

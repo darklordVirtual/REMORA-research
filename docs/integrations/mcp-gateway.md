@@ -339,6 +339,57 @@ deployment as anything other than what it is:
 Setting `REMORA_PG_DSN` to a Postgres inside the same jurisdiction is the one
 remaining step, and it is a single secret plus a redeploy.
 
+### Capability test, 2026-08-23
+
+Run against the deployed gateway. Every case declares what *should* happen; a
+legitimate call that gets blocked counts as a failure exactly like an attack
+that gets through, because a gateway that refuses everything is perfectly safe
+and useless.
+
+**Held.** Nothing reaches a side effect without a human: seven proposals
+including mutating ones all stopped at `pending_approval` with no approval.
+The gateway's own operator token gets 403 on approval, a viewer gets 403, a
+request with no credential gets 401. A redeemed proposal cannot be replayed,
+and an approval issued for one call does not redeem another. Cloudflare Access
+refuses an unauthenticated request before REMORA is reached.
+
+The data boundary held under attack rather than merely erroring: a query
+naming another tenant came back with the tenant rewritten to ours and zero
+rows; a subject containing `'; DROP TABLE knowledge_facts; --` matched
+nothing and the table was still there afterwards. Writing to the intent graph
+was refused, as was a fact with no source, a confidence outside 0..1 and an
+unrecognised object kind.
+
+**The finding.** The intent was decorative. Correct task, invented task and no
+task at all produced *identical* decisions and identical reasons — every call
+reached VERIFY with `evidence_insufficient`. The authority mechanism was
+running and influencing nothing.
+
+The cause was under-specified tasks, not a broken mechanism. The seeded tasks
+carried `task_text`, `operation` and `resource_type` but no `source_spans` or
+`action_spans`, so the goal matcher had nothing to match on and
+`tool_does_not_match_goal` could never fire. Adding the spans produced
+discrimination immediately:
+
+| Call | Decision | Reason |
+| --- | --- | --- |
+| write under the write task | `verify` | `evidence_insufficient` |
+| write under a **read-only** task | **`escalate`** | **`expected_effect_contradicted`** |
+| write under an invented task | `verify` | `evidence_insufficient` |
+
+Three distinct outcomes where there had been one: the task forbids this
+effect, no authority was established, and authorised but still wanting a
+human. `kg_intent.DISCRIMINATING_PREDICATES` records the requirement and the
+resolver warns when a task lacks them — a warning rather than a refusal,
+because an under-specified task is weaker, not invalid, and refusing it would
+remove the review it still gets.
+
+**Not measured.** Reads do not discriminate: correct and invented read tasks
+both reach `verify` with the same reason. And nothing in this deployment ever
+reaches `accept`, so autonomy is zero — every call, however well-authorised,
+waits for a person. That is the same shape as the repository's own §39 result
+and is a property of the configuration, not a fault.
+
 ### What this deployment is not
 
 It runs `REMORA_ENV=production` under the **default research profile**, not

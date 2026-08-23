@@ -132,6 +132,40 @@ def kg_list_graphs(_a: dict[str, Any]) -> dict[str, Any]:
     return {"tenant": _tenant(), "graphs": rows}
 
 
+def kg_list_predicates(a: dict[str, Any]) -> dict[str, Any]:
+    """The predicates in use in a graph, most-used first.
+
+    Added because the query tools were unusable without it: they take a
+    subject or a predicate, and nothing in the set told you what either looked
+    like. A caller that has to guess the vocabulary cannot ask a question, and
+    a governed tool that cannot be used is not a control, it is an obstacle.
+    """
+    graph = str(a.get("graph", ""))
+    limit = _clamped_limit(a.get("limit"))
+    rows = _query(
+        "SELECT predicate, COUNT(*) AS uses FROM knowledge_facts "
+        "WHERE tenant_id = ? AND graph = ? "
+        "GROUP BY predicate ORDER BY uses DESC LIMIT ?",
+        [_tenant(), graph, limit])
+    return {"tenant": _tenant(), "graph": graph, "predicates": rows}
+
+
+def kg_sample_subjects(a: dict[str, Any]) -> dict[str, Any]:
+    """A sample of subjects in a graph, with how many facts each carries.
+
+    The other half of the same problem: knowing the predicates does not tell
+    you what the graph is about.
+    """
+    graph = str(a.get("graph", ""))
+    limit = _clamped_limit(a.get("limit"))
+    rows = _query(
+        "SELECT subject, COUNT(*) AS facts FROM knowledge_facts "
+        "WHERE tenant_id = ? AND graph = ? "
+        "GROUP BY subject ORDER BY facts DESC LIMIT ?",
+        [_tenant(), graph, limit])
+    return {"tenant": _tenant(), "graph": graph, "subjects": rows}
+
+
 def kg_query_facts(a: dict[str, Any]) -> dict[str, Any]:
     """Facts matching a subject and optionally a predicate.
 
@@ -278,6 +312,8 @@ def kg_retract_fact(a: dict[str, Any]) -> dict[str, Any]:
 
 TOOLS: tuple[tuple[str, Callable[[dict[str, Any]], Any]], ...] = (
     ("kg_list_graphs", kg_list_graphs),
+    ("kg_list_predicates", kg_list_predicates),
+    ("kg_sample_subjects", kg_sample_subjects),
     ("kg_query_facts", kg_query_facts),
     ("kg_find_subjects", kg_find_subjects),
     ("kg_assert_fact", kg_assert_fact),
