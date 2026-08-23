@@ -1,0 +1,25 @@
+# Development config: the gateway against a locally running REMORA.
+#
+#   docker compose -f ../../deploy/ot-pilot/docker-compose.yml up -d
+#   npx wrangler dev --config wrangler.dev.toml
+#
+# No container binding here, so an edit-reload cycle does not rebuild a
+# 338 MB image. REMORA_API_URL changes the transport only: every decision is
+# still made by the REMORA execution API that compose brings up, in production
+# mode, against real Postgres.
+name = "remora-mcp-gateway-dev"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+REMORA_API_URL = "http://127.0.0.1:8080"
+REMORA_AGENT_TOKEN = "ot-agent"
+
+[[durable_objects.bindings]]
+name = "PROPOSALS"
+class_name = "ProposalDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ProposalDO"]

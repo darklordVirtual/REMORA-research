@@ -1,0 +1,32 @@
+name = "remora-mcp-gateway"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── The REMORA container ──────────────────────────────────────────────────────
+# Always on. Measured cold start is 4.1-4.4 s on `basic`; wake-on-demand would
+# pay that on every cold MCP call to save roughly $7/month, which is a bad
+# trade for one tenant. See docs/design/cloudflare-mcp-gateway-v1.md.
+[[containers]]
+class_name = "RemoraContainer"
+image = "../../deploy/ot-pilot/Dockerfile"
+image_build_context = "../.."
+instance_type = "basic"
+max_instances = 1
+
+[[durable_objects.bindings]]
+name = "REMORA"
+class_name = "RemoraContainer"
+
+[[durable_objects.bindings]]
+name = "PROPOSALS"
+class_name = "ProposalDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RemoraContainer", "ProposalDO"]
+
+# REMORA_AGENT_TOKEN is a secret: `wrangler secret put REMORA_AGENT_TOKEN`.
+# It is the OPERATOR token. It deliberately cannot approve anything — role
+# separation is enforced server-side, so a gateway compromise cannot
+# self-approve a mutating call.
