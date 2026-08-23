@@ -202,3 +202,88 @@ def test_the_binding_is_still_enforced_under_ed25519(pdp):
         tenant_id="acme", target_environment="staging")
     assert changed.verified is False
     assert changed.reason == "tool_args_hash_mismatch"
+
+
+# ── The attack, run against BOTH topologies ─────────────────────────────────
+#
+# A test that only shows the attack failing under the new scheme proves the new
+# scheme is not obviously broken. It does not show the attack was ever possible.
+# These two run the SAME forgery against the deployed topology and the target
+# topology, so the difference between them is the evidence.
+
+_FORGED = {"tool_name": "kg_retract_fact",
+           "arguments": {"graph": "urn:remora:intents", "id": "anything"},
+           "tenant_id": "someone-elses-tenant",
+           "target_environment": "prod"}
+
+
+def test_the_deployed_symmetric_topology_permits_forgery(monkeypatch):
+    """The vulnerability, demonstrated rather than asserted.
+
+    This is the deployed configuration at the time of writing:
+    workers/mcp-gateway/src/index.ts supplies REMORA_LEASE_SIGNING_KEY to the
+    execution container, and ExecutionLease signs and verifies under it.
+
+    An adversary with code execution in that container reads the key from its
+    own environment and mints a lease for a different tool, different
+    arguments, a different tenant and a different target -- none of which any
+    PDP ever assessed -- and it VERIFIES. No forgery is required; the
+    authorization system is bypassed rather than attacked.
+
+    If this test ever starts failing, the symmetric path has been removed and
+    that is a good day. Change it to assert the refusal then; do not delete it,
+    because it is the before half of the evidence.
+    """
+    monkeypatch.delenv(signing.ENV_ED25519_PRIVATE, raising=False)
+    monkeypatch.delenv(signing.ENV_ED25519_PUBLIC, raising=False)
+    monkeypatch.delenv(signing.ENV_ACCEPT_HMAC, raising=False)
+    monkeypatch.setenv(signing.ENV_HMAC, "whatever-the-container-holds")
+
+    forged = ExecutionLease.issue(
+        decision="accept", actor_identity="attacker",
+        policy_bundle_hash="bundle-1", issued_at=ISSUED, **_FORGED)
+
+    verdict = forged.verify(now=ISSUED, actor_identity="attacker", **_FORGED)
+    assert verdict.verified is True, (
+        "recorded as the BEFORE state: possession of the shared key is "
+        "sufficient to author authority for an unassessed action")
+
+
+def test_the_target_asymmetric_topology_refuses_the_same_forgery(monkeypatch, pdp):
+    """The same attack, with the private key removed from the container."""
+    _seed, public = pdp
+    monkeypatch.delenv(signing.ENV_ED25519_PRIVATE, raising=False)
+    monkeypatch.setenv(signing.ENV_ED25519_PUBLIC, public)
+    monkeypatch.delenv(signing.ENV_HMAC, raising=False)
+    monkeypatch.delenv(signing.ENV_HMAC_FALLBACK, raising=False)
+
+    with pytest.raises(LeaseRefused):
+        ExecutionLease.issue(
+            decision="accept", actor_identity="attacker",
+            policy_bundle_hash="bundle-1", issued_at=ISSUED, **_FORGED)
+
+
+def test_a_forgery_assembled_by_hand_also_fails_verification(monkeypatch, pdp):
+    """Refusing to issue is not enough on its own.
+
+    An attacker does not have to call issue(). They can build the dataclass
+    directly and attach any signature they like. The property must hold at
+    VERIFICATION, which is the only place the execution path actually checks.
+    """
+    _seed, public = pdp
+    monkeypatch.delenv(signing.ENV_ED25519_PRIVATE, raising=False)
+    monkeypatch.setenv(signing.ENV_ED25519_PUBLIC, public)
+
+    handmade = ExecutionLease(
+        decision="accept", tenant_id=_FORGED["tenant_id"],
+        actor_identity="attacker", tool_name=_FORGED["tool_name"],
+        tool_args_hash="0" * 64,
+        target_environment=_FORGED["target_environment"],
+        policy_bundle_hash="bundle-1", nonce="attacker-chosen-nonce",
+        issued_at=ISSUED, expires_at=ISSUED,
+        signature="de" * 32, is_signed=True,
+        sig_alg=signing.ALG_ED25519, kid="")
+
+    verdict = handmade.verify(now=ISSUED, actor_identity="attacker", **_FORGED)
+    assert verdict.verified is False
+    assert verdict.reason in {"signature_invalid", "tool_args_hash_mismatch"}
