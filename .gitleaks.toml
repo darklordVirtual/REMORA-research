@@ -68,6 +68,11 @@ regexes = [
   # which is how a secret scanner gets quietly disarmed.
   '''REMORA_API_BEARER_TOKEN=dev-token''',
   '''localhost:8000/v1/(policy/version|assess).*Authorization: Bearer dev-token''',
+  # docs/integrations/mcp-gateway.md — approving a governed proposal is a
+  # curl command until the approval console exists, so the gateway
+  # documentation has to show authentication too. Same treatment as the API
+  # reference above: the env-var reference is allowlisted, never a value.
+  '''Authorization: Bearer \$\{REMORA_APPROVER_TOKEN\}''',
   # The same block's unauthenticated health check, matched by the rule's
   # multi-line region rather than by any secret in it.
   '''curl -s localhost:8000/v1/health''',

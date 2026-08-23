@@ -229,7 +229,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        worker: [agent-control, aromer, law-search, rag-oracle]
+        worker: [agent-control, aromer, law-search, mcp-gateway, rag-oracle]
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
@@ -255,6 +255,16 @@ jobs:
         # one), and the gate must not depend on per-package script naming.
         working-directory: workers/${{ matrix.worker }}
         run: npx tsc --noEmit
+
+      - name: Test
+        # Only the workers that have a test directory. mcp-gateway carries the
+        # governance tests for the MCP surface: that a refusal executes
+        # nothing, that a pending proposal executes nothing, and that a
+        # redeemed proposal cannot be replayed. Those are safety properties,
+        # so they belong in a gate rather than in a developer's habits.
+        if: hashFiles(format('workers/{0}/test/**', matrix.worker)) != ''
+        working-directory: workers/${{ matrix.worker }}
+        run: npm test
 
   replay-heavy:
     runs-on: ubuntu-latest

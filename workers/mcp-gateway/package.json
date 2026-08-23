@@ -1,0 +1,22 @@
+{
+  "name": "remora-mcp-gateway",
+  "version": "0.10.0",
+  "private": true,
+  "type": "module",
+  "description": "Governed MCP gateway: MCP tool calls routed through the REMORA execution path",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --port 8787",
+    "test": "vitest run",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.3.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260820.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.7",
+    "wrangler": "^4.125.0"
+  }
+}

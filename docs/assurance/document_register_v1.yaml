@@ -2175,6 +2175,18 @@ documents:
   audience:
   - maintainers
   - evaluators
+- id: DOC-320
+  version: v1
+  path: docs/integrations/mcp-gateway.md
+  status: canonical
+  topic: docs_integrations_mcp-gateway_md
+  code_synced: verified
+  last_reviewed: '2026-08-23'
+  audience:
+  - maintainers
+  - operators
+  - integrators
+  verdict: current
 - id: DOC-319
   version: v1
   path: docs/design/cloudflare-mcp-gateway-v1.md
@@ -2406,6 +2418,7 @@ documents:
   verdict: current
   version: v1
 topics:
+- docs_integrations_mcp-gateway_md
 - docs_design_cloudflare-mcp-gateway-v1_md
 - docs_aromer_subproject_md
 - docs_architecture_adr_tainted_argument_approval_md

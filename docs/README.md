@@ -189,6 +189,7 @@ These files are retained for reproducibility and research history. In particular
 |---|---|
 | [integrations/agent_tool_hook.md](integrations/agent_tool_hook.md) | Agent pre-tool-use hook |
 | [integrations/mcp-integration.md](integrations/mcp-integration.md) | MCP integration |
+| [integrations/mcp-gateway.md](integrations/mcp-gateway.md) | Governed MCP gateway: agent tool calls through the execution path |
 | [integrations/rag_oracle.md](integrations/rag_oracle.md) | RAG oracle worker |
 | [integrations/cloudflare_workers_ai.md](integrations/cloudflare_workers_ai.md) | Cloudflare Workers AI |
 | [integrations/knowledge_domains.md](integrations/knowledge_domains.md) | Knowledge domains |
