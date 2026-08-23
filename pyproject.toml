@@ -66,7 +66,7 @@ nli = ["sentence-transformers>=6.0.0", "torch>=2.13.0"]
 agentharm = ["inspect-ai>=0.3", "inspect-evals", "openai>=3.2.0", "pyyaml>=6.0"]
 causal = ["pyyaml>=6.0"]
 # Documentation
-docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
+docs = ["mkdocs-material>=9.7.7", "mkdocstrings[python]>=0.26"]
 # Postgres-backed runtime paths (REM-045): tenant audit chain + enforcement
 # gate import psycopg (v3); control-plane storage + audit adapter import
 # psycopg2. A wheel-only install of the documented durable storage needs both.
