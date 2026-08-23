@@ -262,13 +262,32 @@ export const STATUS_TOOL: GovernedTool = {
 };
 
 /**
- * Everything the gateway offers.
+ * The tool sets, and the configuration each one needs to work at all.
  *
- * Which of these the deployment can actually serve is decided server-side
- * from configuration, so a tool listed here may still be refused. That is the
- * correct order: the surface is stable, the authority is not.
+ * This mirrors deploy/gateway/registry.py deliberately. An agent cannot tell
+ * "refused" from "broken", and should never have to: a set whose credential
+ * is absent is not listed, rather than listed and failing at dispatch. A
+ * governance refusal has to mean something, and it stops meaning anything if
+ * half the failures are configuration.
  */
-const GOVERNED: GovernedTool[] = [...TOOLS, ...GRAPH_TOOLS];
+const SETS: { tools: GovernedTool[]; requires: string[] }[] = [
+  { tools: TOOLS, requires: ["REMORA_GITHUB_TOKEN", "REMORA_GITHUB_REPOS"] },
+  { tools: GRAPH_TOOLS, requires: ["REMORA_KG_TENANT"] },
+];
 
-export const ALL_TOOLS: GovernedTool[] = [...GOVERNED, STATUS_TOOL];
-export const GOVERNED_NAMES = new Set(GOVERNED.map((t) => t.name));
+/** The governed tools this deployment can actually serve. */
+export function governedTools(env: Record<string, unknown>): GovernedTool[] {
+  return SETS.flatMap((set) =>
+    set.requires.every((key) => String(env[key] ?? "").trim() !== "")
+      ? set.tools
+      : [],
+  );
+}
+
+export function toolsFor(env: Record<string, unknown>): GovernedTool[] {
+  return [...governedTools(env), STATUS_TOOL];
+}
+
+export function governedNames(env: Record<string, unknown>): Set<string> {
+  return new Set(governedTools(env).map((t) => t.name));
+}

@@ -4,7 +4,7 @@
  * Kept as a pure function of (request, dependencies) so the protocol can be
  * tested without a Worker runtime, a container, or a network.
  */
-import { ALL_TOOLS, GOVERNED_NAMES } from "./tools";
+import { governedNames, toolsFor } from "./tools";
 import type { AssessResult, ExecuteResult, RemoraClient, ToolCall } from "./remora";
 
 export const PROTOCOL_VERSION = "2025-06-18";
@@ -34,6 +34,8 @@ export interface Deps {
   store: ProposalStore;
   /** Injected so the protocol layer stays deterministic under test. */
   newId: () => string;
+  /** Deployment configuration, which decides which tool sets are live. */
+  env: Record<string, unknown>;
 }
 
 const ok = (id: unknown, result: unknown) => ({ jsonrpc: "2.0", id, result });
@@ -105,7 +107,10 @@ async function callTool(
   if (name === "remora_proposal_status") {
     return statusTool(String(args.proposal_id ?? ""), deps);
   }
-  if (!GOVERNED_NAMES.has(name)) {
+  if (!governedNames(deps.env).has(name)) {
+    // Either the tool does not exist or its set is not configured here.
+    // Saying which would be more helpful and less honest: from the agent's
+    // side both mean the same thing — this gateway will not do that.
     return textResult({ error: `unknown tool: ${name}` }, true);
   }
 
@@ -206,7 +211,7 @@ export async function handleRpc(
       return ok(req.id, {});
 
     case "tools/list":
-      return ok(req.id, { tools: ALL_TOOLS });
+      return ok(req.id, { tools: toolsFor(deps.env) });
 
     case "tools/call": {
       const params = (req.params ?? {}) as {
