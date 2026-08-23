@@ -120,6 +120,12 @@ export class RemoraContainer extends Container<Env> {
         : {
             REMORA_CHAIN_DB: env.REMORA_CHAIN_DB ?? "",
             REMORA_CONTROL_PLANE_DB: env.REMORA_CHAIN_DB ?? "",
+            // REMORA now probes the filesystem behind REMORA_CHAIN_DB and
+            // refuses a container's own writable layer, because the ledger
+            // that refuses a replayed grant would go with it. Running the
+            // demonstration deployment anyway is an explicit statement, and
+            // the value says what is being accepted.
+            REMORA_ACCEPT_EPHEMERAL_STATE: "grants-become-replayable",
           }),
       REMORA_API_TOKENS: env.REMORA_API_TOKENS,
       REMORA_API_BEARER_TOKEN: env.REMORA_AGENT_TOKEN,

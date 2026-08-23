@@ -174,14 +174,37 @@ one-time-grant ledger do not survive a restart — and a grant already consumed
 becomes replayable, which is precisely the failure the check was written to
 prevent. The check passes while providing none of the guarantee.
 
-This is a weakness in the guard, not a deployment mistake. The guard tests
-whether a path was configured, not whether the storage behind it persists. A
-stronger version would have to probe durability rather than accept a
-configured value, and that is a change to `servers/api.py` rather than to any
-deployment.
+This was a weakness in the guard, not a deployment mistake. The guard tested
+whether a path was configured, not whether the storage behind it persists.
 
-Until then the gateway reports its own posture at `/health` and refuses to
-describe an ephemeral deployment as a pilot.
+**Fixed 2026-08-23.** `servers/api.py` now reads the Linux mount table and
+resolves the filesystem behind `REMORA_CHAIN_DB`, walking up to the nearest
+existing ancestor because the database file does not exist on a first start.
+A container's own writable layer or memory-backed storage — `overlay`,
+`overlayfs`, `aufs`, `tmpfs`, `ramfs`, `rootfs` — is refused, and the refusal
+names the filesystem, the path and the consequence rather than merely
+reporting a rule.
+
+Three deliberate limits:
+
+- An unrecognised filesystem is **not** treated as ephemeral. A guard that
+  refuses everything it has not heard of would reject storage it knows nothing
+  bad about.
+- A platform with no `/proc/mounts` is allowed. Absence of the probe is not
+  evidence against the storage.
+- `REMORA_PG_DSN` skips the probe entirely: a network service is durable
+  relative to the process connecting to it, and an ephemeral local disk must
+  not disqualify a remote database.
+
+A demonstration deployment may still run on ephemeral storage by setting
+`REMORA_ACCEPT_EPHEMERAL_STATE=grants-become-replayable`. The value names the
+consequence rather than being a truthy flag, so it cannot be copied into a
+real deployment without reading what it says; a bare `1` is refused. It is
+logged at startup and reported at `/health`.
+
+Verified in a real container on overlay: refused without the acknowledgement,
+refused with `1`, started with the exact value. 30 tests in
+`tests/test_ephemeral_durable_state.py`.
 
 ## Deploy sequence
 
