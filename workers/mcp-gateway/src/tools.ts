@@ -140,6 +140,106 @@ export const TOOLS: GovernedTool[] = [
   },
 ];
 
+/**
+ * Knowledge-graph tools (exeQta).
+ *
+ * The tenant is deliberately absent from every schema. It comes from
+ * deployment configuration and is written into every statement server-side,
+ * so no proposal — however well-formed — can reach across the boundary.
+ */
+export const GRAPH_TOOLS: GovernedTool[] = [
+  {
+    name: "kg_list_graphs",
+    description: "List the knowledge graphs this deployment can see.",
+    inputSchema: {
+      type: "object",
+      properties: { ...INTENT },
+      required: ["intent_ref"],
+    },
+  },
+  {
+    name: "kg_query_facts",
+    description:
+      "Facts about one subject, newest first. Optionally narrowed to a " +
+      "single predicate.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        graph: { type: "string", description: "Graph URI." },
+        subject: { type: "string", description: "Subject to look up." },
+        predicate: { type: "string", description: "Optional predicate filter." },
+        limit: { type: "number", description: "Rows, 1-200. Defaults to 50." },
+        ...INTENT,
+      },
+      required: ["graph", "subject", "intent_ref"],
+    },
+  },
+  {
+    name: "kg_find_subjects",
+    description:
+      "The reverse lookup: subjects carrying a given predicate, optionally " +
+      "filtered by a substring of the object.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        graph: { type: "string", description: "Graph URI." },
+        predicate: { type: "string", description: "Predicate to search on." },
+        contains: { type: "string", description: "Optional object substring." },
+        limit: { type: "number", description: "Rows, 1-200. Defaults to 50." },
+        ...INTENT,
+      },
+      required: ["graph", "predicate", "intent_ref"],
+    },
+  },
+  {
+    name: "kg_assert_fact",
+    description:
+      "Assert one fact into the graph. Mutating, and further-reaching than it " +
+      "looks: everything that reads the graph afterwards inherits this. A " +
+      "source is required — a fact with no recorded origin cannot be audited.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        graph: { type: "string", description: "Graph URI." },
+        subject: { type: "string", description: "Subject the fact is about." },
+        predicate: { type: "string", description: "Relation being asserted." },
+        object: { type: "string", description: "The value being asserted." },
+        object_kind: {
+          type: "string",
+          description: "literal, iri, json, number or date. Defaults to literal.",
+        },
+        source: {
+          type: "string",
+          description:
+            "Where this claim came from, e.g. a document, a system, a person. " +
+            "Required.",
+        },
+        confidence: {
+          type: "number",
+          description: "0 to 1. Defaults to 1. Say less than 1 when unsure.",
+        },
+        ...INTENT,
+      },
+      required: ["graph", "subject", "predicate", "object", "source",
+                 "intent_ref"],
+    },
+  },
+  {
+    name: "kg_retract_fact",
+    description:
+      "Retract a fact this tenant owns. Mutating. Anything that already read " +
+      "the fact will not un-read it.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "Fact id, from kg_query_facts." },
+        ...INTENT,
+      },
+      required: ["id", "intent_ref"],
+    },
+  },
+];
+
 /** Not a governed tool: it changes nothing. It reports where a proposal that
  *  needed human approval has got to, and executes it once approval exists. */
 export const STATUS_TOOL: GovernedTool = {
@@ -161,5 +261,14 @@ export const STATUS_TOOL: GovernedTool = {
   },
 };
 
-export const ALL_TOOLS: GovernedTool[] = [...TOOLS, STATUS_TOOL];
-export const GOVERNED_NAMES = new Set(TOOLS.map((t) => t.name));
+/**
+ * Everything the gateway offers.
+ *
+ * Which of these the deployment can actually serve is decided server-side
+ * from configuration, so a tool listed here may still be refused. That is the
+ * correct order: the surface is stable, the authority is not.
+ */
+const GOVERNED: GovernedTool[] = [...TOOLS, ...GRAPH_TOOLS];
+
+export const ALL_TOOLS: GovernedTool[] = [...GOVERNED, STATUS_TOOL];
+export const GOVERNED_NAMES = new Set(GOVERNED.map((t) => t.name));
