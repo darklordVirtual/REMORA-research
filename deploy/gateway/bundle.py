@@ -142,10 +142,16 @@ def build_semantic_bundle() -> SemanticBundle:
         # Failure here is not fatal: an empty index leaves values ungrounded,
         # which sends calls to review. A bundle that refused to build because
         # the graph was briefly unreachable would be worse.
+        # Imported outside the try on purpose: an import that fails is a
+        # programming error and must propagate, not be reported as a briefly
+        # unreachable graph. Catching it in the same clause also left
+        # GraphUnavailable unbound there, so the handler would have raised
+        # NameError instead of warning.
+        from deploy.gateway.kg_registry import known_values
+
         try:
-            from deploy.gateway.kg_registry import GraphUnavailable, known_values
             entities |= known_values()
-        except (GraphUnavailable, Exception) as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             _log.warning(
                 "could not load known values from the graph (%s); argument "
                 "values will be ungrounded and every call will go to review",
