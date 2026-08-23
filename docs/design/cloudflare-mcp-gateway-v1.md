@@ -33,7 +33,8 @@ not absolute predictions.
 `standard-1` was measured under host contention and is noisy; `lite` and
 `basic` are clean, repeated, consistent.
 
-Peak RSS across the full OT battery (27 assess, 6 approvals, 7 executes) is
+Peak RSS across the full OT battery plus 12 latency probes (27 assess, 6
+approvals, 7 executes in total) is
 **69.5 MiB**. Memory is not the binding constraint — even `lite` has 3.7x
 headroom. CPU is, and the cost sits in the framework: `import servers.api`
 is 952 ms cumulative uncapped, of which FastAPI is 287 ms and
@@ -118,9 +119,9 @@ The OT registry's tools, exposed as ordinary MCP tools:
 
 ### The VERIFY path
 
-Measurement shows 25 of 27 OT cases resolve to `verify`. This is the normal
-path, not an edge case, and MCP has no native "wait for human approval"
-semantics.
+The battery is 15 cases, of which 13 resolve to `verify` and 2 to `escalate`.
+Not one reaches `accept` unattended. VERIFY is therefore the normal path, not
+an edge case, and MCP has no native "wait for human approval" semantics.
 
 The tool returns immediately with a proposal ID and status
 `pending_approval`; a separate `remora.approval_status` tool lets the agent
@@ -144,7 +145,7 @@ Each step is verified before the next begins.
 
 ## Testing
 
-`deploy/ot-pilot/run_ot_battery.py` is already an end-to-end contract: 27
+`deploy/ot-pilot/run_ot_battery.py` is already an end-to-end contract: 15
 cases including tamper cases that must be refused. The acceptance criterion
 for this slice is that the battery runs green **against the deployed
 gateway**, not only locally. A tamper case that passes is a failed deploy.
