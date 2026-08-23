@@ -68,6 +68,7 @@ _PROD_EXECUTION_ENV = {
     "REMORA_CONTROL_PLANE_DB": ":memory:",
     "REMORA_CHAIN_DB": ":memory:",
     "REMORA_PDP_SIGNING_KEY": "k",
+    "REMORA_LEASE_SIGNING_KEY": "k",
     "REMORA_ENVELOPE_SIGNING_KEY": "k",
 }
 

@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-23: **11 `open`**, **9 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **10 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2562,3 +2562,65 @@ verification material. The keyless path is unchanged for genuinely keyless use.
 `PolicyDecisionToken` and the A2A envelope, which ADR-A does not convert. Whether
 they have the equivalent defect is untested and is recorded as open, not assumed
 absent.
+
+## §44 The production fail-closed list required two of the three authority signing keys (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** defect found by auditing the unsigned-issuance family across every
+authority object, fixed in the same change.
+
+**Context.** §43 recorded that `ExecutionLease.issue()` silently returned an
+unsigned object when the process held only verification material, and recorded
+that the same shape in `PolicyDecisionToken` and the A2A envelope was *untested,
+not assumed absent*. `tests/test_unsigned_issuance_family.py` tests all five
+authority objects.
+
+**The family, as measured.**
+
+| Object | Keyless issuance | Verifier-only trigger available? | Compensating control |
+|---|---|---|---|
+| `ExecutionLease` | refuses when verifier-only (§43); unsigned when wholly keyless | yes — asymmetric mode exists | `verify()` → `lease_not_signed` |
+| `PolicyDecisionToken` | returns unsigned | **no** — symmetric only, so a process either has the shared key or nothing | strict `EnforcementGate` refuses |
+| A2A envelope | returns unsigned | **no** — same reason | `verify()` fails closed |
+| ToolSpec `sign_bundle` | **cannot be called without a key** — it is a required parameter | n/a | structurally immune |
+| `DecisionEnvelope` | unsigned when no key | no | production prerequisite |
+
+The token and the A2A envelope are *not* given the §43 refusal, and that is a
+decision rather than an omission: with no asymmetric mode there is no
+verifier-only state to detect, so the only available rule would be "refuse all
+keyless issuance", which breaks legitimate research use to prevent an object
+every verifier already rejects. ToolSpec has the shape the others should
+converge on — the key is a parameter, so there is no environment fallthrough to
+degrade through.
+
+**The defect.** `servers/api.py` refuses to start in production without
+`REMORA_ENVELOPE_SIGNING_KEY` and `REMORA_PDP_SIGNING_KEY`, on the stated
+grounds that without them records are unsigned and nothing distinguishes an
+authentic record from a fabricated one. That argument applies verbatim to the
+`ExecutionLease` — the object that actually authorises a side effect — and the
+lease key was **not on the list**. A production deployment could therefore run
+with no lease signing material at all and issue every lease unsigned.
+
+**Severity, stated accurately.** Not exploitable. `verify()` refuses an unsigned
+lease, so such a deployment refuses every governed call rather than permitting
+one. The defect is that a fail-closed prerequisite list omitted the most
+consequential of the three keys while citing a rationale that covers it, so the
+guard was inconsistent with its own argument and would have failed a reader who
+trusted it to be complete.
+
+**Fix.** Either `REMORA_LEASE_SIGNING_KEY` or
+`REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE` now satisfies the prerequisite.
+Requiring the asymmetric key would refuse to start a deployment correctly
+configured for an earlier migration phase, so both are accepted and the
+stronger one is not compelled here.
+
+**Principle recorded.** *An authority issuer without signing authority must
+refuse to issue, and must not return an authority-shaped unsigned object on an
+authoritative path.* Applied at two triggers where it can be applied soundly:
+the process is a verifier, or the deployment declares itself authoritative.
+Keyless research use stays supported and is now pinned by a test, so removing it
+would have to be a deliberate act.
+
+**Not resolved by this entry.** `PolicyDecisionToken` and the A2A envelope
+remain symmetric, so their verifiers can still mint. That is the same class of
+exposure ADR-A removed for the lease, and it is open for both.

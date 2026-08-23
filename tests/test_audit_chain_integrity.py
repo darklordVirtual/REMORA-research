@@ -107,7 +107,8 @@ def test_genesis_flag_is_excluded_from_the_hash_preimage() -> None:
 
 @pytest.mark.parametrize(
     "omitted",
-    ["REMORA_ENVELOPE_SIGNING_KEY", "REMORA_PDP_SIGNING_KEY"],
+    ["REMORA_ENVELOPE_SIGNING_KEY", "REMORA_PDP_SIGNING_KEY",
+     "REMORA_LEASE_SIGNING_KEY"],
 )
 def test_production_refuses_to_start_without_a_signing_key(
     monkeypatch: pytest.MonkeyPatch, omitted: str
@@ -120,13 +121,14 @@ def test_production_refuses_to_start_without_a_signing_key(
     monkeypatch.setenv("REMORA_API_TOKENS", '{"t":{"tenant":"t","role":"operator"}}')
     monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "envelope-key")
     monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "pdp-key")
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "lease-key")
     monkeypatch.delenv(omitted, raising=False)
 
     with pytest.raises(RuntimeError, match=omitted):
         api._validate_production_prerequisites()
 
 
-def test_production_starts_when_both_signing_keys_are_present(
+def test_production_starts_when_every_signing_key_is_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("REMORA_ENV", "production")
@@ -137,6 +139,7 @@ def test_production_starts_when_both_signing_keys_are_present(
     monkeypatch.setenv("REMORA_API_TOKENS", '{"t":{"tenant":"t","role":"operator"}}')
     monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "envelope-key")
     monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "pdp-key")
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "lease-key")
     monkeypatch.delenv("REMORA_API_ALLOW_MOCK_ORACLES", raising=False)
 
     api._validate_production_prerequisites()

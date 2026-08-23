@@ -553,6 +553,30 @@ def _validate_production_prerequisites() -> None:
             "REMORA_PDP_SIGNING_KEY (PDP decision tokens are unsigned without "
             "it; the PEP cannot verify their origin)"
         )
+    # The same argument, applied to the object that actually authorises a side
+    # effect. Found by the unsigned-issuance audit (NEGATIVE_RESULTS section 44):
+    # this list required the envelope and token keys on the stated grounds that
+    # unsigned records are indistinguishable from fabricated ones, and then
+    # omitted the ExecutionLease -- so a production deployment could run with no
+    # lease signing material at all and issue every lease unsigned. Execution
+    # then fails closed at verify(), which is why this was not exploitable; a
+    # fail-closed prerequisite that omits the most consequential of the three
+    # keys is still not doing the job it claims.
+    #
+    # Either key satisfies it. An Ed25519 private key is the stronger posture
+    # (the verifier cannot mint) and a deployment mid-migration legitimately has
+    # only the HMAC key, so requiring the asymmetric one here would refuse to
+    # start a deployment that is correctly configured for its migration phase.
+    if not (
+        os.getenv("REMORA_LEASE_SIGNING_KEY", "").strip()
+        or os.getenv("REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE", "").strip()
+    ):
+        missing.append(
+            "REMORA_LEASE_SIGNING_KEY or "
+            "REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE (execution leases are "
+            "issued unsigned without one; the dispatcher then refuses every "
+            "call with lease_not_signed)"
+        )
 
     if missing:
         vars_txt = ", ".join(missing)
