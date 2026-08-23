@@ -68,14 +68,18 @@ _GRAPH_SIGNATURES = {
 }
 
 _GRAPH_CONTRACTS = [
+    # All three discovery tools aggregate over knowledge_facts rows, so the
+    # resource they read is "fact" — the same as the query tools. Declaring
+    # them "graph" positively contradicted every task (whose resource is
+    # "fact") and refused legitimate discovery calls as wrong-tool.
     ToolContract(tool="kg_list_graphs", capability="graph_read",
-                 effect="read", resource_type="graph", mutation=False,
+                 effect="read", resource_type="fact", mutation=False,
                  argument_roles={}),
     ToolContract(tool="kg_list_predicates", capability="graph_read",
-                 effect="read", resource_type="graph", mutation=False,
+                 effect="read", resource_type="fact", mutation=False,
                  argument_roles={"graph": "target_resource"}),
     ToolContract(tool="kg_sample_subjects", capability="graph_read",
-                 effect="read", resource_type="graph", mutation=False,
+                 effect="read", resource_type="fact", mutation=False,
                  argument_roles={"graph": "target_resource"}),
     ToolContract(tool="kg_query_facts", capability="graph_read",
                  effect="read", resource_type="fact", mutation=False,

@@ -280,6 +280,36 @@ describe("governance", () => {
   });
 });
 
+describe("fixable mistakes get fixable answers", () => {
+  it("a missing required argument says which, and says retry", async () => {
+    // The generic refusal says "do not retry" — right for a governance
+    // refusal, exactly wrong for a shape mistake the agent can correct.
+    const { deps: d, rec } = deps({ decision: "accept" });
+    const r: any = await handleRpc(
+      call("kg_query_facts", { graph: "g", intent_ref: "task:x" }),
+      d,
+    );
+    const p = payload(r);
+    expect(r.result.isError).toBe(true);
+    expect(p.error).toBe("missing_required_arguments");
+    expect(p.missing).toContain("subject");
+    expect(p.explanation).toContain("Retry");
+    expect(rec.assess, "shape errors never reach REMORA").toHaveLength(0);
+  });
+
+  it("a missing intent_ref explains what an intent_ref is", async () => {
+    const { deps: d, rec } = deps({ decision: "accept" });
+    const r: any = await handleRpc(
+      call("kg_query_facts", { graph: "g", subject: "s" }),
+      d,
+    );
+    const p = payload(r);
+    expect(p.missing).toContain("intent_ref");
+    expect(p.explanation).toContain("work order");
+    expect(rec.assess).toHaveLength(0);
+  });
+});
+
 describe("proposal redemption", () => {
   it("executes with the stored arguments, not ones supplied later", async () => {
     const { deps: d, rec } = deps({

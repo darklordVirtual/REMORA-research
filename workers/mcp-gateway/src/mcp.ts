@@ -6,6 +6,7 @@
  */
 import type { Verification } from "./effect";
 import { governedNames, toolsFor } from "./tools";
+import type { GovernedTool } from "./tools";
 import type { AssessResult, ExecuteResult, RemoraClient, ToolCall } from "./remora";
 
 export const PROTOCOL_VERSION = "2025-06-18";
@@ -129,6 +130,28 @@ async function callTool(
     // Saying which would be more helpful and less honest: from the agent's
     // side both mean the same thing — this gateway will not do that.
     return textResult({ error: `unknown tool: ${name}` }, true);
+  }
+
+  // Shape validation before authority. A missing required field is a
+  // FIXABLE mistake, and the generic refusal ("do not retry") is exactly the
+  // wrong guidance for it — the agent should retry, with the field filled.
+  // This checks the schema the tool itself published; it decides nothing
+  // about whether the call may happen.
+  const schema = toolsFor(deps.env).find((t: GovernedTool) => t.name === name);
+  const missing = (schema?.inputSchema.required ?? []).filter(
+    (field) => args[field] === undefined || args[field] === null || args[field] === "",
+  );
+  if (missing.length) {
+    return textResult({
+      error: "missing_required_arguments",
+      missing,
+      explanation: missing.includes("intent_ref")
+        ? "Every governed call names the work order it acts under. Retry " +
+          "with intent_ref set to a task subject (for example " +
+          "task:survey-business-graph) or ask the user which task applies."
+        : `Retry the same call with ${missing.join(", ")} filled in. ` +
+          "Nothing was assessed and nothing ran.",
+    }, true);
   }
 
   const { intent_ref, ...rest } = args as { intent_ref?: string };
