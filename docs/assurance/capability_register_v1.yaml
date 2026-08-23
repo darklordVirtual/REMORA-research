@@ -58,7 +58,7 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 1d0843d7214ea1e9eb09343b919326e69a4aad7a
+    verified_at_sha: be4d6bbc95084be8b841235222f49a765e326ad9
     verified_by: >-
       re-audit 2026-08-24: rebound because servers/execution_api.py moved when
       the lease nonce store was wired into _tool_dispatcher. That change adds
@@ -170,7 +170,7 @@ capabilities:
       - tests/test_lease_nonce_durability.py
       - tests/test_lease_authority_custody.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 1d0843d7214ea1e9eb09343b919326e69a4aad7a
+    verified_at_sha: be4d6bbc95084be8b841235222f49a765e326ad9
     verified_by: >-
       re-audit 2026-08-24 (deployment evidence,
       docs/deployment/authority-custody-evidence.md; ADR-A and ADR-B,

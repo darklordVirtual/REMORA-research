@@ -14,7 +14,7 @@ deliberately not made.
 
 | Field | Value |
 |---|---|
-| git commit | `1d0843d7214ea1e9eb09343b919326e69a4aad7a` |
+| git commit | `be4d6bbc95084be8b841235222f49a765e326ad9` |
 | branch | `assurance/cloudflare-authority-custody-split` |
 | Worker | `remora-mcp-gateway` |
 | Version ID (before) | `222999e2-ef84-4fc1-8491-6d47ef4614f5` |
