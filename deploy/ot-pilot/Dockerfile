@@ -41,6 +41,12 @@ COPY deploy/ot-pilot/ot_registry.py /app/ot_registry.py
 COPY deploy/ot-pilot/ot_bundle.py /app/ot_bundle.py
 COPY deploy/ot-pilot/work_orders.json /app/work_orders.json
 
+# The governed GitHub tool set for the MCP gateway. Same principle as the OT
+# files above: deployment-owned modules, not shipped package code. Which of
+# them a process uses is chosen by REMORA_TOOL_REGISTRY_MODULE and
+# REMORA_SEMANTIC_BUNDLE_MODULE, so one image serves both deployments.
+COPY deploy/gateway /app/deploy/gateway
+
 RUN useradd --create-home --uid 10001 remora \
  && mkdir -p /var/lib/remora/artifacts \
  && chown -R remora:remora /var/lib/remora /app

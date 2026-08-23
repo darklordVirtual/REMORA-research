@@ -1,12 +1,12 @@
 /**
  * The MCP tool surface.
  *
- * These schemas describe the *shape* of a call, nothing more. Risk tier,
- * action type, domain and every other safety signal are derived server-side
- * from the signed tool registry inside REMORA; a caller cannot assert its way
- * to an ACCEPT (see servers/execution_contracts.py, ToolCallRequest). Adding a
- * field here can never widen authority — it only changes what the agent is
- * able to propose.
+ * These schemas describe the *shape* of a call, nothing more. Effect,
+ * capability, resource type and every other safety signal are derived
+ * server-side from the deployment-owned registry inside REMORA; a caller
+ * cannot assert its way to an ACCEPT (see servers/execution_contracts.py,
+ * ToolCallRequest). Adding a field here can never widen authority — it only
+ * changes what the agent is able to propose.
  */
 export interface GovernedTool {
   name: string;
@@ -18,98 +18,124 @@ export interface GovernedTool {
   };
 }
 
-/** Every governed tool takes an intent_ref: the work order the call claims to
- *  act under. REMORA resolves it against the signed intent source; an
- *  unresolvable or mismatched reference is what turns a plausible call into an
- *  ESCALATE rather than a silent success. */
+/**
+ * Every governed tool takes an intent_ref: the authority the call claims to
+ * act under. For this deployment that is a GitHub issue — written by a
+ * person, stating what should happen, and existing independently of the agent
+ * that later proposes a call.
+ *
+ * REMORA reads the issue and checks the proposal against what it actually
+ * asks for, so closing an issue that only asked for a label is refused for
+ * the reason it deserves. A reference that does not resolve is not an error:
+ * it means no authority was established, which sends the call to review.
+ */
 const INTENT: Record<string, { type: string; description: string }> = {
   intent_ref: {
     type: "string",
     description:
-      "The work order this call acts under, e.g. WO-1201 or MON-ROUND. " +
-      "Required: a call with no resolvable intent has no authority behind it.",
+      "The GitHub issue authorising this call, as owner/repo#123. The issue " +
+      "text is what the call is checked against, so reference the issue that " +
+      "actually asks for this action.",
   },
+};
+
+const REPO = {
+  type: "string",
+  description: "Repository as owner/name. Must be in the deployment allowlist.",
 };
 
 export const TOOLS: GovernedTool[] = [
   {
-    name: "read_sensor",
+    name: "gh_read_issue",
     description:
-      "Read one process sensor. Read-only, but still governed: the reading is " +
-      "only returned when the call resolves under a valid intent.",
+      "Read one issue: title, state, body and labels. Read-only, but still " +
+      "governed — the read happens only when the call resolves under a valid " +
+      "intent.",
     inputSchema: {
       type: "object",
       properties: {
-        sensor_id: { type: "string", description: "Sensor tag, e.g. PT-101." },
+        repo: REPO,
+        number: { type: "number", description: "Issue number." },
         ...INTENT,
       },
-      required: ["sensor_id", "intent_ref"],
+      required: ["repo", "number", "intent_ref"],
     },
   },
   {
-    name: "adjust_setpoint",
+    name: "gh_list_issues",
+    description: "List up to 30 issues in a repository. Pull requests are excluded.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        repo: REPO,
+        state: {
+          type: "string",
+          description: "open, closed or all. Defaults to open.",
+        },
+        ...INTENT,
+      },
+      required: ["repo", "intent_ref"],
+    },
+  },
+  {
+    name: "gh_create_issue",
     description:
-      "Change a control loop setpoint. Mutating and physically consequential; " +
-      "expect approval to be required before it executes.",
+      "Open a new issue. Mutating and visible to everyone with access to the " +
+      "repository; expect approval to be required before it is created.",
     inputSchema: {
       type: "object",
       properties: {
-        loop: { type: "string", description: "Control loop tag, e.g. PIC-101." },
-        value: { type: "number", description: "New setpoint value." },
+        repo: REPO,
+        title: { type: "string", description: "Issue title." },
+        body: { type: "string", description: "Issue body, Markdown." },
         ...INTENT,
       },
-      required: ["loop", "value", "intent_ref"],
+      required: ["repo", "title", "intent_ref"],
     },
   },
   {
-    name: "set_valve_position",
+    name: "gh_comment_issue",
     description:
-      "Set a valve position in percent. Mutating and physically consequential; " +
-      "expect approval to be required before it executes.",
+      "Post a comment on an issue. Mutating and public; expect approval to be " +
+      "required. The comment text cannot change between approval and posting.",
     inputSchema: {
       type: "object",
       properties: {
-        valve: { type: "string", description: "Valve tag, e.g. V-12." },
-        position_pct: { type: "number", description: "Position, 0-100." },
+        repo: REPO,
+        number: { type: "number", description: "Issue number." },
+        body: { type: "string", description: "Comment text, Markdown." },
         ...INTENT,
       },
-      required: ["valve", "position_pct", "intent_ref"],
+      required: ["repo", "number", "body", "intent_ref"],
     },
   },
   {
-    name: "acknowledge_alarm",
-    description: "Acknowledge an active process alarm.",
+    name: "gh_close_issue",
+    description:
+      "Close an issue. Mutating. An issue that only asks to be labelled or " +
+      "commented on does not authorise closing it.",
     inputSchema: {
       type: "object",
       properties: {
-        alarm_id: { type: "string", description: "Alarm tag, e.g. LT-410-HI." },
+        repo: REPO,
+        number: { type: "number", description: "Issue number." },
         ...INTENT,
       },
-      required: ["alarm_id", "intent_ref"],
+      required: ["repo", "number", "intent_ref"],
     },
   },
   {
-    name: "create_work_order",
-    description: "Create a work order.",
+    name: "gh_add_label",
+    description: "Add one label to an issue. Mutating.",
     inputSchema: {
       type: "object",
       properties: {
-        wo_id: { type: "string", description: "Work order id, e.g. WO-1310." },
+        repo: REPO,
+        number: { type: "number", description: "Issue number." },
+        label: { type: "string", description: "Label name." },
         ...INTENT,
       },
-      required: ["wo_id", "intent_ref"],
-    },
-  },
-  {
-    name: "close_work_order",
-    description: "Close an existing work order.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        wo_id: { type: "string", description: "Work order id, e.g. WO-1201." },
-        ...INTENT,
-      },
-      required: ["wo_id", "intent_ref"],
+      required: ["repo", "number", "label", "intent_ref"],
     },
   },
 ];
