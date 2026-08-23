@@ -19,6 +19,7 @@ import { DurableObject } from "cloudflare:workers";
 export { ContainerProxy };
 import { handleRpc, type JsonRpcRequest, type PendingProposal, type ProposalStore } from "./mcp";
 import { RemoraClient } from "./remora";
+import { verifyGraphWrite } from "./effect";
 
 export interface Env {
   /** Absent in the development config, which uses REMORA_API_URL instead. */
@@ -65,6 +66,9 @@ export interface Env {
   /** The graph database. A binding, not a token: it cannot be read out of the
    *  container, because it is never in the container. */
   GRAPH_DB?: D1Database;
+  /** Durable execution state. A binding, so the container keeps durable state
+   *  without a credential and without a writable disk. */
+  STATE_DB?: D1Database;
   REMORA_PDP_SIGNING_KEY: string;
   REMORA_LEASE_SIGNING_KEY: string;
   REMORA_AUDIT_SIGNING_KEY: string;
@@ -151,14 +155,11 @@ export class RemoraContainer extends Container<Env> {
             REMORA_CONTROL_PLANE_DSN: env.REMORA_PG_DSN,
           }
         : {
-            REMORA_CHAIN_DB: env.REMORA_CHAIN_DB ?? "",
+            // Durable state over the STATE_DB binding. Not the container's
+            // disk: that is discarded at every restart, and the ledger that
+            // refuses a replayed grant would go with it.
+            REMORA_STATE_ENDPOINT: "http://state.internal/query",
             REMORA_CONTROL_PLANE_DB: env.REMORA_CHAIN_DB ?? "",
-            // REMORA now probes the filesystem behind REMORA_CHAIN_DB and
-            // refuses a container's own writable layer, because the ledger
-            // that refuses a replayed grant would go with it. Running the
-            // demonstration deployment anyway is an explicit statement, and
-            // the value says what is being accepted.
-            REMORA_ACCEPT_EPHEMERAL_STATE: "grants-become-replayable",
           }),
       REMORA_API_TOKENS: env.REMORA_API_TOKENS,
       REMORA_API_BEARER_TOKEN: env.REMORA_AGENT_TOKEN,
@@ -202,64 +203,79 @@ export class RemoraContainer extends Container<Env> {
  * escapes to the public internet, where `graph.internal` fails DNS. That is
  * how this was found.
  */
+/** One D1 request from the container, answered from a binding. */
+async function d1Request(db: D1Database | undefined, request: Request,
+                         what: string): Promise<Response> {
+  if (request.method !== "POST") {
+    return Response.json(
+      { success: false, errors: [{ message: "POST only" }] }, { status: 405 });
+  }
+  if (!db) {
+    return Response.json(
+      { success: false, errors: [{ message: `no ${what} binding here` }] },
+      { status: 503 });
+  }
+  let body: { sql?: string; params?: unknown[]; batch?: { sql: string; params?: unknown[] }[] };
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json(
+      { success: false, errors: [{ message: "malformed request" }] },
+      { status: 400 });
+  }
+
+  // A batch is the container's transaction: D1 applies it atomically, which
+  // is what stands in for a rollback the container cannot ask for.
+  const statements = body.batch
+    ?? (typeof body.sql === "string" ? [{ sql: body.sql, params: body.params }] : null);
+  if (!statements || statements.length === 0) {
+    return Response.json(
+      { success: false, errors: [{ message: "sql or batch is required" }] },
+      { status: 400 });
+  }
+
+  try {
+    const prepared = statements.map((s) => {
+      const stmt = db.prepare(s.sql);
+      return Array.isArray(s.params) && s.params.length
+        ? stmt.bind(...s.params) : stmt;
+    });
+    const out = await db.batch(prepared);
+    return Response.json({
+      success: true,
+      errors: [],
+      // Two shapes, because the two callers want different things: the graph
+      // tools read `result`, the state adapter reads `results`.
+      result: out.map((r) => ({ results: r.results ?? [] })),
+      results: out.map((r) => r.results ?? []),
+    });
+  } catch (e) {
+    return Response.json(
+      { success: false,
+        errors: [{ message: String(e instanceof Error ? e.message : e) }] },
+      { status: 500 });
+  }
+}
+
+/**
+ * Give the container its stores without giving it a credential.
+ *
+ * Assigned after the class rather than declared as `static outboundByHost`
+ * inside it: the base class exposes this as a static accessor, and a static
+ * class field compiles to defineProperty, which shadows the setter instead of
+ * calling it. The handler then never registers and the container's request
+ * escapes to the public internet, where the internal name fails DNS. That is
+ * how this was found.
+ */
 RemoraContainer.outboundByHost = {
-    "graph.internal": async (request: Request, env: Env): Promise<Response> => {
-      if (request.method !== "POST") {
-        return Response.json(
-          { success: false, errors: [{ message: "POST only" }] },
-          { status: 405 },
-        );
-      }
-      if (!env.GRAPH_DB) {
-        return Response.json(
-          {
-            success: false,
-            errors: [{
-              message:
-                "no GRAPH_DB binding on this deployment; the graph tool set " +
-                "should not have been offered",
-            }],
-          },
-          { status: 503 },
-        );
-      }
-      let body: { sql?: string; params?: unknown[] };
-      try {
-        body = await request.json();
-      } catch {
-        return Response.json(
-          { success: false, errors: [{ message: "malformed request" }] },
-          { status: 400 },
-        );
-      }
-      if (typeof body.sql !== "string" || !body.sql) {
-        return Response.json(
-          { success: false, errors: [{ message: "sql is required" }] },
-          { status: 400 },
-        );
-      }
-      try {
-        const statement = env.GRAPH_DB.prepare(body.sql);
-        const bound = Array.isArray(body.params) && body.params.length
-          ? statement.bind(...body.params)
-          : statement;
-        const result = await bound.all();
-        return Response.json({
-          success: true,
-          errors: [],
-          result: [{ results: result.results ?? [] }],
-        });
-      } catch (e) {
-        return Response.json(
-          {
-            success: false,
-            errors: [{ message: String(e instanceof Error ? e.message : e) }],
-          },
-          { status: 500 },
-        );
-      }
-    },
-  };
+  "graph.internal": (request: Request, env: Env) =>
+    d1Request(env.GRAPH_DB, request, "GRAPH_DB"),
+  // Durable execution state: the tenant audit chain, the review queue and the
+  // one-time-grant ledger. On container disk these would be discarded at
+  // every restart and a consumed grant would become replayable.
+  "state.internal": (request: Request, env: Env) =>
+    d1Request(env.STATE_DB, request, "STATE_DB"),
+};
 
 /** Durable storage for proposals waiting on a human. */
 export class ProposalDO extends DurableObject {
@@ -308,18 +324,64 @@ function storeFor(env: Env, session: string): ProposalStore {
   };
 }
 
+/** Submit one verification to the proposal's audit trail. */
+async function recordEffect(
+  env: Env,
+  declared: Record<string, unknown>,
+  v: { status: string; reason_code: string; expected_sha256: string;
+       observed_sha256: string; detail: string },
+  executionId: string,
+  tool: string,
+): Promise<void> {
+  if (v.status === "EFFECT_UNSUPPORTED") return;  // nothing to attest to
+  const proposalId = String(declared.proposal_id ?? executionId);
+  const body = JSON.stringify({
+    execution_id: executionId,
+    tool_id: tool,
+    status: v.status,
+    reason_code: v.reason_code,
+    // Mandatory: an attestation nobody signed is not evidence, because a
+    // reader cannot tell who claimed to have looked.
+    verifier_identity: "remora-mcp-gateway/worker",
+    expected_sha256: v.expected_sha256,
+    observed_sha256: v.observed_sha256,
+  });
+  const request = new Request(
+    `http://remora/v1/execution/proposals/${encodeURIComponent(proposalId)}/effect`,
+    { method: "POST", body,
+      headers: { "Content-Type": "application/json",
+                 Authorization: `Bearer ${env.REMORA_AGENT_TOKEN}` } });
+  try {
+    if (env.REMORA_API_URL) {
+      await fetch(new Request(
+        `${env.REMORA_API_URL}/v1/execution/proposals/` +
+        `${encodeURIComponent(proposalId)}/effect`, request));
+    } else if (env.REMORA) {
+      await getContainer(env.REMORA).fetch(request);
+    }
+  } catch {
+    // A verification that could not be filed must not undo the execution
+    // that already happened. It is lost from the trail, which is worse than
+    // recording it and better than pretending the call failed.
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === "/health") {
-      const durable = Boolean(env.REMORA_PG_DSN);
+      const durable = Boolean(env.REMORA_PG_DSN) || Boolean(env.STATE_DB);
       return Response.json({
         status: "ok",
         service: "remora-mcp-gateway",
         transport: env.REMORA_API_URL ? "direct (development)" : "container",
         jurisdiction: env.PROPOSAL_JURISDICTION ?? "unconstrained",
-        execution_state: durable ? "durable (postgres)" : "EPHEMERAL (container disk)",
+        execution_state: env.REMORA_PG_DSN
+          ? "durable (postgres)"
+          : env.STATE_DB
+            ? "durable (D1 binding)"
+            : "EPHEMERAL (container disk)",
         ...(durable
           ? {}
           : {
@@ -420,6 +482,33 @@ export default {
       store: storeFor(env, session),
       newId: () => crypto.randomUUID(),
       env: env as unknown as Record<string, unknown>,
+      // The verifier reads the system of record through the Worker's own
+      // binding — the same store the write landed in, reached without the
+      // container's involvement. It answers "did it happen", not "was the
+      // request accepted".
+      verifyEffect: env.STATE_DB || env.GRAPH_DB
+        ? async (tool: string, declared: Record<string, unknown>,
+                 executionId: string) => {
+            const verification = await verifyGraphWrite(
+              tool, declared,
+              async (id: string) => {
+                if (!env.GRAPH_DB) return null;
+                const row = await env.GRAPH_DB
+                  .prepare(
+                    "SELECT id, subject, predicate, object_json, object_kind, " +
+                    "source, confidence FROM knowledge_facts " +
+                    "WHERE tenant_id = ? AND id = ?")
+                  .bind(env.REMORA_KG_TENANT ?? "", id)
+                  .first();
+                return (row as Record<string, unknown> | null) ?? null;
+              });
+            // Recorded on the proposal's own trail, as an attestation by a
+            // named verifier. REMORA stores it as reported; it does not
+            // independently re-check, and the record says so.
+            await recordEffect(env, declared, verification, executionId, tool);
+            return verification;
+          }
+        : undefined,
     };
 
     const messages = Array.isArray(body) ? body : [body];

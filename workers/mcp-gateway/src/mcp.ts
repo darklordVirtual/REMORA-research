@@ -4,6 +4,7 @@
  * Kept as a pure function of (request, dependencies) so the protocol can be
  * tested without a Worker runtime, a container, or a network.
  */
+import type { Verification } from "./effect";
 import { governedNames, toolsFor } from "./tools";
 import type { AssessResult, ExecuteResult, RemoraClient, ToolCall } from "./remora";
 
@@ -32,6 +33,15 @@ export interface ProposalStore {
 export interface Deps {
   remora: RemoraClient;
   store: ProposalStore;
+  /**
+   * Read a fact back and compare it against the delta the tool declared.
+   *
+   * Injected rather than imported so the protocol layer stays testable
+   * without a database, and so a deployment with no reader simply does not
+   * verify instead of pretending it did.
+   */
+  verifyEffect?: (tool: string, declared: Record<string, unknown>,
+                  proposalId: string) => Promise<Verification | null>;
   /** Injected so the protocol layer stays deterministic under test. */
   newId: () => string;
   /** Deployment configuration, which decides which tool sets are live. */
@@ -181,11 +191,39 @@ async function statusTool(proposalId: string, deps: Deps): Promise<unknown> {
   }
 
   await deps.store.delete(proposalId);
+  const execution = (body as ExecuteResult).tool_execution ?? {};
+
+  // Dispatching and the effect happening are different facts. The read-back
+  // is what tells them apart, and its verdict is reported as it comes —
+  // including a mismatch, which is bad news about ourselves.
+  let effect: Verification | null = null;
+  if (deps.verifyEffect) {
+    const declared = (execution as { result?: Record<string, unknown> }).result
+      ?? (execution as Record<string, unknown>);
+    effect = await deps.verifyEffect(pending.call.tool_name, declared,
+                                     pending.review_item_id);
+  }
+
   return textResult({
     status: "executed",
     proposal_id: proposalId,
     outcome: (body as ExecuteResult).outcome,
-    result: (body as ExecuteResult).tool_execution,
+    result: execution,
+    ...(effect
+      ? {
+          effect: effect.status,
+          effect_reason: effect.reason_code,
+          ...(effect.detail ? { effect_detail: effect.detail } : {}),
+          ...(effect.status === "EFFECT_MISMATCH"
+            ? {
+                explanation:
+                  "The call was dispatched but the system of record does not " +
+                  "match what was approved. Do not assume it worked. Report " +
+                  "this rather than retrying.",
+              }
+            : {}),
+        }
+      : {}),
   });
 }
 

@@ -151,7 +151,51 @@ def transaction_state(
     """
     q = queue
 
-    if dsn:
+    # Durable state over the Worker's D1 binding, for a container with no
+    # writable disk. Checked before dsn/db_path because those are absent in
+    # that deployment by design: there is no credential and no local file.
+    from remora.persistence import d1_connection
+
+    if d1_connection.endpoint():
+        with d1_connection.connect() as conn:
+            conn.execute("CREATE TABLE IF NOT EXISTS global_state ("
+                         "tenant_id TEXT PRIMARY KEY, qs_json TEXT, it_json TEXT)")
+            conn.commit()
+            row = conn.execute(
+                "SELECT qs_json, it_json FROM global_state WHERE tenant_id = ?",
+                (tenant,)).fetchone()
+            if row and row[0]:
+                q._items = {k: from_dict(v, PendingReview)
+                            for k, v in json.loads(row[0]).items()}
+            if row and row[1]:
+                item_tenant.update(json.loads(row[1]))
+            # Same snapshot discipline as the other durable branches: the
+            # write set is discarded on exception, but the in-memory mirrors
+            # would otherwise carry aborted mutations into the next commit.
+            items_snapshot = dict(q._items)
+            tenant_snapshot = dict(item_tenant)
+            _tx_token = active_tx_connection.set(conn)
+            try:
+                yield q
+            except BaseException:
+                conn.rollback()
+                q._items = items_snapshot
+                item_tenant.clear()
+                item_tenant.update(tenant_snapshot)
+                raise
+            else:
+                conn.execute(
+                    "INSERT INTO global_state (tenant_id, qs_json, it_json) "
+                    "VALUES (?, ?, ?) ON CONFLICT (tenant_id) DO UPDATE SET "
+                    "qs_json = excluded.qs_json, it_json = excluded.it_json",
+                    (tenant,
+                     json.dumps({k: to_dict(v) for k, v in q._items.items()}),
+                     json.dumps(item_tenant)))
+                _persist_projection(conn, tenant, q._items, "?")
+                conn.commit()
+            finally:
+                active_tx_connection.reset(_tx_token)
+    elif dsn:
         import psycopg  # type: ignore
         with psycopg.connect(dsn) as conn:
             conn.execute("CREATE TABLE IF NOT EXISTS global_state (tenant_id TEXT PRIMARY KEY, qs_json TEXT, it_json TEXT)")

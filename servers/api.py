@@ -520,8 +520,9 @@ def _validate_production_prerequisites() -> None:
         # or after a restart, because the ledger that refused the replay is
         # gone. Production must not run in that mode.
         missing.append(
-            "REMORA_PG_DSN or REMORA_CHAIN_DB (durable execution state: tenant "
-            "audit chain, review queue, and one-time-grant ledger)"
+            "REMORA_PG_DSN, REMORA_STATE_ENDPOINT or REMORA_CHAIN_DB "
+            "(durable execution state: tenant audit chain, review queue, and "
+            "one-time-grant ledger)"
         )
     else:
         # Configured is not the same as durable. See the finding recorded in
@@ -660,6 +661,11 @@ def _refuse_ephemeral_execution_state(missing: list[str]) -> None:
     """
     if os.getenv("REMORA_PG_DSN", "").strip():
         return
+    # A state endpoint is a network service like a DSN: the storage behind it
+    # is not this container's filesystem, so probing the filesystem would say
+    # nothing about it.
+    if os.getenv("REMORA_STATE_ENDPOINT", "").strip():
+        return
     chain_db = os.getenv("REMORA_CHAIN_DB", "").strip()
     if not chain_db:
         return
@@ -704,6 +710,10 @@ def _execution_state_dsn() -> str:
     """
     return (
         os.getenv("REMORA_PG_DSN", "").strip()
+        # Durable state over a Worker binding, for a container with no
+        # writable disk. Durable in the sense that matters here: it survives
+        # the instance, so a consumed grant stays consumed.
+        or os.getenv("REMORA_STATE_ENDPOINT", "").strip()
         or os.getenv("REMORA_CHAIN_DB", "").strip()
     )
 
