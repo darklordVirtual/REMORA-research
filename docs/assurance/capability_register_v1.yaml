@@ -58,9 +58,15 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 3bb57973eca0a1c98568b1d98a50d1940883e4e0
+    verified_at_sha: be4d6bbc95084be8b841235222f49a765e326ad9
     verified_by: >-
-      re-audit 2026-08-23 (ADR-B, docs/architecture/ADR-authority-custody-and-lease-durability.md):
+      re-audit 2026-08-24: rebound because servers/execution_api.py moved when
+      the lease nonce store was wired into _tool_dispatcher. That change adds
+      _lease_nonce_store() and touches nothing on the token path -- _GATE, its
+      three backends and the jti consumption are unchanged -- so this
+      capability's status and evidence are re-read and unaltered.
+      Prior re-audit 2026-08-23 (ADR-B,
+      docs/architecture/ADR-authority-custody-and-lease-durability.md):
       rebound because the lease nonce half of the caveat changed. The token half
       was re-read against gate.py and tests/test_token_hardening.py and is
       unchanged; the token signature remains HMAC-SHA256 and is NOT covered by
@@ -163,15 +169,20 @@ capabilities:
       - tests/test_tool_registry_research.py
       - tests/test_lease_nonce_durability.py
       - tests/test_lease_authority_custody.py
-    verified_at_sha: ceb979f538704251cbe252b086e23b2e9f7bd51b
+      - docs/deployment/authority-custody-evidence.md
+    verified_at_sha: be4d6bbc95084be8b841235222f49a765e326ad9
     verified_by: >-
-      re-audit 2026-08-23 (ADR-A and ADR-B,
+      re-audit 2026-08-24 (deployment evidence,
+      docs/deployment/authority-custody-evidence.md; ADR-A and ADR-B,
       docs/architecture/ADR-authority-custody-and-lease-durability.md):
       lease.py binding set and refusal matrix re-read after the signature and
-      nonce-consumption changes. Status deliberately NOT raised: both changes
-      add a mechanism with library-level adversarial evidence, and neither is
-      demonstrated on a deployment.
-    caveat: "Wired 2026-07-27 (issue #13): /v1/execution/execute dispatches through GovernedToolDispatcher under an ExecutionLease after PEP consume; tool callables come only from REMORA_TOOL_REGISTRY_MODULE (research profile ships side-effect-bounded store_artifact/read_telemetry). Response/audit report the real outcome (tool_execution / tool_executed). Lease nonce consumption has a durable, tenant-scoped, fail-closed adapter (remora/enforcement/nonce_store.py: Postgres, SQLite, D1 state endpoint) which is refused-without-burning on an unknown outcome; a replacement dispatcher over the same store refuses the replay (tests/test_lease_nonce_durability.py). It is OPT-IN per GovernedToolDispatcher and defaults to the in-process NonceLedger, so this is a mechanism claim, not a deployment claim: no evidence exists that any running deployment configures it, and the Cloudflare gateway does not. The lease signature supports Ed25519 with a private-issuer/public-verifier split, attacked in tests/test_lease_authority_custody.py; the deployed container is still supplied REMORA_LEASE_SIGNING_KEY and REMORA_PDP_SIGNING_KEY (workers/mcp-gateway/src/index.ts), so the custody split is available and NOT in effect. Remaining: transport-anchored actor identity, durable nonce storage proven on a deployment, key custody actually split in the Cloudflare configuration, external runtime/tool drift binding (F2, ADR-D), deployment fronting real downstream credentials, external validation (REM-021/REM-030)."
+      nonce-consumption changes. The two changes have DIFFERENT evidence tiers
+      and the caveat states each separately: durable nonce consumption over D1
+      is demonstrated on this deployment; the asymmetric custody split has
+      mechanism and adversarial-test evidence only and is NOT deployed. Status
+      deliberately NOT raised: one property gaining deployment evidence does
+      not raise a capability whose other properties did not.
+    caveat: "Wired 2026-07-27 (issue #13): /v1/execution/execute dispatches through GovernedToolDispatcher under an ExecutionLease after PEP consume; tool callables come only from REMORA_TOOL_REGISTRY_MODULE (research profile ships side-effect-bounded store_artifact/read_telemetry). Response/audit report the real outcome (tool_execution / tool_executed). Evidence tier is stated PER PROPERTY, because they differ. (1) DURABLE NONCE CONSUMPTION OVER D1 -- DEMONSTRATED ON THIS DEPLOYMENT. Wired at servers/execution_api.py::_lease_nonce_store from the same three variables as _GATE. docs/deployment/authority-custody-evidence.md records a governed execution consuming a nonce into D1 remora-execution-state (EEUR); the container replaced (Worker version 222999e2 -> 9a7fc619); a second execution consuming a different nonce; the pre-replacement nonce refused on re-presentation with a UNIQUE constraint violation; and six concurrent consumers of one nonce yielding exactly one winner. A TENANT-SCOPED NONCE NAMESPACE was demonstrated -- the same nonce string succeeded under a different tenant_id, which is a property of this store and is NOT evidence of tenant isolation anywhere else in REMORA. (2) POSTGRES AND SQLITE DURABLE NONCE -- LIBRARY-LEVEL EVIDENCE ONLY (tests/test_lease_nonce_durability.py). Neither adapter has been exercised on a deployment. (3) STORE UNAVAILABLE, AND REFUSING WITHOUT BURNING THE GRANT -- LIBRARY-LEVEL EVIDENCE ONLY. No outage was injected on the deployment. (4) ASYMMETRIC LEASE CUSTODY SPLIT -- MECHANISM AND ADVERSARIAL-TEST EVIDENCE ONLY; NOT DEPLOYED. ExecutionLease supports Ed25519 with a private-issuer/public-verifier split and sig_alg inside the signed payload (tests/test_lease_authority_custody.py, tests/test_lease_signing_contracts.py). No Ed25519 keypair has been generated and the execution container is still supplied REMORA_LEASE_SIGNING_KEY (workers/mcp-gateway/src/index.ts:170). The consequence is recorded as a demonstrated negative result rather than as residual risk in prose: test_the_deployed_symmetric_topology_permits_forgery asserts that a component holding what the deployed container holds MINTS a valid lease for a different tool, different arguments, a different tenant and a different target. Under the target topology the same attack is refused at issuance and at verification. NO CUSTODY-SEPARATION CLAIM MAY BE MADE FOR THIS DEPLOYMENT. Remaining: transport-anchored actor identity, key custody actually split in the Cloudflare configuration, Postgres/SQLite durable nonce proven on a deployment, outage behaviour proven on a deployment, external runtime/tool drift binding (F2, ADR-D), deployment fronting real downstream credentials, external validation (REM-021/REM-030)."
 
   - id: CAP-014
     name: "Declared-effect consistency (expected_effect_matches tri-state authority)"

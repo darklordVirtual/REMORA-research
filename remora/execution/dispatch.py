@@ -34,6 +34,7 @@ def dispatch_under_lease(
     toolspec: dict[str, Any] | None = None,
     proposal_id: str = "",
     grant_jti: str = "",
+    presented_lease: ExecutionLease | None = None,
 ) -> dict[str, Any]:
     """Dispatch one authorized call through the governed dispatcher.
 
@@ -41,6 +42,17 @@ def dispatch_under_lease(
     they are signed into the lease and reported back on the result, so an
     executed side effect joins to the decision that authorized it and to the
     grant that was consumed, without re-deriving hashes out of band.
+
+    ``presented_lease`` is the custody-split seam (ADR-A). When supplied, this
+    function does NOT mint: it dispatches under a lease some other component
+    issued. That is what allows the executing process to hold only a public
+    verification key -- a process that cannot sign cannot reach the branch
+    below, and with a lease handed to it, it does not need to.
+
+    The lease is NOT trusted because it arrived. ``dispatcher.dispatch``
+    re-verifies the whole binding against the concrete call before anything
+    runs, exactly as it does for a locally issued one. The only thing that
+    changes is who signed it.
     """
     tool_execution: dict[str, Any] = {"executed": False}
     if not gate_allowed:
@@ -49,26 +61,21 @@ def dispatch_under_lease(
     if dispatcher is None:
         tool_execution["refusal_reason"] = "policy_bundle_unavailable"
         return tool_execution
-    try:
-        lease = ExecutionLease.issue(
-            decision="accept",
-            tenant_id=tenant,
-            actor_identity=principal,
-            tool_name=tool_call.tool_name,
-            arguments=tool_call.arguments,
-            target_environment=tool_call.target_environment,
-            policy_bundle_hash=policy_bundle_hash,
-            issued_at=now.isoformat(),
-            tool_contract_bundle_hash=semantic["tool_contract_bundle_hash"],
-            intent_authority_hash=semantic["intent_authority_hash"],
-            toolspec_hash=(toolspec or {}).get("hash", ""),
-            toolspec_version=int((toolspec or {}).get("version", 0)),
-            proposal_id=proposal_id,
-            grant_jti=grant_jti,
-        )
-    except (LeaseRefused, ValueError) as exc:
-        tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
-        return tool_execution
+    if presented_lease is not None:
+        # Issued by the authority domain. Verification happens in dispatch()
+        # below, against this concrete call -- arriving is not authorisation.
+        lease = presented_lease
+    else:
+        try:
+            lease = _issue_local_lease(
+                tenant=tenant, principal=principal, tool_call=tool_call,
+                semantic=semantic, now=now,
+                policy_bundle_hash=policy_bundle_hash, toolspec=toolspec,
+                proposal_id=proposal_id, grant_jti=grant_jti,
+            )
+        except (LeaseRefused, ValueError) as exc:
+            tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
+            return tool_execution
     try:
         dres = dispatcher.dispatch(
             lease,
@@ -99,6 +106,62 @@ def dispatch_under_lease(
     else:
         tool_execution["refusal_reason"] = dres.refusal_reason
     return tool_execution
+
+
+def issue_execution_lease(
+    *,
+    tenant: str,
+    principal: str,
+    tool_call: Any,
+    semantic: dict[str, Any],
+    now: Any,
+    policy_bundle_hash: str,
+    toolspec: dict[str, Any] | None = None,
+    proposal_id: str = "",
+    grant_jti: str = "",
+) -> ExecutionLease:
+    """Mint a lease. The authority domain's half of the custody split.
+
+    Public because the authority domain calls it directly: it decides, then it
+    signs what it decided. Kept in this module so that the field set the
+    authority signs and the field set the executor verifies cannot drift apart
+    -- they are the same code.
+    """
+    return _issue_local_lease(
+        tenant=tenant, principal=principal, tool_call=tool_call,
+        semantic=semantic, now=now, policy_bundle_hash=policy_bundle_hash,
+        toolspec=toolspec, proposal_id=proposal_id, grant_jti=grant_jti,
+    )
+
+
+def _issue_local_lease(
+    *,
+    tenant: str,
+    principal: str,
+    tool_call: Any,
+    semantic: dict[str, Any],
+    now: Any,
+    policy_bundle_hash: str,
+    toolspec: dict[str, Any] | None,
+    proposal_id: str,
+    grant_jti: str,
+) -> ExecutionLease:
+    return ExecutionLease.issue(
+            decision="accept",
+            tenant_id=tenant,
+            actor_identity=principal,
+            tool_name=tool_call.tool_name,
+            arguments=tool_call.arguments,
+            target_environment=tool_call.target_environment,
+            policy_bundle_hash=policy_bundle_hash,
+            issued_at=now.isoformat(),
+            tool_contract_bundle_hash=semantic["tool_contract_bundle_hash"],
+            intent_authority_hash=semantic["intent_authority_hash"],
+            toolspec_hash=(toolspec or {}).get("hash", ""),
+            toolspec_version=int((toolspec or {}).get("version", 0)),
+            proposal_id=proposal_id,
+            grant_jti=grant_jti,
+        )
 
 
 def record_dispatch_intent(

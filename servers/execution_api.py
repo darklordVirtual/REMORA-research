@@ -37,6 +37,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request
 
 from remora.enforcement.gate import EnforcementGate
+from remora.enforcement.nonce_store import DurableNonceStore, NonceStore
 from remora.enforcement.lease import (
     GovernedToolDispatcher,
 )
@@ -591,6 +592,20 @@ def _current_policy_bundle_hash() -> str:
     return api_mod._policy_component_hashes().get("policy_hash") or ""
 
 
+def _lease_nonce_store() -> "NonceStore | None":
+    """Durable lease-nonce consumption over whichever backend is configured.
+
+    Deliberately reads the same three variables as the durability guard in
+    servers/api.py, so the two cannot drift apart the way the jti ledger did.
+    """
+    dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+    db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    endpoint = _os.environ.get("REMORA_STATE_ENDPOINT", "").strip()
+    if not (dsn or db_path or endpoint):
+        return None
+    return DurableNonceStore(dsn=dsn, db_path=db_path, state_endpoint=endpoint)
+
+
 def _tool_dispatcher() -> GovernedToolDispatcher | None:
     """App-lifecycle dispatcher; None when no policy bundle hash exists."""
     global _DISPATCHER
@@ -600,8 +615,21 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                 bundle = _current_policy_bundle_hash()
                 if not bundle:
                     return None
+                # The lease nonce ledger must reach the same durable state
+                # the jti ledger reaches. Built from the identical three
+                # environment variables as _GATE above, for the identical
+                # reason: a store the durability guard accepts and the
+                # consumer never learns to use is how the jti ledger silently
+                # fell back to memory (#350). Here the consequence is a lease
+                # that is single-use only for the lifetime of a container --
+                # and on Cloudflare containers are replaced on idle.
+                #
+                # None when nothing durable is configured, which leaves the
+                # in-process NonceLedger and its honest docstring in place for
+                # library and research use.
                 dispatcher = GovernedToolDispatcher(
-                    expected_policy_bundle_hash=bundle
+                    expected_policy_bundle_hash=bundle,
+                    nonce_store=_lease_nonce_store(),
                 )
                 spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
                 if spec:
