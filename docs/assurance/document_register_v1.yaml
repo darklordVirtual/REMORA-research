@@ -2384,8 +2384,8 @@ documents:
   verdict: current
   version: v1
 - audience:
-  - maintainer
-  - researcher
+  - maintainers
+  - researchers
   code_synced: verified
   id: DOC-318
   last_reviewed: '2026-08-20'
