@@ -317,7 +317,9 @@ Worker, so before `/approve` existed every mutating call would have waited
 forever. Fail-closed, but not usable — a governance system that can only ever
 refuse has not been tested against the case that matters.
 
-**The durability guard cannot see ephemeral disk.** `REMORA_ENV=production`
+**The durability guard could not see ephemeral disk.** Fixed; see below.
+
+Formerly: `REMORA_ENV=production`
 requires `REMORA_PG_DSN` or `REMORA_CHAIN_DB`, and accepts a `REMORA_CHAIN_DB`
 path on the container's own filesystem. On Cloudflare that filesystem is
 ephemeral: the file is gone the next time the instance starts, so the tenant
@@ -389,6 +391,67 @@ both reach `verify` with the same reason. And nothing in this deployment ever
 reaches `accept`, so autonomy is zero — every call, however well-authorised,
 waits for a person. That is the same shape as the repository's own §39 result
 and is a property of the configuration, not a fault.
+
+### Durable state, and effect verification
+
+Both were missing when the capability test ran, and both are now in place.
+
+**Durable execution state without a credential.** The container has no
+writable disk worth the name, and no database token. It posts to
+`state.internal`; the Worker answers from a D1 binding
+(`remora-execution-state`, EEUR). `REMORA_STATE_ENDPOINT` is treated as
+durable by the guard for the same reason a DSN is — the storage behind it is
+not this container's filesystem.
+
+D1 over HTTP has no interactive transaction, so writes are buffered and sent
+as one atomic batch at commit, and a rollback is simply never sending them.
+That gives all-or-nothing for the write set. It does **not** give isolation
+from a concurrent writer between load and commit, which is safe here only
+because the deployment runs a single container instance and the container
+serialises. It would not be safe with more than one, and
+`remora/persistence/d1_connection.py` says so at the top rather than leaving
+it to be discovered.
+
+Proven by destroying the container:
+
+```
+item consumed before the container was destroyed
+  b047d228-4707-42c6-b93d-d71f86f2a2b7
+
+in D1 after the restart      status = executed
+queue reloaded by the NEW container (empty disk)   38 items
+that item in the reloaded queue                    executed
+```
+
+The queue REMORA refuses a re-execution from was read off D1 by a container
+whose disk was empty.
+
+**Effect verification.** The dispatcher returning cleanly says the request was
+accepted, not that the row is there. After a write executes, the Worker reads
+the fact back through its own binding and compares it against the delta the
+tool declared, then files the result on the proposal's trail as an attestation
+by a named verifier. REMORA records it as reported, mismatches included.
+
+Only the declared fields are compared: a field the delta does not name is out
+of scope by construction, because a concurrent legitimate write elsewhere in
+the row is not this action's problem.
+
+| Case | Reported |
+| --- | --- |
+| write, read-back matches | `EFFECT_VERIFIED` / `delta_matches` |
+| write, a declared field differs | `EFFECT_MISMATCH`, naming every field |
+| write, fact not readable | `EFFECT_UNOBSERVABLE` — never mismatch |
+| reader itself broke | `EFFECT_VERIFIER_FAILED` |
+| a read | `EFFECT_UNSUPPORTED`, not a vacuous success |
+
+Not knowing and knowing it is wrong are different facts, and only one of them
+justifies compensating.
+
+The verifier is TypeScript and the writer is Python, so the canonical digest
+is implemented twice. A test pins the TypeScript output against hardcoded
+values from `remora.governance.effect_verification.effect_digest` — without
+it the two could drift and every verification would silently become a
+mismatch.
 
 ### What this deployment is not
 

@@ -36,6 +36,13 @@ binding = "GRAPH_DB"
 database_name = "aion-hub"
 database_id = "71257339-0c51-4696-9567-d156cc9dcee3"
 
+# Durable execution state: audit chain, review queue, one-time-grant ledger.
+# A separate database from the graph — execution state is not knowledge.
+[[d1_databases]]
+binding = "STATE_DB"
+database_name = "remora-execution-state"
+database_id = "e5afbc4a-b32e-4fd1-8aa4-881f24ae9efa"
+
 [vars]
 # Same boundary as the container above. Named here rather than hardcoded so a
 # deployment that must sit elsewhere changes one file, and so the two settings

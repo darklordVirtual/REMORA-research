@@ -202,3 +202,32 @@ def test_the_refusal_points_at_the_escape_hatch(api, tmp_path, monkeypatch):
     with pytest.raises(RuntimeError) as exc:
         api._validate_production_prerequisites()
     assert api.EPHEMERAL_ACK_ENV in str(exc.value)
+
+
+# ── durable state over a Worker binding ─────────────────────────────────────
+
+def test_a_state_endpoint_counts_as_durable(api, monkeypatch):
+    """A container with no writable disk can still keep durable state.
+
+    The storage behind the endpoint is not this container's filesystem, so it
+    survives the instance — which is the property the guard is protecting.
+    """
+    monkeypatch.setenv("REMORA_STATE_ENDPOINT", "http://state.internal/query")
+    api._validate_production_prerequisites()
+
+
+def test_the_filesystem_is_not_probed_for_a_state_endpoint(api, monkeypatch):
+    monkeypatch.setenv("REMORA_STATE_ENDPOINT", "http://state.internal/query")
+    monkeypatch.setenv("REMORA_CHAIN_DB", "/var/lib/remora/state.db")
+
+    def explode(path):  # pragma: no cover - fails the test if reached
+        raise AssertionError("the filesystem was probed for a network store")
+
+    monkeypatch.setattr(api, "filesystem_type_for", explode)
+    api._validate_production_prerequisites()
+
+
+def test_the_refusal_names_the_endpoint_as_an_option(api):
+    with pytest.raises(RuntimeError) as exc:
+        api._validate_production_prerequisites()
+    assert "REMORA_STATE_ENDPOINT" in str(exc.value)
