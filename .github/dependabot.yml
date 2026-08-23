@@ -62,6 +62,14 @@ updates:
           - "types-*"
           - "sqlglot"
 
+    # pydantic pins pydantic-core to an exact build (==2.46.4 for pydantic
+    # 2.13.4). Bumping it on its own makes the lockfile unresolvable, which is
+    # what took every install-based job down in PR #311. The version is owned
+    # by the pydantic release, so it only moves when pydantic itself moves.
+    ignore:
+      - dependency-name: "pydantic-core"
+      - dependency-name: "pydantic_core"
+
   # Frontend dependencies, same risk-class principle.
   - package-ecosystem: "npm"
     directory: "/frontend"
@@ -97,6 +105,34 @@ updates:
           - "wrangler"
           - "nitro"
           - "openapi-typescript"
+
+    # Four frontend toolchain majors are held back so the rest of the group
+    # stays mergeable. Each hold has a stated condition for lifting it, and
+    # the migration itself is tracked in issue #323.
+    #
+    # typescript: openapi-typescript 7.x declares `typescript: ^5.x` as a peer
+    #   and generates the API client, so a TypeScript major cannot be
+    #   installed at all — npm ci fails with ERESOLVE before any job runs
+    #   (PR #313). Lift when openapi-typescript widens the peer range.
+    # eslint / @eslint/js: v10 removes eslintrc support and the deprecated
+    #   SourceCode and rule-context methods, so it needs every plugin in
+    #   eslint.config.js confirmed compatible first.
+    # eslint-plugin-react-hooks: v7 changes the recommended rule set, which
+    #   eslint.config.js spreads wholesale.
+    # eslint-plugin-react-refresh: 0.5 produced 98 new
+    #   only-export-components warnings on the route modules when measured,
+    #   and `npm run lint` runs --max-warnings=0.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-react-hooks"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-react-refresh"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   # Keep the SHA-pinned GitHub Actions current (security hardening).
   - package-ecosystem: "github-actions"
