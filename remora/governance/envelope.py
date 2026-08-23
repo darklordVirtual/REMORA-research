@@ -219,16 +219,24 @@ def normalize_audit_for_hash(payload: dict[str, Any]) -> dict[str, Any]:
 
 @dataclass(frozen=True)
 class EffectBlock:
-    """Decision-to-effect execution state — RESERVED, not yet populated.
+    """Decision-to-effect execution state.
 
-    Production status (verified 2026-08-05): no producer sets these fields.
-    The envelope producer (/v1/assess) never dispatches a tool, and the
-    dispatching path (/v1/execution) records its outcome in the tenant audit
-    chain (``tool_execution`` / ``execution_result`` records) without
-    building an envelope. Every shipped envelope therefore carries this
-    block at its defaults; treat a non-default instance as external input,
-    not as REMORA-attested execution state. Wiring the execution outcome
-    into the envelope is tracked follow-up work on the /v1/execution path.
+    Populated since 2026-08-20 (issue #37) by exactly one producer:
+    ``remora.execution.projections.envelope_projection``, served at
+    ``GET /v1/execution/proposals/{proposal_id}/envelope``. That projection
+    DERIVES the block from the tenant audit chain on read — the chain stays the
+    record, the envelope is a view of it, so the two cannot drift.
+
+    ``/v1/assess`` still leaves this block at its defaults: it never dispatches
+    a tool, so it has no effect to report, and a default block there means "no
+    execution was attempted through this surface" rather than "the effect was
+    not verified".
+
+    ``effect_outcome`` carries lifecycle-model vocabulary, in which an effect
+    verification outranks a dispatch verdict: "the dispatcher returned without
+    raising" and "the approved change is present" are different claims, and
+    only the second is about the world. A non-default block from any other
+    source is external input, not REMORA-attested execution state.
     """
     executed: bool = False
     tool_call_hash: str | None = None
