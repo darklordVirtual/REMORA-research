@@ -253,7 +253,7 @@ uc-micro-py==2.0.0
 universal_pathlib==0.3.10
 urllib3==2.5.0
 uuid_utils==0.16.2
-uvicorn==0.52.3
+uvicorn==0.52.4
 watchdog==6.0.0
 watchfiles==1.1.1
 wcmatch==8.5.2
