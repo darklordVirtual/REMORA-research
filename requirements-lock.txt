@@ -121,7 +121,7 @@ mdurl==0.1.2
 mergedeep==1.3.4
 mkdocs==1.6.1
 mkdocs-get-deps==0.2.2
-mkdocs-material==9.6.22
+mkdocs-material==9.7.7
 mkdocs-material-extensions==1.3.1
 mmh3==5.2.1
 momentchi2==0.1.8
