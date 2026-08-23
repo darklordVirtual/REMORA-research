@@ -47,6 +47,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any, Callable
 
+from remora.enforcement import lease_signing as _signing
+from remora.enforcement.nonce_store import NonceStore, NonceStoreUnavailable
 from remora.observability.events import governance_event
 from remora.policy.observation import canonical_tool_call_hash
 
@@ -121,6 +123,13 @@ class ExecutionLease:
     expires_at: str
     signature: str
     is_signed: bool
+    #: ADR-A: the signature scheme, carried INSIDE the signed payload so an
+    #: attacker cannot strip ed25519 down to hmac-sha256 without invalidating
+    #: the signature over the field they changed.
+    sig_alg: str = _signing.ALG_HMAC
+    #: Key identifier, so rotation and multi-key verification do not need a
+    #: flag day. Empty when the deployment runs a single key.
+    kid: str = ""
     #: Hash of the frozen ToolContractRegistry bundle active at issue time.
     #: Empty string means no bundle was declared (legacy / pre-SHELF-020 path).
     tool_contract_bundle_hash: str = ""
@@ -207,12 +216,31 @@ class ExecutionLease:
             "proposal_id": proposal_id,
             "grant_jti": grant_jti,
         }
-        key = _get_signing_key()
-        if key:
-            signature = cls._compute_signature(fields, key)
+        alg = _signing.issuer_algorithm()
+        if alg:
+            # sig_alg and kid are inside the payload the signature covers.
+            fields["sig_alg"] = alg
+            fields["kid"] = _signing.issuer_kid()
+            signature = _signing.sign_payload(
+                cls._canonical_payload(fields), alg=alg
+            )
             lease = cls(**fields, signature=signature, is_signed=True)
+        elif _signing.public_key_only():
+            # Found by tests/test_lease_authority_custody.py: a process holding
+            # ONLY verification material silently produced an UNSIGNED lease
+            # here instead of refusing. Not directly exploitable — verify()
+            # rejects an unsigned lease — but "quietly emit a degraded
+            # authority object" is the failure mode this ADR exists to remove,
+            # and a caller that asked for a lease and got one has no reason to
+            # suspect it is worthless. A verifier must not be able to produce
+            # an authority object at all, valid or otherwise.
+            raise LeaseRefused(
+                "this process holds only lease VERIFICATION material and "
+                "cannot issue authority; issuing requires the PDP private key"
+            )
         else:
-            lease = cls(**fields, signature="", is_signed=False)
+            lease = cls(**fields, sig_alg=_signing.ALG_HMAC, kid="",
+                        signature="", is_signed=False)
         governance_event(
             "lease.issued",
             decision=lease.decision,
@@ -229,9 +257,22 @@ class ExecutionLease:
         return lease
 
     @staticmethod
+    def _canonical_payload(fields: dict[str, Any]) -> bytes:
+        """The exact bytes a lease signature covers.
+
+        Built from typed fields rather than parsed out of a self-describing
+        token: the verifier reconstructs what it expects and compares, so a
+        presenter cannot influence which bytes get checked.
+        """
+        return json.dumps(fields, sort_keys=True, separators=(",", ":")).encode()
+
+    @staticmethod
     def _compute_signature(fields: dict[str, Any], key: bytes) -> str:
-        payload = json.dumps(fields, sort_keys=True, separators=(",", ":")).encode()
-        return hmac.new(key, payload, hashlib.sha256).hexdigest()
+        """HMAC signature over the canonical payload. Retained for the
+        migration window and for callers that pass an explicit key."""
+        return hmac.new(
+            key, ExecutionLease._canonical_payload(fields), hashlib.sha256
+        ).hexdigest()
 
     def _signed_fields(self) -> dict[str, Any]:
         return {
@@ -251,6 +292,8 @@ class ExecutionLease:
             "toolspec_version": self.toolspec_version,
             "proposal_id": self.proposal_id,
             "grant_jti": self.grant_jti,
+            "sig_alg": self.sig_alg,
+            "kid": self.kid,
         }
 
     def verify(
@@ -279,13 +322,29 @@ class ExecutionLease:
         workload identity (credential/key ID binding) is REM-024 residual
         scope.
         """
-        key = _get_signing_key()
-        if not key:
-            return LeaseVerificationResult(False, "no_signing_key")
         if not self.is_signed or not self.signature:
             return LeaseVerificationResult(False, "lease_not_signed")
-        expected_sig = self._compute_signature(self._signed_fields(), key)
-        if not hmac.compare_digest(expected_sig, self.signature):
+        payload = self._canonical_payload(self._signed_fields())
+        try:
+            signature_ok = _signing.verify_payload(
+                payload, self.signature, alg=self.sig_alg
+            )
+        except _signing.SigningUnavailable as exc:
+            # Cannot reach a verdict. Never reported as a valid signature, and
+            # kept distinct from "forged" so a downgrade attempt or a missing
+            # key is diagnosable as itself.
+            reason = (
+                "signature_algorithm_refused"
+                if self.sig_alg == _signing.ALG_HMAC
+                else "no_signing_key"
+            )
+            governance_event(
+                "lease.verification_unavailable", level=logging.WARNING,
+                sig_alg=self.sig_alg, tenant_id=self.tenant_id,
+                tool_name=self.tool_name, detail=str(exc),
+            )
+            return LeaseVerificationResult(False, reason)
+        if not signature_ok:
             return LeaseVerificationResult(False, "signature_invalid")
         if self.decision != "accept":
             return LeaseVerificationResult(False, "decision_not_accept")
@@ -372,7 +431,7 @@ class ExecutionLease:
         "expires_at", "signature", "is_signed",
         "tool_contract_bundle_hash", "intent_authority_hash",
         "toolspec_hash", "toolspec_version",
-        "proposal_id", "grant_jti",
+        "proposal_id", "grant_jti", "sig_alg", "kid",
     })
 
     @classmethod
@@ -458,12 +517,25 @@ class GovernedToolDispatcher:
         self,
         expected_policy_bundle_hash: str,
         ledger: NonceLedger | None = None,
+        nonce_store: "NonceStore | None" = None,
     ) -> None:
+        """
+        ``nonce_store`` (ADR-B) makes single-use consumption durable and
+        tenant-scoped. When supplied it REPLACES the in-process ledger for the
+        consume decision: a lease then spends exactly once across restarts,
+        replacement containers and independent dispatcher instances, which the
+        ``NonceLedger`` set cannot do and does not claim to.
+
+        The in-process ledger stays the default so library and research use are
+        unaffected. Deployments are compelled by the durability guard in
+        ``servers/api.py``, which is where compulsion belongs.
+        """
         if not expected_policy_bundle_hash:
             raise ValueError("expected_policy_bundle_hash is mandatory to prevent stale policy execution")
         self._tools: dict[str, Callable[[Any], Any]] = {}
         self._expected_bundle = expected_policy_bundle_hash
         self._ledger = ledger or NonceLedger()
+        self._nonce_store = nonce_store
 
     def register(self, tool_name: str, fn: Callable[[Any], Any]) -> None:
         """Register the callable that actually executes ``tool_name``."""
@@ -525,7 +597,37 @@ class GovernedToolDispatcher:
                 executed=False, refusal_reason=verdict.reason,
                 proposal_id=proposal_id,
             )
-        if not self._ledger.consume(lease.nonce):
+        if self._nonce_store is not None:
+            # Durable path. An unknown outcome must refuse WITHOUT burning the
+            # nonce: the grant may still be unspent, and destroying it would
+            # turn a transient outage into a permanently dead authorization.
+            try:
+                consumed = self._nonce_store.try_consume(
+                    lease.nonce, tenant_id=lease.tenant_id
+                )
+            except NonceStoreUnavailable as exc:
+                governance_event(
+                    "dispatch.refused", level=logging.ERROR,
+                    reason="nonce_store_unavailable", tenant_id=tenant_id,
+                    tool_name=tool_name, proposal_id=proposal_id,
+                    grant_jti=lease.grant_jti, detail=str(exc),
+                )
+                return DispatchResult(
+                    executed=False, refusal_reason="nonce_store_unavailable",
+                    proposal_id=proposal_id,
+                )
+            if not consumed:
+                governance_event(
+                    "dispatch.refused", level=logging.WARNING,
+                    reason="nonce_already_consumed", tenant_id=tenant_id,
+                    tool_name=tool_name, proposal_id=proposal_id,
+                    grant_jti=lease.grant_jti,
+                )
+                return DispatchResult(
+                    executed=False, refusal_reason="nonce_already_consumed",
+                    proposal_id=proposal_id,
+                )
+        elif not self._ledger.consume(lease.nonce):
             # A nonce burned by a raising tool is not a plain replay: the
             # caller must learn the previous attempt failed with unknown
             # state, not merely that the nonce was used.

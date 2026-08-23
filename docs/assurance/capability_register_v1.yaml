@@ -58,11 +58,14 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: a410d6d9a66f7c2d06e1d4d1257121a80c92d73d
+    verified_at_sha: 3bb57973eca0a1c98568b1d98a50d1940883e4e0
     verified_by: >-
-      crosswalk assessment 2026-08-20 (docs/benchmarks/aegis-remora-crosswalk.md row A):
-      gate.py one-time consumption path and tests/test_token_hardening.py read against the caveat
-    caveat: "Issued and consumed via /v1/execution/*; jti one-time consumption persists to a pep_consumed table when REMORA_PG_DSN (Postgres) or REMORA_CHAIN_DB (SQLite) is configured (remora/enforcement/gate.py), in-process set by default. A second gate over the same durable ledger refuses the replay (tests/test_token_hardening.py::test_durable_ledger_refuses_the_replay_from_a_second_gate); no test spawns a new interpreter, so behaviour across an actual process restart is inferred from the shared ledger, not directly observed. The lease nonce ledger stays in-process (REM-025)."
+      re-audit 2026-08-23 (ADR-B, docs/architecture/ADR-authority-custody-and-lease-durability.md):
+      rebound because the lease nonce half of the caveat changed. The token half
+      was re-read against gate.py and tests/test_token_hardening.py and is
+      unchanged; the token signature remains HMAC-SHA256 and is NOT covered by
+      ADR-A, which converts the lease only.
+    caveat: "Issued and consumed via /v1/execution/*; jti one-time consumption persists to a pep_consumed table when REMORA_PG_DSN (Postgres) or REMORA_CHAIN_DB (SQLite) is configured (remora/enforcement/gate.py), in-process set by default. A second gate over the same durable ledger refuses the replay (tests/test_token_hardening.py::test_durable_ledger_refuses_the_replay_from_a_second_gate); no test spawns a new interpreter, so behaviour across an actual process restart is inferred from the shared ledger, not directly observed. The lease nonce ledger now has a durable adapter of its own (remora/enforcement/nonce_store.py, CAP-013); it is opt-in per dispatcher and is not proven configured on any deployment. The token signature is HMAC-SHA256: the verifier holds the material to mint, and ADR-A converts the lease only, so this capability does not yet carry an asymmetric custody claim."
 
   - id: CAP-004
     name: "Tool-call payload binding (canonical hash, recomputed before execution)"
@@ -152,15 +155,23 @@ capabilities:
     status: WIRED_API_PATH
     evidence:
       - remora/enforcement/lease.py
+      - remora/enforcement/nonce_store.py
+      - remora/enforcement/lease_signing.py
       - servers/execution_api.py
       - servers/tool_registry_research.py
       - tests/test_execution_api.py
       - tests/test_tool_registry_research.py
-    verified_at_sha: a410d6d9a66f7c2d06e1d4d1257121a80c92d73d
+      - tests/test_lease_nonce_durability.py
+      - tests/test_lease_authority_custody.py
+    verified_at_sha: 3bb57973eca0a1c98568b1d98a50d1940883e4e0
     verified_by: >-
-      crosswalk assessment 2026-08-20 (docs/benchmarks/aegis-remora-crosswalk.md row C):
-      lease.py binding set and refusal matrix read against the caveat
-    caveat: "Wired 2026-07-27 (issue #13): /v1/execution/execute dispatches through GovernedToolDispatcher under an ExecutionLease after PEP consume; tool callables come only from REMORA_TOOL_REGISTRY_MODULE (research profile ships side-effect-bounded store_artifact/read_telemetry). Response/audit report the real outcome (tool_execution / tool_executed). Remaining: transport-anchored actor identity, durable multi-process nonce store (REM-025), deployment fronting real downstream credentials, external validation (REM-021/REM-030)."
+      re-audit 2026-08-23 (ADR-A and ADR-B,
+      docs/architecture/ADR-authority-custody-and-lease-durability.md):
+      lease.py binding set and refusal matrix re-read after the signature and
+      nonce-consumption changes. Status deliberately NOT raised: both changes
+      add a mechanism with library-level adversarial evidence, and neither is
+      demonstrated on a deployment.
+    caveat: "Wired 2026-07-27 (issue #13): /v1/execution/execute dispatches through GovernedToolDispatcher under an ExecutionLease after PEP consume; tool callables come only from REMORA_TOOL_REGISTRY_MODULE (research profile ships side-effect-bounded store_artifact/read_telemetry). Response/audit report the real outcome (tool_execution / tool_executed). Lease nonce consumption has a durable, tenant-scoped, fail-closed adapter (remora/enforcement/nonce_store.py: Postgres, SQLite, D1 state endpoint) which is refused-without-burning on an unknown outcome; a replacement dispatcher over the same store refuses the replay (tests/test_lease_nonce_durability.py). It is OPT-IN per GovernedToolDispatcher and defaults to the in-process NonceLedger, so this is a mechanism claim, not a deployment claim: no evidence exists that any running deployment configures it, and the Cloudflare gateway does not. The lease signature supports Ed25519 with a private-issuer/public-verifier split, attacked in tests/test_lease_authority_custody.py; the deployed container is still supplied REMORA_LEASE_SIGNING_KEY and REMORA_PDP_SIGNING_KEY (workers/mcp-gateway/src/index.ts), so the custody split is available and NOT in effect. Remaining: transport-anchored actor identity, durable nonce storage proven on a deployment, key custody actually split in the Cloudflare configuration, external runtime/tool drift binding (F2, ADR-D), deployment fronting real downstream credentials, external validation (REM-021/REM-030)."
 
   - id: CAP-014
     name: "Declared-effect consistency (expected_effect_matches tri-state authority)"

@@ -63,6 +63,13 @@ FILE_THRESHOLDS: dict[str, float] = {
     "remora/enforcement/lease.py": 93.0,
     "remora/enforcement/token.py": 94.0,
     "remora/enforcement/result_envelope.py": 86.0,
+    # ADR-B. Same shape as gate.py: the Postgres and D1 backend branches are
+    # not reachable in this run, and the in-process logic around them is.
+    "remora/enforcement/nonce_store.py": 75.0,
+    # ADR-A. The uncovered remainder is the import-error path for the optional
+    # 'cryptography' extra, which is exercised by monkeypatch rather than by
+    # actually uninstalling the package mid-run.
+    "remora/enforcement/lease_signing.py": 75.0,
 }
 
 #: Global floor over everything measured, including branches.
