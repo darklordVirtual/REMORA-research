@@ -37,21 +37,29 @@ Claude Code / Claude Desktop / ChatGPT
 
 ## The four decisions
 
-Every tool call is assessed before anything happens. There are four possible
-answers, and only one of them executes immediately.
+Every tool call is assessed before anything happens. Only one of the four
+executes without a person.
 
-| Decision | What the agent gets back | Side effect |
-| --- | --- | --- |
-| `accept` | `status: executed` with the result | yes, immediately |
-| `verify` | `status: pending_approval` with a `proposal_id` and an `approval_reference` | none |
-| `escalate` | `status: refused` with reasons | none |
-| `abstain` | `status: refused` with reasons | none |
+| Decision | Means | What the agent gets | Side effect |
+| --- | --- | --- | --- |
+| `accept` | run it | the result, plus the reasons that allowed it | yes |
+| `verify` | a person must decide | `proposal_id` and `approval_reference` | none yet |
+| `escalate` | **a person must decide**, and the call did not resolve under the intent it claimed | the same, with why | none yet |
+| `abstain` | nothing to decide on | refused | none |
 
-A refusal is **not** returned as a tool error. Flagging it as an error would
-invite the model to treat governance as a fault to be routed around, which is
-precisely the behaviour the system exists to prevent. The refusal text says so
-in as many words: do not retry, and do not look for another way to the same
-effect.
+**`escalate` is not a refusal.** `servers/execution_api.py` is explicit:
+"VERIFY/ESCALATE enqueue a review item for a human; ABSTAIN returns
+[nothing]". This gateway treated escalate as refused for most of its life,
+which threw away the one route a person had to say yes — and escalate is the
+case where a person is *most* needed, because something about the call did not
+line up. It now goes to approval with the mismatch stated, so whoever looks at
+it knows they are not rubber-stamping a routine call.
+
+`abstain` is the refusal. There is nothing for a person to approve, so no
+proposal is created.
+
+An `accept` carries its reasons and its grounding signals. It is the one
+outcome where nobody looked, so it is the one that must never be unexplained.
 
 ### VERIFY is the normal path, not the edge case
 

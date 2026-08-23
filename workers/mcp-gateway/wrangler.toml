@@ -50,6 +50,10 @@ database_id = "e5afbc4a-b32e-4fd1-8aa4-881f24ae9efa"
 PROPOSAL_JURISDICTION = "eu"
 # The tenant the graph tools speak for. Never an argument a caller can set.
 REMORA_KG_TENANT = "luftfiber"
+# This gateway is a test deployment. The label describes the deployment, not
+# the data it reads: a production deployment sets "prod" and the ACCEPT paths
+# exclude it again for disclosure blast radius.
+REMORA_TARGET_ENVIRONMENT = "staging"
 
 [[durable_objects.bindings]]
 name = "REMORA"

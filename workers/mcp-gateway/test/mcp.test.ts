@@ -213,17 +213,36 @@ describe("governance", () => {
     expect(rec.accepted).toHaveLength(0);
   });
 
-  it("ABSTAIN and ESCALATE refuse and execute nothing", async () => {
-    for (const decision of ["abstain", "escalate"] as const) {
-      const { deps: d, rec } = deps({ decision, reasons: ["r"] });
-      const r = await handleRpc(
-        call("gh_close_issue", { repo: "o/r", number: 1, intent_ref: "o/r#9" }),
-        d,
-      );
-      expect(payload(r).status).toBe("refused");
-      expect(rec.execute).toHaveLength(0);
-      expect(rec.accepted).toHaveLength(0);
-    }
+  it("ABSTAIN refuses outright: there is nothing for a person to decide", async () => {
+    const { deps: d, rec } = deps({ decision: "abstain", reasons: ["r"] });
+    const r = await handleRpc(
+      call("gh_close_issue", { repo: "o/r", number: 1, intent_ref: "o/r#9" }),
+      d,
+    );
+    expect(payload(r).status).toBe("refused");
+    expect(rec.execute).toHaveLength(0);
+    expect(rec.accepted).toHaveLength(0);
+  });
+
+  it("ESCALATE goes to a person, it is not a refusal", async () => {
+    // servers/execution_api.py: "VERIFY/ESCALATE enqueue a review item for a
+    // human; ABSTAIN returns [nothing]". Treating escalate as refused threw
+    // away the one route a person had to say yes — and escalate is the case
+    // where a person is most needed, because the call did not resolve under
+    // the intent it claimed.
+    const { deps: d, rec } = deps({
+      decision: "escalate", reasons: ["expected_effect_contradicted"],
+      review_item_id: "item-3",
+    });
+    const r = await handleRpc(
+      call("gh_close_issue", { repo: "o/r", number: 1, intent_ref: "o/r#9" }),
+      d,
+    );
+    const p = payload(r);
+    expect(p.status).toBe("pending_approval");
+    expect(p.approval_reference).toBe("item-3");
+    expect(p.explanation).toContain("did not resolve under the intent");
+    expect(rec.execute, "still nothing runs before approval").toHaveLength(0);
   });
 
   it("a refusal is not flagged as a tool error", async () => {

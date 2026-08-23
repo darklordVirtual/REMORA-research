@@ -63,6 +63,10 @@ export interface Env {
    *  a tool that accepted a tenant id would make cross-tenant access a matter
    *  of what the agent proposed. */
   REMORA_KG_TENANT?: string;
+  /** The environment a call targets. Describes this deployment, not the data.
+   *  Set to prod on a production deployment and the ACCEPT paths exclude it
+   *  again, deliberately. */
+  REMORA_TARGET_ENVIRONMENT?: string;
   /** The graph database. A binding, not a token: it cannot be read out of the
    *  container, because it is never in the container. */
   GRAPH_DB?: D1Database;

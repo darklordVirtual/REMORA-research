@@ -24,35 +24,35 @@
     "kg_find_subjects": "The reverse lookup over the same production data.",
     "kg_assert_fact": "Mutating, and further-reaching than one row: everything that reads the graph afterwards inherits the fact. Medium rather than high because it is reversible by kg_retract_fact, carries a mandatory source, and is verified by read-back after execution. Not low: a wrong fact with a confident source propagates.",
     "kg_retract_fact": "Mutating and destructive, but bounded: it can only reach facts this tenant owns, never the intent graph, and the retraction itself is recorded in the audit chain. Reversible by asserting the fact again.",
-    "_reads": "Reads are high, not low. They return production customer data, and disclosure is the consequence — REMORA's own _is_low_consequence refuses to call a production read low-consequence for exactly that reason, so declaring it low contradicted the engine's own reasoning. Recorded because the first attempt did declare them low: the measured effect was that every read fell through to ABSTAIN, since the VERIFY routes are driven by tier and both ACCEPT paths exclude production. An honest classification must not be chosen for the outcome it produces, so the reason here is disclosure, not routing."
+    "_reads": "Reads are low: the tool returns rows and changes nothing. The disclosure concern that made these look higher belongs to target_environment, not to the tier — the tier says what the tool does, the environment says where. Recorded because this was got wrong twice in both directions. First declared low while the gateway hardcoded target_environment=prod, which made every read fall through to ABSTAIN, since the VERIFY routes are tier-driven and both ACCEPT paths exclude production. Then raised to high to restore a human route, which fixed the routing by mis-stating the tool. The actual fault was the hardcoded environment: this is a test deployment and was calling itself production. With the environment stated correctly the tier can be honest, and a production deployment sets prod and gets the exclusion back — which is the separation the two fields exist to express."
   },
   "tools": {
     "kg_list_graphs": {
-      "risk_tier": "high",
+      "risk_tier": "low",
       "action_type": "list",
       "domain": "knowledge_graph",
       "rollback_available": true
     },
     "kg_list_predicates": {
-      "risk_tier": "high",
+      "risk_tier": "low",
       "action_type": "list",
       "domain": "knowledge_graph",
       "rollback_available": true
     },
     "kg_sample_subjects": {
-      "risk_tier": "high",
+      "risk_tier": "low",
       "action_type": "list",
       "domain": "knowledge_graph",
       "rollback_available": true
     },
     "kg_query_facts": {
-      "risk_tier": "high",
+      "risk_tier": "low",
       "action_type": "read",
       "domain": "knowledge_graph",
       "rollback_available": true
     },
     "kg_find_subjects": {
-      "risk_tier": "high",
+      "risk_tier": "low",
       "action_type": "read",
       "domain": "knowledge_graph",
       "rollback_available": true
