@@ -523,6 +523,10 @@ def _validate_production_prerequisites() -> None:
             "REMORA_PG_DSN or REMORA_CHAIN_DB (durable execution state: tenant "
             "audit chain, review queue, and one-time-grant ledger)"
         )
+    else:
+        # Configured is not the same as durable. See the finding recorded in
+        # docs/design/cloudflare-mcp-gateway-v1.md.
+        _refuse_ephemeral_execution_state(missing)
     # Only the assess surface consults an oracle. Demanding a backend from a
     # deployment that does not serve /v1/assess taught it to name one at
     # random, which is worse than not asking.
@@ -568,6 +572,125 @@ def _validate_production_prerequisites() -> None:
             raise RuntimeError(
                 "REMORA API production mode fail-closed: REMORA_ORACLE_BACKEND must be an explicit non-mock backend."
             )
+
+
+#: Opt-out for a demonstration deployment on storage that does not persist.
+#: The value names the consequence deliberately: a bare truthy flag is easy to
+#: set without reading, and this one is not.
+EPHEMERAL_ACK_ENV = "REMORA_ACCEPT_EPHEMERAL_STATE"
+EPHEMERAL_ACK_VALUE = "grants-become-replayable"
+
+#: Filesystems that are a container's own writable layer or live in memory.
+#: A SQLite file on one of these is discarded when the instance restarts, so
+#: the one-time-grant ledger that refuses a replayed grant goes with it.
+#: Deliberately a small, named list: a guard that refuses everything it does
+#: not recognise would reject storage it knows nothing bad about.
+_EPHEMERAL_FSTYPES = frozenset({
+    "overlay", "overlayfs", "aufs", "tmpfs", "ramfs", "rootfs",
+})
+
+
+def is_ephemeral_filesystem_type(fstype: str | None) -> bool:
+    """Whether ``fstype`` is known not to survive a restart.
+
+    Unknown and ``None`` are not ephemeral. The guard reports what it can
+    establish; it does not resolve uncertainty by assumption.
+    """
+    if not fstype:
+        return False
+    return fstype.strip().lower() in _EPHEMERAL_FSTYPES
+
+
+def _mount_filesystem_type(path: "os.PathLike[str] | str") -> str | None:
+    """Filesystem type backing ``path``, read from the Linux mount table.
+
+    Returns None where it cannot be established — a platform without
+    ``/proc/mounts``, or a path outside every mount point listed there.
+    """
+    try:
+        with open("/proc/mounts", encoding="utf-8") as handle:
+            mounts = [line.split() for line in handle]
+    except OSError:
+        return None
+
+    try:
+        target = os.path.realpath(path)
+    except OSError:
+        return None
+
+    best_point, best_type = "", None
+    for fields in mounts:
+        if len(fields) < 3:
+            continue
+        point, fstype = fields[1], fields[2]
+        # /proc/mounts octal-escapes spaces and similar in mount points.
+        point = point.replace("\040", " ")
+        if (target == point or target.startswith(point.rstrip("/") + "/"))                 and len(point) >= len(best_point):
+            best_point, best_type = point, fstype
+    return best_type
+
+
+def filesystem_type_for(path: "os.PathLike[str] | str") -> str | None:
+    """Filesystem type for ``path``, walking up to the nearest existing ancestor.
+
+    On a first start the database file does not exist yet, so the question is
+    really about the directory it would be created in.
+    """
+    candidate = Path(path).expanduser()
+    try:
+        candidate = candidate.resolve(strict=False)
+    except OSError:
+        pass
+    for parent in [candidate, *candidate.parents]:
+        if parent.exists():
+            return _mount_filesystem_type(parent)
+    return None
+
+
+def _refuse_ephemeral_execution_state(missing: list[str]) -> None:
+    """Refuse a durable-state path that lives on storage that does not persist.
+
+    ``REMORA_PG_DSN`` is a network service and durable relative to the process
+    that connects to it; only the SQLite path is a local-storage question.
+
+    This exists because the earlier check tested whether a path had been
+    *configured* rather than whether the storage behind it *persists*, and a
+    Cloudflare Containers deployment passed it while keeping the audit chain
+    and the grant ledger on a writable layer that is discarded on restart.
+    """
+    if os.getenv("REMORA_PG_DSN", "").strip():
+        return
+    chain_db = os.getenv("REMORA_CHAIN_DB", "").strip()
+    if not chain_db:
+        return
+
+    fstype = filesystem_type_for(chain_db)
+    if not is_ephemeral_filesystem_type(fstype):
+        return
+
+    # A demonstration deployment may run on ephemeral storage, but only where
+    # someone has said so in a way that cannot be mistaken for a default. The
+    # required value names the consequence rather than being a bare truthy
+    # flag, so it cannot be copied into a real deployment without reading what
+    # it says. It is recorded in the startup log and reported at /v1/health.
+    if os.getenv(EPHEMERAL_ACK_ENV, "").strip() == EPHEMERAL_ACK_VALUE:
+        logger.warning(
+            "%s: execution state is on a %s filesystem at %s and will not "
+            "survive a restart. A consumed one-time grant becomes replayable. "
+            "This deployment is not a pilot.",
+            EPHEMERAL_ACK_ENV, fstype, chain_db,
+        )
+        return
+
+    missing.append(
+        f"REMORA_CHAIN_DB ({chain_db}) is on a {fstype} filesystem, which "
+        "does not survive a restart. The tenant audit chain, the review queue "
+        "and the one-time-grant ledger would be discarded with it, so a grant "
+        "already consumed would be accepted again — the replay this check "
+        "exists to prevent. Use REMORA_PG_DSN, or put the file on storage "
+        f"that persists. A demonstration deployment that accepts this may set "
+        f"{EPHEMERAL_ACK_ENV}={EPHEMERAL_ACK_VALUE}"
+    )
 
 
 def _execution_state_dsn() -> str:
