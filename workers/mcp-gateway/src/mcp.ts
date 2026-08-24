@@ -5,6 +5,7 @@
  * tested without a Worker runtime, a container, or a network.
  */
 import type { Verification } from "./effect";
+import { dispatchStatus, statusExplanation } from "./outcome";
 import { governedNames, toolsFor } from "./tools";
 import type { GovernedTool } from "./tools";
 import type { AssessResult, ExecuteResult, RemoraClient, ToolCall } from "./remora";
@@ -177,6 +178,8 @@ async function callTool(
 
   if (body.decision === "accept" && body.execution_token) {
     const run = await deps.remora.executeAccepted(body.execution_token, call);
+    const acceptStatus = dispatchStatus(run.status, run.body?.tool_execution);
+    const acceptExplanation = statusExplanation(acceptStatus);
     return textResult({
       decision: "accept",
       // An ACCEPT is the one outcome that must never be unexplained: it is
@@ -184,7 +187,12 @@ async function callTool(
       // signals carried it, belong in the answer.
       reasons: body.reasons ?? [],
       ...(body.semantic ? { signals: body.semantic } : {}),
-      status: run.status === 200 ? "executed" : "execution_failed",
+      // Derived from the body, not from the transport. A 200 means the
+      // execution API answered; the tool_execution object says what happened
+      // (RMR-006). A refused dispatch and a lost result both used to arrive
+      // here as "executed".
+      status: acceptStatus,
+      ...(acceptExplanation ? { explanation: acceptExplanation } : {}),
       outcome: run.body?.outcome,
       result: run.body?.tool_execution,
       // An execution that failed without a tool_execution object has failed
@@ -194,7 +202,7 @@ async function callTool(
       ...(run.status !== 200
         ? { http_status: run.status, detail: run.body?.detail ?? run.body }
         : {}),
-    }, run.status !== 200);
+    }, acceptStatus !== "executed");
   }
 
   // Anything that is not an outright ACCEPT leaves the side effect undone.
@@ -242,19 +250,40 @@ async function statusTool(proposalId: string, deps: Deps): Promise<unknown> {
   await deps.store.delete(proposalId);
   const execution = (body as ExecuteResult).tool_execution ?? {};
 
+  const pollStatus = dispatchStatus(status, execution);
+
   // Dispatching and the effect happening are different facts. The read-back
   // is what tells them apart, and its verdict is reported as it comes —
   // including a mismatch, which is bad news about ourselves.
+  //
+  // Not attempted on a refused dispatch: nothing was sent, so the system of
+  // record correctly shows no change, and reporting that as EFFECT_MISMATCH
+  // would manufacture bad news out of a correct refusal. It IS attempted on an
+  // unknown one, which is where a read-back is worth the most.
   let effect: Verification | null = null;
-  if (deps.verifyEffect) {
+  if (deps.verifyEffect && pollStatus !== "refused") {
     const declared = (execution as { result?: Record<string, unknown> }).result
       ?? (execution as Record<string, unknown>);
     effect = await deps.verifyEffect(pending.call.tool_name, declared,
                                      pending.review_item_id);
   }
 
+  // One explanation key, built from every part that has something to say. Two
+  // separate `explanation` entries in the same object literal would silently
+  // keep the last one, and the one that got dropped would be the dispatch
+  // status — the part the model most needs.
+  const notes = [statusExplanation(pollStatus)];
+  if (effect?.status === "EFFECT_MISMATCH") {
+    notes.push(
+      "The system of record does not match what was approved. Do not assume " +
+      "it worked. Report this rather than retrying.",
+    );
+  }
+  const explanation = notes.filter(Boolean).join(" ");
+
   return textResult({
-    status: "executed",
+    status: pollStatus,
+    ...(explanation ? { explanation } : {}),
     proposal_id: proposalId,
     outcome: (body as ExecuteResult).outcome,
     result: execution,
@@ -263,17 +292,9 @@ async function statusTool(proposalId: string, deps: Deps): Promise<unknown> {
           effect: effect.status,
           effect_reason: effect.reason_code,
           ...(effect.detail ? { effect_detail: effect.detail } : {}),
-          ...(effect.status === "EFFECT_MISMATCH"
-            ? {
-                explanation:
-                  "The call was dispatched but the system of record does not " +
-                  "match what was approved. Do not assume it worked. Report " +
-                  "this rather than retrying.",
-              }
-            : {}),
         }
       : {}),
-  });
+  }, pollStatus !== "executed" || effect?.status === "EFFECT_MISMATCH");
 }
 
 /** Handle one JSON-RPC message. Returns null for notifications, which take no

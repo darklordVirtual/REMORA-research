@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **18 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **19 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -3170,8 +3170,6 @@ Recorded here so it is not lost, with the review's identifiers:
   the dispatcher never supplies them; `verify_callable` and
   `verify_credential_scope` have no non-test caller. Signed spec identity is
   inert at the final PEP.
-- **RMR-006** — MCP maps every HTTP 200 to `executed`, including a body saying
-  `executed=false` or `state_unknown=true`.
 - **RMR-007** — `workers/mcp-gateway` is absent from the npm audit and SBOM
   matrices, and the security and worker jobs are not required branch contexts.
 
@@ -3181,9 +3179,9 @@ and RMR-002/003/004 change durable state semantics that consumers depend on.
 
 RMR-002 and RMR-003 were subsequently fixed, each in its own change, and are
 recorded as §47 and §48; RMR-009 and RMR-013 are fixed together in §52,
-because they are the same defect shape twice. They are struck from the list above rather than
+because they are the same defect shape twice; RMR-006 in §53. They are struck from the list above rather than
 left standing, because a list of open findings that keeps closed ones is the
-same drift this document's status gate exists to prevent. The three below remain
+same drift this document's status gate exists to prevent. The two below remain
 open at the time of writing.
 
 ### The finding about the findings
@@ -3380,4 +3378,73 @@ the broken code, which is how the test came to ask the guard directly.
 
 **Not deployed.** These are code and configuration changes only. The running
 containers were not replaced, so nothing here is a claim about the deployment.
+
+## §53 The gateway reported that the API answered, and called it execution (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-006 from the external forensic review, fixed.
+
+Both execution sites in `workers/mcp-gateway/src/mcp.ts` read:
+
+```ts
+status: run.status === 200 ? "executed" : "execution_failed"
+```
+
+A 200 means the execution API answered. It is not a claim that the tool ran.
+The body says what happened, and since §48 it says so explicitly:
+`tool_execution.executed`, `dispatch_began`, `state_unknown`.
+
+So a dispatch REMORA refused, and a dispatch whose result was lost, both
+reached the model as `"executed"`. This is the worst sentence this gateway can
+produce, because the model does not stop there: it tells a person the work is
+done. Every mechanism upstream — the lease, the one-time nonce, the durable
+outcome classification, the audit chain — computed the right answer, and the
+last hop overwrote it with the transport status.
+
+### The fix, and the two places it is stricter than the Python rule
+
+The mapping now derives from the body, in its own module
+(`workers/mcp-gateway/src/outcome.ts`) so it can be unit tested rather than
+exercised only through a deploy. That is the lesson from the read-only SQL
+predicate (§51), applied before rather than after.
+
+It is deliberately stricter than `remora/execution/outcome.py` in two places,
+because the input is different: the Python classifier reads a dict its own
+dispatcher just built, and the gateway reads wire data.
+
+- **A 200 with no `tool_execution` is `unknown`, not `executed`.** Absence of
+  evidence is the exact thing this entry is about.
+- **`refused` requires `dispatch_began === false`, not merely an absent
+  field.** Otherwise an empty body would produce the strongest negative claim
+  the gateway can make, on no evidence at all — the same error as §48, in the
+  other component.
+
+`unknown` carries wording the model cannot read as either verdict, and tells it
+not to retry: re-running a call that may already have taken effect is the one
+move that must not happen. `executed` carries no added prose, because prose on
+the success path is how a caveat becomes noise.
+
+Two smaller things fell out of the change. Effect verification is no longer
+attempted on a refused dispatch — nothing was sent, so the system of record
+correctly shows no change, and reporting that as `EFFECT_MISMATCH` would
+manufacture bad news out of a correct refusal. And the poll response built two
+`explanation` keys in one object literal, silently keeping the last; the one
+being dropped was the dispatch status.
+
+### The test fixtures were the defect, written down as an expectation
+
+Two existing tests failed against the corrected rule. Their fixture was
+`{ outcome: "executed" }` with no `tool_execution` at all, and the tests
+asserted the gateway reported `"executed"` from it. That is RMR-006 itself,
+encoded as a passing test: a body that proves nothing, asserted to mean
+success. The fixtures were corrected to what the API actually returns rather
+than the rule being relaxed to keep them green.
+
+The first version of the new end-to-end tests also passed against the broken
+code, because the test helper takes the assess body and the options as separate
+positional arguments and the override was silently landing in the wrong one.
+Mutation — reverting the fix and requiring the tests to fail — caught both.
+Seven now fail without it.
+
+**Not deployed.** Gateway source only; the Worker was not redeployed.
 
