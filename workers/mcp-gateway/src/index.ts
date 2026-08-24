@@ -19,6 +19,7 @@ import { DurableObject } from "cloudflare:workers";
 export { ContainerProxy };
 import { handleRpc, type JsonRpcRequest, type PendingProposal, type ProposalStore } from "./mcp";
 import { RemoraClient } from "./remora";
+import { isReadOnlySql } from "./sql";
 import { verifyGraphWrite } from "./effect";
 
 export interface Env {
@@ -265,14 +266,37 @@ export class RemoraContainer extends Container<Env> {
       // is the active decision here, not a missing piece.
       REMORA_GROUNDED_READ_ACCEPT: "1",
       REMORA_TOOL_METADATA_FILE: "/app/deploy/gateway/tool_metadata.json",
-      REMORA_TOOL_REGISTRY_MODULE: "deploy.gateway.registry",
       REMORA_SEMANTIC_BUNDLE_MODULE: "deploy.gateway.bundle",
       // Which tool sets are live is decided from whether their configuration
       // is complete, so an absent credential means the set is not offered
       // rather than offered and broken.
-      REMORA_GITHUB_TOKEN: env.REMORA_GITHUB_TOKEN ?? "",
-      REMORA_GITHUB_REPOS: env.REMORA_GITHUB_REPOS ?? "",
+      // ── NOT given to the authority domain ────────────────────────────
+      // REMORA_GITHUB_TOKEN and REMORA_TOOL_REGISTRY_MODULE are deliberately
+      // absent here. The authority decides and signs; the executor causes
+      // effects. Handing the authority a downstream credential would make it a
+      // component that can both mint authority and use it, which is the single
+      // point of failure the split exists to remove.
+      //
+      // Found by review after the split shipped: three documents already said
+      // the authority holds no downstream credential, and the configuration
+      // passed it one. On this deployment no REMORA_GITHUB_TOKEN secret is set,
+      // so the claim happened to hold by accident rather than by design
+      // (NEGATIVE_RESULTS section 47).
+      //
+      // The authority still needs REMORA_TOOL_METADATA_FILE and the semantic
+      // bundle: those are how it DECIDES. They are declarations, not
+      // credentials, and carry no ability to act.
       REMORA_KG_TENANT: env.REMORA_KG_TENANT ?? "",
+      // Required, and NOT a grant of callables. The policy bundle hash covers
+      // this module's spec string and a digest of its source, resolved WITHOUT
+      // importing it (servers/api.py::_tool_registry_component_hash). Both
+      // domains must declare the same registry or their bundle hashes differ
+      // and every lease is refused as policy_bundle_mismatch -- which is
+      // exactly what happened when this was first removed here.
+      //
+      // The callables load only in _tool_dispatcher(), which this domain never
+      // reaches: dispatch_under_lease forwards before a dispatcher is needed.
+      REMORA_TOOL_REGISTRY_MODULE: "deploy.gateway.registry",
       REMORA_EXECUTION_ARTIFACT_DIR: "/var/lib/remora/artifacts",
       PYTHONPATH: "/app",
     };
@@ -343,8 +367,17 @@ export class RemoraExecutionContainer extends Container<Env> {
       REMORA_AUDIT_SIGNING_KEY: env.REMORA_AUDIT_SIGNING_KEY,
       REMORA_ENVELOPE_SIGNING_KEY: env.REMORA_ENVELOPE_SIGNING_KEY,
 
-      // Downstream credentials live HERE and nowhere else. The authority
-      // container cannot cause an effect even if it wanted to.
+      // Downstream credentials live HERE and nowhere else -- the authority is
+      // no longer passed REMORA_GITHUB_TOKEN, which it was until review caught
+      // it (NEGATIVE_RESULTS section 47).
+      //
+      // The stronger sentence that used to sit here -- "the authority cannot
+      // cause an effect even if it wanted to" -- was removed rather than
+      // fixed, because it is not true. The authority declares the same tool
+      // registry (the bundle hash requires it) and reaches graph.internal for
+      // grounding, so a compromise there could still touch the graph. What it
+      // cannot do is authenticate to a downstream system that needs a
+      // credential, and that is the claim worth making.
       REMORA_GITHUB_TOKEN: env.REMORA_GITHUB_TOKEN ?? "",
       REMORA_GITHUB_REPOS: env.REMORA_GITHUB_REPOS ?? "",
       REMORA_KG_TENANT: env.REMORA_KG_TENANT ?? "",
@@ -370,6 +403,47 @@ export class RemoraExecutionContainer extends Container<Env> {
  * escapes to the public internet, where `graph.internal` fails DNS. That is
  * how this was found.
  */
+
+/** A D1 request restricted to reads. */
+async function d1ReadOnly(db: D1Database | undefined, request: Request,
+                          what: string): Promise<Response> {
+  // Read the body ONCE and forward a reconstructed request. The first version
+  // cloned and let d1Request re-read the original; every graph read then came
+  // back empty on the deployment. Reading once removes the question entirely,
+  // which is worth more here than knowing exactly how the double read failed.
+  const raw = await request.text();
+  let body: { sql?: string; batch?: { sql: string }[] };
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return Response.json(
+      { success: false, errors: [{ message: "invalid JSON" }] },
+      { status: 400 });
+  }
+  const sqls = body.batch ? body.batch.map((b) => b.sql) : [body.sql ?? ""];
+  const offending = sqls.find((sql) => !isReadOnlySql(sql));
+  if (offending !== undefined) {
+    return Response.json({
+      success: false,
+      errors: [{
+        message:
+          `${what} is read-only from this domain: the authority may query the ` +
+          "graph to decide and may not write it. Refused statement: " +
+          offending.slice(0, 120),
+      }],
+    }, { status: 403 });
+  }
+  return d1Request(
+    db,
+    new Request(request.url, {
+      method: request.method,
+      headers: request.headers,
+      body: raw,
+    }),
+    what,
+  );
+}
+
 /** One D1 request from the container, answered from a binding. */
 async function d1Request(db: D1Database | undefined, request: Request,
                          what: string): Promise<Response> {
@@ -435,8 +509,12 @@ async function d1Request(db: D1Database | undefined, request: Request,
  * how this was found.
  */
 RemoraContainer.outboundByHost = {
+  // READ-ONLY. The authority queries the graph to ground a decision and must
+  // not be able to write it: a domain holding the private lease key that can
+  // also cause an effect is the single point of failure the split removes.
+  // The executor keeps full access below, because causing effects is its job.
   "graph.internal": (request: Request, env: Env) =>
-    d1Request(env.GRAPH_DB, request, "GRAPH_DB"),
+    d1ReadOnly(env.GRAPH_DB, request, "GRAPH_DB"),
   // Durable execution state: the tenant audit chain, the review queue and the
   // one-time-grant ledger. On container disk these would be discarded at
   // every restart and a consumed grant would become replayable.

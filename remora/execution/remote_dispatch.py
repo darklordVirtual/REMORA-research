@@ -113,7 +113,6 @@ def remote_dispatch(
     tenant: str,
     principal: str,
     tool_call: Any,
-    now: str,
 ) -> dict[str, Any]:
     """Hand a minted lease to the execution domain and return its outcome.
 
@@ -130,8 +129,6 @@ def remote_dispatch(
     payload = {
         "lease": lease.to_dict(),
         "tenant_id": tenant,
-        "actor_identity": principal,
-        "now": now,
         "tool_call": {
             "tool_name": tool_call.tool_name,
             "arguments": tool_call.arguments,

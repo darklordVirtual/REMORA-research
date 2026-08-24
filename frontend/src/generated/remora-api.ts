@@ -761,25 +761,37 @@ export interface components {
          *     the concrete call. A lease for a different tool, tenant, target or argument
          *     set is refused here exactly as a forged one is.
          *
-         *     ``now`` is carried so the authority's clock decides freshness rather than
-         *     the executor's, which keeps a skewed executor from widening or narrowing a
-         *     lease's usable window.
+         *     Freshness is checked against the EXECUTOR's clock, deliberately. An earlier
+         *     version of this contract carried a ``now`` field and claimed the authority's
+         *     clock should decide; the endpoint never read it, so the field was dead and
+         *     the docstring described a behaviour the code did not have.
+         *
+         *     Removed rather than wired up, because the claim was also wrong. The
+         *     authority mints the lease, so letting it also assert the time against which
+         *     its own expiry is judged makes the TTL vacuous from the executor's side. An
+         *     independent freshness check is one of the few things the second domain can
+         *     contribute on its own, and it is worth more than agreement between clocks.
+         *
+         *     There is deliberately no ``actor_identity`` field. An earlier version had
+         *     one and the endpoint preferred it over the authenticated principal, so a
+         *     caller holding a stolen lease and the hop credential could assert the
+         *     victim's identity and satisfy the lease's own actor check -- the exact
+         *     binding that check exists to enforce (NEGATIVE_RESULTS section 48).
+         *
+         *     The actor now comes from the lease, where it is inside the Ed25519-signed
+         *     payload. That is authenticated material: only the authority can produce it,
+         *     and it cannot be altered without invalidating the signature.
+         *
+         *     Residual, and stated rather than implied: the hop's transport authenticates
+         *     the AUTHORITY, not the end actor. The executor therefore trusts the
+         *     authority's signed assertion about who acted. Anchoring the end actor to
+         *     its own transport credential remains open (CAP-013).
          */
         DispatchLeasedRequest: {
-            /**
-             * Actor Identity
-             * @default
-             */
-            actor_identity: string;
             /** Lease */
             lease: {
                 [key: string]: unknown;
             };
-            /**
-             * Now
-             * @default
-             */
-            now: string;
             /**
              * Tenant Id
              * @default

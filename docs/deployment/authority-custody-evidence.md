@@ -41,6 +41,17 @@ implemented and not deployed. That was accurate when written. §3 of
 | Public key fingerprint | `07801ac026e4c470` (SHA-256 of the public key, first 8 bytes) |
 | `kid` | not set — single key in service |
 
+**What this commit is and is not.** `6376d94` is the squash-merge of #354, the
+commit the deployment identity above binds to. The Worker version in service
+during the later experiments was built from branch work that is still unmerged
+(the actor-from-lease fix and the anchored read-only allowlist, now in this PR),
+so it is not reproducible from any commit on `master`. An earlier revision of
+this table named that branch commit instead. That was worse in both directions:
+the SHA it gave is unreachable from `master` after the branch was rebuilt, and
+the parenthetical still read "squash-merge of #354", which it was not. A
+deployment-evidence document that names a commit nobody can check is not
+evidence.
+
 The private key is not in this document and was not read back after generation.
 Its location is asserted by configuration (`workers/mcp-gateway/src/index.ts`,
 pinned by `workers/mcp-gateway/test/custody.test.ts`) and by the behavioural

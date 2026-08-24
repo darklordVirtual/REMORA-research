@@ -81,6 +81,15 @@ authority.
 | `REMORA_ENVELOPE_SIGNING_KEY` | yes | see §4 |
 | `REMORA_TOOLSPEC_SIGNING_KEY` | **neither** — signing is a build-time act; the runtime needs only trusted identities | |
 | `REMORA_GITHUB_TOKEN` and downstream credentials | **no** | yes — only the dispatcher needs them |
+| `REMORA_TOOL_REGISTRY_MODULE` | yes — a *declaration*, not callables | yes |
+
+The registry row is not a loophole and was learned the hard way. The policy
+bundle hash covers that module's spec string and a source digest, resolved
+**without importing it**, so both domains must declare the same registry or
+their bundle hashes differ and every lease is refused as
+`policy_bundle_mismatch`. Removing it from the authority to make it "hold no
+tools" did exactly that on the deployment. The callables load only in
+`_tool_dispatcher()`, which the authority never reaches — it forwards first.
 | `REMORA_STATE_ENDPOINT` | yes | yes — the nonce ledger lives here |
 
 Note the inversion this produces, and it is the point: the authority issuer can

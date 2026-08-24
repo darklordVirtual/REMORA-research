@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **14 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **17 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2999,3 +2999,303 @@ worth applying ahead of a review rather than after one.
 decision (`unknown_resolution.mode: manual` in the schema). The effect recorder
 can supersede an UNKNOWN dispatch with a verified observation, which is the
 automated half; nothing reconciles an UNKNOWN that never gets one.
+
+> **Renumbering note.** These three entries were written as §47-49 on a
+> branch predating the effect-receipt (§47) and dispatch-outcome (§48)
+> work now on master. They are §49-51 here. Nothing changed except the
+> numbers and the cross-references between them.
+
+## §49 A code review found three defects and missed the worst one; fixing it took the gateway down (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** four defects, all fixed. Recorded for the pattern in each, and
+because the repair itself produced a live outage on the test deployment.
+
+### What the review found
+
+Three findings, all verified against the code rather than accepted:
+
+1. **`now` was dead on the wire and the contract lied about it.** The
+   `DispatchLeasedRequest` docstring said *"`now` is carried so the authority's
+   clock decides freshness rather than the executor's"*; `dispatch_leased`
+   computed its own `now` and never read the field. Fixed by **removing** the
+   field, not by wiring it up: the claim was also wrong. The authority mints
+   the lease, so letting it assert the time its own expiry is judged against
+   makes the TTL vacuous from the executor's side. An independent freshness
+   check is one of the few things the second domain contributes alone.
+
+   This is the same shape as the Invariant finding in the crosswalk — a
+   document describing a property the implementation does not have — committed
+   here two days after writing that up.
+
+2. **`REMORA_EXECUTION_ENDPOINT` gated on the keypair, not the binding.**
+   Reported as a defect; the suggested fix was **rejected**. Gating on
+   `env.EXECUTION` instead would mean a deployment with the private key but no
+   execution binding silently dispatches locally, reverting to single-domain
+   custody with no signal. The current behaviour — every call refused as
+   `execution_domain_unreachable` — is an outage, and an outage is the correct
+   failure for a missing half of a security boundary.
+
+3. **A guard that skipped its own case.** `dispatcher is None and not
+   execution_endpoint()` let a process configured as both, holding a presented
+   lease and no dispatcher, fall through to `dispatcher.dispatch(None)` — an
+   `AttributeError` where the function documents a named refusal. The guard now
+   asks whether this process will execute locally.
+
+### What the review missed, and it was the important one
+
+The **authority** container was passed `REMORA_GITHUB_TOKEN`. Three documents
+said it holds no downstream credential: the target topology table, the source
+comment in `index.ts` (*"the authority container cannot cause an effect even if
+it wanted to"*), and CAP-013.
+
+On this deployment no `REMORA_GITHUB_TOKEN` secret is set, so the claim held by
+**accident**. A component that can both mint authority and use it is the single
+point of failure the split exists to remove, and the configuration would have
+created one the moment that secret was added.
+
+This is §42's pattern again, in the same programme: the claim more flattering
+than the evidence is the one nobody checks. Neither review nor testing caught
+it — it was found by diffing the two `envVars` blocks while checking something
+else.
+
+### Fixing it took the gateway down for about fifteen minutes
+
+Removing `REMORA_TOOL_REGISTRY_MODULE` from the authority alongside the
+credential broke every call with `policy_bundle_mismatch`. The policy bundle
+hash covers that module's spec string and a source digest — resolved *without
+importing it* — so the two domains must **declare** the same registry or their
+hashes differ. The declaration was never a grant of callables, and removing it
+to "hold no tools" removed agreement instead.
+
+Then the diagnosis went wrong in a way worth recording. Restoring the registry
+did not fix it, so the cause looked like something else, and a bisect began.
+The bisect was meaningless: **Cloudflare keeps running container instances when
+only the Worker changes.** Both instances had been created at 07:57 and none of
+the three later deploys replaced them, so every fix was tested against the
+broken configuration. The instances only rolled once the *image* digest changed.
+
+Two operational consequences, neither of which existed with one container:
+
+- an `envVars` edit alone does not reach a live container, so a config fix can
+  appear not to work while being correct;
+- the bundle hash is now a **cross-container agreement requirement**, so the
+  two domains must roll together or the deployment refuses every lease.
+
+Fail-closed throughout — nothing executed unauthorised — but availability, not
+safety, is what a split buys you a new way to lose.
+
+### One more, found while fixing the tests
+
+`workers/mcp-gateway/test/custody.test.ts` located the end of a class body with
+the literal `"\n  }\n}"`. The file is stored CRLF, so that never matched, every
+extracted block silently ran to end-of-file, and the execution-container
+assertions passed **only because the authority class is declared above it in
+the file**. A test asserting an absence, passing for the wrong reason. Now
+matched with `/\r?\n {2}\}\r?\n\}/`.
+
+### The general shape
+
+Three of these four were invisible to a green suite and to a targeted review.
+The one with real security content was found by reading two configuration
+blocks side by side, which is neither. The recurring lesson of this programme
+holds: for properties whose subject is a deployment, evidence has to come from
+the deployment, and absences need a test that is itself verified to fail.
+
+## §50 An external forensic review found seven defects; two were mine to fix in flight (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** external read-only review against `6be9cde`. Two findings fixed
+immediately because they fell inside work already open; five recorded as open
+with their reproductions preserved.
+
+**Context.** A forensic review was run against the merge of #355. It reported
+one CRITICAL, six HIGH and several MEDIUM findings, with reproductions. It was
+conducted before #356 landed, so part of what it found had already been fixed —
+which is itself worth recording, because the overlap is not coincidence.
+
+### What it independently found that this repository had also found
+
+The CRITICAL finding — the authority container holding downstream effect
+capability while holding the private lease key — is the same defect recorded
+here as §49, found by diffing two `envVars` blocks. Two reviewers, one internal
+and one external, arriving at the same finding by different routes is the
+strongest signal in this document that the finding is real.
+
+It also found the ignored `now` field (§49's finding 1) and the dead-guard case.
+All three were already fixed in #356 and could not be seen from the reviewed
+revision.
+
+### What it found that was still true, and fixed here
+
+**Actor identity was caller-asserted on the custody hop.**
+`/dispatch-leased` used `req.actor_identity or principal`. A caller holding a
+stolen lease and the hop credential could put the victim's identity in the
+request body and satisfy the lease's own actor check — the exact binding that
+check exists to enforce. `ExecutionLease.verify`'s own docstring says the
+identity must come from authenticated transport and never from a request body.
+I wrote both.
+
+Fixed by taking the actor from the **lease**, where it sits inside the
+Ed25519-signed payload: only the authority can produce it and it cannot be
+altered without invalidating the signature. The body field is removed from the
+model rather than ignored by the handler, because a field that is accepted and
+ignored invites someone to wire it back up.
+
+Residual, stated rather than implied: the hop's transport authenticates the
+**authority**, not the end actor, so the executor trusts the authority's signed
+assertion about who acted. Anchoring the end actor to its own credential
+remains open.
+
+**The authority could write the graph.** §49 removed `REMORA_GITHUB_TOKEN` from
+the authority but left `graph.internal → GRAPH_DB` routed through the
+unrestricted D1 proxy. The authority genuinely needs graph *reads* — grounding
+signals, the state index and the semantic bundle all query it to reach a
+decision — so the route could not simply be deleted.
+
+It is now read-only, enforced by an **allowlist** (`SELECT`/`WITH`/
+`PRAGMA table_info`, no statement chaining) rather than a denylist of mutating
+verbs. A denylist has to anticipate every way to write and only has to be wrong
+once. The executor keeps unrestricted access, because causing effects is its
+job.
+
+Verified on the deployment: a grounded read still reaches `accept`/`executed`,
+so the decision path retains the reads it needs.
+
+### What remains open
+
+Recorded here so it is not lost, with the review's identifiers:
+
+- **RMR-004** — `ExecutionLease` carries `toolspec_hash`/`toolspec_version` and
+  the dispatcher never supplies them; `verify_callable` and
+  `verify_credential_scope` have no non-test caller. Signed spec identity is
+  inert at the final PEP.
+- **RMR-006** — MCP maps every HTTP 200 to `executed`, including a body saying
+  `executed=false` or `state_unknown=true`.
+- **RMR-007** — `workers/mcp-gateway` is absent from the npm audit and SBOM
+  matrices, and the security and worker jobs are not required branch contexts.
+- **RMR-009**, **RMR-013** — lost outbox claim still dispatches; the executor
+  exposes the full execution router.
+
+None is fixed in this change. Fixing seven findings in one commit would produce
+an unreviewable diff for defects that each deserve their own adversarial test,
+and RMR-002/003/004 change durable state semantics that consumers depend on.
+
+RMR-002 and RMR-003 were subsequently fixed, each in its own change, and are
+recorded as §47 and §48. They are struck from the list above rather than
+left standing, because a list of open findings that keeps closed ones is the
+same drift this document's status gate exists to prevent. The five below remain
+open at the time of writing.
+
+### The finding about the findings
+
+Three of the seven were in code I wrote in the preceding two days, and two of
+those contradicted docstrings I wrote in the same commits. The pattern is not
+carelessness about security — the mechanisms are sound — it is that **prose
+asserting a property is written at the moment of highest confidence and lowest
+evidence**, and nothing checks it. §49 said the same thing about a comment.
+This is now the third consecutive entry in which the defect was a claim rather
+than a mechanism.
+
+## §51 The read-only allowlist was wrong once, in the way its own comment warned about (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** security defect found by automated review, fixed and verified. A
+second finding reported here as OPEN was subsequently **retracted**: it was a
+defect in the verification script, not in the system. Both are kept below.
+
+### The allowlist bypass
+
+§50 gave the authority a read-only graph route so a domain holding the private
+lease key could not also write the graph. The allowlist accepted a leading
+`WITH`, and the commit message said, in the same breath:
+
+> a denylist has to anticipate every way to write and only has to be wrong once
+
+The allowlist was wrong once. SQLite lets a common table expression prefix a
+mutation:
+
+```sql
+WITH x AS (SELECT 1) INSERT INTO knowledge_facts SELECT * FROM x
+```
+
+so `^(select|with)` admitted DML through the read-only route, re-opening the
+capability the route was added to close. `WITH` is now refused outright rather
+than parsed: no query this deployment issues uses a CTE, so the capability
+bought nothing and cost a bypass.
+
+**Why the test did not catch it.** The test read the regex out of the source
+and asserted its *shape* — that it matched `^(select|with)` and did not mention
+`insert`. A source-shape assertion cannot catch a semantic bypass. The
+predicate now lives in its own module (`src/sql.ts`, no Cloudflare imports) and
+is exercised with real statements, including the reported bypass, CTE-prefixed
+UPDATE and DELETE, comment- and parenthesis-prefixed mutations, statement
+chaining and write pragmas.
+
+**Stated limit.** A regex is not a parser. This is a lexical guard at the
+proxy, not engine-level enforcement; D1's binding exposes no read-only
+connection mode. It is one boundary among several — the registry binds the
+tenant clause into every statement and issues only parameterised reads — and it
+should be replaced by engine-level enforcement if D1 ever offers it.
+
+### RETRACTED: "graph reads from the tool return no rows"
+
+**This subsection reported a regression that does not exist.** It is corrected
+here rather than deleted, because the mistake is the finding.
+
+**What was claimed.** That `kg_list_predicates` returned `status: executed`
+with an empty predicate list while 1,251 facts sat in the graph, and that the
+custody split had therefore broken governed reads undetected across four
+deployments.
+
+**What is true.** The governed read was correct the whole time. Compared by
+canonical SHA-256 digest against the exact direct D1 query at the same observed
+`state_hash`:
+
+```
+governed rows : 50  58a56feacbae36eaed03667e16dc5a0ae5de2221
+direct rows   : 50  58a56feacbae36eaed03667e16dc5a0ae5de2221
+RESULT: MATCH
+```
+
+Same fifty rows, same order, same counts, tenant `luftfiber` echoed correctly.
+
+**The actual defect was in the verification script.** The MCP response nests
+the tool's return value inside the dispatcher's result object:
+
+```
+payload.result            -> tool_execution  {executed, proposal_id, result, ...}
+payload.result.result     -> the tool's own return  {tenant, graph, predicates}
+```
+
+Every probe read `payload.result.predicates`, which is `None` on the
+`tool_execution` object, and reported `0`. The number was never measured; it
+was produced by reading the wrong key.
+
+**Cost.** Three container deployments, one bisect that reverted a correct
+security control to test a hypothesis about a fault that was not there, an
+incorrect OPEN entry in this document, and an incorrect OPEN entry in CAP-013.
+
+**Why it is recorded.** §49 and §50 both concluded that this project's failures
+cluster in claims rather than mechanisms. This one goes further: the claim was
+produced by an unverified *measurement*, and it was a measurement asserting
+that a system was broken. The same discipline that forbids an unverified
+success claim has to forbid an unverified failure claim, and nothing here was
+enforcing that.
+
+Two things would have caught it immediately, and neither was done. Comparing
+the governed result against the direct query — which is what the effect
+verifier does for writes, and what this project already knows how to do — was
+only performed *after* the regression was written up. And the probe never
+asserted its own shape: a script that reads `payload.result.predicates` should
+fail loudly when that key is absent, not report zero.
+
+**What survives.** #357 is unaffected and remains correct on its own terms: an
+unknown response shape must not read as an empty result set, whatever else is
+true. Its scope statement already said it was "not yet known to repair the
+fault" — which was accurate, and is now settled: there was no fault to repair.
+
+**Applied rule.** A probe that reports a system is broken is a claim, and gets
+the same evidence standard as a claim that it works: compare against an
+independent source at the same observed state, and make the probe fail closed
+on an unexpected response shape.
