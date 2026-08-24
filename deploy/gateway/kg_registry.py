@@ -98,12 +98,53 @@ def _query(sql: str, params: list[Any]) -> list[dict[str, Any]]:
         raise GraphUnavailable(f"graph returned {exc.code}: {detail}") from exc
     except urllib.error.URLError as exc:
         raise GraphUnavailable(f"graph unreachable: {exc.reason}") from exc
+    except json.JSONDecodeError as exc:
+        raise GraphUnavailable(f"graph returned unparseable JSON: {exc}") from exc
 
+    if not isinstance(payload, dict):
+        raise GraphUnavailable(
+            f"graph returned {type(payload).__name__}, expected an object")
     if not payload.get("success"):
         raise GraphUnavailable(f"graph refused: {str(payload.get('errors'))[:300]}")
+
+    # The shape is checked, not assumed.
+    #
+    # This used to be `payload.get("result", [])` and `result.get("results", [])`,
+    # which turned a missing or malformed response body into an empty row list
+    # that is indistinguishable from a graph with no matching rows. A caller
+    # then cannot tell "no data" from "no answer", and the surrounding tool
+    # reports a successful read of nothing.
+    #
+    # Everything above this point already fails closed -- HTTP status, transport
+    # and an explicit success:false all raise. Only the structural path was
+    # silent, so only the structural path is tightened here. An empty
+    # `results` list remains legal: a query that legitimately matches nothing
+    # must not be reported as an outage.
+    if "result" not in payload:
+        raise GraphUnavailable(
+            "graph answered success with no 'result' key; refusing to report "
+            "an unknown response shape as an empty result set")
+    result_sets = payload["result"]
+    if not isinstance(result_sets, list):
+        raise GraphUnavailable(
+            f"graph 'result' is {type(result_sets).__name__}, expected a list")
+
     rows: list[dict[str, Any]] = []
-    for result in payload.get("result", []):
-        rows.extend(result.get("results", []))
+    for index, result in enumerate(result_sets):
+        if not isinstance(result, dict):
+            raise GraphUnavailable(
+                f"graph result[{index}] is {type(result).__name__}, "
+                "expected an object")
+        if "results" not in result:
+            raise GraphUnavailable(
+                f"graph result[{index}] has no 'results' key; refusing to "
+                "report an unknown response shape as an empty result set")
+        batch = result["results"]
+        if not isinstance(batch, list):
+            raise GraphUnavailable(
+                f"graph result[{index}].results is {type(batch).__name__}, "
+                "expected a list")
+        rows.extend(batch)
     return rows
 
 
