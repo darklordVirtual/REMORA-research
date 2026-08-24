@@ -58,9 +58,13 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 58c0fcf516c77fa6a5a4be3ae32d4c85c0fdeff4
+    verified_at_sha: 931f4d5983bf00a3e3f544454a89be29a503dc13
     verified_by: >-
-      rebound 2026-08-24 to the squash-merge commit of #352; content-identical.
+      re-audit 2026-08-24: e6a4cd96 changes the effect-receipt append path in
+      servers/execution_api.py and does not change token issuance, _GATE,
+      audience/expiry checks or jti consumption. The token sources and caveat
+      were re-read and remain unchanged. Prior: rebound 2026-08-24 to the
+      squash-merge commit of #352; content-identical.
       Prior: re-audit 2026-08-24, rebound because servers/execution_api.py moved when
       the lease nonce store was wired into _tool_dispatcher. That change adds
       _lease_nonce_store() and touches nothing on the token path -- _GATE, its
@@ -176,9 +180,15 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 58c0fcf516c77fa6a5a4be3ae32d4c85c0fdeff4
+    verified_at_sha: 931f4d5983bf00a3e3f544454a89be29a503dc13
     verified_by: >-
-      rebound 2026-08-24 to the squash-merge commit of #352, which is where
+      re-audit 2026-08-24: terminal effect-receipt uniqueness and audit
+      evidence now commit in one append_once operation; concurrent and
+      rollback fault-injection tests pin the property. D1-only production is
+      explicitly refused because its tenant audit chain is not durable; status
+      is deliberately unchanged and the caveat names the backend limit. Bound
+      to 931f4d5983bf00a3e3f544454a89be29a503dc13. Prior: rebound 2026-08-24
+      to the squash-merge commit of #352, which is where
       these sources now live in master's history; content-identical, no status
       or scope change. Prior: re-audit 2026-08-24 (deployment evidence,
       docs/deployment/authority-custody-evidence.md; ADR-A and ADR-B,
