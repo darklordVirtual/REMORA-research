@@ -344,7 +344,11 @@ def test_execute_without_any_signing_key_fails_closed(client, monkeypatch) -> No
 
 def test_tool_exception_burns_nonce_and_is_reported(client, monkeypatch) -> None:
     """A tool that raises must surface as executed=false with the nonce
-    burned (fail-closed), while the audit chain still records the attempt."""
+    burned (fail-closed), while the audit chain still records the attempt.
+
+    And it must settle UNKNOWN: dispatch began, and nothing proves the effect
+    did not happen.
+    """
     import tests.dispatcher_registry_fixture as reg
 
     monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "exec-api-lease-key")
@@ -363,7 +367,14 @@ def test_tool_exception_burns_nonce_and_is_reported(client, monkeypatch) -> None
         from remora.governance.review_queue import ItemStatus
         last = exec_mod._CHAIN.entries("acme")[-1]
         assert last.payload["tool_executed"] is False
-        assert exec_mod._queue("acme").item(item_id).status is ItemStatus.DISPATCH_FAILED
+        # UNKNOWN, not FAILED. The tool raised after its nonce was consumed,
+        # so whether the effect happened is exactly what is not known. This
+        # fixture asserted DISPATCH_FAILED -- a durable claim that nothing
+        # happened, on evidence that only showed the call raised
+        # (NEGATIVE_RESULTS section 48).
+        assert exec_mod._queue("acme").item(item_id).status is (
+            ItemStatus.DISPATCH_UNKNOWN)
+        assert last.payload["state_unknown"] is True
         assert client.get("/v1/execution/audit/verify").json()["valid"] is True
     finally:
         reg.RAISE["update_work_order"] = False

@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from remora.execution.outcome import DispatchOutcome
 from remora.governance.review_queue import (
     MAX_APPROVAL_TTL,
     ExecutionDecision,
@@ -141,19 +142,36 @@ def test_execution_outcome_terminal_states() -> None:
 
     q1, _ = _queue()
     item = authorized_item(q1)
-    q1.record_execution_outcome(item.item_id, executed=True)
+    q1.record_execution_outcome(item.item_id,
+                                outcome=DispatchOutcome.SUCCEEDED)
     assert item.status is ItemStatus.EXECUTED
 
     q2, _ = _queue()
     item = authorized_item(q2)
-    q2.record_execution_outcome(item.item_id, executed=False, reason="unknown_tool")
+    q2.record_execution_outcome(item.item_id,
+                                outcome=DispatchOutcome.REFUSED,
+                                reason="unknown_tool")
     assert item.status is ItemStatus.DISPATCH_REFUSED
     assert q2.events[-1].kind == "execution_outcome"
 
     q3, _ = _queue()
     item = authorized_item(q3)
-    q3.record_execution_outcome(item.item_id, executed=False, failed=True,
+    # A tool that raised is UNKNOWN, not FAILED. This fixture asserted
+    # DISPATCH_FAILED, which was a durable claim that no effect occurred on
+    # evidence that only showed the call raised (NEGATIVE_RESULTS section 48).
+    q3.record_execution_outcome(item.item_id,
+                                outcome=DispatchOutcome.UNKNOWN,
                                 reason="tool_failed_nonce_burned")
+    assert item.status is ItemStatus.DISPATCH_UNKNOWN
+
+    # FAILED remains expressible, and remains reserved for a failure proven to
+    # precede the effect boundary. Nothing on the synchronous path can produce
+    # that evidence today.
+    q4, _ = _queue()
+    item = authorized_item(q4)
+    q4.record_execution_outcome(item.item_id,
+                                outcome=DispatchOutcome.FAILED,
+                                reason="reconciled_never_dispatched")
     assert item.status is ItemStatus.DISPATCH_FAILED
 
 
@@ -161,7 +179,8 @@ def test_execution_outcome_requires_prior_authorization() -> None:
     queue, _ = _queue()
     item = queue.enqueue(_obs(), DecisionAction.VERIFY)
     with pytest.raises(ValueError, match="not authorized"):
-        queue.record_execution_outcome(item.item_id, executed=True)
+        queue.record_execution_outcome(item.item_id,
+                                       outcome=DispatchOutcome.SUCCEEDED)
 
 
 def test_fresh_stricter_decision_voids_the_approval() -> None:

@@ -16,11 +16,23 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
+from remora.execution.outcome import DispatchOutcome, classify_outcome
 from remora.enforcement.outbox import OutboxState
 from remora.enforcement.token import PolicyDecisionToken
 from remora.governance.review_queue import ExecutionDecision
 from remora.governance.proposal_lineage import derive_lineage, lineage_key_for
 from remora.policy.report import DecisionAction
+
+
+#: The outbox state each outcome settles as. A table rather than a chain of
+#: conditionals, so a new outcome is a compile-time gap instead of a silent
+#: fall-through to the last else.
+_OUTBOX_STATE = {
+    DispatchOutcome.SUCCEEDED: OutboxState.SUCCEEDED,
+    DispatchOutcome.REFUSED: OutboxState.REFUSED,
+    DispatchOutcome.FAILED: OutboxState.FAILED,
+    DispatchOutcome.UNKNOWN: OutboxState.UNKNOWN,
+}
 
 
 def assess_proposal(
@@ -328,22 +340,22 @@ def execute_approved_item(
     )
 
     # FT-02: settle with what actually happened - derived, never assumed.
+    #
+    # The outcome is classified structurally. This used to match
+    # refusal_reason == "tool_failed_nonce_burned" and settle FAILED, which
+    # asserted "no effect occurred" on evidence that only showed the call
+    # raised. A dispatch that began and then failed is UNKNOWN until something
+    # proves otherwise (NEGATIVE_RESULTS section 48).
+    outcome = classify_outcome(tool_execution)
     if intent is not None:
         reason = tool_execution.get("refusal_reason")
-        if tool_execution["executed"]:
-            settled_state = OutboxState.SUCCEEDED
-        elif reason == "tool_failed_nonce_burned":
-            settled_state = OutboxState.FAILED
-        else:
-            settled_state = OutboxState.REFUSED
-        outbox().settle(intent.outbox_id, settled_state, detail=reason)
+        outbox().settle(intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason)
 
     # Persist the REAL outcome as the item's terminal state.
     with transaction(tenant) as q:
         q.record_execution_outcome(
             item_id,
-            executed=tool_execution["executed"],
-            failed=tool_execution.get("refusal_reason") == "tool_failed_nonce_burned",
+            outcome=outcome,
             reason=tool_execution.get("refusal_reason"),
         )
 
@@ -499,15 +511,12 @@ def redeem_accept_token(
         grant_jti=token.jti,
     )
 
+    # Same structural classification as the review path: a dispatch that began
+    # and then failed is UNKNOWN, not a durable claim that nothing happened.
+    outcome = classify_outcome(tool_execution)
     if intent is not None:
         reason = tool_execution.get("refusal_reason")
-        if tool_execution["executed"]:
-            settled_state = OutboxState.SUCCEEDED
-        elif reason == "tool_failed_nonce_burned":
-            settled_state = OutboxState.FAILED
-        else:
-            settled_state = OutboxState.REFUSED
-        outbox().settle(intent.outbox_id, settled_state, detail=reason)
+        outbox().settle(intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason)
 
     result_record: dict[str, Any] = {
         "event": "execution_result",
