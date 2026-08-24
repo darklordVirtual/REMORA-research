@@ -20,7 +20,6 @@ for a reason other than the contract in its name, it is a bad test.
 from __future__ import annotations
 
 import base64
-import os as _os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,14 +27,16 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _security_extra import require_security_extra  # noqa: E402
 
 from remora.enforcement import lease_signing as signing  # noqa: E402
 from remora.enforcement.lease import ExecutionLease  # noqa: E402
 
-if _os.environ.get("REMORA_REQUIRE_SECURITY_EXTRA", "").strip() in {"1", "true"}:
-    import cryptography  # noqa: F401
-else:
-    pytest.importorskip("cryptography")
+# Skips locally without the 'security' extra; fails hard in CI, where a skip
+# would silently withhold this file's evidence. See conftest for why.
+require_security_extra()
 
 from cryptography.hazmat.primitives.asymmetric import ed25519  # noqa: E402
 

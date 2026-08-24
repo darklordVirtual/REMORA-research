@@ -240,8 +240,6 @@ def test_the_execution_api_builds_a_durable_store_for_every_admitted_backend(
     If a fourth backend is ever added to the guard, this test is where it must
     also be given to the dispatcher.
     """
-    import importlib
-
     from servers import execution_api
 
     for backend, kwarg in (("REMORA_PG_DSN", "_dsn"),
@@ -251,7 +249,6 @@ def test_the_execution_api_builds_a_durable_store_for_every_admitted_backend(
                      "REMORA_STATE_ENDPOINT"):
             monkeypatch.delenv(name, raising=False)
         monkeypatch.setenv(backend, "configured-value")
-        importlib.reload(execution_api) if False else None
         store = execution_api._lease_nonce_store()
         assert store is not None, (
             f"{backend} is admitted by the durability guard but produced no "

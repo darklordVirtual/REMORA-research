@@ -58,9 +58,10 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: be4d6bbc95084be8b841235222f49a765e326ad9
+    verified_at_sha: 515f350bf60aa93c4ae6005e7cbe2ca017459a44
     verified_by: >-
-      re-audit 2026-08-24: rebound because servers/execution_api.py moved when
+      rebound 2026-08-24 to the squash-merge commit of #352; content-identical.
+      Prior: re-audit 2026-08-24, rebound because servers/execution_api.py moved when
       the lease nonce store was wired into _tool_dispatcher. That change adds
       _lease_nonce_store() and touches nothing on the token path -- _GATE, its
       three backends and the jti consumption are unchanged -- so this
@@ -170,9 +171,11 @@ capabilities:
       - tests/test_lease_nonce_durability.py
       - tests/test_lease_authority_custody.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: be4d6bbc95084be8b841235222f49a765e326ad9
+    verified_at_sha: 515f350bf60aa93c4ae6005e7cbe2ca017459a44
     verified_by: >-
-      re-audit 2026-08-24 (deployment evidence,
+      rebound 2026-08-24 to the squash-merge commit of #352, which is where
+      these sources now live in master's history; content-identical, no status
+      or scope change. Prior: re-audit 2026-08-24 (deployment evidence,
       docs/deployment/authority-custody-evidence.md; ADR-A and ADR-B,
       docs/architecture/ADR-authority-custody-and-lease-durability.md):
       lease.py binding set and refusal matrix re-read after the signature and

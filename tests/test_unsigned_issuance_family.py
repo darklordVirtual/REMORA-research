@@ -46,6 +46,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from remora.enforcement import lease_signing as signing  # noqa: E402
 from remora.enforcement.lease import ExecutionLease, LeaseRefused  # noqa: E402
@@ -235,3 +236,45 @@ def test_production_requires_every_authority_signing_key(keyless, monkeypatch):
         "production fail-closed omits the lease signing key; leases would be "
         "issued unsigned on the authoritative path"
     )
+
+
+# ── the guard that keeps this evidence running ──────────────────────────────
+
+def test_the_security_extra_guard_fails_hard_in_ci_and_skips_locally(
+        monkeypatch):
+    """CI must not be able to silently skip the Ed25519 custody evidence.
+
+    That already happened once: CI installed .[dev,causal,api] without
+    [security], every Ed25519 test skipped, and the only visible symptom was a
+    coverage floor. The guard exists so a missing dependency is reported as a
+    missing dependency.
+
+    Both halves are asserted, because a guard that always raises would break
+    every local checkout without the extra, and a guard that always skips is
+    the bug it was written to prevent.
+    """
+    import importlib as _il
+
+    from _security_extra import require_security_extra
+
+    def missing(name):
+        raise ImportError(f"No module named {name!r}")
+
+    monkeypatch.setattr(_il, "import_module", missing)
+
+    monkeypatch.setenv("REMORA_REQUIRE_SECURITY_EXTRA", "1")
+    with pytest.raises(ImportError):
+        require_security_extra()
+
+    # The other half routes to pytest.importorskip. It cannot be provoked into
+    # skipping here -- cryptography IS installed in this environment and
+    # importorskip does its own import, which the monkeypatch above does not
+    # reach -- so what is asserted is the ROUTING: not-required goes to
+    # importorskip and never to the hard import.
+    called: list = []
+    monkeypatch.setattr(pytest, "importorskip",
+                        lambda *a, **k: called.append(a[0]))
+    monkeypatch.delenv("REMORA_REQUIRE_SECURITY_EXTRA")
+    require_security_extra()
+    assert called == ["cryptography"], (
+        "without the CI flag the guard must skip rather than fail the run")
