@@ -42,6 +42,12 @@ from remora.governance.effect_receipt import (
     ReceiptRefused,
     verify_receipt as verify_effect_receipt,
 )
+from remora.governance.effect_receipt_ledger import (
+    DurableEffectReceiptLedger,
+    EffectReceiptLedger,
+    EffectReceiptLedgerUnavailable,
+    InMemoryEffectReceiptLedger,
+)
 from remora.enforcement.lease import (
     ExecutionLease,
     GovernedToolDispatcher,
@@ -591,6 +597,7 @@ def _queue(tenant: str) -> ReviewQueue:
 # it instead of implying execution.
 
 _DISPATCHER: GovernedToolDispatcher | None = None
+_EFFECT_LEDGER: EffectReceiptLedger | None = None
 
 
 def _current_policy_bundle_hash() -> str:
@@ -1423,16 +1430,56 @@ def _dispatch_projection(tenant: str, proposal_id: str) -> dict[str, Any] | None
     return _dispatch_projection_impl(_outbox(), tenant, proposal_id)
 
 
-def _trusted_verifiers() -> list[str]:
-    """Verifier identities this deployment accepts an effect receipt from.
+def _verifier_bindings() -> dict[str, set[str]]:
+    """Which authenticated principal may claim which verifier identity.
 
-    Empty means every named verifier is accepted, which is the research
-    default and is deliberately NOT the production posture: "signed by
-    someone" is not "signed by someone trusted to look". A deployment that
-    cares sets REMORA_TRUSTED_EFFECT_VERIFIERS.
+    ``REMORA_EFFECT_VERIFIER_BINDINGS`` is a comma-separated list of
+    ``principal=verifier_identity`` pairs.
+
+    An allowlist of verifier NAMES was not enough, and this is the correction.
+    The name arrived in the request body, so a submitter authorised to record
+    receipts could simply type a permitted name -- the allowlist constrained
+    which strings were acceptable, not who could send them. Binding the name to
+    the authenticated principal is what makes ``verifier_identity`` mean
+    "this party observed it" rather than "someone typed this".
+
+    Unset means the verifier identity must EQUAL the authenticated principal:
+    fail closed, and unspoofable without a second credential. That is stricter
+    than the previous default, deliberately.
     """
-    raw = _os.environ.get("REMORA_TRUSTED_EFFECT_VERIFIERS", "").strip()
-    return [part.strip() for part in raw.split(",") if part.strip()]
+    raw = _os.environ.get("REMORA_EFFECT_VERIFIER_BINDINGS", "").strip()
+    out: dict[str, set[str]] = {}
+    for pair in raw.split(","):
+        principal, _, identity = pair.partition("=")
+        if principal.strip() and identity.strip():
+            out.setdefault(principal.strip(), set()).add(identity.strip())
+    return out
+
+
+def _authorised_verifier(principal: str, verifier_identity: str) -> bool:
+    bindings = _verifier_bindings()
+    if not bindings:
+        return verifier_identity == principal
+    return verifier_identity in bindings.get(principal, set())
+
+
+def _effect_receipt_ledger() -> "EffectReceiptLedger":
+    """At most one settled verdict per dispatch, atomically.
+
+    Same backend selection as the lease nonce store, for the same reason: a
+    ledger the durability guard admits but this consumer never learns to use
+    is how a uniqueness guarantee quietly becomes advisory.
+    """
+    dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+    db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    endpoint = _os.environ.get("REMORA_STATE_ENDPOINT", "").strip()
+    if dsn or db_path or endpoint:
+        return DurableEffectReceiptLedger(
+            dsn=dsn, db_path=db_path, state_endpoint=endpoint)
+    global _EFFECT_LEDGER
+    if _EFFECT_LEDGER is None:
+        _EFFECT_LEDGER = InMemoryEffectReceiptLedger()
+    return _EFFECT_LEDGER
 
 
 def record_effect_verification(tenant: str, verification: Any, *,
@@ -1517,9 +1564,21 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
     if not events:
         raise HTTPException(status_code=404, detail="proposal not found")
 
-    verified_at = req.verified_at or _dt.datetime.now(_dt.UTC).isoformat()
+    # NOT defaulted to the server clock: substituting our time for a missing
+    # observation time fabricates the freshness the check depends on. A
+    # settled verdict without one is refused below.
+    verified_at = req.verified_at
 
-    # EFFECT_VERIFIED is derived from a bound observation, never reported.
+    # The verifier identity is bound to the authenticated principal, so it
+    # names who observed rather than what the submitter typed.
+    if not _authorised_verifier(principal, req.verifier_identity):
+        raise HTTPException(
+            status_code=403,
+            detail=(f"effect receipt refused (verifier_not_bound): "
+                    f"{principal!r} may not submit receipts as "
+                    f"{req.verifier_identity!r}"))
+
+    # A settled verdict is accepted only when bound to a real dispatch.
     # Everything the receipt is checked against is read from the audit chain;
     # nothing here trusts the request about which dispatch it describes.
     try:
@@ -1533,7 +1592,7 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
             observed_sha256=req.observed_sha256,
             verified_at=verified_at,
             verifier_identity=req.verifier_identity,
-            trusted_verifiers=_trusted_verifiers(),
+            trusted_verifiers=(),
             already_recorded=[
                 e.get("payload", {}) for e in events
                 if e.get("event") == "effect_verified"
@@ -1546,6 +1605,26 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
             status_code=409,
             detail=f"effect receipt refused ({exc.reason}): {exc.detail}",
         ) from exc
+
+    # The slot is taken BEFORE the append, and by the database rather than by
+    # this process: two concurrent receipts must not both read "unsettled" and
+    # both append. Only terminal verdicts take it -- an unresolved one must
+    # stay resolvable.
+    if status.is_terminal and lineage.dispatch_id:
+        try:
+            first = _effect_receipt_ledger().try_settle(
+                lineage.dispatch_id, tenant_id=tenant, status=status.value)
+        except EffectReceiptLedgerUnavailable as exc:
+            raise HTTPException(
+                status_code=503,
+                detail=("effect receipt ledger unavailable; refusing rather "
+                        f"than risking a second settled verdict: {exc}"),
+            ) from exc
+        if not first:
+            raise HTTPException(
+                status_code=409,
+                detail=("effect receipt refused (receipt_replayed): this "
+                        "dispatch already has a settled verdict"))
 
     verification = EffectVerification(
         proposal_id=proposal_id,
@@ -1560,6 +1639,11 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
         observed_sha256=req.observed_sha256,
         verified_at=verified_at,
         detail=req.detail,
+        dispatch_id=lineage.dispatch_id,
+        tool_call_hash=lineage.tool_call_hash,
+        observed_state_hash=req.observed_state_hash,
+        verifier_version=req.verifier_version,
+        submitted_by=principal,
     )
     audit = record_effect_verification(tenant, verification,
                                        submitted_by=principal,

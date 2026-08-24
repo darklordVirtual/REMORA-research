@@ -415,7 +415,9 @@
           },
           "expected_sha256": {
             "default": "",
+            "description": "Lowercase hex SHA-256, or empty. Validated on the wire: a digest field that accepts arbitrary text is not a digest field.",
             "maxLength": 64,
+            "pattern": "^([0-9a-f]{64})?$",
             "title": "Expected Sha256",
             "type": "string"
           },
@@ -428,7 +430,9 @@
           },
           "observed_sha256": {
             "default": "",
+            "description": "Lowercase hex SHA-256, or empty.",
             "maxLength": 64,
+            "pattern": "^([0-9a-f]{64})?$",
             "title": "Observed Sha256",
             "type": "string"
           },
@@ -452,6 +456,7 @@
             "default": "",
             "description": "The exact call this observation is about. Compared against the dispatch recorded in the audit chain; a receipt for a different call is refused.",
             "maxLength": 64,
+            "pattern": "^([0-9a-f]{64})?$",
             "title": "Tool Call Hash",
             "type": "string"
           },

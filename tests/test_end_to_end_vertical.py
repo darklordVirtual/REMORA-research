@@ -101,6 +101,14 @@ def _bundle_file(tmp_path, specs=None, name="bundle.json"):
 def vertical(monkeypatch, tmp_path):
     """The real app, with signed specs enforced and a switchable tenant."""
     monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "vertical-pdp-key")
+    # The deployment declares which authenticated principal may submit
+    # receipts under which verifier identity. Without it the identity must
+    # equal the principal, which is fail-closed: before this binding existed
+    # the verifier name arrived in the request body, so anyone authorised to
+    # record receipts could type a permitted name.
+    monkeypatch.setenv("REMORA_EFFECT_VERIFIER_BINDINGS",
+                       "employee-1=acme.reader/v1,"
+                       "employee-1=acme.artifact_reader/v1")
     monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "vertical-lease-key")
     monkeypatch.setenv("REMORA_ENV", "development")
     monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE",
@@ -166,6 +174,25 @@ def _observed(**overrides):
 
 # ── 1. The chain closes ────────────────────────────────────────────────────
 
+def _bound(client, proposal_id: str, verification) -> dict:
+    """A settled verdict must name the dispatch it observed.
+
+    Read from the proposal's own lifecycle, as the SDK does. The server
+    compares against its chain, so echoing proves nothing by itself -- what it
+    prevents is a receipt being applied to whichever dispatch is latest.
+    """
+    trail = client.get(
+        f"/v1/execution/proposals/{proposal_id}/lifecycle").json()
+    body = verification.to_dict()
+    for event in trail.get("events") or []:
+        if event.get("event") != "execution_result":
+            continue
+        payload = event.get("payload") or event
+        body["tool_call_hash"] = payload.get("tool_call_hash", "")
+        body["grant_jti"] = payload.get("grant_jti", "")
+    return body
+
+
 def test_the_full_vertical_closes_with_a_verified_effect(vertical) -> None:
     client, _state, _tmp = vertical
     run = _through_dispatch(client)
@@ -180,7 +207,7 @@ def test_the_full_vertical_closes_with_a_verified_effect(vertical) -> None:
     assert result.status is EffectStatus.VERIFIED
 
     posted = client.post(f"/v1/execution/proposals/{proposal_id}/effect",
-                         json=result.to_dict())
+                         json=_bound(client, proposal_id, result))
     assert posted.status_code == 200, posted.text
 
     view = client.get(f"/v1/execution/proposals/{proposal_id}").json()
@@ -207,7 +234,7 @@ def test_one_toolspec_hash_travels_from_assessment_to_the_effect_record(
         verifier_identity="acme.artifact_reader/v1",
     )
     client.post(f"/v1/execution/proposals/{proposal_id}/effect",
-                json=result.to_dict())
+                json=_bound(client, proposal_id, result))
 
     trail = client.get(
         f"/v1/execution/proposals/{proposal_id}/lifecycle"
@@ -283,7 +310,7 @@ def test_a_mismatch_is_recorded_without_touching_the_execution_record(
     )
     assert result.status is EffectStatus.MISMATCH
     client.post(f"/v1/execution/proposals/{proposal_id}/effect",
-                json=result.to_dict())
+                json=_bound(client, proposal_id, result))
 
     after = client.get(
         f"/v1/execution/proposals/{proposal_id}/lifecycle"
@@ -314,7 +341,7 @@ def test_an_unobservable_effect_never_becomes_a_failure_or_a_retry(
     )
     assert result.status is EffectStatus.UNOBSERVABLE
     client.post(f"/v1/execution/proposals/{proposal_id}/effect",
-                json=result.to_dict())
+                json=_bound(client, proposal_id, result))
 
     view = client.get(f"/v1/execution/proposals/{proposal_id}").json()
     assert view["current_state"] == "EFFECT_UNKNOWN"
@@ -361,7 +388,7 @@ def test_the_evidence_bundle_carries_the_whole_vertical_and_verifies(
         verifier_identity="acme.artifact_reader/v1",
     )
     client.post(f"/v1/execution/proposals/{proposal_id}/effect",
-                json=result.to_dict())
+                json=_bound(client, proposal_id, result))
 
     bundle = client.get(
         f"/v1/execution/proposals/{proposal_id}/evidence").json()

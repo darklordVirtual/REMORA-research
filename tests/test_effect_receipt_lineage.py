@@ -37,17 +37,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from remora.governance.effect_receipt import (  # noqa: E402
     ReceiptRefused,
-    derive_status,
+    adjudicate_status,
     resolve_lineage,
     verify_receipt,
 )
 from remora.governance.effect_verification import EffectStatus  # noqa: E402
 
-DISPATCHED_AT = datetime(2026, 8, 24, 12, 0, 0, tzinfo=UTC)
+# Anchored to the real clock, not a fixed instant. A fixed future date tripped
+# the new bounded-skew check on every test -- the guard doing its job on a
+# fixture that had dated its own observations ahead of the server.
+DISPATCHED_AT = datetime.now(UTC) - timedelta(minutes=1)
 OBSERVED_AT = DISPATCHED_AT + timedelta(seconds=5)
 CALL_HASH = "a" * 64
 JTI = "jti-dispatch-1"
 DIGEST = "d" * 64
+OTHER_DIGEST = "e" * 64
 
 
 def _event(name: str, payload: dict | None = None, *, at: datetime | None = None):
@@ -235,7 +239,7 @@ def test_differing_digests_do_not_by_themselves_refuse_verified():
 
     REMORA does not re-run the comparison and does not claim to.
     """
-    _lineage, status = _submit(observed_sha256="e" * 64)
+    _lineage, status = _submit(observed_sha256=OTHER_DIGEST)
     assert status is EffectStatus.VERIFIED
 
 
@@ -243,22 +247,43 @@ def test_verified_is_refused_without_an_observation_to_compare():
     """A verdict with nothing behind it is an assertion, not a measurement."""
     with pytest.raises(ReceiptRefused) as exc:
         _submit(observed_sha256="")
-    assert exc.value.reason == "verified_without_observation"
+    assert exc.value.reason == "settled_without_observation"
 
 
 @pytest.mark.parametrize("status", [
-    EffectStatus.MISMATCH,
     EffectStatus.UNOBSERVABLE,
     EffectStatus.VERIFIER_FAILED,
     EffectStatus.UNSUPPORTED,
 ])
-def test_the_admissions_are_recorded_as_reported(status):
-    """Bad news about itself is taken at face value, and should be.
+def test_the_unresolved_statuses_carry_no_evidence_burden(status):
+    """"We do not know" has no evidence to carry, by definition.
 
-    Only VERIFIED is derived. Requiring evidence for an admission would give a
-    verifier a reason to stay silent instead of reporting a mismatch.
+    Demanding digests here would push a verifier towards inventing them.
+    MISMATCH is deliberately NOT in this list: it settles a proposal, so it
+    carries the same burden as VERIFIED.
     """
-    assert derive_status(status, expected_sha256="", observed_sha256="") is status
+    assert adjudicate_status(status, expected_sha256="",
+                             observed_sha256="") is status
+
+
+def test_mismatch_carries_the_same_burden_as_verified():
+    """Equal burden for positive and negative claims.
+
+    A MISMATCH with no observation behind it still takes the terminal slot and
+    blocks a later legitimate verification, so it needs the same evidence.
+    """
+    with pytest.raises(ReceiptRefused) as exc:
+        adjudicate_status(EffectStatus.MISMATCH,
+                          expected_sha256=DIGEST, observed_sha256="")
+    assert exc.value.reason == "settled_without_observation"
+
+
+@pytest.mark.parametrize("bad", ["not-a-digest", "A" * 64, "abc", "f" * 63])
+def test_a_malformed_digest_is_refused(bad):
+    with pytest.raises(ReceiptRefused) as exc:
+        adjudicate_status(EffectStatus.VERIFIED,
+                          expected_sha256=DIGEST, observed_sha256=bad)
+    assert exc.value.reason == "digest_malformed"
 
 
 # ── UNKNOWN resolved by a later authoritative check ─────────────────────────
@@ -279,7 +304,7 @@ def test_an_unknown_dispatch_can_also_be_resolved_to_mismatch():
     _lineage, status = _submit(
         events=_dispatched(executed=False, unknown=True),
         claimed_status=EffectStatus.MISMATCH,
-        observed_sha256="e" * 64)
+        observed_sha256=OTHER_DIGEST)
     assert status is EffectStatus.MISMATCH
 
 

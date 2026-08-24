@@ -2812,6 +2812,64 @@ unearned claims was one commit from making one of its own, in the form of a
 verification rule that did not match the verification it was checking. An
 existing test written against the real contract is what prevented it.
 
+### A second review found the first fix incomplete
+
+The change above closed the reported reproduction -- a proposal with no
+dispatch -- and a second review then showed that a fabricated
+``EFFECT_VERIFIED`` was still reachable for a dispatch that DID happen:
+
+```json
+{"status": "EFFECT_VERIFIED", "verifier_identity": "trusted-name",
+ "tool_call_hash": "", "grant_jti": "", "verified_at": "",
+ "expected_sha256": "a", "observed_sha256": "b"}
+```
+
+Eight ways it got through, all of them mine:
+
+1. Empty ``tool_call_hash`` and ``grant_jti`` **skipped** the comparison. The
+   binding fields were treated as "no opinion" when absent, so a receipt could
+   skip every check by omitting what it would have been compared against.
+2. Empty ``verified_at`` was replaced with the server's clock, fabricating the
+   freshness the check depends on.
+3. The digest fields were length-limited but never validated as SHA-256, so
+   ``"a"`` and ``"b"`` were acceptable digests.
+4. ``verifier_identity`` was not bound to anything. The name arrived in the
+   request body, so an allowlist constrained which strings were acceptable and
+   not who could send them.
+5. An empty allowlist accepted any name, and a populated one could be satisfied
+   by typing a permitted name.
+6. ``observed_state_hash`` and ``verifier_version`` were accepted and then
+   discarded -- a received-but-unstored field suggests a binding that is not
+   there.
+7. The replay check was read-then-append. Two concurrent receipts both read
+   "unsettled" and both appended.
+8. ``EFFECT_MISMATCH`` required no observation at all, yet is terminal -- so an
+   evidence-free MISMATCH could take the slot and block a later legitimate
+   verification.
+
+Point 8 is the one worth dwelling on. The entry below states that positive and
+negative claims carry the same burden of proof, and the implementation directly
+under it demanded evidence for VERIFIED and none for MISMATCH. The asymmetry
+this project keeps finding in its own prose had been written into the code of
+the module that names it.
+
+All eight are fixed: binding fields and observation time are mandatory for a
+settled verdict, digests are validated as SHA-256 on the wire, the verifier
+identity is bound to the authenticated principal
+(``REMORA_EFFECT_VERIFIER_BINDINGS``, defaulting to identity == principal),
+provenance is stored in the chain, terminal uniqueness is taken atomically by a
+database primary key on ``(tenant_id, dispatch_id)``, and MISMATCH carries the
+same evidence burden as VERIFIED.
+
+### The claim was also overstated
+
+"REMORA derives EFFECT_VERIFIED" was wrong, and is now "REMORA accepts or
+refuses a lineage-bound VERIFIED attestation". REMORA cannot evaluate the
+postcondition rule -- it holds the digests, not the maps or the comparison
+rules -- so it does not compute the verdict and must not say it does. The
+function is named ``adjudicate_status`` rather than ``derive_status`` for the
+same reason.
+
 ### The rule this raises to a project principle
 
 > **Positive and negative system claims carry the same burden of proof. A

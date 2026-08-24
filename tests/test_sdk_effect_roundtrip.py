@@ -38,6 +38,13 @@ ARGS = {"artifact_id": "roundtrip-1", "content": {"reading": 12.5}}
 @pytest.fixture()
 def http(monkeypatch, tmp_path):
     monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "roundtrip-pdp-key")
+    # The deployment declares which authenticated principal may submit
+    # receipts under which verifier identity. Without it the identity must
+    # equal the principal, which is fail-closed: before this binding existed
+    # the verifier name arrived in the request body, so anyone authorised to
+    # record receipts could type a permitted name.
+    monkeypatch.setenv("REMORA_EFFECT_VERIFIER_BINDINGS",
+                       "employee-1=acme.reader/v1")
     monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "roundtrip-lease-key")
     monkeypatch.setenv("REMORA_ENV", "development")
     monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE",

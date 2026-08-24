@@ -19,7 +19,7 @@ an overlay that filtered those would be worse than useless.
 """
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -59,6 +59,13 @@ def _record(**overrides) -> dict:
 
 def _make_client(monkeypatch, tmp_path, *, tenant="acme"):
     monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "rec-pdp-key")
+    # The deployment declares which authenticated principal may submit
+    # receipts under which verifier identity. Without it the identity must
+    # equal the principal, which is fail-closed: before this binding existed
+    # the verifier name arrived in the request body, so anyone authorised to
+    # record receipts could type a permitted name.
+    monkeypatch.setenv("REMORA_EFFECT_VERIFIER_BINDINGS",
+                       "employee-1=acme.reader/v1")
     monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "rec-lease-key")
     monkeypatch.setenv("REMORA_ENV", "development")
     monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE",
@@ -113,9 +120,30 @@ def _executed(client) -> str:
     return str(r.json()["proposal_id"])
 
 
+def _dispatch_binding(client, proposal_id: str) -> dict:
+    """The dispatch identity a settled verdict must name.
+
+    Read from the proposal's own lifecycle, as the SDK does. The server still
+    compares these against its chain, so echoing them proves nothing by itself
+    -- what it prevents is a receipt being applied to whichever dispatch
+    happens to be latest.
+    """
+    trail = client.get(
+        f"/v1/execution/proposals/{proposal_id}/lifecycle").json()
+    out = {"tool_call_hash": "", "grant_jti": ""}
+    for event in trail.get("events") or []:
+        if event.get("event") != "execution_result":
+            continue
+        payload = event.get("payload") or event
+        out["tool_call_hash"] = payload.get("tool_call_hash") or out["tool_call_hash"]
+        out["grant_jti"] = payload.get("grant_jti") or out["grant_jti"]
+    return out
+
+
 def _post(client, proposal_id: str, **overrides):
+    body = {**_dispatch_binding(client, proposal_id), **_record(**overrides)}
     return client.post(f"/v1/execution/proposals/{proposal_id}/effect",
-                       json=_record(**overrides))
+                       json=body)
 
 
 # ── The record lands ───────────────────────────────────────────────────────
@@ -256,7 +284,7 @@ def test_verified_without_a_recorded_observation_is_refused(client) -> None:
                      status="EFFECT_VERIFIED",
                      expected_sha256="a" * 64, observed_sha256="")
     assert response.status_code == 409
-    assert "verified_without_observation" in response.json()["detail"]
+    assert "settled_without_observation" in response.json()["detail"]
 
 
 def test_a_settled_verdict_cannot_be_re_verified(client) -> None:
@@ -277,12 +305,17 @@ def test_an_unresolved_verdict_can_still_be_settled(client) -> None:
     assert settled.json()["status"] == "EFFECT_VERIFIED"
 
 
-def test_an_untrusted_verifier_is_refused(client, monkeypatch) -> None:
-    monkeypatch.setenv("REMORA_TRUSTED_EFFECT_VERIFIERS", "acme.reader/v1")
+def test_a_verifier_identity_the_principal_may_not_claim_is_refused(
+        client, monkeypatch) -> None:
+    """The name is bound to the authenticated principal, not merely allowlisted.
+
+    An allowlist of NAMES was not enough: the name arrives in the request body,
+    so a submitter authorised to record receipts could type a permitted one.
+    """
     proposal_id = _executed(client)
     response = _post(client, proposal_id, verifier_identity="attacker/v1")
-    assert response.status_code == 409
-    assert "untrusted_verifier" in response.json()["detail"]
+    assert response.status_code == 403, response.text
+    assert "verifier_not_bound" in response.json()["detail"]
 
 
 def test_the_response_reports_both_claimed_and_derived_status(client) -> None:
@@ -292,3 +325,99 @@ def test_the_response_reports_both_claimed_and_derived_status(client) -> None:
     assert body["status"] == "EFFECT_VERIFIED"
     assert body["claimed_status"] == "EFFECT_VERIFIED"
     assert body["dispatch_id"], "the receipt is bound to a dispatch identity"
+
+
+# ── The forgeable receipt the reviewer constructed ─────────────────────────
+
+def test_the_reviewers_forged_receipt_is_refused(client) -> None:
+    """The exact request from the second review, against a REAL dispatch.
+
+    Every field that would have bound it is empty or unchecked:
+
+        tool_call_hash: ""      -> skipped the comparison
+        grant_jti:      ""      -> skipped the comparison
+        verified_at:    ""      -> replaced by the server clock
+        expected/observed: "a"/"b" -> not validated as SHA-256
+
+    It was accepted, because none of the emptiness was treated as missing
+    evidence. It is now refused before any of the digest checks are reached.
+    """
+    proposal_id = _executed(client)
+    forged = {
+        "execution_id": "e-forged",
+        "tool_id": "store_artifact",
+        "status": "EFFECT_VERIFIED",
+        "reason_code": "postcondition_verified",
+        "verifier_identity": "acme.reader/v1",
+        "tool_call_hash": "",
+        "grant_jti": "",
+        "verified_at": "",
+        "expected_sha256": "",
+        "observed_sha256": "",
+    }
+    response = client.post(
+        f"/v1/execution/proposals/{proposal_id}/effect", json=forged)
+    assert response.status_code == 409, response.text
+    assert "binding_incomplete" in response.json()["detail"]
+
+    view = client.get(
+        f"/v1/execution/proposals/{proposal_id}/lifecycle").json()
+    assert view["current_state"] != "EFFECT_VERIFIED"
+
+
+def test_a_non_sha256_digest_is_refused_on_the_wire(client) -> None:
+    """"a" and "b" are not digests. The model says so before the handler runs."""
+    proposal_id = _executed(client)
+    response = client.post(
+        f"/v1/execution/proposals/{proposal_id}/effect",
+        json={**_dispatch_binding(client, proposal_id),
+              **_record(expected_sha256="a", observed_sha256="b")})
+    assert response.status_code == 422, response.text
+
+
+def test_a_settled_verdict_without_an_observation_time_is_refused(
+        client) -> None:
+    """The server's clock must not stand in for when the verifier looked."""
+    proposal_id = _executed(client)
+    response = _post(client, proposal_id, verified_at="")
+    assert response.status_code == 409
+    assert "observation_time_missing" in response.json()["detail"]
+
+
+def test_an_observation_dated_far_ahead_is_refused(client) -> None:
+    """Clock drift is bounded; an hour into the future is not drift."""
+    proposal_id = _executed(client)
+    ahead = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
+    response = _post(client, proposal_id, verified_at=ahead)
+    assert response.status_code == 409
+    assert "observation_in_the_future" in response.json()["detail"]
+
+
+def test_a_mismatch_also_needs_an_observation(client) -> None:
+    """Equal burden. A MISMATCH takes the terminal slot too."""
+    proposal_id = _executed(client)
+    response = _post(client, proposal_id, status="EFFECT_MISMATCH",
+                     reason_code="postcondition_mismatch",
+                     expected_sha256="a" * 64, observed_sha256="")
+    assert response.status_code == 409
+    assert "settled_without_observation" in response.json()["detail"]
+
+
+def test_the_provenance_is_stored_not_merely_accepted(client) -> None:
+    """Received-but-discarded fields suggest a binding that is not there."""
+    proposal_id = _executed(client)
+    assert _post(client, proposal_id,
+                 observed_state_hash="s" * 64,
+                 verifier_version="reader-2.1.0").status_code == 200
+
+    trail = client.get(
+        f"/v1/execution/proposals/{proposal_id}/lifecycle").json()
+    recorded = [e for e in trail["events"] if e["event"] == "effect_verified"]
+    assert recorded, "the receipt should be in the trail"
+    payload = recorded[-1].get("payload") or recorded[-1]
+    assert payload["observed_state_hash"] == "s" * 64
+    assert payload["verifier_version"] == "reader-2.1.0"
+    assert payload["dispatch_id"], "the dispatch it attests to"
+    assert payload["tool_call_hash"], "the call it attests to"
+    assert payload["submitted_by"] == "employee-1", (
+        "who submitted, kept separate from who observed")

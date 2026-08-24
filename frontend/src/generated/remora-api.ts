@@ -823,6 +823,7 @@ export interface components {
             execution_id: string;
             /**
              * Expected Sha256
+             * @description Lowercase hex SHA-256, or empty. Validated on the wire: a digest field that accepts arbitrary text is not a digest field.
              * @default
              */
             expected_sha256: string;
@@ -834,6 +835,7 @@ export interface components {
             grant_jti: string;
             /**
              * Observed Sha256
+             * @description Lowercase hex SHA-256, or empty.
              * @default
              */
             observed_sha256: string;

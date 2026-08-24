@@ -321,7 +321,7 @@ class EffectVerificationRequest(BaseModel):
     tool_id: str = Field(..., min_length=1, max_length=200)
     toolspec_hash: str = Field("", max_length=128)
     tool_call_hash: str = Field(
-        "", max_length=64,
+        "", max_length=64, pattern=r"^([0-9a-f]{64})?$",
         description="The exact call this observation is about. Compared "
                     "against the dispatch recorded in the audit chain; a "
                     "receipt for a different call is refused.")
@@ -341,7 +341,13 @@ class EffectVerificationRequest(BaseModel):
     status: EffectStatus
     reason_code: str = Field(..., min_length=1, max_length=100)
     verifier_identity: str = Field(..., min_length=1, max_length=200)
-    expected_sha256: str = Field("", max_length=64)
-    observed_sha256: str = Field("", max_length=64)
+    expected_sha256: str = Field(
+        "", max_length=64, pattern=r"^([0-9a-f]{64})?$",
+        description="Lowercase hex SHA-256, or empty. Validated on the wire: "
+                    "a digest field that accepts arbitrary text is not a "
+                    "digest field.")
+    observed_sha256: str = Field(
+        "", max_length=64, pattern=r"^([0-9a-f]{64})?$",
+        description="Lowercase hex SHA-256, or empty.")
     verified_at: str = Field("", max_length=64)
     detail: str = Field("", max_length=2000)

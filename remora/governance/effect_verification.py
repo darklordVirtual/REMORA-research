@@ -135,6 +135,14 @@ class EffectVerification:
     verified_at: str
     detail: str = ""
     evidence_refs: tuple[str, ...] = ()
+    # Provenance, validated at the recorder and stored so an auditor can
+    # re-check the verdict later. Received-but-discarded fields are worse than
+    # absent ones: they suggest a binding that is not there.
+    dispatch_id: str = ""
+    tool_call_hash: str = ""
+    observed_state_hash: str = ""
+    verifier_version: str = ""
+    submitted_by: str = ""
 
     @classmethod
     def build(
@@ -187,6 +195,11 @@ class EffectVerification:
             "observed": dict(self.observed),
             "expected_sha256": self.expected_sha256,
             "observed_sha256": self.observed_sha256,
+            "dispatch_id": self.dispatch_id,
+            "tool_call_hash": self.tool_call_hash,
+            "observed_state_hash": self.observed_state_hash,
+            "verifier_version": self.verifier_version,
+            "submitted_by": self.submitted_by,
             "verified_at": self.verified_at,
             "detail": self.detail,
             "evidence_refs": list(self.evidence_refs),

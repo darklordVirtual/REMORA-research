@@ -1,6 +1,6 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""EFFECT_VERIFIED is derived from a bound observation, never reported.
+"""A settled effect verdict is accepted only when bound to a real dispatch.
 
 The recorder used to check that a proposal existed and then store whatever
 status the caller supplied. A proposal that had been assessed and never
@@ -38,6 +38,17 @@ dispatch* and whether its own numbers support the verdict it claims. Those are
 different questions from "did the effect happen", and only the deployment can
 answer the third.
 
+What to call this, precisely
+----------------------------
+Not "REMORA derives VERIFIED". An earlier revision of this module said that and
+it was an overclaim: REMORA cannot evaluate the postcondition rule, so it does
+not compute the verdict. What it does is **accept or refuse a lineage-bound
+attestation** -- it decides whether a submitted verdict is about a real
+dispatch, is fresh, is attributable, is unreplayed, and carries the evidence an
+auditor would need. The verdict itself still comes from the deployment's
+verifier. Calling that derivation would be the same species of unearned claim
+this module exists to stop.
+
 The distinction that motivates it: an attestation asserting VERIFIED is a claim,
 and a claim needs provenance. A measurement whose provenance is unverified is
 just another claim -- which this project learned by writing a regression report
@@ -45,19 +56,28 @@ from a probe that had read the wrong key (NEGATIVE_RESULTS section 49).
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any, Mapping, Sequence
 
 from remora.governance.effect_verification import EffectStatus
 
 __all__ = [
+    "MAX_CLOCK_SKEW",
     "DispatchLineage",
     "ReceiptRefused",
-    "derive_status",
+    "adjudicate_status",
     "resolve_lineage",
     "verify_receipt",
 ]
+
+#: How far ahead of the server an observation may be dated. A verifier's clock
+#: can drift; it cannot legitimately be an hour into the future, and a receipt
+#: dated forward would otherwise sit permanently "fresher" than any dispatch.
+MAX_CLOCK_SKEW = timedelta(minutes=5)
+
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
 class ReceiptRefused(Exception):
@@ -153,7 +173,7 @@ def resolve_lineage(events: Sequence[Mapping[str, Any]]) -> DispatchLineage:
     return lineage
 
 
-def derive_status(
+def adjudicate_status(
     claimed: EffectStatus,
     *,
     expected_sha256: str,
@@ -187,15 +207,33 @@ def derive_status(
     and there is no incentive to fabricate them. VERIFIED is the only status
     worth lying about, and the only one with a check.
     """
-    if claimed is not EffectStatus.VERIFIED:
+    if claimed in (EffectStatus.UNOBSERVABLE, EffectStatus.VERIFIER_FAILED,
+                   EffectStatus.UNSUPPORTED):
+        # "We do not know" and "there was nothing to check" carry no evidence
+        # because there is none to carry. Demanding digests here would push a
+        # verifier towards inventing them.
         return claimed
-    if not expected_sha256 or not observed_sha256:
-        raise ReceiptRefused(
-            "verified_without_observation",
-            "VERIFIED requires both expected_sha256 and observed_sha256: a "
-            "verdict recording neither side of its own comparison cannot be "
-            "re-checked, and an unre-checkable verdict is an assertion")
-    return EffectStatus.VERIFIED
+
+    # VERIFIED and MISMATCH are both SETTLED verdicts, and both are load-bearing:
+    # one closes a proposal as done, the other as wrong. An earlier revision
+    # required evidence for VERIFIED alone, which let a MISMATCH with no
+    # observation behind it take the terminal slot and block a later legitimate
+    # verification. Equal burden for positive and negative claims is the rule
+    # this project arrived at; applying it to one and not the other was the
+    # same asymmetry in miniature.
+    for name, value in (("expected_sha256", expected_sha256),
+                        ("observed_sha256", observed_sha256)):
+        if not value:
+            raise ReceiptRefused(
+                "settled_without_observation",
+                f"{claimed.value} requires {name}: a settled verdict recording "
+                "neither side of its own comparison cannot be re-checked, and "
+                "an unre-checkable verdict is an assertion")
+        if not _SHA256.match(value):
+            raise ReceiptRefused(
+                "digest_malformed",
+                f"{name} is not a lowercase hex SHA-256 digest")
+    return claimed
 
 
 def verify_receipt(
@@ -224,6 +262,20 @@ def verify_receipt(
     if proposal_id != lineage.proposal_id:
         raise ReceiptRefused("proposal_mismatch",
                              "the receipt names a different proposal")
+    # For a SETTLED verdict the binding fields are mandatory, not optional.
+    # Treating an empty field as "no opinion" meant a receipt could skip every
+    # comparison by simply omitting what it would have been compared against,
+    # which is the opposite of binding.
+    settling = claimed_status in (EffectStatus.VERIFIED, EffectStatus.MISMATCH)
+    if settling:
+        for name, value in (("tool_call_hash", tool_call_hash),
+                            ("grant_jti", grant_jti)):
+            if not value:
+                raise ReceiptRefused(
+                    "binding_incomplete",
+                    f"{claimed_status.value} requires {name}: a verdict that "
+                    "names nothing to be compared against is not bound to "
+                    "anything")
     if tool_call_hash and tool_call_hash != lineage.tool_call_hash:
         raise ReceiptRefused(
             "tool_call_hash_mismatch",
@@ -242,6 +294,12 @@ def verify_receipt(
             f"{verifier_identity!r} is not a verifier this deployment trusts")
 
     # ── one SETTLED verdict per dispatch ───────────────────────────────────
+    # Advisory only. This read-then-check cannot be atomic against a concurrent
+    # submission, so the binding guarantee lives in
+    # remora.governance.effect_receipt_ledger, which takes the slot with a
+    # database primary key. This is kept because it produces the specific
+    # refusal reason before any write is attempted; it must never be the only
+    # check.
     # Not "one receipt per dispatch". UNOBSERVABLE and VERIFIER_FAILED mean
     # "we do not know yet", and a later observation resolving one of them is
     # the mechanism by which an unknown gets closed honestly -- forbidding it
@@ -266,6 +324,13 @@ def verify_receipt(
                 f"({prior_status.value}); a second would overwrite evidence")
 
     # ── the observation must postdate the attempt ──────────────────────────
+    if settling and not verified_at:
+        # Substituting the server's clock for a missing observation time
+        # fabricates the freshness it is supposed to check.
+        raise ReceiptRefused(
+            "observation_time_missing",
+            f"{claimed_status.value} requires verified_at: when the verifier "
+            "looked is part of what makes the observation evidence")
     observed_at = _parse(verified_at)
     attempted_at = _parse(lineage.attempted_at)
     if observed_at is None:
@@ -281,7 +346,13 @@ def verify_receipt(
             f"{lineage.attempted_at}")
 
     # ── and finally, what the numbers actually support ─────────────────────
-    derived = derive_status(claimed_status,
-                            expected_sha256=expected_sha256,
-                            observed_sha256=observed_sha256)
-    return lineage, derived
+    if observed_at > datetime.now(UTC) + MAX_CLOCK_SKEW:
+        raise ReceiptRefused(
+            "observation_in_the_future",
+            f"the observation is dated {verified_at}, more than "
+            f"{MAX_CLOCK_SKEW} ahead of this server")
+
+    adjudicated = adjudicate_status(claimed_status,
+                                    expected_sha256=expected_sha256,
+                                    observed_sha256=observed_sha256)
+    return lineage, adjudicated
