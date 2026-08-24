@@ -14,8 +14,8 @@ deliberately not made.
 
 | Field | Value |
 |---|---|
-| git commit | `be4d6bbc95084be8b841235222f49a765e326ad9` |
-| branch | `assurance/cloudflare-authority-custody-split` |
+| git commit | `515f350bf60aa93c4ae6005e7cbe2ca017459a44` (squash-merge of #352; the experiment ran at branch commit `be4d6bbc9508`, whose tree this preserves) |
+| branch | merged to `master` |
 | Worker | `remora-mcp-gateway` |
 | Version ID (before) | `222999e2-ef84-4fc1-8491-6d47ef4614f5` |
 | Version ID (after replacement) | `9a7fc619-66f3-4074-9067-247e3286ce40` |

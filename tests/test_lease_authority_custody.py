@@ -21,7 +21,6 @@ assessed. Under Ed25519 it must fail cryptographically, not by policy.
 """
 from __future__ import annotations
 
-import os as _os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -29,25 +28,16 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _security_extra import require_security_extra  # noqa: E402
 
 from remora.enforcement import lease_signing as signing  # noqa: E402
 from remora.enforcement.lease import ExecutionLease, LeaseRefused  # noqa: E402
 
-# The custody evidence is the whole point of this file, so it must not be
-# possible for it to quietly not run. CI installs the 'security' extra and sets
-# REMORA_REQUIRE_SECURITY_EXTRA=1; there, a missing 'cryptography' is a hard
-# failure rather than a skip. Locally, without the extra, skipping is correct.
-#
-# Found the hard way: CI installed .[dev,causal,api] and not [security], so
-# every Ed25519 test in this file skipped -- and the only visible symptom was a
-# coverage floor, not a missing-evidence warning.
-if _os.environ.get("REMORA_REQUIRE_SECURITY_EXTRA", "").strip() in {"1", "true"}:
-    import cryptography  # noqa: F401  -- must be importable, not skippable
-else:
-    pytest.importorskip(
-        "cryptography",
-        reason="Ed25519 lease signing needs the optional 'security' extra",
-    )
+# Skips locally without the 'security' extra; fails hard in CI, where a skip
+# would silently withhold this file's evidence. See conftest for why.
+require_security_extra()
 
 from cryptography.hazmat.primitives.asymmetric import ed25519  # noqa: E402
 
