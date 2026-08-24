@@ -93,8 +93,12 @@ export interface Env {
    * is exactly why the split works.
    */
   REMORA_LEASE_ED25519_PUBLIC?: string;
-  /** Shared bearer for the internal authority -> execution hop. */
-  REMORA_EXECUTION_TOKEN?: string;
+  // No dedicated hop secret. The executor authenticates every caller against
+  // its REMORA_API_TOKENS table, so a bearer that table does not know is a
+  // 401 -- which is how the first deployment of this split failed. The hop
+  // reuses REMORA_AGENT_TOKEN, granting nothing new: the Worker already calls
+  // the container with it. A dedicated secret would need its own entry in that
+  // table, and would still not be an authority credential.
   REMORA_AUDIT_SIGNING_KEY: string;
   REMORA_ENVELOPE_SIGNING_KEY: string;
   /** Set these together, once a signed ToolSpec bundle exists for the

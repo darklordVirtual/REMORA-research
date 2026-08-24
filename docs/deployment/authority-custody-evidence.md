@@ -60,7 +60,7 @@ four were not, and which is which is stated rather than blurred.
 | # | Outcome | Result | Evidence |
 |---|---|---|---|
 | 1 | Normal governed execution | **PASS** | `kg_list_predicates` under `task:survey-business-graph` → `decision: accept`, `status: executed`, `reasons: ['grounded_read_accept']` |
-| 2 | Approval path | **not re-run this pass** | previously evidenced by `deploy/gateway/demo.py`; no new evidence, so no new claim |
+| 2 | Approval path | **code-level only, post-split** | `tests/test_review_path_custody_split.py`; not exercised on the deployment — see §7a |
 | 3 | Exact-call mutation | **not re-run this pass** | covered by `tool_args_hash` binding tests at library level only |
 | 4 | Lease replay (same process) | **PASS**, library level | `tests/test_lease_nonce_durability.py::test_a_nonce_consumes_exactly_once` |
 | 5 | Replay after container replacement | **PASS, deployed** | see §3 |
@@ -242,6 +242,29 @@ Scoped to exactly what was demonstrated:
 > public ExecutionLease verification material: no Ed25519 private key was passed
 > to it and no symmetric lease key existed in the deployment. Under the recorded
 > attack it could not mint new execution authority.
+
+## 7a. The review path: tested in code, untested on the deployment
+
+The ACCEPT path was verified against the running system (§5). The **review
+path** -- VERIFY/ESCALATE, a human approves, the agent redeems -- was **not**,
+because approving requires a role credential this session does not hold.
+
+Saying "it goes through the same wrapper" is precisely the reasoning that
+failed twice in §45, so it is not relied on. `tests/test_review_path_custody_split.py`
+runs the whole path through the real API with only the transport stubbed: the
+queue, the approval, the freshness re-gate, the one-time grant, Ed25519
+issuance on the authority, and the forward. It establishes that
+
+- an approved call crosses the boundary carrying an Ed25519 lease bound to the
+  approved arguments, target, tenant and proposal identity;
+- the authority does not run the tool (it holds no callables);
+- an unreachable executor leaves the item unexecuted rather than reported done;
+- an **unapproved** item and a **mutated** call never cross the boundary at all,
+  so a refusal costs nothing on the far side.
+
+What it does not establish is that the deployed review path works end to end.
+That is an open gap with a known cause, and it is the first thing to close when
+an approver credential is available.
 
 ## 8. What is NOT claimed
 
