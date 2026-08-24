@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **17 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **18 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -3174,17 +3174,16 @@ Recorded here so it is not lost, with the review's identifiers:
   `executed=false` or `state_unknown=true`.
 - **RMR-007** — `workers/mcp-gateway` is absent from the npm audit and SBOM
   matrices, and the security and worker jobs are not required branch contexts.
-- **RMR-009**, **RMR-013** — lost outbox claim still dispatches; the executor
-  exposes the full execution router.
 
 None is fixed in this change. Fixing seven findings in one commit would produce
 an unreviewable diff for defects that each deserve their own adversarial test,
 and RMR-002/003/004 change durable state semantics that consumers depend on.
 
 RMR-002 and RMR-003 were subsequently fixed, each in its own change, and are
-recorded as §47 and §48. They are struck from the list above rather than
+recorded as §47 and §48; RMR-009 and RMR-013 are fixed together in §52,
+because they are the same defect shape twice. They are struck from the list above rather than
 left standing, because a list of open findings that keeps closed ones is the
-same drift this document's status gate exists to prevent. The five below remain
+same drift this document's status gate exists to prevent. The three below remain
 open at the time of writing.
 
 ### The finding about the findings
@@ -3299,3 +3298,86 @@ fault" — which was accurate, and is now settled: there was no fault to repair.
 the same evidence standard as a claim that it works: compare against an
 independent source at the same observed state, and make the probe fail closed
 on an unexpected response shape.
+
+## §52 Two separations were documented and not enforced (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-009 and RMR-013 from the external forensic review, fixed.
+
+Both defects have the same shape, which is why they are one entry. In each
+case the mechanism existed, the comment described it correctly, and the code
+did not do it.
+
+### RMR-009: the exclusive claim was not exclusive
+
+Both dispatch sites in `remora/execution/service.py` read
+
+```python
+# FT-02: claim the intent before anything can take effect (exclusive).
+if intent is not None:
+    outbox().claim(intent.outbox_id, worker_id=worker_id)
+```
+
+`claim` returns `None` when another worker already holds the row. The return
+value was discarded at both sites, so a worker that lost the race dispatched
+the same intent anyway and then settled over the winner's record. Two workers
+therefore produced two side effects, and the durable trail showed one — the
+loser's, because it settled last.
+
+The word "exclusive" was in the comment. Nothing tested it. The outbox's own
+`claim` docstring even says a lost race "returns ``None``" and distinguishes it
+from a caller bug, so the contract was stated at the callee and ignored at the
+caller.
+
+A lost claim is now REFUSED for this worker, which is the one negative claim it
+can make first-hand: dispatch never began in this process. It says nothing
+about the winner's effect, and deliberately settles nothing — the outbox row
+and the item's terminal state belong to the worker that won, and writing either
+here would overwrite the record of the execution that actually happens. The
+loss is appended to the chain, because a gap would read as a lost event rather
+than as a refusal.
+
+### RMR-013: the executor served the whole router
+
+The custody split (§45) gave the execution container its own credentials and
+only the public verification key. That stops it minting a lease. It does not
+stop it issuing authority by API, and the container went on serving every
+route: `assess`, `approve`, `execute`, `reject`, the audit reader.
+
+So the deployment could truthfully say the execution domain cannot sign a
+lease, while a compromise there could still walk a proposal through assessment
+and approval and then execute it. The claim was about key custody and was read
+as being about authority.
+
+`REMORA_EXECUTION_DOMAIN_ROLE=executor` now refuses everything but
+`/v1/execution/dispatch-leased`. Three details are deliberate:
+
+- The guard is attached to the router, not to each route. A per-route decorator
+  is a list a new endpoint silently fails to join, and that failure mode is an
+  authority route quietly reachable from the execution domain.
+- The path match is exact set membership. A prefix test would admit
+  `/dispatch-leased-anything`, which is precisely how the read-only SQL
+  allowlist failed one day earlier (§51). The test for it asks the guard
+  directly rather than going through the client, because a client request to a
+  path no route serves returns 404 whether the guard is anchored or not, and
+  the test would have proved nothing.
+- An unrecognised role raises. Guessing which half of a custody split a typo
+  meant is the wrong way to resolve it, and the fail-open direction is the
+  expensive one.
+
+The default stays `authority`, so an unconfigured deployment behaves as it
+always did.
+
+### What this pair is evidence of
+
+Both were found by a reader, not by a test, and both had been reviewed. The
+common cause is that a separation is easy to state and takes real work to
+enforce, and prose costs nothing at the moment of highest confidence — the same
+pattern §50 recorded about its own findings. The countermeasure that worked
+here was mutation: reverting each fix and confirming the new tests fail.
+Applied to the anchored-path test it showed the first version passing against
+the broken code, which is how the test came to ask the guard directly.
+
+**Not deployed.** These are code and configuration changes only. The running
+containers were not replaced, so nothing here is a claim about the deployment.
+

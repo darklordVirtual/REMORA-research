@@ -35,6 +35,83 @@ _OUTBOX_STATE = {
 }
 
 
+#: What a dispatch that never happened looks like, because this worker lost the
+#: exclusive claim on the intent.
+#:
+#: ``dispatch_began`` is False and ``state_unknown`` is False, so
+#: ``classify_outcome`` reads REFUSED: this worker observed itself not act, the
+#: one negative claim it can make first-hand. It is deliberately NOT settled
+#: into the outbox and NOT recorded as the item's terminal state -- the winning
+#: worker owns both, and the effect it produces is the real one.
+_CLAIM_LOST = "outbox_claim_lost"
+
+
+def _claim_or_none(
+    outbox_factory: Callable[[], Any],
+    intent: Any,
+    *,
+    worker_id: str,
+) -> bool:
+    """Claim the intent exclusively, or report that another worker holds it.
+
+    Returns True when this worker may dispatch. The return value of ``claim``
+    used to be discarded at both call sites under a comment reading "claim the
+    intent before anything can take effect (exclusive)". A lost race returns
+    None, so both workers went on to dispatch the same intent and the second
+    settled over the first's row. The exclusivity the outbox exists to provide
+    was documented, not enforced.
+    """
+    if intent is None:
+        return True
+    return outbox_factory().claim(intent.outbox_id, worker_id=worker_id) is not None
+
+
+def _claim_lost_response(
+    response: dict[str, Any],
+    *,
+    chain: Any,
+    tenant: str,
+    principal: str,
+    proposal_id: Any,
+    item_id: str,
+    tool_call_hash: str,
+    grant_jti: str,
+    intent_sequence_no: int,
+) -> dict[str, Any]:
+    """Record and return "another worker holds this intent".
+
+    The chain gets a result record like any other dispatch, because the absence
+    of a dispatch is itself an auditable outcome and a gap in the chain would
+    read as a lost event rather than a refusal. What it does NOT do is settle
+    the outbox row or drive the item to a terminal state: both belong to the
+    worker that won the claim, and writing them here would overwrite the record
+    of the execution that actually happens.
+    """
+    tool_execution = {
+        "executed": False,
+        "dispatch_began": False,
+        "state_unknown": False,
+        "refusal_reason": _CLAIM_LOST,
+    }
+    entry = chain.append(tenant, {
+        "event": "execution_result",
+        "proposal_id": proposal_id,
+        "actor": principal,
+        "item_id": item_id,
+        "tool_call_hash": tool_call_hash,
+        "grant_jti": grant_jti,
+        "intent_sequence_no": intent_sequence_no,
+        "tool_executed": False,
+        "state_unknown": False,
+        "tool_refusal_reason": _CLAIM_LOST,
+    })
+    response["tool_execution"] = tool_execution
+    response["audit"] = {
+        "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
+    }
+    return response
+
+
 def assess_proposal(
     *,
     tenant: str,
@@ -324,8 +401,15 @@ def execute_approved_item(
     })
 
     # FT-02: claim the intent before anything can take effect (exclusive).
-    if intent is not None:
-        outbox().claim(intent.outbox_id, worker_id=worker_id)
+    # A lost race means another worker holds this intent. Dispatching anyway
+    # would execute the same side effect twice, which is the single failure the
+    # outbox exists to prevent.
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+        return _claim_lost_response(
+            response, chain=chain, tenant=tenant, principal=principal,
+            proposal_id=proposal_id, item_id=item_id,
+            tool_call_hash=fresh_obs.tool_call_hash, grant_jti=token.jti,
+            intent_sequence_no=intent_entry.sequence_no)
 
     tool_execution = dispatch_under_lease(
         tenant=tenant,
@@ -497,8 +581,12 @@ def redeem_accept_token(
         "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
         "intent_authority_hash": semantic["intent_authority_hash"],
     })
-    if intent is not None:
-        outbox().claim(intent.outbox_id, worker_id=worker_id)
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+        return _claim_lost_response(
+            response, chain=chain, tenant=tenant, principal=principal,
+            proposal_id=proposal_id, item_id=f"accept:{token.jti}",
+            tool_call_hash=obs.tool_call_hash, grant_jti=token.jti,
+            intent_sequence_no=intent_entry.sequence_no)
 
     # Governed dispatch - same dispatcher, same lease discipline.
     tool_execution = dispatch_under_lease(

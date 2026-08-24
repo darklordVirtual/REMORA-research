@@ -335,6 +335,12 @@ export class RemoraExecutionContainer extends Container<Env> {
     this.envVars = {
       REMORA_ENV: "production",
       REMORA_ENABLED_SURFACES: "execution",
+      // This half performs effects and must not be able to authorize them.
+      // Without it the execution container served the whole router -- assess,
+      // approve, execute, reject, the audit reader -- so a compromise here
+      // could issue authority as well as act on it, which is the property the
+      // split exists to remove (RMR-013).
+      REMORA_EXECUTION_DOMAIN_ROLE: "executor",
       ...(env.REMORA_RUNTIME_PROFILE
         ? { REMORA_RUNTIME_PROFILE: env.REMORA_RUNTIME_PROFILE }
         : {}),

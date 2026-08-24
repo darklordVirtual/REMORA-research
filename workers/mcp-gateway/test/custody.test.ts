@@ -229,3 +229,22 @@ describe("the authority may read the graph but not write it", () => {
     expect(exec).toContain("d1Request(env.GRAPH_DB");
   });
 });
+
+describe("the execution domain cannot authorize (RMR-013)", () => {
+  const execEnv = envBlock("RemoraExecutionContainer");
+  const authEnv = envBlock("RemoraContainer");
+
+  it("declares itself the executor, so the API serves one path", () => {
+    // The split gave this container its own credentials and only the public
+    // verification key, and then kept serving the whole router: assess,
+    // approve, execute, reject, the audit reader. Holding no signing key stops
+    // it minting a lease; it did not stop it issuing authority by API.
+    expect(execEnv).toContain('REMORA_EXECUTION_DOMAIN_ROLE: "executor"');
+  });
+
+  it("leaves the authority unrestricted", () => {
+    // The authority half serves everything it always did. Declaring a role
+    // here would be the same mistake in the other direction.
+    expect(authEnv).not.toContain("REMORA_EXECUTION_DOMAIN_ROLE");
+  });
+});

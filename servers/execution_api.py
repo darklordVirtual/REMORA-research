@@ -34,7 +34,7 @@ from contextlib import AbstractContextManager
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from remora.enforcement.gate import EnforcementGate
 from remora.enforcement.nonce_store import DurableNonceStore, NonceStore
@@ -104,7 +104,61 @@ from servers.execution_contracts import (  # noqa: F401
     ToolResultEnvelopeModel,
 )
 
-router = APIRouter(prefix="/v1/execution", tags=["execution"])
+#: The only path the execution domain serves.
+#:
+#: Exact equality, not a prefix or a substring. An allowlist that matches
+#: loosely is the defect this repository already recorded once: a WITH ...
+#: INSERT passed a read-only SQL check because the match was unanchored
+#: (NEGATIVE_RESULTS section 51). A prefix test here would admit
+#: /dispatch-leased-anything.
+_EXECUTOR_PATHS = frozenset({"/v1/execution/dispatch-leased"})
+
+#: Which half of the custody split this process is.
+#:
+#: The split gave the execution container its own credentials and only the
+#: public verification key, but it kept serving the whole router: assess,
+#: approve, execute, reject, the audit reader. A compromise there could
+#: therefore authorize work as well as perform it, which is exactly the
+#: property the split claims to remove (RMR-013). The default is "authority",
+#: so an unconfigured deployment behaves as it always did.
+_DOMAIN_AUTHORITY = "authority"
+_DOMAIN_EXECUTOR = "executor"
+
+
+def _execution_domain() -> str:
+    value = (_os.getenv("REMORA_EXECUTION_DOMAIN_ROLE") or "").strip().lower()
+    if value in (_DOMAIN_AUTHORITY, _DOMAIN_EXECUTOR):
+        return value
+    if value:
+        # An unrecognised role is a configuration error, and guessing which
+        # half was meant is the wrong way to resolve it.
+        raise RuntimeError(
+            f"REMORA_EXECUTION_DOMAIN_ROLE={value!r} is neither "
+            f"{_DOMAIN_AUTHORITY!r} nor {_DOMAIN_EXECUTOR!r}")
+    return _DOMAIN_AUTHORITY
+
+
+def _enforce_execution_domain(request: Request) -> None:
+    """Refuse authority routes when this process is the executor.
+
+    Attached to the router rather than to each route: a per-route decorator is
+    a list that a new endpoint silently fails to join, and that failure mode is
+    an authority route quietly reachable from the execution domain.
+    """
+    if _execution_domain() != _DOMAIN_EXECUTOR:
+        return
+    if request.url.path in _EXECUTOR_PATHS:
+        return
+    raise HTTPException(
+        status_code=404,
+        detail="not served by the execution domain")
+
+
+router = APIRouter(
+    prefix="/v1/execution",
+    tags=["execution"],
+    dependencies=[Depends(_enforce_execution_domain)],
+)
 
 PEP_AUDIENCE = "pep://remora-execution"
 EXECUTION_TOKEN_TTL_SECONDS = 300
