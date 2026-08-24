@@ -55,12 +55,28 @@ function deps(
       rec.execute.push([itemId, call]);
       return {
         status: opts.executeStatus ?? 200,
-        body: (opts.executeBody ?? { outcome: "executed" }) as ExecuteResult,
+        // A realistic body. The fixture used to be `{ outcome: "executed" }`
+        // with no tool_execution at all, and the tests asserted the gateway
+        // reported "executed" from it -- which is RMR-006 itself, encoded as
+        // an expectation. The real API always returns tool_execution; a 200
+        // without one now classifies as unknown, deliberately.
+        body: (opts.executeBody ?? {
+          outcome: "executed",
+          tool_execution: { executed: true, dispatch_began: true,
+                            state_unknown: false },
+        }) as ExecuteResult,
       };
     },
     async executeAccepted(_t: Record<string, unknown>, call: ToolCall) {
       rec.accepted.push(call);
-      return { status: 200, body: { outcome: "executed" } as ExecuteResult };
+      return {
+        status: 200,
+        body: {
+          outcome: "executed",
+          tool_execution: { executed: true, dispatch_began: true,
+                            state_unknown: false },
+        } as ExecuteResult,
+      };
     },
   };
   let n = 0;
@@ -400,5 +416,51 @@ describe("failure handling", () => {
     expect(r.result.isError).toBe(true);
     expect(rec.execute).toHaveLength(0);
     expect(rec.accepted).toHaveLength(0);
+  });
+});
+
+describe("a 200 is not a claim that the tool ran (RMR-006)", () => {
+  async function poll(executeBody: Record<string, unknown>) {
+    const { deps: d } = deps(
+      { decision: "verify", review_item_id: "item-9" },
+      { executeBody: executeBody as Partial<ExecuteResult> });
+    await handleRpc(
+      call("gh_comment_issue", { repo: "o/r", number: 5, body: "x",
+                                 intent_ref: "o/r#5" }), d);
+    return payload(await handleRpc(
+      call("remora_proposal_status", { proposal_id: "proposal-1" }, 2), d));
+  }
+
+  it("reports a refused dispatch as refused", async () => {
+    const p = await poll({
+      outcome: "refused",
+      tool_execution: { executed: false, dispatch_began: false,
+                        state_unknown: false, refusal_reason: "pep_denied" },
+    });
+    expect(p.status).toBe("refused");
+    expect(p.explanation).toMatch(/did not happen/i);
+  });
+
+  it("reports an unknown dispatch as unknown, and warns off a retry", async () => {
+    // The most dangerous case: the effect may have happened. Reported as
+    // "executed" before this change.
+    const p = await poll({
+      outcome: "unknown",
+      tool_execution: { executed: false, dispatch_began: true,
+                        state_unknown: true,
+                        refusal_reason: "tool_failed_nonce_burned" },
+    });
+    expect(p.status).toBe("unknown");
+    expect(p.explanation).toMatch(/do not retry/i);
+  });
+
+  it("still reports a real execution as executed, with no added prose", async () => {
+    const p = await poll({
+      outcome: "executed",
+      tool_execution: { executed: true, dispatch_began: true,
+                        state_unknown: false },
+    });
+    expect(p.status).toBe("executed");
+    expect(p.explanation).toBeUndefined();
   });
 });
