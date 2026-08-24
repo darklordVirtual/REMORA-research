@@ -28,6 +28,25 @@ max_instances = 1
 [containers.constraints]
 jurisdiction = "eu"
 
+# ── The execution domain (ADR-A) ──────────────────────────────────────────────
+# Same image, different custody. This container holds the Ed25519 PUBLIC key and
+# the downstream tool credentials; it never receives the private lease key, so it
+# can verify every lease it will ever see and mint none.
+#
+# A second container doubles the container cost at idle. That is the price of the
+# property: as long as one process both decides and executes, a compromise there
+# is an authority-forgery risk rather than only a replay risk, and no amount of
+# configuration inside one process changes that.
+[[containers]]
+class_name = "RemoraExecutionContainer"
+image = "../../deploy/ot-pilot/Dockerfile"
+image_build_context = "../.."
+instance_type = "basic"
+max_instances = 1
+
+[containers.constraints]
+jurisdiction = "eu"
+
 # ── The exeQta knowledge graph ────────────────────────────────────────────────
 # Bound to the Worker, never handed to the container. The container asks
 # graph.internal over plain HTTP and the outbound handler answers from here.
@@ -60,12 +79,20 @@ name = "REMORA"
 class_name = "RemoraContainer"
 
 [[durable_objects.bindings]]
+name = "EXECUTION"
+class_name = "RemoraExecutionContainer"
+
+[[durable_objects.bindings]]
 name = "PROPOSALS"
 class_name = "ProposalDO"
 
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["RemoraContainer", "ProposalDO"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["RemoraExecutionContainer"]
 
 # REMORA_AGENT_TOKEN is a secret: `wrangler secret put REMORA_AGENT_TOKEN`.
 # It is the OPERATOR token. It deliberately cannot approve anything — role

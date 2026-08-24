@@ -13,11 +13,19 @@ happened instead of implying execution.
 """
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from typing import Any
 
 from remora.enforcement.lease import ExecutionLease, LeaseRefused
+from remora.enforcement.lease_signing import SigningUnavailable
+from remora.execution.remote_dispatch import (
+    RemoteDispatchUnavailable,
+    execution_endpoint,
+    remote_dispatch,
+)
 from remora.enforcement.outbox import ExecutionOutbox, OutboxRow
+from remora.observability.events import governance_event
 from remora.enforcement.result_envelope import capture_tool_result
 
 
@@ -58,7 +66,9 @@ def dispatch_under_lease(
     if not gate_allowed:
         tool_execution["refusal_reason"] = "pep_denied"
         return tool_execution
-    if dispatcher is None:
+    if dispatcher is None and not execution_endpoint():
+        # The authority domain has no tool callables and needs none; a missing
+        # dispatcher is only a fault when this process is the one that executes.
         tool_execution["refusal_reason"] = "policy_bundle_unavailable"
         return tool_execution
     if presented_lease is not None:
@@ -73,9 +83,50 @@ def dispatch_under_lease(
                 policy_bundle_hash=policy_bundle_hash, toolspec=toolspec,
                 proposal_id=proposal_id, grant_jti=grant_jti,
             )
-        except (LeaseRefused, ValueError) as exc:
+        except (LeaseRefused, ValueError, SigningUnavailable) as exc:
+            # SigningUnavailable belongs here, and its absence was a live 500.
+            # The deployed image installed .[api,postgres] without [security],
+            # so cryptography was missing, _ed25519() raised, and the exception
+            # escaped as an unhandled server error instead of a named refusal
+            # (NEGATIVE_RESULTS section 45).
+            #
+            # Failing loudly on missing crypto is deliberate -- silently
+            # falling back to HMAC would restore the custody defect. Failing as
+            # a 500 is not: the operator learns nothing, and the audit chain
+            # records no reason. It is a refusal with a name.
             tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
             return tool_execution
+    # ── the custody boundary ────────────────────────────────────────────
+    # When an execution domain is configured, THIS process is the authority:
+    # it holds the private key and has just signed a lease, and it does not
+    # hold the downstream credential. The effect happens on the other side.
+    #
+    # Only reached when a lease was minted here. A presented_lease means this
+    # process IS the executor, so forwarding it again would be a loop.
+    if presented_lease is None and execution_endpoint():
+        try:
+            return remote_dispatch(
+                lease=lease, tenant=tenant, principal=principal,
+                tool_call=tool_call, now=now.isoformat(),
+            )
+        except RemoteDispatchUnavailable as exc:
+            # No verdict. Reported as unknown rather than as a refusal: the
+            # request may have been received, the nonce spent and the effect
+            # caused, with only the answer lost. Calling that "not executed"
+            # would invite a retry of a side effect that already happened.
+            governance_event(
+                "dispatch.execution_domain_unavailable", level=logging.ERROR,
+                tenant_id=tenant, tool_name=tool_call.tool_name,
+                proposal_id=proposal_id, detail=str(exc),
+            )
+            return {
+                "executed": False,
+                "refusal_reason": "execution_domain_unreachable",
+                "error": str(exc),
+                "proposal_id": proposal_id,
+                "state_unknown": True,
+            }
+
     try:
         dres = dispatcher.dispatch(
             lease,

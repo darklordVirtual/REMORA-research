@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **10 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **11 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2624,3 +2624,78 @@ would have to be a deliberate act.
 **Not resolved by this entry.** `PolicyDecisionToken` and the A2A envelope
 remain symmetric, so their verifiers can still mint. That is the same class of
 exposure ADR-A removed for the lease, and it is open for both.
+
+## §45 Deploying the custody split broke it twice, in ways only deployment could reveal (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** two defects found by deploying, both fixed, both now pinned by
+tests. Recorded because each was invisible to a green test suite and to review,
+and because the second is a design error in a guard published one day earlier.
+
+**Context.** ADR-A's custody split was implemented, tested from three
+directions, and reported as "designed, not deployed". Deploying it produced two
+failures in sequence. Neither was in the split's own logic.
+
+### Defect 1 — the production guard refused the topology it shipped alongside
+
+NEGATIVE_RESULTS §44 added a fail-closed prerequisite: a production deployment
+must have `REMORA_LEASE_SIGNING_KEY` or
+`REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE`, on the grounds that without one,
+leases are issued unsigned.
+
+That reasoning assumed **every production process issues leases.** Under the
+split the execution domain does not: it holds only the public verification key,
+and that absence *is* the security property. So the guard refused to start the
+execution container, and the deployment came up with one domain.
+
+The check is now satisfied by signing **or** verification material — private
+key, HMAC key, or public key — which preserves the original intent (a
+production deployment must not be silently unable to establish lease
+authenticity in either direction) while admitting an execution-only domain.
+
+The general shape is worth naming: **a fail-closed prerequisite written for one
+topology becomes a fail-closed prohibition on every other one.** §44 was
+written the day before and was correct for the deployment that existed then.
+
+### Defect 2 — the image did not carry the crypto the split requires
+
+With both containers starting, every ACCEPT returned HTTP 500 and
+`"An internal error occurred"`. The container image installs
+`.[api,postgres]`; `cryptography` is the optional `security` extra and was
+absent. `_ed25519()` therefore raised `SigningUnavailable` — which is exactly
+what that function is designed to do, and correct, because falling back to HMAC
+would restore the custody defect.
+
+But `dispatch_under_lease` caught `(LeaseRefused, ValueError)` and not
+`SigningUnavailable`, which is a `RuntimeError`. The exception escaped as an
+unhandled server error. The operator saw no reason, and the audit chain
+recorded none.
+
+Two fixes, because there were two faults: the image now installs the
+`security` extra, and the missing-crypto case is a named refusal
+(`lease_unavailable: ...`) rather than a 500. Failing loudly on absent crypto is
+deliberate; failing as an internal error is not.
+
+This is the same class as the CI defect in §44's own commit — the security extra
+missing from an environment that needs it — found a second time, in a second
+environment, three commits later. The lesson is not "remember the extra". It is
+that an optional dependency guarding a security property has no business being
+optional in any environment that claims the property, and nothing was checking
+that.
+
+### What deployment revealed that testing could not
+
+Both defects were invisible to 5829 passing tests, because both were
+*environment* facts: which prerequisites a second process must satisfy, and
+which packages an image contains. The library-level custody tests were correct
+and stayed green throughout.
+
+Recorded as a methodological result: for a property whose subject is a
+deployment topology, a green suite is evidence about the mechanism and not
+about the property. The claim in CAP-013 was correctly scoped to "mechanism,
+not deployed" before this, and only now changes.
+
+**Resolved by this entry:** the custody split is deployed and evidenced
+(`docs/deployment/authority-custody-evidence.md`). §44 remains accurate about
+the defect it recorded; its fix was too narrow and is superseded by the
+three-way check.

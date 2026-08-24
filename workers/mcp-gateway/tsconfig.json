@@ -4,7 +4,10 @@
     "module": "ES2022",
     "moduleResolution": "bundler",
     "lib": ["ES2022"],
-    "types": ["@cloudflare/workers-types"],
+    // nodejs_compat is enabled in wrangler.toml, so node builtins really are
+    // available to this Worker at runtime; the types belong here for the same
+    // reason. The test/ tree also reads files to assert the custody split.
+    "types": ["@cloudflare/workers-types", "node"],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,

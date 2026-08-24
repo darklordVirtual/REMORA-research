@@ -240,6 +240,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/dispatch-leased": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dispatch Leased
+         * @description The execution domain's half of the custody split (ADR-A).
+         *
+         *     This process holds the PUBLIC lease verification key and the downstream
+         *     credentials. It cannot mint authority -- ``ExecutionLease.issue`` refuses
+         *     when only verification material is present -- and it does not try to. It
+         *     receives a lease from the authority domain and either dispatches exactly
+         *     what that lease binds, or refuses.
+         *
+         *     The verification is not a formality and not a signature check alone.
+         *     ``GovernedToolDispatcher.dispatch`` re-derives the argument hash, compares
+         *     every bound field against this concrete call, and consumes the nonce in
+         *     durable tenant-scoped state before the tool runs. An authority-signed lease
+         *     presented for a different call is refused here.
+         */
+        post: operations["dispatch_leased_v1_execution_dispatch_leased_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/execution/execute": {
         parameters: {
             query?: never;
@@ -713,6 +745,47 @@ export interface components {
             transform: string;
             /** Value */
             value?: unknown;
+        };
+        /**
+         * DispatchLeasedRequest
+         * @description Dispatch a call under a lease minted by the AUTHORITY domain (ADR-A).
+         *
+         *     The execution domain's only inbound execution surface. It receives a lease
+         *     it did not request and did not sign, together with the call that lease is
+         *     supposed to authorise, and re-verifies the whole binding before anything
+         *     runs.
+         *
+         *     Nothing here is trusted because it arrived. The lease signature is checked
+         *     against the PUBLIC verification key -- this domain holds no private key and
+         *     so cannot have produced the lease -- and every bound field is compared to
+         *     the concrete call. A lease for a different tool, tenant, target or argument
+         *     set is refused here exactly as a forged one is.
+         *
+         *     ``now`` is carried so the authority's clock decides freshness rather than
+         *     the executor's, which keeps a skewed executor from widening or narrowing a
+         *     lease's usable window.
+         */
+        DispatchLeasedRequest: {
+            /**
+             * Actor Identity
+             * @default
+             */
+            actor_identity: string;
+            /** Lease */
+            lease: {
+                [key: string]: unknown;
+            };
+            /**
+             * Now
+             * @default
+             */
+            now: string;
+            /**
+             * Tenant Id
+             * @default
+             */
+            tenant_id: string;
+            tool_call: components["schemas"]["ToolCallRequest"];
         };
         /**
          * EffectStatus
@@ -1518,6 +1591,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+        };
+    };
+    dispatch_leased_v1_execution_dispatch_leased_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DispatchLeasedRequest"];
+            };
+        };
+        responses: {
+            /** @description Outcome of governed dispatch under a presented lease. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutionExecuteResponse"];
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description The lease is malformed, does not verify against this domain's public key, or does not bind this call. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

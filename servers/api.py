@@ -563,19 +563,39 @@ def _validate_production_prerequisites() -> None:
     # fail-closed prerequisite that omits the most consequential of the three
     # keys is still not doing the job it claims.
     #
-    # Either key satisfies it. An Ed25519 private key is the stronger posture
-    # (the verifier cannot mint) and a deployment mid-migration legitimately has
-    # only the HMAC key, so requiring the asymmetric one here would refuse to
-    # start a deployment that is correctly configured for its migration phase.
+    # Any lease key material satisfies it, signing OR verification.
+    #
+    # The first version of this check required SIGNING material, which assumed
+    # every production process issues leases. Under the ADR-A custody split it
+    # does not: the execution domain holds only the public verification key --
+    # that absence IS the security property -- and the check refused to start
+    # the very topology it shipped alongside. Found by deploying it (see
+    # NEGATIVE_RESULTS section 45).
+    #
+    # The intent is unchanged and is what the three cases below express: a
+    # production deployment must not be silently unable to establish lease
+    # authenticity in either direction.
+    #
+    #   private key present  -> can issue, and can verify what it issued
+    #   public key present   -> can verify; cannot issue, which is correct
+    #                           for an execution-only domain
+    #   HMAC key present     -> mid-migration, does both
+    #   none of the above    -> leases are unsigned or unverifiable. Refuse.
+    #
+    # An Ed25519 private key remains the stronger posture, and a deployment
+    # mid-migration legitimately has only the HMAC key, so neither is compelled
+    # here.
     if not (
         os.getenv("REMORA_LEASE_SIGNING_KEY", "").strip()
         or os.getenv("REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE", "").strip()
+        or os.getenv("REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC", "").strip()
     ):
         missing.append(
-            "REMORA_LEASE_SIGNING_KEY or "
-            "REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE (execution leases are "
-            "issued unsigned without one; the dispatcher then refuses every "
-            "call with lease_not_signed)"
+            "REMORA_LEASE_SIGNING_KEY, "
+            "REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE (authority domain) or "
+            "REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC (execution domain) "
+            "(without lease key material, leases are issued unsigned or "
+            "cannot be verified, and the dispatcher refuses every call)"
         )
 
     if missing:
