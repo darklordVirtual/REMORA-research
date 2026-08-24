@@ -58,9 +58,10 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 931f4d5983bf00a3e3f544454a89be29a503dc13
+    verified_at_sha: a800194efc4623a3f41191db6ee65cbd02295306
     verified_by: >-
-      re-audit 2026-08-24: e6a4cd96 changes the effect-receipt append path in
+      post-merge re-audit 2026-08-24: #358 squash commit a800194e contains the
+      content-identical effect-receipt append path audited on the PR head. It changes
       servers/execution_api.py and does not change token issuance, _GATE,
       audience/expiry checks or jti consumption. The token sources and caveat
       were re-read and remain unchanged. Prior: rebound 2026-08-24 to the
@@ -180,14 +181,15 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 931f4d5983bf00a3e3f544454a89be29a503dc13
+    verified_at_sha: a800194efc4623a3f41191db6ee65cbd02295306
     verified_by: >-
-      re-audit 2026-08-24: terminal effect-receipt uniqueness and audit
+      post-merge re-audit 2026-08-24: #358 squash commit a800194e contains the
+      content-identical audited PR tree. Terminal effect-receipt uniqueness and audit
       evidence now commit in one append_once operation; concurrent and
       rollback fault-injection tests pin the property. D1-only production is
       explicitly refused because its tenant audit chain is not durable; status
       is deliberately unchanged and the caveat names the backend limit. Bound
-      to 931f4d5983bf00a3e3f544454a89be29a503dc13. Prior: rebound 2026-08-24
+      to a800194efc4623a3f41191db6ee65cbd02295306. Prior: rebound 2026-08-24
       to the squash-merge commit of #352, which is where
       these sources now live in master's history; content-identical, no status
       or scope change. Prior: re-audit 2026-08-24 (deployment evidence,
