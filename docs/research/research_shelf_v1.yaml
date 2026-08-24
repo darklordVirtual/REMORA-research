@@ -37,7 +37,7 @@
 # A `remora_results` key is a hard error.
 
 schema_version: "1"
-updated: "2026-08-10"
+updated: "2026-08-24"
 
 components:
 
@@ -624,3 +624,42 @@ components:
       filtering: REMORA decides which tool subset is presented to the
       planner based on current task scope (pairs with RF-01 tool integrity).
 
+  - id: SHELF-025
+    name: "Content-bound context intake and four-dimensional Spec Fidelity"
+    source:
+      title: "SDAD: Spec-Driven Agentic Development for the AI-Native SDLC"
+      authors: "Vu Hung Nguyen, Thanh Nguyen"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2608.20341"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-24"
+      reported_results: >-
+        The paper proposes Spec Fidelity across completeness, consistency,
+        unambiguity and verifiability, and frames context ingestion as part of
+        execution. It explicitly lists operational definitions and
+        longitudinal baselines for Spec Fidelity/SER as open work; no source
+        result is treated as a REMORA measurement.
+    remora_status: >-
+      REMORA operationalises the narrow intake slice as a signed,
+      content-addressed ContextManifest and a signed, non-scalar
+      SpecFidelityReceipt whose evaluator identity is bound to key material.
+      Every positive or negative finding requires evidence references, missing
+      checks remain UNRESOLVED, and an accepted intake requires all four
+      dimensions to be SATISFIED. The contract and reference artifact are
+      machine-readable and the latter is reproduced byte-for-structure in a
+      test.
+    adoption: PARTIAL
+    remora_evidence:
+      - remora/governance/spec_intake.py
+      - schemas/spec_intake_v1.yaml
+      - artifacts/spec_intake/sdad_spec_fidelity_v1.json
+      - tests/test_spec_intake.py
+    declined_parts: >-
+      Agentic Autonomy Rate as assurance evidence and any scalar Spec Fidelity
+      score. Generated-line share is not correctness, and an aggregate can hide
+      a failed load-bearing dimension.
+    remaining: >-
+      Library surface only. RMR-004 must bind the verified manifest hash to the
+      final signed ToolSpec, callable identity, credential scope and dispatch
+      before this can be called an enforcement control. No semantic-correctness
+      or empirical SDAD-effect claim is made.

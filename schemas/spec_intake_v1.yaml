@@ -1,0 +1,128 @@
+# SDAD-inspired specification intake — machine-readable v1 contract.
+#
+# Source: Nguyen, V. H. & Nguyen, T. (2026), "SDAD: Spec-Driven Agentic
+# Development for the AI-Native SDLC", arXiv:2608.20341v1, especially the
+# Spec Fidelity dimensions and context-ingestion discussion.
+#
+# Adoption boundary: REMORA operationalises structural evidence and provenance.
+# It does not adopt AAR as a quality metric, does not collapse the dimensions
+# into a scalar, and does not claim this receipt proves semantic correctness.
+
+schema_version: 1
+status: implemented_library_surface
+implemented_at: "2026-08-24"
+
+context_manifest:
+  purpose: >-
+    Bind a specification intake to the exact context bytes, immutable source
+    revisions, model route, prompt template, tool manifest and governance
+    authorities that produced it.
+  canonicalization: sorted_compact_json_utf8
+  digest: sha256
+  signature:
+    algorithm: hmac-sha256
+    signer: deployment_identity
+    agent_may_sign: false
+  required_fields:
+    - schema_version
+    - intake_id
+    - spec_id
+    - spec_revision
+    - intent_authority_hash
+    - tool_spec_hash
+    - policy_bundle_hash
+    - prompt_template_hash
+    - tool_manifest_hash
+    - model_provider
+    - model_id
+    - model_route_revision
+    - sources
+    - generated_at
+    - signing_identity
+    - signature_algorithm
+    - manifest_sha256
+    - signature
+  source_required_fields:
+    - source_id
+    - uri
+    - revision
+    - content_sha256
+    - purpose
+  invariants:
+    at_least_one_source: true
+    source_ids_unique: true
+    source_content_hash_required: true
+    immutable_revision_required: true
+    signer_must_be_trusted: true
+
+spec_fidelity_receipt:
+  source_dimensions:
+    - completeness
+    - consistency
+    - unambiguity
+    - verifiability
+  dimension_verdicts:
+    - SATISFIED
+    - REFUSED
+    - UNRESOLVED
+  aggregate_numeric_score: forbidden
+  routing_statuses:
+    - INTAKE_ACCEPTED
+    - INTAKE_REFUSED
+    - INTAKE_UNRESOLVED
+  required_fields:
+    - schema_version
+    - manifest_sha256
+    - evaluator_identity
+    - evaluated_at
+    - evidence_sha256
+    - dimensions
+    - intake_status
+    - signature_algorithm
+    - receipt_sha256
+    - signature
+  invariants:
+    all_four_dimensions_required: true
+    accepted_only_if_all_dimensions_satisfied: true
+    positive_and_negative_findings_need_evidence_refs: true
+    every_requirement_links_to_acceptance_criteria: true
+    every_requirement_links_to_verification_evidence: true
+    receipt_content_addressed: true
+    evaluator_identity_bound_to_signature: true
+
+reason_codes:
+  - context_schema_unsupported
+  - context_signature_algorithm_unsupported
+  - context_signer_untrusted
+  - context_digest_mismatch
+  - context_signature_invalid
+  - context_structure_invalid
+  - receipt_schema_unsupported
+  - receipt_signature_algorithm_unsupported
+  - receipt_evaluator_untrusted
+  - receipt_dimensions_invalid
+  - receipt_structure_invalid
+  - receipt_digest_mismatch
+  - receipt_signature_invalid
+  - missing_requirements
+  - missing_acceptance_criteria
+  - missing_failure_modes
+  - missing_edge_cases
+  - requirement_untraced
+  - acceptance_criteria_unlinked
+  - unknown_acceptance_criterion
+  - trace_for_unknown_requirement
+  - contradiction
+  - consistency_checks_absent
+  - unresolved_term
+  - ambiguity_checks_absent
+  - requirements_absent
+  - verification_missing
+
+realization:
+  code: remora/governance/spec_intake.py
+  tests: tests/test_spec_intake.py
+  reference_artifact: artifacts/spec_intake/sdad_spec_fidelity_v1.json
+  execution_api_wiring: not_implemented
+  dispatch_binding: "open under RMR-004"
+  semantic_correctness_claim: refused

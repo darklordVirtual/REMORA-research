@@ -805,6 +805,15 @@ export interface components {
          *     by REMORA. ``verifier_identity`` is therefore mandatory: an
          *     attestation nobody signed is not evidence, because an auditor could
          *     not tell who claimed to have looked.
+         *
+         *     What changed, and why the extra fields exist: the recorder used to accept
+         *     any status for any existing proposal, so a proposal that was assessed and
+         *     never executed could be recorded EFFECT_VERIFIED. The receipt is now bound
+         *     to a dispatch in the audit chain. REMORA adjudicates whether a settled
+         *     attestation is bound, fresh, attributable, unreplayed and re-checkable; it
+         *     does not derive VERIFIED because it does not hold the comparison rules.
+         *     See
+         *     ``remora.governance.effect_receipt``.
          */
         EffectVerificationRequest: {
             /**
@@ -816,17 +825,37 @@ export interface components {
             execution_id: string;
             /**
              * Expected Sha256
+             * @description Lowercase hex SHA-256, or empty. Validated on the wire: a digest field that accepts arbitrary text is not a digest field.
              * @default
              */
             expected_sha256: string;
             /**
+             * Grant Jti
+             * @description The grant consumed by the dispatch being attested to. One receipt per dispatch; a second is refused as a replay.
+             * @default
+             */
+            grant_jti: string;
+            /**
              * Observed Sha256
+             * @description Lowercase hex SHA-256, or empty.
              * @default
              */
             observed_sha256: string;
+            /**
+             * Observed State Hash
+             * @description The system-of-record state the verifier observed, for the operator to correlate. Recorded, not adjudicated.
+             * @default
+             */
+            observed_state_hash: string;
             /** Reason Code */
             reason_code: string;
             status: components["schemas"]["EffectStatus"];
+            /**
+             * Tool Call Hash
+             * @description The exact call this observation is about. Compared against the dispatch recorded in the audit chain; a receipt for a different call is refused.
+             * @default
+             */
+            tool_call_hash: string;
             /** Tool Id */
             tool_id: string;
             /**
@@ -841,6 +870,12 @@ export interface components {
             verified_at: string;
             /** Verifier Identity */
             verifier_identity: string;
+            /**
+             * Verifier Version
+             * @description Which build of the verifier looked. A verdict whose producer cannot be identified is not reproducible.
+             * @default
+             */
+            verifier_version: string;
         };
         /** ErrorDetail */
         ErrorDetail: {

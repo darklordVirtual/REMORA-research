@@ -215,14 +215,41 @@ class RemoraClient:
         observed values stay with you.
 
         Recorded exactly as reported, mismatches included.
+
+        A settled verdict must say which dispatch it observed. The binding
+        fields are read from this proposal's lifecycle rather than asked of the
+        caller: the verifier knows what it looked at, not what REMORA called
+        the dispatch. The server compares them against its own chain, so an
+        echoed value proves nothing on its own -- what it prevents is a receipt
+        being applied to whichever dispatch happens to be latest.
         """
+        body = verification.to_dict()
+        if not body.get("tool_call_hash") or not body.get("grant_jti"):
+            dispatch = self._dispatch_binding(proposal_id)
+            body.setdefault("tool_call_hash", "")
+            body.setdefault("grant_jti", "")
+            body["tool_call_hash"] = body["tool_call_hash"] or dispatch[0]
+            body["grant_jti"] = body["grant_jti"] or dispatch[1]
         payload = self._request(
             "POST", f"/v1/execution/proposals/{proposal_id}/effect",
-            json=verification.to_dict(),
+            json=body,
         )
         return EffectVerificationView.from_payload(
             {**verification.to_dict(), **payload}
         )
+
+    def _dispatch_binding(self, proposal_id: str) -> tuple[str, str]:
+        """(tool_call_hash, grant_jti) of this proposal's latest dispatch."""
+        trail = self._request(
+            "GET", f"/v1/execution/proposals/{proposal_id}/lifecycle")
+        call_hash = jti = ""
+        for event in trail.get("events") or []:
+            if event.get("event") != "execution_result":
+                continue
+            payload = event.get("payload") or event
+            call_hash = str(payload.get("tool_call_hash") or call_hash)
+            jti = str(payload.get("grant_jti") or jti)
+        return call_hash, jti
 
     def get_proposal(self, proposal_id: str) -> ProposalView:
         """The decision and current state of one proposal."""

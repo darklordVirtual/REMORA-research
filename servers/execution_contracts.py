@@ -308,15 +308,48 @@ class EffectVerificationRequest(BaseModel):
     by REMORA. ``verifier_identity`` is therefore mandatory: an
     attestation nobody signed is not evidence, because an auditor could
     not tell who claimed to have looked.
+
+    What changed, and why the extra fields exist: the recorder used to accept
+    any status for any existing proposal, so a proposal that was assessed and
+    never executed could be recorded EFFECT_VERIFIED. The receipt is now bound
+    to a dispatch in the audit chain. REMORA adjudicates whether a settled
+    attestation is bound, fresh, attributable, unreplayed and re-checkable; it
+    does not derive VERIFIED because it does not hold the comparison rules.
+    See
+    ``remora.governance.effect_receipt``.
     """
 
     execution_id: str = Field(..., min_length=1, max_length=200)
     tool_id: str = Field(..., min_length=1, max_length=200)
     toolspec_hash: str = Field("", max_length=128)
+    tool_call_hash: str = Field(
+        "", max_length=64, pattern=r"^([0-9a-f]{64})?$",
+        description="The exact call this observation is about. Compared "
+                    "against the dispatch recorded in the audit chain; a "
+                    "receipt for a different call is refused.")
+    grant_jti: str = Field(
+        "", max_length=200,
+        description="The grant consumed by the dispatch being attested to. "
+                    "One receipt per dispatch; a second is refused as a "
+                    "replay.")
+    observed_state_hash: str = Field(
+        "", max_length=128,
+        description="The system-of-record state the verifier observed, for "
+                    "the operator to correlate. Recorded, not adjudicated.")
+    verifier_version: str = Field(
+        "", max_length=100,
+        description="Which build of the verifier looked. A verdict whose "
+                    "producer cannot be identified is not reproducible.")
     status: EffectStatus
     reason_code: str = Field(..., min_length=1, max_length=100)
     verifier_identity: str = Field(..., min_length=1, max_length=200)
-    expected_sha256: str = Field("", max_length=64)
-    observed_sha256: str = Field("", max_length=64)
+    expected_sha256: str = Field(
+        "", max_length=64, pattern=r"^([0-9a-f]{64})?$",
+        description="Lowercase hex SHA-256, or empty. Validated on the wire: "
+                    "a digest field that accepts arbitrary text is not a "
+                    "digest field.")
+    observed_sha256: str = Field(
+        "", max_length=64, pattern=r"^([0-9a-f]{64})?$",
+        description="Lowercase hex SHA-256, or empty.")
     verified_at: str = Field("", max_length=64)
     detail: str = Field("", max_length=2000)

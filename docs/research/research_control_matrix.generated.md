@@ -6,7 +6,7 @@
 
 The machine-checked chain from research source to tested code, one row per research line. Every code and test path below is verified to exist on disk by CI; the literature narrative lives in [docs/09-related-work.md](../09-related-work.md).
 
-Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, updated 2026-08-07).
+Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, updated 2026-08-24).
 
 ## Summary
 
@@ -22,6 +22,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | RES-008 | Nested learning, context flow, continuum memory | `context_flow_governance`, `governed_memory_layers`, `reviewed_policy_proposals` | `conceptual_translation_implemented` |
 | RES-009 | Enterprise AI governance and audit | `enterprise_rollout_reference` | `reference_design` |
 | RES-010 | Anytime-valid confidence sequences (optional-stopping-safe monitoring) | `continuous_far_monitoring` | `implemented_and_tested` |
+| RES-011 | SDAD-inspired content-bound specification intake | `signed_context_manifest`, `evidence_vector_spec_intake` | `conceptual_translation_implemented` |
 
 ## RES-001 — Causal post-hoc explainability and concept interventions
 
@@ -165,10 +166,27 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - **Literature:** [docs/09-related-work.md](../../docs/09-related-work.md) §2
 - **Landscape (local compendium):** `confidence-seq-2021`, `game-theoretic-stat-2023`
 
+## RES-011 — SDAD-inspired content-bound specification intake
+
+- **Source:** Nguyen, V. H. & Nguyen, T. (2026). SDAD: Spec-Driven Agentic Development for the AI-Native SDLC. arXiv:2608.20341v1. (cited in code; anchor `2608.20341` — CI-verified)
+  - §6.1 (Context Ingestion as Execution)
+  - §7.2 (completeness, consistency, unambiguity, verifiability)
+  - §13.4 (operational definitions and longitudinal baselines remain open)
+- **Concepts:** context_ingestion_as_execution, four_dimension_spec_fidelity, requirement_to_verification_traceability, content_addressed_context_provenance
+- **REMORA controls:** signed_context_manifest, evidence_vector_spec_intake
+- **Code:** [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py), [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml), [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json)
+- **Tests:** [`tests/test_spec_intake.py`](../../tests/test_spec_intake.py)
+- **Evidence:** Unit tests pin signature/digest refusal, source-order determinism, dimension separation, equal provenance for negative findings, traceability, unresolved handling, and exact reproduction of the committed reference artifact.
+- **Maturity:** `conceptual_translation_implemented`
+- **Scope boundary:** Structural and provenance checks only: no scalar Spec Fidelity score, no semantic-correctness or source-truth claim, no empirical SDAD validation, and no execution-API/dispatch binding until RMR-004. Agentic Autonomy Rate is not adopted as assurance evidence.
+- **Literature:** [docs/09-related-work.md](../../docs/09-related-work.md) §10
+- **Landscape (local compendium):** No anchor in the local compendium: SDAD v1 (August 2026) postdates the catalogue. REMORA adopts only the context/provenance and four-dimension intake decomposition, not the full SDLC framework or its proposed scalar metrics.
+
 ## Reverse index: code → research
 
 | Code file | Research line(s) |
 |-----------|------------------|
+| [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json) | RES-011 |
 | [`docs/enterprise/togaf-enterprise-rollout-plan.md`](../../docs/enterprise/togaf-enterprise-rollout-plan.md) | RES-009 |
 | [`examples/enterprise_demo.py`](../../examples/enterprise_demo.py) | RES-009 |
 | [`remora/cascade/stages.py`](../../remora/cascade/stages.py) | RES-004 |
@@ -179,6 +197,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py) | RES-008 |
 | [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py) | RES-008 |
 | [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) | RES-008 |
+| [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py) | RES-011 |
 | [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py) | RES-004 |
 | [`remora/oracles/evidence_v3.py`](../../remora/oracles/evidence_v3.py) | RES-006 |
 | [`remora/oracles/evidence_verifier.py`](../../remora/oracles/evidence_verifier.py) | RES-006 |
@@ -195,6 +214,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | [`remora/toolcall/schema.py`](../../remora/toolcall/schema.py) | RES-005 |
 | [`remora/toolcall/scoring.py`](../../remora/toolcall/scoring.py) | RES-005 |
 | [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py) | RES-004 |
+| [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) | RES-011 |
 
 ## Reverse index: control → research → code
 
@@ -206,6 +226,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | `context_flow_governance` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
 | `continuous_far_monitoring` | RES-010 | [`remora/selective/confidence_sequence.py`](../../remora/selective/confidence_sequence.py) |
 | `enterprise_rollout_reference` | RES-009 | [`docs/enterprise/togaf-enterprise-rollout-plan.md`](../../docs/enterprise/togaf-enterprise-rollout-plan.md), [`examples/enterprise_demo.py`](../../examples/enterprise_demo.py) |
+| `evidence_vector_spec_intake` | RES-011 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json), [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py), [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) |
 | `evidence_verifier` | RES-006 | [`remora/oracles/evidence_v3.py`](../../remora/oracles/evidence_v3.py), [`remora/oracles/evidence_verifier.py`](../../remora/oracles/evidence_verifier.py) |
 | `governed_memory_layers` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
 | `independent_verifier_gate` | RES-004 | [`remora/cascade/stages.py`](../../remora/cascade/stages.py), [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py), [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py) |
@@ -214,6 +235,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | `phase_classification` | RES-007 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py), [`remora/research_attic/statphys/potts.py`](../../remora/research_attic/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py) |
 | `reviewed_policy_proposals` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
 | `selective_routing` | RES-002 | [`remora/selective/conformal.py`](../../remora/selective/conformal.py), [`remora/selective/guardrail.py`](../../remora/selective/guardrail.py), [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) |
+| `signed_context_manifest` | RES-011 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json), [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py), [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) |
 | `thermodynamic_braking` | RES-007 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py), [`remora/research_attic/statphys/potts.py`](../../remora/research_attic/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py) |
 | `toolcall_gate` | RES-005 | [`remora/toolcall/remora_gate.py`](../../remora/toolcall/remora_gate.py), [`remora/toolcall/schema.py`](../../remora/toolcall/schema.py), [`remora/toolcall/scoring.py`](../../remora/toolcall/scoring.py) |
 

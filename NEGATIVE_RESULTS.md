@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **12 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **13 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2743,3 +2743,170 @@ sound implementation, a correct classification, an explicit strict mode, and a
 test for the edge case still passed a corrupt input — because the strict mode
 was off in the only place it ran. Every piece was right except the wiring, and
 the wiring is not what gets reviewed.
+
+## §47 EFFECT_VERIFIED was reportable; its attestation is now lineage-bound (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-002 from the external forensic review, fixed. One sub-rule was
+written wrong on the first attempt and is recorded below rather than quietly
+corrected.
+
+**The defect.** The recorder checked that a proposal existed and then stored
+whatever status arrived. A proposal that was assessed and never approved or
+executed could be recorded `EFFECT_VERIFIED`, and the lifecycle projection
+reported it as such — a dispatch of `null` with a current state of
+`EFFECT_VERIFIED`.
+
+That is a false VERIFIED. A later review also showed why the inverse shortcut
+is invalid: MISMATCH is a load-bearing negative system claim and can be abused
+to occupy the terminal slot. Positive and negative settled verdicts therefore
+carry the same evidence burden.
+
+**The rule now enforced.**
+
+```
+SETTLED_EFFECT_ATTESTATION_ACCEPTED =
+    valid_dispatch_lineage
+    AND authoritative_observation
+    AND observation_recorded_for_re_checking
+    AND freshness_valid
+    AND receipt_not_replayed
+```
+
+Each conjunct has its own refusal reason, because an operator reading a refusal
+needs to know which one failed. The lineage is read from the audit chain, never
+from the receipt: proposal, exact call hash and the grant that identifies the
+dispatch. An observation dated before the dispatch is refused, which is what
+catches a pre-existing matching state being passed off as a verification.
+
+**Two things deliberately kept possible.** An UNKNOWN dispatch can be resolved
+to VERIFIED by a later authoritative check — a lost response does not mean
+nothing happened, and requiring a false SUCCEEDED first would be the opposite
+of what this model is for. And a non-terminal verdict (UNOBSERVABLE,
+VERIFIER_FAILED) can be superseded, because that is how an unknown gets closed
+honestly. What is forbidden is re-verifying a dispatch that already has a
+settled verdict.
+
+### The sub-rule that was wrong
+
+The first implementation derived VERIFIED by requiring
+`expected_sha256 == observed_sha256`, on the reasoning that a verdict
+contradicting its own numbers is a mismatch with a wrong label.
+
+**That reasoning was wrong, and the test suite caught it.** The two digests
+hash *different maps* — the expected FIELDS and the observed ROW — and the
+comparison between them is rule-based
+(`PostconditionContract.comparison_rules`, for example `content: hash`). A
+passing verification routinely produces different digests. The rule would have
+refused every legitimate VERIFIED the SDK produces, and
+`tests/test_sdk_effect_roundtrip.py` failed immediately because it was
+asserting the real contract while the new module was inventing a different one.
+
+The corrected rule requires both digests to be *present*, not equal: a verdict
+that records neither side of its own comparison cannot be re-checked, and an
+unre-checkable verdict is an assertion. REMORA does not re-run the comparison
+and does not claim to — it holds the digests, not the maps or the rules.
+
+Worth recording because of what nearly happened: a module written to stop
+unearned claims was one commit from making one of its own, in the form of a
+verification rule that did not match the verification it was checking. An
+existing test written against the real contract is what prevented it.
+
+### A second review found the first fix incomplete
+
+The change above closed the reported reproduction -- a proposal with no
+dispatch -- and a second review then showed that a fabricated
+``EFFECT_VERIFIED`` was still reachable for a dispatch that DID happen:
+
+```json
+{"status": "EFFECT_VERIFIED", "verifier_identity": "trusted-name",
+ "tool_call_hash": "", "grant_jti": "", "verified_at": "",
+ "expected_sha256": "a", "observed_sha256": "b"}
+```
+
+Eight ways it got through, all of them mine:
+
+1. Empty ``tool_call_hash`` and ``grant_jti`` **skipped** the comparison. The
+   binding fields were treated as "no opinion" when absent, so a receipt could
+   skip every check by omitting what it would have been compared against.
+2. Empty ``verified_at`` was replaced with the server's clock, fabricating the
+   freshness the check depends on.
+3. The digest fields were length-limited but never validated as SHA-256, so
+   ``"a"`` and ``"b"`` were acceptable digests.
+4. ``verifier_identity`` was not bound to anything. The name arrived in the
+   request body, so an allowlist constrained which strings were acceptable and
+   not who could send them.
+5. An empty allowlist accepted any name, and a populated one could be satisfied
+   by typing a permitted name.
+6. ``observed_state_hash`` and ``verifier_version`` were accepted and then
+   discarded -- a received-but-unstored field suggests a binding that is not
+   there.
+7. The replay check was read-then-append. Two concurrent receipts both read
+   "unsettled" and both appended.
+8. ``EFFECT_MISMATCH`` required no observation at all, yet is terminal -- so an
+   evidence-free MISMATCH could take the slot and block a later legitimate
+   verification.
+
+Point 8 is the one worth dwelling on. The entry below states that positive and
+negative claims carry the same burden of proof, and the implementation directly
+under it demanded evidence for VERIFIED and none for MISMATCH. The asymmetry
+this project keeps finding in its own prose had been written into the code of
+the module that names it.
+
+All eight are fixed: binding fields and observation time are mandatory for a
+settled verdict, digests are validated as SHA-256 on the wire, the verifier
+identity is bound to the authenticated principal
+(``REMORA_EFFECT_VERIFIER_BINDINGS``, defaulting to identity == principal),
+provenance is stored in the chain, and MISMATCH carries the same evidence burden
+as VERIFIED. The first atomicity repair itself needed a further correction.
+
+### A third review found a phantom-settlement window
+
+The first replay fix took a primary-key slot in a separate receipt ledger and
+then appended the observation to the tenant audit chain. That prevented two
+concurrent winners but did **not** establish
+``observation_recorded_for_re_checking``: if the process failed after the slot
+commit and before the audit append, every retry was refused as a replay although
+no observation existed in the chain. The code had made uniqueness atomic and
+split the property it was meant to protect across two transactions.
+
+The separate ledger is removed. ``TenantAuditChain.append_once`` now commits
+the receipt idempotency key and audit entry as one operation: under one lock in
+the in-process reference implementation, and in one transaction for SQLite and
+Postgres. A concurrent test produces exactly one winner. A SQLite fault-
+injection trigger aborts the audit insert after the idempotency insert; the test
+proves the key rolls back, the chain stays empty, and a retry succeeds.
+
+There is one explicit deployment limit. ``REMORA_STATE_ENDPOINT`` makes the D1
+nonce ledgers durable, but the tenant audit chain has no D1 adapter. A
+production deployment configured only with that endpoint is therefore refused
+at the effect-receipt API rather than accepting a settlement it cannot preserve
+for re-checking. Adding a transactional D1 tenant-chain adapter remains open;
+Postgres and persistent SQLite are the durable effect-receipt backends today.
+
+### The claim was also overstated
+
+"REMORA derives EFFECT_VERIFIED" was wrong, and is now "REMORA accepts or
+refuses a lineage-bound VERIFIED attestation". REMORA cannot evaluate the
+postcondition rule -- it holds the digests, not the maps or the comparison
+rules -- so it does not compute the verdict and must not say it does. The
+function is named ``adjudicate_status`` rather than ``derive_status`` for the
+same reason.
+
+### The rule this raises to a project principle
+
+> **Positive and negative system claims carry the same burden of proof. A
+> measurement without verified provenance is just another claim.**
+
+This is the third consecutive entry reaching the same place from a different
+direction. Prose asserting a property is written at the moment of highest
+confidence and lowest evidence. A probe reporting a system is broken is a
+claim, and a measurement read from the wrong key measured nothing. And an
+attestation asserting VERIFIED is a claim, needing provenance that binds it to
+the thing it claims to have observed. (The first two are recorded in the
+custody-split branch, PR #356; if that merges first this entry renumbers.)
+
+It is a precise extension of what effect verification was already for. The
+model began by separating "the dispatcher returned" from "the effect happened".
+This adds the layer under it: **proving the observation actually measured what
+it claims to have measured.**

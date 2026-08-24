@@ -1,0 +1,86 @@
+{
+  "artifact_kind": "sdad_spec_intake_reference_v1",
+  "claim_scope": "reproducible structural intake fixture; not deployment evidence and not a semantic-correctness claim",
+  "context_manifest": {
+    "generated_at": "2026-08-24T12:00:00+02:00",
+    "intake_id": "intake-sdad-001",
+    "intent_authority_hash": "e8d915acbeb35a6177d218dacac0ece5a05cac9edf0b35b2ed03ba006e04fa52",
+    "manifest_sha256": "9657bf3bbb0640091e13da9c5da14ee0ad1c69b9c719e5d14be26636fbe36135",
+    "model_id": "human-reviewed-structural-intake",
+    "model_provider": "reference-only",
+    "model_route_revision": "v1",
+    "policy_bundle_hash": "659ad9c526f9b0345e5887fce6bf9d348d5b40eefad313312bbc07073fc3af03",
+    "prompt_template_hash": "1d16451922933beaf6e984831b54352972e6a896c12b3f37919053a990b612f1",
+    "schema_version": 1,
+    "signature": "8546c018c160aecaf0ecf936f7c083f01eef1f22019cc64151399d02b14df57a",
+    "signature_algorithm": "hmac-sha256",
+    "signing_identity": "fixture.deployment/v1",
+    "sources": [
+      {
+        "content_sha256": "25486e94f07dfcb82ea46a17c3f5cfe7f4498bc8ac7fa2cb864195811e1c3f42",
+        "purpose": "spec-fidelity and context-ingestion design source",
+        "revision": "2608.20341v1",
+        "source_id": "sdad-paper",
+        "uri": "https://arxiv.org/abs/2608.20341"
+      }
+    ],
+    "spec_id": "remora-spec-intake-v1",
+    "spec_revision": "2026-08-24",
+    "tool_manifest_hash": "557da72b33bba04e17e54e03c0a53413c7390a22ce55a3808a4e54a01997881a",
+    "tool_spec_hash": "3e11d1aef5e9b94c12b03f56e752626b0699e69c5fda7652bad61846bf113b01"
+  },
+  "spec_fidelity_receipt": {
+    "dimensions": [
+      {
+        "evidence_refs": [
+          "requirements:REQ-CONTEXT",
+          "requirements:REQ-FIDELITY",
+          "acceptance_criteria:AC-CONTEXT",
+          "acceptance_criteria:AC-FIDELITY",
+          "failure_modes:FM-UNBOUND-CONTEXT",
+          "failure_modes:FM-SCALAR-HIDING",
+          "edge_cases:EDGE-NEGATIVE-CLAIM",
+          "trace:REQ-CONTEXT->AC-CONTEXT",
+          "trace:REQ-FIDELITY->AC-FIDELITY"
+        ],
+        "name": "completeness",
+        "reasons": [],
+        "verdict": "SATISFIED"
+      },
+      {
+        "evidence_refs": [
+          "tests/test_spec_intake.py::test_trace_to_unknown_requirement_is_refused"
+        ],
+        "name": "consistency",
+        "reasons": [],
+        "verdict": "SATISFIED"
+      },
+      {
+        "evidence_refs": [
+          "schemas/spec_intake_v1.yaml#dimension_verdicts"
+        ],
+        "name": "unambiguity",
+        "reasons": [],
+        "verdict": "SATISFIED"
+      },
+      {
+        "evidence_refs": [
+          "tests/test_spec_intake.py::test_tampered_context_is_refused",
+          "tests/test_spec_intake.py::test_all_four_dimensions_are_kept_separate"
+        ],
+        "name": "verifiability",
+        "reasons": [],
+        "verdict": "SATISFIED"
+      }
+    ],
+    "evaluated_at": "2026-08-24T12:01:00+02:00",
+    "evaluator_identity": "fixture.intake-evaluator/v1",
+    "evidence_sha256": "e7e7961a30792ede6349823dbe1307e0666365f9521322c55ce6d5515955e0e0",
+    "intake_status": "INTAKE_ACCEPTED",
+    "manifest_sha256": "9657bf3bbb0640091e13da9c5da14ee0ad1c69b9c719e5d14be26636fbe36135",
+    "receipt_sha256": "c6f67127f9b0e4d000ab3d28dc8c9ddbd51772a5a6c0c42f97c31ef7c5a1f5f6",
+    "schema_version": 1,
+    "signature": "abff607c456131f906ca3e28a7d64eb1447f8ff22f5733e44cb08699f47af3d3",
+    "signature_algorithm": "hmac-sha256"
+  }
+}

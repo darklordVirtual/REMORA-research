@@ -38,6 +38,10 @@ from fastapi import APIRouter, HTTPException, Request
 
 from remora.enforcement.gate import EnforcementGate
 from remora.enforcement.nonce_store import DurableNonceStore, NonceStore
+from remora.governance.effect_receipt import (
+    ReceiptRefused,
+    verify_receipt as verify_effect_receipt,
+)
 from remora.enforcement.lease import (
     ExecutionLease,
     GovernedToolDispatcher,
@@ -1402,6 +1406,7 @@ def reject(req: RejectRequest, request: Request) -> dict[str, Any]:
 # (used by the SDK effect surface and tests).
 from remora.execution.projections import (  # noqa: E402
     EFFECT_STATE as _EFFECT_STATE,  # noqa: F401  (name kept for tests)
+    EffectVerificationReplay,
     current_state as _current_state_impl,
     dispatch_projection as _dispatch_projection_impl,
     effect_projection as _effect_projection,  # noqa: F401  (pure; direct use)
@@ -1419,12 +1424,64 @@ def _dispatch_projection(tenant: str, proposal_id: str) -> dict[str, Any] | None
     return _dispatch_projection_impl(_outbox(), tenant, proposal_id)
 
 
+def _verifier_bindings() -> dict[str, set[str]]:
+    """Which authenticated principal may claim which verifier identity.
+
+    ``REMORA_EFFECT_VERIFIER_BINDINGS`` is a comma-separated list of
+    ``principal=verifier_identity`` pairs.
+
+    An allowlist of verifier NAMES was not enough, and this is the correction.
+    The name arrived in the request body, so a submitter authorised to record
+    receipts could simply type a permitted name -- the allowlist constrained
+    which strings were acceptable, not who could send them. Binding the name to
+    the authenticated principal is what makes ``verifier_identity`` mean
+    "this party observed it" rather than "someone typed this".
+
+    Unset means the verifier identity must EQUAL the authenticated principal:
+    fail closed, and unspoofable without a second credential. That is stricter
+    than the previous default, deliberately.
+    """
+    raw = _os.environ.get("REMORA_EFFECT_VERIFIER_BINDINGS", "").strip()
+    out: dict[str, set[str]] = {}
+    for pair in raw.split(","):
+        principal, _, identity = pair.partition("=")
+        if principal.strip() and identity.strip():
+            out.setdefault(principal.strip(), set()).add(identity.strip())
+    return out
+
+
+def _authorised_verifier(principal: str, verifier_identity: str) -> bool:
+    bindings = _verifier_bindings()
+    if not bindings:
+        return verifier_identity == principal
+    return verifier_identity in bindings.get(principal, set())
+
+
+def _effect_audit_is_durable() -> bool:
+    """Whether effect evidence and its replay key share durable storage.
+
+    ``REMORA_STATE_ENDPOINT`` currently makes the grant/nonce ledgers durable,
+    but the tenant audit chain has no D1 adapter. Treating that endpoint as a
+    durable effect-evidence store would recreate the exact split-write bug this
+    receipt path is closing, only across a process restart. PostgreSQL and
+    SQLite are the two backends where ``append_once`` commits the key and audit
+    record in the same transaction.
+    """
+    return bool(
+        _os.environ.get("REMORA_PG_DSN", "").strip()
+        or _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    )
+
+
 def record_effect_verification(tenant: str, verification: Any, *,
-                               submitted_by: str = "") -> dict[str, Any]:
+                               submitted_by: str = "",
+                               dispatch_id: str = "",
+                               settled_dispatch_id: str = "") -> dict[str, Any]:
     """Append one effect verification to the tenant audit chain (see
     remora.execution.projections for the appending/never-editing contract)."""
     return _record_effect_verification_impl(
-        _CHAIN, tenant, verification, submitted_by=submitted_by
+        _CHAIN, tenant, verification, submitted_by=submitted_by,
+        dispatch_id=dispatch_id, settled_dispatch_id=settled_dispatch_id,
     )
 
 
@@ -1453,6 +1510,7 @@ def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
     events = _proposal_events(tenant, proposal_id)
     if not events:
         raise HTTPException(status_code=404, detail="proposal not found")
+
     assessed: dict[str, Any] = next(
         (e["payload"] for e in events if e["event"] == "assessed"), {}
     )
@@ -1495,28 +1553,104 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
-    if not _proposal_events(tenant, proposal_id):
+    events = _proposal_events(tenant, proposal_id)
+    if not events:
         raise HTTPException(status_code=404, detail="proposal not found")
+
+    if _os.environ.get("REMORA_ENV", "").strip().lower() in {
+        "prod", "production"
+    } and not _effect_audit_is_durable():
+        raise HTTPException(
+            status_code=503,
+            detail=("effect receipt audit store unavailable: production "
+                    "requires REMORA_PG_DSN or REMORA_CHAIN_DB so receipt "
+                    "uniqueness and its audit evidence commit together; "
+                    "REMORA_STATE_ENDPOINT does not yet store the tenant "
+                    "audit chain"),
+        )
+
+    # NOT defaulted to the server clock: substituting our time for a missing
+    # observation time fabricates the freshness the check depends on. A
+    # settled verdict without one is refused below.
+    verified_at = req.verified_at
+
+    # The verifier identity is bound to the authenticated principal, so it
+    # names who observed rather than what the submitter typed.
+    if not _authorised_verifier(principal, req.verifier_identity):
+        raise HTTPException(
+            status_code=403,
+            detail=(f"effect receipt refused (verifier_not_bound): "
+                    f"{principal!r} may not submit receipts as "
+                    f"{req.verifier_identity!r}"))
+
+    # A settled verdict is accepted only when bound to a real dispatch.
+    # Everything the receipt is checked against is read from the audit chain;
+    # nothing here trusts the request about which dispatch it describes.
+    try:
+        lineage, status = verify_effect_receipt(
+            events=events,
+            proposal_id=proposal_id,
+            claimed_status=req.status,
+            tool_call_hash=req.tool_call_hash,
+            grant_jti=req.grant_jti,
+            expected_sha256=req.expected_sha256,
+            observed_sha256=req.observed_sha256,
+            verified_at=verified_at,
+            verifier_identity=req.verifier_identity,
+            trusted_verifiers=(),
+            already_recorded=[
+                e.get("payload", {}) for e in events
+                if e.get("event") == "effect_verified"
+            ],
+        )
+    except ReceiptRefused as exc:
+        # 409, not 400: the receipt is well-formed and the conflict is with
+        # the recorded history, which is what the caller needs told.
+        raise HTTPException(
+            status_code=409,
+            detail=f"effect receipt refused ({exc.reason}): {exc.detail}",
+        ) from exc
 
     verification = EffectVerification(
         proposal_id=proposal_id,
         execution_id=req.execution_id,
         tool_id=req.tool_id,
         toolspec_hash=req.toolspec_hash,
-        status=req.status,
+        status=status,
         reason_code=req.reason_code,
         verifier_identity=req.verifier_identity,
         expected={}, observed={},
         expected_sha256=req.expected_sha256,
         observed_sha256=req.observed_sha256,
-        verified_at=req.verified_at or datetime.now(UTC).isoformat(),
+        verified_at=verified_at,
         detail=req.detail,
+        dispatch_id=lineage.dispatch_id,
+        tool_call_hash=lineage.tool_call_hash,
+        observed_state_hash=req.observed_state_hash,
+        verifier_version=req.verifier_version,
+        submitted_by=principal,
     )
-    audit = record_effect_verification(tenant, verification,
-                                       submitted_by=principal)
+    try:
+        audit = record_effect_verification(
+            tenant, verification,
+            submitted_by=principal,
+            dispatch_id=lineage.dispatch_id,
+            settled_dispatch_id=(lineage.dispatch_id
+                                 if status.is_terminal else ""),
+        )
+    except EffectVerificationReplay as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=("effect receipt refused (receipt_replayed): this "
+                    "dispatch already has a settled verdict"),
+        ) from exc
     return {
         "proposal_id": proposal_id,
-        "status": req.status.value,
+        # The adjudicated attestation status. REMORA binds and refuses; it
+        # cannot re-run the deployment's postcondition comparison.
+        "status": status.value,
+        "claimed_status": req.status.value,
+        "dispatch_id": lineage.dispatch_id,
         "reason_code": req.reason_code,
         "verifier_identity": req.verifier_identity,
         "audit": audit,
