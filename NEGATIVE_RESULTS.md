@@ -3578,6 +3578,16 @@ the exact strings are worth confirming against a real run rather than
 inferring. It is a repository-settings change, not a code change, and the
 person who owns the repository should make it knowingly.
 
+The mechanism half is now in code: each security workflow carries a stable
+aggregator job — `quality-gates-required`, `deterministic-suite-required`,
+`supply-chain-required`, `codeql-required` — that runs under `if: always()`
+and fails unless every leg it aggregates reported success, so branch
+protection can require five names instead of thirty drifting matrix-expanded
+ones, with `shadow-replay` required directly. The entry stays `open` until
+the setting itself is applied and a control change has demonstrated that a
+failing aggregator actually blocks a merge: *runs* and *enforced* are
+different properties, and only the second one closes this.
+
 The observation stands on its own either way: **this repository has been
 enforcing far less in CI than its own workflow file appears to promise, and
 that gap is invisible from the file.** Reading `.github/workflows/` tells you

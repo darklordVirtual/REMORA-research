@@ -166,3 +166,29 @@ jobs:
             sbom-frontend.cdx.json
             sbom-mcp-gateway.cdx.json
           retention-days: 90
+
+  supply-chain-required:
+    # RMR-007: branch protection can only require named contexts, and the
+    # npm-audit leg has a matrix-expanded name that drifts as packages come
+    # and go. This aggregator is the stable required context for the whole
+    # workflow: it runs always() — even when a leg failed, which is exactly
+    # when its verdict matters — and fails unless every aggregated leg
+    # reported success. A leg that errors before it starts (runner lost,
+    # queue timeout) reads as failure here, not as absence.
+    if: always()
+    needs: [pip-audit, npm-audit, secret-scan, sbom]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every aggregated leg succeeded
+        env:
+          NEEDS: ${{ toJson(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          needs = json.loads(os.environ["NEEDS"])
+          not_ok = {k: v["result"] for k, v in needs.items() if v["result"] != "success"}
+          if not_ok:
+              print(f"aggregated legs not green: {not_ok}", file=sys.stderr)
+              sys.exit(1)
+          print(f"all {len(needs)} aggregated legs succeeded")
+          PY
