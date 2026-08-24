@@ -544,6 +544,27 @@ class GovernedToolDispatcher:
         self._expected_bundle = expected_policy_bundle_hash
         self._ledger = ledger or NonceLedger()
         self._nonce_store = nonce_store
+        self._spec_identity: Callable[[str], tuple[str, int] | None] | None = None
+
+    def bind_toolspec_identity(
+        self, resolver: "Callable[[str], tuple[str, int] | None]"
+    ) -> None:
+        """Supply the signed spec identity this process would run RIGHT NOW.
+
+        ``ExecutionLease`` has always carried ``toolspec_hash`` and
+        ``toolspec_version``, and ``verify`` has always been able to check
+        them. Nothing supplied them, so the signed spec identity was inside
+        the signature and inert at the final PEP (RMR-004): the lease proved
+        which spec was approved and nothing compared it to the spec about to
+        run.
+
+        The resolver returns ``None`` when this process has no bundle
+        configured, which is the unenforced research path and stays permitted.
+        It must not be used to express "I could not look it up" -- see
+        ``dispatch``, which refuses on a raise rather than treating a failed
+        lookup as an absent bundle.
+        """
+        self._spec_identity = resolver
 
     def register(self, tool_name: str, fn: Callable[[Any], Any]) -> None:
         """Register the callable that actually executes ``tool_name``."""
@@ -587,6 +608,32 @@ class GovernedToolDispatcher:
             )
 
         fn = self._tools[tool_name]
+        # The signed spec identity, resolved at the moment of dispatch. A
+        # mismatch means the spec moved between approval and execution: the
+        # action about to run is not the action that was reviewed.
+        #
+        # A resolver that RAISES refuses. Falling through would turn "I could
+        # not check" into "there was nothing to check", which is the failure
+        # direction this whole file exists to avoid.
+        spec_hash: str | None = None
+        spec_version: int | None = None
+        if self._spec_identity is not None:
+            try:
+                identity = self._spec_identity(tool_name)
+            except Exception as exc:
+                governance_event(
+                    "dispatch.refused", level=logging.ERROR,
+                    reason="toolspec_unresolvable", tenant_id=tenant_id,
+                    tool_name=tool_name, proposal_id=proposal_id,
+                    grant_jti=lease.grant_jti, detail=str(exc),
+                )
+                return DispatchResult(
+                    executed=False, refusal_reason="toolspec_unresolvable",
+                    proposal_id=proposal_id,
+                )
+            if identity is not None:
+                spec_hash, spec_version = identity[0], int(identity[1])
+
         verdict = lease.verify(
             tool_name=tool_name, arguments=arguments,
             tenant_id=tenant_id,
@@ -594,6 +641,8 @@ class GovernedToolDispatcher:
             now=now,
             expected_policy_bundle_hash=self._expected_bundle,
             actor_identity=actor_identity,
+            toolspec_hash=spec_hash,
+            toolspec_version=spec_version,
         )
         if not verdict.verified:
             governance_event(
