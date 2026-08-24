@@ -24,11 +24,13 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **12 `open`**, **20 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **21 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
-Seven themes: six research gaps and one production gap. The section numbers
+Seven themes, all research gaps — the one production gap (CI gates that ran
+without blocking, §55) is closed and struck from this list; a backlog that
+keeps closed items is the drift the status gate exists to prevent. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
 cites only `open` sections and that no `open` section is missing a theme.
 
@@ -85,16 +87,6 @@ cites only `open` sections and that no `open` section is missing a theme.
    tracked in
    [remediation_register.yaml](docs/assurance/remediation_register.yaml).
 
-8. **CI gates that run without blocking** (§55) — `master` requires five
-   contexts: `verify`, the three `pytest` legs and documentation governance.
-   CodeQL, secret scanning, the dependency audits, the SBOM job, OPA policy
-   conformance, key artifact integrity, lockfile integrity, the wheel contract,
-   the Postgres tenant-chain contract and `worker-typecheck` all run, all
-   report, and none of them blocks a merge. The workflow file shows what runs
-   and says nothing about what is enforced, which is why this went unnoticed.
-   Closing it is a repository-settings change: the required-context strings
-   have to match the reported job names exactly, and a wrong one blocks every
-   merge on `master` until an admin intervenes.
 <!-- backlog-end -->
 
 ---
@@ -3187,8 +3179,8 @@ recorded as §47 and §48; RMR-009 and RMR-013 are fixed together in §52,
 because they are the same defect shape twice; RMR-006 in §53; RMR-004's binding in §54,
 whose two sub-checks stay deliberately unreachable. They are struck from the list above rather than
 left standing, because a list of open findings that keeps closed ones is the
-same drift this document's status gate exists to prevent. RMR-007's supply-chain half is §55; its branch-protection half is the
-last one still open, and is a repository-settings change rather than a code one.
+same drift this document's status gate exists to prevent. RMR-007 is §55; its supply-chain half was fixed in code and
+its branch-protection half is now applied and enforcement-demonstrated (control PR #365), closing the review's list.
 
 ### The finding about the findings
 
@@ -3527,11 +3519,12 @@ unrelated arguments.
 **Not deployed.** Code only.
 
 ## §55 The component holding execution authority was the one nobody audited (2026-08-24)
-<!-- finding-status: open -->
+<!-- finding-status: accepted -->
 
-**Status:** RMR-007 from the external forensic review. The supply-chain half is
-fixed. The branch-protection half is **not**, and is the reason this entry is
-`open` rather than `accepted`.
+**Status:** RMR-007 from the external forensic review. Both halves are fixed:
+the supply-chain half in code, and the branch-protection half as a
+repository-settings change whose enforcement is demonstrated, not assumed
+(evidence below).
 
 ### The supply-chain half
 
@@ -3557,7 +3550,7 @@ SBOM is added; the other four workers remain uncovered and the test
 deliberately does not claim otherwise. Generating one of five and calling it
 worker coverage is the kind of prose this document keeps having to retract.
 
-### The branch-protection half, which is not fixed
+### The branch-protection half, now enforced
 
 `master` requires five contexts: `verify`, the three `pytest` legs, and
 documentation governance. Not required, and therefore not blocking:
@@ -3571,22 +3564,26 @@ Every one of them runs, and reports, and can be red on a mergeable pull
 request. The security gates in this repository are advisory and the summary
 does not say so.
 
-This is left open rather than fixed in this change on purpose. Adding a
-required context whose name does not exactly match the job's reported name
-blocks every merge on `master` until someone with admin rights notices, and
-the exact strings are worth confirming against a real run rather than
-inferring. It is a repository-settings change, not a code change, and the
-person who owns the repository should make it knowingly.
+This was left open rather than fixed in the original change on purpose.
+Adding a required context whose name does not exactly match the job's
+reported name blocks every merge on `master` until someone with admin rights
+notices, and the exact strings are worth confirming against a real run rather
+than inferring. It was a repository-settings change, not a code change, and
+the person who owns the repository should make it knowingly.
 
 The mechanism half is now in code: each security workflow carries a stable
 aggregator job — `quality-gates-required`, `deterministic-suite-required`,
 `supply-chain-required`, `codeql-required` — that runs under `if: always()`
 and fails unless every leg it aggregates reported success, so branch
 protection can require five names instead of thirty drifting matrix-expanded
-ones, with `shadow-replay` required directly. The entry stays `open` until
-the setting itself is applied and a control change has demonstrated that a
-failing aggregator actually blocks a merge: *runs* and *enforced* are
-different properties, and only the second one closes this.
+ones, with `shadow-replay` required directly (#364).
+
+The setting is applied: `master` requires exactly those five contexts. And
+enforcement is demonstrated, not assumed: control PR #365 forced
+`codeql-required` red while every other check stayed green, and GitHub
+refused the merge — first while the required contexts had not reported, then
+again with the aggregator failing. *Runs* and *enforced* are different
+properties; both halves of this finding now have evidence for the second.
 
 The observation stands on its own either way: **this repository has been
 enforcing far less in CI than its own workflow file appears to promise, and
