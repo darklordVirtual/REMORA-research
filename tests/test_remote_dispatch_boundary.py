@@ -248,3 +248,47 @@ def test_the_transport_token_is_sent_but_is_not_authority(monkeypatch, authority
 
     assert _dispatch(dispatcher=None)["executed"] is True
     assert seen["token"] == "internal-hop-token"
+
+
+# ── the missing-dependency path, found in deployment ───────────────────────
+
+def test_missing_crypto_is_a_named_refusal_not_a_server_error(monkeypatch,
+                                                              authority):
+    """A live 500, pinned as a refusal.
+
+    The deployed image installed .[api,postgres] without [security], so
+    `cryptography` was absent, `_ed25519()` raised SigningUnavailable, and
+    dispatch_under_lease -- which caught only (LeaseRefused, ValueError) --
+    let it escape as an unhandled 500. The gateway reported
+    "An internal error occurred" with no reason in the audit chain.
+
+    Failing loudly when the crypto library is missing is correct: falling back
+    to HMAC would restore the custody defect. Failing as a server error is not.
+    """
+    monkeypatch.setattr(signing, "_ed25519", lambda: (_ for _ in ()).throw(
+        signing.SigningUnavailable("cryptography is not installed")))
+    monkeypatch.setattr(rd, "_post", lambda *a, **k: {
+        "tool_execution": {"executed": True}})
+
+    result = _dispatch(dispatcher=None)
+    assert result["executed"] is False
+    assert result["refusal_reason"].startswith("lease_unavailable")
+    assert "cryptography" in result["refusal_reason"]
+
+
+def test_the_deployed_image_installs_the_security_extra():
+    """The other half of the same defect.
+
+    A named refusal is better than a 500, but a deployment whose every call
+    refuses is still broken. The image must carry the extra that the Ed25519
+    path needs, and that is a Dockerfile fact rather than a Python one.
+    """
+    from pathlib import Path
+
+    dockerfile = (Path(__file__).resolve().parents[1]
+                  / "deploy" / "ot-pilot" / "Dockerfile").read_text()
+    install = [ln for ln in dockerfile.splitlines() if "pip install -e" in ln]
+    assert install, "no editable install line found in the image"
+    assert "security" in install[0], (
+        "the image must install the 'security' extra or Ed25519 lease signing "
+        "raises SigningUnavailable on every call")

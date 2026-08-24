@@ -18,6 +18,7 @@ from datetime import datetime
 from typing import Any
 
 from remora.enforcement.lease import ExecutionLease, LeaseRefused
+from remora.enforcement.lease_signing import SigningUnavailable
 from remora.execution.remote_dispatch import (
     RemoteDispatchUnavailable,
     execution_endpoint,
@@ -82,7 +83,17 @@ def dispatch_under_lease(
                 policy_bundle_hash=policy_bundle_hash, toolspec=toolspec,
                 proposal_id=proposal_id, grant_jti=grant_jti,
             )
-        except (LeaseRefused, ValueError) as exc:
+        except (LeaseRefused, ValueError, SigningUnavailable) as exc:
+            # SigningUnavailable belongs here, and its absence was a live 500.
+            # The deployed image installed .[api,postgres] without [security],
+            # so cryptography was missing, _ed25519() raised, and the exception
+            # escaped as an unhandled server error instead of a named refusal
+            # (NEGATIVE_RESULTS section 45).
+            #
+            # Failing loudly on missing crypto is deliberate -- silently
+            # falling back to HMAC would restore the custody defect. Failing as
+            # a 500 is not: the operator learns nothing, and the audit chain
+            # records no reason. It is a refusal with a name.
             tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
             return tool_execution
     # ── the custody boundary ────────────────────────────────────────────

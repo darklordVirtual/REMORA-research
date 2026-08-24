@@ -26,6 +26,8 @@ export interface Env {
   REMORA?: DurableObjectNamespace<RemoraContainer>;
   PROPOSALS: DurableObjectNamespace<ProposalDO>;
   REMORA_AGENT_TOKEN: string;
+  /** The execution domain's container binding. Absent = unsplit deployment. */
+  EXECUTION?: DurableObjectNamespace<RemoraExecutionContainer>;
   /**
    * Compliance boundary for the proposal store, e.g. "eu". Set in
    * wrangler.toml alongside the container's own jurisdiction constraint so
@@ -74,7 +76,25 @@ export interface Env {
    *  without a credential and without a writable disk. */
   STATE_DB?: D1Database;
   REMORA_PDP_SIGNING_KEY: string;
+  /**
+   * Symmetric lease key. Goes to the AUTHORITY container only, and only for
+   * the migration window: while it exists, whoever holds it can mint. It is
+   * deliberately absent from the execution container's envVars below.
+   */
   REMORA_LEASE_SIGNING_KEY: string;
+  /**
+   * Ed25519 seed, 32 bytes hex. The authority domain's private key and the
+   * whole point of the split: the container that executes never receives it,
+   * so a compromise there cannot author authority. Never log this.
+   */
+  REMORA_LEASE_ED25519_PRIVATE?: string;
+  /**
+   * Ed25519 public key, 32 bytes hex. Safe in the execution container, which
+   * is exactly why the split works.
+   */
+  REMORA_LEASE_ED25519_PUBLIC?: string;
+  /** Shared bearer for the internal authority -> execution hop. */
+  REMORA_EXECUTION_TOKEN?: string;
   REMORA_AUDIT_SIGNING_KEY: string;
   REMORA_ENVELOPE_SIGNING_KEY: string;
   /** Set these together, once a signed ToolSpec bundle exists for the
@@ -168,7 +188,45 @@ export class RemoraContainer extends Container<Env> {
       REMORA_API_TOKENS: env.REMORA_API_TOKENS,
       REMORA_API_BEARER_TOKEN: env.REMORA_AGENT_TOKEN,
       REMORA_PDP_SIGNING_KEY: env.REMORA_PDP_SIGNING_KEY,
-      REMORA_LEASE_SIGNING_KEY: env.REMORA_LEASE_SIGNING_KEY,
+      // ── ADR-A: this container is the AUTHORITY domain ──────────────────
+      // It decides and it signs what it decided. When an Ed25519 private key
+      // is configured, leases are minted under it and the executor -- which
+      // holds only the public half -- cannot produce one.
+      //
+      // The symmetric key is still passed while it is configured, because a
+      // deployment mid-migration legitimately has only that. Once the keypair
+      // is in service, removing REMORA_LEASE_SIGNING_KEY from the secret store
+      // is what closes the window; the code refuses HMAC on its own the moment
+      // asymmetric material appears (lease_signing.hmac_accepted).
+      REMORA_LEASE_SIGNING_KEY: env.REMORA_LEASE_SIGNING_KEY ?? "",
+      ...(env.REMORA_LEASE_ED25519_PRIVATE
+        ? {
+            REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE:
+              env.REMORA_LEASE_ED25519_PRIVATE,
+          }
+        : {}),
+      ...(env.REMORA_LEASE_ED25519_PUBLIC
+        ? {
+            REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC:
+              env.REMORA_LEASE_ED25519_PUBLIC,
+          }
+        : {}),
+      // Where the effect actually happens. Set only when the execution
+      // container exists; absent, this container dispatches locally exactly as
+      // it did before the split, which is the compatibility path.
+      ...(env.REMORA_LEASE_ED25519_PRIVATE
+        ? {
+            REMORA_EXECUTION_ENDPOINT: "http://execution.internal",
+            // The hop authenticates against the executor's REMORA_API_TOKENS
+            // table, which is the same authenticator every other caller goes
+            // through. A dedicated hop secret would need its own entry in that
+            // table; until it has one, a token the table does not know is
+            // simply a 401, which is how the first deployment of this split
+            // failed. Reusing the operator token grants nothing new -- the
+            // Worker already calls the container with it.
+            REMORA_EXECUTION_TOKEN: env.REMORA_AGENT_TOKEN,
+          }
+        : {}),
       REMORA_AUDIT_SIGNING_KEY: env.REMORA_AUDIT_SIGNING_KEY,
       REMORA_ENVELOPE_SIGNING_KEY: env.REMORA_ENVELOPE_SIGNING_KEY,
       ...(env.REMORA_TOOLSPEC_BUNDLE
@@ -211,6 +269,87 @@ export class RemoraContainer extends Container<Env> {
       REMORA_GITHUB_TOKEN: env.REMORA_GITHUB_TOKEN ?? "",
       REMORA_GITHUB_REPOS: env.REMORA_GITHUB_REPOS ?? "",
       REMORA_KG_TENANT: env.REMORA_KG_TENANT ?? "",
+      REMORA_EXECUTION_ARTIFACT_DIR: "/var/lib/remora/artifacts",
+      PYTHONPATH: "/app",
+    };
+  }
+}
+
+/**
+ * The EXECUTION domain (ADR-A).
+ *
+ * Same image, different custody. This container holds the Ed25519 PUBLIC key
+ * and the downstream tool credentials; it never receives the private lease
+ * key, so `ExecutionLease.issue` refuses here and there is no material with
+ * which to author authority. It serves exactly one execution surface,
+ * /v1/execution/dispatch-leased, and either dispatches what a presented lease
+ * binds or refuses.
+ *
+ * What this does and does not buy, stated plainly because the distinction is
+ * easy to overclaim:
+ *
+ *   it CANNOT mint new ExecutionLease authority  -- no private key exists here
+ *   it CAN still reach the downstream system     -- it holds those credentials
+ *
+ * The second line is the ambient-bypass property (E2) and is NOT addressed by
+ * splitting keys. A compromised executor cannot forge authority; it can still
+ * call GitHub with the token it legitimately holds. Closing that needs the
+ * credential to move behind a binding, which is separate work.
+ */
+export class RemoraExecutionContainer extends Container<Env> {
+  defaultPort = 8000;
+  sleepAfter = "30m";
+  enableInternet = true;
+  envVars: Record<string, string>;
+
+  constructor(ctx: DurableObjectState<{}>, env: Env) {
+    super(ctx, env);
+    this.envVars = {
+      REMORA_ENV: "production",
+      REMORA_ENABLED_SURFACES: "execution",
+      ...(env.REMORA_RUNTIME_PROFILE
+        ? { REMORA_RUNTIME_PROFILE: env.REMORA_RUNTIME_PROFILE }
+        : {}),
+      // Durable state: the nonce ledger this container consumes into must
+      // survive its own replacement, or the one-time property has the
+      // lifetime of a container.
+      ...(env.REMORA_PG_DSN
+        ? {
+            REMORA_PG_DSN: env.REMORA_PG_DSN,
+            REMORA_CONTROL_PLANE_DSN: env.REMORA_PG_DSN,
+          }
+        : {
+            REMORA_STATE_ENDPOINT: "http://state.internal/query",
+            REMORA_CONTROL_PLANE_DB: env.REMORA_CHAIN_DB ?? "",
+          }),
+      REMORA_API_TOKENS: env.REMORA_API_TOKENS,
+      REMORA_API_BEARER_TOKEN: env.REMORA_AGENT_TOKEN,
+
+      // ── the custody split, as configuration ──────────────────────────────
+      // PUBLIC key only. REMORA_LEASE_SIGNING_KEY and the Ed25519 private key
+      // are deliberately NOT listed. Their absence is the security property,
+      // so it is asserted by a test rather than left to review to notice.
+      REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC:
+        env.REMORA_LEASE_ED25519_PUBLIC ?? "",
+      // Production fail-closed requires a PDP token key; this container
+      // verifies tokens, and the token scheme is still symmetric (ADR-A
+      // converts the lease only). Recorded as a known remaining exposure in
+      // docs/deployment/authority-key-topology.md rather than hidden here.
+      REMORA_PDP_SIGNING_KEY: env.REMORA_PDP_SIGNING_KEY,
+      REMORA_AUDIT_SIGNING_KEY: env.REMORA_AUDIT_SIGNING_KEY,
+      REMORA_ENVELOPE_SIGNING_KEY: env.REMORA_ENVELOPE_SIGNING_KEY,
+
+      // Downstream credentials live HERE and nowhere else. The authority
+      // container cannot cause an effect even if it wanted to.
+      REMORA_GITHUB_TOKEN: env.REMORA_GITHUB_TOKEN ?? "",
+      REMORA_GITHUB_REPOS: env.REMORA_GITHUB_REPOS ?? "",
+      REMORA_KG_TENANT: env.REMORA_KG_TENANT ?? "",
+      REMORA_TARGET_ENVIRONMENT: env.REMORA_TARGET_ENVIRONMENT ?? "staging",
+
+      REMORA_GROUNDED_READ_ACCEPT: "1",
+      REMORA_TOOL_METADATA_FILE: "/app/deploy/gateway/tool_metadata.json",
+      REMORA_TOOL_REGISTRY_MODULE: "deploy.gateway.registry",
+      REMORA_SEMANTIC_BUNDLE_MODULE: "deploy.gateway.bundle",
       REMORA_EXECUTION_ARTIFACT_DIR: "/var/lib/remora/artifacts",
       PYTHONPATH: "/app",
     };
@@ -299,6 +438,26 @@ RemoraContainer.outboundByHost = {
   // every restart and a consumed grant would become replayable.
   "state.internal": (request: Request, env: Env) =>
     d1Request(env.STATE_DB, request, "STATE_DB"),
+  // The execution domain. Routed through the Worker rather than given as a
+  // URL the container could redirect: the authority asks for
+  // execution.internal and the Workers runtime decides what that means.
+  "execution.internal": (request: Request, env: Env) => {
+    if (!env.EXECUTION) {
+      return Promise.resolve(Response.json(
+        { error: "no execution container bound on this deployment" },
+        { status: 503 }));
+    }
+    return getContainer(env.EXECUTION).fetch(request);
+  },
+};
+
+// Same static-accessor caveat as above: assigned after the class, never as a
+// static field. The execution container reaches durable state and nothing else.
+RemoraExecutionContainer.outboundByHost = {
+  "state.internal": (request: Request, env: Env) =>
+    d1Request(env.STATE_DB, request, "STATE_DB"),
+  "graph.internal": (request: Request, env: Env) =>
+    d1Request(env.GRAPH_DB, request, "GRAPH_DB"),
 };
 
 /** Durable storage for proposals waiting on a human. */

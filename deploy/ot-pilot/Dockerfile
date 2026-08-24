@@ -30,7 +30,7 @@ COPY remora /app/remora
 COPY servers /app/servers
 COPY schemas /app/schemas
 RUN pip install --upgrade pip \
- && pip install -e ".[api,postgres]"
+ && pip install -e ".[api,postgres,security]"
 
 COPY scripts /app/scripts
 

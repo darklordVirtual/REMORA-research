@@ -187,6 +187,13 @@ async function callTool(
       status: run.status === 200 ? "executed" : "execution_failed",
       outcome: run.body?.outcome,
       result: run.body?.tool_execution,
+      // An execution that failed without a tool_execution object has failed
+      // BEFORE enforcement reported anything, which is the case an operator
+      // cannot diagnose from a bare "execution_failed". Carried only on the
+      // failure path, so a successful call gains no new surface.
+      ...(run.status !== 200
+        ? { http_status: run.status, detail: run.body?.detail ?? run.body }
+        : {}),
     }, run.status !== 200);
   }
 

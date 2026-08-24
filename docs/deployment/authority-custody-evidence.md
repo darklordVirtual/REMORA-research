@@ -1,12 +1,14 @@
-# Deployment evidence: durable lease consumption, and the custody split that is not yet deployed
+# Deployment evidence: the authority/execution custody split, deployed
 
 Every value here was read from the deployed system or from a command whose
 output is quoted. Nothing is inferred from configuration intent.
 
-**Read this first.** One of the two mechanisms in this programme is deployed and
-evidenced. The other is implemented, tested, and **not deployed**. This document
-separates them, and the separation is the point: the custody claim is
-deliberately not made.
+**Read this first.** Both mechanisms in this programme are now deployed. §7
+records the exact claim that follows, and §8 records what still does not.
+
+Superseded: earlier revisions of this document stated that the custody split was
+implemented and not deployed. That was accurate when written. §3 of
+`NEGATIVE_RESULTS.md` §45 records what deploying it revealed.
 
 ---
 
@@ -20,7 +22,9 @@ deliberately not made.
 | Version ID (before) | `222999e2-ef84-4fc1-8491-6d47ef4614f5` |
 | Version ID (after replacement) | `9a7fc619-66f3-4074-9067-247e3286ce40` |
 | Container image digest | `sha256:273228e3ced53bc1e5d619f40b3f4ef9be5c2dac050713a7bbe73459908dda25` |
-| Container application | `remora-mcp-gateway-remoracontainer` (`a03ae0d6-5abd-4ad7-bc77-7cfd8415d74e`) |
+| Authority container | `remora-mcp-gateway-remoracontainer` (`a03ae0d6-5abd-4ad7-bc77-7cfd8415d74e`), instance running in `rix01` |
+| Execution container | `remora-mcp-gateway-remoraexecutioncontainer` (`a036dc4c-3a8e-46dd-acb8-2225932d63dd`), instance running in `otp02` |
+| Worker version (split, HMAC deleted) | `6f4b1168-ac92-41c7-a734-97adca58e65b` |
 | Instance type / placement | `basic`, `jurisdiction = "eu"` |
 | State backend | D1 `remora-execution-state`, `running_in_region = EEUR`, served by colo `ARN` |
 | Graph backend | D1 `aion-hub`, reached only via Worker binding |
@@ -31,10 +35,16 @@ deliberately not made.
 
 | Key | Status |
 |---|---|
-| Lease signing | **HMAC-SHA256, symmetric**, `REMORA_LEASE_SIGNING_KEY`, supplied to the execution container (`index.ts:170`) |
-| Ed25519 lease keypair | **not generated, not deployed** |
-| `kid` | none — no asymmetric key is in service |
-| Public key fingerprint | **none to report** |
+| Lease signing | **Ed25519**. Private half in the AUTHORITY container only |
+| `REMORA_LEASE_SIGNING_KEY` (HMAC) | **deleted from the Worker secret store**, 2026-08-24 |
+| Public key | `d76d777f6219d88b44dc726f30a55ad8ac7c6cbbf6d3cee6a8297ee35b8600a8` |
+| Public key fingerprint | `07801ac026e4c470` (SHA-256 of the public key, first 8 bytes) |
+| `kid` | not set — single key in service |
+
+The private key is not in this document and was not read back after generation.
+Its location is asserted by configuration (`workers/mcp-gateway/src/index.ts`,
+pinned by `workers/mcp-gateway/test/custody.test.ts`) and by the behavioural
+result in §7.
 
 No private key material appears in this document, and none was read. The
 statement above is derived from which environment variables the Worker passes to
@@ -142,56 +152,119 @@ two legitimate `eu-pilot` rows.
 
 ---
 
-## 5. The forgery attack — the deployed topology fails it
+## 5. The forgery attack — before and after
 
-This is the primary evidence the programme asked for, and the honest result is
-a failure.
+**Before the split**, the attack succeeded, and that is recorded rather than
+deleted. `tests/test_lease_authority_custody.py::test_the_deployed_symmetric_topology_permits_forgery`
+still runs and still asserts that a component holding what the old deployment's
+container held mints a lease for a different tool, arguments, tenant and target
+— and that it verifies. It is the *before* half of the evidence and must not be
+removed when it becomes historical.
 
-**Configuration.** The execution container is supplied
-`REMORA_LEASE_SIGNING_KEY` (`index.ts:170`). `ExecutionLease` signs and verifies
-under that one symmetric key.
+**After the split**, the same forgery is refused, at issuance and at
+verification, by `test_the_target_asymmetric_topology_refuses_the_same_forgery`
+and `test_a_forgery_assembled_by_hand_also_fails_verification`. The second
+matters independently: an attacker need not call `issue()`, so the property has
+to hold where the execution path actually checks.
 
-**Attack.** Give a component exactly what the execution container legitimately
-holds, then mint a lease for a different tool, different arguments, a different
-tenant and a different target — none of it ever assessed by any PDP.
+### What was verified against the deployment, and what was not
 
-`tests/test_lease_authority_custody.py::test_the_deployed_symmetric_topology_permits_forgery`
-runs precisely that and asserts the forged lease **verifies**.
+The library tests establish the mechanism. They cannot, by themselves, establish
+that the deployed executor lacks the private key — that is a configuration fact.
+Three things were done instead, and each is stated for what it is:
 
-**Result: the attack succeeds.** An adversary with code execution in the
-deployed container does not need to forge anything — they hold the key, so they
-author valid authority. The authorization system is bypassed rather than
-attacked.
+1. **Configuration, pinned by test.** `workers/mcp-gateway/test/custody.test.ts`
+   parses the `envVars` block of each container class and asserts that
+   `RemoraExecutionContainer` receives `REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC`
+   and contains neither `ED25519_PRIVATE` nor `REMORA_LEASE_SIGNING_KEY`. The
+   first version of that test failed on a comment documenting the property it
+   was asserting; it now strips comments and tests only assignments.
 
-**The same attack under the target topology** —
-`test_the_target_asymmetric_topology_refuses_the_same_forgery` and
-`test_a_forgery_assembled_by_hand_also_fails_verification` — is refused, both at
-issuance and at verification. The second matters independently: an attacker need
-not call `issue()`, so the property has to hold where the execution path
-actually checks.
+2. **The symmetric key was deleted from the secret store.** Not merely
+   unreferenced — `wrangler secret delete REMORA_LEASE_SIGNING_KEY`, confirmed
+   absent from `wrangler secret list`. There is no HMAC lease key anywhere in
+   the deployment to fall back to.
 
-The difference between those two tests is the entire value of the custody split,
-and it is currently a difference between a deployed configuration and an
-undeployed one.
+3. **Governed execution still works.** This is the load-bearing behavioural
+   result. With no symmetric lease key in existence, a lease can only be signed
+   with Ed25519, and only the authority container holds that private half. A
+   successful `accept` / `executed` therefore proves the authority signed with
+   Ed25519 and the executor verified it holding the public key alone. Had the
+   executor needed to mint, `issue()` would have refused (`LeaseRefused`); had
+   the authority lacked the key, there would have been no lease at all.
 
----
+**What this does not prove.** No code was executed inside the deployed execution
+container to attempt a mint from within it. The claim rests on the configuration
+test, the deletion of the symmetric key, and the behavioural result above — not
+on an in-container attack. A reviewer who wants that stronger evidence would
+need a debug surface the deployment deliberately does not have.
 
-## 6. What is deliberately not claimed
+## 6. Durability, retested after the split
 
-- **No separation claim.** The Ed25519 keypair has not been generated and the
-  execution container has not been reduced to a public key. `docs/deployment/authority-key-topology.md`
-  §2 remains a target, not a description.
-- **No controlled-pilot claim.** The signed-ToolSpec cloud path is not
-  implemented; `REMORA_RUNTIME_PROFILE` remains deliberately unpinned.
-- **No claim that durable consumption is proven for every backend.** Postgres
-  and SQLite are evidenced at library level; **D1 is evidenced on the
-  deployment**, and that is the one this gateway runs.
-- **No claim about `PolicyDecisionToken` or the A2A envelope.** Both remain
-  symmetric; their verifiers can still mint.
+Architecture movement does not preserve replay protection by assumption, so the
+durable-nonce experiments were re-run against the two-domain topology.
 
----
+The nonce is now consumed by the **execution** container, not the one that
+decided. Rows appear under tenant `eu-pilot` after each governed call:
 
-## 7. Reproduction
+```
+eu-pilot  974edd83-5fc4-40fc-8172-19a863e7029d  2026-08-24 06:07:59
+eu-pilot  919e7894-dbdb-4b9a-b79b-abc19024892f  2026-08-24 06:06:27
+```
+
+Re-presenting the post-split nonce `974edd83…` to the live store:
+
+```
+UNIQUE constraint failed: lease_nonce_consumed.tenant_id,
+lease_nonce_consumed.nonce: SQLITE_CONSTRAINT
+(extended: SQLITE_CONSTRAINT_PRIMARYKEY) [code: 7500]
+```
+
+Six concurrent consumers of one nonce against the live EEUR database: **exactly
+one winner**, five refused. Test rows removed afterwards.
+
+Container replacement was demonstrated before the split (§3) and its mechanism
+is unchanged — the ledger is in D1, external to both containers by construction.
+It was not re-run after the split, and is therefore carried forward as evidence
+for the mechanism rather than re-asserted for this topology.
+
+**Outage: untested on the deployment.** No state-store outage was injected
+against the running system. The fail-closed and does-not-burn-the-grant
+properties remain library-level only
+(`tests/test_lease_nonce_durability.py`).
+
+## 7. The claim
+
+Scoped to exactly what was demonstrated:
+
+> For this deployment, as of Worker version
+> `6f4b1168-ac92-41c7-a734-97adca58e65b`, the execution component possessed only
+> public ExecutionLease verification material: no Ed25519 private key was passed
+> to it and no symmetric lease key existed in the deployment. Under the recorded
+> attack it could not mint new execution authority.
+
+## 8. What is NOT claimed
+
+- **Not** that REMORA cannot be bypassed. The execution container holds the
+  downstream credentials, by design — it is the component that causes effects.
+  A compromise there cannot forge authority and **can** still call the
+  downstream system directly. That is the ambient-bypass property (E2), it is
+  untouched by splitting keys, and the source says so where someone changing it
+  will read it.
+- **Not** that the deployment is secure. One property was closed.
+- **Not** that the executor cannot create authority under all compromise
+  models. It cannot under the recorded attack, with the recorded key topology.
+- **Not** controlled_pilot. The signed-ToolSpec cloud path is still not
+  implemented, so the profile prerequisites do not hold and the profile is not
+  set.
+- **Not** that `PolicyDecisionToken` or the A2A envelope are protected. Both
+  remain symmetric; their verifiers can still mint. `REMORA_PDP_SIGNING_KEY`,
+  `REMORA_AUDIT_SIGNING_KEY` and `REMORA_ENVELOPE_SIGNING_KEY` are still
+  supplied to both containers.
+- **Not** that Postgres or SQLite durable nonce storage is deployment-proven.
+  D1 is; the other two are library-level.
+
+## 9. Reproduction
 
 The Access service token used for these calls was created for this experiment,
 added to policy `e9980f03…` alongside the existing operator token (which was

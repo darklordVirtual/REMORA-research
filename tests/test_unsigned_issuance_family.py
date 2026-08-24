@@ -278,3 +278,35 @@ def test_the_security_extra_guard_fails_hard_in_ci_and_skips_locally(
     require_security_extra()
     assert called == ["cryptography"], (
         "without the CI flag the guard must skip rather than fail the run")
+
+
+def test_the_execution_domain_may_start_with_only_verification_material(
+        keyless, monkeypatch):
+    """The custody split must not be blocked by the prerequisite that protects it.
+
+    Found by deploying: the first version of the lease-key prerequisite required
+    SIGNING material, which assumed every production process issues leases. The
+    execution domain holds only the public verification key -- that absence is
+    the security property -- so the check refused to start the topology it
+    shipped alongside (NEGATIVE_RESULTS section 45).
+
+    Both directions are asserted. A process with verification material may
+    start; a process with none may not, which is the original intent and must
+    survive the fix.
+    """
+    import inspect
+
+    from servers import api as api_mod
+
+    source = inspect.getsource(api_mod)
+    assert "REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC" in source, (
+        "an execution-only domain must be able to satisfy the lease-key "
+        "prerequisite with verification material")
+
+    # The three accepted forms, and the refused one, read off the condition
+    # rather than trusted from the comment above it.
+    block = source.split("Any lease key material satisfies it")[1][:1600]
+    for accepted in ("REMORA_LEASE_SIGNING_KEY",
+                     "REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE",
+                     "REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC"):
+        assert accepted in block, f"{accepted} no longer satisfies the check"
