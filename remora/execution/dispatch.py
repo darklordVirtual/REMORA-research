@@ -137,12 +137,23 @@ def dispatch_under_lease(
             actor_identity=principal,
         )
     except RuntimeError as exc:
-        # Tool raised: the nonce is burned, state is unknown.
+        # The tool raised after its nonce was consumed. Whether the effect
+        # happened is exactly what is not known: the call reached the tool, and
+        # the exception says nothing about whether it committed first.
+        #
+        # state_unknown is set here, structurally, because settlement used to
+        # read this refusal_reason string and record a durable FAILED --
+        # asserting no effect occurred on evidence that only shows the call
+        # raised (NEGATIVE_RESULTS section 48).
         tool_execution["refusal_reason"] = "tool_failed_nonce_burned"
         tool_execution["error"] = str(exc)
         tool_execution["proposal_id"] = proposal_id
+        tool_execution["dispatch_began"] = True
+        tool_execution["state_unknown"] = True
         return tool_execution
     tool_execution["executed"] = dres.executed
+    # Reported by the dispatcher, never inferred from the refusal reason.
+    tool_execution["dispatch_began"] = dres.dispatch_began
     # Read the identity back off the dispatch result rather than the local
     # variable: what is reported is what the dispatcher actually acted under.
     tool_execution["proposal_id"] = dres.proposal_id

@@ -494,6 +494,14 @@ class DispatchResult:
     executed: bool
     refusal_reason: str | None = None
     result: Any = None
+    #: Whether the registered callable was actually invoked.
+    #:
+    #: Structural, and reported by the only component that knows. Settlement
+    #: used to infer this from ``refusal_reason``, so FAILED was decided by
+    #: string matching and every new refusal reason silently reclassified an
+    #: outcome. A dispatch that never began is the one negative claim REMORA
+    #: can make first-hand; one that began and then raised is not.
+    dispatch_began: bool = False
     #: Issue #45: the lifecycle identity carried out of the dispatcher, so a
     #: recorded effect joins back to the decision without re-deriving hashes.
     #: Empty when the refusal happened before a lease was available to read it
@@ -657,6 +665,7 @@ class GovernedToolDispatcher:
             )
             return DispatchResult(
                 executed=True, result=res, proposal_id=proposal_id,
+                dispatch_began=True,
             )
         except Exception as e:
             # Burn is recorded with its reason so failure() can surface it;

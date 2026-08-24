@@ -35,6 +35,8 @@ above are storage-invariant.
 """
 from __future__ import annotations
 
+from remora.execution.outcome import DispatchOutcome
+
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, replace
@@ -58,6 +60,9 @@ _SEVERITY: dict[DecisionAction, int] = {
 }
 
 
+_OUTCOME_STATUS: "dict[DispatchOutcome, ItemStatus]" = {}
+
+
 class ItemStatus(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
@@ -76,7 +81,26 @@ class ItemStatus(str, Enum):
     REJECTED = "rejected"
     EXECUTED = "executed"
     DISPATCH_REFUSED = "dispatch_refused"
+    # A failure PROVEN to precede the effect boundary. Not reachable from the
+    # synchronous path today: no adapter here produces that evidence, so a tool
+    # that raised settles DISPATCH_UNKNOWN instead. Reserved rather than
+    # removed, because reconciliation of an intent that was never claimed is a
+    # legitimate FAILED -- the claim strictly precedes invocation.
     DISPATCH_FAILED = "dispatch_failed"
+    # Dispatch began and the absence of an effect is not proven. Durable, and
+    # deliberately not a claim that nothing happened: a later authoritative
+    # observation can resolve it. This is what a raising tool used to record as
+    # DISPATCH_FAILED, whose own docstring already admitted the state was
+    # unknown (NEGATIVE_RESULTS section 48).
+    DISPATCH_UNKNOWN = "dispatch_unknown"
+
+
+_OUTCOME_STATUS.update({
+    DispatchOutcome.SUCCEEDED: ItemStatus.EXECUTED,
+    DispatchOutcome.REFUSED: ItemStatus.DISPATCH_REFUSED,
+    DispatchOutcome.FAILED: ItemStatus.DISPATCH_FAILED,
+    DispatchOutcome.UNKNOWN: ItemStatus.DISPATCH_UNKNOWN,
+})
 
 
 class ExecutionDecision(str, Enum):
@@ -449,17 +473,18 @@ class ReviewQueue:
         self,
         item_id: str,
         *,
-        executed: bool,
-        failed: bool = False,
+        outcome: "DispatchOutcome",
         reason: str | None = None,
     ) -> PendingReview:
         """Record what actually happened after authorization.
 
-        Only an AUTHORIZED item may receive an outcome. ``executed=True``
-        means the dispatcher confirmed the side effect; otherwise the item
-        terminates as DISPATCH_FAILED (``failed=True``: the tool raised,
-        nonce burned, side-effect state unknown) or DISPATCH_REFUSED (the
-        dispatcher refused before any side effect).
+        Takes the structured outcome rather than ``executed``/``failed``
+        booleans. The previous signature could not express "dispatch began and
+        we do not know", so a raising tool was recorded as DISPATCH_FAILED --
+        a durable assertion that no effect occurred, on evidence that only
+        showed the call raised.
+
+        Only an AUTHORIZED item may receive an outcome.
         """
         with self._lock:
             item = self._items[item_id]
@@ -468,12 +493,7 @@ class ReviewQueue:
                     f"item {item_id} is {item.status.value}, not authorized — "
                     "an execution outcome requires prior authorization"
                 )
-            if executed:
-                item.status = ItemStatus.EXECUTED
-            elif failed:
-                item.status = ItemStatus.DISPATCH_FAILED
-            else:
-                item.status = ItemStatus.DISPATCH_REFUSED
+            item.status = _OUTCOME_STATUS[outcome]
             self._log.append(
                 "execution_outcome",
                 {

@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **13 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **14 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2910,3 +2910,92 @@ It is a precise extension of what effect verification was already for. The
 model began by separating "the dispatcher returned" from "the effect happened".
 This adds the layer under it: **proving the observation actually measured what
 it claims to have measured.**
+
+## §48 A dispatch that began and failed was recorded as proof that nothing happened (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-003 from the external forensic review, fixed.
+
+**The defect.** Settlement matched a string:
+
+```python
+elif reason == "tool_failed_nonce_burned":
+    settled_state = OutboxState.FAILED
+```
+
+The reason it matched on has this docstring in `lease.py`:
+
+> *the tool raised after its nonce was consumed: state at the tool is unknown*
+
+So the durable record asserted **no effect occurred** on evidence that only
+showed the call raised. The response said `state_unknown`; the store said
+`FAILED`. A consumer reading either could reasonably issue a fresh call for an
+effect that may already have happened — which is the one move the execution
+layer must never make.
+
+**The contract was already right.** `schemas/execution_lifecycle_v1.yaml` has
+carried both transitions since it was written:
+
+```
+{from: DISPATCHING, to: FAILED,  on: tool_raised_pre_effect}
+{from: DISPATCHING, to: UNKNOWN, on: crash_or_timeout_after_possible_effect}
+```
+
+FAILED was always reserved for a failure proven to precede the effect boundary.
+The queue simply had no vocabulary to reach UNKNOWN — `ItemStatus` had
+`DISPATCH_FAILED` and `DISPATCH_REFUSED` and nothing else — so the honest state
+was unreachable and the nearest available one was written instead. The
+reconciler, which settles stale `DISPATCHING` rows, had this right all along.
+
+**The invariant now enforced.**
+
+```
+REFUSED   REMORA observed that dispatch never began.
+FAILED    Trusted adapter evidence proves failure before the effect boundary.
+UNKNOWN   Dispatch began and absence of effect is not proven. Durable, and
+          may later be superseded.
+```
+
+A dispatcher exception, a timeout, a lost response, or
+`tool_failed_nonce_burned` alone earns only UNKNOWN.
+
+**Structural, not string-derived.** `DispatchResult` now reports
+`dispatch_began` — the dispatcher is the only component that knows whether it
+invoked the callable, and inferring it from `refusal_reason` made every new
+refusal reason a silent reclassification. `record_execution_outcome` takes the
+outcome instead of `executed`/`failed` booleans, because the old signature
+*could not express* "dispatch began and we do not know". A test asserts
+`classify_outcome` never reads `refusal_reason` again.
+
+**FAILED is unreachable from the synchronous path, deliberately.** No adapter
+here produces trustworthy pre-effect evidence, so the honest terminal is
+UNKNOWN. `PreEffectProof` exists as the place to put that evidence the day an
+adapter can produce it, and cannot be constructed without a source and what it
+observed. A caller-supplied `pre_effect` flag is explicitly not proof — a test
+tries four spellings of one and gets UNKNOWN for each. Approximating FAILED
+would put the unproven negative claim back, wearing a structured field instead
+of a string.
+
+The one legitimate FAILED is unchanged: reconciliation of an intent that was
+never claimed. The claim strictly precedes invocation, so the side effect
+provably did not happen.
+
+**Fixtures that broke, recorded rather than weakened.** Two asserted the old
+contract directly — `test_tool_exception_burns_nonce_and_is_reported` expected
+`DISPATCH_FAILED` for a raising tool, and `test_execution_outcome_terminal_states`
+asserted the same at the queue. Both now assert UNKNOWN, and the second gained
+a case proving FAILED is still expressible for the reconciler's path. Both were
+asserting that a durable claim of "nothing happened" was correct.
+
+**Where this came from.** Not invented for RMR-003. It follows from the rule
+recorded one section earlier: positive and negative system claims carry the
+same burden of proof. A durable FAILED is a negative claim, and it was being
+written on less evidence than SUCCEEDED requires. §47 fixed the same asymmetry
+for `EFFECT_MISMATCH` — a terminal negative verdict that needed no observation.
+This is the third place the same shape has appeared, which suggests the rule is
+worth applying ahead of a review rather than after one.
+
+**Not closed by this entry.** UNKNOWN resolution remains a manual operator
+decision (`unknown_resolution.mode: manual` in the schema). The effect recorder
+can supersede an UNKNOWN dispatch with a verified observation, which is the
+automated half; nothing reconciles an UNKNOWN that never gets one.

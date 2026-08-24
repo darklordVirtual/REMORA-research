@@ -131,6 +131,12 @@ ITEM_STATUS_STATE: dict[str, str] = {
     "executed": "SUCCEEDED",
     "dispatch_refused": "REFUSED",
     "dispatch_failed": "FAILED",
+    # Dispatch began and the absence of an effect is not proven. The model
+    # already had this state and this transition
+    # (DISPATCHING -> UNKNOWN, on: crash_or_timeout_after_possible_effect);
+    # the queue had no vocabulary to reach it, so a raising tool was recorded
+    # as FAILED -- a state the model reserves for tool_raised_pre_effect.
+    "dispatch_unknown": "UNKNOWN",
 }
 
 
