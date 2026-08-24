@@ -40,6 +40,12 @@ class SemanticAssessment(BaseModel):
         None, description="None means not evaluated; the key is always present.")
     expected_effect_matches: bool | None = Field(
         None, description="None means not evaluated; the key is always present.")
+    argument_values_grounded: bool | None = Field(
+        None, description="Aggregate provenance verdict; None means not evaluated.")
+    ungrounded_arguments: list[str] = Field(default_factory=list)
+    argument_scope_valid: bool | None = Field(
+        None, description="Deployment-owned argument boundary verdict.")
+    scope_violating_arguments: list[str] = Field(default_factory=list)
 
 
 class ExecutionGrant(BaseModel):

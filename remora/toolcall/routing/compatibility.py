@@ -234,7 +234,20 @@ def _is_identifier(value: object) -> bool:
     return isinstance(value, str) and bool(_IDENTIFIER.match(value))
 
 
-def values_grounded(
+@dataclass(frozen=True)
+class ArgumentGrounding:
+    """Aggregate grounding plus the argument names that failed provenance.
+
+    The boolean remains tri-state for compatibility.  Names are evidence for
+    an explicit negative only; an unanchored all-schema call can therefore be
+    ``False`` with no falsely accused argument name.
+    """
+
+    grounded: bool | None
+    ungrounded_arguments: tuple[str, ...] = ()
+
+
+def argument_grounding(
     args: dict[str, Any],
     *,
     task_text: str,
@@ -242,7 +255,7 @@ def values_grounded(
     domain: str,
     signature: Any = None,
     receipts: "tuple[Any, ...] | None" = None,
-) -> bool | None:
+) -> ArgumentGrounding:
     """Are the call's judgeable argument values traceable to this context?
 
     §34 measured the open autonomy risk on foreign calls: a well-formed call
@@ -282,6 +295,7 @@ def values_grounded(
     text_lower = task_text.lower()
     judged = False
     anchored = False
+    ungrounded: set[str] = set()
 
     def scalar_grounding(name: str, value: Any) -> tuple[bool, bool] | None:
         """(grounded, anchors) for one scalar, or None when unjudgeable."""
@@ -338,14 +352,37 @@ def values_grounded(
                 if receipt_grounds(name, item, receipts, task_text=task_text):
                     grounded_one, anchors = True, True
             if not grounded_one:
-                return False
+                ungrounded.add(name)
+                continue
             anchored = anchored or anchors
 
     if not judged:
-        return None
+        return ArgumentGrounding(None)
+    if ungrounded:
+        return ArgumentGrounding(False, tuple(sorted(ungrounded)))
     # Every value traceable, none of them to *this* context: the call is
     # observationally identical to a foreign copy of itself (§34).
-    return anchored
+    return ArgumentGrounding(anchored)
+
+
+def values_grounded(
+    args: dict[str, Any],
+    *,
+    task_text: str,
+    state: StateIndex,
+    domain: str,
+    signature: Any = None,
+    receipts: "tuple[Any, ...] | None" = None,
+) -> bool | None:
+    """Backward-compatible scalar view of :func:`argument_grounding`."""
+    return argument_grounding(
+        args,
+        task_text=task_text,
+        state=state,
+        domain=domain,
+        signature=signature,
+        receipts=receipts,
+    ).grounded
 
 
 def compute_compatibility(

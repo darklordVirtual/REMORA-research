@@ -33,9 +33,10 @@ const INTENT: Record<string, { type: string; description: string }> = {
   intent_ref: {
     type: "string",
     description:
-      "The GitHub issue authorising this call, as owner/repo#123. The issue " +
-      "text is what the call is checked against, so reference the issue that " +
-      "actually asks for this action.",
+      "Deployment-owned intent authority. Use owner/repo#123 for a GitHub " +
+      "issue, or task:<subject> for a task in the protected graph intent " +
+      "namespace. The resolved authority text is checked against the exact " +
+      "tool call; the caller cannot supply that text directly.",
   },
 };
 

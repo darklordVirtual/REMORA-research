@@ -196,7 +196,7 @@ one dispatcher process must not rely on it as a global guarantee (REM-025).
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 70 fields; on the research `/v1/assess` path **all fields except
+with 74 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe") — see the assess-time authorities subsection below for the two
@@ -213,7 +213,7 @@ Selected fields by group:
 | Risk & action | `risk_tier`, `action_type`, `target_environment`, `rollback_available`, `state_transition_uncertain`, `proposed_tool_name` |
 | Intent authority | `intent_authority_present` — did this call arrive under an intent the deployment resolved from a source it controls (a signed work order, a ticket of record)? Resolved server-side from `intent_ref`; the agent may name which authority it acts under and can never assert that it exists. `True` only when resolution succeeded; `False` when an `intent_ref` was presented and did not resolve; `None` when none was presented. Required for `GROUNDED_READ_ACCEPT` |
 | Resolution | `missing_required_arguments`, `argument_resolver_tools`, `unvalidated_required_arguments` — required parameters absent from the call and the authoritative tools that could supply them. Non-empty with resolvers available yields VERIFY carrying a `ResolutionPlan`; without them, ABSTAIN |
-| Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected`, `arguments_satisfiable`, `argument_values_supported`, `argument_values_grounded` (a derived value can ground via a verified `DerivationReceipt`: verbatim source span + whitelisted deterministic transform, re-executed server-side — `remora/toolcall/routing/derivation.py`), `tool_matches_goal`, `untrusted_controlled_arguments` |
+| Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected`, `arguments_satisfiable`, `argument_values_supported`, `argument_values_grounded` + `ungrounded_arguments` (a derived value can ground via a verified `DerivationReceipt`: verbatim source span + whitelisted deterministic transform, re-executed server-side — `remora/toolcall/routing/derivation.py`), deployment-owned `argument_scope_valid` + `scope_violating_arguments`, `tool_matches_goal`, `untrusted_controlled_arguments` |
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
 | Binding | `tool_call_hash`, SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
@@ -421,19 +421,30 @@ this path (server-side signal sources are #35/#39 scope).
 
 **Semantic bundle (SHELF-020):** with `REMORA_SEMANTIC_BUNDLE_MODULE`
 configured (module contract: `build_semantic_bundle()` and optionally
-`resolve_intent(intent_ref)`, see `remora/toolcall/semantic_bundle.py`;
+`resolve_intent(intent_ref)`, `resolve_intent_detailed(intent_ref)` and
+`validate_argument_scope(tool_name, arguments, tenant)`, see
+`remora/toolcall/semantic_bundle.py`;
 shipped research profile: `servers/semantic_bundle_research.py`), the
 assess/execute observation is built by `build_full_observation` — the same
 authoritative context builder the routing benchmarks lock — over the
 deployment-declared tool signatures, contracts, validator bindings and state
 index. The request may carry an opaque `intent_ref`, resolved server-side
 against a deployment-controlled source (`docs/research/task_intent_authority_v1.md`);
+the MCP gateway accepts either `owner/repo#123` (GitHub issue authority) or
+`task:<subject>` (protected graph-intent authority), depending on the enabled
+tool set. An unresolved reference stays publicly generic and fail-closed; the
+internal audit distinguishes `intent_not_authorized` from
+`intent_resolution_failed` for operations without exposing a resolution
+oracle to the caller.
 the intent itself can never ride in the request, and request extras asserting
 `tool_matches_goal` or an inline intent are ignored. `untrusted_context` is
 downgrade-only: declaring it marks the call's arguments tainted, omitting it
 raises nothing. The response's `semantic` block reports the computed
-`tool_contract_bundle_hash`, `state_hash`, `intent_authority_hash` and the
-tri-state `tool_matches_goal` / `expected_effect_matches`; the same hashes are
+`tool_contract_bundle_hash`, `state_hash`, `intent_authority_hash`, the
+tri-state `tool_matches_goal` / `expected_effect_matches`, per-argument
+grounding, and the deployment-owned argument-scope verdict. A confirmed scope
+violation hard-ABSTAINS before review and is re-evaluated on approved-item
+redemption; human approval cannot widen a tenant binding. The same hashes are
 appended to the tenant audit chain at assess time and bound into the
 `ExecutionLease` at execute time. Without a bundle module the legacy
 registry-only path runs, recorded as empty hashes — absent semantics stay

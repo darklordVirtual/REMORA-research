@@ -193,6 +193,7 @@ def assess_proposal(
         "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
         "state_hash": semantic["state_hash"],
         "intent_authority_hash": semantic["intent_authority_hash"],
+        "intent_resolution_status": obs.intent_resolution_status,
         "toolspec_hash": toolspec_identity["hash"],
         "toolspec_version": toolspec_identity["version"],
     }

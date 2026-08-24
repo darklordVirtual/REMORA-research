@@ -224,6 +224,20 @@ class PolicyObservation:
     # nothing was judgeable, which must never behave like a negative.
     # Caller-supplied; see remora/toolcall/routing/compatibility.py.
     argument_values_grounded: bool | None = None
+    # Argument names supporting the aggregate grounding verdict. Empty does
+    # not mean grounded: consult argument_values_grounded first.
+    ungrounded_arguments: tuple[str, ...] = ()
+
+    # Deployment-owned scope boundary (for example tenant encoded in a graph
+    # URI). False is a confirmed boundary violation and hard-abstains before
+    # review; None means the deployment declared no check for this call.
+    argument_scope_valid: bool | None = None
+    scope_violating_arguments: tuple[str, ...] = ()
+
+    # Audit-only reason for an unresolved authority. Kept off the public wire
+    # so transport failure and unauthorised reference remain fail-closed
+    # without disclosing which condition an attacker reached.
+    intent_resolution_status: str | None = None
 
     # Does this call serve the task's goal — right resource, right effect?
     # True  → established: the declared tool contract matches an intent quoted

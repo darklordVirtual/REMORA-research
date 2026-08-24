@@ -72,7 +72,9 @@ from remora.toolcall.semantic_bundle import (
     IntentResolver,
     SemanticBundle,
     compute_intent_authority_hash,
+    load_argument_scope_validator,
     load_intent_resolver,
+    load_intent_resolution_provider,
     load_semantic_bundle,
 )
 # Wire contracts (issue #241 extraction slice 1): request/response Pydantic
@@ -801,6 +803,10 @@ _NO_SEMANTIC_CONTEXT: dict[str, Any] = {
     "intent_authority_hash": "",
     "tool_matches_goal": None,
     "expected_effect_matches": None,
+    "argument_values_grounded": None,
+    "ungrounded_arguments": [],
+    "argument_scope_valid": None,
+    "scope_violating_arguments": [],
 }
 
 
@@ -899,9 +905,19 @@ def semantic_call_context(
     from remora.toolcall.routing.episode import RoutingEpisode
     from remora.toolcall.routing.evaluate import build_full_observation
 
-    resolved = (
-        resolver(intent_ref) if (resolver is not None and intent_ref) else None
-    )
+    detailed_resolver = load_intent_resolution_provider()
+    intent_resolution_status: str | None = None
+    if intent_ref and detailed_resolver is not None:
+        resolution = detailed_resolver(intent_ref)
+        resolved = resolution.resolved
+        intent_resolution_status = resolution.status
+    elif intent_ref and resolver is not None:
+        resolved = resolver(intent_ref)
+        intent_resolution_status = (
+            "resolved" if resolved is not None else "intent_not_authorized"
+        )
+    else:
+        resolved = None
     episode = RoutingEpisode(
         id=f"exec:{tenant}:{tool_name}",
         source_dataset="execution_api",
@@ -926,6 +942,17 @@ def semantic_call_context(
         contracts=bundle.contracts,
         intent=resolved.intent if resolved else None,
     )
+    scope_validator = load_argument_scope_validator()
+    if scope_validator is not None:
+        scope = scope_validator(tool_name, arguments, tenant)
+        full = dataclasses.replace(
+            full,
+            argument_scope_valid=scope.valid,
+            scope_violating_arguments=scope.violating_arguments,
+        )
+    full = dataclasses.replace(
+        full, intent_resolution_status=intent_resolution_status
+    )
     from remora.toolcall.routing.derivation import (
         DERIVATION_TRANSFORMS_DIGEST,
         DERIVATION_TRANSFORMS_VERSION,
@@ -939,6 +966,10 @@ def semantic_call_context(
         ),
         "tool_matches_goal": full.tool_matches_goal,
         "expected_effect_matches": full.expected_effect_matches,
+        "argument_values_grounded": full.argument_values_grounded,
+        "ungrounded_arguments": list(full.ungrounded_arguments),
+        "argument_scope_valid": full.argument_scope_valid,
+        "scope_violating_arguments": list(full.scope_violating_arguments),
         # Receipt-vocabulary identity (review 2026-08-05): a receipt
         # verified under one transform semantics must never silently mean
         # something else later. Rides the audit record with the other

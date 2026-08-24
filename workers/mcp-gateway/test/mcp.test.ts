@@ -157,6 +157,19 @@ describe("protocol", () => {
     }
   });
 
+  it("documents both deployment-backed intent_ref forms", async () => {
+    const { deps: d } = deps({});
+    const r: any = await handleRpc(
+      { jsonrpc: "2.0", id: 1, method: "tools/list" },
+      d,
+    );
+    const graph = r.result.tools.find((t: any) => t.name === "kg_list_predicates");
+    const description = graph.inputSchema.properties.intent_ref.description;
+    expect(description).toContain("owner/repo#123");
+    expect(description).toContain("task:<subject>");
+    expect(description).toContain("protected graph intent");
+  });
+
   it("a set with no credential is not listed at all", async () => {
     // An agent cannot tell "refused" from "broken". A governance refusal has
     // to mean something, and it stops meaning anything if half the failures
@@ -229,13 +242,29 @@ describe("governance", () => {
     expect(rec.accepted).toHaveLength(0);
   });
 
-  it("ABSTAIN refuses outright: there is nothing for a person to decide", async () => {
-    const { deps: d, rec } = deps({ decision: "abstain", reasons: ["r"] });
+  it("tenant ABSTAIN refuses without creating an approval route", async () => {
+    const { deps: d, rec } = deps({
+      decision: "abstain",
+      reasons: ["cross_tenant_argument_blocked"],
+      semantic: {
+        argument_values_grounded: false,
+        ungrounded_arguments: ["graph"],
+        argument_scope_valid: false,
+        scope_violating_arguments: ["graph"],
+      },
+    });
     const r = await handleRpc(
-      call("gh_close_issue", { repo: "o/r", number: 1, intent_ref: "o/r#9" }),
+      call("kg_list_predicates", {
+        graph: "urn:exeqta:tenant:remora:internal",
+        intent_ref: "task:survey-business-graph",
+      }),
       d,
     );
-    expect(payload(r).status).toBe("refused");
+    const p = payload(r);
+    expect(p.status).toBe("refused");
+    expect(p.proposal_id).toBeUndefined();
+    expect(p.signals.argument_scope_valid).toBe(false);
+    expect(p.signals.scope_violating_arguments).toEqual(["graph"]);
     expect(rec.execute).toHaveLength(0);
     expect(rec.accepted).toHaveLength(0);
   });

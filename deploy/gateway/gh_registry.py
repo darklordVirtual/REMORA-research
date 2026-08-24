@@ -28,6 +28,10 @@ class GitHubUnavailable(RuntimeError):
     """The call could not be completed. Says nothing about whether it applied."""
 
 
+class GitHubNotFound(GitHubUnavailable):
+    """The requested GitHub authority does not exist or is not visible."""
+
+
 def _token() -> str:
     token = os.getenv("REMORA_GITHUB_TOKEN", "").strip()
     if not token:
@@ -79,6 +83,8 @@ def _request(method: str, path: str, body: dict[str, Any] | None = None) -> Any:
             return json.loads(raw) if raw else {}
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")[:300]
+        if exc.code == 404:
+            raise GitHubNotFound(f"GitHub returned 404: {detail}") from exc
         raise GitHubUnavailable(f"GitHub returned {exc.code}: {detail}") from exc
     except urllib.error.URLError as exc:
         raise GitHubUnavailable(f"GitHub unreachable: {exc.reason}") from exc

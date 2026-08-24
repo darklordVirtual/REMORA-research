@@ -1139,6 +1139,30 @@
       },
       "SemanticAssessment": {
         "properties": {
+          "argument_scope_valid": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Deployment-owned argument boundary verdict.",
+            "title": "Argument Scope Valid"
+          },
+          "argument_values_grounded": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Aggregate provenance verdict; None means not evaluated.",
+            "title": "Argument Values Grounded"
+          },
           "expected_effect_matches": {
             "anyOf": [
               {
@@ -1156,6 +1180,13 @@
             "description": "Empty string when no intent_ref was resolved.",
             "title": "Intent Authority Hash",
             "type": "string"
+          },
+          "scope_violating_arguments": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scope Violating Arguments",
+            "type": "array"
           },
           "state_hash": {
             "default": "",
@@ -1179,6 +1210,13 @@
             ],
             "description": "None means not evaluated; the key is always present.",
             "title": "Tool Matches Goal"
+          },
+          "ungrounded_arguments": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Ungrounded Arguments",
+            "type": "array"
           }
         },
         "title": "SemanticAssessment",

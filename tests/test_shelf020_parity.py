@@ -188,6 +188,7 @@ _SEMANTIC_FIELDS = (
     "arguments_satisfiable",
     "argument_values_supported",
     "argument_values_grounded",
+    "ungrounded_arguments",
     "missing_required_arguments",
     "argument_resolver_tools",
     "proposed_tool_name",
