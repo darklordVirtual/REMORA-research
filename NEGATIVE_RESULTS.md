@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 52481)
-Total output lines: 3632
-
 # Negative and Incomplete Results
 
 > **Why this document exists.**  Publishing negative results is standard
@@ -1737,7 +1734,183 @@ router or reads a prediction, so running it does not spend the set — asserted
 structurally by a test forbidding those imports rather than by convention.
 
 Pre-registered thresholds: 90% judgeable (above the 80% floor discussed in
-review, because a pooled figure can mask one dead rol…2481 tokens truncated…ound. 45 new tests across the four layers (domain, declarations,
+review, because a pooled figure can mask one dead role) and at least 20
+judgeable episodes per role, assessed **per argument role** and then in
+aggregate. Only admitted roles enter the discrimination analysis.
+
+The decisive test is that the gate refuses the §29 set. A check that would not
+have caught the failure it was written for is not a gate.
+
+**Declaration as evidence, not configuration.** A closed-world claim is now a
+versioned object binding domain, tenant, entity type, argument role, the
+SHA-256 of the exact snapshot it was written against, an as-of date, the basis
+for the claim, and a named curator. Every way such a claim goes wrong is a scope
+error — complete for one tenant applied to another, complete at one instant
+consulted later, `user_id` conflated with a recipient id, aliases treated as
+absent — and each now degrades that scope to UNKNOWN rather than to UNSUPPORTED.
+Losing a negative claim is the safe direction; keeping one on stale evidence is
+how a valid identifier gets rejected.
+
+A declaration may also not claim behaviour the code does not implement:
+declaring case-insensitive canonicalisation or alias support is refused at
+construction, because a curator promising that `U1` matches `u1` when the
+comparison is exact would reproduce §29 by hand.
+
+**Still not established.** Correct-versus-corrupted discrimination on blind data
+where the signal has information. Four blind sets are spent. The next attempt
+must begin with admission, not with a router change — and under the declaration
+rule it needs a domain whose completeness a named curator is willing to vouch
+for against a frozen snapshot.
+
+---
+
+## §31 Discrimination confirmed blind — under ideal conditions only (2026-07-31)
+<!-- finding-status: superseded -->
+
+**Result.** Track A2, evaluated once at locked commit `a9ec74c` on the fleetops
+white-box domain: 540 episodes over 90 clusters, admission-verified at 100%
+judgeable before sealing.
+
+| metric | target | result |
+|---|---|---|
+| covered identity ACCEPT | >= 85% | **100%** (90/90), Wilson [95.9%, 100%] |
+| covered wrong-argument ACCEPT | <= 15% | **0%** (0/90), Wilson [0%, 4.1%] |
+| discrimination gap | >= 60 pp | **100 pp** |
+| false-UNSUPPORTED on valid values | <= 2% | **0%** |
+
+Routing accuracy 100%, cluster-adjusted Wilson [95.9%, 100%]. All four met.
+This is the first blind confirmation that the engine separates a correct call
+from the same call with a corrupted identifier.
+
+**A perfect score is a reason for suspicion, not celebration, and here the
+explanation is mundane.** fleetops is generated: the database is the complete
+entity universe, identifiers are structured, and a corrupted identifier is
+therefore *definitely* absent. The value check has exactly the evidence it needs
+and the task reduces to a set membership test. 100% says the mechanism is wired
+correctly and its precondition is sufficient — it does not say the mechanism is
+clever.
+
+**What this does not establish.** Every hard condition from the earlier
+sections is absent by construction:
+
+* partial coverage, where some argument roles are held and others are not (§29)
+* stale state, where the snapshot no longer matches the live system
+* ambiguous scope, where a value exists under a different tenant or entity type
+* open-world state, where absence is not evidence of absence (§26)
+* naturally-occurring wrong values rather than generated ones
+
+A domain with any of those would produce a materially different number, and
+none of them is reproduced here. The synthetic result is a **necessary**
+condition — the mechanism must work when its precondition holds, and it now
+demonstrably does — not a sufficient one.
+
+**Small N.** 90 clusters, 90 identity and 90 wrong-argument episodes. The
+Wilson intervals are honest about that: identity ACCEPT could be as low as
+95.9%, wrong-argument as high as 4.1%.
+
+**The defensible claim.** On a closed-world domain whose completeness is
+declared and verified, and on a set admission-verified as 100% judgeable before
+sealing, REMORA accepted every valid identifier call and no corrupted one, on a
+single blind evaluation. Generalisation to domains with partial or stale
+authoritative state is unestablished and is the next thing worth measuring.
+
+**Artifacts.** `results/routing_bench_trackA2_results.json`,
+`results/fleetops_admission.json`,
+`data/routing_bench_trackA2/manifest.json` (episodes `3c070516`, db `3cc32d40`).
+
+---
+
+## §32 Degrading fleetops on purpose: coverage loss costs discrimination, not validity (2026-07-31)
+<!-- finding-status: superseded -->
+
+**What was done.** §31 ended with the observation that the only state
+production actually has is the one where the precondition does not hold. This
+study broke the fleetops precondition one assumption at a time and measured
+the router through the same locked pipeline as A2. **Openly non-blind**: the
+fleetops blind budget was spent in §31, so these are development measurements
+of *how the architecture degrades*, pre-registered directionally in
+`remora/toolcall/routing/degradation.py` before evaluation. The runner is
+committed this time (`scripts/run_fleetops_degradation.py`) — the A2 runner
+was assembled inline and never committed, a reproducibility gap now closed.
+
+The first run of the study surfaced a classifier defect (finding 5) whose fix
+changes what is claimable, so the study was re-run with the corrected engine;
+the table below is the corrected run. Identity ACCEPT is reported per action
+type because the claimable production posture is per action type: **autonomy
+on verified reads, verification on writes.**
+
+| condition | identity ACCEPT read | identity ACCEPT write | wrong-arg ACCEPT | false-UNSUPPORTED | admission |
+|---|---|---|---|---|---|
+| baseline | 100% (60/60) | 0% (0/30 — VERIFY) | 0% | 0/105 | eligible |
+| truncated_honest | 91.7% | 0% | **50%** | 0/105 | ineligible |
+| truncated_redeclared | 83.3% | 0% | 0% | **18/105 = 17.1%** | eligible |
+| stale_unbounded | 25% | 0% | 0% | **90/105 = 85.7%** | eligible |
+| stale_bounded | 75% | 0% | 50% | 0/105 | ineligible |
+| cross_tenant | 0% | 0% | 0% | 0/0 | eligible |
+
+All pre-registered expectations met (the baseline expectation is
+`identity_accept_read >= 85%` and `identity_accept_write <= 15%`; overall
+pooled identity ACCEPT is reported in the artifact but carries no autonomy
+claim). Five findings:
+
+**1. Honest failure is safe — and expensive in a different currency.** When
+the declaration stops holding for an honest reason (hash mismatch after
+truncation, freshness bound refusing a stale declaration), no valid identifier
+is ever rejected: false-UNSUPPORTED is 0 in both conditions, because every
+scope degrades to UNKNOWN rather than to a negative. The price appears on the
+other axis: with the discrimination signal inert, 50% of corrupted
+identifiers are accepted on read-only calls. Losing coverage costs the
+*safety of discrimination*, never the *validity of work*. The admission gate
+reports both
+conditions ineligible, which is the architecture agreeing with itself: a set
+whose signal is inert may not be sold as a discrimination track.
+
+**2. A false declaration is the expensive failure.** A curator re-vouching
+the truncated export as complete produces confident rejection of 17.1% of
+valid identifier occurrences (18/105; the draw put 17 of 90 identity episodes
+on removed entities). The mechanism was *correct about the bytes it was
+given* — the snapshot-membership split shows 100% ACCEPT on present
+identifiers and 0% on absent ones — and wrong about the world exactly where
+the declaration lied. The mechanism's ceiling is the declaration's
+truthfulness; nothing in the runtime can detect this condition.
+
+**3. Staleness is the failure hash binding cannot catch.** After the world
+grows 20% past a byte-identical snapshot, the declaration still hash-matches
+and the index confidently rejects 85.7% of valid post-snapshot occurrences.
+This motivated the freshness bound (`as_of` + `max_age_days`, both explicit):
+with it, the same world yields 0% false-UNSUPPORTED. The residual is finding
+1's currency — UNKNOWN accepts half the corrupted values — but that trade is
+the declared design: losing a negative claim is recoverable, rejecting valid
+work on stale evidence is the §26/§29 failure again.
+
+**4. Tenant isolation holds.** No identifier from a disjoint foreign-tenant
+universe was accepted (0/90), and the foreign tenant's declarations were never
+admitted for the local tenant.
+
+**5. The study's first run caught a write passing as a read.** The engine's
+mutating-verb list lacked "assign", "close" and "approve", so fleetops'
+`assign_driver` and `close_work_order` rode the low-consequence read-ACCEPT
+path. This also recontextualizes §31: **A2's 100% identity ACCEPT pooled 60
+reads with 30 misclassified writes.** The sealed A2 artifact stands as
+evaluated, but its pooled figure must not be quoted as a write-autonomy
+claim. With the verb list fixed, every correct write routes to VERIFY even
+with all arguments confirmed — the posture the production claim is now
+stated in. Misclassifying a write as a read widens autonomy; the reverse
+costs one verification, so the token list errs toward write
+(`tests/test_routing_evaluate.py` pins both directions).
+
+**What this does not establish.** Everything §31 listed stays open: these are
+generated degradations of a generated domain. Naturally partial exports,
+organically stale replicas and semantically ambiguous scopes will not be this
+clean. The numbers characterize the mechanism's failure geometry, not its
+field performance.
+
+**Architecture landed alongside.** `build_state_index` is now the single
+production path from declarations + snapshots to a `StateIndex` (tenant, hash
+and freshness rules applied in one place; snapshot filenames that contradict
+their domain are refused); the fleetops generator moved into the package
+byte-pinned to the A2 snapshot hash; `admitted_scopes` gained the opt-in
+freshness bound. 45 new tests across the four layers (domain, declarations,
 degradation harness, action-type classification).
 
 **Artifacts.** `results/fleetops_degradation_results.json` (schema
