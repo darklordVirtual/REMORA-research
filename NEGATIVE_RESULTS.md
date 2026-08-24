@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **19 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **20 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -3166,10 +3166,6 @@ so the decision path retains the reads it needs.
 
 Recorded here so it is not lost, with the review's identifiers:
 
-- **RMR-004** — `ExecutionLease` carries `toolspec_hash`/`toolspec_version` and
-  the dispatcher never supplies them; `verify_callable` and
-  `verify_credential_scope` have no non-test caller. Signed spec identity is
-  inert at the final PEP.
 - **RMR-007** — `workers/mcp-gateway` is absent from the npm audit and SBOM
   matrices, and the security and worker jobs are not required branch contexts.
 
@@ -3179,10 +3175,11 @@ and RMR-002/003/004 change durable state semantics that consumers depend on.
 
 RMR-002 and RMR-003 were subsequently fixed, each in its own change, and are
 recorded as §47 and §48; RMR-009 and RMR-013 are fixed together in §52,
-because they are the same defect shape twice; RMR-006 in §53. They are struck from the list above rather than
+because they are the same defect shape twice; RMR-006 in §53; RMR-004's binding in §54,
+whose two sub-checks stay deliberately unreachable. They are struck from the list above rather than
 left standing, because a list of open findings that keeps closed ones is the
-same drift this document's status gate exists to prevent. The two below remain
-open at the time of writing.
+same drift this document's status gate exists to prevent. RMR-007 below remains open at the time
+of writing.
 
 ### The finding about the findings
 
@@ -3447,4 +3444,76 @@ Mutation — reverting the fix and requiring the tests to fail — caught both.
 Seven now fail without it.
 
 **Not deployed.** Gateway source only; the Worker was not redeployed.
+
+## §54 The signed spec identity was unforgeable and never read (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-004 from the external forensic review, the binding fixed. Two
+sub-checks deliberately left unreachable, and one adjacent item left open —
+both recorded below rather than folded in.
+
+`ExecutionLease` has carried `toolspec_hash` and `toolspec_version` since it
+was written, and `ExecutionLease.verify` has always been able to compare them:
+the parameters exist, the mismatch reasons exist, the tests for `verify` exist.
+Nothing ever supplied them at dispatch. The call at the final PEP passed the
+tool name, the arguments, the tenant, the target, the clock, the policy bundle
+and the actor, and omitted the two arguments that identify the spec.
+
+The identity was therefore in the signature — genuinely unforgeable — and never
+read. That is a specific and slightly humbling failure mode: the expensive part
+was built, and the cheap part, passing two arguments, was not.
+
+### Why the gap is exactly the window the field exists to cover
+
+Between issuing a lease and dispatching under it, the bundle can be replaced.
+In the custody split (§45) it is not even the same file: the executor's bundle
+lives on a different container from the authority's. A spec that moved in that
+window means the action about to run is not the action that was reviewed, which
+is the sentence `verify_same_spec` in `toolspec.py` was written to be able to
+say, and nothing was asking it.
+
+### The resolver refuses on failure rather than falling through
+
+The dispatcher now resolves the identity this process would run, at the moment
+of dispatch. Two return values are distinct and must stay distinct:
+
+- `None` means no bundle is configured. That is the unenforced research path,
+  reported as `enforced=False` everywhere else, and it stays permitted.
+- A **raise** means a bundle is configured and could not answer. That refuses
+  as `toolspec_unresolvable`.
+
+Collapsing them would turn "I could not check" into "there was nothing to
+check". It is the same shape as the strict capability-freshness flag (§46),
+where an unresolvable binding classified as UNKNOWN and the gate reported
+success.
+
+The refusal also happens before the nonce is consumed, so a spec mismatch
+leaves the grant usable. Burning it would convert a recoverable configuration
+error into a permanently dead authorization.
+
+### What is NOT fixed, and why approximating it would be worse
+
+`verify_callable` and `verify_credential_scope` still have no non-test caller.
+Neither is an oversight now that they have been looked at:
+
+- `verify_callable` compares the registered callable against a digest the spec
+  attests. **Nothing in this repository produces such a digest** — every bundle
+  fixture carries a placeholder. Calling it would compare a real callable
+  against a constant.
+- `verify_credential_scope` needs the scope dispatch is about to *use*. Nothing
+  tracks that: the callables close over their own credentials and do not
+  declare what they reach for. Comparing the declaration against itself is a
+  check that cannot fail.
+
+This is the §48 rule applied to a different mechanism: where the evidence does
+not exist yet, leave the check unreachable rather than approximating it. A test
+pins that both remain uncalled, so the day one gains a caller, the input it
+needs exists and the claim it supports has to be written down with it.
+
+The SDAD spec-intake linkage at dispatch, which the review raised alongside
+RMR-004, is also untouched here. It is a different mechanism with a different
+evidence question, and folding it in would have produced one diff for two
+unrelated arguments.
+
+**Not deployed.** Code only.
 

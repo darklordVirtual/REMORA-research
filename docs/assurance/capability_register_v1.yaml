@@ -58,9 +58,15 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 69134428cdf41212ded5f111cd05553e5bd6c09d
+    verified_at_sha: 99a71fdb8ca25cbdbcbe6d98e266b48487b20d70
     verified_by: >-
-      re-audit 2026-08-24 for RMR-009/RMR-013: the exclusive outbox claim is
+      re-audit 2026-08-24 for RMR-004: the signed ToolSpec identity the lease
+      already carried is now compared at the final PEP, and an unresolvable
+      bundle refuses rather than falling through. This closes a check that
+      was claimed by the lease contract and not performed; it adds no new
+      permission, so status and scope are unchanged. verify_callable and
+      verify_credential_scope remain deliberately uncalled -- neither input
+      exists -- and a test pins that. Prior: re-audit 2026-08-24 for RMR-009/RMR-013: the exclusive outbox claim is
       now enforced rather than described, and the execution domain refuses
       every route but /v1/execution/dispatch-leased. Both narrow what these
       capabilities permit; neither widens the claim, so status and scope are
@@ -190,7 +196,7 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 69134428cdf41212ded5f111cd05553e5bd6c09d
+    verified_at_sha: 99a71fdb8ca25cbdbcbe6d98e266b48487b20d70
     verified_by: >-
       post-merge re-audit 2026-08-24: #358 squash commit a800194e contains the
       content-identical audited PR tree. Terminal effect-receipt uniqueness and audit

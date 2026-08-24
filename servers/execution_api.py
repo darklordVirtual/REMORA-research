@@ -692,6 +692,13 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                     expected_policy_bundle_hash=bundle,
                     nonce_store=_lease_nonce_store(),
                 )
+                # RMR-004: the lease has always carried the signed spec
+                # identity and verify() has always been able to check it.
+                # Nothing supplied it, so the identity sat inside the
+                # signature and was inert at the final PEP. This resolves the
+                # spec THIS process would run, at the moment of dispatch, so a
+                # bundle that moved between approval and execution refuses.
+                dispatcher.bind_toolspec_identity(_toolspec_identity)
                 spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
                 if spec:
                     import importlib
@@ -701,6 +708,22 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                     )
                 _DISPATCHER = dispatcher
     return _DISPATCHER
+
+
+def _toolspec_identity(tool_name: str) -> tuple[str, int] | None:
+    """The signed spec identity this process would run for ``tool_name``.
+
+    ``None`` means no bundle is configured -- the unenforced research path,
+    which stays permitted and is reported as ``enforced=False`` everywhere
+    else. It does NOT mean "the lookup failed": a bundle that is configured
+    and cannot answer raises, and the dispatcher refuses on a raise. Collapsing
+    the two would turn "I could not check" into "there was nothing to check".
+    """
+    bundle = _authz_load_bundle(_os.environ)
+    if bundle is None:
+        return None
+    spec = bundle.get(tool_name)          # raises ToolSpecRefused if unknown
+    return spec.toolspec_hash, int(spec.version)
 
 
 def _reset_tool_dispatcher() -> None:
