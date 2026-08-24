@@ -809,8 +809,10 @@ export interface components {
          *     What changed, and why the extra fields exist: the recorder used to accept
          *     any status for any existing proposal, so a proposal that was assessed and
          *     never executed could be recorded EFFECT_VERIFIED. The receipt is now bound
-         *     to a dispatch in the audit chain, and VERIFIED is DERIVED from the digests
-         *     rather than taken from this request. See
+         *     to a dispatch in the audit chain. REMORA adjudicates whether a settled
+         *     attestation is bound, fresh, attributable, unreplayed and re-checkable; it
+         *     does not derive VERIFIED because it does not hold the comparison rules.
+         *     See
          *     ``remora.governance.effect_receipt``.
          */
         EffectVerificationRequest: {
