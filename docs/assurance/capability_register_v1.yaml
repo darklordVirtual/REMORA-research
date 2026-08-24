@@ -58,7 +58,7 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 515f350bf60aa93c4ae6005e7cbe2ca017459a44
+    verified_at_sha: 53af5e803232717c785bf2f2d3b5475d8bdf26a1
     verified_by: >-
       rebound 2026-08-24 to the squash-merge commit of #352; content-identical.
       Prior: re-audit 2026-08-24, rebound because servers/execution_api.py moved when
@@ -171,7 +171,7 @@ capabilities:
       - tests/test_lease_nonce_durability.py
       - tests/test_lease_authority_custody.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 515f350bf60aa93c4ae6005e7cbe2ca017459a44
+    verified_at_sha: 53af5e803232717c785bf2f2d3b5475d8bdf26a1
     verified_by: >-
       rebound 2026-08-24 to the squash-merge commit of #352, which is where
       these sources now live in master's history; content-identical, no status
