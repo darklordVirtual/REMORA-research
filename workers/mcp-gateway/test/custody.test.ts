@@ -14,9 +14,14 @@
  * environment matches is verified separately, against the deployment.
  */
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const SOURCE = readFileSync(new URL("../src/index.ts", import.meta.url), "utf8");
+// join(process.cwd(), ...) rather than a URL relative to import.meta: the
+// Workers tsconfig and node's fs types disagree on the URL shape, and vitest
+// runs from the package root. A path keeps the typecheck honest without
+// widening the Worker's own type surface.
+const SOURCE = readFileSync(join(process.cwd(), "src", "index.ts"), "utf8");
 
 /** The envVars literal of one container class. */
 function envBlock(className: string): string {
@@ -33,7 +38,7 @@ function envBlock(className: string): string {
   // are about what the deployment ASSIGNS, never about what the source says.
   return block
     .split("\n")
-    .filter((line) => !line.trim().startsWith("//"))
+    .filter((line: string) => !line.trim().startsWith("//"))
     .join("\n");
 }
 

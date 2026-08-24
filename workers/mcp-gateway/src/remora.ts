@@ -30,6 +30,8 @@ export interface AssessResult {
 export interface ExecuteResult {
   outcome: string;
   tool_execution?: Record<string, unknown>;
+  /** Error body from a non-200; carried only on the failure path. */
+  detail?: unknown;
 }
 
 export class RemoraClient {
