@@ -58,9 +58,14 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 658936420d2c2d9618d2437097aa12666cd3842d
+    verified_at_sha: 45857bae94c0b327eeee0da96fe177642891cca7
     verified_by: >-
-      post-merge re-audit 2026-08-24: #358 squash commit a800194e contains the
+      re-audit 2026-08-24 for the anchored read-only SQL allowlist and the
+      actor-from-lease fix: dispatch_leased now takes the principal from the
+      SIGNED lease rather than the request body, which strengthens the
+      binding this capability claims rather than widening it; the deployment
+      evidence document was corrected to name a commit reachable from master.
+      Status and scope unchanged. Prior: post-merge re-audit 2026-08-24: #358 squash commit a800194e contains the
       content-identical effect-receipt append path audited on the PR head. It changes
       servers/execution_api.py and does not change token issuance, _GATE,
       audience/expiry checks or jti consumption. The token sources and caveat
@@ -181,7 +186,7 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 658936420d2c2d9618d2437097aa12666cd3842d
+    verified_at_sha: 45857bae94c0b327eeee0da96fe177642891cca7
     verified_by: >-
       post-merge re-audit 2026-08-24: #358 squash commit a800194e contains the
       content-identical audited PR tree. Terminal effect-receipt uniqueness and audit
