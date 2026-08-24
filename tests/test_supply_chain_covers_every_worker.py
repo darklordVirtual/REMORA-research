@@ -37,7 +37,7 @@ def _audit_dirs() -> set[str]:
         matrix = (job.get("strategy") or {}).get("matrix") or {}
         if "dir" in matrix:
             return set(matrix["dir"])
-    pytest.fail("no job in supply-chain.yml carries a `dir` matrix")
+    raise AssertionError("no job in supply-chain.yml carries a `dir` matrix")
 
 
 def _shipped_packages() -> set[str]:
