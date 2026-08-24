@@ -251,6 +251,32 @@ class ExecuteRequest(BaseModel):
     tool_call: ToolCallRequest
 
 
+class DispatchLeasedRequest(BaseModel):
+    """Dispatch a call under a lease minted by the AUTHORITY domain (ADR-A).
+
+    The execution domain's only inbound execution surface. It receives a lease
+    it did not request and did not sign, together with the call that lease is
+    supposed to authorise, and re-verifies the whole binding before anything
+    runs.
+
+    Nothing here is trusted because it arrived. The lease signature is checked
+    against the PUBLIC verification key -- this domain holds no private key and
+    so cannot have produced the lease -- and every bound field is compared to
+    the concrete call. A lease for a different tool, tenant, target or argument
+    set is refused here exactly as a forged one is.
+
+    ``now`` is carried so the authority's clock decides freshness rather than
+    the executor's, which keeps a skewed executor from widening or narrowing a
+    lease's usable window.
+    """
+
+    lease: dict[str, Any]
+    tool_call: ToolCallRequest
+    tenant_id: str = ""
+    actor_identity: str = ""
+    now: str = ""
+
+
 class ExecuteAcceptedRequest(BaseModel):
     """Redeem an ACCEPT execution token (issue #36).
 

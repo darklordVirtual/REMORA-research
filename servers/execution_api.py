@@ -39,6 +39,7 @@ from fastapi import APIRouter, HTTPException, Request
 from remora.enforcement.gate import EnforcementGate
 from remora.enforcement.nonce_store import DurableNonceStore, NonceStore
 from remora.enforcement.lease import (
+    ExecutionLease,
     GovernedToolDispatcher,
 )
 from remora.toolcall.deployment_registry import resolve_tool_metadata
@@ -81,6 +82,7 @@ from servers.execution_contracts import (  # noqa: F401
     DerivationProposal,
     EffectVerificationRequest,
     ErrorDetail,
+    DispatchLeasedRequest,
     ExecuteAcceptedRequest,
     ExecuteRequest,
     ExecutionApproveResponse,
@@ -268,6 +270,7 @@ _ITEM_TENANT: dict[str, str] = {}
 
 
 import contextvars as _contextvars
+import datetime as _dt
 import dataclasses
 
 # FT-02: the connection of the CURRENTLY OPEN db_transaction_state, exposed
@@ -1134,10 +1137,13 @@ def _dispatch_under_lease(
     toolspec: dict[str, Any] | None = None,
     proposal_id: str = "",
     grant_jti: str = "",
+    presented_lease: Any = None,
 ) -> dict[str, Any]:
     """Governed dispatch (see remora.execution.dispatch); binds this module's
-    dispatcher and current policy bundle hash. Shared by /execute and
-    /execute-accepted so both get identical enforcement."""
+    dispatcher and current policy bundle hash. Shared by /execute,
+    /execute-accepted and /dispatch-leased so all three get identical
+    enforcement -- which is why the custody-split path goes through here rather
+    than calling the implementation directly."""
     return _dispatch_under_lease_impl(
         tenant=tenant,
         principal=principal,
@@ -1150,6 +1156,7 @@ def _dispatch_under_lease(
         toolspec=toolspec,
         proposal_id=proposal_id,
         grant_jti=grant_jti,
+        presented_lease=presented_lease,
     )
 
 
@@ -1282,6 +1289,78 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
         refusal=tool_execution.get("refusal_reason"),
     )
     return response
+
+
+@router.post("/dispatch-leased", responses={
+    200: {"model": ExecutionExecuteResponse,
+          "description": "Outcome of governed dispatch under a presented lease."},
+    **_AUTH_RESPONSES,
+    409: {"model": ErrorDetail,
+          "description": "The lease is malformed, does not verify against this "
+                         "domain's public key, or does not bind this call."},
+})
+def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, Any]:
+    """The execution domain's half of the custody split (ADR-A).
+
+    This process holds the PUBLIC lease verification key and the downstream
+    credentials. It cannot mint authority -- ``ExecutionLease.issue`` refuses
+    when only verification material is present -- and it does not try to. It
+    receives a lease from the authority domain and either dispatches exactly
+    what that lease binds, or refuses.
+
+    The verification is not a formality and not a signature check alone.
+    ``GovernedToolDispatcher.dispatch`` re-derives the argument hash, compares
+    every bound field against this concrete call, and consumes the nonce in
+    durable tenant-scoped state before the tool runs. An authority-signed lease
+    presented for a different call is refused here.
+    """
+    tenant, role, principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "execute")
+
+    try:
+        lease = ExecutionLease.from_dict(req.lease)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=409, detail=f"malformed execution lease: {exc}"
+        ) from exc
+
+    # The tenant on the wire is advisory; the authenticated tenant governs.
+    # A lease bound to another tenant is refused by verify_binding below, so
+    # this only decides which tenant's chain records the attempt.
+    if req.tenant_id and req.tenant_id != tenant:
+        raise HTTPException(
+            status_code=409,
+            detail="lease dispatch refused: presented tenant does not match "
+                   "the authenticated tenant")
+
+    dispatcher = _tool_dispatcher()
+    if dispatcher is None:
+        raise HTTPException(
+            status_code=503,
+            detail="no tool dispatcher on this domain: the execution surface "
+                   "needs a policy bundle and a tool registry")
+
+    now = _dt.datetime.now(_dt.UTC)
+    tool_execution = _dispatch_under_lease(
+        tenant=tenant,
+        principal=req.actor_identity or principal,
+        tool_call=req.tool_call,
+        semantic={"tool_contract_bundle_hash": lease.tool_contract_bundle_hash,
+                  "intent_authority_hash": lease.intent_authority_hash},
+        now=now,
+        proposal_id=lease.proposal_id,
+        grant_jti=lease.grant_jti,
+        presented_lease=lease,
+    )
+    api_mod.record_execution_execute(
+        executed=bool(tool_execution["executed"]),
+        refusal=tool_execution.get("refusal_reason"),
+    )
+    return {"outcome": "tool_execution" if tool_execution["executed"]
+                       else "refused",
+            "tool_execution": tool_execution}
 
 
 @router.post("/reject", responses={

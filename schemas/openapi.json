@@ -352,6 +352,40 @@
         "title": "DerivationProposal",
         "type": "object"
       },
+      "DispatchLeasedRequest": {
+        "description": "Dispatch a call under a lease minted by the AUTHORITY domain (ADR-A).\n\nThe execution domain's only inbound execution surface. It receives a lease\nit did not request and did not sign, together with the call that lease is\nsupposed to authorise, and re-verifies the whole binding before anything\nruns.\n\nNothing here is trusted because it arrived. The lease signature is checked\nagainst the PUBLIC verification key -- this domain holds no private key and\nso cannot have produced the lease -- and every bound field is compared to\nthe concrete call. A lease for a different tool, tenant, target or argument\nset is refused here exactly as a forged one is.\n\n``now`` is carried so the authority's clock decides freshness rather than\nthe executor's, which keeps a skewed executor from widening or narrowing a\nlease's usable window.",
+        "properties": {
+          "actor_identity": {
+            "default": "",
+            "title": "Actor Identity",
+            "type": "string"
+          },
+          "lease": {
+            "additionalProperties": true,
+            "title": "Lease",
+            "type": "object"
+          },
+          "now": {
+            "default": "",
+            "title": "Now",
+            "type": "string"
+          },
+          "tenant_id": {
+            "default": "",
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "tool_call": {
+            "$ref": "#/components/schemas/ToolCallRequest"
+          }
+        },
+        "required": [
+          "lease",
+          "tool_call"
+        ],
+        "title": "DispatchLeasedRequest",
+        "type": "object"
+      },
       "EffectStatus": {
         "description": "Five outcomes. Collapsing any pair loses a distinction an operator\nneeds in order to choose what to do next.",
         "enum": [
@@ -1826,6 +1860,81 @@
           }
         },
         "summary": "Audit Verify",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/dispatch-leased": {
+      "post": {
+        "description": "The execution domain's half of the custody split (ADR-A).\n\nThis process holds the PUBLIC lease verification key and the downstream\ncredentials. It cannot mint authority -- ``ExecutionLease.issue`` refuses\nwhen only verification material is present -- and it does not try to. It\nreceives a lease from the authority domain and either dispatches exactly\nwhat that lease binds, or refuses.\n\nThe verification is not a formality and not a signature check alone.\n``GovernedToolDispatcher.dispatch`` re-derives the argument hash, compares\nevery bound field against this concrete call, and consumes the nonce in\ndurable tenant-scoped state before the tool runs. An authority-signed lease\npresented for a different call is refused here.",
+        "operationId": "dispatch_leased_v1_execution_dispatch_leased_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DispatchLeasedRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionExecuteResponse",
+                  "additionalProperties": true,
+                  "title": "Response Dispatch Leased V1 Execution Dispatch Leased Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Outcome of governed dispatch under a presented lease."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "The lease is malformed, does not verify against this domain's public key, or does not bind this call."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dispatch Leased",
         "tags": [
           "execution"
         ]
