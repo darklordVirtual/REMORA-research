@@ -57,16 +57,5 @@ jobs:
     needs: [analyze]
     runs-on: ubuntu-latest
     steps:
-      - name: Fail unless every aggregated leg succeeded
-        env:
-          NEEDS: ${{ toJson(needs) }}
-        run: |
-          python3 - <<'PY'
-          import json, os, sys
-          needs = json.loads(os.environ["NEEDS"])
-          not_ok = {k: v["result"] for k, v in needs.items() if v["result"] != "success"}
-          if not_ok:
-              print(f"aggregated legs not green: {not_ok}", file=sys.stderr)
-              sys.exit(1)
-          print(f"all {len(needs)} aggregated legs succeeded")
-          PY
+      - name: Deliberate failure — branch-protection control run, never merge
+        run: exit 1
