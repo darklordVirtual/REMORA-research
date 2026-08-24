@@ -153,3 +153,35 @@ def test_a_bound_capability_records_who_verified_it(gate) -> None:
             assert cap.get("verified_by", "").strip(), (
                 f"{cap['id']}: a sha without an audit record is a bare assertion"
             )
+
+
+def test_ci_runs_the_gate_in_strict_mode_with_full_history() -> None:
+    """A corrupt verified_at_sha must not read as a clean binding.
+
+    An unresolvable SHA classifies as UNKNOWN, which prints a warning to
+    stderr and, without --strict, does not fail. A binding to a commit that
+    does not exist therefore reported success -- found by accidentally writing
+    one (NEGATIVE_RESULTS section 46).
+
+    --strict is only sound with full history: on a shallow clone every SHA
+    older than the tip is equally unresolvable, so strict mode would fail on
+    correct bindings. The two settings are asserted together because either
+    alone is wrong.
+    """
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+        encoding="utf-8")
+
+    marker = "python scripts/check_capability_freshness.py"
+    assert marker in workflow, "the freshness gate is not run in CI"
+    invocation = workflow[workflow.index(marker):].splitlines()[0]
+    assert "--strict" in invocation, (
+        "CI must run the freshness gate with --strict, or an unresolvable "
+        "verified_at_sha passes as clean")
+
+    # The job that runs it must check out full history.
+    job_start = workflow.index(
+        "Documentation governance (registers, profiles, README budget)")
+    job = workflow[job_start:workflow.index(marker)]
+    assert "fetch-depth: 0" in job, (
+        "--strict needs full history; on a shallow clone it would fail on "
+        "correct bindings")

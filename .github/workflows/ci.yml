@@ -235,6 +235,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          # Full history: the capability-freshness gate runs --strict and
+          # must be able to resolve every verified_at_sha, not only recent ones.
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -262,7 +266,18 @@ jobs:
         # carrying verified_at_sha whose implementation moved since that commit
         # is stale and fails here; unbound capabilities are ratcheted by
         # unbound_baseline so the backlog can only shrink (issue #281).
-        run: python scripts/check_capability_freshness.py
+        #
+        # --strict additionally fails on an UNRESOLVABLE verified_at_sha.
+        # Without it, a binding to a commit that does not exist classifies as
+        # UNKNOWN, prints a warning nobody reads, and the gate reports success:
+        # a corrupt binding is indistinguishable from a clean one. That was
+        # found by writing one (NEGATIVE_RESULTS section 46).
+        #
+        # It requires full history, because on a shallow clone every SHA older
+        # than the tip is equally unresolvable and strict mode would fail on
+        # correct bindings. fetch-depth: 0 on the checkout above is what makes
+        # the distinction possible; the two settings must move together.
+        run: python scripts/check_capability_freshness.py --strict
 
       - name: Product-truth gate
         # docs/product/product_truth_contract.yaml classifies every advertised

@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **11 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **12 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2699,3 +2699,47 @@ not deployed" before this, and only now changes.
 (`docs/deployment/authority-custody-evidence.md`). §44 remains accurate about
 the defect it recorded; its fix was too narrow and is superseded by the
 three-way check.
+
+## §46 A corrupt capability binding read as a clean one (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** gap in an assurance gate, found by accident, fixed.
+
+**What happened.** Rebinding CAP-003 and CAP-013 after a squash merge, a
+careless substitution spliced a 7-character SHA onto the front of the old
+40-character one, producing `ea886eb03232717c785bf2f2d3b5475d8bdf26a1` — a
+well-formed hash that resolves to no commit in this repository.
+
+`scripts/check_capability_freshness.py` reported **`[PASS] no stale
+capability`**.
+
+**Why.** `classify()` returns `UNKNOWN` for an unresolvable `verified_at_sha`,
+which is correct and deliberate — there is a test for it, on the stated grounds
+that *"a shallow clone must not silently turn the gate off"*. `main()` prints
+unknowns to stderr and only counts them as failures under `--strict`. CI ran
+the gate **without** `--strict`, so the warning went to a log nobody reads and
+the build was green.
+
+**Why `--strict` was not already on.** The job's checkout had no `fetch-depth`,
+so it was shallow. On a shallow clone every SHA older than the tip is equally
+unresolvable, and strict mode would have failed on correct bindings. The gate
+was structurally unable to distinguish *"this commit is not in the clone"* from
+*"this commit does not exist"*, and the safe-looking configuration chose to
+report neither.
+
+**Severity.** No claim was wrong. A capability bound to a nonexistent commit is
+not a false claim about code; it is a claim bound to nothing, which is exactly
+what `verified_at_sha` exists to prevent. The register's whole purpose is that a
+status is anchored to a revision, and for the duration of that mistake two of
+them were anchored to a string.
+
+**Fix.** `fetch-depth: 0` on the job's checkout and `--strict` on the
+invocation. Both are asserted by a test, because either alone is wrong: strict
+without full history fails on correct bindings, and full history without strict
+changes nothing.
+
+**The general shape, which is the reason this is recorded.** A gate with a
+sound implementation, a correct classification, an explicit strict mode, and a
+test for the edge case still passed a corrupt input — because the strict mode
+was off in the only place it ran. Every piece was right except the wiring, and
+the wiring is not what gets reviewed.
