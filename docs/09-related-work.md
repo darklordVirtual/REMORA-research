@@ -324,6 +324,55 @@ Boundary:
 - It makes no claim about real-world cause and effect and no safety guarantee.
 - The counterfactuals are evaluated against the policy model, not the world.
 
+## 10. Spec-Driven Agentic Development and Context Intake
+
+Primary source:
+
+- Nguyen, V. H., & Nguyen, T. (2026). *SDAD: Spec-Driven Agentic Development
+  for the AI-Native SDLC*. arXiv:2608.20341v1. Sections 6.1 (context ingestion
+  as execution), 7.2 (the four Spec Fidelity dimensions), and 13.4 (the missing
+  operational definitions).
+
+Relevant ideas:
+
+- the context consumed during synthesis is part of the execution basis and
+  must be reproducible rather than treated as invisible prompt state;
+- specification intake should preserve four separate questions:
+  completeness, consistency, unambiguity, and verifiability;
+- requirements should trace to objective acceptance and verification evidence.
+
+How REMORA uses this:
+
+- `remora/governance/spec_intake.py` creates a signed, content-addressed
+  `ContextManifest` over immutable source revisions, exact source-byte hashes,
+  model route, prompt template, tool manifest, and the intent/ToolSpec/policy
+  authorities present at intake;
+- the same module emits a signed, content-addressed `SpecFidelityReceipt` with
+  one evidenced verdict per dimension. Its evaluator identity is bound to the
+  receipt signature, not accepted as a typed name. It deliberately has no
+  scalar score: three easy passes cannot compensate for one failed
+  load-bearing dimension;
+- positive and negative findings have the same provenance requirement. A
+  claimed contradiction or ambiguity without evidence references is refused;
+- `schemas/spec_intake_v1.yaml` freezes the artifact contract, and
+  `artifacts/spec_intake/sdad_spec_fidelity_v1.json` is a reproducible
+  reference fixture, not deployment evidence.
+
+Boundary:
+
+- SDAD presents a conceptual process framework and explicitly leaves Spec
+  Fidelity operational definitions and longitudinal baselines open. REMORA's
+  checks are a structural operationalisation, not validation of an empirical
+  SDAD score.
+- The receipt proves neither source truth nor semantic correctness. It records
+  which structural checks ran, what evidence they referenced, and which exact
+  context they measured.
+- This is an implemented library surface, not yet an execution-API gate. Binding
+  the manifest to final callable identity and dispatch authority remains open
+  under RMR-004.
+- REMORA does not adopt Agentic Autonomy Rate as an assurance metric; source
+  lines-of-code do not establish correctness, authority, or verified effect.
+
 ## Positioning Statement
 
 REMORA is a nested governance control plane for long-running agentic AI:

@@ -46,7 +46,7 @@
 # is documented, not invisible.
 
 schema_version: "1"
-updated: "2026-08-07"
+updated: "2026-08-24"
 
 maturity_levels:
   - implemented_and_tested
@@ -373,6 +373,37 @@ entries:
       - confidence-seq-2021
       - game-theoretic-stat-2023
 
+  - id: RES-011
+    title: "SDAD-inspired content-bound specification intake"
+    source:
+      citation: "Nguyen, V. H. & Nguyen, T. (2026). SDAD: Spec-Driven Agentic Development for the AI-Native SDLC. arXiv:2608.20341v1."
+      sections:
+        - "§6.1 (Context Ingestion as Execution)"
+        - "§7.2 (completeness, consistency, unambiguity, verifiability)"
+        - "§13.4 (operational definitions and longitudinal baselines remain open)"
+    concepts:
+      - context_ingestion_as_execution
+      - four_dimension_spec_fidelity
+      - requirement_to_verification_traceability
+      - content_addressed_context_provenance
+    controls:
+      - signed_context_manifest
+      - evidence_vector_spec_intake
+    code:
+      - remora/governance/spec_intake.py
+      - schemas/spec_intake_v1.yaml
+      - artifacts/spec_intake/sdad_spec_fidelity_v1.json
+    tests:
+      - tests/test_spec_intake.py
+    evidence: "Unit tests pin signature/digest refusal, source-order determinism, dimension separation, equal provenance for negative findings, traceability, unresolved handling, and exact reproduction of the committed reference artifact."
+    maturity: conceptual_translation_implemented
+    scope_boundary: "Structural and provenance checks only: no scalar Spec Fidelity score, no semantic-correctness or source-truth claim, no empirical SDAD validation, and no execution-API/dispatch binding until RMR-004. Agentic Autonomy Rate is not adopted as assurance evidence."
+    related_work_section: "docs/09-related-work.md §10"
+    in_code_citation: true
+    citation_anchor: "2608.20341"
+    compendium_refs: []
+    compendium_note: "No anchor in the local compendium: SDAD v1 (August 2026) postdates the catalogue. REMORA adopts only the context/provenance and four-dimension intake decomposition, not the full SDLC framework or its proposed scalar metrics."
+
 # ── Landscape coverage ──────────────────────────────────────────────────────
 # Whole areas of the local AI-assurance compendium that REMORA deliberately does
 # NOT implement as controls. Recording them here makes the scope boundary
@@ -406,7 +437,7 @@ landscape:
 # ── Bibliography reconciliation ─────────────────────────────────────────────
 # The `entries:` block above maps the research lines REMORA IMPLEMENTS, and its
 # rule is deliberately strict: a line requires real code and tests on disk. The
-# paper cites far more works than that (64 references against 10 lines), which
+# paper cites far more works than that (64 references against 11 lines), which
 # left an unanswered question raised in review 2026-08-07: if a source is not an
 # implemented line, what role does it actually play?
 #
