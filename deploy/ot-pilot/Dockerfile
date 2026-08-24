@@ -58,3 +58,11 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=5 \
   CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/v1/health', timeout=4).status == 200 else 1)"
 
 CMD ["uvicorn", "servers.api:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Container generation marker
+# Bumped to force a container replacement. Cloudflare keeps running instances
+# when only the Worker changes, so envVars edits alone do not reach a live
+# container -- a two-domain deployment can then run with one domain on an old
+# configuration and refuse every lease as policy_bundle_mismatch, which is
+# exactly what happened (NEGATIVE_RESULTS section 47).
+ENV REMORA_CONTAINER_GENERATION=8

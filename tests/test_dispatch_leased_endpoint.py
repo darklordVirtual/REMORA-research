@@ -99,8 +99,7 @@ def _post(executor, lease, call=None, **body):
     executor.monkeypatch.delenv(signing.ENV_ED25519_PRIVATE, raising=False)
     payload = {"lease": lease.to_dict(),
                "tool_call": call or CALL,
-               "tenant_id": "acme",
-               "actor_identity": "employee-1"}
+               "tenant_id": "acme"}
     payload.update(body)
     return executor.client.post("/v1/execution/dispatch-leased", json=payload)
 
@@ -200,3 +199,42 @@ def test_the_same_lease_cannot_be_replayed_over_the_endpoint(executor):
     replay = _post(executor, lease)
     assert replay.json()["tool_execution"]["executed"] is False
     assert len(executor.registry.CALLS) == 1
+
+
+def test_the_actor_cannot_be_asserted_by_the_caller(executor):
+    """RMR-005: the request body must not be able to name the actor.
+
+    The endpoint preferred req.actor_identity over anything authenticated, so a
+    caller holding a stolen lease and the hop credential could put the victim's
+    identity in the body and satisfy the lease's own actor check -- the exact
+    binding that check exists to enforce.
+
+    The actor now comes from the lease, inside the Ed25519-signed payload. An
+    extra body field is ignored rather than honoured, which is asserted here by
+    sending one that would previously have been decisive.
+    """
+    lease = _lease(executor, principal="victim-actor")
+    executor.monkeypatch.delenv(signing.ENV_ED25519_PRIVATE, raising=False)
+
+    response = executor.client.post("/v1/execution/dispatch-leased", json={
+        "lease": lease.to_dict(), "tool_call": CALL, "tenant_id": "acme",
+        # The old attack: assert the victim's identity from the wire.
+        "actor_identity": "victim-actor",
+        # And an attacker-chosen one, to show neither is consulted.
+        "principal": "authenticated-attacker"})
+
+    assert response.status_code == 200
+    # It executes under the identity the AUTHORITY signed, not one supplied.
+    assert response.json()["tool_execution"]["executed"] is True
+    assert lease.actor_identity == "victim-actor"
+
+
+def test_the_contract_no_longer_accepts_an_actor_field(executor):
+    """The field is gone from the model, not merely ignored by the handler.
+
+    A field that is accepted and ignored invites someone to wire it back up.
+    """
+    from servers.execution_contracts import DispatchLeasedRequest
+
+    assert "actor_identity" not in DispatchLeasedRequest.model_fields
+    assert "now" not in DispatchLeasedRequest.model_fields

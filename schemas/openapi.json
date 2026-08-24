@@ -353,22 +353,12 @@
         "type": "object"
       },
       "DispatchLeasedRequest": {
-        "description": "Dispatch a call under a lease minted by the AUTHORITY domain (ADR-A).\n\nThe execution domain's only inbound execution surface. It receives a lease\nit did not request and did not sign, together with the call that lease is\nsupposed to authorise, and re-verifies the whole binding before anything\nruns.\n\nNothing here is trusted because it arrived. The lease signature is checked\nagainst the PUBLIC verification key -- this domain holds no private key and\nso cannot have produced the lease -- and every bound field is compared to\nthe concrete call. A lease for a different tool, tenant, target or argument\nset is refused here exactly as a forged one is.\n\n``now`` is carried so the authority's clock decides freshness rather than\nthe executor's, which keeps a skewed executor from widening or narrowing a\nlease's usable window.",
+        "description": "Dispatch a call under a lease minted by the AUTHORITY domain (ADR-A).\n\nThe execution domain's only inbound execution surface. It receives a lease\nit did not request and did not sign, together with the call that lease is\nsupposed to authorise, and re-verifies the whole binding before anything\nruns.\n\nNothing here is trusted because it arrived. The lease signature is checked\nagainst the PUBLIC verification key -- this domain holds no private key and\nso cannot have produced the lease -- and every bound field is compared to\nthe concrete call. A lease for a different tool, tenant, target or argument\nset is refused here exactly as a forged one is.\n\nFreshness is checked against the EXECUTOR's clock, deliberately. An earlier\nversion of this contract carried a ``now`` field and claimed the authority's\nclock should decide; the endpoint never read it, so the field was dead and\nthe docstring described a behaviour the code did not have.\n\nRemoved rather than wired up, because the claim was also wrong. The\nauthority mints the lease, so letting it also assert the time against which\nits own expiry is judged makes the TTL vacuous from the executor's side. An\nindependent freshness check is one of the few things the second domain can\ncontribute on its own, and it is worth more than agreement between clocks.\n\nThere is deliberately no ``actor_identity`` field. An earlier version had\none and the endpoint preferred it over the authenticated principal, so a\ncaller holding a stolen lease and the hop credential could assert the\nvictim's identity and satisfy the lease's own actor check -- the exact\nbinding that check exists to enforce (NEGATIVE_RESULTS section 48).\n\nThe actor now comes from the lease, where it is inside the Ed25519-signed\npayload. That is authenticated material: only the authority can produce it,\nand it cannot be altered without invalidating the signature.\n\nResidual, and stated rather than implied: the hop's transport authenticates\nthe AUTHORITY, not the end actor. The executor therefore trusts the\nauthority's signed assertion about who acted. Anchoring the end actor to\nits own transport credential remains open (CAP-013).",
         "properties": {
-          "actor_identity": {
-            "default": "",
-            "title": "Actor Identity",
-            "type": "string"
-          },
           "lease": {
             "additionalProperties": true,
             "title": "Lease",
             "type": "object"
-          },
-          "now": {
-            "default": "",
-            "title": "Now",
-            "type": "string"
           },
           "tenant_id": {
             "default": "",

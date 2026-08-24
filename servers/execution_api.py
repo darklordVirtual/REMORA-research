@@ -1349,7 +1349,11 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
     now = _dt.datetime.now(_dt.UTC)
     tool_execution = _dispatch_under_lease(
         tenant=tenant,
-        principal=req.actor_identity or principal,
+        # From the SIGNED lease, never the request body and never the hop's
+        # own principal. The body form let a caller with a stolen lease assert
+        # the victim's identity; the hop principal is the authority, not the
+        # end actor, so using it would refuse every legitimate call.
+        principal=lease.actor_identity,
         tool_call=req.tool_call,
         semantic={"tool_contract_bundle_hash": lease.tool_contract_bundle_hash,
                   "intent_authority_hash": lease.intent_authority_hash},

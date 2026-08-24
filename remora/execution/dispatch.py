@@ -66,9 +66,18 @@ def dispatch_under_lease(
     if not gate_allowed:
         tool_execution["refusal_reason"] = "pep_denied"
         return tool_execution
-    if dispatcher is None and not execution_endpoint():
-        # The authority domain has no tool callables and needs none; a missing
-        # dispatcher is only a fault when this process is the one that executes.
+    # A dispatcher is needed exactly when this process will execute locally,
+    # which is when it is NOT going to forward. Forwarding happens only for a
+    # lease minted here with an execution domain configured.
+    #
+    # The earlier form tested only `not execution_endpoint()`, so a process
+    # configured as both (endpoint set) that received a presented lease with no
+    # dispatcher skipped this guard and reached dispatcher.dispatch(None) --
+    # an AttributeError instead of the named refusal this function documents.
+    # Found by review; the deployed endpoint guards it separately, so it was
+    # reachable through the library rather than through the API.
+    will_forward = presented_lease is None and bool(execution_endpoint())
+    if dispatcher is None and not will_forward:
         tool_execution["refusal_reason"] = "policy_bundle_unavailable"
         return tool_execution
     if presented_lease is not None:
@@ -103,11 +112,11 @@ def dispatch_under_lease(
     #
     # Only reached when a lease was minted here. A presented_lease means this
     # process IS the executor, so forwarding it again would be a loop.
-    if presented_lease is None and execution_endpoint():
+    if will_forward:
         try:
             return remote_dispatch(
                 lease=lease, tenant=tenant, principal=principal,
-                tool_call=tool_call, now=now.isoformat(),
+                tool_call=tool_call,
             )
         except RemoteDispatchUnavailable as exc:
             # No verdict. Reported as unknown rather than as a refusal: the
