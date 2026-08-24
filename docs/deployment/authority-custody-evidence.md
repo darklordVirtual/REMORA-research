@@ -52,6 +52,10 @@ the parenthetical still read "squash-merge of #354", which it was not. A
 deployment-evidence document that names a commit nobody can check is not
 evidence.
 
+That branch work is now merged. §1a records the deployment of `master` after
+the forensic-remediation round, and supersedes this table for "what is running
+now"; this one is kept because the claim in §7 was measured against it.
+
 The private key is not in this document and was not read back after generation.
 Its location is asserted by configuration (`workers/mcp-gateway/src/index.ts`,
 pinned by `workers/mcp-gateway/test/custody.test.ts`) and by the behavioural
@@ -60,6 +64,117 @@ result in §7.
 No private key material appears in this document, and none was read. The
 statement above is derived from which environment variables the Worker passes to
 the container, which is a matter of source, not of secret values.
+
+---
+
+## 1a. Deployment from master, 2026-08-24 18:46 UTC
+
+| Field | Value |
+|---|---|
+| git commit | `58ca1550c38a0a88679493deb088bd221f368575` (`master`, tree clean at deploy) |
+| Worker version (before / rollback point) | `34b417b8-7769-4e42-91fc-98be9035c681`, deployed 2026-08-24T09:56:54Z |
+| Worker version (after) | `e207c1a7-bd14-4183-8fef-52ad9ef4417f` |
+| Container image digest, BOTH containers | `sha256:6d6d96da99c020fce4a0f901a733eee2ab4709cea4db8835295cfae313955e6f` |
+| Executor image digest (before) | `sha256:003e94cbc3d8c688771de77378b39011f517f8e05df129ba4c9c35c0ca2737fd` |
+| Authority container | `remora-mcp-gateway-remoracontainer` (`a03ae0d6-…`), application version 15, replaced 18:46:01Z |
+| Execution container | `remora-mcp-gateway-remoraexecutioncontainer` (`a036dc4c-…`), application version 13, replaced 18:46:12Z |
+| Both containers | `ready`, 1 live instance each |
+
+**Both containers were genuinely replaced**, and that is measured rather than
+assumed: `wrangler containers list` reports both `LAST MODIFIED` inside the
+deploy window, and the image digest moved. It matters because §45 records a
+deployment where only the Worker changed, the running containers were kept, and
+three consecutive "fixes" were tested against the old configuration. The
+Python-side changes here — the executor domain guard, the exclusive outbox
+claim, the ToolSpec binding — live in the image, not in the Worker, so a kept
+container would have meant none of them was deployed at all.
+
+Both halves run the **same image digest**. The authority/execution asymmetry is
+entirely in `envVars`, which is the design and is what
+`workers/mcp-gateway/test/custody.test.ts` pins.
+
+### Checks run against this deployment
+
+Four were planned. Three ran and passed. The fourth could not run, and the
+reason is recorded rather than the check being quietly dropped.
+
+**1. Health — PASSED.** `GET /health` returned 200 with
+`transport: "container"`, `jurisdiction: "eu"`,
+`execution_state: "durable (D1 binding)"` and **no `warning` key**. The warning
+is emitted whenever execution state is ephemeral, so its absence is the
+assertion, not its content.
+
+**2. Custody boundary — PASSED in the direction that is observable.** A
+governed read (`kg_list_predicates` over
+`urn:exeqta:tenant:luftfiber:business`, intent `task:survey-business-graph`)
+returned `decision: accept`, `status: executed`, `executed=true`,
+`dispatch_began=true`, and 50 predicates of real data. With no symmetric lease
+key in existence anywhere in the deployment, a successful `accept`/`executed`
+proves the authority signed with Ed25519 and the executor verified holding the
+public key alone. It also proves the new domain guard admits the one path the
+executor must serve: had `REMORA_EXECUTION_DOMAIN_ROLE` carried an unrecognised
+value, `_execution_domain()` would have raised and this call would have failed.
+
+*What it does not prove.* That the executor **refuses** `assess`, `approve`,
+`execute` and `reject`. Those are reachable only through the Worker's private
+`execution.internal` binding, so the negative half is not observable from
+outside the boundary. It rests on
+`tests/test_exclusive_claim_and_domain_role.py` and on the container source,
+exactly as the key-custody configuration fact does in §5. An executor that
+never received the variable would default to `authority` and would also have
+answered this call successfully; the two are **not distinguishable from here**.
+Stated so that nobody later reads check 2 as more than it is.
+
+**3. MCP outcome correctness — PASSED on the success path.** The response
+carried `status: "executed"` **derived from the body** rather than from the
+transport status, `isError: false`, and **no `explanation` key**. The absent
+explanation is the assertion: §53 requires prose on every outcome except the
+successful one, because a caveat on the success path becomes noise. The presence
+of `dispatch_began` in the live payload also confirms the §48 structured-outcome
+fields are being produced by the deployed dispatcher.
+
+*Not exercised live:* the `refused` and `unknown` renderings. Producing either
+on the deployment would mean breaking something on purpose. They rest on the
+gateway unit tests, seven of which fail if the mapping is reverted.
+
+**4. ToolSpec mismatch — NOT RUN. The check is currently unsatisfiable.**
+`wrangler secret list` shows no `REMORA_TOOLSPEC_*` secret and `wrangler.toml`
+declares none, so **no ToolSpec bundle exists in this deployment**. The
+authority's bundle env sits behind a conditional spread that is therefore
+empty, and the execution container has no ToolSpec plumbing at all.
+`_toolspec_identity` returns `None`, which is the unenforced path, and dispatch
+proceeds without a spec comparison.
+
+The RMR-004 binding (§54) is therefore **implemented and inert on this
+deployment**. A negative `toolspec_hash_mismatch` test would have produced a
+successful dispatch, and reporting that as a passed negative test would have
+been false. This is not a new gap — §8 already records that the signed-ToolSpec
+cloud path is not implemented and that `controlled_pilot` prerequisites do not
+hold. It is restated here because a reader of §54 would otherwise reasonably
+assume the check is live.
+
+### Durable one-time consumption, re-confirmed on this build
+
+`lease_nonce_consumed` on D1 `remora-execution-state` (region `EEUR`, colo
+`ARN`) shows a nonce consumed at `2026-08-24 18:51:23` for tenant `eu-pilot` —
+five minutes after container replacement, so it was written by the new build
+rather than carried over.
+
+### Access
+
+The service token used for these checks was created for this run, added to
+policy `e9980f03…` alongside the existing operator token, and **both the policy
+entry and the token were removed afterwards**. `/health` with no credentials
+was re-confirmed to return 403. The pre-existing token was never modified.
+
+### What is NOT claimed for this deploy
+
+- **Not** that the Cloudflare deployment is complete. Check 4 did not run, and
+  the review path (§7a) remains unverified on the deployment for the same
+  reason as before: approving requires a role credential this session does not
+  hold.
+- **Not** that the executor refuses authority routes on the deployment. See
+  check 2.
 
 ---
 
