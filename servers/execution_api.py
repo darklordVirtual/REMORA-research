@@ -42,12 +42,6 @@ from remora.governance.effect_receipt import (
     ReceiptRefused,
     verify_receipt as verify_effect_receipt,
 )
-from remora.governance.effect_receipt_ledger import (
-    DurableEffectReceiptLedger,
-    EffectReceiptLedger,
-    EffectReceiptLedgerUnavailable,
-    InMemoryEffectReceiptLedger,
-)
 from remora.enforcement.lease import (
     ExecutionLease,
     GovernedToolDispatcher,
@@ -597,7 +591,6 @@ def _queue(tenant: str) -> ReviewQueue:
 # it instead of implying execution.
 
 _DISPATCHER: GovernedToolDispatcher | None = None
-_EFFECT_LEDGER: EffectReceiptLedger | None = None
 
 
 def _current_policy_bundle_hash() -> str:
@@ -1413,6 +1406,7 @@ def reject(req: RejectRequest, request: Request) -> dict[str, Any]:
 # (used by the SDK effect surface and tests).
 from remora.execution.projections import (  # noqa: E402
     EFFECT_STATE as _EFFECT_STATE,  # noqa: F401  (name kept for tests)
+    EffectVerificationReplay,
     current_state as _current_state_impl,
     dispatch_projection as _dispatch_projection_impl,
     effect_projection as _effect_projection,  # noqa: F401  (pure; direct use)
@@ -1463,33 +1457,31 @@ def _authorised_verifier(principal: str, verifier_identity: str) -> bool:
     return verifier_identity in bindings.get(principal, set())
 
 
-def _effect_receipt_ledger() -> "EffectReceiptLedger":
-    """At most one settled verdict per dispatch, atomically.
+def _effect_audit_is_durable() -> bool:
+    """Whether effect evidence and its replay key share durable storage.
 
-    Same backend selection as the lease nonce store, for the same reason: a
-    ledger the durability guard admits but this consumer never learns to use
-    is how a uniqueness guarantee quietly becomes advisory.
+    ``REMORA_STATE_ENDPOINT`` currently makes the grant/nonce ledgers durable,
+    but the tenant audit chain has no D1 adapter. Treating that endpoint as a
+    durable effect-evidence store would recreate the exact split-write bug this
+    receipt path is closing, only across a process restart. PostgreSQL and
+    SQLite are the two backends where ``append_once`` commits the key and audit
+    record in the same transaction.
     """
-    dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
-    db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
-    endpoint = _os.environ.get("REMORA_STATE_ENDPOINT", "").strip()
-    if dsn or db_path or endpoint:
-        return DurableEffectReceiptLedger(
-            dsn=dsn, db_path=db_path, state_endpoint=endpoint)
-    global _EFFECT_LEDGER
-    if _EFFECT_LEDGER is None:
-        _EFFECT_LEDGER = InMemoryEffectReceiptLedger()
-    return _EFFECT_LEDGER
+    return bool(
+        _os.environ.get("REMORA_PG_DSN", "").strip()
+        or _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    )
 
 
 def record_effect_verification(tenant: str, verification: Any, *,
                                submitted_by: str = "",
-                               dispatch_id: str = "") -> dict[str, Any]:
+                               dispatch_id: str = "",
+                               settled_dispatch_id: str = "") -> dict[str, Any]:
     """Append one effect verification to the tenant audit chain (see
     remora.execution.projections for the appending/never-editing contract)."""
     return _record_effect_verification_impl(
         _CHAIN, tenant, verification, submitted_by=submitted_by,
-        dispatch_id=dispatch_id,
+        dispatch_id=dispatch_id, settled_dispatch_id=settled_dispatch_id,
     )
 
 
@@ -1518,6 +1510,7 @@ def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
     events = _proposal_events(tenant, proposal_id)
     if not events:
         raise HTTPException(status_code=404, detail="proposal not found")
+
     assessed: dict[str, Any] = next(
         (e["payload"] for e in events if e["event"] == "assessed"), {}
     )
@@ -1564,6 +1557,18 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
     if not events:
         raise HTTPException(status_code=404, detail="proposal not found")
 
+    if _os.environ.get("REMORA_ENV", "").strip().lower() in {
+        "prod", "production"
+    } and not _effect_audit_is_durable():
+        raise HTTPException(
+            status_code=503,
+            detail=("effect receipt audit store unavailable: production "
+                    "requires REMORA_PG_DSN or REMORA_CHAIN_DB so receipt "
+                    "uniqueness and its audit evidence commit together; "
+                    "REMORA_STATE_ENDPOINT does not yet store the tenant "
+                    "audit chain"),
+        )
+
     # NOT defaulted to the server clock: substituting our time for a missing
     # observation time fabricates the freshness the check depends on. A
     # settled verdict without one is refused below.
@@ -1606,26 +1611,6 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
             detail=f"effect receipt refused ({exc.reason}): {exc.detail}",
         ) from exc
 
-    # The slot is taken BEFORE the append, and by the database rather than by
-    # this process: two concurrent receipts must not both read "unsettled" and
-    # both append. Only terminal verdicts take it -- an unresolved one must
-    # stay resolvable.
-    if status.is_terminal and lineage.dispatch_id:
-        try:
-            first = _effect_receipt_ledger().try_settle(
-                lineage.dispatch_id, tenant_id=tenant, status=status.value)
-        except EffectReceiptLedgerUnavailable as exc:
-            raise HTTPException(
-                status_code=503,
-                detail=("effect receipt ledger unavailable; refusing rather "
-                        f"than risking a second settled verdict: {exc}"),
-            ) from exc
-        if not first:
-            raise HTTPException(
-                status_code=409,
-                detail=("effect receipt refused (receipt_replayed): this "
-                        "dispatch already has a settled verdict"))
-
     verification = EffectVerification(
         proposal_id=proposal_id,
         execution_id=req.execution_id,
@@ -1645,12 +1630,24 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
         verifier_version=req.verifier_version,
         submitted_by=principal,
     )
-    audit = record_effect_verification(tenant, verification,
-                                       submitted_by=principal,
-                                       dispatch_id=lineage.dispatch_id)
+    try:
+        audit = record_effect_verification(
+            tenant, verification,
+            submitted_by=principal,
+            dispatch_id=lineage.dispatch_id,
+            settled_dispatch_id=(lineage.dispatch_id
+                                 if status.is_terminal else ""),
+        )
+    except EffectVerificationReplay as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=("effect receipt refused (receipt_replayed): this "
+                    "dispatch already has a settled verdict"),
+        ) from exc
     return {
         "proposal_id": proposal_id,
-        # The DERIVED status, which may differ from what was claimed.
+        # The adjudicated attestation status. REMORA binds and refuses; it
+        # cannot re-run the deployment's postcondition comparison.
         "status": status.value,
         "claimed_status": req.status.value,
         "dispatch_id": lineage.dispatch_id,

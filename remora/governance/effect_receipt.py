@@ -201,11 +201,10 @@ def adjudicate_status(
     verifier, is not a replay, and carries the evidence an auditor would need
     to re-check it. Those are the parts REMORA can actually establish.
 
-    The other four statuses are reported rather than derived, and deliberately
-    so. MISMATCH, UNOBSERVABLE, VERIFIER_FAILED and UNSUPPORTED are all
-    admissions -- a verifier reporting one is reporting bad news about itself,
-    and there is no incentive to fabricate them. VERIFIED is the only status
-    worth lying about, and the only one with a check.
+    UNOBSERVABLE, VERIFIER_FAILED and UNSUPPORTED remain unresolved reports.
+    MISMATCH is terminal and carries the same evidentiary burden as VERIFIED:
+    a negative system claim is still a claim, and an evidence-free mismatch
+    could otherwise occupy the terminal slot ahead of a real observation.
     """
     if claimed in (EffectStatus.UNOBSERVABLE, EffectStatus.VERIFIER_FAILED,
                    EffectStatus.UNSUPPORTED):
@@ -250,9 +249,9 @@ def verify_receipt(
     trusted_verifiers: Sequence[str],
     already_recorded: Sequence[Mapping[str, Any]] = (),
 ) -> tuple[DispatchLineage, EffectStatus]:
-    """Bind a receipt to its dispatch and derive the status it supports.
+    """Bind a receipt to its dispatch and adjudicate the claimed status.
 
-    Returns the resolved lineage and the derived status, or raises
+    Returns the resolved lineage and adjudicated status, or raises
     ``ReceiptRefused`` with a specific reason. The order of checks is the order
     of the rule, so the first failure names the first missing conjunct.
     """
@@ -296,10 +295,10 @@ def verify_receipt(
     # ── one SETTLED verdict per dispatch ───────────────────────────────────
     # Advisory only. This read-then-check cannot be atomic against a concurrent
     # submission, so the binding guarantee lives in
-    # remora.governance.effect_receipt_ledger, which takes the slot with a
-    # database primary key. This is kept because it produces the specific
-    # refusal reason before any write is attempted; it must never be the only
-    # check.
+    # TenantAuditChain.append_once(), which commits the uniqueness key and the
+    # audit entry in one transaction. This is kept because it produces the
+    # specific refusal reason before any write is attempted; it must never be
+    # the only check.
     # Not "one receipt per dispatch". UNOBSERVABLE and VERIFIER_FAILED mean
     # "we do not know yet", and a later observation resolving one of them is
     # the mechanism by which an unknown gets closed honestly -- forbidding it

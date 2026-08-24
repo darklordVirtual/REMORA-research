@@ -57,6 +57,11 @@ CREATE TABLE IF NOT EXISTS tenant_chain_entry (
     signature     TEXT   NOT NULL DEFAULT '',
     PRIMARY KEY (tenant_id, sequence_no)
 );
+CREATE TABLE IF NOT EXISTS tenant_chain_idempotency (
+    tenant_id       TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    PRIMARY KEY (tenant_id, idempotency_key)
+);
 -- append() MUST run in one transaction:
 --   SELECT head_hash, head_sequence FROM tenant_chain_head
 --     WHERE tenant_id = $1 FOR UPDATE;
@@ -110,35 +115,59 @@ class TenantAuditChain:
 
     def __init__(self, now_fn: Callable[[], datetime] | None = None) -> None:
         self._entries: dict[str, list[ChainEntry]] = {}
+        self._idempotency: set[tuple[str, str]] = set()
         self._lock = threading.Lock()
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
 
     def append(self, tenant_id: str, payload: dict[str, Any]) -> ChainEntry:
         """Atomic read-predecessor + insert: fork-free by construction."""
         with self._lock:
-            chain = self._entries.setdefault(tenant_id, [])
-            previous_hash = chain[-1].entry_hash if chain else _GENESIS
-            sequence_no = len(chain)
-            timestamp = self._now_fn().isoformat()
-            entry_hash = compute_entry_hash(
-                previous_hash, payload, tenant_id, sequence_no, timestamp
-            )
-            key = os.environ.get(_ENV_KEY, "").strip().encode()
-            signature = (
-                hmac.new(key, entry_hash.encode(), hashlib.sha256).hexdigest()
-                if key else ""
-            )
-            entry = ChainEntry(
-                tenant_id=tenant_id,
-                sequence_no=sequence_no,
-                timestamp=timestamp,
-                payload=payload,
-                previous_hash=previous_hash,
-                entry_hash=entry_hash,
-                signature=signature,
-            )
-            chain.append(entry)
+            return self._append_locked(tenant_id, payload)
+
+    def append_once(
+        self, tenant_id: str, idempotency_key: str, payload: dict[str, Any]
+    ) -> ChainEntry | None:
+        """Append and claim ``idempotency_key`` as one atomic operation.
+
+        ``None`` means the key was already committed. The key and entry are
+        mutated while holding the same lock, so an exception while building
+        the entry cannot leave a claimed key without the audit evidence it is
+        meant to protect.
+        """
+        if not idempotency_key:
+            raise ValueError("idempotency_key must not be empty")
+        key = (tenant_id, idempotency_key)
+        with self._lock:
+            if key in self._idempotency:
+                return None
+            entry = self._append_locked(tenant_id, payload)
+            self._idempotency.add(key)
             return entry
+
+    def _append_locked(self, tenant_id: str, payload: dict[str, Any]) -> ChainEntry:
+        chain = self._entries.setdefault(tenant_id, [])
+        previous_hash = chain[-1].entry_hash if chain else _GENESIS
+        sequence_no = len(chain)
+        timestamp = self._now_fn().isoformat()
+        entry_hash = compute_entry_hash(
+            previous_hash, payload, tenant_id, sequence_no, timestamp
+        )
+        signing_key = os.environ.get(_ENV_KEY, "").strip().encode()
+        signature = (
+            hmac.new(signing_key, entry_hash.encode(), hashlib.sha256).hexdigest()
+            if signing_key else ""
+        )
+        entry = ChainEntry(
+            tenant_id=tenant_id,
+            sequence_no=sequence_no,
+            timestamp=timestamp,
+            payload=payload,
+            previous_hash=previous_hash,
+            entry_hash=entry_hash,
+            signature=signature,
+        )
+        chain.append(entry)
+        return entry
 
     def entries(self, tenant_id: str) -> tuple[ChainEntry, ...]:
         with self._lock:
@@ -187,6 +216,11 @@ CREATE TABLE IF NOT EXISTS tenant_chain_entry (
     entry_hash    TEXT    NOT NULL,
     signature     TEXT    NOT NULL DEFAULT '',
     PRIMARY KEY (tenant_id, sequence_no)
+);
+CREATE TABLE IF NOT EXISTS tenant_chain_idempotency (
+    tenant_id       TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    PRIMARY KEY (tenant_id, idempotency_key)
 );
 """
 
@@ -324,30 +358,65 @@ class SQLiteTenantChain:
         conn = self._conn()
         conn.execute("BEGIN IMMEDIATE")  # exclusive write txn: read+insert atomic
         try:
-            row = conn.execute(
-                "SELECT entry_hash, sequence_no FROM tenant_chain_entry "
-                "WHERE tenant_id = ? ORDER BY sequence_no DESC LIMIT 1",
-                (tenant_id,),
-            ).fetchone()
-            previous_hash, sequence_no = (row[0], row[1] + 1) if row else (_GENESIS, 0)
-            timestamp = self._now_fn().isoformat()
-            entry_hash = compute_entry_hash(
-                previous_hash, payload, tenant_id, sequence_no, timestamp
-            )
-            key = os.environ.get(_ENV_KEY, "").strip().encode()
-            signature = (
-                hmac.new(key, entry_hash.encode(), hashlib.sha256).hexdigest()
-                if key else ""
-            )
-            conn.execute(
-                "INSERT INTO tenant_chain_entry VALUES (?,?,?,?,?,?,?)",
-                (tenant_id, sequence_no, timestamp, _canonical(payload),
-                 previous_hash, entry_hash, signature),
-            )
+            entry = self._append_in_transaction(conn, tenant_id, payload)
             conn.execute("COMMIT")
         except BaseException:
             conn.execute("ROLLBACK")
             raise
+        return entry
+
+    def append_once(
+        self, tenant_id: str, idempotency_key: str, payload: dict[str, Any]
+    ) -> ChainEntry | None:
+        """Atomically claim a key and append its audit entry.
+
+        The primary-key insert and chain append share one SQLite transaction.
+        A crash or insert failure therefore rolls both back; a retry can never
+        encounter a phantom claim whose evidence was not recorded.
+        """
+        if not idempotency_key:
+            raise ValueError("idempotency_key must not be empty")
+        conn = self._conn()
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            claimed = conn.execute(
+                "INSERT OR IGNORE INTO tenant_chain_idempotency "
+                "(tenant_id, idempotency_key) VALUES (?, ?)",
+                (tenant_id, idempotency_key),
+            )
+            if claimed.rowcount == 0:
+                conn.execute("COMMIT")
+                return None
+            entry = self._append_in_transaction(conn, tenant_id, payload)
+            conn.execute("COMMIT")
+        except BaseException:
+            conn.execute("ROLLBACK")
+            raise
+        return entry
+
+    def _append_in_transaction(
+        self, conn: sqlite3.Connection, tenant_id: str, payload: dict[str, Any]
+    ) -> ChainEntry:
+        row = conn.execute(
+            "SELECT entry_hash, sequence_no FROM tenant_chain_entry "
+            "WHERE tenant_id = ? ORDER BY sequence_no DESC LIMIT 1",
+            (tenant_id,),
+        ).fetchone()
+        previous_hash, sequence_no = (row[0], row[1] + 1) if row else (_GENESIS, 0)
+        timestamp = self._now_fn().isoformat()
+        entry_hash = compute_entry_hash(
+            previous_hash, payload, tenant_id, sequence_no, timestamp
+        )
+        signing_key = os.environ.get(_ENV_KEY, "").strip().encode()
+        signature = (
+            hmac.new(signing_key, entry_hash.encode(), hashlib.sha256).hexdigest()
+            if signing_key else ""
+        )
+        conn.execute(
+            "INSERT INTO tenant_chain_entry VALUES (?,?,?,?,?,?,?)",
+            (tenant_id, sequence_no, timestamp, _canonical(payload),
+             previous_hash, entry_hash, signature),
+        )
         return ChainEntry(tenant_id, sequence_no, timestamp, payload,
                           previous_hash, entry_hash, signature)
 
@@ -385,53 +454,70 @@ class PostgresTenantChain:
     def append(self, tenant_id: str, payload: dict[str, Any]) -> ChainEntry:
         with self._psycopg.connect(self._dsn) as conn:
             with conn.transaction():
-                conn.execute(
-                    "INSERT INTO tenant_chain_head VALUES (%s, %s, -1) "
-                    "ON CONFLICT (tenant_id) DO NOTHING", (tenant_id, _GENESIS),
-                )
-                row = conn.execute(
-                    "SELECT head_hash, head_sequence FROM tenant_chain_head "
-                    "WHERE tenant_id = %s FOR UPDATE", (tenant_id,),
+                entry = self._append_in_transaction(conn, tenant_id, payload)
+        return entry
+
+    def append_once(
+        self, tenant_id: str, idempotency_key: str, payload: dict[str, Any]
+    ) -> ChainEntry | None:
+        """Claim a key and append inside one Postgres transaction."""
+        if not idempotency_key:
+            raise ValueError("idempotency_key must not be empty")
+        with self._psycopg.connect(self._dsn) as conn:
+            with conn.transaction():
+                claimed = conn.execute(
+                    "INSERT INTO tenant_chain_idempotency "
+                    "(tenant_id, idempotency_key) VALUES (%s, %s) "
+                    "ON CONFLICT (tenant_id, idempotency_key) DO NOTHING "
+                    "RETURNING idempotency_key",
+                    (tenant_id, idempotency_key),
                 ).fetchone()
-                if row is None:
-                    # The upsert above should guarantee this row. If it is
-                    # gone anyway — truncated table, a migration that
-                    # dropped it, a tenant the connection cannot see — the
-                    # chain has no predecessor to link to, and appending
-                    # would silently start a second chain for this tenant.
-                    # Refuse by name rather than crash on a None subscript,
-                    # which reports 'NoneType' and points nowhere useful.
-                    raise RuntimeError(
-                        f"no chain head for tenant {tenant_id!r} in "
-                        "tenant_chain_head immediately after upsert; refusing "
-                        "to append an entry with no predecessor"
-                    )
-                previous_hash, sequence_no = row[0], row[1] + 1
-                timestamp = self._now_fn().isoformat()
-                entry_hash = compute_entry_hash(
-                    previous_hash, payload, tenant_id, sequence_no, timestamp
-                )
-                # HMAC in the same transaction as the insert — previously the
-                # Postgres path never wrote a signature, so _verify_generic
-                # reported signature_missing for every entry once
-                # REMORA_AUDIT_SIGNING_KEY was configured (external review
-                # 2026-07-24, F-04). Same contract as the SQLite path.
-                key = os.environ.get(_ENV_KEY, "").strip().encode()
-                signature = (
-                    hmac.new(key, entry_hash.encode(), hashlib.sha256).hexdigest()
-                    if key else ""
-                )
-                conn.execute(
-                    "INSERT INTO tenant_chain_entry "
-                    "(tenant_id, sequence_no, timestamp, payload, previous_hash, "
-                    "entry_hash, signature) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                    (tenant_id, sequence_no, timestamp, _canonical(payload),
-                     previous_hash, entry_hash, signature),
-                )
-                conn.execute(
-                    "UPDATE tenant_chain_head SET head_hash=%s, head_sequence=%s "
-                    "WHERE tenant_id=%s", (entry_hash, sequence_no, tenant_id),
-                )
+                if claimed is None:
+                    return None
+                entry = self._append_in_transaction(conn, tenant_id, payload)
+        return entry
+
+    def _append_in_transaction(
+        self, conn: Any, tenant_id: str, payload: dict[str, Any]
+    ) -> ChainEntry:
+        conn.execute(
+            "INSERT INTO tenant_chain_head VALUES (%s, %s, -1) "
+            "ON CONFLICT (tenant_id) DO NOTHING", (tenant_id, _GENESIS),
+        )
+        row = conn.execute(
+            "SELECT head_hash, head_sequence FROM tenant_chain_head "
+            "WHERE tenant_id = %s FOR UPDATE", (tenant_id,),
+        ).fetchone()
+        if row is None:
+            # The upsert above should guarantee this row. If it is gone anyway
+            # the chain has no predecessor to link to; appending would silently
+            # start a second chain for this tenant.
+            raise RuntimeError(
+                f"no chain head for tenant {tenant_id!r} in "
+                "tenant_chain_head immediately after upsert; refusing "
+                "to append an entry with no predecessor"
+            )
+        previous_hash, sequence_no = row[0], row[1] + 1
+        timestamp = self._now_fn().isoformat()
+        entry_hash = compute_entry_hash(
+            previous_hash, payload, tenant_id, sequence_no, timestamp
+        )
+        signing_key = os.environ.get(_ENV_KEY, "").strip().encode()
+        signature = (
+            hmac.new(signing_key, entry_hash.encode(), hashlib.sha256).hexdigest()
+            if signing_key else ""
+        )
+        conn.execute(
+            "INSERT INTO tenant_chain_entry "
+            "(tenant_id, sequence_no, timestamp, payload, previous_hash, "
+            "entry_hash, signature) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+            (tenant_id, sequence_no, timestamp, _canonical(payload),
+             previous_hash, entry_hash, signature),
+        )
+        conn.execute(
+            "UPDATE tenant_chain_head SET head_hash=%s, head_sequence=%s "
+            "WHERE tenant_id=%s", (entry_hash, sequence_no, tenant_id),
+        )
         return ChainEntry(tenant_id, sequence_no, timestamp, payload,
                           previous_hash, entry_hash, signature)
 

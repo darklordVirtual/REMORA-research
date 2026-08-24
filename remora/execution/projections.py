@@ -11,6 +11,10 @@ from __future__ import annotations
 from typing import Any
 
 
+class EffectVerificationReplay(RuntimeError):
+    """A settled effect receipt already exists for this dispatch."""
+
+
 def proposal_events(chain: Any, tenant: str, proposal_id: str) -> list[dict[str, Any]]:
     """Every chain entry belonging to one proposal, in chain order.
 
@@ -56,7 +60,8 @@ def dispatch_projection(outbox: Any, tenant: str, proposal_id: str) -> dict[str,
 
 def record_effect_verification(chain: Any, tenant: str, verification: Any, *,
                                submitted_by: str = "",
-                               dispatch_id: str = "") -> dict[str, Any]:
+                               dispatch_id: str = "",
+                               settled_dispatch_id: str = "") -> dict[str, Any]:
     """Append one effect verification to the tenant audit chain.
 
     Appends; never edits the execution record it verifies. A verifier that
@@ -70,7 +75,7 @@ def record_effect_verification(chain: Any, tenant: str, verification: Any, *,
     than reaching out to a third party from inside governance.
     """
     record = verification.to_dict()
-    entry = chain.append(tenant, {
+    payload = {
         "event": "effect_verified",
         # Who OBSERVED is the verifier identity inside the record; this is
         # who submitted it. Keeping them separate matters when a record
@@ -81,7 +86,21 @@ def record_effect_verification(chain: Any, tenant: str, verification: Any, *,
         # second opinion.
         "dispatch_id": dispatch_id,
         **record,
-    })
+    }
+    if settled_dispatch_id:
+        # Receipt uniqueness and evidence recording must commit together.
+        # Reserving a slot in a separate store first creates a crash window:
+        # the slot can survive while the audit append fails, after which every
+        # retry is refused although no re-checkable observation exists.
+        entry = chain.append_once(
+            tenant, f"effect-receipt:{settled_dispatch_id}", payload)
+        if entry is None:
+            raise EffectVerificationReplay(
+                "this dispatch already has a settled effect verdict")
+    else:
+        # Non-terminal observations deliberately remain appendable: UNKNOWN
+        # must be resolvable by a later authoritative observation.
+        entry = chain.append(tenant, payload)
     return {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}
 
 
@@ -269,4 +288,3 @@ def envelope_projection(
 
 if False:  # pragma: no cover - typing only, avoids a runtime import cycle
     from remora.governance.envelope import DecisionEnvelope
-

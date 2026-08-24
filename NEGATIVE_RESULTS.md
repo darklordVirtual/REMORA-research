@@ -2744,7 +2744,7 @@ test for the edge case still passed a corrupt input — because the strict mode
 was off in the only place it ran. Every piece was right except the wiring, and
 the wiring is not what gets reviewed.
 
-## §47 EFFECT_VERIFIED was reportable; it is now derived from a bound observation (2026-08-24)
+## §47 EFFECT_VERIFIED was reportable; its attestation is now lineage-bound (2026-08-24)
 <!-- finding-status: accepted -->
 
 **Status:** RMR-002 from the external forensic review, fixed. One sub-rule was
@@ -2757,15 +2757,15 @@ executed could be recorded `EFFECT_VERIFIED`, and the lifecycle projection
 reported it as such — a dispatch of `null` with a current state of
 `EFFECT_VERIFIED`.
 
-That is a false VERIFIED. Every other status in this model is an admission:
-MISMATCH, UNOBSERVABLE, VERIFIER_FAILED and UNSUPPORTED all report that
-something did not happen or is not known, and nobody fabricates those. VERIFIED
-is the only verdict worth lying about, and it was the only one with no check.
+That is a false VERIFIED. A later review also showed why the inverse shortcut
+is invalid: MISMATCH is a load-bearing negative system claim and can be abused
+to occupy the terminal slot. Positive and negative settled verdicts therefore
+carry the same evidence burden.
 
 **The rule now enforced.**
 
 ```
-EFFECT_VERIFIED =
+SETTLED_EFFECT_ATTESTATION_ACCEPTED =
     valid_dispatch_lineage
     AND authoritative_observation
     AND observation_recorded_for_re_checking
@@ -2857,9 +2857,32 @@ All eight are fixed: binding fields and observation time are mandatory for a
 settled verdict, digests are validated as SHA-256 on the wire, the verifier
 identity is bound to the authenticated principal
 (``REMORA_EFFECT_VERIFIER_BINDINGS``, defaulting to identity == principal),
-provenance is stored in the chain, terminal uniqueness is taken atomically by a
-database primary key on ``(tenant_id, dispatch_id)``, and MISMATCH carries the
-same evidence burden as VERIFIED.
+provenance is stored in the chain, and MISMATCH carries the same evidence burden
+as VERIFIED. The first atomicity repair itself needed a further correction.
+
+### A third review found a phantom-settlement window
+
+The first replay fix took a primary-key slot in a separate receipt ledger and
+then appended the observation to the tenant audit chain. That prevented two
+concurrent winners but did **not** establish
+``observation_recorded_for_re_checking``: if the process failed after the slot
+commit and before the audit append, every retry was refused as a replay although
+no observation existed in the chain. The code had made uniqueness atomic and
+split the property it was meant to protect across two transactions.
+
+The separate ledger is removed. ``TenantAuditChain.append_once`` now commits
+the receipt idempotency key and audit entry as one operation: under one lock in
+the in-process reference implementation, and in one transaction for SQLite and
+Postgres. A concurrent test produces exactly one winner. A SQLite fault-
+injection trigger aborts the audit insert after the idempotency insert; the test
+proves the key rolls back, the chain stays empty, and a retry succeeds.
+
+There is one explicit deployment limit. ``REMORA_STATE_ENDPOINT`` makes the D1
+nonce ledgers durable, but the tenant audit chain has no D1 adapter. A
+production deployment configured only with that endpoint is therefore refused
+at the effect-receipt API rather than accepting a settlement it cannot preserve
+for re-checking. Adding a transactional D1 tenant-chain adapter remains open;
+Postgres and persistent SQLite are the durable effect-receipt backends today.
 
 ### The claim was also overstated
 

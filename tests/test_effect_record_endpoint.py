@@ -318,7 +318,7 @@ def test_a_verifier_identity_the_principal_may_not_claim_is_refused(
     assert "verifier_not_bound" in response.json()["detail"]
 
 
-def test_the_response_reports_both_claimed_and_derived_status(client) -> None:
+def test_the_response_reports_both_claimed_and_adjudicated_status(client) -> None:
     """An operator needs to see that the two agreed, not just the outcome."""
     proposal_id = _executed(client)
     body = _post(client, proposal_id).json()
@@ -421,3 +421,26 @@ def test_the_provenance_is_stored_not_merely_accepted(client) -> None:
     assert payload["tool_call_hash"], "the call it attests to"
     assert payload["submitted_by"] == "employee-1", (
         "who submitted, kept separate from who observed")
+
+
+def test_d1_only_production_refuses_receipt_without_durable_audit(
+        client, monkeypatch) -> None:
+    """D1 makes nonce state durable, not the tenant audit chain.
+
+    The old separate receipt ledger could take a durable D1 slot and then lose
+    the in-process audit append on restart. Reporting that as recorded for
+    re-checking would be a phantom settlement with a longer crash window.
+    """
+    proposal_id = _executed(client)
+    monkeypatch.setenv("REMORA_ENV", "production")
+    monkeypatch.setenv("REMORA_STATE_ENDPOINT", "http://state.internal/query")
+    monkeypatch.delenv("REMORA_PG_DSN", raising=False)
+    monkeypatch.delenv("REMORA_CHAIN_DB", raising=False)
+
+    response = _post(client, proposal_id)
+
+    assert response.status_code == 503, response.text
+    assert "does not yet store the tenant audit chain" in response.json()["detail"]
+    trail = client.get(
+        f"/v1/execution/proposals/{proposal_id}/lifecycle").json()
+    assert not [e for e in trail["events"] if e["event"] == "effect_verified"]
