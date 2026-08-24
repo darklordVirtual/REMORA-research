@@ -26,6 +26,11 @@ def proposal_events(chain: Any, tenant: str, proposal_id: str) -> list[dict[str,
         out.append({
             "sequence_no": entry.sequence_no,
             "entry_hash": entry.entry_hash,
+            # The chain's own time, exposed so an effect receipt can be
+            # refused for predating the dispatch it claims to observe. The
+            # payload has no timestamp of its own and must not grow one: the
+            # chain is the store of record for when something happened.
+            "timestamp": entry.timestamp,
             "event": payload.get("event"),
             "actor": payload.get("actor"),
             "payload": payload,
@@ -50,7 +55,8 @@ def dispatch_projection(outbox: Any, tenant: str, proposal_id: str) -> dict[str,
 
 
 def record_effect_verification(chain: Any, tenant: str, verification: Any, *,
-                               submitted_by: str = "") -> dict[str, Any]:
+                               submitted_by: str = "",
+                               dispatch_id: str = "") -> dict[str, Any]:
     """Append one effect verification to the tenant audit chain.
 
     Appends; never edits the execution record it verifies. A verifier that
@@ -70,6 +76,10 @@ def record_effect_verification(chain: Any, tenant: str, verification: Any, *,
         # who submitted it. Keeping them separate matters when a record
         # arrives over the API: an auditor needs both.
         "actor": submitted_by or "effect_verifier",
+        # The dispatch this receipt attests to, so a second receipt for the
+        # same dispatch is detectable as a replay rather than appended as a
+        # second opinion.
+        "dispatch_id": dispatch_id,
         **record,
     })
     return {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash}

@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **12 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **13 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -2743,3 +2743,89 @@ sound implementation, a correct classification, an explicit strict mode, and a
 test for the edge case still passed a corrupt input — because the strict mode
 was off in the only place it ran. Every piece was right except the wiring, and
 the wiring is not what gets reviewed.
+
+## §47 EFFECT_VERIFIED was reportable; it is now derived from a bound observation (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-002 from the external forensic review, fixed. One sub-rule was
+written wrong on the first attempt and is recorded below rather than quietly
+corrected.
+
+**The defect.** The recorder checked that a proposal existed and then stored
+whatever status arrived. A proposal that was assessed and never approved or
+executed could be recorded `EFFECT_VERIFIED`, and the lifecycle projection
+reported it as such — a dispatch of `null` with a current state of
+`EFFECT_VERIFIED`.
+
+That is a false VERIFIED. Every other status in this model is an admission:
+MISMATCH, UNOBSERVABLE, VERIFIER_FAILED and UNSUPPORTED all report that
+something did not happen or is not known, and nobody fabricates those. VERIFIED
+is the only verdict worth lying about, and it was the only one with no check.
+
+**The rule now enforced.**
+
+```
+EFFECT_VERIFIED =
+    valid_dispatch_lineage
+    AND authoritative_observation
+    AND observation_recorded_for_re_checking
+    AND freshness_valid
+    AND receipt_not_replayed
+```
+
+Each conjunct has its own refusal reason, because an operator reading a refusal
+needs to know which one failed. The lineage is read from the audit chain, never
+from the receipt: proposal, exact call hash and the grant that identifies the
+dispatch. An observation dated before the dispatch is refused, which is what
+catches a pre-existing matching state being passed off as a verification.
+
+**Two things deliberately kept possible.** An UNKNOWN dispatch can be resolved
+to VERIFIED by a later authoritative check — a lost response does not mean
+nothing happened, and requiring a false SUCCEEDED first would be the opposite
+of what this model is for. And a non-terminal verdict (UNOBSERVABLE,
+VERIFIER_FAILED) can be superseded, because that is how an unknown gets closed
+honestly. What is forbidden is re-verifying a dispatch that already has a
+settled verdict.
+
+### The sub-rule that was wrong
+
+The first implementation derived VERIFIED by requiring
+`expected_sha256 == observed_sha256`, on the reasoning that a verdict
+contradicting its own numbers is a mismatch with a wrong label.
+
+**That reasoning was wrong, and the test suite caught it.** The two digests
+hash *different maps* — the expected FIELDS and the observed ROW — and the
+comparison between them is rule-based
+(`PostconditionContract.comparison_rules`, for example `content: hash`). A
+passing verification routinely produces different digests. The rule would have
+refused every legitimate VERIFIED the SDK produces, and
+`tests/test_sdk_effect_roundtrip.py` failed immediately because it was
+asserting the real contract while the new module was inventing a different one.
+
+The corrected rule requires both digests to be *present*, not equal: a verdict
+that records neither side of its own comparison cannot be re-checked, and an
+unre-checkable verdict is an assertion. REMORA does not re-run the comparison
+and does not claim to — it holds the digests, not the maps or the rules.
+
+Worth recording because of what nearly happened: a module written to stop
+unearned claims was one commit from making one of its own, in the form of a
+verification rule that did not match the verification it was checking. An
+existing test written against the real contract is what prevented it.
+
+### The rule this raises to a project principle
+
+> **Positive and negative system claims carry the same burden of proof. A
+> measurement without verified provenance is just another claim.**
+
+This is the third consecutive entry reaching the same place from a different
+direction. Prose asserting a property is written at the moment of highest
+confidence and lowest evidence. A probe reporting a system is broken is a
+claim, and a measurement read from the wrong key measured nothing. And an
+attestation asserting VERIFIED is a claim, needing provenance that binds it to
+the thing it claims to have observed. (The first two are recorded in the
+custody-split branch, PR #356; if that merges first this entry renumbers.)
+
+It is a precise extension of what effect verification was already for. The
+model began by separating "the dispatcher returned" from "the effect happened".
+This adds the layer under it: **proving the observation actually measured what
+it claims to have measured.**

@@ -19,6 +19,8 @@ an overlay that filtered those would be worse than useless.
 """
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import pytest
 
 pytest.importorskip("fastapi")
@@ -44,7 +46,11 @@ def _record(**overrides) -> dict:
         "verifier_identity": "acme.reader/v1",
         "expected_sha256": "a" * 64,
         "observed_sha256": "a" * 64,
-        "verified_at": "2026-08-05T12:00:00+00:00",
+        # Fresh, not fixed. A hardcoded past timestamp dated the observation
+        # weeks before the dispatch it claims to describe, and the receipt is
+        # now refused for exactly that (observation_precedes_dispatch). The
+        # fixture was asserting a receipt no deployment should accept.
+        "verified_at": datetime.now(UTC).isoformat(),
         "detail": "",
     }
     payload.update(overrides)
@@ -194,3 +200,95 @@ def test_a_record_without_a_verifier_identity_is_refused(client) -> None:
     proposal_id = _executed(client)
     r = _post(client, proposal_id, verifier_identity="")
     assert r.status_code == 422, r.text
+
+
+# ── RMR-002: a receipt must be about a dispatch that happened ───────────────
+
+def _assessed_only(client) -> str:
+    """A proposal that reached review and was never approved or executed."""
+    assessed = client.post("/v1/execution/assess", json=CALL).json()
+    assert assessed["review_item_id"], "expected this call to need review"
+    return str(assessed["proposal_id"])
+
+
+def test_a_never_executed_proposal_cannot_be_recorded_verified(client) -> None:
+    """The reported reproduction, end to end through the recorder API.
+
+    Assess a write, do not approve it, do not execute it, then POST
+    EFFECT_VERIFIED. Previously 200, and the lifecycle then reported
+    EFFECT_VERIFIED for a proposal whose dispatch is null.
+    """
+    proposal_id = _assessed_only(client)
+    response = _post(client, proposal_id)
+    assert response.status_code == 409, response.text
+    assert "no_dispatch" in response.json()["detail"]
+
+    view = client.get(
+        f"/v1/execution/proposals/{proposal_id}/lifecycle").json()
+    assert view["current_state"] != "EFFECT_VERIFIED"
+
+
+def test_a_receipt_for_another_proposals_call_is_refused(client) -> None:
+    """Right format, wrong subject."""
+    executed = _executed(client)
+    response = _post(client, executed, tool_call_hash="f" * 64)
+    assert response.status_code == 409
+    assert "tool_call_hash_mismatch" in response.json()["detail"]
+
+
+def test_a_stale_observation_is_refused(client) -> None:
+    """An observation dated before the dispatch cannot evidence it."""
+    proposal_id = _executed(client)
+    response = _post(client, proposal_id,
+                     verified_at="2020-01-01T00:00:00+00:00")
+    assert response.status_code == 409
+    assert "observation_precedes_dispatch" in response.json()["detail"]
+
+
+def test_verified_without_a_recorded_observation_is_refused(client) -> None:
+    """A verdict that records neither side of its own comparison.
+
+    Not re-running the comparison -- REMORA holds the digests, not the maps or
+    the rules. What it refuses is a VERIFIED an auditor could never re-check.
+    """
+    proposal_id = _executed(client)
+    response = _post(client, proposal_id,
+                     status="EFFECT_VERIFIED",
+                     expected_sha256="a" * 64, observed_sha256="")
+    assert response.status_code == 409
+    assert "verified_without_observation" in response.json()["detail"]
+
+
+def test_a_settled_verdict_cannot_be_re_verified(client) -> None:
+    proposal_id = _executed(client)
+    assert _post(client, proposal_id).status_code == 200
+    second = _post(client, proposal_id)
+    assert second.status_code == 409
+    assert "receipt_replayed" in second.json()["detail"]
+
+
+def test_an_unresolved_verdict_can_still_be_settled(client) -> None:
+    """UNOBSERVABLE then VERIFIED: how an unknown is closed honestly."""
+    proposal_id = _executed(client)
+    assert _post(client, proposal_id, status="EFFECT_UNOBSERVABLE",
+                 reason_code="postcondition_read_timeout").status_code == 200
+    settled = _post(client, proposal_id)
+    assert settled.status_code == 200, settled.text
+    assert settled.json()["status"] == "EFFECT_VERIFIED"
+
+
+def test_an_untrusted_verifier_is_refused(client, monkeypatch) -> None:
+    monkeypatch.setenv("REMORA_TRUSTED_EFFECT_VERIFIERS", "acme.reader/v1")
+    proposal_id = _executed(client)
+    response = _post(client, proposal_id, verifier_identity="attacker/v1")
+    assert response.status_code == 409
+    assert "untrusted_verifier" in response.json()["detail"]
+
+
+def test_the_response_reports_both_claimed_and_derived_status(client) -> None:
+    """An operator needs to see that the two agreed, not just the outcome."""
+    proposal_id = _executed(client)
+    body = _post(client, proposal_id).json()
+    assert body["status"] == "EFFECT_VERIFIED"
+    assert body["claimed_status"] == "EFFECT_VERIFIED"
+    assert body["dispatch_id"], "the receipt is bound to a dispatch identity"

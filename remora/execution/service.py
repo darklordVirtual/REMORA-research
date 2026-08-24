@@ -356,6 +356,10 @@ def execute_approved_item(
         "grant_jti": token.jti,
         "intent_sequence_no": intent_entry.sequence_no,
         "tool_executed": tool_execution["executed"],
+        # Whether the outcome is unknown, not merely unsuccessful. An effect
+        # receipt may resolve an UNKNOWN dispatch -- a lost response does not
+        # mean nothing happened -- so the chain has to carry the distinction.
+        "state_unknown": bool(tool_execution.get("state_unknown")),
     }
     # The chain records the result's identity, never the result body.
     envelope_meta = tool_execution.get("result_envelope")
@@ -514,6 +518,10 @@ def redeem_accept_token(
         "grant_jti": token.jti,
         "intent_sequence_no": intent_entry.sequence_no,
         "tool_executed": tool_execution["executed"],
+        # Whether the outcome is unknown, not merely unsuccessful. An effect
+        # receipt may resolve an UNKNOWN dispatch -- a lost response does not
+        # mean nothing happened -- so the chain has to carry the distinction.
+        "state_unknown": bool(tool_execution.get("state_unknown")),
     }
     envelope_meta = tool_execution.get("result_envelope")
     if envelope_meta:

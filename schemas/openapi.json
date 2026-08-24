@@ -399,7 +399,7 @@
         "type": "string"
       },
       "EffectVerificationRequest": {
-        "description": "A verification observed by the deployment, submitted for recording.\n\nVerification runs where the credentials are, which is the product's\nprocess — REMORA never reaches into a customer's system of record to\ncheck on it. What crosses back is this record, and the chain stores it\nas an **attestation by a named verifier**, not as an independent proof\nby REMORA. ``verifier_identity`` is therefore mandatory: an\nattestation nobody signed is not evidence, because an auditor could\nnot tell who claimed to have looked.",
+        "description": "A verification observed by the deployment, submitted for recording.\n\nVerification runs where the credentials are, which is the product's\nprocess — REMORA never reaches into a customer's system of record to\ncheck on it. What crosses back is this record, and the chain stores it\nas an **attestation by a named verifier**, not as an independent proof\nby REMORA. ``verifier_identity`` is therefore mandatory: an\nattestation nobody signed is not evidence, because an auditor could\nnot tell who claimed to have looked.\n\nWhat changed, and why the extra fields exist: the recorder used to accept\nany status for any existing proposal, so a proposal that was assessed and\nnever executed could be recorded EFFECT_VERIFIED. The receipt is now bound\nto a dispatch in the audit chain, and VERIFIED is DERIVED from the digests\nrather than taken from this request. See\n``remora.governance.effect_receipt``.",
         "properties": {
           "detail": {
             "default": "",
@@ -419,10 +419,24 @@
             "title": "Expected Sha256",
             "type": "string"
           },
+          "grant_jti": {
+            "default": "",
+            "description": "The grant consumed by the dispatch being attested to. One receipt per dispatch; a second is refused as a replay.",
+            "maxLength": 200,
+            "title": "Grant Jti",
+            "type": "string"
+          },
           "observed_sha256": {
             "default": "",
             "maxLength": 64,
             "title": "Observed Sha256",
+            "type": "string"
+          },
+          "observed_state_hash": {
+            "default": "",
+            "description": "The system-of-record state the verifier observed, for the operator to correlate. Recorded, not adjudicated.",
+            "maxLength": 128,
+            "title": "Observed State Hash",
             "type": "string"
           },
           "reason_code": {
@@ -433,6 +447,13 @@
           },
           "status": {
             "$ref": "#/components/schemas/EffectStatus"
+          },
+          "tool_call_hash": {
+            "default": "",
+            "description": "The exact call this observation is about. Compared against the dispatch recorded in the audit chain; a receipt for a different call is refused.",
+            "maxLength": 64,
+            "title": "Tool Call Hash",
+            "type": "string"
           },
           "tool_id": {
             "maxLength": 200,
@@ -456,6 +477,13 @@
             "maxLength": 200,
             "minLength": 1,
             "title": "Verifier Identity",
+            "type": "string"
+          },
+          "verifier_version": {
+            "default": "",
+            "description": "Which build of the verifier looked. A verdict whose producer cannot be identified is not reproducible.",
+            "maxLength": 100,
+            "title": "Verifier Version",
             "type": "string"
           }
         },

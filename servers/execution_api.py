@@ -38,6 +38,10 @@ from fastapi import APIRouter, HTTPException, Request
 
 from remora.enforcement.gate import EnforcementGate
 from remora.enforcement.nonce_store import DurableNonceStore, NonceStore
+from remora.governance.effect_receipt import (
+    ReceiptRefused,
+    verify_receipt as verify_effect_receipt,
+)
 from remora.enforcement.lease import (
     ExecutionLease,
     GovernedToolDispatcher,
@@ -1419,12 +1423,26 @@ def _dispatch_projection(tenant: str, proposal_id: str) -> dict[str, Any] | None
     return _dispatch_projection_impl(_outbox(), tenant, proposal_id)
 
 
+def _trusted_verifiers() -> list[str]:
+    """Verifier identities this deployment accepts an effect receipt from.
+
+    Empty means every named verifier is accepted, which is the research
+    default and is deliberately NOT the production posture: "signed by
+    someone" is not "signed by someone trusted to look". A deployment that
+    cares sets REMORA_TRUSTED_EFFECT_VERIFIERS.
+    """
+    raw = _os.environ.get("REMORA_TRUSTED_EFFECT_VERIFIERS", "").strip()
+    return [part.strip() for part in raw.split(",") if part.strip()]
+
+
 def record_effect_verification(tenant: str, verification: Any, *,
-                               submitted_by: str = "") -> dict[str, Any]:
+                               submitted_by: str = "",
+                               dispatch_id: str = "") -> dict[str, Any]:
     """Append one effect verification to the tenant audit chain (see
     remora.execution.projections for the appending/never-editing contract)."""
     return _record_effect_verification_impl(
-        _CHAIN, tenant, verification, submitted_by=submitted_by
+        _CHAIN, tenant, verification, submitted_by=submitted_by,
+        dispatch_id=dispatch_id,
     )
 
 
@@ -1495,28 +1513,63 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
-    if not _proposal_events(tenant, proposal_id):
+    events = _proposal_events(tenant, proposal_id)
+    if not events:
         raise HTTPException(status_code=404, detail="proposal not found")
+
+    verified_at = req.verified_at or _dt.datetime.now(_dt.UTC).isoformat()
+
+    # EFFECT_VERIFIED is derived from a bound observation, never reported.
+    # Everything the receipt is checked against is read from the audit chain;
+    # nothing here trusts the request about which dispatch it describes.
+    try:
+        lineage, status = verify_effect_receipt(
+            events=events,
+            proposal_id=proposal_id,
+            claimed_status=req.status,
+            tool_call_hash=req.tool_call_hash,
+            grant_jti=req.grant_jti,
+            expected_sha256=req.expected_sha256,
+            observed_sha256=req.observed_sha256,
+            verified_at=verified_at,
+            verifier_identity=req.verifier_identity,
+            trusted_verifiers=_trusted_verifiers(),
+            already_recorded=[
+                e.get("payload", {}) for e in events
+                if e.get("event") == "effect_verified"
+            ],
+        )
+    except ReceiptRefused as exc:
+        # 409, not 400: the receipt is well-formed and the conflict is with
+        # the recorded history, which is what the caller needs told.
+        raise HTTPException(
+            status_code=409,
+            detail=f"effect receipt refused ({exc.reason}): {exc.detail}",
+        ) from exc
 
     verification = EffectVerification(
         proposal_id=proposal_id,
         execution_id=req.execution_id,
         tool_id=req.tool_id,
         toolspec_hash=req.toolspec_hash,
-        status=req.status,
+        status=status,
         reason_code=req.reason_code,
         verifier_identity=req.verifier_identity,
         expected={}, observed={},
         expected_sha256=req.expected_sha256,
         observed_sha256=req.observed_sha256,
-        verified_at=req.verified_at or datetime.now(UTC).isoformat(),
+        verified_at=verified_at,
         detail=req.detail,
     )
     audit = record_effect_verification(tenant, verification,
-                                       submitted_by=principal)
+                                       submitted_by=principal,
+                                       dispatch_id=lineage.dispatch_id)
     return {
         "proposal_id": proposal_id,
-        "status": req.status.value,
+        # The DERIVED status, which may differ from what was claimed.
+        "status": status.value,
+        "claimed_status": req.status.value,
+        "dispatch_id": lineage.dispatch_id,
         "reason_code": req.reason_code,
         "verifier_identity": req.verifier_identity,
         "audit": audit,
