@@ -16,7 +16,7 @@ implemented and not deployed. That was accurate when written. §3 of
 
 | Field | Value |
 |---|---|
-| git commit | `53af5e803232717c785bf2f2d3b5475d8bdf26a1` (squash-merge of #352; the experiment ran at branch commit `be4d6bbc9508`, whose tree this preserves) |
+| git commit | `6376d9411171ce11a42173559be28e72df299686` (squash-merge of #354, the deployed custody split; the durable-nonce experiments in §3-§4 ran earlier at branch commit `be4d6bbc9508`, whose tree this preserves) |
 | branch | merged to `master` |
 | Worker | `remora-mcp-gateway` |
 | Version ID (before) | `222999e2-ef84-4fc1-8491-6d47ef4614f5` |
