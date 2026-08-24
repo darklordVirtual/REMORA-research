@@ -55,7 +55,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dir: [frontend, workers/agent-control, workers/aromer, workers/law-search, workers/rag-oracle]
+        # mcp-gateway was missing from this list (RMR-007). It is the
+        # only worker that holds execution authority and downstream
+        # credentials, so it was the one worker whose dependencies went
+        # unaudited -- the inverse of the order you would choose.
+        dir: [frontend, workers/agent-control, workers/aromer, workers/law-search, workers/mcp-gateway, workers/rag-oracle]
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
@@ -137,6 +141,22 @@ jobs:
           npm ci
           npx --yes @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file ../sbom-frontend.cdx.json
 
+      - name: Generate the mcp-gateway SBOM from the lockfile
+        working-directory: workers/mcp-gateway
+        # The SBOM covered the Python package and the frontend, and no worker
+        # at all (RMR-007). The gateway is the component that holds execution
+        # authority and the downstream credentials, so of everything shipped it
+        # is the piece whose bill of materials matters most, and it was the
+        # piece with none.
+        #
+        # The other four workers are still uncovered. Adding them is a
+        # mechanical follow-up; claiming complete worker coverage here, when
+        # only one of five is generated, would be the kind of prose this
+        # repository keeps having to retract.
+        run: |
+          npm ci
+          npx --yes @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file ../../sbom-mcp-gateway.cdx.json
+
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -144,4 +164,5 @@ jobs:
           path: |
             sbom-python.cdx.json
             sbom-frontend.cdx.json
+            sbom-mcp-gateway.cdx.json
           retention-days: 90

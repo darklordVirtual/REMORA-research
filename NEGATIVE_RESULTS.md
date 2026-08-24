@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **20 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **12 `open`**, **20 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -84,6 +84,17 @@ cites only `open` sections and that no `open` section is missing a theme.
    (FT-03 ToolSpec) — remains open, so this theme stays open; it is also
    tracked in
    [remediation_register.yaml](docs/assurance/remediation_register.yaml).
+
+8. **CI gates that run without blocking** (§55) — `master` requires five
+   contexts: `verify`, the three `pytest` legs and documentation governance.
+   CodeQL, secret scanning, the dependency audits, the SBOM job, OPA policy
+   conformance, key artifact integrity, lockfile integrity, the wheel contract,
+   the Postgres tenant-chain contract and `worker-typecheck` all run, all
+   report, and none of them blocks a merge. The workflow file shows what runs
+   and says nothing about what is enforced, which is why this went unnoticed.
+   Closing it is a repository-settings change: the required-context strings
+   have to match the reported job names exactly, and a wrong one blocks every
+   merge on `master` until an admin intervenes.
 <!-- backlog-end -->
 
 ---
@@ -3166,8 +3177,6 @@ so the decision path retains the reads it needs.
 
 Recorded here so it is not lost, with the review's identifiers:
 
-- **RMR-007** — `workers/mcp-gateway` is absent from the npm audit and SBOM
-  matrices, and the security and worker jobs are not required branch contexts.
 
 None is fixed in this change. Fixing seven findings in one commit would produce
 an unreviewable diff for defects that each deserve their own adversarial test,
@@ -3178,8 +3187,8 @@ recorded as §47 and §48; RMR-009 and RMR-013 are fixed together in §52,
 because they are the same defect shape twice; RMR-006 in §53; RMR-004's binding in §54,
 whose two sub-checks stay deliberately unreachable. They are struck from the list above rather than
 left standing, because a list of open findings that keeps closed ones is the
-same drift this document's status gate exists to prevent. RMR-007 below remains open at the time
-of writing.
+same drift this document's status gate exists to prevent. RMR-007's supply-chain half is §55; its branch-protection half is the
+last one still open, and is a repository-settings change rather than a code one.
 
 ### The finding about the findings
 
@@ -3516,4 +3525,63 @@ evidence question, and folding it in would have produced one diff for two
 unrelated arguments.
 
 **Not deployed.** Code only.
+
+## §55 The component holding execution authority was the one nobody audited (2026-08-24)
+<!-- finding-status: open -->
+
+**Status:** RMR-007 from the external forensic review. The supply-chain half is
+fixed. The branch-protection half is **not**, and is the reason this entry is
+`open` rather than `accepted`.
+
+### The supply-chain half
+
+The npm dependency audit ran over a hand-maintained list of directories:
+`frontend`, `agent-control`, `aromer`, `law-search`, `rag-oracle`.
+`workers/mcp-gateway` was not on it. The SBOM covered the Python package and
+the frontend, and no worker at all.
+
+Of everything in this repository the gateway is the component that holds
+execution authority and the downstream credentials. It was the one package
+whose dependencies went unaudited: the inverse of the order anyone would pick
+deliberately, which is what identifies it as drift rather than a decision. The
+list was written before the gateway existed and nothing made adding a directory
+also add its audit leg.
+
+Nothing had gone wrong — the audit is clean, 0 vulnerabilities. The finding is
+that no gate would have said either way.
+
+The list is now checked against what is on disk, so a new package cannot ship
+without an audit leg. The failure mode moves to a red test the moment the
+package appears, instead of a gap that waits for a reader. Only the gateway
+SBOM is added; the other four workers remain uncovered and the test
+deliberately does not claim otherwise. Generating one of five and calling it
+worker coverage is the kind of prose this document keeps having to retract.
+
+### The branch-protection half, which is not fixed
+
+`master` requires five contexts: `verify`, the three `pytest` legs, and
+documentation governance. Not required, and therefore not blocking:
+
+- CodeQL, both languages
+- Secret scanning, `pip-audit`, the npm audits, the SBOM job
+- OPA/Rego policy conformance, key artifact integrity, lockfile integrity
+- The wheel contract, the Postgres tenant-chain contract, `worker-typecheck`
+
+Every one of them runs, and reports, and can be red on a mergeable pull
+request. The security gates in this repository are advisory and the summary
+does not say so.
+
+This is left open rather than fixed in this change on purpose. Adding a
+required context whose name does not exactly match the job's reported name
+blocks every merge on `master` until someone with admin rights notices, and
+the exact strings are worth confirming against a real run rather than
+inferring. It is a repository-settings change, not a code change, and the
+person who owns the repository should make it knowingly.
+
+The observation stands on its own either way: **this repository has been
+enforcing far less in CI than its own workflow file appears to promise, and
+that gap is invisible from the file.** Reading `.github/workflows/` tells you
+what runs. It does not tell you what blocks.
+
+**Not deployed.** CI configuration and a test.
 
