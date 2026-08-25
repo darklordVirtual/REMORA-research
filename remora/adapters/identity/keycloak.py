@@ -55,5 +55,26 @@ class KeycloakAdapter(IdentityAdapter):
                 roles=tuple(roles),
                 claims={k: str(v) for k, v in payload.items()},
             )
-        except Exception:
+        except Exception as exc:
+            # None is correct either way -- unverifiable is unauthenticated.
+            # But an expired or malformed token (InvalidTokenError family)
+            # and an unreachable JWKS endpoint are opposite operational
+            # events, and both were an unlogged None: an IdP outage looked
+            # exactly like credential stuffing (issue #45 gap 3).
+            try:
+                import logging as _logging
+
+                import jwt as _pyjwt
+
+                from remora.observability.events import governance_event
+
+                rejected = isinstance(exc, _pyjwt.exceptions.InvalidTokenError)
+                governance_event(
+                    "identity.token_rejected" if rejected
+                    else "identity.verification_unavailable",
+                    level=_logging.INFO if rejected else _logging.ERROR,
+                    idp="keycloak", error=type(exc).__name__,
+                )
+            except Exception:
+                pass
             return None

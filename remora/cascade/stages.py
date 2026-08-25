@@ -180,8 +180,23 @@ class ConsensusGate:
         if trust is not None and self.platt_scaler is not None:
             try:
                 calibrated_trust = self.platt_scaler.transform([trust])[0]
-            except Exception:
-                calibrated_trust = trust  # fall back to raw on scaler error
+            except Exception as exc:
+                # Raw trust is the right fallback -- an uncalibrated value is
+                # still a value -- but reverting silently hid that every
+                # decision after a scaler fault ran uncalibrated
+                # (issue #45 gap 5).
+                try:
+                    import logging as _logging
+
+                    from remora.observability.events import governance_event
+
+                    governance_event(
+                        "cascade.platt_scaler_failed",
+                        level=_logging.WARNING, error=type(exc).__name__,
+                    )
+                except Exception:
+                    pass
+                calibrated_trust = trust
 
         # Per-domain threshold overrides the global accept threshold.
         effective_accept = ctx.domain_accept_threshold or self.accept_threshold

@@ -54,7 +54,22 @@ class OracleProxyEvidenceProvider:
             return 0.5, False
         try:
             return float(self._mean_rho_fn(providers)), True
-        except Exception:
+        except Exception as exc:
+            # from_model=False already marks the fallback for consumers; this
+            # marks it for operators. A model that crashed and a model that
+            # was never supplied are different facts (issue #45 gap 3), and
+            # only the deliberate-absence branch above stays quiet.
+            try:
+                import logging as _logging
+
+                from remora.observability.events import governance_event
+
+                governance_event(
+                    "evidence.correlation_model_failed",
+                    level=_logging.WARNING, error=type(exc).__name__,
+                )
+            except Exception:
+                pass
             return 0.5, False
 
     def fetch(

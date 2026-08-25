@@ -256,7 +256,22 @@ class ToolResultScanner:
                 data = json.loads(resp.read().decode())
             confidence = float(data.get("injection_confidence", 0.5))
             return True, confidence
-        except Exception:
+        except Exception as exc:
+            # (False, None) is also what "no oracle configured" returns, so
+            # without this line a dead oracle was indistinguishable from a
+            # disabled one (issue #45 gap 3). The heuristic verdict still
+            # runs; the event is how an operator learns the oracle is down.
+            try:
+                import logging as _logging
+
+                from remora.observability.events import governance_event
+
+                governance_event(
+                    "agent_hook.injection_oracle_failed",
+                    level=_logging.WARNING, error=type(exc).__name__,
+                )
+            except Exception:
+                pass
             return False, None
 
     def _verdict(
