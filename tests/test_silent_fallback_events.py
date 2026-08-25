@@ -101,6 +101,11 @@ def test_a_rejected_token_is_logged_as_rejection_not_outage(
 ) -> None:
     """'not-a-jwt' fails locally in header parsing -- no network involved --
     and must surface as identity.token_rejected at INFO, not as an outage."""
+    # The adapters import pyjwt unconditionally inside validate(); without the
+    # optional dependency the method raises before the branch under test
+    # exists to take. Skipping matches how every other pyjwt-dependent test
+    # in the suite behaves in minimal CI environments.
+    pytest.importorskip("jwt")
     import importlib
     provider = getattr(importlib.import_module(adapter_module), adapter_cls)(
         **adapter_kwargs)
