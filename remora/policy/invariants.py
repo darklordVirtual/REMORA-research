@@ -79,6 +79,8 @@ Extending
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 import abc
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -109,8 +111,11 @@ class InvariantResult:
 # Exception
 # ---------------------------------------------------------------------------
 
-class InvariantViolationError(RuntimeError):
+class InvariantViolationError(RemoraError, RuntimeError):
     """Raised by ``assert_invariants()`` when one or more invariants are violated."""
+
+    code = "invariant_violation"
+    category = "governance"
 
     def __init__(self, violations: list[InvariantResult]) -> None:
         lines = "\n  ".join(str(v) for v in violations)

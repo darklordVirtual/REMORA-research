@@ -23,6 +23,8 @@ slice (it touches the protected execution path).
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -35,8 +37,11 @@ _SCHEMA_PATH = (
 INITIAL_STATE = "PROPOSED"
 
 
-class IllegalTransition(Exception):
+class IllegalTransition(RemoraError):
     """A declared event was applied in a state the model does not allow."""
+
+    code = "illegal_lifecycle_transition"
+    category = "governance"
 
 
 @dataclass(frozen=True)

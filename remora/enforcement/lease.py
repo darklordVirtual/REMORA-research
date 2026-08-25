@@ -36,6 +36,8 @@ evidence of integrated, unbypassable enforcement.
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 import hashlib
 import hmac
 import json
@@ -61,7 +63,7 @@ DEFAULT_LEASE_TTL_SECONDS = 120
 MAX_LEASE_TTL_SECONDS = 3600
 
 
-class ToolExecutionStateUnknown(RuntimeError):
+class ToolExecutionStateUnknown(RemoraError, RuntimeError):
     """The tool raised after its nonce was consumed: state at the tool is unknown.
 
     Subclasses ``RuntimeError`` so existing handlers keep working, but carries
@@ -69,6 +71,9 @@ class ToolExecutionStateUnknown(RuntimeError):
     and not a clean failure, it is the one case where REMORA knows it does not
     know what happened (issue #45).
     """
+
+    code = "tool_execution_state_unknown"
+    category = "enforcement"
 
     def __init__(
         self, message: str, *, proposal_id: str = "", tenant_id: str = "",
@@ -80,8 +85,11 @@ class ToolExecutionStateUnknown(RuntimeError):
         self.tool_name = tool_name
 
 
-class LeaseRefused(Exception):
+class LeaseRefused(RemoraError):
     """Raised when a lease cannot be issued (non-accept decision)."""
+
+    code = "lease_refused"
+    category = "enforcement"
 
 
 def _get_signing_key() -> bytes | None:

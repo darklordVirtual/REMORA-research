@@ -15,6 +15,8 @@ unverified metadata in the audit record only.
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 from contextlib import AbstractContextManager
 
 from remora.execution.ports import AuditChainPort, ReviewQueuePort
@@ -24,12 +26,18 @@ from datetime import timedelta
 from typing import Any
 
 
-class ReviewNotFound(Exception):
+class ReviewNotFound(RemoraError):
     """The item does not exist for this tenant (route maps to 404)."""
 
+    code = "review_not_found"
+    category = "execution"
 
-class ReviewConflict(Exception):
+
+class ReviewConflict(RemoraError):
     """The item is not in an approvable/rejectable state (route maps to 409)."""
+
+    code = "review_conflict"
+    category = "execution"
 
 
 def approve_item(

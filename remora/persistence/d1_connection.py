@@ -19,6 +19,8 @@ than one, and the guard below says so rather than leaving it to be discovered.
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 import json
 import os
 import urllib.error
@@ -33,8 +35,11 @@ ENDPOINT_ENV = "REMORA_STATE_ENDPOINT"
 _TIMEOUT = 20
 
 
-class D1Unavailable(RuntimeError):
+class D1Unavailable(RemoraError, RuntimeError):
     """The state store could not be reached, or refused the statement."""
+
+    code = "d1_unavailable"
+    category = "persistence"
 
 
 def endpoint() -> str:

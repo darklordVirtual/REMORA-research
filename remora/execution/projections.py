@@ -8,11 +8,16 @@ copy could drift from the chain it describes. No HTTP knowledge here.
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 from typing import Any
 
 
-class EffectVerificationReplay(RuntimeError):
+class EffectVerificationReplay(RemoraError, RuntimeError):
     """A settled effect receipt already exists for this dispatch."""
+
+    code = "effect_verification_replay"
+    category = "execution"
 
 
 def proposal_events(chain: Any, tenant: str, proposal_id: str) -> list[dict[str, Any]]:

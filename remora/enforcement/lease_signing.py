@@ -49,6 +49,8 @@ module exists to remove, at the moment an operator believed they had fixed it.
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 import base64
 import binascii
 import hashlib
@@ -90,13 +92,16 @@ ENV_KID = "REMORA_LEASE_SIGNING_KID"
 ENV_ACCEPT_HMAC = "REMORA_LEASE_ACCEPT_HMAC"
 
 
-class SigningUnavailable(RuntimeError):
+class SigningUnavailable(RemoraError, RuntimeError):
     """Configured signing or verification material cannot be used.
 
     Raised rather than returning None so that a misconfigured asymmetric
     deployment fails loudly at issue time instead of quietly degrading to the
     symmetric scheme it was configured to leave behind.
     """
+
+    code = "signing_unavailable"
+    category = "enforcement"
 
 
 def _decode_key(raw: str, *, name: str) -> bytes:
