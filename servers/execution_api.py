@@ -587,6 +587,12 @@ def _auth(request: Request) -> tuple[str, str, str]:
     from servers import api as api_mod
 
     tenant, role = api_mod._authenticate(request)
+    if request.method == "POST":
+        # Issue #296: the per-tenant limiter guards BOTH surfaces' mutating
+        # routes. Applied at the shared auth choke point rather than
+        # per-route, so a new POST route cannot forget it; reads stay
+        # unlimited.
+        api_mod._enforce_execution_rate_limit(tenant)
     return tenant, role, api_mod._authenticated_principal(request)
 
 

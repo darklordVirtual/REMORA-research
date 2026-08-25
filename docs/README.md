@@ -98,6 +98,7 @@ The [governed MCP gateway design](design/cloudflare-mcp-gateway-v1.md) is an ope
 | [ADR: single execution path](architecture/ADR-single-authoritative-execution-path.md) | One authoritative execution path; agent-control is ingress, not an engine |
 | [ADR: tainted arguments](architecture/ADR-tainted-argument-approval.md) | Approval suffices; sanitisation not required, with the residual stated (issue #40) |
 | [ADR: authority custody and lease durability](architecture/ADR-authority-custody-and-lease-durability.md) | A and B implemented (Ed25519 custody split, durable lease nonces); C, D and E accepted as direction only |
+| [ADR: canonical decision engine](architecture/ADR-canonical-decision-engine.md) | The policy core is canonical; the consensus engine is a research surface with a stated lifetime; cross-surface middleware shared (issue #296) |
 | [Multi-tenant security model](architecture/multi_tenant_security_model.md) | Tenant boundaries, threat table with test evidence, open gaps |
 | [Cloudflare state architecture](architecture/cloudflare_state_architecture.md) | Design: DO/D1/R2/KV/Workflows placement rules, tenant keying, secrets custody |
 | [release_gates.md](assurance/release_gates.md) | Profile gate status |

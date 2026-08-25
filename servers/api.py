@@ -120,13 +120,21 @@ class _InMemoryRateLimiter:
     def __init__(self) -> None:
         self._buckets: dict[str, list[float]] = {}
 
-    def is_allowed(self, key: str) -> bool:
-        """Return True if the request is within the rate limit for *key*."""
-        limit_raw = os.getenv("REMORA_ASSESS_RATE_LIMIT_PER_MIN", "120")
+    def is_allowed(
+        self, key: str, *,
+        env_var: str = "REMORA_ASSESS_RATE_LIMIT_PER_MIN",
+        default: int = 120,
+    ) -> bool:
+        """Return True if the request is within the rate limit for *key*.
+
+        ``env_var`` names the surface's budget (issue #296: the limiter now
+        guards both surfaces, and each keeps its own limit).
+        """
+        limit_raw = os.getenv(env_var, str(default))
         try:
             limit = int(limit_raw)
         except ValueError:
-            limit = 120
+            limit = default
         if limit <= 0:
             return True  # disabled
 
@@ -142,6 +150,60 @@ class _InMemoryRateLimiter:
 
 
 _rate_limiter = _InMemoryRateLimiter()
+
+
+def _enforce_execution_rate_limit(tenant_id: str) -> None:
+    """Per-tenant sliding window over the mutating /v1/execution/* routes.
+
+    Issue #296: rate limiting existed only on /v1/assess, so the enforcing
+    surface -- the one whose calls have side effects -- had no request-rate
+    guard at all. Same limiter instance, separate budget
+    (REMORA_EXECUTION_RATE_LIMIT_PER_MIN, default 240, 0 disables), so a
+    tenant exhausting the research surface cannot starve enforcement or
+    vice versa.
+    """
+    if not _rate_limiter.is_allowed(
+        f"execution:{tenant_id}",
+        env_var="REMORA_EXECUTION_RATE_LIMIT_PER_MIN", default=240,
+    ):
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "Rate limit exceeded for /v1/execution/*. "
+                "Reduce request frequency or raise "
+                "REMORA_EXECUTION_RATE_LIMIT_PER_MIN."
+            ),
+            headers={"Retry-After": "60"},
+        )
+
+
+#: Idempotency store for /v1/assess (issue #296): the same durable backend
+#: switches as the execution surface's store, built lazily. Keys are
+#: namespaced "assess:" so a key replayed across surfaces can never return
+#: the other surface's response.
+_ASSESS_IDEMPOTENCY: Any = None
+
+
+def _assess_idempotency_store() -> Any:
+    global _ASSESS_IDEMPOTENCY
+    if _ASSESS_IDEMPOTENCY is None:
+        from remora.persistence.idempotency import build_idempotency_store
+        _ASSESS_IDEMPOTENCY = build_idempotency_store(os.environ)
+    return _ASSESS_IDEMPOTENCY
+
+
+def _reset_assess_idempotency_store() -> None:
+    """Test hook, mirroring the execution surface's reset."""
+    global _ASSESS_IDEMPOTENCY
+    _ASSESS_IDEMPOTENCY = None
+
+
+def _assess_idempotency_get(tenant_id: str, key: str) -> dict[str, Any] | None:
+    return _assess_idempotency_store().get(tenant_id, f"assess:{key}")
+
+
+def _assess_idempotency_put(tenant_id: str, key: str, response: dict[str, Any]) -> None:
+    _assess_idempotency_store().put(tenant_id, f"assess:{key}", response)
 
 
 def _safe_error_response(exc: Exception, status_code: int = 500) -> JSONResponse:
@@ -1642,6 +1704,10 @@ class AssessRequest(BaseModel):
     action_type: str | None = Field(None, max_length=128)
     target_environment: str | None = Field(None, max_length=128)
     tool_call: AssessToolCall | None = None
+    # Issue #296: idempotency existed only on /v1/execution/*. Same
+    # semantics here: replaying a key returns the stored response instead of
+    # re-deciding. Optional; length bounds match the execution contract.
+    idempotency_key: str | None = Field(None, min_length=8, max_length=128)
 
     @field_validator("question")
     @classmethod
@@ -2222,6 +2288,14 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONRespons
             headers={"Retry-After": "60"},
         )
 
+    # Idempotent replay (issue #296): decided once, answered twice. Checked
+    # after auth and rate limiting -- a replay still spends budget and still
+    # needs the credential -- and before any engine work.
+    if req.idempotency_key:
+        _cached_assess = _assess_idempotency_get(tenant_id, req.idempotency_key)
+        if _cached_assess is not None:
+            return JSONResponse(_cached_assess)
+
     # Audit identity comes from the authenticated credential, never a header
     # (review finding: self-reported X-Remora-Actor breaks non-repudiation on
     # the primary endpoint; same rule as /v1/review and /v1/follow-up).
@@ -2346,7 +2420,7 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONRespons
         # malformed report — invisible. Record it and continue.
         logger.warning("assess telemetry span failed", exc_info=True)
 
-    return AssessResponse(
+    _assess_response = AssessResponse(
         request_id=request_id,
         proposal_id=proposal_id,
         question_hash=q_hash,
@@ -2381,6 +2455,12 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONRespons
         review_requirements=review_requirements,
         semantic=semantic_context,
     )
+    if req.idempotency_key:
+        _assess_idempotency_put(
+            tenant_id, req.idempotency_key,
+            _assess_response.model_dump(mode="json"),
+        )
+    return _assess_response
 
 
 @app.get("/v1/envelope/{request_id}", response_model=dict, tags=["governance"])
@@ -2671,6 +2751,10 @@ def rerun(req: RerunRequest, request: Request) -> dict | JSONResponse:
         risk_tier=(str(req_block.get("risk_tier", "")) or None),
         action_type=(str(req_block.get("action_type", "")) or None),
         target_environment=(str(req_block.get("target_environment", "")) or None),
+        # A rerun is a fresh decision by definition; replaying the original
+        # call's idempotency key here would return the stored answer instead
+        # of re-deciding, which is the opposite of what /v1/rerun exists for.
+        idempotency_key=None,
     )
 
     t0 = time.monotonic()

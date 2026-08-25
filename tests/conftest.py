@@ -101,3 +101,23 @@ def observation() -> "Callable[..., Any]":
 def signing_key() -> bytes:
     """A deterministic HMAC key for signing tests. Never a real key."""
     return b"test-signing-key-do-not-use-in-production"
+
+
+@pytest.fixture(autouse=True)
+def _fresh_rate_limiter_buckets():
+    """Every test starts with empty rate-limiter buckets.
+
+    The limiter guards both API surfaces per tenant (issue #296) and its
+    sliding-window state is process-global. Without isolation the full suite
+    spends one shared budget: thousands of POSTs as tenant "acme" within a
+    minute, and unrelated tests start failing with 429 in exactly the
+    ordering-dependent way #379 was about. Buckets are cleared rather than
+    the limiter replaced, so tests that monkeypatch the limiter object keep
+    working.
+    """
+    try:
+        from servers import api as api_mod
+        api_mod._rate_limiter._buckets.clear()
+    except Exception:
+        pass
+    yield
