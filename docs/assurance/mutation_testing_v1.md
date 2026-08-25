@@ -16,7 +16,23 @@
 | All lines | 1,138 | 382 | 704 | 52 | 35.2% of checked |
 | Covered lines only (`mutate_only_covered_lines`) | 722 | 376 | 346 | 0 | 52.1% |
 | Covered lines, after the golden-vector fix | 722 | 410 | 312 | 0 | 56.8% |
-| Covered lines, after the gate-contract round | 778 | **484** | **294** | 0 | **62.2%** |
+| Covered lines, after the gate-contract round | 778 | 484 | 294 | 0 | 62.2% |
+| Covered lines, after the dispatcher-contract round | 811 | **518** | **293** | 0 | **63.9%** |
+
+Round three (`tests/test_dispatcher_contract.py`) is the instructive one to
+read carefully: the headline `dispatch` cluster went 157 → **159** while
+the overall rate improved, because the contract tests execute
+previously-unrun lines whose mutants are of a different *kind*. Sampled
+diffs classify the residue: governance-event payload literals
+(`"nonce_already_consumed"` → uppercase survives because no test asserts
+log payloads), default-parameter values callers always override, and
+exception-message content. One sampled survivor was a genuine gap, fixed
+in the same round: **dropping `toolspec_hash` from the verify call
+survived** — nothing dispatched with a *wrong* resolved spec identity,
+only with a raising resolver — and now has its own kill test. The honest
+next rounds are observability-contract tests (asserting event payloads via
+caplog) if event fidelity is promoted to a tested contract, or accepting
+log-literal mutants as out of contract and recording that decision here.
 
 The fourth row is round two: `tests/test_enforcement_gate_contract.py`
 pins the complete `(allowed, action, token_verified, reason, strict_mode)`
