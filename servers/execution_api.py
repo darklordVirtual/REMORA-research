@@ -649,6 +649,17 @@ def _queue(tenant: str) -> ReviewQueue:
 _DISPATCHER: GovernedToolDispatcher | None = None
 
 
+def _policy_coverage() -> dict[str, Any]:
+    """Per-component trust-base view for the execution surface.
+
+    Read separately at admission and at closure so the two records can
+    disagree; see remora.execution.service.execute_approved_item.
+    """
+    from servers import api as api_mod
+
+    return api_mod.policy_coverage_block(surface=api_mod.SURFACE_EXECUTION)
+
+
 def _current_policy_bundle_hash() -> str:
     from servers import api as api_mod
 
@@ -1315,6 +1326,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
             not_found=ReviewNotFound, conflict=ReviewConflict,
             token_audience=PEP_AUDIENCE,
             token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
+            policy_coverage=_policy_coverage,
         )
     except ToolSpecChanged as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc

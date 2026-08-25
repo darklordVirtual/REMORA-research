@@ -284,6 +284,7 @@ def execute_approved_item(
     conflict: type[Exception],
     token_audience: str,
     token_ttl_seconds: int,
+    policy_coverage: Callable[[], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Execute a previously approved item under full re-gating.
 
@@ -388,6 +389,17 @@ def execute_approved_item(
     response["pep"] = {"allowed": gate_result.allowed,
                        "reason": gate_result.reason}
 
+    # Resolved HERE, before authorization, so this value is the view the PDP
+    # decided against. The closure record re-reads it after dispatch rather
+    # than reusing this one: the join exists to detect the two disagreeing,
+    # and copying the admission value forward would make every join succeed
+    # by construction and prove nothing.
+    #
+    # None when the caller wired no provider (library and research use); the
+    # key is then absent rather than an empty declaration, the same
+    # distinction POST_V2_AUDIT_KEYS makes on the envelope.
+    coverage = policy_coverage() if policy_coverage is not None else None
+
     # Durable INTENT record BEFORE the external side effect.
     intent_entry = chain.append(tenant, {
         "event": "execution_authorized",
@@ -399,6 +411,14 @@ def execute_approved_item(
         "pep_allowed": gate_result.allowed,
         "tool_contract_bundle_hash": fresh_semantic["tool_contract_bundle_hash"],
         "intent_authority_hash": fresh_semantic["intent_authority_hash"],
+        # The trust base as THIS decision resolved it, per component, inside
+        # the record the chain hashes. The closure record below carries the
+        # same shape as it stood at dispatch, so "the authorization was
+        # evaluated against the trust base in force at the enforcement point"
+        # stops being an assumption and becomes a join between two entries.
+        # A composite alone can say the views differed and never which
+        # component, which is why this is not policy_bundle_hash again.
+        "policy_components": coverage,
     })
 
     # FT-02: claim the intent before anything can take effect (exclusive).
@@ -457,6 +477,13 @@ def execute_approved_item(
         # receipt may resolve an UNKNOWN dispatch -- a lost response does not
         # mean nothing happened -- so the chain has to carry the distinction.
         "state_unknown": bool(tool_execution.get("state_unknown")),
+        # Re-read AFTER dispatch, not carried from above: the point of the
+        # join is that these two can disagree. Copying the admission value
+        # here would make every join succeed by construction and prove
+        # nothing.
+        "policy_components": (
+            policy_coverage() if policy_coverage is not None else None
+        ),
     }
     # The chain records the result's identity, never the result body.
     envelope_meta = tool_execution.get("result_envelope")

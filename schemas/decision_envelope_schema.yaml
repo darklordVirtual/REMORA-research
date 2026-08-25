@@ -169,7 +169,41 @@
         "data_classification": { "type": ["string", "null"] },
         "retention_policy":    { "type": ["string", "null"] },
         "tool_contract_bundle_hash": { "type": ["string", "null"] },
-        "intent_authority_hash":     { "type": ["string", "null"] }
+        "intent_authority_hash":     { "type": ["string", "null"] },
+
+        "//policy_components": [
+          "Per-component trust-base identity for this decision, and what it",
+          "does not reach. policy_bundle_hash is a composite over the same",
+          "components: it can say THAT the trust base differed and never",
+          "which part, so two independently signed records carrying only the",
+          "composite cannot be joined component by component.",
+          "",
+          "`covers` maps a component name to its digest. A component that is",
+          "configured but absent -- OPA with no policy path set -- carries",
+          "null rather than being dropped: present-and-unset and",
+          "not-a-component-here are different facts.",
+          "",
+          "`not_covered` names trust-base elements this decision depends on",
+          "that carry no digest here. Required, and required to be present",
+          "even when empty: a record that lists coverage and stays silent",
+          "about the rest reads as complete coverage, which is the inference",
+          "an evidence layer exists to prevent."
+        ],
+        "policy_components": {
+          "type": ["object", "null"],
+          "required": ["covers", "not_covered"],
+          "additionalProperties": false,
+          "properties": {
+            "covers": {
+              "type": "object",
+              "additionalProperties": { "type": ["string", "null"] }
+            },
+            "not_covered": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
       }
     }
   }

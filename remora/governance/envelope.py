@@ -200,6 +200,11 @@ class AuditBlock:
 POST_V2_AUDIT_KEYS: tuple[str, ...] = (
     "tool_contract_bundle_hash",
     "intent_authority_hash",
+    # Per-component trust-base coverage. Added after v2, so a chain recorded
+    # before it existed must keep verifying: unset means the producer had no
+    # component view to declare, which is not the same as declaring an empty
+    # one, and hashing an absent key would invalidate every committed chain.
+    "policy_components",
 )
 
 
