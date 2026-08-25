@@ -663,3 +663,103 @@ components:
       final signed ToolSpec, callable identity, credential scope and dispatch
       before this can be called an enforcement control. No semantic-correctness
       or empirical SDAD-effect claim is made.
+
+  # ── Per-decision evidence and authorization-to-effect (brief 2026-08-25) ────
+
+  - id: SHELF-026
+    name: "Interoperable per-decision governance evidence record"
+    source:
+      title: "AIREP: A Protocol for Per-Decision Evidence in AI Runtime Governance"
+      authors: "Ali Toygar Abak"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2608.21363"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-25"
+      reported_results: >-
+        No empirical evaluation is claimed. The author describes a protocol, a
+        reference implementation and a two-language conformance kit. Records
+        carry one of five closed verbs (release, block, defer, redact,
+        escalate) under a stated policy basis, reference input, output and
+        evidence by hash rather than value, declare both what the evidence
+        covers and what it does not, and form a SHA-256 chain binding each
+        record to its position. Their design, their claims.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      Not evaluated. REMORA's DecisionEnvelope is the same shape of object
+      arrived at independently: a per-decision record, hash-chained, with a
+      policy identity and evidence referenced rather than inlined. Two
+      differences are already visible without any work. REMORA's action
+      vocabulary is ACCEPT/VERIFY/ABSTAIN against AIREP's five verbs, so a
+      mapping is a design decision and not a rename. And AIREP's explicit
+      non-coverage declaration has no REMORA counterpart: the envelope says
+      what was decided, never what the evidence does not reach.
+    adoption: UNEVALUATED
+    remaining: >-
+      A mapping test (DecisionEnvelope -> AIREP record, REMORA semantics kept
+      in the vendor namespace) is the cheapest way to find out whether the two
+      contracts are compatible or only superficially similar. Nothing is
+      claimed about interoperability until that test exists and passes.
+
+  - id: SHELF-027
+    name: "Authorization revalidated at provider commit, not at request"
+    source:
+      title: "AID-Guard: Stateful Authorization for Delegated Agent Effects"
+      authors: "Yingzhe Tong, Leyu Dai, Songhui Guo"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2608.21159"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-08-25"
+      reported_results: >-
+        Authors report 44/44 attacks blocked and 44/44 matched legitimate
+        proposals admitted under complete proposer compromise; all 210 Stripe
+        provider-contract trials matching predeclared outcomes; and across
+        Stripe and Resend, 40 terminalize-successor schedules, 30 overlapping
+        races and 10 crash-recovery schedules completing without duplicate
+        effects. A Python/SQLite implementation over two providers. Their
+        setup, their numbers.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      Not evaluated. REMORA binds authorization at decision time: the
+      ExecutionLease carries a policy bundle hash and a nonce, and the
+      EnforcementGate consumes a one-time jti. What it does not do is
+      revalidate provider state at the moment the provider commits the effect,
+      which is the gap AID-Guard names. REMORA's outbox lifecycle reconciles a
+      stale DISPATCHING to UNKNOWN, so an indeterminate effect is already
+      distinguished from an unclaimed intent, but the successor rule
+      (a retry admitted only after terminal status or certified no-effect) is
+      not expressed.
+    adoption: UNEVALUATED
+    remaining: >-
+      Whether this reduces to the existing outbox states or is a distinct
+      property is an open question and must be settled by building the
+      reservation semantics against one mutating tool, not by reading. Related
+      to the trust-base view-consistency question raised in
+      cosai-oasis/ws4-secure-design-agentic-systems#149: both are about
+      whether the state an authorization was granted against is the state in
+      force when the effect lands.
+
+  - id: SHELF-028
+    name: "Independent runtime witness outside the agent's control"
+    source:
+      title: "HANSARD: Forensic Readiness and Runtime Witnessing for Multi-Agent AI"
+      authors: "unconfirmed"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/list/cs.AI/new"
+      verification: UNVERIFIED
+      verified: null
+      reported_results: >-
+        None recorded. Reached this shelf via an internal research brief on
+        2026-08-25 whose citation was the rolling cs.AI listing page rather
+        than a record. A title search on 2026-08-25 did not surface it. The
+        summary attributed to it (capture at five choke points outside agent
+        control, pre-sealed readiness profile, typed provenance graph,
+        post-incident replay) is therefore UNATTRIBUTED and must not be
+        repeated as this work's claim until the record is retrieved.
+    roadmap_ref: "RF-10"
+    remora_status: >-
+      Not evaluated, and not adoptable while the source is UNVERIFIED. The
+      underlying question stands on its own regardless of the paper: REMORA's
+      audit chain is written by the same process that executes, so it is
+      tamper-evident against later modification but not independent of the
+      producer. That is a known property, not a new finding.
+    adoption: UNEVALUATED
