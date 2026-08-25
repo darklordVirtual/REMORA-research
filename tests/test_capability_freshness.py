@@ -82,7 +82,47 @@ def test_evidence_moving_after_the_verified_sha_is_stale(gate, repo) -> None:
     _touch(repo)
     status, detail = gate.classify({**CAP, "verified_at_sha": sha}, cwd=repo)
     assert status == "STALE"
-    assert "1 commit(s)" in detail
+    # Names the file whose content moved, not a commit count: a count cannot
+    # tell a squash from a change, which is why it was replaced (#380).
+    assert "content changed" in detail
+    assert "remora/enforcement/gate.py" in detail
+
+
+def _commit(repo: Path, msg: str) -> None:
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True)
+    subprocess.run(["git", "commit", "-qm", msg], cwd=repo, check=True, capture_output=True)
+
+
+def test_a_squash_that_changes_no_content_stays_bound(gate, repo) -> None:
+    """The failure mode #380 names: master red after every squash-merge.
+
+    A commit that touches the evidence path but leaves its bytes identical --
+    a squash, a rebase, a cherry-pick -- is not a change to the code the
+    audit was performed on. Counting it as one made the gate fire on every
+    merge and trained a mechanical rebind that recorded no audit.
+    """
+    sha = _sha(repo)
+    gate_py = repo / "remora" / "enforcement" / "gate.py"
+    original = gate_py.read_text(encoding="utf-8")
+    gate_py.write_text("x = 2" + chr(10), encoding="utf-8")
+    _commit(repo, "change")
+    gate_py.write_text(original, encoding="utf-8")
+    _commit(repo, "and put it back -- the path moved, the bytes did not")
+
+    status, detail = gate.classify({**CAP, "verified_at_sha": sha}, cwd=repo)
+    assert status == "BOUND"
+    # The sha is behind HEAD and the reader is told why that is fine.
+    assert "content-identical" in detail
+    assert "2 commit(s)" in detail
+
+
+def test_a_real_change_is_still_stale_and_names_the_file(gate, repo) -> None:
+    """Both directions: the content check must not weaken the gate."""
+    sha = _sha(repo)
+    _touch(repo)
+    status, detail = gate.classify({**CAP, "verified_at_sha": sha}, cwd=repo)
+    assert status == "STALE"
+    assert "remora/enforcement/gate.py" in detail
 
 
 def test_a_test_only_change_does_not_age_the_capability(gate, repo) -> None:

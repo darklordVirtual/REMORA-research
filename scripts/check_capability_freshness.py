@@ -26,8 +26,17 @@ Statuses this script reports:
 
 ``BOUND``      evidence unchanged since ``verified_at_sha`` — the caveat still
                describes the audited code.
-``STALE``      evidence moved after ``verified_at_sha``. Re-audit and update the
-               sha, or record why the change does not affect the claim.
+``STALE``      the CONTENT of an evidence source differs between
+               ``verified_at_sha`` and HEAD. Re-audit and update the sha, or
+               record why the change does not affect the claim.
+
+               Content, not commit count (issue #380). A squash-merge produces
+               a new commit whose evidence files are byte-identical to the PR
+               head that was audited; counting it as a change made master red
+               after every merge that touched bound evidence, and trained a
+               mechanical "rebind, content-identical" reflex that did no
+               assurance work and buried the rebinds that did. Comparing the
+               bytes means staleness now says the audited code actually moved.
 ``UNBOUND``    no ``verified_at_sha`` yet. Counted against the ratchet.
 ``UNKNOWN``    the recorded sha is not in this repository (shallow clone,
                rewritten history). Reported, and fatal only with --strict, so a
@@ -75,11 +84,31 @@ def _git(*args: str, cwd: Path = ROOT) -> tuple[int, str]:
 
 
 def commits_since(sha: str, paths: list[str], cwd: Path = ROOT) -> list[str] | None:
-    """Commits touching ``paths`` after ``sha``. None if ``sha`` is unknown."""
+    """Commits touching ``paths`` after ``sha``. None if ``sha`` is unknown.
+
+    Informational only: a commit in this list may be a squash or rebase that
+    changed nothing. :func:`changed_since` decides staleness.
+    """
     code, _ = _git("cat-file", "-e", f"{sha}^{{commit}}", cwd=cwd)
     if code != 0:
         return None
     code, out = _git("rev-list", f"{sha}..HEAD", "--", *paths, cwd=cwd)
+    if code != 0:
+        return None
+    return [line for line in out.splitlines() if line]
+
+
+def changed_since(sha: str, paths: list[str], cwd: Path = ROOT) -> list[str] | None:
+    """Evidence paths whose CONTENT differs between ``sha`` and HEAD.
+
+    None if ``sha`` is unknown. Empty when every path is byte-identical, which
+    is what a squash-merge of an audited PR looks like, and what the old
+    commit-counting check could not tell from a real change.
+    """
+    code, _ = _git("cat-file", "-e", f"{sha}^{{commit}}", cwd=cwd)
+    if code != 0:
+        return None
+    code, out = _git("diff", "--name-only", sha, "HEAD", "--", *paths, cwd=cwd)
     if code != 0:
         return None
     return [line for line in out.splitlines() if line]
@@ -93,13 +122,22 @@ def classify(capability: dict, cwd: Path = ROOT) -> tuple[str, str]:
     sources = source_evidence(capability)
     if not sources:
         return "BOUND", "no implementation sources cited; nothing to age"
-    moved = commits_since(str(sha), sources, cwd=cwd)
-    if moved is None:
+    changed = changed_since(str(sha), sources, cwd=cwd)
+    if changed is None:
         return "UNKNOWN", f"verified_at_sha {sha[:12]} is not in this repository"
+    if changed:
+        shown = ", ".join(changed[:3])
+        more = f" (+{len(changed) - 3} more)" if len(changed) > 3 else ""
+        return "STALE", f"content changed since {sha[:12]}: {shown}{more}"
+    moved = commits_since(str(sha), sources, cwd=cwd) or []
     if moved:
-        shown = ", ".join(c[:12] for c in moved[:3])
-        more = f" (+{len(moved) - 3} more)" if len(moved) > 3 else ""
-        return "STALE", f"{len(moved)} commit(s) since {sha[:12]}: {shown}{more}"
+        # Commits touched the paths but left the bytes alone: a squash, a
+        # rebase, a revert pair. Said out loud so a reader is not surprised
+        # that the sha is behind HEAD and the capability is still bound.
+        return "BOUND", (
+            f"content-identical to {sha[:12]} across {len(moved)} commit(s) "
+            f"that touched the paths"
+        )
     return "BOUND", f"unchanged since {sha[:12]}"
 
 
