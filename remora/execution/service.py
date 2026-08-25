@@ -10,6 +10,11 @@ duck-typed proposal carrying tool_name/arguments/target_environment.
 """
 from __future__ import annotations
 
+from remora.execution.ports import (AuditChainPort, DispatchOutboxPort,
+                                    EnforcementGatePort,
+                                    PolicyDecisionTokenPort,
+                                    PolicyEnginePort, ToolCallPort)
+
 import dataclasses
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
@@ -69,7 +74,7 @@ def _claim_or_none(
 def _claim_lost_response(
     response: dict[str, Any],
     *,
-    chain: Any,
+    chain: AuditChainPort,
     tenant: str,
     principal: str,
     proposal_id: Any,
@@ -116,9 +121,9 @@ def assess_proposal(
     *,
     tenant: str,
     principal: str,
-    proposal: Any,
-    engine: Any,
-    chain: Any,
+    proposal: ToolCallPort,
+    engine: PolicyEnginePort,
+    chain: AuditChainPort,
     transaction: Callable[[str], Any],
     item_tenant: dict[str, str],
     build_observation: Callable[[Any, str], tuple[Any, dict[str, Any]]],
@@ -266,12 +271,12 @@ def execute_approved_item(
     tenant: str,
     principal: str,
     item_id: str,
-    tool_call: Any,
+    tool_call: ToolCallPort,
     transaction: Callable[[str], Any],
     item_tenant: dict[str, str],
-    chain: Any,
-    gate: Any,
-    outbox: Callable[[], Any],
+    chain: AuditChainPort,
+    gate: EnforcementGatePort,
+    outbox: Callable[[], DispatchOutboxPort],
     worker_id: str,
     build_observation: Callable[[Any, str], tuple[Any, dict[str, Any]]],
     resolve_toolspec: Callable[[str, dict[str, Any], str], dict[str, Any]],
@@ -515,11 +520,11 @@ def redeem_accept_token(
     *,
     tenant: str,
     principal: str,
-    token: Any,
-    tool_call: Any,
-    chain: Any,
-    gate: Any,
-    outbox: Callable[[], Any],
+    token: PolicyDecisionTokenPort,
+    tool_call: ToolCallPort,
+    chain: AuditChainPort,
+    gate: EnforcementGatePort,
+    outbox: Callable[[], DispatchOutboxPort],
     worker_id: str,
     build_observation: Callable[[Any, str], tuple[Any, dict[str, Any]]],
     record_dispatch_intent: Callable[..., Any],

@@ -15,6 +15,10 @@ unverified metadata in the audit record only.
 """
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
+
+from remora.execution.ports import AuditChainPort, ReviewQueuePort
+
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
@@ -35,9 +39,9 @@ def approve_item(
     item_id: str,
     approval_ttl_seconds: int,
     on_behalf_of: str | None,
-    transaction: Callable[[str], Any],
+    transaction: Callable[[str], AbstractContextManager[ReviewQueuePort]],
     item_tenant: dict[str, str],
-    chain: Any,
+    chain: AuditChainPort,
     authorize_approval: Callable[[Any], None],
     lifecycle_guard: Callable[..., None],
     note_proposal_id: Callable[[Any], None],
@@ -113,9 +117,9 @@ def reject_item(
     principal: str,
     item_id: str,
     reason: str,
-    transaction: Callable[[str], Any],
+    transaction: Callable[[str], AbstractContextManager[ReviewQueuePort]],
     item_tenant: dict[str, str],
-    chain: Any,
+    chain: AuditChainPort,
     lifecycle_guard: Callable[..., None],
     note_proposal_id: Callable[[Any], None],
 ) -> dict[str, Any]:
