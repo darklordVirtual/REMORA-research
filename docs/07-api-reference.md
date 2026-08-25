@@ -70,11 +70,45 @@ contract:
       "genesis": true,
       "signature": null,
       "policy_bundle_hash": "sha256:…",
+      "policy_components": {
+        "covers": {
+          "policy_engine": "sha256:…",
+          "risk_profile": "sha256:…",
+          "envelope_schema": "sha256:…",
+          "tool_registry": "sha256:…",
+          "engine_mode": "sha256:…",
+          "opa_policy": null
+        },
+        "not_covered": ["adapter_state", "delegation_state"]
+      },
       "schema_version": "2"
     }
   }
 }
 ```
+
+**`policy_components` is the per-component form of `policy_bundle_hash`, and
+its `not_covered` half is not decoration.** The composite is built over the
+same six components, so it can say *that* the trust base differed and never
+*which part*: two independently signed records carrying only the composite
+compare wholesale. Recording the components makes a component-by-component
+join constructible — which is what tells a verifier that an authorization was
+evaluated against the trust base actually in force at the enforcement point,
+a question that can fail with no change at all if a stale snapshot was read.
+
+`not_covered` names trust-base elements the decision depends on that carry no
+digest here. A record that lists coverage and stays silent about the rest
+reads as complete coverage. A component that is configured but absent — OPA
+with no policy path set — carries `null` rather than being dropped, because
+present-and-unset and not-a-component-here are different facts.
+
+The execution surface writes the same block twice: on `execution_authorized`
+as the view the PDP decided against, and on `execution_result` re-read after
+dispatch. The closure record deliberately re-reads rather than copying the
+admission value — a join that cannot fail proves nothing.
+
+The key is absent, not null, on records written before it existed; see
+`POST_V2_AUDIT_KEYS` in `remora/governance/envelope.py`.
 
 The decision key is **`policy_decision`**, not `decision`. `action` is one of
 `accept`, `verify`, `abstain`, `escalate`. `reasons` names every rule that

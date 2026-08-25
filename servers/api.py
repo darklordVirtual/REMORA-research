@@ -1166,11 +1166,66 @@ def _policy_component_hashes(
 
     return {
         "policy_hash": composite,
+        "policy_engine_hash": policy_engine_hash,
         "risk_profile_hash": risk_profile_hash,
         "schema_hash": schema_hash,
         "tool_registry_hash": tool_registry_hash,
         "engine_mode_hash": engine_mode_hash,
         "opa_policy_hash": opa_policy_hash,
+    }
+
+
+#: Trust-base elements a decision depends on that this deployment does NOT
+#: digest. Declared rather than omitted: a record that lists what it covers and
+#: stays silent about the rest reads as complete coverage, which is the failure
+#: an evidence layer exists to prevent. Named here so adding a digest for one
+#: is a visible change to this tuple rather than an invisible improvement.
+#:
+#: adapter_state and delegation_state are the two the enforcement path actually
+#: resolves at dispatch and cannot currently name in a record.
+UNCOVERED_TRUST_BASE: tuple[str, ...] = (
+    "adapter_state",
+    "delegation_state",
+)
+
+#: Component name in the record -> key in :func:`_policy_component_hashes`.
+#: The record uses names rather than the internal `_hash` suffixes because the
+#: value is a digest either way, and the name is what a verifier joins on.
+_COVERAGE_COMPONENTS: tuple[tuple[str, str], ...] = (
+    ("policy_engine", "policy_engine_hash"),
+    ("risk_profile", "risk_profile_hash"),
+    ("envelope_schema", "schema_hash"),
+    ("tool_registry", "tool_registry_hash"),
+    ("engine_mode", "engine_mode_hash"),
+    ("opa_policy", "opa_policy_hash"),
+)
+
+
+def policy_coverage_block(*, surface: str = SURFACE_EXECUTION) -> dict[str, Any]:
+    """Per-component trust-base identity, plus what it does not reach.
+
+    ``policy_bundle_hash`` is a composite over six components. It answers
+    "did the trust base differ" and can never answer "which part of it", so
+    two independently signed records carrying only the composite cannot be
+    joined component by component: a verifier learns that the views diverged
+    and nothing about where. Recording the components makes that join
+    constructible.
+
+    ``not_covered`` is the other half and the reason this is a block rather
+    than five more sibling fields. A record listing digests and saying nothing
+    else reads as complete coverage of the trust base. It is not: the adapter
+    and delegation state the enforcement path resolves at dispatch have no
+    digest here. Declaring the absence keeps a relying party from inferring a
+    guarantee the record does not make.
+
+    A component that is configured but absent -- OPA with no policy path set --
+    carries ``None`` rather than being dropped. Present-and-unset and
+    not-a-component-here are different facts and must not collapse.
+    """
+    hashes = _policy_component_hashes(surface=surface)
+    return {
+        "covers": {name: hashes.get(key) for name, key in _COVERAGE_COMPONENTS},
+        "not_covered": list(UNCOVERED_TRUST_BASE),
     }
 
 
@@ -1304,6 +1359,10 @@ def _finalize_envelope_audit(
     # decisions never ran under.
     hashes = _policy_component_hashes(surface=SURFACE_ASSESS)
     audit_block["policy_bundle_hash"] = hashes.get("policy_hash")
+    # The composite above says THAT the trust base differed; this says which
+    # part, and which parts it does not reach at all. Without it two signed
+    # records can only be compared wholesale.
+    audit_block["policy_components"] = policy_coverage_block(surface=SURFACE_ASSESS)
 
     # Hash the assessed action for tamper-evident audit (no external infra needed)
     request_block = envelope_payload.get("request") if isinstance(envelope_payload, dict) else None
