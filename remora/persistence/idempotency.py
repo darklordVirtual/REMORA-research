@@ -68,6 +68,8 @@ class SQLiteIdempotencyStore(IdempotencyStore):
         import sqlite3
 
         self._db_path = db_path
+        from remora.persistence.sqlite_path import refuse_memory_db
+        refuse_memory_db(db_path, what="idempotency ledger")
         with sqlite3.connect(db_path) as conn:
             conn.execute(_DDL_SQLITE)
             conn.commit()

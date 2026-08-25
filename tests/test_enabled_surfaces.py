@@ -45,6 +45,69 @@ def _served_paths(app) -> set[str]:
     return paths
 
 
+@pytest.fixture(autouse=True)
+def _restore_api_modules():
+    """Put the session's real servers.api / servers.execution_api back.
+
+    _reload_api pops both from sys.modules and re-imports them under this
+    test's environment. Without this, the module built for an execution-only
+    production deployment with a scratch chain DB is the one every subsequent
+    test in the session gets from `import servers.api`. That is how a gate
+    pointed at a throwaway database outlived this file and failed unrelated
+    tests with `no such table: pep_consumed` (issue #379).
+    """
+    names = ("servers.api", "servers.execution_api")
+    saved = {name: sys.modules.get(name) for name in names}
+    yield
+    package = sys.modules.get("servers")
+    for name, module in saved.items():
+        if module is not None:
+            sys.modules[name] = module
+        else:
+            sys.modules.pop(name, None)
+        # BOTH bindings, not just sys.modules. `_reload_api`'s fresh import
+        # also rebinds the submodule as an attribute of the `servers` package,
+        # and `from servers.execution_api import X` resolves through THAT
+        # attribute. Restoring only sys.modules leaves the two lookup paths
+        # pointing at different module objects: a test then patches the module
+        # it imported while runtime code reads the other one, and the patch
+        # silently does not apply -- which is how a policy tightening became
+        # invisible to the execute path three files later.
+        if package is not None:
+            attr = name.rsplit(".", 1)[1]
+            if module is not None:
+                setattr(package, attr, module)
+            elif hasattr(package, attr):
+                delattr(package, attr)
+    # Restoring the original object is not enough: it carries whatever cached
+    # state earlier tests left on it (a signed toolspec bundle, a dispatcher,
+    # an outbox). The reload this fixture undoes used to hand later tests a
+    # FRESH module, so restore that property too -- reset the caches under
+    # the session's real environment, which monkeypatch has already put back
+    # by the time this teardown runs.
+    exec_mod = sys.modules.get("servers.execution_api")
+    if exec_mod is not None:
+        exec_mod._reset_semantic_bundle()
+        exec_mod._reset_tool_dispatcher()
+        exec_mod._reset_outbox()
+        exec_mod._reset_toolspec_bundle()
+        exec_mod._reset_idempotency_store()
+        exec_mod._QUEUES.clear()
+        exec_mod._ITEM_TENANT.clear()
+
+
+@pytest.fixture
+def durable_paths(tmp_path, monkeypatch):
+    """Real files for the durable stores, never ``:memory:``.
+
+    An in-memory SQLite database is empty on every per-operation connect, so
+    it is not durable and the guard now refuses it. These tests are about
+    surface selection, not storage, so they get files that behave.
+    """
+    monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "chain.db"))
+    monkeypatch.setenv("REMORA_CONTROL_PLANE_DB", str(tmp_path / "control.db"))
+
+
 def _reload_api(monkeypatch, **env):
     """Import servers.api fresh under a given environment.
 
@@ -65,8 +128,6 @@ _PROD_EXECUTION_ENV = {
     "REMORA_ENV": "production",
     "REMORA_API_BEARER_TOKEN": "t",
     "REMORA_API_TOKENS": '{"t":{"tenant":"acme","role":"operator"}}',
-    "REMORA_CONTROL_PLANE_DB": ":memory:",
-    "REMORA_CHAIN_DB": ":memory:",
     "REMORA_PDP_SIGNING_KEY": "k",
     "REMORA_LEASE_SIGNING_KEY": "k",
     "REMORA_ENVELOPE_SIGNING_KEY": "k",
@@ -144,7 +205,7 @@ def test_the_root_endpoint_reports_which_surfaces_are_served(
 
 # ── Prerequisites follow the surface ───────────────────────────────────────
 
-def test_execution_only_production_starts_without_an_oracle_backend(
+def test_execution_only_production_starts_without_an_oracle_backend(durable_paths,
     monkeypatch,
 ) -> None:
     """The gap this closes.
@@ -158,7 +219,7 @@ def test_execution_only_production_starts_without_an_oracle_backend(
     assert api.enabled_surfaces() == frozenset({"execution"})
 
 
-def test_execution_only_production_starts_without_an_evidence_store(
+def test_execution_only_production_starts_without_an_evidence_store(durable_paths,
     monkeypatch, tmp_path,
 ) -> None:
     empty = tmp_path / "empty.jsonl"
@@ -173,7 +234,7 @@ def test_execution_only_production_starts_without_an_evidence_store(
     assert api._RETRIEVAL_EVIDENCE_PROVIDER is None
 
 
-def test_serving_assess_in_production_still_requires_an_oracle_backend(
+def test_serving_assess_in_production_still_requires_an_oracle_backend(durable_paths,
     monkeypatch,
 ) -> None:
     """The check is scoped, not removed. This is the regression that would
@@ -183,7 +244,7 @@ def test_serving_assess_in_production_still_requires_an_oracle_backend(
                     REMORA_ORACLE_BACKEND=None, **_PROD_EXECUTION_ENV)
 
 
-def test_serving_assess_in_production_still_requires_an_evidence_store(
+def test_serving_assess_in_production_still_requires_an_evidence_store(durable_paths,
     monkeypatch, tmp_path,
 ) -> None:
     empty = tmp_path / "empty.jsonl"
@@ -198,7 +259,7 @@ def test_serving_assess_in_production_still_requires_an_evidence_store(
         )
 
 
-def test_the_durable_state_prerequisites_are_never_scoped_away(
+def test_the_durable_state_prerequisites_are_never_scoped_away(durable_paths,
     monkeypatch,
 ) -> None:
     """Execution-only does not mean fewer guarantees about execution.

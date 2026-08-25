@@ -144,6 +144,16 @@ def dispatch_under_lease(
             tenant_id=tenant,
             target_environment=tool_call.target_environment,
             actor_identity=principal,
+            # The clock this function was handed, used for the whole call. It
+            # already issued the lease against `now`; verifying against the
+            # wall clock instead meant issue and verify could disagree about
+            # what time it was. In production the two are moments apart and
+            # nothing showed. Under a long test run they were minutes apart,
+            # the 120-second TTL elapsed between collection and execution,
+            # and two security guards failed as lease_expired at random
+            # (issue #379) -- a flake in exactly the tests that must not be
+            # re-run until green.
+            now=now.isoformat(),
         )
     except RuntimeError as exc:
         # The tool raised after its nonce was consumed. Whether the effect
