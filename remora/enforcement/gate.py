@@ -90,6 +90,8 @@ class EnforcementGate:
         import threading
         self._consumed: set[str] = set()
         self._consume_lock = threading.Lock()
+        from remora.persistence.sqlite_path import refuse_memory_db
+        refuse_memory_db(self._db_path or "", what="PEP consumed-jti ledger")
         self._ensure_table()
 
     def _ensure_table(self) -> None:

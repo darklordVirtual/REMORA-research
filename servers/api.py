@@ -713,6 +713,15 @@ def _refuse_ephemeral_execution_state(missing: list[str]) -> None:
     chain_db = os.getenv("REMORA_CHAIN_DB", "").strip()
     if not chain_db:
         return
+    # Configured, and a file path, and still not durable: an in-memory
+    # database is empty on every per-operation connect. Refused here so a
+    # deployment learns it at startup rather than at the first replay.
+    from remora.persistence.sqlite_path import refuse_memory_db
+    try:
+        refuse_memory_db(chain_db, what="REMORA_CHAIN_DB")
+    except ValueError as exc:
+        missing.append(str(exc))
+        return
 
     fstype = filesystem_type_for(chain_db)
     if not is_ephemeral_filesystem_type(fstype):
@@ -2755,7 +2764,7 @@ def rerun(req: RerunRequest, request: Request) -> dict | JSONResponse:
 
 # REM-035: end-to-end execution state machine (assess -> review -> re-gate
 # -> one-time grant -> PEP consume), wired as a first-class API path.
-from servers.execution_api import CURRENT_PROPOSAL_ID as _CURRENT_PROPOSAL_ID
+from servers import execution_api as _execution_api_mod
 from servers.execution_api import router as _execution_router
 
 
@@ -2775,7 +2784,15 @@ class _ProposalIdHeaderMiddleware:
             await self.app(scope, receive, send)
             return
         holder: dict = {"id": None}
-        token = _CURRENT_PROPOSAL_ID.set(holder)
+        # Resolved through the module at call time, never imported by value.
+        # A by-value alias binds the ContextVar OBJECT this module saw at its
+        # own import; a reload of servers.execution_api re-executes that
+        # module and creates a new one, after which the middleware sets a
+        # variable no route ever reads and the header silently disappears.
+        # The two ends of this correlation must be the same object by
+        # construction, not by import-order luck.
+        current = _execution_api_mod.CURRENT_PROPOSAL_ID
+        token = current.set(holder)
 
         async def send_with_header(message: Any) -> None:
             if message["type"] == "http.response.start":
@@ -2791,7 +2808,7 @@ class _ProposalIdHeaderMiddleware:
         try:
             await self.app(scope, receive, send_with_header)
         finally:
-            _CURRENT_PROPOSAL_ID.reset(token)
+            current.reset(token)
 
 
 app.add_middleware(_ProposalIdHeaderMiddleware)

@@ -126,6 +126,8 @@ class DurableNonceStore:
             )
         self._dsn = dsn
         self._db_path = db_path
+        from remora.persistence.sqlite_path import refuse_memory_db
+        refuse_memory_db(db_path, what="lease nonce ledger")
         self._state_endpoint = state_endpoint
         self._ready = False
 

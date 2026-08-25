@@ -60,6 +60,7 @@ def client(monkeypatch, tmp_path):
     exec_mod._reset_semantic_bundle()
     exec_mod._reset_tool_dispatcher()
     exec_mod._reset_outbox()
+    exec_mod._reset_toolspec_bundle()
     return TestClient(api_mod.app)
 
 

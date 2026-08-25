@@ -58,9 +58,9 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: dc3b1ee9639a3f01bef87a0612390d99f564e4f9
+    verified_at_sha: 1b9e50802e3f8dd26d7923e9d488ef95f970b4f0
     verified_by: >-
-      post-merge re-audit 2026-08-25: rebound to dc3b1ee, the squash commit of
+      re-audit 2026-08-25 for the clock-consistency and memory-database fixes (#379): gate.py gains a refusal of :memory: ledgers before DDL and nonce_store.py the same; dispatch.py passes its supplied clock through to lease verification. All three narrow what the capability permits -- a broken backend and a clock mismatch now refuse where they previously misbehaved -- and none adds a permission, so status and scope are unchanged. Prior: post-merge re-audit 2026-08-25: rebound to dc3b1ee, the squash commit of
       #377, verified content-identical on every evidence file against the PR
       head. Prior: re-audit for the trust-base coverage declaration (#377): the
       change adds _policy_coverage(), a read-only digest provider, and passes
@@ -213,7 +213,7 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: dc3b1ee9639a3f01bef87a0612390d99f564e4f9
+    verified_at_sha: 1b9e50802e3f8dd26d7923e9d488ef95f970b4f0
     verified_by: >-
       re-audit 2026-08-25 for the trust-base coverage declaration (#377): the
       change adds _policy_coverage(), a read-only digest provider, and passes
