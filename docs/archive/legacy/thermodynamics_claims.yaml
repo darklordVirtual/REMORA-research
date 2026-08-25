@@ -1,3 +1,5 @@
+# ARCHIVED - historical snapshot. This copy under docs/archive/legacy/ is
+# not maintained and must not be cited. The live document is `docs/claims/thermodynamics_claims.yaml`.
 claims:
   free_energy_proxy:
     status: supported

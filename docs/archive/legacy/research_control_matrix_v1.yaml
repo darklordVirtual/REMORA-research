@@ -1,3 +1,5 @@
+# ARCHIVED - historical snapshot. This copy under docs/archive/legacy/ is
+# not maintained and must not be cited. The live document is `docs/research/research_control_matrix_v1.yaml`.
 # REMORA Research Control Matrix v1
 # Single machine-readable source of truth for the chain:
 #   research source -> idea -> REMORA control -> code -> test -> evidence

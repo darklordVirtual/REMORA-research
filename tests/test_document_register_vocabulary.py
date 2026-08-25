@@ -155,12 +155,67 @@ def test_the_archived_architecture_page_is_not_registered_canonical():
     assert match[0].get("superseded_by") == "ARCHITECTURE.md"
 
 
-def test_nothing_under_docs_archive_is_registered_canonical():
-    """The general form of the bug the entry above was one instance of."""
+def test_nothing_under_docs_archive_carries_a_live_status():
+    """The general form of the bug, stated at the right width.
+
+    This first checked only `canonical` and passed while 55 entries under
+    docs/archive/legacy/ sat at `supporting` -- also a live status, and 51 of
+    them diverged copies of a document that is live elsewhere. Narrowing a
+    rule to the one instance that prompted it is how the next instance gets
+    through, so the assertion is now over LIVE_STATUSES.
+    """
     _root, entries = _register_entries()
+    live = {"canonical", "generated", "supporting", "proposal"}
     offenders = [
-        e.get("path") for e in entries
+        (e.get("path"), e.get("status")) for e in entries
         if str(e.get("path", "")).startswith("docs/archive/")
-        and e.get("status") == "canonical"
+        and e.get("status") in live
     ]
-    assert offenders == [], f"archived files registered canonical: {offenders}"
+    assert offenders == [], f"archived files registered live: {offenders}"
+
+
+def test_no_archived_file_shares_a_filename_with_a_live_document():
+    """Two documents, one name, one of them stale.
+
+    docs/README.md states that everything under docs/archive/ is historical.
+    A live-status archive copy contradicts that index and gives a reader two
+    answers for one topic, which is the parallel-explanation failure
+    CONTRIBUTING forbids. Filename collision is the cheap detector: every one
+    of the 55 offenders was a same-named twin of a live document.
+    """
+    from pathlib import Path
+    _root, entries = _register_entries()
+    live_paths = {
+        str(e.get("path")) for e in entries
+        if e.get("status") in {"canonical", "generated", "supporting", "proposal"}
+    }
+    collisions = []
+    for path in live_paths:
+        if not path.startswith("docs/archive/"):
+            continue
+        name = Path(path).name
+        twins = [q for q in live_paths if q != path and Path(q).name == name]
+        if twins:
+            collisions.append((path, twins))
+    assert collisions == [], f"archived copy live alongside its twin: {collisions}"
+
+
+def test_a_yaml_asset_can_carry_a_vintage_banner():
+    """A data file cannot carry a block quote.
+
+    The banner contract special-cased HTML assets and not YAML, so the three
+    archived YAML registers were permanently unmarkable: the gate demanded a
+    banner in a form the format cannot express.
+    """
+    import importlib.util
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location(
+        "_cdg_banner", root / "scripts" / "check_document_governance.py")
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    assert mod.VINTAGE_BANNER_RE.search("# ARCHIVED - historical snapshot.")
+    assert mod.VINTAGE_BANNER_RE.search("# SUPERSEDED by docs/live.yaml")
+    # A bare mention still must not satisfy it.
+    assert not mod.VINTAGE_BANNER_RE.search("# this file is not archived")

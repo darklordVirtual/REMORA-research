@@ -58,9 +58,11 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 6f6ac5464b44413e59ef2e97bc859d11bf86144d
+    verified_at_sha: dc3b1ee9639a3f01bef87a0612390d99f564e4f9
     verified_by: >-
-      re-audit 2026-08-25 for the trust-base coverage declaration (#377): the
+      post-merge re-audit 2026-08-25: rebound to dc3b1ee, the squash commit of
+      #377, verified content-identical on every evidence file against the PR
+      head. Prior: re-audit for the trust-base coverage declaration (#377): the
       change adds _policy_coverage(), a read-only digest provider, and passes
       it to execute_approved_item so the admission and closure chain records
       can carry a per-component view. Token issuance, _GATE, audience/expiry,
@@ -211,7 +213,7 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 6f6ac5464b44413e59ef2e97bc859d11bf86144d
+    verified_at_sha: dc3b1ee9639a3f01bef87a0612390d99f564e4f9
     verified_by: >-
       re-audit 2026-08-25 for the trust-base coverage declaration (#377): the
       change adds _policy_coverage(), a read-only digest provider, and passes
