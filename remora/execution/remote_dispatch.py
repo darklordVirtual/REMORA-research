@@ -101,6 +101,15 @@ def _post(url: str, payload: dict[str, Any], timeout: float) -> dict[str, Any]:
     """Seam for tests. Replaced wholesale rather than mocked piecemeal."""
     headers = {"Content-Type": "application/json",
                "User-Agent": "remora-authority/1"}
+    # W3C trace context onto the custody hop, so the authority's decision
+    # span and the executor's dispatch span join into one trace. Guarded:
+    # tracing is optional, and its absence must never block a dispatch.
+    try:
+        from opentelemetry import propagate
+
+        propagate.inject(headers)
+    except Exception:
+        pass
     token = os.environ.get(TOKEN_ENV, "").strip()
     if token:
         headers["Authorization"] = "Bearer " + token

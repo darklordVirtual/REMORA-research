@@ -1249,6 +1249,11 @@ def _resolution_plan_for(
     }
 
 
+from remora.observability.otel import get_remora_tracer
+
+_EXEC_TRACER = get_remora_tracer(service_name="remora-execution")
+
+
 def _dispatch_under_lease(
     *,
     tenant: str,
@@ -1266,21 +1271,38 @@ def _dispatch_under_lease(
     dispatcher and current policy bundle hash. Shared by /execute,
     /execute-accepted and /dispatch-leased so all three get identical
     enforcement -- which is why the custody-split path goes through here rather
-    than calling the implementation directly."""
-    return _dispatch_under_lease_impl(
-        tenant=tenant,
-        principal=principal,
-        tool_call=tool_call,
-        semantic=semantic,
-        now=now,
-        dispatcher=_tool_dispatcher(),
-        policy_bundle_hash=_current_policy_bundle_hash(),
-        gate_allowed=gate_allowed,
-        toolspec=toolspec,
-        proposal_id=proposal_id,
-        grant_jti=grant_jti,
-        presented_lease=presented_lease,
-    )
+    than calling the implementation directly.
+
+    Wrapped in the GenAI governance span: until now the enforcing path
+    emitted zero spans and tool_governance_span had no production caller
+    (issue #45 gap 6). The span carries the proposal id as the tool-call id,
+    so a trace joins the audit chain on the same key everything else uses.
+    """
+    with _EXEC_TRACER.tool_governance_span(
+        tool_call.tool_name,
+        invocation_id=proposal_id or None,
+        agent_id=principal or None,
+        tenant_id=tenant,
+    ) as _span:
+        result = _dispatch_under_lease_impl(
+            tenant=tenant,
+            principal=principal,
+            tool_call=tool_call,
+            semantic=semantic,
+            now=now,
+            dispatcher=_tool_dispatcher(),
+            policy_bundle_hash=_current_policy_bundle_hash(),
+            gate_allowed=gate_allowed,
+            toolspec=toolspec,
+            proposal_id=proposal_id,
+            grant_jti=grant_jti,
+            presented_lease=presented_lease,
+        )
+        _span.set_attribute("remora.executed", bool(result.get("executed")))
+        if result.get("refusal_reason"):
+            _span.set_attribute("remora.refusal_reason",
+                                str(result["refusal_reason"]))
+        return result
 
 
 @router.post("/execute", responses={

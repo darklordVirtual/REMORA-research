@@ -235,18 +235,48 @@ class RemoraSpan:
 
     def set_attribute(self, key: str, value: Any) -> None:
         """Set an arbitrary span attribute."""
-        if _OTEL_AVAILABLE and hasattr(self._span, "set_attribute"):
-            self._span.set_attribute(key, value)
+        self._set_attrs({key: value})
 
     def record_exception(self, exc: Exception) -> None:
         if _OTEL_AVAILABLE and hasattr(self._span, "record_exception"):
             self._span.record_exception(exc)
 
     def _set_attrs(self, attrs: dict[str, Any]) -> None:
+        # A context-manager span has no raw span until __enter__. Attributes
+        # set before then (tool_governance_span stamps gen_ai.* on creation)
+        # are buffered and flushed at enter -- dropping them silently was the
+        # first regression the cm change caused, caught by the genai tests.
+        if self._cm is not None and self._span is None:
+            if self._pending is None:
+                self._pending = {}
+            self._pending.update(attrs)
+            return
         if _OTEL_AVAILABLE and hasattr(self._span, "set_attributes"):
             self._span.set_attributes(attrs)
 
+    #: Context manager from ``start_as_current_span``; set by
+    #: :meth:`_from_context_manager`. When present, entering this span also
+    #: makes it the CURRENT span, which is what lets a stage span opened
+    #: inside a query span become its child instead of a sibling root
+    #: (issue #45 gap 6 -- ``start_span`` alone never attaches to context).
+    _cm: Any = None
+    #: Attributes set before __enter__ on a context-manager span; flushed at
+    #: enter so creation-time stamping keeps working.
+    _pending: dict[str, Any] | None = None
+
+    @classmethod
+    def _from_context_manager(cls, cm: Any) -> "RemoraSpan":
+        span = cls(None)
+        span._cm = cm
+        return span
+
     def __enter__(self) -> RemoraSpan:
+        if self._cm is not None:
+            self._span = self._cm.__enter__()
+            if self._pending:
+                self._set_attrs(self._pending)
+                self._pending = None
+            return self
         if _OTEL_AVAILABLE and hasattr(self._span, "__enter__"):
             self._span.__enter__()
         return self
@@ -257,6 +287,9 @@ class RemoraSpan:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
+        if self._cm is not None:
+            self._cm.__exit__(exc_type, exc_val, exc_tb)
+            return
         if _OTEL_AVAILABLE and hasattr(self._span, "__exit__"):
             self._span.__exit__(exc_type, exc_val, exc_tb)
 
@@ -399,8 +432,19 @@ class RemoraTracer:
     def _start_span(self, name: str, attributes: dict[str, Any] | None = None) -> RemoraSpan:
         if self._tracer is None:
             return NoOpSpan()
-        raw_span = self._tracer.start_span(name, attributes=attributes or {})
-        return RemoraSpan(raw_span)
+        # start_as_current_span, never start_span: a span that does not
+        # become current cannot parent anything, and every nested stage span
+        # was born a sibling root (issue #45 gap 6). The context manager is
+        # entered by RemoraSpan.__enter__, so the with-block in the calling
+        # helper defines both the span's lifetime and its currency.
+        if hasattr(self._tracer, "start_as_current_span"):
+            cm = self._tracer.start_as_current_span(
+                name, attributes=attributes or {}, end_on_exit=True
+            )
+            return RemoraSpan._from_context_manager(cm)
+        # Injected test doubles and minimal adapters may only provide
+        # start_span; they get the old shape, without currency.
+        return RemoraSpan(self._tracer.start_span(name, attributes=attributes or {}))
 
 
 class NoOpTracer(RemoraTracer):

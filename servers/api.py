@@ -2235,10 +2235,16 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONRespons
     review_requirements = _extract_review_requirements(profile_cfg)
 
     engine = _make_engine()
+    # Minted BEFORE the decision span opens, not after it closed: the span
+    # used to end before the envelope id existed, so the one span that
+    # records the decision could never be joined to its evidentiary record
+    # (issue #45 gap 6). One uuid4 is still both proposal_id and request_id.
+    proposal_id = str(uuid.uuid4())
     try:
         with _TRACER.query_span(req.question, remora_endpoint="/v1/assess", tenant_id=tenant_id) as span:
             span.set_attribute("remora.domain", req.domain)
             span.set_attribute("remora.risk_tier", req.risk_tier)
+            span.set_governance_outcome(decision_envelope_id=proposal_id)
             with _TRACER.stage_span("api_gateway", tenant_id=tenant_id):
                 state = engine.run(
                     question=req.question,
@@ -2272,7 +2278,7 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONRespons
     # nothing parses request_id (verified), and the question hash is still
     # returned separately as question_hash. uuid4, never time-derived
     # (external review 2026-07-24, F-08: time-derived suffixes collided).
-    proposal_id = str(uuid.uuid4())
+    # Minted above, before the decision span opened, so the span carries it.
     request_id = proposal_id
     env = report.get("envelope")
     if env is not None and hasattr(env, "to_dict"):
