@@ -257,7 +257,7 @@ Every reference in [`paper/remora_paper.md`](../../paper/remora_paper.md) with t
 | Grounds a module (no dedicated line) | 11 | present in the codebase |
 | Evaluation source | 4 | present in the codebase |
 | Standard, regulation or tool | 4 | no code claim |
-| Related-work positioning only | 36 | no code claim |
+| Related-work positioning only | 40 | no code claim |
 
 ### Implemented research line (8)
 
@@ -314,7 +314,7 @@ Aligned with or integrated, not a research result. Alignment is a mapping claim,
 | `open-2024-open` | — | — | [`remora/policy/opa_adapter.py`](../../remora/policy/opa_adapter.py) | OPA/Rego adapter, failing closed to the Python engine. |
 | `standards-2021-norsok` | — | — | — | NORSOK D-010 well-barrier framing in the case study. |
 
-### Related-work positioning only (36)
+### Related-work positioning only (40)
 
 Compared against or used as framing in the paper. No code, no evaluation — and that is the honest status, not an oversight.
 
@@ -339,16 +339,20 @@ Compared against or used as framing in the paper. No code, no evaluation — and
 | `kelly-1998-arguing` | — | — | — | Assurance cases; DecisionEnvelope populates one node. |
 | `kuncheva-2003-measures` | — | — | — | Ensemble diversity measures. |
 | `lakshminarayanan-2017-simple` | — | — | — | Deep ensembles. |
+| `michael-2026-permission` | arxiv:2607.13718 | — | — | Agent-permissions survey; names the open low-burden/formal/deterministic triad REMORA is positioned against. |
 | `mohri-2024-language` | — | — | — | Conformal factuality; pre-empts the general LLM-abstention move. |
 | `mu-2024-rule` | — | — | — | Rule-based rewards - safety rules in training, not enforcement. |
+| `qin-2026-airguard` | arxiv:2605.28914 | — | — | AIRGuard - authority confusion and action-time authorization; explicit non-claim: predates/parallels REMORA on pre-action checks. |
 | `raji-2022-outsider` | arxiv:2206.04737 | — | — | Audit-ecosystem design; motivates the replay/transparency framing. |
 | `rebedea-2023-nemo` | — | — | — | NeMo Guardrails. |
+| `rhodes-2026-poe` | arxiv:2607.05397 | — | — | Proof of Execution - certificate-first execution evidence; REMORA differs by growing evidence out of a deployed enforcement path. |
 | `ruan-2024-identifying` | — | — | — | ToolEmu anticipates the Shadow Mode counterfactual idea. |
 | `shamsujjoha-2024-taxonomy` | arxiv:2408.02205 | — | — | Swiss-cheese guardrail taxonomy. |
 | `sharma-2025-constitutional` | arxiv:2501.18837 | — | — | Constitutional classifiers. |
 | `shi-2025-progent` | arxiv:2504.11703 | — | — | Progent; shelf SHELF-009. Defines the (safety, friction) frontier. |
 | `wang-2023b-lora` | arxiv:2310.00035 | — | — | LoRA ensembles; motivates but does not validate heterogeneous aggregation. |
 | `wang-2025-agentspec` | arxiv:2503.18666 | — | — | AgentSpec - DSL near-isomorphic to REMORA's policy invariants. |
+| `wang-2026-pcaa` | arxiv:2606.04104 | — | — | Proof-Carrying Agent Actions - runtime-portable action certificate; REMORA trades portability for exact-call binding to one kernel. |
 | `xiang-2025-guardagent` | — | — | — | GuardAgent. |
 | `yadkori-2024-mitigating` | arxiv:2405.01563 | — | — | Conformal abstention for hallucination mitigation. |
 | `yang-2026-agenttrust` | arxiv:2606.08539 | — | — | AgentTrust; opposite corner of the safety/friction trade-off. |

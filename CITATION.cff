@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use REMORA in your research, please cite this repository."
-title: "REMORA: A Policy-Gated Multi-Oracle Assurance Architecture for Agentic AI"
+title: "REMORA: Governed Execution Assurance for Tool-Using AI Agents"
 abstract: >-
   REMORA decides whether an autonomous agent action is accepted, verified,
   abstained, or escalated, based on uncertainty, evidence, policy, auditability,

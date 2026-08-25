@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**35 numbered sections does not mean 35 open problems.** Until 2026-07-31 this
+**56 numbered sections does not mean 56 open problems.** Until 2026-07-31 this
 document read as if it did, because sections kept the status they were written
 with even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,11 +24,13 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-20: **11 `open`**, **6 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **22 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
-Seven themes: six research gaps and one production gap. The section numbers
+Seven themes, all research gaps — the one production gap (CI gates that ran
+without blocking, §55) is closed and struck from this list; a backlog that
+keeps closed items is the drift the status gate exists to prevent. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
 cites only `open` sections and that no `open` section is missing a theme.
 
@@ -83,7 +85,8 @@ cites only `open` sections and that no `open` section is missing a theme.
    full authority — a signed tool-schema registry on the advisory path
    (FT-03 ToolSpec) — remains open, so this theme stays open; it is also
    tracked in
-   [remediation_register.yaml](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/assurance/remediation_register.yaml).
+   [remediation_register.yaml](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/assurance/remediation_register.yaml).
+
 <!-- backlog-end -->
 
 ---
@@ -92,7 +95,7 @@ cites only `open` sections and that no `open` section is missing a theme.
 
 The negative findings previously summarized on the README front page live
 here as of 2026-07-28 — moved, not removed. Full analysis in the numbered
-sections below and in [docs/02-evidence-and-claims.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/02-evidence-and-claims.md).
+sections below and in [docs/02-evidence-and-claims.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/02-evidence-and-claims.md).
 
 <!-- claim:CLAIM-004 accuracy_pct coverage_pct ci_low_pct ci_high_pct n -->
 <!-- claim:CLAIM-012 temperature_aurc confidence_aurc n -->
@@ -101,7 +104,7 @@ sections below and in [docs/02-evidence-and-claims.md](https://github.com/darklo
 |--------|-------|------------|-------------------|
 | Temperature-selective holdout (N544 round) | **100.0%** @ 16.7% coverage; N=18, Wilson CI [82.4%, 100.0%] | p=0.052 vs training baseline — directional only, and the signal later FAILED fresh-data confirmation (next row) | `results/selective_n500_holdout_results.json` |
 | **Temperature falsified on fresh data (SAP v3)** | temperature AURC **0.0954** vs calibrated confidence **0.0664** on N=1231 fresh items; paired CI excludes zero; SGR certifies **no** coverage | pre-registered three-way split; the exploratory temperature advantage on the reused corpus did not transfer — temperature is diagnostics, not an authoritative selector | §18 · `results/sap_v3_round_results.json` |
-| Critical-phase trust inversion | low-trust **76.2%** vs high-trust **36.4%** correct, N=32 | small sample; a documented failure mode routed around via `PhaseAwareGuardrail` | [docs/02-evidence-and-claims.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/02-evidence-and-claims.md) §3 |
+| Critical-phase trust inversion | low-trust **76.2%** vs high-trust **36.4%** correct, N=32 | small sample; a documented failure mode routed around via `PhaseAwareGuardrail` | [docs/02-evidence-and-claims.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/02-evidence-and-claims.md) §3 |
 
 ---
 
@@ -2281,7 +2284,9 @@ information theory, not physics. The three consensus regimes keep their names
 because they name existing code (`PhaseAwareGuardrail`,
 `results/phase_aware_guardrail_n544_results.json`), not a physical state.
 `remora/thermodynamics.py`, `remora/lyapunov.py` and `remora/statphys/potts.py`
-remain in the tree with their tests; RES-007 in the research control matrix
+remain in the tree with their tests (the last of these moved to
+`remora/research_attic/statphys/` on 2026-08-19; the finding is unchanged, only
+the path); RES-007 in the research control matrix
 now records that they influence no runtime decision.
 
 **Status:** the withdrawal is editorial and documentary. No code was removed,
@@ -2391,6 +2396,35 @@ tested mechanism that no production path called. The check that would have
 caught all of them is "which production path calls this?" as part of the
 definition of done.
 
+## §41 Three of the self-review's complexity findings did not survive verification (2026-08-20)
+<!-- finding-status: accepted -->
+
+The 2026-08-20 self-review produced 34 findings. Most held up and were fixed
+in rounds A–G. Three did not survive being checked, and they are recorded
+here because a review that only preserves its hits is not a review.
+
+| Finding as reported | What verification showed |
+|---|---|
+| "`remora/toolcall/` carries three parallel generations with no deprecation markers" | The package docstring already orients the reader across all three generations, states which is current, and explains that the older ones are retained because their results are frozen artifacts. There was nothing to add. |
+| "23 `REMORA_*` env vars have one use site and no test" | A proper census over `remora/`, `servers/`, `scripts/`, `experiments/`, `tests/`, `docs/`, `.github/` and `workers/` finds 88 distinct variables, of which **five** appear only in archived documentation and none in live code. The original count excluded `experiments/` and `scripts/`, where most of them are genuinely used. |
+| "There is no `AuditSink` Protocol at all; audit backends are concrete siblings" | An `AuditAdapter` ABC already existed and both adapters inherit it. The real gap was narrower: no *structural* protocol, so a third party had to inherit rather than adapt. That gap was closed; the finding as stated was wrong. |
+
+Two further findings were **reframed rather than fixed**, and the reasoning
+is worth keeping:
+
+- *"`remora/aromer/` has zero importers"* is true and is not by itself a
+  defect: it is an overlay, not a component of the decision path. What is
+  missing is a decision about its position, now tracked as issue #297.
+- *"Replace the exact-value assertions in the claim-provenance test"* — four
+  of them are regression guards on specific published corrections
+  (effective N = 70 rather than 700; cluster-level CI 5.2% rather than the
+  withdrawn task-level 0.55%). Deleting them would have made a revert of
+  those corrections invisible. They were relabelled, not removed.
+
+The generalisable point: **an audit finding is a hypothesis.** Three of these
+were plausible, well-argued, and false, and acting on them without checking
+would have produced churn presented as improvement.
+
 Grouped by status, not by age. `scripts/check_negative_results_status.py`
 verifies that every section listed here carries the matching
 `<!-- finding-status: ... -->` marker, so this table cannot drift away from the
@@ -2415,6 +2449,7 @@ sections again.
 
 | Finding | Why it is closed to further tuning | Severity |
 |---------|------------------------------------|----------|
+| Three self-review complexity findings were wrong (§41) | Verified and refuted: the toolcall generations are already documented, the env-var census was miscounted by excluding experiments/ and scripts/, and an AuditAdapter ABC already existed. An audit finding is a hypothesis | Low (methodological) |
 | Invariants and the decision ladder had diverged (§40) | The invariant set was never evaluated at runtime, so a conformal ACCEPT in the disordered phase contradicted a stated invariant unnoticed. Enforcement is now wired into the build choke point and the stricter invariant wins. A property asserted only in tests is a description, not a guarantee | Medium (methodological) |
 | Consensus temperature failed fresh-data confirmation (§18) | AURC 0.0954 vs 0.0664 for calibrated confidence, paired CI excludes zero, zero SGR-certifiable coverage. The hypothesis was pre-registered and it failed. Temperature stays diagnostic; reviving it needs entirely new evidence, not a threshold | **High (falsifies the thermodynamic-selection hypothesis)** |
 | AgentHarm cannot measure resolver friction (§19) | FAR=0.0% met; FBR=100% not met, because every source verdict is ESCALATE and the control protocols act on VERIFY. Rewriting ESCALATE→VERIFY moved 19 harmful and 0 benign. A different dataset is required | Medium |
@@ -2456,3 +2491,1142 @@ list.  They are preserved here as scientific record.
 | R10 | χ-proxy difficulty signal below chance (AUC = 0.39) | Negative result preserved as empirical record; χ repurposed to OOD/adversarial escalation (`phase_decision()`, threshold 1.45) | 0.7.1 |
 | R11 | Full-coverage baseline framing risk (41.18 % vs selective 88.8 %) | Mixed-comparison caveat standardized in docs; held-out validation added (`results/selective_n500_holdout_results.json`); benchmark-scoped wording enforced | 0.7.1 |
 | R12 | Critical-phase trust score cannot safely gate decisions | Operationally mitigated via `CriticalEvidenceRouter` + escalation fallback; benchmark result: 38.5 % resolution on MultiNLI proxy, remainder ESCALATE | 0.7.1 |
+
+## §42 An adjacent-systems crosswalk reported four capabilities absent that were present, and one absent risk as a strength (2026-08-23)
+<!-- finding-status: accepted -->
+
+**Status:** methodological negative result. Preserved because the failure mode
+is the one this repository's claim discipline exists to prevent, and because it
+was produced by this project's own tooling rather than by an outside reviewer.
+
+**What happened.** A crosswalk of REMORA against sixteen adjacent agent-governance
+projects (working document, unpublished) was written by reading each comparison
+project and inferring what REMORA lacked. Checked against HEAD, five of its
+findings were wrong:
+
+| v1 claim | Evidence at HEAD |
+|---|---|
+| "No taint dimension at all" — rated CRITICAL | `observation.py:187,293`; `decision_engine.py:192-207`; `tests/test_untrusted_provenance.py` |
+| "No multi-agent delegation story at all" | `remora/governance/a2a_envelope.py` (566 lines), CAP-006, attenuation with wildcard refusal |
+| "Add a Merkle audit layer" | `remora/audit/checkpoint.py`, `merkle.py`; the limitation v1 "found" was already documented more precisely in `docs/enterprise/audit-anchoring-guide.md` |
+| "TOCTOU resistance absent", evidence tier NONE | `ExecutionLease` binds and signs nine authorization-state fields including `toolspec_hash` |
+| "No credential exists in the container" — rated a top strength | `workers/mcp-gateway/src/index.ts:76-77` supplies `REMORA_PDP_SIGNING_KEY` and `REMORA_LEASE_SIGNING_KEY` to the container |
+
+**The finding.** Four errors understated REMORA and one overstated it. The
+overstating one was the claim held with the most confidence, and it inverted a
+real vulnerability into a headline strength: because the PDP signing key is
+symmetric and is present in the executing container, the component that enforces
+authorization also held the material to author it. A compromised container could
+mint authority, not merely replay it. No test asserted otherwise until
+`tests/test_lease_authority_custody.py`.
+
+**Why it is recorded here rather than quietly fixed.** The direction of the
+errors is the result. Confidence tracked how much a finding flattered the
+system, not how much evidence supported it, and the single most flattering
+finding was the one that hid a live weakness. A review that only ever discovers
+that a system is stronger than believed is not measuring the system.
+
+**What was changed as a result.** A rule, applied in
+`docs/research/adjacent-systems-crosswalk-v2.md`: no gap or strength is recorded
+about REMORA without a file-and-line citation from REMORA, however strongly a
+comparison project suggests it. The corrected crosswalk lists every v1 error
+rather than silently superseding it.
+
+**Not resolved by this entry.** The credential topology is a mechanism change
+only (ADR-A). The deployed Cloudflare container is still supplied both signing
+keys; the custody split is available and is not in effect. That residual is
+recorded in CAP-013 and must not be read as closed.
+
+## §43 A verifier-only process silently issued unsigned authority instead of refusing (2026-08-23)
+<!-- finding-status: accepted -->
+
+**Status:** defect found by an adversarial test during ADR-A, fixed in the same
+change. Recorded because the failure was silent and the test that caught it was
+written to attack a different property.
+
+**What happened.** `tests/test_lease_authority_custody.py::test_a_verifier_holding_only_the_public_key_cannot_mint`
+strips a process to exactly the material a PEP holds and then asks it to issue a
+lease for an action nobody assessed. It was expected to raise. It returned a
+lease — `is_signed=False`, signature empty — because `ExecutionLease.issue()`
+resolved no issuer algorithm and fell through to the unsigned branch that exists
+for keyless library and research use.
+
+**Severity, stated accurately.** Not directly exploitable: `verify()` refuses an
+unsigned lease with `lease_not_signed`, so no unauthorized execution follows.
+The defect is that a component which must not be able to produce an authority
+object produced one, and a caller that asked for a lease and received one has no
+reason to suspect it is worthless. Silent degradation of an authority object is
+the failure mode ADR-A exists to remove.
+
+**Fix.** `issue()` now raises `LeaseRefused` when the process holds only
+verification material. The keyless path is unchanged for genuinely keyless use.
+
+**Generalisation not yet done.** The same unsigned-fallthrough shape exists for
+`PolicyDecisionToken` and the A2A envelope, which ADR-A does not convert. Whether
+they have the equivalent defect is untested and is recorded as open, not assumed
+absent.
+
+## §44 The production fail-closed list required two of the three authority signing keys (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** defect found by auditing the unsigned-issuance family across every
+authority object, fixed in the same change.
+
+**Context.** §43 recorded that `ExecutionLease.issue()` silently returned an
+unsigned object when the process held only verification material, and recorded
+that the same shape in `PolicyDecisionToken` and the A2A envelope was *untested,
+not assumed absent*. `tests/test_unsigned_issuance_family.py` tests all five
+authority objects.
+
+**The family, as measured.**
+
+| Object | Keyless issuance | Verifier-only trigger available? | Compensating control |
+|---|---|---|---|
+| `ExecutionLease` | refuses when verifier-only (§43); unsigned when wholly keyless | yes — asymmetric mode exists | `verify()` → `lease_not_signed` |
+| `PolicyDecisionToken` | returns unsigned | **no** — symmetric only, so a process either has the shared key or nothing | strict `EnforcementGate` refuses |
+| A2A envelope | returns unsigned | **no** — same reason | `verify()` fails closed |
+| ToolSpec `sign_bundle` | **cannot be called without a key** — it is a required parameter | n/a | structurally immune |
+| `DecisionEnvelope` | unsigned when no key | no | production prerequisite |
+
+The token and the A2A envelope are *not* given the §43 refusal, and that is a
+decision rather than an omission: with no asymmetric mode there is no
+verifier-only state to detect, so the only available rule would be "refuse all
+keyless issuance", which breaks legitimate research use to prevent an object
+every verifier already rejects. ToolSpec has the shape the others should
+converge on — the key is a parameter, so there is no environment fallthrough to
+degrade through.
+
+**The defect.** `servers/api.py` refuses to start in production without
+`REMORA_ENVELOPE_SIGNING_KEY` and `REMORA_PDP_SIGNING_KEY`, on the stated
+grounds that without them records are unsigned and nothing distinguishes an
+authentic record from a fabricated one. That argument applies verbatim to the
+`ExecutionLease` — the object that actually authorises a side effect — and the
+lease key was **not on the list**. A production deployment could therefore run
+with no lease signing material at all and issue every lease unsigned.
+
+**Severity, stated accurately.** Not exploitable. `verify()` refuses an unsigned
+lease, so such a deployment refuses every governed call rather than permitting
+one. The defect is that a fail-closed prerequisite list omitted the most
+consequential of the three keys while citing a rationale that covers it, so the
+guard was inconsistent with its own argument and would have failed a reader who
+trusted it to be complete.
+
+**Fix.** Either `REMORA_LEASE_SIGNING_KEY` or
+`REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE` now satisfies the prerequisite.
+Requiring the asymmetric key would refuse to start a deployment correctly
+configured for an earlier migration phase, so both are accepted and the
+stronger one is not compelled here.
+
+**Principle recorded.** *An authority issuer without signing authority must
+refuse to issue, and must not return an authority-shaped unsigned object on an
+authoritative path.* Applied at two triggers where it can be applied soundly:
+the process is a verifier, or the deployment declares itself authoritative.
+Keyless research use stays supported and is now pinned by a test, so removing it
+would have to be a deliberate act.
+
+**Not resolved by this entry.** `PolicyDecisionToken` and the A2A envelope
+remain symmetric, so their verifiers can still mint. That is the same class of
+exposure ADR-A removed for the lease, and it is open for both.
+
+## §45 Deploying the custody split broke it twice, in ways only deployment could reveal (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** two defects found by deploying, both fixed, both now pinned by
+tests. Recorded because each was invisible to a green test suite and to review,
+and because the second is a design error in a guard published one day earlier.
+
+**Context.** ADR-A's custody split was implemented, tested from three
+directions, and reported as "designed, not deployed". Deploying it produced two
+failures in sequence. Neither was in the split's own logic.
+
+### Defect 1 — the production guard refused the topology it shipped alongside
+
+NEGATIVE_RESULTS §44 added a fail-closed prerequisite: a production deployment
+must have `REMORA_LEASE_SIGNING_KEY` or
+`REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE`, on the grounds that without one,
+leases are issued unsigned.
+
+That reasoning assumed **every production process issues leases.** Under the
+split the execution domain does not: it holds only the public verification key,
+and that absence *is* the security property. So the guard refused to start the
+execution container, and the deployment came up with one domain.
+
+The check is now satisfied by signing **or** verification material — private
+key, HMAC key, or public key — which preserves the original intent (a
+production deployment must not be silently unable to establish lease
+authenticity in either direction) while admitting an execution-only domain.
+
+The general shape is worth naming: **a fail-closed prerequisite written for one
+topology becomes a fail-closed prohibition on every other one.** §44 was
+written the day before and was correct for the deployment that existed then.
+
+### Defect 2 — the image did not carry the crypto the split requires
+
+With both containers starting, every ACCEPT returned HTTP 500 and
+`"An internal error occurred"`. The container image installs
+`.[api,postgres]`; `cryptography` is the optional `security` extra and was
+absent. `_ed25519()` therefore raised `SigningUnavailable` — which is exactly
+what that function is designed to do, and correct, because falling back to HMAC
+would restore the custody defect.
+
+But `dispatch_under_lease` caught `(LeaseRefused, ValueError)` and not
+`SigningUnavailable`, which is a `RuntimeError`. The exception escaped as an
+unhandled server error. The operator saw no reason, and the audit chain
+recorded none.
+
+Two fixes, because there were two faults: the image now installs the
+`security` extra, and the missing-crypto case is a named refusal
+(`lease_unavailable: ...`) rather than a 500. Failing loudly on absent crypto is
+deliberate; failing as an internal error is not.
+
+This is the same class as the CI defect in §44's own commit — the security extra
+missing from an environment that needs it — found a second time, in a second
+environment, three commits later. The lesson is not "remember the extra". It is
+that an optional dependency guarding a security property has no business being
+optional in any environment that claims the property, and nothing was checking
+that.
+
+### What deployment revealed that testing could not
+
+Both defects were invisible to 5829 passing tests, because both were
+*environment* facts: which prerequisites a second process must satisfy, and
+which packages an image contains. The library-level custody tests were correct
+and stayed green throughout.
+
+Recorded as a methodological result: for a property whose subject is a
+deployment topology, a green suite is evidence about the mechanism and not
+about the property. The claim in CAP-013 was correctly scoped to "mechanism,
+not deployed" before this, and only now changes.
+
+**Resolved by this entry:** the custody split is deployed and evidenced
+(`docs/deployment/authority-custody-evidence.md`). §44 remains accurate about
+the defect it recorded; its fix was too narrow and is superseded by the
+three-way check.
+
+## §46 A corrupt capability binding read as a clean one (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** gap in an assurance gate, found by accident, fixed.
+
+**What happened.** Rebinding CAP-003 and CAP-013 after a squash merge, a
+careless substitution spliced a 7-character SHA onto the front of the old
+40-character one, producing `ea886eb03232717c785bf2f2d3b5475d8bdf26a1` — a
+well-formed hash that resolves to no commit in this repository.
+
+`scripts/check_capability_freshness.py` reported **`[PASS] no stale
+capability`**.
+
+**Why.** `classify()` returns `UNKNOWN` for an unresolvable `verified_at_sha`,
+which is correct and deliberate — there is a test for it, on the stated grounds
+that *"a shallow clone must not silently turn the gate off"*. `main()` prints
+unknowns to stderr and only counts them as failures under `--strict`. CI ran
+the gate **without** `--strict`, so the warning went to a log nobody reads and
+the build was green.
+
+**Why `--strict` was not already on.** The job's checkout had no `fetch-depth`,
+so it was shallow. On a shallow clone every SHA older than the tip is equally
+unresolvable, and strict mode would have failed on correct bindings. The gate
+was structurally unable to distinguish *"this commit is not in the clone"* from
+*"this commit does not exist"*, and the safe-looking configuration chose to
+report neither.
+
+**Severity.** No claim was wrong. A capability bound to a nonexistent commit is
+not a false claim about code; it is a claim bound to nothing, which is exactly
+what `verified_at_sha` exists to prevent. The register's whole purpose is that a
+status is anchored to a revision, and for the duration of that mistake two of
+them were anchored to a string.
+
+**Fix.** `fetch-depth: 0` on the job's checkout and `--strict` on the
+invocation. Both are asserted by a test, because either alone is wrong: strict
+without full history fails on correct bindings, and full history without strict
+changes nothing.
+
+**The general shape, which is the reason this is recorded.** A gate with a
+sound implementation, a correct classification, an explicit strict mode, and a
+test for the edge case still passed a corrupt input — because the strict mode
+was off in the only place it ran. Every piece was right except the wiring, and
+the wiring is not what gets reviewed.
+
+## §47 EFFECT_VERIFIED was reportable; its attestation is now lineage-bound (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-002 from the external forensic review, fixed. One sub-rule was
+written wrong on the first attempt and is recorded below rather than quietly
+corrected.
+
+**The defect.** The recorder checked that a proposal existed and then stored
+whatever status arrived. A proposal that was assessed and never approved or
+executed could be recorded `EFFECT_VERIFIED`, and the lifecycle projection
+reported it as such — a dispatch of `null` with a current state of
+`EFFECT_VERIFIED`.
+
+That is a false VERIFIED. A later review also showed why the inverse shortcut
+is invalid: MISMATCH is a load-bearing negative system claim and can be abused
+to occupy the terminal slot. Positive and negative settled verdicts therefore
+carry the same evidence burden.
+
+**The rule now enforced.**
+
+```
+SETTLED_EFFECT_ATTESTATION_ACCEPTED =
+    valid_dispatch_lineage
+    AND authoritative_observation
+    AND observation_recorded_for_re_checking
+    AND freshness_valid
+    AND receipt_not_replayed
+```
+
+Each conjunct has its own refusal reason, because an operator reading a refusal
+needs to know which one failed. The lineage is read from the audit chain, never
+from the receipt: proposal, exact call hash and the grant that identifies the
+dispatch. An observation dated before the dispatch is refused, which is what
+catches a pre-existing matching state being passed off as a verification.
+
+**Two things deliberately kept possible.** An UNKNOWN dispatch can be resolved
+to VERIFIED by a later authoritative check — a lost response does not mean
+nothing happened, and requiring a false SUCCEEDED first would be the opposite
+of what this model is for. And a non-terminal verdict (UNOBSERVABLE,
+VERIFIER_FAILED) can be superseded, because that is how an unknown gets closed
+honestly. What is forbidden is re-verifying a dispatch that already has a
+settled verdict.
+
+### The sub-rule that was wrong
+
+The first implementation derived VERIFIED by requiring
+`expected_sha256 == observed_sha256`, on the reasoning that a verdict
+contradicting its own numbers is a mismatch with a wrong label.
+
+**That reasoning was wrong, and the test suite caught it.** The two digests
+hash *different maps* — the expected FIELDS and the observed ROW — and the
+comparison between them is rule-based
+(`PostconditionContract.comparison_rules`, for example `content: hash`). A
+passing verification routinely produces different digests. The rule would have
+refused every legitimate VERIFIED the SDK produces, and
+`tests/test_sdk_effect_roundtrip.py` failed immediately because it was
+asserting the real contract while the new module was inventing a different one.
+
+The corrected rule requires both digests to be *present*, not equal: a verdict
+that records neither side of its own comparison cannot be re-checked, and an
+unre-checkable verdict is an assertion. REMORA does not re-run the comparison
+and does not claim to — it holds the digests, not the maps or the rules.
+
+Worth recording because of what nearly happened: a module written to stop
+unearned claims was one commit from making one of its own, in the form of a
+verification rule that did not match the verification it was checking. An
+existing test written against the real contract is what prevented it.
+
+### A second review found the first fix incomplete
+
+The change above closed the reported reproduction -- a proposal with no
+dispatch -- and a second review then showed that a fabricated
+``EFFECT_VERIFIED`` was still reachable for a dispatch that DID happen:
+
+```json
+{"status": "EFFECT_VERIFIED", "verifier_identity": "trusted-name",
+ "tool_call_hash": "", "grant_jti": "", "verified_at": "",
+ "expected_sha256": "a", "observed_sha256": "b"}
+```
+
+Eight ways it got through, all of them mine:
+
+1. Empty ``tool_call_hash`` and ``grant_jti`` **skipped** the comparison. The
+   binding fields were treated as "no opinion" when absent, so a receipt could
+   skip every check by omitting what it would have been compared against.
+2. Empty ``verified_at`` was replaced with the server's clock, fabricating the
+   freshness the check depends on.
+3. The digest fields were length-limited but never validated as SHA-256, so
+   ``"a"`` and ``"b"`` were acceptable digests.
+4. ``verifier_identity`` was not bound to anything. The name arrived in the
+   request body, so an allowlist constrained which strings were acceptable and
+   not who could send them.
+5. An empty allowlist accepted any name, and a populated one could be satisfied
+   by typing a permitted name.
+6. ``observed_state_hash`` and ``verifier_version`` were accepted and then
+   discarded -- a received-but-unstored field suggests a binding that is not
+   there.
+7. The replay check was read-then-append. Two concurrent receipts both read
+   "unsettled" and both appended.
+8. ``EFFECT_MISMATCH`` required no observation at all, yet is terminal -- so an
+   evidence-free MISMATCH could take the slot and block a later legitimate
+   verification.
+
+Point 8 is the one worth dwelling on. The entry below states that positive and
+negative claims carry the same burden of proof, and the implementation directly
+under it demanded evidence for VERIFIED and none for MISMATCH. The asymmetry
+this project keeps finding in its own prose had been written into the code of
+the module that names it.
+
+All eight are fixed: binding fields and observation time are mandatory for a
+settled verdict, digests are validated as SHA-256 on the wire, the verifier
+identity is bound to the authenticated principal
+(``REMORA_EFFECT_VERIFIER_BINDINGS``, defaulting to identity == principal),
+provenance is stored in the chain, and MISMATCH carries the same evidence burden
+as VERIFIED. The first atomicity repair itself needed a further correction.
+
+### A third review found a phantom-settlement window
+
+The first replay fix took a primary-key slot in a separate receipt ledger and
+then appended the observation to the tenant audit chain. That prevented two
+concurrent winners but did **not** establish
+``observation_recorded_for_re_checking``: if the process failed after the slot
+commit and before the audit append, every retry was refused as a replay although
+no observation existed in the chain. The code had made uniqueness atomic and
+split the property it was meant to protect across two transactions.
+
+The separate ledger is removed. ``TenantAuditChain.append_once`` now commits
+the receipt idempotency key and audit entry as one operation: under one lock in
+the in-process reference implementation, and in one transaction for SQLite and
+Postgres. A concurrent test produces exactly one winner. A SQLite fault-
+injection trigger aborts the audit insert after the idempotency insert; the test
+proves the key rolls back, the chain stays empty, and a retry succeeds.
+
+There is one explicit deployment limit. ``REMORA_STATE_ENDPOINT`` makes the D1
+nonce ledgers durable, but the tenant audit chain has no D1 adapter. A
+production deployment configured only with that endpoint is therefore refused
+at the effect-receipt API rather than accepting a settlement it cannot preserve
+for re-checking. Adding a transactional D1 tenant-chain adapter remains open;
+Postgres and persistent SQLite are the durable effect-receipt backends today.
+
+### The claim was also overstated
+
+"REMORA derives EFFECT_VERIFIED" was wrong, and is now "REMORA accepts or
+refuses a lineage-bound VERIFIED attestation". REMORA cannot evaluate the
+postcondition rule -- it holds the digests, not the maps or the comparison
+rules -- so it does not compute the verdict and must not say it does. The
+function is named ``adjudicate_status`` rather than ``derive_status`` for the
+same reason.
+
+### The rule this raises to a project principle
+
+> **Positive and negative system claims carry the same burden of proof. A
+> measurement without verified provenance is just another claim.**
+
+This is the third consecutive entry reaching the same place from a different
+direction. Prose asserting a property is written at the moment of highest
+confidence and lowest evidence. A probe reporting a system is broken is a
+claim, and a measurement read from the wrong key measured nothing. And an
+attestation asserting VERIFIED is a claim, needing provenance that binds it to
+the thing it claims to have observed. (The first two are recorded in the
+custody-split branch, PR #356; if that merges first this entry renumbers.)
+
+It is a precise extension of what effect verification was already for. The
+model began by separating "the dispatcher returned" from "the effect happened".
+This adds the layer under it: **proving the observation actually measured what
+it claims to have measured.**
+
+## §48 A dispatch that began and failed was recorded as proof that nothing happened (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-003 from the external forensic review, fixed.
+
+**The defect.** Settlement matched a string:
+
+```python
+elif reason == "tool_failed_nonce_burned":
+    settled_state = OutboxState.FAILED
+```
+
+The reason it matched on has this docstring in `lease.py`:
+
+> *the tool raised after its nonce was consumed: state at the tool is unknown*
+
+So the durable record asserted **no effect occurred** on evidence that only
+showed the call raised. The response said `state_unknown`; the store said
+`FAILED`. A consumer reading either could reasonably issue a fresh call for an
+effect that may already have happened — which is the one move the execution
+layer must never make.
+
+**The contract was already right.** `schemas/execution_lifecycle_v1.yaml` has
+carried both transitions since it was written:
+
+```
+{from: DISPATCHING, to: FAILED,  on: tool_raised_pre_effect}
+{from: DISPATCHING, to: UNKNOWN, on: crash_or_timeout_after_possible_effect}
+```
+
+FAILED was always reserved for a failure proven to precede the effect boundary.
+The queue simply had no vocabulary to reach UNKNOWN — `ItemStatus` had
+`DISPATCH_FAILED` and `DISPATCH_REFUSED` and nothing else — so the honest state
+was unreachable and the nearest available one was written instead. The
+reconciler, which settles stale `DISPATCHING` rows, had this right all along.
+
+**The invariant now enforced.**
+
+```
+REFUSED   REMORA observed that dispatch never began.
+FAILED    Trusted adapter evidence proves failure before the effect boundary.
+UNKNOWN   Dispatch began and absence of effect is not proven. Durable, and
+          may later be superseded.
+```
+
+A dispatcher exception, a timeout, a lost response, or
+`tool_failed_nonce_burned` alone earns only UNKNOWN.
+
+**Structural, not string-derived.** `DispatchResult` now reports
+`dispatch_began` — the dispatcher is the only component that knows whether it
+invoked the callable, and inferring it from `refusal_reason` made every new
+refusal reason a silent reclassification. `record_execution_outcome` takes the
+outcome instead of `executed`/`failed` booleans, because the old signature
+*could not express* "dispatch began and we do not know". A test asserts
+`classify_outcome` never reads `refusal_reason` again.
+
+**FAILED is unreachable from the synchronous path, deliberately.** No adapter
+here produces trustworthy pre-effect evidence, so the honest terminal is
+UNKNOWN. `PreEffectProof` exists as the place to put that evidence the day an
+adapter can produce it, and cannot be constructed without a source and what it
+observed. A caller-supplied `pre_effect` flag is explicitly not proof — a test
+tries four spellings of one and gets UNKNOWN for each. Approximating FAILED
+would put the unproven negative claim back, wearing a structured field instead
+of a string.
+
+The one legitimate FAILED is unchanged: reconciliation of an intent that was
+never claimed. The claim strictly precedes invocation, so the side effect
+provably did not happen.
+
+**Fixtures that broke, recorded rather than weakened.** Two asserted the old
+contract directly — `test_tool_exception_burns_nonce_and_is_reported` expected
+`DISPATCH_FAILED` for a raising tool, and `test_execution_outcome_terminal_states`
+asserted the same at the queue. Both now assert UNKNOWN, and the second gained
+a case proving FAILED is still expressible for the reconciler's path. Both were
+asserting that a durable claim of "nothing happened" was correct.
+
+**Where this came from.** Not invented for RMR-003. It follows from the rule
+recorded one section earlier: positive and negative system claims carry the
+same burden of proof. A durable FAILED is a negative claim, and it was being
+written on less evidence than SUCCEEDED requires. §47 fixed the same asymmetry
+for `EFFECT_MISMATCH` — a terminal negative verdict that needed no observation.
+This is the third place the same shape has appeared, which suggests the rule is
+worth applying ahead of a review rather than after one.
+
+**Not closed by this entry.** UNKNOWN resolution remains a manual operator
+decision (`unknown_resolution.mode: manual` in the schema). The effect recorder
+can supersede an UNKNOWN dispatch with a verified observation, which is the
+automated half; nothing reconciles an UNKNOWN that never gets one.
+
+> **Renumbering note.** These three entries were written as §47-49 on a
+> branch predating the effect-receipt (§47) and dispatch-outcome (§48)
+> work now on master. They are §49-51 here. Nothing changed except the
+> numbers and the cross-references between them.
+
+## §49 A code review found three defects and missed the worst one; fixing it took the gateway down (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** four defects, all fixed. Recorded for the pattern in each, and
+because the repair itself produced a live outage on the test deployment.
+
+### What the review found
+
+Three findings, all verified against the code rather than accepted:
+
+1. **`now` was dead on the wire and the contract lied about it.** The
+   `DispatchLeasedRequest` docstring said *"`now` is carried so the authority's
+   clock decides freshness rather than the executor's"*; `dispatch_leased`
+   computed its own `now` and never read the field. Fixed by **removing** the
+   field, not by wiring it up: the claim was also wrong. The authority mints
+   the lease, so letting it assert the time its own expiry is judged against
+   makes the TTL vacuous from the executor's side. An independent freshness
+   check is one of the few things the second domain contributes alone.
+
+   This is the same shape as the Invariant finding in the crosswalk — a
+   document describing a property the implementation does not have — committed
+   here two days after writing that up.
+
+2. **`REMORA_EXECUTION_ENDPOINT` gated on the keypair, not the binding.**
+   Reported as a defect; the suggested fix was **rejected**. Gating on
+   `env.EXECUTION` instead would mean a deployment with the private key but no
+   execution binding silently dispatches locally, reverting to single-domain
+   custody with no signal. The current behaviour — every call refused as
+   `execution_domain_unreachable` — is an outage, and an outage is the correct
+   failure for a missing half of a security boundary.
+
+3. **A guard that skipped its own case.** `dispatcher is None and not
+   execution_endpoint()` let a process configured as both, holding a presented
+   lease and no dispatcher, fall through to `dispatcher.dispatch(None)` — an
+   `AttributeError` where the function documents a named refusal. The guard now
+   asks whether this process will execute locally.
+
+### What the review missed, and it was the important one
+
+The **authority** container was passed `REMORA_GITHUB_TOKEN`. Three documents
+said it holds no downstream credential: the target topology table, the source
+comment in `index.ts` (*"the authority container cannot cause an effect even if
+it wanted to"*), and CAP-013.
+
+On this deployment no `REMORA_GITHUB_TOKEN` secret is set, so the claim held by
+**accident**. A component that can both mint authority and use it is the single
+point of failure the split exists to remove, and the configuration would have
+created one the moment that secret was added.
+
+This is §42's pattern again, in the same programme: the claim more flattering
+than the evidence is the one nobody checks. Neither review nor testing caught
+it — it was found by diffing the two `envVars` blocks while checking something
+else.
+
+### Fixing it took the gateway down for about fifteen minutes
+
+Removing `REMORA_TOOL_REGISTRY_MODULE` from the authority alongside the
+credential broke every call with `policy_bundle_mismatch`. The policy bundle
+hash covers that module's spec string and a source digest — resolved *without
+importing it* — so the two domains must **declare** the same registry or their
+hashes differ. The declaration was never a grant of callables, and removing it
+to "hold no tools" removed agreement instead.
+
+Then the diagnosis went wrong in a way worth recording. Restoring the registry
+did not fix it, so the cause looked like something else, and a bisect began.
+The bisect was meaningless: **Cloudflare keeps running container instances when
+only the Worker changes.** Both instances had been created at 07:57 and none of
+the three later deploys replaced them, so every fix was tested against the
+broken configuration. The instances only rolled once the *image* digest changed.
+
+Two operational consequences, neither of which existed with one container:
+
+- an `envVars` edit alone does not reach a live container, so a config fix can
+  appear not to work while being correct;
+- the bundle hash is now a **cross-container agreement requirement**, so the
+  two domains must roll together or the deployment refuses every lease.
+
+Fail-closed throughout — nothing executed unauthorised — but availability, not
+safety, is what a split buys you a new way to lose.
+
+### One more, found while fixing the tests
+
+`workers/mcp-gateway/test/custody.test.ts` located the end of a class body with
+the literal `"\n  }\n}"`. The file is stored CRLF, so that never matched, every
+extracted block silently ran to end-of-file, and the execution-container
+assertions passed **only because the authority class is declared above it in
+the file**. A test asserting an absence, passing for the wrong reason. Now
+matched with `/\r?\n {2}\}\r?\n\}/`.
+
+### The general shape
+
+Three of these four were invisible to a green suite and to a targeted review.
+The one with real security content was found by reading two configuration
+blocks side by side, which is neither. The recurring lesson of this programme
+holds: for properties whose subject is a deployment, evidence has to come from
+the deployment, and absences need a test that is itself verified to fail.
+
+## §50 An external forensic review found seven defects; two were mine to fix in flight (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** external read-only review against `6be9cde`. Two findings fixed
+immediately because they fell inside work already open; five recorded as open
+with their reproductions preserved.
+
+**Context.** A forensic review was run against the merge of #355. It reported
+one CRITICAL, six HIGH and several MEDIUM findings, with reproductions. It was
+conducted before #356 landed, so part of what it found had already been fixed —
+which is itself worth recording, because the overlap is not coincidence.
+
+### What it independently found that this repository had also found
+
+The CRITICAL finding — the authority container holding downstream effect
+capability while holding the private lease key — is the same defect recorded
+here as §49, found by diffing two `envVars` blocks. Two reviewers, one internal
+and one external, arriving at the same finding by different routes is the
+strongest signal in this document that the finding is real.
+
+It also found the ignored `now` field (§49's finding 1) and the dead-guard case.
+All three were already fixed in #356 and could not be seen from the reviewed
+revision.
+
+### What it found that was still true, and fixed here
+
+**Actor identity was caller-asserted on the custody hop.**
+`/dispatch-leased` used `req.actor_identity or principal`. A caller holding a
+stolen lease and the hop credential could put the victim's identity in the
+request body and satisfy the lease's own actor check — the exact binding that
+check exists to enforce. `ExecutionLease.verify`'s own docstring says the
+identity must come from authenticated transport and never from a request body.
+I wrote both.
+
+Fixed by taking the actor from the **lease**, where it sits inside the
+Ed25519-signed payload: only the authority can produce it and it cannot be
+altered without invalidating the signature. The body field is removed from the
+model rather than ignored by the handler, because a field that is accepted and
+ignored invites someone to wire it back up.
+
+Residual, stated rather than implied: the hop's transport authenticates the
+**authority**, not the end actor, so the executor trusts the authority's signed
+assertion about who acted. Anchoring the end actor to its own credential
+remains open.
+
+**The authority could write the graph.** §49 removed `REMORA_GITHUB_TOKEN` from
+the authority but left `graph.internal → GRAPH_DB` routed through the
+unrestricted D1 proxy. The authority genuinely needs graph *reads* — grounding
+signals, the state index and the semantic bundle all query it to reach a
+decision — so the route could not simply be deleted.
+
+It is now read-only, enforced by an **allowlist** (`SELECT`/`WITH`/
+`PRAGMA table_info`, no statement chaining) rather than a denylist of mutating
+verbs. A denylist has to anticipate every way to write and only has to be wrong
+once. The executor keeps unrestricted access, because causing effects is its
+job.
+
+Verified on the deployment: a grounded read still reaches `accept`/`executed`,
+so the decision path retains the reads it needs.
+
+### What remains open
+
+Recorded here so it is not lost, with the review's identifiers:
+
+
+None is fixed in this change. Fixing seven findings in one commit would produce
+an unreviewable diff for defects that each deserve their own adversarial test,
+and RMR-002/003/004 change durable state semantics that consumers depend on.
+
+RMR-002 and RMR-003 were subsequently fixed, each in its own change, and are
+recorded as §47 and §48; RMR-009 and RMR-013 are fixed together in §52,
+because they are the same defect shape twice; RMR-006 in §53; RMR-004's binding in §54,
+whose two sub-checks stay deliberately unreachable. They are struck from the list above rather than
+left standing, because a list of open findings that keeps closed ones is the
+same drift this document's status gate exists to prevent. RMR-007 is §55; its supply-chain half was fixed in code and
+its branch-protection half is now applied and enforcement-demonstrated (control PR #365), closing the review's list.
+
+### The finding about the findings
+
+Three of the seven were in code I wrote in the preceding two days, and two of
+those contradicted docstrings I wrote in the same commits. The pattern is not
+carelessness about security — the mechanisms are sound — it is that **prose
+asserting a property is written at the moment of highest confidence and lowest
+evidence**, and nothing checks it. §49 said the same thing about a comment.
+This is now the third consecutive entry in which the defect was a claim rather
+than a mechanism.
+
+## §51 The read-only allowlist was wrong once, in the way its own comment warned about (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** security defect found by automated review, fixed and verified. A
+second finding reported here as OPEN was subsequently **retracted**: it was a
+defect in the verification script, not in the system. Both are kept below.
+
+### The allowlist bypass
+
+§50 gave the authority a read-only graph route so a domain holding the private
+lease key could not also write the graph. The allowlist accepted a leading
+`WITH`, and the commit message said, in the same breath:
+
+> a denylist has to anticipate every way to write and only has to be wrong once
+
+The allowlist was wrong once. SQLite lets a common table expression prefix a
+mutation:
+
+```sql
+WITH x AS (SELECT 1) INSERT INTO knowledge_facts SELECT * FROM x
+```
+
+so `^(select|with)` admitted DML through the read-only route, re-opening the
+capability the route was added to close. `WITH` is now refused outright rather
+than parsed: no query this deployment issues uses a CTE, so the capability
+bought nothing and cost a bypass.
+
+**Why the test did not catch it.** The test read the regex out of the source
+and asserted its *shape* — that it matched `^(select|with)` and did not mention
+`insert`. A source-shape assertion cannot catch a semantic bypass. The
+predicate now lives in its own module (`src/sql.ts`, no Cloudflare imports) and
+is exercised with real statements, including the reported bypass, CTE-prefixed
+UPDATE and DELETE, comment- and parenthesis-prefixed mutations, statement
+chaining and write pragmas.
+
+**Stated limit.** A regex is not a parser. This is a lexical guard at the
+proxy, not engine-level enforcement; D1's binding exposes no read-only
+connection mode. It is one boundary among several — the registry binds the
+tenant clause into every statement and issues only parameterised reads — and it
+should be replaced by engine-level enforcement if D1 ever offers it.
+
+### RETRACTED: "graph reads from the tool return no rows"
+
+**This subsection reported a regression that does not exist.** It is corrected
+here rather than deleted, because the mistake is the finding.
+
+**What was claimed.** That `kg_list_predicates` returned `status: executed`
+with an empty predicate list while 1,251 facts sat in the graph, and that the
+custody split had therefore broken governed reads undetected across four
+deployments.
+
+**What is true.** The governed read was correct the whole time. Compared by
+canonical SHA-256 digest against the exact direct D1 query at the same observed
+`state_hash`:
+
+```
+governed rows : 50  58a56feacbae36eaed03667e16dc5a0ae5de2221
+direct rows   : 50  58a56feacbae36eaed03667e16dc5a0ae5de2221
+RESULT: MATCH
+```
+
+Same fifty rows, same order, same counts, tenant `luftfiber` echoed correctly.
+
+**The actual defect was in the verification script.** The MCP response nests
+the tool's return value inside the dispatcher's result object:
+
+```
+payload.result            -> tool_execution  {executed, proposal_id, result, ...}
+payload.result.result     -> the tool's own return  {tenant, graph, predicates}
+```
+
+Every probe read `payload.result.predicates`, which is `None` on the
+`tool_execution` object, and reported `0`. The number was never measured; it
+was produced by reading the wrong key.
+
+**Cost.** Three container deployments, one bisect that reverted a correct
+security control to test a hypothesis about a fault that was not there, an
+incorrect OPEN entry in this document, and an incorrect OPEN entry in CAP-013.
+
+**Why it is recorded.** §49 and §50 both concluded that this project's failures
+cluster in claims rather than mechanisms. This one goes further: the claim was
+produced by an unverified *measurement*, and it was a measurement asserting
+that a system was broken. The same discipline that forbids an unverified
+success claim has to forbid an unverified failure claim, and nothing here was
+enforcing that.
+
+Two things would have caught it immediately, and neither was done. Comparing
+the governed result against the direct query — which is what the effect
+verifier does for writes, and what this project already knows how to do — was
+only performed *after* the regression was written up. And the probe never
+asserted its own shape: a script that reads `payload.result.predicates` should
+fail loudly when that key is absent, not report zero.
+
+**What survives.** #357 is unaffected and remains correct on its own terms: an
+unknown response shape must not read as an empty result set, whatever else is
+true. Its scope statement already said it was "not yet known to repair the
+fault" — which was accurate, and is now settled: there was no fault to repair.
+
+**Applied rule.** A probe that reports a system is broken is a claim, and gets
+the same evidence standard as a claim that it works: compare against an
+independent source at the same observed state, and make the probe fail closed
+on an unexpected response shape.
+
+## §52 Two separations were documented and not enforced (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-009 and RMR-013 from the external forensic review, fixed.
+
+Both defects have the same shape, which is why they are one entry. In each
+case the mechanism existed, the comment described it correctly, and the code
+did not do it.
+
+### RMR-009: the exclusive claim was not exclusive
+
+Both dispatch sites in `remora/execution/service.py` read
+
+```python
+# FT-02: claim the intent before anything can take effect (exclusive).
+if intent is not None:
+    outbox().claim(intent.outbox_id, worker_id=worker_id)
+```
+
+`claim` returns `None` when another worker already holds the row. The return
+value was discarded at both sites, so a worker that lost the race dispatched
+the same intent anyway and then settled over the winner's record. Two workers
+therefore produced two side effects, and the durable trail showed one — the
+loser's, because it settled last.
+
+The word "exclusive" was in the comment. Nothing tested it. The outbox's own
+`claim` docstring even says a lost race "returns ``None``" and distinguishes it
+from a caller bug, so the contract was stated at the callee and ignored at the
+caller.
+
+A lost claim is now REFUSED for this worker, which is the one negative claim it
+can make first-hand: dispatch never began in this process. It says nothing
+about the winner's effect, and deliberately settles nothing — the outbox row
+and the item's terminal state belong to the worker that won, and writing either
+here would overwrite the record of the execution that actually happens. The
+loss is appended to the chain, because a gap would read as a lost event rather
+than as a refusal.
+
+### RMR-013: the executor served the whole router
+
+The custody split (§45) gave the execution container its own credentials and
+only the public verification key. That stops it minting a lease. It does not
+stop it issuing authority by API, and the container went on serving every
+route: `assess`, `approve`, `execute`, `reject`, the audit reader.
+
+So the deployment could truthfully say the execution domain cannot sign a
+lease, while a compromise there could still walk a proposal through assessment
+and approval and then execute it. The claim was about key custody and was read
+as being about authority.
+
+`REMORA_EXECUTION_DOMAIN_ROLE=executor` now refuses everything but
+`/v1/execution/dispatch-leased`. Three details are deliberate:
+
+- The guard is attached to the router, not to each route. A per-route decorator
+  is a list a new endpoint silently fails to join, and that failure mode is an
+  authority route quietly reachable from the execution domain.
+- The path match is exact set membership. A prefix test would admit
+  `/dispatch-leased-anything`, which is precisely how the read-only SQL
+  allowlist failed one day earlier (§51). The test for it asks the guard
+  directly rather than going through the client, because a client request to a
+  path no route serves returns 404 whether the guard is anchored or not, and
+  the test would have proved nothing.
+- An unrecognised role raises. Guessing which half of a custody split a typo
+  meant is the wrong way to resolve it, and the fail-open direction is the
+  expensive one.
+
+The default stays `authority`, so an unconfigured deployment behaves as it
+always did.
+
+### What this pair is evidence of
+
+Both were found by a reader, not by a test, and both had been reviewed. The
+common cause is that a separation is easy to state and takes real work to
+enforce, and prose costs nothing at the moment of highest confidence — the same
+pattern §50 recorded about its own findings. The countermeasure that worked
+here was mutation: reverting each fix and confirming the new tests fail.
+Applied to the anchored-path test it showed the first version passing against
+the broken code, which is how the test came to ask the guard directly.
+
+**Not deployed.** These are code and configuration changes only. The running
+containers were not replaced, so nothing here is a claim about the deployment.
+
+## §53 The gateway reported that the API answered, and called it execution (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-006 from the external forensic review, fixed.
+
+Both execution sites in `workers/mcp-gateway/src/mcp.ts` read:
+
+```ts
+status: run.status === 200 ? "executed" : "execution_failed"
+```
+
+A 200 means the execution API answered. It is not a claim that the tool ran.
+The body says what happened, and since §48 it says so explicitly:
+`tool_execution.executed`, `dispatch_began`, `state_unknown`.
+
+So a dispatch REMORA refused, and a dispatch whose result was lost, both
+reached the model as `"executed"`. This is the worst sentence this gateway can
+produce, because the model does not stop there: it tells a person the work is
+done. Every mechanism upstream — the lease, the one-time nonce, the durable
+outcome classification, the audit chain — computed the right answer, and the
+last hop overwrote it with the transport status.
+
+### The fix, and the two places it is stricter than the Python rule
+
+The mapping now derives from the body, in its own module
+(`workers/mcp-gateway/src/outcome.ts`) so it can be unit tested rather than
+exercised only through a deploy. That is the lesson from the read-only SQL
+predicate (§51), applied before rather than after.
+
+It is deliberately stricter than `remora/execution/outcome.py` in two places,
+because the input is different: the Python classifier reads a dict its own
+dispatcher just built, and the gateway reads wire data.
+
+- **A 200 with no `tool_execution` is `unknown`, not `executed`.** Absence of
+  evidence is the exact thing this entry is about.
+- **`refused` requires `dispatch_began === false`, not merely an absent
+  field.** Otherwise an empty body would produce the strongest negative claim
+  the gateway can make, on no evidence at all — the same error as §48, in the
+  other component.
+
+`unknown` carries wording the model cannot read as either verdict, and tells it
+not to retry: re-running a call that may already have taken effect is the one
+move that must not happen. `executed` carries no added prose, because prose on
+the success path is how a caveat becomes noise.
+
+Two smaller things fell out of the change. Effect verification is no longer
+attempted on a refused dispatch — nothing was sent, so the system of record
+correctly shows no change, and reporting that as `EFFECT_MISMATCH` would
+manufacture bad news out of a correct refusal. And the poll response built two
+`explanation` keys in one object literal, silently keeping the last; the one
+being dropped was the dispatch status.
+
+### The test fixtures were the defect, written down as an expectation
+
+Two existing tests failed against the corrected rule. Their fixture was
+`{ outcome: "executed" }` with no `tool_execution` at all, and the tests
+asserted the gateway reported `"executed"` from it. That is RMR-006 itself,
+encoded as a passing test: a body that proves nothing, asserted to mean
+success. The fixtures were corrected to what the API actually returns rather
+than the rule being relaxed to keep them green.
+
+The first version of the new end-to-end tests also passed against the broken
+code, because the test helper takes the assess body and the options as separate
+positional arguments and the override was silently landing in the wrong one.
+Mutation — reverting the fix and requiring the tests to fail — caught both.
+Seven now fail without it.
+
+**Not deployed.** Gateway source only; the Worker was not redeployed.
+
+## §54 The signed spec identity was unforgeable and never read (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-004 from the external forensic review, the binding fixed. Two
+sub-checks deliberately left unreachable, and one adjacent item left open —
+both recorded below rather than folded in.
+
+`ExecutionLease` has carried `toolspec_hash` and `toolspec_version` since it
+was written, and `ExecutionLease.verify` has always been able to compare them:
+the parameters exist, the mismatch reasons exist, the tests for `verify` exist.
+Nothing ever supplied them at dispatch. The call at the final PEP passed the
+tool name, the arguments, the tenant, the target, the clock, the policy bundle
+and the actor, and omitted the two arguments that identify the spec.
+
+The identity was therefore in the signature — genuinely unforgeable — and never
+read. That is a specific and slightly humbling failure mode: the expensive part
+was built, and the cheap part, passing two arguments, was not.
+
+### Why the gap is exactly the window the field exists to cover
+
+Between issuing a lease and dispatching under it, the bundle can be replaced.
+In the custody split (§45) it is not even the same file: the executor's bundle
+lives on a different container from the authority's. A spec that moved in that
+window means the action about to run is not the action that was reviewed, which
+is the sentence `verify_same_spec` in `toolspec.py` was written to be able to
+say, and nothing was asking it.
+
+### The resolver refuses on failure rather than falling through
+
+The dispatcher now resolves the identity this process would run, at the moment
+of dispatch. Two return values are distinct and must stay distinct:
+
+- `None` means no bundle is configured. That is the unenforced research path,
+  reported as `enforced=False` everywhere else, and it stays permitted.
+- A **raise** means a bundle is configured and could not answer. That refuses
+  as `toolspec_unresolvable`.
+
+Collapsing them would turn "I could not check" into "there was nothing to
+check". It is the same shape as the strict capability-freshness flag (§46),
+where an unresolvable binding classified as UNKNOWN and the gate reported
+success.
+
+The refusal also happens before the nonce is consumed, so a spec mismatch
+leaves the grant usable. Burning it would convert a recoverable configuration
+error into a permanently dead authorization.
+
+### What is NOT fixed, and why approximating it would be worse
+
+`verify_callable` and `verify_credential_scope` still have no non-test caller.
+Neither is an oversight now that they have been looked at:
+
+- `verify_callable` compares the registered callable against a digest the spec
+  attests. **Nothing in this repository produces such a digest** — every bundle
+  fixture carries a placeholder. Calling it would compare a real callable
+  against a constant.
+- `verify_credential_scope` needs the scope dispatch is about to *use*. Nothing
+  tracks that: the callables close over their own credentials and do not
+  declare what they reach for. Comparing the declaration against itself is a
+  check that cannot fail.
+
+This is the §48 rule applied to a different mechanism: where the evidence does
+not exist yet, leave the check unreachable rather than approximating it. A test
+pins that both remain uncalled, so the day one gains a caller, the input it
+needs exists and the claim it supports has to be written down with it.
+
+The SDAD spec-intake linkage at dispatch, which the review raised alongside
+RMR-004, is also untouched here. It is a different mechanism with a different
+evidence question, and folding it in would have produced one diff for two
+unrelated arguments.
+
+**Not deployed.** Code only.
+
+## §55 The component holding execution authority was the one nobody audited (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-007 from the external forensic review. Both halves are fixed:
+the supply-chain half in code, and the branch-protection half as a
+repository-settings change whose enforcement is demonstrated, not assumed
+(evidence below).
+
+### The supply-chain half
+
+The npm dependency audit ran over a hand-maintained list of directories:
+`frontend`, `agent-control`, `aromer`, `law-search`, `rag-oracle`.
+`workers/mcp-gateway` was not on it. The SBOM covered the Python package and
+the frontend, and no worker at all.
+
+Of everything in this repository the gateway is the component that holds
+execution authority and the downstream credentials. It was the one package
+whose dependencies went unaudited: the inverse of the order anyone would pick
+deliberately, which is what identifies it as drift rather than a decision. The
+list was written before the gateway existed and nothing made adding a directory
+also add its audit leg.
+
+Nothing had gone wrong — the audit is clean, 0 vulnerabilities. The finding is
+that no gate would have said either way.
+
+The list is now checked against what is on disk, so a new package cannot ship
+without an audit leg. The failure mode moves to a red test the moment the
+package appears, instead of a gap that waits for a reader. Only the gateway
+SBOM is added; the other four workers remain uncovered and the test
+deliberately does not claim otherwise. Generating one of five and calling it
+worker coverage is the kind of prose this document keeps having to retract.
+
+### The branch-protection half, now enforced
+
+`master` requires five contexts: `verify`, the three `pytest` legs, and
+documentation governance. Not required, and therefore not blocking:
+
+- CodeQL, both languages
+- Secret scanning, `pip-audit`, the npm audits, the SBOM job
+- OPA/Rego policy conformance, key artifact integrity, lockfile integrity
+- The wheel contract, the Postgres tenant-chain contract, `worker-typecheck`
+
+Every one of them runs, and reports, and can be red on a mergeable pull
+request. The security gates in this repository are advisory and the summary
+does not say so.
+
+This was left open rather than fixed in the original change on purpose.
+Adding a required context whose name does not exactly match the job's
+reported name blocks every merge on `master` until someone with admin rights
+notices, and the exact strings are worth confirming against a real run rather
+than inferring. It was a repository-settings change, not a code change, and
+the person who owns the repository should make it knowingly.
+
+The mechanism half is now in code: each security workflow carries a stable
+aggregator job — `quality-gates-required`, `deterministic-suite-required`,
+`supply-chain-required`, `codeql-required` — that runs under `if: always()`
+and fails unless every leg it aggregates reported success, so branch
+protection can require five names instead of thirty drifting matrix-expanded
+ones, with `shadow-replay` required directly (#364).
+
+The setting is applied: `master` requires exactly those five contexts. And
+enforcement is demonstrated, not assumed: control PR #365 forced
+`codeql-required` red while every other check stayed green, and GitHub
+refused the merge — first while the required contexts had not reported, then
+again with the aggregator failing. *Runs* and *enforced* are different
+properties; both halves of this finding now have evidence for the second.
+
+The observation stands on its own either way: **this repository has been
+enforcing far less in CI than its own workflow file appears to promise, and
+that gap is invisible from the file.** Reading `.github/workflows/` tells you
+what runs. It does not tell you what blocks.
+
+**Not deployed.** CI configuration and a test.
+
+## §56 Provenance ambiguity was allowed to become tenant authority (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** GitHub #368 and #369. The code and contract defects are fixed;
+deployment evidence is deliberately separate.
+
+The gateway observed a graph URI from another tenant and correctly concluded
+that the value was not grounded in the current intent. It then made the wrong
+category decision: `VERIFY`. That created a proposal a human could approve,
+turning missing provenance into a possible tenant-boundary override.
+
+Grounding and scope are now separate facts. `argument_values_grounded` answers
+whether a value is traceable to task text, schema or authoritative state and
+names failures in `ungrounded_arguments`. `argument_scope_valid` is produced by
+the deployment-owned semantic module and answers whether tenant-qualified
+arguments fall inside the graph binding the executor is configured to reach.
+A confirmed false scope verdict hard-ABSTAINS as
+`cross_tenant_argument_blocked`, before a review item exists. The fresh review
+re-gate evaluates the same boundary, so a proposal created by older code is
+invalidated before any dispatch. An OPA `ESCALATE` cannot replace this ABSTAIN:
+review is not a stricter point in the lattice when the boundary is explicitly
+non-approvable.
+
+The same investigation found two observability collapses. The MCP schema
+described only `owner/repo#123`, although the deployed graph path resolves
+`task:<subject>`. Both deployment-backed forms are now documented. And an
+unavailable intent resolver was indistinguishable in audit from a reference
+the source did not authorise. The audit record now carries
+`intent_resolution_failed` versus `intent_not_authorized`; the public response
+stays generic and fail-closed, so the distinction improves diagnosis without
+becoming an authority oracle.
+
+Mutation coverage includes the exact foreign graph URI, no proposal on the
+initial assess path, invalidation of a pre-existing approved proposal, no
+dispatch record, the OPA non-bypass property, per-argument grounding signals,
+both intent failure classes, and both documented `intent_ref` forms.
+
+**Not deployed.** Source, wire contract, audit contract and tests only.

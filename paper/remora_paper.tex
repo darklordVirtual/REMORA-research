@@ -1,5 +1,5 @@
 ﻿% =====================================================================
-% REMORA: A Policy-Gated Multi-Oracle Assurance Architecture for Agentic AI
+% REMORA: Governed Execution Assurance for Tool-Using AI Agents
 % LaTeX source - suitable for Overleaf, NeurIPS/ICML/ACL workshop templates
 % =====================================================================
 \documentclass[10pt,twocolumn]{article}
@@ -67,12 +67,12 @@
 \newtheorem{lemma}[theorem]{Lemma}
 
 % ---- Metadata -------------------------------------------------------
-\title{REMORA: A Policy-Gated Multi-Oracle\\Assurance Architecture for Agentic AI}
+\title{REMORA: Governed Execution Assurance\\for Tool-Using AI Agents}
 
 % Paper version - kept in lockstep with paper/remora_paper.md by
 % scripts/check_paper_sync.py (CI-enforced). The "v0.10.0" and
 % "revision 2026-08-19" strings below MUST match the .md version line.
-\newcommand{\paperversion}{Preprint v0.10.0, revision 2026-08-19 (synchronized with repository code); repository tag \texttt{review-v1}}
+\newcommand{\paperversion}{Preprint v0.11.0, revision 2026-08-25; repository release tag \texttt{v0.11.0}}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -81,7 +81,7 @@
   \texttt{https://github.com/darklordVirtual/REMORA-research}
 }
 
-\date{\paperversion\ --- \small compiled \today\ by CI from the repository LaTeX source, synchronized with the code as of the revision date above}
+\date{\paperversion\ --- \small compiled \today\ by CI from the repository LaTeX source}
 
 % ---- Notation -------------------------------------------------------
 \newcommand{\Oracles}{\mathcal{O}}
@@ -104,13 +104,24 @@ Autonomous AI agents that invoke tools, query databases, or actuate
 real-world systems need a gate that decides---before anything
 executes---whether an action may proceed autonomously, requires
 verification, warrants abstention, or must be escalated to a human.
-We present \textbf{REMORA} (Reasoning Ensemble Multi-Oracle Routing
-Architecture), a research-grade control layer that makes this decision.
+We present \textbf{REMORA}, a research-grade \emph{governed execution
+assurance} layer for tool-using agents, built on the commitment that an
+agent intention is not an effect. Between a proposed tool call and a
+privileged side effect stands an authority-bound chain: a deterministic
+policy gate deciding one of four auditable outcomes (\textsc{accept},
+\textsc{verify}, \textsc{abstain}, \textsc{escalate}) before anything
+runs; a signed ToolSpec fixing what an approval was granted over; an
+exact-call \texttt{ExecutionLease} binding the decision to one tool, one
+argument set, one target and one policy-bundle identity, under a key
+custody split in which the authority that signs cannot execute and the
+executor cannot sign; a one-time grant consumed at a policy enforcement
+point that re-decides at the execution boundary; and lifecycle records
+that keep \emph{authorized}, \emph{dispatched}, \emph{executed} and
+\emph{verified effect} as distinct, individually evidenced states.
 Several independent language models assess each proposed action in
-parallel; a deterministic policy engine applies hard safety rules that
-no probabilistic score can override; and every action leaves the gate
-as one of four auditable outcomes: \textsc{accept}, \textsc{verify},
-\textsc{abstain}, or \textsc{escalate}.
+parallel, but the deterministic policy floor---not the consensus
+machinery that assists routing---carries the safety result: no
+probabilistic score can override a hard block.
 
 We report three findings.
 
@@ -448,6 +459,33 @@ it composes recognized layers (policy floor, ensemble uncertainty,
 conformal abstention, audit chain) with a claim-governance methodology,
 rather than introducing a new layer type.
 
+\paragraph{Authority-bound execution and execution evidence.}
+A 2026 line of work moves the control point from pre-action screening to
+the authorization and evidence of execution itself. AIRGuard
+\cite{qin2026airguard} names \emph{authority confusion}---untrusted
+context may inform reasoning but must not authorize side effects---and
+enforces least privilege as action-time authorization. Proof-Carrying
+Agent Actions \cite{wang2026pcaa} organizes runtime-neutral governance
+around a portable action certificate with admissibility, approval and
+outcome-closure checkpoints. Proof of Execution \cite{rhodes2026poe}
+formalizes execution evidence as a contract, a causal event stream and a
+replay context with validator-checkable invariants. A survey of agent
+permission systems \cite{michael2026permission} reviews 21 proposals
+and finds none that simultaneously achieves low user burden, formal
+specification and deterministic enforcement. REMORA's position rests on
+explicit \textbf{non-claims}: it is not first with runtime policy
+enforcement, pre-action authorization checks, or agent governance in
+general. What it combines in one reproducible artifact is authority
+provenance (signed ToolSpec), exact-call binding between approved and
+executed action, key-custody separation between decision and execution
+domains, re-policying at the execution boundary, per-component
+trust-base coverage declared on the decision record, explicit
+effect-evidence states in which transport success is never execution,
+and a machine-enforced register of claims and negative results
+governing every number reported here. A mechanism-level crosswalk is
+maintained in the repository
+(\path{docs/research/adjacent-systems-crosswalk-v2.md}).
+
 % =====================================================================
 \section{Problem Statement}
 \label{sec:problem}
@@ -561,6 +599,36 @@ are not deep-frozen) records: request, assessment, gate, reviewer
 context, follow-up request, case history, policy-learning candidate,
 and audit hash-chain entry.
 
+
+\subsection{The Authority-Bound Execution Chain}
+\label{sec:execution-chain}
+
+Deciding and executing are separate trust domains, bound with
+cryptographic identity at every hop. The policy layer issues a
+\texttt{PolicyDecisionToken} (HMAC-SHA256; observation hash binds it to
+one governance call; the \texttt{jti} is consumed exactly once against
+a durable ledger, and an in-memory database is refused as a ``durable''
+backend). What an approval is granted \emph{over} is a signed ToolSpec
+whose identity travels inside the lease; a spec that moved between
+approval and dispatch refuses. Dispatch itself happens only under an
+exact-call \texttt{ExecutionLease}---tenant, actor, tool, canonical
+argument hash, target, policy-bundle identity, single-use nonce,
+expiry---signed with Ed25519 under an architectural custody split: the
+authority domain holds the private key and no tool credential; the
+execution domain holds the public key and the credentials. The
+\texttt{GovernedToolDispatcher} re-verifies the entire binding against
+the concrete call, against the clock the lease was issued under, before
+anything runs. Authorization and result are separate hash-chained
+records, each carrying the per-component trust-base view resolved at
+that moment---the closure record re-reads rather than copies, so a
+stale policy snapshot is detectable as a failed component-level join. A
+crash-consistent outbox records dispatch intent before the effect and
+reconciles stranded dispatches to \textsc{unknown}; effect verification
+is a separate, replay-protected receipt. \textbf{Stated gaps:} the
+decision token remains HMAC-signed (the asymmetric custody claim covers
+the lease layer only); KMS/HSM key management and process-boundary mTLS
+are not implemented; dispatch runs in the API process, with the
+separated-worker deployment tracked openly.
 
 \subsection{The Argument-Resolution Ladder}
 \label{sec:resolution-ladder}
@@ -1556,8 +1624,9 @@ sophisticated adversarial inputs.
 \label{sec:repro}
 
 \textbf{Repository:} \url{https://github.com/darklordVirtual/REMORA-research}.
-\textbf{Release:} \texttt{\paperversion} (this paper is versioned in lockstep
-with the repository release tag).
+\textbf{Release:} \texttt{\paperversion} (a frozen, CI-green commit with
+sdist/wheel checksums published on the GitHub release; this paper is
+versioned in lockstep with it).
 \textbf{Python:} 3.11+.
 
 \begin{lstlisting}
@@ -2020,6 +2089,28 @@ Zhang, M., Huang, M., Shi, R., Guo, L., Peng, C., Yan, P., Zhou, Y.,
 \& Qiu, X.\ (2024).
 Calibrating the confidence of large language models by eliciting fidelity.
 \emph{arXiv:2404.02655}.
+
+\bibitem{qin2026airguard}
+Qin, S., Zhuang, H., Zhou, Y., Han, Y., \& Zhang, X.\ (2026).
+AIRGuard: Guarding agent actions with runtime authority control.
+arXiv:2605.28914.
+
+\bibitem{wang2026pcaa}
+Wang, Z.\ (2026).
+Proof-carrying agent actions: Model-agnostic runtime governance for
+heterogeneous agent systems.
+arXiv:2606.04104.
+
+\bibitem{rhodes2026poe}
+Rhodes, J., \& Kang, G.\ (2026).
+Proof of execution: Runtime verification for governed AI agent actions.
+arXiv:2607.05397.
+
+\bibitem{michael2026permission}
+Michael, A.~E., \& Roesner, F.\ (2026).
+How agents ask for permission: User permissions for AI agents, from
+interfaces to enforcement.
+arXiv:2607.13718.
 
 \end{thebibliography}
 

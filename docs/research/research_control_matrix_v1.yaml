@@ -626,13 +626,17 @@ bibliography:
     - {id: kuncheva-2003-measures, surname: "Kuncheva", year: "2003", role: positioning_only, note: "Ensemble diversity measures."}
     - {id: lakshminarayanan-2017-simple, surname: "Lakshminarayanan", year: "2017", role: positioning_only, note: "Deep ensembles."}
     - {id: mohri-2024-language, surname: "Mohri", year: "2024", role: positioning_only, note: "Conformal factuality; pre-empts the general LLM-abstention move."}
+    - {id: michael-2026-permission, surname: "Michael", year: "2026", arxiv: "2607.13718", role: positioning_only, note: "Agent-permissions survey; names the open low-burden/formal/deterministic triad REMORA is positioned against."}
     - {id: mu-2024-rule, surname: "Mu", year: "2024", role: positioning_only, note: "Rule-based rewards - safety rules in training, not enforcement."}
     - {id: raji-2022-outsider, surname: "Raji", year: "2022", arxiv: "2206.04737", role: positioning_only, note: "Audit-ecosystem design; motivates the replay/transparency framing."}
+    - {id: qin-2026-airguard, surname: "Qin", year: "2026", arxiv: "2605.28914", role: positioning_only, note: "AIRGuard - authority confusion and action-time authorization; explicit non-claim: predates/parallels REMORA on pre-action checks."}
     - {id: rebedea-2023-nemo, surname: "Rebedea", year: "2023", role: positioning_only, note: "NeMo Guardrails."}
+    - {id: rhodes-2026-poe, surname: "Rhodes", year: "2026", arxiv: "2607.05397", role: positioning_only, note: "Proof of Execution - certificate-first execution evidence; REMORA differs by growing evidence out of a deployed enforcement path."}
     - {id: ruan-2024-identifying, surname: "Ruan", year: "2024", role: positioning_only, note: "ToolEmu anticipates the Shadow Mode counterfactual idea."}
     - {id: shamsujjoha-2024-taxonomy, surname: "Shamsujjoha", year: "2024", arxiv: "2408.02205", role: positioning_only, note: "Swiss-cheese guardrail taxonomy."}
     - {id: sharma-2025-constitutional, surname: "Sharma", year: "2025", arxiv: "2501.18837", role: positioning_only, note: "Constitutional classifiers."}
     - {id: shi-2025-progent, surname: "Shi", year: "2025", arxiv: "2504.11703", role: positioning_only, note: "Progent; shelf SHELF-009. Defines the (safety, friction) frontier."}
+    - {id: wang-2026-pcaa, surname: "Wang", year: "2026", arxiv: "2606.04104", role: positioning_only, note: "Proof-Carrying Agent Actions - runtime-portable action certificate; REMORA trades portability for exact-call binding to one kernel."}
     - {id: wang-2023b-lora, surname: "Wang", year: "2023b", arxiv: "2310.00035", role: positioning_only, note: "LoRA ensembles; motivates but does not validate heterogeneous aggregation."}
     - {id: wang-2025-agentspec, surname: "Wang", year: "2025", arxiv: "2503.18666", role: positioning_only, note: "AgentSpec - DSL near-isomorphic to REMORA's policy invariants."}
     - {id: xiang-2025-guardagent, surname: "Xiang", year: "2025", role: positioning_only, note: "GuardAgent."}

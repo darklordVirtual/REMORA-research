@@ -140,7 +140,7 @@ Generative-AI tools have been used during development. AI-generated text or code
 
 ```bibtex
 @misc{remora2026,
-  title  = {REMORA: A Policy-Gated Multi-Oracle Assurance Architecture for Agentic AI},
+  title  = {REMORA: Governed Execution Assurance for Tool-Using AI Agents},
   author = {Skogbrott, Stian},
   year   = {2026},
   url    = {https://github.com/darklordVirtual/REMORA-research},

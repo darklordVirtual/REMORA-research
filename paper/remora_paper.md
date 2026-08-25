@@ -1,12 +1,12 @@
-# REMORA: A Policy-Gated Multi-Oracle Assurance Architecture for Agentic AI
+# REMORA: Governed Execution Assurance for Tool-Using AI Agents
 
 **Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research)
 
-*Paper version v0.10.0 · revision 2026-08-19 (synchronized with repository code) · repository review tag `review-v1`.*
+*Paper version v0.11.0 · revision 2026-08-25 · repository release tag `v0.11.0`.*
 
 <!-- PAPER_SYNC: this version + revision line is the single authority for the
      paper's version stamp. scripts/check_paper_sync.py requires the SAME
-     "v0.10.0" and "revision 2026-08-19" strings to appear in paper/remora_paper.tex
+     "v0.11.0" and "revision 2026-08-25" strings to appear in paper/remora_paper.tex
      (which compiles the PDF), so the .md, .tex and .pdf can never diverge on
      version, date, or the guarded process claims again. To revise the paper:
      bump both strings here, mirror them in the .tex \paperversion/\date, and
@@ -19,7 +19,7 @@
 
 ## Abstract
 
-REMORA is a research-grade **governance overlay** for autonomous AI-agent actions. Before a proposed tool call executes, a gate decides — before anything runs — whether the action may proceed autonomously (ACCEPT), needs verification (VERIFY), warrants abstention (ABSTAIN), or must be escalated to a human (ESCALATE). Several independent language models assess each proposed action in parallel; a deterministic policy engine then applies hard safety rules that no probabilistic score can override; and every decision leaves the gate as a hash-chained `DecisionEnvelope` for audit and replay. Its central architectural commitment is that the deterministic policy floor — not the probabilistic consensus or uncertainty machinery — carries the safety result, and no confident model majority may override a hard block.
+REMORA is a research-grade **governed execution assurance layer** for tool-using AI agents. Its central commitment is that an agent intention is not an effect: between a proposed tool call and a privileged side effect stands an authority-bound chain — a deterministic policy gate deciding ACCEPT/VERIFY/ABSTAIN/ESCALATE before anything runs, a signed ToolSpec fixing what an approval was granted over, an exact-call `ExecutionLease` binding the decision to one tool, one argument set, one target and one policy-bundle identity, a custody separation under which the authority that signs cannot execute and the executor that dispatches cannot sign, a one-time grant consumed at a policy enforcement point that re-decides at the execution boundary, and lifecycle records that keep *authorized*, *dispatched*, *executed* and *verified effect* as distinct, individually evidenced states. The deterministic policy floor — not the probabilistic consensus machinery that assists routing — carries the safety result: no confident model majority can override a hard block, and every decision leaves the gate as a hash-chained `DecisionEnvelope` that declares, per component, which parts of the trust base its evidence covers and which it does not.
 
 We report three findings.
 
@@ -56,14 +56,16 @@ Existing safeguards (RLHF alignment, system prompts, content classifiers) are se
 
 We argue that what is needed is not a *better oracle* but an *assurance layer*: a system that evaluates whether the conditions for autonomous action are met (sufficient consensus, adequate evidence, no policy violations, acceptable uncertainty) before anything is executed. When those conditions are not met, the system must route toward verification, abstention, or human review, and record the reasoning in an auditable envelope.
 
-REMORA demonstrates such a layer. Its core thesis is: **governed autonomy requires explicit routing of uncertainty, not suppression of it.** The system is designed around four principles:
+REMORA demonstrates such a layer. Its core thesis is twofold: **governed autonomy requires explicit routing of uncertainty, not suppression of it** — and **an agent intention is not an effect until an authority-bound execution chain has carried it there and evidenced what actually happened.** The system is designed around six principles:
 
-1. **Measure disagreement explicitly.** Oracle consensus is quantified using information-theoretic observables (entropy H, dissensus D) and mapped to consensus regimes (ordered/critical/disordered).
-2. **Evidence must back critical-phase decisions.** When oracle consensus is near a phase boundary, trust alone cannot route safely; an independent evidence signal is required.
-3. **Policy must override consensus.** Hard blocks (adversarial detection, critical risk, regulatory triggers) take precedence over any majority vote.
-4. **Every decision is auditable.** A hash-linked audit envelope records the full reasoning chain for each gate decision.
+1. **Authority is bound to the exact call.** An approval is granted over a signed ToolSpec and redeemed through an `ExecutionLease` bound to one tool, one argument set, one target environment and one policy-bundle identity; a call that differs in any of these is a different call and holds no authority.
+2. **Decision and execution are separate trust domains.** The component that signs authority holds no downstream credential; the component that dispatches holds no signing key. Grants are single-use, expiring, and re-policied at the enforcement point — approval at decision time is not permission at dispatch time.
+3. **An effect is a claim requiring evidence.** *Authorized*, *dispatched*, *executed* and *verified effect* are distinct recorded states; a transport-level success is never treated as an executed effect, and an unobservable outcome is recorded as UNKNOWN, not guessed.
+4. **Measure disagreement explicitly.** Oracle consensus is quantified using information-theoretic observables (entropy H, dissensus D) and mapped to consensus regimes (ordered/critical/disordered).
+5. **Policy must override consensus.** Hard blocks (adversarial detection, critical risk, regulatory triggers) take precedence over any majority vote, and evidence must back critical-phase decisions where trust alone cannot route safely.
+6. **Every decision is auditable, including what it does not cover.** A hash-linked audit envelope records the full reasoning chain and declares, per trust-base component, what its evidence covers and what it does not.
 
-The contribution of this paper is not a new foundation model, a new training procedure, or a new benchmark. It is a **system architecture and empirical evaluation for governed agentic AI decision control**: a reference implementation, a set of measurable observables, a documented set of negative results, and an honest account of what remains unsolved.
+The contribution of this paper is not a new foundation model, a new training procedure, or a new benchmark. It is a **system architecture and empirical evaluation for governed execution assurance**: an authority-bound execution protocol with a reference implementation, a lifecycle and effect-evidence model, a set of measurable observables, a documented set of negative results under machine-enforced claim governance, and an honest account of what remains unsolved.
 
 ### 1.1 Paper Organization
 
@@ -134,6 +136,8 @@ This is the field REMORA operates in, and the positioning boundaries matter.
 **Regulatory operationalization.** COMPL-AI (Guldimann et al., 2024) provides a technical interpretation of the EU AI Act as model-level benchmarks; REMORA operationalizes a complementary slice at runtime, Article 12 (logging) via the DecisionEnvelope hash chain, Article 14 (human oversight) via VERIFY/ESCALATE routing, without claiming conformity assessment.
 
 **Multi-layer guardrail taxonomies.** A systematic literature review of runtime guardrails (Shamsujjoha et al., 2024) frames multi-layer defense as a Swiss-cheese model; a layered governance architecture with OS-level enforcement is developed in Ge (2026); confidence elicitation by fidelity is treated in Zhang et al. (2024); and formal verification of behavioral safety properties for neural policies in Corsi et al. (2021). REMORA's position relative to these four is that it composes recognized layers (policy floor, ensemble uncertainty, conformal abstention, audit chain) with a claim-governance methodology, rather than introducing a new layer type.
+
+**Authority-bound execution and execution evidence.** A 2026 line of work moves the control point from pre-action screening to the authorization and evidence of execution itself. AIRGuard (Qin et al., 2026) names *authority confusion* — untrusted context may inform reasoning but must not authorize side effects — and enforces least privilege as action-time authorization. Proof-Carrying Agent Actions (Wang, 2026) organizes runtime-neutral governance around a portable action certificate with pre-action admissibility, approval and outcome-closure checkpoints. Proof of Execution (Rhodes & Kang, 2026) formalizes execution evidence as a contract, a causal event stream and a replay context with validator-checkable invariants and a soundness argument under cryptographic assumptions. A survey of agent permission systems (Michael & Roesner, 2026) reviews 21 proposals and finds that no existing system simultaneously achieves low user burden, formally grounded specification and deterministic enforcement. REMORA's position in this line rests on explicit **non-claims**: it is not first with runtime policy enforcement, pre-action authorization checks, or agent governance in general — AgentSpec, Progent and AIRGuard each predate or parallel individual mechanisms here. What REMORA combines in one reproducible artifact is authority provenance (signed ToolSpec), exact-call binding between the approved and the executed action, key-custody separation between decision and execution domains, re-policying at the execution boundary, per-component trust-base coverage declared on the decision record, explicit effect-evidence states in which transport success is never execution, and a machine-enforced register of claims and negative results governing every number this paper reports. Unlike PoE's certificate-first formalization, REMORA's evidence model grew out of a deployed enforcement path and carries its falsification history with it; unlike PCAA's runtime-portable envelope, REMORA binds to one concrete execution kernel and buys exactness at the price of portability. A mechanism-level crosswalk against these systems is maintained in the repository (`docs/research/adjacent-systems-crosswalk-v2.md`), alongside a draft vendor-neutral conformance model (Agent Authority Conformance, A–G) intended to make such comparisons testable rather than narrative.
 
 ---
 
@@ -250,15 +254,19 @@ $$w(o) = \frac{\tfrac{1}{n}}{1 + \sum_{j \neq o} \rho(o, j)} \cdot Z^{-1}$$
 
 where $Z$ normalizes weights to sum to one. Oracles that frequently agree with others receive down-weighted votes; oracles that dissent from the majority receive up-weighted votes. This is an operational heuristic, not a proof of statistical independence.
 
-### 4.4 PDP/PEP Architectural Separation (REM-013)
+### 4.4 The Authority-Bound Execution Chain (PDP/PEP, ToolSpec, Lease, Custody)
 
-REMORA implements a **Policy Decision Point / Policy Enforcement Point** (PDP/PEP) separation in `remora/enforcement/`. The PDP layer (`RemoraDecisionEngine`) produces a `PolicyDecisionToken`, a frozen dataclass carrying the authorized action, an observation hash, a request ID, a timestamp, and an HMAC-SHA256 signature over the canonical JSON payload (signed with `REMORA_PDP_SIGNING_KEY`). The PEP layer (`EnforcementGate`) verifies the signature and allows execution only if:
+REMORA separates **deciding** from **executing** in `remora/enforcement/` and `remora/execution/`, and binds the two with cryptographic identity at every hop. The chain, in deployment order:
 
-1. The signature is valid (HMAC-SHA256, constant-time comparison).
-2. The action is ACCEPT (not VERIFY, ABSTAIN, or ESCALATE).
-3. The observation hash matches the hash at the time of enforcement (prevents token reuse for a different observation).
+**Decision token (PDP → PEP).** The policy layer produces a `PolicyDecisionToken` carrying the authorized action, an observation hash (SHA-256 over the serialized `PolicyObservation`, binding the token to one governance call), a request ID, expiry, and an HMAC-SHA256 signature (`REMORA_PDP_SIGNING_KEY`, constant-time comparison). The `EnforcementGate` admits execution only for a validly signed ACCEPT whose observation hash matches at enforcement time, and consumes the token's `jti` exactly once against a durable ledger — a replayed grant is refused even across process restarts when a durable backend (Postgres/SQLite/state endpoint) is configured, and an in-memory SQLite database is refused as a "durable" backend outright. Without a valid token the gate **fails closed** in strict mode (production default).
 
-Without a valid signed token, the gate **fails closed** in strict mode (production default). Non-strict mode (development) allows unsigned tokens with a warning. The observation hash is SHA-256 of the serialized `PolicyObservation` dataclass, binding the token to a specific governance call. **Gaps acknowledged:** RBAC on the signing key, KMS/HSM key management, and process-boundary token transport (gRPC/mTLS) are not implemented in this version.
+**Signed ToolSpec (authority provenance).** What an approval is granted *over* is a signed tool specification: an approval granted under one spec must never execute under another. The spec identity (hash + version) travels inside the signed lease, and the dispatcher re-resolves the spec in force at the moment of dispatch — a bundle that moved between approval and execution refuses.
+
+**Exact-call ExecutionLease (asymmetric custody).** Dispatch happens only under an `ExecutionLease` bound to tenant, actor, tool name, canonical argument hash, target environment, policy-bundle identity, a single-use nonce, and an expiry window, signed with **Ed25519**. The custody split is architectural (ADR-A, `docs/architecture/ADR-authority-custody-and-lease-durability.md`): the authority domain holds the private key and no downstream tool credential; the execution domain holds only the public verification key and the credentials. A process that cannot sign cannot mint authority; a lease is never trusted because it arrived — `GovernedToolDispatcher` re-verifies the entire binding against the concrete call before anything runs, against the same clock the lease was issued under. The authority→executor hop carries W3C trace context, so the decision span and the dispatch span join into one trace.
+
+**Lifecycle and effect evidence.** Authorization and result are separate hash-chained records (`execution_authorized` before the side effect, `execution_result` after), each carrying the per-component trust-base view resolved at that moment — the closure record re-reads rather than copies, so the two views can disagree and a stale policy snapshot is detectable as a failed component-level join. A crash-consistent outbox records dispatch intent before the effect and reconciles stranded dispatches to UNKNOWN rather than assuming failure; effect verification is a separate, replay-protected receipt: an HTTP 200 is transport, never an executed effect.
+
+**Gaps acknowledged.** The decision *token* remains HMAC-signed (the verifier holds minting material; the asymmetric custody claim covers the lease layer only — recorded in the capability register's caveat, CAP-003). KMS/HSM key management and process-boundary mTLS are not implemented. Dispatch still runs in the API process; the separated-worker deployment is tracked openly (repository issue #82). These are stated as the current boundary of the custody claim, not as footnotes.
 
 ### 4.5 Architectural Import Boundary (REM-016)
 
@@ -1012,7 +1020,7 @@ REMORA is designed to *reduce* unsafe autonomous AI actions, not to enable them.
 
 ## 16. Reproducibility and Artifact Availability
 
-**Repository:** Available at [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research). Release tag: `review-v1` (see the version line at the top of this paper).
+**Repository:** Available at [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research). Release tag: `v0.11.0` — a frozen, CI-green commit with sdist/wheel checksums published on the GitHub release; the paper is versioned in lockstep with it (see the version line at the top of this paper).
 
 **Python version:** 3.11+
 
@@ -1040,7 +1048,7 @@ make credibility-pack
 ```
 python -m pytest tests/ -q
 ```
-Expected: 3,181+ individual tests passing across 120+ test files (count grows with the suite; treat CI output as authoritative).
+Expected: 6,000+ individual tests passing across 250+ test files (count grows with the suite; treat CI output as authoritative).
 
 **Key benchmark reproductions:**
 ```
@@ -1185,6 +1193,8 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 - Mohri, C. & Hashimoto, T. (2024). Language models with conformal factuality guarantees. *ICML 2024*.
 
+- Michael, A. E., & Roesner, F. (2026). How agents ask for permission: User permissions for AI agents, from interfaces to enforcement. arXiv:2607.13718.
+
 - Mu, T., Helyar, A., et al. (2024). Rule based rewards for language model safety. *NeurIPS 2024*.
 
 - Open Policy Agent contributors. (2024). Open Policy Agent. https://www.openpolicyagent.org/
@@ -1195,7 +1205,11 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 
 - Ramdas, A., Grünwald, P., Vovk, V., & Shafer, G. (2023). Game-theoretic statistics and safe anytime-valid inference. *Statistical Science, 38*(4), 576–601.
 
+- Qin, S., Zhuang, H., Zhou, Y., Han, Y., & Zhang, X. (2026). AIRGuard: Guarding agent actions with runtime authority control. arXiv:2605.28914.
+
 - Rebedea, T., et al. (2023). NeMo Guardrails: A toolkit for controllable and safe LLM applications with programmable rails. *EMNLP 2023 System Demonstrations*.
+
+- Rhodes, J., & Kang, G. (2026). Proof of execution: Runtime verification for governed AI agent actions. arXiv:2607.05397.
 
 - Ruan, Y., et al. (2024). Identifying the risks of LM agents with an LM-emulated sandbox (ToolEmu). *ICLR 2024*.
 
@@ -1216,6 +1230,8 @@ Where AI-assisted output informed implementation or prose, the final responsibil
 - Vovk, V., Gammerman, A., & Shafer, G. (2005). *Algorithmic Learning in a Random World.* Springer.
 
 - Wang, H., Poskitt, C. M., et al. (2025). AgentSpec: Customizable runtime enforcement for safe and reliable LLM agents. arXiv:2503.18666.
+
+- Wang, Z. (2026). Proof-carrying agent actions: Model-agnostic runtime governance for heterogeneous agent systems. arXiv:2606.04104.
 
 - Wang, X., Aitchison, L., & Rudolph, M. (2023b). LoRA ensembles for large language model fine-tuning. *arXiv:2310.00035*. https://arxiv.org/abs/2310.00035. doi:10.48550/arXiv.2310.00035
 
