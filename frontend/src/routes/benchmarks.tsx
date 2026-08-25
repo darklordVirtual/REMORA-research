@@ -444,9 +444,16 @@ function useGithubRuns() {
   }, []);
 
   useEffect(() => {
-    void load();
+    // Scheduled, not called: load() flips state to "loading" synchronously,
+    // and doing that inside the effect body cascades a pre-paint re-render
+    // (react-hooks/set-state-in-effect). The initial state already IS
+    // "loading", so the first paint loses nothing by fetching one tick later.
+    const kick = window.setTimeout(() => void load(), 0);
     const id = window.setInterval(() => void load(), 60_000);
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearTimeout(kick);
+      window.clearInterval(id);
+    };
   }, [load]);
 
   return { runState, refresh: load };
@@ -490,9 +497,16 @@ function useBenchmarkArtifacts() {
   }, []);
 
   useEffect(() => {
-    void load();
+    // Scheduled, not called: load() flips state to "loading" synchronously,
+    // and doing that inside the effect body cascades a pre-paint re-render
+    // (react-hooks/set-state-in-effect). The initial state already IS
+    // "loading", so the first paint loses nothing by fetching one tick later.
+    const kick = window.setTimeout(() => void load(), 0);
     const id = window.setInterval(() => void load(), 60_000);
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearTimeout(kick);
+      window.clearInterval(id);
+    };
   }, [load]);
 
   return { artifactState, dashboard: artifactState.dashboard, refreshArtifacts: load };

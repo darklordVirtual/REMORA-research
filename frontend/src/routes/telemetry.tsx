@@ -64,7 +64,7 @@ function readSessionKpi(): SessionKPI | null {
 
 function TelemetryPage() {
   const data = useMemo(() => buildTelemetry(30), []);
-  const session = useMemo(readSessionKpi, []);
+  const session = useMemo(() => readSessionKpi(), []);
 
   const totals = data.reduce(
     (a, d) => ({

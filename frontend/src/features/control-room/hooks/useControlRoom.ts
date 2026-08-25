@@ -202,7 +202,10 @@ let _seq = 0;
 let _liveSeq = 1000;
 
 export function useControlRoom() {
-  const initialStateRef = useRef<State>({
+  // Lazy initializer, not a ref: the ref existed only to freeze the initial
+  // state, which is exactly what useReducer's third argument is for -- and
+  // reading a ref during render is unsound (the read never re-fires).
+  const [state, dispatch] = useReducer(reducer, undefined, (): State => ({
     active: CR_SCENARIOS[0],
     running: false,
     trace: null,
@@ -218,9 +221,7 @@ export function useControlRoom() {
     inboxHeight: 220,
     inboxTab: "escalations",
     autoHandled: [],
-  });
-
-  const [state, dispatch] = useReducer(reducer, initialStateRef.current);
+  }));
 
   // Persist KPI
   useEffect(() => {

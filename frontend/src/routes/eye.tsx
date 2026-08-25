@@ -817,6 +817,11 @@ export default function EyePage() {
 
           {/* The eye */}
           <div className="relative z-10 select-none">
+            {/* The pulse accumulator is written by the animation ticker and
+                sampled here once per tick; the `tick` state in the same props
+                is what forces this render, so the read is fresh by
+                construction. Making it state would double every ticker write. */}
+            {/* eslint-disable-next-line react-hooks/refs */}
             <GovernanceEye live={live} tick={tick} pulse={pulseRef.current} />
 
             {/* Center overlay */}
