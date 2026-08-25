@@ -9,6 +9,11 @@ abstract: >-
 authors:
   - family-names: "Skogbrott"
     given-names: "Stian"
+    # orcid: pending — requires the author's ORCID iD (issue #390)
+version: "0.11.0"
+date-released: "2026-08-25"
+# doi: pending — added when the Zenodo archive of the v0.11.0 tag exists
+# (issue #390, P2)
 repository-code: "https://github.com/darklordVirtual/REMORA-research"
 license: BUSL-1.1
 type: software
