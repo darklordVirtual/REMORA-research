@@ -261,6 +261,13 @@ jobs:
         # register state, README stays under its line budget.
         run: python scripts/check_document_governance.py
 
+      - name: Shipped-surfaces matrix
+        # Every advertised surface names the CI jobs that guard it (issue
+        # #84); this binds each reference to a live workflow job id and
+        # ratchets the surface count so a surface cannot quietly stop being
+        # checked by being deleted from the register.
+        run: python scripts/check_shipped_surfaces.py
+
       - name: Capability verification binding
         # Every capability status/caveat is a claim about code. A capability
         # carrying verified_at_sha whose implementation moved since that commit

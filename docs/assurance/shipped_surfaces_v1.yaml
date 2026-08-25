@@ -1,0 +1,109 @@
+# Shipped-surfaces matrix (issue #84).
+#
+# One explicit statement of every advertised surface and the CI contract that
+# guards it, so "green CI" has a stable meaning for an external reviewer: a
+# surface listed here is checked by the named jobs on every push, and a
+# surface NOT listed here is not advertised as shipped.
+#
+# scripts/check_shipped_surfaces.py enforces, HARD:
+#   - every `job` reference resolves to a real job in .github/workflows/;
+#   - every surface carries at least one `smoke` and at least one of
+#     `type`/`lint`, plus `artifact` where it declares one;
+#   - the surface count never drops below `surface_baseline` — the matrix is
+#     additive, so a surface cannot quietly stop being checked by being
+#     deleted from this file. Raising the baseline is part of adding a
+#     surface; lowering it requires retiring the surface in the same change,
+#     visibly.
+#
+# `job` references use "<workflow-file>:<job-id>". Job ids are stable across
+# renames of the display name, which is what makes them bindable.
+
+schema_version: "1"
+updated: "2026-08-25"
+
+# Ratchet: the number of surfaces may grow, never silently shrink.
+surface_baseline: 9
+
+surfaces:
+  - name: source-checkout
+    description: >-
+      The repository as cloned: the full test suite, lint and type gates run
+      against the working tree on every push.
+    contracts:
+      - { kind: smoke, job: "ci.yml:test" }
+      - { kind: lint, job: "quality-gates.yml:verify" }
+      - { kind: type, job: "quality-gates.yml:verify" }
+      - { kind: test, job: "ci.yml:test" }
+
+  - name: wheel
+    description: >-
+      The built distribution, installed (not editable) into a clean
+      environment; proves the packaged artifact carries the CLI/API contract.
+    contracts:
+      - { kind: smoke, job: "ci.yml:wheel-contract" }
+      # The contract job runs the CLI/API checks against the installed wheel,
+      # which is the functional test of the packaged artifact.
+      - { kind: test, job: "ci.yml:wheel-contract" }
+      - { kind: artifact, job: "ci.yml:wheel-contract" }
+
+  - name: cli
+    description: >-
+      The `remora` console entrypoint, exercised from the installed wheel
+      rather than the checkout.
+    contracts:
+      - { kind: smoke, job: "ci.yml:wheel-contract" }
+      - { kind: type, job: "quality-gates.yml:verify" }
+
+  - name: rest-assess
+    description: >-
+      The /v1/assess research surface: FastAPI app, envelope schema and
+      OpenAPI contract.
+    contracts:
+      - { kind: smoke, job: "ci.yml:test" }
+      - { kind: type, job: "quality-gates.yml:verify" }
+      - { kind: artifact, job: "quality-gates.yml:verify" }
+
+  - name: execution-api-sqlite
+    description: >-
+      The /v1/execution/* enforcing path over the SQLite durable backend —
+      the default self-hosted configuration.
+    contracts:
+      - { kind: smoke, job: "ci.yml:test" }
+      - { kind: type, job: "quality-gates.yml:verify" }
+      - { kind: test, job: "ci.yml:deterministic-round" }
+
+  - name: execution-api-postgres
+    description: >-
+      The same enforcing path against a real Postgres service, covering the
+      tenant chain, outbox and one-time-grant ledger contracts.
+    contracts:
+      - { kind: smoke, job: "ci.yml:postgres-contract" }
+      - { kind: test, job: "ci.yml:postgres-contract" }
+
+  - name: frontend
+    description: >-
+      The Vite/TanStack frontend: lint at zero warnings, typecheck, tests and
+      dependency audit.
+    contracts:
+      - { kind: smoke, job: "quality-gates.yml:verify" }
+      - { kind: lint, job: "quality-gates.yml:verify" }
+      - { kind: type, job: "quality-gates.yml:verify" }
+      - { kind: audit, job: "supply-chain.yml:npm-audit" }
+
+  - name: workers
+    description: >-
+      The five advertised Cloudflare Workers (agent-control, aromer,
+      law-search, mcp-gateway, rag-oracle): typecheck matrix, envelope
+      parity, and dependency audit.
+    contracts:
+      - { kind: type, job: "quality-gates.yml:worker-typecheck" }
+      - { kind: smoke, job: "quality-gates.yml:worker-envelope-parity" }
+      - { kind: audit, job: "supply-chain.yml:npm-audit" }
+
+  - name: policy-bundle
+    description: >-
+      The OPA/Rego policy surface: conformance of the example bundle against
+      the Python engine's decisions.
+    contracts:
+      - { kind: smoke, job: "ci.yml:opa-conformance" }
+      - { kind: test, job: "ci.yml:opa-conformance" }
