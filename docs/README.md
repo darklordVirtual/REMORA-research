@@ -101,6 +101,7 @@ The [governed MCP gateway design](design/cloudflare-mcp-gateway-v1.md) is an ope
 | [Multi-tenant security model](architecture/multi_tenant_security_model.md) | Tenant boundaries, threat table with test evidence, open gaps |
 | [Cloudflare state architecture](architecture/cloudflare_state_architecture.md) | Design: DO/D1/R2/KV/Workflows placement rules, tenant keying, secrets custody |
 | [release_gates.md](assurance/release_gates.md) | Profile gate status |
+| [shipped_surfaces_v1.yaml](assurance/shipped_surfaces_v1.yaml) | Advertised surfaces bound to the CI jobs that guard them (issue #84) |
 | [artifact_manifest_v1.md](assurance/artifact_manifest_v1.md) | Result artifact hashes |
 | [superseded_claims.md](assurance/superseded_claims.md) | Replaced claims and successors |
 | [claim_provenance_baseline.json](assurance/claim_provenance_baseline.json) | Grandfathered provenance exceptions |
