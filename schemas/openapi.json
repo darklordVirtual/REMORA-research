@@ -71,6 +71,19 @@
             ],
             "title": "Domain"
           },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 8,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
           "question": {
             "maxLength": 4096,
             "minLength": 1,

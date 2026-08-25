@@ -638,6 +638,8 @@ export interface components {
             context?: string | null;
             /** Domain */
             domain?: string | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
             /** Question */
             question: string;
             /** Risk Tier */

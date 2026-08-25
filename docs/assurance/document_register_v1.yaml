@@ -2317,6 +2317,21 @@ documents:
   last_reviewed: '2026-08-25'
   validates_against: []
   claims: []
+- id: DOC-326
+  code_synced: verified
+  verdict: current
+  path: docs/architecture/ADR-canonical-decision-engine.md
+  status: canonical
+  topic: docs_adr_canonical_decision_engine
+  owner: darklordVirtual
+  audience:
+  - integrators
+  - evaluators
+  last_validated: '2026-08-25'
+  last_audited: '2026-08-25'
+  last_reviewed: '2026-08-25'
+  validates_against: []
+  claims: []
 topics:
 - docs_integrations_mcp-gateway_md
 - docs_design_cloudflare-mcp-gateway-v1_md
@@ -2578,3 +2593,4 @@ topics:
 - docs_deployment_authority_key_topology
 - docs_research_adjacent_systems_crosswalk_v2
 - docs_assurance_shipped_surfaces_v1_yaml
+- docs_adr_canonical_decision_engine
