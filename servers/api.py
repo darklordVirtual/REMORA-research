@@ -1695,7 +1695,9 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     uptime_seconds: float
-    oracle_count: int
+    # None until the first engine build: health answers from observation,
+    # not configuration, and must stay cheap enough for a liveness probe.
+    oracle_count: int | None
 
 
 class ReviewRequest(BaseModel):
@@ -1757,6 +1759,14 @@ def _summarize_evidence_for_context(evidence_rows: list[dict[str, Any]]) -> str:
 # Engine factory — replace with a singleton pool in production
 # ---------------------------------------------------------------------------
 
+#: Size of the most recently built oracle swarm. None until an engine has
+#: been built -- /v1/health reports this observed value rather than a
+#: constant, because a liveness probe must not instantiate oracle backends
+#: to answer, and the previous hardcoded 3 was simply false for every
+#: non-default backend (issue #45 gap 7).
+_LAST_ORACLE_COUNT: int | None = None
+
+
 def _make_engine() -> Remora:
     """Return a Remora instance with configured oracle backend."""
     from remora.oracles.factory import build_swarm
@@ -1788,6 +1798,8 @@ def _make_engine() -> Remora:
         enable_thermodynamic_control=True,
         enable_routing=True,
     )
+    global _LAST_ORACLE_COUNT
+    _LAST_ORACLE_COUNT = len(oracles)
     return Remora(
         oracles=oracles,
         genome=genome,
@@ -2183,7 +2195,7 @@ def health() -> HealthResponse:
         status="ok",
         version=_PACKAGE_VERSION,
         uptime_seconds=round(time.time() - _START_TIME, 1),
-        oracle_count=3,
+        oracle_count=_LAST_ORACLE_COUNT,
     )
 
 

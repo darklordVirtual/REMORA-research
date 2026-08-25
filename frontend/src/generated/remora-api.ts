@@ -1069,7 +1069,7 @@ export interface components {
         /** HealthResponse */
         HealthResponse: {
             /** Oracle Count */
-            oracle_count: number;
+            oracle_count: number | null;
             /** Status */
             status: string;
             /** Uptime Seconds */
