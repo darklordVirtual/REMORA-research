@@ -58,9 +58,15 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 99a71fdb8ca25cbdbcbe6d98e266b48487b20d70
+    verified_at_sha: a1cf777a9d6570ad748dc0a3dd861c0621e2b731
     verified_by: >-
-      re-audit 2026-08-24 for RMR-004: the signed ToolSpec identity the lease
+      re-audit 2026-08-25 for the cross-tenant argument gate (#368): commit
+      a1cf777a touches servers/execution_api.py only inside
+      semantic_call_context, which assembles the semantic signal dict handed
+      to the decision engine. Token issuance, _GATE, the audience/expiry
+      checks and jti one-time consumption were re-read and are unchanged; the
+      change adds refusal signals and grants nothing, so status and scope are
+      unchanged. Prior: re-audit 2026-08-24 for RMR-004: the signed ToolSpec identity the lease
       already carried is now compared at the final PEP, and an unresolvable
       bundle refuses rather than falling through. This closes a check that
       was claimed by the lease contract and not performed; it adds no new
@@ -196,8 +202,14 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 99a71fdb8ca25cbdbcbe6d98e266b48487b20d70
+    verified_at_sha: a1cf777a9d6570ad748dc0a3dd861c0621e2b731
     verified_by: >-
+      re-audit 2026-08-25 for the cross-tenant argument gate (#368): commit
+      a1cf777a touches servers/execution_api.py only inside
+      semantic_call_context. The lease binding set, nonce consumption, the
+      signed-lease custody split and the dispatch route were re-read and are
+      unchanged; the change adds an argument-scope refusal signal ahead of
+      dispatch and widens nothing, so status and scope are unchanged. Prior:
       post-merge re-audit 2026-08-24: #358 squash commit a800194e contains the
       content-identical audited PR tree. Terminal effect-receipt uniqueness and audit
       evidence now commit in one append_once operation; concurrent and
