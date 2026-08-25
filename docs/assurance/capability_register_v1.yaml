@@ -58,7 +58,7 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 1ebf7c197b8a791307a21041440b35bce94921be
+    verified_at_sha: 651575eb3833f3e94cfa644a65c4e343c0ffe88f
     verified_by: >-
       re-audit 2026-08-25 for the exception-taxonomy rebase (#45 gap 4): lease.py and nonce_store.py exceptions gain the RemoraError base and code/category attributes; every existing builtin base is kept via multiple inheritance so no catch site changes behaviour. Token issuance, _GATE, the binding set, nonce consumption and dispatch are unchanged; nothing is granted. Prior: rebound to the reachable squash commit of #384 -- the branch commit the previous binding named was garbage-collected with its branch, which a strict CI checkout reports as UNKNOWN. Content-identical by construction: the squash carries the audited tree. Same re-audit: for the clock-consistency and memory-database fixes (#379): gate.py gains a refusal of :memory: ledgers before DDL and nonce_store.py the same; dispatch.py passes its supplied clock through to lease verification. All three narrow what the capability permits -- a broken backend and a clock mismatch now refuse where they previously misbehaved -- and none adds a permission, so status and scope are unchanged. Prior: post-merge re-audit 2026-08-25: rebound to dc3b1ee, the squash commit of
       #377, verified content-identical on every evidence file against the PR
@@ -213,7 +213,7 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 1ebf7c197b8a791307a21041440b35bce94921be
+    verified_at_sha: 651575eb3833f3e94cfa644a65c4e343c0ffe88f
     verified_by: >-
       re-audit 2026-08-25 for the trust-base coverage declaration (#377): the
       change adds _policy_coverage(), a read-only digest provider, and passes
