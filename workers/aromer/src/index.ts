@@ -2908,8 +2908,12 @@ or: {"injection":false,"confidence":0.90,"reason":"clean content"}`;
     });
 
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return json({ injection_confidence: 0.5, verdict: 'VERIFY', error: msg }, 200);
+    // Detail to the Worker log, class to the caller: the message names model
+    // ids and binding internals (CodeQL js/stack-trace-exposure), and the
+    // caller's contract is the safe VERIFY fallback either way.
+    console.error('[AROMER] injection scoring failed:', e instanceof Error ? (e.stack ?? e.message) : String(e));
+    const kind = e instanceof Error ? e.name : 'Error';
+    return json({ injection_confidence: 0.5, verdict: 'VERIFY', error: kind }, 200);
   }
 }
 
@@ -2964,8 +2968,11 @@ Reply with one word only (low/medium/high/critical):`;
     if (raw.startsWith('low'))  return { tier: 'low',      raw };
     return { tier: fallback, raw, error: 'parse_fail' };
   } catch (e: unknown) {
-    const err = e instanceof Error ? e.message : String(e);
-    return { tier: fallback, raw: '', error: err.slice(0, 120) };
+    // This error string reaches the /assess response inside semantic.debug,
+    // so it gets the class only; the message (model ids, binding detail)
+    // goes to the Worker log (CodeQL js/stack-trace-exposure).
+    console.error('[AROMER] semantic risk classification failed:', e instanceof Error ? (e.stack ?? e.message) : String(e));
+    return { tier: fallback, raw: '', error: e instanceof Error ? e.name : 'Error' };
   }
 }
 

@@ -763,7 +763,12 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
     upstream_url = result.upstream_url;
   } catch (e) {
     success = false;
-    output = { error: e instanceof Error ? e.message : String(e) };
+    // Detail to the log, class to the caller and the audit record: e.message
+    // from a failed fetch names the resolved upstream URL (CodeQL
+    // js/stack-trace-exposure). The audit hashes the same sanitized output
+    // the caller received, so the two cannot drift.
+    console.error("tool execution failed:", e instanceof Error ? (e.stack ?? e.message) : String(e));
+    output = { error: e instanceof Error ? e.name : "Error" };
   }
 
   const duration_ms = Date.now() - t0;
@@ -1192,7 +1197,8 @@ export default {
         const body = await r.text();
         results.remora_status = { http: r.status, body: body.slice(0, 300) };
       } catch (e) {
-        results.remora_status = { error: String(e) };
+        console.error("test-bindings remora fetch failed:", e instanceof Error ? (e.stack ?? e.message) : String(e));
+        results.remora_status = { error: e instanceof Error ? e.name : "Error" };
       }
 
       try {
@@ -1200,7 +1206,8 @@ export default {
         const body = await r.text();
         results.law_status = { http: r.status, body: body.slice(0, 300) };
       } catch (e) {
-        results.law_status = { error: String(e) };
+        console.error("test-bindings law fetch failed:", e instanceof Error ? (e.stack ?? e.message) : String(e));
+        results.law_status = { error: e instanceof Error ? e.name : "Error" };
       }
 
       return json(results);
