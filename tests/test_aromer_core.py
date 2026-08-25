@@ -5,6 +5,7 @@ Workers AI (MetaJudge) is stubbed by disabling run_meta_judge=False.
 """
 from __future__ import annotations
 
+import os
 import tempfile
 from pathlib import Path
 
@@ -184,7 +185,13 @@ def test_episode_summary_undefined_rates_when_no_benign_episodes():
 # ---------------------------------------------------------------------------
 
 def _tmp_store() -> EpisodicStore:
-    tmp = tempfile.mktemp(suffix=".jsonl")
+    # mkstemp, not mktemp: mktemp returns a name and leaves the creation race
+    # open, so anything on the machine can win it (CodeQL
+    # py/insecure-temporary-file). The fd is closed immediately because the
+    # store opens the path itself; what matters is that the file now exists
+    # with this process's ownership before the name is handed on.
+    fd, tmp = tempfile.mkstemp(suffix=".jsonl")
+    os.close(fd)
     return EpisodicStore(tmp)
 
 
@@ -316,8 +323,10 @@ def test_store_persists_across_load():
 # ---------------------------------------------------------------------------
 
 def _tmp_prior() -> DomainHarmPrior:
+    # See _tmp_store: mkstemp closes the creation race mktemp leaves open.
     import tempfile
-    tmp = tempfile.mktemp(suffix=".json")
+    fd, tmp = tempfile.mkstemp(suffix=".json")
+    os.close(fd)
     return DomainHarmPrior(tmp)
 
 

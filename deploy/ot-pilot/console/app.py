@@ -48,6 +48,40 @@ TOKENS = {
 }
 
 
+#: Request ids are opaque identifiers minted by the governed API. Constrained
+#: here because this value is interpolated into an outbound URL: without it a
+#: caller supplies `../../v1/anything` and the console fetches an endpoint the
+#: proxy never meant to expose, using a token the caller does not hold
+#: (CodeQL py/partial-ssrf). Deliberately narrower than any id the API mints.
+_REQUEST_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+
+#: Paths this console will proxy. An allowlist rather than a pattern: the
+#: console exists to demonstrate the governed surface, and every path it needs
+#: is known at build time. A pattern would have to anticipate traversal,
+#: scheme-relative values and encoded separators; an allowlist does not.
+_PROXYABLE_PATHS = frozenset({
+    "/v1/execution/assess",
+    "/v1/execution/execute",
+    "/v1/execution/dispatch-leased",
+    "/v1/execution/review",
+    "/v1/assess",
+    "/v1/rerun",
+})
+
+
+def _proxy_failure(exc: Exception) -> dict:
+    """Describe an upstream failure without handing the caller a stack trace.
+
+    str(exc) on httpx and json errors carries the resolved upstream URL and
+    occasionally a fragment of the response body (CodeQL py/stack-trace-
+    exposure). The operator needs to know the call did not complete and what
+    kind of failure it was; the detail belongs in the console's own log.
+    """
+    print(f"[console] upstream call failed: {exc!r}", file=sys.stderr)
+    return {"error": type(exc).__name__,
+            "detail": "upstream call failed; see console logs"}
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index() -> Response:
     """Serve the built pilot UI — loudly absent when it has not been built."""
@@ -122,7 +156,9 @@ async def diagnostics() -> JSONResponse:
 @app.get("/api/envelope/{request_id}")
 async def envelope(request_id: str) -> JSONResponse:
     """Proxy envelope retrieval so the showcase can inspect and export a stored envelope."""
-    async with httpx.AsyncClient(timeout=10) as client:
+    if not _REQUEST_ID.match(request_id):
+        return JSONResponse({"error": "malformed request_id"}, status_code=400)
+    async with httpx.AsyncClient(timeout=10, follow_redirects=False) as client:
         try:
             r = await client.get(
                 f"{API}/v1/envelope/{request_id}",
@@ -130,9 +166,9 @@ async def envelope(request_id: str) -> JSONResponse:
             )
             if r.status_code == 200:
                 return JSONResponse(r.json())
-            return JSONResponse({"error": f"HTTP {r.status_code}", "detail": r.text[:160]})
+            return JSONResponse({"error": f"HTTP {r.status_code}"})
         except Exception as exc:  # noqa: BLE001
-            return JSONResponse({"error": type(exc).__name__, "detail": str(exc)[:160]})
+            return JSONResponse(_proxy_failure(exc))
 
 
 @app.post("/api/call")
@@ -146,8 +182,14 @@ async def call(request: Request) -> JSONResponse:
     role = str(body.get("role", "operator"))
     token = TOKENS.get(role, TOKENS["operator"])
     path = str(body.get("path", "/v1/execution/assess"))
+    if path not in _PROXYABLE_PATHS:
+        return JSONResponse(
+            {"status": 0, "body": {"error": "path is not proxyable by this console"},
+             "role": role, "path": path},
+            status_code=400,
+        )
     payload = body.get("payload") or {}
-    async with httpx.AsyncClient(timeout=30) as client:
+    async with httpx.AsyncClient(timeout=30, follow_redirects=False) as client:
         try:
             r = await client.post(f"{API}{path}", json=payload,
                                   headers={"Authorization": f"Bearer {token}"})
@@ -158,7 +200,7 @@ async def call(request: Request) -> JSONResponse:
             return JSONResponse({"status": r.status_code, "body": data,
                                  "role": role, "path": path})
         except Exception as exc:  # noqa: BLE001
-            return JSONResponse({"status": 0, "body": {"error": str(exc)[:200]},
+            return JSONResponse({"status": 0, "body": _proxy_failure(exc),
                                  "role": role, "path": path})
 
 

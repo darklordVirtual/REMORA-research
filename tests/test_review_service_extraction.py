@@ -97,6 +97,15 @@ def test_queue_refusal_becomes_conflict() -> None:
 
     deps, _ = _deps({}, {"i1": "t1"})
     deps["transaction"] = transaction
-    with pytest.raises(ReviewConflict, match="not pending"):
+    with pytest.raises(ReviewConflict) as caught:
         reject_item(tenant="t1", principal="rev", item_id="i1",
                     reason="x", **deps)
+    # The refusal still reaches the caller, but as this endpoint's own
+    # contract rather than the queue's internal message: that message becomes
+    # an HTTP 409 detail and can name internal state
+    # (CodeQL py/stack-trace-exposure).
+    assert "not in a rejectable state" in str(caught.value)
+    assert "not pending" not in str(caught.value)
+    # Not discarded -- the original rides the exception chain, so the log and
+    # a debugger still have it.
+    assert "not pending" in str(caught.value.__cause__)

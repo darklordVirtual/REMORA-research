@@ -1677,8 +1677,13 @@ async function handleLog(env: Env, url: URL): Promise<Response> {
   try {
     return await _handleLogImpl(env, url);
   } catch (e) {
-    const msg = e instanceof Error ? e.message + '\n' + (e.stack ?? '') : String(e);
-    return json({ error: 'handleLog failed', detail: msg }, 500);
+    // The stack goes to the Worker log, never to the caller: it names internal
+    // module paths and call structure, and /log is reachable by anyone who can
+    // reach the Worker (CodeQL js/stack-trace-exposure). The caller gets the
+    // failure and its class, which is what a client can act on.
+    console.error('[AROMER] handleLog failed:', e instanceof Error ? (e.stack ?? e.message) : String(e));
+    const kind = e instanceof Error ? e.name : 'Error';
+    return json({ error: 'handleLog failed', detail: kind + '; see Worker logs' }, 500);
   }
 }
 
