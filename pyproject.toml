@@ -181,3 +181,38 @@ markers = [
     "rem014_gate: REM-014 structural verification of the imported AgentHarm artifact",
     "opa_gate: OPA/Rego conformance tests (skip automatically when the opa binary is absent)",
 ]
+
+[tool.mutmut]
+# Issue #280: mutation testing over the grant/lease/PEP consumption paths.
+# Scoped deliberately: these four files carry the one-time-consumption and
+# exact-call-binding guarantees, and the selected tests are the remora-only
+# suites that exercise them (~10 s), so a full mutant sweep stays tractable.
+# Run from WSL/Linux (mutmut has no native Windows support):
+#   mutmut run && mutmut results
+source_paths = ["remora"]
+only_mutate = [
+    "remora/enforcement/token.py",
+    "remora/enforcement/gate.py",
+    "remora/enforcement/lease.py",
+    "remora/enforcement/nonce_store.py",
+]
+# The refusal tests import servers.api inside test functions, and api.py
+# hashes schemas/ files at import; both must exist in the mutants sandbox.
+also_copy = ["servers/", "schemas/"]
+pytest_add_cli_args = ["-q", "-p", "no:cacheprovider"]
+pytest_add_cli_args_test_selection = [
+    "tests/test_token_golden_vectors.py",
+    "tests/test_token_key_lifecycle.py",
+    "tests/test_execution_lease.py",
+    "tests/test_lease_signing_contracts.py",
+    "tests/test_lease_verification_contracts.py",
+    "tests/test_lease_authority_custody.py",
+    "tests/test_lease_nonce_durability.py",
+    "tests/test_custody_split_dispatch.py",
+    "tests/test_enforcement_gate_timestamps.py",
+    "tests/test_enforcement_ledger_sqlite.py",
+    "tests/test_enforcement_properties.py",
+    "tests/test_gate_replay_properties.py",
+    "tests/test_dispatch_clock_consistency.py",
+    "tests/test_sqlite_memory_refused.py",
+]

@@ -102,3 +102,7 @@ coverage.json
 infographic/
 ids_out.yaml
 tmp/
+
+# mutmut working tree and cache (issue #280)
+mutants/
+.mutmut-cache

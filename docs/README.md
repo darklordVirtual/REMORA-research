@@ -138,6 +138,7 @@ The [governed MCP gateway design](design/cloudflare-mcp-gateway-v1.md) is an ope
 | [human_oversight_operations_v1.md](assurance/human_oversight_operations_v1.md) | Human-oversight operations |
 | [resilience_plan_v1.md](assurance/resilience_plan_v1.md) | Resilience plan |
 | [reproducibility_scorecard_v1.md](assurance/reproducibility_scorecard_v1.md) | Reproducibility scorecard |
+| [mutation_testing_v1.md](assurance/mutation_testing_v1.md) | Measured mutation pass over the grant/lease/PEP paths; kill rates, survivor triage, golden-vector fix (issue #280) |
 | [domain_pack_governance_v1.md](assurance/domain_pack_governance_v1.md) | Domain-pack governance |
 | [aromer_memory_governance_v1.md](assurance/aromer_memory_governance_v1.md) | AROMER memory governance |
 
