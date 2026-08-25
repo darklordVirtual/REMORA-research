@@ -922,8 +922,15 @@
       "HealthResponse": {
         "properties": {
           "oracle_count": {
-            "title": "Oracle Count",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oracle Count"
           },
           "status": {
             "title": "Status",

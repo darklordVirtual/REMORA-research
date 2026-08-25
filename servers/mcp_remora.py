@@ -56,7 +56,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from remora.legal.citation_existence import resolve_citation_existence  # noqa: E402
 from typing import Any
 
-logging.basicConfig(level=logging.ERROR, stream=sys.stderr)
+# stderr only -- stdout carries JSON-RPC and must stay clean. WARNING, not
+# ERROR: the previous level silenced every oracle-failure and degradation
+# warning the rest of remora emits, so an MCP deployment ran with the
+# operational record turned off (issue #45 gap 7). Errors were never the
+# problem; the silence about everything below them was.
+logging.basicConfig(level=logging.WARNING, stream=sys.stderr)
 
 # ── Privacy profiles (Phase 9) ────────────────────────────────────────────────
 # The MCP server never sends content off the machine unless a remote profile
