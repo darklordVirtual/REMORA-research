@@ -56,6 +56,8 @@ from a probe that had read the wrong key (NEGATIVE_RESULTS section 49).
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -80,13 +82,16 @@ MAX_CLOCK_SKEW = timedelta(minutes=5)
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
-class ReceiptRefused(Exception):
+class ReceiptRefused(RemoraError):
     """The receipt cannot be bound to a dispatch, or contradicts itself.
 
     Carries a machine-readable ``reason`` because these refusals are routed on,
     not read: a caller must be able to tell "no such dispatch" from "stale
     observation" without matching message text.
     """
+
+    code = "receipt_refused"
+    category = "governance"
 
     def __init__(self, reason: str, detail: str = "") -> None:
         super().__init__(detail or reason)

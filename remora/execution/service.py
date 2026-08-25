@@ -10,6 +10,8 @@ duck-typed proposal carrying tool_name/arguments/target_environment.
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 from remora.execution.ports import (AuditChainPort, DispatchOutboxPort,
                                     EnforcementGatePort,
                                     PolicyDecisionTokenPort,
@@ -260,10 +262,13 @@ def assess_proposal(
     return response
 
 
-class ToolSpecChanged(Exception):
+class ToolSpecChanged(RemoraError):
     """The spec in force is not the one the approval was granted under
     (route maps to 409). Refused BEFORE authorizing - a refused call must
     leave no dispatch intent behind (handoff gate section 3)."""
+
+    code = "toolspec_changed"
+    category = "execution"
 
 
 def execute_approved_item(
@@ -507,9 +512,12 @@ def execute_approved_item(
     return response
 
 
-class TokenRefused(Exception):
+class TokenRefused(RemoraError):
     """The presented ACCEPT token does not authorize this call (route maps
     to 409). ``refusal`` is the bounded metric label."""
+
+    code = "token_refused"
+    category = "execution"
 
     def __init__(self, detail: str, refusal: str) -> None:
         super().__init__(detail)

@@ -41,6 +41,8 @@ the alternative is a caller that retries a side effect it already caused.
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 import json
 import os
 import urllib.error
@@ -71,12 +73,15 @@ TIMEOUT_ENV = "REMORA_EXECUTION_TIMEOUT_SECONDS"
 _DEFAULT_TIMEOUT = 120.0
 
 
-class RemoteDispatchUnavailable(RuntimeError):
+class RemoteDispatchUnavailable(RemoraError, RuntimeError):
     """The execution domain could not be reached, or its answer was unusable.
 
     Distinct from a refusal by the executor, which arrives as a normal result
     with a refusal_reason. This is "no verdict", and it fails closed.
     """
+
+    code = "remote_dispatch_unavailable"
+    category = "execution"
 
 
 def execution_endpoint() -> str:

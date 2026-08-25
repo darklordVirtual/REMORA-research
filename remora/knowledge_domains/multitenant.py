@@ -11,12 +11,17 @@ boundary at the auth and storage layers.
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 import hashlib
 from dataclasses import dataclass, field
 
 
-class CrossTenantError(KeyError):
+class CrossTenantError(RemoraError, KeyError):
     """A read/write named a tenant that does not own the row."""
+
+    code = "cross_tenant_access"
+    category = "tenancy"
 
 
 def _canon(row: dict) -> str:

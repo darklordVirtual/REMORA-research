@@ -414,6 +414,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | Module | Stability | Notes |
 |--------|-----------|-------|
 | `remora/core.py` | **CORE** | Oracle ABC + OracleResponse |
+| `remora/errors.py` | **CORE** | Runtime exception taxonomy root: `RemoraError` with machine-readable `code`/`category` (issue #45 gap 4). Separate from the SDK's client-side hierarchy by design |
 | `remora/engine.py` | **CORE** | Multi-oracle consensus engine |
 | `remora/reporting.py` | **CORE** | Decision report + `DecisionEnvelope` assembly (dependency-injected; split from `engine.py` 2026-07-29) |
 | `remora/state.py` | **CORE** | `RemoraState` engine session-state contract (re-exported via `remora.engine`) |

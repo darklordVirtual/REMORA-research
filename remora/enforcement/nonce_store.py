@@ -37,6 +37,8 @@ tenant scoped
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 import threading
 from typing import Any, Protocol, runtime_checkable
 
@@ -57,7 +59,7 @@ _CREATE = (
 )
 
 
-class NonceStoreUnavailable(RuntimeError):
+class NonceStoreUnavailable(RemoraError, RuntimeError):
     """The store could not be reached or could not answer.
 
     Deliberately distinct from "already consumed". Collapsing the two is the
@@ -65,6 +67,9 @@ class NonceStoreUnavailable(RuntimeError):
     unavailable as unused re-authorizes spent grants, and treating unavailable
     as consumed burns valid ones.
     """
+
+    code = "nonce_store_unavailable"
+    category = "enforcement"
 
 
 @runtime_checkable

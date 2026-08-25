@@ -24,6 +24,8 @@ part of RMR-004 rather than being claimed here.
 """
 from __future__ import annotations
 
+from remora.errors import RemoraError
+
 import hashlib
 import hmac
 import json
@@ -240,8 +242,11 @@ class ContextManifest:
         }
 
 
-class SpecIntakeRefused(ValueError):
+class SpecIntakeRefused(RemoraError, ValueError):
     """The intake cannot establish a trusted basis for an assessment."""
+
+    code = "spec_intake_refused"
+    category = "governance"
 
     def __init__(self, reason: str, detail: str) -> None:
         super().__init__(detail)
