@@ -70,6 +70,10 @@ class DecisionReason(str, Enum):
     # (§34) withdraws from autonomy; verification must establish where its
     # values came from.
     UNGROUNDED_ARGUMENT_VALUES_VERIFY = "ungrounded_argument_values_verify"
+    # A deployment-owned scope boundary (not merely value provenance) proved
+    # that one or more arguments address another tenant. Human approval is not
+    # authority to cross that boundary, so this is a hard ABSTAIN.
+    CROSS_TENANT_ARGUMENT_BLOCKED = "cross_tenant_argument_blocked"
     # §34 residue: the call is well-formed and its values are grounded, but the
     # declared tool contract contradicts the task's goal — wrong resource, or
     # right resource and wrong effect.

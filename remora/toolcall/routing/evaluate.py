@@ -29,8 +29,8 @@ from remora.policy.report import DecisionAction
 from remora.toolcall.routing.episode import Route, RoutingEpisode
 from remora.toolcall.routing.compatibility import (
     StateIndex,
+    argument_grounding,
     compute_compatibility,
-    values_grounded,
 )
 from remora.toolcall.routing.effect_prediction import effect_consistent
 from remora.toolcall.routing.goal_match import TaskIntent, match_tool_to_intent
@@ -224,17 +224,20 @@ def build_full_observation(
         if (_name_derived_output(tool) or "") in {a.lower() for a in unvalidated}
     )
 
+    grounding = argument_grounding(
+        episode.proposed_tool_args,
+        task_text=episode.user_task,
+        state=state,
+        domain=episode.domain,
+        signature=signature,
+        receipts=_derivation_receipts(episode),
+    )
+
     return replace(
         obs,
         argument_values_supported=compatibility.argument_values_supported,
-        argument_values_grounded=values_grounded(
-            episode.proposed_tool_args,
-            task_text=episode.user_task,
-            state=state,
-            domain=episode.domain,
-            signature=signature,
-            receipts=_derivation_receipts(episode),
-        ),
+        argument_values_grounded=grounding.grounded,
+        ungrounded_arguments=grounding.ungrounded_arguments,
         missing_required_arguments=missing,
         argument_resolver_tools=resolvers or validation_resolvers,
         proposed_tool_name=episode.proposed_tool_name,

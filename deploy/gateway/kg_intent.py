@@ -25,7 +25,7 @@ import json
 import logging
 
 from remora.toolcall.routing.goal_match import TaskIntent
-from remora.toolcall.semantic_bundle import ResolvedIntent
+from remora.toolcall.semantic_bundle import IntentResolution, ResolvedIntent
 
 #: Effects an intent may declare. Frozen deliberately: this is the
 #: deterministic side of the boundary, and an extractor that grows to match
@@ -49,7 +49,7 @@ _EFFECTS = frozenset({"read", "create", "update", "delete", "close"})
 DISCRIMINATING_PREDICATES = ("source_spans", "action_spans")
 
 
-def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
+def resolve_intent_detailed(intent_ref: str) -> IntentResolution:
     """Resolve a task subject into the authority it carries.
 
     Returns None when the reference is empty, the task does not exist, or it
@@ -58,7 +58,7 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
     """
     subject = (intent_ref or "").strip()
     if not subject:
-        return None
+        return IntentResolution(None, "intent_not_authorized")
 
     # Imported here so the bundle can be built without reaching the graph.
     from deploy.gateway.kg_registry import GraphUnavailable, read_intent
@@ -66,13 +66,13 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
     try:
         task = read_intent(subject)
     except GraphUnavailable:
-        return None
+        return IntentResolution(None, "intent_resolution_failed")
     if not task:
-        return None
+        return IntentResolution(None, "intent_not_authorized")
 
     task_text = str(task.get("task_text") or "").strip()
     if not task_text:
-        return None
+        return IntentResolution(None, "intent_not_authorized")
 
     operation = str(task.get("operation") or "").strip().lower()
     if operation not in _EFFECTS:
@@ -100,7 +100,7 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
             "mismatched call; every proposal under it will reach review "
             "with no effect check", subject, DISCRIMINATING_PREDICATES)
 
-    return ResolvedIntent(
+    resolved = ResolvedIntent(
         intent=TaskIntent(
             operation=operation,
             resource_type=resource_type,
@@ -114,3 +114,9 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
             proposed_by=authority),
         task_text=task_text,
         authority=authority)
+    return IntentResolution(resolved, "resolved")
+
+
+def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
+    """Backward-compatible public resolver."""
+    return resolve_intent_detailed(intent_ref).resolved

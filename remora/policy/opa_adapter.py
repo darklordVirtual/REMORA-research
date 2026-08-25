@@ -67,6 +67,7 @@ OPA_EXPORT_EXCLUSIONS: frozenset[str] = frozenset({
     "evidence_timestamp",       # audit only
     "evidence_request_reason",  # human-readable annotation; audit only
     "gainability_score",        # v4 routing signal; not read by the decision engine
+    "intent_resolution_status", # internal audit reason; deliberately not public policy input
 })
 
 
@@ -160,6 +161,9 @@ class OPAContext:
     # (task text, schema declaration, system of record)? False withdraws
     # autonomy from well-formed foreign calls (NEGATIVE_RESULTS.md §34).
     argument_values_grounded: bool | None
+    ungrounded_arguments: tuple[str, ...]
+    argument_scope_valid: bool | None
+    scope_violating_arguments: tuple[str, ...]
     missing_required_arguments: tuple[str, ...]
     argument_resolver_tools: tuple[str, ...]
     proposed_tool_name: str | None
@@ -384,6 +388,14 @@ class OPAAdapter:
         floor_reasons: tuple = (floor[1],) if floor else ()
         floor_source = "opa_hard_guard_floor"
 
+        # ABSTAIN and ESCALATE are not ordered by severity when the guard is a
+        # deployment boundary. ESCALATE creates an approval route; a tenant
+        # boundary is deliberately non-approvable. Preserve the exact hard
+        # refusal even if an external policy calls review "stricter".
+        non_approvable_floor = bool(
+            floor and floor[1] is DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED
+        )
+
         # Same fail-closed normalisation as the engine: strips whitespace and
         # maps unknown values to "unknown", so ' HIGH ' cannot bypass the
         # floor. "unknown" itself is a floored tier: the engine has an
@@ -404,6 +416,21 @@ class OPAAdapter:
 
         if floor_action is None:
             return report
+        if non_approvable_floor and report.action is not floor_action:
+            return _replace(
+                report,
+                action=floor_action,
+                reasons=floor_reasons + report.reasons,
+                evidence_required=True,
+                human_review_required=False,
+                source_of_decision=floor_source,
+                explanation=(
+                    "The deployment proved an argument crossed its tenant "
+                    "boundary. This hard ABSTAIN has no approval route; an "
+                    f"external '{report.action.value}' cannot replace it. "
+                    "Original OPA explanation: " + report.explanation
+                ),
+            )
         if self._ACTION_SEVERITY[report.action] >= self._ACTION_SEVERITY[floor_action]:
             return report
         return _replace(

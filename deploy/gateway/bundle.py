@@ -15,18 +15,25 @@ it followed" is exactly the case that needs a human-written reason behind it.
 from __future__ import annotations
 
 import logging
+import os
+import re
+from typing import Any
 
 from remora.toolcall.routing.compatibility import CoverageScope, StateIndex
 from remora.toolcall.routing.tool_contract import ToolContract, ToolContractRegistry
 from remora.toolcall.routing.tool_registry import ToolRegistry, ToolSignature
-from remora.toolcall.semantic_bundle import SemanticBundle
+from remora.toolcall.semantic_bundle import (
+    ArgumentScopeResult,
+    IntentResolution,
+    SemanticBundle,
+)
 
 from deploy.gateway import gh_bundle, kg_intent
 from deploy.gateway.registry import enabled_sets
 
 _log = logging.getLogger("remora.gateway.bundle")
 
-def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
+def resolve_intent_detailed(intent_ref: str) -> IntentResolution:
     """Resolve authority, from whichever source this deployment has.
 
     A reference like ``owner/repo#123`` is a GitHub issue; anything else is a
@@ -40,12 +47,57 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
     """
     sets = enabled_sets()
     if "github" in sets:
+        result = gh_bundle.resolve_intent_detailed(intent_ref)
+        if result.resolved is not None or result.status == "intent_resolution_failed":
+            return result
+    if "graph" in sets:
+        return kg_intent.resolve_intent_detailed(intent_ref)
+    return IntentResolution(None, "intent_not_authorized")
+
+
+def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
+    """Backward-compatible public resolver used by older deployments/tests."""
+    sets = enabled_sets()
+    if "github" in sets:
         resolved = gh_bundle.resolve_intent(intent_ref)
         if resolved is not None:
             return resolved
     if "graph" in sets:
         return kg_intent.resolve_intent(intent_ref)
     return None
+
+
+_TENANT_URN = re.compile(r"^urn:exeqta:tenant:(?P<tenant>[^:]+):")
+
+
+def validate_argument_scope(
+    tool_name: str, arguments: dict[str, Any], tenant: str
+) -> ArgumentScopeResult:
+    """Hard boundary for tenant-qualified graph values.
+
+    Grounding asks where a value came from. This check asks a different,
+    deployment-owned question: whether the value can address the tenant whose
+    graph binding this executor is configured to reach. A reviewer cannot
+    widen that binding.
+    """
+    if tool_name not in _GRAPH_SIGNATURES:
+        return ArgumentScopeResult(None)
+    expected = os.getenv("REMORA_KG_TENANT", "").strip() or tenant.strip()
+    if not expected:
+        return ArgumentScopeResult(None)
+
+    violating: set[str] = set()
+    for name, raw in arguments.items():
+        values = raw if isinstance(raw, (list, tuple)) else (raw,)
+        for value in values:
+            if not isinstance(value, str):
+                continue
+            match = _TENANT_URN.match(value.strip())
+            if match and match.group("tenant") != expected:
+                violating.add(str(name))
+    if violating:
+        return ArgumentScopeResult(False, tuple(sorted(violating)))
+    return ArgumentScopeResult(True)
 
 _GRAPH_SIGNATURES = {
     "kg_list_graphs": ToolSignature(

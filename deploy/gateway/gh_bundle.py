@@ -27,7 +27,11 @@ from remora.toolcall.routing.compatibility import CoverageScope, StateIndex
 from remora.toolcall.routing.goal_match import TaskIntent
 from remora.toolcall.routing.tool_contract import ToolContract, ToolContractRegistry
 from remora.toolcall.routing.tool_registry import ToolRegistry, ToolSignature
-from remora.toolcall.semantic_bundle import ResolvedIntent, SemanticBundle
+from remora.toolcall.semantic_bundle import (
+    IntentResolution,
+    ResolvedIntent,
+    SemanticBundle,
+)
 
 #: intent_ref looks like "owner/repo#123" — the issue that authorises the call.
 _INTENT_RE = re.compile(r"^(?P<repo>[\w.-]+/[\w.-]+)#(?P<number>\d+)$")
@@ -124,7 +128,7 @@ def _effect_from_text(text: str) -> str:
     return ""
 
 
-def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
+def resolve_intent_detailed(intent_ref: str) -> IntentResolution:
     """Resolve ``owner/repo#123`` into the authority that issue carries.
 
     Returns None when the reference does not parse, the repository is outside
@@ -134,27 +138,33 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
     """
     match = _INTENT_RE.match((intent_ref or "").strip())
     if not match:
-        return None
+        return IntentResolution(None, "intent_not_authorized")
     repo, number = match.group("repo"), match.group("number")
 
     allowed = {r.strip() for r in
                os.getenv("REMORA_GITHUB_REPOS", "").split(",") if r.strip()}
     if repo not in allowed:
-        return None
+        return IntentResolution(None, "intent_not_authorized")
 
     # Imported here so the bundle can be built without a credential present.
-    from deploy.gateway.gh_registry import GitHubUnavailable, gh_read_issue
+    from deploy.gateway.gh_registry import (
+        GitHubNotFound,
+        GitHubUnavailable,
+        gh_read_issue,
+    )
 
     try:
         issue = gh_read_issue({"repo": repo, "number": int(number)})
+    except GitHubNotFound:
+        return IntentResolution(None, "intent_not_authorized")
     except (GitHubUnavailable, ValueError):
-        return None
+        return IntentResolution(None, "intent_resolution_failed")
 
     title = str(issue.get("title") or "")
     body = str(issue.get("body") or "")
     task_text = f"{title}\n\n{body}".strip()
     if not task_text:
-        return None
+        return IntentResolution(None, "intent_not_authorized")
 
     # The digest is over the text as read now. An issue edited after a call
     # was approved therefore stops matching, rather than silently authorising
@@ -162,7 +172,7 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
     digest = hashlib.sha256(task_text.encode("utf-8")).hexdigest()
     authority = f"github_issue:{repo}#{number}:{digest}"
 
-    return ResolvedIntent(
+    resolved = ResolvedIntent(
         intent=TaskIntent(
             operation=_effect_from_text(task_text) or "read",
             resource_type="issue",
@@ -176,3 +186,9 @@ def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
             proposed_by=authority),
         task_text=task_text,
         authority=authority)
+    return IntentResolution(resolved, "resolved")
+
+
+def resolve_intent(intent_ref: str):  # -> ResolvedIntent | None
+    """Backward-compatible public resolver."""
+    return resolve_intent_detailed(intent_ref).resolved

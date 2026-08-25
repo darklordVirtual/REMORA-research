@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**35 numbered sections does not mean 35 open problems.** Until 2026-07-31 this
+**56 numbered sections does not mean 56 open problems.** Until 2026-07-31 this
 document read as if it did, because sections kept the status they were written
 with even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **21 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-24: **11 `open`**, **22 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -3592,3 +3592,41 @@ what runs. It does not tell you what blocks.
 
 **Not deployed.** CI configuration and a test.
 
+## §56 Provenance ambiguity was allowed to become tenant authority (2026-08-24)
+<!-- finding-status: accepted -->
+
+**Status:** GitHub #368 and #369. The code and contract defects are fixed;
+deployment evidence is deliberately separate.
+
+The gateway observed a graph URI from another tenant and correctly concluded
+that the value was not grounded in the current intent. It then made the wrong
+category decision: `VERIFY`. That created a proposal a human could approve,
+turning missing provenance into a possible tenant-boundary override.
+
+Grounding and scope are now separate facts. `argument_values_grounded` answers
+whether a value is traceable to task text, schema or authoritative state and
+names failures in `ungrounded_arguments`. `argument_scope_valid` is produced by
+the deployment-owned semantic module and answers whether tenant-qualified
+arguments fall inside the graph binding the executor is configured to reach.
+A confirmed false scope verdict hard-ABSTAINS as
+`cross_tenant_argument_blocked`, before a review item exists. The fresh review
+re-gate evaluates the same boundary, so a proposal created by older code is
+invalidated before any dispatch. An OPA `ESCALATE` cannot replace this ABSTAIN:
+review is not a stricter point in the lattice when the boundary is explicitly
+non-approvable.
+
+The same investigation found two observability collapses. The MCP schema
+described only `owner/repo#123`, although the deployed graph path resolves
+`task:<subject>`. Both deployment-backed forms are now documented. And an
+unavailable intent resolver was indistinguishable in audit from a reference
+the source did not authorise. The audit record now carries
+`intent_resolution_failed` versus `intent_not_authorized`; the public response
+stays generic and fail-closed, so the distinction improves diagnosis without
+becoming an authority oracle.
+
+Mutation coverage includes the exact foreign graph URI, no proposal on the
+initial assess path, invalidation of a pre-existing approved proposal, no
+dispatch record, the OPA non-bypass property, per-argument grounding signals,
+both intent failure classes, and both documented `intent_ref` forms.
+
+**Not deployed.** Source, wire contract, audit contract and tests only.

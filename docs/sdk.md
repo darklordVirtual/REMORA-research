@@ -240,7 +240,7 @@ reported**, never "no probing".
 |---|---|
 | Clients | `RemoraClient` (sync) and `AsyncRemoraClient` (async twin; same operations, shared error mapping so they cannot drift) — `assess`, `approve`, `reject`, `execute`, `execute_accepted`, `record_effect`, `get_proposal`, `get_lifecycle`, `export_evidence`, `verify_audit_chain`, context managers |
 | Request models | `ToolCall`, `DerivationProposal` (a proposed derivation receipt for a derived argument value — verified server-side by deterministic re-execution, never by explanation) |
-| Result models | `AssessmentResult`, `ApprovalResult`, `RejectionResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment`, `AuditRef`, `ResolutionPlan`, `ProposalView`, `LifecycleTrail`, `ToolSpecIdentity` (which signed spec authorized the action, and whether specs are enforced at all) |
+| Result models | `AssessmentResult`, `ApprovalResult`, `RejectionResult`, `ExecutionResult`, `AuditVerification`, `SemanticAssessment` (bundle/intent hashes, goal/effect fit, per-argument grounding and deployment-owned scope verdict), `AuditRef`, `ResolutionPlan`, `ProposalView`, `LifecycleTrail`, `ToolSpecIdentity` (which signed spec authorized the action, and whether specs are enforced at all) |
 | Effect verification | `PostconditionSpec`, `EffectStatus`, `EffectVerificationView`, `build_postcondition`, `verify_effect`, `content_digest` |
 | Proposal ancestry | `ProposalLineageView` — derived server-side; advisory while `shadow_only` is true |
 | Decisions | `DecisionAction` (canonical policy enum) |

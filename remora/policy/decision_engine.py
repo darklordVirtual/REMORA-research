@@ -176,6 +176,8 @@ def hard_guard_floor(
         return DecisionAction.ESCALATE, DecisionReason.MALFORMED_CALL_BLOCKED
     if obs.tool_forbidden:
         return DecisionAction.ESCALATE, DecisionReason.FORBIDDEN_TOOL_BLOCKED
+    if obs.argument_scope_valid is False:
+        return DecisionAction.ABSTAIN, DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED
     if obs.coercion_detected:
         return DecisionAction.ESCALATE, DecisionReason.COERCION_BLOCKED
     if obs.blackmail_pattern_detected:

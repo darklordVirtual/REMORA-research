@@ -228,6 +228,10 @@ class SemanticAssessment:
     intent_authority_hash: str
     tool_matches_goal: bool | None
     expected_effect_matches: bool | None
+    argument_values_grounded: bool | None
+    ungrounded_arguments: tuple[str, ...]
+    argument_scope_valid: bool | None
+    scope_violating_arguments: tuple[str, ...]
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> SemanticAssessment:
@@ -237,6 +241,12 @@ class SemanticAssessment:
             intent_authority_hash=str(payload.get("intent_authority_hash", "")),
             tool_matches_goal=payload.get("tool_matches_goal"),
             expected_effect_matches=payload.get("expected_effect_matches"),
+            argument_values_grounded=payload.get("argument_values_grounded"),
+            ungrounded_arguments=tuple(payload.get("ungrounded_arguments") or ()),
+            argument_scope_valid=payload.get("argument_scope_valid"),
+            scope_violating_arguments=tuple(
+                payload.get("scope_violating_arguments") or ()
+            ),
         )
 
 

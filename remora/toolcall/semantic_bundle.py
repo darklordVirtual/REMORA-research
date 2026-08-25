@@ -14,6 +14,10 @@ callables. This module is that contract: the module named by
 and optionally
 
     def resolve_intent(intent_ref: str) -> ResolvedIntent | None: ...
+    def resolve_intent_detailed(intent_ref: str) -> IntentResolution: ...
+    def validate_argument_scope(
+        tool_name: str, arguments: dict[str, Any], tenant: str
+    ) -> ArgumentScopeResult: ...
 
 The bundle's hashes are ALWAYS computed here from the declarations themselves.
 A deployment module cannot assert a hash: a declared hash could be stale or
@@ -173,6 +177,47 @@ class IntentResolver(Protocol):
     def __call__(self, intent_ref: str) -> ResolvedIntent | None: ...
 
 
+@dataclass(frozen=True)
+class IntentResolution:
+    """Resolved authority plus an internal, non-public failure class."""
+
+    resolved: ResolvedIntent | None
+    status: str
+
+    def __post_init__(self) -> None:
+        allowed = {"resolved", "intent_not_authorized", "intent_resolution_failed"}
+        if self.status not in allowed:
+            raise ValueError(f"invalid intent resolution status: {self.status}")
+        if (self.resolved is not None) != (self.status == "resolved"):
+            raise ValueError("resolved intent and resolution status disagree")
+
+
+@dataclass(frozen=True)
+class ArgumentScopeResult:
+    """Deployment-known argument boundary result.
+
+    ``None`` means this deployment has no boundary assertion for the call;
+    ``False`` must name at least one offending argument.
+    """
+
+    valid: bool | None
+    violating_arguments: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.valid is False and not self.violating_arguments:
+            raise ValueError("a scope violation must name an argument")
+
+
+class IntentResolutionProvider(Protocol):
+    def __call__(self, intent_ref: str) -> IntentResolution: ...
+
+
+class ArgumentScopeValidator(Protocol):
+    def __call__(
+        self, tool_name: str, arguments: dict[str, Any], tenant: str
+    ) -> ArgumentScopeResult: ...
+
+
 def _bundle_module():
     spec = os.environ.get(ENV_BUNDLE_MODULE, "").strip()
     if not spec:
@@ -216,3 +261,25 @@ def load_intent_resolver() -> IntentResolver | None:
     if resolver is not None and not callable(resolver):
         raise RuntimeError(f"{module.__name__}.resolve_intent is not callable")
     return resolver
+
+
+def load_intent_resolution_provider() -> IntentResolutionProvider | None:
+    """Detailed resolver used only to enrich the internal audit record."""
+    module = _bundle_module()
+    if module is None:
+        return None
+    resolver = getattr(module, "resolve_intent_detailed", None)
+    if resolver is not None and not callable(resolver):
+        raise RuntimeError(f"{module.__name__}.resolve_intent_detailed is not callable")
+    return resolver
+
+
+def load_argument_scope_validator() -> ArgumentScopeValidator | None:
+    """Deployment-owned argument-boundary validator, when declared."""
+    module = _bundle_module()
+    if module is None:
+        return None
+    validator = getattr(module, "validate_argument_scope", None)
+    if validator is not None and not callable(validator):
+        raise RuntimeError(f"{module.__name__}.validate_argument_scope is not callable")
+    return validator

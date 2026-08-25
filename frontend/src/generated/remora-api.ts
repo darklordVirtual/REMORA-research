@@ -1149,6 +1149,16 @@ export interface components {
         /** SemanticAssessment */
         SemanticAssessment: {
             /**
+             * Argument Scope Valid
+             * @description Deployment-owned argument boundary verdict.
+             */
+            argument_scope_valid?: boolean | null;
+            /**
+             * Argument Values Grounded
+             * @description Aggregate provenance verdict; None means not evaluated.
+             */
+            argument_values_grounded?: boolean | null;
+            /**
              * Expected Effect Matches
              * @description None means not evaluated; the key is always present.
              */
@@ -1159,6 +1169,8 @@ export interface components {
              * @default
              */
             intent_authority_hash: string;
+            /** Scope Violating Arguments */
+            scope_violating_arguments?: string[];
             /**
              * State Hash
              * @default
@@ -1175,6 +1187,8 @@ export interface components {
              * @description None means not evaluated; the key is always present.
              */
             tool_matches_goal?: boolean | null;
+            /** Ungrounded Arguments */
+            ungrounded_arguments?: string[];
         };
         /**
          * ToolCallRequest

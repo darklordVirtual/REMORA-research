@@ -1382,6 +1382,10 @@ def _assess_semantic_overlay(
         audit_block["intent_authority_hash"] = (
             context.get("intent_authority_hash") or None
         )
+        # Internal audit distinction only. The response keeps the same empty
+        # authority hash and fail-closed decision for both an unavailable
+        # resolver and an intent the source does not authorise.
+        audit_block["intent_resolution_status"] = full.intent_resolution_status
         target = str(registry_entry.get("target_environment", "prod"))
         audit_block["tool_args_hash"] = canonical_tool_call_hash(
             name=tool_call.tool_name,
