@@ -13,6 +13,8 @@ happened instead of implying execution.
 """
 from __future__ import annotations
 
+from remora.execution.ports import ToolCallPort, ToolDispatcherPort
+
 import logging
 from datetime import datetime
 from typing import Any
@@ -33,10 +35,10 @@ def dispatch_under_lease(
     *,
     tenant: str,
     principal: str,
-    tool_call: Any,
+    tool_call: ToolCallPort,
     semantic: dict[str, Any],
     now: datetime,
-    dispatcher: Any,
+    dispatcher: ToolDispatcherPort | None,
     policy_bundle_hash: str,
     gate_allowed: bool = True,
     toolspec: dict[str, Any] | None = None,
@@ -136,6 +138,12 @@ def dispatch_under_lease(
                 "state_unknown": True,
             }
 
+    # Narrowing for the type checker, not a runtime decision: the compound
+    # guard above returned already when dispatcher is None and this process
+    # is not forwarding, and the forwarding branch returned before reaching
+    # here. If this ever fires, the guard logic changed and the named
+    # refusal contract with it.
+    assert dispatcher is not None
     try:
         dres = dispatcher.dispatch(
             lease,
@@ -193,9 +201,9 @@ def issue_execution_lease(
     *,
     tenant: str,
     principal: str,
-    tool_call: Any,
+    tool_call: ToolCallPort,
     semantic: dict[str, Any],
-    now: Any,
+    now: datetime,
     policy_bundle_hash: str,
     toolspec: dict[str, Any] | None = None,
     proposal_id: str = "",
@@ -219,9 +227,9 @@ def _issue_local_lease(
     *,
     tenant: str,
     principal: str,
-    tool_call: Any,
+    tool_call: ToolCallPort,
     semantic: dict[str, Any],
-    now: Any,
+    now: datetime,
     policy_bundle_hash: str,
     toolspec: dict[str, Any] | None,
     proposal_id: str,
