@@ -205,3 +205,17 @@ def test_a_raising_tool_burns_the_nonce_and_names_the_unknown_state() -> None:
                        now=NOW.isoformat())
     assert _shape(retry) == (
         False, "nonce_consumed_by_failed_execution", False, "prop-dc-1")
+
+
+def test_a_resolved_spec_identity_that_mismatches_the_lease_refuses() -> None:
+    """Mutation finding: dropping toolspec_hash from the verify call survived
+    every suite -- nothing dispatched with a WRONG resolved identity, only
+    with a raising resolver. The lease was signed over one spec; a resolver
+    answering a different hash means the spec moved between approval and
+    dispatch, and the action about to run is not the action reviewed."""
+    d = _dispatcher()
+    d.bind_toolspec_identity(lambda tool: ("spec-hash-after-rotation", 2))
+    r = d.dispatch(_lease(), "wo_close", {"id": "WO-1"},
+                   tenant_id="acme", target_environment="staging",
+                   actor_identity="agent-1", now=NOW.isoformat())
+    assert _shape(r) == (False, "toolspec_hash_mismatch", False, "prop-dc-1")
