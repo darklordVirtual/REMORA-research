@@ -137,8 +137,12 @@ def _validate_with_bashlex(command: str) -> bool:
         for node in _bashlex.parse(command):
             if not _check_bashlex_node(node):
                 return False
-    except Exception:
-        pass  # parse error or unsupported syntax → defer to heuristic
+    except Exception as exc:
+        # Deferring to the heuristic layer is the documented design -- this
+        # is one guard of three, and the heuristic always runs after it. What
+        # was NOT acceptable was deferring silently: a persistent parser
+        # crash looked identical to "layer passed" (issue #45 gap 3).
+        _degradation_event("bashlex", exc)
     return True
 
 
@@ -167,9 +171,30 @@ def _validate_with_sqlglot(command: str) -> bool:
             for node in expr.walk():
                 if type(node).__name__ in _FORBIDDEN_SQL_TYPES:
                     return False
+    except Exception as exc:
+        # Same contract as the bashlex layer above: defer, but say so.
+        _degradation_event("sqlglot", exc)
+    return True
+
+
+def _degradation_event(layer: str, exc: Exception) -> None:
+    """One structured line per degraded parse, never a behaviour change.
+
+    Import and emission are both guarded: the AST guard must keep working in
+    minimal installs where the observability module or its config is absent,
+    and a logging defect must never decide whether a command is allowed.
+    """
+    try:
+        import logging
+
+        from remora.observability.events import governance_event
+
+        governance_event(
+            "safety.ast_layer_degraded", level=logging.WARNING,
+            layer=layer, error=type(exc).__name__,
+        )
     except Exception:
         pass
-    return True
 
 
 # ── public interface ──────────────────────────────────────────────────────────
