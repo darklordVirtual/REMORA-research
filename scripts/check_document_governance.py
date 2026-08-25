@@ -76,7 +76,6 @@ AUDIENCE_ALIASES = {
     "maintainer": "maintainers",
 }
 DOC_ID_RE = re.compile(r"DOC-\d+")
-VERSION_RE = re.compile(r"v\d+")
 ISO_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 GOVERNED_SUFFIXES = {".md", ".html", ".yaml", ".yml", ".json"}
 # Root-level knowledge documents governed alongside docs/. Build/config files
@@ -269,9 +268,19 @@ def check_document_verification(errors: list[str], warnings: list[str]) -> None:
         else:
             doc_ids.append(did)
 
-        ver = e.get("version")
-        if not (isinstance(ver, str) and VERSION_RE.fullmatch(ver)):
-            warnings.append(f"document-register: {path}: missing/invalid version {ver!r} (want vN)")
+        # `version` was removed as decoration (#371). All 232 entries carried
+        # `v1` with zero variance, and a shape check on a constant establishes
+        # nothing: the register already tracks change through `last_reviewed`,
+        # `last_audited`, `verdict` and `code_synced`, which vary and are read.
+        # HARD rather than a warning, because the failure mode is a field
+        # quietly coming back and accumulating another 232 constants before
+        # anyone notices it means nothing.
+        if "version" in e:
+            errors.append(
+                f"document-register: {path}: per-entry `version` was removed as "
+                f"decoration (#371); track change through last_reviewed / "
+                f"last_audited / verdict / code_synced instead"
+            )
 
         cs = e.get("code_synced")
         if cs not in ALLOWED_CODE_SYNCED:

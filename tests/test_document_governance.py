@@ -143,7 +143,7 @@ def test_verified_without_review_date_warns(tmp_path: Path) -> None:
     mod = _load_module()
     mod.DOC_REGISTER = _verif_reg(
         tmp_path,
-        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "  - id: DOC-001\n    path: docs/README.md\n"
         "    status: supporting\n    last_reviewed: null\n"
         "    code_synced: verified\n    verdict: pending\n",
     )
@@ -158,7 +158,7 @@ def test_current_verdict_without_verified_warns(tmp_path: Path) -> None:
     mod = _load_module()
     mod.DOC_REGISTER = _verif_reg(
         tmp_path,
-        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "  - id: DOC-001\n    path: docs/README.md\n"
         "    status: supporting\n    last_reviewed: 2026-07-26\n"
         "    code_synced: unreviewed\n    verdict: current\n",
     )
@@ -175,7 +175,7 @@ def test_historical_current_is_exempt(tmp_path: Path) -> None:
     mod = _load_module()
     mod.DOC_REGISTER = _verif_reg(
         tmp_path,
-        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "  - id: DOC-001\n    path: docs/README.md\n"
         "    status: historical\n    last_reviewed: 2026-07-26\n"
         "    code_synced: unreviewed\n    verdict: current\n",
     )
@@ -197,9 +197,28 @@ def test_missing_verification_fields_warn(tmp_path: Path) -> None:
     mod.check_document_verification(errors, warnings)
     assert errors == []
     assert any("missing/invalid id" in w for w in warnings)
-    assert any("missing/invalid version" in w for w in warnings)
     assert any("code_synced" in w for w in warnings)
     assert any("verdict" in w for w in warnings)
+
+
+def test_a_reintroduced_version_field_is_a_hard_error(tmp_path: Path) -> None:
+    """#371 removed per-entry `version`; the gate keeps it removed.
+
+    HARD rather than advisory: the failure mode is the field quietly coming
+    back and accumulating another 232 constants before anyone notices it
+    means nothing.
+    """
+    mod = _load_module()
+    mod.DOC_REGISTER = _verif_reg(
+        tmp_path,
+        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "    status: supporting\n    code_synced: verified\n"
+        "    verdict: current\n    last_reviewed: '2026-01-01'\n",
+    )
+    errors: list[str] = []
+    warnings: list[str] = []
+    mod.check_document_verification(errors, warnings)
+    assert any("`version` was removed as decoration" in e for e in errors)
 
 
 def test_duplicate_doc_id_is_refused(tmp_path: Path) -> None:
@@ -207,10 +226,10 @@ def test_duplicate_doc_id_is_refused(tmp_path: Path) -> None:
     mod = _load_module()
     mod.DOC_REGISTER = _verif_reg(
         tmp_path,
-        "  - id: DOC-001\n    path: docs/a.md\n    version: v1\n"
+        "  - id: DOC-001\n    path: docs/a.md\n"
         "    status: supporting\n    last_reviewed: null\n"
         "    code_synced: unreviewed\n    verdict: pending\n"
-        "  - id: DOC-001\n    path: docs/b.md\n    version: v1\n"
+        "  - id: DOC-001\n    path: docs/b.md\n"
         "    status: supporting\n    last_reviewed: null\n"
         "    code_synced: unreviewed\n    verdict: pending\n",
     )
@@ -224,7 +243,7 @@ def test_unaudited_documents_warn_not_fail(tmp_path: Path) -> None:
     mod = _load_module()
     mod.DOC_REGISTER = _verif_reg(
         tmp_path,
-        "  - id: DOC-001\n    path: docs/README.md\n    version: v1\n"
+        "  - id: DOC-001\n    path: docs/README.md\n"
         "    status: supporting\n    last_reviewed: null\n"
         "    code_synced: unreviewed\n    verdict: pending\n",
     )

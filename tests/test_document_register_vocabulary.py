@@ -95,3 +95,72 @@ def test_the_message_names_the_replacement_for_a_known_singular(checker) -> None
     """A refusal that does not say what to write instead costs a round trip."""
     assert checker.AUDIENCE_ALIASES["researcher"] == "researchers"
     assert checker.AUDIENCE_ALIASES["evaluator"] == "evaluators"
+
+
+# ── #371: decorative versioning and archived-as-live entries ──────────────
+
+
+def _register_entries():
+    import yaml
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    data = yaml.safe_load(
+        (root / "docs/assurance/document_register_v1.yaml").read_text(encoding="utf-8")
+    )
+    return root, data.get("documents") or []
+
+
+def test_no_entry_carries_a_per_entry_version_field():
+    """`version` was removed as decoration (#371).
+
+    All 232 entries carried `v1`. A field with zero variance that no gate
+    acts on is not metadata, and the shape check on it established nothing.
+    Change is tracked through last_reviewed / last_audited / verdict /
+    code_synced, which vary and are read.
+    """
+    _root, entries = _register_entries()
+    offenders = [e.get("id") for e in entries if "version" in e]
+    assert offenders == [], f"per-entry version reintroduced on {offenders}"
+
+
+def test_generated_entries_name_a_generator_that_exists():
+    """`generated_by` must point at a real file, not just be present.
+
+    The gate already requires the key. It cannot require that the path
+    resolves, which is how a renamed generator would leave the claim
+    standing.
+    """
+    root, entries = _register_entries()
+    generated = [e for e in entries if e.get("status") == "generated"]
+    assert generated, "expected at least the three CI-regenerated documents"
+    for e in generated:
+        gen = e.get("generated_by")
+        assert gen, f"{e.get('id')}: generated status without generated_by"
+        assert (root / gen).exists(), f"{e.get('id')}: generated_by {gen} does not exist"
+
+
+def test_the_archived_architecture_page_is_not_registered_canonical():
+    """ARCHITECTURE.md is the live architecture document (#371).
+
+    The archived HTML page was registered `canonical`, which made an
+    unmaintained 2026 snapshot the register's answer for its own topic.
+    """
+    _root, entries = _register_entries()
+    match = [
+        e for e in entries
+        if e.get("path") == "docs/archive/legacy/remora_architecture.html"
+    ]
+    assert len(match) == 1
+    assert match[0].get("status") == "historical"
+    assert match[0].get("superseded_by") == "ARCHITECTURE.md"
+
+
+def test_nothing_under_docs_archive_is_registered_canonical():
+    """The general form of the bug the entry above was one instance of."""
+    _root, entries = _register_entries()
+    offenders = [
+        e.get("path") for e in entries
+        if str(e.get("path", "")).startswith("docs/archive/")
+        and e.get("status") == "canonical"
+    ]
+    assert offenders == [], f"archived files registered canonical: {offenders}"
