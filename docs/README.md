@@ -97,6 +97,7 @@ The [governed MCP gateway design](design/cloudflare-mcp-gateway-v1.md) is an ope
 | [product_truth_contract.yaml](product/product_truth_contract.yaml) | Capability classes (core/optional/experimental/legacy/demo) vs public copy |
 | [ADR: single execution path](architecture/ADR-single-authoritative-execution-path.md) | One authoritative execution path; agent-control is ingress, not an engine |
 | [ADR: tainted arguments](architecture/ADR-tainted-argument-approval.md) | Approval suffices; sanitisation not required, with the residual stated (issue #40) |
+| [ADR: authority custody and lease durability](architecture/ADR-authority-custody-and-lease-durability.md) | A and B implemented (Ed25519 custody split, durable lease nonces); C, D and E accepted as direction only |
 | [Multi-tenant security model](architecture/multi_tenant_security_model.md) | Tenant boundaries, threat table with test evidence, open gaps |
 | [Cloudflare state architecture](architecture/cloudflare_state_architecture.md) | Design: DO/D1/R2/KV/Workflows placement rules, tenant keying, secrets custody |
 | [release_gates.md](assurance/release_gates.md) | Profile gate status |
@@ -161,6 +162,7 @@ The [governed MCP gateway design](design/cloudflare-mcp-gateway-v1.md) is an ope
 | [research/research_modes.md](research/research_modes.md) | Research modes |
 | [research/REMORA_forskningsmonografi_no.md](research/REMORA_forskningsmonografi_no.md) | Norwegian research monograph: consolidated code-anchored description (language: Norwegian) |
 | [research/verify_control_protocols.md](research/verify_control_protocols.md) | VERIFY-control research |
+| [research/adjacent-systems-crosswalk-v2.md](research/adjacent-systems-crosswalk-v2.md) | Adjacent-systems crosswalk v2, corrected against HEAD; v1's errors reproduced rather than deleted |
 | [experiments/experiment3_phase_transition_study.md](experiments/experiment3_phase_transition_study.md) | Phase-transition study |
 | [experiments/experiment4_susceptibility_validation.md](experiments/experiment4_susceptibility_validation.md) | Susceptibility validation |
 | [experiments/experiment5_chi_iteration_utility.md](experiments/experiment5_chi_iteration_utility.md) | Chi-iteration utility |
@@ -204,6 +206,8 @@ These files are retained for reproducibility and research history. In particular
 | [deployment/execution-quickstart.md](deployment/execution-quickstart.md) | Execution-path deployment quickstart |
 | [deployment/azure-reference-architecture.md](deployment/azure-reference-architecture.md) | Azure reference architecture |
 | [deployment/onprem-airgapped.md](deployment/onprem-airgapped.md) | On-prem / air-gapped deployment |
+| [deployment/authority-custody-evidence.md](deployment/authority-custody-evidence.md) | Deployed evidence for the authority/execution custody split; every value read from the running system |
+| [deployment/authority-key-topology.md](deployment/authority-key-topology.md) | Signing topology of the Cloudflare deployment, current and target, read from source rather than prose |
 | [enterprise/togaf-enterprise-rollout-plan.md](enterprise/togaf-enterprise-rollout-plan.md) | TOGAF rollout plan |
 | [TOGAF enterprise architecture — PDF](enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.pdf) | Norwegian TOGAF-aligned architecture PDF |
 | [TOGAF enterprise architecture — Markdown](enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md) | Norwegian TOGAF source document |
