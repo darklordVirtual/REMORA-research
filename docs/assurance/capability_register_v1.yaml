@@ -58,8 +58,15 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: daccbffe35a25b32f5288036f1da975497b72d7a
+    verified_at_sha: 6f6ac5464b44413e59ef2e97bc859d11bf86144d
     verified_by: >-
+      re-audit 2026-08-25 for the trust-base coverage declaration (#377): the
+      change adds _policy_coverage(), a read-only digest provider, and passes
+      it to execute_approved_item so the admission and closure chain records
+      can carry a per-component view. Token issuance, _GATE, audience/expiry,
+      jti consumption, the lease binding set, nonce consumption and the
+      dispatch route were re-read and are unchanged; it records and grants
+      nothing, so status and scope are unchanged. Prior:
       re-audit 2026-08-25 for the cross-tenant argument gate (#368), rebound
       post-merge to the squash commit of #372 (verified content-identical on
       every evidence file with `git diff a1cf777a daccbffe`): the change
@@ -204,8 +211,15 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: daccbffe35a25b32f5288036f1da975497b72d7a
+    verified_at_sha: 6f6ac5464b44413e59ef2e97bc859d11bf86144d
     verified_by: >-
+      re-audit 2026-08-25 for the trust-base coverage declaration (#377): the
+      change adds _policy_coverage(), a read-only digest provider, and passes
+      it to execute_approved_item so the admission and closure chain records
+      can carry a per-component view. Token issuance, _GATE, audience/expiry,
+      jti consumption, the lease binding set, nonce consumption and the
+      dispatch route were re-read and are unchanged; it records and grants
+      nothing, so status and scope are unchanged. Prior:
       re-audit 2026-08-25 for the cross-tenant argument gate (#368), rebound
       post-merge to the squash commit of #372 (verified content-identical on
       every evidence file with `git diff a1cf777a daccbffe`): the change
