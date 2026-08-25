@@ -100,9 +100,14 @@ function useAromerData() {
   };
 
   useEffect(() => {
-    load();
+    // First fetch scheduled, not called: a synchronous call would set state
+    // during the effect phase and cascade a re-render before paint, which is
+    // the thing react-hooks/set-state-in-effect exists to stop. One tick
+    // later is what every subsequent interval fetch already does.
+    const kick = setTimeout(() => void load(), 0);
     timerRef.current = setInterval(load, REFRESH_MS);
     return () => {
+      clearTimeout(kick);
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);

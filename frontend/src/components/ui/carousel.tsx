@@ -95,6 +95,9 @@ const Carousel = React.forwardRef<
       return;
     }
 
+    // Vendored shadcn/ui contract, same as setApi above: the subscription is
+    // seeded with the current scroll state before the first embla event.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     onSelect(api);
     api.on("reInit", onSelect);
     api.on("select", onSelect);

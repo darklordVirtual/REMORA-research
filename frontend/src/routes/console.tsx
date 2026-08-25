@@ -71,7 +71,12 @@ function ConsolePage() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    setSession(loadSession());
+    // The stored session is filled in after paint. Synchronously would
+    // cascade a re-render before first paint (react-hooks/set-state-in-
+    // effect); the server-rendered null is correct until the client reads
+    // its own storage either way.
+    const t = setTimeout(() => setSession(loadSession()), 0);
+    return () => clearTimeout(t);
   }, []);
 
   const createFn = useServerFn(createSession);

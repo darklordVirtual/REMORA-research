@@ -321,7 +321,10 @@ function LabPage() {
   const sessionRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setHistory(loadHistory());
+    // See console.tsx: storage seed filled after paint rather than in the
+    // synchronous effect body.
+    const t = setTimeout(() => setHistory(loadHistory()), 0);
+    return () => clearTimeout(t);
   }, []);
 
   const createFn = useServerFn(createSession);
