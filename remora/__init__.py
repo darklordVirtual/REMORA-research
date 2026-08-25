@@ -55,7 +55,7 @@ from importlib.metadata import PackageNotFoundError, version
 try:
     __version__ = version("remora")
 except PackageNotFoundError:
-    __version__ = "0.10.0-dev"
+    __version__ = "0.11.0-dev"
 
 __author__ = "Stian Skogbrott"
 __license__ = "BUSL-1.1"

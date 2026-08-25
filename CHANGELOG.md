@@ -4,6 +4,61 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+## 0.11.0 — 2026-08-25
+
+The first frozen research release since 0.10.0: an exact, tagged commit that
+the paper, external replication and citation can reference instead of a
+moving master (issue #390).
+
+### Execution assurance
+
+- Cross-tenant argument values now hard-abstain instead of escalating to a
+  human approver, on both the assess and the approved-redeem path; the
+  boundary is re-checked when a previously approved item is redeemed.
+- The decision record declares per-component trust-base coverage
+  (`policy_components`): which policy, risk-profile, schema, registry,
+  engine-mode and OPA digests the decision resolved, and — explicitly —
+  which trust-base elements carry no digest. Written on both the
+  authorization and the result chain records, re-read at dispatch so the
+  two views can disagree.
+- Governed dispatch verifies the lease against the clock it was issued
+  under; an in-memory SQLite database is refused as a durable backend at
+  the enforcement gate, the nonce store, the idempotency store and
+  production startup.
+- One runtime exception root (`remora.errors.RemoraError`) with
+  machine-readable `code`/`category` across sixteen governance exceptions;
+  every builtin base callers catch is preserved.
+
+### Observability
+
+- No silent fallback in the safety path: parser-layer degradation, a dead
+  injection oracle, calibration failure, identity-verification failure and
+  a crashed correlation model each emit one structured governance event,
+  with their fallback semantics unchanged.
+- Tracing is structural: spans nest as children, the decision span carries
+  its DecisionEnvelope id, governed dispatch emits the OTel GenAI
+  `execute_tool` span joined on the proposal id, and the authority→executor
+  hop propagates W3C trace context.
+- `/v1/health` reports the observed oracle-swarm size instead of a
+  constant; the MCP server no longer silences warnings process-wide.
+
+### Verification and CI
+
+- Capability freshness binds to evidence-file content rather than commit
+  count, so squash-merges no longer produce false staleness.
+- A shipped-surfaces matrix names every advertised surface and the CI jobs
+  that guard it, enforced with an additive ratchet.
+- The execution TCB's injected collaborators are typed against structural
+  ports, with conformance of every production implementation proven by the
+  mypy gate.
+
+### Security
+
+- CodeQL triage to zero open security-severity alerts: a ReDoS in the
+  admission-path coercion heuristic, two SSRF vectors in the pilot console,
+  and error-detail exposure in the Cloudflare Workers, with the remaining
+  alerts dismissed only with verified written reasons.
+
 ### Repository hygiene
 
 - Simplified the public README and documentation index around one canonical runtime reading path.
