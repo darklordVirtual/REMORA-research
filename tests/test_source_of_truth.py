@@ -21,7 +21,14 @@ pytestmark = pytest.mark.docgate
 ROOT = Path(__file__).resolve().parents[1]
 REGISTER = ROOT / "docs" / "assurance" / "claim_register_v1.yaml"
 COMPANION = ROOT / "docs" / "claim_register.md"
-THERMO_LEDGER = ROOT / "docs" / "archive" / "legacy" / "claim_ledger.yaml"
+# The LIVE ledger, not the archived copy. This named
+# docs/archive/legacy/claim_ledger.yaml, so a test guarding "the pack carries
+# the authoritative register" was comparing against an archived snapshot. The
+# two had diverged: the archive copy still pointed four artifacts at
+# remora/proofs, remora/correlation_error.py and remora/statphys, which moved
+# to remora/research_attic. The pack therefore shipped four references that
+# resolve to nothing, to external reviewers, and this test held it there.
+THERMO_LEDGER = ROOT / "docs" / "thermodynamics" / "claim_ledger.yaml"
 PACK = ROOT / "artifacts" / "credibility-pack"
 
 # Statements that previously made the thermodynamics ledger the overall source

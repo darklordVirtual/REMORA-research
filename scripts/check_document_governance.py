@@ -96,13 +96,17 @@ ROOT_DOCS = (
 # must open with a clearly separated banner: a block-quote line carrying a
 # bold span with a vintage keyword, e.g. "> **Historical audit snapshot ...**",
 # "> **NOTICE:** ... **HISTORICAL** ..." or "> **ARCHIVED — historical ...**".
-# HTML assets use the equivalent comment banner ("<!-- ARCHIVED - ... -->").
+# HTML assets use the equivalent comment banner ("<!-- ARCHIVED - ... -->"),
+# and YAML assets the equivalent leading "# ARCHIVED ..." comment: a data
+# file cannot carry a block quote, and refusing it a banner would leave the
+# only archived YAML in the register permanently unmarkable.
 # A bare token ("This is not a historical document.") must NOT satisfy it.
 # Shared with tests/test_doc_truth_contracts.py — keep the two in sync.
 VINTAGE_BANNER_RE = re.compile(
     r"^>.*\*\*[^*\n]*(?:historical|archived|snapshot|superseded|"
     r"verification-vintage|do not cite)[^*\n]*\*\*"
-    r"|^\s*<!--.*(?:historical|archived|snapshot|superseded)",
+    r"|^\s*<!--.*(?:historical|archived|snapshot|superseded)"
+    r"|^\s*#\s*(?:ARCHIVED|HISTORICAL|SUPERSEDED)\b",
     re.IGNORECASE | re.MULTILINE,
 )
 # Statuses that present a document as live knowledge. A live document whose
