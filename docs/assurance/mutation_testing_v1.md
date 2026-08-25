@@ -15,7 +15,16 @@
 |---|---|---|---|---|---|
 | All lines | 1,138 | 382 | 704 | 52 | 35.2% of checked |
 | Covered lines only (`mutate_only_covered_lines`) | 722 | 376 | 346 | 0 | 52.1% |
-| Covered lines, after the golden-vector fix | 722 | **410** | **312** | 0 | **56.8%** |
+| Covered lines, after the golden-vector fix | 722 | 410 | 312 | 0 | 56.8% |
+| Covered lines, after the gate-contract round | 778 | **484** | **294** | 0 | **62.2%** |
+
+The fourth row is round two: `tests/test_enforcement_gate_contract.py`
+pins the complete `(allowed, action, token_verified, reason, strict_mode)`
+tuple per refusal branch of `check()`, with the age tests sitting exactly
+on the boundary. The `check` cluster fell 53 → 36; the mutant pool grew
+(722 → 778) because the new tests execute lines the old runner did not,
+which is the correct direction — covered-lines mutation counts grow as
+coverage grows, and the kill rate must be read against its own pool.
 
 The third row is the verification that the fix below fixes: the
 `_canonical_payload` cluster went 34 → 0 survivors, and the delta accounts
