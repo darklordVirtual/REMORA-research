@@ -1,6 +1,6 @@
 # REMORA: Policy-Gated Governance for Operational AI Agents
 
-[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/LICENSE)
+[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/LICENSE)
 
 REMORA is a **policy-gated execution assurance layer for operational AI agents**: a governance overlay placed between an agent proposal and the protected tool path. An agent proposes a tool call; REMORA evaluates the exact action before execution and returns one of four outcomes:
 
@@ -22,15 +22,15 @@ python -m remora try
 
 **Start here.** This is the one ordered reading path; the other documents point back here rather than proposing their own.
 
-1. [Developer handoff](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/DEVELOPER_OVERVIEW.md) — shortest technical path through the repository
-2. [Architecture](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/ARCHITECTURE.md) — canonical components, data flow and module stability
-3. [Execution quickstart](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/deployment/execution-quickstart.md) — configure and run the enforcing path
-4. [API reference](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/07-api-reference.md) — public interfaces, with a `curl` round-trip; wire contract in [`schemas/openapi.json`](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/schemas/openapi.json)
-5. [Python SDK](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/sdk.md) — the one namespace with a backward-compatibility guarantee
-6. [Evidence and claims](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/02-evidence-and-claims.md) — what each result establishes, and what it does not
+1. [Developer handoff](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/DEVELOPER_OVERVIEW.md) — shortest technical path through the repository
+2. [Architecture](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/ARCHITECTURE.md) — canonical components, data flow and module stability
+3. [Execution quickstart](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/deployment/execution-quickstart.md) — configure and run the enforcing path
+4. [API reference](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/07-api-reference.md) — public interfaces, with a `curl` round-trip; wire contract in [`schemas/openapi.json`](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/schemas/openapi.json)
+5. [Python SDK](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/sdk.md) — the one namespace with a backward-compatibility guarantee
+6. [Evidence and claims](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/02-evidence-and-claims.md) — what each result establishes, and what it does not
 7. [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) — failed hypotheses and limitations, kept permanently
 
-[Documentation index](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/README.md) lists the complete registered set.
+[Documentation index](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/README.md) lists the complete registered set.
 
 ---
 
@@ -46,13 +46,13 @@ The operational path is intentionally small:
 
 The separate `/v1/assess` research surface can use oracle, evidence and uncertainty components. Those components are not prerequisites for the execution kernel and cannot override its deterministic hard-guard floor.
 
-See [DEVELOPER_OVERVIEW.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/DEVELOPER_OVERVIEW.md) for the CORE / OPTIONAL / EXPERIMENTAL / HISTORICAL boundary, the machine-checked [product truth contract](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/product/product_truth_contract.yaml) for the per-capability classification, and [docs/deployment/execution-quickstart.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/deployment/execution-quickstart.md) for a deployment-shaped walkthrough.
+See [DEVELOPER_OVERVIEW.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/DEVELOPER_OVERVIEW.md) for the CORE / OPTIONAL / EXPERIMENTAL / HISTORICAL boundary, the machine-checked [product truth contract](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/product/product_truth_contract.yaml) for the per-capability classification, and [docs/deployment/execution-quickstart.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/deployment/execution-quickstart.md) for a deployment-shaped walkthrough.
 
 ---
 
 ## Evidence
 
-Headline values are governed by the [claim register](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/assurance/claim_register_v1.yaml) and must remain tied to committed result artifacts and scope caveats. Reported empirical results are **bounded by documented assumptions**, benchmark populations and evaluation protocols; they are not general safety guarantees.
+Headline values are governed by the [claim register](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/assurance/claim_register_v1.yaml) and must remain tied to committed result artifacts and scope caveats. Reported empirical results are **bounded by documented assumptions**, benchmark populations and evaluation protocols; they are not general safety guarantees.
 
 <!-- claim:CLAIM-002 far_pct far_ci_high_pct fbr_pct n -->
 <!-- claim:CLAIM-001 far_pct n_effective n -->
@@ -73,7 +73,7 @@ Interpret these values narrowly:
 - Historical regression demonstrates that known failures remain fixed; it does not bound unseen failures.
 - Internal reproducibility is not external replication or field validation.
 
-Replaced claims are retained in [superseded claims](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/assurance/superseded_claims.md). Failed hypotheses and limitations are retained in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
+Replaced claims are retained in [superseded claims](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/assurance/superseded_claims.md). Failed hypotheses and limitations are retained in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
 
 ---
 
@@ -99,7 +99,7 @@ assessment = assess_tool_call(
 )
 ```
 
-For external review or pilot work, use `REMORA_RUNTIME_PROFILE=review` or `controlled_pilot`; those profiles require the stronger Signed ToolSpec and durable-state prerequisites described in the [execution quickstart](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/deployment/execution-quickstart.md).
+For external review or pilot work, use `REMORA_RUNTIME_PROFILE=review` or `controlled_pilot`; those profiles require the stronger Signed ToolSpec and durable-state prerequisites described in the [execution quickstart](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/deployment/execution-quickstart.md).
 
 ---
 
@@ -118,7 +118,7 @@ For external review or pilot work, use `REMORA_RUNTIME_PROFILE=review` or `contr
 | `docs/archive/` | Superseded or historical material |
 | `paper/` | Research paper and supporting publication artifacts |
 
-Research modules, AROMER, older thermodynamic/statistical-physics work and historical design documents remain in the repository for reproducibility and audit history. Their presence does **not** imply that they are part of the enforcing runtime path. Use the [capability register](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/assurance/capability_register_v1.yaml) for wiring status.
+Research modules, AROMER, older thermodynamic/statistical-physics work and historical design documents remain in the repository for reproducibility and audit history. Their presence does **not** imply that they are part of the enforcing runtime path. Use the [capability register](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/assurance/capability_register_v1.yaml) for wiring status.
 
 ---
 
@@ -134,13 +134,13 @@ For product-oriented integration, see [Assured Agent Execution](https://github.c
 
 ## Research, AI use and citation
 
-The current research-to-control mapping is maintained in [docs/research/research_control_matrix.generated.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/research/research_control_matrix.generated.md). Related work is summarized in [docs/09-related-work.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/09-related-work.md).
+The current research-to-control mapping is maintained in [docs/research/research_control_matrix.generated.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/research/research_control_matrix.generated.md). Related work is summarized in [docs/09-related-work.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/09-related-work.md).
 
-Generative-AI tools have been used during development. AI-generated text or code is not treated as evidence by itself; claims must resolve to committed artifacts, tests or verified sources. Disclosure: [docs/AI_USE.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/AI_USE.md).
+Generative-AI tools have been used during development. AI-generated text or code is not treated as evidence by itself; claims must resolve to committed artifacts, tests or verified sources. Disclosure: [docs/AI_USE.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/AI_USE.md).
 
 ```bibtex
 @misc{remora2026,
-  title  = {REMORA: A Policy-Gated Multi-Oracle Assurance Architecture for Agentic AI},
+  title  = {REMORA: Governed Execution Assurance for Tool-Using AI Agents},
   author = {Skogbrott, Stian},
   year   = {2026},
   url    = {https://github.com/darklordVirtual/REMORA-research},
@@ -152,6 +152,6 @@ Generative-AI tools have been used during development. AI-generated text or code
 
 ## License and contributions
 
-REMORA versions from `v0.10.0` are source-available under the [Business Source License 1.1](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/LICENSE), with separate commercial licensing available under [REMORA Commercial License](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/COMMERCIAL_LICENSE.md). Research, benchmarking and reproducibility work are permitted within the terms described in [LICENSING.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/LICENSING.md).
+REMORA versions from `v0.10.0` are source-available under the [Business Source License 1.1](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/LICENSE), with separate commercial licensing available under [REMORA Commercial License](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/COMMERCIAL_LICENSE.md). Research, benchmarking and reproducibility work are permitted within the terms described in [LICENSING.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/LICENSING.md).
 
-Contribution requirements, branch lifecycle, documentation style and claim hygiene are defined in [CONTRIBUTING.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/CONTRIBUTING.md) and [docs/10-contributing.md](https://github.com/darklordVirtual/REMORA-research/blob/ea18018fcb04884ba969938e88b41ef0185e4e11/docs/10-contributing.md).
+Contribution requirements, branch lifecycle, documentation style and claim hygiene are defined in [CONTRIBUTING.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/CONTRIBUTING.md) and [docs/10-contributing.md](https://github.com/darklordVirtual/REMORA-research/blob/c45f9a966dd2c670119394fb82bf68f56dc0cce1/docs/10-contributing.md).

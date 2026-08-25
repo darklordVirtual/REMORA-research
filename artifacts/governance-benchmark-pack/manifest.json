@@ -1,12 +1,12 @@
 {
-  "created_at": "2026-08-20T08:00:30.661649+00:00",
+  "created_at": "2026-08-25T20:58:29.946254+00:00",
   "scope": "REMORA governance overlay benchmark package",
   "scope_note": "This package evaluates governance performance and safety controls, not agent replacement capability.",
-  "commit_sha": "ea18018fcb04884ba969938e88b41ef0185e4e11",
+  "commit_sha": "c45f9a966dd2c670119394fb82bf68f56dc0cce1",
   "worktree_clean": false,
   "lockfile_sha256": {
-    "requirements-lock.txt": "b29b2f4d05a233fab0ca4287973af2ebd6a10ac8d0c8c0a5759d7d89b0e5184a",
-    "frontend/package-lock.json": "ae4157bf56af5387eb41e051bba795d93a716db8c5a0169b0a6dc6bd7feac4d8"
+    "requirements-lock.txt": "24903c1b50c08695c55f15958c8daf3c96ec934497c86eb229947ed6ebbfd7e9",
+    "frontend/package-lock.json": "6a149e8c5828d09b2480735d240cc9fc2de9a09ddccc7953245ac8b796408160"
   },
   "copied_files": [
     "artifacts/benchmark_summary.json",
@@ -26,9 +26,9 @@
     "artifacts/toolcall_benchmark_v2.json": "b597cc0377b694accc9084d6bb969576b2d6f832e7389af780e31ef776f2978f",
     "artifacts/rag_adversarial_test.json": "5a706e5606c2019a2fcd7febddf8fefd3a9e85d55eb20a837622756832bfe375",
     "docs/results_snapshot.md": "05e0c17a32155854702a455f895a43d83f444c027624e53f300a338776aa4234",
-    "docs/claim_register.md": "a68f0a53e3612d349b2f54ac79acd44ba027121f6a3d53d53731c51a907c98a4",
-    "NEGATIVE_RESULTS.md": "dbcfb61864346b69a59e72048015ebd80f4f7dac7459bba8353584bf2b62c21b",
-    "README.md": "a5aa789463bbf32ffcedbe7adf5a934840627151dbf3485b23911cbfa9df24c4"
+    "docs/claim_register.md": "6bf4c3a66e13133c955cdda181356798f03a509bc5234f77ab1e2441a2b6529f",
+    "NEGATIVE_RESULTS.md": "0cdf939e17713748248a2dc7ccabd93ddef4a921fe16e14dbebe42b7ab118c92",
+    "README.md": "8504ab2b8b241bbcf05e2d12c16de7b0f76c5316cfd4d0e51c21681161a27e0c"
   },
   "missing_files": [],
   "file_count": 9,
@@ -40,9 +40,9 @@
     "artifacts/toolcall_benchmark_v2.json": "b597cc0377b694accc9084d6bb969576b2d6f832e7389af780e31ef776f2978f",
     "artifacts/rag_adversarial_test.json": "5a706e5606c2019a2fcd7febddf8fefd3a9e85d55eb20a837622756832bfe375",
     "docs/results_snapshot.md": "05e0c17a32155854702a455f895a43d83f444c027624e53f300a338776aa4234",
-    "docs/claim_register.md": "a68f0a53e3612d349b2f54ac79acd44ba027121f6a3d53d53731c51a907c98a4",
-    "NEGATIVE_RESULTS.md": "98f674fc0206df24b214e3b5edaf393adafec685f3cfeb60295c347f9a06c5cd",
-    "README.md": "2041c721d5cd60beaf0a313ed52c5816e9450f51cedfcd2fd4aaf8a35ce81f85"
+    "docs/claim_register.md": "6bf4c3a66e13133c955cdda181356798f03a509bc5234f77ab1e2441a2b6529f",
+    "NEGATIVE_RESULTS.md": "336ba27f1c2bd8839f29026082a7bb394bdbc44d81932eb8215583130594bf54",
+    "README.md": "976b52230de07d09a3c86188ef2e3f66a88bde6065fcfbb00e89c1472aa52ede"
   },
   "file_sha256_note": "file_sha256 is the repository SOURCE hash (provenance). packaged_sha256 is the hash of the bytes in this bundle (integrity). They differ for markdown whose links were rewritten; see rewritten_external_links."
 }

@@ -4,6 +4,22 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Paper
+
+- Reframed the paper around governed execution assurance: the authority-bound
+  execution chain (signed ToolSpec, exact-call lease, key-custody separation,
+  re-policying at the enforcement point, effect-evidence states) is now the
+  stated identity, with the multi-oracle machinery positioned as routing
+  support. The architecture chapter describes the deployed
+  Ed25519/ToolSpec/lease/custody/PEP model with its gaps stated.
+- Related work gains an authority-bound execution section with explicit
+  non-claims, positioning against AIRGuard, Proof-Carrying Agent Actions,
+  Proof of Execution and the agent-permissions survey (all four verified and
+  added to both reference lists; citation parity 67=67).
+- The version stamp moves to v0.11.0 / 2026-08-25 against the frozen release
+  tag; the "synchronized" wording is dropped and the stale review-v1 pointer
+  and test counts are corrected.
+
 ## 0.11.0 — 2026-08-25
 
 The first frozen research release since 0.10.0: an exact, tagged commit that
