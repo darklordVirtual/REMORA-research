@@ -74,7 +74,15 @@ def approve_item(
                 approval_ttl=timedelta(seconds=approval_ttl_seconds),
             )
     except (KeyError, ValueError) as exc:
-        raise ReviewConflict(str(exc)) from exc
+        # The queue's own message is not repeated to the caller: it is raised
+        # from internal state handling and can name item keys and internal
+        # fields, and this reaches an HTTP 409 detail (CodeQL
+        # py/stack-trace-exposure). The state the caller can act on is the
+        # one this endpoint contracts on, and the original rides the
+        # exception chain for the log.
+        raise ReviewConflict(
+            "item is not in an approvable state"
+        ) from exc
 
     # FT-01 conformance, AFTER the queue accepted: the move the queue just
     # performed (pending → approved) must be one the declared machine allows.
@@ -126,7 +134,10 @@ def reject_item(
     except KeyError as exc:
         raise ReviewNotFound(item_id) from exc
     except ValueError as exc:
-        raise ReviewConflict(str(exc)) from exc
+        # See approve_item: the queue's message stays out of the response.
+        raise ReviewConflict(
+            "item is not in a rejectable state"
+        ) from exc
 
     lifecycle_guard("REVIEW_PENDING", "human_rejection")
     proposal_id = getattr(item.observation, "proposal_id", None)

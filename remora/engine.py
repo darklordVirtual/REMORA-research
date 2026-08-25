@@ -35,9 +35,22 @@ from remora.state import RemoraState
 __all__ = ["Remora", "RemoraState"]
 
 # Compiled once at import; style matches remora.safety.adversarial.
+# The `you must ... or i` branch is bounded, and its gap is pinned to end on
+# a non-space character. Both are load-bearing. The original
+# `you\s+must\s+.+\s+or\s+i` put an unbounded `.+` -- which matches
+# whitespace -- directly before `\s+`, so every split of a run of spaces was a
+# distinct backtracking path. `"you must " + " " * 2000` did not finish in two
+# minutes on this admission path, which takes untrusted text
+# (CodeQL py/polynomial-redos). `\S` pins the boundary so the two quantifiers
+# can no longer overlap, and `{0,200}` caps the work per start position.
+#
+# 200 characters is the span a coercive "you must X or i ..." clause occupies.
+# A longer one is a false negative, which this heuristic's own contract
+# already accepts. A false negative costs a missed hint; the unbounded form
+# cost availability.
 _COERCION_PATTERNS = re.compile(
     r"(if\s+you\s+don.t|unless\s+you|or\s+i\s+will|i\s+will\s+(threaten|leak|destroy|expose|report|publish)|"
-    r"blackmail|coerce|extort|you\s+must\s+.+\s+or\s+i)",
+    r"blackmail|coerce|extort|you\s+must\s+[^\n]{0,200}?\S\s+or\s+i)",
     re.IGNORECASE,
 )
 
