@@ -201,6 +201,7 @@ only_mutate = [
 also_copy = ["servers/", "schemas/"]
 pytest_add_cli_args = ["-q", "-p", "no:cacheprovider"]
 pytest_add_cli_args_test_selection = [
+    "tests/test_enforcement_gate_contract.py",
     "tests/test_token_golden_vectors.py",
     "tests/test_token_key_lifecycle.py",
     "tests/test_execution_lease.py",
