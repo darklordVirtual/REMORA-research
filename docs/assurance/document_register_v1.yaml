@@ -2244,6 +2244,64 @@ documents:
   status: canonical
   topic: docs_aromer_subproject_md
   verdict: current
+- id: DOC-321
+  code_synced: verified
+  verdict: current
+  path: docs/architecture/ADR-authority-custody-and-lease-durability.md
+  status: canonical
+  topic: docs_adr_authority_custody_and_lease_durability
+  owner: darklordVirtual
+  audience:
+  - integrators
+  - evaluators
+  last_validated: '2026-08-25'
+  last_audited: '2026-08-25'
+  last_reviewed: '2026-08-25'
+  validates_against: []
+  claims: []
+- id: DOC-322
+  code_synced: verified
+  verdict: current
+  path: docs/deployment/authority-custody-evidence.md
+  status: canonical
+  topic: docs_deployment_authority_custody_evidence
+  owner: darklordVirtual
+  audience:
+  - evaluators
+  - integrators
+  last_validated: '2026-08-25'
+  last_audited: '2026-08-25'
+  last_reviewed: '2026-08-25'
+  validates_against: []
+  claims: []
+- id: DOC-323
+  code_synced: verified
+  verdict: current
+  path: docs/deployment/authority-key-topology.md
+  status: canonical
+  topic: docs_deployment_authority_key_topology
+  owner: darklordVirtual
+  audience:
+  - integrators
+  last_validated: '2026-08-25'
+  last_audited: '2026-08-25'
+  last_reviewed: '2026-08-25'
+  validates_against: []
+  claims: []
+- id: DOC-324
+  code_synced: verified
+  verdict: current
+  path: docs/research/adjacent-systems-crosswalk-v2.md
+  status: supporting
+  topic: docs_research_adjacent_systems_crosswalk_v2
+  owner: darklordVirtual
+  audience:
+  - researchers
+  last_validated: '2026-08-25'
+  last_audited: '2026-08-25'
+  last_reviewed: '2026-08-25'
+  validates_against: []
+  claims: []
 topics:
 - docs_integrations_mcp-gateway_md
 - docs_design_cloudflare-mcp-gateway-v1_md
@@ -2500,3 +2558,7 @@ topics:
 - docs_assurance_statistical_analysis_plan_v4_md
 - docs_research_task_intent_authority_v1_md
 - docs_assurance_fasttrack_register_v1_yaml
+- docs_adr_authority_custody_and_lease_durability
+- docs_deployment_authority_custody_evidence
+- docs_deployment_authority_key_topology
+- docs_research_adjacent_systems_crosswalk_v2
