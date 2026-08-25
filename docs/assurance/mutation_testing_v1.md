@@ -14,7 +14,15 @@
 | Run | Mutants | Killed | Survived | No tests | Kill rate |
 |---|---|---|---|---|---|
 | All lines | 1,138 | 382 | 704 | 52 | 35.2% of checked |
-| Covered lines only (`mutate_only_covered_lines`) | 722 | 376 | 346 | 0 | **52.1%** |
+| Covered lines only (`mutate_only_covered_lines`) | 722 | 376 | 346 | 0 | 52.1% |
+| Covered lines, after the golden-vector fix | 722 | **410** | **312** | 0 | **56.8%** |
+
+The third row is the verification that the fix below fixes: the
+`_canonical_payload` cluster went 34 → 0 survivors, and the delta accounts
+for the entire improvement. It took two attempts — the first re-sweep
+reproduced 34 unchanged because the new suite was not in the runner's test
+selection, which is its own lesson: a kill-test that the runner never
+executes kills nothing, however good it looks.
 
 The two numbers answer different questions and neither may borrow the
 other's meaning. The all-lines rate mixes untested *behaviour* with lines
