@@ -1,4 +1,4 @@
-# Execution Lifecycle + Crash-Consistent Outbox; Design v1
+# Execution Lifecycle + Crash-Consistent Outbox — Design v1
 
 **Status: DRAFT, for human review.** Every decision in this document is a
 **PROPOSAL**. Nothing described here is implemented; no code in this repo
@@ -63,7 +63,7 @@ see §5.
 
 ---
 
-## 2. Design A; Unified execution lifecycle
+## 2. Design A — Unified execution lifecycle
 
 ### 2.1 One `proposal_id`, minted once
 
@@ -136,7 +136,7 @@ the most contract-touching choice in this document; see Open Decision 7.
 
 ---
 
-## 3. Design B; Crash-consistent outbox
+## 3. Design B — Crash-consistent outbox
 
 ### 3.1 State machine
 
@@ -182,7 +182,7 @@ colliding with a stale row from a prior approval cycle. Whether
 `attempt_no` belongs in the key, or a re-approval should instead force a
 new `proposal_id`, is Open Decision 8.
 
-### 3.3 Schema sketch (Postgres; sketch, not a migration)
+### 3.3 Schema sketch (Postgres — sketch, not a migration)
 
 ```sql
 -- PROPOSED. No migration exists. Names/types are a sketch for review.

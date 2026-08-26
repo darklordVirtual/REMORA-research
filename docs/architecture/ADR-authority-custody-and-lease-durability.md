@@ -13,7 +13,7 @@ ADR that is not ready.
 
 ---
 
-## ADR-A; Asymmetric PDP→PEP authority
+## ADR-A — Asymmetric PDP→PEP authority
 
 **Property protected.** C (Exact-Call Integrity) and B (Authority Provenance),
 at the level of *who may author authority at all*.
@@ -117,7 +117,7 @@ deployment change, and until it ships the claim is about the mechanism only.
 
 ---
 
-## ADR-B; Durable `ExecutionLease` nonce consumption
+## ADR-B — Durable `ExecutionLease` nonce consumption
 
 **Property protected.** C (Exact-Call Integrity), specifically the single-use
 half.
@@ -184,7 +184,7 @@ evidence.
 
 ---
 
-## ADR-C; Persistent trajectory provenance *(accepted as direction; not implemented)*
+## ADR-C — Persistent trajectory provenance *(accepted as direction; not implemented)*
 
 **Property protected.** D (Semantic Authority), extended across calls.
 
@@ -213,7 +213,7 @@ Janus, which states its own limitation in its source.
 
 ---
 
-## ADR-D; External runtime/tool drift identity *(accepted as direction; not implemented)*
+## ADR-D — External runtime/tool drift identity *(accepted as direction; not implemented)*
 
 **Property protected.** F2, and candidate H (crosswalk v2 §3).
 
@@ -239,7 +239,7 @@ propose H third.
 
 ---
 
-## ADR-E; External audit anchoring *(accepted as direction; not implemented)*
+## ADR-E — External audit anchoring *(accepted as direction; not implemented)*
 
 **Property protected.** A (Receipt Integrity), against the operator.
 

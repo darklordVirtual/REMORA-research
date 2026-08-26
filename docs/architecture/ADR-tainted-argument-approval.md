@@ -1,4 +1,4 @@
-# ADR: Tainted arguments; approval suffices; sanitisation is not required
+# ADR: Tainted arguments — approval suffices; sanitisation is not required
 
 - Status: **accepted** (2026-08-20)
 - Deciders: repository owner

@@ -1,4 +1,4 @@
-# Governed MCP Gateway on Cloudflare; v1
+# Governed MCP Gateway on Cloudflare — v1
 
 **Status:** proposal
 **Scope:** slice 1 of the Cloudflare deployment programme; a single-tenant
