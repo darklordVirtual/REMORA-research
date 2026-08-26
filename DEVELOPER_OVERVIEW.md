@@ -108,11 +108,11 @@ See `docs/deployment/execution-quickstart.md` for configuration.
 
 A reviewer should be able to answer these from code and tests:
 
-1. Who defines tool meaning and authority? — The deployment, not the agent.
-2. Can model confidence override a hard guard? — No.
-3. Is authorization bound to the exact action? — Yes; proposal/call identity is rechecked before dispatch.
-4. What happens around a crash? — The outbox records dispatch state; unknown outcomes are not silently treated as success or retried as if nothing happened.
-5. Can REMORA enforce against a bypass credential path? — No; the governed dispatcher must be the authority path to the protected tool.
+1. Who defines tool meaning and authority? The deployment, not the agent.
+2. Can model confidence override a hard guard? No.
+3. Is authorization bound to the exact action? Yes; proposal/call identity is rechecked before dispatch.
+4. What happens around a crash? The outbox records dispatch state; unknown outcomes are not silently treated as success or retried as if nothing happened.
+5. Can REMORA enforce against a bypass credential path? No; the governed dispatcher must be the authority path to the protected tool.
 
 ## Reproduce the execution core
 
@@ -133,23 +133,23 @@ Use `deploy/ot-pilot/` or the execution quickstart for a deployment-shaped test.
 
 Do not infer maturity from implementation size. Use:
 
-- `docs/assurance/capability_register_v1.yaml` — runtime wiring depth;
-- `docs/product/product_truth_contract.yaml` — capability classes (core/optional/experimental/legacy/demo), CI-checked against public copy;
-- `docs/architecture/ADR-single-authoritative-execution-path.md` — one authoritative execution path; edge workers are ingress;
-- `docs/commercial/PRODUCT_PACKAGING.md` — what is commercially offered (Shadow Pilot), bound to release profiles;
-- `docs/assurance/claim_register_v1.yaml` — governed numerical claims;
-- `docs/02-evidence-and-claims.md` — reviewer-readable evidence boundaries;
-- `NEGATIVE_RESULTS.md` — failed and superseded hypotheses.
+- `docs/assurance/capability_register_v1.yaml`: runtime wiring depth;
+- `docs/product/product_truth_contract.yaml`: capability classes (core/optional/experimental/legacy/demo), CI-checked against public copy;
+- `docs/architecture/ADR-single-authoritative-execution-path.md`: one authoritative execution path; edge workers are ingress;
+- `docs/commercial/PRODUCT_PACKAGING.md`: what is commercially offered (Shadow Pilot), bound to release profiles;
+- `docs/assurance/claim_register_v1.yaml`: governed numerical claims;
+- `docs/02-evidence-and-claims.md`: reviewer-readable evidence boundaries;
+- `NEGATIVE_RESULTS.md`: failed and superseded hypotheses.
 
 A benchmark result is not field validation. A library implementation is not automatically wired to the execution API. Internal reproducibility is not external replication.
 
 ## Known boundary
 
-`servers/execution_api.py` decomposition is complete (issue #241, closed 2026-08-19, nine slices each characterized against a byte-identical OpenAPI schema): wire contracts in `servers/execution_contracts.py`; review-state persistence in `remora/persistence/execution_state.py`; ToolSpec authorization, dispatch, projections and all five use-case orchestrations (assess/approve/reject/execute/execute-accepted) in `remora/execution/`. The api module is routes + ambient bindings, pinned by route-thinness tests. Issue #82 is closed: the durable outbox, the standalone reconciler AND the decoupled dispatch worker (`scripts/run_dispatch_worker.py`, opt-in via `REMORA_ASYNC_DISPATCH`) all exist — the worker claims exclusively before minting, honours the persisted authorization expiry, and finishes terminal projections idempotently. The synchronous path remains the default and the only reference-profile configuration; async activation is gated on issue #423.
+`servers/execution_api.py` decomposition is complete (issue #241, closed 2026-08-19, nine slices each characterized against a byte-identical OpenAPI schema): wire contracts in `servers/execution_contracts.py`; review-state persistence in `remora/persistence/execution_state.py`; ToolSpec authorization, dispatch, projections and all five use-case orchestrations (assess/approve/reject/execute/execute-accepted) in `remora/execution/`. The api module is routes + ambient bindings, pinned by route-thinness tests. Issue #82 is closed: the durable outbox, the standalone reconciler AND the decoupled dispatch worker (`scripts/run_dispatch_worker.py`, opt-in via `REMORA_ASYNC_DISPATCH`) all exist. The worker claims exclusively before minting, honours the persisted authorization expiry, and finishes terminal projections idempotently. The synchronous path remains the default and the only reference-profile configuration; async activation is gated on issue #423.
 
 ## Reading order
 
-The ordered path lives in [README.md](README.md) — there were five competing
+The ordered path lives in [README.md](README.md); there were five competing
 "start here" lists in this repository and none of them agreed. After this
 document, continue there.
 

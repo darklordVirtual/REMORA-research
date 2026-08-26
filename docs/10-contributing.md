@@ -17,13 +17,13 @@ Do not keep merged feature, fix, documentation or experiment branches as permane
 
 One topic should have one canonical source:
 
-- `README.md` — public project scope and current status.
-- `DEVELOPER_OVERVIEW.md` — developer/reviewer handoff.
-- `ARCHITECTURE.md` — canonical runtime architecture.
-- `docs/README.md` — navigation and document precedence.
-- `docs/assurance/` — machine-governed claims, capabilities and release state.
-- `docs/research/` — active research material.
-- `docs/archive/` — historical and superseded material.
+- `README.md`: public project scope and current status.
+- `DEVELOPER_OVERVIEW.md`: developer/reviewer handoff.
+- `ARCHITECTURE.md`: canonical runtime architecture.
+- `docs/README.md`: navigation and document precedence.
+- `docs/assurance/`: machine-governed claims, capabilities and release state.
+- `docs/research/`: active research material.
+- `docs/archive/`: historical and superseded material.
 
 Do not add another overview or architecture narrative to avoid editing an existing canonical document.
 

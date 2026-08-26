@@ -56,12 +56,12 @@ that do not apply to the research modules:
 - **Per-package coverage floors** (`scripts/check_coverage_thresholds.py`,
   branch coverage on). A single global number lets a well-covered research
   module pay for a thinly covered enforcement module. Raise a floor when the
-  real number rises; never lower one to make a failing build pass — cover the
+  real number rises; never lower one to make a failing build pass; cover the
   code instead.
 
 ### Test structure
 
-- **Shared fixtures live in `tests/conftest.py`**: `repo_root`, `engine`,
+- Shared fixtures live in `tests/conftest.py`: `repo_root`, `engine`,
   `observation` (a factory, so which fields a test sets stays visible at the
   call site), `signing_key`. Do not re-derive the repo root with `parents[N]`.
 - **`@pytest.mark.docgate`** marks a test that asserts on repository documents
@@ -73,7 +73,7 @@ that do not apply to the research modules:
   people to bump the number without reading what changed. Assert that IDs are
   unique and contiguous, that sets stay balanced, that the aggregate equals
   the sum of its parts. Exact values are correct when they guard a specific
-  published correction from being reverted — say so in a comment when they do.
+  published correction from being reverted; say so in a comment when they do.
 
 ## Contribution licensing
 

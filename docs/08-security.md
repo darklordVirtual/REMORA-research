@@ -27,9 +27,9 @@ weights, inference infrastructure, or network perimeter. Its threat surface is:
    instructing the model to bypass policy.
 2. **Tool-call abuse**, agent invokes a tool outside its role/clearance scope or
    with malformed arguments.
-3. **Audit tampering**: modification of past `DecisionEnvelope` records.
-4. **Oracle failure**: all oracles agree and are all wrong (correlated failure).
-5. **Governance forgetting**: a temporary exception becomes permanent behaviour.
+3. Audit tampering: modification of past `DecisionEnvelope` records.
+4. Oracle failure: all oracles agree and are all wrong (correlated failure).
+5. Governance forgetting: a temporary exception becomes permanent behaviour.
 
 REMORA addresses 1–5 at the application layer with the controls below. It does
 not prevent host-level attacks, model extraction, or infrastructure compromise.

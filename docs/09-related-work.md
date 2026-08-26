@@ -37,7 +37,7 @@ Relevant ideas:
   Angelopoulos et al. 2022),
 - repeated-split robustness checks,
 - time-uniform (anytime-valid) confidence sequences that stay valid under
-  optional stopping (Howard et al. 2021; Ramdas et al. 2023) — a distinct,
+  optional stopping (Howard et al. 2021; Ramdas et al. 2023), a distinct,
   sequential-monitoring cousin of conformal risk control.
 
 How REMORA uses this:
@@ -95,7 +95,7 @@ How REMORA uses this:
 - dry-run and sandbox execution metrics,
 - `EXECUTE / VERIFY / ABSTAIN / ESCALATE` action mapping,
 - Governed Programmatic Tool Calling (GPTC, RF-11):
-  `remora/toolcall/ptc/` — stub generator, AST call-graph extractor,
+  `remora/toolcall/ptc/`: stub generator, AST call-graph extractor,
   governed batch executor.
 
 Boundary:
@@ -104,10 +104,10 @@ Boundary:
 - v2 provides deterministic adversarial evidence, not production proof.
 - Live validation remains a separate research requirement.
 - GPTC is a planning-layer prototype (RF-11, SCOPED); stubs return
-  `ProposedCall` data objects only — no real API execution from the
+  `ProposedCall` data objects only; no real API execution from the
   planning surface. Governance and dispatch are unchanged.
 
-### 4a. Programmatic Tool Calling (PTC) — planning layer
+### 4a. Programmatic Tool Calling (PTC), planning layer
 
 Patel, Sen, Lumer & Subbiah (2026). *The Bitter Lesson of Tool Calling.*
 arXiv:2608.06370. PricewaterhouseCoopers Commercial Technology and
@@ -125,7 +125,7 @@ scenarios. Key empirical findings (authors' setup, authors' numbers):
 - Under 128-tool context, PTC degrades far less than JSON calling
   ("context rot" resistance).
 - Authors distinguish *aggregation accuracy* (correct final answer) from
-  *enumeration accuracy* (correct tool calls actually invoked) — models
+  *enumeration accuracy* (correct tool calls actually invoked); models
   can produce correct answers without executing the required tools.
 
 **What REMORA takes from this (RF-11).**
@@ -138,7 +138,7 @@ synthesis, not a statement from the source:
 > *Code for composition. Policy for authority.*
 
 Concretely:
-- `ToolSpec → stub_generator.py` generates typed Python planning stubs from
+- `stub_generator.py` takes a `ToolSpec` and generates typed Python planning stubs from
   signed ToolSpec objects. Each stub returns a `ProposedCall` data object;
   it never touches a real API.
 - `call_graph.py` extracts the full action DAG from a plan via pure AST
@@ -155,12 +155,12 @@ is computation; REMORA owns authority.
 
 The enumeration-accuracy finding motivates new GPTC metrics:
 `plan_call_recall`, `executed_call_recall`, `unauthorized_call_rate`,
-`grant_binding_failure_rate`, and `postcondition_match_rate` — planned as
+`grant_binding_failure_rate`, and `postcondition_match_rate`, planned as
 part of the RF-11 ablation benchmark.
 
 **What is not adopted.**
 
-- Direct Python → production API (bypasses REMORA's security model).
+- Direct Python calls into the production API (bypasses REMORA's security model).
 - Authors' subprocess execution environment (no REMORA governance gate).
 - Any PTC result number as a REMORA claim (not yet run; no artifact exists).
 
@@ -191,11 +191,11 @@ for agents (announced 2026-04-02): deterministic runtime enforcement, agent
 identity, execution rings, policy engines, MCP governance and supply-chain
 provenance.
 
-**Positioning.** REMORA's authority binding is per call: authority provenance
-→ exact-call binding → grant consumption → execution custody → effect state →
-evidence → claim governance. Policies on Paths and VIGIL govern *sequences*;
+**Positioning.** REMORA's authority binding is per call. The chain runs from
+authority provenance through exact-call binding, grant consumption, execution
+custody and effect state to evidence and claim governance. Policies on Paths and VIGIL govern *sequences*;
 Microsoft AGT is broader in surface. REMORA does not claim trajectory-level
-enforcement; the single-call → path-level extension is an open direction
+enforcement; the extension from single-call to path-level enforcement is an open direction
 (see Open Research Gaps), not an implemented capability.
 
 ## 5. Evidence Grounding and Retrieval-Augmented Verification
@@ -334,13 +334,13 @@ Relevant ideas:
 
 How REMORA uses this:
 
-- `remora/causal/schema.py` — `CausalDecisionModel` over operational concepts,
+- `remora/causal/schema.py`: `CausalDecisionModel` over operational concepts,
   bounded to `decision_scope="policy_only"` (Bjøru §3),
-- `remora/causal/search.py` — per-concept PS/PN scoring and the minimal
+- `remora/causal/search.py`: per-concept PS/PN scoring and the minimal
   contrastive concept-intervention search (Paper IV §4.2.2–§4.2.4),
-- `remora/causal/attribution.py` — global concept attribution over a log of
+- `remora/causal/attribution.py`: global concept attribution over a log of
   policy decisions (Paper IV §4.2.1, §4.2.3),
-- `remora/causal/explanation.py` — the `CausalExplanation` carried on
+- `remora/causal/explanation.py`: the `CausalExplanation` carried on
   `DecisionEnvelope.causal_explanation`,
 - tests: `tests/test_causal.py`, `tests/test_causal_search_attribution.py`
   (PS/PN ∈ {0, 1}, minimality, verdict-change, global mean-PS ordering),

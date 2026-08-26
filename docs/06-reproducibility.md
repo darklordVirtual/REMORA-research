@@ -3,7 +3,7 @@
 Every headline result has an exact command and expected output file. Run `make test`
 (or, with no `make` installed, `python -m pytest tests/ -q`) first to confirm the
 environment is intact, then run the specific target below. Every `make` target here is
-a thin wrapper over a `python` command — run `make help` to list them, or read the
+a thin wrapper over a `python` command; run `make help` to list them, or read the
 recipe in the `Makefile` to get the exact `python`/`python -m pytest` invocation.
 
 → [02-evidence-and-claims.md](02-evidence-and-claims.md) maps claims to artifacts.
@@ -76,7 +76,7 @@ accuracy at 16.7% coverage, N_accepted = 18, Wilson CI [82.4%, 100.0%], exact
 one-sided binomial vs the training-split null p0 = 84.86% giving p = 0.052.
 
 Caveat: N_accepted = 18 and p = 0.052, so the result is directional, not
-significant. **CLAIM-004 is superseded by CLAIM-012** — the temperature signal it
+significant. **CLAIM-004 is superseded by CLAIM-012**: the temperature signal it
 ranks on failed its fresh-data confirmation, so reproducing this number confirms
 the artifact, not the hypothesis. Quote the CI, not the point estimate.
 

@@ -11,7 +11,7 @@ fails.
 
 The machine-readable contract is [`schemas/openapi.json`](../schemas/openapi.json)
 (OpenAPI 3.1, 23 paths). CI fails on drift between it and the routes, so it is
-the authority for request and response shapes — this document explains them.
+the authority for request and response shapes; this document explains them.
 
 A first round-trip against a development-profile server, which is the shortest
 path to a 200 before the strict-profile prerequisites are configured:
@@ -26,7 +26,7 @@ export REMORA_API_ALLOW_MOCK_ORACLES=true
 python -m uvicorn servers.api:app --port 8000
 ```
 
-Read the token from the environment rather than pasting it into a command —
+Read the token from the environment rather than pasting it into a command;
 a bearer token on a command line ends up in shell history and in process
 listings:
 
@@ -48,7 +48,7 @@ curl -s localhost:8000/v1/assess   -H "$AUTH"   -H "Content-Type: application/js
 ```
 
 The response carries the decision, the reasons that produced it, and the
-envelope's audit block. Abridged — the full response has 15 top-level keys and
+envelope's audit block. Abridged: the full response has 15 top-level keys and
 `policy_decision` carries 11 fields; `schemas/openapi.json` is the complete
 contract:
 
@@ -92,35 +92,35 @@ its `not_covered` half is not decoration.** The composite is built over the
 same six components, so it can say *that* the trust base differed and never
 *which part*: two independently signed records carrying only the composite
 compare wholesale. Recording the components makes a component-by-component
-join constructible — which is what tells a verifier that an authorization was
+join constructible, which is what tells a verifier that an authorization was
 evaluated against the trust base actually in force at the enforcement point,
 a question that can fail with no change at all if a stale snapshot was read.
 
 `not_covered` names trust-base elements the decision depends on that carry no
 digest here. A record that lists coverage and stays silent about the rest
-reads as complete coverage. A component that is configured but absent — OPA
-with no policy path set — carries `null` rather than being dropped, because
+reads as complete coverage. A component that is configured but absent (OPA
+with no policy path set) carries `null` rather than being dropped, because
 present-and-unset and not-a-component-here are different facts.
 
 The execution surface writes the same block twice: on `execution_authorized`
 as the view the PDP decided against, and on `execution_result` re-read after
 dispatch. The closure record deliberately re-reads rather than copying the
-admission value — a join that cannot fail proves nothing.
+admission value; a join that cannot fail proves nothing.
 
 The key is absent, not null, on records written before it existed; see
 `POST_V2_AUDIT_KEYS` in `remora/governance/envelope.py`.
 
 The decision key is **`policy_decision`**, not `decision`. `action` is one of
 `accept`, `verify`, `abstain`, `escalate`. `reasons` names every rule that
-fired, in the order the ladder evaluated them — that list, not the action
+fired, in the order the ladder evaluated them; that list, not the action
 alone, is what an audit reads, and every value is a member of
 `DecisionReason` (`remora/policy/report.py`).
 
 **The action shown above is illustrative, not fixed for this request.**
 `/v1/assess` consults the evidence layer, and the same call returns `abstain`
 where a local NLI backend is installed and `verify` where evidence is merely
-inconclusive. That is the surface behaving as designed — an unresolved
-evidence question is a reason to hold, not to decide — but it means you must
+inconclusive. That is the surface behaving as designed (an unresolved
+evidence question is a reason to hold, not to decide), but it means you must
 branch on the returned `action`, never on the one printed in a document. The
 enforcing `/v1/execution/*` path does not have this property: it runs the
 policy engine under the execution profile, where a probabilistic signal can
@@ -130,13 +130,13 @@ Two things in that response are worth reading closely. `signature` is `null`
 because the development profile has no `REMORA_ENVELOPE_SIGNING_KEY`;
 production refuses to start without one, precisely so this field is never
 null there. And `genesis: true` is *recorded*, not inferred from
-`previous_hash` being null — a failed chain lookup raises rather than
+`previous_hash` being null; a failed chain lookup raises rather than
 silently restarting the chain.
 
 This exact round trip is executed by `tests/test_api_reference_examples.py`,
 so the response shown above cannot drift from the one the server returns.
 
-For the enforcing surface (`/v1/execution/*`: assess → approve → execute, with
+For the enforcing surface (`/v1/execution/*`: assess, then approve, then execute, with
 a single-use grant and an execution lease) see
 [deployment/execution-quickstart.md](deployment/execution-quickstart.md); it
 requires the strict-profile prerequisites and is not reachable from the
@@ -233,10 +233,10 @@ one dispatcher process must not rely on it as a global guarantee (REM-025).
 with 74 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
-safe") — see the assess-time authorities subsection below for the two
+safe"); see the assess-time authorities subsection below for the two
 server-side cuts into that freedom. On `/v1/execution/*` it does NOT hold:
 trust-bearing fields are derived server-side and client values can only
-lower trust, never raise it — see the Trust boundary section below.
+lower trust, never raise it; see the Trust boundary section below.
 Selected fields by group:
 
 | Group | Fields (selection) |
@@ -270,14 +270,14 @@ Two server-side authorities cut into `/v1/assess`'s caller freedom:
   `/v1/execution/assess` runs; the computed `tool_contract_bundle_hash`
   and `intent_authority_hash` are recorded into the envelope's audit
   block, and `tool_args_hash` upgrades to the canonical execution/lease
-  preimage. The semantic verdicts are RECORDED on this path — the gate
+  preimage. The semantic verdicts are RECORDED on this path; the gate
   decision still comes from the question-based engine pipeline, and
   discrimination through the wired path is unmeasured (SAP v4 pending).
 - **Raise-only metadata on the library path.** `assess_tool_call`
   (`remora/assess.py`) clamps a declared `risk_tier` that undercuts the
   deterministic name-heuristic floor UP to the floor, and floors a
   declared read on a write-verb tool to the inferred write family. Every
-  clamp is recorded in `ToolCallAssessment.floored` — never silent. The
+  clamp is recorded in `ToolCallAssessment.floored`, never silent. The
   floor clamps explicit declarations only; unset fields stay unset and
   the engine fail-closes on them.
 
@@ -424,7 +424,7 @@ trivially valid). RBAC: `assess`/`execute` capabilities gate assess/execute;
 `review` gates approve; `read` gates audit.
 
 **Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
-bearer token to a fixed tenant and role — callers cannot forge either.
+bearer token to a fixed tenant and role; callers cannot forge either.
 Single-token mode (`REMORA_API_BEARER_TOKEN`) reads tenant/role from
 caller-asserted headers and therefore has **no role separation**; in
 `REMORA_ENV=production` the role header is ignored and pinned to
@@ -437,7 +437,7 @@ The cache is a bounded in-process LRU (10 000 entries); an evicted key
 simply re-runs assess, which has no side effects beyond a fresh audit
 record.
 
-**Trust boundary (issue #34):** the execution request is a PROPOSAL only —
+**Trust boundary (issue #34):** the execution request is a PROPOSAL only;
 `tool_name`, exact `arguments`, requested `target_environment` (+
 `idempotency_key`, and optionally `intent_ref` / `untrusted_context`, both
 covered below). Every authoritative safety signal (risk tier, domain,
@@ -450,7 +450,7 @@ only inbound safety influence is a DOWNGRADE: `schema_valid: false` or
 freshness re-gate); `true` never raises anything, including on tools the
 registry does not pin. Since the policy-only kernel has no oracle or
 evidence pipeline, trust/phase/evidence are unknown at assess time and the
-engine fails toward VERIFY/ABSTAIN — no probabilistic ACCEPT can fire from
+engine fails toward VERIFY/ABSTAIN; no probabilistic ACCEPT can fire from
 this path (server-side signal sources are #35/#39 scope).
 
 **Semantic bundle (SHELF-020):** with `REMORA_SEMANTIC_BUNDLE_MODULE`
@@ -459,8 +459,8 @@ configured (module contract: `build_semantic_bundle()` and optionally
 `validate_argument_scope(tool_name, arguments, tenant)`, see
 `remora/toolcall/semantic_bundle.py`;
 shipped research profile: `servers/semantic_bundle_research.py`), the
-assess/execute observation is built by `build_full_observation` — the same
-authoritative context builder the routing benchmarks lock — over the
+assess/execute observation is built by `build_full_observation` (the same
+authoritative context builder the routing benchmarks lock) over the
 deployment-declared tool signatures, contracts, validator bindings and state
 index. The request may carry an opaque `intent_ref`, resolved server-side
 against a deployment-controlled source (`docs/research/task_intent_authority_v1.md`);
@@ -481,12 +481,12 @@ violation hard-ABSTAINS before review and is re-evaluated on approved-item
 redemption; human approval cannot widen a tenant binding. The same hashes are
 appended to the tenant audit chain at assess time and bound into the
 `ExecutionLease` at execute time. Without a bundle module the legacy
-registry-only path runs, recorded as empty hashes — absent semantics stay
+registry-only path runs, recorded as empty hashes; absent semantics stay
 `None`, never defaulted. Discrimination through this path is unmeasured
 (SAP v4 pending); no accuracy number may be cited for it.
 
 **Tool dispatch (issue #13):** tool callables are registered exclusively via
-trusted deployment configuration — the module named by
+trusted deployment configuration; the module named by
 `REMORA_TOOL_REGISTRY_MODULE` must expose
 `register_tools(register: Callable[[str, Callable], None])` and is imported
 once per process; request payloads can never add or replace callables, so
@@ -494,7 +494,7 @@ downstream credentials stay app-side. The `/execute` response carries a
 `tool_execution` block (`executed`, and `result` or `refusal_reason`) that
 reports what actually happened; with no module configured the registry is
 empty and every dispatch reports `executed: false` /
-`refusal_reason: unknown_tool` — the research default stays side-effect free
+`refusal_reason: unknown_tool`; the research default stays side-effect free
 but says so explicitly. Dispatch happens only after the PEP consumed the
 grant, under an `ExecutionLease` bound to tenant, principal, tool, exact
 arguments, target environment and the current policy-bundle hash; a tool that
@@ -503,13 +503,13 @@ raises burns the lease nonce and surfaces as
 (`tool_executed` / `tool_refusal_reason`).
 
 **Execution state machine (external review 2026-07-27):** the re-gate only
-ever AUTHORIZES — `ReviewQueue.execute()` sets the item to `authorized`, and
+ever AUTHORIZES; `ReviewQueue.execute()` sets the item to `authorized`, and
 `executed` is recorded exclusively by `record_execution_outcome()` after the
 dispatcher confirms the side effect; refusals and raising tools terminate as
 `dispatch_refused` / `dispatch_failed`, so the persisted state never claims
 an execution that did not happen. The audit chain carries a durable
 `execution_authorized` INTENT entry appended before the external side effect
-and an `execution_result` entry after it (linked via `intent_sequence_no`) —
+and an `execution_result` entry after it (linked via `intent_sequence_no`);
 a crash mid-dispatch leaves an authorization with no matching result, never
 a side effect with no record. Item→tenant bindings and approvals are written
 inside the same durable transaction as the queue state (SQLite/Postgres),
