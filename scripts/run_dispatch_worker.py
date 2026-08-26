@@ -52,6 +52,12 @@ def sweep_once(worker_id: str) -> int:
 
     dispatched_total = 0
     for tenant in outbox.tenants():
+        # Finish any projection a crashed process left behind before
+        # dispatching new work (issue #416).
+        for projected in exec_mod.project_terminal_intents(tenant):
+            print(f"[PROJECTED] tenant={tenant} "
+                  f"outbox={projected.get('outbox_id')} "
+                  f"replayed={projected.get('replayed')}")
         for result in exec_mod.dispatch_pending_intents(
             tenant, worker_id=worker_id
         ):
