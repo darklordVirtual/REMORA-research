@@ -1,6 +1,6 @@
 # REMORA: Policy-Gated Governance for Operational AI Agents
 
-[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI — Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
+[![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI: Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
 
 REMORA is a **policy-gated execution assurance layer for operational AI agents**: a governance overlay placed between an agent proposal and the protected tool path. An agent proposes a tool call; REMORA evaluates the exact action before execution and returns one of four outcomes:
 
@@ -22,13 +22,13 @@ python -m remora try
 
 **Start here.** This is the one ordered reading path; the other documents point back here rather than proposing their own.
 
-1. [Developer handoff](DEVELOPER_OVERVIEW.md) — shortest technical path through the repository
-2. [Architecture](ARCHITECTURE.md) — canonical components, data flow and module stability
-3. [Execution quickstart](docs/deployment/execution-quickstart.md) — configure and run the enforcing path
-4. [API reference](docs/07-api-reference.md) — public interfaces, with a `curl` round-trip; wire contract in [`schemas/openapi.json`](schemas/openapi.json)
-5. [Python SDK](docs/sdk.md) — the one namespace with a backward-compatibility guarantee
-6. [Evidence and claims](docs/02-evidence-and-claims.md) — what each result establishes, and what it does not
-7. [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md) — failed hypotheses and limitations, kept permanently
+1. [Developer handoff](DEVELOPER_OVERVIEW.md): shortest technical path through the repository
+2. [Architecture](ARCHITECTURE.md): canonical components, data flow and module stability
+3. [Execution quickstart](docs/deployment/execution-quickstart.md): configure and run the enforcing path
+4. [API reference](docs/07-api-reference.md): public interfaces, with a `curl` round-trip; wire contract in [`schemas/openapi.json`](schemas/openapi.json)
+5. [Python SDK](docs/sdk.md): the one namespace with a backward-compatibility guarantee
+6. [Evidence and claims](docs/02-evidence-and-claims.md): what each result establishes, and what it does not
+7. [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md): failed hypotheses and limitations, kept permanently
 
 [Documentation index](docs/README.md) lists the complete registered set.
 
@@ -38,11 +38,11 @@ python -m remora try
 
 The operational path is intentionally small:
 
-1. **Authoritative context** — tool meaning, target, risk and approved intent come from deployment-owned sources such as Signed ToolSpec, not from the calling agent.
-2. **Policy decision** — deterministic hard guards have precedence over model-derived signals.
-3. **Review or grant** — `VERIFY`/`ESCALATE` enters bounded review; `ACCEPT` receives a short-lived, single-use grant bound to the proposal.
-4. **PEP and dispatch** — the grant is consumed, an `ExecutionLease` binds policy identity and call identity, and `GovernedToolDispatcher` invokes the deployment-owned callable.
-5. **Lifecycle and evidence** — dispatch intent, outcome, effect verification and audit records remain joinable by proposal identity.
+1. Authoritative context. Tool meaning, target, risk and approved intent come from deployment-owned sources such as Signed ToolSpec, not from the calling agent.
+2. Policy decision. Deterministic hard guards have precedence over model-derived signals.
+3. Review or grant. `VERIFY`/`ESCALATE` enters bounded review; `ACCEPT` receives a short-lived, single-use grant bound to the proposal.
+4. PEP and dispatch. The grant is consumed, an `ExecutionLease` binds policy identity and call identity, and `GovernedToolDispatcher` invokes the deployment-owned callable.
+5. Lifecycle and evidence. Dispatch intent, outcome, effect verification and audit records remain joinable by proposal identity.
 
 The separate `/v1/assess` research surface can use oracle, evidence and uncertainty components. Those components are not prerequisites for the execution kernel and cannot override its deterministic hard-guard floor.
 
@@ -62,7 +62,7 @@ Headline values are governed by the [claim register](docs/assurance/claim_regist
 |---|---|---|---|
 | 1 | **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
 | 2 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); 95% cluster-level Wilson upper bound **5.2%**; utility +0.456 | Simulated; effective N = 70 (70 templates × 10 cosmetic variants); unsafe-rate gap Δ=0.0143 vs. baseline, not statistically significant |
-| 3 | **BFCL v4 (C-ext3)** | Native wrong-call acceptance **0.0%** (0/500; Wilson 95% upper bound **0.76%**); irrelevant-tool refusal **100.0%** (300/300); required-input guessing **0.0%** (0/398) | Sealed once, 2,799 episodes, frozen semantic bundle + authority floor; utility targets missed — see NEGATIVE_RESULTS §39 |
+| 3 | **BFCL v4 (C-ext3)** | Native wrong-call acceptance **0.0%** (0/500; Wilson 95% upper bound **0.76%**); irrelevant-tool refusal **100.0%** (300/300); required-input guessing **0.0%** (0/398) | Sealed once, 2,799 episodes, frozen semantic bundle + authority floor; utility targets missed; see NEGATIVE_RESULTS §39 |
 | 4 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures only |
 
 Interpret these values narrowly:
@@ -126,7 +126,7 @@ Research modules, AROMER, older thermodynamic/statistical-physics work and histo
 
 REMORA cannot enforce against a credential path that bypasses its dispatcher. Deployment identity, credential custody, downstream authorization and operational controls remain deployment responsibilities. Capability maturity is tracked explicitly in `docs/assurance/capability_register_v1.yaml`.
 
-The `servers/execution_api.py` decomposition is complete (issue #241, closed): contracts, persistence, authorization, dispatch, projections and all use-case orchestration live under `remora/execution/` and `remora/persistence/`, verified against a byte-identical OpenAPI schema at every step. Dispatch runs inside the API process **by default**; a decoupled dispatch worker exists behind `REMORA_ASYNC_DISPATCH` (issue #82, closed — 202 after durable authorization, exclusive claim before grant, persisted authorization expiry, idempotent terminal projection), but it is **not enabled in any reference profile**: activation is gated on the operational hardening tracked in issue #423.
+The `servers/execution_api.py` decomposition is complete (issue #241, closed): contracts, persistence, authorization, dispatch, projections and all use-case orchestration live under `remora/execution/` and `remora/persistence/`, verified against a byte-identical OpenAPI schema at every step. Dispatch runs inside the API process **by default**; a decoupled dispatch worker exists behind `REMORA_ASYNC_DISPATCH` (issue #82, closed: 202 after durable authorization, exclusive claim before grant, persisted authorization expiry, idempotent terminal projection), but it is **not enabled in any reference profile**: activation is gated on the operational hardening tracked in issue #423.
 
 For product-oriented integration, see [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution), which consumes pinned REMORA artifacts rather than copying the governance core.
 

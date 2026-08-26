@@ -278,7 +278,7 @@ an external append-only (WORM) store as a deployment dependency.
   Claude Desktop and compatible hosts (stdlib `urllib` only). Profiles: `local`,
   `demo`, `enterprise`.
 - **`workers/`**, Cloudflare edge workers, all fail-closed on authentication
-  (missing `ORACLE_SECRET` / `CONTROL_SECRET` → reject, never silently permit):
+  (a missing `ORACLE_SECRET` / `CONTROL_SECRET` rejects, never silently permits):
 
   | Worker | Directory | Primary endpoints |
   |---|---|---|
@@ -303,7 +303,7 @@ external validation**. Do not cite AROMER numbers as production evidence. See
 
 Since 2026-08-20 (issue #297) AROMER is a **named subproject**, not part of the
 product surface: it carries its own version line (`AROMER_VERSION`), and the
-dependency runs one way only — AROMER may import the core, the core may never
+dependency runs one way only: AROMER may import the core, the core may never
 import AROMER. `tests/test_aromer_subproject_boundary.py` fails on a new
 importer under `remora/` or `servers/`. The charter is
 [docs/aromer/SUBPROJECT.md](docs/aromer/SUBPROJECT.md).
@@ -415,7 +415,7 @@ selective routing is phase-aware rather than a single global threshold. See
 |--------|-----------|-------|
 | `remora/core.py` | **CORE** | Oracle ABC + OracleResponse |
 | `remora/errors.py` | **CORE** | Runtime exception taxonomy root: `RemoraError` with machine-readable `code`/`category` (issue #45 gap 4). Separate from the SDK's client-side hierarchy by design |
-| `remora/engine.py` | **EXPERIMENTAL** | Multi-oracle consensus engine behind the `/v1/assess` research surface. Reclassified from CORE 2026-08-26 when the #389 paper reframe fired the gate in [ADR-canonical-decision-engine](docs/architecture/ADR-canonical-decision-engine.md): the policy core is the canonical engine, this one is a maintained research instrument, frozen in responsibility — it never gates enforcement |
+| `remora/engine.py` | **EXPERIMENTAL** | Multi-oracle consensus engine behind the `/v1/assess` research surface. Reclassified from CORE 2026-08-26 when the #389 paper reframe fired the gate in [ADR-canonical-decision-engine](docs/architecture/ADR-canonical-decision-engine.md): the policy core is the canonical engine, this one is a maintained research instrument, frozen in responsibility; it never gates enforcement |
 | `remora/reporting.py` | **CORE** | Decision report + `DecisionEnvelope` assembly (dependency-injected; split from `engine.py` 2026-07-29) |
 | `remora/state.py` | **CORE** | `RemoraState` engine session-state contract (re-exported via `remora.engine`) |
 | `remora/genome.py` | **CORE** | Hyperparameter configuration |
@@ -425,7 +425,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/safety/` | **CORE** | Adversarial firewall, AST guard |
 | `remora/audit/` | **CORE** | SHA-256 hash-chain (tamper-evident) |
 | `remora/enforcement/` | **CORE** | PolicyDecisionToken + EnforcementGate + ExecutionLease/PEP (REM-013/024/034/035) |
-| `remora/governance/lifecycle.py` | **CORE** | Execution lifecycle model + tracker, loaded from `schemas/execution_lifecycle_v1.yaml` (FT-01). CORE is a *maturity* rating: like everything outside `remora.sdk`, this module carries no external backward-compatibility guarantee — see [docs/sdk.md](docs/sdk.md) |
+| `remora/governance/lifecycle.py` | **CORE** | Execution lifecycle model + tracker, loaded from `schemas/execution_lifecycle_v1.yaml` (FT-01). CORE is a *maturity* rating: like everything outside `remora.sdk`, this module carries no external backward-compatibility guarantee; see [docs/sdk.md](docs/sdk.md) |
 | `remora/enforcement/outbox.py` | **CORE** | Crash-consistent dispatch-intent store, in-process + SQLite + Postgres adapters (FT-02). Same stability caveat as above |
 | `remora/selective/` | **CORE** | Conformal / CRC / PhaseAwareGuardrail |
 | `remora/persistence/` | **CORE** | Oracle response cache (package root) + `execution_state.py` review-state transaction adapter (issue #241 slice 2) |
@@ -434,7 +434,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `servers/execution_api.py` | **CORE** | `/v1/execution/*` routes + orchestration (decomposition in progress, issue #241) |
 | `servers/execution_contracts.py` | **CORE** | Pydantic wire models for `/v1/execution/*` (issue #241 slice 1) |
 | `remora/lyapunov.py` | **EXPERIMENTAL** | Session-stability observable over consensus iteration (legacy module name; the thermodynamic framing is withdrawn, NEGATIVE_RESULTS §38) |
-| `remora/thermodynamics.py` | **EXPERIMENTAL** | Uncertainty-routing proxy (legacy naming; framing withdrawn, NEGATIVE_RESULTS §38 — the field names are wire format and stay) |
+| `remora/thermodynamics.py` | **EXPERIMENTAL** | Uncertainty-routing proxy (legacy naming; framing withdrawn, NEGATIVE_RESULTS §38; the field names are wire format and stay) |
 | `remora/causal/intervention.py` | **EXPERIMENTAL** | Do-calculus causal stress testing |
 | `remora/topology.py` | **EXPERIMENTAL** | Topological Data Analysis (TDA) |
 | `remora/cascade/` | **EXPERIMENTAL** | Multi-stage cascade pipeline |
@@ -476,7 +476,7 @@ selective routing is phase-aware rather than a single global threshold. See
 > This table is machine-checked by `tests/test_module_stability_index.py`:
 > every path listed must exist, and every top-level module under `remora/`
 > must be classified. It previously listed two directories that no longer
-> existed and omitted `remora/sdk/` — the stable surface — entirely.
+> existed and omitted `remora/sdk/`, the stable surface, entirely.
 
 ---
 
@@ -487,7 +487,7 @@ not a guarantee of safety, and not a replacement for domain authority.
 
 - **Deployment status: SHADOW_ONLY.** The system is intended to be run beside an
   agent (Shadow Mode) and does not have a production-certified enforcement mode.
-- **Production gates:** `REM-020` (longitudinal stability) is **DONE**
+- Production gates: `REM-020` (longitudinal stability) is **DONE**
   (2026-07-17, closed by fail-closed tooling under the owner-reconciled 7-day
   criterion; self-reported values pending independent verification).
   `REM-022` (RBAC audit) is **DONE** (2026-06-30, with a recorded deviation
@@ -499,7 +499,7 @@ not a guarantee of safety, and not a replacement for domain authority.
   Deployment status cannot advance past SHADOW_ONLY until REM-021 is cleared.
 - **External replication is pending.** All benchmarks are internally run; no
   external live-agent validation has been conducted.
-- **Result scope:** reported results are simulator-scoped or post-hoc over
+- Result scope: reported results are simulator-scoped or post-hoc over
   committed artifacts where noted (the 0% unsafe-execution result is a
   deterministic simulator; the selective-accuracy hold-out accepted **18**
   items, so its Wilson CI is wide, [82.4%, 100.0%]; quote the CI, not the
@@ -508,7 +508,7 @@ not a guarantee of safety, and not a replacement for domain authority.
   [`docs/assurance/superseded_claims.md`](docs/assurance/superseded_claims.md).
   The historically-labelled "N500" selective-prediction artifact currently has
   **544 evaluable items** ("N500" is a legacy name, not the item count).
-- **Semantic-entropy caveat:** the reported headline numbers use a
+- Semantic-entropy caveat: the reported headline numbers use a
   **token-fingerprint heuristic** (sorted SHA-256 tokens), **not** the NLI-based
   Semantic Entropy backend. The NLI backend exists as a drop-in but was not used
   for any reported result. State this plainly whenever the uncertainty numbers
