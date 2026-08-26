@@ -31,7 +31,7 @@ async function passthrough<T>(res: Response): Promise<T> {
 }
 
 export const createSession = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     z.object({
       ...accessTokenField,
       user_id: z.string().min(1).max(128),
@@ -50,7 +50,7 @@ export const createSession = createServerFn({ method: "POST" })
   });
 
 export const endSession = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ ...accessTokenField, session_id: z.string().uuid() }))
+  .validator(z.object({ ...accessTokenField, session_id: z.string().uuid() }))
   .handler(async ({ data }) => {
     assertAppAccess(data.access_token);
     const res = await fetch(
@@ -69,7 +69,7 @@ const executeInput = z.object({
 });
 
 export const executeTool = createServerFn({ method: "POST" })
-  .inputValidator(executeInput)
+  .validator(executeInput)
   .handler(async ({ data }) => {
     assertAppAccess(data.access_token);
     const { access_token: _t, ...body } = data;
@@ -82,7 +82,7 @@ export const executeTool = createServerFn({ method: "POST" })
   });
 
 export const getAudit = createServerFn({ method: "GET" })
-  .inputValidator(
+  .validator(
     z.object({
       ...accessTokenField,
       session_id: z.string().uuid().optional(),

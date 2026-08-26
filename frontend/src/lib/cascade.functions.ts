@@ -161,7 +161,7 @@ function extractConfidence(raw: string): {
 // ---------------------------------------------------------------------------
 
 export const stageFastGate = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ query: z.string().min(1).max(2000) }).parse(d))
+  .validator((d: unknown) => z.object({ query: z.string().min(1).max(2000) }).parse(d))
   .handler(async ({ data }) => {
     const t0 = Date.now();
     const highStakes = detectHighStakes(data.query);
@@ -230,7 +230,7 @@ const CONSENSUS_PROMPTS = [
 ];
 
 export const stageConsensus = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ query: z.string().min(1).max(2000) }).parse(d))
+  .validator((d: unknown) => z.object({ query: z.string().min(1).max(2000) }).parse(d))
   .handler(async ({ data }) => {
     const t0 = Date.now();
     const results = await Promise.all(
@@ -280,7 +280,7 @@ export const stageConsensus = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 
 export const stageVerifier = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         query: z.string().min(1).max(2000),
@@ -329,7 +329,7 @@ export const stageVerifier = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 
 export const stageCritique = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         query: z.string().min(1).max(2000),
@@ -380,7 +380,7 @@ export const stageCritique = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 
 export const stageMoA = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         query: z.string().min(1).max(2000),
@@ -418,7 +418,7 @@ export const stageMoA = createServerFn({ method: "POST" })
 
 // χ-gate — pure, no model call
 export const stageChi = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ query: z.string().min(1).max(2000) }).parse(d))
+  .validator((d: unknown) => z.object({ query: z.string().min(1).max(2000) }).parse(d))
   .handler(async ({ data }) => {
     const chi = chiSusceptibility(data.query);
     return { stage: "chi" as const, chi, threshold: 1.45, escalate: chi >= 1.45 };
