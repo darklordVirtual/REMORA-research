@@ -7,7 +7,7 @@ caveat is understated, that is the most valuable contribution you can make.
 
 Negative findings are first-class here. See `NEGATIVE_RESULTS.md`.
 
-**Review the architecture and the claim–artifact binding — not "certify 0% unsafe".**
+**Review the architecture and the claim–artifact binding; not "certify 0% unsafe".**
 The headline safety numbers are simulator-scoped and intent-gated; the repo says
 so itself. The questions worth your time: are the hard guards actually first, is
 every claim bound to a committed artifact, and are the caveats understated?
@@ -58,7 +58,7 @@ python -m pytest tests/ -q    # ~3.7k deterministic tests, <1 min
 
 ### 2-hour technical review (does it hold up?)
 1. `python -m pip install -e ".[dev]"`
-2. `make audit` (lint + tests + claim-consistency gate) — or, with no `make`:
+2. `make audit` (lint + tests + claim-consistency gate): or, with no `make`:
    `python -m pytest tests/ -q` plus the `scripts/check_*.py` gates.
 3. Pick one headline claim from `docs/02-evidence-and-claims.md` and reproduce it
    from the listed command. Compare to the committed artifact.
@@ -77,8 +77,8 @@ python -m pytest tests/ -q    # ~3.7k deterministic tests, <1 min
 ## Piloting instead of reviewing?
 
 If you are evaluating REMORA as a shadow-mode pilot platform rather than
-reviewing the research: the pre-registered pilot framework — preconditions,
-measurement criteria, go/no-go thresholds and stop conditions — is
+reviewing the research: the pre-registered pilot framework (preconditions,
+measurement criteria, go/no-go thresholds and stop conditions) is
 [pilot_evaluation_protocol_v1.md](pilot_evaluation_protocol_v1.md).
 
 ## What we will do with your review

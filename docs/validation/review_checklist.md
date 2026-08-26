@@ -124,7 +124,7 @@ Round-2 execution plan reference:
 2. Confirm Stage 1 (`FastGate`) exits on verbalized confidence ≥ 0.90.
 3. Confirm Stage 2 (`ConsensusGate`) wraps `remora.engine.Remora` with thermodynamic phase classification.
 4. Confirm Stage 3 (`VerifierGate`) uses a judge oracle from a different model family than consensus oracles.
-5. Confirm Stage 3b (`CritiqueRevisionGate`) implements the Constitutional AI pattern (judge → revision → re-judge, max 2 rounds).
+5. Confirm Stage 3b (`CritiqueRevisionGate`) implements the Constitutional AI pattern (judge, revision, re-judge, max 2 rounds).
 6. Confirm Stage 4 (`SelfConsistencyGate`) uses 7 samples with 0.72 agreement threshold and is terminal unless Stage 6 (`MixtureOfAgentsSynth`) is enabled.
 7. Confirm optional Stage 6 (`MixtureOfAgentsSynth`) runs after Stage 4 VERIFY outcomes when a `synthesis_oracle` is configured.
 8. Confirm `budget_oracle_calls` halts the pipeline and returns VERIFY (not a forced answer) when exhausted.

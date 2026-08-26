@@ -56,6 +56,7 @@ EXCLUDE_PREFIXES = (
     ".github/",
     ".claude/",  # skills quote the patterns they ban
     "artifacts/governance-benchmark-pack/",  # frozen copy of NEGATIVE_RESULTS
+    "datasets/",  # corpus data, not documentation
 )
 
 TELLS = (

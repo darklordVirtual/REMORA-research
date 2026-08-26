@@ -111,9 +111,9 @@ replayable audit). Each plane is independently implemented and testable.
 Two properties hold across all nine elements:
 
 - **Fail-closed everywhere.** Missing signals degrade the decision toward
-  review, never toward execution: unknown risk tier → VERIFY, unvalidated
-  schema on a mutating call → VERIFY, unreachable policy daemon on
-  high/critical risk → VERIFY/ESCALATE, unsigned tokens or envelopes →
+  review, never toward execution: unknown risk tier routes to VERIFY, unvalidated
+  schema on a mutating call to VERIFY, unreachable policy daemon on
+  high/critical risk to VERIFY/ESCALATE, unsigned tokens or envelopes to
   refused.
 - **Decision monotonicity.** No adapter, fallback, or external policy can
   downgrade a verdict below the engine's hard-guard floor
@@ -143,10 +143,10 @@ Evaluation order is safety-first:
    calls, forbidden tools, coercion/blackmail patterns, failed
    counterfactuals, contradicting evidence, tainted arguments. Unconditional;
    no trust score overrides them.
-2. **Conditional risk gates**: critical phase + critical risk, missing
+2. Conditional risk gates: critical phase + critical risk, missing
    rollback on high risk, uncertain state transitions, the
    production-write matrix, oracle-quorum, minimax/trap gates.
-3. **Uncertainty routing**: only after every guard passes does calibrated
+3. Uncertainty routing: only after every guard passes does calibrated
    trust routing decide between ACCEPT and the conservative actions.
 
 Every decision carries machine-readable `reasons` (a stable enum), an
@@ -203,25 +203,25 @@ counterparty agent should be trusted. `remora/governance/a2a_envelope.py`
 defines the signed governance envelope REMORA expects alongside any
 cross-boundary agent request:
 
-- **Identity + accountability**: agent id/version, issuing organisation, and
+- Identity + accountability: agent id/version, issuing organisation, and
   the organisation *accountable* for the agent, verification fails closed
   without accountability.
-- **Delegation chain with capability attenuation and per-link attestation**:
+- Delegation chain with capability attenuation and per-link attestation:
   each link may only narrow the scope it received (strict subset semantics;
   wildcards rejected) and carries its own signature and key id (`kid`)
   verified against a key registry, the envelope issuer alone cannot
   fabricate the delegation history, and removing a key from the registry
   revokes every dependent chain. The requested action must fall inside the
   final attenuated scope.
-- **Audience, replay, and argument binding**: a mandatory audience (the
+- Audience, replay, and argument binding: a mandatory audience (the
   intended verifier), a per-envelope nonce checked via a caller-supplied
   replay guard, and an optional binding to the canonical tool-call hash, 
   the same envelope cannot authorise a different verifier, a replayed
   request, or a different argument payload.
-- **Policy + evidence binding**: the policy version evaluated and
+- Policy + evidence binding: the policy version evaluated and
   content-addressed evidence references, so cross-organisation disputes can
   be replayed against the exact artifacts.
-- **Integrity**: HMAC-SHA256 over canonical serialisation, same discipline as
+- Integrity: HMAC-SHA256 over canonical serialisation, same discipline as
   the PDP→PEP token; every verification failure is reported (complete defect
   set, not first-failure), and malformed input, bad timestamps, bad JSON, 
   is a failure code, never an exception or a pass. The symmetric-key layer
@@ -249,19 +249,19 @@ This is the request-side complement to the decision plane: delegation answers
   records until migrated onto this chain; a deployment relying on the REST
   audit path must configure a durable adapter (`REMORA_CHAIN_DB` /
   `REMORA_PG_DSN`).
-- **Graph export**: audit records export to RDF/N-Triples with per-tenant URI
-  namespaces, SPARQL-queryable, `agent → decision → outcome` joins the
+- Graph export: audit records export to RDF/N-Triples with per-tenant URI
+  namespaces, SPARQL-queryable, `agent`, `decision` and `outcome` joins the
   operator's knowledge-graph tooling instead of living in a proprietary log
   format.
-- **Enforcement binding**: `canonical_tool_call_hash` binds decisions to the
+- Enforcement binding: `canonical_tool_call_hash` binds decisions to the
   *full* argument payload; the enforcement gate recomputes it immediately
   before execution and refuses on mismatch (TOCTOU protection).
 - **Causal explanation** (`remora/causal/`): an optional, policy-causal
   explanation carried on `DecisionEnvelope.causal_explanation`. It reports
   which policy rules caused the verdict, the minimal set of actionable
   operational concepts that would change it (per-concept Probability of
-  Sufficiency / Necessity plus a minimal contrastive search), and — across a
-  log of decisions — which blockers recur most (global concept attribution).
+  Sufficiency / Necessity plus a minimal contrastive search), and, across a
+  log of decisions, which blockers recur most (global concept attribution).
   It operationalises Bjøru's (2026) concept-based causal XAI over high-level
   operational concepts (`decision_scope="policy_only"`); see
   [causal_policy_explanations.md](evidence/causal_policy_explanations.md) and
@@ -370,7 +370,7 @@ one of these open contracts.
    the operator's own replayed logs.
 3. **Weeks 8–12, Gated enforcement.** Enforce on one low-consequence,
    high-volume action class first (e.g. recommendation writes), with the
-   documented mode-degradation path (full governance → hard-blocks-only)
+   documented mode-degradation path (full governance down to hard-blocks-only)
    and independent review of the deployment (the REM-021 gate) as the
    promotion criterion.
 

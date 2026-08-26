@@ -1,6 +1,6 @@
 # Governed MCP gateway
 
-How an MCP client — Claude Code, Claude Desktop, ChatGPT — calls tools that
+How an MCP client (Claude Code, Claude Desktop, ChatGPT) calls tools that
 REMORA governs, and what happens between the model asking and anything
 actually changing.
 
@@ -50,7 +50,7 @@ executes without a person.
 **`escalate` is not a refusal.** `servers/execution_api.py` is explicit:
 "VERIFY/ESCALATE enqueue a review item for a human; ABSTAIN returns
 [nothing]". This gateway treated escalate as refused for most of its life,
-which threw away the one route a person had to say yes — and escalate is the
+which threw away the one route a person had to say yes; and escalate is the
 case where a person is *most* needed, because something about the call did not
 line up. It now goes to approval with the mismatch stated, so whoever looks at
 it knows they are not rubber-stamping a routine call.
@@ -85,7 +85,7 @@ immediately:
 
 The agent gives the `approval_reference` to the user, then polls
 `remora_proposal_status` with the `proposal_id`. While the call is still
-unapproved the poll reports `pending_approval` again — not an error, because
+unapproved the poll reports `pending_approval` again; not an error, because
 waiting is not a failure.
 
 Once a human with the approver role has approved it, the same poll executes
@@ -97,7 +97,7 @@ The gateway stores the original tool call and re-presents it in full at
 execution time. The agent never gets to supply the arguments again. This is
 not a convenience: REMORA re-gates the full payload against what was approved,
 so an agent that approved a valve at 35% and executed at 100% would be refused
-— and with this design it cannot even attempt it.
+and with this design it cannot even attempt it.
 
 A redeemed proposal is deleted. Polling it again reports `unknown_proposal`,
 and the attempt never reaches REMORA.
@@ -110,7 +110,7 @@ approved call. It cannot approve.
 That separation is enforced server-side, not by the gateway being polite about
 it. Measured against the running system: the operator token attempting to
 approve its own proposal gets **403**. A compromised gateway therefore cannot
-self-approve a mutating call — it can only ask, the same as before.
+self-approve a mutating call; it can only ask, the same as before.
 
 ## Verified behaviour
 
@@ -127,7 +127,7 @@ End to end against the real execution API with durable Postgres, 2026-08-23:
 6. audit chain           -> valid (postgres, durable)
 ```
 
-And the case that matters most — a mutating call under a read-only intent:
+And the case that matters most; a mutating call under a read-only intent:
 
 ```
 set_valve_position(valve=V-12, position_pct=100, intent_ref=MON-ROUND)
@@ -188,7 +188,7 @@ curl -X POST http://127.0.0.1:8080/v1/execution/approve \
 ```
 
 An approval console is a later slice. Until then, approving is a curl command,
-and the tokens in `docker-compose.yml` are local pilot values — a real
+and the tokens in `docker-compose.yml` are local pilot values; a real
 deployment puts an identity provider there instead.
 
 On a deployed gateway the container is reachable only through the Worker, so
@@ -208,8 +208,8 @@ Measured against the deployed gateway: the gateway's own operator token gets
 instance, always on.
 
 It needs a Postgres reachable over TLS, supplied as a Worker secret. Container
-egress was measured on 2026-08-23 and raw TCP works — psycopg completes a full
-wire-protocol session — so no HTTP-shaped persistence backend is involved.
+egress was measured on 2026-08-23 and raw TCP works (psycopg completes a full
+wire-protocol session), so no HTTP-shaped persistence backend is involved.
 
 ```sh
 cd workers/mcp-gateway
@@ -243,16 +243,16 @@ than to a region list:
 jurisdiction = "eu"
 ```
 
-`eu` maps to EEUR and WEUR. The proposal store is pinned the same way — a
+`eu` maps to EEUR and WEUR. The proposal store is pinned the same way; a
 pending proposal holds the exact arguments of a call awaiting approval, which
-is the same class of record — via `PROPOSAL_JURISDICTION` and
+is the same class of record; via `PROPOSAL_JURISDICTION` and
 `DurableObjectNamespace.jurisdiction()`. A Durable Object's jurisdiction is
 fixed when the object is created and cannot be changed afterwards, which is
 the property that makes it worth setting.
 
 **Placement is not a GDPR guarantee.** It constrains where the container runs
 and where the proposal store lives. It says nothing about the database, which
-must be in the same jurisdiction and is a separate decision — see the
+must be in the same jurisdiction and is a separate decision; see the
 "Database" section below.
 
 ### Access
@@ -280,7 +280,7 @@ claude mcp add --transport http remora-gateway https://<host>/mcp   --header "CF
 Two independent checks then stand between a model and a side effect: Access
 decides whether this client may reach the gateway at all, and REMORA decides
 whether this call may happen. The first is authentication, the second is
-authority. Neither substitutes for the other — a valid service token still
+authority. Neither substitutes for the other; a valid service token still
 gets `escalate` on a valve change under a monitoring round.
 
 A service token identifies a *client*, not a person. It is the right primitive
@@ -322,7 +322,7 @@ Deploying surfaced two things the local run could not.
 
 **There was no way to approve.** The container is reachable only through the
 Worker, so before `/approve` existed every mutating call would have waited
-forever. Fail-closed, but not usable — a governance system that can only ever
+forever. Fail-closed, but not usable; a governance system that can only ever
 refuse has not been tested against the case that matters.
 
 **The durability guard could not see ephemeral disk.** Fixed; see below.
@@ -371,7 +371,7 @@ was refused, as was a fact with no source, a confidence outside 0..1 and an
 unrecognised object kind.
 
 **The finding.** The intent was decorative. Correct task, invented task and no
-task at all produced *identical* decisions and identical reasons — every call
+task at all produced *identical* decisions and identical reasons; every call
 reached VERIFY with `evidence_insufficient`. The authority mechanism was
 running and influencing nothing.
 
@@ -390,13 +390,13 @@ discrimination immediately:
 Three distinct outcomes where there had been one: the task forbids this
 effect, no authority was established, and authorised but still wanting a
 human. `kg_intent.DISCRIMINATING_PREDICATES` records the requirement and the
-resolver warns when a task lacks them — a warning rather than a refusal,
+resolver warns when a task lacks them; a warning rather than a refusal,
 because an under-specified task is weaker, not invalid, and refusing it would
 remove the review it still gets.
 
 **Not measured.** Reads do not discriminate: correct and invented read tasks
 both reach `verify` with the same reason. And nothing in this deployment ever
-reaches `accept`, so autonomy is zero — every call, however well-authorised,
+reaches `accept`, so autonomy is zero; every call, however well-authorised,
 waits for a person. That is the same shape as the repository's own §39 result
 and is a property of the configuration, not a fault.
 
@@ -408,7 +408,7 @@ Both were missing when the capability test ran, and both are now in place.
 writable disk worth the name, and no database token. It posts to
 `state.internal`; the Worker answers from a D1 binding
 (`remora-execution-state`, EEUR). `REMORA_STATE_ENDPOINT` is treated as
-durable by the guard for the same reason a DSN is — the storage behind it is
+durable by the guard for the same reason a DSN is; the storage behind it is
 not this container's filesystem.
 
 D1 over HTTP has no interactive transaction, so writes are buffered and sent
@@ -457,7 +457,7 @@ justifies compensating.
 
 The verifier is TypeScript and the writer is Python, so the canonical digest
 is implemented twice. A test pins the TypeScript output against hardcoded
-values from `remora.governance.effect_verification.effect_digest` — without
+values from `remora.governance.effect_verification.effect_digest`, without
 it the two could drift and every verification would silently become a
 mismatch.
 
@@ -483,14 +483,14 @@ from nowhere.
 `_is_grounded_read` requires a non-production target because no read-only
 guarantee covers the disclosure blast radius of live data. That refusal is the
 active decision here, not a missing piece, and `tests/test_gateway_grounded_read.py`
-pins it — including that it stays refused however well grounded the call is.
+pins it; including that it stays refused however well grounded the call is.
 
 **Two things were learned the hard way and are recorded rather than smoothed
 over.**
 
 The reads were first declared `low`. Measured effect: every read fell through
 to `abstain`. The VERIFY routes are driven by risk tier, both ACCEPT paths
-exclude production, and nothing else caught them — so an honest-looking
+exclude production, and nothing else caught them; so an honest-looking
 downgrade made the gateway strictly *less* usable than the fail-closed
 default. They are now `high`, and the recorded reason is disclosure: REMORA's
 own `_is_low_consequence` refuses to call a production read low-consequence
@@ -500,7 +500,7 @@ the reason is written down next to it.
 
 The `CoverageScope` domain must equal the domain the tool metadata declares. A
 scope named something else is never consulted, every value returns `UNKNOWN`,
-and every call is ungrounded — silently. It was named `gateway` while the
+and every call is ungrounded; silently. It was named `gateway` while the
 tools declared `knowledge_graph`, and nothing said so.
 
 ### A gap in the decision engine
@@ -515,29 +515,29 @@ is a path that converts a fall-through into `verify` when an authority
 resolved and the grounding signals hold, rather than to `abstain`.
 
 Not changed here. It is a loosening of a default on the security-critical
-path, and that is not something to do at the end of a session — but it is
+path, and that is not something to do at the end of a session; but it is
 worth doing deliberately.
 
 ### External review: what decision-os-min surfaced
 
 `decision-os-min` is a compact capability-security kernel. Read as an external
-audit of this architecture rather than as a competitor, its HB-1 write-up —
+audit of this architecture rather than as a competitor, its HB-1 write-up;
 "the original executor tracked spent token_ids in an in-memory set, so a
-second executor starts empty and a captured decision can be spent again" —
+second executor starts empty and a captured decision can be spent again";
 pointed straight at a live defect here.
 
 `EnforcementGate` knew two durable backends, `REMORA_PG_DSN` and
 `REMORA_CHAIN_DB`. The durability guard in `servers/api.py` admits three: the
 D1 state endpoint was added for a container with no writable disk, and the
 gate was never told about it. So this deployment **passed the guard and then
-kept its consumed-grant ledger in a process-local set** — a captured ACCEPT
+kept its consumed-grant ledger in a process-local set**, so a captured ACCEPT
 execution token was redeemable again after any container restart, inside its
 one-hour age window. Exactly the replay class the durable ledger exists to
 close, reintroduced by a backend the guard accepted and the gate could not
 use.
 
 Fixed: the gate takes `state_endpoint` and consumes through the same D1
-adapter, with the INSERT and the watermark bump in one atomic batch — the
+adapter, with the INSERT and the watermark bump in one atomic batch; the
 PRIMARY KEY is the compare-and-set, so of two racers exactly one commits.
 An unreachable store returns `consumed_ledger_unavailable` rather than
 assuming unspent, because assuming unspent *is* the double-spend, and a
@@ -552,9 +552,9 @@ field for each, so a fourth backend cannot be added to one and forgotten in
 the other.
 
 Two things from that repo are recorded as open rather than adopted tonight:
-**Ed25519** where REMORA's reference paths are HMAC (a real asymmetry gap —
+**Ed25519** where REMORA's reference paths are HMAC (a real asymmetry gap;
 an HMAC verifier must hold a key that can also mint), and **ambient
-isolation** — their TM-A probes attempt `fork`, `exec`, `mmap` and `ptrace`
+isolation**: their TM-A probes attempt `fork`, `exec`, `mmap` and `ptrace`
 after locking the agent runtime. REMORA answers the same question from
 credential custody; the two are complementary, not alternatives.
 
@@ -566,7 +566,7 @@ It runs `REMORA_ENV=production` under the **default research profile**, not
 `controlled_pilot` additionally requires a signed ToolSpec bundle, a signing
 key and a trusted-identity allowlist, and there is no signed bundle for the OT
 registry yet. Setting `REMORA_RUNTIME_PROFILE=controlled_pilot` without one
-would make the container refuse to start — correctly.
+would make the container refuse to start; correctly.
 
 This is a named gap, not a hidden one. Until the bundle exists, `assess` takes
 risk tier and action type from the deployment-owned registry module rather
@@ -578,15 +578,15 @@ take it on trust.
 
 Two places, and the split is the important part:
 
-1. `deploy/ot-pilot/ot_registry.py` — the callable and its authoritative
+1. `deploy/ot-pilot/ot_registry.py`: the callable and its authoritative
    metadata. This is where risk tier, action type and everything else that
    decides an outcome lives. It is deployment-owned and server-side.
-2. `workers/mcp-gateway/src/tools.ts` — the MCP schema: name, description,
+2. `workers/mcp-gateway/src/tools.ts`: the MCP schema: name, description,
    argument shape.
 
 A field added in `tools.ts` can never widen authority. It only changes what
 the agent is able to propose; what that proposal is *worth* is decided from
-the registry. A caller cannot assert its way to an ACCEPT — see
+the registry. A caller cannot assert its way to an ACCEPT; see
 `ToolCallRequest` in `servers/execution_contracts.py`, where the only inbound
 safety influence permitted is a downgrade.
 

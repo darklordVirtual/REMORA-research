@@ -18,7 +18,7 @@ REM-020…REM-031) as the concrete backlog. See
 
 ## 0. How to read this document
 
-TOGAF's ADM is a cycle of phases (Preliminary → A…H) with Requirements
+TOGAF's ADM is a cycle of phases (Preliminary, then A through H) with Requirements
 Management at the centre. This plan walks the phases once for a REMORA-class
 rollout and, in each, names **the deliverable, the accountable owner, and the
 executing team(s)**. The Enterprise Architect owns the *whole* and delegates
@@ -43,7 +43,7 @@ Architecture / org) and §12 (RACI).
 held to before any solution work.
 
 **Deliverables**
-- **Architecture governance framework**: an Architecture Review Board (ARB),
+- Architecture governance framework: an Architecture Review Board (ARB),
   an Architecture Repository, and the Architecture Contract template each
   executing team signs (Phase G).
 - **Architecture principles** (tailored to agent governance):
@@ -51,7 +51,7 @@ held to before any solution work.
      execution permission; no probabilistic/learned component may override it.
      (REMORA's canonical claim; keep it as principle #1.)
   2. *Deny-by-default for actuation.* Unknown = not authorized (unknown action
-     type, unverified schema, missing evidence → VERIFY/ABSTAIN, never ACCEPT).
+     type, unverified schema, missing evidence route to VERIFY/ABSTAIN, never ACCEPT).
   3. *Enforcement is mandatory and inseparable from execution.* No tool runs
      without a valid, bound authorization lease (REM-024).
   4. *Every decision is an auditable, hash-chained `DecisionEnvelope`.*
@@ -76,7 +76,7 @@ detailed design.
 **Deliverables**
 - **Statement of Architecture Work** and **Architecture Vision** document.
 - **Stakeholder map & concerns** (see table).
-- **Value proposition**: govern autonomous agent actions in consequential
+- Value proposition: govern autonomous agent actions in consequential
   systems so that unsafe execution is blocked deterministically, every
   decision is auditable/replayable, and human oversight is enforced where risk
   demands, mapped to regulatory obligations (EU AI Act Art. 12 logging,
@@ -157,16 +157,16 @@ embedded in each team execute detailed design under the Architecture Contract.
   hash-chained. It is the single source of truth for every decision and the
   unit of audit, replay, and regulatory evidence. Schema changes go through
   ARB (Phase H) with a version bump and migration.
-- **Authoritative data classification:** all safety-load-bearing observation
+- Authoritative data classification: all safety-load-bearing observation
   fields (`risk_tier`, `action_type`, `target_environment`, `tool schema`,
   `argument_tainted`, `tenant_id`) are **server-derived from trusted sources
   (registries, verified identity, data-flow middleware)**, never
   agent-declared (security audit P1). Full-argument binding via
   `tool_call_hash`.
-- **Stores:** policy bundle registry (signed OCI), decision/envelope store
+- Stores: policy bundle registry (signed OCI), decision/envelope store
   (append-only, per-tenant), audit anchor store (WORM + Merkle roots),
   evidence corpus (RAG), replay corpus. Tenant isolation via RLS (REM-026).
-- **Retention & privacy:** field-level minimization, regional storage,
+- Retention & privacy: field-level minimization, regional storage,
   deletion/legal-hold workflows (REM-031, GDPR).
 
 ### 4.2 Application architecture (services)
@@ -193,18 +193,18 @@ embedded in each team execute detailed design under the Architecture Contract.
 
 ## 5. Phase D: Technology Architecture
 
-- **Runtime:** stateless PDP (horizontally scaled), PEP sidecar or gateway
+- Runtime: stateless PDP (horizontally scaled), PEP sidecar or gateway
   filter, tool proxy. Deadline propagation, circuit breakers, bounded oracle
   queues, local deterministic fallback only (REM-028).
-- **Security zones:** agents run in a low-trust zone with no tool credentials;
+- Security zones: agents run in a low-trust zone with no tool credentials;
   the PEP/proxy in a controlled zone holds credentials; audit anchors in an
   immutable zone. Byzantine/quorum sizing for oracles stated honestly
   (n ≥ 3f+1 for f Byzantine oracles).
-- **Cryptography:** HMAC/asymmetric-signed leases and envelopes; KMS/HSM keys
+- Cryptography: HMAC/asymmetric-signed leases and envelopes; KMS/HSM keys
   with rotation; RFC 3161 timestamps; transparency-log anchoring (REM-025).
-- **Supply chain:** hash-pinned lockfile installed in CI, SBOM (CycloneDX/SPDX),
+- Supply chain: hash-pinned lockfile installed in CI, SBOM (CycloneDX/SPDX),
   SLSA provenance, Sigstore-signed images (REM-027).
-- **Deployment topologies:** cloud reference (`docs/deployment/azure-reference-architecture.md`)
+- Deployment topologies: cloud reference (`docs/deployment/azure-reference-architecture.md`)
   and air-gapped/on-prem (`docs/deployment/onprem-airgapped.md`) already exist
   as starting points.
 
@@ -262,7 +262,7 @@ scaled up).
   fitness functions per increment (e.g. "no tool executes without a lease",
   "no authorization reads a header"). These make architectural principles
   *executable*, not aspirational.
-- **Dispensations:** any deviation is a time-boxed, ARB-approved dispensation
+- Dispensations: any deviation is a time-boxed, ARB-approved dispensation
   with a remediation date, never a silent exception (mirrors how REM-022's
   closure deviation was recorded rather than hidden).
 
@@ -270,19 +270,19 @@ scaled up).
 
 ## 9. Phase H: Architecture Change Management
 
-- **Change drivers:** new oracle families, new regulation, new tool classes,
+- Change drivers: new oracle families, new regulation, new tool classes,
   incidents. **Envelope/schema and policy-bundle versioning** are the
-  controlled surfaces; changes flow PR → simulation → test gate → canary →
+  controlled surfaces; changes flow from PR through simulation, test gate and canary to
   promote, with automatic rollback on a policy SLO breach.
-- **Cadence:** ARB reviews the Architecture Repository quarterly; the claim
+- Cadence: ARB reviews the Architecture Repository quarterly; the claim
   register and remediation register are the living change log.
 
 ---
 
 ## 10. Requirements Management (continuous, central)
 
-A single traceable backlog links **stakeholder concern → architecture
-requirement → work package → REM item → artifact/test**. The remediation
+A single traceable backlog links **stakeholder concern, architecture
+requirement, work package, REM item and artifact/test**. The remediation
 register (`remediation_register.yaml`) and claim register are the requirements
 store; the claim-provenance gate enforces traceability (no shipped claim
 without an artifact).
@@ -291,10 +291,10 @@ without an artifact).
 
 ## 11. Architecture Repository & ADRs
 
-- **Repository contents:** principles, this plan, ADRs, the `DecisionEnvelope`
+- Repository contents: principles, this plan, ADRs, the `DecisionEnvelope`
   and policy-bundle schemas, the reference deployments, the RACI, and the
   living registers.
-- **ADR log:** record every load-bearing decision (ADR-001…004 above and
+- ADR log: record every load-bearing decision (ADR-001…004 above and
   onward) with status, context, decision, consequences.
 
 ---

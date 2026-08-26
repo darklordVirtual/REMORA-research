@@ -18,7 +18,7 @@ Nothing here may advertise a stage stronger than the CI-validated
 | REMORA OEM / Embedded | (no profile declared) | No — by separate agreement only |
 
 The declared profile is currently **`SHADOW_PILOT`**: shadow-mode operation on
-real agent action logs — decisions, DecisionEnvelopes and counterfactual
+real agent action logs; decisions, DecisionEnvelopes and counterfactual
 deltas with **zero enforcement**. Any stage that enforces is not offered until
 the corresponding register state exists; CI recomputes the profile from the
 capability and remediation registers, so a stronger stage cannot be claimed by

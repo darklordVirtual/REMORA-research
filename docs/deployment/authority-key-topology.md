@@ -45,7 +45,7 @@ dres = dispatcher.dispatch(lease, ...) # the PEP verifies
 
 The lease is created and consumed microseconds apart, in one process, and never
 crosses a boundary. There is therefore no transport to protect and no impersonation
-to prevent — which is exactly why one key served both roles without anyone
+to prevent; which is exactly why one key served both roles without anyone
 noticing it was serving two roles.
 
 **Consequence.** An adversary with code execution in the container does not need
@@ -89,7 +89,7 @@ bundle hash covers that module's spec string and a source digest, resolved
 their bundle hashes differ and every lease is refused as
 `policy_bundle_mismatch`. Removing it from the authority to make it "hold no
 tools" did exactly that on the deployment. The callables load only in
-`_tool_dispatcher()`, which the authority never reaches — it forwards first.
+`_tool_dispatcher()`, which the authority never reaches; it forwards first.
 | `REMORA_STATE_ENDPOINT` | yes | yes — the nonce ledger lives here |
 
 Note the inversion this produces, and it is the point: the authority issuer can
@@ -113,8 +113,8 @@ So the signer must reach the decision itself. Three placements were considered:
    The PDP is the Python decision engine with the semantic bundle, tool
    metadata and intent source; it cannot run in a Worker. A Worker-side signer
    could only sign what the container told it, which is the forbidden shape.
-   A variant — the signer validates against a proposal record it already holds
-   — fails for the same reason: the container also produces the decisions that
+   A variant (the signer validates against a proposal record it already holds)
+   fails for the same reason: the container also produces the decisions that
    create proposals, so it can manufacture the record it will later be checked
    against.
 2. **Signer and PDP together in the execution container.** This is today.
@@ -165,7 +165,7 @@ visible rather than implied:
   a separate object with a separate migration.
 - The audit and envelope signing keys stay symmetric. Their threat model is
   tamper-evidence against an operator, which asymmetric signing alone does not
-  solve — that is external anchoring (ADR-E), not a key swap.
+  solve; that is external anchoring (ADR-E), not a key swap.
 - `REMORA_TOOLSPEC_SIGNING_KEY` should not be in either runtime component;
   signing a ToolSpec is a build-time act. Tracked with the signed-ToolSpec
   cloud path.

@@ -1,8 +1,8 @@
 # Containerised reference deployment
 
 A locked runtime for external pilots (issue #89): the image is built **from
-the wheel** — the artifact the `wheel-contract` CI job proves fulfils the
-CLI/API promise — never from an editable checkout, so a pilot runs exactly
+the wheel** (the artifact the `wheel-contract` CI job proves fulfils the
+CLI/API promise), never from an editable checkout, so a pilot runs exactly
 what CI verified. Base images are pinned by digest; the container runs
 non-root; the `container-contract` CI job builds this image and runs the
 contract smoke *inside* it (`remora doctor --json`, `GET /v1/health`) on
@@ -16,8 +16,8 @@ docker run --rm -p 8000:8000 remora-reference
 curl -fsS http://localhost:8000/v1/health
 ```
 
-The full pilot topology — API plus durable Postgres state, which the
-production-durability gate requires — is the compose file:
+The full pilot topology (API plus durable Postgres state, which the
+production-durability gate requires) is the compose file:
 
 ```bash
 docker compose -f deploy/reference/docker-compose.yml up --build
@@ -44,7 +44,7 @@ Two digests fix the runtime:
 
 The `container-contract` job (ci.yml) runs, inside the built image:
 
-1. `remora doctor --json` — the CLI entrypoint resolves from the installed
+1. `remora doctor --json`: the CLI entrypoint resolves from the installed
    wheel, with the checkout nowhere on `sys.path`;
 2. the API serves and `GET /v1/health` answers 200;
 3. the compose file parses (`docker compose config`).

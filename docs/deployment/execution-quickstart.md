@@ -1,7 +1,7 @@
 # Execution-path deployment quickstart
 
-The shortest path from a clean machine to a governed `assess → approve →
-execute → dispatch` round with a durable, verifiable audit trail. Everything
+The shortest path from a clean machine to a governed `assess`, `approve`,
+`execute`, `dispatch` round with a durable, verifiable audit trail. Everything
 here is the enforcing path (`/v1/execution/*` + `GovernedToolDispatcher` under
 an `ExecutionLease`), not the advisory library call.
 
@@ -10,7 +10,7 @@ runtime profile below**. It deliberately refuses the weaker registry-only path
 so a handoff cannot accidentally demonstrate a configuration that would never
 be acceptable for a controlled deployment.
 
-**Read this first — what this deployment is and is not.** REMORA governs the
+**Read this first: what this deployment is and is not.** REMORA governs the
 tools *you register with it*. The PEP is not unbypassable until the dispatcher
 fronts the real credentials for those tools: an application that keeps a
 second, ungoverned path to the same side effects has opted out of enforcement.
@@ -160,7 +160,7 @@ reinterpreting an old approval.
 
 ## 5. Write the callable registry module
 
-Tools come only from deployment configuration — request payloads cannot add or
+Tools come only from deployment configuration; request payloads cannot add or
 replace callables, so downstream credentials remain app-side.
 
 ```python
@@ -199,13 +199,13 @@ curl -s localhost:8000/v1/health
 
 Then drive one full round:
 
-1. `POST /v1/execution/assess` — the server derives authoritative context and
+1. `POST /v1/execution/assess`: the server derives authoritative context and
    resolves the signed ToolSpec. ACCEPT receives a short-lived single-use
    grant; VERIFY/ESCALATE enters review.
-2. `POST /v1/execution/approve` — authenticated approval with bounded TTL.
-3. `POST /v1/execution/execute` — fresh re-gate, exact-call binding, PEP
+2. `POST /v1/execution/approve`: authenticated approval with bounded TTL.
+3. `POST /v1/execution/execute`: fresh re-gate, exact-call binding, PEP
    consume, lease creation and governed dispatch.
-4. The dispatch outbox records `DISPATCH_PENDING → DISPATCHING →` a terminal
+4. The dispatch outbox records `DISPATCH_PENDING`, then `DISPATCHING`, then a terminal
    outcome. An undeterminable side effect becomes `UNKNOWN`; it is not blindly
    retried.
 5. Effect verification and tenant audit records make the proposal-to-effect
@@ -238,8 +238,8 @@ python -m pytest tests/ -q
 ## 8. Operational logging
 
 The tenant audit chain and the operational log answer different questions.
-The chain is the governance record — what was authorised, under which policy,
-by whom — and it is what an auditor reads. The operational log is what an
+The chain is the governance record (what was authorised, under which policy,
+by whom) and it is what an auditor reads. The operational log is what an
 on-call engineer reads: what the process did, when, and whether it worked.
 
 The safety core emits structured events on the `remora.governance` logger.
@@ -265,7 +265,7 @@ machine consumption, alongside the rendered message.
 **Field names are screened.** `governance_event` raises `SecretFieldError`
 rather than logging a field whose *name* looks like a credential. Log an
 identifier (`token_jti`), a digest (`tool_args_hash`) or a boolean
-(`token_verified`) — never the value. A logging call must never become the
+(`token_verified`); never the value. A logging call must never become the
 reason a key leaks.
 
 ## Known limits
@@ -306,7 +306,7 @@ the outcome (the 202 body is `ExecutionPendingResponse`; the Python SDK
 returns `PendingExecution`).
 
 Status: implemented behind the flag and covered by CI and contract
-tests; **not enabled in any reference profile** — the reference
+tests; **not enabled in any reference profile**, so the reference
 deployments stay synchronous until the async activation gate (issue
 #423) closes. Both scripts refuse an in-process outbox: durable state
 (`REMORA_PG_DSN`/`REMORA_CHAIN_DB`) is mandatory.

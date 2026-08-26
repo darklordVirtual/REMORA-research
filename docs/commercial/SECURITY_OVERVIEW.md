@@ -12,7 +12,7 @@ those sources differ, the sources win.
   domain, action type, rollback capability) is derived server-side from the
   deployment-owned registry/ToolSpec; caller input can only downgrade trust,
   never raise it.
-- **Deterministic hard guards carry the safety floor** — not model consensus.
+- Deterministic hard guards carry the safety floor: not model consensus.
   Research components (oracles, AROMER, disagreement diagnostics) are never
   prerequisites of the enforcing path
   (`../product/product_truth_contract.yaml`, CI-validated).
@@ -38,6 +38,6 @@ At `SHADOW_PILOT` nothing is enforced, so the pilot's security exposure is
 read-path only: the mirrored action metadata the customer chooses to send.
 The default MCP integration profile is `local` and sends nothing off the
 machine; remote profiles require explicit opt-in (`DATA_HANDLING.md`).
-No component is externally verified yet (`capability_register_v1.yaml` —
+No component is externally verified yet (`capability_register_v1.yaml`;
 nothing is at `ENFORCED_PRODUCTION` or `EXTERNALLY_VERIFIED`). REMORA is not
 production-certified and does not guarantee safety.
