@@ -31,6 +31,32 @@ services:
       postgres:
         condition: service_healthy
 
+  # Opt-in async dispatch topology (issues #82/#423): enable with
+  #   docker compose --profile async up
+  # and set REMORA_ASYNC_DISPATCH=1 on the api service. NOT part of the
+  # default reference profile; see docs/deployment/execution-quickstart.md.
+  dispatch-worker:
+    profiles: ["async"]
+    image: remora-reference:latest
+    command: ["python", "scripts/run_dispatch_worker.py", "--interval", "5"]
+    environment:
+      REMORA_PG_DSN: postgresql://remora:${POSTGRES_PASSWORD:-remora-dev-only}@postgres:5432/remora
+      REMORA_PDP_SIGNING_KEY: ${REMORA_PDP_SIGNING_KEY:-}
+      REMORA_LEASE_SIGNING_KEY: ${REMORA_LEASE_SIGNING_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  outbox-reconciler:
+    profiles: ["async"]
+    image: remora-reference:latest
+    command: ["python", "scripts/run_outbox_reconciler.py", "--interval", "300"]
+    environment:
+      REMORA_PG_DSN: postgresql://remora:${POSTGRES_PASSWORD:-remora-dev-only}@postgres:5432/remora
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     # postgres:16-alpine, pinned by digest (resolved 2026-08-26).
     image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685

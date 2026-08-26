@@ -282,3 +282,31 @@ reason a key leaks.
 Start a review with [`../../DEVELOPER_OVERVIEW.md`](../../DEVELOPER_OVERVIEW.md),
 then `ARCHITECTURE.md`, then the capability/claim registers. Do not begin by
 reverse-engineering the experiments directory.
+
+## Asynchronous dispatch (opt-in, issue #82)
+
+By default `POST /v1/execution/execute` dispatches synchronously in the
+API process. With `REMORA_ASYNC_DISPATCH=1` the API answers **202 after
+durable authorization** (the queue's EXECUTE outcome and the
+dispatch-intent row commit in one transaction) and a standalone worker
+performs the dispatch half:
+
+```bash
+REMORA_ASYNC_DISPATCH=1 uvicorn servers.api:app &
+python scripts/run_dispatch_worker.py --interval 5   # or --once
+python scripts/run_outbox_reconciler.py --interval 300
+```
+
+The worker claims exclusively before any grant is minted, refuses intents
+past their persisted `authorization_expires_at`, caps the minted token at
+that expiry, re-verifies the persisted payload against the recorded
+binding, and records the original requester as the actor with its own
+identity as `executed_by`. Poll `GET /v1/execution/proposals/{id}` for
+the outcome (the 202 body is `ExecutionPendingResponse`; the Python SDK
+returns `PendingExecution`).
+
+Status: implemented behind the flag and covered by CI and contract
+tests; **not enabled in any reference profile** — the reference
+deployments stay synchronous until the async activation gate (issue
+#423) closes. Both scripts refuse an in-process outbox: durable state
+(`REMORA_PG_DSN`/`REMORA_CHAIN_DB`) is mandatory.
