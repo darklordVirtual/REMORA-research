@@ -19,6 +19,7 @@
 | Covered lines, after the gate-contract round | 778 | 484 | 294 | 0 | 62.2% |
 | Covered lines, after the dispatcher-contract round | 811 | **518** | **293** | 0 | **63.9%** |
 | Baseline sweep for the scheduled job (config committed) | 816 | 525 | **291** | 0 | 64.3% |
+| After the governance-event contract round | 826 | **658** | **168** | 0 | **79.7%** |
 
 Round three (`tests/test_dispatcher_contract.py`) is the instructive one to
 read carefully: the headline `dispatch` cluster went 157 → **159** while
@@ -30,10 +31,25 @@ log payloads), default-parameter values callers always override, and
 exception-message content. One sampled survivor was a genuine gap, fixed
 in the same round: **dropping `toolspec_hash` from the verify call
 survived** — nothing dispatched with a *wrong* resolved spec identity,
-only with a raising resolver — and now has its own kill test. The honest
-next rounds are observability-contract tests (asserting event payloads via
-caplog) if event fidelity is promoted to a tested contract, or accepting
-log-literal mutants as out of contract and recording that decision here.
+only with a raising resolver — and now has its own kill test.
+
+The open decision above was taken in the promoting direction (last row of
+the table): governance events ARE contract.
+`tests/test_governance_event_contract.py` pins the payloads via caplog on
+`remora.governance` — the PEP decision event on allow and refusal, every
+`dispatch.refused` reason literal with its lifecycle join keys,
+`lease.issued`, `dispatch.executed`, `dispatch.state_unknown`, and the
+emitter's secret-name screen in both directions. Writing the tests
+surfaced a real defect, fixed in the same round: **`grant.checked` was
+emitted only on the fall-through path of `EnforcementGate.check()`** —
+every early refusal return (bad signature, audience, stale timestamps,
+replay, unavailable ledger) left no operational record. `check()` now
+funnels every exit of `_check_unlogged()` through the emitter. The round
+killed 139 baseline survivors — `dispatch` 159 → 53, the check logic
+(now `_check_unlogged`) 53 → 16 — and moved the covered-lines rate
+64.3% → 79.7%; the remaining 168 are default-parameter and
+exception-message residue plus long-tail helpers (`try_consume` 15,
+`verify_ledger` 14, `__init__`/parse helpers).
 
 The fourth row is round two: `tests/test_enforcement_gate_contract.py`
 pins the complete `(allowed, action, token_verified, reason, strict_mode)`
