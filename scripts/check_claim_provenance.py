@@ -489,6 +489,24 @@ def check_artifacts(claims: list[dict], root: Path = ROOT) -> list[tuple[str, st
                         f"{cid}: cited artifact does not exist on disk: {rel}",
                     )
                 )
+                continue
+            # Promoted (claim-bound) artifacts carry mandatory provenance:
+            # a result JSON without its .provenance.json sidecar is a hard
+            # error here, where results/*.json in general is only advisory
+            # (check_experiment_manifests.py). Artifacts that predate the
+            # sidecar protocol (2026-07-27) are grandfathered by id in the
+            # baseline; a sidecar is never written retroactively, because a
+            # sidecar records the producing run, not a later guess at it.
+            if rel.endswith(".json") and not rel.endswith(".provenance.json"):
+                sidecar = root / (rel[: -len(".json")] + ".provenance.json")
+                if not sidecar.is_file():
+                    errors.append(
+                        (
+                            f"sidecar-missing:{cid}:{rel}",
+                            f"{cid}: claim-bound artifact has no .provenance.json "
+                            f"sidecar: {rel}",
+                        )
+                    )
     return errors
 
 
