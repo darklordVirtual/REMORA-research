@@ -284,7 +284,38 @@ class EnforcementGate:
         consume: bool = False,
         now: str | None = None,
     ) -> EnforcementResult:
-        """Check whether the token authorizes execution.
+        """Check whether the token authorizes execution, and log the outcome.
+
+        Every exit path funnels through the ``grant.checked`` governance
+        event. It used to be emitted only on the fall-through path, so the
+        refusals an operator most needs to see — bad signature, replay,
+        stale token — left no operational record (issue #280 event-contract
+        round). ``consumed`` is derived, not asserted by branches: a spend
+        happened iff consumption was requested and the check allowed.
+        """
+        result = self._check_unlogged(
+            token, expected_observation_hash, consume, now)
+        governance_event(
+            "grant.checked",
+            level=logging.INFO if result.allowed else logging.WARNING,
+            allowed=result.allowed,
+            action=result.action,
+            reason=result.reason,
+            token_jti=token.jti,
+            consumed=bool(consume and result.allowed),
+            strict_mode=self.strict,
+            token_verified=result.token_verified,
+        )
+        return result
+
+    def _check_unlogged(
+        self,
+        token: PolicyDecisionToken,
+        expected_observation_hash: str | None = None,
+        consume: bool = False,
+        now: str | None = None,
+    ) -> EnforcementResult:
+        """The decision logic behind :meth:`check`, with no logging.
 
         Args:
             token: PolicyDecisionToken from the PDP layer.
@@ -484,19 +515,6 @@ class EnforcementGate:
             token_verified=vr.verified or (not token.is_signed and not self.strict),
             reason=reason,
             strict_mode=self.strict,
-        )
-        # The PEP decision is the single most operationally interesting event
-        # in the system: it is where an authorization is spent or refused.
-        governance_event(
-            "grant.checked",
-            level=logging.INFO if result.allowed else logging.WARNING,
-            allowed=result.allowed,
-            action=result.action,
-            reason=result.reason,
-            token_jti=token.jti,
-            consumed=bool(consume and result.allowed),
-            strict_mode=self.strict,
-            token_verified=result.token_verified,
         )
         return result
 
