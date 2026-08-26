@@ -48,10 +48,9 @@ THRESHOLDS: dict[str, float] = {
     # Still the lowest floor in the trusted computing base, and the reason is
     # now stated rather than left to be guessed at: see FILE_THRESHOLDS and
     # the "what this run does not measure" note below.
-    "remora/enforcement": 85.5,  # 85.88 measured 2026-08-26 after the
-    # terminal projector (#416): the new Postgres projector variants join
-    # the adapter mass the real-service job covers, growing the
-    # deliberately-unmeasured share of outbox.py
+    "remora/enforcement": 90.0,  # 90.67 measured 2026-08-26 on the first
+    # union run (in-process + real-Postgres pass with --cov-append, #447);
+    # was 85.88 when the Postgres adapters were unmeasured
     "servers/api.py": 84.5,
     "servers/execution_api.py": 93.0,
 }
@@ -73,11 +72,11 @@ THRESHOLDS: dict[str, float] = {
 #: absorb it, and nobody has to infer which files the package number is being
 #: dragged down by.
 FILE_THRESHOLDS: dict[str, float] = {
-    # Postgres adapter branches excluded from this run (see above).
-    "remora/enforcement/gate.py": 77.5,  # 77.92 measured; thin, adapters dominate
-    "remora/enforcement/outbox.py": 73.0,  # 73.49 after #416: the projector's
-    # Postgres variants (mark_projected/unprojected_terminal) are covered by
-    # the real-service contract job, not this run; adapters dominate
+    # Postgres adapter branches are measured since the union run (#447).
+    "remora/enforcement/gate.py": 80.0,  # 80.42 on the union run (77.92 before)
+    "remora/enforcement/outbox.py": 86.5,  # 87.23 on the union run (73.49 before:
+    # the Postgres projector variants were only contract-tested without
+    # instrumentation until #447)
     # Fully exercised in-process; these are ordinary floors.
     "remora/enforcement/lease.py": 97.5,  # 97.85 after the event-contract round
     "remora/enforcement/token.py": 97.5,  # 98.05
