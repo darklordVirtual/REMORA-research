@@ -1,12 +1,6 @@
 {
   "_note": "shrink-only; regenerate with scripts/check_prose_style.py --update-baseline only after a prose pass that lowered counts",
   "files": {
-    ".claude/skills/remora-deslop/SKILL.md": {
-      "arrow": 1,
-      "copula_dodge": 2,
-      "filler": 2,
-      "not_but": 1
-    },
     "ARCHITECTURE.md": {
       "arrow": 2
     },
