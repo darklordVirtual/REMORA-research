@@ -107,7 +107,7 @@ does not verify.
 - Do not describe any of this as "tamper-proof"; that property is not
   provided by this system in any configuration.
 
-## Not implemented (slice 2; REM-025 remains open)
+## Not implemented (slice 2 — REM-025 remains open)
 
 External transparency-log / WORM publishing of checkpoint roots is **not
 implemented** in this repository. The following are deployment options a

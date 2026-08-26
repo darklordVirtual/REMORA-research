@@ -198,7 +198,7 @@ four were not, and which is which is stated rather than blurred.
 
 ---
 
-## 3. Replay after container replacement; deployed
+## 3. Replay after container replacement — deployed
 
 The requested experiment, run in order.
 
@@ -258,7 +258,7 @@ previously as `unknown_proposal`.
 
 ---
 
-## 4. Concurrent spend; deployed
+## 4. Concurrent spend — deployed
 
 Six simultaneous consumers of one nonce against the live EEUR database:
 
@@ -278,7 +278,7 @@ two legitimate `eu-pilot` rows.
 
 ---
 
-## 5. The forgery attack; before and after
+## 5. The forgery attack — before and after
 
 **Before the split**, the attack succeeded, and that is recorded rather than
 deleted. `tests/test_lease_authority_custody.py::test_the_deployed_symmetric_topology_permits_forgery`
