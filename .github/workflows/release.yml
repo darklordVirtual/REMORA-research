@@ -1,0 +1,98 @@
+name: Release Provenance
+
+# Tag-triggered (v*.*.*). Builds wheel + sdist from the exact tagged commit,
+# generates a CycloneDX SBOM against the lockfile, writes SHA256SUMS, and
+# binds every artifact to this repository/workflow/commit with Sigstore via
+# GitHub Artifact Attestations (public transparency log). This replaces the
+# GPG-signed-tag acceptance criterion in #390: the attestation proves the
+# artifacts were built by this workflow at this SHA, which a detached GPG
+# signature on the tag object cannot. Verify with:
+#   gh attestation verify remora-<ver>-py3-none-any.whl --repo darklordVirtual/REMORA-research
+# Release assets are uploaded to the GitHub release for the tag; the release
+# note is authored by hand and must state the run id of this workflow.
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-attest:
+    name: Build, SBOM, checksums, Sigstore attestations
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # upload release assets
+      id-token: write      # Sigstore OIDC identity
+      attestations: write  # store attestations
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Refuse to release unless the tag matches pyproject version
+        run: |
+          set -euo pipefail
+          PKG=$(python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v${PKG}" ]; then
+            echo "tag ${GITHUB_REF_NAME} != pyproject version v${PKG}"; exit 1
+          fi
+          echo "version=$PKG" >> "$GITHUB_OUTPUT"
+        id: ver
+
+      - name: Build wheel and sdist from the tagged commit
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --outdir dist/
+          ls -l dist/
+
+      - name: CycloneDX SBOM against the lockfile
+        run: |
+          python -m pip install cyclonedx-bom
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/sbom-reqs.txt
+          cyclonedx-py requirements /tmp/sbom-reqs.txt --of JSON -o dist/sbom-python.cdx.json
+
+      - name: SHA256SUMS
+        working-directory: dist
+        run: sha256sum remora-* sbom-python.cdx.json > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Attest build provenance (wheel, sdist, checksums)
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
+        with:
+          subject-path: |
+            dist/remora-*.whl
+            dist/remora-*.tar.gz
+            dist/SHA256SUMS.txt
+
+      - name: Attest SBOM against the wheel
+        uses: actions/attest-sbom@4651f806c01d8637787e274ac3bdf724ef169f34 # v3.0.0
+        with:
+          subject-path: dist/remora-*.whl
+          sbom-path: dist/sbom-python.cdx.json
+
+      - name: Verify the attestation we just produced
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for f in dist/remora-*.whl dist/remora-*.tar.gz dist/SHA256SUMS.txt; do
+            gh attestation verify "$f" --repo "${GITHUB_REPOSITORY}"
+          done
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-${{ steps.ver.outputs.version }}
+          path: dist/
+          if-no-files-found: error
+
+      - name: Upload assets to the GitHub release for this tag
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" dist/* --clobber
