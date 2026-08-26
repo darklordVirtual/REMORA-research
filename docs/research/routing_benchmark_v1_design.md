@@ -38,12 +38,12 @@ reproduces the v3 problem while looking externally grounded.
 The design splits label production into two stages with different epistemic
 status.
 
-**Stage 1 — adapters extract native predicates and never emit a route.** A
+**Stage 1, adapters extract native predicates and never emit a route.** A
 predicate is admitted only when a dataset field, authored independently of
 REMORA, determines it. Each predicate value carries the dataset and the exact
 source field it came from.
 
-**Stage 2 — one pre-registered decision table maps predicates to a route.** The
+**Stage 2, one pre-registered decision table maps predicates to a route.** The
 table is small, total over its input space, versioned, content-hashed, and
 published in this document. It is a definition, not an inference. It is frozen
 before the first measurement and changing it requires a version bump and a new
@@ -109,8 +109,8 @@ REFUSAL_PATTERN_VERSION = "1"
    alongside the route table hash.
 2. `policy_forbids` fires only in conjunction with the structured condition
    `actions == []`. Text alone never sets it.
-3. Every episode where it fires records `matched_assertion` — the assertion
-   string verbatim — so each of the roughly 10 firings can be read and checked
+3. Every episode where it fires records `matched_assertion` (the assertion
+   string verbatim) so each of the roughly 10 firings can be read and checked
    by a human in minutes. The census measured 11 matches across 50 airline
    tasks and 0 across retail and telecom, so the total is small enough for
    complete manual audit, and that audit is a step in the implementation plan.
@@ -155,7 +155,7 @@ They remain useful: a wrong call that the gate routes to ACCEPT is a
 false-accept regardless of whether ABSTAIN or VERIFY was ideal. That is scored
 separately as a safety-axis metric, not as routing accuracy.
 
-Row 6 is also reached whenever every predicate the table needs is `None` — for
+Row 6 is also reached whenever every predicate the table needs is `None`, for
 example a tau2 telecom task, which has neither `unknown_info` nor a refusal
 assertion.
 
@@ -239,7 +239,7 @@ the `function=` names inside `FunctionCall(...)` constructions within
 `ground_truth()`.
 
 Not statically extractable: argument *values*. `ground_truth()` computes them at
-runtime from the environment — for example
+runtime from the environment; for example
 `FunctionCall(function="send_money", args={"subject": "..." + self.get_streaming_service(pre_environment)})`.
 `GOAL` is also an f-string interpolating class-level constants.
 
@@ -268,10 +268,10 @@ attribution. The manifest records the license and attribution text per source.
 
 ### Rejected sources for v1
 
-- **ToolBench** — automatically generated with no route-determining
+- ToolBench: automatically generated with no route-determining
   annotation. Every episode would be `route: null`. Volume without labels does
   not test routing.
-- **ToolSandbox** — **admitted 2026-07-31 as a local-only source**, superseding
+- ToolSandbox: **admitted 2026-07-31 as a local-only source**, superseding
   the original deferral. It is licensed under Apple's own terms, not an OSI
   license, so nothing derived from it is committed: every episode carries
   `redistributable=False`, the build script writes them to the gitignored cache,
@@ -293,9 +293,9 @@ attribution. The manifest records the license and attribution text per source.
   means the fact is unobtainable with the available tools (ABSTAIN). The adapter
   leaves `information_missing` silent for that reason; setting it true would make
   row 3 fire before row 4 and relabel every unanswerable task as resolvable.
-- **BFCL** — relevance-detection categories would strengthen the
+- BFCL: relevance-detection categories would strengthen the
   `tool_required` predicate. Deferred to v2 purely for scope.
-- **MCP-Atlas** — the URL in the source proposal 404s under the given owner.
+- MCP-Atlas: the URL in the source proposal 404s under the given owner.
   Not evaluated.
 
 ## Expected yield
@@ -358,7 +358,7 @@ The failure this prevents is the one already recorded in `NEGATIVE_RESULTS.md`
 fields exposed to the gate are disjoint. The gate receives only the observable
 surface listed in the episode schema. A test constructs an episode with a
 predicate deliberately copied into an observable field and asserts the gate
-raises — proving the check has teeth rather than merely existing.
+raises; proving the check has teeth rather than merely existing.
 
 ## Scoring
 
@@ -371,9 +371,9 @@ Reuses `remora/toolcall/scoring.py`. Reported per route and overall:
 - Per-source and per-domain breakdown, since the annotation style differs by
   domain and a pooled number would hide that.
 - Unlabelled rate, reported alongside every accuracy figure.
-- **Safety axis, scored over labelled and unlabelled episodes alike:** the rate
+- Safety axis, scored over labelled and unlabelled episodes alike: the rate
   at which the gate routes a `call_in_gold_set = False` episode to ACCEPT. This
-  needs no route label — a call the source annotates as wrong should not
+  needs no route label; a call the source annotates as wrong should not
   execute regardless of whether ABSTAIN or VERIFY was the ideal alternative.
   This is what recovers value from the episodes row 6 declines to label.
 
@@ -400,7 +400,7 @@ in `NEGATIVE_RESULTS.md` following §19.
 3. **Manual audit of every `policy_forbids` firing** (about 11 cases). Read each
    `matched_assertion` and confirm it really states a refusal expectation. Narrow
    the pattern and bump `REFUSAL_PATTERN_VERSION` on any false positive. This
-   gates step 4 — the pattern must not be frozen into a manifest before it has
+   gates step 4; the pattern must not be frozen into a manifest before it has
    been read.
 4. `leakage.py` and its negative test.
 5. `manifest.py`, `scripts/build_routing_bench.py`, byte-identical refresh check.
@@ -413,19 +413,19 @@ Steps 1–5 deliver a working benchmark on one source. Step 6 is additive.
 
 After Track A2 confirmed discrimination under ideal conditions
 (`NEGATIVE_RESULTS.md` §31), the closed-world precondition was broken on
-purpose, one assumption at a time — truncation, false re-declaration,
+purpose, one assumption at a time; truncation, false re-declaration,
 staleness with and without a freshness bound, and a foreign tenant.
 
 - Conditions and pre-registered directional expectations:
   `remora/toolcall/routing/degradation.py`
 - Committed deterministic runner: `scripts/run_fleetops_degradation.py`
 - Artifact: `results/fleetops_degradation_results.json`
-  (`mechanism_study_not_blind` — the fleetops blind budget was spent in §31)
+  (`mechanism_study_not_blind`, the fleetops blind budget was spent in §31)
 - Findings and caveats: `NEGATIVE_RESULTS.md` §32
 
-The declaration-to-index path used by the study —
+The declaration-to-index path used by the study,
 `build_state_index` with tenant, snapshot-hash and freshness rules applied in
-one place — is the production composition path; evaluation wiring assembled
+one place; is the production composition path; evaluation wiring assembled
 inline in runners is no longer permitted.
 
 ## Follow-on: validator-resolution study (2026-07-31)
@@ -433,8 +433,8 @@ inline in runners is no longer permitted.
 The §32 UNKNOWN gap is closed by declarative validator bindings
 (`remora/toolcall/routing/validators.py`): a deployment names which tool
 validates which argument role, tenant-bound, budgeted. `validate_and_reenter`
-(policy layer) runs the tri-state round — exists / confirmed absent /
-unknown — under the bounded-authority checks, and the whole router re-runs on
+(policy layer) runs the tri-state round (exists / confirmed absent /
+unknown) under the bounded-authority checks, and the whole router re-runs on
 the verdict.
 
 - Pre-registered study: `remora/toolcall/routing/validator_study.py`,

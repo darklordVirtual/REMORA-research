@@ -2,7 +2,7 @@
 
 Status: research note. Every number below comes from the **exploratory**
 artifact `results/selection_signal_shootout_2026_07.json`
-(`status: exploratory`) and is hypothesis-generating only — it exists to
+(`status: exploratory`) and is hypothesis-generating only; it exists to
 decide what SAP v3 pre-registers, never to support claims. Revised after
 external statistical review 2026-07-27 (paired tests, matched-coverage
 tie-breaking, method naming, guarantee caveats).
@@ -24,9 +24,9 @@ Per-oracle votes replayed from the round's response cache; same
 group-aware 80/20 split (seed 42) as H1′; supervised quantities fit on the
 training split only. The "best single" model is **fixed a priori by
 convention** (the round's condition-A model), not selected on the training
-split — SAP v3 must pre-register or train-freeze that choice. Holdout
+split; SAP v3 must pre-register or train-freeze that choice. Holdout
 n = 108. The methods and coverage grid were chosen after the round's
-primary results were known, on the same holdout, on a reused corpus —
+primary results were known, on the same holdout, on a reused corpus;
 everything here is directional.
 
 ### Aggregators — with PAIRED exact McNemar (the marginal-CI comparison
@@ -41,19 +41,19 @@ was the wrong test; predictions are strongly correlated on shared items)
 | one-coin latent-label EM, *inspired by* Dawid–Skene | 84.3 % | 0–3, p = 0.25 |
 
 Reading: **no aggregator difference is established.** Confidence weighting
-wins 3–0 discordant items against majority but that is p = 0.25 — and it
+wins 3–0 discordant items against majority but that is p = 0.25; and it
 is one holdout item over best-single. The only significant pair is
 confidence-weighted vs the one-coin EM (6–0, p = 0.031): the EM variant
-genuinely hurts *in this one-coin form* — which does not indict the full
+genuinely hurts *in this one-coin form*; which does not indict the full
 confusion-matrix Dawid–Skene family. The Nitzan–Paroush-style weights
 collapse to majority because the three oracles' train competences are
 nearly equal, and the optimality theorem assumes conditional independence
-that correlated LLM errors violate — the arm is a heuristic here.
+that correlated LLM errors violate; the arm is a heuristic here.
 
 ### Selection signals at REAL matched coverage
 
 Coarse signals (margin, confidence) cannot reach low coverage by
-thresholding — their raw operating points overshoot to 35–60 % coverage. A
+thresholding; their raw operating points overshoot to 35–60 % coverage. A
 label-independent hash tie-breaker forces every signal to every target;
 `tie-fill` = the share of the accepted set picked by the tie-breaker
 (chance within tied groups) rather than by the signal:
@@ -69,41 +69,41 @@ label-independent hash tie-breaker forces every signal to every target;
 | random floor | 91.7 % (cov .11) | — | 0.1196 |
 
 Reading (directional): **temperature was the strongest continuous ranking
-signal in this exploratory analysis of the reused corpus** — its accepted
+signal in this exploratory analysis of the reused corpus**: its accepted
 sets are chosen by the signal (tiny tie-fill), while margin/confidence at
 matched coverage are mostly chance-filling inside tied groups, and the
 single-model confidence is uninformative at low coverage (100 % tie-fill).
 The added value must still be confirmed on fresh data under a
-pre-registered, paired comparison — margin's AURC (0.0397) is close enough
+pre-registered, paired comparison; margin's AURC (0.0397) is close enough
 to temperature's (0.0385) that no superiority claim is possible.
 
 ### Certified gates demonstrated on round data (train-calibrated, exploratory)
 
 - **SGR** (target risk 5 %, δ = 0.10, n_cal = 436): **zero certified
-  coverage** — the pre-registered procedure certified no threshold at
+  coverage**: the pre-registered procedure certified no threshold at
   these settings; the Clopper–Pearson bound needs a long near-error-free
   accepted prefix that this calibration data does not provide. (Scoped to
   the procedure: the binary-search walk evaluates ~log₂(K) candidates and
-  is optimal only under a monotone bound — F-07.) A valid procedure
+  is optimal only under a monotone bound; F-07.) A valid procedure
   returning nothing useful: exactly the "valid ≠ useful" small-sample
   behaviour the review warned about.
 - **CRC** (α = 5 %): certifies **53 % train coverage** (criterion 0.048);
   realized on the holdout: 2 errors / 57 accepted (3.5 % conditional,
-  1.9 % unconditional — within budget). NOTE the semantics: CRC controls
+  1.9 % unconditional; within budget). NOTE the semantics: CRC controls
   the *expected unconditional* accepted-and-wrong loss of an exchangeable
-  test point — not conditional accuracy among accepted, and nothing about
+  test point; not conditional accuracy among accepted, and nothing about
   distribution shift.
 
 The asymmetry is real but it decides POWER, not the estimand. Per the
 follow-up method review (2026-07-27): for a critical-infrastructure pilot
 the defensible claim is the high-probability one ("with confidence
 ≥ 1 − δ, the error rate among autonomously accepted items is ≤ r\*"), and
-an SGR run that cannot certify is an HONEST outcome — the system abstains
-— not a reason to switch to the weaker expectation guarantee. SAP v3
+an SGR run that cannot certify is an HONEST outcome (the system abstains),
+not a reason to switch to the weaker expectation guarantee. SAP v3
 therefore takes **SGR/LTT as primary** (with the zero-coverage outcome
 explicitly legitimate and the sample-size arithmetic stated in the plan)
 and **CRC as secondary** over a severity-weighted accepted-and-wrong loss
-— using only the increasing severity component, because friction terms
+using only the increasing severity component, because friction terms
 make a combined loss non-monotone and CRC can fail arbitrarily on
 non-monotone losses.
 
@@ -116,7 +116,7 @@ monotone accepted-and-wrong loss) as LIBRARY code with tests. Nothing is
 wired into the decision engine: integration is gated on the SAP v3 round
 showing effect on fresh data. Both docstrings state the exchangeability
 assumptions and that a certified threshold is a statistical guarantee
-about the defined loss — never a general safety guarantee about an action.
+about the defined loss; never a general safety guarantee about an action.
 
 ## Evidence accumulation across rounds (the N = 18 problem)
 
@@ -124,7 +124,7 @@ E-processes (test martingales) give anytime-valid inference: a level-α
 test valid at every stopping time by Ville's inequality, with evidence
 composing multiplicatively across rounds. But composition is only valid
 when each factor is a **conditionally valid e-value given all previous
-information** — one cannot multiply arbitrary p-values or retroactively
+information**: one cannot multiply arbitrary p-values or retroactively
 constructed e-values. SAP v3 therefore treats this as a separate
 long-term track with the preconditions fixed in advance: the exact null,
 item inclusion rules, acceptance chosen before labels are opened, the p₀
@@ -139,7 +139,7 @@ drift between rounds.
 Discrete ordered/critical/disordered labels leave the authoritative
 decision path (they remain logged diagnostics). But a raw temperature
 percentile is relative to the model trio, provider, benchmark population
-and time period — it must be mapped to an empirical risk through a frozen
+and time period; it must be mapped to an empirical risk through a frozen
 calibration procedure (isotonic regression on the development split, or
 per-item conformal p-values) before any policy consumes it.
 
@@ -176,7 +176,7 @@ per-item conformal p-values) before any policy consumes it.
   (2021). *Learn then Test: Calibrating Predictive Algorithms to Achieve
   Risk Control.*
   https://www.gsb.stanford.edu/faculty-research/working-papers/learn-then-test-calibrating-predictive-algorithms-achieve-risk
-- G. Shafer, V. Vovk et al. — game-theoretic statistics and safe
+- G. Shafer, V. Vovk et al.; game-theoretic statistics and safe
   anytime-valid inference (e-processes, Ville's inequality).
   https://pure.royalholloway.ac.uk/en/publications/game-theoretic-statistics-and-safe-anytime-valid-inference/
 - S. Nitzan, J. Paroush (1982). *Optimal Decision Rules in Uncertain

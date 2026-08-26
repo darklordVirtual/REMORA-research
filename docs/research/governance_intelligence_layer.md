@@ -89,16 +89,16 @@ consistent, low-risk reads still do.
 
 ## Relationship to decision-theoretic inspiration
 
-- **Infra-Bayesian inspiration:** treating the caller-supplied metadata as one
+- Infra-Bayesian inspiration: treating the caller-supplied metadata as one
   hypothesis in a credal set rather than the truth, acting on the worst
   plausible reading (label vs inferred semantics) rather than the most
   convenient one. The layer is *not* infra-Bayesianism: there is no convex set
   of priors, no Knightian update rule; only a deterministic worst-case merge.
-- **CDT-inspired causal consequence:** asking "what does executing this action
+- CDT-inspired causal consequence: asking "what does executing this action
   cause?" (blast radius, downstream effects, expected loss) rather than only
   "what does this action correlate with?". It is *not* causal decision theory:
   there is no interventional model, only a table-driven consequence heuristic.
-- **LDT-inspired policy generalization:** evaluating the decision *policy*
+- LDT-inspired policy generalization: evaluating the decision *policy*
   ("accept this class of action") rather than the single act, asking whether
   the policy generalized across agents, tenants, and time remains safe. It is
   *not* Logical Decision Theory: there are no logical counterfactuals, only a

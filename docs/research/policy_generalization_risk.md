@@ -27,14 +27,16 @@ compound into systemic exposure that no single-action gate sees.
 
 ## Rules
 
-- repeated low-risk reads → low risk, effect none/local, standing policy safe
-- DNS/firewall/security/network classes → systemic, risk ≥ 0.85
-- destructive production writes → systemic, risk ≥ 0.8
-- external sends / bulk email → tenant effect, risk ≥ 0.65
-- permission grants → tenant effect, risk ≥ 0.6 (systemic when repeated)
-- count > 10 and mutating → risk ≥ 0.75, effect widens one step
-- critical tier and repeated → systemic, risk ≥ 0.85
-- unknown environment and repeated mutation → systemic/unknown, risk ≥ 0.8
+| Pattern | Classification |
+|---|---|
+| repeated low-risk reads | low risk, effect none/local, standing policy safe |
+| DNS/firewall/security/network classes | systemic, risk ≥ 0.85 |
+| destructive production writes | systemic, risk ≥ 0.8 |
+| external sends / bulk email | tenant effect, risk ≥ 0.65 |
+| permission grants | tenant effect, risk ≥ 0.6 (systemic when repeated) |
+| count > 10 and mutating | risk ≥ 0.75, effect widens one step |
+| critical tier and repeated | systemic, risk ≥ 0.85 |
+| unknown environment and repeated mutation | systemic/unknown, risk ≥ 0.8 |
 
 ## How it routes
 
