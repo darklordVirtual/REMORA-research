@@ -73,7 +73,7 @@ be shadow-run against real agent logs before any enforcement is enabled.
 
 ## 90-day pilot shape
 
-**Weeks 0–4:** shadow-replay the operator's real agent action logs → concrete
+**Weeks 0–4:** shadow-replay the operator's real agent action logs, producing concrete
 blocked/reviewed deltas and friction estimate, zero operational impact.
 **Weeks 4–8:** encode the operator's autonomy rules as versioned policy;
 validate with the conformance harness against the same logs.

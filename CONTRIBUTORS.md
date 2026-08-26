@@ -45,7 +45,7 @@ components interact under failure conditions.
 
 **Ran all experiments.** The author executed and monitored all benchmarks,
 all ablation runs, all live AROMER adaptation cycles, and all holdout
-evaluations. The AII trajectory (LEARNING → CAPABLE → TRAINED, with full
+evaluations. The AII trajectory (LEARNING, CAPABLE, TRAINED, with full
 §9–§13 regression and recovery documentation) is a live operational record of
 the author's deployment and monitoring work.
 

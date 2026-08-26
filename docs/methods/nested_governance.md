@@ -92,7 +92,7 @@ L7 architecture_baseline
 ```
 
 Layer names match `default_nested_governance_model()` in
-`remora/governance/nested_governance.py` — eight layers, not the earlier
+`remora/governance/nested_governance.py`: eight layers, not the earlier
 six-layer sketch.
 
 ## Memory And Update Frequencies

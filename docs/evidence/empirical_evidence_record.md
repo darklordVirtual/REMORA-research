@@ -175,7 +175,7 @@ The ordered phase is too small (n=12) to be stable; its instability is inherent 
 | disordered | 206 | −0.134 | weak chi → accuracy |
 | **global** | **302** | **−0.044** | **near-zero, no global signal** |
 
-All correlations are negative: higher χ → fewer errors, not more. The original fragility hypothesis ("higher chi → more errors") is **not confirmed**. The correct interpretation: items near the phase transition (high chi in the critical band) tend toward correct consensus, consistent with the system being well-ordered near T_critical.
+All correlations are negative: higher χ means fewer errors, not more. The original fragility hypothesis ("higher chi, more errors") is **not confirmed**. The correct interpretation: items near the phase transition (high chi in the critical band) tend toward correct consensus, consistent with the system being well-ordered near T_critical.
 
 ### IVc: Full-Coverage Routing Ceiling
 

@@ -57,6 +57,11 @@ EXCLUDE_PREFIXES = (
     ".claude/",  # skills quote the patterns they ban
     "artifacts/governance-benchmark-pack/",  # frozen copy of NEGATIVE_RESULTS
     "datasets/",  # corpus data, not documentation
+    "data/",  # dataset attribution and holdout status files
+    "results/",  # result reports are frozen artifacts
+    "tests/",  # fixture attribution files
+    "artifacts/credibility-pack/",  # frozen evidence pack
+    "CHANGELOG.md",  # historical record
 )
 
 TELLS = (

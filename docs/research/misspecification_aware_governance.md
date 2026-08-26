@@ -29,6 +29,7 @@ and without LLM calls:
 
 Rules (each visible in `reasons`, each covered by tests):
 
+<<<<<<< HEAD
 - supplied read/low + inferred destructive/high → risk ≥ 0.8, low
   classification confidence, alternative recorded
 - environment unknown + production signals in text → mismatch detected
@@ -39,6 +40,20 @@ Rules (each visible in `reasons`, each covered by tests):
   mutating action → ambiguity ≥ 0.5 and risk ≥ 0.65
 - destructive action with unknown rollback → `state_transition_uncertain`
 - dangerous argument keys (`force`, `cascade`, `recursive`, …) → risk ≥ 0.5
+=======
+| Mismatch | Effect |
+|---|---|
+| supplied read/low + inferred destructive/high | risk ≥ 0.8, low classification confidence, alternative recorded |
+| environment unknown + production signals in text | mismatch detected |
+| environment unknown + mutating action | risk ≥ 0.65 (clears the engine's misspecification gate) |
+| tool name implies mutation while action type says read | risk ≥ 0.75 |
+| ambiguous objective ("clean up", "optimize", "fix", "sync", "sort out") on a mutating action | ambiguity ≥ 0.5 and risk ≥ 0.65 |
+
+| Mismatch | Effect |
+|---|---|
+| destructive action with unknown rollback | `state_transition_uncertain` |
+| dangerous argument keys (`force`, `cascade`, `recursive`, …) | risk ≥ 0.5 |
+>>>>>>> 4c3b5b1 (docs(prose): layer 6, remaining reader-facing files)
 
 ## How it routes
 

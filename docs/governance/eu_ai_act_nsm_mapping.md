@@ -10,7 +10,7 @@
 
 This document maps REMORA's **existing technical controls** to the EU AI Act and
 to NSM's four functions. It follows the principle *build the controls once and
-map them to every regime — never the reverse*: each control below is a real
+map them to every regime; never the reverse*: each control below is a real
 artifact on disk, cited once, and points at every regime function it serves. The
 NIST AI RMF and OWASP GenAI documents are alternative views on the same control
 set.

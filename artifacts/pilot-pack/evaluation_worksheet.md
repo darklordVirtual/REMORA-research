@@ -37,8 +37,8 @@ is in invalidates the run.
 
 ## Verdict
 
-- [ ] GO — criteria met against frozen thresholds
-- [ ] NO-GO — with the failed criteria and their measured values listed
+- [ ] GO: criteria met against frozen thresholds
+- [ ] NO-GO: with the failed criteria and their measured values listed
 - Negative findings reported with the same prominence as positive ones:
 
 > _Findings:_

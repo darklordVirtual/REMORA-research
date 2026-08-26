@@ -16,7 +16,7 @@ building, and REMORA evaluates each floor-level command independently against
 occupancy state and the active energy policy, before any command is sent. The
 demo drives the **real `RemoraDecisionEngine`**: each floor becomes a
 `PolicyObservation` (occupancy sensing is the caller-supplied evidence layer),
-and the decisions and reason codes below are the engine's actual output —
+and the decisions and reason codes below are the engine's actual output;
 REMORA's canonical ACCEPT/VERIFY/ABSTAIN/ESCALATE outcomes.
 
 ```bash

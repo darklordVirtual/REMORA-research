@@ -8,8 +8,8 @@ Cloudflare Worker providing full-text and semantic search over Norwegian statute
 
 Exposes the `norges-lover-legal-intel` database (D1 + Vectorize) to the REMORA MCP server. Handles two tasks:
 
-1. **Citation verification**: checks whether a specific court decision (e.g. `HR-2015-2386-A`) exists in the database.
-2. **Statute search**: retrieves relevant sections from Norwegian law given a free-text query.
+1. Citation verification: checks whether a specific court decision (e.g. `HR-2015-2386-A`) exists in the database.
+2. Statute search: retrieves relevant sections from Norwegian law given a free-text query.
 
 ## Endpoints
 

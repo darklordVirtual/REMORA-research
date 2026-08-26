@@ -2,7 +2,7 @@
 
 Cloudflare Worker acting as a secure control plane between Claude and private infrastructure.
 
-Claude invokes tools via HTTP → this Worker injects API secrets and writes a hash-stamped audit trail to D1.
+Claude invokes tools via HTTP; this Worker injects API secrets and writes a hash-stamped audit trail to D1.
 
 ```
 Claude Desktop / Claude API
@@ -31,7 +31,7 @@ These are the tools actually in `TOOL_CATALOG` (`src/index.ts`):
 `audit_decision` was **removed** (2026-08-19): it let the same shared bearer
 that proposes an action record its own approval, with `approved_by` as
 caller-supplied text. Approvals are now first-class records granted only by an
-authenticated, independent human reviewer via `POST /approvals` — see below.
+authenticated, independent human reviewer via `POST /approvals`, see below.
 
 ## Deploy
 
@@ -120,12 +120,12 @@ Refusal reason codes: `REVIEWER_IDENTITY_REQUIRED`, `SELF_APPROVAL_FORBIDDEN`,
 
 ## Security Principles
 
-- **Bounded egress**: outbound calls go only to the statically-bound service
-  workers and fixed upstreams declared in `wrangler.toml` — there is no
+- Bounded egress: outbound calls go only to the statically-bound service
+  workers and fixed upstreams declared in `wrangler.toml`; there is no
   dynamic, request-controlled destination. (A configurable `EGRESS_ALLOWLIST`
-  is roadmap, not implemented; earlier README wording overstated it — issue #55.)
-- **Secret injection**: API keys live in Worker Secrets, never in Claude's context.
-- **Human-in-the-loop, no self-approval**: destructive actions (R2 writes via
+  is roadmap, not implemented; earlier README wording overstated it; issue #55.)
+- Secret injection: API keys live in Worker Secrets, never in Claude's context.
+- Human-in-the-loop, no self-approval: destructive actions (R2 writes via
   `store_artifact`) are held until an independent human reviewer approves via
   `POST /approvals`. Reviewer identity comes only from a verified Cloudflare
   Access JWT (`src/auth.ts`; `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD` +
@@ -133,16 +133,16 @@ Refusal reason codes: `REVIEWER_IDENTITY_REQUIRED`, `SELF_APPROVAL_FORBIDDEN`,
   endpoint, and a reviewer whose identity equals the requester is refused
   (`SELF_APPROVAL_FORBIDDEN`). Each approval (`src/approval.ts`) is immutable,
   single-use, expires (`APPROVAL_TTL_SECONDS`, default 900), and is bound to
-  the exact tool-call hash, ToolSpec identity and policy identity — any of
+  the exact tool-call hash, ToolSpec identity and policy identity; any of
   those changing after approval refuses execution. Regression suite:
   `tests/test_agent_control_approvals.py` runs the real TS modules.
-- **Audit trail**: Every tool call is written to D1 with a SHA-256 hash of the input/output pair.
-- **Governance record**: Every `/execute` also writes a hash-chained
+- Audit trail: Every tool call is written to D1 with a SHA-256 hash of the input/output pair.
+- Governance record: Every `/execute` also writes a hash-chained
   `DecisionEnvelope` v2 (`src/envelope.ts`), including the calls that were
-  *refused* — a held or rejected action is the evidence that the gate worked.
+  *refused*; a held or rejected action is the evidence that the gate worked.
   A failed envelope write returns 500 rather than a clean 200, so an ungoverned
   action never reports success.
-- **Bearer token**: All write endpoints require `Authorization: Bearer <secret>`.
+- Bearer token: All write endpoints require `Authorization: Bearer <secret>`.
 
 ## DecisionEnvelope Audit Trail
 
@@ -154,8 +154,8 @@ record is detectable instead of merely absent.
 in Python, and the two languages serialize four numeric shapes differently:
 integral-valued floats (`1.0` vs `1`), negative zero, `1e20` (positional in
 ECMAScript), and integers beyond 2^53 (JavaScript precision loss). Payloads
-on the envelope path must stay inside the agreed domain — plain integers up
-to 2^53−1, non-integral floats, strings, booleans, null — or carry such
+on the envelope path must stay inside the agreed domain (plain integers up
+to 2^53−1, non-integral floats, strings, booleans, null) or carry such
 values as strings. The agreement domain and the pinned divergences are frozen
 in `tests/golden/canonical_json_vectors_v1.json`
 (`tests/test_canonical_json_golden_vectors.py` runs both languages against
@@ -177,7 +177,7 @@ entry_hash = SHA256( previous_hash ␟ canonical(envelope) ␟ tenant_id
 
 The exact canonical string that was hashed is stored verbatim in
 `envelope_canonical`, so verifiers hash those bytes rather than
-re-serialising — no cross-language JSON difference can turn an intact chain
+re-serialising; no cross-language JSON difference can turn an intact chain
 into a reported break.
 
 Fork-freedom without `SELECT ... FOR UPDATE`: `UNIQUE (tenant_id,
@@ -193,7 +193,7 @@ curl -sH "Authorization: Bearer $CONTROL_SECRET" \
 python scripts/verify_envelope_chain.py --worker-export chain.json
 ```
 
-**Scope — do not overclaim.** `gate.outcome` here records what this control
+**Scope: do not overclaim.** `gate.outcome` here records what this control
 plane did: whether it required human approval and whether the call ran. It is
 not a REMORA policy-engine verdict, and `audit.policy_version` says so
 (`agent-control-gate/v1`). Putting the full decision engine in front of tool

@@ -1,15 +1,15 @@
 # REMORA use cases
 
 > ⚠️ **Illustrative, not deployment results.** REMORA is a research-grade
-> governance overlay in **SHADOW_ONLY** mode — not production-certified and not
+> governance overlay in **SHADOW_ONLY** mode; not production-certified and not
 > deployed in any sector below. These are illustrative scenarios; any numbers
 > are illustrative unless they link to a committed artifact in `results/` or
 > `artifacts/`. REMORA governs whether a proposed **action** may proceed
 > (ACCEPT / VERIFY / ABSTAIN / ESCALATE); it does not certify truth.
 
 REMORA is **sector-agnostic**: it governs any tool-calling agent action by the
-same pipeline (multi-oracle consensus → uncertainty/evidence → deterministic
-policy → auditable DecisionEnvelope). The value in any sector is the same —
+same pipeline (multi-oracle consensus, then uncertainty/evidence, then deterministic
+policy, then an auditable DecisionEnvelope). The value in any sector is the same;
 turn a confident-but-unverified agent action into an explicit, auditable
 decision, and route the risky ones to a human. The governance semantics are
 canonical in [`../reference_architecture.md`](../reference_architecture.md).

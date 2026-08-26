@@ -55,7 +55,7 @@ them `(inferred)` in the output (and under `"inferred"` in `--json`):
 | send, publish, notify, write, update, create, insert, upload | `write` | `medium` |
 | read, get, list, fetch, query, search, view, describe | `read` | `low` |
 
-Explicit flags always win. Inference is a CLI convenience only — it never
+Explicit flags always win. Inference is a CLI convenience only; it never
 reaches the engine as policy; anything left unset is handled fail-closed by
 the engine itself (unknown risk routes to VERIFY, never ACCEPT).
 
@@ -103,7 +103,7 @@ python -m remora assess "$TOOL" --arguments-json "$ARGS" --exit-code --envelope-
 ## Live mode: test a real run
 
 By default `assess` is deterministic: hard blocks, admission firewall, risk
-routing — no network, no keys. `--live` runs the same tool call through real
+routing; no network, no keys. `--live` runs the same tool call through real
 multi-oracle consensus (the machinery behind the REST API's `/v1/assess`):
 
 ```bash
@@ -117,7 +117,7 @@ python -m remora assess drop_database --live
 - Backend is auto-detected from what is available: `GROQ_API_KEY` → Groq
   swarm; `GROQ_API_KEY` + `OPENROUTER_API_KEY` → the cross-family
   "recommended" swarm; `GEMINI_API_KEY` → Gemini; a running local Ollama →
-  Ollama. Override with `REMORA_ORACLE_BACKEND`. `mock` is refused — live
+  Ollama. Override with `REMORA_ORACLE_BACKEND`. `mock` is refused; live
   mode never silently fakes a real run.
 - Live calls cost real API credits and take seconds, not milliseconds.
 - Hard guards keep absolute priority: live consensus can inform, never
@@ -131,7 +131,7 @@ python -m remora doctor
 
 Checks Python version, package health (the engine must escalate a known
 hard-block case), policy provenance, installed extras, repo checkout, and
-which live backends are available — each failing line comes with the exact
+which live backends are available; each failing line comes with the exact
 command that fixes it. Hard failures exit 1 (CI-friendly with `--json`).
 Env-var **names** may be shown; key **values** never are.
 
@@ -157,7 +157,7 @@ decision report, rule-by-rule trace, and what name inference filled in.
 **Advisory, not enforcement.** `assess_tool_call` judges the metadata you
 hand it; it is not bound to the callable that will run. Take
 `risk_tier`/`action_type` from a trusted tool registry keyed by callable
-identity — never from the caller, and never from the tool's *name*:
+identity; never from the caller, and never from the tool's *name*:
 `infer=True` is for exploration and demos, an inferred verdict has
 `a.advisory == True`, and inference must never drive real execution. The
 enforcement-grade path is the `/v1/execution` API, where metadata is
@@ -211,7 +211,7 @@ empty trail passes trivially and proves nothing about what was decided.
 
 ## See also
 
-- [README Quickstart](../README.md#quickstart) — install and first run
-- [docs/07-api-reference.md](07-api-reference.md) — REST API (`remora serve`)
-- [docs/03-experiments.md](03-experiments.md) — how the evidence was produced
+- [README Quickstart](../README.md#quickstart): install and first run
+- [docs/07-api-reference.md](07-api-reference.md): REST API (`remora serve`)
+- [docs/03-experiments.md](03-experiments.md): how the evidence was produced
 - `python -m remora --help` / `python -m remora <command> --help`

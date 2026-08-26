@@ -1,6 +1,6 @@
 # REMORA pilot pack v1
 
-The standardised package a pilot partner receives (issue #90) — the
+The standardised package a pilot partner receives (issue #90); the
 operational wrapping around
 [`docs/validation/pilot_evaluation_protocol_v1.md`](../../docs/validation/pilot_evaluation_protocol_v1.md).
 Everything here serves the protocol's preconditions; nothing here relaxes
@@ -21,10 +21,10 @@ them. Shadow mode, observer-only, bounded scope.
 2. Freeze the worksheet thresholds with the partner; record the date.
 3. Stream events; every scored event keeps its `DecisionEnvelope`
    (`GET /v1/envelope/{request_id}`, durable when
-   `REMORA_CONTROL_PLANE_DB`/`_DSN` is set — the shadow-mode env sets it).
+   `REMORA_CONTROL_PLANE_DB`/`_DSN` is set; the shadow-mode env sets it).
 4. Export metrics with `export_envelopes.py`; fill the worksheet against
    the frozen thresholds; stop conditions apply as written in the protocol.
 
-A pilot is not successful because the system ran — see the protocol's
+A pilot is not successful because the system ran; see the protocol's
 success definition. Negative findings are reported with the same
 prominence as positive ones.

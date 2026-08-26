@@ -93,16 +93,16 @@ These fields are present in the schema (non-required, nullable) and survive
 The following are documented as future work and are **not** yet provided by the
 reference implementation:
 
-- **Approver identity binding:** human approval records do not yet carry an
+- Approver identity binding: human approval records do not yet carry an
   OIDC-bound approver identity. Implementing this requires IdP integration
   in the review workflow (see `enterprise/human-approval-workflow.md`).
-- **Tool argument hash / redaction state:** the arguments passed to the tool
+- Tool argument hash / redaction state: the arguments passed to the tool
   being governed are not hashed or redacted in the current envelope. This is
   needed for environments where tool arguments may contain sensitive data.
-- **Detached signature / KMS integration:** the optional HMAC signature via
+- Detached signature / KMS integration: the optional HMAC signature via
   `REMORA_ENVELOPE_SIGNING_KEY` is software-only. A production deployment
   requiring non-repudiation at the hardware level should integrate an HSM or
   KMS for signing.
-- **External notarization / timestamp authority:** the `timestamp_utc` field
+- External notarization / timestamp authority: the `timestamp_utc` field
   is set by the API server clock. It does not carry a trusted timestamp from
   an external time-stamp authority (RFC 3161).

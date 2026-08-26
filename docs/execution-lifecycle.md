@@ -8,7 +8,7 @@ record of dispatch intent).
 
 **Stability:** both are internal. They are CORE by maturity
 ([ARCHITECTURE.md §9](../ARCHITECTURE.md#9-module-stability-index)) but
-carry no backward-compatibility guarantee — only `remora.sdk` does
+carry no backward-compatibility guarantee; only `remora.sdk` does
 ([docs/sdk.md](sdk.md)).
 
 ## The lifecycle model
@@ -39,7 +39,7 @@ tracker.trail                         # every (from, event, to) so far
 ```
 
 `apply()` raises `IllegalTransition` on anything the model does not
-declare, and leaves the tracker unchanged when it does — a refusal is a
+declare, and leaves the tracker unchanged when it does; a refusal is a
 signal, not a state change.
 
 `/v1/execution` uses the second form, `check_transition(state, event)`,
@@ -90,7 +90,7 @@ re-approved call after `APPROVAL_INVALIDATED` gets its own, because
 | `PostgresExecutionOutbox` | Yes | Multi-worker (`REMORA_PG_DSN`); `SELECT … FOR UPDATE` gives the same exclusivity |
 
 The durable adapters also expose `record_intent_enlisted(connection, …)`,
-which writes the row **inside the caller's open transaction** — that is
+which writes the row **inside the caller's open transaction**: that is
 what makes "the intent commits with the authorization and rolls back with
 it" true rather than aspirational. The in-process store refuses
 enlistment with `NotImplementedError` instead of ignoring the connection
@@ -117,8 +117,8 @@ reconciliation needs a scheduled call.
 `tests/test_execution_fault_injection.py` executes the crash matrix from
 [design/execution-lifecycle-outbox-v1.md](design/execution-lifecycle-outbox-v1.md)
 §3.4: each crash point is injected and the promised recovery asserted.
-Crashes are injected by making a step raise — the process is not actually
-killed — so this validates ordering and rollback semantics, **not**
+Crashes are injected by making a step raise (the process is not actually
+killed), so this validates ordering and rollback semantics, **not**
 operating-system-level durability. Matrix rows 3, 4 and 6 are
 indistinguishable by design and collapse to `UNKNOWN`; the suite asserts
 that conflation rather than hiding it.
@@ -146,5 +146,5 @@ python examples/execution_lifecycle_demo.py
 ```
 
 Walks the lifecycle model, shows an illegal transition being refused, and
-drives an outbox row through authorize → claim → settle plus the two
-reconciliation outcomes — offline, no server required.
+drives an outbox row through authorize, claim and settle plus the two
+reconciliation outcomes; offline, no server required.

@@ -5,7 +5,7 @@ It talks to a REMORA control plane over the versioned REST contract
 (`schemas/openapi.json`, drift-gated in CI) and deliberately owns no tool
 credentials: policy evaluation, human review, token/lease binding,
 enforcement and the audit chain stay server-side. The SDK provides no
-bypass operation — but actual non-bypassability is a *deployment*
+bypass operation; but actual non-bypassability is a *deployment*
 property: it holds only when REMORA is the exclusive credential-holding
 execution path and the agent has no direct route to the governed side
 effects.
@@ -57,7 +57,7 @@ if result.action is DecisionAction.VERIFY:
 `assess` never executes anything. ACCEPT returns a signed single-use
 execution token; VERIFY/ESCALATE queue a review item; ABSTAIN returns
 neither. Client-declared trust signals (`schema_valid`,
-`rollback_available`) can only lower trust, never raise it — with no
+`rollback_available`) can only lower trust, never raise it; with no
 server-side evidence even a low-risk read lands on ABSTAIN.
 
 **Lifecycle coverage.** Both branches are redeemable from this client
@@ -74,14 +74,14 @@ elif result.action is DecisionAction.VERIFY:
 the token's binding. A different payload raises `BindingRefusedError`
 **without** burning the grant; a second redemption raises
 `ReplayRefusedError`; an expired token raises `ApprovalExpiredError`. A
-deployment-side PEP consuming the token out-of-band remains supported —
+deployment-side PEP consuming the token out-of-band remains supported;
 the REST path is an addition, not a replacement.
 
 **What would resolve a VERIFY.** Every VERIFY and ESCALATE carries a
 machine-readable `ResolutionPlan`, discriminated by `type`:
 `human_approval` names the `required_role` and the deadline;
 `machine_resolution` names a bounded lookup the engine identified.
-ABSTAIN carries **no** plan — no bounded step is known, and promising one
+ABSTAIN carries **no** plan; no bounded step is known, and promising one
 would be a lie. An ESCALATE's `required_role` is always higher than a
 VERIFY's: an escalation a normal reviewer may approve is not an
 escalation.
@@ -103,9 +103,9 @@ Runnable end-to-end version, offline, zero configuration:
 python examples/sdk_quickstart.py
 ```
 
-It drives the full loop — honest ABSTAIN, review-routed prod write, the
+It drives the full loop (honest ABSTAIN, review-routed prod write, the
 typed refusal when the agent credential tries to approve its own call,
-governed execution, audit-chain verification — against the real ASGI app
+governed execution, audit-chain verification) against the real ASGI app
 in-process.
 
 ## Reading a proposal back
@@ -124,7 +124,7 @@ outbox), never a fourth store, so they cannot disagree with what actually
 happened. `current_state` is derived for the same reason. They are
 tenant-scoped: another tenant's proposal is a 404, not a redacted 200.
 
-`export_evidence` returns the raw mapping on purpose — the manifest hashes
+`export_evidence` returns the raw mapping on purpose; the manifest hashes
 each section over its exact JSON, so re-shaping into typed models would
 break independent verification. The manifest makes editing **evident**,
 not impossible: a party who rewrites bundle *and* manifest produces a
@@ -186,8 +186,8 @@ Neither unknown is ever a reason to run the action again: the side effect
 may already have occurred, and repeating it is the one thing this layer
 must not do.
 
-`record_effect` **appends** to the audit chain — a verifier that could
-edit the record it verifies produces a claim, not evidence — and only the
+`record_effect` **appends** to the audit chain (a verifier that could
+edit the record it verifies produces a claim, not evidence) and only the
 hashes cross the boundary; the observed values stay with you. REMORA
 stores the result as an attestation by the verifier named in the record,
 not as an independent proof of its own, which is why
@@ -215,7 +215,7 @@ if result.lineage and result.lineage.escalation_eligible:
 ```
 
 REMORA derives this from its own audit chain, never from anything the
-caller sends — a `supersedes` request field would be defeated by the one
+caller sends; a `supersedes` request field would be defeated by the one
 caller it exists to catch, who omits it.
 
 Two fields decide how much weight the verdict deserves:
@@ -226,7 +226,7 @@ Two fields decide how much weight the verdict deserves:
   response the SDK defaults it to `True`, so an omission is never read as
   "this was escalated";
 - **`lineage_key_basis`** is `semantic_target` when a signed ToolSpec
-  declared which argument names the target — two calls about different
+  declared which argument names the target; two calls about different
   objects are then two actions, not one retried. It is `tool_only` when
   nothing declared it, and that key cannot tell repeated legitimate use
   from probing.
@@ -271,7 +271,7 @@ never on detail strings.
 
 - Internal modules: `remora.policy`, `remora.enforcement`,
   `remora.governance`, `remora.persistence`, `remora.execution`,
-  `remora.legal`, `servers.*` — importable, no compatibility promise.
+  `remora.legal`, `servers.*`: importable, no compatibility promise.
 - The nested mappings on `ExecutionResult` (`execution_grant`, `pep`,
   `tool_execution`) are passed through verbatim in this SDK version;
   typed models for them are planned, additively.
