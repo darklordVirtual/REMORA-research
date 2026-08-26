@@ -20,6 +20,33 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    # Real Postgres alongside the coverage run (2026-08-26, external review):
+    # the Postgres adapters in enforcement/gate.py and enforcement/outbox.py
+    # were contract-tested in ci.yml's dedicated job WITHOUT coverage
+    # instrumentation, so the TCB percentage reported here was "covered by
+    # the in-process suite", not the union. With the DSN set, the DSN-gated
+    # tests execute in this same run and the coverage number is the union
+    # of in-process and real-service paths. ci.yml keeps its separate
+    # contract job as the must-not-skip operational evidence.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: remora
+          POSTGRES_PASSWORD: remora
+          POSTGRES_DB: remora_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U remora"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      REMORA_PG_DSN: postgresql://remora:remora@localhost:5432/remora_test
+
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
@@ -47,7 +74,7 @@ jobs:
           # extras drive what gets installed. Filter out -e/comment lines that
           # pip rejects in a constraints file.
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          pip install -e ".[dev,causal,api,security]" -c /tmp/constraints.txt
+          pip install -e ".[dev,causal,api,security,postgres]" -c /tmp/constraints.txt
 
       - name: Lint (ruff)
         run: ruff check .
@@ -112,6 +139,14 @@ jobs:
           # coverage-failure costume. This makes the skip impossible.
           REMORA_REQUIRE_SECURITY_EXTRA: "1"
         run: pytest -q --cov --cov-branch --cov-report=term-missing --cov-report=json:coverage.json
+
+      - name: Postgres-backed tests actually ran in the coverage run
+        # If the DSN-gated tests skipped, the union claim below is false.
+        run: |
+          pytest -q -rs tests/test_execution_api.py tests/test_execution_outbox.py -k postgres --no-cov | tee /tmp/pg.txt
+          if grep -qiE "skipped|no tests ran" /tmp/pg.txt; then
+            echo "ERROR: Postgres tests skipped inside the coverage job" >&2; exit 1
+          fi
 
       - name: Per-package coverage floors (trusted computing base)
         run: python scripts/check_coverage_thresholds.py coverage.json
