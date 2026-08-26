@@ -10,8 +10,9 @@ authorize and outcome leaves a durable row a reconciler can resolve
 instead of an unrecorded side effect.
 
 Scope: the synchronous v1 path (maintainer decision 2026-08-05 — execute
-stays synchronous with the outbox behind it). A background dispatch
-worker is not part of v1 and is not tested here.
+stays synchronous with the outbox behind it, and remains the default).
+The async boundary and the standalone dispatch worker (issue #82,
+REMORA_ASYNC_DISPATCH) are tested in tests/test_dispatch_worker.py.
 """
 from __future__ import annotations
 

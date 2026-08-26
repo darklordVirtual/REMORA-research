@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS execution_outbox (
     claimed_at      TEXT,
     settled_at      TEXT,
     detail          TEXT,
+    tool_call_json  TEXT,
     UNIQUE (tenant_id, idempotency_key)
 );
 CREATE INDEX IF NOT EXISTS execution_outbox_pending_idx
@@ -91,6 +92,7 @@ _COLUMNS = (
     "outbox_id", "proposal_id", "tenant_id", "item_id", "idempotency_key",
     "tool_name", "tool_call_hash", "grant_jti", "state", "attempt_no",
     "created_at", "worker_id", "claimed_at", "settled_at", "detail",
+    "tool_call_json",
 )
 
 
@@ -147,6 +149,13 @@ class OutboxRow:
     claimed_at: datetime | None = None
     settled_at: datetime | None = None
     detail: str | None = None
+    #: The exact call payload (canonical JSON: arguments +
+    #: target_environment), persisted so a SEPARATE dispatch worker can
+    #: reconstruct and dispatch the call the authorization bound
+    #: (issue #82). Nullable: rows written before this column, and rows
+    #: from the synchronous path that never needs it, carry None. The
+    #: hash next to it remains the binding; this is the material.
+    tool_call_json: str | None = None
 
     @property
     def is_terminal(self) -> bool:
@@ -225,6 +234,7 @@ class ExecutionOutbox:
         grant_jti: str,
         attempt_no: int = 1,
         now: datetime | None = None,
+        tool_call_json: str | None = None,
     ) -> OutboxRow:
         """Insert a dispatch intent, or return the existing one.
 
@@ -249,6 +259,7 @@ class ExecutionOutbox:
                 state=OutboxState.DISPATCH_PENDING,
                 attempt_no=attempt_no,
                 created_at=_now(now),
+                tool_call_json=tool_call_json,
             )
             self._rows[row.outbox_id] = row
             self._by_key[(tenant_id, key)] = row.outbox_id
@@ -266,6 +277,7 @@ class ExecutionOutbox:
         grant_jti: str,
         attempt_no: int = 1,
         now: datetime | None = None,
+        tool_call_json: str | None = None,
     ) -> OutboxRow:
         """Not available in-process: there is no transaction to join.
 
@@ -456,6 +468,7 @@ CREATE TABLE IF NOT EXISTS execution_outbox (
     claimed_at      TEXT,
     settled_at      TEXT,
     detail          TEXT,
+    tool_call_json  TEXT,
     UNIQUE (tenant_id, idempotency_key)
 );
 CREATE INDEX IF NOT EXISTS execution_outbox_pending_idx
@@ -480,6 +493,13 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         self._db_path = db_path
         self._local = threading.local()
         self._conn().executescript(_SQLITE_DDL)
+        # Additive migration (issue #82): databases created before the
+        # tool_call_json column gain it here; existing rows read as None.
+        cols = {r[1] for r in
+                self._conn().execute("PRAGMA table_info(execution_outbox)")}
+        if "tool_call_json" not in cols:
+            self._conn().execute(
+                "ALTER TABLE execution_outbox ADD COLUMN tool_call_json TEXT")
 
     def _conn(self) -> sqlite3.Connection:
         conn = getattr(self._local, "conn", None)
@@ -510,6 +530,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             claimed_at=_dt(record["claimed_at"]),
             settled_at=_dt(record["settled_at"]),
             detail=record["detail"],
+            tool_call_json=record["tool_call_json"],
         )
 
     def record_intent(
@@ -523,6 +544,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         grant_jti: str,
         attempt_no: int = 1,
         now: datetime | None = None,
+        tool_call_json: str | None = None,
     ) -> OutboxRow:
         key = idempotency_key(proposal_id, tool_call_hash, attempt_no)
         conn = self._conn()
@@ -541,12 +563,12 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             conn.execute(
                 "INSERT INTO execution_outbox (outbox_id, proposal_id, "
                 "tenant_id, item_id, idempotency_key, tool_name, "
-                "tool_call_hash, grant_jti, state, attempt_no, created_at) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                "tool_call_hash, grant_jti, state, attempt_no, created_at, "
+                "tool_call_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                 (outbox_id, proposal_id, tenant_id, item_id, key, tool_name,
                  tool_call_hash, grant_jti,
                  OutboxState.DISPATCH_PENDING.value, attempt_no,
-                 created.isoformat()),
+                 created.isoformat(), tool_call_json),
             )
             conn.execute("COMMIT")
         except Exception:
@@ -714,6 +736,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         grant_jti: str,
         attempt_no: int = 1,
         now: datetime | None = None,
+        tool_call_json: str | None = None,
     ) -> OutboxRow:
         """Record the intent INSIDE the caller's open transaction.
 
@@ -746,10 +769,11 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         connection.execute(
             "INSERT INTO execution_outbox (outbox_id, proposal_id, tenant_id, "
             "item_id, idempotency_key, tool_name, tool_call_hash, grant_jti, "
-            "state, attempt_no, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            "state, attempt_no, created_at, tool_call_json) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
             (outbox_id, proposal_id, tenant_id, item_id, key, tool_name,
              tool_call_hash, grant_jti, OutboxState.DISPATCH_PENDING.value,
-             attempt_no, created.isoformat()),
+             attempt_no, created.isoformat(), tool_call_json),
         )
         return OutboxRow(
             outbox_id=outbox_id,
@@ -763,6 +787,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             state=OutboxState.DISPATCH_PENDING,
             attempt_no=attempt_no,
             created_at=created,
+            tool_call_json=tool_call_json,
         )
 
     @classmethod
@@ -773,7 +798,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
                 "outbox_id", "proposal_id", "tenant_id", "item_id",
                 "idempotency_key", "tool_name", "tool_call_hash", "grant_jti",
                 "state", "attempt_no", "created_at", "worker_id", "claimed_at",
-                "settled_at", "detail",
+                "settled_at", "detail", "tool_call_json",
             )
             record = dict(zip(columns, record))  # type: ignore[assignment]
         return cls._row(record)  # type: ignore[arg-type]
@@ -803,6 +828,10 @@ class PostgresExecutionOutbox(ExecutionOutbox):
         self._dsn = dsn
         with psycopg.connect(dsn) as conn:
             conn.execute(POSTGRES_DDL)
+            # Additive migration (issue #82): pre-existing tables gain the
+            # payload column; existing rows read as NULL.
+            conn.execute("ALTER TABLE execution_outbox "
+                         "ADD COLUMN IF NOT EXISTS tool_call_json TEXT")
             conn.commit()
 
     @staticmethod
@@ -828,6 +857,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
             claimed_at=_dt(data["claimed_at"]),
             settled_at=_dt(data["settled_at"]),
             detail=data["detail"],
+            tool_call_json=data.get("tool_call_json"),
         )
 
     def record_intent(
@@ -841,6 +871,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
         grant_jti: str,
         attempt_no: int = 1,
         now: datetime | None = None,
+        tool_call_json: str | None = None,
     ) -> OutboxRow:
         with self._psycopg.connect(self._dsn) as conn:
             with conn.transaction():
@@ -854,6 +885,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
                     grant_jti=grant_jti,
                     attempt_no=attempt_no,
                     now=now,
+                    tool_call_json=tool_call_json,
                 )
 
     def record_intent_enlisted(
@@ -868,6 +900,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
         grant_jti: str,
         attempt_no: int = 1,
         now: datetime | None = None,
+        tool_call_json: str | None = None,
     ) -> OutboxRow:
         """Record the intent inside the caller's open transaction.
 
@@ -888,11 +921,11 @@ class PostgresExecutionOutbox(ExecutionOutbox):
         connection.execute(
             "INSERT INTO execution_outbox (outbox_id, proposal_id, tenant_id, "
             "item_id, idempotency_key, tool_name, tool_call_hash, grant_jti, "
-            "state, attempt_no, created_at) "
-            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            "state, attempt_no, created_at, tool_call_json) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (outbox_id, proposal_id, tenant_id, item_id, key, tool_name,
              tool_call_hash, grant_jti, OutboxState.DISPATCH_PENDING.value,
-             attempt_no, created.isoformat()),
+             attempt_no, created.isoformat(), tool_call_json),
         )
         return OutboxRow(
             outbox_id=outbox_id,

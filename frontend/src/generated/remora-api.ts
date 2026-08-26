@@ -1745,6 +1745,13 @@ export interface operations {
                     "application/json": components["schemas"]["ExecutionExecuteResponse"];
                 };
             };
+            /** @description REMORA_ASYNC_DISPATCH mode (issue #82): durable authorization complete — queue EXECUTE outcome and dispatch-intent row committed together; the standalone worker performs the dispatch half. Response carries dispatch=pending and outbox_id. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Missing or invalid bearer token. */
             401: {
                 headers: {
