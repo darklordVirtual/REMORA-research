@@ -205,6 +205,7 @@ also_copy = ["servers/", "schemas/"]
 mutate_only_covered_lines = true
 pytest_add_cli_args = ["-q", "-p", "no:cacheprovider"]
 pytest_add_cli_args_test_selection = [
+    "tests/test_governance_event_contract.py",
     "tests/test_dispatcher_contract.py",
     "tests/test_enforcement_gate_contract.py",
     "tests/test_token_golden_vectors.py",
