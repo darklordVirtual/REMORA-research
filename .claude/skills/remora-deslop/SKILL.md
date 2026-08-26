@@ -79,7 +79,7 @@ neither source has.
 - Generated documents: change the generator's templates, run it, and make
   sure `--check` passes; never edit the output.
 - A dash at end of line becomes an orphan ` ;` under mechanical joins;
-  always sweep for ` ;$` and for `**Label**;` and `\`code\`;` joins, which
+  always sweep for ` ;$` and for `**Label**;` and ``code`;` joins, which
   read better as a colon or comma.
 - Frozen by policy and excluded from the scan: register-historical
   documents, pre-registered SAPs and protocols, `results/`, `data/`,
