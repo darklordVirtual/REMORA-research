@@ -2,11 +2,11 @@
 
 **Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research)
 
-*Paper version v0.11.0 · revision 2026-08-25 · repository release tag `v0.11.0`.*
+*Paper version v0.11.0 · revision 2026-08-26 · repository release tag `v0.11.0`.*
 
 <!-- PAPER_SYNC: this version + revision line is the single authority for the
      paper's version stamp. scripts/check_paper_sync.py requires the SAME
-     "v0.11.0" and "revision 2026-08-25" strings to appear in paper/remora_paper.tex
+     "v0.11.0" and "revision 2026-08-26" strings to appear in paper/remora_paper.tex
      (which compiles the PDF), so the .md, .tex and .pdf can never diverge on
      version, date, or the guarded process claims again. To revise the paper:
      bump both strings here, mirror them in the .tex \paperversion/\date, and
@@ -24,7 +24,7 @@ REMORA is a research-grade **governed execution assurance layer** for tool-using
 We report three findings.
 
 <!-- claim:CLAIM-001 far_pct n -->
-**First, autonomous safety needs a deterministic floor.** On a simulator-scoped adversarial tool-call benchmark (N=700 tasks; 70 unique templates × 10 cosmetic variants, effective N=70), the full policy gate produced 0.0% unsafe execution (cluster-level Wilson 95% CI [0.0%, 5.2%]) with significantly higher decision utility (+0.46, p≈1×10⁻⁴) and accuracy (90% vs. ≤60%) than heuristic baselines — which show 1.4% unsafe execution, a delta that is *not* statistically significant at the template-cluster level (p=0.50). An ablation attributes that zero entirely to the deterministic hard-block rules, not the multi-oracle voting machinery, and the same rule set produced no false authorizations on 208 independently-sourced AgentHarm scenarios under an intent-gating protocol (routing accuracy, not verified tool interception). Probabilistic consensus improves routing; it cannot override policy.
+**First, autonomous safety needs a deterministic floor.** On a simulator-scoped adversarial tool-call benchmark (N=700 tasks; 70 unique templates × 10 cosmetic variants, effective N=70), the full policy gate produced 0.0% unsafe execution (cluster-level Wilson 95% CI [0.0%, 5.2%]) with significantly higher decision utility (+0.46, p≈1×10⁻⁴) and accuracy (90% vs. ≤60%) than heuristic baselines — which show 1.4% unsafe execution, a delta that is *not* statistically significant at the template-cluster level (p=0.50). An ablation attributes that zero entirely to the deterministic hard-block rules, not the multi-oracle voting machinery, and the same rule set produced no false authorizations on 208 independently-sourced AgentHarm scenarios under an intent-gating protocol (routing accuracy, not verified tool interception) — at the cost of blocking every benign counterpart as well (FBR=100%), a safety/friction corner point reported as such. Probabilistic consensus improves routing; it cannot override policy.
 
 **Second, unknown state is a resolution problem, not a verdict.** Absence of a record without a declared completeness guarantee is UNKNOWN, not UNSUPPORTED. A VERIFY must name an actual bounded lookup and be followed by full re-entry of the whole router on a fresh observation, or it degrades to ABSTAIN — promising a verification that cannot happen is worse than stopping. Under study conditions this recovers read utility from 0% to 100% in a regime where every value verdict is UNKNOWN, with zero corrupt-identifier acceptances, zero cross-tenant lookups, and writes held at VERIFY throughout.
 
@@ -266,7 +266,7 @@ REMORA separates **deciding** from **executing** in `remora/enforcement/` and `r
 
 **Lifecycle and effect evidence.** Authorization and result are separate hash-chained records (`execution_authorized` before the side effect, `execution_result` after), each carrying the per-component trust-base view resolved at that moment — the closure record re-reads rather than copies, so the two views can disagree and a stale policy snapshot is detectable as a failed component-level join. A crash-consistent outbox records dispatch intent before the effect and reconciles stranded dispatches to UNKNOWN rather than assuming failure; effect verification is a separate, replay-protected receipt: an HTTP 200 is transport, never an executed effect.
 
-**Gaps acknowledged.** The decision *token* remains HMAC-signed (the verifier holds minting material; the asymmetric custody claim covers the lease layer only — recorded in the capability register's caveat, CAP-003). KMS/HSM key management and process-boundary mTLS are not implemented. Dispatch still runs in the API process; the separated-worker deployment is tracked openly (repository issue #82). These are stated as the current boundary of the custody claim, not as footnotes.
+**Gaps acknowledged.** The decision *token* remains HMAC-signed (the verifier holds minting material; the asymmetric custody claim covers the lease layer only — recorded in the capability register's caveat, CAP-003). KMS/HSM key management and process-boundary mTLS are not implemented. Dispatch runs in the API process by default; an opt-in separated dispatch worker exists (`REMORA_ASYNC_DISPATCH`: the API answers 202 after durable authorization and `scripts/run_dispatch_worker.py` performs the dispatch half with identical record shapes), closing the process/liveness boundary tracked in repository issue #82 — no deployment has yet exercised it beyond CI and its contract tests. These are stated as the current boundary of the custody claim, not as footnotes.
 
 ### 4.5 Architectural Import Boundary (REM-016)
 
@@ -901,6 +901,8 @@ The barrier case above shows the deterministic floor stopping an action outright
 
 The plan names one resolver and exactly one argument it may write. The validator returns a verdict and hands control back; it never performs the original call and cannot redirect it. Re-entry re-runs the *whole* router, so every guard applies again to the confirmed call rather than being patched around. Had no validator been bound to `vehicle_id`, the verdict would be ABSTAIN, not VERIFY: promising a verification that cannot happen is worse than stopping.
 
+**Measured outcome.** The study behind the abstract's headline is registered as CLAIM-014: under study conditions the validator loop restored read utility from 0% to 100% in the all-UNKNOWN regime, all eight pre-registered validator targets were met, and none of 139 seeded corruption forms reached ACCEPT (artifacts: `results/system_demonstration_v1.json`, `results/fleetops_degradation_results.json`, `results/fleetops_validator_study_results.json`; internal benchmark, non-blind — the scope the register records).
+
 **Call B: the same confirmation, a different action.** The agent proposes `assign_driver(work_order_id="WO-00123", driver_id="D-0017")`. Both identifiers confirm against the system of record exactly as `V-0042` did. The call is nonetheless held at VERIFY: the registry declares this tool a write, and the read/write posture does not trade confirmed state for autonomy on a state change. No confidence score moves it.
 
 **Call C: structurally perfect, wrong tool.** The user asks for a vehicle status; the agent proposes `get_work_order` with a work-order identifier that happens to appear elsewhere in the task. Schema valid, arguments satisfiable, values grounded, nothing tainted — every structural signal in Call A's ladder is satisfied. The sealed BFCL v4 track measured wrong-call acceptance at 10.9% without contracts. A declared tool contract provides the stronger semantic answer: the task targets a vehicle while the tool acts on a work order. The sealed C-ext3 track measured that contribution in isolation: with the frozen contract bundle and the semantic-authority floor, native wrong-call acceptance fell to 0/500 (§10.9).
@@ -1455,13 +1457,15 @@ Output: gate_decision g, explanation r, envelope D
 | `remora/policy/report.py` | DecisionReport, DecisionAction enum |, |
 | `remora/audit/hash_chain.py` | SHA-256 hash-chain | 168 lines |
 | `remora/evidence/evidence_router.py` | CriticalEvidenceRouter | 174 lines |
-| `tests/` | 100+ test files, 2,400+ individual tests (CI-authoritative) |, |
+| `tests/` | 250+ test files, 6,000+ individual tests (CI-authoritative) |, |
 | `results/` | 60+ JSON artifacts |, |
 
 **Table 10: Implementation Status**
 
 Status vocabulary (external paper review 2026-07-24): *Integrated* = invoked by
-the primary `/v1/assess` path; *Offline* = implemented and evaluated with
+the `/v1/assess` research surface (per the canonical-engine ADR, the policy
+core behind `/v1/execution/*` is the enforcing engine; this table describes
+the research pipeline); *Offline* = implemented and evaluated with
 committed artifacts but NOT invoked by the primary API; *Adapter* = implemented
 and parity-tested, available as an integration option; *Planned* = not
 implemented.
