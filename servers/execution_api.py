@@ -1357,7 +1357,7 @@ def _dispatch_under_lease(
         return result
 
 
-@router.post("/execute", responses={
+@router.post("/execute", response_model=None, responses={
     200: {"model": ExecutionExecuteResponse,
           "description": "Outcome of enforcement; refusal outcomes carry no "
                          "grant/pep/tool_execution keys."},

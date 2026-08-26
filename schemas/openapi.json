@@ -2040,10 +2040,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ExecutionExecuteResponse",
-                  "additionalProperties": true,
-                  "title": "Response Execute V1 Execution Execute Post",
-                  "type": "object"
+                  "$ref": "#/components/schemas/ExecutionExecuteResponse"
                 }
               }
             },
