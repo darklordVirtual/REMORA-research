@@ -175,8 +175,7 @@ def main(argv: list[str]) -> int:
         if pct < floor:
             failures.append(f"{path} {pct:.2f}% < {floor}%")
 
-    print("
-Note: Postgres adapter branches are included when the run had "
+    print("\nNote: Postgres adapter branches are included when the run had "
           "REMORA_PG_DSN (quality-gates coverage job); D1 branches are not "
           "measured in any CI run.")
 
