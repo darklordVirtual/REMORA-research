@@ -767,8 +767,8 @@ withdrawn framing obscured both.
 \textbf{They are not populated on any governed path.}
 \path{servers/api.py} never references the consensus state;
 \path{servers/execution_api.py} passes \texttt{trust\_score=None} and
-\texttt{phase=None} explicitly, and \texttt{build\_full\_observation}; 
-the builder shared by the assess and execution routes; leaves these
+\texttt{phase=None} explicitly, and \texttt{build\_full\_observation},
+the builder shared by the assess and execution routes, leaves these
 fields at their \texttt{None} defaults. The engine therefore fails toward
 \textsc{verify}/\textsc{abstain} there: no probabilistic \textsc{accept}
 can fire from these signals in the governed path at all. The runtime
