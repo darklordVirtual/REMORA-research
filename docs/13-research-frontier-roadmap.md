@@ -822,7 +822,7 @@ fixture-corpus caveat attached, v2-benchmark style.
 **Verdict after grounding: soon; the dataset slice can start any time.**
 Slice 1 is measurement-only and needs no new `remora/` modules: build
 `datasets/rag_poisoning_v1/`, run the *existing*
-RAGEvidenceProvider → CriticalEvidenceRouter pipeline over clean vs poisoned
+RAGEvidenceProvider-to-CriticalEvidenceRouter pipeline over clean vs poisoned
 corpora, and emit `artifacts/evidence_sufficiency_v1.json` recording
 escalate/abstain/accept deltas; showing where the existing coverage gate
 already catches "cannot answer" and where it fails, which then scopes

@@ -24,10 +24,13 @@ neither source has.
    text labelled superseded, historical or withdrawn are preserved word for
    word. `docs/archive/`, `attic/` and `docs/researchpapers/` are out of
    scope entirely.
-4. The paper is edited in `paper/remora_paper.md` and `paper/remora_paper.tex`
+4. Pre-registered and frozen documents are never reworded after the fact:
+   `docs/assurance/statistical_analysis_plan_v*.md`, `superseded_claims.md`,
+   `experiments/*/PREREGISTERED.md`. Their counts simply stay in the baseline.
+5. The paper is edited in `paper/remora_paper.md` and `paper/remora_paper.tex`
    together; the PDF is master-owned. `scripts/check_paper_sync.py` must pass.
-5. README.md stays within its line budget (`check_document_governance.py`).
-6. Every gate that touches text must pass before the PR: document
+6. README.md stays within its line budget (`check_document_governance.py`).
+7. Every gate that touches text must pass before the PR: document
    governance, links, readme-claims, paper-sync, claim-provenance, and
    `scripts/check_prose_style.py` (counts may only fall; then run
    `--update-baseline` and commit the baseline in the same PR).
@@ -72,7 +75,7 @@ neither source has.
    docs/assurance, then docs/design and roadmap, then generators, then paper.
 2. Read the whole file before editing. Rewrite sentence by sentence; keep
    each paragraph's claims and their order.
-3. Run the gates in constraint 6. Diff the file and re-read the diff for
+3. Run the gates in constraint 7. Diff the file and re-read the diff for
    any changed number or identifier.
 4. `python scripts/check_prose_style.py --update-baseline`, commit the
    baseline with the text.
