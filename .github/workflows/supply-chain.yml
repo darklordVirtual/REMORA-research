@@ -149,13 +149,24 @@ jobs:
         # is the piece whose bill of materials matters most, and it was the
         # piece with none.
         #
-        # The other four workers are still uncovered. Adding them is a
-        # mechanical follow-up; claiming complete worker coverage here, when
-        # only one of five is generated, would be the kind of prose this
-        # repository keeps having to retract.
         run: |
           npm ci
           npx --yes @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file ../../sbom-mcp-gateway.cdx.json
+
+      - name: Generate SBOMs for the remaining four Workers (issue #426)
+        # RMR-CR-011: every deployable Worker gets a CycloneDX file. The
+        # gateway came first (it holds execution authority); these four
+        # complete the inventory so the supply-chain artifact covers the
+        # whole deployable surface.
+        run: |
+          set -euo pipefail
+          for w in agent-control aromer law-search rag-oracle; do
+            ( cd "workers/$w" \
+              && npm ci \
+              && npx --yes @cyclonedx/cyclonedx-npm --ignore-npm-errors \
+                   --output-format JSON \
+                   --output-file "../../sbom-worker-$w.cdx.json" )
+          done
 
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@v7
@@ -165,6 +176,10 @@ jobs:
             sbom-python.cdx.json
             sbom-frontend.cdx.json
             sbom-mcp-gateway.cdx.json
+            sbom-worker-agent-control.cdx.json
+            sbom-worker-aromer.cdx.json
+            sbom-worker-law-search.cdx.json
+            sbom-worker-rag-oracle.cdx.json
           retention-days: 90
 
   supply-chain-required:
