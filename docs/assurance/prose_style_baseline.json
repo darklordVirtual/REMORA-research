@@ -1,12 +1,6 @@
 {
   "_note": "shrink-only; regenerate with scripts/check_prose_style.py --update-baseline only after a prose pass that lowered counts",
   "files": {
-    "NEGATIVE_RESULTS.md": {
-      "arrow": 20,
-      "bold_bullet": 7,
-      "copula_dodge": 1,
-      "emdash": 177
-    },
     "docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md": {
       "arrow": 1
     },
