@@ -385,6 +385,10 @@ def execute_approved_item(
                     authorization_expires_at=(
                         datetime.now(UTC)
                         + timedelta(seconds=token_ttl_seconds)),
+                    # Issue #420: the principal the authorization is FOR —
+                    # the worker acts on their behalf and never substitutes
+                    # its own identity for theirs.
+                    requested_by=principal,
                 )
     except (KeyError, ValueError) as exc:
         raise conflict(str(exc)) from exc
@@ -584,6 +588,7 @@ def _projection_payload(
     outcome: DispatchOutcome,
     tool_execution: dict[str, Any],
     intent_sequence_no: int | None,
+    executed_by: str | None = None,
 ) -> str:
     """The complete downstream-projection payload, persisted ATOMICALLY
     with terminal settlement (issue #416 / RMR-CR-001): everything needed
@@ -601,6 +606,8 @@ def _projection_payload(
         "refusal_reason": tool_execution.get("refusal_reason"),
         "intent_sequence_no": intent_sequence_no,
     }
+    if executed_by:
+        payload["executed_by"] = executed_by
     envelope_meta = tool_execution.get("result_envelope")
     if envelope_meta:
         payload["result_sha256"] = envelope_meta["sha256"]
@@ -620,6 +627,8 @@ def _result_record_from_projection(p: dict[str, Any]) -> dict[str, Any]:
         "tool_executed": p.get("tool_executed"),
         "state_unknown": p.get("state_unknown"),
     }
+    if p.get("executed_by"):
+        record["executed_by"] = p["executed_by"]
     if p.get("intent_sequence_no") is not None:
         record["intent_sequence_no"] = p["intent_sequence_no"]
     if p.get("refusal_reason"):
@@ -762,6 +771,10 @@ def dispatch_pending_intent(
         fresh_obs, fresh_semantic = build_observation(tool_call, tenant)
         if (fresh_obs.tool_call_hash or "") != row.tool_call_hash:
             refusal = "payload_hash_mismatch"
+    # Issue #420 (RMR-CR-005): every record carries the principal the
+    # authorization was granted FOR; the worker's own identity is reported
+    # separately as executed_by and never substituted for the requester's.
+    actor = row.requested_by or principal
     proposal_id = row.proposal_id
     if refusal is not None:
         if outbox().claim(row.outbox_id, worker_id=worker_id) is None:
@@ -773,10 +786,10 @@ def dispatch_pending_intent(
             row.outbox_id, OutboxState.REFUSED, detail=refusal,
             projection_json=_projection_payload(
                 proposal_id=proposal_id, item_id=row.item_id,
-                actor=principal, tool_call_hash=row.tool_call_hash,
+                actor=actor, tool_call_hash=row.tool_call_hash,
                 grant_jti="", outcome=DispatchOutcome.REFUSED,
                 tool_execution=refusal_execution,
-                intent_sequence_no=None,
+                intent_sequence_no=None, executed_by=worker_id,
             ))
         # Issue #421 (RMR-CR-006): the review item takes the SAME terminal
         # outcome as the outbox — a refused dispatch must never leave the
@@ -788,7 +801,8 @@ def dispatch_pending_intent(
             tenant, f"execution-result:{row.outbox_id}", {
                 "event": "execution_result",
                 "proposal_id": proposal_id,
-                "actor": principal,
+                "actor": actor,
+                "executed_by": worker_id,
                 "item_id": row.item_id,
                 "tool_call_hash": row.tool_call_hash,
                 "grant_jti": "",
@@ -846,7 +860,8 @@ def dispatch_pending_intent(
     intent_entry = chain.append(tenant, {
         "event": "execution_authorized",
         "proposal_id": proposal_id,
-        "actor": principal,
+        "actor": actor,
+        "executed_by": worker_id,
         "item_id": row.item_id,
         "tool_call_hash": fresh_obs.tool_call_hash,
         "grant_jti": token.jti,
@@ -858,7 +873,7 @@ def dispatch_pending_intent(
 
     tool_execution = dispatch_under_lease(
         tenant=tenant,
-        principal=principal,
+        principal=actor,
         tool_call=tool_call,
         semantic=fresh_semantic,
         now=now,
@@ -874,11 +889,12 @@ def dispatch_pending_intent(
         row.outbox_id, _OUTBOX_STATE[outcome],
         detail=tool_execution.get("refusal_reason"),
         projection_json=_projection_payload(
-            proposal_id=proposal_id, item_id=row.item_id, actor=principal,
+            proposal_id=proposal_id, item_id=row.item_id, actor=actor,
             tool_call_hash=fresh_obs.tool_call_hash or "",
             grant_jti=token.jti, outcome=outcome,
             tool_execution=tool_execution,
             intent_sequence_no=intent_entry.sequence_no,
+            executed_by=worker_id,
         ))
     with transaction(tenant) as q:
         q.record_execution_outcome(
@@ -890,7 +906,8 @@ def dispatch_pending_intent(
     result_record: dict[str, Any] = {
         "event": "execution_result",
         "proposal_id": proposal_id,
-        "actor": principal,
+        "actor": actor,
+        "executed_by": worker_id,
         "item_id": row.item_id,
         "tool_call_hash": fresh_obs.tool_call_hash,
         "grant_jti": token.jti,
