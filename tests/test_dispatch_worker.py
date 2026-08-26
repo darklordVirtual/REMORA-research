@@ -198,6 +198,74 @@ def test_a_mutated_payload_is_refused_never_dispatched(client) -> None:
     assert settled.state is OutboxState.REFUSED
 
 
+def test_an_expired_authorization_is_refused_never_redispatched(client) -> None:
+    """Issue #418 (RMR-CR-003): a stale pending intent must not gain a new
+    lifetime by being picked up late — a 30-day-old authorization refuses
+    with its own reason and terminalises the review item."""
+    import dataclasses
+    from datetime import timedelta
+
+    proposal_id, row = _authorized_pending(client)
+    exec_mod = _exec_mod()
+    stale = dataclasses.replace(
+        row, authorization_expires_at=row.created_at - timedelta(days=30))
+    exec_mod._outbox()._rows[row.outbox_id] = stale
+
+    results = exec_mod.dispatch_pending_intents("acme", worker_id="w-1")
+    assert len(results) == 1
+    assert results[0]["tool_execution"]["refusal_reason"] == "authorization_expired"
+    settled = exec_mod._outbox().rows_for_proposal("acme", proposal_id)[0]
+    assert settled.state is OutboxState.REFUSED
+    assert settled.projected_at is not None
+
+
+def test_a_row_without_an_expiry_cannot_prove_freshness(client) -> None:
+    """Pre-#418 rows carry no authorization_expires_at: refused, never
+    dispatched on a guess about their age."""
+    import dataclasses
+
+    proposal_id, row = _authorized_pending(client)
+    exec_mod = _exec_mod()
+    legacy = dataclasses.replace(row, authorization_expires_at=None)
+    exec_mod._outbox()._rows[row.outbox_id] = legacy
+
+    results = exec_mod.dispatch_pending_intents("acme", worker_id="w-1")
+    assert results[0]["tool_execution"]["refusal_reason"] == (
+        "authorization_expiry_missing")
+    assert exec_mod._outbox().rows_for_proposal(
+        "acme", proposal_id)[0].state is OutboxState.REFUSED
+
+
+def test_the_minted_token_is_capped_at_the_authorization_expiry(
+    client, monkeypatch
+) -> None:
+    """A late-but-still-valid pickup must not mint a token outliving the
+    original authorization."""
+    import dataclasses
+    from datetime import UTC, datetime, timedelta
+
+    from remora.execution import service as service_mod
+
+    _proposal, row = _authorized_pending(client)
+    exec_mod = _exec_mod()
+    cap = datetime.now(UTC) + timedelta(seconds=30)  # far below the TTL
+    exec_mod._outbox()._rows[row.outbox_id] = dataclasses.replace(
+        row, authorization_expires_at=cap)
+
+    minted: dict[str, str] = {}
+    real_issue = service_mod.PolicyDecisionToken.issue
+
+    def spying_issue(*args, **kwargs):
+        minted.update(kwargs)
+        return real_issue(*args, **kwargs)
+
+    monkeypatch.setattr(service_mod.PolicyDecisionToken, "issue", spying_issue)
+    results = exec_mod.dispatch_pending_intents("acme", worker_id="w-1")
+    assert results[0]["tool_execution"]["executed"] is True
+    assert minted["expires_at"] == cap.isoformat(), (
+        "the token expiry must be the authorization's cap, not now+TTL")
+
+
 def test_unparseable_material_is_refused_not_crashed_on(client) -> None:
     """A row whose payload no longer parses settles REFUSED — the worker
     loop must survive it and must never dispatch on a guess."""

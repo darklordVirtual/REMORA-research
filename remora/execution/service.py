@@ -378,6 +378,13 @@ def execute_approved_item(
                                 tool_call.target_environment,
                         },
                         sort_keys=True, default=str),
+                    # Issue #418: the authorization's hard upper bound. The
+                    # worker refuses rows past it, and a token minted at
+                    # dispatch is capped at it — dispatch can never extend
+                    # the original authorization's lifetime.
+                    authorization_expires_at=(
+                        datetime.now(UTC)
+                        + timedelta(seconds=token_ttl_seconds)),
                 )
     except (KeyError, ValueError) as exc:
         raise conflict(str(exc)) from exc
@@ -723,24 +730,33 @@ def dispatch_pending_intent(
     if not row.tool_call_json:
         return None
     refusal: str | None = None
+    # Issue #418 (RMR-CR-003): freshness is bounded by the PERSISTED
+    # authorization expiry, checked before anything else. A row without
+    # one cannot prove its freshness and is refused — an old decision
+    # must never gain a new lifetime by being picked up late.
+    if row.authorization_expires_at is None:
+        refusal = "authorization_expiry_missing"
+    elif datetime.now(UTC) > row.authorization_expires_at:
+        refusal = "authorization_expired"
     tool_call: Any = None
-    try:
-        payload = json.loads(row.tool_call_json)
-        if rebuild_call is not None:
-            # The binder rebuilds the typed wire model — the observation
-            # builder needs the full request, not the duck-typed triple.
-            tool_call = rebuild_call(payload)
-        else:
-            tool_call = SimpleNamespace(
-                tool_name=row.tool_name,
-                arguments=payload.get("arguments", {}),
-                target_environment=payload.get("target_environment", ""),
-            )
-    except Exception:
-        # Material that no longer parses or validates is refused and
-        # settled — a broken row must never crash the worker loop, and
-        # must never be dispatched on a guess.
-        refusal = "payload_invalid"
+    if refusal is None:
+        try:
+            payload = json.loads(row.tool_call_json)
+            if rebuild_call is not None:
+                # The binder rebuilds the typed wire model — the observation
+                # builder needs the full request, not the duck-typed triple.
+                tool_call = rebuild_call(payload)
+            else:
+                tool_call = SimpleNamespace(
+                    tool_name=row.tool_name,
+                    arguments=payload.get("arguments", {}),
+                    target_environment=payload.get("target_environment", ""),
+                )
+        except Exception:
+            # Material that no longer parses or validates is refused and
+            # settled — a broken row must never crash the worker loop, and
+            # must never be dispatched on a guess.
+            refusal = "payload_invalid"
     fresh_obs = fresh_semantic = None
     if refusal is None:
         fresh_obs, fresh_semantic = build_observation(tool_call, tenant)
@@ -811,12 +827,18 @@ def dispatch_pending_intent(
         return None
 
     now = datetime.now(UTC)
+    # Issue #418: the freshly minted token is CAPPED at the persisted
+    # authorization expiry — honouring late never extends the original
+    # authorization's lifetime.
+    token_expiry = now + timedelta(seconds=token_ttl_seconds)
+    if row.authorization_expires_at is not None:
+        token_expiry = min(token_expiry, row.authorization_expires_at)
     token = PolicyDecisionToken.issue(
         action="accept",
         observation_hash=fresh_obs.tool_call_hash or "",
         request_id=proposal_id or f"{tenant}:{row.item_id}",
         issued_at=now.isoformat(),
-        expires_at=(now + timedelta(seconds=token_ttl_seconds)).isoformat(),
+        expires_at=token_expiry.isoformat(),
         audience=token_audience,
     )
     gate_result = gate.check(token, fresh_obs.tool_call_hash, consume=True)

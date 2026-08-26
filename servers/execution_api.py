@@ -626,6 +626,7 @@ def _record_dispatch_intent(
     tool_call_hash: str,
     grant_jti: str,
     tool_call_json: str | None = None,
+    authorization_expires_at: Any = None,
 ) -> Any:
     """Record the dispatch intent (see remora.execution.dispatch); binds this
     module's outbox and the ambient transaction contextvar."""
@@ -639,6 +640,7 @@ def _record_dispatch_intent(
         tool_call_hash=tool_call_hash,
         grant_jti=grant_jti,
         tool_call_json=tool_call_json,
+        authorization_expires_at=authorization_expires_at,
     )
 
 
