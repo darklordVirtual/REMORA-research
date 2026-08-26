@@ -1049,6 +1049,47 @@ export interface components {
             /** Signature */
             signature: string;
         };
+        /**
+         * ExecutionPendingResponse
+         * @description 202 body in REMORA_ASYNC_DISPATCH mode (issues #82/#419).
+         *
+         *     Durable authorization is complete — the queue's EXECUTE outcome and
+         *     the dispatch-intent row committed together — and the dispatch half
+         *     belongs to the standalone worker. Poll the proposal lifecycle
+         *     (``GET /v1/execution/proposals/{proposal_id}``) for the outcome; the
+         *     ``outbox_id`` is the intent's identity in operator tooling.
+         */
+        ExecutionPendingResponse: {
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /**
+             * Dispatch
+             * @description Always 'pending' on this response.
+             */
+            dispatch: string;
+            /**
+             * Outbox Id
+             * @description Durable dispatch-intent id.
+             */
+            outbox_id?: string | null;
+            /**
+             * Outcome
+             * @description Always 'execute': the re-gate authorized.
+             */
+            outcome: string;
+            /**
+             * Proposal Id
+             * @description Canonical proposal identity; poll key.
+             */
+            proposal_id?: string | null;
+            /** Toolspec */
+            toolspec?: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** FollowUpRequest */
         FollowUpRequest: {
             /**
@@ -1745,12 +1786,14 @@ export interface operations {
                     "application/json": components["schemas"]["ExecutionExecuteResponse"];
                 };
             };
-            /** @description REMORA_ASYNC_DISPATCH mode (issue #82): durable authorization complete — queue EXECUTE outcome and dispatch-intent row committed together; the standalone worker performs the dispatch half. Response carries dispatch=pending and outbox_id. */
+            /** @description REMORA_ASYNC_DISPATCH mode (issue #82): durable authorization complete — queue EXECUTE outcome and dispatch-intent row committed together; the standalone worker performs the dispatch half. Poll the proposal lifecycle for the outcome. */
             202: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ExecutionPendingResponse"];
+                };
             };
             /** @description Missing or invalid bearer token. */
             401: {

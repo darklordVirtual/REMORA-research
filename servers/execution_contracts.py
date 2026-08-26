@@ -140,6 +140,26 @@ class ExecutionExecuteResponse(BaseModel):
     audit: AuditRef
 
 
+class ExecutionPendingResponse(BaseModel):
+    """202 body in REMORA_ASYNC_DISPATCH mode (issues #82/#419).
+
+    Durable authorization is complete — the queue's EXECUTE outcome and
+    the dispatch-intent row committed together — and the dispatch half
+    belongs to the standalone worker. Poll the proposal lifecycle
+    (``GET /v1/execution/proposals/{proposal_id}``) for the outcome; the
+    ``outbox_id`` is the intent's identity in operator tooling.
+    """
+
+    proposal_id: str | None = Field(
+        None, description="Canonical proposal identity; poll key.")
+    outcome: str = Field(description="Always 'execute': the re-gate authorized.")
+    detail: str = ""
+    dispatch: str = Field(description="Always 'pending' on this response.")
+    outbox_id: str | None = Field(
+        None, description="Durable dispatch-intent id.")
+    toolspec: dict[str, Any] | None = None
+
+
 class ExecutionAuditVerifyResponse(BaseModel):
     tenant: str
     valid: bool

@@ -96,6 +96,7 @@ from servers.execution_contracts import (  # noqa: F401
     ExecutionAssessResponse,
     ExecutionAuditVerifyResponse,
     ExecutionExecuteResponse,
+    ExecutionPendingResponse,
     ExecutionGrant,
     ExecutionOutcome,
     GovernanceAction,
@@ -1392,11 +1393,12 @@ def _dispatch_under_lease(
     200: {"model": ExecutionExecuteResponse,
           "description": "Outcome of enforcement; refusal outcomes carry no "
                          "grant/pep/tool_execution keys."},
-    202: {"description": "REMORA_ASYNC_DISPATCH mode (issue #82): durable "
+    202: {"model": ExecutionPendingResponse,
+          "description": "REMORA_ASYNC_DISPATCH mode (issue #82): durable "
                          "authorization complete — queue EXECUTE outcome and "
                          "dispatch-intent row committed together; the "
                          "standalone worker performs the dispatch half. "
-                         "Response carries dispatch=pending and outbox_id."},
+                         "Poll the proposal lifecycle for the outcome."},
     **_AUTH_RESPONSES,
     404: {"model": ErrorDetail, "description": "Review item not found for this tenant."},
     409: {"model": ErrorDetail, "description": "Item not in an executable state."},
