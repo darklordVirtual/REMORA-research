@@ -8,13 +8,13 @@ The ordered path is in the [project front page](../README.md); it is repeated
 here only so this index is usable on its own. When the two disagree, the front
 page wins.
 
-1. [Project front page](../README.md) — scope, evidence summary and current limitations.
-2. [Developer handoff](../DEVELOPER_OVERVIEW.md) — shortest technical path through the repository.
-3. [Architecture](../ARCHITECTURE.md) — canonical runtime architecture and module stability.
-4. [Execution quickstart](deployment/execution-quickstart.md) — enforcing `/v1/execution/*` path.
-5. [Evidence and claims](02-evidence-and-claims.md) — what each result establishes and what it does not.
-6. [Security](08-security.md) — threat model and enforcement assumptions.
-7. [Reproducibility](06-reproducibility.md) — benchmark and test reproduction.
+1. [Project front page](../README.md): scope, evidence summary and current limitations.
+2. [Developer handoff](../DEVELOPER_OVERVIEW.md): shortest technical path through the repository.
+3. [Architecture](../ARCHITECTURE.md): canonical runtime architecture and module stability.
+4. [Execution quickstart](deployment/execution-quickstart.md): enforcing `/v1/execution/*` path.
+5. [Evidence and claims](02-evidence-and-claims.md): what each result establishes and what it does not.
+6. [Security](08-security.md): threat model and enforcement assumptions.
+7. [Reproducibility](06-reproducibility.md): benchmark and test reproduction.
 
 For runtime questions, use this precedence:
 

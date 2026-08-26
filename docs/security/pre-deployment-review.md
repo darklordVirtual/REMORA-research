@@ -83,7 +83,7 @@ const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0
 
 The D1 `audit_log` table is append-mostly; `approved`/`approved_by` are
 display-only mirrors updated by the control plane's `POST /approvals` endpoint
-(the `audit_decision` tool was removed 2026-08-19 — it allowed self-approval).
+(the `audit_decision` tool was removed 2026-08-19; it allowed self-approval).
 Authoritative approval state lives in the immutable `approvals` table. The
 structural write floor and the single-authoritative-execution-path decision
 are documented in
@@ -99,7 +99,7 @@ pipe audit records to an external append-only log (e.g., Cloudflare R2 WORM buck
 
 No rate limiting exists on any worker endpoint. (The governance API is
 separate: `servers/api.py:_InMemoryRateLimiter` gates `POST /v1/assess` per
-tenant, default 120/min — but that limiter is per-process and does not cover
+tenant, default 120/min; but that limiter is per-process and does not cover
 the workers.)
 
 **Risk:** A leaked `CONTROL_SECRET` enables unbounded `/execute` calls, driving up
@@ -128,7 +128,7 @@ cd workers/rag-oracle && npm audit
 
 - `input_preview` (120 chars) and `output_preview` (120 chars) are stored in `audit_log`
 - If user queries contain PII, these previews contain PII
-- **GDPR action required:** Classify `audit_log` as personal data, implement retention
+- GDPR action required: Classify `audit_log` as personal data, implement retention
   policy, enable right-to-erasure via session deletion
 
 ---

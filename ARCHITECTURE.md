@@ -514,7 +514,7 @@ not a guarantee of safety, and not a replacement for domain authority.
   for any reported result. State this plainly whenever the uncertainty numbers
   are quoted.
 
-Full claim → evidence → artifact → caveat map: `docs/02-evidence-and-claims.md`.
+Full claim, evidence, artifact and caveat map: `docs/02-evidence-and-claims.md`.
 Negative results: `NEGATIVE_RESULTS.md`.
 
 ---

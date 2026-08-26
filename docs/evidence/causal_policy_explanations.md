@@ -168,7 +168,7 @@ Shadow Mode (`make shadow-replay`) replays a historical agent action log
 through the current policy engine without blocking any real actions. Combined
 with the causal module, you can:
 
-1. Run Shadow Mode on a production action log → get `DecisionEnvelope` per action
+1. Run Shadow Mode on a production action log to get a `DecisionEnvelope` per action
 2. For any ESCALATE or VERIFY decision, call `generate_explanation()` with the
    logged `PolicyObservation`
 3. Try interventions to understand what operational changes would have altered

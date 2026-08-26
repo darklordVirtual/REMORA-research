@@ -67,6 +67,26 @@ neither source has.
 - No "soul", opinions, first person or deliberate mess. Assurance documents
   are read by reviewers looking for claims; voice is not the goal.
 
+## Lessons from the 2026-08-26 pass (six layers, 1160 -> 298 em dashes)
+
+- Never touch headings. The scanner skips them and tests key on heading
+  text (`## RF-10 ` in docs/13 broke `test_research_shelf`). Restore any
+  heading the rewrite touched from `origin/master` before committing.
+- Condition-to-outcome bullet lists (`- X -> Y`) are tables, not prose.
+  Convert them; tables are exempt from the scan by design.
+- Label/value bullet schemas (Claim/Evidence/Artifact, Purpose/Storage/Gap)
+  keep their structure; only the bold comes off the label.
+- Generated documents: change the generator's templates, run it, and make
+  sure `--check` passes; never edit the output.
+- A dash at end of line becomes an orphan ` ;` under mechanical joins;
+  always sweep for ` ;$` and for `**Label**;` and ``code`;` joins, which
+  read better as a colon or comma.
+- Frozen by policy and excluded from the scan: register-historical
+  documents, pre-registered SAPs and protocols, `results/`, `data/`,
+  `datasets/`, `tests/` fixtures, the credibility pack, CHANGELOG.md.
+  Still open for a deliberate decision: NEGATIVE_RESULTS.md (a permanent
+  record) and the paper (.md and .tex in lockstep, PDF master-owned).
+
 ## Process for a systematic pass
 
 1. `python scripts/check_prose_style.py --report` to pick the next file by

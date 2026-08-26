@@ -9,7 +9,7 @@
 > its `not_supported` statuses are locked negative results. Module and field
 > names elsewhere in the repo (`remora/thermodynamics.py`, `entropy_H`,
 > `dissensus_D`, phase names) are legacy naming for uncertainty-routing
-> diagnostics, kept because they are wire format and code identity — not
+> diagnostics, kept because they are wire format and code identity; not
 > because the physics interpretation stands.
 
 This section documents the v4 thermodynamic layer as it existed in code when the research program was active.

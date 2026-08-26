@@ -160,11 +160,11 @@ assessor usually cannot see the other system's test suite.
 
 A PASS row must carry all of:
 
-1. **A reference an independent reader can open** — test path and test name,
+1. A reference an independent reader can open: test path and test name,
    fixture, result artifact, or code path plus revision.
 2. **Direct exercise of the property.** A test that would still pass if the
    property were removed is not evidence for it.
-3. **A declared scope**: process model (single-process, multi-process,
+3. A declared scope: process model (single-process, multi-process,
    distributed), trust assumptions, and whether the effect was simulated or
    real.
 4. **A caveat naming what the evidence does not cover.** A PASS with no caveat

@@ -56,10 +56,10 @@ not against a production baseline the project has never claimed.
 - Known open remediation items: `docs/assurance/remediation_register.yaml`.
   Two items are explicitly relevant to security reports and are open at the
   time of writing:
-  - **REM-021** (`NOT_STARTED`) — independent human review of safety design
+  - **REM-021** (`NOT_STARTED`); independent human review of safety design
     and claims. No external reviewer has audited the decision engine, the
     PDP/PEP separation, or the headline claims.
-  - **REM-024** (`IN_PROGRESS`) — mandatory fail-closed policy enforcement
+  - **REM-024** (`IN_PROGRESS`); mandatory fail-closed policy enforcement
     point (PEP). A library-level ExecutionLease + governed tool dispatcher
     exists (`remora/enforcement/lease.py`), but enforcement is not yet
     deployment-integrated in front of real tool credentials, so it is not yet
@@ -67,7 +67,7 @@ not against a production baseline the project has never claimed.
 
 Known-by-design authentication limitation (external review 2026-07-28, N4):
 **single-token API mode (`REMORA_API_BEARER_TOKEN`) has no role
-separation** — tenant and role are caller-asserted headers, so anyone
+separation**: tenant and role are caller-asserted headers, so anyone
 holding the one token can claim any role. In `REMORA_ENV=production` the
 server therefore ignores the role header and pins the role to `operator`,
 which means approval-role gating cannot be satisfied in this mode at all.

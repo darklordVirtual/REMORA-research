@@ -139,37 +139,37 @@ REMORA cannot enforce against a credential path that bypasses its dispatcher.
 
 Short list, one line per dimension, all runnable with `python -m pytest <path> -q`:
 
-- **A** — `tests/test_token_hardening.py`, `tests/test_execution_lease.py`, `tests/test_grant_ledger_tamper_evidence.py`, `tests/test_enforcement_properties.py`, `tests/test_enforcement_ledger_sqlite.py`
-- **B** — `tests/test_execution_api.py` (`test_profile_approval_role_is_enforced`, `test_cross_tenant_item_access_is_refused`), `tests/test_execution_lease.py` (actor-binding block), `tests/test_a2a_envelope.py` (reference path only)
-- **C** — `tests/test_execution_lease.py`, `tests/test_enforcement_properties.py`, `tests/test_toolspec_binding_chain.py`, `tests/test_toolspec_execution_wiring.py`
-- **D** — `tests/test_semantic_authority_floor.py`, `tests/test_goal_match.py`, `tests/test_toolspec_runtime.py`, `tests/test_execution_semantic_wiring.py`; scope-limited, see §3 row D
-- **E** — no test. Documented non-claim only (`README.md`, `DEVELOPER_OVERVIEW.md` Q5, REM-030)
-- **F** — `tests/test_execution_api.py`, `tests/test_toolspec_execution_wiring.py`, `tests/test_toolspec_runtime.py`, `tests/test_execution_outbox.py`, `tests/test_enforcement_gate_timestamps.py`, `tests/test_gate_replay_properties.py`
-- **G** — `tests/test_effect_verification.py`, `tests/test_postcondition_contract_v1.py`, `tests/test_effect_verification_wiring.py`, `tests/test_effect_record_endpoint.py`, `tests/test_github_postcondition.py`, `tests/test_execution_fault_injection.py`
+- A: `tests/test_token_hardening.py`, `tests/test_execution_lease.py`, `tests/test_grant_ledger_tamper_evidence.py`, `tests/test_enforcement_properties.py`, `tests/test_enforcement_ledger_sqlite.py`
+- B: `tests/test_execution_api.py` (`test_profile_approval_role_is_enforced`, `test_cross_tenant_item_access_is_refused`), `tests/test_execution_lease.py` (actor-binding block), `tests/test_a2a_envelope.py` (reference path only)
+- C: `tests/test_execution_lease.py`, `tests/test_enforcement_properties.py`, `tests/test_toolspec_binding_chain.py`, `tests/test_toolspec_execution_wiring.py`
+- D: `tests/test_semantic_authority_floor.py`, `tests/test_goal_match.py`, `tests/test_toolspec_runtime.py`, `tests/test_execution_semantic_wiring.py`; scope-limited, see §3 row D
+- E: no test. Documented non-claim only (`README.md`, `DEVELOPER_OVERVIEW.md` Q5, REM-030)
+- F: `tests/test_execution_api.py`, `tests/test_toolspec_execution_wiring.py`, `tests/test_toolspec_runtime.py`, `tests/test_execution_outbox.py`, `tests/test_enforcement_gate_timestamps.py`, `tests/test_gate_replay_properties.py`
+- G: `tests/test_effect_verification.py`, `tests/test_postcondition_contract_v1.py`, `tests/test_effect_verification_wiring.py`, `tests/test_effect_record_endpoint.py`, `tests/test_github_postcondition.py`, `tests/test_execution_fault_injection.py`
 
 ## 5. Deliverable 4 — REMORA dimensions still UNTESTED or scope-limited
 
 Stated without softening:
 
-1. **E — non-bypassability: no evidence at all.** REMORA cannot enforce against
+1. **E, non-bypassability: no evidence at all.** REMORA cannot enforce against
    a credential path that bypasses its dispatcher, and REM-030 (independent
    tool-interception validation) is `NOT_STARTED`. This is the single largest
    gap between what a reader might assume "enforcement" means and what is
    demonstrated.
-2. **D — semantic authority: partial.** The floor (wrong resource, wrong
+2. **D, semantic authority: partial.** The floor (wrong resource, wrong
    effect and UNKNOWN fit cannot reach ACCEPT) is tested in the engine. What is
    not enforced is intent *provenance*: a deployment-owned intent source is
    specified in `task_intent_authority_v1.md` but not required at runtime.
-3. **B — delegation chain: reference path only.** CAP-006 is symmetric HMAC and
+3. **B, delegation chain: reference path only.** CAP-006 is symmetric HMAC and
    is not on the enforcing path; transport-anchored actor identity is listed as
    remaining in CAP-013. Revocation is covered for signing identities but not
    for principal authority after an approval.
-4. **A and F — multiprocess and distributed scope.** The default jti ledger is
+4. **A and F, multiprocess and distributed scope.** The default jti ledger is
    in-process; no test crosses an interpreter boundary; the lease nonce ledger
    stays in-process under REM-025.
-5. **G — no live external loop.** The verification contract is tested against
+5. **G, no live external loop.** The verification contract is tested against
    fixtures; the read-back against a real system of record is deployment-side.
-6. **C — surface-limited.** Full-argument binding holds on `/v1/execution/*`;
+6. **C, surface-limited.** Full-argument binding holds on `/v1/execution/*`;
    the legacy `/v1/assess` still binds a summary.
 7. **Whole-system.** No external replication and no production deployment
    evidence (`NEGATIVE_RESULTS.md` §1, REM-021 `NOT_STARTED`). Every row above

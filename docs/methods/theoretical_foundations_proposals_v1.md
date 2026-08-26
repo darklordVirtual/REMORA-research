@@ -586,8 +586,8 @@ near-optimal selection of information-gathering actions.
   replace the working safety floor.
 - `remora/evidence/evidence_router.py` (`CriticalEvidenceRouter`): choosing
   among evidence-accept / abstain / escalate given evidence quality is a
-  per-action VOI comparison (strong evidence → large risk reduction;
-  conflicting or absent evidence → none), so its accept/contradiction/
+  per-action VOI comparison (strong evidence gives a large risk reduction;
+  conflicting or absent evidence gives none), so its accept/contradiction/
   coverage thresholds are an implicit VOI boundary that can be stated as one.
 - AROMER's verification-action selection, the OracleBandit surfaced through
   `remora/aromer/integration/bridge.py` (`select_oracles`) and called from
@@ -713,7 +713,7 @@ sequence of steps.
 **What it buys.** An explicit, tunable, auditable policy that trades
 oracle cost, latency, residual risk, expected uncertainty reduction, and
 remaining verification budget against one another, replacing a fixed
-"these signals → VERIFY" rule with a decision that can be measured and
+"these signals imply VERIFY" rule with a decision that can be measured and
 defended. It also yields a principled stopping rule for *how many*
 verification rounds an item warrants before a forced ABSTAIN, which the
 current cascade leaves entirely to the caller.

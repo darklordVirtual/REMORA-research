@@ -83,7 +83,7 @@ and profiles A (REMORA-only), B (AROMER cold), and C (AROMER seeded) are
   initially **FAILED** (false_accept_rate = 0.500). The failure was localised to
   100 low-risk-tier harmful actions, every one a **schema-invalid (malformed)
   tool call**. Adding a schema-validity hard gate to the policy engine
-  (`MALFORMED_CALL_BLOCKED`: malformed call → ESCALATE), a general capability
+  (`MALFORMED_CALL_BLOCKED`: malformed call yields ESCALATE), a general capability
   derived from call structure, not the decision label, with zero false-blocks on
   real benign traffic, moved the result to **WARN**: false_accept 0.500 → 0.000,
   intercept 0.500 → 1.000, friction 0.339 → 0.170. The safety gate now passes;
@@ -92,9 +92,9 @@ and profiles A (REMORA-only), B (AROMER cold), and C (AROMER seeded) are
 - The ablation `success` flag (previously trivially `True` when A = B = C) is now
   tightened (`_evaluate_success`) and correctly returns FALSE.
 - **Proxy-dependence eliminated.** Three *structural* gates were added to the
-  policy engine: malformed-call (schema validity → ESCALATE), forbidden-tool
-  (proposed tool is on the task's own forbidden list → ESCALATE), and
-  tainted-argument (untrusted-derived args → VERIFY floor, never auto-accept). On
+  policy engine: malformed-call (schema validity yields ESCALATE), forbidden-tool
+  (proposed tool is on the task's own forbidden list yields ESCALATE), and
+  tainted-argument (untrusted-derived args take the VERIFY floor, never auto-accept). On
   the balanced holdout all 200 harmful cases are now intercepted by a structural
   signal (100 schema + 100 forbidden), with **zero** reliance on the deterministic
   proxy trust and **zero** false-blocks on benign/ambiguous (neither carries

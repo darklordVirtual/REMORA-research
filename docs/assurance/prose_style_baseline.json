@@ -1,61 +1,16 @@
 {
   "_note": "shrink-only; regenerate with scripts/check_prose_style.py --update-baseline only after a prose pass that lowered counts",
   "files": {
-    "ARCHITECTURE.md": {
-      "arrow": 2
-    },
-    "CHANGELOG.md": {
-      "emdash": 2
-    },
-    "CODE_OF_CONDUCT.md": {
-      "not_but": 1
-    },
-    "CONTRIBUTORS.md": {
-      "arrow": 1
-    },
-    "LICENSING.md": {
-      "emdash": 7
-    },
     "NEGATIVE_RESULTS.md": {
       "arrow": 20,
       "bold_bullet": 7,
       "copula_dodge": 1,
       "emdash": 177
     },
-    "SECURITY.md": {
-      "emdash": 3
-    },
-    "artifacts/credibility-pack/ATTESTATION.md": {
-      "bold_bullet": 2
-    },
-    "artifacts/credibility-pack/azure-reference-architecture.md": {
-      "bold_bullet": 4
-    },
-    "artifacts/pilot-pack/README.md": {
-      "emdash": 3
-    },
-    "artifacts/pilot-pack/evaluation_worksheet.md": {
-      "emdash": 2
-    },
-    "data/grounding_holdout_v1/ATTRIBUTION.md": {
-      "emdash": 7
-    },
-    "data/routing_bench_holdout/HOLDOUT_STATUS.md": {
-      "emdash": 4
-    },
-    "docs/04-negative-results-detail.md": {
-      "arrow": 4
-    },
-    "docs/README.md": {
-      "emdash": 7
-    },
     "docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md": {
       "arrow": 1
     },
     "docs/assurance/documentation_governance_v1.md": {
-      "emdash": 1
-    },
-    "docs/assurance/reproducibility_scorecard_v1.md": {
       "emdash": 1
     },
     "docs/assurance/statistical_analysis_plan.md": {
@@ -78,41 +33,6 @@
     },
     "docs/assurance/superseded_claims.md": {
       "emdash": 6
-    },
-    "docs/benchmarks/aegis-remora-crosswalk.md": {
-      "emdash": 13
-    },
-    "docs/benchmarks/agent-authority-conformance-v0.1.md": {
-      "bold_bullet": 1,
-      "emdash": 1
-    },
-    "docs/cli.md": {
-      "emdash": 8
-    },
-    "docs/evidence/causal_policy_explanations.md": {
-      "arrow": 1
-    },
-    "docs/evidence/decision_envelope_audit.md": {
-      "bold_bullet": 4
-    },
-    "docs/evidence/empirical_evidence_record.md": {
-      "arrow": 1
-    },
-    "docs/execution-lifecycle.md": {
-      "arrow": 1,
-      "emdash": 6
-    },
-    "docs/executive_onepager.md": {
-      "arrow": 1
-    },
-    "docs/governance/eu_ai_act_nsm_mapping.md": {
-      "emdash": 1
-    },
-    "docs/methods/nested_governance.md": {
-      "emdash": 1
-    },
-    "docs/methods/theoretical_foundations_proposals_v1.md": {
-      "arrow": 3
     },
     "docs/research/REMORA_forskningsmonografi_no.md": {
       "bold_bullet": 7,
@@ -162,23 +82,6 @@
     "docs/research/verify_control_protocols.md": {
       "emdash": 25
     },
-    "docs/sdk.md": {
-      "emdash": 12
-    },
-    "docs/security/pre-deployment-review.md": {
-      "bold_bullet": 1,
-      "emdash": 2
-    },
-    "docs/thermodynamics/README.md": {
-      "emdash": 1
-    },
-    "docs/use-cases/README.md": {
-      "arrow": 3,
-      "emdash": 2
-    },
-    "docs/use-cases/building-automation.md": {
-      "emdash": 1
-    },
     "docs/validation/pilot_evaluation_protocol_v1.md": {
       "arrow": 3,
       "emdash": 11
@@ -201,32 +104,6 @@
     },
     "paper/remora_paper_template.md": {
       "bold_bullet": 16
-    },
-    "results/comprehensive_deep_report_en.md": {
-      "bold_bullet": 3
-    },
-    "results/external_validation_report_v1.md": {
-      "bold_bullet": 9
-    },
-    "results/omfattende_deep_report.md": {
-      "arrow": 1
-    },
-    "results/superseded_groq_live_2026-07-27/README.md": {
-      "emdash": 1
-    },
-    "scripts/README.md": {
-      "emdash": 6
-    },
-    "tests/fixtures/routing_bench/tau2/ATTRIBUTION.md": {
-      "emdash": 1
-    },
-    "workers/agent-control/README.md": {
-      "arrow": 1,
-      "bold_bullet": 6,
-      "emdash": 9
-    },
-    "workers/law-search/README.md": {
-      "bold_bullet": 2
     }
   }
 }

@@ -31,30 +31,30 @@ in your way:
 - **Everything non-production is already free for everyone.** Reading
   and modifying the source, running the test suite, benchmarks,
   evaluations, proofs-of-concept, demos and staging need no permission,
-  in any organization — that is the Business Source License's own
+  in any organization; that is the Business Source License's own
   grant, before the Additional Use Grant even applies.
 - **Research Use is granted to any person or organization** (Additional
   Use Grant ¶5): study, evaluate, benchmark, reproduce, attempt to
   falsify, or extend REMORA's methods and results, and publish what you
-  find — papers, theses, datasets, benchmark results, and modified
+  find; papers, theses, datasets, benchmark results, and modified
   source shared for reproducibility. Independent researchers and
   research institutes are covered; university accreditation is not
   required.
 - **No benchmark clause.** Publishing results, measurements or
-  comparisons — favorable or not — never requires permission.
+  comparisons, favorable or not, never requires permission.
 - **Shadow-mode research evaluation is granted to any organization,
   including companies** (¶6): run REMORA observer-only (decisions
   logged, never enforced) to evaluate or research it, for up to 90
-  days — enough for a real research pilot. See
+  days; enough for a real research pilot. See
   [docs/validation/pilot_evaluation_protocol_v1.md](docs/validation/pilot_evaluation_protocol_v1.md)
   for the evaluation framework.
 - **Contributions are welcome** under
-  [docs/10-contributing.md](docs/10-contributing.md) — and negative
+  [docs/10-contributing.md](docs/10-contributing.md); and negative
   results are first-class here: falsifying one of our claims is a
   valued contribution, not an attack.
 
 If your research use does not clearly fit these grants, write to
-support@luftfiber.no and describe it in two sentences — research
+support@luftfiber.no and describe it in two sentences; research
 permissions are granted liberally, and research licenses are typically
 free of charge.
 
