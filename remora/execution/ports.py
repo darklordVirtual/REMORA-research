@@ -154,7 +154,12 @@ class DispatchOutboxPort(Protocol):
         grant_jti: str,
         attempt_no: int = 1,
         now: datetime | None = None,
+        tool_call_json: str | None = None,
     ) -> "OutboxRow": ...
+
+    def claim(
+        self, outbox_id: str, *, worker_id: str, now: datetime | None = None
+    ) -> "OutboxRow | None": ...
 
     def record_intent_enlisted(
         self,
@@ -168,6 +173,7 @@ class DispatchOutboxPort(Protocol):
         grant_jti: str,
         attempt_no: int = 1,
         now: datetime | None = None,
+        tool_call_json: str | None = None,
     ) -> "OutboxRow": ...
 
     def settle(

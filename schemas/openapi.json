@@ -2049,6 +2049,9 @@
             },
             "description": "Outcome of enforcement; refusal outcomes carry no grant/pep/tool_execution keys."
           },
+          "202": {
+            "description": "REMORA_ASYNC_DISPATCH mode (issue #82): durable authorization complete — queue EXECUTE outcome and dispatch-intent row committed together; the standalone worker performs the dispatch half. Response carries dispatch=pending and outbox_id."
+          },
           "401": {
             "content": {
               "application/json": {

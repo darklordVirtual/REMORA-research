@@ -514,6 +514,49 @@ from remora.execution.authorization import (
 )
 
 
+def _rebuild_tool_call(payload: dict[str, Any]) -> Any:
+    """Rebuild the typed wire model from a persisted intent payload."""
+    from servers.execution_contracts import ToolCallRequest
+
+    return ToolCallRequest(**payload)
+
+
+def dispatch_pending_intents(tenant: str, *, worker_id: str) -> list[dict[str, Any]]:
+    """Worker entry point (issue #82): dispatch this tenant's pending intents.
+
+    Binds the module's ambient state around
+    :func:`remora.execution.service.dispatch_pending_intent`, exactly as
+    the routes bind :func:`execute_approved_item`. Rows without a persisted
+    payload (pre-#82 or synchronous-path rows) are skipped — the
+    reconciler, not the worker, owns their fate.
+    """
+    from remora.execution.service import dispatch_pending_intent
+
+    results: list[dict[str, Any]] = []
+    for row in _outbox().pending(tenant):
+        result = dispatch_pending_intent(
+            row,
+            tenant=tenant,
+            principal=f"worker:{worker_id}",
+            transaction=db_transaction_state,
+            chain=_CHAIN,
+            gate=_GATE,
+            outbox=_outbox,
+            worker_id=worker_id,
+            build_observation=_observation_with_context,
+            dispatch_under_lease=_dispatch_under_lease,
+            token_audience=PEP_AUDIENCE,
+            token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
+            resolve_toolspec=lambda name, args, target: _resolve_toolspec(
+                name, args, target),
+            policy_coverage=_policy_coverage,
+            rebuild_call=_rebuild_tool_call,
+        )
+        if result is not None:
+            results.append(result)
+    return results
+
+
 def _toolspec_bundle() -> "ToolSpecBundle | None":
     return _authz_load_bundle(_os.environ)
 
@@ -552,6 +595,7 @@ def _record_dispatch_intent(
     tool_name: str,
     tool_call_hash: str,
     grant_jti: str,
+    tool_call_json: str | None = None,
 ) -> Any:
     """Record the dispatch intent (see remora.execution.dispatch); binds this
     module's outbox and the ambient transaction contextvar."""
@@ -564,6 +608,7 @@ def _record_dispatch_intent(
         tool_name=tool_name,
         tool_call_hash=tool_call_hash,
         grant_jti=grant_jti,
+        tool_call_json=tool_call_json,
     )
 
 
@@ -1315,6 +1360,11 @@ def _dispatch_under_lease(
     200: {"model": ExecutionExecuteResponse,
           "description": "Outcome of enforcement; refusal outcomes carry no "
                          "grant/pep/tool_execution keys."},
+    202: {"description": "REMORA_ASYNC_DISPATCH mode (issue #82): durable "
+                         "authorization complete — queue EXECUTE outcome and "
+                         "dispatch-intent row committed together; the "
+                         "standalone worker performs the dispatch half. "
+                         "Response carries dispatch=pending and outbox_id."},
     **_AUTH_RESPONSES,
     404: {"model": ErrorDetail, "description": "Review item not found for this tenant."},
     409: {"model": ErrorDetail, "description": "Item not in an executable state."},
@@ -1335,6 +1385,11 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
 
     api_mod._require_tenant_capability(role, tenant, "execute")
     reconcile_stale_dispatches(tenant)  # FT-02 lazy sweep (see assess)
+    # Issue #82: async mode answers 202 after durable authorization; the
+    # dispatch half belongs to the standalone worker
+    # (scripts/run_dispatch_worker.py). Default stays synchronous.
+    async_mode = _os.environ.get(
+        "REMORA_ASYNC_DISPATCH", "").strip().lower() in {"1", "true", "yes", "on"}
     # Orchestration lives in remora.execution.service (issue #241, slice 8);
     # this route binds the module's ambient state and maps domain errors.
     try:
@@ -1355,6 +1410,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
             token_audience=PEP_AUDIENCE,
             token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
             policy_coverage=_policy_coverage,
+            async_dispatch=async_mode,
         )
     except ToolSpecChanged as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
@@ -1362,6 +1418,12 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="review item not found") from exc
     except ReviewConflict as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if response.get("dispatch") == "pending":
+        from fastapi.responses import JSONResponse
+
+        api_mod.record_execution_execute(
+            executed=False, refusal="dispatch_pending")
+        return JSONResponse(status_code=202, content=response)
     tool_execution = response.get("tool_execution")
     if tool_execution is None:
         api_mod.record_execution_execute(

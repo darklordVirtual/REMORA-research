@@ -18,7 +18,9 @@ from remora.execution.ports import (AuditChainPort, DispatchOutboxPort,
                                     PolicyEnginePort, ToolCallPort)
 
 import dataclasses
+import json
 from collections.abc import Callable
+from types import SimpleNamespace
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
@@ -295,8 +297,16 @@ def execute_approved_item(
     token_audience: str,
     token_ttl_seconds: int,
     policy_coverage: Callable[[], dict[str, Any]] | None = None,
+    async_dispatch: bool = False,
 ) -> dict[str, Any]:
     """Execute a previously approved item under full re-gating.
+
+    With ``async_dispatch`` (issue #82) the function returns after DURABLE
+    AUTHORIZATION — the queue's EXECUTE outcome and the dispatch-intent row
+    commit in one transaction, and the response says ``dispatch: pending``.
+    No grant is minted and no PEP consumption happens here: both belong to
+    the moment of honouring, which a separate worker performs via
+    :func:`dispatch_pending_intent`. The synchronous default is unchanged.
 
     The complete payload is re-presented and freshly re-decided; a
     single-use grant is consumed atomically; dispatch goes through the
@@ -353,6 +363,21 @@ def execute_approved_item(
                     tool_name=tool_call.tool_name,
                     tool_call_hash=fresh_obs.tool_call_hash or "",
                     grant_jti="",
+                    # Issue #82: the exact call material, so a separate
+                    # worker can dispatch what THIS transaction authorized.
+                    # The FULL wire model when available: the observation
+                    # builder needs more than the three duck-typed fields
+                    # (intent_ref, untrusted context, derivations).
+                    tool_call_json=json.dumps(
+                        tool_call.model_dump()
+                        if hasattr(tool_call, "model_dump")
+                        else {
+                            "tool_name": tool_call.tool_name,
+                            "arguments": tool_call.arguments,
+                            "target_environment":
+                                tool_call.target_environment,
+                        },
+                        sort_keys=True, default=str),
                 )
     except (KeyError, ValueError) as exc:
         raise conflict(str(exc)) from exc
@@ -377,6 +402,17 @@ def execute_approved_item(
         response["audit"] = {
             "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
         }
+        return response
+
+    if async_dispatch:
+        # Issue #82: durable authorization is complete — the EXECUTE outcome
+        # and the intent row committed together above. The dispatch half
+        # (grant, PEP consumption, claim, governed dispatch, settlement)
+        # belongs to the worker; answering now keeps the HTTP process out
+        # of the side-effect window entirely.
+        response["dispatch"] = "pending"
+        if intent is not None:
+            response["outbox_id"] = intent.outbox_id
         return response
 
     # The re-gate only AUTHORIZED the call; EXECUTED is recorded separately
@@ -510,6 +546,186 @@ def execute_approved_item(
         "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
     }
     return response
+
+
+def dispatch_pending_intent(
+    row: Any,
+    *,
+    tenant: str,
+    principal: str,
+    transaction: Callable[[str], Any],
+    chain: AuditChainPort,
+    gate: EnforcementGatePort,
+    outbox: Callable[[], DispatchOutboxPort],
+    worker_id: str,
+    build_observation: Callable[[Any, str], tuple[Any, dict[str, Any]]],
+    dispatch_under_lease: Callable[..., dict[str, Any]],
+    token_audience: str,
+    token_ttl_seconds: int,
+    resolve_toolspec: Callable[[str, dict[str, Any], str], dict[str, Any]] | None = None,
+    policy_coverage: Callable[[], dict[str, Any]] | None = None,
+    rebuild_call: Callable[[dict[str, Any]], Any] | None = None,
+) -> dict[str, Any] | None:
+    """Dispatch one DISPATCH_PENDING intent from a separate worker (issue #82).
+
+    The dispatch half of :func:`execute_approved_item`'s async mode, with
+    the SAME record shapes and the same order of guarantees: the grant is
+    minted and PEP-consumed at the moment of honouring, the
+    ``execution_authorized`` chain entry precedes the claim, the claim is
+    exclusive, dispatch goes through the governed dispatcher, and the row
+    settles with what ACTUALLY happened before the ``execution_result``
+    entry lands.
+
+    Returns ``None`` for rows this worker must not touch: not
+    DISPATCH_PENDING (another worker, or already settled), no persisted
+    payload (pre-#82 rows and synchronous-path rows — the reconciler owns
+    their fate, this worker cannot reconstruct the call), or a lost claim
+    race. A payload that no longer hashes to the authorization's binding
+    is refused and settled REFUSED — a worker must never dispatch a call
+    other than the one that was authorized.
+    """
+    if row.state is not OutboxState.DISPATCH_PENDING:
+        return None
+    if not row.tool_call_json:
+        return None
+    refusal: str | None = None
+    tool_call: Any = None
+    try:
+        payload = json.loads(row.tool_call_json)
+        if rebuild_call is not None:
+            # The binder rebuilds the typed wire model — the observation
+            # builder needs the full request, not the duck-typed triple.
+            tool_call = rebuild_call(payload)
+        else:
+            tool_call = SimpleNamespace(
+                tool_name=row.tool_name,
+                arguments=payload.get("arguments", {}),
+                target_environment=payload.get("target_environment", ""),
+            )
+    except Exception:
+        # Material that no longer parses or validates is refused and
+        # settled — a broken row must never crash the worker loop, and
+        # must never be dispatched on a guess.
+        refusal = "payload_invalid"
+    fresh_obs = fresh_semantic = None
+    if refusal is None:
+        fresh_obs, fresh_semantic = build_observation(tool_call, tenant)
+        if (fresh_obs.tool_call_hash or "") != row.tool_call_hash:
+            refusal = "payload_hash_mismatch"
+    proposal_id = row.proposal_id
+    if refusal is not None:
+        if outbox().claim(row.outbox_id, worker_id=worker_id) is None:
+            return None
+        outbox().settle(row.outbox_id, OutboxState.REFUSED, detail=refusal)
+        entry = chain.append(tenant, {
+            "event": "execution_result",
+            "proposal_id": proposal_id,
+            "actor": principal,
+            "item_id": row.item_id,
+            "tool_call_hash": row.tool_call_hash,
+            "grant_jti": "",
+            "tool_executed": False,
+            "state_unknown": False,
+            "tool_refusal_reason": refusal,
+        })
+        return {
+            "proposal_id": proposal_id,
+            "tool_execution": {"executed": False, "dispatch_began": False,
+                               "state_unknown": False,
+                               "refusal_reason": refusal},
+            "audit": {"sequence_no": entry.sequence_no,
+                      "entry_hash": entry.entry_hash},
+        }
+
+    # Past the refusal gate both are populated; the split assignment above
+    # is only for the refusal path. Narrowing for the type checker.
+    assert fresh_obs is not None and fresh_semantic is not None
+
+    toolspec_identity: dict[str, Any] | None = None
+    if resolve_toolspec is not None:
+        toolspec_identity = resolve_toolspec(
+            tool_call.tool_name, tool_call.arguments,
+            tool_call.target_environment)
+        toolspec_identity.pop("argument_roles", None)
+
+    now = datetime.now(UTC)
+    token = PolicyDecisionToken.issue(
+        action="accept",
+        observation_hash=fresh_obs.tool_call_hash or "",
+        request_id=proposal_id or f"{tenant}:{row.item_id}",
+        issued_at=now.isoformat(),
+        expires_at=(now + timedelta(seconds=token_ttl_seconds)).isoformat(),
+        audience=token_audience,
+    )
+    gate_result = gate.check(token, fresh_obs.tool_call_hash, consume=True)
+    coverage = policy_coverage() if policy_coverage is not None else None
+    intent_entry = chain.append(tenant, {
+        "event": "execution_authorized",
+        "proposal_id": proposal_id,
+        "actor": principal,
+        "item_id": row.item_id,
+        "tool_call_hash": fresh_obs.tool_call_hash,
+        "grant_jti": token.jti,
+        "pep_allowed": gate_result.allowed,
+        "tool_contract_bundle_hash": fresh_semantic["tool_contract_bundle_hash"],
+        "intent_authority_hash": fresh_semantic["intent_authority_hash"],
+        "policy_components": coverage,
+    })
+
+    if outbox().claim(row.outbox_id, worker_id=worker_id) is None:
+        return None
+
+    tool_execution = dispatch_under_lease(
+        tenant=tenant,
+        principal=principal,
+        tool_call=tool_call,
+        semantic=fresh_semantic,
+        now=now,
+        gate_allowed=gate_result.allowed,
+        toolspec=toolspec_identity,
+        proposal_id=str(proposal_id or row.item_id),
+        grant_jti=token.jti,
+    )
+
+    outcome = classify_outcome(tool_execution)
+    outbox().settle(row.outbox_id, _OUTBOX_STATE[outcome],
+                    detail=tool_execution.get("refusal_reason"))
+    with transaction(tenant) as q:
+        q.record_execution_outcome(
+            row.item_id,
+            outcome=outcome,
+            reason=tool_execution.get("refusal_reason"),
+        )
+
+    result_record: dict[str, Any] = {
+        "event": "execution_result",
+        "proposal_id": proposal_id,
+        "actor": principal,
+        "item_id": row.item_id,
+        "tool_call_hash": fresh_obs.tool_call_hash,
+        "grant_jti": token.jti,
+        "intent_sequence_no": intent_entry.sequence_no,
+        "tool_executed": tool_execution["executed"],
+        "state_unknown": bool(tool_execution.get("state_unknown")),
+        "policy_components": (
+            policy_coverage() if policy_coverage is not None else None
+        ),
+    }
+    envelope_meta = tool_execution.get("result_envelope")
+    if envelope_meta:
+        result_record["result_sha256"] = envelope_meta["sha256"]
+        result_record["result_size_bytes"] = envelope_meta["size_bytes"]
+        result_record["result_truncated"] = envelope_meta["truncated"]
+    if tool_execution.get("refusal_reason"):
+        result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    entry = chain.append(tenant, result_record)
+
+    return {
+        "proposal_id": proposal_id,
+        "tool_execution": tool_execution,
+        "audit": {"sequence_no": entry.sequence_no,
+                  "entry_hash": entry.entry_hash},
+    }
 
 
 class TokenRefused(RemoraError):
