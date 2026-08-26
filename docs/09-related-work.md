@@ -109,7 +109,7 @@ Boundary:
 
 ### 4a. Programmatic Tool Calling (PTC) — planning layer
 
-Patel, Sen, Lumer & Subbiah (2025). *The Bitter Lesson of Tool Calling.*
+Patel, Sen, Lumer & Subbiah (2026). *The Bitter Lesson of Tool Calling.*
 arXiv:2608.06370. PricewaterhouseCoopers Commercial Technology and
 Innovation Office.
 
@@ -131,8 +131,9 @@ scenarios. Key empirical findings (authors' setup, authors' numbers):
 **What REMORA takes from this (RF-11).**
 
 REMORA already owns the governance-and-execution boundary; PTC provides a
-complementary composition surface *above* that boundary. The key architectural
-principle from ChatGPT analysis of this paper:
+complementary composition surface *above* that boundary. The paper itself
+makes no governance claim; the following principle is the REMORA authors'
+synthesis, not a statement from the source:
 
 > *Code for composition. Policy for authority.*
 
@@ -168,6 +169,34 @@ Boundary:
 - RF-11 is SCOPED; no performance claim is made. The ablation (JSON vs PTC
   with the same REMORA gate in front of both) is the required next step
   before any number enters `README.md`.
+
+### 4b. Path-dependent runtime governance (2026 comparators)
+
+Three 2026 systems are close enough to REMORA's enforcement surface that
+positioning must name them explicitly.
+
+Kaptein, Khan & Podstavnychy (2026). *Runtime Governance for AI Agents:
+Policies on Paths.* arXiv:2603.16586. Formalises governance decisions as a
+function of agent identity, the partial execution path so far, the proposed
+next action and organisational state.
+
+Li, Chen, Wen, Zhang, Liu et al. (2026). *VIGIL: Runtime Enforcement of
+Behavioral Specifications in AI Agent Skills.* arXiv:2606.26524. Enforces
+behavioural specifications over finite execution traces, including temporal
+dependencies and cross-call value flow. (Distinct from the tool-stream
+injection paper of the same name tracked in `research_shelf_v1.yaml`.)
+
+Microsoft (2026). *Agent Governance Toolkit.* Open-source runtime security
+for agents (announced 2026-04-02): deterministic runtime enforcement, agent
+identity, execution rings, policy engines, MCP governance and supply-chain
+provenance.
+
+**Positioning.** REMORA's authority binding is per call: authority provenance
+→ exact-call binding → grant consumption → execution custody → effect state →
+evidence → claim governance. Policies on Paths and VIGIL govern *sequences*;
+Microsoft AGT is broader in surface. REMORA does not claim trajectory-level
+enforcement; the single-call → path-level extension is an open direction
+(see Open Research Gaps), not an implemented capability.
 
 ## 5. Evidence Grounding and Retrieval-Augmented Verification
 

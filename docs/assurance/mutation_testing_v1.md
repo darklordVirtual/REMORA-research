@@ -74,7 +74,11 @@ covered-lines rate is the honest test-quality signal for this runner: on
 lines these suites do execute, roughly half of small semantic changes go
 unnoticed.
 
-## Survivors on covered lines, by function
+## Survivors on covered lines, by function (pre-#405 baseline, 64.3 %)
+
+Historical table kept for the delta analysis above; the current numbers
+after the event-contract round are `dispatch` 53, `_check_unlogged` 16,
+`_canonical_payload` 0 (see the 79.7 % summary at the top).
 
 | Survivors | Function | Reading |
 |---|---|---|
@@ -111,9 +115,12 @@ defect the paper's wire-format claims depend on.
 
 ## Open, tracked in #280
 
-- Triage rounds for the `dispatch` (157) and `check` (53) clusters — the
-  two functions where surviving mutants sit closest to enforcement
-  behaviour.
+- Triage rounds for the remaining `dispatch` (53) and `_check_unlogged` (16)
+  survivors — the two functions where surviving mutants sit closest to
+  enforcement behaviour (down from 159/53 before #405).
+- Generate this document's tables from the mutation-results artifact so the
+  headline and per-function numbers cannot drift apart again (external
+  review 2026-08-26 caught exactly that drift here).
 - Coverage gap to the 95% targets for `remora/enforcement` (84.9) and
   `remora/execution` (93.7); floors are pinned at measured levels.
 ## CI integration (wired)

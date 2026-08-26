@@ -833,10 +833,11 @@ documents:
   - researchers
 - id: DOC-178
   path: docs/evidence/claim_evidence_matrix.md
-  status: canonical
+  status: supporting
   topic: docs_evidence_claim_evidence_matrix_md
-  code_synced: unreviewed
-  verdict: pending
+  code_synced: verified
+  verdict: current
+  last_reviewed: '2026-08-26'
   audience:
   - researchers
 - id: DOC-179
