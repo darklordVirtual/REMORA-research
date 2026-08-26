@@ -16,7 +16,7 @@ point of the whole repository, so it is the point of this log too.
 | Dimension | State | How to verify |
 |---|---|---|
 | Test suite | 4,594 tests collected, 0 failing (3,301 at the start of the hardening cycle; 3,514 when this log was first written) | `pip install -e ".[dev,causal,api]" && make test` |
-| CI | Green on 3 Python versions (3.12/3.13/3.14) + pinned-OPA conformance + claim-provenance gate | GitHub Actions, every push |
+| CI | Green on 4 Python versions (3.11/3.12/3.13/3.14) + pinned-OPA conformance + claim-provenance gate | GitHub Actions, every push |
 | Result artifacts | 78 committed under `results/`; every headline number is reproducible offline | see §6 |
 | Remediation items | 22 of 30 tracked REM-items DONE; **REM-021 (independent review) is the sole open production gate** | [`remediation_register.yaml`](remediation_register.yaml) |
 | Capability wiring | 12 capabilities on an explicit six-rung ladder; **nothing claims `ENFORCED_PRODUCTION` or `EXTERNALLY_VERIFIED`** (a CI-enforced invariant) | [`capability_register_v1.yaml`](capability_register_v1.yaml), `tests/test_capability_register.py` |
