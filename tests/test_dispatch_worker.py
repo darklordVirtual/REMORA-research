@@ -122,6 +122,38 @@ def test_the_worker_dispatches_with_the_synchronous_record_shapes(client) -> Non
     assert authorized["pep_allowed"] is True
 
 
+def test_records_carry_the_requester_not_the_worker_identity(client) -> None:
+    """Issue #420 (RMR-CR-005): the authorization was granted FOR the
+    authenticated principal; the worker acts on their behalf. Records
+    carry that principal as actor, with the worker id reported separately
+    as executed_by — never substituted."""
+    _proposal, row = _authorized_pending(client)
+    assert row.requested_by == "employee-1", "persisted at authorization time"
+    exec_mod = _exec_mod()
+    results = exec_mod.dispatch_pending_intents("acme", worker_id="w-9")
+    assert results[0]["tool_execution"]["executed"] is True
+
+    events = {e.payload.get("event"): e.payload
+              for e in exec_mod._CHAIN.entries("acme")}
+    for name in ("execution_authorized", "execution_result"):
+        assert events[name]["actor"] == "employee-1", name
+        assert events[name]["executed_by"] == "w-9", name
+
+
+def test_refusals_also_carry_the_requester_and_worker_split(client) -> None:
+    import dataclasses
+
+    _proposal, row = _authorized_pending(client)
+    exec_mod = _exec_mod()
+    exec_mod._outbox()._rows[row.outbox_id] = dataclasses.replace(
+        row, tool_call_json="{not json")
+    exec_mod.dispatch_pending_intents("acme", worker_id="w-9")
+    result_events = [e.payload for e in exec_mod._CHAIN.entries("acme")
+                     if e.payload.get("event") == "execution_result"]
+    assert result_events[0]["actor"] == "employee-1"
+    assert result_events[0]["executed_by"] == "w-9"
+
+
 def test_racing_workers_consume_exactly_one_grant(client, monkeypatch) -> None:
     """Issue #417 (RMR-CR-002): two workers racing one intent must produce
     exactly one consumed grant, one execution_authorized event and one
