@@ -28,10 +28,12 @@ Key management: ``REMORA_LEASE_SIGNING_KEY`` (falls back to
 ``REMORA_PDP_SIGNING_KEY``). Without a key, issued leases are unsigned and the
 dispatcher refuses them — fail closed, never fail open.
 
-INTEGRATION STATUS: library-level PEP with in-process nonce ledger. Durable /
-multi-process nonce storage, deployment integration in front of real tool
-credentials, and external validation remain open under REM-024/REM-025/REM-030
-in docs/assurance/remediation_register.yaml. Do not cite this module alone as
+INTEGRATION STATUS: library-level PEP. Durable, multi-process nonce storage is
+implemented and wired (``nonce_store.DurableNonceStore`` over Postgres/SQLite/D1);
+its activation is configuration/profile dependent and is not claimed as
+production evidence. Deployment integration in front of real tool credentials
+and external validation remain open under REM-024/REM-030 in
+docs/assurance/remediation_register.yaml. Do not cite this module alone as
 evidence of integrated, unbypassable enforcement.
 """
 from __future__ import annotations
