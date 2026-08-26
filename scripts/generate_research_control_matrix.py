@@ -77,7 +77,7 @@ def validate(data: dict) -> list[str]:
                 if not found:
                     errors.append(
                         f"{eid}: citation_anchor {anchor!r} not found in any code "
-                        f"file — citation and code have drifted apart"
+                        f"file; citation and code have drifted apart"
                     )
         elif e.get("citation_anchor"):
             errors.append(f"{eid}: citation_anchor set but in_code_citation is false")
@@ -105,7 +105,7 @@ _PAPER_YEAR_RE = re.compile(r"\((\d{4}[ab]?)\)")
 _ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)+$")
 #: Identifier fields a work may carry. A value here is a factual claim about
 #: an external record, so it is only accepted when the paper's own reference
-#: line already carries it — an identifier can never be introduced here alone.
+#: line already carries it; an identifier can never be introduced here alone.
 IDENTIFIER_FIELDS = ("arxiv", "doi", "isbn")
 
 
@@ -206,7 +206,7 @@ def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
             elif str(val) not in ref_line:
                 errors.append(
                     f"{where}: {field} {val!r} does not appear in the paper's "
-                    f"reference line — an identifier may not be introduced "
+                    f"reference line; an identifier may not be introduced "
                     f"here alone")
 
         role = w.get("role")
@@ -224,7 +224,7 @@ def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
             errors.append(f"{where}: role {role} must name at least one code path")
         if role == "positioning_only" and code:
             errors.append(
-                f"{where}: role positioning_only must not name code — a source "
+                f"{where}: role positioning_only must not name code; a source "
                 f"present in the codebase is not positioning-only")
         anchor = w.get("anchor", surname)
         for path in code:
@@ -233,7 +233,7 @@ def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
                 errors.append(f"{where}: referenced path does not exist: {path}")
             elif anchor not in p.read_text(encoding="utf-8", errors="ignore"):
                 errors.append(
-                    f"{where}: anchor {anchor!r} not found in {path} — the "
+                    f"{where}: anchor {anchor!r} not found in {path}; the "
                     f"declared role and the code have drifted apart")
     for key, n in sorted(seen.items()):
         if n > 1:
@@ -270,19 +270,19 @@ def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
             if key not in declared:
                 errors.append(
                     f"bibliography: paper reference {key[0]} {key[1]} has no "
-                    f"declared role — every reference must state how REMORA "
+                    f"declared role; every reference must state how REMORA "
                     f"uses it")
         for key in sorted(declared - set(refs)):
             errors.append(
                 f"bibliography: declared work {key[0]} {key[1]} is not a "
-                f"reference in {bib.get('paper')} — stale entry")
+                f"reference in {bib.get('paper')}; stale entry")
     return errors
 
 
 def _validate_landscape(data: dict) -> list[str]:
     """Check the compendium crosswalk. Ref ids must be well-formed, and every id
     (per-line compendium_refs + landscape representative_refs) must actually
-    appear in the local compendium — but ONLY when that gitignored file is
+    appear in the local compendium; but ONLY when that gitignored file is
     present. In CI, where it is absent, this validation is skipped so the matrix
     never hard-depends on an unpublished document."""
     errors: list[str] = []
@@ -314,7 +314,7 @@ def _validate_landscape(data: dict) -> list[str]:
         for r in sorted(all_refs):
             if r not in text:
                 errors.append(
-                    f"compendium ref {r!r} not found in {COMPENDIUM.name} — the "
+                    f"compendium ref {r!r} not found in {COMPENDIUM.name}; the "
                     f"crosswalk has drifted from the local landscape"
                 )
     return errors
@@ -410,9 +410,9 @@ def _landscape_line(e: dict) -> str:
     if refs:
         rendered = ", ".join(f"`{r}`" for r in refs)
         note = e.get("compendium_note")
-        return f"{rendered}" + (f" — {note}" if note else "")
+        return f"{rendered}" + (f"; {note}" if note else "")
     note = e.get("compendium_note")
-    return note or "— (not anchored in the local landscape)"
+    return note or "- (not anchored in the local landscape)"
 
 
 def _landscape_coverage(data: dict) -> list[str]:
@@ -424,9 +424,9 @@ def _landscape_coverage(data: dict) -> list[str]:
     lines.append("")
     lines.append(
         "Crosswalk to the broader AI-assurance landscape "
-        f"(`{landscape.get('source', '—')}`). "
+        f"(`{landscape.get('source', 'none')}`). "
         f"{landscape.get('source_status', '')} These are reference pointers, "
-        "**not** implementation claims — a work appearing here means it informs a "
+        "**not** implementation claims; a work appearing here means it informs a "
         "line, not that REMORA implements it."
     )
     lines.append("")
@@ -457,10 +457,10 @@ def _landscape_coverage(data: dict) -> list[str]:
         lines.append("| Area | Compendium chapter | Representative works | Why REMORA does not implement it |")
         lines.append("|------|--------------------|----------------------|----------------------------------|")
         for a in not_impl:
-            reps = ", ".join(f"`{r}`" for r in a.get("representative_refs", []) or []) or "—"
+            reps = ", ".join(f"`{r}`" for r in a.get("representative_refs", []) or []) or "none"
             lines.append(
-                f"| {a.get('theme', '—')} | {a.get('compendium_chapter', '—')} | "
-                f"{reps} | {a.get('reason', '—')} |"
+                f"| {a.get('theme', 'none')} | {a.get('compendium_chapter', 'none')} | "
+                f"{reps} | {a.get('reason', 'none')} |"
             )
         lines.append("")
     return lines
@@ -487,7 +487,7 @@ _ROLE_TITLES = [
     ("positioning_only",
      "Related-work positioning only",
      "Compared against or used as framing in the paper. No code, no evaluation "
-     "— and that is the honest status, not an oversight."),
+     "- and that is the honest status, not an oversight."),
 ]
 
 
@@ -532,11 +532,11 @@ def _bibliography_section(data: dict) -> list[str]:
         lines.append("| Source id | Identifier | Line | Code | Note |")
         lines.append("|-----------|------------|------|------|------|")
         for w in sorted(rows, key=lambda x: str(x.get("id", ""))):
-            code = ", ".join(_code_link(p) for p in (w.get("code") or [])) or "—"
-            entry = w.get("entry", "—")
-            note = (w.get("note", "") or "—").strip().replace("\n", " ")
+            code = ", ".join(_code_link(p) for p in (w.get("code") or [])) or "none"
+            entry = w.get("entry", "none")
+            note = (w.get("note", "") or "none").strip().replace("\n", " ")
             ident = next(
-                (f"{f}:{w[f]}" for f in IDENTIFIER_FIELDS if w.get(f)), "—")
+                (f"{f}:{w[f]}" for f in IDENTIFIER_FIELDS if w.get(f)), "none")
             lines.append(
                 f"| `{w.get('id', '?')}` | {ident} | {entry} | {code} | {note} |")
         lines.append("")
@@ -547,7 +547,7 @@ def _bibliography_section(data: dict) -> list[str]:
         lines.append("")
         lines.append(
             "The reconciliation runs both ways. These sources ground code or a "
-            "research line while the paper carries no reference to them — "
+            "research line while the paper carries no reference to them; "
             "recorded so the asymmetry is visible instead of hidden."
         )
         lines.append("")
@@ -556,10 +556,10 @@ def _bibliography_section(data: dict) -> list[str]:
         for w in sorted(code_only, key=lambda x: str(x.get("id", ""))):
             code = ", ".join(_code_link(p) for p in (w.get("code") or [])) \
                 or (f"{w['entry']} (narrative attribution)" if w.get("entry")
-                    else "—")
-            note = (w.get("note", "") or "—").strip().replace("\n", " ")
+                    else "none")
+            note = (w.get("note", "") or "none").strip().replace("\n", " ")
             lines.append(
-                f"| `{w.get('id', '?')}` | {w.get('work', '—')} | "
+                f"| `{w.get('id', '?')}` | {w.get('work', 'none')} | "
                 f"{code} | {note} |")
         lines.append("")
     return lines
@@ -567,7 +567,7 @@ def _bibliography_section(data: dict) -> list[str]:
 
 def render(data: dict) -> str:
     lines: list[str] = []
-    lines.append("<!-- GENERATED FILE — DO NOT EDIT.")
+    lines.append("<!-- GENERATED FILE. DO NOT EDIT.")
     lines.append("     Source: docs/research/research_control_matrix_v1.yaml")
     lines.append("     Regenerate: python scripts/generate_research_control_matrix.py -->")
     lines.append("")
@@ -596,30 +596,30 @@ def render(data: dict) -> str:
         )
     lines.append("")
     for e in data["entries"]:
-        lines.append(f"## {e['id']} — {e['title']}")
+        lines.append(f"## {e['id']}; {e['title']}")
         lines.append("")
         if e.get("in_code_citation"):
-            cite_note = f" (cited in code; anchor `{e['citation_anchor']}` — CI-verified)"
+            cite_note = f" (cited in code; anchor `{e['citation_anchor']}`; CI-verified)"
         else:
             cite_note = " (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)"
-        lines.append(f"- **Source:** {e['source']['citation']}{cite_note}")
+        lines.append(f"- Source: {e['source']['citation']}{cite_note}")
         for s in e["source"].get("sections", []) or []:
             lines.append(f"  - {s}")
         for b in e["source"].get("builds_on", []) or []:
             lines.append(f"  - builds on: {b}")
-        lines.append(f"- **Concepts:** {', '.join(e['concepts'])}")
-        lines.append(f"- **REMORA controls:** {', '.join(e['controls'])}")
-        lines.append("- **Code:** " + ", ".join(_code_link(p) for p in e["code"]))
+        lines.append(f"- Concepts: {', '.join(e['concepts'])}")
+        lines.append(f"- REMORA controls: {', '.join(e['controls'])}")
+        lines.append("- Code: " + ", ".join(_code_link(p) for p in e["code"]))
         tests = e.get("tests") or []
         lines.append(
-            "- **Tests:** "
-            + (", ".join(_code_link(p) for p in tests) if tests else "—")
+            "- Tests: "
+            + (", ".join(_code_link(p) for p in tests) if tests else "none")
         )
-        lines.append(f"- **Evidence:** {e['evidence']}")
-        lines.append(f"- **Maturity:** `{e['maturity']}`")
-        lines.append(f"- **Scope boundary:** {e['scope_boundary']}")
-        lines.append(f"- **Literature:** {_lit_link(e['related_work_section'])}")
-        lines.append(f"- **Landscape (local compendium):** {_landscape_line(e)}")
+        lines.append(f"- Evidence: {e['evidence']}")
+        lines.append(f"- Maturity: `{e['maturity']}`")
+        lines.append(f"- Scope boundary: {e['scope_boundary']}")
+        lines.append(f"- Literature: {_lit_link(e['related_work_section'])}")
+        lines.append(f"- Landscape (local compendium): {_landscape_line(e)}")
         lines.append("")
     lines.extend(_reverse_indexes(data["entries"]))
     lines.extend(_bibliography_section(data))
@@ -641,7 +641,7 @@ def main(argv: list[str]) -> int:
         if current != rendered:
             print(
                 "ERROR: docs/research/research_control_matrix.generated.md is "
-                "stale — run: python scripts/generate_research_control_matrix.py",
+                "stale; run: python scripts/generate_research_control_matrix.py",
                 file=sys.stderr,
             )
             return 1

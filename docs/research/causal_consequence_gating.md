@@ -21,15 +21,15 @@ Pre-execution governance should ask "what does executing this action cause?"
 
 ## Rules
 
-- read-only → no state change, blast radius none/local, loss ≤ 0.1
-- tenant-scoped write → tenant radius, loss 0.2–0.4
-- production mutation → production radius, loss 0.5–0.8
-- destructive production / security disable / financial transfer / safety-
-  critical → loss ≥ 0.8
-- DNS/firewall/security changes → system (production when prod-targeted)
-- external email/webhook/payment → external (cannot be recalled)
-- unknown environment + mutation → blast radius `unknown`, causal uncertainty
-  ≥ 0.8, unknown is not safe
+| Action class | Consequence |
+|---|---|
+| read-only | no state change, blast radius none/local, loss ≤ 0.1 |
+| tenant-scoped write | tenant radius, loss 0.2–0.4 |
+| production mutation | production radius, loss 0.5–0.8 |
+| destructive production / security disable / financial transfer / safety-critical | loss ≥ 0.8 |
+| DNS/firewall/security changes | system (production when prod-targeted) |
+| external email/webhook/payment | external (cannot be recalled) |
+| unknown environment + mutation | blast radius `unknown`, causal uncertainty ≥ 0.8, unknown is not safe |
 - bulk scope widens the radius one step
 
 ## How it routes

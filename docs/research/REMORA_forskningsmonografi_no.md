@@ -69,13 +69,13 @@ REMORA behandler derfor ikke modellens egen sikkerhet eller forklaring som tilst
 
 De sentrale designmålene er:
 
-1. **Pre-execution kontroll:** Beslutningen tas før verktøyet får effekt.
-2. **Deterministisk sikkerhetsgulv:** Enkelte forhold kan aldri overstyres av sannsynlighet, konsensus eller modellselvsikkerhet.
-3. **Konservativ usikkerhet:** Manglende grunnlag skal føre mot `VERIFY`, `ABSTAIN` eller `ESCALATE`, ikke automatisk utførelse.
-4. **Eksakt binding:** En tillatelse gjelder bestemt tenant, aktør, verktøy, argumentsett, miljø og policytilstand.
-5. **Én beslutningskilde:** Avgjørelse og forklaring skal bygge på samme ordnede regelstige.
-6. **Reviderbarhet:** Hvert utfall skal kunne spores til observasjon, regler, evidens og artefakter.
-7. **Falsifiserbar forskning:** Negative og supersederte resultater skal bevares og skilles fra aktive påstander.
+1. Pre-execution kontroll: Beslutningen tas før verktøyet får effekt.
+2. Deterministisk sikkerhetsgulv: Enkelte forhold kan aldri overstyres av sannsynlighet, konsensus eller modellselvsikkerhet.
+3. Konservativ usikkerhet: Manglende grunnlag skal føre mot `VERIFY`, `ABSTAIN` eller `ESCALATE`, ikke automatisk utførelse.
+4. Eksakt binding: En tillatelse gjelder bestemt tenant, aktør, verktøy, argumentsett, miljø og policytilstand.
+5. Én beslutningskilde: Avgjørelse og forklaring skal bygge på samme ordnede regelstige.
+6. Reviderbarhet: Hvert utfall skal kunne spores til observasjon, regler, evidens og artefakter.
+7. Falsifiserbar forskning: Negative og supersederte resultater skal bevares og skilles fra aktive påstander.
 
 ---
 
@@ -362,7 +362,7 @@ accuracy var 91,2 % på 1 170 episoder.
 > forseglet spor med frossen kontrakt-/intent-pakke og semantisk
 > autoritetsgulv målte **0 av 500** native feilkall akseptert (Wilson 95 %
 > øvre grense 0,76 %). Ablasjonen på samme episoder: 24 → 6 → 0. Fire av sju
-> mål ble likevel bommet og er publisert som målt — lese-autonomi 26,6 %,
+> mål ble likevel bommet og er publisert som målt; lese-autonomi 26,6 %,
 > obtainable VERIFY 46,7 %, unobtainable ABSTAIN 63,3 %, konstruert
 > feilverktøy 1,005 % (`NEGATIVE_RESULTS.md` §39). 10,9 %-tallet er permanent
 > som degradert-autoritet-baseline, ikke som gjeldende resultat.

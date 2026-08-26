@@ -34,54 +34,6 @@
     "docs/assurance/superseded_claims.md": {
       "emdash": 6
     },
-    "docs/research/REMORA_forskningsmonografi_no.md": {
-      "bold_bullet": 7,
-      "emdash": 1
-    },
-    "docs/research/adjacent-systems-crosswalk-v2.md": {
-      "arrow": 1,
-      "emdash": 26
-    },
-    "docs/research/benchmark_round_2026_07.md": {
-      "arrow": 2,
-      "bold_bullet": 2,
-      "emdash": 16
-    },
-    "docs/research/causal_consequence_gating.md": {
-      "arrow": 7
-    },
-    "docs/research/governance_intelligence_layer.md": {
-      "bold_bullet": 3
-    },
-    "docs/research/method_alternatives_2026_07.md": {
-      "emdash": 20
-    },
-    "docs/research/misspecification_aware_governance.md": {
-      "arrow": 5
-    },
-    "docs/research/policy_generalization_risk.md": {
-      "arrow": 8
-    },
-    "docs/research/research_control_matrix.generated.md": {
-      "bold_bullet": 110,
-      "emdash": 12
-    },
-    "docs/research/research_modes.md": {
-      "arrow": 5,
-      "bold_bullet": 2,
-      "emdash": 2
-    },
-    "docs/research/routing_benchmark_v1_design.md": {
-      "bold_bullet": 1,
-      "emdash": 19
-    },
-    "docs/research/task_intent_authority_v1.md": {
-      "bold_bullet": 5,
-      "emdash": 8
-    },
-    "docs/research/verify_control_protocols.md": {
-      "emdash": 25
-    },
     "docs/validation/pilot_evaluation_protocol_v1.md": {
       "arrow": 3,
       "emdash": 11

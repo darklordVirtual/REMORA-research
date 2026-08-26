@@ -37,12 +37,12 @@
 #     are reference pointers, not code citations: validated locally when the
 #     compendium file is present (a listed id must appear in it) and SKIPPED in
 #     CI where the gitignored file is absent. Presence here never implies the
-#     work is implemented — only that it informs the line.
+#     work is implemented; only that it informs the line.
 #   compendium_note: "..."  -> used when a line has no anchor in the local
 #     landscape, to state honestly WHY (e.g. its sources sit outside the
 #     compendium's scope) instead of leaving the gap unexplained.
 # The top-level `landscape:` block below records which whole areas of the
-# compendium REMORA deliberately does NOT implement, and why — so the boundary
+# compendium REMORA deliberately does NOT implement, and why; so the boundary
 # is documented, not invisible.
 
 schema_version: "1"
@@ -264,7 +264,7 @@ entries:
     evidence: >-
       Regime classification (ordered/critical/disordered) and selective-trust
       routing exist as tested library code. NOT evidence of runtime effect:
-      verified 2026-08-07 that no governed path populates these signals —
+      verified 2026-08-07 that no governed path populates these signals -
       servers/api.py never references the consensus state,
       servers/execution_api.py passes trust_score=None and phase=None, and
       build_full_observation leaves the fields at their None defaults, so the

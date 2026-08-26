@@ -26,17 +26,17 @@ all. This is the largest single capability gap in the crosswalk."*
 
 **Evidence at HEAD.**
 
-- `remora/policy/observation.py:187` — `argument_tainted: bool`, documented as
-  "the call's arguments derive from untrusted input → never auto-accept".
-- `remora/policy/observation.py:293` — `untrusted_controlled_arguments:
+- `remora/policy/observation.py:187`: `argument_tainted: bool`, documented as
+  "the call's arguments derive from untrusted input, never auto-accept".
+- `remora/policy/observation.py:293`: `untrusted_controlled_arguments:
   tuple[str, ...]`, documented as meaningful only with `argument_tainted`, and
   as distinguishing untrusted content that is *authorising* from untrusted
   content that is merely *informing*.
-- `remora/policy/decision_engine.py:192-207` — a tainted-argument floor with
+- `remora/policy/decision_engine.py:192-207`: a tainted-argument floor with
   sink discrimination via `_controls_sensitive_argument()`, and a
   tier-dependent branch recorded as an explicit decision (issue #40,
   2026-07-30).
-- `remora/policy/decision_engine.py:1263`, `1715` — the check is a recorded
+- `remora/policy/decision_engine.py:1263`, `1715`: the check is a recorded
   reason (`tainted_argument_check`, `TAINTED_ARGUMENT_VERIFY` /
   `taint_floor`), not an internal heuristic.
 - `tests/test_untrusted_provenance.py`, `tests/test_tainted_argument_approval_contract.py`.
@@ -53,7 +53,7 @@ specific axis of *sink constraints* it is comparable to Janus. v1 was wrong.
    presents as untainted at the sink.
 2. **Caller authority over the label.** `Observation.from_record()`
    (`observation.py:509`) builds `argument_tainted` from a caller-supplied
-   record. The agent — or whatever assembles the observation — is currently
+   record. The agent (or whatever assembles the observation) is currently
    authoritative for its own taint status.
 
 Of the two, (2) is the more serious and was invisible to v1's framing. Adding
@@ -73,7 +73,7 @@ proposed as filling an absence.
 
 - identity and accountability, verification failing closed when accountability
   is absent;
-- a delegation chain with capability attenuation on subset semantics —
+- a delegation chain with capability attenuation on subset semantics;
   verification *rejects any link that widens scope*, and wildcards are
   deliberately unsupported because a wildcard grant cannot be attenuated
   safely (`a2a_envelope.py:42`);
@@ -85,8 +85,8 @@ proposed as filling an absence.
 
 **Corrected reading.** REMORA already implements principal-bound keys,
 attenuation, replay protection and payload binding. v1 was wrong. Note also
-that v1's headline recommendation — "adopt decision-os-min's attenuation, it is
-the strongest single idea available to steal" — was largely redundant: REMORA
+that v1's headline recommendation ("adopt decision-os-min's attenuation, it is
+the strongest single idea available to steal") was largely redundant: REMORA
 already has intersection-style narrowing on the A2A path. What decision-os-min
 genuinely has and REMORA does not is *asymmetric* signing (§1.6, ADR-A).
 
@@ -112,14 +112,14 @@ model. Not implemented; recorded as P1 research.
 payloads and tenant-chain adapters all exist. More to the point, the guide
 already states the limitation v1 "discovered", and states it more precisely
 than v1 did: external transparency-log / WORM publishing is *"not implemented
-(slice 2 — REM-025 remains open)"*, and the guide explicitly declines to claim
+(slice 2; REM-025 remains open)"*, and the guide explicitly declines to claim
 tamper resistance without it. REMORA's own claim discipline had already
 recorded this correctly.
 
 **What is actually missing.** Only the publisher and the external verifier. The
 sharp question is the one v1 never asked: *can an operator with full write
 access to REMORA's own storage rewrite history and produce a replacement
-internally-consistent chain?* Today, yes — every root is recomputable from data
+internally-consistent chain?* Today, yes; every root is recomputable from data
 that same operator controls. Recorded as ADR-E; not implemented in this pass.
 
 ### 1.4 "TOCTOU resistance absent" — OVER-GENERALISED
@@ -136,7 +136,7 @@ identity. `verify_binding()` re-checks each with `hmac.compare_digest` and
 returns named refusals (`toolspec_hash_mismatch` and siblings) immediately
 before execution.
 
-**Corrected reading — F must be split.**
+**Corrected reading: F must be split.**
 
 | Class | Drift | Covered at HEAD |
 |---|---|---|
@@ -165,11 +165,11 @@ covered at the listed scope, F2 open" is the accurate one.
 v1 folded ambient bypass and runtime trust-base integrity into a single
 candidate property H. They answer different questions and fail differently.
 
-- **E2 — Ambient / Alternate-Path Execution Integrity.** *Can the governed
+- **E2, Ambient / Alternate-Path Execution Integrity.** *Can the governed
   actor reach the protected effect by a path that does not traverse the PEP?*
   Failure mode: the decision was never consulted. decision-os-min's TM-A probe
   is evidence for this and only this.
-- **H — Runtime Trust-Base Integrity.** *Was the authority decision evaluated
+- **H, Runtime Trust-Base Integrity.** *Was the authority decision evaluated
   against the same runtime/deployment trust base that actually executed?*
   Failure mode: the decision was consulted, was correct, and executed somewhere
   else. Cloudflare rollout identity is evidence for this and only this.
@@ -183,7 +183,7 @@ discriminating test, which determines whether H earns its place at all.
 ALREADY STRONGER than every comparator: *"No database credential exists in the
 container at all."*
 
-**Evidence at HEAD.** `workers/mcp-gateway/src/index.ts:37-97` — the container's
+**Evidence at HEAD.** `workers/mcp-gateway/src/index.ts:37-97`, the container's
 `envVars` are populated from Worker secrets including:
 
 ```
@@ -195,7 +195,7 @@ REMORA_AUDIT_SIGNING_KEY REMORA_ENVELOPE_SIGNING_KEY
 **Corrected reading.** The narrow claim that survives is: *knowledge-graph state
 is reached through a Worker binding (`outboundByHost`), and a binding cannot be
 read out of the process and replayed elsewhere.* That is true, and it is worth
-keeping — but it covers one state path, not the container, and it was
+keeping; but it covers one state path, not the container, and it was
 generalised into a claim the code contradicts.
 
 **The finding v1 inverted.** The execution container holds
@@ -228,8 +228,8 @@ Not everything was wrong. These hold up against HEAD:
   honest about it.
 - **The bundle-hash binding of tool metadata** is a genuine differentiator no
   comparator replicates.
-- **The four-decision model** — specifically ABSTAIN ("nothing here for a human
-  to decide") versus ESCALATE ("a human must decide") — has no equivalent in
+- The four-decision model, specifically ABSTAIN ("nothing here for a human
+  to decide") versus ESCALATE ("a human must decide"), has no equivalent in
   the set.
 - **Invariant's dataflow claim does not hold at code tier.**
   `analyzer/runtime/input.py` builds a sequential graph per top-level list;
@@ -250,17 +250,17 @@ The discriminating case, per the brief:
 
 > At authorization: ToolSpec T1, policy P1, runtime R1. No drift before
 > authorization. At execution: arguments unchanged, target unchanged, policy
-> still P1, ToolSpec *declaration* still T1 — but the runtime implementation is
+> still P1, ToolSpec *declaration* still T1; but the runtime implementation is
 > R2.
 
 Walked against HEAD:
 
-- **C (Exact-Call Integrity)** — passes. `tool_args_hash` matches; the call is
+- C (Exact-Call Integrity): passes. `tool_args_hash` matches; the call is
   the authorized call.
-- **F1** — passes. Every bound field matches, including `toolspec_hash` and
+- F1: passes. Every bound field matches, including `toolspec_hash` and
   `toolspec_version`: the *declaration* did not change.
-- **E** — passes. The call traversed the PEP; no alternate path was used.
-- **E2** — passes. No ambient bypass occurred.
+- E: passes. The call traversed the PEP; no alternate path was used.
+- E2: passes. No ambient bypass occurred.
 
 Every existing property reports success while the action executed against an
 implementation nobody authorized. **H is not reducible to A–G as REMORA
@@ -272,13 +272,13 @@ The conservative move is to record H as a **candidate with a discriminating
 test**, and to require an implemented `RuntimeTrustBaseIdentity` bound into the
 lease before either is claimed. Neither is claimed in this pass.
 
-**Proposal for `docs/benchmarks/agent-authority-conformance-v0.1.md` — not yet
+**Proposal for `docs/benchmarks/agent-authority-conformance-v0.1.md`, not yet
 applied.** Vocabulary changes need review, not a silent edit:
 
 1. Record F with explicit scope: `F1` internal authorization-state drift,
    `F2` external implementation/runtime drift. Do not renumber A–G.
 2. Record E2 as a **declared scope under E**, not a new letter. It answers the
-   same question E asks — did the effect traverse the boundary — at a different
+   same question E asks (did the effect traverse the boundary) at a different
    layer.
 3. Hold H as a candidate. Admit it only when the discriminating test above runs
    against an implementation and fails without it.
