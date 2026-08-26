@@ -4,7 +4,7 @@
 > commit `cc567fc` (2026-06-05) of the *main implementation repo* and has not
 > been revalidated since; sections describing the research-repo control plane
 > (execution API, durable stores, enforcement) lag the current code. It is a
-> supporting reference for AROMER concepts, not the status authority — current
+> supporting reference for AROMER concepts, not the status authority; current
 > wiring status lives in `docs/assurance/capability_register_v1.yaml`, current
 > claims in `docs/assurance/claim_register_v1.yaml`.
 
@@ -70,35 +70,35 @@ AROMER (Autonomous Risk-Oriented Meta-Evaluator and Reasoner) wraps RemoraDecisi
 
 The engine maps a `PolicyObservation` to a `DecisionReport` through a strict priority-ordered rule chain:
 
-1. **Hard blocks (highest priority, fire first):**
+1. Hard blocks (highest priority, fire first):
    - `adversarial_detected` → ESCALATE
    - `counterfactual_passed == False` → ESCALATE
    - `evidence_contradictions > 0` + `contradiction_cycles > 0` → ESCALATE
    - `evidence_contradictions > 0` (no cycles) → ABSTAIN
-   - `refuse_parametric_verdict` and no evidence → VERIFY
+   - `refuse_parametric_verdict` and no evidence: VERIFY
    - `distribution_shift_detected` → VERIFY
    - `phase == "critical"` and `risk_tier == "critical"` → ESCALATE
    - Production write (destructive/delete/financial) on `critical` → ESCALATE
    - Production write on `high` → VERIFY
-   - High/critical risk with no evidence → VERIFY
+   - High/critical risk with no evidence: VERIFY
 
-2. **Accept paths (after hard blocks pass):**
-   - Mondrian per-phase conformal threshold met → ACCEPT
-   - Marginal conformal trust threshold met → ACCEPT
-   - Temperature below threshold → ACCEPT
-   - Evidence-supported with confidence ≥ 0.70, ordered phase or high trust → ACCEPT
+2. Accept paths (after hard blocks pass):
+   - Mondrian per-phase conformal threshold met: ACCEPT
+   - Marginal conformal trust threshold met: ACCEPT
+   - Temperature below threshold: ACCEPT
+   - Evidence-supported with confidence ≥ 0.70, ordered phase or high trust: ACCEPT
    - Ordered phase + trust_score ≥ 0.72 → ACCEPT
 
-3. **Verify paths:**
+3. Verify paths:
    - `phase == "critical"` → VERIFY
-   - `require_rag` with no evidence → VERIFY
+   - `require_rag` with no evidence: VERIFY
    - `claim_graph_betti_1 > 0` → VERIFY
 
-4. **Abstain paths:**
-   - Disordered phase + no evidence → ABSTAIN
-   - trust_score < 0.20 + no evidence → ABSTAIN
+4. Abstain paths:
+   - Disordered phase + no evidence: ABSTAIN
+   - trust_score < 0.20 + no evidence: ABSTAIN
 
-5. **Default:** ABSTAIN (fail-safe)
+5. Default: ABSTAIN (fail-safe)
 
 ### 4.2 PolicyObservation
 
@@ -145,7 +145,7 @@ Three domain evidence providers are implemented:
 Defines the boundary types carrying GO-STAR proprietary scanner findings into REMORA's public governance layer:
 - `TargetScanProfile`: authorized scan scope
 - `ResearchArtifactRef`: SHA-256-only reference to vault artifacts (no exploit payloads)
-- `DisclosureLedger`: six-stage capability ladder (COVERAGE_HIT → REPORT_READY), forward-only
+- `DisclosureLedger`: six-stage capability ladder (COVERAGE_HIT through REPORT_READY), forward-only
 - `CyberFindingEnvelope`: primary bridge type; `apply_remora()` returns verdict without mutating original
 
 Boundary rule: `CyberFindingEnvelope` must never carry exploit payloads, weaponized PoC code, or credential values.
@@ -201,7 +201,7 @@ Bayesian Beta conjugate prior over P(harm | domain, action_type, risk_tier). Key
 
 - Uniform prior (alpha=1, beta=1) per context key
 - Max trust adjustment: ±20% (`_SENSITIVITY = 0.20`)
-- Update weights by `DecisionQuality`: CORRECT_BLOCK/FALSE_ACCEPT → weight=1.0; CORRECT_ACCEPT/FALSE_BLOCK → weight=1.0; CORRECT_INTERCEPT_VERIFY → weight=0.25; BENIGN_REVIEW → weight=0.25; ABSTAIN_UNKNOWN → no update
+- Update weights by `DecisionQuality`: CORRECT_BLOCK/FALSE_ACCEPT gives weight=1.0; CORRECT_ACCEPT/FALSE_BLOCK gives weight=1.0; CORRECT_INTERCEPT_VERIFY gives weight=0.25; BENIGN_REVIEW gives weight=0.25; ABSTAIN_UNKNOWN → no update
 - Shadow mode: computes adjustment but returns original trust (safe monitoring before committing)
 - Confidence levels: LOW (n<5), MEDIUM (5-19), HIGH (n≥20); `policy_ready` requires HIGH
 
@@ -416,8 +416,8 @@ This reveals a significant gap: the live Workers AI oracle achieves only 0.480 d
 
 These are the original REMORA selective-QA results, not AROMER-specific:
 
-- **N=302 selective trust:** 94.74% accuracy at 25% coverage vs 82.78% majority baseline. Wilson CI95 [0.8723, 0.9793]. Artifact: `results/selective_trust_curve_results.json`.
-- **N500 selective guardrail (544 items):** 88.78% accuracy at 18% coverage vs 41.18% majority baseline. **Caveat: 18% threshold is derived in-sample on the same 544-item artifact.** Artifact: `results/end_to_end_n500_v3.json`.
+- N=302 selective trust: 94.74% accuracy at 25% coverage vs 82.78% majority baseline. Wilson CI95 [0.8723, 0.9793]. Artifact: `results/selective_trust_curve_results.json`.
+- N500 selective guardrail (544 items): 88.78% accuracy at 18% coverage vs 41.18% majority baseline. **Caveat: 18% threshold is derived in-sample on the same 544-item artifact.** Artifact: `results/end_to_end_n500_v3.json`.
 
 ### 10.6 Tool-Call Benchmark v2
 

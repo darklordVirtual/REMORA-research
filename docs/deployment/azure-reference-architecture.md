@@ -149,12 +149,12 @@ az containerapp update --name remora-assurance --resource-group rg-remora \
 ```
 
 The Flexible Server provisioned in step 1 carries both stores: the durable
-DecisionEnvelope store (`REMORA_CONTROL_PLANE_DSN`) and the execution state —
+DecisionEnvelope store (`REMORA_CONTROL_PLANE_DSN`) and the execution state;
 tenant audit chain, review queue, one-time-grant ledger (`REMORA_PG_DSN`).
 Production mode refuses to start without them; without durable state a
 consumed grant becomes replayable across container restarts. Keep signing
 keys in Key Vault like the API keys above. The tool registry module is
-deployment-owned code baked into the image — request payloads can never add
+deployment-owned code baked into the image; request payloads can never add
 or replace callables. Full walkthrough and verification round:
 [`execution-quickstart.md`](execution-quickstart.md).
 
@@ -229,7 +229,7 @@ Total dev environment: ~$160/month (excluding LLM usage).
 
 ## Compliance Notes
 
-- **Data residency:** All REMORA components can be deployed within a single Azure region (e.g., Norway East) to satisfy data sovereignty requirements.
-- **Audit trail:** The reference audit-ledger schema (row-level security and append-only constraints) is provisioned as part of deployment and is compatible with Azure SQL. REMORA's committed audit mechanism is the hash-chained tenant audit (`remora/audit/`).
-- **Model governance:** Azure OpenAI provides content filtering and usage logging. REMORA adds decision-level audit trails and policy gates on top.
-- **RBAC:** Entra ID roles map to REMORA governance layers: `remora-operator` (runtime), `remora-policy-admin` (policy changes), `remora-auditor` (read-only audit access).
+- Data residency: All REMORA components can be deployed within a single Azure region (e.g., Norway East) to satisfy data sovereignty requirements.
+- Audit trail: The reference audit-ledger schema (row-level security and append-only constraints) is provisioned as part of deployment and is compatible with Azure SQL. REMORA's committed audit mechanism is the hash-chained tenant audit (`remora/audit/`).
+- Model governance: Azure OpenAI provides content filtering and usage logging. REMORA adds decision-level audit trails and policy gates on top.
+- RBAC: Entra ID roles map to REMORA governance layers: `remora-operator` (runtime), `remora-policy-admin` (policy changes), `remora-auditor` (read-only audit access).

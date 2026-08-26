@@ -9,15 +9,15 @@ knowledge bases, and deterministic database lookups.
 **Privacy profiles (default: `local`, zero egress).** The server resolves a
 profile at startup via `REMORA_MCP_PROFILE`:
 
-- `local` (default) — no external endpoints at all; endpoint env vars are
+- `local` (default): no external endpoints at all; endpoint env vars are
   deliberately ignored, and every worker-backed tool refuses with a
   machine-readable message instead of sending anything off the machine. The
   repository tools (`remora_codegraph_scope`, `remora_repo_search`,
   `remora_session_status`) work fully offline.
-- `demo` — explicit opt-in to the public demo workers below; a disclosure is
+- `demo`: explicit opt-in to the public demo workers below; a disclosure is
   printed to stderr because tool content leaves the local environment. Never
   send sensitive or customer data on this profile.
-- `enterprise` — your own deployed endpoints; every required `*_URL` must be
+- `enterprise`: your own deployed endpoints; every required `*_URL` must be
   set or startup fails. There is no silent fallback between profiles in any
   direction. (Contract tested in `tests/test_mcp_privacy_profiles.py`.)
 
@@ -85,7 +85,7 @@ Restart Claude Desktop. The REMORA tools will appear in the tool list.
 
 An empty `env` means profile `local`: fully offline, and every worker-backed
 tool refuses without touching the network. To use remote workers, set
-`"REMORA_MCP_PROFILE": "demo"` (public demo workers — content leaves this
+`"REMORA_MCP_PROFILE": "demo"` (public demo workers; content leaves this
 machine; a disclosure is printed) or `"enterprise"` together with
 `REMORA_WORKER_URL`, `RAG_WORKER_URL` and `LAW_SEARCH_WORKER_URL`.
 
@@ -393,7 +393,7 @@ Extracts Norwegian legal citations from a document. **Existence is decided
 only by the authoritative DCE registry lookup**
 (`remora/legal/citation_existence.py`): `confirmed_authoritative`,
 `not_found_authoritative` or `cannot_verify`. The multi-oracle probe is a
-separate, clearly-labelled **advisory** signal — it can flag suspicion about a
+separate, clearly-labelled **advisory** signal; it can flag suspicion about a
 confirmed citation's claimed content, but it can never confirm or deny that a
 citation exists (unanimous, confident model agreement about a nonexistent
 citation stays unverified; regression-tested in
@@ -413,7 +413,7 @@ decisions before they enter formal documents.
 model-advisory field. Only `confirmed_authoritative` may ever be presented as
 verified existence.
 
-**Existence states (authoritative lookup only — the advisory never changes this column):**
+**Existence states (authoritative lookup only; the advisory never changes this column):**
 
 | Existence status | Meaning | Conclusion shown |
 |-----------|---------------|------------|
@@ -478,7 +478,7 @@ Retrieves the D1 audit log for a session (read-only). Returns all recorded
 tool-call verdicts, timestamps, confidence scores, and any pending actions
 awaiting human approval. Pending items can only be resolved by an independent
 human reviewer via the control plane's `POST /approvals` (verified Cloudflare
-Access identity; the proposing workload credential is refused — the old
+Access identity; the proposing workload credential is refused; the old
 `audit_decision` self-approval tool was removed 2026-08-19).
 
 **Parameters:**
@@ -544,7 +544,7 @@ D1 database) is part of DCE and requires access to the DCE Cloudflare account.
 **Without the DCE extension:**
 - `remora_norwegian_law_search` returns an error (no index bound)
 - `remora_verify_legal_citations` has no authoritative registry, so every
-  citation resolves to `cannot_verify` — the tool cannot assert existence at
+  citation resolves to `cannot_verify`, since the tool cannot assert existence at
   all (it never falls back to oracle judgement)
 
 **With the DCE extension:** both tools use real Norwegian law data. The law-search

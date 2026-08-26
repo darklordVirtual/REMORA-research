@@ -33,7 +33,7 @@ summarizes them for commercial review.
 In a customer-hosted deployment (the recommended option) all data above
 resides in the customer's own infrastructure; residency and retention are
 the customer's database policy. Deletion of audit-chain rows is detectable
-by design (hash chain + consumed-grant high-water mark) — deletion is an
+by design (hash chain + consumed-grant high-water mark); deletion is an
 operator decision that leaves evidence, not a silent operation. Export:
 evidence and lifecycle records are exportable via the API
 (`/v1/execution/proposals/{id}/evidence`) and by direct database access.

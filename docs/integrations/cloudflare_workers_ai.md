@@ -28,9 +28,9 @@ To preserve REMORA's uncertainty-routing properties, you must configure LoRAs me
 ### 1. FastGate (Stage 1) - **Highly Recommended**
 The `FastGate` relies on confident self-reflection to quickly `ACCEPT` simple, harmless queries. 
 By utilizing a Cloudflare LoRA specialized in policy gating:
-- **Cost**: Hugely reduced. You bypass AI Gateway and big model API costs.
-- **Latency**: low single-call latency matters for `PreToolUse` agent intercepts (no committed latency benchmark exists: measure in your own deployment before relying on a number).
-- **Accuracy**: A custom LoRA learns your exact `ACCEPT` criteria.
+- Cost: Hugely reduced. You bypass AI Gateway and big model API costs.
+- Latency: low single-call latency matters for `PreToolUse` agent intercepts (no committed latency benchmark exists: measure in your own deployment before relying on a number).
+- Accuracy: A custom LoRA learns your exact `ACCEPT` criteria.
 
 ```python
 from remora.cascade import CascadeEngine

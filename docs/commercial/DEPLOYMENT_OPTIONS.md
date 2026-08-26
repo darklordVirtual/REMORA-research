@@ -15,13 +15,13 @@ Requirements:
 - Python 3.12+; install from the repository (BUSL-1.1 + commercial license).
 - Durable state: `REMORA_PG_DSN` (Postgres, multi-node) or
   `REMORA_CHAIN_DB` (SQLite, single-node). Production mode refuses to start
-  without one — a volatile audit chain and grant ledger is not a pilot.
+  without one; a volatile audit chain and grant ledger is not a pilot.
 - `REMORA_API_BEARER_TOKEN` and `REMORA_API_TOKENS` for authentication and
   tenant isolation, and `REMORA_CONTROL_PLANE_DSN` (or `_DB`) for the
   DecisionEnvelope store.
-- **Two separate signing keys**, both required in production — the server
+- **Two separate signing keys**, both required in production; the server
   refuses to start without either:
-  - `REMORA_PDP_SIGNING_KEY` signs the PDP → PEP decision token, so the
+  - `REMORA_PDP_SIGNING_KEY` signs the PDP-to-PEP decision token, so the
     enforcement point can verify where an authorization came from.
   - `REMORA_ENVELOPE_SIGNING_KEY` signs each envelope's audit hash. Without
     it every audit record is written with `signature: null` and the chain is

@@ -9,7 +9,7 @@
 
 ## The question this answers
 
-`remora/aromer/` is a complete second cognitive stack — orchestrator, world
+`remora/aromer/` is a complete second cognitive stack; orchestrator, world
 model, meta-judge, experience store, evaluation harnesses. It imports the core;
 nothing in the core imports it back. Its position had never been decided, so a
 reader walking the tree counted 8,400 lines of learning machinery as part of the
@@ -17,7 +17,7 @@ product surface.
 
 Two options were on the table: move it to `remora/research_attic/`, or name it
 as a subproject. **Named subproject was chosen.** AROMER is not retained
-history — it is under active development with its own research programme — and
+history (it is under active development with its own research programme) and
 the attic is for modules with no ongoing role.
 
 ## What "named subproject" means here
@@ -45,7 +45,7 @@ the attic is for modules with no ongoing role.
 
 The boundary test is the tripwire. If a core module ever needs to import
 AROMER, that is not a test to relax: it means the overlay has become part of
-the decision path, and it must instead be promoted deliberately — a capability
+the decision path, and it must instead be promoted deliberately; a capability
 register entry, a stated wiring status, and the claim discipline that comes with
 being on the enforcing path.
 

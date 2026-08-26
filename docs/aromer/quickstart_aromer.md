@@ -11,8 +11,8 @@ Research-grade and experimental, not production-certified.
 python examples/aromer_quickstart.py
 ```
 
-This runs the full loop locally: three governance decisions → ground-truth
-recording → one adaptation cycle → world-model summary. Everything is written
+This runs the full loop locally: three governance decisions, ground-truth
+recording, one adaptation cycle, world-model summary. Everything is written
 to a temp episodic store; nothing leaves your machine.
 
 The same loop in your own code:

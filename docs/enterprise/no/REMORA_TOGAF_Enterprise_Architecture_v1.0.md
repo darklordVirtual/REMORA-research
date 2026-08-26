@@ -145,13 +145,13 @@ REMORA har en tydelig og differensiert kjernearkitektur: deterministiske hard gu
 
 ## Forretningsmessig bruk
 
-- **Enterprise pilot:** governance gate foran en avgrenset agentisk arbeidsflyt med tydelige exit-kriterier.
+- Enterprise pilot: governance gate foran en avgrenset agentisk arbeidsflyt med tydelige exit-kriterier.
 
-- **Platform-as-a-control:** felles policy- og auditlag for flere agentrammeverk og modellleverandører.
+- Platform-as-a-control: felles policy- og auditlag for flere agentrammeverk og modellleverandører.
 
-- **Compliance evidence service:** DecisionEnvelope, traceability og replay som grunnlag for internkontroll og regulatorisk dokumentasjon.
+- Compliance evidence service: DecisionEnvelope, traceability og replay som grunnlag for internkontroll og regulatorisk dokumentasjon.
 
-- **OEM / SDK licensing:** stabil, hash-pinnet SDK-overflate for produktleverandører som bygger egne agentprodukter.
+- OEM / SDK licensing: stabil, hash-pinnet SDK-overflate for produktleverandører som bygger egne agentprodukter.
 
 <table>
 <colgroup>

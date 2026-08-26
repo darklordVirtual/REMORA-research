@@ -102,7 +102,7 @@ The hook works without live API calls. In offline mode:
 When `AGENT_CONTROL_SECRET` is configured, the hook can call the optional
 agent-control service for REMORA claim verification before high-risk actions.
 
-Strict high-risk behaviour is the default. To relax it — for local
+Strict high-risk behaviour is the default. To relax it; for local
 development only, never on a machine with production credentials:
 
 ```bash

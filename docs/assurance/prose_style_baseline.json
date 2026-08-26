@@ -43,34 +43,6 @@
     "data/routing_bench_holdout/HOLDOUT_STATUS.md": {
       "emdash": 4
     },
-    "datasets/ai_governance_v1/README.md": {
-      "arrow": 2
-    },
-    "datasets/aromer_external_holdout_v1/README.md": {
-      "arrow": 4,
-      "bold_bullet": 2
-    },
-    "datasets/finance_v1/README.md": {
-      "arrow": 3
-    },
-    "datasets/remora_knowledge_v1/static_rag/agent_security/owasp_llm_top10_policy_map.md": {
-      "arrow": 3
-    },
-    "datasets/remora_knowledge_v1/static_rag/ai_governance/nist_ai_rmf_summary.md": {
-      "arrow": 3
-    },
-    "datasets/remora_knowledge_v1/static_rag/audit_provenance/w3c_prov_summary.md": {
-      "arrow": 3,
-      "bold_bullet": 7
-    },
-    "datasets/remora_knowledge_v1/static_rag/grid_operations/grid_ai_operations_summary.md": {
-      "arrow": 4,
-      "bold_bullet": 5
-    },
-    "datasets/remora_knowledge_v1/static_rag/kubernetes_iac/kubernetes_admission_control_summary.md": {
-      "arrow": 4,
-      "bold_bullet": 8
-    },
     "docs/04-negative-results-detail.md": {
       "arrow": 4
     },
@@ -78,15 +50,7 @@
       "emdash": 7
     },
     "docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md": {
-      "arrow": 15,
-      "bold_bullet": 7,
-      "emdash": 1
-    },
-    "docs/aromer/SUBPROJECT.md": {
-      "emdash": 4
-    },
-    "docs/aromer/quickstart_aromer.md": {
-      "arrow": 3
+      "arrow": 1
     },
     "docs/assurance/documentation_governance_v1.md": {
       "emdash": 1
@@ -125,54 +89,6 @@
     "docs/cli.md": {
       "emdash": 8
     },
-    "docs/commercial/DATA_HANDLING.md": {
-      "emdash": 1
-    },
-    "docs/commercial/DEPLOYMENT_OPTIONS.md": {
-      "arrow": 1,
-      "emdash": 2
-    },
-    "docs/commercial/PRODUCT_PACKAGING.md": {
-      "emdash": 1
-    },
-    "docs/commercial/SECURITY_OVERVIEW.md": {
-      "emdash": 2
-    },
-    "docs/commercial/SHADOW_PILOT.md": {
-      "emdash": 9
-    },
-    "docs/deployment/authority-custody-evidence.md": {
-      "emdash": 17
-    },
-    "docs/deployment/authority-key-topology.md": {
-      "emdash": 5
-    },
-    "docs/deployment/azure-reference-architecture.md": {
-      "bold_bullet": 4,
-      "emdash": 2
-    },
-    "docs/deployment/container-reference.md": {
-      "emdash": 5
-    },
-    "docs/deployment/execution-quickstart.md": {
-      "arrow": 3,
-      "emdash": 9
-    },
-    "docs/deployment/onprem-airgapped.md": {
-      "bold_bullet": 1,
-      "emdash": 1
-    },
-    "docs/enterprise/audit-anchoring-guide.md": {
-      "bold_bullet": 6,
-      "emdash": 9
-    },
-    "docs/enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md": {
-      "bold_bullet": 4
-    },
-    "docs/enterprise/togaf-enterprise-rollout-plan.md": {
-      "arrow": 8,
-      "bold_bullet": 15
-    },
     "docs/evidence/causal_policy_explanations.md": {
       "arrow": 1
     },
@@ -192,31 +108,11 @@
     "docs/governance/eu_ai_act_nsm_mapping.md": {
       "emdash": 1
     },
-    "docs/integrations/agent_tool_hook.md": {
-      "emdash": 1
-    },
-    "docs/integrations/cloudflare_workers_ai.md": {
-      "bold_bullet": 3
-    },
-    "docs/integrations/mcp-gateway.md": {
-      "emdash": 34
-    },
-    "docs/integrations/mcp-integration.md": {
-      "emdash": 8
-    },
-    "docs/integrations/rag_oracle.md": {
-      "bold_bullet": 7
-    },
     "docs/methods/nested_governance.md": {
       "emdash": 1
     },
     "docs/methods/theoretical_foundations_proposals_v1.md": {
       "arrow": 3
-    },
-    "docs/reference_architecture.md": {
-      "arrow": 5,
-      "bold_bullet": 9,
-      "emdash": 2
     },
     "docs/research/REMORA_forskningsmonografi_no.md": {
       "bold_bullet": 7,
@@ -283,18 +179,9 @@
     "docs/use-cases/building-automation.md": {
       "emdash": 1
     },
-    "docs/validation/EXTERNAL_VALIDATION_PLAN.md": {
-      "emdash": 2
-    },
-    "docs/validation/external-review.md": {
-      "emdash": 4
-    },
     "docs/validation/pilot_evaluation_protocol_v1.md": {
       "arrow": 3,
       "emdash": 11
-    },
-    "docs/validation/review_checklist.md": {
-      "arrow": 1
     },
     "paper/claim_ledger.md": {
       "emdash": 2

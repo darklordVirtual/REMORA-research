@@ -85,8 +85,8 @@ assumed: `wrangler containers list` reports both `LAST MODIFIED` inside the
 deploy window, and the image digest moved. It matters because §45 records a
 deployment where only the Worker changed, the running containers were kept, and
 three consecutive "fixes" were tested against the old configuration. The
-Python-side changes here — the executor domain guard, the exclusive outbox
-claim, the ToolSpec binding — live in the image, not in the Worker, so a kept
+Python-side changes here (the executor domain guard, the exclusive outbox
+claim, the ToolSpec binding) live in the image, not in the Worker, so a kept
 container would have meant none of them was deployed at all.
 
 Both halves run the **same image digest**. The authority/execution asymmetry is
@@ -98,13 +98,13 @@ entirely in `envVars`, which is the design and is what
 Four were planned. Three ran and passed. The fourth could not run, and the
 reason is recorded rather than the check being quietly dropped.
 
-**1. Health — PASSED.** `GET /health` returned 200 with
+**1. Health: PASSED.** `GET /health` returned 200 with
 `transport: "container"`, `jurisdiction: "eu"`,
 `execution_state: "durable (D1 binding)"` and **no `warning` key**. The warning
 is emitted whenever execution state is ephemeral, so its absence is the
 assertion, not its content.
 
-**2. Custody boundary — PASSED in the direction that is observable.** A
+**2. Custody boundary: PASSED in the direction that is observable.** A
 governed read (`kg_list_predicates` over
 `urn:exeqta:tenant:luftfiber:business`, intent `task:survey-business-graph`)
 returned `decision: accept`, `status: executed`, `executed=true`,
@@ -125,7 +125,7 @@ never received the variable would default to `authority` and would also have
 answered this call successfully; the two are **not distinguishable from here**.
 Stated so that nobody later reads check 2 as more than it is.
 
-**3. MCP outcome correctness — PASSED on the success path.** The response
+**3. MCP outcome correctness: PASSED on the success path.** The response
 carried `status: "executed"` **derived from the body** rather than from the
 transport status, `isError: false`, and **no `explanation` key**. The absent
 explanation is the assertion: §53 requires prose on every outcome except the
@@ -137,7 +137,7 @@ fields are being produced by the deployed dispatcher.
 on the deployment would mean breaking something on purpose. They rest on the
 gateway unit tests, seven of which fail if the mapping is reverted.
 
-**4. ToolSpec mismatch — NOT RUN. The check is currently unsatisfiable.**
+**4. ToolSpec mismatch: NOT RUN. The check is currently unsatisfiable.**
 `wrangler secret list` shows no `REMORA_TOOLSPEC_*` secret and `wrangler.toml`
 declares none, so **no ToolSpec bundle exists in this deployment**. The
 authority's bundle env sits behind a conditional spread that is therefore
@@ -148,7 +148,7 @@ proceeds without a spec comparison.
 The RMR-004 binding (§54) is therefore **implemented and inert on this
 deployment**. A negative `toolspec_hash_mismatch` test would have produced a
 successful dispatch, and reporting that as a passed negative test would have
-been false. This is not a new gap — §8 already records that the signed-ToolSpec
+been false. This is not a new gap; §8 already records that the signed-ToolSpec
 cloud path is not implemented and that `controlled_pilot` prerequisites do not
 hold. It is restated here because a reader of §54 would otherwise reasonably
 assume the check is live.
@@ -156,7 +156,7 @@ assume the check is live.
 ### Durable one-time consumption, re-confirmed on this build
 
 `lease_nonce_consumed` on D1 `remora-execution-state` (region `EEUR`, colo
-`ARN`) shows a nonce consumed at `2026-08-24 18:51:23` for tenant `eu-pilot` —
+`ARN`) shows a nonce consumed at `2026-08-24 18:51:23` for tenant `eu-pilot`;
 five minutes after container replacement, so it was written by the new build
 rather than carried over.
 
@@ -246,14 +246,14 @@ were run here.
 It shows the consumed-nonce record survives container replacement, and that
 re-presenting a spent nonce is refused by the real backend. The refusal is
 produced by the same SQL and the same duplicate-classification path the
-dispatcher uses, and the error text above is the one `_is_duplicate()` matches —
+dispatcher uses, and the error text above is the one `_is_duplicate()` matches;
 so the classifier is confirmed against D1's actual message rather than against a
 fake.
 
 It does **not** show a full end-to-end lease replay through `/mcp`, because the
 lease is internal to the container and is never exposed to an MCP caller: there
 are no "same lease bytes" for an external client to re-present. The externally
-reachable equivalent — re-redeeming a proposal — was already evidenced
+reachable equivalent (re-redeeming a proposal) was already evidenced
 previously as `unknown_proposal`.
 
 ---
@@ -284,7 +284,7 @@ two legitimate `eu-pilot` rows.
 deleted. `tests/test_lease_authority_custody.py::test_the_deployed_symmetric_topology_permits_forgery`
 still runs and still asserts that a component holding what the old deployment's
 container held mints a lease for a different tool, arguments, tenant and target
-— and that it verifies. It is the *before* half of the evidence and must not be
+and that it verifies. It is the *before* half of the evidence and must not be
 removed when it becomes historical.
 
 **After the split**, the same forgery is refused, at issuance and at
@@ -296,7 +296,7 @@ to hold where the execution path actually checks.
 ### What was verified against the deployment, and what was not
 
 The library tests establish the mechanism. They cannot, by themselves, establish
-that the deployed executor lacks the private key — that is a configuration fact.
+that the deployed executor lacks the private key; that is a configuration fact.
 Three things were done instead, and each is stated for what it is:
 
 1. **Configuration, pinned by test.** `workers/mcp-gateway/test/custody.test.ts`
@@ -307,7 +307,7 @@ Three things were done instead, and each is stated for what it is:
    was asserting; it now strips comments and tests only assignments.
 
 2. **The symmetric key was deleted from the secret store.** Not merely
-   unreferenced — `wrangler secret delete REMORA_LEASE_SIGNING_KEY`, confirmed
+   unreferenced; `wrangler secret delete REMORA_LEASE_SIGNING_KEY`, confirmed
    absent from `wrangler secret list`. There is no HMAC lease key anywhere in
    the deployment to fall back to.
 
@@ -321,7 +321,7 @@ Three things were done instead, and each is stated for what it is:
 
 **What this does not prove.** No code was executed inside the deployed execution
 container to attempt a mint from within it. The claim rests on the configuration
-test, the deletion of the symmetric key, and the behavioural result above — not
+test, the deletion of the symmetric key, and the behavioural result above; not
 on an in-container attack. A reviewer who wants that stronger evidence would
 need a debug surface the deployment deliberately does not have.
 
@@ -350,7 +350,7 @@ Six concurrent consumers of one nonce against the live EEUR database: **exactly
 one winner**, five refused. Test rows removed afterwards.
 
 Container replacement was demonstrated before the split (§3) and its mechanism
-is unchanged — the ledger is in D1, external to both containers by construction.
+is unchanged; the ledger is in D1, external to both containers by construction.
 It was not re-run after the split, and is therefore carried forward as evidence
 for the mechanism rather than re-asserted for this topology.
 
@@ -395,7 +395,7 @@ an approver credential is available.
 ## 8. What is NOT claimed
 
 - **Not** that REMORA cannot be bypassed. The execution container holds the
-  downstream credentials, by design — it is the component that causes effects.
+  downstream credentials, by design; it is the component that causes effects.
   A compromise there cannot forge authority and **can** still call the
   downstream system directly. That is the ambient-bypass property (E2), it is
   untouched by splitting keys, and the source says so where someone changing it

@@ -161,7 +161,7 @@ approval freshness re-gate, lease-bound dispatch through
   single node) or `REMORA_PG_DSN` against the local PostgreSQL. Without one,
   a consumed execution grant becomes replayable after a process restart, and
   production mode refuses to start.
-- **Durable envelope store**: `REMORA_CONTROL_PLANE_DB=<path>.db` or
+- Durable envelope store: `REMORA_CONTROL_PLANE_DB=<path>.db` or
   `REMORA_CONTROL_PLANE_DSN`.
 - **A deployment-owned tool registry** (`REMORA_TOOL_REGISTRY_MODULE`);
   request payloads can never add or replace callables. Template:
@@ -169,7 +169,7 @@ approval freshness re-gate, lease-bound dispatch through
 - **Signing keys** (`REMORA_PDP_SIGNING_KEY`, `REMORA_LEASE_SIGNING_KEY`,
   `REMORA_AUDIT_SIGNING_KEY`, `REMORA_ENVELOPE_SIGNING_KEY`) generated and
   stored on-box; no external KMS dependency exists (that is also the current
-  gap — see `docs/assurance/rbac_policy_v1.md`).
+  gap; see `docs/assurance/rbac_policy_v1.md`).
 
 The whole execution round works offline: decisions, grants, dispatch and
 chain verification make no external calls. Walkthrough:

@@ -299,16 +299,16 @@ The x-axis is *coverage*, the fraction of incoming queries REMORA chooses to
 answer rather than abstain. The y-axis is *precision* on those answered queries.
 Shaded bands are 95% Wilson confidence intervals.
 
-- **REMORA (no RAG), blue solid line:** Without the RAG oracle the
+- REMORA (no RAG), blue solid line: Without the RAG oracle the
   precision-coverage curve forms an inverted-U. It peaks at **88.8% precision
   at 18% coverage**, but as coverage rises REMORA must include progressively
   less-certain items. Precision collapses to **30% at 60% coverage**.
-- **REMORA + RAG, orange dashed line:** The RAG oracle answers items where
+- REMORA + RAG, orange dashed line: The RAG oracle answers items where
   the LLM ensemble abstains. The curve stays **flat at 79–83% across all
   coverage levels from 25% to 60%**. RAG does not improve precision on
   already-confident LLM items, its value is exclusively in preventing the
   collapse at higher coverage.
-- **Baseline: grey dotted line:** Unfiltered majority vote: 41.18%.
+- Baseline: grey dotted line: Unfiltered majority vote: 41.18%.
 
 > **Key finding:** The RAG oracle converts a narrow high-precision window
 > (88.8% @ 18%) into a wide, stable operating region (≥78% at any coverage up
@@ -351,10 +351,10 @@ precision, restoring accuracy to 75%.
 The `remora-knowledge` Vectorize index is designed to grow with the system.
 Priority domains for future ingestion:
 
-1. **Regulatory depth:** Domain-specific statutes, case law, agency guidance
-2. **Scientific literature:** PubMed abstracts, arXiv papers, systematic reviews
-3. **Technical standards:** ISO, IEEE, IETF RFCs, NIST publications
-4. **Factual databases:** Wikidata, CIA World Factbook, FAOSTAT
+1. Regulatory depth: Domain-specific statutes, case law, agency guidance
+2. Scientific literature: PubMed abstracts, arXiv papers, systematic reviews
+3. Technical standards: ISO, IEEE, IETF RFCs, NIST publications
+4. Factual databases: Wikidata, CIA World Factbook, FAOSTAT
 
 Chunks should be 300–500 tokens with 64-token overlap. Source confidence weight
 should reflect the authoritative standing of the primary source.
