@@ -117,7 +117,7 @@ class D1Connection:
         # behind the caller's back.
         if self._pending:
             self._flush()
-        results = _post([{"sql": sql, "params": args}], self._endpoint)
+        results = self._send([{"sql": sql, "params": args}])
         return _Cursor(results[0] if results else [])
 
     def commit(self) -> None:
@@ -142,11 +142,19 @@ class D1Connection:
         self.close()
 
     # ── internals ───────────────────────────────────────────────────────
+    def _send(self, statements: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
+        # Only pass the URL through when one was given, so test doubles that
+        # replace _post(statements) keep working and the environment path is
+        # byte-for-byte the old one.
+        if self._endpoint:
+            return _post(statements, self._endpoint)
+        return _post(statements)
+
     def _flush(self) -> None:
         if not self._pending:
             return
         batch, self._pending = self._pending, []
-        _post(batch, self._endpoint)
+        self._send(batch)
 
 
 def connect(endpoint_url: str | None = None) -> D1Connection:

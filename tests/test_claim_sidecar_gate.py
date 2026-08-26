@@ -55,7 +55,8 @@ def test_every_grandfathered_entry_still_lacks_its_sidecar() -> None:
     baseline = json.loads(
         (ROOT / "docs" / "assurance" / "claim_provenance_baseline.json").read_text(encoding="utf-8")
     )
-    for eid in baseline["known_violations"]:
+    for entry in baseline["known_violations"]:
+        eid = entry["error_id"] if isinstance(entry, dict) else entry
         if not eid.startswith("sidecar-missing:"):
             continue
         rel = eid.split(":", 2)[2]
