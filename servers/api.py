@@ -5,7 +5,7 @@
 
 Endpoints
 ---------
-  POST /v1/assess              — Full REMORA policy assessment for an agent action
+  POST /v1/assess              — Research-surface assessment for an agent action (never gates enforcement; see ADR-canonical-decision-engine)
   GET  /v1/envelope/{id}       — Retrieve a stored DecisionEnvelope by request_id
   GET  /v1/audit/{id}          — Retrieve the audit record for a request_id
   GET  /v1/audit/chain/verify  — Verify hash-chain linkage across stored decisions
@@ -2265,11 +2265,16 @@ def health() -> HealthResponse:
     )
 
 
-@app.post("/v1/assess", response_model=AssessResponse, tags=["governance"])
+@app.post("/v1/assess", response_model=AssessResponse, tags=["research"])
 def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONResponse:
-    """Assess an agent action proposal through the full REMORA pipeline.
+    """Assess an agent action proposal through the research pipeline.
 
-    Returns a structured governance decision with thermodynamic observables,
+    This is the RESEARCH surface (ADR-canonical-decision-engine, gate fired
+    2026-08-26 with the #389 paper reframe): the multi-oracle consensus
+    engine behind it informs, and never gates, enforcement. The enforcing
+    path is /v1/execution/* on the canonical policy core.
+
+    Returns a structured governance decision with consensus observables,
     policy action (ACCEPT/VERIFY/ABSTAIN/ESCALATE), and audit metadata.
     """
     t0 = time.monotonic()

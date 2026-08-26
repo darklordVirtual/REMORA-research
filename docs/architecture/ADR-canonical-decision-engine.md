@@ -1,6 +1,13 @@
 # ADR: Canonical decision engine and the research surface's stated lifetime
 
-- Status: **accepted** (2026-08-25)
+- Status: **accepted** (2026-08-25); **retirement gate fired** (2026-08-26)
+- Gate update 2026-08-26: the #389 paper reframe landed — the paper's primary
+  claims now rest on the governed-execution surface, not on assess. Per §3 of
+  the decision, `remora/engine.py` moved CORE → EXPERIMENTAL in the Module
+  Stability Index and `/v1/assess` is re-tagged as the research surface in
+  the API. The surface stays served and tested (the negative-results record
+  depends on it); what changed is its classification, not its behaviour.
+  Physical retirement of the route remains a separate, later decision.
 - Deciders: repository owner
 - Related: issue #296, `docs/product/product_truth_contract.yaml`,
   `docs/architecture/ADR-single-authoritative-execution-path.md`,
