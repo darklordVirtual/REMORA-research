@@ -209,6 +209,8 @@ def test_projector_converges_when_the_queue_item_is_gone(store) -> None:
         "tool_call_hash": "h", "grant_jti": "", "outcome": "REFUSED",
         "tool_executed": False, "state_unknown": False,
         "refusal_reason": "payload_invalid", "intent_sequence_no": None,
+        "result_sha256": "d" * 64, "result_size_bytes": 12,
+        "result_truncated": False,
     }))
 
     class _Q:
@@ -235,6 +237,10 @@ def test_projector_converges_when_the_queue_item_is_gone(store) -> None:
     assert key == f"execution-result:{row.outbox_id}"
     assert payload["tool_refusal_reason"] == "payload_invalid"
     assert payload["projection_replayed"] is True
+    # Result-envelope identity survives the replay.
+    assert payload["result_sha256"] == "d" * 64
+    assert payload["result_size_bytes"] == 12
+    assert payload["result_truncated"] is False
 
 
 class _CrashAfterSettle(RuntimeError):

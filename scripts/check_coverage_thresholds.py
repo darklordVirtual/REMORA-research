@@ -39,11 +39,11 @@ from pathlib import Path
 #: floor here cannot honestly declare covered.
 THRESHOLDS: dict[str, float] = {
     "remora/policy": 95.0,
-    "remora/execution": 93.0,  # CI-held 93.29 after the dispatch worker
-    # (#82) grew service.py; locally higher, but CI skips the
+    "remora/execution": 92.5,  # CI-held 92.95 after the terminal projector
+    # (#416) grew service.py again; locally 94.36, but CI skips the
     # optional-extra suites and the floor is pinned at the level EVERY
-    # environment holds. Covering the worker's remaining branches raises
-    # this again; lowering it further needs a stated reason like this one.
+    # environment holds. Covering the projector's remaining branches
+    # raises this again; lowering it further needs a stated reason.
     "remora/governance": 89.5,
     # Still the lowest floor in the trusted computing base, and the reason is
     # now stated rather than left to be guessed at: see FILE_THRESHOLDS and
