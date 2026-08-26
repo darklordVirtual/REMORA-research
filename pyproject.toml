@@ -199,6 +199,10 @@ only_mutate = [
 # The refusal tests import servers.api inside test functions, and api.py
 # hashes schemas/ files at import; both must exist in the mutants sandbox.
 also_copy = ["servers/", "schemas/"]
+# The meaningful metric: mutants on lines the runner executes. All-lines
+# numbers conflate untested behaviour with uncovered adapter branches the
+# coverage gate already documents (docs/assurance/mutation_testing_v1.md).
+mutate_only_covered_lines = true
 pytest_add_cli_args = ["-q", "-p", "no:cacheprovider"]
 pytest_add_cli_args_test_selection = [
     "tests/test_dispatcher_contract.py",
