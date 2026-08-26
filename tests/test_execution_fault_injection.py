@@ -199,7 +199,12 @@ def test_row5_terminal_row_is_authoritative_and_reconcile_is_idempotent(
     client
 ) -> None:
     """Design: the terminal outbox row is the source of truth; a repeated
-    sweep must not disturb it (replay-safe, visibility lag only)."""
+    sweep must not disturb it (replay-safe, visibility lag only).
+
+    Scope note (external review 2026-08-26, RMR-CR-001): this test covers
+    the HAPPY path plus sweep-idempotence only. The actual row-5 crash —
+    dying after settlement, before downstream projection — is injected and
+    repaired in tests/test_terminal_projection.py."""
     item_id = _approved_item(client)
     r = client.post("/v1/execution/execute",
                     json={"item_id": item_id, "tool_call": CALL})

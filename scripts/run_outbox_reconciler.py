@@ -45,6 +45,9 @@ def sweep_once() -> int:
 
     settled_total = 0
     for tenant in outbox.tenants():
+        # reconcile_stale_dispatches also runs the idempotent terminal
+        # projector (issue #416), so a wall-clock sweep finishes any
+        # projection a crashed process left behind.
         settled = exec_mod.reconcile_stale_dispatches(tenant)
         for row in settled:
             print(f"[SETTLED] tenant={tenant} proposal={row.proposal_id} "

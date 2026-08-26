@@ -391,7 +391,7 @@ def execute_approved_item(
     if outcome.decision is not ExecutionDecision.EXECUTE:
         # FT-01: every re-gate refusal is a declared move from AUTHORIZED.
         lifecycle_guard("AUTHORIZED", "regate_binding_or_freshness_refusal")
-        entry = chain.append(tenant, {
+        refusal_entry = chain.append(tenant, {
             "event": f"execution_{outcome.decision.value}",
             "proposal_id": proposal_id,
             "actor": principal,
@@ -400,7 +400,8 @@ def execute_approved_item(
             "detail": outcome.detail,
         })
         response["audit"] = {
-            "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
+            "sequence_no": refusal_entry.sequence_no,
+            "entry_hash": refusal_entry.entry_hash,
         }
         return response
 
@@ -500,7 +501,17 @@ def execute_approved_item(
     outcome = classify_outcome(tool_execution)
     if intent is not None:
         reason = tool_execution.get("refusal_reason")
-        outbox().settle(intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason)
+        # Issue #416: the projection payload commits WITH the terminal
+        # state, so a crash after this line strands nothing unrecoverable.
+        outbox().settle(
+            intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason,
+            projection_json=_projection_payload(
+                proposal_id=proposal_id, item_id=item_id, actor=principal,
+                tool_call_hash=fresh_obs.tool_call_hash or "",
+                grant_jti=token.jti, outcome=outcome,
+                tool_execution=tool_execution,
+                intent_sequence_no=intent_entry.sequence_no,
+            ))
 
     # Persist the REAL outcome as the item's terminal state.
     with transaction(tenant) as q:
@@ -539,13 +550,136 @@ def execute_approved_item(
         result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
-    entry = chain.append(tenant, result_record)
+    # Idempotent by outbox id (issue #416): the in-line write claims the
+    # same key the projector would replay under, so the record can land at
+    # most once regardless of who finishes it.
+    entry: Any = (chain.append_once(
+        tenant, f"execution-result:{intent.outbox_id}", result_record)
+        if intent is not None else chain.append(tenant, result_record))
+    if intent is not None:
+        outbox().mark_projected(intent.outbox_id)
 
     response["tool_execution"] = tool_execution
-    response["audit"] = {
-        "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
-    }
+    if entry is not None:
+        response["audit"] = {
+            "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
+        }
     return response
+
+
+def _projection_payload(
+    *,
+    proposal_id: Any,
+    item_id: str,
+    actor: str,
+    tool_call_hash: str,
+    grant_jti: str,
+    outcome: DispatchOutcome,
+    tool_execution: dict[str, Any],
+    intent_sequence_no: int | None,
+) -> str:
+    """The complete downstream-projection payload, persisted ATOMICALLY
+    with terminal settlement (issue #416 / RMR-CR-001): everything needed
+    to rebuild the review-queue outcome and the execution_result chain
+    record if the process dies right after settle()."""
+    payload: dict[str, Any] = {
+        "proposal_id": proposal_id,
+        "item_id": item_id,
+        "actor": actor,
+        "tool_call_hash": tool_call_hash,
+        "grant_jti": grant_jti,
+        "outcome": outcome.value,
+        "tool_executed": bool(tool_execution.get("executed")),
+        "state_unknown": bool(tool_execution.get("state_unknown")),
+        "refusal_reason": tool_execution.get("refusal_reason"),
+        "intent_sequence_no": intent_sequence_no,
+    }
+    envelope_meta = tool_execution.get("result_envelope")
+    if envelope_meta:
+        payload["result_sha256"] = envelope_meta["sha256"]
+        payload["result_size_bytes"] = envelope_meta["size_bytes"]
+        payload["result_truncated"] = envelope_meta["truncated"]
+    return json.dumps(payload, sort_keys=True)
+
+
+def _result_record_from_projection(p: dict[str, Any]) -> dict[str, Any]:
+    record: dict[str, Any] = {
+        "event": "execution_result",
+        "proposal_id": p.get("proposal_id"),
+        "actor": p.get("actor"),
+        "item_id": p.get("item_id"),
+        "tool_call_hash": p.get("tool_call_hash"),
+        "grant_jti": p.get("grant_jti"),
+        "tool_executed": p.get("tool_executed"),
+        "state_unknown": p.get("state_unknown"),
+    }
+    if p.get("intent_sequence_no") is not None:
+        record["intent_sequence_no"] = p["intent_sequence_no"]
+    if p.get("refusal_reason"):
+        record["tool_refusal_reason"] = p["refusal_reason"]
+    for key in ("result_sha256", "result_size_bytes", "result_truncated"):
+        if key in p:
+            record[key] = p[key]
+    return record
+
+
+def project_terminal_intent(
+    row: Any,
+    *,
+    tenant: str,
+    transaction: Callable[[str], Any],
+    chain: AuditChainPort,
+    outbox: Callable[[], DispatchOutboxPort],
+) -> dict[str, Any] | None:
+    """Idempotently finish the downstream projection of one terminal row.
+
+    Crash-matrix row 5 (issue #416): a row settled terminally whose
+    review-queue outcome and/or execution_result record never landed. The
+    persisted projection payload is replayed:
+
+    * the queue outcome is re-applied; an item that already carries a
+      terminal outcome (or no longer exists) is treated as done — the
+      replay must converge, never fight the first write;
+    * the chain record is appended via ``append_once`` keyed on the
+      outbox id, so a projection can land at most once no matter how many
+      sweeps run;
+    * only then is the row marked projected.
+
+    Terminal rows WITHOUT a payload (pre-#416 rows) are marked projected
+    with nothing to replay — their downstream state is whatever the
+    original process managed, and inventing records for them would be
+    fabrication, not recovery.
+    """
+    if not row.is_terminal or row.projected_at is not None:
+        return None
+    if not row.projection_json:
+        outbox().mark_projected(row.outbox_id)
+        return {"outbox_id": row.outbox_id, "replayed": False,
+                "reason": "no_projection_payload"}
+    p = json.loads(row.projection_json)
+    queue_replayed = False
+    try:
+        with transaction(tenant) as q:
+            q.record_execution_outcome(
+                p["item_id"],
+                outcome=DispatchOutcome(p["outcome"]),
+                reason=p.get("refusal_reason"),
+            )
+        queue_replayed = True
+    except (KeyError, ValueError):
+        # Already recorded, or the item is gone: converged either way.
+        pass
+    record = _result_record_from_projection(p)
+    record["projection_replayed"] = True
+    entry = chain.append_once(
+        tenant, f"execution-result:{row.outbox_id}", record)
+    outbox().mark_projected(row.outbox_id)
+    return {
+        "outbox_id": row.outbox_id,
+        "replayed": True,
+        "queue_outcome_written": queue_replayed,
+        "chain_record_written": entry is not None,
+    }
 
 
 def dispatch_pending_intent(
@@ -616,26 +750,45 @@ def dispatch_pending_intent(
     if refusal is not None:
         if outbox().claim(row.outbox_id, worker_id=worker_id) is None:
             return None
-        outbox().settle(row.outbox_id, OutboxState.REFUSED, detail=refusal)
-        entry = chain.append(tenant, {
-            "event": "execution_result",
+        refusal_execution = {"executed": False, "dispatch_began": False,
+                             "state_unknown": False,
+                             "refusal_reason": refusal}
+        outbox().settle(
+            row.outbox_id, OutboxState.REFUSED, detail=refusal,
+            projection_json=_projection_payload(
+                proposal_id=proposal_id, item_id=row.item_id,
+                actor=principal, tool_call_hash=row.tool_call_hash,
+                grant_jti="", outcome=DispatchOutcome.REFUSED,
+                tool_execution=refusal_execution,
+                intent_sequence_no=None,
+            ))
+        # Issue #421 (RMR-CR-006): the review item takes the SAME terminal
+        # outcome as the outbox — a refused dispatch must never leave the
+        # item AUTHORIZED forever.
+        with transaction(tenant) as q:
+            q.record_execution_outcome(
+                row.item_id, outcome=DispatchOutcome.REFUSED, reason=refusal)
+        entry = chain.append_once(
+            tenant, f"execution-result:{row.outbox_id}", {
+                "event": "execution_result",
+                "proposal_id": proposal_id,
+                "actor": principal,
+                "item_id": row.item_id,
+                "tool_call_hash": row.tool_call_hash,
+                "grant_jti": "",
+                "tool_executed": False,
+                "state_unknown": False,
+                "tool_refusal_reason": refusal,
+            })
+        outbox().mark_projected(row.outbox_id)
+        result: dict[str, Any] = {
             "proposal_id": proposal_id,
-            "actor": principal,
-            "item_id": row.item_id,
-            "tool_call_hash": row.tool_call_hash,
-            "grant_jti": "",
-            "tool_executed": False,
-            "state_unknown": False,
-            "tool_refusal_reason": refusal,
-        })
-        return {
-            "proposal_id": proposal_id,
-            "tool_execution": {"executed": False, "dispatch_began": False,
-                               "state_unknown": False,
-                               "refusal_reason": refusal},
-            "audit": {"sequence_no": entry.sequence_no,
-                      "entry_hash": entry.entry_hash},
+            "tool_execution": refusal_execution,
         }
+        if entry is not None:
+            result["audit"] = {"sequence_no": entry.sequence_no,
+                               "entry_hash": entry.entry_hash}
+        return result
 
     # Past the refusal gate both are populated; the split assignment above
     # is only for the refusal path. Narrowing for the type checker.
@@ -688,8 +841,17 @@ def dispatch_pending_intent(
     )
 
     outcome = classify_outcome(tool_execution)
-    outbox().settle(row.outbox_id, _OUTBOX_STATE[outcome],
-                    detail=tool_execution.get("refusal_reason"))
+    # Issue #416: projection payload commits WITH the terminal state.
+    outbox().settle(
+        row.outbox_id, _OUTBOX_STATE[outcome],
+        detail=tool_execution.get("refusal_reason"),
+        projection_json=_projection_payload(
+            proposal_id=proposal_id, item_id=row.item_id, actor=principal,
+            tool_call_hash=fresh_obs.tool_call_hash or "",
+            grant_jti=token.jti, outcome=outcome,
+            tool_execution=tool_execution,
+            intent_sequence_no=intent_entry.sequence_no,
+        ))
     with transaction(tenant) as q:
         q.record_execution_outcome(
             row.item_id,
@@ -718,14 +880,20 @@ def dispatch_pending_intent(
         result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
-    entry = chain.append(tenant, result_record)
+    # Idempotent by outbox id (issue #416): the same key the projector
+    # replays under, so the record lands at most once.
+    entry = chain.append_once(
+        tenant, f"execution-result:{row.outbox_id}", result_record)
+    outbox().mark_projected(row.outbox_id)
 
-    return {
+    result = {
         "proposal_id": proposal_id,
         "tool_execution": tool_execution,
-        "audit": {"sequence_no": entry.sequence_no,
-                  "entry_hash": entry.entry_hash},
     }
+    if entry is not None:
+        result["audit"] = {"sequence_no": entry.sequence_no,
+                           "entry_hash": entry.entry_hash}
+    return result
 
 
 class TokenRefused(RemoraError):
@@ -861,7 +1029,19 @@ def redeem_accept_token(
     outcome = classify_outcome(tool_execution)
     if intent is not None:
         reason = tool_execution.get("refusal_reason")
-        outbox().settle(intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason)
+        # Issue #416: projection payload commits WITH the terminal state.
+        # No review item exists on the direct-ACCEPT path; the payload's
+        # item_id is the accept marker and the projector's queue replay
+        # converges as a no-op for it.
+        outbox().settle(
+            intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason,
+            projection_json=_projection_payload(
+                proposal_id=proposal_id, item_id=f"accept:{token.jti}",
+                actor=principal, tool_call_hash=obs.tool_call_hash or "",
+                grant_jti=token.jti, outcome=outcome,
+                tool_execution=tool_execution,
+                intent_sequence_no=intent_entry.sequence_no,
+            ))
 
     result_record: dict[str, Any] = {
         "event": "execution_result",
@@ -884,10 +1064,18 @@ def redeem_accept_token(
         result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
-    entry = chain.append(tenant, result_record)
+    # Idempotent by outbox id (issue #416): the in-line write claims the
+    # same key the projector would replay under, so the record can land at
+    # most once regardless of who finishes it.
+    entry: Any = (chain.append_once(
+        tenant, f"execution-result:{intent.outbox_id}", result_record)
+        if intent is not None else chain.append(tenant, result_record))
+    if intent is not None:
+        outbox().mark_projected(intent.outbox_id)
 
     response["tool_execution"] = tool_execution
-    response["audit"] = {
-        "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
-    }
+    if entry is not None:
+        response["audit"] = {
+            "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
+        }
     return response

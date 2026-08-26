@@ -183,7 +183,14 @@ class DispatchOutboxPort(Protocol):
         *,
         detail: str | None = None,
         now: datetime | None = None,
+        projection_json: str | None = None,
     ) -> "OutboxRow": ...
+
+    def mark_projected(
+        self, outbox_id: str, *, now: datetime | None = None
+    ) -> "OutboxRow": ...
+
+    def unprojected_terminal(self, tenant_id: str) -> list["OutboxRow"]: ...
 
     def rows_for_proposal(
         self, tenant_id: str, proposal_id: str

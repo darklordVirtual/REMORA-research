@@ -474,7 +474,36 @@ def reconcile_stale_dispatches(
             "claimed_by": row.worker_id,
             "detail": row.detail,
         })
+    # Crash-matrix row 5 (issue #416): finish the downstream projection of
+    # terminal rows the settling process never completed. Idempotent, and a
+    # background courtesy exactly like the sweep above.
+    try:
+        project_terminal_intents(tenant)
+    except Exception:
+        _LOGGER.exception("terminal projection failed for tenant %s", tenant)
     return settled
+
+
+def project_terminal_intents(tenant: str) -> list[dict[str, Any]]:
+    """Idempotently finish downstream projections for one tenant.
+
+    Binds the module ambients around
+    :func:`remora.execution.service.project_terminal_intent` (issue #416):
+    every terminal outbox row without a confirmed projection gets its
+    review-queue outcome and execution_result chain record replayed from
+    the persisted projection payload, then is marked projected.
+    """
+    from remora.execution.service import project_terminal_intent
+
+    results: list[dict[str, Any]] = []
+    for row in _outbox().unprojected_terminal(tenant):
+        result = project_terminal_intent(
+            row, tenant=tenant, transaction=db_transaction_state,
+            chain=_CHAIN, outbox=_outbox,
+        )
+        if result is not None:
+            results.append(result)
+    return results
 
 
 # ── Signed ToolSpec (FT-03) ────────────────────────────────────────────────

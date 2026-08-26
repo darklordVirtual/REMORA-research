@@ -30,15 +30,17 @@ reference, for tests and development), :class:`SQLiteExecutionOutbox`
 (durable single-node) and :class:`PostgresExecutionOutbox` (durable
 multi-worker, contract-tested against a real service in CI).
 
-**Realization status:** this module is the store, its state machine, and
-its transactional enlistment path (``record_intent_enlisted`` on both
-durable adapters, which makes "the row is written in the same transaction
-that authorizes the call" a verified property rather than an aspiration —
-a rollback of the authorization removes the row). Nothing in
-``servers/execution_api.py`` writes to it yet: that wiring and the
-dispatch worker/reconciler are the remaining FT-02 slices. The fasttrack
-register remains the status authority; no crash-consistency property may
-be claimed for the live path until the wiring lands.
+**Realization status (updated 2026-08-26):** this module is the store,
+its state machine, the transactional enlistment path
+(``record_intent_enlisted`` on both durable adapters — a rollback of the
+authorization removes the row), the persisted call material
+(``tool_call_json``, issue #82) and the terminal projection payload
+(``projection_json``/``projected_at``, issue #416). The execution API
+writes intents on every governed dispatch; the standalone dispatch
+worker (``scripts/run_dispatch_worker.py``, opt-in) and reconciler
+(``scripts/run_outbox_reconciler.py``) consume it, and the idempotent
+terminal projector finishes downstream records a crashed process left
+behind. The fasttrack register remains the status authority.
 """
 from __future__ import annotations
 
@@ -82,6 +84,8 @@ CREATE TABLE IF NOT EXISTS execution_outbox (
     settled_at      TEXT,
     detail          TEXT,
     tool_call_json  TEXT,
+    projection_json TEXT,
+    projected_at    TEXT,
     UNIQUE (tenant_id, idempotency_key)
 );
 CREATE INDEX IF NOT EXISTS execution_outbox_pending_idx
@@ -92,7 +96,7 @@ _COLUMNS = (
     "outbox_id", "proposal_id", "tenant_id", "item_id", "idempotency_key",
     "tool_name", "tool_call_hash", "grant_jti", "state", "attempt_no",
     "created_at", "worker_id", "claimed_at", "settled_at", "detail",
-    "tool_call_json",
+    "tool_call_json", "projection_json", "projected_at",
 )
 
 
@@ -156,6 +160,17 @@ class OutboxRow:
     #: from the synchronous path that never needs it, carry None. The
     #: hash next to it remains the binding; this is the material.
     tool_call_json: str | None = None
+    #: Complete, deterministic downstream-projection payload written
+    #: ATOMICALLY with terminal settlement (issue #416 / RMR-CR-001):
+    #: everything needed to rebuild the review-queue outcome and the
+    #: execution_result chain record if the process dies between
+    #: settlement and projection — grant_jti, authorization sequence,
+    #: actor, outcome, result digest metadata, refusal, timestamps.
+    projection_json: str | None = None
+    #: When the downstream projection (queue outcome + chain record) was
+    #: confirmed written. NULL on a terminal row means the projector owes
+    #: work; the idempotent projector scans exactly that condition.
+    projected_at: datetime | None = None
 
     @property
     def is_terminal(self) -> bool:
@@ -321,13 +336,20 @@ class ExecutionOutbox:
         *,
         detail: str | None = None,
         now: datetime | None = None,
+        projection_json: str | None = None,
     ) -> OutboxRow:
-        """Drive a claimed row to a terminal state. Terminals are absorbing."""
+        """Drive a claimed row to a terminal state. Terminals are absorbing.
+
+        ``projection_json`` (issue #416) is persisted in the SAME operation
+        as the terminal state: a crash immediately after settlement leaves
+        everything the projector needs to finish the downstream records.
+        """
         with self._lock:
             row = self._require(outbox_id)
             _check_settleable(row, state)
             settled = replace(
-                row, state=state, detail=detail, settled_at=_now(now)
+                row, state=state, detail=detail, settled_at=_now(now),
+                projection_json=projection_json,
             )
             self._rows[outbox_id] = settled
             governance_event(
@@ -410,6 +432,41 @@ class ExecutionOutbox:
                 out.append(settled)
         return out
 
+    def mark_projected(
+        self, outbox_id: str, *, now: datetime | None = None
+    ) -> OutboxRow:
+        """Record that the downstream projection is confirmed written.
+
+        Only meaningful on a terminal row; marking a non-terminal row is a
+        caller bug and raises — projection follows settlement, never
+        precedes it (issue #416).
+        """
+        with self._lock:
+            row = self._require(outbox_id)
+            if not row.is_terminal:
+                raise ValueError(
+                    f"outbox row {outbox_id} is {row.state.value}; only a "
+                    "terminal row can be marked projected"
+                )
+            marked = replace(row, projected_at=_now(now))
+            self._rows[outbox_id] = marked
+            return marked
+
+    def unprojected_terminal(self, tenant_id: str) -> list[OutboxRow]:
+        """Terminal rows whose downstream projection is not confirmed.
+
+        The idempotent projector's work queue (issue #416): each row here
+        was settled but the review-queue outcome and/or the
+        execution_result chain record may be missing.
+        """
+        with self._lock:
+            return sorted(
+                (r for r in self._rows.values()
+                 if r.tenant_id == tenant_id and r.is_terminal
+                 and r.projected_at is None),
+                key=lambda r: r.created_at,
+            )
+
     # -- reads -------------------------------------------------------------
 
     def get(self, outbox_id: str) -> OutboxRow:
@@ -469,6 +526,8 @@ CREATE TABLE IF NOT EXISTS execution_outbox (
     settled_at      TEXT,
     detail          TEXT,
     tool_call_json  TEXT,
+    projection_json TEXT,
+    projected_at    TEXT,
     UNIQUE (tenant_id, idempotency_key)
 );
 CREATE INDEX IF NOT EXISTS execution_outbox_pending_idx
@@ -497,9 +556,10 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         # tool_call_json column gain it here; existing rows read as None.
         cols = {r[1] for r in
                 self._conn().execute("PRAGMA table_info(execution_outbox)")}
-        if "tool_call_json" not in cols:
-            self._conn().execute(
-                "ALTER TABLE execution_outbox ADD COLUMN tool_call_json TEXT")
+        for col in ("tool_call_json", "projection_json", "projected_at"):
+            if col not in cols:
+                self._conn().execute(
+                    f"ALTER TABLE execution_outbox ADD COLUMN {col} TEXT")
 
     def _conn(self) -> sqlite3.Connection:
         conn = getattr(self._local, "conn", None)
@@ -531,6 +591,8 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             settled_at=_dt(record["settled_at"]),
             detail=record["detail"],
             tool_call_json=record["tool_call_json"],
+            projection_json=record["projection_json"],
+            projected_at=_dt(record["projected_at"]),
         )
 
     def record_intent(
@@ -606,6 +668,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         *,
         detail: str | None = None,
         now: datetime | None = None,
+        projection_json: str | None = None,
     ) -> OutboxRow:
         conn = self._conn()
         conn.execute("BEGIN IMMEDIATE")
@@ -614,8 +677,9 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             _check_settleable(row, state)
             conn.execute(
                 "UPDATE execution_outbox SET state = ?, detail = ?, "
-                "settled_at = ? WHERE outbox_id = ?",
-                (state.value, detail, _now(now).isoformat(), outbox_id),
+                "settled_at = ?, projection_json = ? WHERE outbox_id = ?",
+                (state.value, detail, _now(now).isoformat(), projection_json,
+                 outbox_id),
             )
             conn.execute("COMMIT")
         except Exception:
@@ -647,6 +711,39 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
                 now=moment,
             ))
         return out
+
+    def mark_projected(
+        self, outbox_id: str, *, now: datetime | None = None
+    ) -> OutboxRow:
+        conn = self._conn()
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            row = self._require_conn(conn, outbox_id)
+            if not row.is_terminal:
+                raise ValueError(
+                    f"outbox row {outbox_id} is {row.state.value}; only a "
+                    "terminal row can be marked projected"
+                )
+            conn.execute(
+                "UPDATE execution_outbox SET projected_at = ? "
+                "WHERE outbox_id = ?",
+                (_now(now).isoformat(), outbox_id),
+            )
+            conn.execute("COMMIT")
+        except Exception:
+            conn.execute("ROLLBACK")
+            raise
+        return self.get(outbox_id)
+
+    def unprojected_terminal(self, tenant_id: str) -> list[OutboxRow]:
+        rows = self._conn().execute(
+            "SELECT * FROM execution_outbox WHERE tenant_id = ? "
+            "AND state IN (?,?,?,?) AND projected_at IS NULL "
+            "ORDER BY created_at",
+            (tenant_id, *(s.value for s in sorted(
+                TERMINAL_STATES, key=lambda s: s.value))),
+        ).fetchall()
+        return [self._row(r) for r in rows]
 
     def get(self, outbox_id: str) -> OutboxRow:
         return self._require_conn(self._conn(), outbox_id)
@@ -798,7 +895,8 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
                 "outbox_id", "proposal_id", "tenant_id", "item_id",
                 "idempotency_key", "tool_name", "tool_call_hash", "grant_jti",
                 "state", "attempt_no", "created_at", "worker_id", "claimed_at",
-                "settled_at", "detail", "tool_call_json",
+                "settled_at", "detail", "tool_call_json", "projection_json",
+                "projected_at",
             )
             record = dict(zip(columns, record))  # type: ignore[assignment]
         return cls._row(record)  # type: ignore[arg-type]
@@ -832,6 +930,10 @@ class PostgresExecutionOutbox(ExecutionOutbox):
             # payload column; existing rows read as NULL.
             conn.execute("ALTER TABLE execution_outbox "
                          "ADD COLUMN IF NOT EXISTS tool_call_json TEXT")
+            conn.execute("ALTER TABLE execution_outbox "
+                         "ADD COLUMN IF NOT EXISTS projection_json TEXT")
+            conn.execute("ALTER TABLE execution_outbox "
+                         "ADD COLUMN IF NOT EXISTS projected_at TEXT")
             conn.commit()
 
     @staticmethod
@@ -858,6 +960,8 @@ class PostgresExecutionOutbox(ExecutionOutbox):
             settled_at=_dt(data["settled_at"]),
             detail=data["detail"],
             tool_call_json=data.get("tool_call_json"),
+            projection_json=data.get("projection_json"),
+            projected_at=_dt(data.get("projected_at")),
         )
 
     def record_intent(
@@ -971,6 +1075,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
         *,
         detail: str | None = None,
         now: datetime | None = None,
+        projection_json: str | None = None,
     ) -> OutboxRow:
         with self._psycopg.connect(self._dsn) as conn:
             with conn.transaction():
@@ -983,8 +1088,10 @@ class PostgresExecutionOutbox(ExecutionOutbox):
                 _check_settleable(self._row_tuple(record), state)
                 conn.execute(
                     "UPDATE execution_outbox SET state = %s, detail = %s, "
-                    "settled_at = %s WHERE outbox_id = %s",
-                    (state.value, detail, _now(now).isoformat(), outbox_id),
+                    "settled_at = %s, projection_json = %s "
+                    "WHERE outbox_id = %s",
+                    (state.value, detail, _now(now).isoformat(),
+                     projection_json, outbox_id),
                 )
         return self.get(outbox_id)
 
@@ -1013,6 +1120,40 @@ class PostgresExecutionOutbox(ExecutionOutbox):
                 now=moment,
             ))
         return out
+
+    def mark_projected(
+        self, outbox_id: str, *, now: datetime | None = None
+    ) -> OutboxRow:
+        with self._psycopg.connect(self._dsn) as conn:
+            with conn.transaction():
+                record = conn.execute(
+                    self._SELECT + " WHERE outbox_id = %s FOR UPDATE",
+                    (outbox_id,),
+                ).fetchone()
+                if record is None:
+                    raise KeyError("unknown outbox row: " + outbox_id)
+                if not self._row_tuple(record).is_terminal:
+                    raise ValueError(
+                        f"outbox row {outbox_id} is not terminal; only a "
+                        "terminal row can be marked projected"
+                    )
+                conn.execute(
+                    "UPDATE execution_outbox SET projected_at = %s "
+                    "WHERE outbox_id = %s",
+                    (_now(now).isoformat(), outbox_id),
+                )
+        return self.get(outbox_id)
+
+    def unprojected_terminal(self, tenant_id: str) -> list[OutboxRow]:
+        states = tuple(sorted(s.value for s in TERMINAL_STATES))
+        with self._psycopg.connect(self._dsn) as conn:
+            records = conn.execute(
+                self._SELECT + " WHERE tenant_id = %s "
+                "AND state = ANY(%s) AND projected_at IS NULL "
+                "ORDER BY created_at",
+                (tenant_id, list(states)),
+            ).fetchall()
+        return [self._row_tuple(r) for r in records]
 
     def get(self, outbox_id: str) -> OutboxRow:
         with self._psycopg.connect(self._dsn) as conn:
