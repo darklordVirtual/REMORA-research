@@ -15,9 +15,19 @@ Run:
 """
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 from pathlib import Path
+
+# Issue #424 (RMR-CR-009): EVERY state file stays inside the quickstart's
+# temp directory. Only the episodic store was redirected before; the
+# world-model and adapter-bridge defaults fell back to ~/.aromer, so the
+# documented quickstart crashed on a read-only home. Set BEFORE any
+# remora.aromer import resolves a default path; respect an explicit
+# override from the environment.
+_QUICKSTART_ROOT = Path(tempfile.mkdtemp(prefix="aromer-quickstart-"))
+os.environ.setdefault("REMORA_AROMER_HOME", str(_QUICKSTART_ROOT / "home"))
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -27,7 +37,7 @@ from remora.policy import PolicyObservation
 
 
 def main() -> int:
-    store = Path(tempfile.mkdtemp(prefix="aromer-quickstart-")) / "episodes.jsonl"
+    store = _QUICKSTART_ROOT / "episodes.jsonl"
     aromer = AromerOrchestrator(
         store_path=str(store),
         run_meta_judge=False,        # offline — no Workers AI calls
