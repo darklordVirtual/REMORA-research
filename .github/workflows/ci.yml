@@ -697,6 +697,28 @@ jobs:
           print("FAR integrity check: all three primary artifacts have false_accept_rate = 0.0")
           PY
 
+  fresh-install-contract:
+    # Issue #422: the EXACT documented onboarding command must work in a
+    # clean environment. Every other job installs extra extras and masked
+    # a fresh clone failing collection with nine missing fastapi imports.
+    name: Documented fresh install collects the whole suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: The verbatim README command
+        run: python -m pip install -e ".[dev]"
+
+      - name: Full-suite collection succeeds
+        run: python -m pytest tests/ -q --collect-only > /dev/null && echo "collection clean"
+
   container-contract:
     # Issue #89: the locked pilot runtime. Builds the reference image FROM
     # THE WHEEL (deploy/reference/Dockerfile, base pinned by digest,
@@ -759,6 +781,7 @@ jobs:
       - deterministic-round
       - artifact-integrity
       - container-contract
+      - fresh-install-contract
     runs-on: ubuntu-latest
     steps:
       - name: Fail unless every aggregated leg succeeded
