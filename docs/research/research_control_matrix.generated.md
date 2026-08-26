@@ -339,7 +339,7 @@ Compared against or used as framing in the paper. No code, no evaluation — and
 | `kelly-1998-arguing` | — | — | — | Assurance cases; DecisionEnvelope populates one node. |
 | `kuncheva-2003-measures` | — | — | — | Ensemble diversity measures. |
 | `lakshminarayanan-2017-simple` | — | — | — | Deep ensembles. |
-| `michael-2026-permission` | arxiv:2607.13718 | — | — | Agent-permissions survey; names the open low-burden/formal/deterministic triad REMORA is positioned against. |
+| `michael-2026-permission` | arxiv:2607.13718 | — | — | Agent-permissions survey; names the open low-burden/formal/deterministic triad REMORA is positioned against. Survey size verified against the arXiv abstract 2026-08-26: '21 proposals for agent permissions systems' - the paper's count. |
 | `mohri-2024-language` | — | — | — | Conformal factuality; pre-empts the general LLM-abstention move. |
 | `mu-2024-rule` | — | — | — | Rule-based rewards - safety rules in training, not enforcement. |
 | `qin-2026-airguard` | arxiv:2605.28914 | — | — | AIRGuard - authority confusion and action-time authorization; explicit non-claim: predates/parallels REMORA on pre-action checks. |
