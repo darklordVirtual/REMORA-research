@@ -626,7 +626,7 @@ bibliography:
     - {id: kuncheva-2003-measures, surname: "Kuncheva", year: "2003", role: positioning_only, note: "Ensemble diversity measures."}
     - {id: lakshminarayanan-2017-simple, surname: "Lakshminarayanan", year: "2017", role: positioning_only, note: "Deep ensembles."}
     - {id: mohri-2024-language, surname: "Mohri", year: "2024", role: positioning_only, note: "Conformal factuality; pre-empts the general LLM-abstention move."}
-    - {id: michael-2026-permission, surname: "Michael", year: "2026", arxiv: "2607.13718", role: positioning_only, note: "Agent-permissions survey; names the open low-burden/formal/deterministic triad REMORA is positioned against."}
+    - {id: michael-2026-permission, surname: "Michael", year: "2026", arxiv: "2607.13718", role: positioning_only, note: "Agent-permissions survey; names the open low-burden/formal/deterministic triad REMORA is positioned against. Survey size verified against the arXiv abstract 2026-08-26: '21 proposals for agent permissions systems' - the paper's count."}
     - {id: mu-2024-rule, surname: "Mu", year: "2024", role: positioning_only, note: "Rule-based rewards - safety rules in training, not enforcement."}
     - {id: raji-2022-outsider, surname: "Raji", year: "2022", arxiv: "2206.04737", role: positioning_only, note: "Audit-ecosystem design; motivates the replay/transparency framing."}
     - {id: qin-2026-airguard, surname: "Qin", year: "2026", arxiv: "2605.28914", role: positioning_only, note: "AIRGuard - authority confusion and action-time authorization; explicit non-claim: predates/parallels REMORA on pre-action checks."}

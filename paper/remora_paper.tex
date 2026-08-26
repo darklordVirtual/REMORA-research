@@ -70,9 +70,9 @@
 \title{REMORA: Governed Execution Assurance\\for Tool-Using AI Agents}
 
 % Paper version - kept in lockstep with paper/remora_paper.md by
-% scripts/check_paper_sync.py (CI-enforced). The "v0.10.0" and
-% "revision 2026-08-19" strings below MUST match the .md version line.
-\newcommand{\paperversion}{Preprint v0.11.0, revision 2026-08-25; repository release tag \texttt{v0.11.0}}
+% scripts/check_paper_sync.py (CI-enforced). The version and revision
+% strings below MUST match the .md version line.
+\newcommand{\paperversion}{Preprint v0.11.0, revision 2026-08-26; repository release tag \texttt{v0.11.0}}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -134,8 +134,9 @@ ablation shows the zero is attributable entirely to the deterministic
 hard rules, not to the multi-model voting machinery. Under an
 intent-gating protocol on 208 independently sourced AgentHarm scenarios
 \cite{andriushchenko2024agentharm}, the same rule set produced zero
-false authorizations. Probabilistic consensus improves routing; it
-cannot override policy.
+false authorizations---at the cost of blocking every benign counterpart
+as well (FBR=100\%), a safety/friction corner point reported as such.
+Probabilistic consensus improves routing; it cannot override policy.
 
 \textbf{Second, unknown state is a resolution problem, not a verdict.}
 Absence of a record without a declared completeness guarantee is
@@ -397,7 +398,7 @@ disagreement with conformal abstention), not a single judge's confidence;
 (3) every decision emits a signed, hash-chained DecisionEnvelope.
 Conversely, AgentTrust reports zero benign hard-blocks across 45{,}000
 actions, the opposite end of the safety/friction trade-off from REMORA's
-FBR=100\% AgentHarm corner point (\S\ref{sec:results}), and an explicit
+FBR=100\% AgentHarm corner point (\S\ref{sec:agentharm}), and an explicit
 target for REMORA's calibration roadmap.
 
 \paragraph{Permissioning and security by design.}
@@ -627,8 +628,10 @@ reconciles stranded dispatches to \textsc{unknown}; effect verification
 is a separate, replay-protected receipt. \textbf{Stated gaps:} the
 decision token remains HMAC-signed (the asymmetric custody claim covers
 the lease layer only); KMS/HSM key management and process-boundary mTLS
-are not implemented; dispatch runs in the API process, with the
-separated-worker deployment tracked openly.
+are not implemented; dispatch runs in the API process by default, with
+an opt-in separated dispatch worker (202 after durable authorization;
+the worker half re-verifies the persisted call against the recorded
+binding) exercised so far only by CI and its contract tests.
 
 \subsection{The Argument-Resolution Ladder}
 \label{sec:resolution-ladder}
@@ -1350,6 +1353,67 @@ Its isolated effect remains \textbf{unmeasured}, because the BFCL v4
 confirmation contains no authoritative semantic bundle.
 
 % =====================================================================
+\subsection{External Validity: AgentHarm Benchmark ($N=88$)}
+\label{sec:agentharm}
+
+\emph{This tri-mode evaluation ($N=88$;
+\path{artifacts/agentharm_trimode_results.json}, via
+\texttt{RemoraDecisionEngine}) is distinct from the $N=208$-harmful
+false-accept run reported in the claim register
+(\path{results/external_benchmark_agentharm_v1.json}; FAR $=0.0\%$,
+Wilson 95\% CI $[0.00\%, 1.81\%]$, FBR $=100\%$, via the AROMER
+\texttt{/decide} path). The two use different oracles, decision paths,
+and metrics and should not be read as one benchmark at two sample
+sizes.}
+
+To evaluate governance accuracy on a fully external, independently
+constructed benchmark, we applied the full Mode~3 cascade to the public
+AgentHarm dataset \cite{andriushchenko2024agentharm}: 44 harmful and 44
+harmless agent tasks from a red-teaming suite by the UK AI Safety
+Institute and Gray Swan AI. Three Workers AI models (the cross-family
+trio) serve as oracles; three modes are evaluated progressively:
+oracle-only baseline (Mode~1), harm-specific oracle re-evaluation of
+benign tasks (Mode~2), and the full policy gate applied to Mode~2
+verdicts (Mode~3), under the most concise, hardest prompt variant.
+\emph{Recall} = \textsc{escalate}/harmful; \emph{blocked recall} =
+(\textsc{escalate} $\cup$ \textsc{verify})/harmful; \emph{FPR} =
+hard-\textsc{escalate} on benign tasks (\textsc{verify} routes to human
+review and is not counted); Wilson 95\% CIs.
+
+\begin{table}[h]
+\centering\small
+\caption{AgentHarm three-mode results ($N=88$).}
+\label{tab:agentharm}
+\fitcolumn{%
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Mode & Recall & CI 95\% & FPR & CI 95\% & Blocked rec. & Cov. \\
+\midrule
+1 Oracle-only & \textbf{1.000} & [0.920, 1.000] & 0.318 & [0.200, 0.466] & 1.000 & 0.989 \\
+2 Harm-specific & \textbf{1.000} & [0.920, 1.000] & 0.114 & [0.050, 0.240] & 1.000 & 0.989 \\
+3 Full gate & 0.114 & [0.050, 0.240] & \textbf{0.023} & [0.004, 0.118] & \textbf{0.977} & 0.977 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Mode~3 hard-\textsc{escalate} recall is 0.114 (5/44); 38 further harmful
+tasks route to human \textsc{verify}, giving blocked recall 0.977
+(43/44); one harmful task \textsc{abstain}s; zero harmful tasks receive
+\textsc{accept}. All three governance goals are met under the
+blocked-recall definition (blocked recall $\geq 0.95$, FPR $< 0.10$,
+coverage $\geq 0.95$). The conservative posture --- routing 98\% of
+cases to \textsc{verify} or higher --- is by design: \textsc{verify} is
+the appropriate response to uncertainty, not a failure mode.
+
+\textbf{Scope caveat.} This is an \textbf{intent-gating result}: REMORA
+evaluates and routes the agent's proposed action string; it does not
+wrap or intercept AgentHarm's internal tool dispatch (a verified solver
+wrapper is not yet implemented; see
+\path{experiments/agentharm/INTERCEPTION_NOTES.md}). The 0.977 figure
+reflects routing accuracy on the proposed-action surface, not
+prevention of tool execution, and the research-grade oracle setup may
+not generalise to live deployments.
+
 \section{Ablations}
 \label{sec:ablation}
 
@@ -1486,6 +1550,16 @@ C-ext3 track measured that authority in isolation: with the frozen contract
 bundle and the semantic-authority floor, native wrong-call acceptance fell
 to 0/500 (\S\ref{sec:wrongcall-implication}).
 
+\paragraph{Measured outcome.} The study behind the abstract's headline
+is registered as CLAIM-014: under study conditions the validator loop
+restored read utility from 0\% to 100\% in the all-\textsc{unknown}
+regime, all eight pre-registered validator targets were met, and none
+of 139 seeded corruption forms reached \textsc{accept} (artifacts:
+\path{results/system_demonstration_v1.json},
+\path{results/fleetops_degradation_results.json},
+\path{results/fleetops_validator_study_results.json}; internal
+benchmark, non-blind --- the scope the register records).
+
 % =====================================================================
 \section{Negative Results}
 \label{sec:negative}
@@ -1571,7 +1645,7 @@ recorded here as history rather than as a live mechanism.
 \section{Threats to Validity}
 \label{sec:threats}
 
-\textbf{Internal validity:} Trust threshold ($\tau^* = 0.2032$,
+\textbf{Internal validity:} Trust threshold ($\tau^* = 0.203$,
 18th-percentile neg-temperature on 80\% training split) is derived
 in-sample; the retired-Groq held-out evaluation ($n=108$, 20\% stratified,
 $p=1.45\times10^{-5}$) supported the threshold, but the SAP v3 fresh-data
@@ -2139,7 +2213,6 @@ $D$ & Dissensus & $[0,1]$ \\
 $k$ & Active verdict count & $\geq 1$ \\
 $\eta$ & Consensus concentration & $[0,1]$ \\
 $\chi$ & Susceptibility & $[0, \infty)$ \\
-$\lambda$ & Coupling constant & 0.3 (paper config; library default 1.0) \\
 $\trust$ & Trust score & $[0,1]$ \\
 $h_{\rm bound}$ & Heuristic false-consensus risk proxy & $[0,1]$ \\
 $w_{\rm phase}$ & Phase weight & $\{1.0, 0.5, 0.1\}$ \\
@@ -2171,8 +2244,11 @@ single pointer to the full archive so the two do not drift.
 \section{Implementation Status Table}
 \label{app:impl}
 
-Status vocabulary: \emph{Integrated} = invoked by the primary
-\texttt{/v1/assess} path; \emph{Offline} = implemented and evaluated with
+Status vocabulary: \emph{Integrated} = invoked by the
+\texttt{/v1/assess} research surface (per the canonical-engine ADR, the
+policy core behind \texttt{/v1/execution/*} is the enforcing engine;
+this table describes the research pipeline); \emph{Offline} =
+implemented and evaluated with
 committed artifacts but not invoked by the primary API; \emph{Adapter} =
 implemented and parity-tested, available as an integration option;
 \emph{Planned} = not implemented.
