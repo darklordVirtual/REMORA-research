@@ -1,0 +1,62 @@
+name: Mutation Testing (scheduled)
+
+# Issue #280: the scoped mutation sweep over the grant/lease/PEP consumption
+# paths, failing on NEW survivors against the committed baseline
+# (docs/assurance/mutation_baseline_v1.txt). Scheduled, not per-PR: at the
+# current baseline a per-PR gate would be noise, and the ratchet direction
+# is enforced by the baseline file living in reviewed diffs.
+#
+# Two lessons from the first measured pass are load-bearing here
+# (docs/assurance/mutation_testing_v1.md):
+#   * the runner environment must carry DEPENDENCIES ONLY — an installed
+#     remora package shadows the mutated sources and silently makes every
+#     mutant invisible (a 0-killed sweep that looks like a catastrophe and
+#     is actually a broken experiment);
+#   * the sweep must run from a native filesystem (trivially true on the
+#     hosted runner; recorded because the local WSL/9p variant is not).
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"  # Mondays 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: Scoped mutation sweep vs baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies ONLY (never the package)
+        # pip install -e pulls the dependency tree; the uninstall then
+        # removes the package itself so `import remora` resolves to the
+        # mutants sandbox, not the installed original. Skipping the
+        # uninstall is the editable-install trap documented in the report.
+        run: |
+          python -m pip install -q -e ".[dev,api]" mutmut
+          python -m pip uninstall -q -y remora
+          python -c "import remora" 2>/dev/null && { echo "remora still importable — mutants would be invisible"; exit 1; } || echo "package absent as required"
+
+      - name: Run the scoped sweep
+        run: mutmut run
+
+      - name: Compare survivors against the committed baseline
+        run: |
+          mutmut results > mutation-results.txt
+          python scripts/check_mutation_baseline.py mutation-results.txt
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-results
+          path: mutation-results.txt
+          retention-days: 90

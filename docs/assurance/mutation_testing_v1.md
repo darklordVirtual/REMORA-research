@@ -18,6 +18,7 @@
 | Covered lines, after the golden-vector fix | 722 | 410 | 312 | 0 | 56.8% |
 | Covered lines, after the gate-contract round | 778 | 484 | 294 | 0 | 62.2% |
 | Covered lines, after the dispatcher-contract round | 811 | **518** | **293** | 0 | **63.9%** |
+| Baseline sweep for the scheduled job (config committed) | 816 | 525 | **291** | 0 | 64.3% |
 
 Round three (`tests/test_dispatcher_contract.py`) is the instructive one to
 read carefully: the headline `dispatch` cluster went 157 → **159** while
@@ -99,7 +100,23 @@ defect the paper's wire-format claims depend on.
   behaviour.
 - Coverage gap to the 95% targets for `remora/enforcement` (84.9) and
   `remora/execution` (93.7); floors are pinned at measured levels.
-- CI integration: a scheduled (not per-PR) Linux job running this scoped
-  configuration and failing on *new* survivors against a committed
-  baseline. Not wired yet; a per-PR mutation gate would be noise at the
-  current baseline.
+## CI integration (wired)
+
+The scheduled job `.github/workflows/mutation.yml` (Mondays 05:00 UTC +
+`workflow_dispatch`) runs the committed `[tool.mutmut]` configuration —
+`mutate_only_covered_lines` is now permanent, so the job measures the
+covered-lines metric this report argues for — and hands `mutmut results`
+to `scripts/check_mutation_baseline.py`. The gate is asymmetric by design:
+
+- a surviving mutant absent from `docs/assurance/mutation_baseline_v1.txt`
+  FAILS the job (test-strength regression, named individually);
+- a baseline entry that no longer survives is an advisory ratchet hint —
+  progress never breaks the job — lowered only by regenerating the baseline
+  in a reviewed diff (`mutmut results | python
+  scripts/check_mutation_baseline.py --update -`);
+- baseline entries whose whole function id-set vanished are classified as
+  rename/removal maintenance, because mutant ids embed function names.
+
+Baseline sweep (last row of the table): 816 mutants, 525 killed, 291
+survivors recorded. The job installs dependencies only and asserts
+`import remora` fails before sweeping — caveat 1 as an executable guard.
