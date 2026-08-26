@@ -45,6 +45,7 @@ from remora.sdk.models import (
     AuditVerification,
     ExecutionResult,
     LifecycleTrail,
+    PendingExecution,
     ProposalView,
     RejectionResult,
     ToolCall,
@@ -168,18 +169,29 @@ class RemoraClient:
         })
         return RejectionResult.from_payload(payload)
 
-    def execute(self, review_item_id: str, tool_call: ToolCall) -> ExecutionResult:
+    def execute(
+        self, review_item_id: str, tool_call: ToolCall
+    ) -> "ExecutionResult | PendingExecution":
         """Execute an approved review item by re-presenting the full call.
 
         The complete payload is sent again so the server can re-bind the
         exact approved arguments; any drift from the assessed call is
         refused (``binding_refused``), as are expired or invalidated
         approvals.
+
+        In a deployment running REMORA_ASYNC_DISPATCH (issue #419) the
+        server answers 202 after durable authorization and this method
+        returns :class:`PendingExecution` instead of a finished
+        :class:`ExecutionResult` — branch on the type (or on
+        ``isinstance(r, PendingExecution)``) and poll
+        :meth:`proposal` for the outcome.
         """
         payload = self._request("POST", "/v1/execution/execute", json={
             "item_id": review_item_id,
             "tool_call": tool_call.to_payload(),
         })
+        if payload.get("dispatch") == "pending":
+            return PendingExecution.from_payload(payload)
         return ExecutionResult.from_payload(payload)
 
     def execute_accepted(

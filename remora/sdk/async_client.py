@@ -32,6 +32,7 @@ from remora.sdk.models import (
     AuditVerification,
     ExecutionResult,
     LifecycleTrail,
+    PendingExecution,
     ProposalView,
     RejectionResult,
     ToolCall,
@@ -119,12 +120,16 @@ class AsyncRemoraClient:
 
     async def execute(
         self, review_item_id: str, tool_call: ToolCall
-    ) -> ExecutionResult:
-        """Async :meth:`RemoraClient.execute`; same exact-call re-binding."""
+    ) -> "ExecutionResult | PendingExecution":
+        """Async :meth:`RemoraClient.execute`; same exact-call re-binding
+        and the same async-dispatch union (issue #419): a 202 returns
+        :class:`PendingExecution` — poll the proposal for the outcome."""
         payload = await self._request("POST", "/v1/execution/execute", json={
             "item_id": review_item_id,
             "tool_call": tool_call.to_payload(),
         })
+        if payload.get("dispatch") == "pending":
+            return PendingExecution.from_payload(payload)
         return ExecutionResult.from_payload(payload)
 
     async def execute_accepted(

@@ -396,6 +396,37 @@ class ApprovalResult:
 
 
 @dataclass(frozen=True)
+class PendingExecution:
+    """202 outcome of :meth:`RemoraClient.execute` in async-dispatch mode.
+
+    Durable authorization completed — the review item's EXECUTE outcome
+    and the dispatch-intent row committed together — and the dispatch
+    half belongs to the deployment's standalone worker (issue #82). Poll
+    :meth:`RemoraClient.proposal` with ``proposal_id`` for the outcome;
+    ``outbox_id`` identifies the durable intent in operator tooling.
+    """
+
+    proposal_id: str
+    outcome: str
+    detail: str
+    outbox_id: str | None = None
+    toolspec: ToolSpecIdentity | None = None
+    raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> PendingExecution:
+        return cls(
+            proposal_id=str(payload.get("proposal_id") or ""),
+            outcome=str(payload.get("outcome", "")),
+            detail=str(payload.get("detail", "")),
+            outbox_id=(str(payload["outbox_id"])
+                       if payload.get("outbox_id") else None),
+            toolspec=ToolSpecIdentity.from_payload(payload.get("toolspec")),
+            raw=_frozen(payload) or MappingProxyType({}),
+        )
+
+
+@dataclass(frozen=True)
 class ExecutionResult:
     """Outcome of a governed execution attempt.
 

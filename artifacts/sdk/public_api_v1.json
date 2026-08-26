@@ -19,6 +19,7 @@
     "InvalidRequestError": "exception",
     "LifecycleTrail": "class",
     "NotFoundError": "exception",
+    "PendingExecution": "class",
     "PostconditionSpec": "class",
     "ProposalLineageView": "class",
     "ProposalView": "class",
