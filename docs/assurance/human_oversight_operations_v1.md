@@ -12,8 +12,8 @@ need. Nothing here is claimed to run today.
 
 The compendium is explicit that human oversight (AI Act Art. 14) must be
 *designed work* distributed across pre-control, co-planning, real-time
-monitoring, and post-control — specified as a role matrix, event types, and
-intervention thresholds — not a declared duty. This document is that design. It
+monitoring, and post-control, specified as a role matrix, event types, and
+intervention thresholds, not a declared duty. This document is that design. It
 distinguishes carefully between what REMORA **implements today** (decision-time
 review machinery) and what an operator must **add** (the operational layer).
 
@@ -21,7 +21,7 @@ review machinery) and what an operator must **add** (the operational layer).
 
 ## 1. What exists today (decision-time review lifecycle)
 
-These are real, tested controls — the substrate this design builds on.
+These are real, tested controls, the substrate this design builds on.
 
 | Capability | Behaviour | Path |
 |---|---|---|

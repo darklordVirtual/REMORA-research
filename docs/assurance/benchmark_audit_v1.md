@@ -66,27 +66,27 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml`. Pri
 
 ### Toolcall Benchmark v2 (N=700)
 
-- **Split:** No train/test split. The benchmark is evaluation-only: deterministic synthetic tasks with no learned parameters. The gate is rule-based; there is no held-out split because no model is fitted to the data. The split concern is therefore not applicable.
-- **Blind v3 separation:** Labels are stored in `benchmarks/toolcall_blind_v3/labels.json`, actions in `benchmarks/toolcall_blind_v3/tasks.json`. The gate receives only `tasks.json`. The scorer loads `labels.json` separately by `task_id`. This is verified by `leakage_free=True` in the result artifact.
-- **Composition:** 560 harmful / 140 benign (4:1 ratio). The imbalance means false-block rate is meaningful but utility figures are harmful-task-weighted.
+- Split: No train/test split. The benchmark is evaluation-only: deterministic synthetic tasks with no learned parameters. The gate is rule-based; there is no held-out split because no model is fitted to the data. The split concern is therefore not applicable.
+- Blind v3 separation: Labels are stored in `benchmarks/toolcall_blind_v3/labels.json`, actions in `benchmarks/toolcall_blind_v3/tasks.json`. The gate receives only `tasks.json`. The scorer loads `labels.json` separately by `task_id`. This is verified by `leakage_free=True` in the result artifact.
+- Composition: 560 harmful / 140 benign (4:1 ratio). The imbalance means false-block rate is meaningful but utility figures are harmful-task-weighted.
 
 ### Selective Prediction Benchmark (N=544)
 
-- **Split:** 80/20 stratified by source, seed=42. Training split: N=436; held-out split: N=108.
-- **Threshold lock:** τ* = 0.2032 selected on training split, locked before holdout was touched (documented in `docs/assurance/statistical_analysis_plan.md` §1). No re-optimisation on holdout.
-- **Held-out result (re-issued 2026-07-27, SAP v2 clean round):** N_accepted=18 on the held-out split, accuracy=100.0% at 16.7% coverage. Wilson CI [82.4%, 100.0%]; exact one-sided binomial vs the training-split null p0=84.86% gives p=0.052. This is a **directional observation only**: the SAP requires N_accepted >= 100 for generalization claims. The figures this audit originally recorded (N_accepted=25, accuracy 88%, CI [70.0%, 95.8%]) predate that re-issue and are stale.
-- **Split label:** `CLAIM-004` in `claim_register_v1.yaml` correctly describes this as a held-out split result with the CI and sample-size caveat. It is now **superseded by CLAIM-012**: the temperature signal it ranks on failed its pre-registered fresh-data confirmation. Archive: `superseded_claims.md`.
+- Split: 80/20 stratified by source, seed=42. Training split: N=436; held-out split: N=108.
+- Threshold lock: τ* = 0.2032 selected on training split, locked before holdout was touched (documented in `docs/assurance/statistical_analysis_plan.md` §1). No re-optimisation on holdout.
+- Held-out result (re-issued 2026-07-27, SAP v2 clean round): N_accepted=18 on the held-out split, accuracy=100.0% at 16.7% coverage. Wilson CI [82.4%, 100.0%]; exact one-sided binomial vs the training-split null p0=84.86% gives p=0.052. This is a **directional observation only**: the SAP requires N_accepted >= 100 for generalization claims. The figures this audit originally recorded (N_accepted=25, accuracy 88%, CI [70.0%, 95.8%]) predate that re-issue and are stale.
+- Split label: `CLAIM-004` in `claim_register_v1.yaml` correctly describes this as a held-out split result with the CI and sample-size caveat. It is now **superseded by CLAIM-012**: the temperature signal it ranks on failed its pre-registered fresh-data confirmation. Archive: `superseded_claims.md`.
 
 ### AROMER Learning Ablation Arena (N=85)
 
-- **Holdout integrity:** The 85-case arena is held-out from AROMER adaptation. The seed episodes (N=68) are loaded from `remora/aromer/seeds/`, which are separate from the arena files (`remora/aromer/evals/replay_arena/`). No arena case appears in the seed files.
-- **Determinism:** Verified bit-identical across 3 sequential runs within the same repo state.
-- **Adversarial hard exclusion:** 8 adversarial_hard cases are excluded from the learning ablation arena by `_ABLATION_EXCLUDED_CATEGORIES`. This is documented in the code and is the correct choice: these are red-team probes scored separately, not learning-lift targets.
+- Holdout integrity: The 85-case arena is held-out from AROMER adaptation. The seed episodes (N=68) are loaded from `remora/aromer/seeds/`, which are separate from the arena files (`remora/aromer/evals/replay_arena/`). No arena case appears in the seed files.
+- Determinism: Verified bit-identical across 3 sequential runs within the same repo state.
+- Adversarial hard exclusion: 8 adversarial_hard cases are excluded from the learning ablation arena by `_ABLATION_EXCLUDED_CATEGORIES`. This is documented in the code and is the correct choice: these are red-team probes scored separately, not learning-lift targets.
 
 ### External AgentHarm Benchmark (N=208)
 
-- **Independence:** Dataset sourced from `ai-safety-institute/AgentHarm` (arxiv:2410.09024). Not present in REMORA's training corpus. Independence is structural (third-party dataset).
-- **No split:** Evaluation-only, no learned parameters.
+- Independence: Dataset sourced from `ai-safety-institute/AgentHarm` (arxiv:2410.09024). Not present in REMORA's training corpus. Independence is structural (third-party dataset).
+- No split: Evaluation-only, no learned parameters.
 
 ---
 
@@ -197,15 +197,15 @@ The root-cause of Fix 1 is that `n_eval_cases` in the v2 artifact had drifted to
 
 ## 9. Remaining Uncertainty
 
-1. **LLM baseline gap (REM-010):** The toolcall benchmark compares REMORA against deterministic heuristic baselines, not against LLM-based gate implementations. The pilot (N=100) shows REMORA's advantage holds under real LLM baselines in the initial sample, but the full N=700 LLM baseline run is pending.
+1. LLM baseline gap (REM-010): The toolcall benchmark compares REMORA against deterministic heuristic baselines, not against LLM-based gate implementations. The pilot (N=100) shows REMORA's advantage holds under real LLM baselines in the initial sample, but the full N=700 LLM baseline run is pending.
 
-2. **External replication gap:** No benchmark result has been independently replicated by parties outside the project. The AgentHarm benchmark uses a third-party dataset (satisfying dataset independence) but the evaluation was run by the project authors with project code.
+2. External replication gap: No benchmark result has been independently replicated by parties outside the project. The AgentHarm benchmark uses a third-party dataset (satisfying dataset independence) but the evaluation was run by the project authors with project code.
 
-3. **Selective prediction generalization (CLAIM-004, now superseded):** N_accepted=18 yields a CI [82.4%, 100.0%] and p=0.052, too weak to establish generalization. The SAP required N_accepted >= 100 from an independently collected dataset before an upgrade; instead the SAP v3 fresh-data round falsified the signal, so the claim is superseded by CLAIM-012 rather than upgraded.
+3. Selective prediction generalization (CLAIM-004, now superseded): N_accepted=18 yields a CI [82.4%, 100.0%] and p=0.052, too weak to establish generalization. The SAP required N_accepted >= 100 from an independently collected dataset before an upgrade; instead the SAP v3 fresh-data round falsified the signal, so the claim is superseded by CLAIM-012 rather than upgraded.
 
-4. **AROMER arena adversarial_hard exclusion:** The 8 adversarial_hard cases are evaluated separately from the learning ablation. Their results are not included in any committed summary artifact for the ablation: they would need a dedicated artifact if published separately.
+4. AROMER arena adversarial_hard exclusion: The 8 adversarial_hard cases are evaluated separately from the learning ablation. Their results are not included in any committed summary artifact for the ablation: they would need a dedicated artifact if published separately.
 
-5. **Arena case construction bias:** The 85 learning ablation cases were authored after the REMORA gate was implemented. The difficulty calibration (what makes a case ambiguous vs clear) was influenced by gate behavior during development. This is a structural design-bias risk that cannot be eliminated post-hoc; it should be disclosed in any publication.
+5. Arena case construction bias: The 85 learning ablation cases were authored after the REMORA gate was implemented. The difficulty calibration (what makes a case ambiguous vs clear) was influenced by gate behavior during development. This is a structural design-bias risk that cannot be eliminated post-hoc; it should be disclosed in any publication.
 
 ---
 

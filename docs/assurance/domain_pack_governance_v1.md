@@ -33,39 +33,39 @@ but vary in RAG chunk coverage and evidence backing.
 
 ### 2.1 Database operations (`database`)
 
-- **Policy rules:** `docs/policy_cookbook/database.md`, covers SELECT, UPDATE,
+- Policy rules: `docs/policy_cookbook/database.md`, covers SELECT, UPDATE,
   DELETE, DROP, schema migration, and export scenarios across dev, staging, and
   production environments.
-- **RAG chunk coverage:** The seed corpus includes general knowledge chunks in the
+- RAG chunk coverage: The seed corpus includes general knowledge chunks in the
   `general` domain. No database-specific corpus (e.g., SQL standard references,
   production runbook extracts) is documented as ingested.
-- **Evidence:** Internal toolcall benchmarks (`results/toolcall_blind_v3_results.json`,
+- Evidence: Internal toolcall benchmarks (`results/toolcall_blind_v3_results.json`,
   `results/false_accept_regression_v1.json`) test REMORA's gate decisions across
   domains including database actions, but there is no database-specific held-out
   evaluation set.
-- **Gap:** No domain-specific RAG chunks ingested. No database-domain evidence pack.
+- Gap: No domain-specific RAG chunks ingested. No database-domain evidence pack.
 
 ### 2.2 Cloud operations (`cloud_ops`)
 
-- **Policy rules:** `docs/policy_cookbook/cloud_ops.md`, covers metrics reads,
+- Policy rules: `docs/policy_cookbook/cloud_ops.md`, covers metrics reads,
   IAM changes, secret rotation, Terraform plan/apply/destroy.
-- **RAG chunk coverage:** No cloud-operations-specific corpus (cloud provider
+- RAG chunk coverage: No cloud-operations-specific corpus (cloud provider
   documentation, NIST cloud guidance, CIS benchmarks) is documented as ingested.
-- **Evidence:** Same general toolcall benchmarks. No cloud-specific evaluation set.
-- **Gap:** No domain-specific RAG chunks. No cloud-domain evidence pack.
+- Evidence: Same general toolcall benchmarks. No cloud-specific evaluation set.
+- Gap: No domain-specific RAG chunks. No cloud-domain evidence pack.
 
 ### 2.3 Cybersecurity triage (`cyber`)
 
-- **Policy rules:** `docs/policy_cookbook/cyber.md`, covers CISA KEV matches,
+- Policy rules: `docs/policy_cookbook/cyber.md`, covers CISA KEV matches,
   EPSS-scored CVEs, CWE findings, credential exposure, prompt injection, and
   exploit payload requests.
-- **RAG chunk coverage:** The `specialised` domain in the seed corpus includes
+- RAG chunk coverage: The `specialised` domain in the seed corpus includes
   ISO/IEC 27001:2022 and GDPR text. CISA KEV catalog, EPSS data, and NVD CVE
   entries are not documented as ingested.
-- **Evidence:** `docs/integrations/cyber_evidence_layer.md` references cybersecurity-specific
+- Evidence: `docs/integrations/cyber_evidence_layer.md` references cybersecurity-specific
   evidence. AROMER external benchmark (`results/external_benchmark_agentharm_v1.json`)
   includes cybersecurity-adjacent harm categories.
-- **Gap:** CISA KEV, NVD, EPSS, and threat intelligence feeds are not in the
+- Gap: CISA KEV, NVD, EPSS, and threat intelligence feeds are not in the
   RAG corpus.
 
 ---
@@ -235,19 +235,19 @@ The version and effective date appear in the policy cookbook page header comment
 
 When a domain-specific policy rule conflicts with a general REMORA policy rule:
 
-1. **Specificity wins:** A domain-specific rule takes precedence over a general rule
+1. Specificity wins: A domain-specific rule takes precedence over a general rule
    for actions that clearly fall within the domain (e.g., a SCADA write command is
    governed by the OT domain pack, not the general database pack).
 
-2. **Escalation wins over ACCEPT:** If a domain-specific rule says ACCEPT and the
+2. Escalation wins over ACCEPT: If a domain-specific rule says ACCEPT and the
    general rule says ESCALATE, the ESCALATE outcome is used. This is the safe default.
 
-3. **Ambiguous domain assignment:** If an action could fall under two domain packs,
+3. Ambiguous domain assignment: If an action could fall under two domain packs,
    both policy pages are consulted and the stricter outcome (ESCALATE > VERIFY > ACCEPT)
    is applied. Ambiguity is flagged in the `DecisionEnvelope.assessment.policy_triggers`
    array.
 
-4. **Policy owner escalation:** Conflicts between MAJOR-version policy changes and
+4. Policy owner escalation: Conflicts between MAJOR-version policy changes and
    existing validated domain packs must be reviewed by the policy owner of each
    affected domain pack before the new version is marked Approved.
 
@@ -277,14 +277,14 @@ Each state transition requires a committed artifact:
 
 Based on the gap analysis in §3 and the risk profile of each domain:
 
-1. **OT / ICS**: highest consequence; create before any OT-adjacent deployment.
+1. OT / ICS: highest consequence; create before any OT-adjacent deployment.
    Proposed primary sources: IEC 62443 series, NIST SP 800-82 Rev 3, NERC CIP standards.
 
-2. **Energy sector**: existing use-case page provides a starting point.
+2. Energy sector: existing use-case page provides a starting point.
    Proposed primary sources: ENTSO-E operational guidelines, national grid operator
    operating procedures (public portions), IEA energy security frameworks.
 
-3. **Telecommunications**: no existing content; treat as greenfield.
+3. Telecommunications: no existing content; treat as greenfield.
    Proposed primary sources: ITU-T recommendations (public), 3GPP security specifications,
    ETSI NFVI security guidance.
 

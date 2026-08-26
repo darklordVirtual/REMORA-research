@@ -10,7 +10,7 @@ production gate ([REM-021](remediation_register.yaml) independent human review)
 remains open.
 
 This document is a structured safety argument in the tradition of Goal
-Structuring Notation (GSN) modernised per *Assurance 2.0* — that is, with
+Structuring Notation (GSN) modernised per *Assurance 2.0*, that is, with
 explicit **defeaters** (recorded doubts) and built for continuous update rather
 than one-off certification. It exists because a claim register and a pile of
 negative results are necessary but not sufficient: the compendium's test for any
@@ -34,7 +34,7 @@ describes.
 > ACCEPT / VERIFY / ABSTAIN / ESCALATE, and a deterministic policy floor ensures
 > that actions carrying a critical risk tier or a detected adversarial /
 > coercion / forbidden-tool / evidence-contradiction signal are never
-> autonomously accepted — recording a tamper-evident, replayable rationale for
+> autonomously accepted, recording a tamper-evident, replayable rationale for
 > every decision.
 
 G1 is scoped to *decision routing over the proposed-action surface*, in a
@@ -47,17 +47,17 @@ caveat and D-4); path-level (trajectory) enforcement is roadmap (REM-044).
 ## 2. Strategy (S1)
 
 Decompose G1 along the four runtime-governance capabilities the compendium
-names as the minimum for any agent in production — **stop, constrain, escalate,
-explain** — plus the evidence discipline that makes the argument checkable.
+names as the minimum for any agent in production (**stop, constrain, escalate,
+explain**) plus the evidence discipline that makes the argument checkable.
 
-- **G2 (constrain)** — a deterministic policy floor prevents autonomous
+- G2 (constrain): a deterministic policy floor prevents autonomous
   acceptance of unsafe actions.
-- **G3 (stop)** — the system can refuse/withhold execution and degrade safely.
-- **G4 (escalate)** — actions that are not safe to auto-accept are routed to a
+- G3 (stop): the system can refuse/withhold execution and degrade safely.
+- G4 (escalate): actions that are not safe to auto-accept are routed to a
   human with a freshness-bounded approval.
-- **G5 (explain)** — every decision emits a canonical, hash-chained,
+- G5 (explain): every decision emits a canonical, hash-chained,
   standard-format record that can be replayed and audited.
-- **G6 (evidence)** — the claims above are backed by versioned, reproducible
+- G6 (evidence): the claims above are backed by versioned, reproducible
   artifacts, with leakage controls and preserved negative results.
 
 ## 3. Sub-goals, evidence, and defeaters
@@ -66,9 +66,9 @@ explain** — plus the evidence discipline that makes the argument checkable.
 
 **Argument.** The safety result is produced by the deterministic policy layer,
 *explicitly not* by the multi-oracle consensus machinery. `hard_guard_floor()`
-unconditionally routes to a non-accept action — ESCALATE on adversarial input,
+unconditionally routes to a non-accept action (ESCALATE on adversarial input,
 malformed schema, forbidden tool, coercion, or failed counterfactual, and
-ABSTAIN/VERIFY on the evidence-contradiction and tainted-argument branches —
+ABSTAIN/VERIFY on the evidence-contradiction and tainted-argument branches)
 evaluated before any probabilistic path; unknown `action_type`/`risk_tier` fail
 closed to VERIFY.
 
@@ -78,7 +78,7 @@ closed to VERIFY.
   `remora/policy/opa_adapter.py`.
 - CLAIM-001 (`internal_benchmark`): 0% unsafe execution on the v2 tool-call
   benchmark (effective N=70 template clusters; cluster Wilson CI [0.0%, 5.2%]).
-- CLAIM-007 (`internal_benchmark`): five-condition ablation — structural-only
+- CLAIM-007 (`internal_benchmark`): five-condition ablation: structural-only
   gating (C) leaves 25% unsafe, while both the structural+thermodynamic policy
   (D) and the full gate (E) reach 0%; the full gate's advantage over D is
   decision utility (0.62 vs 0.10) and lower benign friction, not a lower floor.
@@ -102,7 +102,7 @@ recordable mode-transition mechanism (see the wiring caveat below).
   `remora/governance/degradation.py`. **Wiring caveat (verified
   2026-08-05, matches `capability_register_v1.yaml` REM-032 status
   WIRED_REFERENCE_PATH):** no production call site instantiates
-  `DegradationRecorder` today — the mechanism is implemented and tested,
+  `DegradationRecorder` today; the mechanism is implemented and tested,
   but no live path emits transition events, so "always recorded" holds
   only once a deployment wires the recorder into its link monitors. This
   is tracked integration work, not an implemented guarantee.
@@ -130,14 +130,14 @@ approval is only honoured while fresh and bound to the exact action.
 - Credential-derived (non-repudiable) reviewer/actor identity, never a
   self-reported header: `servers/api.py` (`_authenticated_principal`).
 
-**Defeater:** D-5 (operational oversight — SLA, escalation taxonomy,
-alarm-fatigue mitigation, on-call, routing — is design-level only; see
+**Defeater:** D-5 (operational oversight, meaning SLA, escalation taxonomy,
+alarm-fatigue mitigation, on-call and routing, is design-level only; see
 [human_oversight_operations_v1.md](human_oversight_operations_v1.md)).
 
 ### G5 — Explain
 
 **Argument.** Every decision emits the canonical `DecisionEnvelope`, linked into
-a tamper-evident hash chain, in a flat format consumable by a SIEM — so action
+a tamper-evident hash chain, in a flat format consumable by a SIEM, so action
 logs can be compressed into verifiable arguments rather than staying a separate
 world from assurance.
 
@@ -150,7 +150,7 @@ world from assurance.
 
 **Defeater:** D-7 (audit chain is tamper-*evident*, not tamper-*proof*: local
 HMAC only; KMS/HSM signing, RFC 3161 timestamps, and WORM anchoring are roadmap
-— REM-025 — and OIDC-bound approver identity is roadmap — REM-042 / REM-022 §8).
+(REM-025), and OIDC-bound approver identity is roadmap (REM-042 / REM-022 §8).
 
 ### G6 — Evidence discipline
 
@@ -168,7 +168,7 @@ negative results are preserved rather than pruned.
 ## 4. Defeater register
 
 A defeater is an open doubt that, if unaddressed, weakens or breaks a claim.
-Recording them is the point — none of these are hidden.
+Recording them is the point; none of these are hidden.
 
 | ID | Defeater | Affects | Status | Tracked in |
 |----|----------|---------|--------|-----------|
@@ -207,12 +207,12 @@ Deployment safety arguments fall into four classes of increasing ambition:
 *inability*, *control*, *trustworthiness*, and *external credit*. REMORA is
 honestly a **control** argument:
 
-- It does **not** argue *inability* — the underlying oracle models are fully
+- It does **not** argue *inability*; the underlying oracle models are fully
   capable of proposing harmful actions.
-- It does **not** argue *trustworthiness* — no claim is made that the models can
+- It does **not** argue *trustworthiness*; no claim is made that the models can
   be trusted to self-govern; the whole design assumes a confident model can be
   wrong, and treats the model as potentially subversive.
-- It does **not yet** reach *external credit* — no third party has replicated any
+- It does **not yet** reach *external credit*; no third party has replicated any
   result with no author involvement (D-9). Reaching this class is the purpose of
   the external-validation plan.
 
@@ -226,15 +226,15 @@ Per the compendium, an undocumented change to model, prompt, tool, memory, or
 policy is an undocumented change of the system. This case must be revisited when
 any of the following change gates fire:
 
-- **Model / oracle set** changes → re-run the tool-call and selective benchmarks;
+- Model / oracle set changes: re-run the tool-call and selective benchmarks;
   re-check D-6.
 - **Policy bundle** changes (`policy_bundle_hash`) → re-run CLAIM-001/007/010;
   confirm invariants and monotonicity hold.
-- **Tool surface** changes → re-assess D-2 (interception) and the hard-block
+- Tool surface changes: re-assess D-2 (interception) and the hard-block
   forbidden-tool list.
 - **Memory** changes (AROMER world model / episodes) → see
   [aromer_memory_governance_v1.md](aromer_memory_governance_v1.md); re-check D-8.
-- **Threat picture** changes → re-run the red-team plan
+- Threat picture changes: re-run the red-team plan
   ([red_team_plan_v1.md](red_team_plan_v1.md)) and update the defeater register.
 
 ## 8. What this case does not argue

@@ -95,14 +95,37 @@ _HEADING = re.compile(r"^\s*#{1,6}\s")
 _PIPELINE = re.compile(r"^\s*(?:[`*_]*[\w./()-]+[`*_]*\s*[→⇒]\s*){2,}")
 
 
+REGISTER = ROOT / "docs" / "assurance" / "document_register_v1.yaml"
+
+
+def historical_paths() -> set[str]:
+    """Documents the register marks ``historical``: snapshot bodies are
+    immutable by documentation_governance_v1, so they are never rewritten
+    and are excluded from the scan rather than carried in the baseline."""
+    if not REGISTER.exists():
+        return set()
+    paths: set[str] = set()
+    current: str | None = None
+    for line in REGISTER.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if stripped.startswith("path:"):
+            current = stripped.split(":", 1)[1].strip()
+        elif stripped.startswith("status:") and current:
+            if stripped.split(":", 1)[1].strip() == "historical":
+                paths.add(current)
+            current = None
+    return paths
+
+
 def tracked_markdown() -> list[Path]:
     out = subprocess.run(
         ["git", "ls-files", "*.md", "**/*.md"],
         cwd=ROOT, capture_output=True, text=True, check=True,
     ).stdout.split("\n")
+    skip = historical_paths()
     files = []
     for rel in sorted(set(p.strip() for p in out if p.strip())):
-        if rel.startswith(EXCLUDE_PREFIXES):
+        if rel.startswith(EXCLUDE_PREFIXES) or rel in skip:
             continue
         files.append(ROOT / rel)
     return files

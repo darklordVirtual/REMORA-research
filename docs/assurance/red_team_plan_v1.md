@@ -566,19 +566,19 @@ RBAC): flagged in M4 and the deployment gate in NEGATIVE_RESULTS §14.
 
 ## Gaps not covered by current regression tests
 
-1. **Live RAG corpus poisoning:** Requires integration test with actual retrieval
+1. Live RAG corpus poisoning: Requires integration test with actual retrieval
    pipeline. Out of scope for deterministic unit tests.
 
-2. **Oracle consensus collusion (AT-11):** Cannot be demonstrated with deterministic
+2. Oracle consensus collusion (AT-11): Cannot be demonstrated with deterministic
    unit tests without a mock oracle fleet. The architecture gap is documented.
 
-3. **Evidence staleness (AT-13):** No `evidence_timestamp` field. Cannot write a
+3. Evidence staleness (AT-13): No `evidence_timestamp` field. Cannot write a
    deterministic test that proves staleness detection: the field does not exist.
 
-4. **Approval fatigue (AT-09 architectural gap):** The engine is stateless. The
+4. Approval fatigue (AT-09 architectural gap): The engine is stateless. The
    session gates require caller to maintain state. No built-in session tracker.
 
-5. **Cryptographic envelope integrity (AT-08 residual gap):** Hash-based tampering
+5. Cryptographic envelope integrity (AT-08 residual gap): Hash-based tampering
    detection is covered, but cryptographic signing (PKI/HSM) is not implemented.
 
 ---

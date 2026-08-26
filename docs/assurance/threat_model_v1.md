@@ -8,7 +8,7 @@
 > [`docs/assurance/release_gates.md`](release_gates.md); for current metrics see the repository README.
 
 
-**Status:** STRIDE baseline — cited as EU AI Act Art. 11 technical documentation
+**Status:** STRIDE baseline, cited as EU AI Act Art. 11 technical documentation
 **Scope:** `darklordVirtual/REMORA-research` (STRIDE analysis of the governance core)
 **Related gates:** REM-021 (NOT_STARTED), REM-022 (DONE), REM-024 (IN_PROGRESS),
 REM-025 (NOT_STARTED), REM-030 (NOT_STARTED). Statuses are authoritative in
@@ -55,18 +55,18 @@ servers/api.py (FastAPI)
     +──── [AROMER D1] ← episode/decision log
 ```
 
-**RAG oracle (`workers/rag-oracle/` — directory present, no source TypeScript found):**
+**RAG oracle (`workers/rag-oracle/`, directory present, no source TypeScript found):**
 
 The pre-deployment review (`docs/security/pre-deployment-review.md`) and main security
 doc (`docs/08-security.md`) document an `rag-oracle` worker with endpoints:
-- `POST /ingest` — bearer auth (ORACLE_SECRET), previously fail-open
-- `POST /query` — public (read-only by design)
-- `GET /status` — public
+- `POST /ingest`: bearer auth (ORACLE_SECRET), previously fail-open
+- `POST /query`: public (read-only by design)
+- `GET /status`: public
 
 **Key signing surface:** Two HMAC keys control the security of the governance chain:
-- `REMORA_PDP_SIGNING_KEY` — signs PolicyDecisionTokens (PDP→PEP)
-- `REMORA_ENVELOPE_SIGNING_KEY` — signs audit envelope hashes (API layer)
-- `REMORA_AUDIT_ANCHOR_KEY` — signs daily Merkle root anchors (`remora/audit/anchor.py`)
+- `REMORA_PDP_SIGNING_KEY`: signs PolicyDecisionTokens (PDP→PEP)
+- `REMORA_ENVELOPE_SIGNING_KEY`: signs audit envelope hashes (API layer)
+- `REMORA_AUDIT_ANCHOR_KEY`: signs daily Merkle root anchors (`remora/audit/anchor.py`)
 
 ---
 

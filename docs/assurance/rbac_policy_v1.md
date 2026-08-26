@@ -57,29 +57,29 @@ auth mode, and the two modes are not equivalent, see section 3.3.
 
 ### 3.1 REMORA_PDP_SIGNING_KEY
 
-- **Purpose:** HMAC-SHA256 signature on `PolicyDecisionToken`. Binds the PDP decision to a specific observation hash and request ID. PEP (`EnforcementGate`) rejects unsigned tokens in strict mode.
-- **Current storage:** Environment variable on the server process. Not in any committed file.
-- **Algorithm:** HMAC-SHA256 over canonical JSON payload (sorted keys, no whitespace).
-- **Implemented in:** `remora/enforcement/token.py`
-- **If absent:** In production this is now unreachable — `_validate_production_prerequisites` (`servers/api.py`) refuses to start the server without the key, so no unsigned token can be issued there. Outside production the token is issued UNSIGNED: `EnforcementGate(strict=True)` rejects all unsigned tokens; `EnforcementGate(strict=False)` logs a warning and allows (dev/test only).
-- **Gap (acknowledged):** No KMS/HSM integration. Key is a plaintext env var. Rotation requires a server restart. Formal rotation cadence, not yet defined.
+- Purpose: HMAC-SHA256 signature on `PolicyDecisionToken`. Binds the PDP decision to a specific observation hash and request ID. PEP (`EnforcementGate`) rejects unsigned tokens in strict mode.
+- Current storage: Environment variable on the server process. Not in any committed file.
+- Algorithm: HMAC-SHA256 over canonical JSON payload (sorted keys, no whitespace).
+- Implemented in: `remora/enforcement/token.py`
+- If absent: In production this is now unreachable; `_validate_production_prerequisites` (`servers/api.py`) refuses to start the server without the key, so no unsigned token can be issued there. Outside production the token is issued UNSIGNED: `EnforcementGate(strict=True)` rejects all unsigned tokens; `EnforcementGate(strict=False)` logs a warning and allows (dev/test only).
+- Gap (acknowledged): No KMS/HSM integration. Key is a plaintext env var. Rotation requires a server restart. Formal rotation cadence, not yet defined.
 
 ### 3.2 REMORA_ENVELOPE_SIGNING_KEY
 
-- **Purpose:** HMAC-SHA256 of the DecisionEnvelope `hash` field. Enables offline audit verification of envelope integrity.
-- **Required in production (2026-08-20):** the server refuses to start without it. Before that change a production deployment wrote every audit record with `signature: null` — tamper-evident in name only — while the code warned about it in a string it never acted on.
-- **Current storage:** Environment variable on the server process.
-- **Algorithm:** HMAC-SHA256 over the envelope's `hash` (SHA-256 compact hash).
-- **Implemented in:** `servers/api.py:_finalize_envelope_audit()`, `remora/audit/merkle.py`
-- **Gap (acknowledged):** No KMS/HSM. No RFC 3161 timestamp binding.
+- Purpose: HMAC-SHA256 of the DecisionEnvelope `hash` field. Enables offline audit verification of envelope integrity.
+- Required in production (2026-08-20): the server refuses to start without it. Before that change a production deployment wrote every audit record with `signature: null` (tamper-evident in name only) while the code warned about it in a string it never acted on.
+- Current storage: Environment variable on the server process.
+- Algorithm: HMAC-SHA256 over the envelope's `hash` (SHA-256 compact hash).
+- Implemented in: `servers/api.py:_finalize_envelope_audit()`, `remora/audit/merkle.py`
+- Gap (acknowledged): No KMS/HSM. No RFC 3161 timestamp binding.
 
 ### 3.3 API Bearer Tokens
 
-- **Format (multi-tenant, the mode with real role separation):**
+- Format (multi-tenant, the mode with real role separation):
   `REMORA_API_TOKENS={"<token>": {"tenant": "<id>", "role": "<role>"}}`. The
   token maps to a fixed `(tenant, role)` pair; callers cannot forge either via
   headers. Roles outside the matrix in section 2 do not authenticate.
-- **Format (single-token):** `REMORA_API_BEARER_TOKEN=<secret>` validates the
+- Format (single-token): `REMORA_API_BEARER_TOKEN=<secret>` validates the
   token and then reads tenant and role from the `X-Remora-Tenant` and
   `X-Remora-Role` headers, defaulting to `default` / `operator`. **The role is
   self-asserted: anyone holding the token can claim any role.** This is a
@@ -88,11 +88,11 @@ auth mode, and the two modes are not equivalent, see section 3.3.
   pinned to `operator`, so approval-role gating cannot be satisfied by
   self-assertion; production role separation requires the token-table mode
   (external review 2026-07-28, N4).
-- **No credentials configured:** allowed only under `REMORA_ENV=development`.
+- No credentials configured: allowed only under `REMORA_ENV=development`.
   Production startup fails closed.
-- **Implemented in:** `servers/api.py:_authenticate()`, `servers/api.py:_load_token_table()`
-- **Revocation:** Remove the token from `REMORA_API_TOKENS` and restart the server. No hot revocation mechanism in v1.
-- **Gap (acknowledged):** No token expiry enforcement in the bearer layer.
+- Implemented in: `servers/api.py:_authenticate()`, `servers/api.py:_load_token_table()`
+- Revocation: Remove the token from `REMORA_API_TOKENS` and restart the server. No hot revocation mechanism in v1.
+- Gap (acknowledged): No token expiry enforcement in the bearer layer.
   This is separate from `PolicyDecisionToken`, which does enforce expiry:
   `remora/enforcement/token.py:verify()` rejects a token without `expires_at`
   outright (`reason="missing_expiry"`). Bearer-token revocation requires a
@@ -155,11 +155,11 @@ All deployments: `cd workers/<name> && npx wrangler deploy`. Requires `CLOUDFLAR
 
 The following are documented as future work; they do not block REM-022 closure because this policy establishes the current control state and rotation procedure:
 
-1. **KMS/HSM integration**: signing keys are plaintext env vars. HSM or cloud KMS (AWS KMS, GCP Cloud KMS, Cloudflare KMS) is the production target.
-2. **RFC 3161 timestamp binding**: envelope signatures lack third-party timestamp authority.
-3. **Bearer token expiry**: no automatic expiry on the bearer token layer (only on the inner PolicyDecisionToken).
-4. **CI/CD-only wrangler deploy**: no Cloudflare Access rule enforcing pipeline-only deploys.
-5. **OIDC approver binding**: reviewer identity in the `AuditBlock` is not verified against an OIDC token.
+1. KMS/HSM integration: signing keys are plaintext env vars. HSM or cloud KMS (AWS KMS, GCP Cloud KMS, Cloudflare KMS) is the production target.
+2. RFC 3161 timestamp binding: envelope signatures lack third-party timestamp authority.
+3. Bearer token expiry: no automatic expiry on the bearer token layer (only on the inner PolicyDecisionToken).
+4. CI/CD-only wrangler deploy: no Cloudflare Access rule enforcing pipeline-only deploys.
+5. OIDC approver binding: reviewer identity in the `AuditBlock` is not verified against an OIDC token.
 
 These gaps are consistent with TRL 3–4 (SHADOW_ONLY deployment). They must be resolved before production certification.
 

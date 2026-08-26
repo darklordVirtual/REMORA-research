@@ -10,7 +10,7 @@ becomes an architecture risk of its own: the same status described
 differently in two places, old documents that still look authoritative, a
 README that grows every time something needs visibility, and readers who
 must understand the history to find the current state. This document defines
-how REMORA treats its documentation as a governed system — the same
+how REMORA treats its documentation as a governed system, the same
 discipline REMORA applies to agent actions, applied to the repository's own
 knowledge model.
 
@@ -29,8 +29,8 @@ knowledge model.
 | Navigation | [`../README.md`](../README.md) (docs index, CI-enforced coverage) |
 
 Narrative documents explain; they are never authoritative for statuses,
-numbers, or maturity. The one document that holds status in prose —
-`release_gates.md` — is explicitly subordinate: its REM columns *mirror*
+numbers, or maturity. The one document that holds status in prose,
+`release_gates.md`, is explicitly subordinate: its REM columns *mirror*
 `remediation_register.yaml` (the machine source) and it declares so in its own
 Authority note; the computed maturity profile is recomputed from the registers,
 never read from that table. Hierarchy: `remediation_register.yaml` →
@@ -44,10 +44,10 @@ stronger status" rule, and the README status block via
 
 ## 2. Document classification
 
-Every tracked knowledge document — everything under `docs/` (excluding
+Every tracked knowledge document, meaning everything under `docs/` (excluding
 `figures/` assets) and `paper/`, plus a root-document allowlist (README,
 ARCHITECTURE, NEGATIVE_RESULTS, SECURITY, CONTRIBUTING, CONTRIBUTORS, CLAUDE,
-EVIDENCE_OF_CAPABILITY, NOTICE) — has exactly one entry in
+EVIDENCE_OF_CAPABILITY, NOTICE), has exactly one entry in
 [`document_register_v1.yaml`](document_register_v1.yaml) with one of six
 statuses:
 
@@ -61,8 +61,8 @@ statuses:
 | `superseded` | Kept so old links resolve | `superseded_by` must exist; the stub must point readers to it |
 
 The register is a sidecar (not per-file frontmatter) deliberately:
-historical snapshot *bodies* are immutable — the findings, numbers and
-dispositions they recorded must never be rewritten to match the present —
+historical snapshot *bodies* are immutable: the findings, numbers and
+dispositions they recorded must never be rewritten to match the present;
 so their governance status must live outside them. One narrowly scoped
 exception exists: a clearly separated governance banner (a `> **Historical
 …**` block quote above the original content) may be *prepended* when a
@@ -70,7 +70,7 @@ document is reclassified, so a reader landing on the file sees its vintage
 before its findings. The banner may name what has changed since; it may not
 alter, delete or reword anything below it. The machine-enforced form
 (`VINTAGE_BANNER_RE` in `scripts/check_document_governance.py`) requires a
-block-quote line carrying a bold span with a vintage keyword — `>
+block-quote line carrying a bold span with a vintage keyword, such as `>
 **Historical …**`, `> **ARCHIVED — historical …**` or `> **NOTICE:** …
 **HISTORICAL** …` all qualify; the bold span must close on one line. HTML
 assets use the equivalent `<!-- ARCHIVED - … -->` comment banner. A bare
@@ -82,8 +82,8 @@ documents are out of scope by construction (the validator enumerates
 ## 3. Release profiles instead of a diffuse "production ready"
 
 [`release_profiles_v1.yaml`](release_profiles_v1.yaml) defines five
-cumulative profiles — `RESEARCH_REFERENCE`, `SHADOW_PILOT`,
-`CONTROLLED_PILOT`, `LIMITED_ENFORCEMENT`, `PRODUCTION` — each with
+cumulative profiles (`RESEARCH_REFERENCE`, `SHADOW_PILOT`,
+`CONTROLLED_PILOT`, `LIMITED_ENFORCEMENT`, `PRODUCTION`), each with
 machine-checkable requirements against capability-ladder levels and REM
 statuses. CI recomputes the highest satisfied profile from the registers and
 fails if the declared `current_profile` drifts. **A profile can only be
@@ -104,7 +104,7 @@ The `documentation-governance` gate checks, as HARD failures:
 2. Canonical topics come from the controlled `topics:` registry, and at most
    one `canonical` document claims each topic. Caveat (2026-07-28 audit):
    topics are currently path-derived for effectively all entries, so the
-   uniqueness rule cannot fire in practice — closing the topic-fragmentation
+   uniqueness rule cannot fire in practice, closing the topic-fragmentation
    gap requires subject-level topics, tracked in the governance backlog.
 3. `CAP-*` / `REM-*` / `CLAIM-*` ids are unique within their registers, and
    the registers parse as strict YAML (this gate found and fixed five
@@ -129,7 +129,7 @@ remora-dependent `failure_analysis.md` is diffed in `quality-gates.yml`. A
 committed generated document can no longer go stale silently.
 
 Pre-existing gates complete the picture: link integrity
-(`scripts/_check_links.py` — link *targets* only; index *coverage* is not
+(`scripts/_check_links.py`, link *targets* only; index *coverage* is not
 CI-enforced), claim anchors and artifact existence
 (`check_claim_provenance.py`, `check_artifacts_exist.py`), README claims
 (`check_readme_claims.py`), capability-register structure
@@ -143,7 +143,7 @@ A status change in any register must carry, in the same commit:
 - the reason for the change,
 - the code/doc/test evidence (as register `artifacts`/`evidence` entries),
 - and, for maturity increases (capability ladder level up, REM item to DONE,
-  profile change), the commit-bound evidence that justifies it — following
+  profile change), the commit-bound evidence that justifies it, following
   the existing register convention of dated notes (see REM-024's PROGRESS
   note for the pattern):
 
@@ -164,12 +164,12 @@ load-bearing cases mechanical (profiles, claims, capability language).
   convention in §5 captures the same information as dated, commit-bound
   notes; a structured retrofit can follow when the git history is mined for
   real dates.
-- **Full README generation**: the load-bearing status (deployment profile,
+- Full README generation: the load-bearing status (deployment profile,
   open gates, capability count) is now a generated, `--check`-guarded block,
   and the numeric claims are bound via claim anchors. Generating the *entire*
-  README (prose included) is deliberately not done — the narrative is
+  README (prose included) is deliberately not done; the narrative is
   hand-written for readability; only the drift-prone facts are generated.
-- **Approval workflow for status changes**: single-maintainer repository;
+- Approval workflow for status changes: single-maintainer repository;
   CODEOWNERS routes register changes for review the day a second reviewer
   exists (REM-021).
 - **MkDocs site, split human-index/generated-catalog, per-release
@@ -181,6 +181,6 @@ load-bearing cases mechanical (profiles, claims, capability language).
 ## 7. The ambition
 
 A versioned, machine-validatable, commit-bound knowledge model of REMORA's
-architecture, research, claims, evidence, maturity, and open risks — the
+architecture, research, claims, evidence, maturity, and open risks; the
 same fail-closed, evidence-first discipline the system applies to agent
 actions, applied to itself.

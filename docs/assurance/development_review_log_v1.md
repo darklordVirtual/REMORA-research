@@ -59,8 +59,8 @@ All artifact- and test-backed. Wiring status is authoritative in
 [`capability_register_v1.yaml`](capability_register_v1.yaml).
 
 - **End-to-end execution state machine** (`servers/execution_api.py`,
-  REM-035): `assess → ACCEPT token | VERIFY/ESCALATE queue → approve → fresh
-  re-gate → one-time PEP grant`, every transition on the audit chain. The
+  REM-035): `assess, then ACCEPT token or VERIFY/ESCALATE queue, then approve, then fresh
+  re-gate, then one-time PEP grant`, every transition on the audit chain. The
   exact tool-call payload is hashed at the API boundary; a changed argument is
   refused by binding; a world that turned riskier voids the approval.
 - **Atomic, durable per-tenant audit chain** (`remora/governance/tenant_chain.py`,

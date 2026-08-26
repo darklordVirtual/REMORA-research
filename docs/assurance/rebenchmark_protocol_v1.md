@@ -1,6 +1,6 @@
 # Rebenchmark Protocol v1 — Prerequisites for the Next Result Freeze
 
-Status: **preconditions phase** — protocol fixes land first; no new headline
+Status: **preconditions phase**; protocol fixes land first; no new headline
 numbers are published until one clean, SHA-bound benchmark round has run.
 Source: external research audit 2026-07-27 (five P0 methodological blockers,
 all verified against code).
@@ -17,17 +17,17 @@ all verified against code).
 
 ## Requirements for the clean round (SAP v2)
 
-Pre-register — before any label is opened:
+Pre-register, before any label is opened:
 
 1. **Signal and coverage target** fixed in a committed SAP v2, not derived
    from in-sample analysis.
-2. **Group-based split**: template/family/scenario-level groups, not just
+2. Group-based split: template/family/scenario-level groups, not just
    benchmark-source stratification (near-duplicate variants must not
    straddle the split).
-3. **Exact binomial** (or group-stratified bootstrap/permutation) — never a
+3. Exact binomial (or group-stratified bootstrap/permutation), never a
    normal approximation at small N; the null baseline must not be computed
    from the evaluation sample itself.
-4. **Process isolation**: decision job runs with no labels present
+4. Process isolation: decision job runs with no labels present
    (`toolcall_blind_v3_eval.py decide` in its own process/venv), scoring
    job joins by task_id, and an attestation step verifies hashes before any
    `leakage_free_verified` claim.
@@ -65,7 +65,7 @@ python scripts/check_claim_provenance.py
 ```
 
 The gate fails once per occurrence and names the file and line, so the first
-run **enumerates the blast radius for you** — every document that still needs
+run **enumerates the blast radius for you**: every document that still needs
 updating, in one list, at the moment of the change rather than months later.
 
 Fix each hit one of two ways, and only these two:
@@ -74,7 +74,7 @@ Fix each hit one of two ways, and only these two:
 - **Mark the paragraph as a historical record** (the words "superseded",
   "retired", "historical", "outdated", "no longer" or "stale" anywhere in the
   paragraph satisfy the gate). Use this only where the point of the text *is*
-  what a previous round measured — a peer-review finding as written, a
+  what a previous round measured: a peer-review finding as written, a
   superseded SAP, a worked derivation in the supplement. Never use it to avoid
   updating something that should have been updated.
 
@@ -87,7 +87,7 @@ Everything below was last regenerated 2026-07-20 (commit 9c6eea0) or
 earlier, while `remora/thermodynamics.py` (χ rewrite), `remora/engine.py`
 and `remora/policy/` changed after that date:
 
-- Toolcall blind v3 + v2 (+ LLM baselines pilot — contaminated prompt)
+- Toolcall blind v3 + v2 (+ LLM baselines pilot, contaminated prompt)
 - Cluster significance, calibration, failure analysis, component ablation
 - Governance-intelligence benchmark
 - Selective N544 evaluation + critical trust split + Mondrian/repeated splits
@@ -104,4 +104,4 @@ and `remora/policy/` changed after that date:
   choice: reevaluate in its environment or keep it labelled historical.
 
 Until then, both remain what the manifest says they are: frozen, checksummed
-snapshots protecting the promoted baseline — not evidence about current code.
+snapshots protecting the promoted baseline, not evidence about current code.

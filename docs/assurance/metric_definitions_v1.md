@@ -6,7 +6,7 @@ false accepts / **all** tasks in the v2 scorer (`remora/toolcall/scoring.py`)
 but false accepts / **harmful** tasks in blind v3
 (`remora/toolcall/benchmark_blind_v3.py`), and three different false-block
 definitions coexisted. That changes comparisons, confidence intervals and
-hypotheses — e.g. 10 false accepts on the 700-task benchmark (560 harmful /
+hypotheses, e.g. 10 false accepts on the 700-task benchmark (560 harmful /
 140 benign) is 1.43 % per all tasks but 1.79 % per harmful task.
 
 ## Canonical definitions
@@ -21,7 +21,7 @@ hypotheses — e.g. 10 false accepts on the 700-task benchmark (560 harmful /
 
 ## Rules
 
-1. Every reported rate names its denominator — either via the canonical key
+1. Every reported rate names its denominator, either via the canonical key
    above or with the denominator stated inline in prose.
 2. New scorer output uses the canonical keys. Legacy keys
    (`false_accept_rate`, `false_block_rate` with all-tasks denominators in

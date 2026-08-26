@@ -110,86 +110,10 @@
     "docs/aromer/quickstart_aromer.md": {
       "arrow": 3
     },
-    "docs/assurance/ai_assisted_adversarial_security_review_v1.md": {
-      "emdash": 1
-    },
-    "docs/assurance/aromer_memory_governance_v1.md": {
-      "emdash": 8
-    },
-    "docs/assurance/artifact_manifest_v1.md": {
-      "emdash": 5
-    },
-    "docs/assurance/artifact_provenance_spec_v1.md": {
-      "bold_bullet": 3
-    },
-    "docs/assurance/assurance_case_v1.md": {
-      "arrow": 3,
-      "emdash": 23
-    },
-    "docs/assurance/benchmark_audit_v1.md": {
-      "bold_bullet": 17
-    },
-    "docs/assurance/best_practice_gap_audit_v1.md": {
-      "emdash": 15
-    },
-    "docs/assurance/development_review_log_v1.md": {
-      "arrow": 3
-    },
     "docs/assurance/documentation_governance_v1.md": {
-      "bold_bullet": 2,
-      "emdash": 16
-    },
-    "docs/assurance/domain_pack_governance_v1.md": {
-      "bold_bullet": 19
-    },
-    "docs/assurance/experiment_manifest_spec_v1.md": {
-      "emdash": 3
-    },
-    "docs/assurance/external_review_panel_v1.md": {
-      "emdash": 6
-    },
-    "docs/assurance/human_oversight_operations_v1.md": {
-      "emdash": 3
-    },
-    "docs/assurance/independent_review_protocol_v1.md": {
-      "bold_bullet": 3
-    },
-    "docs/assurance/metric_definitions_v1.md": {
-      "emdash": 2
-    },
-    "docs/assurance/mutation_testing_v1.md": {
-      "arrow": 1,
-      "emdash": 16
-    },
-    "docs/assurance/policy_engine_audit_v1.md": {
-      "arrow": 2,
-      "bold_bullet": 15,
-      "emdash": 2
-    },
-    "docs/assurance/rbac_design_v1.md": {
-      "bold_bullet": 5,
-      "copula_dodge": 1
-    },
-    "docs/assurance/rbac_policy_v1.md": {
-      "bold_bullet": 23,
-      "emdash": 3
-    },
-    "docs/assurance/rebenchmark_protocol_v1.md": {
-      "bold_bullet": 2,
-      "emdash": 7
-    },
-    "docs/assurance/red_team_plan_v1.md": {
-      "bold_bullet": 5
-    },
-    "docs/assurance/release_gates.md": {
       "emdash": 1
     },
     "docs/assurance/reproducibility_scorecard_v1.md": {
-      "bold_bullet": 4,
-      "emdash": 4
-    },
-    "docs/assurance/resilience_plan_v1.md": {
-      "bold_bullet": 2,
       "emdash": 1
     },
     "docs/assurance/statistical_analysis_plan.md": {
@@ -212,9 +136,6 @@
     },
     "docs/assurance/superseded_claims.md": {
       "emdash": 6
-    },
-    "docs/assurance/threat_model_v1.md": {
-      "emdash": 8
     },
     "docs/benchmarks/aegis-remora-crosswalk.md": {
       "emdash": 13

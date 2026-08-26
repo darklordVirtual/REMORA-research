@@ -11,7 +11,7 @@
 > statuses are held machine-readably in
 > [`remediation_register.yaml`](remediation_register.yaml), and overall
 > deployment maturity is **recomputed** from the registers into a profile by
-> `scripts/check_document_governance.py` — see
+> `scripts/check_document_governance.py`; see
 > [`release_profiles_v1.yaml`](release_profiles_v1.yaml) (the authoritative
 > maturity model). The status columns below mirror the remediation register;
 > if they ever disagree, the register wins and this table is the bug. Hierarchy:

@@ -252,8 +252,8 @@ R2 cannot approve `LIMITED_ENFORCEMENT` until:
 
 R3 shall have documented assessor experience with several of:
 
-- [ISO/IEC 42001](https://www.iso.org/standard/42001) — AI management systems;
-- [ISO/IEC 23894](https://www.iso.org/standard/77304.html) — AI risk management;
+- [ISO/IEC 42001](https://www.iso.org/standard/42001): AI management systems;
+- [ISO/IEC 23894](https://www.iso.org/standard/77304.html): AI risk management;
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework);
 - EU AI Act and sector/risk classification;
 - assurance cases, defeaters, traceability, and evidence management;
@@ -472,12 +472,12 @@ A review level is approved only when:
 ## 13. External method and standard references
 
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
-- [NIST AI RMF Playbook — Govern](https://airc.nist.gov/airmf-resources/playbook/govern/)
-- [NIST AI RMF Playbook — Measure](https://airc.nist.gov/airmf-resources/playbook/measure/)
+- [NIST AI RMF Playbook, Govern](https://airc.nist.gov/airmf-resources/playbook/govern/)
+- [NIST AI RMF Playbook, Measure](https://airc.nist.gov/airmf-resources/playbook/measure/)
 - [ISO/IEC 42001:2023](https://www.iso.org/standard/42001)
 - [ISO/IEC 23894:2023](https://www.iso.org/standard/77304.html)
-- [ISO/IEC 42006:2025](https://www.iso.org/standard/42006) — requirements for bodies that audit and certify AI management systems
-- [DNV-RP-0671 — Assurance of AI-enabled systems](https://www.dnv.com/digital-trust/recommended-practices/assurance-of-ai-enabled-systems-dnv-rp-0671/)
+- [ISO/IEC 42006:2025](https://www.iso.org/standard/42006): requirements for bodies that audit and certify AI management systems
+- [DNV-RP-0671, Assurance of AI-enabled systems](https://www.dnv.com/digital-trust/recommended-practices/assurance-of-ai-enabled-systems-dnv-rp-0671/)
 
 NIST's Playbook describes red-teaming as adversarial testing under stress and
 emphasizes external experts or personnel independent of internal AI actors.

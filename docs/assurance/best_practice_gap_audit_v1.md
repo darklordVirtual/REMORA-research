@@ -1,11 +1,11 @@
 # REMORA vs. AI-assurance best practice — control-coverage gap audit (v1)
 
-> **Status: proposal / roadmap — NOT a claims document.** This audit grades where
+> **Status: proposal / roadmap, NOT a claims document.** This audit grades where
 > REMORA stands against the control stack in the local AI-assurance compendium
 > (`docs/researchpapers/kompendium_ai_assurance_3utgave.md`, ~201 works). Every
-> "implemented" grade is a pointer to a truth source you can verify — the
+> "implemented" grade is a pointer to a truth source you can verify, the
 > research-control matrix (`RES-*`), the capability register (`CAP-*`), or the
-> remediation register (`REM-*`) — not a new claim. Every gap is roadmap.
+> remediation register (`REM-*`), not a new claim. Every gap is roadmap.
 > Snapshot date: **2026-07-21**. If a grade and its register disagree, the
 > register wins and this file is the bug.
 >
@@ -16,7 +16,7 @@
 ## How to read this
 
 The compendium is organised as a ten-chapter control stack, from statistical
-foundations up to runtime governance. REMORA does not aim to cover all of it —
+foundations up to runtime governance. REMORA does not aim to cover all of it;
 it is a pre-execution governance overlay, not a model, an MLOps platform, or a
 supply-chain toolchain. This audit separates *four* things that are easy to
 conflate:
@@ -29,7 +29,7 @@ conflate:
 | ⚪ **Out of scope** | Deliberately not REMORA's job; recorded in the matrix `landscape.not_implemented` block. Not roadmap. |
 
 Grades describe *control coverage*, not maturity on the deployment ladder. A ✅
-control can still be `WIRED_REFERENCE_PATH` (demo-only) — check the `CAP-*`
+control can still be `WIRED_REFERENCE_PATH` (demo-only); check the `CAP-*`
 status in `capability_register_v1.yaml` for how far each one is actually wired.
 
 ## Chapter-by-chapter coverage
@@ -88,7 +88,7 @@ status in `capability_register_v1.yaml` for how far each one is actually wired.
 | Verifiable-claims discipline | ✅ | Claim register + artifact manifest + `make audit`; this repo's core hygiene. |
 | RSP-style if-then capability commitments | 🟡 | AII bands + release gates are threshold-driven, but not a formal responsible-scaling commitment framework. |
 
-**Read:** governance is REMORA's strongest area — reference-design maturity, with the honest ceiling that it is not externally certified.
+**Read:** governance is REMORA's strongest area: reference-design maturity, with the honest ceiling that it is not externally certified.
 
 ### Ch. 6 — MLOps, system design, production operations
 
@@ -135,7 +135,7 @@ status in `capability_register_v1.yaml` for how far each one is actually wired.
 ## Prioritised roadmap (the in-scope gaps only)
 
 These are the 🟡/⛔ items that are *within* REMORA's mission. Out-of-scope (⚪)
-areas are boundaries, not backlog — see the recap below. Priority reflects
+areas are boundaries, not backlog; see the recap below. Priority reflects
 distance from REMORA's core value proposition and how load-bearing the gap is
 for honest claims.
 
@@ -154,20 +154,20 @@ for honest claims.
 Recorded machine-readably in `research_control_matrix_v1.yaml` →
 `landscape.not_implemented`, so the boundary is explicit and auditable:
 
-- **Formal methods / neural-network verification / guaranteed-safe AI** — REMORA verifies its policy layer by tests, not proofs about the governed model.
-- **Provenance / SBOM / SLSA / SPIFFE / C2PA** — artifact and supply-chain integrity are assumed provided by the host environment.
-- **Fairness / differential privacy / training-data protection** — REMORA governs inference-time execution, not model training.
-- **Full MLOps platform** — data pipelines, SRE error budgets, and deployment infrastructure are the host's responsibility.
-- **Mechanistic interpretability** — model-internal feature/circuit analysis of the governed model.
+- Formal methods / neural-network verification / guaranteed-safe AI: REMORA verifies its policy layer by tests, not proofs about the governed model.
+- Provenance / SBOM / SLSA / SPIFFE / C2PA: artifact and supply-chain integrity are assumed provided by the host environment.
+- Fairness / differential privacy / training-data protection: REMORA governs inference-time execution, not model training.
+- Full MLOps platform: data pipelines, SRE error budgets, and deployment infrastructure are the host's responsibility.
+- Mechanistic interpretability: model-internal feature/circuit analysis of the governed model.
 
 ## Bottom line
 
 Against the compendium's ten-chapter control stack, REMORA is **strong and
-tested where it claims to operate** — uncertainty (Ch. 1), governance (Ch. 5),
-and runtime governance (Ch. 10) — and **honest about its edges**: prompt-injection
+tested where it claims to operate** (uncertainty (Ch. 1), governance (Ch. 5),
+and runtime governance (Ch. 10)) and **honest about its edges**: prompt-injection
 defence is intent-gating rather than structural, detection-and-response is not
 deployed, and semantic-entropy quality is unproven. The largest single lever is
 gap #1 (structural injection defence + proven interception); the largest
 *status* lever is gap #2 (independent verification), which alone separates every
 internally-attested control from external verification. None of the ⚪ areas are
-deficiencies — they are the deliberate scope of a governance overlay.
+deficiencies; they are the deliberate scope of a governance overlay.
