@@ -1,0 +1,50 @@
+# Author: Stian Skogbrott
+# SPDX-License-Identifier: BUSL-1.1
+#
+# Reference deployment (issue #89): API + Postgres, both pinned by digest.
+# This is the locked pilot topology: durable execution state is MANDATORY
+# (volatile one-time-grant state made grants replayable — the
+# production-durability gate refuses to start without it).
+#
+#   docker compose -f deploy/reference/docker-compose.yml up --build
+#
+# Secrets: set real values via an env file or your orchestrator; the
+# placeholders below refuse to be useful in production
+# (REMORA_ENV=production requires real signing keys).
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/reference/Dockerfile
+    image: remora-reference:latest
+    ports:
+      - "8000:8000"
+    environment:
+      REMORA_ENV: ${REMORA_ENV:-development}
+      REMORA_PG_DSN: postgresql://remora:${POSTGRES_PASSWORD:-remora-dev-only}@postgres:5432/remora
+      REMORA_PDP_SIGNING_KEY: ${REMORA_PDP_SIGNING_KEY:-}
+      REMORA_LEASE_SIGNING_KEY: ${REMORA_LEASE_SIGNING_KEY:-}
+      REMORA_ENVELOPE_SIGNING_KEY: ${REMORA_ENVELOPE_SIGNING_KEY:-}
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    # postgres:16-alpine, pinned by digest (resolved 2026-08-26).
+    image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+    environment:
+      POSTGRES_USER: remora
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-remora-dev-only}
+      POSTGRES_DB: remora
+    volumes:
+      - remora-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remora -d remora"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  remora-pgdata:

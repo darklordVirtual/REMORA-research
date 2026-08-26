@@ -19,10 +19,10 @@
 # renames of the display name, which is what makes them bindable.
 
 schema_version: "1"
-updated: "2026-08-25"
+updated: "2026-08-26"
 
 # Ratchet: the number of surfaces may grow, never silently shrink.
-surface_baseline: 9
+surface_baseline: 10
 
 surfaces:
   - name: source-checkout
@@ -107,3 +107,13 @@ surfaces:
     contracts:
       - { kind: smoke, job: "ci.yml:opa-conformance" }
       - { kind: test, job: "ci.yml:opa-conformance" }
+
+  - name: container-reference
+    description: >-
+      The locked pilot runtime (issue #89): reference image built from the
+      wheel with digest-pinned base, non-root, contract smoke run inside
+      the image, and the API+Postgres compose topology.
+    contracts:
+      - { kind: smoke, job: "ci.yml:container-contract" }
+      - { kind: test, job: "ci.yml:container-contract" }
+      - { kind: artifact, job: "ci.yml:container-contract" }

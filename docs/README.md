@@ -207,6 +207,7 @@ These files are retained for reproducibility and research history. In particular
 | Document | Purpose |
 |---|---|
 | [deployment/execution-quickstart.md](deployment/execution-quickstart.md) | Execution-path deployment quickstart |
+| [deployment/container-reference.md](deployment/container-reference.md) | Containerised reference deployment for locked pilot installs (wheel-built, digest-pinned, in-image contract smoke) |
 | [deployment/azure-reference-architecture.md](deployment/azure-reference-architecture.md) | Azure reference architecture |
 | [deployment/onprem-airgapped.md](deployment/onprem-airgapped.md) | On-prem / air-gapped deployment |
 | [deployment/authority-custody-evidence.md](deployment/authority-custody-evidence.md) | Deployed evidence for the authority/execution custody split; every value read from the running system |
