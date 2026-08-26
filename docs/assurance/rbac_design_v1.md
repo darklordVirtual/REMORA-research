@@ -193,21 +193,21 @@ exists for policy changes. This is a research-phase limitation.
 
 The following least-privilege mechanisms are implemented in `servers/api.py`:
 
-1. **Multi-tenant token binding:** When `REMORA_API_TOKENS` is set, each bearer token
+1. Multi-tenant token binding: When `REMORA_API_TOKENS` is set, each bearer token
    is bound to a fixed `(tenant, role)` pair at startup (`_load_token_table()`). Callers
    cannot promote their role by sending different headers.
 
-2. **Tenant-scoped data access:** All store queries include `tenant_id` as a filter
+2. Tenant-scoped data access: All store queries include `tenant_id` as a filter
    (`_CONTROL_PLANE_STORE.get_envelope(request_id=..., tenant_id=tenant_id)`). Tenants
    cannot read each other's envelopes through the API.
 
-3. **Endpoint-level capability checks:** `_require_tenant_capability()` validates that
+3. Endpoint-level capability checks: `_require_tenant_capability()` validates that
    the caller's role has the required permission before processing any request.
 
-4. **Approval role enforcement:** `_enforce_review_approval_role()` validates that
+4. Approval role enforcement: `_enforce_review_approval_role()` validates that
    approval decisions are submitted by the required role (configurable per tenant).
 
-5. **Production fail-closed:** Missing `REMORA_API_BEARER_TOKEN` in non-development
+5. Production fail-closed: Missing `REMORA_API_BEARER_TOKEN` in non-development
    mode raises `RuntimeError` at startup.
 
 ### 4.2 Gaps in least privilege
@@ -312,7 +312,7 @@ acceptance criteria.
 
 REM-022 is DONE when: all steps above have artifacts committed, an external reviewer
 has confirmed the design, and the artifact is at `docs/assurance/rbac_policy_v1.md`
-(note: that path differs from this document's path; this document serves as the design
+(note: that path differs from this document's path; this document is the design
 input; the policy document will be the formal output after review).
 
 > **Closure deviation (2026-07-02).** REM-022 was closed 2026-06-30 without

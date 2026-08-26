@@ -7,7 +7,7 @@ is a statement about an experiment's *lifecycle*; the strength of its
 *results* is tracked separately, per claim, in
 [claim_register_v1.yaml](claim_register_v1.yaml) using the
 [evidence_levels.md](evidence_levels.md) ladder. Keeping these orthogonal is
-deliberate: an experiment with FAR > 0 can be excellent research — the result
+deliberate: an experiment with FAR > 0 can be excellent research; the result
 simply stays a candidate until promoted through the claim register.
 
 Checker: `scripts/check_experiment_manifests.py` (runs in the
@@ -39,7 +39,7 @@ manifests and missing provenance sidecars are ADVISORY backlog.
 
 `baseline` (what the result is compared against), `policy_configuration`
 (frozen thresholds/arms), `seeds` (or `seed_note` explaining why not),
-`datasets`, `promotion_target` (a `CLAIM-*` id, or `none` — promotion runs
+`datasets`, `promotion_target` (a `CLAIM-*` id, or `none`; promotion runs
 through the claim register and its gates, never through this manifest),
 `known_limitations`.
 
@@ -52,7 +52,7 @@ through the claim register and its gates, never through this manifest),
   (REM-014/REM-019) protect the *promoted baseline artifacts*, which
   experiments do not touch.
 - It does not replace artifact provenance sidecars
-  ([artifact_provenance_spec_v1.md](artifact_provenance_spec_v1.md)) — the
+  ([artifact_provenance_spec_v1.md](artifact_provenance_spec_v1.md)); the
   sidecar proves how an artifact was produced; the manifest states why.
 
 ## Example

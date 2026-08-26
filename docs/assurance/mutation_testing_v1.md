@@ -3,7 +3,7 @@
 - Status: first measured pass (issue #280); scoped, reproducible, with the
   numbers stated for what they are.
 - Scope: `remora/enforcement/token.py`, `gate.py`, `lease.py`,
-  `nonce_store.py` — the files carrying one-time consumption and exact-call
+  `nonce_store.py`, the files carrying one-time consumption and exact-call
   binding.
 - Tooling: `mutmut` 3.7, configured in `pyproject.toml` `[tool.mutmut]`;
   runner = the thirteen remora-only enforcement suites (~10 s). Runs on
@@ -30,23 +30,23 @@ diffs classify the residue: governance-event payload literals
 log payloads), default-parameter values callers always override, and
 exception-message content. One sampled survivor was a genuine gap, fixed
 in the same round: **dropping `toolspec_hash` from the verify call
-survived** — nothing dispatched with a *wrong* resolved spec identity,
-only with a raising resolver — and now has its own kill test.
+survived**: nothing dispatched with a *wrong* resolved spec identity,
+only with a raising resolver. It now has its own kill test.
 
 The open decision above was taken in the promoting direction (last row of
 the table): governance events ARE contract.
 `tests/test_governance_event_contract.py` pins the payloads via caplog on
-`remora.governance` — the PEP decision event on allow and refusal, every
+`remora.governance`: the PEP decision event on allow and refusal, every
 `dispatch.refused` reason literal with its lifecycle join keys,
 `lease.issued`, `dispatch.executed`, `dispatch.state_unknown`, and the
 emitter's secret-name screen in both directions. Writing the tests
 surfaced a real defect, fixed in the same round: **`grant.checked` was
-emitted only on the fall-through path of `EnforcementGate.check()`** —
+emitted only on the fall-through path of `EnforcementGate.check()`**;
 every early refusal return (bad signature, audience, stale timestamps,
 replay, unavailable ledger) left no operational record. `check()` now
 funnels every exit of `_check_unlogged()` through the emitter. The round
-killed 139 baseline survivors — `dispatch` 159 → 53, the check logic
-(now `_check_unlogged`) 53 → 16 — and moved the covered-lines rate
+killed 139 baseline survivors (`dispatch` 159 to 53, the check logic,
+now `_check_unlogged`, 53 to 16) and moved the covered-lines rate
 64.3% → 79.7%; the remaining 168 are default-parameter and
 exception-message residue plus long-tail helpers (`try_consume` 15,
 `verify_ledger` 14, `__init__`/parse helpers).
@@ -56,12 +56,12 @@ pins the complete `(allowed, action, token_verified, reason, strict_mode)`
 tuple per refusal branch of `check()`, with the age tests sitting exactly
 on the boundary. The `check` cluster fell 53 → 36; the mutant pool grew
 (722 → 778) because the new tests execute lines the old runner did not,
-which is the correct direction — covered-lines mutation counts grow as
+which is the correct direction: covered-lines mutation counts grow as
 coverage grows, and the kill rate must be read against its own pool.
 
 The third row is the verification that the fix below fixes: the
 `_canonical_payload` cluster went 34 → 0 survivors, and the delta accounts
-for the entire improvement. It took two attempts — the first re-sweep
+for the entire improvement. It took two attempts; the first re-sweep
 reproduced 34 unchanged because the new suite was not in the runner's test
 selection, which is its own lesson: a kill-test that the runner never
 executes kills nothing, however good it looks.
@@ -92,7 +92,7 @@ after the event-contract round are `dispatch` 53, `_check_unlogged` 16,
 ## What was fixed as part of this pass
 
 The `_canonical_payload` cluster is the instructive one: every roundtrip
-test (issue → verify) is structurally blind to mutations applied to both
+test (issue, then verify) is structurally blind to mutations applied to both
 sides of the signature. `tests/test_token_golden_vectors.py` freezes the
 canonical payload bytes and HMAC-SHA256 hex for a fixed key at two points
 of the optional-field lattice (minimal and fully-populated), so any drift
@@ -105,7 +105,7 @@ defect the paper's wire-format claims depend on.
 1. **Editable installs make every mutant invisible.** With the package
    `pip install -e` into the runner venv, the sandbox's mutated sources
    lost import resolution to the original tree and the first sweep
-   reported 0 killed / 704 survived — a number that looked like a
+   reported 0 killed / 704 survived, a number that looked like a
    catastrophic test suite and was actually a broken experiment. The
    runner venv must carry dependencies only, never the package.
 2. **Run from a native filesystem.** Over the WSL 9p mount the sweep did
@@ -116,7 +116,7 @@ defect the paper's wire-format claims depend on.
 ## Open, tracked in #280
 
 - Triage rounds for the remaining `dispatch` (53) and `_check_unlogged` (16)
-  survivors — the two functions where surviving mutants sit closest to
+  survivors, the two functions where surviving mutants sit closest to
   enforcement behaviour (down from 159/53 before #405).
 - Generate this document's tables from the mutation-results artifact so the
   headline and per-function numbers cannot drift apart again (external
@@ -126,15 +126,15 @@ defect the paper's wire-format claims depend on.
 ## CI integration (wired)
 
 The scheduled job `.github/workflows/mutation.yml` (Mondays 05:00 UTC +
-`workflow_dispatch`) runs the committed `[tool.mutmut]` configuration —
+`workflow_dispatch`) runs the committed `[tool.mutmut]` configuration;
 `mutate_only_covered_lines` is now permanent, so the job measures the
-covered-lines metric this report argues for — and hands `mutmut results`
+covered-lines metric this report argues for, and hands `mutmut results`
 to `scripts/check_mutation_baseline.py`. The gate is asymmetric by design:
 
 - a surviving mutant absent from `docs/assurance/mutation_baseline_v1.txt`
   FAILS the job (test-strength regression, named individually);
-- a baseline entry that no longer survives is an advisory ratchet hint —
-  progress never breaks the job — lowered only by regenerating the baseline
+- a baseline entry that no longer survives is an advisory ratchet hint
+  (progress never breaks the job), lowered only by regenerating the baseline
   in a reviewed diff (`mutmut results | python
   scripts/check_mutation_baseline.py --update -`);
 - baseline entries whose whole function id-set vanished are classified as
@@ -142,4 +142,4 @@ to `scripts/check_mutation_baseline.py`. The gate is asymmetric by design:
 
 Baseline sweep (last row of the table): 816 mutants, 525 killed, 291
 survivors recorded. The job installs dependencies only and asserts
-`import remora` fails before sweeping — caveat 1 as an executable guard.
+`import remora` fails before sweeping: caveat 1 as an executable guard.

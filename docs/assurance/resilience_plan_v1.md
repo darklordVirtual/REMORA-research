@@ -13,9 +13,9 @@ rationale; on any discrepancy the code + tests win.
 
 Two failure classes this plan covers, both raised in internal review:
 
-1. **Communication failure (partition):** any link in the governance chain
+1. Communication failure (partition): any link in the governance chain
    becomes unreachable, what may still execute, and what must stop?
-2. **Stale approvals:** a VERIFY/ESCALATE decision is approved by a human,
+2. Stale approvals: a VERIFY/ESCALATE decision is approved by a human,
    but the world changed between decision time and execution time, when is
    the approval still valid?
 
@@ -59,7 +59,7 @@ G4 mutation coverage note (2026-08-05): in the production profile the
 file-writing tools (`Write`/`Edit`/`MultiEdit`/`NotebookEdit`) never take the
 LOW fast-exit, so those mutations always meet the G4 refusal. Shell-borne
 mutations are covered to the extent the risk classifier scores the command
-above LOW (`remora/agent_hook/risk_classifier.py` patterns) — a shell command
+above LOW (`remora/agent_hook/risk_classifier.py` patterns); a shell command
 the classifier does not recognize as mutating still exits on the LOW fast
 path.
 

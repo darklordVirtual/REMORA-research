@@ -243,13 +243,13 @@ Complete this table after answering Section 4 questions.
 
 Choose one:
 
-- **PASS**: All questions in this reviewer's assigned mandate are answered YES,
+- PASS: All questions in this reviewer's assigned mandate are answered YES,
   or PARTIAL with documented minor findings that do not affect the approved
   profile. This passes the individual mandate; REM-021 may close only after
   all mandatory R1/R2/R3 reports and the consolidated R3 verdict are complete.
-- **CONDITIONAL PASS**: Specific items require author response before close.
+- CONDITIONAL PASS: Specific items require author response before close.
   List findings in Section 6.
-- **FAIL**: One or more critical findings that require code or documentation
+- FAIL: One or more critical findings that require code or documentation
   changes before REM-021 can be closed. List findings in Section 6.
 
 ---

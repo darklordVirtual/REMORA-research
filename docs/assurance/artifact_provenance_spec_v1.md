@@ -398,16 +398,16 @@ following provenance metadata for each ingested chunk:
 
 **What is missing from RAG chunk provenance:**
 
-1. **Committer / script reference:** There is no record of which script or operator
+1. Committer / script reference: There is no record of which script or operator
    performed the ingest. This should be added as an optional `ingest_script` metadata
    field in `workers/rag-oracle/src/index.ts`.
 
-2. **Source document hash:** The Worker stores `content.slice(0, 1000)` but not a
+2. Source document hash: The Worker stores `content.slice(0, 1000)` but not a
    hash of the full source document. Adding a `source_sha256` field (SHA-256 of the
    full ingested content) would enable verification that the chunk matches the
    claimed source.
 
-3. **Source URL or canonical reference:** The `source` field is free-form text. For
+3. Source URL or canonical reference: The `source` field is free-form text. For
    structured domains, a `source_url` field (the canonical URL or DOI of the source)
    would enable automated freshness checks.
 

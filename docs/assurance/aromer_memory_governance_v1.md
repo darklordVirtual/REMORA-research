@@ -7,7 +7,7 @@ what is a gap.
 **Created:** 2026-07-20
 **Scope:** AROMER's persistent learning state only. AROMER is experimental
 (`internal_simulation`), `SHADOW_ONLY`, and its Autonomous Intelligence Index is
-**not** a safety metric — do not cite AROMER numbers as evidence for the core
+**not** a safety metric; do not cite AROMER numbers as evidence for the core
 governance engine (see [assurance_case_v1.md](assurance_case_v1.md) §8).
 **Legal note:** the GDPR/retention/erasure references below are for design
 orientation only; not legal advice.
@@ -16,7 +16,7 @@ The compendium treats long-term agent memory as a **governance object with its
 own lifecycle**, not an internal implementation detail: because it is
 persistent, shared, and self-modifying state, it is simultaneously a poisoning
 target, an exfiltration channel, and a persistence mechanism for an attacker.
-The lifecycle stages — **write, store, retrieve, execute, share, delete** — must
+The lifecycle stages (**write, store, retrieve, execute, share, delete**) must
 each be governed, and the memory must be inventoried as an attack surface with
 an explicit **write / quarantine / delete** regime. This document applies that
 frame to AROMER.
@@ -39,7 +39,7 @@ frame to AROMER.
 labels must never enter at the strength of observed ground truth; anomalous or
 adversarial writes must be gated.
 
-**Enforced today.** Episodes *record* provenance fields — `label_source`
+**Enforced today.** Episodes *record* provenance fields (`label_source`
 (human/synthetic/oracle/auto_label/replay_truth/unknown), `label_confidence`,
 `synthetic`, `can_train`, `oracles_used` (`remora/aromer/experience/episode.py`).
 Two down-weighting mechanisms exist: the TTL-presumed-benign path applies a weak
@@ -51,11 +51,11 @@ down-weighting.** The world-model update weight
 (`DecisionQuality.world_model_weight` in `remora/aromer/experience/episode.py`;
 `worldUpdate()` in `workers/aromer/src/index.ts`) is a pure function of
 *decision quality* (verdict × ground-truth outcome) and never reads
-`label_source`, `label_confidence`, or `synthetic` — so it separates clear vs.
+`label_source`, `label_confidence`, or `synthetic`), so it separates clear vs.
 review outcomes, **not** trusted vs. self-labeled provenance. Consequently the
 auto-label hook (`scripts/aromer_auto_label_hook.py`), which self-labels
 essentially every dev-session tool call `correct_accept` with no external
-verification, updates the world model at the **full 1.0 weight** — the same
+verification, updates the world model at the **full 1.0 weight**, the same
 strength as observed ground truth. The 0.25 weak weight applies only to review
 outcomes and the TTL-presumed path, never to this self-labeling path. The
 distinction is not schema-enforced in D1 either (those provenance fields live in
@@ -163,4 +163,4 @@ system (a change-gate surface); it must be audited like one.
   [NEGATIVE_RESULTS.md](../../NEGATIVE_RESULTS.md) §2 and §8.
 - Until the quarantine and mutation-audit stages exist, AROMER's learning must
   not be relied on for any safety-relevant decision; the deterministic policy
-  floor — not AROMER — carries the safety result.
+  floor, not AROMER, carries the safety result.
