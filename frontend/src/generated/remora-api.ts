@@ -61,9 +61,14 @@ export interface paths {
         put?: never;
         /**
          * Assess
-         * @description Assess an agent action proposal through the full REMORA pipeline.
+         * @description Assess an agent action proposal through the research pipeline.
          *
-         *     Returns a structured governance decision with thermodynamic observables,
+         *     This is the RESEARCH surface (ADR-canonical-decision-engine, gate fired
+         *     2026-08-26 with the #389 paper reframe): the multi-oracle consensus
+         *     engine behind it informs, and never gates, enforcement. The enforcing
+         *     path is /v1/execution/* on the canonical policy core.
+         *
+         *     Returns a structured governance decision with consensus observables,
          *     policy action (ACCEPT/VERIFY/ABSTAIN/ESCALATE), and audit metadata.
          */
         post: operations["assess_v1_assess_post"];
