@@ -138,6 +138,8 @@ def test_check_register_flags_missing_field_and_bad_level() -> None:
 def test_check_artifacts_missing_and_present(tmp_path: Path) -> None:
     (tmp_path / "results").mkdir()
     (tmp_path / "results" / "present.json").write_text("{}", encoding="utf-8")
+    # a claim-bound JSON artifact needs its sidecar (2026-08-26 hard gate)
+    (tmp_path / "results" / "present.provenance.json").write_text("{}", encoding="utf-8")
     claims = [
         {"id": "CLAIM-301", "artifact": ["results/present.json", "results/gone.json"]},
     ]

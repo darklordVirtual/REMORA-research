@@ -39,7 +39,7 @@ class FakeD1:
         self.watermark = 0
         self.down = False
 
-    def post(self, statements):
+    def post(self, statements, url=None):
         if self.down:
             raise d1.D1Unavailable("state store unreachable: injected outage")
         results = []

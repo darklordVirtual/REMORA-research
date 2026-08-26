@@ -46,8 +46,8 @@ def endpoint() -> str:
     return os.getenv(ENDPOINT_ENV, "").strip()
 
 
-def _post(statements: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
-    url = endpoint()
+def _post(statements: list[dict[str, Any]], url: str | None = None) -> list[list[dict[str, Any]]]:
+    url = (url or "").strip() or endpoint()
     if not url:
         raise D1Unavailable(f"{ENDPOINT_ENV} is not set")
     body = json.dumps({"batch": statements}).encode()
@@ -96,7 +96,11 @@ class D1Connection:
     untouched without needing a server-side rollback.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, endpoint_url: str | None = None) -> None:
+        # An explicit endpoint wins over the environment, so a component that
+        # was handed one (EnforcementGate(state_endpoint=...)) talks to that
+        # store and not to whatever the process environment happens to hold.
+        self._endpoint = (endpoint_url or "").strip() or None
         self._pending: list[dict[str, Any]] = []
         self._closed = False
 
@@ -113,7 +117,7 @@ class D1Connection:
         # behind the caller's back.
         if self._pending:
             self._flush()
-        results = _post([{"sql": sql, "params": args}])
+        results = self._send([{"sql": sql, "params": args}])
         return _Cursor(results[0] if results else [])
 
     def commit(self) -> None:
@@ -138,12 +142,21 @@ class D1Connection:
         self.close()
 
     # ── internals ───────────────────────────────────────────────────────
+    def _send(self, statements: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
+        # Only pass the URL through when one was given, so test doubles that
+        # replace _post(statements) keep working and the environment path is
+        # byte-for-byte the old one.
+        if self._endpoint:
+            return _post(statements, self._endpoint)
+        return _post(statements)
+
     def _flush(self) -> None:
         if not self._pending:
             return
         batch, self._pending = self._pending, []
-        _post(batch)
+        self._send(batch)
 
 
-def connect() -> D1Connection:
-    return D1Connection()
+def connect(endpoint_url: str | None = None) -> D1Connection:
+    """Open a D1 connection; ``endpoint_url`` overrides REMORA_STATE_ENDPOINT."""
+    return D1Connection(endpoint_url)

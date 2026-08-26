@@ -1,5 +1,90 @@
 {
   "schema": "claim_provenance_baseline_v1",
-  "description": "Known violations grandfathered by scripts/check_claim_provenance.py. Entries here are reported as WARN and do not fail the gate. Do not add new entries without a documented reason; remove entries once the underlying defect is fixed. The CLAIM-009 external_dataset_eval artifacts were restored from the main implementation repo on 2026-07-03, so this file is now empty.",
-  "known_violations": []
+  "description": "Known violations grandfathered by scripts/check_claim_provenance.py. Entries are reported as WARN and do not fail the gate. Do not add new entries without a documented reason; remove entries once the underlying defect is fixed. 2026-08-26: the sidecar-missing entries are claim-bound artifacts produced before the .provenance.json protocol (docs/assurance/artifact_provenance_spec_v1.md, 2026-07-27). They are not backfilled: a sidecar records the producing run, and inventing one afterwards would be fabricated provenance. Each entry leaves this list when its artifact is regenerated under the rebenchmark protocol with a real sidecar. New claim-bound artifacts without a sidecar fail the gate.",
+  "known_violations": [
+    {
+      "error_id": "sidecar-missing:CLAIM-001:results/toolcall_m1_clean_signal.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-005:results/critical_trust_split_v1.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-005:results/selective_n500_results.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-006:artifacts/aromer/intelligence_after_v020.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-007:artifacts/aromer/component_ablation_results.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-008:results/selective_trust_curve_results.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-009:artifacts/aromer/external_dataset_eval.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-009:artifacts/aromer/external_dataset_eval_v2.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-010:benchmarks/toolcall_blind_v3/tasks.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-010:benchmarks/toolcall_blind_v3/labels.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-011:results/far_confidence_sequence_v1.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-011:results/longitudinal_stability_v1.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-014:results/system_demonstration_v1.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-014:results/fleetops_degradation_results.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-014:results/fleetops_validator_study_results.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-016:results/routing_bench_bfcl_results.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-016:data/routing_bench_bfcl/manifest.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-018:results/routing_bench_bfcl_v4_results.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-018:data/routing_bench_bfcl_v4/manifest.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-019:results/routing_bench_bfcl_v4_cext3_results.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    },
+    {
+      "error_id": "sidecar-missing:CLAIM-019:data/routing_bench_bfcl_v4_cext3/manifest.json",
+      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
+    }
+  ]
 }

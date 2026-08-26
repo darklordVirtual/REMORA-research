@@ -117,7 +117,7 @@ class EnforcementGate:
                 conn.commit()
         elif self._state_endpoint:
             from remora.persistence.d1_connection import connect
-            with connect() as conn:
+            with connect(self._state_endpoint) as conn:
                 conn.execute(
                     "CREATE TABLE IF NOT EXISTS pep_consumed (jti TEXT PRIMARY KEY, consumed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
                 )
@@ -186,7 +186,7 @@ class EnforcementGate:
                 ).fetchone()
         elif self._state_endpoint:
             from remora.persistence.d1_connection import connect
-            with connect() as conn:
+            with connect(self._state_endpoint) as conn:
                 rows = _scalar(
                     conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone(), 0
                 )
@@ -455,7 +455,7 @@ class EnforcementGate:
                     connect,
                 )
                 try:
-                    with connect() as conn:
+                    with connect(self._state_endpoint) as conn:
                         if allowed and consume:
                             # INSERT + watermark commit as ONE atomic batch:
                             # the PRIMARY KEY is the compare-and-set, so of
