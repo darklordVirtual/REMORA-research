@@ -2,9 +2,7 @@
   "_note": "shrink-only; regenerate with scripts/check_prose_style.py --update-baseline only after a prose pass that lowered counts",
   "files": {
     "ARCHITECTURE.md": {
-      "arrow": 2,
-      "bold_bullet": 3,
-      "emdash": 3
+      "arrow": 2
     },
     "CHANGELOG.md": {
       "emdash": 2
@@ -12,15 +10,8 @@
     "CODE_OF_CONDUCT.md": {
       "not_but": 1
     },
-    "CONTRIBUTING.md": {
-      "bold_bullet": 1,
-      "emdash": 2
-    },
     "CONTRIBUTORS.md": {
       "arrow": 1
-    },
-    "DEVELOPER_OVERVIEW.md": {
-      "emdash": 14
     },
     "LICENSING.md": {
       "emdash": 7
@@ -30,9 +21,6 @@
       "bold_bullet": 7,
       "copula_dodge": 1,
       "emdash": 177
-    },
-    "README.md": {
-      "emdash": 14
     },
     "SECURITY.md": {
       "emdash": 3
@@ -83,40 +71,8 @@
       "arrow": 4,
       "bold_bullet": 8
     },
-    "docs/01-architecture.md": {
-      "emdash": 4
-    },
-    "docs/02-evidence-and-claims.md": {
-      "bold_bullet": 29,
-      "emdash": 4
-    },
-    "docs/03-experiments.md": {
-      "emdash": 2
-    },
     "docs/04-negative-results-detail.md": {
-      "arrow": 4,
-      "emdash": 3
-    },
-    "docs/06-reproducibility.md": {
-      "emdash": 2
-    },
-    "docs/07-api-reference.md": {
-      "arrow": 1,
-      "emdash": 25
-    },
-    "docs/08-security.md": {
-      "bold_bullet": 3
-    },
-    "docs/09-related-work.md": {
-      "arrow": 7,
-      "emdash": 9
-    },
-    "docs/10-contributing.md": {
-      "emdash": 7
-    },
-    "docs/13-research-frontier-roadmap.md": {
-      "arrow": 18,
-      "emdash": 161
+      "arrow": 4
     },
     "docs/README.md": {
       "emdash": 7

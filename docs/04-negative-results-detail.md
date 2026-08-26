@@ -12,12 +12,12 @@ Active findings are also indexed in `02-evidence-and-claims.md` caveat blocks.
 gaps (external replication, holdout transfer, entropy backend), plus the
 resolved-findings archive (R1–R12). It is **not** the complete negative-results
 record, the canonical, complete record is
-[`../NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md), which now runs to §41 —
-11 open, 7 accepted and 23 superseded — including the operational event
+[`../NEGATIVE_RESULTS.md`](../NEGATIVE_RESULTS.md), which now runs to §41
+(11 open, 7 accepted and 23 superseded), including the operational event
 chronicles and the structural AII ceilings §15–§16. Three sections landed
 after this document's earlier sync date and are summarised below rather than
 restated in depth: **§39** (sealed C-ext3 met the safety targets but missed
-four utility targets — the deterministic intent extractor caps read autonomy
+four utility targets; the deterministic intent extractor caps read autonomy
 at 26.6% and the semantic gates preempt argument routing), **§40** (the
 invariant set and the decision ladder had silently diverged, which is why
 invariants are now enforced at runtime) and **§41** (three findings from the

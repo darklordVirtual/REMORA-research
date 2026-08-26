@@ -32,8 +32,8 @@ from hard-block policy rules and does not consult a model at all.
 
 The **five-stage pipeline below is the research surface** (`/v1/assess`).
 Multi-oracle consensus, evidence verification and the uncertainty observables
-contribute *routing quality* — separating the plausible-but-unverified from
-the confidently-fine — and are explicitly optional. They are not prerequisites
+contribute *routing quality* (separating the plausible-but-unverified from
+the confidently-fine) and are explicitly optional. They are not prerequisites
 for the execution kernel and cannot override its hard-guard floor. See
 [`../README.md`](../README.md) and [`../DEVELOPER_OVERVIEW.md`](../DEVELOPER_OVERVIEW.md)
 for that boundary, which the machine-checked
@@ -100,7 +100,7 @@ yet wired into that path.
 **What running it means.** `/v1/execution/execute` spends a single-use grant and calls
 the tool through `GovernedToolDispatcher`. Permission is welded to the exact call it
 was granted for: approval to run `{"motor": "M1", "mode": "read"}` cannot be reused for
-`{"motor": "*", "mode": "shutdown"}` — the arguments are re-hashed and re-checked in
+`{"motor": "*", "mode": "shutdown"}`: the arguments are re-hashed and re-checked in
 the instant before the tool runs, and the permission expires and is single-use. Tools
 come **only** from deployment configuration (`REMORA_TOOL_REGISTRY_MODULE`), never from
 the request, so an agent cannot introduce a tool or the credentials behind it. With no
@@ -209,7 +209,7 @@ REMORA exposes its consensus and verification capabilities as an MCP server
 Code) to call REMORA tools directly over JSON-RPC.
 
 The server resolves a privacy profile at startup (`REMORA_MCP_PROFILE`):
-`local` is the **default** — zero outbound network, endpoint variables
+`local` is the **default**: zero outbound network, endpoint variables
 ignored, worker-backed tools refuse offline; `demo` requires explicit opt-in
 and prints a disclosure that content leaves the machine; `enterprise`
 requires explicit endpoints and refuses startup when incomplete. No profile
