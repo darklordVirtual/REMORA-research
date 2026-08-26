@@ -326,6 +326,9 @@ jobs:
       - name: Source hygiene (script metadata, SPDX headers)
         run: python scripts/check_script_hygiene.py
 
+      - name: Supply-chain invariant (all Actions SHA-pinned)
+        run: python scripts/check_action_pins.py
+
       - name: NEGATIVE_RESULTS.md status gate
         # 35 numbered sections are not 35 open problems. Every section carries
         # an open/accepted/superseded marker; this fails if the summary tables

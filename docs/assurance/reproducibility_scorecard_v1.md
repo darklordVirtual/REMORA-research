@@ -23,7 +23,7 @@
 |-----------|-------|--------|
 | CI coverage | Partial → Remediated | Existing `quality-gates.yml`; new `ci.yml` added |
 | Lockfile / dependency pinning | Partial → Enforced (2026-07-20) | `requirements-lock.txt` enforced as pip constraints in CI; still no `uv.lock` or SBOM |
-| Supply-chain pinning | Remediated (2026-07-20) | All workflow action refs SHA-pinned; OPA binary SHA-256-verified; third-party scripts ref-pinned |
+| Supply-chain pinning | Remediated (2026-07-20); re-verified (2026-08-26) | All workflow action refs SHA-pinned and enforced by `scripts/check_action_pins.py` in CI (external review 2026-08-26 found 6 floating refs in codeql/mutation/supply-chain workflows that had drifted after the 2026-07-20 remediation); OPA binary SHA-256-verified; third-party scripts ref-pinned |
 | Artifact provenance | Good | Result JSON files carry commit hash, timestamp, protocol fields |
 | Claim–artifact traceability | Good | `remediation_register.yaml` maps each claim to artifacts |
 | Test suite reproducibility | Good | Fully deterministic; no network, no API keys for `make test` |
