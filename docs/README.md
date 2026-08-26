@@ -106,6 +106,7 @@ The [governed MCP gateway design](design/cloudflare-mcp-gateway-v1.md) is an ope
 | [artifact_manifest_v1.md](assurance/artifact_manifest_v1.md) | Result artifact hashes |
 | [superseded_claims.md](assurance/superseded_claims.md) | Replaced claims and successors |
 | [claim_provenance_baseline.json](assurance/claim_provenance_baseline.json) | Grandfathered provenance exceptions |
+| [prose_style_baseline.json](assurance/prose_style_baseline.json) | Shrink-only per-file counts of structural prose tells (`scripts/check_prose_style.py`) |
 
 ## Assurance process and review
 
