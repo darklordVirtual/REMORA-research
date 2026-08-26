@@ -703,12 +703,12 @@ def dispatch_pending_intent(
     """Dispatch one DISPATCH_PENDING intent from a separate worker (issue #82).
 
     The dispatch half of :func:`execute_approved_item`'s async mode, with
-    the SAME record shapes and the same order of guarantees: the grant is
-    minted and PEP-consumed at the moment of honouring, the
-    ``execution_authorized`` chain entry precedes the claim, the claim is
-    exclusive, dispatch goes through the governed dispatcher, and the row
-    settles with what ACTUALLY happened before the ``execution_result``
-    entry lands.
+    the SAME record shapes. Order (issue #417): the EXCLUSIVE claim comes
+    first — a worker that loses the race consumes and asserts nothing —
+    then the grant is minted and PEP-consumed at the moment of honouring,
+    the ``execution_authorized`` chain entry lands, dispatch goes through
+    the governed dispatcher, and the row settles with what ACTUALLY
+    happened before the ``execution_result`` entry.
 
     Returns ``None`` for rows this worker must not touch: not
     DISPATCH_PENDING (another worker, or already settled), no persisted
@@ -801,6 +801,15 @@ def dispatch_pending_intent(
             tool_call.target_environment)
         toolspec_identity.pop("argument_roles", None)
 
+    # Issue #417 (RMR-CR-002): the EXCLUSIVE claim comes FIRST. Minting and
+    # PEP-consuming a grant, and appending execution_authorized, before the
+    # claim meant a lost race left a consumed grant and an authorization
+    # event for a dispatch that never happened — evidence claiming two
+    # honourings where there was one. The loser now walks away having
+    # consumed and asserted nothing.
+    if outbox().claim(row.outbox_id, worker_id=worker_id) is None:
+        return None
+
     now = datetime.now(UTC)
     token = PolicyDecisionToken.issue(
         action="accept",
@@ -824,9 +833,6 @@ def dispatch_pending_intent(
         "intent_authority_hash": fresh_semantic["intent_authority_hash"],
         "policy_components": coverage,
     })
-
-    if outbox().claim(row.outbox_id, worker_id=worker_id) is None:
-        return None
 
     tool_execution = dispatch_under_lease(
         tenant=tenant,
