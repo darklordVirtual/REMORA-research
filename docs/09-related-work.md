@@ -107,7 +107,7 @@ Boundary:
   `ProposedCall` data objects only; no real API execution from the
   planning surface. Governance and dispatch are unchanged.
 
-### 4a. Programmatic Tool Calling (PTC), planning layer
+### 4a. Programmatic Tool Calling (PTC) — planning layer
 
 Patel, Sen, Lumer & Subbiah (2026). *The Bitter Lesson of Tool Calling.*
 arXiv:2608.06370. PricewaterhouseCoopers Commercial Technology and

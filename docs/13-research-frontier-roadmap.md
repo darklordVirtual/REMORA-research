@@ -1,4 +1,4 @@
-# 13; Research Frontier Roadmap (2026-07)
+# 13 — Research Frontier Roadmap (2026-07)
 
 **Status: proposal, with one exception.** Every work package (WP) below is
 unimplemented **except RF-10 slice 1**, which shipped on 2026-08-03 and is
@@ -65,7 +65,7 @@ moved.)
 
 ---
 
-## RF-01; Tool-registry integrity (tool-poisoning defense) `[gating]` `[P1, effort S]`
+## RF-01 — Tool-registry integrity (tool-poisoning defense) `[gating]` `[P1, effort S]`
 
 **Gap (grounded).** Stage 1 gates actions from `PolicyObservation` fields; tool
 descriptions and schemas are never ingested or verified at any point;
@@ -268,7 +268,7 @@ report artifact second.
 
 ---
 
-## RF-02; Argument provenance / capability labels (CaMeL-class IFC) `[gating+evidence]` `[P1 slice 1, P2 full, effort L]`
+## RF-02 — Argument provenance / capability labels (CaMeL-class IFC) `[gating+evidence]` `[P1 slice 1, P2 full, effort L]`
 
 **Gap (grounded).** Since 2026-07-30 (RemoraDecisionEngine-v4, issue #40,
 PR #94) Stage 1 enforces a tainted-argument floor: untrusted-derived arguments
@@ -359,7 +359,7 @@ tool-call interception is proven; see `experiments/agentharm/INTERCEPTION_NOTES.
 
 ---
 
-## RF-03; Policy DSL with formal semantics + trajectory invariants `[gating]` `[P3, effort M]`
+## RF-03 — Policy DSL with formal semantics + trajectory invariants `[gating]` `[P3, effort M]`
 
 **Gap (grounded).** Per-call policy is already expressible declaratively via
 the OPA/Rego adapter (`remora/policy/opa_adapter.py`), with structural parity
@@ -427,7 +427,7 @@ is a trajectory FSM that re-expresses the existing session guards and
 
 ---
 
-## RF-04; VERIFY resolution via AI-control protocols (the FBR fix) `[routing/escalate]` `[P0, effort M]`
+## RF-04 — VERIFY resolution via AI-control protocols (the FBR fix) `[routing/escalate]` `[P0, effort M]`
 
 **Gap (grounded).** AgentHarm external validation (CLAIM-002,
 `results/external_benchmark_agentharm_v1.json`): FAR 0.0% (Wilson 95% CI
@@ -539,7 +539,7 @@ decision rule for the offline re-scoring.
 
 ---
 
-## RF-05; Drift-aware conformal + anytime-valid deployment monitoring `[routing]` `[P3, effort M]`
+## RF-05 — Drift-aware conformal + anytime-valid deployment monitoring `[routing]` `[P3, effort M]`
 
 **Gap (grounded; the draft's premise did not survive).** The draft wanted to
 drift-harden "τ*=0.2032 locked on a training split". Grounding: (a) the
@@ -650,7 +650,7 @@ artifact, per the acceptance spec already written in proposals §8.
 
 ---
 
-## RF-06; Semantic-entropy backend parity + CWV integration `[uncertainty]` `[P0, effort M–L]`
+## RF-06 — Semantic-entropy backend parity + CWV integration `[uncertainty]` `[P0, effort M–L]`
 
 **Gap (grounded).** Two of REMORA's own findings, not external ones. (1)
 `NEGATIVE_RESULTS.md` §3 (Active): every reported benchmark used
@@ -749,7 +749,7 @@ work, not this slice.
 
 ---
 
-## RF-07; Evidence sufficiency + adversarial corpus robustness `[evidence/RAG]` `[P2, effort M]`
+## RF-07 — Evidence sufficiency + adversarial corpus robustness `[evidence/RAG]` `[P2, effort M]`
 
 **Gap (grounded).** Stage 3 (VerifierGate, `remora/cascade/stages.py`) folds
 evidence insufficiency into the generic CHALLENGED judge outcome; there is no
@@ -831,7 +831,7 @@ a negative result for `NEGATIVE_RESULTS.md`).
 
 ---
 
-## RF-08; Audit anchoring: wire Merkle checkpoints to the live chains + external transparency log `[audit]` `[P0, effort S–M]`
+## RF-08 — Audit anchoring: wire Merkle checkpoints to the live chains + external transparency log `[audit]` `[P0, effort S–M]`
 
 **Gap (grounded; narrower than the draft assumed).** The checkpoint
 primitives already exist and are tested: `remora/audit/merkle.py`
@@ -925,7 +925,7 @@ is leaf adapters, wiring, one committed sample artifact, and the guide doc
 
 ---
 
-## RF-09; External benchmark adapters: AgentDojo + MCPTox `[benchmarks]` `[P2, effort M]`
+## RF-09 — External benchmark adapters: AgentDojo + MCPTox `[benchmarks]` `[P2, effort M]`
 
 **Gap (grounded).** All primary benchmarks are internally authored *except*
 AgentHarm (CLAIM-002: FAR 0.0%, Wilson 95% CI [0.00%, 1.81%], N=208 harmful +
@@ -996,7 +996,7 @@ register until a real run exists.
 
 ---
 
-## RF-10; Declared task–tool contracts: preconditions, effects, minimal frontier `[gating]` `[slice 1 shipped, remainder P1–P2, effort M]`
+## RF-10 — Declared task–tool contracts: preconditions, effects, minimal frontier `[gating]` `[slice 1 shipped, remainder P1–P2, effort M]`
 
 **Source appraisal.** Four externally published works motivate this WP. Each
 was retrieved and its title, authors and abstract confirmed against arXiv on
@@ -1066,7 +1066,7 @@ they change what the system refuses.
 
 ---
 
-## RF-11; Governed Programmatic Tool Calling (GPTC) `[gating+composition]` `[SCOPED, effort M]`
+## RF-11 — Governed Programmatic Tool Calling (GPTC) `[gating+composition]` `[SCOPED, effort M]`
 
 **Source.** Patel, Sen, Lumer & Subbiah (2025). *The Bitter Lesson of Tool
 Calling.* arXiv:2608.06370. PricewaterhouseCoopers Commercial Technology and
