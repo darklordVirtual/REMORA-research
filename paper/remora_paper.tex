@@ -101,8 +101,8 @@
 % =====================================================================
 \begin{abstract}
 Autonomous AI agents that invoke tools, query databases, or actuate
-real-world systems need a gate that decides---before anything
-executes---whether an action may proceed autonomously, requires
+real-world systems need a gate that decides, before anything
+executes, whether an action may proceed autonomously, requires
 verification, warrants abstention, or must be escalated to a human.
 We present \textbf{REMORA}, a research-grade \emph{governed execution
 assurance} layer for tool-using agents, built on the commitment that an
@@ -119,8 +119,8 @@ point that re-decides at the execution boundary; and lifecycle records
 that keep \emph{authorized}, \emph{dispatched}, \emph{executed} and
 \emph{verified effect} as distinct, individually evidenced states.
 Several independent language models assess each proposed action in
-parallel, but the deterministic policy floor---not the consensus
-machinery that assists routing---carries the safety result: no
+parallel, but the deterministic policy floor, not the consensus
+machinery that assists routing, carries the safety result: no
 probabilistic score can override a hard block.
 
 We report three findings.
@@ -129,12 +129,12 @@ We report three findings.
 leakage-controlled tool-call benchmark, REMORA's full policy gate
 produced zero simulated unsafe acceptances with significantly higher
 decision utility and accuracy than heuristic baselines (mean utility
-$+0.456$, $p\approx10^{-4}$; accuracy 90\% vs.\ $\leq 60\%$)---and an
+$+0.456$, $p\approx10^{-4}$; accuracy 90\% vs.\ $\leq 60\%$), and an
 ablation shows the zero is attributable entirely to the deterministic
 hard rules, not to the multi-model voting machinery. Under an
 intent-gating protocol on 208 independently sourced AgentHarm scenarios
 \cite{andriushchenko2024agentharm}, the same rule set produced zero
-false authorizations---at the cost of blocking every benign counterpart
+false authorizations, at the cost of blocking every benign counterpart
 as well (FBR=100\%), a safety/friction corner point reported as such.
 Probabilistic consensus improves routing; it cannot override policy.
 
@@ -143,7 +143,7 @@ Absence of a record without a declared completeness guarantee is
 \textsc{unknown}, not \textsc{unsupported}. We make that distinction
 operational: a \textsc{verify} must name an actual bounded lookup and be
 followed by full re-entry of the whole router on a fresh observation, or
-it degrades to \textsc{abstain}---promising a verification that cannot
+it degrades to \textsc{abstain}, promising a verification that cannot
 happen is worse than stopping. Under study conditions this recovers read
 utility from 0\% to 100\% in a regime where every value verdict is
 \textsc{unknown}, with zero corrupt-identifier acceptances and zero
@@ -219,10 +219,10 @@ envelope.
 
 REMORA demonstrates such a layer. Its core thesis:
 \textbf{governed autonomy requires explicit routing of
-uncertainty---not suppression of it.}
+uncertainty, not suppression of it.}
 
 The contribution of this paper is a \textbf{system architecture and
-empirical evaluation for governed agentic AI decision control}---not a
+empirical evaluation for governed agentic AI decision control}, not a
 new foundation model, training procedure, or benchmark. It is a
 reference implementation, a set of measurable observables, a
 documented set of negative results, and an honest account of what
@@ -232,8 +232,8 @@ remains unsolved.
 Earlier versions of this paper named its observables after statistical
 physics (\emph{temperature}, \emph{free energy}, \emph{Lyapunov
 stability}). That vocabulary has been withdrawn: it invited a physical
-reading the system does not support, and the quantity it rested on ---
-structural temperature --- failed pre-registered confirmation on fresh
+reading the system does not support, and the quantity it rested on,
+structural temperature, failed pre-registered confirmation on fresh
 data (\S\ref{sec:method}, \S\ref{sec:negative}). What remains are the
 information-theoretic quantities the benchmarks report: entropy $H$ and
 dissensus $D$ over the weighted verdict distribution, and a trust score
@@ -253,7 +253,7 @@ distinct random initialisations improve both accuracy and calibration.
 REMORA's oracle fan-out is structurally related but uses
 \emph{separately configured oracle endpoints} rather than multiple samples
 from one model (the 2026-07 clean round and the AgentHarm validation use a
-Cloudflare Workers AI cross-family trio --- Meta LLaMA, Alibaba Qwen,
+Cloudflare Workers AI cross-family trio (Meta LLaMA, Alibaba Qwen,
 Mistral; earlier rounds used a Groq three-LLaMA swarm),
 and weights oracles by \emph{inverse pairwise correlation} rather than
 treating them as exchangeable. Kuncheva \& Whitaker (2003)
@@ -330,7 +330,7 @@ hash-chaining, and the Replay Engine publishes governance episodes for
 third-party inspection. The EU AI Act (2024) \cite{euaiact2024} mandates human oversight and
 audit trails for high-risk AI systems. Open Policy Agent (OPA)
 \cite{opa} provides a production-grade Rego policy engine. REMORA
-ships an OPA adapter---failing closed to a Python fallback---as a
+ships an OPA adapter (failing closed to a Python fallback) as a
 concrete instantiation of policy-as-code for AI decisions; the reference
 API currently invokes the Python engine directly (\S\ref{sec:architecture}).
 
@@ -463,8 +463,8 @@ rather than introducing a new layer type.
 \paragraph{Authority-bound execution and execution evidence.}
 A 2026 line of work moves the control point from pre-action screening to
 the authorization and evidence of execution itself. AIRGuard
-\cite{qin2026airguard} names \emph{authority confusion}---untrusted
-context may inform reasoning but must not authorize side effects---and
+\cite{qin2026airguard} names \emph{authority confusion} (untrusted
+context may inform reasoning but must not authorize side effects) and
 enforces least privilege as action-time authorization. Proof-Carrying
 Agent Actions \cite{wang2026pcaa} organizes runtime-neutral governance
 around a portable action certificate with admissibility, approval and
@@ -510,7 +510,7 @@ map to \textsc{Escalate} regardless of consensus); (2)~calibration-aware \cite{g
 HMAC-signed when a signing key is configured);
 (5)~conservative by default (fail closed toward \textsc{Verify} or \textsc{Escalate} depending on risk tier).
 
-This is not a question of oracle \emph{accuracy}---REMORA does not
+This is not a question of oracle \emph{accuracy}: REMORA does not
 know whether action $a$ is correct. It is a question of
 \emph{assurance conditions}: whether the conditions that justify
 autonomous execution of $a$ are verifiably met.
@@ -536,7 +536,7 @@ $n$ configured oracle models are queried in parallel
 via \texttt{ThreadPoolExecutor} (the engine accepts $n \geq 2$; the
 design recommendation is $n \geq 3$ from distinct model families. The
 2026-07 clean round and AgentHarm use a Cloudflare Workers AI cross-family
-trio --- Meta LLaMA, Qwen, Mistral --- enforced by
+trio (Meta LLaMA, Qwen, Mistral) enforced by
 \texttt{remora/oracles/families.py}; earlier rounds used a Groq
 three-LLaMA swarm whose within-family correlation gave an effective
 diversity closer to two). Responses with
@@ -612,16 +612,16 @@ a durable ledger, and an in-memory database is refused as a ``durable''
 backend). What an approval is granted \emph{over} is a signed ToolSpec
 whose identity travels inside the lease; a spec that moved between
 approval and dispatch refuses. Dispatch itself happens only under an
-exact-call \texttt{ExecutionLease}---tenant, actor, tool, canonical
+exact-call \texttt{ExecutionLease} (tenant, actor, tool, canonical
 argument hash, target, policy-bundle identity, single-use nonce,
-expiry---signed with Ed25519 under an architectural custody split: the
+expiry), signed with Ed25519 under an architectural custody split: the
 authority domain holds the private key and no tool credential; the
 execution domain holds the public key and the credentials. The
 \texttt{GovernedToolDispatcher} re-verifies the entire binding against
 the concrete call, against the clock the lease was issued under, before
 anything runs. Authorization and result are separate hash-chained
 records, each carrying the per-component trust-base view resolved at
-that moment---the closure record re-reads rather than copies, so a
+that moment: the closure record re-reads rather than copies, so a
 stale policy snapshot is detectable as a failed component-level join. A
 crash-consistent outbox records dispatch intent before the effect and
 reconciles stranded dispatches to \textsc{unknown}; effect verification
@@ -638,7 +638,7 @@ binding) exercised so far only by CI and its contract tests.
 
 The six stages above describe how an action reaches a verdict. They do not
 describe what the engine reasons about when the action is well-formed but the
-\emph{state it refers to} is uncertain --- which, in operational deployments,
+\emph{state it refers to} is uncertain, which, in operational deployments,
 is the common case. That reasoning is a distinct ladder, evaluated after every
 blocking gate so it can only ever make a would-be \textsc{accept} more
 cautious, never unblock one:
@@ -647,7 +647,7 @@ cautious, never unblock one:
 \item \textbf{Authoritative tool metadata.} Effect, risk class, resource type
   and validator bindings come from a server-side registry. A caller may raise
   risk, never lower it. Verb heuristics are a fallback for unregistered tools
-  only --- a lesson learned when \texttt{assign}, \texttt{close} and
+  only, a lesson learned when \texttt{assign}, \texttt{close} and
   \texttt{approve} were absent from a mutating-verb list and thirty writes
   scored as reads.
 \item \textbf{Coverage declaration.} A state index may not infer its own
@@ -661,7 +661,7 @@ cautious, never unblock one:
   Tri-state: present, confirmed absent, or outside coverage. Unknown must
   never behave like a negative.
 \item \textbf{Value grounding.} Are the argument values traceable to
-  \emph{this} task --- named in the task text, declared by the tool's own
+  \emph{this} task: named in the task text, declared by the tool's own
   schema, or vouched for by the system of record? A call whose values anchor
   to nothing here is observationally a foreign call.
 \item \textbf{Validation requirement.} An argument that steers where the action
@@ -685,7 +685,7 @@ This ladder, not the consensus machinery, is what the operational results in
 \S\ref{sec:routing-blind}--\S\ref{sec:wrongcall-implication} measure. Its
 tri-state discipline is the recurring commitment: \textsc{unknown} is a first-class
 verdict distinct from \textsc{unsupported}, and a signal that cannot be established
-is left absent rather than guessed --- a fabricated boolean enters the policy
+is left absent rather than guessed, since a fabricated boolean enters the policy
 contract as fact, while \texttt{None} correctly says nothing establishes this.
 
 % =====================================================================
@@ -748,9 +748,9 @@ where $k = |\{v : \hat{p}(v) > 0\}|$ is the number of active verdicts.
            \cdot \left(1 + \frac{\chi}{\chi_0}\right)^{-1}
 \end{equation}
 where $h_{\text{bound}}$ is a \emph{heuristic false-consensus risk proxy}
-from inter-oracle agreement --- the implementation uses $q^{n/2}$ (not the
+from inter-oracle agreement (the implementation uses $q^{n/2}$ (not the
 proven exponent) and clamps $\rho$ at $0.49$, so it can understate
-correlated-failure risk and must not be cited as a mathematical bound ---
+correlated-failure risk and must not be cited as a mathematical bound,
 $w_{\text{phase}} \in \{1.0, 0.5, 0.1\}$ is a regime weight over the
 three consensus regimes (ordered/critical/disordered), and $\chi$ is a
 scale factor that is algebraically constant in the live path unless
@@ -767,8 +767,8 @@ withdrawn framing obscured both.
 \textbf{They are not populated on any governed path.}
 \path{servers/api.py} never references the consensus state;
 \path{servers/execution_api.py} passes \texttt{trust\_score=None} and
-\texttt{phase=None} explicitly, and \texttt{build\_full\_observation} ---
-the builder shared by the assess and execution routes --- leaves these
+\texttt{phase=None} explicitly, and \texttt{build\_full\_observation},
+the builder shared by the assess and execution routes, leaves these
 fields at their \texttt{None} defaults. The engine therefore fails toward
 \textsc{verify}/\textsc{abstain} there: no probabilistic \textsc{accept}
 can fire from these signals in the governed path at all. The runtime
@@ -808,9 +808,9 @@ Outcome & Meaning & Autonomous action \\
 \label{tab:outcomes}
 \end{table}
 
-\textsc{Accept} does not mean the action is \emph{correct}---it means
+\textsc{Accept} does not mean the action is \emph{correct}: it means
 the assurance conditions for autonomous execution are met.
-\textsc{Abstain} does not mean the action is \emph{wrong}---it means
+\textsc{Abstain} does not mean the action is \emph{wrong}: it means
 the conditions for deciding are not met. Both \textsc{Abstain} and
 \textsc{Escalate} block execution; \textsc{Escalate} additionally
 triggers a human-review workflow.
@@ -876,7 +876,7 @@ caller-supplied labels (unknown is explicit, never coerced to a safe
 value); (2)~action-semantics extraction from the proposed action text
 and tool metadata; (3)~misspecification-risk inference from
 label/semantics disagreement; (4)~causal-consequence signals \cite{bjoru2026causal,pearl2009causality} (blast
-radius, expected loss); and (5)~policy-generalization risk---would
+radius, expected loss); and (5)~policy-generalization risk, would
 repeatedly accepting this \emph{class} of action remain safe
 fleet-wide?
 
@@ -955,9 +955,9 @@ $\tilde{\tau}$.  A hard gate rejects all items with $\tau \geq
 \tau_{\max} = 0.10$ (the groupthink boundary) regardless of the
 conformal result.
 
-The combined pool---all 99 ordered-phase items (sorted by
+The combined pool, all 99 ordered-phase items (sorted by
 $\tau \downarrow$) plus 21 low-$\tau$ critical items ($\tau < 0.10$,
-sorted by $\tilde{\tau} \downarrow$)---achieves:
+sorted by $\tilde{\tau} \downarrow$), achieves:
 
 \begin{itemize}[leftmargin=*]
   \item 20.0\% coverage ($N=108$): 85.2\% accuracy \text{CI~[77.3\%, 90.7\%]}
@@ -965,7 +965,7 @@ sorted by $\tilde{\tau} \downarrow$)---achieves:
 \end{itemize}
 
 This is a $+3.9$\,pp coverage gain over the ordered-only operating
-point (18.2\%, 86.9\% accuracy), with a 1.9\,pp accuracy cost---still
+point (18.2\%, 86.9\% accuracy), with a 1.9\,pp accuracy cost, still
 $+43.8$\,pp above the 41.18\% full-coverage baseline.  The guardrail is
 implemented in \path{remora.selective.guardrail.PhaseAwareGuardrail}
 and fully tested (25 unit tests).
@@ -1146,7 +1146,7 @@ verifier heuristic; REMORA temperature-gate only (no policy engine).
 
 The oracle backend changed across rounds. Earlier QA and tool-call rounds
 ran a Groq-hosted three-LLaMA swarm (Llama-3.1-8B-Instant,
-Llama-3.3-70B-Versatile, Llama-4-Scout-17B-16E-Instruct --- one weight
+Llama-3.3-70B-Versatile, Llama-4-Scout-17B-16E-Instruct, one weight
 family); the 2026-07 clean round, the AgentHarm validation, and the
 real-LLM baselines use a Cloudflare Workers AI cross-family trio (Meta
 LLaMA, Alibaba Qwen, Mistral). Oracle model versions may change; stored
@@ -1185,7 +1185,7 @@ Held-out: $N_\text{accepted}=25$ (all ordered-phase), $p=1.45\times10^{-5}$
 (one-sided binomial, H$_1$: acc $>$ holdout baseline 46.3\%),
 Wilson CI lies entirely above holdout baseline. \textbf{These are the
 retired Groq-round figures.} The 2026-07 cross-family clean round gives
-100.0\% at 16.7\% coverage ($N_\text{accepted}=18$, $p=0.052$ ---
+100.0\% at 16.7\% coverage ($N_\text{accepted}=18$, $p=0.052$,
 directional only), and the pre-registered SAP v3 fresh-data round
 \emph{failed to confirm} the consensus-temperature selection signal
 (\S\ref{sec:negative}); do not read this row as evidence that temperature
@@ -1196,7 +1196,7 @@ generalizes.
 Phase breakdown on full dataset:
 ordered (N=99): 86.9\%; critical (N=32): 62.5\%; disordered (N=413): 28.6\%.
 Disordered items constitute 75.9\% of the benchmark, driving the
-low full-coverage baseline---a structural property of benchmark
+low full-coverage baseline, a structural property of benchmark
 composition. Extending coverage beyond the ordered-only 18.2\% operating
 point requires exploiting the critical-phase trust inversion
 (\S\ref{sec:phase_aware}): the \texttt{PhaseAwareGuardrail} raises
@@ -1256,7 +1256,7 @@ Disordered & 78.6\% &  0.2\% & 2/20 \\
 \label{tab:mondrian}
 \end{table}
 
-Ordered-phase conformal achieves 99.9\% coverage with 0/20 failures---a
+Ordered-phase conformal achieves 99.9\% coverage with 0/20 failures, a
 stable internal benchmark operating point (the $N=2{,}161$ dataset is
 augmented and includes calibrated-simulation critical items; this is not
 evidence of deployability under production distribution shift).
@@ -1337,7 +1337,7 @@ is a property of the relation between them, and no amount of scrutiny of the
 call alone recovers it. The residue is therefore not a threshold to tune: there
 is no threshold on a signal that does not carry the information.
 
-The architecture reserves a slot for the missing authority ---
+The architecture reserves a slot for the missing authority,
 \texttt{tool\_matches\_goal}, tri-state, held at \textsc{Unknown} since
 definition rather than filled with a guess. A mechanism now occupies it: a
 deployment-declared tool contract (capability, effect, resource type, mutation,
@@ -1401,8 +1401,8 @@ tasks route to human \textsc{verify}, giving blocked recall 0.977
 (43/44); one harmful task \textsc{abstain}s; zero harmful tasks receive
 \textsc{accept}. All three governance goals are met under the
 blocked-recall definition (blocked recall $\geq 0.95$, FPR $< 0.10$,
-coverage $\geq 0.95$). The conservative posture --- routing 98\% of
-cases to \textsc{verify} or higher --- is by design: \textsc{verify} is
+coverage $\geq 0.95$). The conservative posture (routing 98\% of
+cases to \textsc{verify} or higher) is by design: \textsc{verify} is
 the appropriate response to uncertainty, not a failure mode.
 
 \textbf{Scope caveat.} This is an \textbf{intent-gating result}: REMORA
@@ -1491,14 +1491,14 @@ differently, and neither routing depends on a model's confidence.
 \texttt{list\_depot\_vehicles} are declared \texttt{read} and
 \texttt{assign\_driver} and \texttt{close\_work\_order} are declared
 \texttt{write}. The effects come from the registry, not from the verb in the
-name --- a distinction that matters, because \texttt{assign} and
+name, a distinction that matters, because \texttt{assign} and
 \texttt{close} were once absent from a mutating-verb list and thirty writes
 were scored as reads. No bulk state export exists, so every argument value
 verdict is \textsc{unknown}: the deployment has point lookups and nothing else.
 
 \paragraph{Call A: a legitimate read.} The user asks for the status of vehicle
 \texttt{V-0042}; the agent proposes \texttt{get\_vehicle(vehicle\_id="V-0042")}.
-Every structural signal is satisfied. The value is grounded --- \texttt{V-0042}
+Every structural signal is satisfied. The value is grounded: \texttt{V-0042}
 is named in the task text. But \texttt{vehicle\_id} steers where the read
 lands, and nothing has confirmed it exists, so autonomy is unavailable:
 
@@ -1541,7 +1541,7 @@ confidence score moves it.
 \paragraph{Call C: structurally perfect, wrong tool.} The user asks for a
 vehicle status; the agent proposes \texttt{get\_work\_order} with a work-order
 identifier that happens to appear elsewhere in the task. Schema valid,
-arguments satisfiable, values grounded, nothing tainted --- every signal in
+arguments satisfiable, values grounded, nothing tainted: every signal in
 Call A's ladder is satisfied. The sealed BFCL v4 track measured wrong-call
 acceptance at 10.9\% without contracts. A declared
 tool contract does: the task targets a vehicle, the tool acts on a work order,
@@ -1558,7 +1558,7 @@ of 139 seeded corruption forms reached \textsc{accept} (artifacts:
 \path{results/system_demonstration_v1.json},
 \path{results/fleetops_degradation_results.json},
 \path{results/fleetops_validator_study_results.json}; internal
-benchmark, non-blind --- the scope the register records).
+benchmark, non-blind, the scope the register records).
 
 % =====================================================================
 \section{Negative Results}
@@ -1596,7 +1596,7 @@ cross-family trio; three-way split dev 493 / risk-cal 370 / test 368, seed
 20260727), the consensus-temperature selection signal \emph{failed}
 confirmation: test-split AURC 0.0954 vs.\ 0.0664 for a
 dev-split-calibrated mean-confidence baseline (paired bootstrap
-$\Delta=0.0290$, 95\% CI [0.0119, 0.0503] excluding zero --- temperature
+$\Delta=0.0290$, 95\% CI [0.0119, 0.0503] excluding zero: temperature
 ranks significantly \emph{worse}), and SGR certification at
 $r^*=5\%,\delta=0.10$ found no certifiable coverage. The exploratory
 temperature advantage seen on the reused 544-item corpus did not transfer;
@@ -1604,7 +1604,7 @@ temperature is retained as a logged diagnostic, not an authoritative
 selector. For scale: distinguishing a 90\%-accurate selector from an
 80\% full-coverage baseline at conventional thresholds (one-sided
 $\alpha=0.05$, power $1-\beta=0.8$) requires on the order of
-150--200 \emph{accepted} items---an order of magnitude beyond the
+150--200 \emph{accepted} items, an order of magnitude beyond the
 $N_\text{accepted}=18$--25 accepted sets available in the rounds above,
 which is why those are reported as directional only. \emph{What
 survives:} on the same round, calibrated
@@ -1619,7 +1619,7 @@ round before any engine integration (SAP v3 \S8 D-3). Full detail:
 
 \paragraph{$\chi$-proxy failure.}
 Susceptibility $\chi$ as standalone difficulty predictor: AUC = 0.39
-on $N=302$ items---below chance. Exploratory OOD use (not a demonstrated
+on $N=302$ items, below chance. Exploratory OOD use (not a demonstrated
 detector; the live variant is near-constant unless internal clamps bind):
 $\chi > 1.45$ (97th percentile) $\Rightarrow$ \textsc{Escalate} with
 \texttt{escalate\_adversarial}.
@@ -1629,7 +1629,7 @@ Q4 high-trust: 50\% correct; Q1 low-trust: 75\% correct.
 Confirmed on $N=32$ real-oracle items and replicated qualitatively
 on augmented $N=511$ simulated dataset. No trust threshold separates
 correct from incorrect critical-phase items. \emph{Consequence:}
-evidence routing---not trust scoring---is the required mechanism for
+evidence routing (not trust scoring) is the required mechanism for
 critical-phase decisions.
 
 \paragraph{$T$--$D$ circularity (resolved).}
@@ -1776,7 +1776,7 @@ wrong-call acceptance \textbf{10.9\%} (28/258), irrelevant-tool refusal
 accuracy was 91.2\%. The follow-up sealed C-ext3 track isolated the
 semantic axis: declared tool contracts with the semantic-authority floor
 eliminated native wrong-call acceptance (0/500 vs.\ the 10.9\% baseline)
-while capping read autonomy at 26.6\% --- safety confirmed, utility
+while capping read autonomy at 26.6\%: safety confirmed, utility
 misses published as measured.
 
 Key negative findings retained in full: trust anticorrelates with
@@ -2234,9 +2234,9 @@ Full JSON schema is in the Markdown paper and repository
 \section{Negative Results Archive}
 \label{app:negres}
 
-The complete, versioned record of negative and resolved findings ---
+The complete, versioned record of negative and resolved findings,
 including the resolved items R1 (iteration damage), R2 (Stage-3b critique
-impact) and R7 ($T$--$D$ circularity) --- lives in \path{NEGATIVE_RESULTS.md}
+impact) and R7 ($T$--$D$ circularity), lives in \path{NEGATIVE_RESULTS.md}
 in the repository. It is not duplicated here: the main-body Negative Results
 section carries the findings that shape the architecture; this appendix is a
 single pointer to the full archive so the two do not drift.
@@ -2301,7 +2301,7 @@ observed risk and zero coverage.
 
 REMORA addresses this with a \textbf{weighted empirical selective
 router} \emph{inspired by} Conformal Risk Control (CRC,
-\cite{angelopoulos2022crc}) but --- important --- \emph{not
+\cite{angelopoulos2022crc}) but, importantly, \emph{not
 implementing the CRC procedure} (see below).  Each calibration item $i$
 receives an importance weight $w_i = p_{\text{test}}(x_i) /
 p_{\text{cal}}(x_i)$.  For REMORA's phase shift, we use the
@@ -2320,7 +2320,7 @@ $\bar{L}(\lambda) = \sum_i \tilde{w}_i \ell_i(\lambda) \leq \alpha$,
 with $\tilde{w}_i = w_i / \sum_j w_j$ normalised over the calibration
 items.
 
-\begin{theorem}[CRC Guarantee, Angelopoulos et al.\ 2022 --- stated for
+\begin{theorem}[CRC Guarantee, Angelopoulos et al.\ 2022, stated for
 context; not instantiated by the implementation]
 For any monotone loss $\ell : [0,1] \to [0,B]$, target risk
 $\alpha \in (0,B)$, and correctly-specified importance weights:
@@ -2335,8 +2335,8 @@ instantiate this theorem, for two structural reasons no weight
 specification can repair (external review R3-01): (a)~its threshold
 rule applies the raw constraint $\bar{L}(\lambda) \leq \alpha$ with no
 $B/(n+1)$ finite-sample term and no test-point weight $w_{n+1}$;
-(b)~the controlled quantity --- the conditional error rate among
-accepted items --- is not monotone in $\lambda$, so Theorem~1 does not
+(b)~the controlled quantity, the conditional error rate among
+accepted items, is not monotone in $\lambda$, so Theorem~1 does not
 attach even with valid density-ratio weights. In addition,
 $\beta = 0.10$ is a hand-tuned constant, not a density ratio
 \cite{tibshirani2019conformal}. All quality evidence for this component is

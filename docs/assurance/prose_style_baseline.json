@@ -96,12 +96,6 @@
       "arrow": 4,
       "emdash": 5
     },
-    "paper/remora_paper.md": {
-      "arrow": 8,
-      "bold_bullet": 24,
-      "emdash": 54,
-      "ing_tail": 1
-    },
     "paper/remora_paper_template.md": {
       "bold_bullet": 16
     }
