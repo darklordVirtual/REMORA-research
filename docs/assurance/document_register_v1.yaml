@@ -2347,6 +2347,14 @@ documents:
   last_reviewed: '2026-08-25'
   validates_against: []
   claims: []
+- id: DOC-328
+  path: docs/deployment/container-reference.md
+  status: canonical
+  topic: docs_deployment_container-reference_md
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
 topics:
 - docs_integrations_mcp-gateway_md
 - docs_design_cloudflare-mcp-gateway-v1_md
@@ -2610,3 +2618,4 @@ topics:
 - docs_assurance_shipped_surfaces_v1_yaml
 - docs_adr_canonical_decision_engine
 - docs_assurance_mutation_testing_v1
+- docs_deployment_container-reference_md

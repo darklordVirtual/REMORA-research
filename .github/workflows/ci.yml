@@ -697,6 +697,49 @@ jobs:
           print("FAR integrity check: all three primary artifacts have false_accept_rate = 0.0")
           PY
 
+  container-contract:
+    # Issue #89: the locked pilot runtime. Builds the reference image FROM
+    # THE WHEEL (deploy/reference/Dockerfile, base pinned by digest,
+    # non-root) and runs the contract smoke INSIDE it: the CLI resolves
+    # from the installed wheel and the API answers /v1/health. The compose
+    # topology (API + digest-pinned Postgres) must parse. The image digest
+    # is printed so a release can record it for byte-for-byte pilot
+    # reproducibility.
+    name: Container fulfils the contract from inside the image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Build the reference image
+        run: docker build -f deploy/reference/Dockerfile -t remora-reference:ci .
+
+      - name: Record the image digest
+        run: docker inspect --format 'image id {{.Id}}' remora-reference:ci
+
+      - name: Compose topology parses
+        run: docker compose -f deploy/reference/docker-compose.yml config --quiet
+
+      - name: In-image CLI smoke (remora doctor --json)
+        run: |
+          set -euo pipefail
+          docker run --rm remora-reference:ci remora doctor --json \
+            | python3 -c "import json,sys; json.load(sys.stdin); print('doctor emits valid JSON from the installed wheel')"
+
+      - name: In-image API smoke (/v1/health answers 200)
+        run: |
+          set -euo pipefail
+          docker run -d --name remora-ci -p 8000:8000 remora-reference:ci
+          ok=""
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/v1/health >/dev/null; then ok=1; break; fi
+            sleep 2
+          done
+          docker logs remora-ci | tail -n 20
+          docker rm -f remora-ci >/dev/null
+          [ "$ok" = "1" ] || { echo "/v1/health never answered"; exit 1; }
+
   deterministic-suite-required:
     # RMR-007: branch protection can only require named contexts, and the legs
     # above have matrix-expanded names that drift as the suite grows. This
@@ -715,6 +758,7 @@ jobs:
       - wheel-contract
       - deterministic-round
       - artifact-integrity
+      - container-contract
     runs-on: ubuntu-latest
     steps:
       - name: Fail unless every aggregated leg succeeded
