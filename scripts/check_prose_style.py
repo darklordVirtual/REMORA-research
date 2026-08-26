@@ -54,6 +54,7 @@ EXCLUDE_PREFIXES = (
     "frontend/node_modules/",
     "node_modules/",
     ".github/",
+    ".claude/",  # skills quote the patterns they ban
     "artifacts/governance-benchmark-pack/",  # frozen copy of NEGATIVE_RESULTS
 )
 
