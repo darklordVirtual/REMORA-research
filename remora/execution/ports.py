@@ -155,6 +155,7 @@ class DispatchOutboxPort(Protocol):
         attempt_no: int = 1,
         now: datetime | None = None,
         tool_call_json: str | None = None,
+        authorization_expires_at: datetime | None = None,
     ) -> "OutboxRow": ...
 
     def claim(
@@ -174,6 +175,7 @@ class DispatchOutboxPort(Protocol):
         attempt_no: int = 1,
         now: datetime | None = None,
         tool_call_json: str | None = None,
+        authorization_expires_at: datetime | None = None,
     ) -> "OutboxRow": ...
 
     def settle(

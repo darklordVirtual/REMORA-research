@@ -264,6 +264,7 @@ def record_dispatch_intent(
     tool_call_hash: str,
     grant_jti: str,
     tool_call_json: str | None = None,
+    authorization_expires_at: "datetime | None" = None,
 ) -> "OutboxRow":
     """Record the dispatch intent, inside the caller's transaction when open.
 
@@ -284,6 +285,7 @@ def record_dispatch_intent(
             tool_call_hash=tool_call_hash,
             grant_jti=grant_jti,
             tool_call_json=tool_call_json,
+            authorization_expires_at=authorization_expires_at,
         )
     return outbox.record_intent(
         proposal_id=proposal_id,
@@ -293,4 +295,5 @@ def record_dispatch_intent(
         tool_call_hash=tool_call_hash,
         grant_jti=grant_jti,
         tool_call_json=tool_call_json,
+        authorization_expires_at=authorization_expires_at,
     )

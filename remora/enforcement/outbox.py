@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS execution_outbox (
     tool_call_json  TEXT,
     projection_json TEXT,
     projected_at    TEXT,
+    authorization_expires_at TEXT,
     UNIQUE (tenant_id, idempotency_key)
 );
 CREATE INDEX IF NOT EXISTS execution_outbox_pending_idx
@@ -97,6 +98,7 @@ _COLUMNS = (
     "tool_name", "tool_call_hash", "grant_jti", "state", "attempt_no",
     "created_at", "worker_id", "claimed_at", "settled_at", "detail",
     "tool_call_json", "projection_json", "projected_at",
+    "authorization_expires_at",
 )
 
 
@@ -171,6 +173,12 @@ class OutboxRow:
     #: confirmed written. NULL on a terminal row means the projector owes
     #: work; the idempotent projector scans exactly that condition.
     projected_at: datetime | None = None
+    #: Hard upper bound on when this authorization may still be honoured
+    #: (issue #418 / RMR-CR-003). Set at authorization time; a worker
+    #: refuses rows past it — and rows without it — and a freshly minted
+    #: token is capped at it, so dispatch can never extend the original
+    #: authorization's lifetime.
+    authorization_expires_at: datetime | None = None
 
     @property
     def is_terminal(self) -> bool:
@@ -250,6 +258,7 @@ class ExecutionOutbox:
         attempt_no: int = 1,
         now: datetime | None = None,
         tool_call_json: str | None = None,
+        authorization_expires_at: datetime | None = None,
     ) -> OutboxRow:
         """Insert a dispatch intent, or return the existing one.
 
@@ -275,6 +284,7 @@ class ExecutionOutbox:
                 attempt_no=attempt_no,
                 created_at=_now(now),
                 tool_call_json=tool_call_json,
+                authorization_expires_at=authorization_expires_at,
             )
             self._rows[row.outbox_id] = row
             self._by_key[(tenant_id, key)] = row.outbox_id
@@ -293,6 +303,7 @@ class ExecutionOutbox:
         attempt_no: int = 1,
         now: datetime | None = None,
         tool_call_json: str | None = None,
+        authorization_expires_at: datetime | None = None,
     ) -> OutboxRow:
         """Not available in-process: there is no transaction to join.
 
@@ -528,6 +539,7 @@ CREATE TABLE IF NOT EXISTS execution_outbox (
     tool_call_json  TEXT,
     projection_json TEXT,
     projected_at    TEXT,
+    authorization_expires_at TEXT,
     UNIQUE (tenant_id, idempotency_key)
 );
 CREATE INDEX IF NOT EXISTS execution_outbox_pending_idx
@@ -556,7 +568,8 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         # tool_call_json column gain it here; existing rows read as None.
         cols = {r[1] for r in
                 self._conn().execute("PRAGMA table_info(execution_outbox)")}
-        for col in ("tool_call_json", "projection_json", "projected_at"):
+        for col in ("tool_call_json", "projection_json", "projected_at",
+                    "authorization_expires_at"):
             if col not in cols:
                 self._conn().execute(
                     f"ALTER TABLE execution_outbox ADD COLUMN {col} TEXT")
@@ -593,6 +606,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             tool_call_json=record["tool_call_json"],
             projection_json=record["projection_json"],
             projected_at=_dt(record["projected_at"]),
+            authorization_expires_at=_dt(record["authorization_expires_at"]),
         )
 
     def record_intent(
@@ -607,6 +621,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         attempt_no: int = 1,
         now: datetime | None = None,
         tool_call_json: str | None = None,
+        authorization_expires_at: datetime | None = None,
     ) -> OutboxRow:
         key = idempotency_key(proposal_id, tool_call_hash, attempt_no)
         conn = self._conn()
@@ -626,11 +641,14 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
                 "INSERT INTO execution_outbox (outbox_id, proposal_id, "
                 "tenant_id, item_id, idempotency_key, tool_name, "
                 "tool_call_hash, grant_jti, state, attempt_no, created_at, "
-                "tool_call_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                "tool_call_json, authorization_expires_at) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (outbox_id, proposal_id, tenant_id, item_id, key, tool_name,
                  tool_call_hash, grant_jti,
                  OutboxState.DISPATCH_PENDING.value, attempt_no,
-                 created.isoformat(), tool_call_json),
+                 created.isoformat(), tool_call_json,
+                 authorization_expires_at.isoformat()
+                 if authorization_expires_at else None),
             )
             conn.execute("COMMIT")
         except Exception:
@@ -834,6 +852,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         attempt_no: int = 1,
         now: datetime | None = None,
         tool_call_json: str | None = None,
+        authorization_expires_at: datetime | None = None,
     ) -> OutboxRow:
         """Record the intent INSIDE the caller's open transaction.
 
@@ -866,11 +885,13 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
         connection.execute(
             "INSERT INTO execution_outbox (outbox_id, proposal_id, tenant_id, "
             "item_id, idempotency_key, tool_name, tool_call_hash, grant_jti, "
-            "state, attempt_no, created_at, tool_call_json) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            "state, attempt_no, created_at, tool_call_json, "
+            "authorization_expires_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (outbox_id, proposal_id, tenant_id, item_id, key, tool_name,
              tool_call_hash, grant_jti, OutboxState.DISPATCH_PENDING.value,
-             attempt_no, created.isoformat(), tool_call_json),
+             attempt_no, created.isoformat(), tool_call_json,
+             authorization_expires_at.isoformat()
+             if authorization_expires_at else None),
         )
         return OutboxRow(
             outbox_id=outbox_id,
@@ -885,6 +906,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             attempt_no=attempt_no,
             created_at=created,
             tool_call_json=tool_call_json,
+            authorization_expires_at=authorization_expires_at,
         )
 
     @classmethod
@@ -896,7 +918,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
                 "idempotency_key", "tool_name", "tool_call_hash", "grant_jti",
                 "state", "attempt_no", "created_at", "worker_id", "claimed_at",
                 "settled_at", "detail", "tool_call_json", "projection_json",
-                "projected_at",
+                "projected_at", "authorization_expires_at",
             )
             record = dict(zip(columns, record))  # type: ignore[assignment]
         return cls._row(record)  # type: ignore[arg-type]
@@ -934,6 +956,9 @@ class PostgresExecutionOutbox(ExecutionOutbox):
                          "ADD COLUMN IF NOT EXISTS projection_json TEXT")
             conn.execute("ALTER TABLE execution_outbox "
                          "ADD COLUMN IF NOT EXISTS projected_at TEXT")
+            conn.execute(
+                "ALTER TABLE execution_outbox "
+                "ADD COLUMN IF NOT EXISTS authorization_expires_at TEXT")
             conn.commit()
 
     @staticmethod
@@ -962,6 +987,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
             tool_call_json=data.get("tool_call_json"),
             projection_json=data.get("projection_json"),
             projected_at=_dt(data.get("projected_at")),
+            authorization_expires_at=_dt(data.get("authorization_expires_at")),
         )
 
     def record_intent(
@@ -976,6 +1002,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
         attempt_no: int = 1,
         now: datetime | None = None,
         tool_call_json: str | None = None,
+        authorization_expires_at: datetime | None = None,
     ) -> OutboxRow:
         with self._psycopg.connect(self._dsn) as conn:
             with conn.transaction():
@@ -990,6 +1017,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
                     attempt_no=attempt_no,
                     now=now,
                     tool_call_json=tool_call_json,
+                    authorization_expires_at=authorization_expires_at,
                 )
 
     def record_intent_enlisted(
@@ -1005,6 +1033,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
         attempt_no: int = 1,
         now: datetime | None = None,
         tool_call_json: str | None = None,
+        authorization_expires_at: datetime | None = None,
     ) -> OutboxRow:
         """Record the intent inside the caller's open transaction.
 
@@ -1025,11 +1054,14 @@ class PostgresExecutionOutbox(ExecutionOutbox):
         connection.execute(
             "INSERT INTO execution_outbox (outbox_id, proposal_id, tenant_id, "
             "item_id, idempotency_key, tool_name, tool_call_hash, grant_jti, "
-            "state, attempt_no, created_at, tool_call_json) "
-            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            "state, attempt_no, created_at, tool_call_json, "
+            "authorization_expires_at) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (outbox_id, proposal_id, tenant_id, item_id, key, tool_name,
              tool_call_hash, grant_jti, OutboxState.DISPATCH_PENDING.value,
-             attempt_no, created.isoformat(), tool_call_json),
+             attempt_no, created.isoformat(), tool_call_json,
+             authorization_expires_at.isoformat()
+             if authorization_expires_at else None),
         )
         return OutboxRow(
             outbox_id=outbox_id,
