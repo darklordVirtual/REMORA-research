@@ -122,6 +122,52 @@ def test_the_worker_dispatches_with_the_synchronous_record_shapes(client) -> Non
     assert authorized["pep_allowed"] is True
 
 
+def test_racing_workers_consume_exactly_one_grant(client, monkeypatch) -> None:
+    """Issue #417 (RMR-CR-002): two workers racing one intent must produce
+    exactly one consumed grant, one execution_authorized event and one
+    dispatch. The exclusive claim comes FIRST, so the loser consumes and
+    asserts nothing — the previous order left a second consumed grant and
+    a second authorization event for a dispatch that never happened."""
+    import threading
+
+    proposal_id, row = _authorized_pending(client)
+    exec_mod = _exec_mod()
+    outbox = exec_mod._outbox()
+    real_claim = outbox.claim
+    barrier = threading.Barrier(2, timeout=10)
+
+    def racing_claim(outbox_id, *, worker_id, now=None):
+        barrier.wait()  # both workers reach the claim simultaneously
+        return real_claim(outbox_id, worker_id=worker_id, now=now)
+
+    monkeypatch.setattr(outbox, "claim", racing_claim)
+
+    results: dict[str, object] = {}
+
+    def run(wid: str) -> None:
+        results[wid] = exec_mod.dispatch_pending_intents("acme", worker_id=wid)
+
+    t1 = threading.Thread(target=run, args=("w-1",))
+    t2 = threading.Thread(target=run, args=("w-2",))
+    t1.start(); t2.start(); t1.join(); t2.join()
+
+    dispatched = [r for r in results.values() if r]
+    assert len(dispatched) == 1, "exactly one worker dispatches"
+
+    events = [e.payload for e in exec_mod._CHAIN.entries("acme")]
+    authorized = [e for e in events if e.get("event") == "execution_authorized"]
+    assert len(authorized) == 1, (
+        "one authorization at the moment of honouring — never one per racer")
+    result_events = [e for e in events if e.get("event") == "execution_result"]
+    assert len(result_events) == 1
+    jtis = {e["grant_jti"] for e in authorized}
+    assert len(jtis) == 1 and "" not in jtis
+
+    settled = outbox.rows_for_proposal("acme", proposal_id)[0]
+    assert settled.state is OutboxState.SUCCEEDED
+    assert settled.worker_id in {"w-1", "w-2"}
+
+
 def test_a_second_sweep_finds_nothing_to_do(client) -> None:
     _authorized_pending(client)
     exec_mod = _exec_mod()
