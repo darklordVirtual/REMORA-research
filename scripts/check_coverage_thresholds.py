@@ -75,7 +75,10 @@ FILE_THRESHOLDS: dict[str, float] = {
     # Fully exercised in-process; these are ordinary floors.
     "remora/enforcement/lease.py": 97.5,  # 97.85 after the event-contract round
     "remora/enforcement/token.py": 97.5,  # 98.05
-    "remora/enforcement/result_envelope.py": 99.5,  # 100.00: env parsing now pinned
+    "remora/enforcement/result_envelope.py": 99.0,  # 100.00: env parsing now
+    # pinned. 99.0 and not higher: the gate's own meta-test holds the
+    # invariant that no floor exceeds 99, so a synthetic all-at-99 report
+    # passes (tests/test_coverage_thresholds_gate.py).
     # ADR-B. Same shape as gate.py: the Postgres and D1 backend branches are
     # not reachable in this run, and the in-process logic around them is.
     "remora/enforcement/nonce_store.py": 80.5,  # 80.67
