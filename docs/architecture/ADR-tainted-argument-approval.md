@@ -1,4 +1,4 @@
-# ADR: Tainted arguments — approval suffices; sanitisation is not required
+# ADR: Tainted arguments; approval suffices; sanitisation is not required
 
 - Status: **accepted** (2026-08-20)
 - Deciders: repository owner
@@ -26,18 +26,18 @@ Option (c) shipped in #94 for the critical tier. What remained open was (b).
 
 The taint branch has three rungs, in order:
 
-1. **Untrusted content controls a sensitive argument** — ESCALATE
+1. Untrusted content controls a sensitive argument: ESCALATE
    (`UNTRUSTED_CONTROLS_SENSITIVE_ARGUMENT`), independent of the declared risk
    tier. A caller-supplied "low" must not buy autonomy for an attacker-chosen
    recipient.
-2. **Tainted at CRITICAL risk** — ESCALATE (`TAINTED_ARGUMENT_ESCALATE`).
-3. **Tainted below CRITICAL** — VERIFY floor (`TAINTED_ARGUMENT_VERIFY`).
+2. Tainted at CRITICAL risk: ESCALATE (`TAINTED_ARGUMENT_ESCALATE`).
+3. Tainted below CRITICAL: VERIFY floor (`TAINTED_ARGUMENT_VERIFY`).
 
 The execution re-gate (`ReviewQueue.execute`) redeems an approval against a
 *fresh* decision and admits only ACCEPT or VERIFY. ESCALATE is not executable.
 
 That yields the fact the original finding did not have: **for the scenario the
-review actually named — a tainted CRITICAL write — approval already cannot be
+review actually named (a tainted CRITICAL write) approval already cannot be
 redeemed.** The reviewer may approve the item; the re-gate refuses it while the
 taint stands. No sanitisation machinery is required to stop that call, because
 it never reaches dispatch.
@@ -86,7 +86,7 @@ Two further limits carry with it:
   comment alone: all three rungs, the critical re-gate refusal, and the
   residual.
 - If per-value taint labels ship under RF-02, this ADR is superseded rather than
-  amended — the reason for (a) is the absence of anything to revalidate
+  amended; the reason for (a) is the absence of anything to revalidate
   against, and RF-02 removes that reason.
 - If the residual test ever starts failing because a below-critical tainted call
   is refused, option (b) has effectively shipped by accident and this ADR must

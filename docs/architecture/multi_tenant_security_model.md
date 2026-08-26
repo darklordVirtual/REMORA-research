@@ -2,7 +2,7 @@
 
 Defines the tenant boundaries REMORA enforces today, the mechanisms that
 carry them, and the adversarial tests that pin each one. Where a boundary is
-not yet enforced or not yet tested, this document says so explicitly — the
+not yet enforced or not yet tested, this document says so explicitly; the
 threat table below is the burn-down list, not a claim of completeness.
 
 Current deployment reality: the recommended Shadow Pilot deployment is
@@ -57,7 +57,7 @@ tested now so it does not have to be retrofitted.
 1. Every new persistent table or key namespace carries `tenant_id` from day
    one, even while deployments are single-tenant.
 2. Reads resolve foreign-tenant identifiers as *not found*, never as
-   *forbidden* — existence itself is tenant-scoped information.
+   *forbidden*; existence itself is tenant-scoped information.
 3. No security-relevant state in eventual-consistent caches
    (ADR-single-authoritative-execution-path).
 4. A new cross-tenant surface lands together with its adversarial test, in
