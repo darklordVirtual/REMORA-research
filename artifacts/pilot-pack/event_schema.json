@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://remora.example/pilot-pack/event_schema.json",
+  "title": "REMORA pilot event",
+  "description": "One event the pilot partner supplies: the tool call as their agent framework emitted it, the registry metadata in force, and (for scored events) the human ground-truth label. Aligned with PolicyObservation.from_tool_call and the DecisionEnvelope join key (request_id).",
+  "type": "object",
+  "required": ["event_id", "occurred_at", "tool_call", "registry_metadata"],
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Partner-side unique id; becomes the request_id joining the DecisionEnvelope."
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tool_call": {
+      "type": "object",
+      "required": ["name", "arguments"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "arguments": { "type": "object" },
+        "target_environment": { "type": "string", "default": "staging" }
+      },
+      "description": "The (name, arguments) pair as emitted by the agent framework — OpenAI function-calling, LangGraph ToolNode, or equivalent."
+    },
+    "registry_metadata": {
+      "type": "object",
+      "required": ["domain", "action_type", "risk_tier"],
+      "additionalProperties": true,
+      "properties": {
+        "domain": { "type": "string" },
+        "action_type": { "type": "string", "enum": ["read", "write", "delete", "execute", "escalate"] },
+        "risk_tier": { "type": "string", "enum": ["low", "medium", "high", "critical"] }
+      },
+      "description": "Explicit metadata from the partner registry (protocol precondition 4); never inferred from the tool name for scored events."
+    },
+    "ground_truth": {
+      "type": "object",
+      "required": ["label", "labeled_by"],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": ["allow", "block", "review"],
+          "description": "The expert verdict for this event."
+        },
+        "labeled_by": { "type": "string", "description": "Reviewer id (pseudonymous is fine); needed for inter-rater agreement." },
+        "second_label": { "type": "string", "enum": ["allow", "block", "review"] },
+        "second_labeled_by": { "type": "string" },
+        "risk_class": { "type": "string", "description": "Domain risk class the worksheet reports agreement per." },
+        "notes": { "type": "string" }
+      },
+      "description": "Human ground truth (protocol precondition 5). Optional on ingest; REQUIRED before an event is scored."
+    }
+  }
+}
