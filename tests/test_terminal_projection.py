@@ -82,6 +82,161 @@ def _approved_item(client) -> str:
     return item_id
 
 
+# ── store-level contract: both adapters, all new primitives ────────────────
+
+
+@pytest.fixture(params=["memory", "sqlite"])
+def store(request, tmp_path):
+    from remora.enforcement.outbox import (ExecutionOutbox,
+                                           SQLiteExecutionOutbox)
+    if request.param == "memory":
+        return ExecutionOutbox()
+    return SQLiteExecutionOutbox(str(tmp_path / "outbox.db"))
+
+
+def _intent(store):
+    return store.record_intent(
+        proposal_id="11111111-2222-3333-4444-555555555555",
+        tenant_id="acme", item_id="item-1", tool_name="store_artifact",
+        tool_call_hash="a" * 64, grant_jti="jti-1", attempt_no=1,
+    )
+
+
+def test_settle_persists_the_projection_payload(store) -> None:
+    row = _intent(store)
+    store.claim(row.outbox_id, worker_id="w-1")
+    settled = store.settle(row.outbox_id, OutboxState.SUCCEEDED,
+                           projection_json='{"outcome": "SUCCEEDED"}')
+    assert settled.projection_json == '{"outcome": "SUCCEEDED"}'
+    assert settled.projected_at is None
+
+
+def test_unprojected_terminal_lists_exactly_the_owed_rows(store) -> None:
+    a, b = _intent(store), store.record_intent(
+        proposal_id="21111111-2222-3333-4444-555555555555",
+        tenant_id="acme", item_id="item-2", tool_name="store_artifact",
+        tool_call_hash="b" * 64, grant_jti="jti-2", attempt_no=1,
+    )
+    store.claim(a.outbox_id, worker_id="w")
+    store.settle(a.outbox_id, OutboxState.SUCCEEDED, projection_json="{}")
+    # b stays pending: not terminal, never listed.
+    owed = store.unprojected_terminal("acme")
+    assert [r.outbox_id for r in owed] == [a.outbox_id]
+    marked = store.mark_projected(a.outbox_id)
+    assert marked.projected_at is not None
+    assert store.unprojected_terminal("acme") == []
+    assert b.state is OutboxState.DISPATCH_PENDING
+
+
+def test_sqlite_migrates_a_pre_416_database(tmp_path) -> None:
+    """A database created before the projection columns gains them on
+    construction, and old rows read back with None in the new fields."""
+    import sqlite3
+
+    from remora.enforcement.outbox import SQLiteExecutionOutbox
+
+    db = tmp_path / "legacy.db"
+    conn = sqlite3.connect(str(db))
+    conn.executescript(
+        "CREATE TABLE execution_outbox ("
+        "outbox_id TEXT PRIMARY KEY, proposal_id TEXT NOT NULL, "
+        "tenant_id TEXT NOT NULL, item_id TEXT NOT NULL, "
+        "idempotency_key TEXT NOT NULL, tool_name TEXT NOT NULL, "
+        "tool_call_hash TEXT NOT NULL, grant_jti TEXT NOT NULL, "
+        "state TEXT NOT NULL, attempt_no INTEGER NOT NULL, "
+        "created_at TEXT NOT NULL, worker_id TEXT, claimed_at TEXT, "
+        "settled_at TEXT, detail TEXT, "
+        "UNIQUE (tenant_id, idempotency_key));"
+        "INSERT INTO execution_outbox VALUES ('ob-legacy','p','acme','i',"
+        "'k','t','h','j','SUCCEEDED',1,'2026-08-01T00:00:00+00:00',"
+        "NULL,NULL,'2026-08-01T00:01:00+00:00',NULL);")
+    conn.commit()
+    conn.close()
+
+    store = SQLiteExecutionOutbox(str(db))
+    row = store.get("ob-legacy")
+    assert row.tool_call_json is None
+    assert row.projection_json is None
+    assert row.projected_at is None
+    # And the store is fully writable post-migration.
+    fresh = _intent(store)
+    assert fresh.state is OutboxState.DISPATCH_PENDING
+
+
+def test_mark_projected_refuses_a_non_terminal_row(store) -> None:
+    """Projection follows settlement, never precedes it."""
+    row = _intent(store)
+    with pytest.raises(ValueError, match="terminal"):
+        store.mark_projected(row.outbox_id)
+
+
+def test_projector_marks_legacy_rows_without_inventing_records(store) -> None:
+    """A pre-#416 terminal row has no payload: the projector marks it
+    projected with nothing replayed — fabricating records would be worse
+    than the gap."""
+    from types import SimpleNamespace
+
+    from remora.execution.service import project_terminal_intent
+
+    row = _intent(store)
+    store.claim(row.outbox_id, worker_id="w")
+    store.settle(row.outbox_id, OutboxState.SUCCEEDED)  # no payload
+    appended: list = []
+    chain = SimpleNamespace(append_once=lambda *a, **k: appended.append(a))
+    result = project_terminal_intent(
+        store.get(row.outbox_id), tenant="acme",
+        transaction=lambda t: (_ for _ in ()).throw(AssertionError("no queue")),
+        chain=chain, outbox=lambda: store,
+    )
+    assert result == {"outbox_id": row.outbox_id, "replayed": False,
+                      "reason": "no_projection_payload"}
+    assert appended == []
+    assert store.get(row.outbox_id).projected_at is not None
+
+
+def test_projector_converges_when_the_queue_item_is_gone(store) -> None:
+    """The queue replay raising KeyError (item gone / already terminal)
+    must not stop the chain record from landing."""
+    import json as _json
+    from types import SimpleNamespace
+
+    from remora.execution.service import project_terminal_intent
+
+    row = _intent(store)
+    store.claim(row.outbox_id, worker_id="w")
+    store.settle(row.outbox_id, OutboxState.REFUSED, projection_json=_json.dumps({
+        "proposal_id": "p", "item_id": "gone", "actor": "a",
+        "tool_call_hash": "h", "grant_jti": "", "outcome": "REFUSED",
+        "tool_executed": False, "state_unknown": False,
+        "refusal_reason": "payload_invalid", "intent_sequence_no": None,
+    }))
+
+    class _Q:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def record_execution_outcome(self, *a, **k):
+            raise KeyError("gone")
+
+    appended: list = []
+    chain = SimpleNamespace(
+        append_once=lambda t, key, payload: appended.append((key, payload)) or
+        SimpleNamespace(sequence_no=1, entry_hash="e"))
+    result = project_terminal_intent(
+        store.get(row.outbox_id), tenant="acme",
+        transaction=lambda t: _Q(), chain=chain, outbox=lambda: store,
+    )
+    assert result["queue_outcome_written"] is False
+    assert result["chain_record_written"] is True
+    key, payload = appended[0]
+    assert key == f"execution-result:{row.outbox_id}"
+    assert payload["tool_refusal_reason"] == "payload_invalid"
+    assert payload["projection_replayed"] is True
+
+
 class _CrashAfterSettle(RuntimeError):
     pass
 
