@@ -286,6 +286,16 @@ jobs:
         # the distinction possible; the two settings must move together.
         run: python scripts/check_capability_freshness.py --strict
 
+      - name: Capability semantics (register vs runtime wiring)
+        # Issue #84 residual 2: a structurally valid register must not claim
+        # a surface is wired when the runtime path is absent or weaker.
+        # WIRED_API_PATH requires the cited implementation to be transitively
+        # imported from a public API surface; PERSISTED_ATOMIC requires a
+        # durable-backend path in the cited code; reference paths require a
+        # reference flow; every level requires tests. Fix over-claims by
+        # wiring for real or recording the honest weaker status.
+        run: python scripts/check_capability_semantics.py
+
       - name: Product-truth gate
         # docs/product/product_truth_contract.yaml classifies every advertised
         # capability (core/optional/experimental/legacy/demo); public docs and
