@@ -1553,7 +1553,7 @@
     },
     "/v1/assess": {
       "post": {
-        "description": "Assess an agent action proposal through the full REMORA pipeline.\n\nReturns a structured governance decision with thermodynamic observables,\npolicy action (ACCEPT/VERIFY/ABSTAIN/ESCALATE), and audit metadata.",
+        "description": "Assess an agent action proposal through the research pipeline.\n\nThis is the RESEARCH surface (ADR-canonical-decision-engine, gate fired\n2026-08-26 with the #389 paper reframe): the multi-oracle consensus\nengine behind it informs, and never gates, enforcement. The enforcing\npath is /v1/execution/* on the canonical policy core.\n\nReturns a structured governance decision with consensus observables,\npolicy action (ACCEPT/VERIFY/ABSTAIN/ESCALATE), and audit metadata.",
         "operationId": "assess_v1_assess_post",
         "requestBody": {
           "content": {
@@ -1589,7 +1589,7 @@
         },
         "summary": "Assess",
         "tags": [
-          "governance"
+          "research"
         ]
       }
     },
