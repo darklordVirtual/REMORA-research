@@ -35,6 +35,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 
 from remora.enforcement.gate import EnforcementGate
 from remora.enforcement.nonce_store import DurableNonceStore, NonceStore
@@ -1369,7 +1370,7 @@ def _dispatch_under_lease(
     404: {"model": ErrorDetail, "description": "Review item not found for this tenant."},
     409: {"model": ErrorDetail, "description": "Item not in an executable state."},
 })
-def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
+def execute(req: ExecuteRequest, request: Request) -> "dict[str, Any] | JSONResponse":
     """Execute a previously approved item under full re-gating.
 
     The complete payload is re-presented and freshly re-decided: an
@@ -1419,8 +1420,6 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any]:
     except ReviewConflict as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     if response.get("dispatch") == "pending":
-        from fastapi.responses import JSONResponse
-
         api_mod.record_execution_execute(
             executed=False, refusal="dispatch_pending")
         return JSONResponse(status_code=202, content=response)
