@@ -7,7 +7,7 @@
 
 ## Context
 
-REMORA has one canonical governed execution path — the `/v1/execution/*`
+REMORA has one canonical governed execution path; the `/v1/execution/*`
 kernel (`servers/`, `remora/enforcement/`, `remora/governance/`):
 
 ```
@@ -28,10 +28,10 @@ the guarantees of the other.
 
 ## Decision
 
-1. **There is exactly one authoritative execution path**: the canonical
+1. There is exactly one authoritative execution path: the canonical
    REMORA execution service. Every component that can reach a
    customer-impacting (write-effect) tool callable must obtain authorization
-   from that path — a valid decision, execution grant, PEP check, exact-call
+   from that path; a valid decision, execution grant, PEP check, exact-call
    lease and durable dispatch intent.
 2. **`agent-control` is edge ingress, not an engine.** Its responsibilities
    are limited to: edge ingress, identity (workload bearer / Cloudflare
@@ -41,7 +41,7 @@ the guarantees of the other.
 3. **Structural floor until the adapter lands** (see Migration): any
    write-effect tool in `agent-control` is *unconditionally* approval-gated
    by a hardcoded `WRITE_IMPACT_TOOLS` set in code. Deployment configuration
-   (`APPROVAL_REQUIRED_TOOLS`) can only add gated tools, never remove one —
+   (`APPROVAL_REQUIRED_TOOLS`) can only add gated tools, never remove one;
    an emptied or misconfigured variable can no longer turn a write tool into
    an ungoverned call. Approvals themselves are first-class, single-use,
    expiring records granted only by an authenticated independent human
@@ -73,7 +73,7 @@ the guarantees of the other.
 3. Phase 2 slice 2 (implemented 2026-08-19, activation per deployment):
    `src/execution_adapter.ts` + the optional `EXECUTION_SERVICE` binding.
    When bound with `EXECUTION_API_TOKEN`, write-effect tools run the
-   canonical assess → grant → PEP → lease path and never execute in-worker;
+   canonical assess, grant, PEP, lease path and never execute in-worker;
    verify/escalate surfaces the canonical review item, and no failure shape
    falls back to local execution
    (`tests/test_agent_control_canonical_adapter.py`). Unbound deployments

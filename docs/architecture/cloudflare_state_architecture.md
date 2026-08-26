@@ -22,10 +22,10 @@ security-relevant state never depends on eventual-consistent cache semantics.
 
 One coordinator instance keyed `tenant_id` (evaluate
 `tenant_id + protected_execution_domain` if a single tenant's write volume
-serializes too much — measure first). It owns exactly the operations whose
+serializes too much; measure first). It owns exactly the operations whose
 correctness requires strong serialization; everything else reads D1/R2.
 Current status: the agent-control worker uses D1 `UNIQUE` constraints as the
-fork guard (`workers/agent-control/schema.sql`) — adequate at pilot volume;
+fork guard (`workers/agent-control/schema.sql`); adequate at pilot volume;
 the DO is the scale-out path, not a correctness fix.
 
 ## Tenant keying
@@ -36,7 +36,7 @@ structure is fixed as `/{tenant_id}/{evidence|effects|exports|attestations}/...`
 Database-per-enterprise-tenant vs row-level partitioning: start with strict
 row-level partitioning (one schema, mandatory tenant column, adversarial
 tests); move a tenant to a dedicated D1 database only when contractually
-required — D1 has no cross-database queries, so per-tenant databases also
+required; D1 has no cross-database queries, so per-tenant databases also
 delete the class of missing-tenant-filter bugs at the cost of fleet
 management. Decision deferred until a second enterprise tenant exists;
 row-level is the default.
@@ -53,13 +53,13 @@ policy_version, model_cost_estimate
 
 `proposal_id` is the same FT-01 join key the audit chain and the
 `X-Remora-Proposal-Id` header carry, so a usage row can always be traced
-back to its governed record — but never the other way: analytics rows are
+back to its governed record; but never the other way: analytics rows are
 lossy and non-authoritative.
 
 ## Secrets custody
 
 Downstream tool credentials move toward centralized custody (Workers
-Secrets / Secrets Store), owned by the dispatcher — never by callers,
+Secrets / Secrets Store), owned by the dispatcher; never by callers,
 never per-agent. Required documentation per secret, kept with the
 deployment config: who can read it, which tool may use it, which tenant
 owns it, rotation process, revocation path, and what the audit records on
@@ -71,7 +71,7 @@ second tenant's credentials enter the system.
 ## Migration order
 
 1. (done) Approval/no-self-approval state in D1 with UNIQUE fork guards.
-2. Workflows prototype for the HITL lifecycle in shadow mode — must
+2. Workflows prototype for the HITL lifecycle in shadow mode; must
    preserve outbox semantics exactly (UNKNOWN terminal, absorbing states).
 3. DO coordinator for nonce/approval consumption when volume warrants.
 4. Analytics Engine emission from the settle path.

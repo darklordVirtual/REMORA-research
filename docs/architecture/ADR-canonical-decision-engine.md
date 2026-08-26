@@ -1,9 +1,9 @@
 # ADR: Canonical decision engine and the research surface's stated lifetime
 
 - Status: **accepted** (2026-08-25); **retirement gate fired** (2026-08-26)
-- Gate update 2026-08-26: the #389 paper reframe landed — the paper's primary
+- Gate update 2026-08-26: the #389 paper reframe landed; the paper's primary
   claims now rest on the governed-execution surface, not on assess. Per §3 of
-  the decision, `remora/engine.py` moved CORE → EXPERIMENTAL in the Module
+  the decision, `remora/engine.py` moved from CORE to EXPERIMENTAL in the Module
   Stability Index and `/v1/assess` is re-tagged as the research surface in
   the API. The surface stays served and tested (the negative-results record
   depends on it); what changed is its classification, not its behaviour.
@@ -68,7 +68,7 @@ gates enforcement.
   one FastAPI app whose catch-all handler routes every unhandled exception
   through `_safe_error_response` with a correlation id. The execution
   router's `str(exc)` HTTP 409 details are deliberate machine-readable
-  refusal codes from the domain exceptions, not leaked internals — bounded
+  refusal codes from the domain exceptions, not leaked internals; bounded
   where they were not (PR #375).
 
 ## Consequences

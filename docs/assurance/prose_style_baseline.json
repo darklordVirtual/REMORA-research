@@ -77,28 +77,6 @@
     "docs/README.md": {
       "emdash": 7
     },
-    "docs/architecture/ADR-authority-custody-and-lease-durability.md": {
-      "arrow": 1,
-      "emdash": 22
-    },
-    "docs/architecture/ADR-canonical-decision-engine.md": {
-      "arrow": 1,
-      "emdash": 2
-    },
-    "docs/architecture/ADR-single-authoritative-execution-path.md": {
-      "arrow": 2,
-      "bold_bullet": 1,
-      "emdash": 3
-    },
-    "docs/architecture/ADR-tainted-argument-approval.md": {
-      "emdash": 6
-    },
-    "docs/architecture/cloudflare_state_architecture.md": {
-      "emdash": 6
-    },
-    "docs/architecture/multi_tenant_security_model.md": {
-      "emdash": 2
-    },
     "docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md": {
       "arrow": 15,
       "bold_bullet": 7,
@@ -183,18 +161,6 @@
     "docs/deployment/onprem-airgapped.md": {
       "bold_bullet": 1,
       "emdash": 1
-    },
-    "docs/design/cloudflare-mcp-gateway-v1.md": {
-      "bold_bullet": 1,
-      "emdash": 12
-    },
-    "docs/design/execution-lifecycle-outbox-v1.md": {
-      "bold_bullet": 4,
-      "emdash": 30
-    },
-    "docs/design/toolspec-signed-registry-v1.md": {
-      "arrow": 4,
-      "emdash": 58
     },
     "docs/enterprise/audit-anchoring-guide.md": {
       "bold_bullet": 6,

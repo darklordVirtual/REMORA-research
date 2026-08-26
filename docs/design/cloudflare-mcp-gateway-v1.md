@@ -1,7 +1,7 @@
 # Governed MCP Gateway on Cloudflare — v1
 
 **Status:** proposal
-**Scope:** slice 1 of the Cloudflare deployment programme — a single-tenant
+**Scope:** slice 1 of the Cloudflare deployment programme; a single-tenant
 governed MCP gateway. Later slices are named in "Out of scope" and are not
 designed here.
 
@@ -35,7 +35,7 @@ not absolute predictions.
 
 Peak RSS across the full OT battery plus 12 latency probes (27 assess, 6
 approvals, 7 executes in total) is
-**69.5 MiB**. Memory is not the binding constraint — even `lite` has 3.7x
+**69.5 MiB**. Memory is not the binding constraint; even `lite` has 3.7x
 headroom. CPU is, and the cost sits in the framework: `import servers.api`
 is 952 ms cumulative uncapped, of which FastAPI is 287 ms and
 `importlib.metadata` 226 ms. REMORA's own modules are marginal
@@ -91,7 +91,7 @@ parity the thing to prove, and that is not a cost this slice should carry.
 
 `remora/persistence/execution_state.py` speaks psycopg or sqlite3 directly.
 Container disk is ephemeral, so a container-local SQLite file is not durable
-state — that is exactly the failure mode REMORA's own history records, where a
+state; that is exactly the failure mode REMORA's own history records, where a
 volatile ledger made one-time grants replayable.
 
 Cloudflare's documentation describes `enableInternet` and outbound
@@ -117,16 +117,16 @@ mechanism rather than a limit on what the container may open.
 
 **Consequence:** the container connects directly to a managed Postgres over
 TLS, and `remora/persistence/execution_state.py` is used unchanged. The
-fallback — a Hyperdrive binding through the Worker plus a new HTTP-backed
+fallback; a Hyperdrive binding through the Worker plus a new HTTP-backed
 durable-state backend, real code in the most security-critical part of the
-repository — is not needed and is dropped from this slice.
+repository; is not needed and is dropped from this slice.
 
 The Postgres provider remains open. It is a question of cost, region and data
 processing terms rather than of transport, and for a European pilot data
 residency is a real constraint.
 
 **European jurisdiction, decided 2026-08-23.** The container and the proposal
-store are both pinned to the `eu` compliance boundary — `constraints.jurisdiction`
+store are both pinned to the `eu` compliance boundary; `constraints.jurisdiction`
 for the container, `DurableObjectNamespace.jurisdiction()` for the store, which
 fixes it at creation and cannot be changed afterwards. Expressed as a
 jurisdiction rather than a region list because the constraint is regulatory,
@@ -134,8 +134,8 @@ not latency.
 
 The database must sit inside the same boundary, and this is where the slice
 stops. Cloudflare's own route to a managed Postgres is PlanetScale with
-unified billing, but it is **created from the dashboard only** — probing the
-API for a provisioning route returns no such endpoint — and it is a recurring
+unified billing, but it is **created from the dashboard only** (probing the
+API for a provisioning route returns no such endpoint) and it is a recurring
 paid commitment at PlanetScale's standard pricing. Any provider works: the
 container speaks the wire protocol directly, so nothing in the design depends
 on which one.
@@ -170,7 +170,7 @@ accepts a `REMORA_CHAIN_DB` path on the container's own filesystem.
 
 On Cloudflare that filesystem is ephemeral. The file is gone the next time the
 instance starts, so the tenant audit chain, the review queue and the
-one-time-grant ledger do not survive a restart — and a grant already consumed
+one-time-grant ledger do not survive a restart; and a grant already consumed
 becomes replayable, which is precisely the failure the check was written to
 prevent. The check passes while providing none of the guarantee.
 
@@ -180,8 +180,8 @@ whether a path was configured, not whether the storage behind it persists.
 **Fixed 2026-08-23.** `servers/api.py` now reads the Linux mount table and
 resolves the filesystem behind `REMORA_CHAIN_DB`, walking up to the nearest
 existing ancestor because the database file does not exist on a first start.
-A container's own writable layer or memory-backed storage — `overlay`,
-`overlayfs`, `aufs`, `tmpfs`, `ramfs`, `rootfs` — is refused, and the refusal
+A container's own writable layer or memory-backed storage (`overlay`,
+`overlayfs`, `aufs`, `tmpfs`, `ramfs`, `rootfs`) is refused, and the refusal
 names the filesystem, the path and the consequence rather than merely
 reporting a rule.
 
@@ -222,8 +222,8 @@ Each step is verified before the next begins.
    the deployed gateway.
 4. **Cloudflare Access.** Done, with service tokens rather than SSO: an MCP
    client can send headers but cannot complete an interactive sign-in.
-   Verified — unauthenticated requests get 403, the service token is admitted.
-5. **End to end:** done against the deployed gateway, with the ephemeral-state
+   Verified; unauthenticated requests get 403, the service token is admitted.
+5. End to end: done against the deployed gateway, with the ephemeral-state
    caveat above. Effect verification and evidence remain to be exercised on a
    durable deployment.
 
