@@ -189,7 +189,7 @@ def _run_scenario(s: EnterpriseScenario) -> tuple[str, str]:
 def _plain_run(scenarios: list[EnterpriseScenario], fast: bool) -> None:
     print("\n" + "=" * 70)
     print("  REMORA Enterprise Demo - AI Action Governance")
-    print("  v0.10.0 - research-grade prototype - BUSL-1.1 (source-available)")
+    print("  v0.11.0 - research-grade prototype - BUSL-1.1 (source-available)")
     print("=" * 70)
 
     for i, s in enumerate(scenarios, 1):
@@ -215,7 +215,7 @@ def _rich_run(scenarios: list[EnterpriseScenario], fast: bool) -> None:
     console.print()
     console.rule("[bold]REMORA Enterprise Demo - AI Action Governance[/bold]")
     console.print(
-        "[dim]v0.10.0 - research-grade prototype - BUSL-1.1 - no API keys needed[/dim]\n",
+        "[dim]v0.11.0 - research-grade prototype - BUSL-1.1 - no API keys needed[/dim]\n",
         justify="center",
     )
 
@@ -267,7 +267,7 @@ def _rich_run(scenarios: list[EnterpriseScenario], fast: bool) -> None:
         summary.add_row(str(i), f"[{label}] {title}", f"[{color} bold]{action}[/{color} bold]", audit)
     console.print(summary)
     console.print("\n[dim]All decisions are replayable via state_hash.[/dim]\n")
-    console.rule("[dim]REMORA v0.10.0 - not production-certified - BUSL-1.1[/dim]")
+    console.rule("[dim]REMORA v0.11.0 - not production-certified - BUSL-1.1[/dim]")
     console.print()
 
 
