@@ -1,0 +1,502 @@
+{
+  "_note": "shrink-only; regenerate with scripts/check_prose_style.py --update-baseline only after a prose pass that lowered counts",
+  "files": {
+    "ARCHITECTURE.md": {
+      "arrow": 2,
+      "bold_bullet": 3,
+      "emdash": 3
+    },
+    "CHANGELOG.md": {
+      "emdash": 2
+    },
+    "CODE_OF_CONDUCT.md": {
+      "not_but": 1
+    },
+    "CONTRIBUTING.md": {
+      "bold_bullet": 1,
+      "emdash": 2
+    },
+    "CONTRIBUTORS.md": {
+      "arrow": 1
+    },
+    "DEVELOPER_OVERVIEW.md": {
+      "emdash": 14
+    },
+    "LICENSING.md": {
+      "emdash": 7
+    },
+    "NEGATIVE_RESULTS.md": {
+      "arrow": 20,
+      "bold_bullet": 7,
+      "copula_dodge": 1,
+      "emdash": 177
+    },
+    "README.md": {
+      "emdash": 14
+    },
+    "SECURITY.md": {
+      "emdash": 3
+    },
+    "artifacts/credibility-pack/ATTESTATION.md": {
+      "bold_bullet": 2
+    },
+    "artifacts/credibility-pack/azure-reference-architecture.md": {
+      "bold_bullet": 4
+    },
+    "artifacts/pilot-pack/README.md": {
+      "emdash": 3
+    },
+    "artifacts/pilot-pack/evaluation_worksheet.md": {
+      "emdash": 2
+    },
+    "data/grounding_holdout_v1/ATTRIBUTION.md": {
+      "emdash": 7
+    },
+    "data/routing_bench_holdout/HOLDOUT_STATUS.md": {
+      "emdash": 4
+    },
+    "datasets/ai_governance_v1/README.md": {
+      "arrow": 2
+    },
+    "datasets/aromer_external_holdout_v1/README.md": {
+      "arrow": 4,
+      "bold_bullet": 2
+    },
+    "datasets/finance_v1/README.md": {
+      "arrow": 3
+    },
+    "datasets/remora_knowledge_v1/static_rag/agent_security/owasp_llm_top10_policy_map.md": {
+      "arrow": 3
+    },
+    "datasets/remora_knowledge_v1/static_rag/ai_governance/nist_ai_rmf_summary.md": {
+      "arrow": 3
+    },
+    "datasets/remora_knowledge_v1/static_rag/audit_provenance/w3c_prov_summary.md": {
+      "arrow": 3,
+      "bold_bullet": 7
+    },
+    "datasets/remora_knowledge_v1/static_rag/grid_operations/grid_ai_operations_summary.md": {
+      "arrow": 4,
+      "bold_bullet": 5
+    },
+    "datasets/remora_knowledge_v1/static_rag/kubernetes_iac/kubernetes_admission_control_summary.md": {
+      "arrow": 4,
+      "bold_bullet": 8
+    },
+    "docs/01-architecture.md": {
+      "emdash": 4
+    },
+    "docs/02-evidence-and-claims.md": {
+      "bold_bullet": 29,
+      "emdash": 4
+    },
+    "docs/03-experiments.md": {
+      "emdash": 2
+    },
+    "docs/04-negative-results-detail.md": {
+      "arrow": 4,
+      "emdash": 3
+    },
+    "docs/06-reproducibility.md": {
+      "emdash": 2
+    },
+    "docs/07-api-reference.md": {
+      "arrow": 1,
+      "emdash": 25
+    },
+    "docs/08-security.md": {
+      "bold_bullet": 3
+    },
+    "docs/09-related-work.md": {
+      "arrow": 7,
+      "emdash": 9
+    },
+    "docs/10-contributing.md": {
+      "emdash": 7
+    },
+    "docs/13-research-frontier-roadmap.md": {
+      "arrow": 18,
+      "emdash": 161
+    },
+    "docs/README.md": {
+      "emdash": 7
+    },
+    "docs/architecture/ADR-authority-custody-and-lease-durability.md": {
+      "arrow": 1,
+      "emdash": 22
+    },
+    "docs/architecture/ADR-canonical-decision-engine.md": {
+      "arrow": 1,
+      "emdash": 2
+    },
+    "docs/architecture/ADR-single-authoritative-execution-path.md": {
+      "arrow": 2,
+      "bold_bullet": 1,
+      "emdash": 3
+    },
+    "docs/architecture/ADR-tainted-argument-approval.md": {
+      "emdash": 6
+    },
+    "docs/architecture/cloudflare_state_architecture.md": {
+      "emdash": 6
+    },
+    "docs/architecture/multi_tenant_security_model.md": {
+      "emdash": 2
+    },
+    "docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md": {
+      "arrow": 15,
+      "bold_bullet": 7,
+      "emdash": 1
+    },
+    "docs/aromer/SUBPROJECT.md": {
+      "emdash": 4
+    },
+    "docs/aromer/quickstart_aromer.md": {
+      "arrow": 3
+    },
+    "docs/assurance/ai_assisted_adversarial_security_review_v1.md": {
+      "emdash": 1
+    },
+    "docs/assurance/aromer_memory_governance_v1.md": {
+      "emdash": 8
+    },
+    "docs/assurance/artifact_manifest_v1.md": {
+      "emdash": 5
+    },
+    "docs/assurance/artifact_provenance_spec_v1.md": {
+      "bold_bullet": 3
+    },
+    "docs/assurance/assurance_case_v1.md": {
+      "arrow": 3,
+      "emdash": 23
+    },
+    "docs/assurance/benchmark_audit_v1.md": {
+      "bold_bullet": 17
+    },
+    "docs/assurance/best_practice_gap_audit_v1.md": {
+      "emdash": 15
+    },
+    "docs/assurance/development_review_log_v1.md": {
+      "arrow": 3
+    },
+    "docs/assurance/documentation_governance_v1.md": {
+      "bold_bullet": 2,
+      "emdash": 16
+    },
+    "docs/assurance/domain_pack_governance_v1.md": {
+      "bold_bullet": 19
+    },
+    "docs/assurance/experiment_manifest_spec_v1.md": {
+      "emdash": 3
+    },
+    "docs/assurance/external_review_panel_v1.md": {
+      "emdash": 6
+    },
+    "docs/assurance/human_oversight_operations_v1.md": {
+      "emdash": 3
+    },
+    "docs/assurance/independent_review_protocol_v1.md": {
+      "bold_bullet": 3
+    },
+    "docs/assurance/metric_definitions_v1.md": {
+      "emdash": 2
+    },
+    "docs/assurance/mutation_testing_v1.md": {
+      "arrow": 1,
+      "emdash": 16
+    },
+    "docs/assurance/policy_engine_audit_v1.md": {
+      "arrow": 2,
+      "bold_bullet": 15,
+      "emdash": 2
+    },
+    "docs/assurance/rbac_design_v1.md": {
+      "bold_bullet": 5,
+      "copula_dodge": 1
+    },
+    "docs/assurance/rbac_policy_v1.md": {
+      "bold_bullet": 23,
+      "emdash": 3
+    },
+    "docs/assurance/rebenchmark_protocol_v1.md": {
+      "bold_bullet": 2,
+      "emdash": 7
+    },
+    "docs/assurance/red_team_plan_v1.md": {
+      "bold_bullet": 5
+    },
+    "docs/assurance/release_gates.md": {
+      "emdash": 1
+    },
+    "docs/assurance/reproducibility_scorecard_v1.md": {
+      "bold_bullet": 4,
+      "emdash": 4
+    },
+    "docs/assurance/resilience_plan_v1.md": {
+      "bold_bullet": 2,
+      "emdash": 1
+    },
+    "docs/assurance/statistical_analysis_plan.md": {
+      "emdash": 2
+    },
+    "docs/assurance/statistical_analysis_plan_v2.md": {
+      "arrow": 4,
+      "emdash": 10
+    },
+    "docs/assurance/statistical_analysis_plan_v3.md": {
+      "arrow": 1,
+      "emdash": 10
+    },
+    "docs/assurance/statistical_analysis_plan_v4.md": {
+      "emdash": 7
+    },
+    "docs/assurance/statistical_analysis_plan_v5_bfcl_semantic.md": {
+      "arrow": 4,
+      "emdash": 10
+    },
+    "docs/assurance/superseded_claims.md": {
+      "emdash": 6
+    },
+    "docs/assurance/threat_model_v1.md": {
+      "emdash": 8
+    },
+    "docs/benchmarks/aegis-remora-crosswalk.md": {
+      "emdash": 13
+    },
+    "docs/benchmarks/agent-authority-conformance-v0.1.md": {
+      "bold_bullet": 1,
+      "emdash": 1
+    },
+    "docs/cli.md": {
+      "emdash": 8
+    },
+    "docs/commercial/DATA_HANDLING.md": {
+      "emdash": 1
+    },
+    "docs/commercial/DEPLOYMENT_OPTIONS.md": {
+      "arrow": 1,
+      "emdash": 2
+    },
+    "docs/commercial/PRODUCT_PACKAGING.md": {
+      "emdash": 1
+    },
+    "docs/commercial/SECURITY_OVERVIEW.md": {
+      "emdash": 2
+    },
+    "docs/commercial/SHADOW_PILOT.md": {
+      "emdash": 9
+    },
+    "docs/deployment/authority-custody-evidence.md": {
+      "emdash": 17
+    },
+    "docs/deployment/authority-key-topology.md": {
+      "emdash": 5
+    },
+    "docs/deployment/azure-reference-architecture.md": {
+      "bold_bullet": 4,
+      "emdash": 2
+    },
+    "docs/deployment/container-reference.md": {
+      "emdash": 5
+    },
+    "docs/deployment/execution-quickstart.md": {
+      "arrow": 3,
+      "emdash": 9
+    },
+    "docs/deployment/onprem-airgapped.md": {
+      "bold_bullet": 1,
+      "emdash": 1
+    },
+    "docs/design/cloudflare-mcp-gateway-v1.md": {
+      "bold_bullet": 1,
+      "emdash": 12
+    },
+    "docs/design/execution-lifecycle-outbox-v1.md": {
+      "bold_bullet": 4,
+      "emdash": 30
+    },
+    "docs/design/toolspec-signed-registry-v1.md": {
+      "arrow": 4,
+      "emdash": 58
+    },
+    "docs/enterprise/audit-anchoring-guide.md": {
+      "bold_bullet": 6,
+      "emdash": 9
+    },
+    "docs/enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md": {
+      "bold_bullet": 4
+    },
+    "docs/enterprise/togaf-enterprise-rollout-plan.md": {
+      "arrow": 8,
+      "bold_bullet": 15
+    },
+    "docs/evidence/causal_policy_explanations.md": {
+      "arrow": 1
+    },
+    "docs/evidence/decision_envelope_audit.md": {
+      "bold_bullet": 4
+    },
+    "docs/evidence/empirical_evidence_record.md": {
+      "arrow": 1
+    },
+    "docs/execution-lifecycle.md": {
+      "arrow": 1,
+      "emdash": 6
+    },
+    "docs/executive_onepager.md": {
+      "arrow": 1
+    },
+    "docs/governance/eu_ai_act_nsm_mapping.md": {
+      "emdash": 1
+    },
+    "docs/integrations/agent_tool_hook.md": {
+      "emdash": 1
+    },
+    "docs/integrations/cloudflare_workers_ai.md": {
+      "bold_bullet": 3
+    },
+    "docs/integrations/mcp-gateway.md": {
+      "emdash": 34
+    },
+    "docs/integrations/mcp-integration.md": {
+      "emdash": 8
+    },
+    "docs/integrations/rag_oracle.md": {
+      "bold_bullet": 7
+    },
+    "docs/methods/nested_governance.md": {
+      "emdash": 1
+    },
+    "docs/methods/theoretical_foundations_proposals_v1.md": {
+      "arrow": 3
+    },
+    "docs/reference_architecture.md": {
+      "arrow": 5,
+      "bold_bullet": 9,
+      "emdash": 2
+    },
+    "docs/research/REMORA_forskningsmonografi_no.md": {
+      "bold_bullet": 7,
+      "emdash": 1
+    },
+    "docs/research/adjacent-systems-crosswalk-v2.md": {
+      "arrow": 1,
+      "emdash": 26
+    },
+    "docs/research/benchmark_round_2026_07.md": {
+      "arrow": 2,
+      "bold_bullet": 2,
+      "emdash": 16
+    },
+    "docs/research/causal_consequence_gating.md": {
+      "arrow": 7
+    },
+    "docs/research/governance_intelligence_layer.md": {
+      "bold_bullet": 3
+    },
+    "docs/research/method_alternatives_2026_07.md": {
+      "emdash": 20
+    },
+    "docs/research/misspecification_aware_governance.md": {
+      "arrow": 5
+    },
+    "docs/research/policy_generalization_risk.md": {
+      "arrow": 8
+    },
+    "docs/research/research_control_matrix.generated.md": {
+      "bold_bullet": 110,
+      "emdash": 12
+    },
+    "docs/research/research_modes.md": {
+      "arrow": 5,
+      "bold_bullet": 2,
+      "emdash": 2
+    },
+    "docs/research/routing_benchmark_v1_design.md": {
+      "bold_bullet": 1,
+      "emdash": 19
+    },
+    "docs/research/task_intent_authority_v1.md": {
+      "bold_bullet": 5,
+      "emdash": 8
+    },
+    "docs/research/verify_control_protocols.md": {
+      "emdash": 25
+    },
+    "docs/sdk.md": {
+      "emdash": 12
+    },
+    "docs/security/pre-deployment-review.md": {
+      "bold_bullet": 1,
+      "emdash": 2
+    },
+    "docs/thermodynamics/README.md": {
+      "emdash": 1
+    },
+    "docs/use-cases/README.md": {
+      "arrow": 3,
+      "emdash": 2
+    },
+    "docs/use-cases/building-automation.md": {
+      "emdash": 1
+    },
+    "docs/validation/EXTERNAL_VALIDATION_PLAN.md": {
+      "emdash": 2
+    },
+    "docs/validation/external-review.md": {
+      "emdash": 4
+    },
+    "docs/validation/pilot_evaluation_protocol_v1.md": {
+      "arrow": 3,
+      "emdash": 11
+    },
+    "docs/validation/review_checklist.md": {
+      "arrow": 1
+    },
+    "paper/claim_ledger.md": {
+      "emdash": 2
+    },
+    "paper/hf_dataset_card.md": {
+      "emdash": 3
+    },
+    "paper/remora_mathematical_supplement.md": {
+      "arrow": 4,
+      "emdash": 5
+    },
+    "paper/remora_paper.md": {
+      "arrow": 8,
+      "bold_bullet": 24,
+      "emdash": 54,
+      "ing_tail": 1
+    },
+    "paper/remora_paper_template.md": {
+      "bold_bullet": 16
+    },
+    "results/comprehensive_deep_report_en.md": {
+      "bold_bullet": 3
+    },
+    "results/external_validation_report_v1.md": {
+      "bold_bullet": 9
+    },
+    "results/omfattende_deep_report.md": {
+      "arrow": 1
+    },
+    "results/superseded_groq_live_2026-07-27/README.md": {
+      "emdash": 1
+    },
+    "scripts/README.md": {
+      "emdash": 6
+    },
+    "tests/fixtures/routing_bench/tau2/ATTRIBUTION.md": {
+      "emdash": 1
+    },
+    "workers/agent-control/README.md": {
+      "arrow": 1,
+      "bold_bullet": 6,
+      "emdash": 9
+    },
+    "workers/law-search/README.md": {
+      "bold_bullet": 2
+    }
+  }
+}

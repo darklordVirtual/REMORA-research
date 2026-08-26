@@ -329,6 +329,13 @@ jobs:
       - name: Supply-chain invariant (all Actions SHA-pinned)
         run: python scripts/check_action_pins.py
 
+      - name: Prose-style ratchet (structural AI-writing tells, shrink-only)
+        # Em dashes in prose, arrows inside sentences, bold-first bullets,
+        # "not X but Y", filler. Counts per file may only fall; the baseline
+        # is lowered after each rewrite pass. Historical/archived text is
+        # excluded because it is preserved verbatim by policy.
+        run: python scripts/check_prose_style.py
+
       - name: NEGATIVE_RESULTS.md status gate
         # 35 numbered sections are not 35 open problems. Every section carries
         # an open/accepted/superseded marker; this fails if the summary tables

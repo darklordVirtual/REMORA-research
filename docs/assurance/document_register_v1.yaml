@@ -2356,6 +2356,17 @@ documents:
   verdict: pending
   audience:
   - researchers
+- id: DOC-329
+  path: docs/assurance/prose_style_baseline.json
+  status: generated
+  generated_by: scripts/check_prose_style.py
+  topic: docs_assurance_prose_style_baseline_json
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-08-26'
+  last_reviewed: '2026-08-26'
+  audience:
+  - researchers
 topics:
 - docs_integrations_mcp-gateway_md
 - docs_design_cloudflare-mcp-gateway-v1_md
@@ -2620,3 +2631,4 @@ topics:
 - docs_adr_canonical_decision_engine
 - docs_assurance_mutation_testing_v1
 - docs_deployment_container-reference_md
+- docs_assurance_prose_style_baseline_json
