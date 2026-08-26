@@ -31,20 +31,24 @@ from pathlib import Path
 #:
 #: Issue #280 targets remora/policy, remora/enforcement and remora/execution
 #: at >=95 and remora/governance at >=90. Floors are raised only to levels
-#: the suite measurably holds (2026-08-25 run: policy 95.45, execution 93.65,
-#: governance 89.80, enforcement 84.93): policy reaches its target; the gap
-#: to 95 for enforcement and execution is coverage work still open in #280,
-#: not something a number here can declare closed.
+#: the suite measurably holds (2026-08-26 run, after the edge-contract round
+#: of #280: policy 95.45, execution 96.25 locally, governance 89.80,
+#: enforcement 86.72): policy reaches its target and execution now exceeds it
+#: locally; the remaining gap to 95 for enforcement is the Postgres adapter
+#: code this job deliberately does not execute (see the note below), which a
+#: floor here cannot honestly declare covered.
 THRESHOLDS: dict[str, float] = {
     "remora/policy": 95.0,
-    "remora/execution": 91.5,  # CI measures 91.86 vs 93.65 locally: the
-    # optional-extra suites CI skips cover remote_dispatch; the floor is
-    # pinned at the level EVERY environment holds (issue #280)
+    "remora/execution": 94.0,  # 96.25 locally; CI skips the optional-extra
+    # suites, historically ~1.8 points. The edge-contract tests
+    # (remote_dispatch failure posture, projections ladder) need no extras,
+    # so the CI-held level moves with them; floor keeps a margin under the
+    # local number for the extras CI cannot run (issue #280)
     "remora/governance": 89.5,
     # Still the lowest floor in the trusted computing base, and the reason is
     # now stated rather than left to be guessed at: see FILE_THRESHOLDS and
     # the "what this run does not measure" note below.
-    "remora/enforcement": 84.5,
+    "remora/enforcement": 86.0,  # 86.72 measured 2026-08-26
     "servers/api.py": 84.5,
     "servers/execution_api.py": 93.0,
 }
@@ -66,15 +70,18 @@ THRESHOLDS: dict[str, float] = {
 #: dragged down by.
 FILE_THRESHOLDS: dict[str, float] = {
     # Postgres adapter branches excluded from this run (see above).
-    "remora/enforcement/gate.py": 77.0,
-    "remora/enforcement/outbox.py": 73.0,  # 73.27 measured; no headroom to raise
+    "remora/enforcement/gate.py": 77.5,  # 77.92 measured; thin, adapters dominate
+    "remora/enforcement/outbox.py": 74.0,  # 74.61 measured; adapters dominate
     # Fully exercised in-process; these are ordinary floors.
-    "remora/enforcement/lease.py": 94.5,
-    "remora/enforcement/token.py": 95.0,
-    "remora/enforcement/result_envelope.py": 87.5,
+    "remora/enforcement/lease.py": 97.5,  # 97.85 after the event-contract round
+    "remora/enforcement/token.py": 97.5,  # 98.05
+    "remora/enforcement/result_envelope.py": 99.0,  # 100.00: env parsing now
+    # pinned. 99.0 and not higher: the gate's own meta-test holds the
+    # invariant that no floor exceeds 99, so a synthetic all-at-99 report
+    # passes (tests/test_coverage_thresholds_gate.py).
     # ADR-B. Same shape as gate.py: the Postgres and D1 backend branches are
     # not reachable in this run, and the in-process logic around them is.
-    "remora/enforcement/nonce_store.py": 80.0,
+    "remora/enforcement/nonce_store.py": 80.5,  # 80.67
     # ADR-A. The uncovered remainder is the import-error path for the optional
     # 'cryptography' extra, which is exercised by monkeypatch rather than by
     # actually uninstalling the package mid-run.
