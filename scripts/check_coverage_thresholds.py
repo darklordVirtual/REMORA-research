@@ -56,16 +56,17 @@ THRESHOLDS: dict[str, float] = {
     "servers/execution_api.py": 93.0,
 }
 
-#: What this run does not measure, stated so the package number is not
-#: misread. ``remora/enforcement`` sits below its neighbours almost entirely
-#: because two files carry a Postgres adapter that this job never executes:
-#: ``PostgresExecutionOutbox`` (outbox.py) and the psycopg branch of the
-#: one-time jti consumption (gate.py). Those paths are exercised against a
-#: real Postgres service in the dedicated contract job
-#: (.github/workflows — "Postgres tenant-chain contract (real service)"),
-#: which runs without coverage instrumentation. So the package percentage is
-#: "covered by the deterministic suite", not "the fraction of the enforcement
-#: path that is tested at all", and the gap between them is not dead code.
+#: Measurement scope (changed 2026-08-26). Until then the coverage job had no
+#: Postgres service, so ``PostgresExecutionOutbox`` (outbox.py) and the
+#: psycopg branch of one-time jti consumption (gate.py) were exercised only
+#: in ci.yml's separate real-service contract job, without instrumentation,
+#: and the package number was "covered by the in-process suite". The
+#: quality-gates coverage job now runs with REMORA_PG_DSN against a real
+#: Postgres service and asserts the DSN-gated tests did not skip, so the
+#: number is the union of in-process and real-service paths. Floors below
+#: are still the pre-union measurements; they are ratcheted upward only
+#: from a measured CI run, never guessed (the D1 branches remain unmeasured:
+#: no D1 service exists in CI).
 #:
 #: Per-file floors make that visible: a regression in the in-process code of
 #: gate.py or outbox.py fails here even though the package average would
@@ -174,9 +175,9 @@ def main(argv: list[str]) -> int:
         if pct < floor:
             failures.append(f"{path} {pct:.2f}% < {floor}%")
 
-    print("\nNote: the Postgres adapters in gate.py and outbox.py are not "
-          "executed by this run; they are contract-tested against a real "
-          "Postgres service in a separate job.")
+    print("\nNote: Postgres adapter branches are included when the run had "
+          "REMORA_PG_DSN (quality-gates coverage job); D1 branches are not "
+          "measured in any CI run.")
 
     if failures:
         print("\n[FAIL] coverage floors not met:", file=sys.stderr)

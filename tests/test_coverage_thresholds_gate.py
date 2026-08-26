@@ -127,11 +127,11 @@ def test_an_unmeasured_file_is_a_failure_not_a_pass(gate, tmp_path, capsys) -> N
 
 
 def test_the_run_states_what_it_does_not_measure(gate, tmp_path, capsys) -> None:
-    """83% must not be readable as '17% of the enforcement path is untested'."""
+    """The number must say what it includes and what no CI run measures."""
     _run(gate, tmp_path, _report(_all_at(gate, 99.0)))
     out = capsys.readouterr().out
     assert "Postgres" in out
-    assert "separate job" in out
+    assert "D1 branches are not" in out
 
 
 def test_the_docstring_records_where_the_postgres_paths_are_covered(gate) -> None:
