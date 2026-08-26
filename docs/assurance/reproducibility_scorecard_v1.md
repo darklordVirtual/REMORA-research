@@ -48,6 +48,7 @@
 | `deploy-aromer-worker.yml` | dispatch | Yes | CF Worker deployment |
 | `deploy-frontend.yml` | dispatch | Yes | CF Pages deployment |
 | `sync-papers-to-r2.yml` | dispatch | Yes | R2 storage sync |
+| `release.yml` | tag `v*.*.*` + dispatch | No (GITHUB_TOKEN, OIDC id-token) | Wheel/sdist built from the tagged commit, CycloneDX SBOM, SHA256SUMS, Sigstore build-provenance + SBOM attestations (public transparency log), self-verified with `gh attestation verify`, assets uploaded to the tag's release. Added 2026-08-26 for #390; supersedes the GPG-signed-tag criterion. v0.11.0 predates it and remains unattested. |
 | `update-aromer-status.yml` | cron (6 h) + dispatch | No (GITHUB_TOKEN) | AROMER telemetry → dedicated `telemetry` branch, never master (workflow reworked 2026-07-20; the branch is created by its first post-merge run) |
 | **`ci.yml`** | **every push/PR** | **No** | **Deterministic tests (3.11/3.12/3.13/3.14), zero-false-accept gate, mandatory OPA/Rego conformance (checksum-verified binary), lockfile + artifact integrity** |
 
