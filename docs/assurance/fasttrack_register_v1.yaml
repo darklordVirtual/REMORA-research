@@ -54,7 +54,7 @@ items:
   dod_grandfathered: true
   evidence: >-
     Branch protection active (PR required, 5 required status checks,
-    enforce_admins false); CODEOWNERS pre-existing with critical-surface
+    enforce_admins true since 2026-08-26, previously false); CODEOWNERS pre-existing with critical-surface
     coverage. Evolve loop forbidden from merge/self-rule changes per its
     governance section.
 - id: FT-00-3

@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-30 (original audit baseline, commit `2cd573d6a7c98e87c1781fd599469d9d46e132e2`)
 **Revised:** 2026-07-20 (see Revision note below)
-**Python runtime:** 3.14.0 (local development); CI matrix: 3.12, 3.13, 3.14
+**Python runtime:** 3.14.0 (local development); CI matrix: 3.11, 3.12, 3.13, 3.14 (3.11 added 2026-08-26 so the `requires-python >=3.11` contract is tested, not asserted)
 **Auditor:** Agent C (CI, reproducibility, supply chain, artifact integrity)
 
 > **Revision note (2026-07-20):** the original scorecard froze at the
@@ -49,7 +49,7 @@
 | `deploy-frontend.yml` | dispatch | Yes | CF Pages deployment |
 | `sync-papers-to-r2.yml` | dispatch | Yes | R2 storage sync |
 | `update-aromer-status.yml` | cron (6 h) + dispatch | No (GITHUB_TOKEN) | AROMER telemetry → dedicated `telemetry` branch, never master (workflow reworked 2026-07-20; the branch is created by its first post-merge run) |
-| **`ci.yml`** | **every push/PR** | **No** | **Deterministic tests (3.12/3.13/3.14), zero-false-accept gate, mandatory OPA/Rego conformance (checksum-verified binary), lockfile + artifact integrity** |
+| **`ci.yml`** | **every push/PR** | **No** | **Deterministic tests (3.11/3.12/3.13/3.14), zero-false-accept gate, mandatory OPA/Rego conformance (checksum-verified binary), lockfile + artifact integrity** |
 
 ### Gap filled by `ci.yml`
 
