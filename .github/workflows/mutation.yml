@@ -40,10 +40,15 @@ jobs:
         # removes the package itself so `import remora` resolves to the
         # mutants sandbox, not the installed original. Skipping the
         # uninstall is the editable-install trap documented in the report.
+        # The guard must run from OUTSIDE the checkout: from the repo root
+        # `import remora` always succeeds via the cwd source tree (which is
+        # exactly what mutmut's sandbox relies on). What must NOT resolve is
+        # a site-packages installation — so probe from a neutral directory.
         run: |
           python -m pip install -q -e ".[dev,api]" mutmut
           python -m pip uninstall -q -y remora
-          python -c "import remora" 2>/dev/null && { echo "remora still importable — mutants would be invisible"; exit 1; } || echo "package absent as required"
+          cd "$RUNNER_TEMP"
+          python -c "import remora" 2>/dev/null && { echo "remora resolves outside the checkout — mutants would be invisible"; exit 1; } || echo "no installed package; sandbox imports will win"
 
       - name: Run the scoped sweep
         run: mutmut run
