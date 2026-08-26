@@ -29,12 +29,15 @@ updated: "2026-08-20"
 # against `unbound_baseline`, which may fall as capabilities are audited and
 # may never rise, so a newly added capability must be bound from the start.
 verification_binding:
-  unbound_baseline: 16
+  unbound_baseline: 0
 
 capabilities:
   - id: CAP-001
     name: "Decision engine (hard guards -> conditional gates -> trust routing)"
     status: WIRED_API_PATH
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_rem017_policy_mutations.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'WIRED_API_PATH' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/policy/decision_engine.py
       - tests/test_rem017_policy_mutations.py
@@ -44,6 +47,9 @@ capabilities:
   - id: CAP-002
     name: "OPA/Rego delegation with full input parity and monotone floors"
     status: WIRED_REFERENCE_PATH
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_opa_parity.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'WIRED_REFERENCE_PATH' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/policy/opa_adapter.py
       - tests/test_opa_parity.py
@@ -114,6 +120,9 @@ capabilities:
   - id: CAP-004
     name: "Tool-call payload binding (canonical hash, recomputed before execution)"
     status: WIRED_API_PATH
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_execution_api.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'WIRED_API_PATH' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/policy/observation.py
       - servers/execution_api.py
@@ -123,6 +132,9 @@ capabilities:
   - id: CAP-005
     name: "Audit chain (hash-chained decision history)"
     status: PERSISTED_ATOMIC
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_execution_api.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'PERSISTED_ATOMIC' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/governance/tenant_chain.py
       - servers/execution_api.py
@@ -132,6 +144,9 @@ capabilities:
   - id: CAP-006
     name: "A2A delegation envelope (principal-bound keys, attenuation, replay, payload binding)"
     status: WIRED_REFERENCE_PATH
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_a2a_envelope.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'WIRED_REFERENCE_PATH' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/governance/a2a_envelope.py
       - tests/test_a2a_envelope.py
@@ -141,6 +156,9 @@ capabilities:
   - id: CAP-007
     name: "Review queue with TTL-to-ABSTAIN and approval freshness re-gate"
     status: WIRED_API_PATH
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_review_queue.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'WIRED_API_PATH' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/governance/review_queue.py
       - tests/test_review_queue.py
@@ -150,6 +168,9 @@ capabilities:
   - id: CAP-008
     name: "Degradation ladder G0-G4 with tamper-evident transition log"
     status: WIRED_REFERENCE_PATH
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_degradation_ladder.py, tests/test_hook_production_profile.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'WIRED_REFERENCE_PATH' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/governance/degradation.py
       - scripts/remora_hook.py
@@ -160,6 +181,9 @@ capabilities:
   - id: CAP-009
     name: "RBAC (eight-role capability matrix, credential-bound audit identity)"
     status: WIRED_API_PATH
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_rbac_role_contract.py, tests/test_rbac_isolation.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'WIRED_API_PATH' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - servers/api.py
       - tests/test_rbac_role_contract.py
@@ -169,6 +193,9 @@ capabilities:
   - id: CAP-010
     name: "Shared-engine concurrency safety (request-local cancellation, locked correlation reads)"
     status: IMPLEMENTED_LIBRARY
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_concurrency_rem036.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'IMPLEMENTED_LIBRARY' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/engine.py
       - remora/correlation.py
@@ -178,6 +205,9 @@ capabilities:
   - id: CAP-011
     name: "OTel GenAI telemetry (gen_ai.* + remora.* spans, pinned schema)"
     status: IMPLEMENTED_LIBRARY
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_otel.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'IMPLEMENTED_LIBRARY' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/observability/otel.py
       - tests/test_otel.py
@@ -186,6 +216,9 @@ capabilities:
   - id: CAP-012
     name: "AROMER cross-domain transfer measurement (abstract harm-prior backoff)"
     status: IMPLEMENTED_LIBRARY
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_cross_domain_transfer.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'IMPLEMENTED_LIBRARY' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/aromer/world_model/domain_prior.py
       - remora/aromer/evals/cross_domain_transfer.py
@@ -255,6 +288,9 @@ capabilities:
   - id: CAP-014
     name: "Declared-effect consistency (expected_effect_matches tri-state authority)"
     status: IMPLEMENTED_LIBRARY
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_effect_prediction.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'IMPLEMENTED_LIBRARY' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/toolcall/routing/effect_prediction.py
       - remora/toolcall/routing/tool_contract.py
@@ -265,6 +301,9 @@ capabilities:
   - id: CAP-015
     name: "Runtime invariant enforcement (CORE_INVARIANTS evaluated on every decision)"
     status: IMPLEMENTED_LIBRARY
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_runtime_invariant_enforcement.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'IMPLEMENTED_LIBRARY' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/policy/invariants.py
       - remora/policy/decision_engine.py
@@ -275,6 +314,9 @@ capabilities:
   - id: CAP-016
     name: "Structured governance events (operational logging in the safety core)"
     status: IMPLEMENTED_LIBRARY
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_governance_events.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'IMPLEMENTED_LIBRARY' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - remora/observability/events.py
       - remora/enforcement/gate.py
@@ -285,6 +327,9 @@ capabilities:
   - id: CAP-017
     name: "Production fail-closed on signing keys"
     status: WIRED_API_PATH
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/test_audit_chain_integrity.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'WIRED_API_PATH' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - servers/api.py
       - tests/test_audit_chain_integrity.py
@@ -294,6 +339,9 @@ capabilities:
   - id: CAP-META
     name: "Metatesting of the evidence regime (audit gates are mutation-tested)"
     status: IMPLEMENTED_LIBRARY
+    verified_at_sha: d27468aea68f9f4b01f49506f865b52c03807264
+    verified_by: >-
+      audit 2026-08-26 (issue #425 backlog burn-down): every cited evidence test executed green at this revision (tests/meta/test_divergence.py, tests/meta/test_register_evidences.py; part of a 259-test pass over all sixteen previously-unbound capabilities), the capability-semantics gate (scripts/check_capability_semantics.py) confirms the claimed status 'IMPLEMENTED_LIBRARY' is demonstrable in the runtime wiring, and the caveat was re-read against the current code. Method: test execution + machine-checked wiring semantics + caveat review; not an independent external audit.
     evidence:
       - tests/meta/test_divergence.py
       - tests/meta/test_register_evidences.py
