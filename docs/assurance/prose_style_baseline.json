@@ -14,15 +14,9 @@
     "CONTRIBUTING.md": {
       "meta_governance": 1
     },
-    "CONTRIBUTORS.md": {
-      "long_sentence": 2
-    },
     "DEVELOPER_OVERVIEW.md": {
       "long_sentence": 2,
       "meta_governance": 1
-    },
-    "LICENSING.md": {
-      "long_sentence": 1
     },
     "NEGATIVE_RESULTS.md": {
       "long_sentence": 102,
@@ -65,6 +59,9 @@
     },
     "docs/AI_USE.md": {
       "long_sentence": 1
+    },
+    "docs/CONTRIBUTORS.md": {
+      "long_sentence": 2
     },
     "docs/architecture/ADR-authority-custody-and-lease-durability.md": {
       "long_sentence": 9
@@ -308,6 +305,9 @@
     "docs/validation/pilot_evaluation_protocol_v1.md": {
       "arrow": 3,
       "emdash": 11,
+      "long_sentence": 1
+    },
+    "legal/LICENSING.md": {
       "long_sentence": 1
     },
     "paper/claim_ledger.md": {
