@@ -83,7 +83,7 @@ postgres = ["psycopg[binary]>=3.3.4,<3.4", "psycopg2-binary>=2.9.12"]
 # ".[dev]"` + full-suite command failed collection in a fresh clone while
 # CI masked it by installing more extras. The fresh-install-contract CI
 # job now runs the exact documented command against a clean environment.
-dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.16.3", "sqlglot>=30.17.0", "mypy>=2.3.1", "pyyaml>=6.0", "types-PyYAML>=6.0.12.20260815", "httpx>=0.25", "hypothesis>=6.165.10", "fastapi>=0.141.1", "uvicorn[standard]>=0.52.4"]
+dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.16.4", "sqlglot>=30.17.0", "mypy>=2.3.1", "pyyaml>=6.0", "types-PyYAML>=6.0.12.20260815", "httpx>=0.25", "hypothesis>=6.165.10", "fastapi>=0.141.1", "uvicorn[standard]>=0.52.4"]
 
 [project.urls]
 Homepage = "https://github.com/darklordVirtual/REMORA-research"
