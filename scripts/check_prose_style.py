@@ -20,6 +20,16 @@ words):
 ``ing_tail``      a sentence ending in a superficial participle tail:
                   ", ensuring/highlighting/showcasing/underscoring ..."
 ``copula_dodge``  "serves as" / "stands as"
+``long_sentence`` a prose sentence longer than 35 words (paragraphs are
+                  joined across wrapped lines; list items, tables, code and
+                  headings are skipped). The 2026-08-27 survey found the
+                  remaining readability cost in sentences that carry four
+                  to six parenthetical register references each.
+``meta_governance`` a sentence about how the document is to be read
+                  (precedence, canonical/subordinate, "file presence does
+                  not imply", "retained for history") rather than about the
+                  system. One statement per topic belongs in
+                  documentation_governance_v1; repeats elsewhere are noise.
 
 The baseline (``docs/assurance/prose_style_baseline.json``) records the
 count per tell per file. A file may only get better: any count above its
@@ -72,7 +82,29 @@ TELLS = (
     "filler",
     "ing_tail",
     "copula_dodge",
+    "long_sentence",
+    "meta_governance",
 )
+
+#: Sentence-level tells are evaluated on joined paragraphs, not lines.
+SENTENCE_TELLS = ("long_sentence", "meta_governance")
+LONG_SENTENCE_WORDS = 35
+
+_META = re.compile(
+    r"(?:\bdoes not (?:imply|make|constitute)\b"
+    r"|\bis not (?:part of the (?:enforcing|runtime)|a claim|evidence by itself)\b"
+    r"|\bfile presence\b"
+    r"|\b(?:takes|take|has|have) precedence\b|\bprecedence (?:order|rule)\b"
+    r"|\b(?:is|are|remains?) (?:the )?(?:canonical|authoritative)\b"
+    r"|\bcanonical (?:document|source|reference|record|description)\b"
+    r"|\bsubordinate to\b"
+    r"|\bretained (?:for|as) (?:reproducibility|history|research history|design history|the record)\b"
+    r"|\bwhen the two (?:differ|disagree)\b"
+    r"|\bnot (?:a description of|part of) (?:shipped|the enforcing)\b)",
+    re.IGNORECASE,
+)
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[A-Z`\"'(\[])")
+_LIST_ITEM = re.compile(r"^\s*(?:[-*+]|\d+\.)\s")
 
 _RE = {
     "emdash": re.compile("—"),
@@ -149,6 +181,31 @@ def prose_lines(text: str):
         yield i, line
 
 
+def prose_paragraphs(text: str):
+    """Yield paragraphs of running prose: consecutive non-empty prose lines
+    joined with spaces. List items, checklists and blank lines end a
+    paragraph and are not themselves yielded (a bullet is a label, not a
+    sentence)."""
+    buf: list[str] = []
+    for _, line in prose_lines(text):
+        stripped = line.strip()
+        if not stripped or _LIST_ITEM.match(line):
+            if buf:
+                yield " ".join(buf)
+                buf = []
+            continue
+        buf.append(stripped)
+    if buf:
+        yield " ".join(buf)
+
+
+def sentences(paragraph: str):
+    for s in _SENTENCE_SPLIT.split(paragraph):
+        s = s.strip()
+        if len(s.split()) > 2:
+            yield s
+
+
 def scan_text(text: str) -> Counter:
     counts: Counter = Counter()
     for _, line in prose_lines(text):
@@ -158,6 +215,12 @@ def scan_text(text: str) -> Counter:
             n = len(rx.findall(line))
             if n:
                 counts[tell] += n
+    for para in prose_paragraphs(text):
+        for s in sentences(para):
+            if len(s.split()) > LONG_SENTENCE_WORDS:
+                counts["long_sentence"] += 1
+            if _META.search(s):
+                counts["meta_governance"] += 1
     return counts
 
 

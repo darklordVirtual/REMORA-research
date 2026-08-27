@@ -1,49 +1,343 @@
 {
   "_note": "shrink-only; regenerate with scripts/check_prose_style.py --update-baseline only after a prose pass that lowered counts",
   "files": {
+    "ARCHITECTURE.md": {
+      "long_sentence": 8,
+      "meta_governance": 4
+    },
+    "CLAUDE.md": {
+      "meta_governance": 1
+    },
+    "CODE_OF_CONDUCT.md": {
+      "long_sentence": 1
+    },
+    "CONTRIBUTING.md": {
+      "meta_governance": 1
+    },
+    "CONTRIBUTORS.md": {
+      "long_sentence": 2
+    },
+    "DEVELOPER_OVERVIEW.md": {
+      "long_sentence": 2,
+      "meta_governance": 1
+    },
+    "LICENSING.md": {
+      "long_sentence": 1
+    },
+    "NEGATIVE_RESULTS.md": {
+      "long_sentence": 102,
+      "meta_governance": 2
+    },
+    "README.md": {
+      "long_sentence": 1,
+      "meta_governance": 2
+    },
+    "artifacts/pilot-pack/evaluation_worksheet.md": {
+      "long_sentence": 1
+    },
+    "docs/01-architecture.md": {
+      "long_sentence": 5
+    },
+    "docs/02-evidence-and-claims.md": {
+      "long_sentence": 3,
+      "meta_governance": 2
+    },
+    "docs/03-experiments.md": {
+      "long_sentence": 1
+    },
+    "docs/04-negative-results-detail.md": {
+      "long_sentence": 8,
+      "meta_governance": 1
+    },
+    "docs/06-reproducibility.md": {
+      "long_sentence": 1
+    },
+    "docs/07-api-reference.md": {
+      "long_sentence": 18,
+      "meta_governance": 3
+    },
+    "docs/10-contributing.md": {
+      "meta_governance": 3
+    },
+    "docs/13-research-frontier-roadmap.md": {
+      "long_sentence": 53,
+      "meta_governance": 2
+    },
+    "docs/AI_USE.md": {
+      "long_sentence": 1
+    },
+    "docs/README.md": {
+      "meta_governance": 7
+    },
+    "docs/architecture/ADR-authority-custody-and-lease-durability.md": {
+      "long_sentence": 9
+    },
+    "docs/architecture/ADR-canonical-decision-engine.md": {
+      "long_sentence": 2,
+      "meta_governance": 1
+    },
+    "docs/architecture/ADR-tainted-argument-approval.md": {
+      "long_sentence": 1
+    },
+    "docs/architecture/cloudflare_state_architecture.md": {
+      "long_sentence": 2
+    },
     "docs/aromer/REMORA_AROMER_MASTER_DOCUMENT.md": {
-      "arrow": 1
+      "arrow": 1,
+      "long_sentence": 3,
+      "meta_governance": 1
+    },
+    "docs/aromer/SUBPROJECT.md": {
+      "long_sentence": 3
+    },
+    "docs/aromer/quickstart_aromer.md": {
+      "long_sentence": 1
+    },
+    "docs/assurance/aromer_memory_governance_v1.md": {
+      "long_sentence": 4
+    },
+    "docs/assurance/artifact_manifest_v1.md": {
+      "long_sentence": 5
+    },
+    "docs/assurance/assurance_case_v1.md": {
+      "long_sentence": 6,
+      "meta_governance": 1
+    },
+    "docs/assurance/benchmark_audit_v1.md": {
+      "long_sentence": 3,
+      "meta_governance": 2
+    },
+    "docs/assurance/best_practice_gap_audit_v1.md": {
+      "long_sentence": 1
+    },
+    "docs/assurance/development_review_log_v1.md": {
+      "long_sentence": 4,
+      "meta_governance": 1
     },
     "docs/assurance/documentation_governance_v1.md": {
-      "emdash": 1
+      "emdash": 1,
+      "long_sentence": 8
+    },
+    "docs/assurance/domain_pack_governance_v1.md": {
+      "long_sentence": 1
+    },
+    "docs/assurance/evidence_levels.md": {
+      "long_sentence": 1
+    },
+    "docs/assurance/experiment_manifest_spec_v1.md": {
+      "long_sentence": 1
+    },
+    "docs/assurance/human_oversight_operations_v1.md": {
+      "long_sentence": 2
+    },
+    "docs/assurance/mutation_testing_v1.md": {
+      "long_sentence": 8
+    },
+    "docs/assurance/rbac_design_v1.md": {
+      "long_sentence": 2
+    },
+    "docs/assurance/rbac_policy_v1.md": {
+      "long_sentence": 1
+    },
+    "docs/assurance/rebenchmark_protocol_v1.md": {
+      "long_sentence": 2
+    },
+    "docs/assurance/red_team_plan_v1.md": {
+      "long_sentence": 1
+    },
+    "docs/assurance/release_gates.md": {
+      "long_sentence": 1
+    },
+    "docs/assurance/reproducibility_scorecard_v1.md": {
+      "long_sentence": 2
+    },
+    "docs/assurance/resilience_plan_v1.md": {
+      "long_sentence": 1
     },
     "docs/assurance/statistical_analysis_plan.md": {
-      "emdash": 2
+      "emdash": 2,
+      "long_sentence": 1
     },
     "docs/assurance/statistical_analysis_plan_v2.md": {
       "arrow": 4,
-      "emdash": 10
+      "emdash": 10,
+      "long_sentence": 3
     },
     "docs/assurance/statistical_analysis_plan_v3.md": {
       "arrow": 1,
-      "emdash": 10
+      "emdash": 10,
+      "long_sentence": 9
     },
     "docs/assurance/statistical_analysis_plan_v4.md": {
       "emdash": 7
     },
     "docs/assurance/statistical_analysis_plan_v5_bfcl_semantic.md": {
       "arrow": 4,
-      "emdash": 10
+      "emdash": 10,
+      "long_sentence": 4,
+      "meta_governance": 1
     },
     "docs/assurance/superseded_claims.md": {
-      "emdash": 6
+      "emdash": 6,
+      "long_sentence": 5
+    },
+    "docs/assurance/threat_model_v1.md": {
+      "meta_governance": 1
+    },
+    "docs/benchmarks/aegis-remora-crosswalk.md": {
+      "long_sentence": 4,
+      "meta_governance": 1
+    },
+    "docs/benchmarks/agent-authority-conformance-v0.1.md": {
+      "long_sentence": 3
+    },
+    "docs/claim_register.md": {
+      "meta_governance": 1
+    },
+    "docs/cli.md": {
+      "long_sentence": 2
+    },
+    "docs/deployment/authority-custody-evidence.md": {
+      "long_sentence": 7
+    },
+    "docs/deployment/authority-key-topology.md": {
+      "long_sentence": 2
+    },
+    "docs/deployment/container-reference.md": {
+      "long_sentence": 1
+    },
+    "docs/deployment/execution-quickstart.md": {
+      "long_sentence": 1
+    },
+    "docs/design/cloudflare-mcp-gateway-v1.md": {
+      "long_sentence": 4
+    },
+    "docs/design/execution-lifecycle-outbox-v1.md": {
+      "long_sentence": 8
+    },
+    "docs/design/toolspec-signed-registry-v1.md": {
+      "long_sentence": 5
+    },
+    "docs/enterprise/audit-anchoring-guide.md": {
+      "long_sentence": 1
+    },
+    "docs/enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md": {
+      "long_sentence": 7
+    },
+    "docs/enterprise/togaf-enterprise-rollout-plan.md": {
+      "long_sentence": 2
+    },
+    "docs/evidence/authorship_evidence_report.md": {
+      "long_sentence": 2
+    },
+    "docs/evidence/empirical_evidence_record.md": {
+      "long_sentence": 3,
+      "meta_governance": 1
+    },
+    "docs/executive_onepager.md": {
+      "long_sentence": 4
+    },
+    "docs/governance/eu_ai_act_nsm_mapping.md": {
+      "long_sentence": 4
+    },
+    "docs/integrations/mcp-gateway.md": {
+      "long_sentence": 13
+    },
+    "docs/integrations/mcp-integration.md": {
+      "long_sentence": 1
+    },
+    "docs/methods/theoretical_foundations_proposals_v1.md": {
+      "long_sentence": 35,
+      "meta_governance": 1
+    },
+    "docs/methods/thermodynamic_abs.md": {
+      "long_sentence": 2
+    },
+    "docs/plain_language_overview.md": {
+      "long_sentence": 1
+    },
+    "docs/reference_architecture.md": {
+      "long_sentence": 5
+    },
+    "docs/research/REMORA_forskningsmonografi_no.md": {
+      "long_sentence": 1
+    },
+    "docs/research/adjacent-systems-crosswalk-v2.md": {
+      "long_sentence": 4
+    },
+    "docs/research/benchmark_round_2026_07.md": {
+      "long_sentence": 9
+    },
+    "docs/research/governance_intelligence_layer.md": {
+      "long_sentence": 2,
+      "meta_governance": 1
+    },
+    "docs/research/method_alternatives_2026_07.md": {
+      "long_sentence": 6
+    },
+    "docs/research/policy_generalization_risk.md": {
+      "long_sentence": 1
+    },
+    "docs/research/routing_benchmark_v1_design.md": {
+      "long_sentence": 3
+    },
+    "docs/research/task_intent_authority_v1.md": {
+      "long_sentence": 1
+    },
+    "docs/research/verify_control_protocols.md": {
+      "long_sentence": 4
+    },
+    "docs/results_snapshot.md": {
+      "meta_governance": 1
+    },
+    "docs/sdk.md": {
+      "long_sentence": 3
+    },
+    "docs/thermodynamics/README.md": {
+      "long_sentence": 2
+    },
+    "docs/thermodynamics/temperature_estimator.md": {
+      "long_sentence": 1
+    },
+    "docs/use-cases/README.md": {
+      "meta_governance": 1
+    },
+    "docs/use-cases/REMORA_v4_Thermodynamics_Evidence_Status.md": {
+      "long_sentence": 3
+    },
+    "docs/use-cases/building-automation.md": {
+      "long_sentence": 1
     },
     "docs/validation/pilot_evaluation_protocol_v1.md": {
       "arrow": 3,
-      "emdash": 11
+      "emdash": 11,
+      "long_sentence": 1
     },
     "paper/claim_ledger.md": {
-      "emdash": 2
+      "emdash": 2,
+      "long_sentence": 1
+    },
+    "paper/future_state.md": {
+      "long_sentence": 1
     },
     "paper/hf_dataset_card.md": {
       "emdash": 3
     },
     "paper/remora_mathematical_supplement.md": {
       "arrow": 4,
-      "emdash": 5
+      "emdash": 5,
+      "long_sentence": 13
+    },
+    "paper/remora_paper.md": {
+      "long_sentence": 93,
+      "meta_governance": 1
     },
     "paper/remora_paper_template.md": {
-      "bold_bullet": 16
+      "bold_bullet": 16,
+      "long_sentence": 1
+    },
+    "workers/agent-control/README.md": {
+      "long_sentence": 2
     }
   }
 }
