@@ -4,6 +4,15 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Roadmap
+
+- RF-12 (docs/13): database-enforced tenant isolation via Postgres row-level
+  security, grounded against the tree. Records two blockers no earlier
+  document named: the reference and pilot deployments connect as the Postgres
+  superuser (RLS bypassed even when forced) and nothing binds the verified
+  tenant to the connection. REM-026 notes and the multi-tenant security model
+  point to it. Proposal only; nothing implemented.
+
 ### Documentation
 
 - Prose-style scanner (`scripts/check_prose_style.py`) gained two

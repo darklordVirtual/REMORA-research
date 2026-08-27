@@ -1215,6 +1215,90 @@ result may be cited until the ablation round runs and its artifact is committed.
 
 ---
 
+## RF-12 — Database-enforced tenant isolation (Postgres row-level security) `[security]` `[P2, effort M]`
+
+**Gap (grounded, 2026-08-27).** Tenant isolation is enforced in Python only.
+Every Postgres table on the authoritative path already carries `tenant_id`
+(`tenant_chain_head`, `tenant_chain_entry`, `tenant_chain_idempotency` in
+`remora/governance/tenant_chain.py`; `lease_nonce_consumed` in
+`remora/enforcement/nonce_store.py`; `review_items_projection` and
+`global_state` in `remora/persistence/execution_state.py`), and every query
+filters on it. Nothing below the application checks that filter. A query
+written without a tenant predicate, an injection through a future surface, or
+a mis-scoped maintenance script reads every tenant. The threat table in
+`docs/architecture/multi_tenant_security_model.md` records this as the open
+"query-shape guard". Registered as remediation_register **REM-026**
+(NOT_STARTED, gate P3) and cited by `docs/governance/eu_ai_act_nsm_mapping.md`
+(Art. 15) and the TOGAF plan (WP4). This WP is the closing vehicle for the
+row-level-security half of REM-026; per-tenant crypto domains stay in REM-026
+as a later slice.
+
+**Two facts that shape the design.** First, the runtime connects as the
+table owner: both `deploy/reference/docker-compose.yml` and
+`deploy/ot-pilot/docker-compose.yml` set `POSTGRES_USER: remora` and hand the
+same DSN to every service. In the official `postgres` image that user is a
+superuser, and Postgres superusers bypass row-level security even when it is
+forced. RLS therefore needs a separate, non-superuser runtime role before a
+single policy is written. Second, nothing binds the verified tenant to the
+connection. The tenant comes from the authenticated token in `servers/api.py`
+and is passed as a query parameter; there is no `SET LOCAL` or `set_config`
+call anywhere under `remora/` or `servers/`. The policy predicate has nothing
+to read until that binding exists.
+
+**Literature.**
+
+- PostgreSQL documentation, *Row Security Policies* (`CREATE POLICY`,
+  `ALTER TABLE ... FORCE ROW LEVEL SECURITY`); superuser and owner bypass
+  rules.
+- Chandramouli, R. (2022). *Guide to a Secure Enterprise Network Landscape.*
+  NIST SP 800-215, §4 data-plane isolation for multi-tenant services.
+- Citus / Supabase engineering notes on RLS with `current_setting` tenant
+  binding and connection-pool reset hazards (practitioner sources; cited for
+  the failure modes, not as evidence).
+
+**Design (proposal, not implemented).**
+
+| Element | Change | Where |
+|---|---|---|
+| Runtime role | `remora_app` (NOSUPERUSER, no table ownership); migrations keep the owner role | compose files, execution quickstart, a new `deploy/reference/init.sql` |
+| Tenant binding | one `SET LOCAL remora.tenant_id = $1` at the start of every transaction, from the verified tenant only | connection wrapper used by `tenant_chain.py`, `nonce_store.py`, `execution_state.py`, `outbox.py` |
+| Policies | `ENABLE` and `FORCE ROW LEVEL SECURITY`; one policy per table: `USING (tenant_id = current_setting('remora.tenant_id', true))` with the same `WITH CHECK` | DDL next to each `CREATE TABLE` |
+| Missing binding | `current_setting(..., true)` returns NULL, so a transaction without a bound tenant sees zero rows and can insert none: fail-closed by construction | policy predicate |
+| Pool hygiene | `SET LOCAL` dies with the transaction; autocommit paths must be converted or refused | audit of every `autocommit=True` site |
+
+**Acceptance (all against the real Postgres service in CI, job
+`postgres-contract`).**
+
+1. With tenant A bound, every read of tenant B's rows returns zero rows and
+   every write fails `WITH CHECK`; repeated for each table above.
+2. A deliberately unfiltered query (`SELECT * FROM tenant_chain_entry`) under
+   tenant A returns only A's rows. This is the test the application layer
+   cannot pass today.
+3. A transaction with no bound tenant reads and writes nothing.
+4. Connecting as the owner role with RLS forced still cannot read across
+   tenants; connecting as a superuser is refused by a startup check.
+5. `tests/test_execution_outbox.py` and `tests/test_execution_api.py`
+   Postgres subsets stay green under the new role.
+6. `multi_tenant_security_model.md` threat table row "query-shape guard"
+   moves from open to tested; REM-026 notes record the slice.
+
+**Slices.** Slice 1: role split and tenant binding, no policies yet
+(observable: `current_setting` populated in every transaction, CI asserts it).
+Slice 2: policies on the three `tenant_chain_*` tables, whose `append()`
+already runs in one transaction with `FOR UPDATE`. Slice 3: nonce ledger,
+execution-state and outbox tables. Slice 4 (REM-026 remainder): per-tenant
+crypto domains, out of scope here.
+
+**Not included, and why.** SQLite has no row-level security; the SQLite path
+stays application-enforced and the release profiles already require Postgres
+for `controlled_pilot`. Cloudflare D1 likewise has no RLS; the D1 tables in
+`workers/agent-control` keep the query-shape discipline recorded in the
+security model. Neither is a reason to delay the Postgres slices.
+
+**Source of the item.** Confirmed gap from an external AI-assisted review of
+2026-08-27 (recorded in the REM-026 notes); the review's other findings did
+not reproduce against the tree. Nothing here is a result.
+
 ## 10. Sequencing rationale (post-grounding)
 
 **P0, starts now; each closes something already published:**
