@@ -85,7 +85,9 @@ class Handler(BaseHTTPRequestHandler):
                     # process was started: the distributed single-use claim
                     # is only as good as the store actually in use.
                     "nonce_store": (
-                        "durable" if os.environ.get("REMORA_CHAIN_DB", "").strip()
+                        "durable"
+                        if (os.environ.get("REMORA_PG_DSN", "").strip()
+                            or os.environ.get("REMORA_CHAIN_DB", "").strip())
                         else "in_process"
                     ),
                 },
@@ -135,10 +137,13 @@ def main() -> int:
     # Same variable the real server reads (servers/execution_api.py,
     # _lease_nonce_store), so this fixture cannot claim a durability the
     # deployment path does not have.
+    dsn = os.environ.get("REMORA_PG_DSN", "").strip()
     db_path = os.environ.get("REMORA_CHAIN_DB", "").strip()
     _DISPATCHER = GovernedToolDispatcher(
         expected_policy_bundle_hash=os.environ[BUNDLE_ENV],
-        nonce_store=DurableNonceStore(db_path=db_path) if db_path else None,
+        nonce_store=(
+            DurableNonceStore(dsn=dsn, db_path=db_path) if (dsn or db_path) else None
+        ),
     )
     _DISPATCHER.register("send_mail", _send_mail)
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)

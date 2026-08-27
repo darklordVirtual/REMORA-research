@@ -222,6 +222,7 @@ jobs:
         run: |
           python -m pytest tests/test_execution_api.py tests/test_execution_outbox.py \
             tests/test_postgres_outbox_fault_injection.py \
+            tests/conformance/test_execution_boundary_process_split.py \
             -q -rs -k "postgres" | tee out.txt
           if grep -qiE "skipped|no tests ran" out.txt; then
             echo "ERROR: Postgres contract tests skipped despite service DSN" >&2

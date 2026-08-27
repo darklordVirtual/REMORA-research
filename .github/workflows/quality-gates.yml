@@ -149,7 +149,7 @@ jobs:
           REMORA_PG_DSN: postgresql://remora:remora@localhost:5432/remora_test
           REMORA_REQUIRE_SECURITY_EXTRA: "1"
         run: |
-          pytest -q -rs tests/test_execution_api.py tests/test_execution_outbox.py tests/test_postgres_outbox_fault_injection.py -k postgres             --cov --cov-branch --cov-append --cov-report=json:coverage.json | tee /tmp/pg.txt
+          pytest -q -rs tests/test_execution_api.py tests/test_execution_outbox.py tests/test_postgres_outbox_fault_injection.py tests/conformance/test_execution_boundary_process_split.py -k postgres             --cov --cov-branch --cov-append --cov-report=json:coverage.json | tee /tmp/pg.txt
           if grep -qiE "skipped|no tests ran" /tmp/pg.txt; then
             echo "ERROR: Postgres tests skipped inside the coverage job" >&2; exit 1
           fi
