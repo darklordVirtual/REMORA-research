@@ -22,8 +22,9 @@ Each case carries an identifier used in the conformance assessment:
     B5  credential or dispatcher reachable through the public SDK surface
     B6  dispatch of a call the lease does not cover
     B7  deployment-supplied downstream credentials (scope statement, L5)
+    B8  delegated reachability: authenticated client and subprocess  (SUCCEEDS)
 
-B3 and B4 are why REMORA's execution boundary is a PROCESS boundary
+B3, B4 and B8 are why REMORA's execution boundary is a PROCESS boundary
 (ADR-A) and not a call boundary. In a single process, Python offers no
 custody: attribute privacy is a convention. Recording that plainly is more
 useful than a suite of green refusals that quietly assume it away.
@@ -221,3 +222,55 @@ def test_b7_deployment_supplied_credentials_are_out_of_repository_scope() -> Non
         "a shipped default tool registration would change E's scope and must "
         "be assessed, not inherited"
     )
+
+
+# --------------------------------------------------------------------------
+# B8 — delegated reachability (section 12.2 minimum attempt 5)
+# --------------------------------------------------------------------------
+
+
+def test_b8_delegated_client_reaches_the_effect_without_a_lease(effect: dict) -> None:
+    """Limit L3: an already authenticated client is a credential in disguise.
+
+    A static import scan sees no credential here: the closure below holds it.
+    Handed to agent-side code, it reaches the effect with no lease at all.
+    This SUCCEEDS, and is recorded as a success.
+
+    The answer is K2, not a fix here: under a strict profile the authority
+    domain may hold no declared effect credential, so it cannot construct
+    such a client to hand out. The client can only exist in the execution
+    domain, which is where the callable it wraps already lives.
+    """
+    secret = "downstream-credential"
+
+    def authenticated_client(arguments: dict) -> str:
+        # Closes over the credential; nothing imports it.
+        assert secret
+        effect["fired"] += 1
+        return "sent"
+
+    delegated = authenticated_client  # what an agent would be handed
+    delegated({"to": "attacker@example.com"})
+    assert effect["fired"] == 1, "expected the delegated-client bypass to succeed"
+
+
+def test_b8_subprocess_inherits_the_ambient_credential() -> None:
+    """Limit L3, subprocess form: os.environ is inherited by default.
+
+    A child started from a process holding a credential holds it too, with no
+    import and no argument passing. SUCCEEDS. Answered by K2 for the same
+    reason as above: an authority process has nothing ambient to inherit.
+    """
+    import subprocess
+    import sys
+
+    key = "REMORA_CONFORMANCE_B8_PROBE"
+    os.environ[key] = "inherited-secret"
+    try:
+        out = subprocess.run(
+            [sys.executable, "-c", f"import os; print(os.environ.get('{key}', ''))"],
+            capture_output=True, text=True, timeout=30, check=True,
+        ).stdout.strip()
+    finally:
+        os.environ.pop(key, None)
+    assert out == "inherited-secret", "expected the subprocess to inherit the credential"
