@@ -36,6 +36,7 @@ Case identifiers used in the conformance assessment:
     P4  argument substitution under a valid lease is refused
     P5  replay of a spent lease is refused
     P6  the execution domain cannot mint its own authority
+    P7  a lease spent on one executor is refused by another, over a shared durable store
 """
 from __future__ import annotations
 
@@ -259,10 +260,9 @@ def test_p4_argument_substitution_is_refused_and_nothing_is_delivered(
 def test_p5_replay_of_a_spent_lease_is_refused(split) -> None:
     """Single use, observed at the effect rather than at the ledger.
 
-    Scoped to one execution process. The dispatcher here uses the default
-    in-process nonce ledger (REM-025), so this demonstrates single use
-    against one executor and says nothing about a second executor instance
-    or a restart. Widening it needs a shared durable nonce store.
+    Scoped to one execution process: the dispatcher here uses the default
+    in-process nonce ledger. P7 is the widening, with two executor
+    processes over a shared durable store.
     """
     arguments = {"to": APPROVED}
     lease = _issue("send_mail", arguments)
@@ -305,3 +305,82 @@ def test_p6_execution_domain_cannot_mint_its_own_authority(split) -> None:
         pytest.fail("executor served while holding the lease signing key")
     assert proc.returncode == 2
     assert "refuses to hold the lease signing key" in stderr
+
+
+# --------------------------------------------------------------------------
+# P7 — distributed single use across executor processes
+# --------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def two_executors(split, tmp_path_factory):
+    """Two execution domains sharing one durable nonce store.
+
+    P5 scoped itself to a single executor because the default ledger is
+    in-process. This fixture is the widening it named: a SQLite store on
+    disk, read through REMORA_CHAIN_DB exactly as the real server reads it,
+    shared by two independent executor processes.
+    """
+    db = tmp_path_factory.mktemp("nonce") / "lease_nonce.db"
+    env = {
+        "CONFORMANCE_EFFECT_TOKEN": EFFECT_TOKEN,
+        "CONFORMANCE_EFFECT_URL": split["effect_url"],
+        "CONFORMANCE_POLICY_BUNDLE_HASH": BUNDLE,
+        "REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC": _public_key_hex(),
+        "REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE": "",
+        "REMORA_LEASE_SIGNING_KEY": "",
+        "REMORA_PDP_SIGNING_KEY": "",
+        "REMORA_CHAIN_DB": str(db),
+    }
+    procs, urls = [], []
+    try:
+        for _ in range(2):
+            proc, port = _start("_executor.py", env)
+            procs.append(proc)
+            urls.append(f"http://127.0.0.1:{port}")
+        yield urls
+    finally:
+        for proc in procs:
+            proc.kill()
+            proc.wait(timeout=10)
+
+
+def _dispatch_to(url: str, lease: dict, arguments: dict) -> dict:
+    return _post(
+        url + "/dispatch",
+        {
+            "lease": lease,
+            "tool_name": "send_mail",
+            "arguments": arguments,
+            "tenant_id": "t1",
+            "target_environment": "prod",
+            "actor_identity": "agent-1",
+        },
+    )
+
+
+def test_p7_both_executors_report_a_durable_store(two_executors) -> None:
+    for url in two_executors:
+        assert _get(url + "/whoami")["nonce_store"] == "durable"
+
+
+@pytest.mark.parametrize("first, second", [(0, 1), (1, 0)])
+def test_p7_a_lease_spent_on_one_executor_is_refused_by_the_other(
+    split, two_executors, first: int, second: int
+) -> None:
+    """Single use holds across processes, observed at the effect.
+
+    Both orderings run, so the result cannot depend on which process
+    created the table or which one happened to start first.
+    """
+    arguments = {"to": APPROVED}
+    lease = _issue("send_mail", arguments)
+
+    won = _dispatch_to(two_executors[first], lease, arguments)
+    assert won["executed"] is True, won
+    after_first = _mailbox(split)
+
+    replay = _dispatch_to(two_executors[second], lease, arguments)
+    assert replay["executed"] is False
+    assert replay["refusal_reason"] == "nonce_already_consumed"
+    assert _mailbox(split) == after_first, "cross-executor replay produced an effect"

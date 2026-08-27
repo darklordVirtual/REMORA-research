@@ -22,6 +22,7 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from remora.enforcement.lease import ExecutionLease, GovernedToolDispatcher
+from remora.enforcement.nonce_store import DurableNonceStore
 
 EFFECT_URL_ENV = "CONFORMANCE_EFFECT_URL"
 EFFECT_TOKEN_ENV = "CONFORMANCE_EFFECT_TOKEN"
@@ -80,6 +81,13 @@ class Handler(BaseHTTPRequestHandler):
                             "REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC", ""
                         ).strip()
                     ),
+                    # Asserted by the test rather than assumed from how the
+                    # process was started: the distributed single-use claim
+                    # is only as good as the store actually in use.
+                    "nonce_store": (
+                        "durable" if os.environ.get("REMORA_CHAIN_DB", "").strip()
+                        else "in_process"
+                    ),
                 },
             )
             return
@@ -124,8 +132,13 @@ def main() -> int:
     if not os.environ.get(EFFECT_TOKEN_ENV, "").strip():
         print("executor requires the effect credential", file=sys.stderr)
         return 2
+    # Same variable the real server reads (servers/execution_api.py,
+    # _lease_nonce_store), so this fixture cannot claim a durability the
+    # deployment path does not have.
+    db_path = os.environ.get("REMORA_CHAIN_DB", "").strip()
     _DISPATCHER = GovernedToolDispatcher(
-        expected_policy_bundle_hash=os.environ[BUNDLE_ENV]
+        expected_policy_bundle_hash=os.environ[BUNDLE_ENV],
+        nonce_store=DurableNonceStore(db_path=db_path) if db_path else None,
     )
     _DISPATCHER.register("send_mail", _send_mail)
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
