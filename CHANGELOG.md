@@ -19,6 +19,19 @@ This file lists externally relevant changes by release. Fine-grained development
   full registered set in collapsible groups by question. Every link from
   the previous index is preserved (governance index-completeness check);
   meta-governance sentences in the index went from 7 to 0.
+### Repository layout
+
+- Root tidy, slice A: the licensing bundle (`COMMERCIAL_LICENSE.md`,
+  `LICENSING.md`, `COPYRIGHT.md`, `TRADEMARKS.md`, `THIRD_PARTY_NOTICES.md`)
+  moved to `legal/`; `EVIDENCE_OF_CAPABILITY.md` and `CONTRIBUTORS.md` to
+  `docs/`; `docker-compose.test.yml` to `deploy/`. All moves via `git mv`
+  (history preserved). Every reference updated: pyproject `license-files`,
+  license-policy gate, document register, governance and provenance
+  scanners, tests, NOTICE, codegraph paths and Markdown links. `LICENSE`,
+  `NOTICE`, `CITATION.cff`, `SECURITY.md`, `CODE_OF_CONDUCT.md`,
+  `CONTRIBUTING.md` and `NEGATIVE_RESULTS.md` stay at the root (GitHub
+  reads them there). Slice B (`ARCHITECTURE.md`, `DEVELOPER_OVERVIEW.md`)
+  follows separately because it touches `CLAUDE.md` and CI workflows.
 
 ### Paper
 

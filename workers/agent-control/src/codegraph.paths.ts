@@ -19,7 +19,7 @@ export const CODEGRAPH_PATHS = [
   'CODEGRAPH.md',
   'CONTRIBUTING.md',
   'CONTRIBUTIONS.md',
-  'EVIDENCE_OF_CAPABILITY.md',
+  'docs/EVIDENCE_OF_CAPABILITY.md',
   'LICENSE',
   'Makefile',
   'NEGATIVE_RESULTS.md',

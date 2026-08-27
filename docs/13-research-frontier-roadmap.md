@@ -6,7 +6,7 @@ recorded as CAP-014 in `docs/assurance/capability_register_v1.yaml`
 (`IMPLEMENTED_LIBRARY`, discrimination unmeasured, so no accuracy number may be
 quoted for it). Nothing else in this document is a claim. Every WP follows the
 repo contract: a claim may only enter
-`README.md` / `EVIDENCE_OF_CAPABILITY.md` after its artifact exists on disk, its
+`README.md` / `docs/EVIDENCE_OF_CAPABILITY.md` after its artifact exists on disk, its
 tests pass under `make test` (deterministic, no API keys), and `make audit`
 verifies claim ↔ artifact consistency. Caveats travel with numbers.
 
@@ -980,7 +980,7 @@ plan: an `agentdojo` optional extra in `pyproject.toml` following the
 `agentharm` extra precedent (the lock already resolves agentdojo 0.1.35, so no
 lockfile churn).
 
-**Acceptance.** Numbers enter `EVIDENCE_OF_CAPABILITY.md` only with the
+**Acceptance.** Numbers enter `docs/EVIDENCE_OF_CAPABILITY.md` only with the
 benchmark version pinned, the harness commit pinned, and the caveat that the
 run is internally executed on externally authored tasks (a different claim
 from external replication; the README distinction stays).
@@ -1160,7 +1160,7 @@ generated planning module, not the agent.
 - Authors' subprocess execution environment: no REMORA governance gate; argument-
   serialisation only; not what REMORA needs to measure.
 - Any performance claim: the ablation (JSON vs PTC with the same REMORA gate)
-  has not been run. No number may enter `README.md` or `EVIDENCE_OF_CAPABILITY.md`
+  has not been run. No number may enter `README.md` or `docs/EVIDENCE_OF_CAPABILITY.md`
   until that artifact exists.
 
 **Literature.**
@@ -1285,7 +1285,7 @@ on 2026-08-20 (arXiv cs.AI new-submissions batch). They are recorded here so
 the direction is not lost, and nothing more. None of them has been grounded
 against the working tree, none has an RF identifier, none is a proposal in the
 sense §0-§11 uses that word, and none may be cited in `README.md`,
-`EVIDENCE_OF_CAPABILITY.md`, or the paper.
+`docs/EVIDENCE_OF_CAPABILITY.md`, or the paper.
 
 **Source-quality caveat (load-bearing).** The brief cited a listing page
 (`arxiv.org/list/cs.AI/new`) rather than per-paper identifiers, so at intake

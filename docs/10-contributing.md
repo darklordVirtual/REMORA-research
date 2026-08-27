@@ -115,6 +115,6 @@ See `docs/validation/external-review.md` and `docs/assurance/independent_review_
 
 ## Contribution licensing
 
-REMORA is dual-licensed under the Business Source License 1.1 and separate commercial licenses; see `LICENSING.md`.
+REMORA is dual-licensed under the Business Source License 1.1 and separate commercial licenses; see `legal/LICENSING.md`.
 
 By submitting a contribution, you confirm that you have the legal right to submit it and that it contains no undisclosed third-party material. Contributions are not accepted for inclusion until the applicable REMORA Contributor License Agreement has been accepted. A `Signed-off-by` line alone does not grant the relicensing rights required by the REMORA licensing model.

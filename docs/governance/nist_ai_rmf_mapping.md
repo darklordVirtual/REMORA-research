@@ -53,7 +53,7 @@ and risk categories relevant to each use case.
 | MP-4 Risk categories identified | `artifacts/credibility-pack/threat-model.md`, five primary threat categories | Implemented |
 | MP-5 Failure modes documented | `NEGATIVE_RESULTS.md`, archived failure modes + active external-validation gap with mitigation path | Implemented |
 | MP-5 Sociotechnical impacts | `enterprise/sector-use-cases.md`, healthcare, legal, finance sectors | Partial |
-| MP-6 Benefits identified | `enterprise/executive-brief.md`, `EVIDENCE_OF_CAPABILITY.md` | Implemented |
+| MP-6 Benefits identified | `enterprise/executive-brief.md`, `docs/EVIDENCE_OF_CAPABILITY.md` | Implemented |
 
 **Gaps:** MP-5 sociotechnical impact analysis (e.g., disparate performance
 across demographic groups) has not been performed.  The benchmark corpus is

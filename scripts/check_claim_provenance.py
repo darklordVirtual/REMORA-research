@@ -73,7 +73,6 @@ DOC_PATTERNS = (
     "README.md",
     "ARCHITECTURE.md",
     "NEGATIVE_RESULTS.md",
-    "EVIDENCE_OF_CAPABILITY.md",
     "docs/*.md",
     "docs/assurance/*.md",
     "paper/*.md",
