@@ -221,6 +221,7 @@ jobs:
         # service" must not depend on a developer remembering to run it.
         run: |
           python -m pytest tests/test_execution_api.py tests/test_execution_outbox.py \
+            tests/test_postgres_outbox_fault_injection.py \
             -q -rs -k "postgres" | tee out.txt
           if grep -qiE "skipped|no tests ran" out.txt; then
             echo "ERROR: Postgres contract tests skipped despite service DSN" >&2

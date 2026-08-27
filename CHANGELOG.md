@@ -12,6 +12,21 @@ This file lists externally relevant changes by release. Fine-grained development
   superuser (RLS bypassed even when forced) and nothing binds the verified
   tenant to the connection. REM-026 notes and the multi-tenant security model
   point to it. Proposal only; nothing implemented.
+### Testing
+
+- Postgres outbox fault injection (`tests/test_postgres_outbox_fault_injection.py`),
+  run by both Postgres CI jobs with the no-skip guard. Seven tests against a
+  real server: eight backends racing one row through `FOR UPDATE` (one
+  winner), a claim blocking on a held lock and losing, a backend terminated
+  mid-claim (row released, survivor claims), worker death after a committed
+  claim (reconciled UNKNOWN, never re-claimed, sweep idempotent), worker
+  death after settle before projection (payload atomic with the terminal
+  state, projector queue and re-mark), a torn settle transaction (nothing
+  lands), and cross-process intent idempotency. Before this the Postgres
+  adapter had six sequential contract tests; concurrency, crash and
+  projection paths were covered only on the in-process and SQLite stores.
+  No adapter code changed. Scope stated in the module docstring: backend
+  and transaction faults, not OS process kills or network partitions.
 
 ### Documentation
 
