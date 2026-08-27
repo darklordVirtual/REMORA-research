@@ -166,6 +166,7 @@
         "actor_identity":      { "type": ["string", "null"] },
         "policy_bundle_hash":  { "type": ["string", "null"] },
         "tool_args_hash":      { "type": ["string", "null"] },
+        "tool_args_binding":   { "type": ["string", "null"], "enum": ["full_arguments", "summary", "none", null] },
         "data_classification": { "type": ["string", "null"] },
         "retention_policy":    { "type": ["string", "null"] },
         "tool_contract_bundle_hash": { "type": ["string", "null"] },

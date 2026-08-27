@@ -164,6 +164,10 @@ class OPAContext:
     ungrounded_arguments: tuple[str, ...]
     argument_scope_valid: bool | None
     scope_violating_arguments: tuple[str, ...]
+    # Property D: strict-profile requirement that the intent resolved from a
+    # deployment-owned source. Read by the engine, so exported, not excluded.
+    intent_provenance_required: bool
+    intent_provenance_resolved: bool | None
     missing_required_arguments: tuple[str, ...]
     argument_resolver_tools: tuple[str, ...]
     proposed_tool_name: str | None
@@ -393,7 +397,12 @@ class OPAAdapter:
         # boundary is deliberately non-approvable. Preserve the exact hard
         # refusal even if an external policy calls review "stricter".
         non_approvable_floor = bool(
-            floor and floor[1] is DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED
+            floor and floor[1] in (
+                DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED,
+                # Same shape: missing authority is not something review can
+                # supply, so the refusal must survive an external policy.
+                DecisionReason.INTENT_PROVENANCE_REQUIRED,
+            )
         )
 
         # Same fail-closed normalisation as the engine: strips whitespace and

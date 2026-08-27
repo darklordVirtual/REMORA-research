@@ -74,6 +74,7 @@ class DecisionReason(str, Enum):
     # that one or more arguments address another tenant. Human approval is not
     # authority to cross that boundary, so this is a hard ABSTAIN.
     CROSS_TENANT_ARGUMENT_BLOCKED = "cross_tenant_argument_blocked"
+    INTENT_PROVENANCE_REQUIRED = "intent_provenance_required"
     # §34 residue: the call is well-formed and its values are grounded, but the
     # declared tool contract contradicts the task's goal — wrong resource, or
     # right resource and wrong effect.

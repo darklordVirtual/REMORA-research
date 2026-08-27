@@ -178,6 +178,10 @@ def hard_guard_floor(
         return DecisionAction.ESCALATE, DecisionReason.FORBIDDEN_TOOL_BLOCKED
     if obs.argument_scope_valid is False:
         return DecisionAction.ABSTAIN, DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED
+    if obs.intent_provenance_required and not obs.intent_provenance_resolved:
+        # An intent the deployment did not authorise cannot reach review, let
+        # alone ACCEPT: nothing downstream can add the authority it lacks.
+        return DecisionAction.ABSTAIN, DecisionReason.INTENT_PROVENANCE_REQUIRED
     if obs.coercion_detected:
         return DecisionAction.ESCALATE, DecisionReason.COERCION_BLOCKED
     if obs.blackmail_pattern_detected:

@@ -1442,11 +1442,31 @@ def _finalize_envelope_audit(
             "proposed_action": request_block.get("proposed_action", ""),
             "action_type": request_block.get("action_type", ""),
         }, sort_keys=True, separators=(",", ":"))
-        audit_block["tool_args_hash"] = hashlib.sha256(
-            canonical_action.encode("utf-8")
-        ).hexdigest()
+        tool_call = request_block.get("tool_call")
+        if (isinstance(tool_call, dict) and tool_call.get("tool_name")
+                and isinstance(tool_call.get("arguments"), dict)):
+            # Property C on the legacy surface: bind the FULL argument set
+            # whenever the request carried one, the same hash the execution
+            # API uses, so a later edit to any argument breaks the binding.
+            from remora.policy.observation import canonical_tool_call_hash
+
+            audit_block["tool_args_hash"] = canonical_tool_call_hash(
+                name=str(tool_call["tool_name"]),
+                arguments=tool_call["arguments"],
+                tenant=tenant_id,
+                target=str(request_block.get("target_environment") or "prod"),
+            )
+            audit_block["tool_args_binding"] = "full_arguments"
+        else:
+            audit_block["tool_args_hash"] = hashlib.sha256(
+                canonical_action.encode("utf-8")
+            ).hexdigest()
+            # Named, so a reader cannot mistake a summary hash for an
+            # argument binding. Summary means: no tool call was presented.
+            audit_block["tool_args_binding"] = "summary"
     elif "tool_args_hash" not in audit_block:
         audit_block["tool_args_hash"] = None
+        audit_block["tool_args_binding"] = "none"
 
     if "data_classification" not in audit_block:
         audit_block["data_classification"] = None
@@ -1523,6 +1543,7 @@ def _assess_semantic_overlay(
             tenant=tenant_id,
             target=target,
         )
+        audit_block["tool_args_binding"] = "full_arguments"
     return context
 
 

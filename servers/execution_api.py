@@ -1047,8 +1047,16 @@ def semantic_call_context(
             argument_scope_valid=scope.valid,
             scope_violating_arguments=scope.violating_arguments,
         )
+    from remora.enforcement.custody import custody_is_enforced
+
     full = dataclasses.replace(
-        full, intent_resolution_status=intent_resolution_status
+        full,
+        intent_resolution_status=intent_resolution_status,
+        # Property D: under the strict profiles an intent that did not resolve
+        # from a deployment-owned source cannot reach review. Research keeps
+        # the permissive posture and says so.
+        intent_provenance_required=custody_is_enforced(),
+        intent_provenance_resolved=(intent_resolution_status == "resolved"),
     )
     from remora.toolcall.routing.derivation import (
         DERIVATION_TRANSFORMS_DIGEST,
