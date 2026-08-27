@@ -35,16 +35,20 @@ belongs in this document rather than being smoothed away.
 
 ### Evidence-access asymmetry (load-bearing)
 
-The assessor had the REMORA repository and did **not** have the AEGIS Core
-3.4.0 source, test suite, commit history or result artifacts. Under §3 of the
-specification, PASS requires evidence tier RESOLVED, so **no AEGIS row can
-carry PASS in this revision**, regardless of merit.
+At first assessment the assessor had the REMORA repository and did **not**
+have the AEGIS Core 3.4.0 source, test suite, commit history or result
+artifacts. Under §3 of the specification, PASS requires evidence tier
+RESOLVED, so no AEGIS row could carry PASS, regardless of merit.
 
-This is a limitation of the assessment, not a judgement of AEGIS. Where the
-developer's description would plainly support PASS once the artifact is
-resolvable, the row records that explicitly in a *Claimed* column and states
-what single reference would convert it. §1 below is the open request for those
-references.
+**That asymmetry is now removed.** The developer supplied the repository and a
+pinned revision, the assessor read the fixtures, and three AEGIS rows moved to
+PASS (§1). The mechanism worked exactly as §7 step 5 intends: the assessment
+named the single reference that would convert each row, and the reference
+arrived.
+
+One asymmetry cannot be fixed by an artifact. REMORA is assessed by a party
+with full access to REMORA and an interest in the outcome, and AEGIS is not.
+Both assessments record that fact instead of resolving it.
 
 Treating this asymmetry as a defect of AEGIS would be the exact failure mode
 the specification is trying to prevent, and would also be self-serving: REMORA
@@ -52,41 +56,39 @@ is being assessed by a party with full access to REMORA.
 
 ---
 
-## 1. Task 1 — locating the canonical AEGIS evidence (OPEN)
+## 1. Task 1 — locating the canonical AEGIS evidence (CLOSED 2026-08-27)
 
 The specification requires a resolvable reference: repository, revision, test
 path and test name, or a committed result artifact.
 
-**Result: not resolved.** What is available is a description of the fixture:
+**Result: resolved.** The developer supplied option 1, and the assessor read
+the artifacts at the pinned revision:
 
-> 100 concurrent attempts against the same tool-call ID yield 1 fresh execution
-> grant, 99 cached replays, and 1 simulated external execution, evaluated as a
-> process-local execution disposition immediately before tool dispatch.
+- `https://github.com/LortuArte/aegis-sdk` at `1bcdec1b10c2`
+- `test_same_tool_call_execution.py`: the same-ID contention fixture, 100
+  concurrent attempts, one fresh grant, 99 cached replays, one simulated
+  external execution. Run with `python test_same_tool_call_execution.py`.
+- `test_financial_loss_matrix.py` lines 75-158: same ID with a changed
+  `operation` or a changed `amount_usd` is denied with an
+  `idempotency_conflict` attenuation and the balance is unchanged.
 
-Searching this repository for AEGIS material returns nothing, and no AEGIS
-source is present on the assessing machine. The description is therefore
-recorded at evidence tier **REPORTED**.
+This closes the item and converts the AEGIS rows in §2 from **REPORTED** to
+**RESOLVED**. Three statuses change as a result, and they change in AEGIS's
+favour.
 
-**To close this item, one of the following is enough:**
+**The second fixture answers the question this document raised.** The original
+assessment said that a same-ID replay with *mutated arguments* was the
+discriminating case between ID-keyed memoisation and argument-bound
+authorization, and that its absence was why C could not be read as
+exact-call integrity. `test_financial_loss_matrix.py` is that case, within the
+fields the AEGIS authorization interface represents. The earlier reading was
+correct about what the first fixture showed and wrong to imply the property
+was untested; the evidence existed and had not been located.
 
-1. Repository URL plus commit SHA for AEGIS Core 3.4.0, and the test file path
-   plus test function name for the same-ID replay fixture; or
-2. The committed result artifact for the run reporting 1/99/1, with the command
-   that produced it; or
-3. A minimal standalone reproduction of the fixture that a third party can run.
-
-Until then the AEGIS rows in §2 are assessed statuses, not the developer's
-statuses, and the difference is shown per row.
-
-**What the fixture demonstrates, stated precisely.** 1/99/1 distinguishes
-duplicate suppression under an identical call ID, and it does so under real
-contention. It does not establish exact-call integrity, because every attempt
-in the fixture carries the same arguments. A same-ID replay with *mutated*
-arguments is the discriminating case between ID-keyed memoisation and
-argument-bound authorization. This is a statement about what the fixture was
-built to show, not a suggestion that it shows something else.
-
----
+The rows below now match the assessment published at
+`https://github.com/darklordVirtual/agent-authority-conformance`
+(`examples/aegis-core-3.4.0.json`). Where the two ever disagree, that file
+wins and this one is stale.
 
 ## 2. AEGIS Core 3.4.0 — A to G
 
@@ -98,12 +100,12 @@ recovery, semantic correctness, external-effect verification.
 
 | Dim | Property | AEGIS evidence | Tier | Claimed | Status | Reasoning | Caveat |
 |---|---|---|---|---|---|---|---|
-| A | Receipt Integrity | same-ID replay fixture: 1 grant / 99 replays / 1 simulated execution | REPORTED | PASS (single-use, process-local) | **UNTESTED** | The described counts directly exercise single-use semantics under contention, which is the replay half of A. Status is held at UNTESTED only because the artifact is unresolved (spec §3); nothing in the description argues against the claim. | The fixture as described says nothing about signature or MAC verification, expiry, not-before, or binding to an identity. Even fully resolved it would be a partial PASS scoped to replay. |
+| A | Receipt Integrity | [`test_same_tool_call_execution.py`](https://github.com/LortuArte/aegis-sdk/blob/1bcdec1b10c294ca55bc0018fc0de00fc98a09c8/test_same_tool_call_execution.py) at `1bcdec1b10c2`: 1 grant / 99 cached replays / 1 simulated execution across 100 concurrent attempts | RESOLVED | PASS (single-use, process-local) | **PASS** (scope: single-use replay bounding under same-ID contention, process-local) | The counts directly exercise single-use semantics under real contention, and the fixture is now runnable by a third party at a pinned revision. | Partial by scope, not by doubt: the fixture says nothing about signature or MAC verification, expiry, not-before, or binding to an identity. Those parts of A remain UNTESTED. |
 | B | Authority Provenance | none offered | NONE | not claimed | **OUT OF SCOPE** | The developer explicitly does not claim delegation-chain validity. | Recorded as a scope decision, not a deficiency. A disposition evaluator does not have to answer where authority came from. |
-| C | Exact-Call Integrity | same tool-call ID across 100 attempts | REPORTED | partial | **UNTESTED** | Reuse of one call ID demonstrates identity-level deduplication. It does not by itself demonstrate binding of arguments, tool, target or tenant, since every attempt in the fixture is described as identical. | The decisive test is absent as described: replay the same call ID with *mutated arguments* and require refusal. Without it, ID-keyed caching and argument-bound authorization are indistinguishable. |
+| C | Exact-Call Integrity | [`test_financial_loss_matrix.py` L75-158](https://github.com/LortuArte/aegis-sdk/blob/1bcdec1b10c294ca55bc0018fc0de00fc98a09c8/test_financial_loss_matrix.py#L75-L158) at `1bcdec1b10c2`: same ID with changed `operation` or changed `amount_usd` is denied as `idempotency_conflict`, balance unchanged | RESOLVED | partial | **PASS** (scope: binding of the `operation` and `amount_usd` fields the authorization interface represents) | This is the discriminating case §1 asked for, and it separates ID-keyed memoisation from binding of the represented fields. The conflict is refused *and* the balance is left untouched, so the refusal is not merely a returned error. | Bounded by the interface: AEGIS 3.4.0 does not accept or claim integrity over an arbitrary normalized tool-arguments object comparable to a full argument hash, and its own assessment says so. Mutation outside the represented fields is UNTESTED. |
 | D | Semantic Authority | none offered | NONE | not claimed | **OUT OF SCOPE** | The developer explicitly does not claim semantic correctness. | Correct, and unusually clear. Most systems leave this property implicitly claimed by describing an authorization check without saying whether it reasons about purpose. |
-| E | Execution-Boundary Integrity | none offered | NONE | not claimed | **OUT OF SCOPE** | The developer explicitly does not claim credential-path non-bypassability, and agrees with the REMORA position that a pre-tool hook is an enforcement boundary only where the protected side effect is unreachable by an alternative credential path. | Both projects hold the same position here. Neither has demonstrated it. |
-| F | TOCTOU Resistance | 100 concurrent attempts, process-local, immediately before dispatch | REPORTED | PASS (process-local) | **UNTESTED** | Concurrency at one call ID inside one process is genuine evidence for the in-process race, and evaluating immediately before dispatch narrows the check-to-use window, which is the right structural move. | Multiprocess protection is an explicit non-claim, so the property is at most partially in scope. The fixture also cannot speak to state that changes between authorization and dispatch, only to duplicate attempts. |
+| E | Execution-Boundary Integrity | none offered | NONE | not claimed | **OUT OF SCOPE** | The developer explicitly does not claim credential-path non-bypassability, and agrees with the REMORA position that a pre-tool hook is an enforcement boundary only where the protected side effect is unreachable by an alternative credential path. | The position is shared; the evidence is no longer symmetric. REMORA has since applied the §12 measurement procedure and holds a scoped PASS on E together with two demonstrated bypasses, which is a stronger row than an undemonstrated agreement. AEGIS's non-claim stays a legitimate scope decision and is not a deficit. |
+| F | TOCTOU Resistance | [`test_same_tool_call_execution.py`](https://github.com/LortuArte/aegis-sdk/blob/1bcdec1b10c294ca55bc0018fc0de00fc98a09c8/test_same_tool_call_execution.py) at `1bcdec1b10c2`: 100 threads released from a common barrier, evaluated immediately before dispatch | RESOLVED | PASS (process-local) | **PASS** (scope: the in-process race at one call ID) | Concurrency at one call ID inside one process is genuine evidence for the in-process race, and evaluating immediately before dispatch narrows the check-to-use window. The barrier makes the contention real rather than incidental. | Multiprocess protection is an explicit non-claim. The fixture speaks to duplicate attempts, not to state that changes between authorization and dispatch. REMORA's own F row has the same process-model ceiling. |
 | G | Effect Verification | 1 *simulated* external execution | REPORTED | not claimed | **OUT OF SCOPE** | The developer explicitly does not claim external-effect verification, and the fixture's external execution is simulated by construction. | Simulation is the correct choice for a replay fixture. It does mean the fixture cannot distinguish "dispatched once" from "took effect once", which is exactly the A-versus-G gap both projects agree on. |
 
 **Reading of the AEGIS column.** Four of seven rows are OUT OF SCOPE by the
