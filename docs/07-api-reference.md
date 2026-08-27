@@ -421,7 +421,7 @@ one-time grant, then dispatches the tool through the app-lifecycle
 `GovernedToolDispatcher`), `GET /audit/verify` (recomputes the per-tenant
 chain and reports `records_checked`; an `empty` chain is flagged because it is
 trivially valid). RBAC: `assess`/`execute` capabilities gate assess/execute;
-`review` gates approve; `read` gates audit. `review` also gates `POST /revoke-principal`, which withdraws a principal's authority after the fact: an approval that principal granted is invalidated at the execution re-gate rather than rewritten, so the chain shows both the approval and the revocation.
+`review` gates approve; `read` gates audit. `review` also gates `POST /revoke-principal`, which withdraws a principal's authority after the fact. An approval that principal granted is invalidated at the execution re-gate, not rewritten. The chain therefore shows both the approval and the revocation.
 
 **Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
 bearer token to a fixed tenant and role; callers cannot forge either.
