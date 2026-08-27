@@ -39,11 +39,11 @@ STALE_HEADERS = (
 
 REQUIRED = {
     "LICENSE": "Business Source License 1.1",
-    "LICENSING.md": "REMORA Commercial License",
-    "COMMERCIAL_LICENSE.md": "not itself a commercial software",
-    "TRADEMARKS.md": "Trademark Policy",
-    "THIRD_PARTY_NOTICES.md": "Third-Party Notices",
-    "COPYRIGHT.md": "Stian Skogbrott",
+    "legal/LICENSING.md": "REMORA Commercial License",
+    "legal/COMMERCIAL_LICENSE.md": "not itself a commercial software",
+    "legal/TRADEMARKS.md": "Trademark Policy",
+    "legal/THIRD_PARTY_NOTICES.md": "Third-Party Notices",
+    "legal/COPYRIGHT.md": "Stian Skogbrott",
     "NOTICE": "Business Source License 1.1",
     "pyproject.toml": 'license = "BUSL-1.1"',
     "CITATION.cff": "license: BUSL-1.1",
@@ -61,7 +61,7 @@ def main() -> int:
         if expected not in path.read_text(encoding="utf-8"):
             errors.append(f"{relative}: missing expected text {expected!r}")
 
-    licensor_files = ["LICENSE", "NOTICE", "COPYRIGHT.md"]
+    licensor_files = ["LICENSE", "NOTICE", "legal/COPYRIGHT.md"]
     for relative in licensor_files:
         path = ROOT / relative
         if path.exists() and "Stian Skogbrott" not in path.read_text(encoding="utf-8"):

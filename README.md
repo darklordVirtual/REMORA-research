@@ -166,6 +166,6 @@ Generative-AI tools were used during development. AI-generated text or code is n
 
 ## License and contributions
 
-REMORA versions from `v0.10.0` are source-available under the [Business Source License 1.1](LICENSE), with commercial licensing under the [REMORA Commercial License](COMMERCIAL_LICENSE.md). Research, benchmarking and reproducibility work are permitted within the terms in [LICENSING.md](LICENSING.md).
+REMORA versions from `v0.10.0` are source-available under the [Business Source License 1.1](LICENSE), with commercial licensing under the [REMORA Commercial License](legal/COMMERCIAL_LICENSE.md). Research, benchmarking and reproducibility work are permitted within the terms in [LICENSING.md](legal/LICENSING.md).
 
 Contribution requirements, branch lifecycle, documentation style and claim hygiene are defined in [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/10-contributing.md](docs/10-contributing.md).

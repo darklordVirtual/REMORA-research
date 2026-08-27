@@ -93,7 +93,7 @@ documents:
   audience:
   - researchers
 - id: DOC-016
-  path: EVIDENCE_OF_CAPABILITY.md
+  path: docs/EVIDENCE_OF_CAPABILITY.md
   status: canonical
   topic: EVIDENCE_OF_CAPABILITY_md
   code_synced: verified
@@ -1224,7 +1224,7 @@ documents:
   audience:
   - researchers
 - id: DOC-132
-  path: CONTRIBUTORS.md
+  path: docs/CONTRIBUTORS.md
   status: canonical
   topic: CONTRIBUTORS_md
   code_synced: verified

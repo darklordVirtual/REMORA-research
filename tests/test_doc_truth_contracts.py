@@ -52,7 +52,7 @@ DOCS = ROOT / "docs"
 REGISTER = DOCS / "assurance" / "document_register_v1.yaml"
 
 ROOT_DOCS = ("README.md", "ARCHITECTURE.md", "NEGATIVE_RESULTS.md",
-             "SECURITY.md", "EVIDENCE_OF_CAPABILITY.md")
+             "SECURITY.md", "docs/EVIDENCE_OF_CAPABILITY.md")
 
 #: Register statuses whose documents speak about the present.
 LIVE_STATUSES = {"canonical", "generated", "supporting", "proposal"}

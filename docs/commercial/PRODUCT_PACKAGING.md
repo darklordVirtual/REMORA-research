@@ -37,7 +37,7 @@ editing this document.
 
 | Topic | Status |
 |---|---|
-| Licensor legal entity | Stian Skogbrott (see `LICENSE` / `COMMERCIAL_LICENSE.md`) |
+| Licensor legal entity | Stian Skogbrott (see `LICENSE` / `legal/COMMERCIAL_LICENSE.md`) |
 | License model | BUSL-1.1 source-available + commercial license |
 | IP ownership | Licensor retains all IP; customer owns their data and evidence exports |
 | Support entity | The licensor directly; no separate support organisation exists today |

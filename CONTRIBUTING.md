@@ -77,6 +77,6 @@ that do not apply to the research modules:
 
 ## Contribution licensing
 
-REMORA is dual-licensed under the Business Source License 1.1 and separate commercial licenses issued by the Licensor. See [LICENSING.md](LICENSING.md).
+REMORA is dual-licensed under the Business Source License 1.1 and separate commercial licenses issued by the Licensor. See [LICENSING.md](legal/LICENSING.md).
 
 By submitting a contribution, you confirm that you have the legal right to submit it and that it contains no undisclosed third-party material. Contributions are not accepted into the dual-licensed codebase until the applicable REMORA Contributor License Agreement has been accepted. A `Signed-off-by` line alone does not grant the relicensing rights required by this model.

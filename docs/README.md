@@ -123,6 +123,8 @@ Several topics have more than one document. This table says which to open.
 |---|---|
 | [Paper](../paper/remora_paper.md) | Scientific paper |
 | [claim_register.md](claim_register.md) | Human-readable claim overview |
+| [EVIDENCE_OF_CAPABILITY.md](EVIDENCE_OF_CAPABILITY.md) | Capability evidence summary for reviewers |
+| [CONTRIBUTORS.md](CONTRIBUTORS.md) | Contributors and contribution record |
 | [results_snapshot.md](results_snapshot.md) | Generated results snapshot |
 | [failure_analysis.md](failure_analysis.md) | Generated failure analysis |
 | [evidence/claim_evidence_matrix.md](evidence/claim_evidence_matrix.md) | Claim-to-evidence matrix |

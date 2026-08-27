@@ -87,9 +87,7 @@ ROOT_DOCS = (
     "NEGATIVE_RESULTS.md",
     "SECURITY.md",
     "CONTRIBUTING.md",
-    "CONTRIBUTORS.md",
     "CLAUDE.md",
-    "EVIDENCE_OF_CAPABILITY.md",
     "NOTICE",
 )
 # Structured vintage-banner contract (case-insensitive). A historical entry

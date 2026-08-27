@@ -111,7 +111,7 @@ architecture, or threat model shall trigger targeted re-review.
 | Human oversight and reviewer handoff | R3 | [`remora/governance/review_queue.py`](../../remora/governance/review_queue.py) | [`human_oversight_operations_v1.md`](human_oversight_operations_v1.md), [`release_profiles_v1.yaml`](release_profiles_v1.yaml) | Are there clear accountability, TTL, re-gate, severity routing, identity, SLA, and operational escalation? |
 | Wheel, API, and resource loading | R4 | [`pyproject.toml`](../../pyproject.toml), [`servers/`](../../servers), [`schemas/`](../../schemas) | [issue #14](https://github.com/darklordVirtual/REMORA-research/issues/14), `.github/workflows/ci.yml` | Can the documented API be installed and started from the built wheel in an empty environment without a repository checkout? |
 | CI, tests, and supply chain | R4 | [`pyproject.toml`](../../pyproject.toml), [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml), [`.github/CODEOWNERS`](../../.github/CODEOWNERS) | [`reproducibility_scorecard_v1.md`](reproducibility_scorecard_v1.md), REM-027/037/045 | Are dependencies locked, SBOM/provenance produced, artifacts signed, and critical code covered by adequate gates? |
-| BUSL, CLA, third party, and commercial IP | R5 | [`LICENSE`](../../LICENSE), [`LICENSES/BUSL-1.1.txt`](../../LICENSES/BUSL-1.1.txt), [`LICENSING.md`](../../LICENSING.md), [`COMMERCIAL_LICENSE.md`](../../COMMERCIAL_LICENSE.md) | [`CONTRIBUTING.md`](../../CONTRIBUTING.md), [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md), git/contribution history | Does the licensor have the right to relicense every relevant contribution and dataset, and are the BUSL/commercial terms consistent and enforceable? |
+| BUSL, CLA, third party, and commercial IP | R5 | [`LICENSE`](../../LICENSE), [`LICENSES/BUSL-1.1.txt`](../../LICENSES/BUSL-1.1.txt), [`legal/LICENSING.md`](../../legal/LICENSING.md), [`legal/COMMERCIAL_LICENSE.md`](../../legal/COMMERCIAL_LICENSE.md) | [`CONTRIBUTING.md`](../../CONTRIBUTING.md), [`legal/THIRD_PARTY_NOTICES.md`](../../legal/THIRD_PARTY_NOTICES.md), git/contribution history | Does the licensor have the right to relicense every relevant contribution and dataset, and are the BUSL/commercial terms consistent and enforceable? |
 
 ---
 
@@ -345,7 +345,7 @@ build.
 R5 shall assess:
 
 - whether the BUSL-1.1 parameters and the Additional Use Grant are valid and
-  consistent across `LICENSE`, `LICENSING.md`, package metadata, and README;
+  consistent across `LICENSE`, `legal/LICENSING.md`, package metadata, and README;
 - the effects of previously permissively licensed versions and rights already
   granted;
 - whether Stian Skogbrott has sufficient chain of title to offer separate
@@ -353,7 +353,7 @@ R5 shall assess:
 - all external contributions, the CLAs actually signed, and whether the CLA
   text grants the necessary relicensing rights;
 - third-party code, datasets, benchmark terms, and
-  `THIRD_PARTY_NOTICES.md`;
+  `legal/THIRD_PARTY_NOTICES.md`;
 - copyright risk from AI-assisted development;
 - the commercial license, warranties, liability, indemnity, support/SLA, and
   transaction-ready IP;

@@ -71,7 +71,7 @@ def test_readme_uses_research_candidate_language() -> None:
 
 
 def test_evidence_of_capability_states_limits() -> None:
-    text = (ROOT / "EVIDENCE_OF_CAPABILITY.md").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "EVIDENCE_OF_CAPABILITY.md").read_text(encoding="utf-8")
     for required in [
         "What REMORA Proves",
         "What Is Implemented",
@@ -173,11 +173,11 @@ def test_licensing_is_bsl_with_commercial_boundary_docs() -> None:
     """
     required_files = [
         ROOT / "LICENSE",
-        ROOT / "LICENSING.md",
-        ROOT / "COMMERCIAL_LICENSE.md",
-        ROOT / "COPYRIGHT.md",
-        ROOT / "TRADEMARKS.md",
-        ROOT / "THIRD_PARTY_NOTICES.md",
+        ROOT / "legal" / "LICENSING.md",
+        ROOT / "legal" / "COMMERCIAL_LICENSE.md",
+        ROOT / "legal" / "COPYRIGHT.md",
+        ROOT / "legal" / "TRADEMARKS.md",
+        ROOT / "legal" / "THIRD_PARTY_NOTICES.md",
     ]
     for path in required_files:
         assert path.exists(), f"{path.name} is required by the BSL licensing model"
@@ -194,7 +194,7 @@ def test_licensing_is_bsl_with_commercial_boundary_docs() -> None:
     assert "permitted without a commercial license from the Licensor" in notice
 
     # The informational commercial overview must never read as a grant.
-    commercial = (ROOT / "COMMERCIAL_LICENSE.md").read_text(encoding="utf-8")
+    commercial = (ROOT / "legal" / "COMMERCIAL_LICENSE.md").read_text(encoding="utf-8")
     assert "not itself a commercial software" in commercial
 
 

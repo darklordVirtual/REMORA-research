@@ -1214,7 +1214,7 @@ RACI legend: A = Accountable, R = Responsible, C = Consulted, I = Informed.
 | Gaps / remediations      | docs/assurance/remediation_register.yaml                                         |
 | Assurance case           | docs/assurance/assurance_case_v1.md; claim_register_v1.yaml                      |
 | Threat / security        | docs/assurance/threat_model_v1.md; security review artifacts                     |
-| Deployment               | deploy/; docs/deployment/; workers/; docker-compose.test.yml                     |
+| Deployment               | deploy/ (incl. docker-compose.test.yml); docs/deployment/; workers/                     |
 | CI / governance          | Makefile; .github/workflows/ci.yml; quality-gates.yml                            |
 | Module stability         | ARCHITECTURE.md Module Stability Index                                           |
 | Research caveats         | NEGATIVE_RESULTS.md; superseded_claims.md                                        |
