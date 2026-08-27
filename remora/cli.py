@@ -46,6 +46,60 @@ from typing import Any
 _ROOT = Path(__file__).resolve().parents[1]
 
 
+def _cmd_effect_verify(args: argparse.Namespace) -> int:
+    """Property G on the command line: read back, compare, print the record.
+
+    Exit 0 only for EFFECT_VERIFIED. Every other status is a distinct
+    non-zero code so a pipeline can tell "the world disagrees" from "the
+    verifier could not look", which is the distinction the vocabulary exists
+    to keep.
+    """
+    import dataclasses
+    import json as _json
+
+    from remora.governance.effect_verification import EffectStatus, PostconditionContract
+    from remora.integrations.http_readback import verify_http_effect
+
+    def _pairs(items: list[str], what: str) -> dict[str, str]:
+        out: dict[str, str] = {}
+        for item in items:
+            key, sep, value = item.partition("=")
+            if not sep or not key.strip():
+                raise SystemExit(f"--{what} expects FIELD=VALUE, got {item!r}")
+            out[key.strip()] = value
+        return out
+
+    expected = _pairs(args.expect, "expect")
+    if not expected:
+        raise SystemExit("--expect is required at least once: a verification "
+                         "with no declared delta verifies nothing")
+    contract = PostconditionContract(
+        tool_id=args.tool_id, reader="http",
+        target_selector={"url": args.url}, expected_fields=expected,
+    )
+    record = verify_http_effect(
+        contract, args.url,
+        proposal_id=args.proposal_id, execution_id=args.execution_id,
+        toolspec_hash=args.toolspec_hash,
+        headers=_pairs(args.header, "header") or None,
+        timeout_seconds=args.timeout,
+    )
+    # Not dataclasses.asdict: the contract freezes expected/observed as
+    # mapping proxies, which asdict tries to deepcopy. Flatten by hand and
+    # keep the status as its wire value.
+    payload = {f.name: getattr(record, f.name) for f in dataclasses.fields(record)}
+    payload["status"] = record.status.value
+    payload["expected"] = dict(record.expected)
+    payload["observed"] = dict(record.observed)
+    print(_json.dumps(payload, default=str, sort_keys=True))
+    return {
+        EffectStatus.VERIFIED: 0,
+        EffectStatus.MISMATCH: 40,
+        EffectStatus.UNOBSERVABLE: 41,
+        EffectStatus.VERIFIER_FAILED: 42,
+    }.get(record.status, 43)
+
+
 def _cmd_verify(args: argparse.Namespace) -> int:
     """Delegate to eval_pack harness; fallback to inline invariant checks."""
     harness = _ROOT / "eval_pack" / "run_validation.py"
@@ -1103,7 +1157,7 @@ full reference: docs/cli.md
 """
 
 _COMMANDS = ("try", "demo", "assess", "explain", "replay", "serve",
-             "provenance", "verify", "maturity", "doctor")
+             "provenance", "verify", "maturity", "doctor", "effect-verify")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1236,6 +1290,20 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("maturity", help="Show module stability maturity report")
 
+    ev_p = sub.add_parser(
+        "effect-verify",
+        help="Read back an external object over HTTP and verify a declared delta (property G)")
+    ev_p.add_argument("--url", required=True, help="Authoritative read-back URL of the object")
+    ev_p.add_argument("--tool-id", required=True)
+    ev_p.add_argument("--expect", action="append", default=[], metavar="FIELD=VALUE",
+                      help="Declared delta; repeatable. Only these fields are compared.")
+    ev_p.add_argument("--proposal-id", required=True)
+    ev_p.add_argument("--execution-id", required=True)
+    ev_p.add_argument("--toolspec-hash", required=True)
+    ev_p.add_argument("--header", action="append", default=[], metavar="NAME=VALUE",
+                      help="Request header for the read-back; used, never stored")
+    ev_p.add_argument("--timeout", type=float, default=None)
+
     doctor_p = sub.add_parser(
         "doctor", help="Environment self-check: what works, what's missing, how to fix it")
     doctor_p.add_argument("--json", action="store_true", help="JSON output")
@@ -1261,6 +1329,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_verify(args)
     if args.command == "maturity":
         return _cmd_maturity(args)
+    if args.command == "effect-verify":
+        return _cmd_effect_verify(args)
     if args.command == "doctor":
         return _cmd_doctor(args)
 

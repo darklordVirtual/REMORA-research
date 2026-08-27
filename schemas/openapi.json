@@ -1219,6 +1219,34 @@
         "title": "ReviewRequest",
         "type": "object"
       },
+      "RevokePrincipalRequest": {
+        "description": "Withdraw a principal's authority for every pending execution (property B).\n\nApprovals already granted are not rewritten. The execution re-gate\nrefuses them, so the record shows an approval valid when issued and a\nrevocation that arrived before dispatch.",
+        "properties": {
+          "principal": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Principal",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "principal"
+        ],
+        "title": "RevokePrincipalRequest",
+        "type": "object"
+      },
       "SemanticAssessment": {
         "properties": {
           "argument_scope_valid": {
@@ -2714,6 +2742,70 @@
           }
         },
         "summary": "Reject",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/revoke-principal": {
+      "post": {
+        "description": "Withdraw a principal's authority after the fact (property B).\n\nSame capability as approving, because it is the same authority acting in\nthe other direction. The revoker is the authenticated principal, never\nthe body. A principal may not revoke themself through this route: the\nchain would then show a self-cancelling authority with no second party.",
+        "operationId": "revoke_principal_v1_execution_revoke_principal_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokePrincipalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Revoke Principal V1 Execution Revoke Principal Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Revocation recorded; pending executions approved by this principal will be refused at the re-gate."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Principal",
         "tags": [
           "execution"
         ]

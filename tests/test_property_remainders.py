@@ -237,3 +237,90 @@ def test_c_legacy_audit_block_names_its_binding(monkeypatch) -> None:
         envelope_payload=edited, tenant_id="t1", fallback_hash=None, actor_identity=None
     )
     assert edited["audit"]["tool_args_hash"] != full_env["audit"]["tool_args_hash"]
+
+
+# --------------------------------------------------------------------------
+# C — through the real /v1/assess handler, not a hand-built block
+# --------------------------------------------------------------------------
+
+
+def test_c_real_assess_handler_binds_full_arguments(monkeypatch) -> None:
+    import importlib
+    import json as _json
+
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("REMORA_ENV", "development")
+    monkeypatch.delenv("REMORA_CONTROL_PLANE_DSN", raising=False)
+    monkeypatch.delenv("REMORA_API_BEARER_TOKEN", raising=False)
+    monkeypatch.setenv(
+        "REMORA_API_TOKENS",
+        _json.dumps({"admin-tok": {"tenant": "acme", "role": "admin"}}),
+    )
+    import servers.api as api
+
+    api = importlib.reload(api)
+    try:
+        _assert_full_argument_binding(TestClient(api.app))
+    finally:
+        # The reload rebinds module globals the app's handlers read by name,
+        # so other modules holding the app would see this test's token set.
+        # Put the environment back, then reload again so they see theirs.
+        monkeypatch.undo()
+        importlib.reload(api)
+
+
+def _assert_full_argument_binding(client) -> None:
+    headers = {"Authorization": "Bearer admin-tok"}
+
+    def assess(to: str) -> dict:
+        resp = client.post(
+            "/v1/assess",
+            headers=headers,
+            json={
+                "question": "Send the confirmation email",
+                "risk_tier": "medium",
+                "tool_call": {"tool_name": "send_mail", "arguments": {"to": to}},
+            },
+        )
+        assert resp.status_code == 200, resp.text
+        return resp.json()["envelope"]["audit"]
+
+    approved = assess("approved@example.com")
+    assert approved["tool_args_binding"] == "full_arguments"
+    edited = assess("attacker@example.com")
+    assert edited["tool_args_hash"] != approved["tool_args_hash"]
+
+    resp = client.post(
+        "/v1/assess", headers=headers,
+        json={"question": "Should we patch this service?", "risk_tier": "medium"},
+    )
+    assert resp.json()["envelope"]["audit"]["tool_args_binding"] == "summary"
+
+
+# --------------------------------------------------------------------------
+# G — the CLI command, end to end against the read-back server
+# --------------------------------------------------------------------------
+
+
+def test_g_cli_effect_verify_reports_the_record_and_a_distinct_exit(
+    readback_server, capsys
+) -> None:
+    import json as _json
+
+    from remora.cli import main
+
+    base = [
+        "effect-verify", "--tool-id", "send_mail", "--expect", "state=sent",
+        "--proposal-id", "p1", "--execution-id", "e1", "--toolspec-hash", "t" * 64,
+    ]
+    assert main([*base, "--url", readback_server + "/ok"]) == 0
+    record = _json.loads(capsys.readouterr().out.strip().splitlines()[-1])
+    from remora.governance.effect_verification import EffectStatus
+
+    assert record["status"] == EffectStatus.VERIFIED.value
+    assert record["verifier_identity"] == "remora.integrations.http_readback"
+
+    assert main([*base, "--url", readback_server + "/wrong"]) == 40
+    assert main([*base, "--url", readback_server + "/missing"]) == 41
+    assert main([*base, "--url", readback_server + "/boom"]) == 42

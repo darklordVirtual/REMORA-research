@@ -698,3 +698,38 @@ def test_idempotency_store_dedups_and_evicts(monkeypatch):
     assert store.get("t1", "k3") == {"n": 3}
     # Tenant scoping: same key under another tenant is a different entry.
     assert store.get("t2", "k0") is None
+
+
+def test_revoked_approver_invalidates_the_pending_execution(client, monkeypatch) -> None:
+    """Property B through the routes: approve, revoke the approver, execute."""
+    import servers.api as api_mod
+
+    r = client.post("/v1/execution/assess", json=PROD_WRITE)
+    assert r.json()["decision"] == "verify"
+    item_id = r.json()["review_item_id"]
+    r = client.post("/v1/execution/approve",
+                    json={"item_id": item_id, "approval_ttl_seconds": 900})
+    assert r.status_code == 200, r.text
+
+    # A second principal withdraws the approver's authority.
+    monkeypatch.setattr(api_mod, "_authenticated_principal",
+                        lambda request: "security-officer")
+    r = client.post("/v1/execution/revoke-principal",
+                    json={"principal": "employee-1", "reason": "offboarded"})
+    assert r.status_code == 200, r.text
+    assert r.json() == {"principal": "employee-1", "revoked_by": "security-officer",
+                        "status": "revoked"}
+
+    # The approval was valid when issued and is void now.
+    monkeypatch.setattr(api_mod, "_authenticated_principal",
+                        lambda request: "employee-1")
+    r = client.post("/v1/execution/execute",
+                    json={"item_id": item_id, "tool_call": PROD_WRITE})
+    assert r.status_code == 200, r.text
+    assert r.json()["outcome"] == "approval_invalidated", r.json()
+    assert "revoked" in r.json()["detail"]
+
+
+def test_a_principal_cannot_revoke_themself(client) -> None:
+    r = client.post("/v1/execution/revoke-principal", json={"principal": "employee-1"})
+    assert r.status_code == 409

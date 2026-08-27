@@ -26,6 +26,8 @@ STRICT_ENV = {
     # authority role keeps the prerequisites this suite already asserted.
     "REMORA_EXECUTION_DOMAIN_ROLE": "authority",
     "REMORA_EFFECT_CREDENTIAL_ENV_NAMES": "ACME_SMTP_PASSWORD",
+    # Property D: strict profiles require an intent resolver.
+    "REMORA_SEMANTIC_BUNDLE_MODULE": "servers.semantic_bundle_research",
 }
 
 
@@ -43,6 +45,7 @@ def _clear(monkeypatch) -> None:
         "REMORA_EXECUTION_DOMAIN_ROLE",
         "REMORA_EFFECT_CREDENTIAL_ENV_NAMES",
         "ACME_SMTP_PASSWORD",
+        "REMORA_SEMANTIC_BUNDLE_MODULE",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -134,3 +137,12 @@ def test_deployment_registry_wires_the_profile_gate(monkeypatch) -> None:
     metadata, declared = resolve_tool_metadata("safe_read")
     assert declared is True
     assert metadata["risk_tier"] == "low"
+
+
+def test_strict_profile_requires_an_intent_resolver(monkeypatch) -> None:
+    """Property D: without a resolver every call would abstain; refuse at startup."""
+    _clear(monkeypatch)
+    _configure_strict(monkeypatch, "review")
+    monkeypatch.delenv("REMORA_SEMANTIC_BUNDLE_MODULE", raising=False)
+    with pytest.raises(RuntimeProfileError, match="intent resolver"):
+        validate_runtime_profile_prerequisites()

@@ -52,7 +52,9 @@ def validate_runtime_profile_prerequisites() -> str:
     - durable execution state (Postgres or single-node SQLite);
     - a declared domain role, and the ADR-A custody split that role implies
       (property E): the authority domain holds no declared effect credential,
-      the execution domain holds no lease signing material.
+      the execution domain holds no lease signing material;
+    - an intent resolver (property D), so the provenance floor refuses
+      unresolved intents rather than every intent.
 
     The authority role additionally requires a ToolSpec signing key and a PDP
     signing key, so the strict PEP never receives an unsigned grant. Those are
@@ -111,6 +113,24 @@ def validate_runtime_profile_prerequisites() -> str:
             f"REMORA runtime profile {profile!r} refuses the legacy/weaker "
             "execution path; missing required configuration: "
             + ", ".join(missing)
+        )
+
+    # Property D: a strict profile requires the intent to resolve from a
+    # deployment-owned source, and the engine hard-abstains when it does not.
+    # A strict deployment with NO resolver would therefore refuse every call
+    # for a reason nobody configured. Refuse at startup instead, with the
+    # reason named.
+    from remora.toolcall.semantic_bundle import (
+        load_intent_resolution_provider,
+        load_intent_resolver,
+    )
+
+    if load_intent_resolver() is None and load_intent_resolution_provider() is None:
+        raise RuntimeProfileError(
+            f"REMORA runtime profile {profile!r} requires an intent resolver "
+            "(property D): set REMORA_SEMANTIC_BUNDLE_MODULE to a module that "
+            "exposes resolve_intent or resolve_intent_detailed. Without one, "
+            "every call would hard-abstain as INTENT_PROVENANCE_REQUIRED."
         )
 
     # Custody last, so its message is never the one hiding a plainer problem.

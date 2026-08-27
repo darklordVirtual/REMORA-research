@@ -1393,6 +1393,7 @@ def _finalize_envelope_audit(
     tenant_id: str,
     fallback_hash: str | None,
     actor_identity: str | None = None,
+    tool_call: Any | None = None,
 ) -> dict[str, Any]:
     audit_block = envelope_payload.get("audit") if isinstance(envelope_payload, dict) else None
     if not isinstance(audit_block, dict):
@@ -1442,7 +1443,15 @@ def _finalize_envelope_audit(
             "proposed_action": request_block.get("proposed_action", ""),
             "action_type": request_block.get("action_type", ""),
         }, sort_keys=True, separators=(",", ":"))
-        tool_call = request_block.get("tool_call")
+        # The wire model when the handler has it (the envelope's request
+        # block carries a summary only); the request block as a fallback.
+        if tool_call is not None and not isinstance(tool_call, dict):
+            tool_call = {
+                "tool_name": getattr(tool_call, "tool_name", None),
+                "arguments": getattr(tool_call, "arguments", None),
+            }
+        if tool_call is None:
+            tool_call = request_block.get("tool_call")
         if (isinstance(tool_call, dict) and tool_call.get("tool_name")
                 and isinstance(tool_call.get("arguments"), dict)):
             # Property C on the legacy surface: bind the FULL argument set
@@ -2397,6 +2406,7 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONRespons
         tenant_id=tenant_id,
         fallback_hash=report.get("state_hash"),
         actor_identity=_actor_identity,
+        tool_call=req.tool_call,
     )
 
     semantic_context = (
