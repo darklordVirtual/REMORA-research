@@ -211,7 +211,7 @@ jobs:
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           # DB drivers come from the declared `postgres` extra (REM-045) —
           # the CI environment installs exactly what the packaging promises.
-          pip install -e ".[dev,causal,api,postgres]" -c /tmp/constraints.txt
+          pip install -e ".[dev,causal,api,postgres,security]" -c /tmp/constraints.txt
 
       - name: Postgres contract tests (must run, not skip)
         # With the DSN set, the DSN-gated tests must actually execute —
@@ -222,6 +222,7 @@ jobs:
         run: |
           python -m pytest tests/test_execution_api.py tests/test_execution_outbox.py \
             tests/test_postgres_outbox_fault_injection.py \
+            tests/conformance/test_execution_boundary_process_split.py \
             -q -rs -k "postgres" | tee out.txt
           if grep -qiE "skipped|no tests ran" out.txt; then
             echo "ERROR: Postgres contract tests skipped despite service DSN" >&2
