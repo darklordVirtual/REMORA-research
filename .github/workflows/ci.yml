@@ -297,6 +297,17 @@ jobs:
         # wiring for real or recording the honest weaker status.
         run: python scripts/check_capability_semantics.py
 
+      - name: Credential topology (Agent Authority property E, static half)
+        # docs/assurance/credential_topology.yaml declares every
+        # secret-bearing environment credential, who holds it and whether the
+        # agent zone can reach it. This gate fails on an undeclared
+        # credential, a stale declaration, reader drift, an opaque env read,
+        # and on any credential declared unreachable that a module inside the
+        # agent zone import closure actually reads. The bypass half lives in
+        # tests/conformance/test_execution_boundary.py; property E is reported
+        # as both together, never this gate alone.
+        run: python scripts/check_credential_topology.py
+
       - name: Product-truth gate
         # docs/product/product_truth_contract.yaml classifies every advertised
         # capability (core/optional/experimental/legacy/demo); public docs and

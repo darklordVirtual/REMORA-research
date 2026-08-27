@@ -2367,6 +2367,17 @@ documents:
   last_reviewed: '2026-08-26'
   audience:
   - researchers
+- id: DOC-330
+  path: docs/assurance/credential_topology.yaml
+  status: canonical
+  topic: docs_assurance_credential_topology_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-08-27'
+  last_reviewed: '2026-08-27'
+  audience:
+  - maintainers
+  - evaluators
 topics:
 - docs_integrations_mcp-gateway_md
 - docs_design_cloudflare-mcp-gateway-v1_md
@@ -2632,3 +2643,4 @@ topics:
 - docs_assurance_mutation_testing_v1
 - docs_deployment_container-reference_md
 - docs_assurance_prose_style_baseline_json
+- docs_assurance_credential_topology_yaml
