@@ -21,7 +21,7 @@ beautifulsoup4==4.14.2
 black==25.9.0
 boltons==21.0.0
 boto3==1.40.61
-botocore==1.40.61
+botocore==1.43.79
 bracex==2.6
 cachebox==5.2.3
 causal-learn==0.1.4.7
