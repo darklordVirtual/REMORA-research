@@ -13,6 +13,12 @@ This file lists externally relevant changes by release. Fine-grained development
   re-recorded at 575 and 45; both remain shrink-only. The character-level
   tells were near zero after the 2026-08-26 pass; these two name what
   still makes the documentation hard to read.
+- `docs/README.md` rebuilt in two layers: a seven-step reading path and a
+  "which one do I want" table for the topics with more than one document
+  (architecture, security, MCP, GO-STAR, SAP versions, claims), with the
+  full registered set in collapsible groups by question. Every link from
+  the previous index is preserved (governance index-completeness check);
+  meta-governance sentences in the index went from 7 to 0.
 
 ### Paper
 
