@@ -16,6 +16,13 @@ from __future__ import annotations
 
 import os
 
+from remora.profiles import (
+    PROFILE_ENV,
+    STRICT_PROFILES,
+    RuntimeProfileError,
+    current_runtime_profile,
+)
+
 __all__ = [
     "PROFILE_ENV",
     "RuntimeProfileError",
@@ -23,46 +30,11 @@ __all__ = [
     "validate_runtime_profile_prerequisites",
 ]
 
-PROFILE_ENV = "REMORA_RUNTIME_PROFILE"
-
-_PROFILE_ALIASES = {
-    "dev": "development",
-    "development": "development",
-    "research": "research",
-    "shadow": "research",
-    "shadow_only": "research",
-    "external_review": "review",
-    "review": "review",
-    "pilot": "controlled_pilot",
-    "controlled-pilot": "controlled_pilot",
-    "controlled_pilot": "controlled_pilot",
-}
-
-_STRICT_PROFILES = frozenset({"review", "controlled_pilot"})
-
-
-class RuntimeProfileError(RuntimeError):
-    """The selected runtime profile is incompatible with the configuration."""
-
-
-def current_runtime_profile() -> str:
-    """Return the normalized runtime profile.
-
-    Compatibility matters for an existing research repository, so an unset
-    profile remains ``research`` even when ``REMORA_ENV=production``. The
-    handoff and pilot quickstarts set the profile explicitly; no existing
-    deployment is silently promoted into a stronger contract.
-    """
-    raw = os.getenv(PROFILE_ENV, "").strip().lower()
-    if not raw:
-        return "research"
-    try:
-        return _PROFILE_ALIASES[raw]
-    except KeyError as exc:
-        allowed = sorted(set(_PROFILE_ALIASES.values()))
-        raise RuntimeProfileError(
-            f"{PROFILE_ENV}={raw!r} is unknown; expected one of {allowed}"
-        ) from exc
+# Name resolution lives in the leaf module remora.profiles so that
+# remora.enforcement.custody can ask which profile is active without importing
+# this module, which imports it. Re-exported here: existing callers are
+# unaffected.
+_STRICT_PROFILES = STRICT_PROFILES
 
 
 def _configured(*names: str) -> bool:

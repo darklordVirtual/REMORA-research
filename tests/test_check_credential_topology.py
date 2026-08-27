@@ -211,3 +211,37 @@ def test_deployment_supplied_credential_gap_is_declared(register: dict) -> None:
     """L5 is the honest core of E and must not quietly disappear."""
     text = " ".join(item["limit"] for item in register["limits"])
     assert "GovernedToolDispatcher" in text
+
+
+def test_the_gate_never_reads_an_environment_value() -> None:
+    """Why the clear-text-logging alert on this script is a false positive.
+
+    CodeQL flags the diagnostic output because the data flowing into it is
+    named like secrets. The data IS names: this gate resolves credentials by
+    parsing source with ``ast`` and never inspects the running environment,
+    so no credential value exists in the process to leak.
+
+    Asserted rather than argued, because a future edit could quietly make the
+    argument false. If someone adds an environment read here, this test fails
+    and the alert stops being a false positive.
+    """
+    import ast
+
+    source = (ROOT / "scripts" / "check_credential_topology.py").read_text(
+        encoding="utf-8"
+    )
+    tree = ast.parse(source)
+
+    imported_os = any(
+        (isinstance(n, ast.Import) and any(a.name == "os" for a in n.names))
+        or (isinstance(n, ast.ImportFrom) and n.module == "os")
+        for n in ast.walk(tree)
+    )
+    assert not imported_os, "the topology gate must not import os"
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute):
+            assert node.attr not in {"environ", "getenv"}, (
+                f"environment access at line {node.lineno}: the gate reads "
+                "credential NAMES from source, never values"
+            )

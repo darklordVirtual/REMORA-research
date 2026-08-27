@@ -415,6 +415,7 @@ selective routing is phase-aware rather than a single global threshold. See
 |--------|-----------|-------|
 | `remora/core.py` | **CORE** | Oracle ABC + OracleResponse |
 | `remora/errors.py` | **CORE** | Runtime exception taxonomy root: `RemoraError` with machine-readable `code`/`category` (issue #45 gap 4). Separate from the SDK's client-side hierarchy by design |
+| `remora/profiles.py` | **CORE** | Runtime profile name resolution, deliberately a leaf: it imports nothing from `remora`, so the enforcement layer and the tool-call layer can both ask which profile is active without importing each other. `remora/toolcall/runtime_profile.py` owns the prerequisites a strict profile imposes and re-exports this module's names |
 | `remora/engine.py` | **EXPERIMENTAL** | Multi-oracle consensus engine behind the `/v1/assess` research surface. Reclassified from CORE 2026-08-26 when the #389 paper reframe fired the gate in [ADR-canonical-decision-engine](docs/architecture/ADR-canonical-decision-engine.md): the policy core is the canonical engine, this one is a maintained research instrument, frozen in responsibility; it never gates enforcement |
 | `remora/reporting.py` | **CORE** | Decision report + `DecisionEnvelope` assembly (dependency-injected; split from `engine.py` 2026-07-29) |
 | `remora/state.py` | **CORE** | `RemoraState` engine session-state contract (re-exported via `remora.engine`) |

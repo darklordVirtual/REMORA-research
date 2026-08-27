@@ -37,6 +37,7 @@ from __future__ import annotations
 import os
 
 from remora.errors import RemoraError
+from remora.profiles import STRICT_PROFILES, current_runtime_profile
 
 __all__ = [
     "ENV_DOMAIN_ROLE",
@@ -86,17 +87,8 @@ def _present(name: str) -> bool:
 
 
 def custody_is_enforced() -> bool:
-    """True when the active runtime profile compels the split.
-
-    Imported lazily: ``remora.toolcall`` reaches into enforcement, and a
-    module-level import here would close the cycle.
-    """
-    from remora.toolcall.runtime_profile import (
-        current_runtime_profile,
-        _STRICT_PROFILES,
-    )
-
-    return current_runtime_profile() in _STRICT_PROFILES
+    """True when the active runtime profile compels the split."""
+    return current_runtime_profile() in STRICT_PROFILES
 
 
 def declared_effect_credentials() -> tuple[str, ...]:
