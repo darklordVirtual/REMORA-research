@@ -66,9 +66,6 @@
     "docs/AI_USE.md": {
       "long_sentence": 1
     },
-    "docs/README.md": {
-      "meta_governance": 7
-    },
     "docs/architecture/ADR-authority-custody-and-lease-durability.md": {
       "long_sentence": 9
     },
