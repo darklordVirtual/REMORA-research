@@ -48,7 +48,7 @@ tested now so it does not have to be retrofitted.
 | Cross-tenant nonce/grant replay | one-time jti ledger + lease nonce, tenant in the binding; audience-scoped tokens | `tests/test_gate_replay_properties.py`, `tests/test_token_hardening.py` |
 | RBAC bleed between tenants | per-tenant capability check on every route | `tests/test_rbac_isolation.py` |
 | R2 prefix escape | R2 evidence keying (`/{tenant_id}/...`) is the Phase 5 design; worker-side R2 use today is single-tenant | **untested — deferred with Phase 5** |
-| D1 query missing tenant filter | agent-control D1 queries carry `tenant_id`; no automated linter yet | partially tested (envelope list/verify by tenant); **query-shape guard is open** |
+| D1 query missing tenant filter | agent-control D1 queries carry `tenant_id`; no automated linter yet | partially tested (envelope list/verify by tenant); **query-shape guard is open**; Postgres side designed as roadmap RF-12 (row-level security; superuser-role blocker recorded) |
 | Cache key tenant omission | no security-relevant KV/cache state on the authoritative path (ADR: security state never in eventual-consistent cache) | by-construction; re-verify at Phase 5 |
 | Operator support privilege | not applicable in customer-hosted model; blocking design item for hosted | open |
 
