@@ -150,6 +150,7 @@ Several topics have more than one document. This table says which to open.
 | [document_register_v1.yaml](assurance/document_register_v1.yaml) | Governed document inventory |
 | [remediation_register.yaml](assurance/remediation_register.yaml) | Open remediation gaps |
 | [capability_register_v1.yaml](assurance/capability_register_v1.yaml) | Capability wiring status |
+| [credential_topology.yaml](assurance/credential_topology.yaml) | Credential custody and agent-zone reachability (Agent Authority property E) |
 | [fasttrack_register_v1.yaml](assurance/fasttrack_register_v1.yaml) | Fast-track work-package status |
 | [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml) | Deployment maturity profiles |
 | [release_gates.md](assurance/release_gates.md) | Profile gate status |

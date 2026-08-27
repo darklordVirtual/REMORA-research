@@ -16,6 +16,13 @@ from __future__ import annotations
 
 import os
 
+from remora.profiles import (
+    PROFILE_ENV,
+    STRICT_PROFILES,
+    RuntimeProfileError,
+    current_runtime_profile,
+)
+
 __all__ = [
     "PROFILE_ENV",
     "RuntimeProfileError",
@@ -23,46 +30,11 @@ __all__ = [
     "validate_runtime_profile_prerequisites",
 ]
 
-PROFILE_ENV = "REMORA_RUNTIME_PROFILE"
-
-_PROFILE_ALIASES = {
-    "dev": "development",
-    "development": "development",
-    "research": "research",
-    "shadow": "research",
-    "shadow_only": "research",
-    "external_review": "review",
-    "review": "review",
-    "pilot": "controlled_pilot",
-    "controlled-pilot": "controlled_pilot",
-    "controlled_pilot": "controlled_pilot",
-}
-
-_STRICT_PROFILES = frozenset({"review", "controlled_pilot"})
-
-
-class RuntimeProfileError(RuntimeError):
-    """The selected runtime profile is incompatible with the configuration."""
-
-
-def current_runtime_profile() -> str:
-    """Return the normalized runtime profile.
-
-    Compatibility matters for an existing research repository, so an unset
-    profile remains ``research`` even when ``REMORA_ENV=production``. The
-    handoff and pilot quickstarts set the profile explicitly; no existing
-    deployment is silently promoted into a stronger contract.
-    """
-    raw = os.getenv(PROFILE_ENV, "").strip().lower()
-    if not raw:
-        return "research"
-    try:
-        return _PROFILE_ALIASES[raw]
-    except KeyError as exc:
-        allowed = sorted(set(_PROFILE_ALIASES.values()))
-        raise RuntimeProfileError(
-            f"{PROFILE_ENV}={raw!r} is unknown; expected one of {allowed}"
-        ) from exc
+# Name resolution lives in the leaf module remora.profiles so that
+# remora.enforcement.custody can ask which profile is active without importing
+# this module, which imports it. Re-exported here: existing callers are
+# unaffected.
+_STRICT_PROFILES = STRICT_PROFILES
 
 
 def _configured(*names: str) -> bool:
@@ -78,7 +50,14 @@ def validate_runtime_profile_prerequisites() -> str:
     - an explicit trusted signing identity allowlist;
     - a deployment-owned callable registry;
     - durable execution state (Postgres or single-node SQLite);
-    - a PDP signing key so the strict PEP never receives an unsigned grant.
+    - a declared domain role, and the ADR-A custody split that role implies
+      (property E): the authority domain holds no declared effect credential,
+      the execution domain holds no lease signing material.
+
+    The authority role additionally requires a ToolSpec signing key and a PDP
+    signing key, so the strict PEP never receives an unsigned grant. Those are
+    deliberately NOT required of the execution domain, which must not be able
+    to sign the authority it verifies.
 
     ``controlled_pilot`` additionally requires ``REMORA_ENV=production``.
 
@@ -88,19 +67,44 @@ def validate_runtime_profile_prerequisites() -> str:
     if profile not in _STRICT_PROFILES:
         return profile
 
+    # Property E: the strict profiles compel the ADR-A custody split. A
+    # deployment that has not split refuses to start, rather than serving an
+    # execution boundary that a single interpreter cannot enforce. Validated
+    # before the rest, because which prerequisites apply depends on the role.
+    from remora.enforcement.custody import (
+        DOMAIN_AUTHORITY,
+        CustodyViolation,
+        assert_custody_split,
+        domain_role,
+    )
+
+    # Read the role leniently for the prerequisite pass. A deployment that
+    # has configured nothing should still hear about the missing signing key
+    # and durable state, not only about custody: reporting one error at a
+    # time turns a single misconfiguration into several rounds of restarts.
+    try:
+        role = domain_role(strict=False)
+    except CustodyViolation:
+        role = DOMAIN_AUTHORITY
+
     missing: list[str] = []
     if not _configured("REMORA_TOOLSPEC_BUNDLE"):
         missing.append("REMORA_TOOLSPEC_BUNDLE")
-    if not _configured("REMORA_TOOLSPEC_SIGNING_KEY"):
-        missing.append("REMORA_TOOLSPEC_SIGNING_KEY")
     if not _configured("REMORA_TOOLSPEC_TRUSTED_IDENTITIES"):
         missing.append("REMORA_TOOLSPEC_TRUSTED_IDENTITIES")
     if not _configured("REMORA_TOOL_REGISTRY_MODULE"):
         missing.append("REMORA_TOOL_REGISTRY_MODULE")
     if not _configured("REMORA_PG_DSN", "REMORA_CHAIN_DB"):
         missing.append("REMORA_PG_DSN (or REMORA_CHAIN_DB)")
-    if not _configured("REMORA_PDP_SIGNING_KEY"):
-        missing.append("REMORA_PDP_SIGNING_KEY")
+
+    # Signing material is an authority prerequisite and an executor
+    # violation. The single list this replaced assumed one process did both,
+    # which is the assumption the custody split removes.
+    if role == DOMAIN_AUTHORITY:
+        if not _configured("REMORA_TOOLSPEC_SIGNING_KEY"):
+            missing.append("REMORA_TOOLSPEC_SIGNING_KEY")
+        if not _configured("REMORA_PDP_SIGNING_KEY"):
+            missing.append("REMORA_PDP_SIGNING_KEY")
 
     if missing:
         raise RuntimeProfileError(
@@ -108,6 +112,9 @@ def validate_runtime_profile_prerequisites() -> str:
             "execution path; missing required configuration: "
             + ", ".join(missing)
         )
+
+    # Custody last, so its message is never the one hiding a plainer problem.
+    assert_custody_split(strict=True)
 
     if profile == "controlled_pilot":
         env = os.getenv("REMORA_ENV", "").strip().lower()

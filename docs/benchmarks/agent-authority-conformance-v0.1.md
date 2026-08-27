@@ -90,6 +90,9 @@ without it. Evidence for this property is an argument about *credential
 topology*, not about hook correctness, and it is the property most often
 assumed rather than tested.
 
+Because that argument is easy to make and hard to falsify, E is the one
+property with a prescribed evidence shape. See §9.
+
 ### F. TOCTOU Resistance
 
 *Can the conditions that were approved change between authorization and
@@ -213,9 +216,17 @@ recognise nothing, the property definitions are wrong, not the implementer.
 - The seven properties are asserted to be separable, not proven exhaustive.
   Availability, cost control, rate limiting, data minimisation and rollback are
   not covered.
-- E is stated as a property but no measurement procedure is given. It currently
-  reduces to an argument about credential topology, which is harder to falsify
-  than the other six.
+- E now has a prescribed measurement procedure (§9), added after this list was
+  first written. The underlying difficulty is unchanged: E is a claim about
+  absence, so the procedure bounds the claim rather than proving it. The
+  residual limitation is that an E PASS is only ever as wide as the declared
+  agent zone and the attempted bypass classes, and both are chosen by the
+  assessor.
+- The procedure for E is asymmetric across an organisational boundary: its
+  static half needs source access. Assessing a third party will usually produce
+  bypass results with an UNTESTED topology, which is a weaker row than a
+  self-assessment can produce. This compounds the public-test-suite bias noted
+  below.
 - The model assesses *evidence*, so it systematically favours systems with
   public test suites. That bias is intentional but should be stated whenever
   results are shown.
@@ -224,3 +235,96 @@ recognise nothing, the property definitions are wrong, not the implementer.
 - v0.1 has been applied to exactly two systems, one of them the authoring
   repository. Reusability is a hypothesis at this point, not a demonstrated
   property. See `docs/benchmarks/aegis-remora-crosswalk.md`.
+
+## 9. Measurement procedure for E
+
+The other six properties are demonstrated by a test that fails when the
+property is removed. E has no natural test of that shape, because it is a claim
+about *absence*: that no second path to the effect exists. Absence cannot be
+tested directly, so this section prescribes what an E assessment must contain
+instead. An E row without both halves is recorded as UNTESTED.
+
+**Half one, declared topology.** A machine-readable register listing every
+credential that reaches, or authorizes, a protected effect. Per entry: the
+credential, its class, the component that holds it, the authorized path, and an
+explicit reachability claim. The register must be checked against the code
+rather than maintained by hand. Three drifts must fail the check: a credential
+the code reads but the register omits, a register entry nothing reads any more,
+and a reader set that no longer matches the code. A register that cannot go
+stale is the difference between a topology and a diagram.
+
+The reachability claim is made falsifiable by declaring an **agent zone**: the
+set of modules agent-controlled code can reach, given as roots plus their
+transitive import closure. A credential declared unreachable must not be read
+inside that closure. The zone declaration is the load-bearing part of the
+claim, and the assessment must state the reasoning for the chosen roots and
+what changes if they are drawn wider.
+
+**Half two, bypass attempts.** A suite of named attempts to reach the effect
+without the controlled path, each recording what actually happened. Five
+attempts are the minimum:
+
+1. dispatch without authorization;
+2. dispatch of an unwrapped or unregistered tool name;
+3. extraction of the guarded callable from the enforcement point;
+4. reading the credential from a shared process;
+5. reaching the effect through an already authenticated client, pool or
+   subprocess.
+
+**Attempts that succeed are recorded as successes.** This is the rule that
+makes the procedure worth running. A bypass suite that reports only refusals is
+evidence about the refusals it chose to attempt, and E is precisely the
+property where that substitution has gone unnoticed. A demonstrated bypass with
+a stated architectural reason is a stronger E row than an unbroken row of
+green.
+
+**Answering a bypass by refusing its configuration.** Some bypasses have no fix
+inside the component. An in-process language runtime offers no custody, so a
+guarded callable can always be reached by code running beside it. The
+legitimate response is not to weaken the attempt until it fails, and not to
+argue the attempt is unrealistic. It is to make the configuration in which the
+bypass matters unavailable, and to demonstrate the refusal with the same rigour
+as any other property: a named test showing the deployment does not start.
+
+An assessment reporting such a refusal must state three things, or the move
+becomes a way of defining the problem away:
+
+1. **The bypass still succeeds** where the configuration is permitted. The
+   original case stays in the suite, passing, rather than being deleted.
+2. **Which configurations are refused**, by name, and which remain supported.
+   A refusal that no supported profile actually enforces is documentation.
+3. **What the refusal cannot observe.** A process can check its own
+   environment; it cannot check the network it sits on. The boundary between
+   the two belongs in the row, not in the reader's assumptions.
+
+Where those hold, the refused configuration is recorded as OUT OF SCOPE under
+§2 rather than as FAIL, because it is a stated non-claim backed by a guard.
+Where they do not, the row stays FAIL.
+
+**Reporting.** An E status is the pair, never the static half alone, written as
+`PASS (scope: ...)` with the register's limits reproduced. The procedure has
+two structural properties an assessor must state:
+
+- It is **asymmetric**. Half one needs source access; half two needs only a
+  running endpoint. Assessing a third-party system will usually yield half two
+  only, which is UNTESTED for the topology and a real result for the attempts.
+- It **cannot prove absence**. A static import scan that misses an edge shrinks
+  the zone, so its failure mode is a missed finding, not a false accusation.
+  A PASS therefore means *no demonstrable alternative path within the declared
+  zone and the attempted classes*, and must be written that way.
+
+---
+
+## Revision note
+
+The version stays at v0.1. Nothing in §1 changed: the seven property
+definitions, their separability, and the inferences each one forbids are
+untouched, and any assessment written against the original text remains valid.
+What §9 adds is an evidence requirement for one property, which raises the bar
+for a future E row rather than reinterpreting a past one.
+
+Two things §9 deliberately does not settle. It does not act on the proposal in
+`docs/research/adjacent-systems-crosswalk-v2.md` to record `E2` as a declared
+scope under E, or to split F into `F1` and `F2`; those are vocabulary changes
+and still await review. E also stays incommensurable with the other six
+properties, so §6 continues to apply in full.
