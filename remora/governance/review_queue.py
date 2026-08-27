@@ -172,6 +172,10 @@ class ReviewQueue:
         # double-spent by concurrent execute() calls (non-atomic check-then-act).
         import threading
         self._lock = threading.RLock()
+        # Principals whose authority was withdrawn after they acted. Checked
+        # at the execution re-gate: an approval outlives its approver only
+        # if nobody looks.
+        self._revoked: dict[str, str] = {}
 
     # ------------------------------------------------------------------
     # Introspection
@@ -282,6 +286,27 @@ class ReviewQueue:
             )
             return rejected
 
+    def revoke_principal(self, principal: str, *, reason: str = "") -> None:
+        """Withdraw ``principal``'s authority for every pending execution.
+
+        Approvals already granted are not rewritten. The execution re-gate
+        refuses them instead, so the record shows an approval that was valid
+        when issued and a revocation that arrived before dispatch.
+        """
+        if not principal or not principal.strip():
+            raise ValueError("revoke_principal requires a principal")
+        with self._lock:
+            self._revoked[principal] = reason
+            self._log.append(
+                "principal_revoked", {"principal": principal, "reason": reason}
+            )
+
+    def is_revoked(self, principal: str | None) -> bool:
+        if not principal:
+            return False
+        with self._lock:
+            return principal in self._revoked
+
     def approve(
         self,
         item_id: str,
@@ -383,6 +408,24 @@ class ReviewQueue:
                 "approval expired; item returned to review queue",
             )
 
+        # 4a'. Revoked approver: the approval was valid when issued and is
+        # void now. Same decision as "world got riskier", because it did.
+        if approval.approver in self._revoked:
+            item.status = ItemStatus.PENDING
+            item.approval = None
+            self._log.append(
+                "approval_invalidated",
+                {
+                    "item_id": item_id,
+                    "reason": "approver_revoked",
+                    "approver": approval.approver,
+                },
+            )
+            return ExecutionOutcome(
+                ExecutionDecision.APPROVAL_INVALIDATED,
+                None,
+                "approver revoked after approval; item returned to review queue",
+            )
         # 4b. Payload binding — the approval authorises exactly one payload.
         # A missing hash on either side is a refusal, never a match: two
         # hash-less observations must not bind (fail closed).

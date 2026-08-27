@@ -239,6 +239,17 @@ class PolicyObservation:
     # without disclosing which condition an attacker reached.
     intent_resolution_status: str | None = None
 
+    # Property D, strict profiles only: the deployment requires the intent to
+    # come from a primary source (signed work order, operator form,
+    # version-locked template) rather than from the proposer's own reading of
+    # its proposal. When set and the intent did not resolve, the call
+    # hard-abstains before review. False keeps the research posture.
+    intent_provenance_required: bool = False
+    # Whether the intent resolved from such a source. Computed at the
+    # boundary so the engine never reads the raw resolution status, which
+    # stays audit-only and off the OPA input on purpose.
+    intent_provenance_resolved: bool | None = None
+
     # Does this call serve the task's goal — right resource, right effect?
     # True  → established: the declared tool contract matches an intent quoted
     #         from the task text, and the call fills the targeted role.

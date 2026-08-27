@@ -258,6 +258,18 @@ class ToolCallRequest(BaseModel):
     }
 
 
+class RevokePrincipalRequest(BaseModel):
+    """Withdraw a principal's authority for every pending execution (property B).
+
+    Approvals already granted are not rewritten. The execution re-gate
+    refuses them, so the record shows an approval valid when issued and a
+    revocation that arrived before dispatch.
+    """
+
+    principal: str = Field(..., min_length=1, max_length=256)
+    reason: str | None = Field(None, max_length=512)
+
+
 class ApproveRequest(BaseModel):
     item_id: str
     approval_ttl_seconds: int = Field(900, gt=0, le=86400)

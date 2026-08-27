@@ -35,6 +35,7 @@ python -m remora assess drop_database        # zero flags: risk/type inferred fr
 | `provenance` | Policy bundle hash + per-file SHA-256 manifest + version. |
 | `verify` | Formal safety invariant verification (CI-friendly with `--json`). |
 | `maturity` | Module stability maturity report. |
+| `effect-verify` | Read back an external object over HTTP and verify a declared delta (property G). Exit 0 only for `EFFECT_VERIFIED`; mismatch 40, unobservable 41, verifier failed 42. |
 | `doctor` | Environment self-check: what works, what's missing, how to fix it (`--json` for CI). |
 
 Mistyped a command? The CLI suggests the closest one (`remora asses` →

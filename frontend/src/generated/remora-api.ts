@@ -496,6 +496,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/revoke-principal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Principal
+         * @description Withdraw a principal's authority after the fact (property B).
+         *
+         *     Same capability as approving, because it is the same authority acting in
+         *     the other direction. The revoker is the authenticated principal, never
+         *     the body. A principal may not revoke themself through this route: the
+         *     chain would then show a self-cancelling authority with no second party.
+         */
+        post: operations["revoke_principal_v1_execution_revoke_principal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/follow-up": {
         parameters: {
             query?: never;
@@ -1193,6 +1218,20 @@ export interface components {
              * @description Client-declared annotation only: when it differs from the authenticated principal it is recorded as unverified metadata. The audited reviewer identity is always the principal from the bearer token.
              */
             reviewer_id: string;
+        };
+        /**
+         * RevokePrincipalRequest
+         * @description Withdraw a principal's authority for every pending execution (property B).
+         *
+         *     Approvals already granted are not rewritten. The execution re-gate
+         *     refuses them, so the record shows an approval valid when issued and a
+         *     revocation that arrived before dispatch.
+         */
+        RevokePrincipalRequest: {
+            /** Principal */
+            principal: string;
+            /** Reason */
+            reason?: string | null;
         };
         /** SemanticAssessment */
         SemanticAssessment: {
@@ -2259,6 +2298,59 @@ export interface operations {
             };
             /** @description Item is not pending. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_principal_v1_execution_revoke_principal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokePrincipalRequest"];
+            };
+        };
+        responses: {
+            /** @description Revocation recorded; pending executions approved by this principal will be refused at the re-gate. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
