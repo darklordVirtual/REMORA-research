@@ -56,3 +56,25 @@ def test_new_file_starts_at_zero() -> None:
 def test_repository_is_at_or_below_baseline() -> None:
     reg, _ = mod.compare(mod.scan_repo(), mod.load_baseline())
     assert reg == []
+
+
+def test_long_sentence_counted_across_wrapped_lines_not_in_lists_or_tables() -> None:
+    words = " ".join(["word"] * 36)
+    wrapped = " ".join(["word"] * 18) + "\n" + " ".join(["word"] * 18)
+    assert mod.scan_text(words + ".\n")["long_sentence"] == 1
+    assert mod.scan_text(wrapped + ".\n")["long_sentence"] == 1
+    assert mod.scan_text(" ".join(["word"] * 35) + ".\n")["long_sentence"] == 0
+    assert mod.scan_text("| " + words + " |\n")["long_sentence"] == 0
+    assert mod.scan_text("- [ ] " + words + "\n")["long_sentence"] == 0
+    # two short sentences in one paragraph are two sentences, not one long one
+    assert mod.scan_text("Short one. " + " ".join(["w"] * 30) + ".\n")["long_sentence"] == 0
+
+
+def test_meta_governance_sentences_counted() -> None:
+    c = mod.scan_text(
+        "The grant is consumed atomically.\n"
+        "ARCHITECTURE.md is canonical; this file is subordinate to it when the two differ.\n"
+        "File presence does not imply runtime wiring.\n"
+    )
+    assert c["meta_governance"] == 2
+    assert mod.scan_text("The canonical JSON form is hashed.\n")["meta_governance"] == 0

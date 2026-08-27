@@ -4,6 +4,16 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Documentation
+
+- Prose-style scanner (`scripts/check_prose_style.py`) gained two
+  sentence-level tells: `long_sentence` (over 35 words, wrapped lines
+  joined, lists and tables skipped) and `meta_governance` (sentences about
+  how a document is to be read rather than about the system). Baseline
+  re-recorded at 575 and 45; both remain shrink-only. The character-level
+  tells were near zero after the 2026-08-26 pass; these two name what
+  still makes the documentation hard to read.
+
 ### Paper
 
 - Reframed the paper around governed execution assurance: the authority-bound
