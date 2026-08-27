@@ -192,6 +192,9 @@ class ExecutionLease:
             raise LeaseRefused(
                 f"execution lease refused: decision {decision!r} is not 'accept'"
             )
+        from remora.enforcement.custody import assert_may_mint_authority
+
+        assert_may_mint_authority()
         issued_dt = _parse_utc(issued_at)
         if expires_at is None:
             expires_at = (
@@ -577,7 +580,17 @@ class GovernedToolDispatcher:
         self._spec_identity = resolver
 
     def register(self, tool_name: str, fn: Callable[[Any], Any]) -> None:
-        """Register the callable that actually executes ``tool_name``."""
+        """Register the callable that actually executes ``tool_name``.
+
+        Under a strict runtime profile the authority domain is refused here
+        (property E). The callable closes over the downstream credential, so
+        registering it in the process that also mints authority recreates the
+        single-process configuration whose bypasses the conformance suite
+        demonstrates.
+        """
+        from remora.enforcement.custody import assert_may_hold_tool_callables
+
+        assert_may_hold_tool_callables()
         self._tools[tool_name] = fn
 
     def dispatch(

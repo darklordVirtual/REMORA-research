@@ -278,6 +278,29 @@ property where that substitution has gone unnoticed. A demonstrated bypass with
 a stated architectural reason is a stronger E row than an unbroken row of
 green.
 
+**Answering a bypass by refusing its configuration.** Some bypasses have no fix
+inside the component. An in-process language runtime offers no custody, so a
+guarded callable can always be reached by code running beside it. The
+legitimate response is not to weaken the attempt until it fails, and not to
+argue the attempt is unrealistic. It is to make the configuration in which the
+bypass matters unavailable, and to demonstrate the refusal with the same rigour
+as any other property: a named test showing the deployment does not start.
+
+An assessment reporting such a refusal must state three things, or the move
+becomes a way of defining the problem away:
+
+1. **The bypass still succeeds** where the configuration is permitted. The
+   original case stays in the suite, passing, rather than being deleted.
+2. **Which configurations are refused**, by name, and which remain supported.
+   A refusal that no supported profile actually enforces is documentation.
+3. **What the refusal cannot observe.** A process can check its own
+   environment; it cannot check the network it sits on. The boundary between
+   the two belongs in the row, not in the reader's assumptions.
+
+Where those hold, the refused configuration is recorded as OUT OF SCOPE under
+§2 rather than as FAIL, because it is a stated non-claim backed by a guard.
+Where they do not, the row stays FAIL.
+
 **Reporting.** An E status is the pair, never the static half alone, written as
 `PASS (scope: ...)` with the register's limits reproduced. The procedure has
 two structural properties an assessor must state:

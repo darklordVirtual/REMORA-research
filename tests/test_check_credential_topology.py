@@ -202,6 +202,9 @@ def test_every_limit_has_an_identifier_and_text(register: dict) -> None:
     for item in limits:
         assert item["id"].startswith("L")
         assert len(item["limit"].strip()) > 40
+        # Every limit must say what the strict profiles do about it. A limit
+        # with no disposition is one nobody decided on.
+        assert len(item["strict_profile"].strip()) > 40, item["id"]
 
 
 def test_deployment_supplied_credential_gap_is_declared(register: dict) -> None:

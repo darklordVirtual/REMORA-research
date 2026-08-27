@@ -90,6 +90,9 @@ FILE_THRESHOLDS: dict[str, float] = {
     # ADR-A. The uncovered remainder is the import-error path for the optional
     # 'cryptography' extra, which is exercised by monkeypatch rather than by
     # actually uninstalling the package mid-run.
+    "remora/enforcement/custody.py": 98.0,  # 100.00: every refusal branch is
+    # a named conformance case (K1-K11), so a gap here means a configuration
+    # the custody split no longer refuses
     "remora/enforcement/lease_signing.py": 98.0,
 }
 
