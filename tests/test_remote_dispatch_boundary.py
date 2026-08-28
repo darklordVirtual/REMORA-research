@@ -272,8 +272,13 @@ def test_missing_crypto_is_a_named_refusal_not_a_server_error(monkeypatch,
 
     result = _dispatch(dispatcher=None)
     assert result["executed"] is False
-    assert result["refusal_reason"].startswith("lease_unavailable")
-    assert "cryptography" in result["refusal_reason"]
+    assert result["refusal_reason"] == "lease_unavailable"
+    # The refusal is named by class on the wire. The library's own message
+    # ("cryptography is not installed") goes to the dispatch.lease_unavailable
+    # audit event, where the operator reads it; a caller never does, because a
+    # signing failure can name key material and paths (CodeQL #408).
+    assert result["error"] == "SigningUnavailable"
+    assert "cryptography" not in json.dumps(result)
 
 
 def test_the_deployed_image_installs_the_security_extra():
