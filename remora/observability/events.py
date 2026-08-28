@@ -13,9 +13,13 @@ debugged without reading the chain.
 
 Design constraints, in order:
 
-1. **Never log a secret.** Field names are screened against a deny-list and
-   the emitter raises rather than logging something that looks like a
-   credential. A logging call must never become the reason a key leaks.
+1. **Never log a secret.** Two layers, because one was not enough. Field names
+   are screened against a deny-list and the emitter raises rather than logging
+   something that looks like a credential. Field VALUES are then redacted for
+   credential-shaped and location-shaped runs, because a free-text field like
+   ``detail=str(exc)`` carries whatever a downstream library put in its
+   exception message, under a field name nothing would object to. A logging
+   call must never become the reason a key leaks.
 2. **Never change behaviour.** Emission failures are swallowed at the call
    site's level, not propagated: an observability defect must not turn into
    a governance defect. The one thing that is *not* swallowed is a
@@ -28,10 +32,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-#: Substrings that must never appear in a field NAME. Values are not
-#: inspected — a heuristic over values would either miss real secrets or
-#: block legitimate hashes, and a name-level rule is one a reviewer can
-#: check by reading the call site.
+from remora.observability.redaction import redact_field
+
+#: Substrings that must never appear in a field NAME. This layer is a rule a
+#: reviewer can check by reading the call site. Values are handled separately,
+#: by redaction rather than refusal: see remora.observability.redaction.
 _FORBIDDEN_FIELD_PARTS: tuple[str, ...] = (
     "secret",
     "password",
@@ -95,6 +100,13 @@ def governance_event(
     logger = logging.getLogger(_LOGGER_NAME)
     if not logger.isEnabledFor(level):
         return
+    # Name screening is not enough on its own. Several call sites pass
+    # detail=str(exc), and a downstream library decides what goes in that
+    # string: a bearer token, an internal hostname, a path, a connection
+    # string. The field name is innocent, so the screen above passes it. Every
+    # string value is therefore redacted here, at the one choke point, rather
+    # than at each call site where the next one would forget (RMR-003).
+    fields = {k: redact_field(k, v) for k, v in fields.items()}
     try:
         rendered = " ".join(f"{k}={v!r}" for k, v in sorted(fields.items()))
         logger.log(level, "%s %s", event, rendered, extra={"remora": fields})
