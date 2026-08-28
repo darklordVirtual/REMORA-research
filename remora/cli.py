@@ -330,7 +330,7 @@ def _make_ink(force: bool | None = None) -> _Ink:
             import colorama
             colorama.just_fix_windows_console()
         except Exception:
-            pass
+            pass  # colorama is optional; plain ANSI output is the fallback
     return _Ink(enabled)
 
 

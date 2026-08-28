@@ -1,13 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   EXPECTED_BADGE,
-  EXPECTED_STRIPE,
   RISK_STRIPE,
-  RISK_BADGE,
-  VERDICT_TICKER,
   FAMILY_DOT,
   STATUS_LABEL,
-  RISK_LEVEL_CLS,
   statusPillClass,
   canOpenEscalation,
   verdictBorderBg,

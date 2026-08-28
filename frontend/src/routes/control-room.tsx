@@ -1,6 +1,5 @@
 ﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { DemoBanner } from "@/components/demo-banner";
-import { cn } from "@/lib/utils";
 import { Suspense, lazy } from "react";
 
 import { useControlRoom } from "@/features/control-room/hooks/useControlRoom";

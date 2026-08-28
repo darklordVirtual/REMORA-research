@@ -141,7 +141,7 @@ class ConsensusGate:
 
     def run(self, ctx: _StageContext) -> StageResult:
         state = self.engine.run(ctx.question, ctx.context)
-        _report = self.engine.report(state)  # noqa: F841
+        self.engine.report(state)
 
         trust = None
         phase = None
@@ -195,7 +195,7 @@ class ConsensusGate:
                         level=_logging.WARNING, error=type(exc).__name__,
                     )
                 except Exception:
-                    pass
+                    pass  # telemetry failure must not mask the stage result
                 calibrated_trust = trust
 
         # Per-domain threshold overrides the global accept threshold.

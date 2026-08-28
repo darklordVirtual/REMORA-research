@@ -1,3 +1,4 @@
+import sys
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
 """Patch Section 7.1 in remora_paper.md with PhaseAwareGuardrail details."""
@@ -14,10 +15,10 @@ end_idx = content.find(end_marker, start_idx)
 
 if start_idx < 0:
     print("ERROR: start marker not found")
-    exit(1)
+    sys.exit(1)
 if end_idx < 0:
     print("ERROR: end marker not found")
-    exit(1)
+    sys.exit(1)
 
 old_para = content[start_idx:end_idx]
 print("Found paragraph:", repr(old_para[:100]))

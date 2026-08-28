@@ -36,7 +36,7 @@ def load_seeds() -> list[dict]:
                     ep["can_publish_metric"] = True
                     episodes.append(ep)
                 except json.JSONDecodeError:
-                    pass
+                    pass  # malformed record skipped
     return episodes
 
 
@@ -73,7 +73,7 @@ def load_arena_as_episodes() -> list[dict]:
                     }
                     episodes.append(ep)
                 except (json.JSONDecodeError, KeyError):
-                    pass
+                    pass  # malformed record skipped
     return episodes
 
 

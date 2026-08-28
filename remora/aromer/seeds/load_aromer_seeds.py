@@ -179,7 +179,6 @@ def _inject_domain_prior(
 ) -> None:
     """Inject a domain prior into the world model dict."""
     key = f"{domain}:{action_type}:{risk_tier}"
-    alpha, beta = _compute_alpha_beta(p_harm_prior, n_pseudo)
 
     # Scale by weight: reduce pseudo-observations proportionally
     effective_n = n_pseudo * weight
@@ -481,7 +480,7 @@ def _process_golden_episodes(
                     ep = json.loads(line)
                     existing_ids.add(ep.get("episode_id", ""))
                 except Exception:
-                    pass
+                    pass  # malformed JSONL line skipped
 
     appended = 0
     with episodes_path.open("a", encoding="utf-8") as fh:

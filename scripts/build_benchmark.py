@@ -173,7 +173,6 @@ def load_truthfulqa(n_per_domain: int = 50, seed: int = 42) -> list[BenchmarkEnt
                 continue
 
             best_answer = (row.get("Best Answer") or row.get("best_answer") or "").strip()
-            _correct_str = (row.get("Correct Answers") or row.get("correct_answers") or "").strip()  # noqa: F841
 
             # Derive ground truth: the "Best Answer" should confirm or deny the claim
             best_lower = best_answer.lower()

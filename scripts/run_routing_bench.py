@@ -238,30 +238,30 @@ def main() -> None:
         },
         "arms": arms,
         "caveats": [
-            "Routes with zero labelled episodes are reported as unmeasured, "
-            "never as a zero rate.",
-            "ToolSandbox is not redistributable (Apple's own license, not OSI). "
+            ("Routes with zero labelled episodes are reported as unmeasured, "
+            "never as a zero rate."),
+            ("ToolSandbox is not redistributable (Apple's own license, not OSI). "
             "Its episodes are built locally and never committed, so a CI run "
             "has no ABSTAIN support while a local run does. The "
-            "local_only_sources_included field records which applied.",
-            "Confidence intervals are cluster-adjusted over cluster_id: many "
-            "episodes derive from one upstream task and are not independent draws.",
-            "Arms C and D are counterfactual metadata injections, not deployment "
-            "measurements.",
-            "The benchmark scores the routing decision over a single proposed "
-            "call. tau2 tasks are multi-turn conversations; no agent is run.",
-            "Arm F preserves ABSTAIN recall at the arm-A level (62.5%) via the "
+            "local_only_sources_included field records which applied."),
+            ("Confidence intervals are cluster-adjusted over cluster_id: many "
+            "episodes derive from one upstream task and are not independent draws."),
+            ("Arms C and D are counterfactual metadata injections, not deployment "
+            "measurements."),
+            ("The benchmark scores the routing decision over a single proposed "
+            "call. tau2 tasks are multi-turn conversations; no agent is run."),
+            ("Arm F preserves ABSTAIN recall at the arm-A level (62.5%) via the "
             "tool registry's arguments_satisfiable signal. Its remaining cost "
             "is 89 of 227 known-wrong calls accepted, all read-only tau2 "
             "substitutions. The registry currently covers only ToolSandbox "
             "tools, so tau2 calls yield arguments_satisfiable=None (unknown, "
             "which does not disqualify). Extending the registry to tau2 is the "
-            "next lever on that number and is not yet done.",
-            "tool_registry_size records how many tool signatures were "
+            "next lever on that number and is not yet done."),
+            ("tool_registry_size records how many tool signatures were "
             "available. The registry is built from ToolSandbox tool sources in "
             "the local cache, so a CI run has an empty registry and arm F would "
             "lose the ABSTAIN protection along with the ABSTAIN episodes "
-            "themselves.",
+            "themselves."),
         ],
     }
 

@@ -7,6 +7,7 @@ with claims_allowed:false and data_source:synthetic.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 from experiments.tsf.forecast import destabilization_score
@@ -50,7 +51,7 @@ def main() -> int:
                     scores.append(destabilization_score(vals[: t + 1], h, m))
                     labels.append(1 if any(labs[t + 1: t + 1 + h]) else 0)
             a = auroc(scores, labels)
-            entry["baselines"][m] = round(a, 4) if a == a else None
+            entry["baselines"][m] = round(a, 4) if not math.isnan(a) else None
         entry["auroc"] = entry["baselines"]["b1"]
         horizons_out.append(entry)
     OUT.write_text(json.dumps({

@@ -34,10 +34,21 @@ class ReviewNotFound(RemoraError):
 
 
 class ReviewConflict(RemoraError):
-    """The item is not in an approvable/rejectable state (route maps to 409)."""
+    """The item is not in an approvable/rejectable state (route maps to 409).
+
+    ``reason`` is the published, constant string the route returns; the
+    exception message is for logs and never reaches a client.
+    """
 
     code = "review_conflict"
     category = "execution"
+
+    def __init__(self, message: str, *, reason: str | None = None) -> None:
+        super().__init__(message)
+        # Generic construction (``raise conflict(str(exc))`` in the service)
+        # falls back to the class code, so the wire detail is a constant in
+        # every case and the exception text stays server-side.
+        self.reason = reason or self.code
 
 
 def approve_item(
@@ -93,7 +104,7 @@ def approve_item(
         # one this endpoint contracts on, and the original rides the
         # exception chain for the log.
         raise ReviewConflict(
-            "item is not in an approvable state"
+            "item is not in an approvable state", reason="item_not_approvable"
         ) from exc
 
     # FT-01 conformance, AFTER the queue accepted: the move the queue just
@@ -148,7 +159,7 @@ def reject_item(
     except ValueError as exc:
         # See approve_item: the queue's message stays out of the response.
         raise ReviewConflict(
-            "item is not in a rejectable state"
+            "item is not in a rejectable state", reason="item_not_rejectable"
         ) from exc
 
     lifecycle_guard("REVIEW_PENDING", "human_rejection")

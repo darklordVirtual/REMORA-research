@@ -237,6 +237,7 @@ def _read_payload() -> dict[str, Any] | None:
     except Exception as exc:
         # Malformed hook input — fail-open in research mode, block if FAIL_CLOSED.
         _fail_exit(f"could not parse hook input ({type(exc).__name__}: {exc})")
+        return None
 
 
 def main() -> None:

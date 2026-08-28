@@ -271,6 +271,8 @@ class ToolSpecChanged(RemoraError):
 
     code = "toolspec_changed"
     category = "execution"
+    #: Published reason code (schemas/tool_spec_v1.yaml); the wire detail.
+    reason = "toolspec_changed_between_assess_and_dispatch"
 
 
 def execute_approved_item(

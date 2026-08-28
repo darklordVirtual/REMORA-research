@@ -97,7 +97,7 @@ def load_episode_critiques(episode_store_path: pathlib.Path | None = None) -> li
                 if ep.get("critique_text"):
                     episodes.append(ep)
             except json.JSONDecodeError:
-                pass
+                pass  # malformed JSONL line skipped
     return episodes
 
 
@@ -169,7 +169,7 @@ def load_holdout() -> list[dict[str, Any]]:
                 if not ep.get("can_train", True):  # holdout episodes
                     episodes.append(ep)
             except json.JSONDecodeError:
-                pass
+                pass  # malformed JSONL line skipped
     return episodes
 
 

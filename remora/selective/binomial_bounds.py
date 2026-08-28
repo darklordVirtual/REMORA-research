@@ -25,7 +25,7 @@ def binomial_tail_prob(k: int, n: int, p: float) -> float:
     if p <= 0.0:
         return 0.0
     if p >= 1.0:
-        return 1.0 if k <= n else 0.0
+        return 1.0  # k <= n is established above
     log_p = math.log(p)
     log_q = math.log1p(-p)
     total = 0.0

@@ -71,7 +71,7 @@ def _load_session_log() -> list[dict]:
             try:
                 rows.append(json.loads(line))
             except Exception:
-                pass
+                pass  # malformed JSONL line skipped
     return rows
 
 

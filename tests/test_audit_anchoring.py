@@ -262,7 +262,8 @@ class TestAuditLanguage:
 
     def test_hash_chain_module_does_not_claim_prevent_tampering(self):
         import remora.audit.hash_chain as hc
-        src = open(hc.__file__, encoding="utf-8").read()
+        with open(hc.__file__, encoding="utf-8") as fh:
+            src = fh.read()
         # Should not have uncaveated tamper-proof claims
         assert "tamper-proof" not in src, (
             "hash_chain.py must not use the term 'tamper-proof' without qualification"
@@ -281,7 +282,8 @@ class TestAuditLanguage:
 
     def test_checkpoint_module_does_not_claim_tamper_proof(self):
         import remora.audit.checkpoint as cp
-        src = open(cp.__file__, encoding="utf-8").read()
+        with open(cp.__file__, encoding="utf-8") as fh:
+            src = fh.read()
         assert "tamper-proof" not in src, (
             "checkpoint.py must not use the term 'tamper-proof'"
         )

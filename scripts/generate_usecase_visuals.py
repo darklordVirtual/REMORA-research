@@ -197,7 +197,6 @@ def uc2_legal():
         "• Abstains if uncertain",
     ]
     for i,r in enumerate(results):
-        col = GREEN if "✓" not in r else WHITE
         ax.text(10.1,6.9-i*0.55,r,color=GREEN if i<4 else GRAY,fontsize=10)
 
     # Arrows

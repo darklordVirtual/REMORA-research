@@ -69,7 +69,7 @@ class OracleProxyEvidenceProvider:
                     level=_logging.WARNING, error=type(exc).__name__,
                 )
             except Exception:
-                pass
+                pass  # telemetry failure must not mask the evidence result
             return 0.5, False
 
     def fetch(

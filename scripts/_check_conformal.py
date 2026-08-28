@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Validate conformal-related artifacts and consistency checks used in REMORA quality gates."""
 import json
-d = json.load(open("results/conformal_guardrail_holdout.json"))
+with open("results/conformal_guardrail_holdout.json", encoding="utf-8") as fh:
+    d = json.load(fh)
 print("n =", d["n"])
 for k, v in d["reports"].items():
     print(f"  target={k}  holdout_risk={v['holdout_risk']:.4f}  coverage={v['holdout_coverage']:.4f}")

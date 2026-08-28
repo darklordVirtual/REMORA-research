@@ -1231,7 +1231,7 @@ async function runAdaptationCycle(env: Env, forceReplay = false, skipJudge = fal
   `).bind(windowSize).all<EpisodeRow>();
 
   let critiqued = 0;
-  let usedOracle = skipJudge ? 'skipped' : '';
+  let usedOracle: string;
 
   if (!skipJudge) {
     // Episodes pending meta-judge critique
@@ -3135,7 +3135,6 @@ export default {
       let episode_id: string | null = null;
       if (body.record_episode !== false) {
         episode_id = uuid();
-        const quality = decisionQuality(verdict, verdict === 'ESCALATE' ? 'harmful' : 'benign');
         const v = gate(verdict);
         await env.AROMER_DB.prepare(`
           INSERT INTO episodes

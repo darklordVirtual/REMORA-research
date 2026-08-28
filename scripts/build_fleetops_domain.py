@@ -38,7 +38,7 @@ DB_OUT = REPO_ROOT / ".cache" / "routing_bench" / "tau2_db" / "fleetops.json"
 TASKS_OUT = REPO_ROOT / ".cache" / "routing_bench" / "fleetops" / "fleetops" / "tasks.json"
 
 
-def main() -> None:
+def main() -> int:
     rng = random.Random(SEED)
     db = build_database(rng)
     tasks = build_tasks(db, rng)
@@ -56,6 +56,7 @@ def main() -> None:
     print(f"db sha256: {digest}")
     print(f"wrote {DB_OUT}")
     print(f"wrote {TASKS_OUT}")
+    return 0
 
 
 if __name__ == "__main__":

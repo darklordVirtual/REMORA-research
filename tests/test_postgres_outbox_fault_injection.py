@@ -79,7 +79,7 @@ def test_postgres_concurrent_claims_have_exactly_one_winner(pg) -> None:
         try:
             barrier.wait(timeout=10)
             results[i] = outbox.claim(row.outbox_id, worker_id=f"w{i}")
-        except BaseException as exc:  # noqa: BLE001 - collected for the assert
+        except Exception as exc:  # noqa: BLE001 - collected for the assert
             errors.append(exc)
 
     threads = [threading.Thread(target=worker, args=(i,)) for i in range(n)]

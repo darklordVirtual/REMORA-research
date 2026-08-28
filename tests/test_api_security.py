@@ -138,7 +138,8 @@ class TestRateLimiting:
         """REMORA_ASSESS_RATE_LIMIT_PER_MIN must configure the limit."""
         import servers.api as api_module
         # The module must read this env var (or equivalent)
-        src = open(api_module.__file__, encoding="utf-8").read()
+        with open(api_module.__file__, encoding="utf-8") as fh:
+            src = fh.read()
         assert (
             "REMORA_ASSESS_RATE_LIMIT" in src
             or "REMORA_RATE_LIMIT" in src

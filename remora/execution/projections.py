@@ -8,6 +8,8 @@ copy could drift from the chain it describes. No HTTP knowledge here.
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from remora.errors import RemoraError
 
 from typing import Any
@@ -291,5 +293,5 @@ def envelope_projection(
     )
 
 
-if False:  # pragma: no cover - typing only, avoids a runtime import cycle
+if TYPE_CHECKING:  # typing only, avoids a runtime import cycle
     from remora.governance.envelope import DecisionEnvelope

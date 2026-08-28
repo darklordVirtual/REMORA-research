@@ -92,7 +92,6 @@ def main() -> None:
     enriched = []
     for item in items:
         helped = bool(item.get("helped_vs_majority", False))
-        _hurt = bool(item.get("hurt_vs_majority", False))  # noqa: F841
         enriched.append(
             {
                 **item,

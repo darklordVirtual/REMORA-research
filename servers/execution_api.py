@@ -579,8 +579,7 @@ def dispatch_pending_intents(tenant: str, *, worker_id: str) -> list[dict[str, A
             dispatch_under_lease=_dispatch_under_lease,
             token_audience=PEP_AUDIENCE,
             token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
-            resolve_toolspec=lambda name, args, target: _resolve_toolspec(
-                name, args, target),
+            resolve_toolspec=_resolve_toolspec,
             policy_coverage=_policy_coverage,
             rebuild_call=_rebuild_tool_call,
         )
@@ -607,7 +606,7 @@ def _resolve_toolspec(
             _toolspec_bundle(), tool_name, arguments, target_environment
         )
     except ToolSpecRefused as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise HTTPException(status_code=409, detail=exc.reason_code) from exc
 
 
 def _assessed_toolspec(tenant: str, item_id: str) -> str:
@@ -1271,7 +1270,7 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
     except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
     except ReviewConflict as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
     api_mod.record_execution_approval()
     return response
 
@@ -1488,11 +1487,11 @@ def execute(req: ExecuteRequest, request: Request) -> "dict[str, Any] | JSONResp
             async_dispatch=async_mode,
         )
     except ToolSpecChanged as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
     except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
     except ReviewConflict as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
     if response.get("dispatch") == "pending":
         api_mod.record_execution_execute(
             executed=False, refusal="dispatch_pending")
@@ -1569,7 +1568,7 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
         )
     except TokenRefused as exc:
         api_mod.record_execution_execute(executed=False, refusal=exc.refusal)
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise HTTPException(status_code=409, detail=exc.refusal) from exc
     tool_execution = response["tool_execution"]
     api_mod.record_execution_execute(
         executed=bool(tool_execution["executed"]),
@@ -1684,7 +1683,7 @@ def reject(req: RejectRequest, request: Request) -> dict[str, Any]:
     except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
     except ReviewConflict as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
 
 
 # Lifecycle/effect projections (issue #241, extraction slice 5): the derived

@@ -431,26 +431,6 @@ function QueueCard({
 
 // ── Processing beam (right side of queue card → eye) ──────────────────────
 
-function ProcessingBeam({ active }: { active: boolean }) {
-  return (
-    <div
-      className="absolute left-0 right-0 top-1/2 -translate-y-1/2 pointer-events-none"
-      style={{ height: 2, overflow: "hidden" }}
-    >
-      {active && (
-        <div
-          className="h-full w-16 absolute"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, oklch(0.60 0.12 260 / 0.55), transparent)",
-            animation: "beam 1.2s ease-in-out infinite",
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
 // ── Execution gate ────────────────────────────────────────────────────────
 
 function ExecutionGate({ live, stats }: { live: LiveAction | null; stats: Stats }) {
@@ -565,30 +545,11 @@ export default function EyePage() {
     setQueue((q) => [...q, { ...sample, id: nextIdRef.current++ }]);
   }, []);
 
-  // Pull next from queue into the eye
-  const pullNext = useCallback(() => {
-    setQueue((q) => {
-      if (q.length === 0) return q;
-      const [next, ...rest] = q;
-      const newLive: LiveAction = {
-        ...next,
-        stage: "PROCESSING",
-        processingPhaseIdx: 0,
-        phaseStartedAt: performance.now(),
-      };
-      liveRef.current = newLive;
-      setLive(newLive);
-      pulseRef.current = 0.5;
-      return rest;
-    });
-  }, []);
-
   useEffect(() => {
     let lastTime = performance.now();
 
     function frame(now: number) {
       rafRef.current = requestAnimationFrame(frame);
-      const dt = Math.min(now - lastTime, 80);
       lastTime = now;
       if (pausedRef.current) return;
 

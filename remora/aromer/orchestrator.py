@@ -447,7 +447,7 @@ def _rules_from_report(report: DecisionReport) -> list[str]:
         if reason:
             return [str(reason)]
     except Exception:
-        pass
+        pass  # a report without a usable reason yields no reasons
     return []
 
 

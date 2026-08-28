@@ -756,8 +756,6 @@ def test_tool_registry_module_source_moves_the_policy_hash(
     single byte of its source, must move the composite — otherwise a trusted
     module can change what a low/read tool name does while outstanding leases
     keep verifying the old policy identity."""
-    import importlib
-
     api = _load_api_module(monkeypatch, token="test-token")
 
     module_file = tmp_path / "pilot_registry_mod.py"

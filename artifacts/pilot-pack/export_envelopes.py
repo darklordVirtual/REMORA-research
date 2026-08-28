@@ -36,8 +36,8 @@ def _percentile(values: list[float], p: float) -> float | None:
 
 def load_envelopes(args: argparse.Namespace) -> tuple[list[dict], int]:
     """(envelopes, missing_count)."""
-    lines = [json.loads(ln) for ln
-             in open(args.path, encoding="utf-8") if ln.strip()]
+    with open(args.path, encoding="utf-8") as fh:
+        lines = [json.loads(ln) for ln in fh if ln.strip()]
     if not args.api:
         return lines, 0
     envelopes, missing = [], 0

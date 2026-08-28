@@ -146,11 +146,9 @@ def run(thermo_path: str, ablation_path: str, n_boot: int = 1000, seed: int = 42
     pct = 0.25
     for _ in range(n_boot):
         boot = [items[rng2.randint(0, n - 1)] for _ in range(n)]
-        _base = sum(1 for it in boot if it["majority_correct"]) / n  # noqa: F841
         k = max(1, int(round(n * pct)))
         # LOW temperature = trusted; ascending T sort picks most-trusted items
         top = sorted(boot, key=lambda x: x["temperature"])[:k]
-        _acc = sum(1 for it in top if it["majority_correct"]) / k  # noqa: F841
         # phase of top items
         phase_counts = Counter(it["phase"] for it in top)
         for ph in phases:

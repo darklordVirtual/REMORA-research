@@ -46,6 +46,7 @@ Results saved to
 from __future__ import annotations
 
 import json
+import math
 import textwrap
 from collections import defaultdict
 from pathlib import Path
@@ -332,9 +333,7 @@ def _compute_risk_coverage(
             {
                 "threshold": t,
                 "coverage": round(coverage, 4),
-                "risk": round(risk, 4) if isinstance(risk, float) and not (
-                    risk != risk  # NaN check
-                ) else None,
+                "risk": round(risk, 4) if isinstance(risk, float) and not math.isnan(risk) else None,
                 "n_accepted": n_acc,
             }
         )

@@ -113,11 +113,11 @@ def run() -> dict[str, Any]:
         ),
         "limitations": [
             "Deterministic simulator benchmark — all decisions are computed from task metadata.",
-            "Structural context flags (injection, approval, conflict) are themselves "
+            ("Structural context flags (injection, approval, conflict) are themselves "
             "correlated with is_unsafe_if_executed in the benchmark. Clean-signal "
-            "validity depends on whether these flags would be available in real deployments.",
-            "use_severity_flags controls severity-driven routing; severity correlates "
-            "with harmfulness but is a legitimate metadata field in real deployments.",
+            "validity depends on whether these flags would be available in real deployments."),
+            ("use_severity_flags controls severity-driven routing; severity correlates "
+            "with harmfulness but is a legitimate metadata field in real deployments."),
             "External replication with withheld labels required for definitive M1 resolution.",
         ],
         "timestamp": datetime.now(timezone.utc).isoformat(),

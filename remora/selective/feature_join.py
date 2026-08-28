@@ -128,7 +128,6 @@ def _extract_ablation_items(raw: object) -> list[dict]:
 def _flatten_conditions(conditions: dict) -> list[dict]:
     """Flatten conditions dict into per-item dicts using B_majority as base."""
     maj_items = conditions[MAJORITY_CONDITION].get("items") or []
-    _other_names = [c for c in conditions if c != MAJORITY_CONDITION]  # noqa: F841
 
     indexed: dict[str, dict[str, dict]] = {n: {} for n in conditions}
     for name, payload in conditions.items():

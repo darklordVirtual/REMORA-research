@@ -40,7 +40,6 @@ FINANCE_PROVIDER_VERSION = "finance-evidence-v1"
 
 _FATF_RE = re.compile(r"\bFATF-TYP-\d{2,3}\b", re.IGNORECASE)
 _AMLD_RE = re.compile(r"\bAMLD-RI-\d{2,3}\b", re.IGNORECASE)
-_OFAC_RE = re.compile(r"\bOFAC-SDN\b", re.IGNORECASE)
 _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9_.:/+\-]{2,}", re.IGNORECASE)
 
 

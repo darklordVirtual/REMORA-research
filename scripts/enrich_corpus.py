@@ -283,7 +283,7 @@ def ingest_text(
     total = 0
     for i, chunk in enumerate(chunks):
         try:
-            _r = oracle.ingest(content=chunk, source=source, domain=domain,  # noqa: F841
+            oracle.ingest(content=chunk, source=source, domain=domain,
                               chunk_index=i, confidence_weight=authority)
             total += 1
             time.sleep(rate_limit_s)
