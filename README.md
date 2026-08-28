@@ -1,4 +1,4 @@
-<img width="2172" height="724" alt="image" src="https://github.com/user-attachments/assets/8b0c400e-963c-46da-aed3-3007f430f0b3" />
+<img width="2172" height="724" alt="REMORA: policy-gated control between an agent's intent and a real-world effect" src="docs/assets/remora-hero.png" />
 
 
 # REMORA: Governed Execution Assurance for Tool-Using AI Agents
