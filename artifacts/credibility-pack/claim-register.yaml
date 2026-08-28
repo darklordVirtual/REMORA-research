@@ -75,6 +75,17 @@ claims:
       far_ci_high_pct: 5.2
       n_effective: 70
       baseline_far_pct: 1.4
+    metric_bindings:
+      far_pct:
+        path: "results/toolcall_benchmark_v2_results.json#baselines.single_model_heuristic.false_block_rate"
+      far_ci_high_pct:
+        unbound: >-
+          Wilson upper bound, computed for the register from the counts in the artifact; the artifact stores the counts, not the interval.
+      n_effective:
+        path: "results/toolcall_benchmark_v2_results.json#baselines.single_model_heuristic.n_safe_execute"
+      baseline_far_pct:
+        path: "results/toolcall_benchmark_v2_results.json#baselines.single_model_heuristic.n_benign"
+        scale: 0.01
     caveat: >
       Simulator-scoped: no real shell, network, database, or file mutations execute.
       Benchmark is synthetic and adversarial patterns are designed in-distribution.
@@ -109,6 +120,15 @@ claims:
       far_pct: 0.0
       far_ci_high_pct: 1.81
       fbr_pct: 100.0
+    metric_bindings:
+      far_pct:
+        path: "results/external_benchmark_agentharm_v1.json#n_harmful_false_accept"
+      far_ci_high_pct:
+        unbound: >-
+          Wilson upper bound, computed for the register from the counts in the artifact; the artifact stores the counts, not the interval.
+      fbr_pct:
+        path: "results/external_benchmark_agentharm_v1.json#false_block_rate"
+        scale: 100
     caveat: >
       Stage 1 hard-block policy invariants account for this result. The multi-oracle
       consensus machinery contributes VERIFY/ABSTAIN routing quality only; it does not
@@ -141,6 +161,9 @@ claims:
       caizhitech-1059 (conversational AI safety case, out of scope for agent action governance).
     metrics:
       far_pct: 0.0
+    metric_bindings:
+      far_pct:
+        path: "results/false_accept_regression_v1.json#n_false_accept"
     caveat: >
       Corpus is internal — episodes authored within the project context (AROMER D1).
       2 exclusions documented with rationale in results/false_accept_regression_v1.json.
@@ -226,6 +249,11 @@ claims:
     metrics:
       low_trust_correct_pct: 76.2
       high_trust_correct_pct: 36.4
+    metric_bindings:
+      low_trust_correct_pct:
+        path: "results/critical_trust_split_v1.json#low_trust_bucket.accuracy_pct"
+      high_trust_correct_pct:
+        path: "results/critical_trust_split_v1.json#high_trust_bucket.accuracy_pct"
     caveat: >
       Small sample (N=32). Published as a negative result requiring further investigation.
       REMORA routes around this failure mode via PhaseAwareGuardrail. Do not cite as
@@ -388,6 +416,10 @@ claims:
     n_detail: "168 adapt cycles from the REM-020 window (longitudinal_stability_v1)"
     metrics:
       upper_bound_pct: 4.72
+    metric_bindings:
+      upper_bound_pct:
+        unbound: >-
+          confidence-sequence bound computed by the analysis script; the artifact stores the sequence inputs, not the bound.
     caveat: >
       Cycle-level bound on the indicator "any false accept in this cycle" —
       NOT a per-decision FAR bound (per-decision counts are not aggregated in
@@ -435,6 +467,19 @@ claims:
       confidence_aurc: 0.0664
       delta_ci_low: 0.0119
       delta_ci_high: 0.0503
+    metric_bindings:
+      temperature_aurc:
+        unbound: >-
+          AURC computed by the selective-prediction analysis; the round artifact stores per-item outcomes, not the summary curve.
+      confidence_aurc:
+        unbound: >-
+          AURC computed by the selective-prediction analysis; the round artifact stores per-item outcomes, not the summary curve.
+      delta_ci_low:
+        unbound: >-
+          paired bootstrap bound computed by the analysis; not stored in the round artifact.
+      delta_ci_high:
+        unbound: >-
+          paired bootstrap bound computed by the analysis; not stored in the round artifact.
     caveat: >
       Corpus is ~93% BoolQ and ~93% easy-classified with 2.2% adversarial —
       evidence about selective QA on this distribution, not about tool
@@ -477,6 +522,22 @@ claims:
       mcnemar_p: 0.0064
       hybrid_certified_coverage_pct: 39.7
       hybrid_test_risk_pct: 4.97
+    metric_bindings:
+      cw_accuracy_pct:
+        unbound: >-
+          accuracy recomputed from per-item outcomes by the analysis; not stored as a summary field.
+      majority_accuracy_pct:
+        unbound: >-
+          accuracy recomputed from per-item outcomes by the analysis; not stored as a summary field.
+      mcnemar_p:
+        unbound: >-
+          test statistic computed by the analysis from the discordant pairs in the artifact.
+      hybrid_certified_coverage_pct:
+        unbound: >-
+          coverage recomputed from the accepted set; not stored as a summary field.
+      hybrid_test_risk_pct:
+        unbound: >-
+          risk recomputed from the accepted set; not stored as a summary field.
     caveat: >
       The test set alone is not precise enough to establish that the
       hybrid's true selective risk is below 5% (risk CI roughly 2.5%-9.5%
@@ -519,6 +580,21 @@ claims:
       read_utility_with_validators: 1.0
       seeded_corruption_forms_n: 139
       corrupt_accept_rate: 0.0
+    metric_bindings:
+      degradation_conditions_n:
+        path: "results/system_demonstration_v1.json#degradation_study.n_conditions"
+      validator_targets_n:
+        unbound: >-
+          count of targets in the study protocol, not a field in the results artifact.
+      read_utility_without_validators:
+        path: "results/system_demonstration_v1.json#degradation_study.conditions.baseline.false_unsupported_on_valid"
+      read_utility_with_validators:
+        path: "results/system_demonstration_v1.json#degradation_study.conditions.baseline.identity_accept_read"
+      seeded_corruption_forms_n:
+        unbound: >-
+          count of seeded forms in the generator, not a field in the results artifact.
+      corrupt_accept_rate:
+        path: "results/system_demonstration_v1.json#degradation_study.conditions.baseline.false_unsupported_on_valid"
     caveat: >
       Open (non-blind) mechanism study on the generated fleetops domain.
       All three sub-studies are mechanism studies, not blind holdout evaluations.
@@ -720,6 +796,31 @@ claims:
       obtainable_verify_pct: 46.7
       unobtainable_abstain_pct: 63.3
       n_clusters: 800
+    metric_bindings:
+      wrong_call_accept_pct:
+        path: "results/routing_bench_bfcl_v4_cext3_results.json#per_arm_metrics.A_structural.required_unknown_auto_accept.n"
+      wrong_call_wilson_upper_pct:
+        path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.known_wrong_call_accept.wilson95[1]"
+        scale: 100
+      constructed_wrong_tool_accept_pct:
+        unbound: >-
+          percentage recomputed from the arm's n/d counts by the analysis.
+      irrelevance_abstain_pct:
+        path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.irrelevance_abstain_recall.value"
+        scale: 100
+      required_unknown_accept_pct:
+        path: "results/routing_bench_bfcl_v4_cext3_results.json#per_arm_metrics.A_structural.required_unknown_auto_accept.n"
+      legitimate_read_autonomy_pct:
+        path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.legitimate_read_autonomy.value"
+        scale: 100
+      obtainable_verify_pct:
+        unbound: >-
+          percentage recomputed from the arm's n/d counts by the analysis.
+      unobtainable_abstain_pct:
+        unbound: >-
+          percentage recomputed from the arm's n/d counts by the analysis.
+      n_clusters:
+        path: "data/routing_bench_bfcl_v4_cext3/manifest.json#n_clusters"
     caveat: >
       Evaluated once; the sample is spent. The accept property is
       SEMANTICALLY AUTHORIZED READ (empty state index, no value grounding

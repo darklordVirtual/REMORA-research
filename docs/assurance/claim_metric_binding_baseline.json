@@ -1,0 +1,4 @@
+{
+  "unbound_metrics": 17,
+  "note": "Metrics an active claim publishes that are computed by the analysis rather than stored in the artifact. Each carries a stated reason in the register. This number may fall and may not rise: a new published number must point at its artifact."
+}
