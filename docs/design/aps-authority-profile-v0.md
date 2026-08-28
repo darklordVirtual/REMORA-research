@@ -34,7 +34,9 @@ reason the rest of this document is structured the way it is.
 
 `remora.policy.observation._canonical_json` feeds `canonical_tool_call_hash`,
 which is bound into every execution token, every lease, every receipt and every
-tenant audit-chain entry this deployment has written. Those bytes are not an
+tenant audit-chain entry this deployment has written. `_canonical_bytes` in
+`remora/enforcement/result_envelope.py` produces the retained result bytes on
+the same terms. Those bytes are not an
 implementation detail that can be improved: they are what the verifier
 recomputes. Changing the function would leave the historical record
 unverifiable against the code that verifies it, which is a worse outcome than
@@ -53,15 +55,20 @@ re-derived across them.
 
 ## The four divergence classes
 
-All four were confirmed against `_canonical_json` on REMORA 5576670 before any
-code was written.
+All four were confirmed on REMORA 5576670 before any code was written. Two
+functions in this repository produce canonical JSON:
+`remora/policy/observation.py::_canonical_json`, which the binding path uses,
+and `remora/enforcement/result_envelope.py::_canonical_bytes`, which is the one
+the Mode B adapter imported. Both diverge. They share the same
+`json.dumps(sort_keys=True, separators=(",", ":"), default=str)` call and so
+diverge identically.
 
 ### Class 1: exponent formatting — closed
 
 Python's `repr` and ECMAScript's `Number.prototype.toString` produce the same
 shortest round-trip digits and then place the decimal point differently.
 
-| value | `_canonical_json` | `remora.interop.jcs` |
+| value | both existing functions | `remora.interop.jcs` |
 |---|---|---|
 | `1e-6` | `1e-06` | `0.000001` |
 | `1e-7` | `1e-07` | `1e-7` |
@@ -117,6 +124,15 @@ accept every document this profile can produce. A document containing an integer
 outside the exactly-representable range cannot be produced under this profile at
 all. That is a real interoperability limit and belongs in the family record as
 one.
+
+### A fifth difference the feedback did not name
+
+Both existing functions pass `default=str`, so a value JSON cannot represent is
+coerced to its `repr` rather than refused. That is deliberate in
+`_canonical_bytes`, where the side effect has already happened and losing the
+audit record would be worse than recording a degraded projection. It is not
+acceptable on a wire format, where the receiving side has no way to tell a
+coerced value from a real one, so `remora.interop.jcs` raises instead.
 
 ## What is still missing for a citable record
 
