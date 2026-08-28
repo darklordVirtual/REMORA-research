@@ -11,9 +11,9 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**56 numbered sections does not mean 56 open problems.** Until 2026-07-31 this
-document read as if it did, because sections kept the status they were written
-with even after later sections resolved them. Every section now carries a
+**57 numbered sections does not mean 57 open problems.** Until 2026-07-31 this
+document read as if it did. Sections kept the status they were written with,
+even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
 `scripts/check_negative_results_status.py` fails CI if the summary table or the
 backlog below disagrees with those markers.
@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-24: **11 `open`**, **22 `accepted`**, **23 `superseded`**.
+Counts as of 2026-08-28: **11 `open`**, **23 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -862,7 +862,7 @@ severity=high, 25%) are caught by text-based destructive-keyword heuristics.
 conditions C and D are computed from task context flags with no access to `is_unsafe_if_executed`
 or severity-derived phase/trust. Structural-only (C) leaves FAR=25%; structural gates plus the
 proxy thermodynamic policy (D) reach FAR=0% at utility=0.10; the full gate (E) reaches FAR=0%
-at utility=0.62. Claim_register updated to reflect this (CLAIM-007).
+at utility=0.62. Claim_register updated to reflect this (CLAIM-007). **Historical record: CLAIM-007 was withdrawn on 2026-08-28 and is superseded by CLAIM-020. The FAR figures in this paragraph are not reproducible. They are not present in the artifact they cite. See §57.**
 
 **M2 (Baseline naming (documentation gap) partially fixed)**
 
@@ -2449,6 +2449,7 @@ sections again.
 
 | Finding | Why it is closed to further tuning | Severity |
 |---------|------------------------------------|----------|
+| A component ablation attributed the safety result to nothing (§57) | Withdrawn, not repaired. Its numbers were absent from the file it cited, its reproduce command never wrote the artifact it named, and its own output contradicts it. All six conditions record FAR=0.000, including hard-blocks-removed, which reaches zero by refusing nearly everything. | **High: falsifies the published component attribution.** |
 | Three self-review complexity findings were wrong (§41) | Verified and refuted: the toolcall generations are already documented, the env-var census was miscounted by excluding experiments/ and scripts/, and an AuditAdapter ABC already existed. An audit finding is a hypothesis | Low (methodological) |
 | Invariants and the decision ladder had diverged (§40) | The invariant set was never evaluated at runtime, so a conformal ACCEPT in the disordered phase contradicted a stated invariant unnoticed. Enforcement is now wired into the build choke point and the stricter invariant wins. A property asserted only in tests is a description, not a guarantee | Medium (methodological) |
 | Consensus temperature failed fresh-data confirmation (§18) | AURC 0.0954 vs 0.0664 for calibrated confidence, paired CI excludes zero, zero SGR-certifiable coverage. The hypothesis was pre-registered and it failed. Temperature stays diagnostic; reviving it needs entirely new evidence, not a threshold | **High (falsifies the thermodynamic-selection hypothesis)** |
@@ -3630,3 +3631,65 @@ dispatch record, the OPA non-bypass property, per-argument grounding signals,
 both intent failure classes, and both documented `intent_ref` forms.
 
 **Not deployed.** Source, wire contract, audit contract and tests only.
+
+## §57 A component ablation that attributed the safety result to nothing (2026-08-28)
+<!-- finding-status: accepted -->
+
+**Status:** RMR-002 from the external technical review, verified and closed by
+withdrawing the claim. CLAIM-007 is superseded by CLAIM-020, and paper §11.1 is
+replaced by the negative identification result below.
+
+CLAIM-007 is now superseded by CLAIM-020. It stated that a five-condition
+ablation gave false-accept rates of 30%, 10% and 25% for conditions A, B and C.
+It also stated that reaching zero required both the structural gates and the
+proxy thermodynamic policy. Three separate things were
+wrong with it, and each is checkable from this commit.
+
+The sourcing was wrong. Conditions A and B were attributed to
+`results/toolcall_benchmark_v2_results.json`. That file records a false-accept
+rate of 0.0142857 for every heuristic baseline in it, not 0.300 and 0.100. The
+numbers in the claim do not appear in the file the claim names.
+
+The reproduce path did not lead to the artifact. The claim named
+`artifacts/aromer/component_ablation_results.json` and gave
+`python experiments/toolcall_ablation_v2.py` as the way to regenerate it. That
+script writes `results/toolcall_benchmark_v2_ablation.json` and
+`results/toolcall_ablation_v2_results.json`. It has never written the file the
+claim points at, which has not changed since 2026-07-02. The claim was
+therefore unfalsifiable by its own instructions: running the command could not
+disagree with the artifact, because the command never touched it.
+
+The necessity conclusion was contradicted by our own output. In the committed
+ablation, `remora_without_temperature` records a false-accept rate of 0.0. The
+claim said zero required the proxy layer; the repository's own artifact says it
+does not.
+
+**What the ablation actually shows, and why it is worse than inconclusive.**
+All six committed conditions record a false-accept rate of 0.000. Since the
+conditions do not differ on that metric, the ablation identifies no component
+as necessary for it. The condition that makes this concrete is
+`remora_without_hard_blocks`: with the deterministic floor removed, false
+accepts stay at zero while accuracy falls from 0.900 to 0.300. It reaches zero
+by refusing nearly everything. A refuse-all policy scores perfectly on
+false-accept rate, so a zero on that metric alone is not evidence that any
+mechanism works, including the mechanism we most believe in.
+
+**What survives.** The narrower result stands and is unaffected. It reports
+zero observed unsafe authorizations under the deterministic hard guards on this
+benchmark, at an effective N of 70 clusters, with a cluster-level Wilson upper
+bound of 5.2%. That claim never rested on this ablation. What is gone is the component
+attribution, and with it the paper's assertion that the probabilistic layer was
+necessary, which also removes a contradiction with §17 of the same paper.
+
+**Why the gates did not catch it.** The claim carried a well-formed artifact
+path, a parseable register entry, correct anchors and a reproduce command, so
+every structural check passed. None of them ran the command and compared its
+output to the claim. A gate that verifies shape while the numbers say something
+else is a gate that certifies formatting. This is recorded separately as the
+open finding on semantic claim verification.
+
+**Not fixed.** No replacement ablation has been run. Establishing that any
+component is necessary requires conditions that differ on false-accept rate at
+all, and a utility measure a refuse-all condition fails. Until that exists, no
+component attribution should be cited from this benchmark.
+

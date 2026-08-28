@@ -19,6 +19,7 @@ diffed in CI.
 | Claim | What it said | Superseded by | Why |
 |-------|--------------|---------------|-----|
 | **CLAIM-004** | Temperature-selective holdout: 100% at 16.7% coverage — directional only, later contradicted on fresh data | [CLAIM-012](claim_register_v1.yaml) — NEGATIVE: consensus temperature failed pre-registered fresh-data confirmation (SAP v3) | see below |
+| **CLAIM-007** | Five-condition component ablation: REMORA full gate dominates | [CLAIM-020](claim_register_v1.yaml) — Component ablation has no discriminating power on false-accept rate | see below |
 | **CLAIM-008** | Selective trust curve (N=302): 94.7% accuracy at 25% coverage | [CLAIM-013](claim_register_v1.yaml) — Calibrated confidence methods on fresh data: significant aggregation win; marginal per-arm certificates only | see below |
 | **CLAIM-015** | Superseded BFCL v3 development measurement | [CLAIM-019](claim_register_v1.yaml) — Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed | see below |
 | **CLAIM-016** | Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018 | [CLAIM-019](claim_register_v1.yaml) — Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed | see below |
@@ -37,6 +38,18 @@ diffed in CI.
 **Caveat.** Directional observation only: p=0.052 vs the training-split null, the CI does not exclude p0, and N_accepted=18 is far below the pre-registered >=100 bar for generalization language. Superseding evidence: the pre-registered SAP v3 round on 1231 FRESH items (CLAIM-012) found temperature ranks significantly WORSE than a calibrated confidence baseline and certifies no SGR coverage — the signal did not generalize beyond the reused 544-item corpus. Temperature is diagnostics-grade, not an authoritative selector.
 
 **Artifacts (still on disk).** `results/selective_n500_holdout_results.json`
+
+## CLAIM-007 — Five-condition component ablation: REMORA full gate dominates
+
+**Superseded by:** CLAIM-020
+
+**Evidence level when archived:** `internal_benchmark`
+
+**Statement.** WITHDRAWN 2026-08-28. The claim asserted FAR=30%/10%/25% for conditions A/B/C and that zero FAR requires both the structural gates and the proxy thermodynamic policy. Both halves are contradicted by committed evidence in this repository. See CLAIM-020 for what the ablation actually supports.
+
+**Caveat.** Withdrawn for three independent reasons, each verifiable from this commit. Sourcing: the statement attributed A=0.300 and B=0.100 to results/toolcall_benchmark_v2_results.json, which records 0.0142857 for every heuristic baseline. Reproducibility: the reproduce command (experiments/toolcall_ablation_v2.py) writes results/toolcall_benchmark_v2_ablation.json and results/toolcall_ablation_v2_results.json, never the artifact this claim names, which has not changed since 2026-07-02. Identification: the necessity half is falsified by the repository's own ablation, where remora_without_temperature reaches FAR=0.0.
+
+**Artifacts (still on disk).** `artifacts/aromer/component_ablation_results.json`
 
 ## CLAIM-008 — Selective trust curve (N=302): 94.7% accuracy at 25% coverage
 

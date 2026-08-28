@@ -78,10 +78,16 @@ closed to VERIFY.
   `remora/policy/opa_adapter.py`.
 - CLAIM-001 (`internal_benchmark`): 0% unsafe execution on the v2 tool-call
   benchmark (effective N=70 template clusters; cluster Wilson CI [0.0%, 5.2%]).
-- CLAIM-007 (`internal_benchmark`): five-condition ablation: structural-only
-  gating (C) leaves 25% unsafe, while both the structural+thermodynamic policy
-  (D) and the full gate (E) reach 0%; the full gate's advantage over D is
-  decision utility (0.62 vs 0.10) and lower benign friction, not a lower floor.
+- CLAIM-007 is **withdrawn** (superseded by CLAIM-020, NEGATIVE_RESULTS.md
+  §57). It claimed that structural-only gating left 25% unsafe and that zero
+  required the proxy thermodynamic policy. Neither figure appears in the
+  artifact it cited, and the repository's own ablation reaches zero without
+  that policy.
+- CLAIM-020 (`internal_benchmark`): the committed ablation records FAR=0.000 in
+  all six conditions, including `without_hard_blocks`, so it identifies no
+  component as necessary for the safety result. It separates accuracy (0.900
+  full versus 0.300 without hard blocks) and benign friction, not the floor.
+  This weakens D-1: no ablation evidence supports the attribution.
 - CLAIM-010 (`regression_tested`): blinded v3 protocol, gate sees only the
   candidate action, `leakage_free=True`.
 
@@ -195,7 +201,8 @@ artifact. Levels are authoritative in [claim_register_v1.yaml](claim_register_v1
 | CLAIM-004 (**SUPERSEDED by CLAIM-012**) | `internal_benchmark` | `results/selective_n500_holdout_results.json` | D-6, D-9 |
 | CLAIM-005 | `internal_benchmark` | `results/selective_n500_results.json` | D-6 (is itself a defeater artifact) |
 | CLAIM-006 | `internal_simulation` | `NEGATIVE_RESULTS.md` (TRAINED / AII≈0.84 record and its regressions) | D-8, D-9 |
-| CLAIM-007 | `internal_benchmark` | `artifacts/aromer/component_ablation_results.json` | D-1, D-9 |
+| CLAIM-007 (**withdrawn**, superseded by CLAIM-020) | `internal_benchmark` | `artifacts/aromer/component_ablation_results.json` | D-1, D-9 |
+| CLAIM-020 | `internal_benchmark` | `results/toolcall_benchmark_v2_ablation.json` | D-1, D-9 |
 | CLAIM-008 (**SUPERSEDED by CLAIM-013**) | `internal_benchmark` | `results/selective_trust_curve_results.json` | D-6 |
 | CLAIM-009 | `internal_benchmark` | `artifacts/aromer/external_dataset_eval_v2.json` | D-8 (is itself a defeater artifact) |
 | CLAIM-010 | `regression_tested` | `results/toolcall_blind_v3_results.json` | D-1, D-9 |

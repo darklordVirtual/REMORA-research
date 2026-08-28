@@ -140,7 +140,8 @@ with their artifacts:
 |----|-------|----------------|----------|
 | CLAIM-002 | FAR=0% external AgentHarm (N=208); FBR=100% companion | externally_benchmarked | `results/external_benchmark_agentharm_v1.json` |
 | CLAIM-003 | FAR=0% historical regression corpus (N=167) | regression_tested | `results/false_accept_regression_v1.json` |
-| CLAIM-007 | Five-condition component ablation (N=700) | internal_benchmark | `artifacts/aromer/component_ablation_results.json` |
+| CLAIM-007 (**withdrawn**, superseded by CLAIM-020) | Five-condition component ablation (N=700) | internal_benchmark | `artifacts/aromer/component_ablation_results.json` |
+| CLAIM-020 | Component ablation identifies no necessary component: FAR=0.000 in all six conditions (N=700, 70 clusters) | internal_benchmark | `results/toolcall_benchmark_v2_ablation.json` |
 | CLAIM-008 | 94.7% @ 25% coverage, calibration set (N=302) | internal_benchmark | `results/selective_trust_curve_results.json` |
 | CLAIM-009 | FA=30.7% on neutral-metadata external datasets (negative) | internal_benchmark | `artifacts/aromer/external_dataset_eval_v2.json` |
 | CLAIM-010 | Blinded benchmark v3: FAR=0% without label access (N=700) | regression_tested | `results/toolcall_blind_v3_results.json` |

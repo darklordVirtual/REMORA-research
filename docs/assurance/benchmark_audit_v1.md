@@ -151,7 +151,8 @@ The primary leakage risk is documented as M1 in `remediation_register.yaml`. Pri
 | CLAIM-004 (**superseded** by CLAIM-012) | 100.0% selective accuracy at 16.7% coverage (18 accepted, p=0.052) | `results/selective_n500_holdout_results.json` | Yes | N_accepted=18 confirmed | `test_selective_n500.py` |
 | CLAIM-005 | Critical-phase trust inversion (negative result, N=32) | `results/selective_n500_results.json` | Yes | N=32 confirmed | Covered by N500 test suite |
 | CLAIM-006 | AROMER AII=0.8412 TRAINED (shadow-mode only) | `artifacts/aromer/intelligence_after_v020.json` | Yes | Live endpoint | No deterministic test possible |
-| CLAIM-007 | Component ablation: REMORA full gate dominates (N=700) | `artifacts/aromer/component_ablation_results.json` | Yes | N=700 confirmed | `test_toolcall_benchmark_v2_results.py` |
+| CLAIM-007 (**withdrawn** 2026-08-28, superseded by CLAIM-020) | Component ablation: REMORA full gate dominates (N=700) | `artifacts/aromer/component_ablation_results.json` | Artifact present, but never written by the claim's own reproduce command | Numbers absent from the cited file | Not verified by any test |
+| CLAIM-020 | Ablation identifies no necessary component (N=700, 70 clusters) | `results/toolcall_benchmark_v2_ablation.json` | Yes | FAR=0.000 in all six conditions | `python experiments/toolcall_ablation_v2.py` |
 | CLAIM-008 (**superseded** by CLAIM-013) | 94.7% accuracy at 25% coverage, calibration set (N=302) | `results/selective_trust_curve_results.json` | Yes | N=302 confirmed | `test_selective_trust_curve.py` |
 | CLAIM-009 | FA=30.7% on neutral-metadata external datasets (negative) | `artifacts/aromer/external_dataset_eval_v2.json` | Yes (restored from main repo 2026-07-03) | N=1036 confirmed | Documented negative result; no lock test |
 | CLAIM-010 | FAR=0% blinded v3 (N=700, leakage_free=True) | `results/toolcall_blind_v3_results.json` | Yes | N=700, leakage_free=True | `test_toolcall_v2_results.py` |
