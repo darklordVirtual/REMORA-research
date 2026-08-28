@@ -109,6 +109,13 @@ jobs:
       - name: Claim provenance gate (register/artifact/manifest/doc binding)
         run: python scripts/check_claim_provenance.py
 
+      - name: Claim metric binding gate (every published number is in its artifact)
+        # Shape is not truth. The provenance gate above verifies that a claim's
+        # artifact exists, hashes fresh and is cited from the right anchors; it
+        # passed for weeks on a claim whose numbers were absent from the file it
+        # cited (RMR-002). This step opens the artifact and looks (RMR-007).
+        run: python scripts/check_claim_metric_bindings.py
+
       - name: OpenAPI contract drift gate
         # schemas/openapi.json is the committed, reviewable contract a client
         # generator consumes; drift between it and the live app is a red
