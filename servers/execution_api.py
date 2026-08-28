@@ -64,6 +64,7 @@ from remora.governance.lifecycle import (
 from remora.governance.review_queue import (
     ReviewQueue,
 )
+from remora.governance import audit_outbox as _audit_outbox
 from remora.governance.tenant_chain import TenantAuditChain
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation, canonical_tool_call_hash
@@ -422,6 +423,57 @@ _OUTBOX = _build_outbox()
 DEFAULT_OUTBOX_STALE_SECONDS = 900
 
 
+
+def chain_append_transactional(
+    tenant: str, payload: "dict[str, Any]", *, key: str
+) -> "Any | None":
+    """Append an audit event, joining the caller's state transaction when there is one.
+
+    Inside ``db_transaction_state`` the event is enqueued on the SAME
+    connection, so it commits or rolls back with the state transition it
+    describes. Outside one there is nothing to be atomic with, and the event
+    goes straight to the chain as before.
+
+    This is REM-047: the two writes were each atomic and the pair was not, so a
+    crash between them left a transition with no audit event and a verifier
+    unable to tell that from a chain nobody wrote to. Returns the chain entry
+    when appended directly, or None when enqueued for projection.
+    """
+    connection = _ACTIVE_TX_CONNECTION.get()
+    if connection is None:
+        return _CHAIN.append(tenant, payload)
+    _audit_outbox.enqueue(connection, tenant=tenant, key=key, payload=payload)
+    return None
+
+
+def drain_audit_outbox(tenant: str | None = None) -> int:
+    """Project any audit event whose transaction committed before it was written.
+
+    Runs on the same lazy sweep as the stale-dispatch reconciler, for the same
+    reason: a background daemon is not deployed, so recovery has to happen on
+    the next interaction rather than on a timer. An idle tenant is never swept,
+    which is a limitation and not a claim to the contrary.
+    """
+    dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+    db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    if not (dsn or db_path):
+        return 0
+    try:
+        if dsn:
+            import psycopg  # type: ignore
+
+            with psycopg.connect(dsn) as conn:
+                return _audit_outbox.drain(conn, _CHAIN, tenant=tenant)
+        import sqlite3
+
+        with sqlite3.connect(db_path) as conn:
+            return _audit_outbox.drain(conn, _CHAIN, tenant=tenant)
+    except Exception:  # noqa: BLE001
+        # Recovery that raises would turn a durable, recoverable gap into a
+        # failed request. The row stays pending and the next sweep retries.
+        return 0
+
+
 def reconcile_stale_dispatches(
     tenant: str, *, now: "datetime | None" = None
 ) -> list[Any]:
@@ -443,6 +495,9 @@ def reconcile_stale_dispatches(
     decision that produces a new record (maintainer decision 2026-08-05) —
     it never rewrites the terminal state.
     """
+    # REM-047 recovery on the same sweep: an audit event whose transaction
+    # committed before it reached the chain is projected here.
+    drain_audit_outbox(tenant)
     raw = _os.environ.get("REMORA_OUTBOX_STALE_SECONDS", "").strip()
     try:
         seconds = int(raw) if raw else DEFAULT_OUTBOX_STALE_SECONDS

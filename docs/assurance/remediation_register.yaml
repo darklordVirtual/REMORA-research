@@ -1012,10 +1012,12 @@ items:
     section: "external-review-2026-08-03 P1"
     title: "Business state transition and audit append are not one atomic transaction"
     gate: P4
-    status: NOT_STARTED
+    status: DONE
     artifacts:
       - servers/execution_api.py
       - remora/governance/tenant_chain.py
+      - remora/governance/audit_outbox.py
+      - tests/test_audit_outbox_atomicity.py
     notes: >
       External review 2026-08-03: review-queue state commits inside
       db_transaction_state() while the audit entry is appended afterwards via
@@ -1028,3 +1030,19 @@ items:
       carries the audit event; (3) the transition is event-sourced with the
       audit event as the state authority. Related but distinct: REM-035
       (durable chain integrity: per-tenant sequence, WORM, anchoring).
+
+      Closed 2026-08-28 by option (2), after the external technical review
+      raised it again as RMR-006. remora/governance/audit_outbox.py enqueues
+      the audit event on the same connection the state transition commits on,
+      so the pair is atomic; a drain projects enqueued events into the chain
+      through append_once under a deterministic key, and runs on the same lazy
+      sweep as the stale-dispatch reconciler. Marking a row projected happens
+      after the append, so a crash mid-drain replays rather than loses: the
+      cost of a crash is a duplicate attempt, which the key absorbs, and the
+      reverse order would cost a lost audit event, which nothing absorbs.
+      Kill-point tests cover crash before commit, crash after commit and
+      before projection, crash mid-drain, replayed drain, and two processes
+      draining concurrently. What is NOT closed: the drain is a lazy sweep,
+      so an idle tenant is never swept and wall-clock recovery still needs a
+      scheduled call. Verified on SQLite; the Postgres branch shares the code
+      path but was not exercised against a live server here.
