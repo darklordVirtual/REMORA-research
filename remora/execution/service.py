@@ -27,7 +27,7 @@ from uuid import uuid4
 
 from remora.execution.outcome import DispatchOutcome, classify_outcome
 from remora.enforcement.outbox import OutboxState
-from remora.enforcement.token import PolicyDecisionToken
+from remora.enforcement.token import AuthorizationContext, PolicyDecisionToken
 from remora.governance.review_queue import ExecutionDecision
 from remora.governance.proposal_lineage import derive_lineage, lineage_key_for
 from remora.policy.report import DecisionAction
@@ -225,6 +225,10 @@ def assess_proposal(
 
     item = None
     if report.action is DecisionAction.ACCEPT:
+        # This is the token a caller holds and later redeems at
+        # /execute-accepted, which deliberately does not re-run the engine. The
+        # conditions the decision was made under are therefore signed into it,
+        # or redemption has nothing to check them against (RMR-001).
         token = PolicyDecisionToken.issue(
             action="accept",
             observation_hash=obs.tool_call_hash or "",
@@ -232,6 +236,9 @@ def assess_proposal(
             issued_at=now.isoformat(),
             expires_at=(now + timedelta(seconds=token_ttl_seconds)).isoformat(),
             audience=token_audience,
+            context=authorization_context(
+                tenant=tenant, principal=principal, semantic=semantic
+            ),
         )
         record["grant_jti"] = token.jti
         response["execution_token"] = token.to_dict()
@@ -432,6 +439,9 @@ def execute_approved_item(
     # The re-gate only AUTHORIZED the call; EXECUTED is recorded separately
     # after the dispatcher reports what actually happened.
     now = datetime.now(UTC)
+    review_context = authorization_context(
+        tenant=tenant, principal=principal, semantic=fresh_semantic
+    )
     token = PolicyDecisionToken.issue(
         action="accept",
         observation_hash=fresh_obs.tool_call_hash or "",
@@ -441,10 +451,12 @@ def execute_approved_item(
         issued_at=now.isoformat(),
         expires_at=(now + timedelta(seconds=token_ttl_seconds)).isoformat(),
         audience=token_audience,
+        context=review_context,
     )
     # PEP consumption happens HERE: the grant is consumed atomically the
     # moment it is honoured - a re-presented token can never execute twice.
-    gate_result = gate.check(token, fresh_obs.tool_call_hash, consume=True)
+    gate_result = gate.check(
+        token, fresh_obs.tool_call_hash, consume=True, context=review_context)
     response["execution_grant"] = token.to_dict()
     response["pep"] = {"allowed": gate_result.allowed,
                        "reason": gate_result.reason}
@@ -849,6 +861,9 @@ def dispatch_pending_intent(
     token_expiry = now + timedelta(seconds=token_ttl_seconds)
     if row.authorization_expires_at is not None:
         token_expiry = min(token_expiry, row.authorization_expires_at)
+    honour_context = authorization_context(
+        tenant=tenant, principal=actor, semantic=fresh_semantic
+    )
     token = PolicyDecisionToken.issue(
         action="accept",
         observation_hash=fresh_obs.tool_call_hash or "",
@@ -856,8 +871,10 @@ def dispatch_pending_intent(
         issued_at=now.isoformat(),
         expires_at=token_expiry.isoformat(),
         audience=token_audience,
+        context=honour_context,
     )
-    gate_result = gate.check(token, fresh_obs.tool_call_hash, consume=True)
+    gate_result = gate.check(
+        token, fresh_obs.tool_call_hash, consume=True, context=honour_context)
     coverage = policy_coverage() if policy_coverage is not None else None
     intent_entry = chain.append(tenant, {
         "event": "execution_authorized",
@@ -955,6 +972,26 @@ class TokenRefused(RemoraError):
         self.refusal = refusal
 
 
+def authorization_context(
+    *, tenant: str, principal: str, semantic: dict[str, Any]
+) -> AuthorizationContext:
+    """The conditions a decision is made under, in one place.
+
+    Built identically at issuance and at redemption, because the whole point is
+    that the two comparisons cannot drift. Three call sites constructing the
+    same six fields by hand is how they would (RMR-001).
+    """
+
+    return AuthorizationContext(
+        tenant=tenant,
+        principal=principal,
+        target_environment=str(semantic.get("target_environment", "")),
+        policy_bundle_hash=str(semantic.get("policy_bundle_hash", "")),
+        toolspec_hash=str(semantic.get("tool_contract_bundle_hash", "")),
+        intent_authority_hash=str(semantic.get("intent_authority_hash", "")),
+    )
+
+
 def redeem_accept_token(
     *,
     tenant: str,
@@ -1006,9 +1043,35 @@ def redeem_accept_token(
             "not_accept",
         )
 
+    # The conditions this decision was made under, recomputed from the request
+    # being redeemed. Deliberately checked BEFORE consumption, like the payload
+    # binding above: a token presented under different conditions must not burn
+    # the grant for the conditions it actually authorizes.
+    current_context = authorization_context(
+        tenant=tenant, principal=principal, semantic=semantic
+    )
+    context_check = token.verify(obs.tool_call_hash, context=current_context)
+    if not context_check.verified and context_check.reason in {
+        "context_mismatch",
+        "context_unbound",
+    }:
+        chain.append(tenant, {
+            "event": "execution_context_refused",
+            "proposal_id": proposal_id,
+            "actor": principal,
+            "grant_jti": token.jti,
+            "detail": context_check.reason,
+        })
+        raise TokenRefused(
+            "authorization context refused: this token was issued under "
+            "different conditions than the ones presented here",
+            str(context_check.reason),
+        )
+
     # Consume exactly once. A refused check here is expiry, audience
     # mismatch, a bad signature, or a replay - all terminal for this token.
-    gate_result = gate.check(token, obs.tool_call_hash, consume=True)
+    gate_result = gate.check(
+        token, obs.tool_call_hash, consume=True, context=current_context)
     if not gate_result.allowed:
         chain.append(tenant, {
             "event": "execution_grant_refused",

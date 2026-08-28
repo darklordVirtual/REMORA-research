@@ -84,6 +84,70 @@ def _revoked_kids() -> frozenset[str]:
     )
 
 
+@dataclass(frozen=True)
+class AuthorizationContext:
+    """The conditions under which a decision was made, bound into its token.
+
+    A signature answers who wrote the token. Until RMR-001 the token answered
+    nothing else about the authorization: it carried the action, a hash of the
+    call, timestamps, a one-time id and an audience. Tenant and target were
+    covered transitively, because ``canonical_tool_call_hash`` takes them into
+    its preimage, but the principal the decision was made for, the policy bundle
+    it was decided under and the tool contract it was decided against were not
+    bound at all.
+
+    That gap has a shape. A token minted for one principal could be redeemed by
+    another with the same capability in the same tenant, and a call reclassified
+    as destructive after issuance could still be executed on the old
+    authorization, because the redeeming path deliberately does not re-run the
+    engine. The lease minted at dispatch binds the CURRENT values, which is a
+    true statement about the lease and a misleading one about the authorization:
+    it proves what the executor did, not what the decision point approved.
+
+    Binding these as one hash keeps the wire format and the signature rules
+    unchanged, and makes the redemption check a single comparison that cannot be
+    partially applied.
+    """
+
+    tenant: str = ""
+    principal: str = ""
+    target_environment: str = ""
+    policy_bundle_hash: str = ""
+    toolspec_hash: str = ""
+    intent_authority_hash: str = ""
+
+    def hash(self) -> str:
+        canonical = json.dumps(
+            {
+                "intent_authority_hash": self.intent_authority_hash or "",
+                "policy_bundle_hash": self.policy_bundle_hash or "",
+                "principal": self.principal or "",
+                "target_environment": self.target_environment or "",
+                "tenant": self.tenant or "",
+                "toolspec_hash": self.toolspec_hash or "",
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        return hashlib.sha256(canonical.encode()).hexdigest()
+
+    def differences(self, other: "AuthorizationContext") -> list[str]:
+        """Field names that differ, so a refusal can say which one moved."""
+
+        return [
+            name
+            for name in (
+                "tenant",
+                "principal",
+                "target_environment",
+                "policy_bundle_hash",
+                "toolspec_hash",
+                "intent_authority_hash",
+            )
+            if (getattr(self, name) or "") != (getattr(other, name) or "")
+        ]
+
+
 def _canonical_payload(
     action: str,
     observation_hash: str,
@@ -94,6 +158,7 @@ def _canonical_payload(
     audience: str = "",
     kid: str = "",
     issuer: str = "",
+    context_hash: str = "",
 ) -> bytes:
     """Stable canonical serialization for signing (sorted keys, no whitespace).
 
@@ -120,6 +185,8 @@ def _canonical_payload(
         payload["kid"] = kid
     if issuer:
         payload["issuer"] = issuer
+    if context_hash:
+        payload["context_hash"] = context_hash
     return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
 
 
@@ -172,6 +239,11 @@ class PolicyDecisionToken:
     # unchanged against the current-then-previous key set.
     kid: str = ""
     issuer: str = ""
+    #: SHA-256 of the AuthorizationContext this decision was made under. Signed
+    #: when set, and compared at redemption against the context recomputed from
+    #: the current request (RMR-001). Empty on tokens minted before the binding
+    #: existed, which verify unchanged.
+    context_hash: str = ""
 
     @classmethod
     def issue(
@@ -182,6 +254,7 @@ class PolicyDecisionToken:
         issued_at: str,
         expires_at: str | None = None,
         audience: str = "",
+        context: "AuthorizationContext | None" = None,
     ) -> PolicyDecisionToken:
         """Issue a signed (or unsigned) PolicyDecisionToken from the PDP.
 
@@ -211,13 +284,14 @@ class PolicyDecisionToken:
                     f"token TTL must be in (0, {MAX_TOKEN_TTL_SECONDS}] seconds, got {ttl}"
                 )
         jti = str(_uuid.uuid4())
+        context_hash = context.hash() if context is not None else ""
         key = _get_signing_key()
         kid = _current_kid()
         issuer = os.environ.get(_ENV_ISSUER, "").strip()
         if key:
             payload = _canonical_payload(
                 action, observation_hash, request_id, issued_at, expires_at,
-                jti, audience, kid, issuer,
+                jti, audience, kid, issuer, context_hash,
             )
             sig = _compute_signature(payload, key)
             return cls(
@@ -232,6 +306,7 @@ class PolicyDecisionToken:
                 audience=audience,
                 kid=kid,
                 issuer=issuer,
+                context_hash=context_hash,
             )
         return cls(
             action=action,
@@ -245,12 +320,14 @@ class PolicyDecisionToken:
             audience=audience,
             kid=kid,
             issuer=issuer,
+            context_hash=context_hash,
         )
 
     def verify(
         self,
         observation_hash: str | None = None,
         now: str | None = None,
+        context: "AuthorizationContext | None" = None,
     ) -> TokenVerificationResult:
         """Verify this token's signature, expiry, and optionally the observation hash.
 
@@ -258,6 +335,13 @@ class PolicyDecisionToken:
             observation_hash: Expected hash; if provided, must match self.observation_hash.
             now: UTC ISO-8601 timestamp to evaluate expiry against; defaults to
                 the current UTC time. Only consulted when expires_at is set.
+            context: The authorization context recomputed from the request being
+                redeemed. When supplied, it must equal the one signed into the
+                token. A token that carries no context refuses against a
+                supplied one rather than passing: an unbound token cannot be
+                shown to have been issued under these conditions, and treating
+                "unknown" as "matching" is the failure this parameter exists to
+                prevent (RMR-001).
 
         Returns:
             TokenVerificationResult with verified=True if signature is valid
@@ -293,6 +377,7 @@ class PolicyDecisionToken:
         payload = _canonical_payload(
             self.action, self.observation_hash, self.request_id, self.issued_at,
             self.expires_at, self.jti, self.audience, self.kid, self.issuer,
+            self.context_hash,
         )
 
         if self.kid:
@@ -321,6 +406,20 @@ class PolicyDecisionToken:
                 reason="signature_invalid",
                 is_signed=True,
             )
+
+        if context is not None:
+            if not self.context_hash:
+                return TokenVerificationResult(
+                    verified=False,
+                    reason="context_unbound",
+                    is_signed=True,
+                )
+            if self.context_hash != context.hash():
+                return TokenVerificationResult(
+                    verified=False,
+                    reason="context_mismatch",
+                    is_signed=True,
+                )
 
         if self.expires_at is None:
             # Mandatory-expiry policy: legacy no-expiry tokens are rejected
@@ -400,6 +499,7 @@ class PolicyDecisionToken:
             "audience": self.audience,
             "kid": self.kid,
             "issuer": self.issuer,
+            "context_hash": self.context_hash,
             "signature": self.signature,
             "is_signed": self.is_signed,
         }
@@ -407,7 +507,7 @@ class PolicyDecisionToken:
     _FIELDS = frozenset({
         "action", "observation_hash", "request_id", "issued_at",
         "expires_at", "jti", "audience", "kid", "issuer",
-        "signature", "is_signed",
+        "context_hash", "signature", "is_signed",
     })
 
     @classmethod
