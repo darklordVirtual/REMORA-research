@@ -81,7 +81,7 @@ control characters below `0x20`.
 ### Class 3: key ordering for astral characters — closed
 
 Object member names sort by UTF-16 code unit, not by code point. The difference
-is invisible below the basic multilingual plane and inverts above it: an astral
+is invisible below the basic multilingual plane and inverts above it. An astral
 character's leading surrogate sits below BMP characters above `0xE000`, so
 code-point ordering puts it last where UTF-16 ordering puts it first.
 
