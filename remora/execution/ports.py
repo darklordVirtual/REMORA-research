@@ -75,8 +75,18 @@ class PolicyDecisionTokenPort(Protocol):
     """The single-use ACCEPT token as the redeem path reads it.
 
     Verification happens inside the gate; this port is what the service
-    layer touches directly -- identity, binding hash and audit fields.
+    layer touches directly -- identity, binding hash and audit fields, plus
+    the authorization-context check the redeem path runs before consuming
+    (RMR-001), which must refuse without burning the grant.
     """
+
+    def verify(
+        self,
+        observation_hash: str | None = None,
+        now: str | None = None,
+        context: Any = None,
+    ) -> Any: ...
+
 
     @property
     def jti(self) -> str: ...
@@ -110,6 +120,7 @@ class EnforcementGatePort(Protocol):
         expected_observation_hash: str | None = None,
         consume: bool = False,
         now: str | None = None,
+        context: Any = None,
     ) -> "EnforcementResult": ...
 
 
