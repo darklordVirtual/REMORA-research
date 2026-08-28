@@ -27,6 +27,7 @@ from typing import Any
 
 from remora.observability.events import governance_event
 
+from remora.enforcement.token import AuthorizationContext
 from remora.enforcement.token import PolicyDecisionToken, TokenVerificationResult
 
 
@@ -283,6 +284,7 @@ class EnforcementGate:
         expected_observation_hash: str | None = None,
         consume: bool = False,
         now: str | None = None,
+        context: "AuthorizationContext | None" = None,
     ) -> EnforcementResult:
         """Check whether the token authorizes execution, and log the outcome.
 
@@ -294,7 +296,7 @@ class EnforcementGate:
         happened iff consumption was requested and the check allowed.
         """
         result = self._check_unlogged(
-            token, expected_observation_hash, consume, now)
+            token, expected_observation_hash, consume, now, context)
         governance_event(
             "grant.checked",
             level=logging.INFO if result.allowed else logging.WARNING,
@@ -314,6 +316,7 @@ class EnforcementGate:
         expected_observation_hash: str | None = None,
         consume: bool = False,
         now: str | None = None,
+        context: "AuthorizationContext | None" = None,
     ) -> EnforcementResult:
         """The decision logic behind :meth:`check`, with no logging.
 
@@ -327,7 +330,8 @@ class EnforcementGate:
             the decision is ACCEPT.
         """
         # Verify signature
-        vr: TokenVerificationResult = token.verify(expected_observation_hash, now=now)
+        vr: TokenVerificationResult = token.verify(
+            expected_observation_hash, now=now, context=context)
 
         if not vr.verified:
             if not token.is_signed and not self.strict:

@@ -76,7 +76,7 @@ def _accepted(client, call=None):
     return body
 
 
-def _mint_token(client, call=None):
+def _mint_token(client, call=None, principal="agent-1"):
     """Mint an ACCEPT token directly for the given call.
 
     The research profile deliberately refuses probabilistic ACCEPT without
@@ -100,6 +100,14 @@ def _mint_token(client, call=None):
         tenant="acme", target=target,
     )
     now = datetime.now(UTC)
+    # The conditions the decision is made under are signed in, exactly as the
+    # assess ACCEPT branch does. A token minted without them is refused at
+    # redemption rather than assumed to match (RMR-001).
+    from remora.execution.service import authorization_context
+
+    _obs, semantic = exec_mod._observation_with_context(
+        exec_mod.ToolCallRequest(**payload), "acme"
+    )
     token = PolicyDecisionToken.issue(
         action="accept",
         observation_hash=call_hash,
@@ -107,6 +115,9 @@ def _mint_token(client, call=None):
         issued_at=now.isoformat(),
         expires_at=(now + timedelta(seconds=300)).isoformat(),
         audience=exec_mod.PEP_AUDIENCE,
+        context=authorization_context(
+            tenant="acme", principal=principal, semantic=semantic
+        ),
     )
     return token.to_dict()
 
