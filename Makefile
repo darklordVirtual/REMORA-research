@@ -50,7 +50,7 @@ lint:  ## Run ruff linter
 
 typecheck: lint test  ## Run lint + tests
 
-replay:  ## Run the safety replay arena (96 episodes, no API keys)
+replay:  ## Run the safety replay arena (93 episodes, 48 harmful, no API keys)
 	$(PYTHON) -m remora.aromer.evals.replay_runner
 
 safety-check: lint test replay  ## Full safety check: lint + tests + replay arena + gate
