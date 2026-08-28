@@ -83,8 +83,19 @@ metadata unless these trust prerequisites are present:
 | `REMORA_PG_DSN` or `REMORA_CHAIN_DB` | Durable execution state: tenant chain, review state and one-time-grant ledger | **required** |
 | `REMORA_PDP_SIGNING_KEY` | Signs the short-lived PDP → PEP grant | **required** |
 | `REMORA_ENVELOPE_SIGNING_KEY` | Signs each envelope's audit hash; without it every audit record is written with `signature: null` and the chain is tamper-evident in name only | **required** |
+| `REMORA_EXECUTION_DOMAIN_ROLE` | `authority` or `executor`: which half of the custody split this process is (property E). An unset role is refused, because one process being both halves is what the split removes | **required** |
+| `REMORA_EFFECT_CREDENTIAL_ENV_NAMES` | Comma-separated names of the environment variables that hold downstream effect credentials. The authority domain must not hold them; the executor must. Empty is refused as vacuous | **required** |
+| `REMORA_SEMANTIC_BUNDLE_MODULE` | Module exposing `resolve_intent` (or `resolve_intent_detailed`). Strict profiles require a resolver (property D): without one every call would hard-abstain, so startup refuses instead | **required** |
 
-Typical review configuration:
+Fastest path to a configuration that satisfies all of the above:
+
+```bash
+remora init-review          # writes .remora/ with keys, bundle, registry, intents
+set -a; . .remora/authority.env; set +a
+remora doctor               # every strict prerequisite, named, before serve
+```
+
+Hand-written equivalent:
 
 ```bash
 export REMORA_RUNTIME_PROFILE=review
@@ -97,6 +108,14 @@ export REMORA_TOOL_REGISTRY_MODULE=my_app.remora_registry
 export REMORA_PDP_SIGNING_KEY='replace-me-too'
 export REMORA_ENVELOPE_SIGNING_KEY='replace-me-as-well'
 export REMORA_LEASE_SIGNING_KEY='replace-me-three'
+
+# Custody split (property E) and intent provenance (property D). The
+# authority process holds no effect credential; run a second process with
+# REMORA_EXECUTION_DOMAIN_ROLE=executor that holds ACME_SMTP_PASSWORD and
+# REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC instead of the signing keys.
+export REMORA_EXECUTION_DOMAIN_ROLE=authority
+export REMORA_EFFECT_CREDENTIAL_ENV_NAMES=ACME_SMTP_PASSWORD
+export REMORA_SEMANTIC_BUNDLE_MODULE=my_app.remora_semantic_bundle
 
 # Multi-worker / partner-shaped review:
 export REMORA_PG_DSN='postgresql://remora:...@postgres/remora'

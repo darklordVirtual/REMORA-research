@@ -46,6 +46,26 @@ from typing import Any
 _ROOT = Path(__file__).resolve().parents[1]
 
 
+def _cmd_init_review(args: argparse.Namespace) -> int:
+    """Automate the ceremony of a strict profile; remove none of its invariants."""
+    from remora.scaffold import ScaffoldExists, init_review
+
+    try:
+        summary = init_review(
+            args.dir, effect_credential_name=args.effect_credential_name, force=args.force
+        )
+    except ScaffoldExists as exc:
+        print(f"refused: {exc}", file=sys.stderr)
+        return 2
+    print(f"wrote {len(summary['written'])} files under {summary['root']}")
+    if not summary["ed25519_public_derived"]:
+        print("warning: 'cryptography' is not installed, so executor.env carries a "
+              "placeholder for the lease public key. Install the 'security' extra "
+              "and re-run with --force.", file=sys.stderr)
+    print("next:  set -a; . " + args.dir + "/authority.env; set +a && remora doctor")
+    return 0
+
+
 def _cmd_effect_verify(args: argparse.Namespace) -> int:
     """Property G on the command line: read back, compare, print the record.
 
@@ -1014,6 +1034,24 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
             "reinstall from a clean checkout", hard=True)
 
     repo = (_ROOT / "examples" / "quickstart.py").exists() and (_ROOT / "tests").exists()
+    # Strict runtime profiles refuse to start on missing prerequisites. Say so
+    # here, with the same message serve would give, instead of letting doctor
+    # pass and serve fail (the review-F-01 shape, now for profiles).
+    _profile = os.getenv("REMORA_RUNTIME_PROFILE", "").strip() or "(unset: research)"
+    try:
+        from remora.toolcall.runtime_profile import (
+            RuntimeProfileError,
+            validate_runtime_profile_prerequisites,
+        )
+        from remora.enforcement.custody import CustodyViolation
+
+        validate_runtime_profile_prerequisites()
+        add("runtime profile", True, f"{_profile}: prerequisites satisfied")
+    except (RuntimeProfileError, CustodyViolation) as exc:
+        add("runtime profile", False, f"{_profile}: {exc}",
+            "run `remora init-review` to generate a complete configuration, "
+            "or set the variables named above", hard=True)
+
     add("repo checkout", repo,
         str(_ROOT) if repo else "installed without examples/tests",
         None if repo else "clone the repo for `remora demo` and the test suite")
@@ -1157,7 +1195,7 @@ full reference: docs/cli.md
 """
 
 _COMMANDS = ("try", "demo", "assess", "explain", "replay", "serve",
-             "provenance", "verify", "maturity", "doctor", "effect-verify")
+             "provenance", "verify", "maturity", "doctor", "effect-verify", "init-review")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1290,6 +1328,16 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("maturity", help="Show module stability maturity report")
 
+    init_p = sub.add_parser(
+        "init-review",
+        help="Generate a complete strict-profile configuration (.remora/): keys, "
+             "signed ToolSpec bundle, registry, intents, and one env file per custody half")
+    init_p.add_argument("--dir", default=".remora", help="Target directory (default .remora)")
+    init_p.add_argument("--effect-credential-name", default="ACME_NOTIFY_API_KEY",
+                        help="Env var name of the downstream credential the executor holds")
+    init_p.add_argument("--force", action="store_true",
+                        help="Regenerate keys even if the directory already holds some")
+
     ev_p = sub.add_parser(
         "effect-verify",
         help="Read back an external object over HTTP and verify a declared delta (property G)")
@@ -1329,6 +1377,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_verify(args)
     if args.command == "maturity":
         return _cmd_maturity(args)
+    if args.command == "init-review":
+        return _cmd_init_review(args)
     if args.command == "effect-verify":
         return _cmd_effect_verify(args)
     if args.command == "doctor":
