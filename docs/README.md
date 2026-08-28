@@ -159,6 +159,7 @@ Several topics have more than one document. This table says which to open.
 | [artifact_manifest_v1.md](assurance/artifact_manifest_v1.md) | Result artifact hashes |
 | [superseded_claims.md](assurance/superseded_claims.md) | Replaced claims and successors |
 | [claim_provenance_baseline.json](assurance/claim_provenance_baseline.json) | Grandfathered provenance exceptions |
+| [claim_metric_binding_baseline.json](assurance/claim_metric_binding_baseline.json) | Published numbers not stored in their artifact, with reasons; shrink-only |
 | [prose_style_baseline.json](assurance/prose_style_baseline.json) | Shrink-only per-file counts of structural prose tells (`scripts/check_prose_style.py`) |
 | [ADR: single execution path](architecture/ADR-single-authoritative-execution-path.md) | One authoritative execution path; agent-control is ingress, not an engine |
 | [ADR: tainted arguments](architecture/ADR-tainted-argument-approval.md) | Approval suffices; sanitisation not required, with the residual stated (issue #40) |
@@ -238,6 +239,7 @@ Design documents describe a proposal at the time it was written; whether it ship
 | [design/execution-lifecycle-outbox-v1.md](design/execution-lifecycle-outbox-v1.md) | Execution lifecycle/outbox design (design history) |
 | [design/toolspec-signed-registry-v1.md](design/toolspec-signed-registry-v1.md) | Signed ToolSpec design (design history) |
 | [design/cloudflare-mcp-gateway-v1.md](design/cloudflare-mcp-gateway-v1.md) | Governed MCP gateway design for the Cloudflare deployment (open proposal) |
+| [design/aps-authority-profile-v0.md](design/aps-authority-profile-v0.md) | RFC 8785 canonicalisation for APS interop: three divergence classes closed, the number model declined with its reason (open proposal) |
 | [methods/nested_governance.md](methods/nested_governance.md) | Nested governance model |
 | [methods/architecture_risk_register.md](methods/architecture_risk_register.md) | Architecture risk register |
 | [methods/theoretical_foundations_proposals_v1.md](methods/theoretical_foundations_proposals_v1.md) | Theoretical-foundation proposals |
