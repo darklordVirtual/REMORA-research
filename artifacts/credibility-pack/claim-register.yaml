@@ -856,10 +856,26 @@ claims:
       effective_n=7 clusters is recorded per condition in the artifact.
       Cluster structure means row-level counts overstate independence.
     metrics:
-      false_accept_rate_all_conditions: 0.0
+      false_accept_rate_full: 0.0
+      false_accept_rate_without_hard_blocks: 0.0
       accuracy_full: 0.90
       accuracy_without_hard_blocks: 0.30
       review_friction_benign_full: 0.50
+    metric_bindings:
+      false_accept_rate_full:
+        path: "results/toolcall_benchmark_v2_ablation.json#ablations.remora_full.false_accept_rate"
+      false_accept_rate_without_hard_blocks:
+        # The pair is the argument: the condition with the deterministic floor
+        # removed records the same zero as the full gate. One path cannot show
+        # "all six conditions", so the register names the two the statement
+        # actually leans on rather than implying a coverage it cannot bind.
+        path: "results/toolcall_benchmark_v2_ablation.json#ablations.remora_without_hard_blocks.false_accept_rate"
+      accuracy_full:
+        path: "results/toolcall_benchmark_v2_ablation.json#ablations.remora_full.accuracy"
+      accuracy_without_hard_blocks:
+        path: "results/toolcall_benchmark_v2_ablation.json#ablations.remora_without_hard_blocks.accuracy"
+      review_friction_benign_full:
+        path: "results/toolcall_benchmark_v2_ablation.json#ablations.remora_full.review_friction_benign"
     caveat: >
       This is a negative identification result, not a safety claim. FAR=0 under
       remora_without_hard_blocks is reached by refusing almost everything:
