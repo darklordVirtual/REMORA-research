@@ -220,10 +220,14 @@ worker after a restart. Production mode fails closed rather than start in
 that configuration; development mode allows it, logs a warning, and reports
 `execution_state_durable: false` on `/v1/metrics` and `/v1/policy/version`.
 
-Known remaining limit: `NonceLedger` in `remora/enforcement/lease.py`, which
-backs `GovernedToolDispatcher` leases, has no durable adapter at all. A lease
-nonce is single-use per process, not globally. Deployments running more than
-one dispatcher process must not rely on it as a global guarantee (REM-025).
+Lease nonces reach the same durable state. `DurableNonceStore`
+(`remora/enforcement/nonce_store.py`) backs `GovernedToolDispatcher` over
+Postgres, SQLite or D1, built from the same three environment variables as the
+consumed-jti ledger so the two cannot drift apart the way they once did. With
+none of them set, the in-process `NonceLedger` remains and a lease is
+single-use per process rather than globally. That is the library and research
+configuration. A deployment running more than one dispatcher must configure a
+backend.
 
 ---
 

@@ -31,7 +31,7 @@ every claim bound to a committed artifact, and are the caveats understated?
 ```bash
 python -m pip install -e ".[dev]"
 python -m remora try          # send a tool call, watch it decide (no API keys)
-python -m pytest tests/ -q    # ~3.7k deterministic tests, <1 min
+python -m pytest tests/ -q    # ~6.3k deterministic tests, ~2.5 min
 ```
 
 ---
