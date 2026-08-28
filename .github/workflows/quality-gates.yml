@@ -304,12 +304,16 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Test
-        # Only the workers that have a test directory. mcp-gateway carries the
-        # governance tests for the MCP surface: that a refusal executes
-        # nothing, that a pending proposal executes nothing, and that a
-        # redeemed proposal cannot be replayed. Those are safety properties,
-        # so they belong in a gate rather than in a developer's habits.
-        if: hashFiles(format('workers/{0}/test/**', matrix.worker)) != ''
+        # Both layouts, because the condition used to name only one. mcp-gateway
+        # keeps its governance tests in test/; rag-oracle keeps its six
+        # authentication tests beside the code in src/auth.test.ts, so the
+        # directory check was false and the job silently ran no tests at all
+        # while reporting green (RMR-009). A security test that does not gate
+        # is a security test nobody will notice breaking.
+        if: >-
+          hashFiles(format('workers/{0}/test/**', matrix.worker),
+                    format('workers/{0}/src/**/*.test.ts', matrix.worker),
+                    format('workers/{0}/src/**/*.spec.ts', matrix.worker)) != ''
         working-directory: workers/${{ matrix.worker }}
         run: npm test
 
