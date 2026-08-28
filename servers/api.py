@@ -747,7 +747,7 @@ def filesystem_type_for(path: "os.PathLike[str] | str") -> str | None:
     try:
         candidate = candidate.resolve(strict=False)
     except OSError:
-        pass
+        pass  # an unresolvable path is used as given
     for parent in [candidate, *candidate.parents]:
         if parent.exists():
             return _mount_filesystem_type(parent)
@@ -1699,7 +1699,7 @@ def _enforce_review_approval_role(
 # Request / response models
 # ---------------------------------------------------------------------------
 
-from servers.execution_api import DerivationProposal as _DerivationProposal
+from servers.execution_contracts import DerivationProposal as _DerivationProposal
 
 
 class AssessToolCall(BaseModel):

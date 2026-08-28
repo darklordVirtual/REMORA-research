@@ -814,7 +814,6 @@ def test_phase_aware_abstention_reduces_false_trust_rate():
     """
     data = load_json("results/phase_aware_routing_results.json")
     policies = data["policies"]
-    _summary = data["summary"]  # noqa: F841
 
     baseline_acc = policies["baseline"]["accuracy_on_covered"]
     e1 = policies["E1_phase_abstain"]

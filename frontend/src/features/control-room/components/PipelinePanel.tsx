@@ -21,7 +21,6 @@ function PipelinePanelRaw({
   const displayedAction = isCustom ? queryOverride : sc.proposed_action;
   const isBlocked = trace.verdict === "ESCALATE";
   const isWarning = trace.verdict === "VERIFY";
-  const isAbstain = trace.verdict === "ABSTAIN";
   const isClear = trace.verdict === "ACCEPT";
 
   return (

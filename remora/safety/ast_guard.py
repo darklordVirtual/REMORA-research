@@ -194,7 +194,7 @@ def _degradation_event(layer: str, exc: Exception) -> None:
             layer=layer, error=type(exc).__name__,
         )
     except Exception:
-        pass
+        pass  # telemetry failure must not mask the degraded-layer signal
 
 
 # ── public interface ──────────────────────────────────────────────────────────

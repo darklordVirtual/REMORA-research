@@ -174,7 +174,6 @@ class TestTrustCalibrator:
 
     def test_overconfident_scores_get_t_above_one(self) -> None:
         # Overconfident scores (all high) on balanced labels → T > 1 to shrink
-        _probs = [0.99] * 5 + [0.01] * 5  # noqa: F841
         # Labels match perfectly — calibrator might leave T near 1 or increase it
         # but for truly overconfident scores against balanced labels:
         probs2 = [0.95] * 10

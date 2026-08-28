@@ -492,7 +492,7 @@ def _cleanup(path: str) -> None:
     try:
         pathlib.Path(path).unlink(missing_ok=True)
     except Exception:
-        pass
+        pass  # best-effort temp-file cleanup
 
 
 def _metrics_row(label: str, m: ProfileMetrics) -> str:

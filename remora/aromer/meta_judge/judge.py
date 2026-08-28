@@ -199,7 +199,7 @@ class AromerMetaJudge:
                 try:
                     rubric_raw = json.loads(raw["claim"])
                 except json.JSONDecodeError:
-                    pass
+                    pass  # non-JSON claim text is kept as plain text
 
             truth      = float(rubric_raw.get("truth_score", 0.5))
             safety     = float(rubric_raw.get("safety_score", 0.5))

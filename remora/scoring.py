@@ -229,7 +229,7 @@ def effective_truth_rate(
         # Oracle consistency: top-claim weighted support
         top_claims = report.get("top_claims", [])
         final_support = float(top_claims[0][1]) if top_claims else 0.0
-        _traj = report.get("trajectory", [])  # noqa: F841
+        report.get("trajectory", [])
         open_cands = int(report.get("open_candidates", 0))
         falsified  = int(report.get("falsified_count", 0))
         total_seen = open_cands + falsified

@@ -47,7 +47,6 @@ def test_conformal_threshold_returns_above_one_when_unattainable():
 
 def test_coverage_at_threshold_matches_naive_count():
     scores = [0.1, 0.4, 0.7, 0.9]
-    _labels = [False, True, True, True]  # noqa: F841
     cov = coverage_at_threshold(scores, 0.5)
     assert cov == pytest.approx(0.5)
 

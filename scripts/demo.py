@@ -285,45 +285,6 @@ def render_oracle(sid: str, claim: str, step: int, label: str) -> dict:
 
     box_, done = run_async(lambda: ac("/execute", payload))
 
-    def frame(t: float, result: dict | None):
-        api_done   = result is not None
-        confidence = float(result.get("confidence", 0)) if api_done else 0.0
-        # Simulate three oracles arriving staggered
-        oracle_done = [api_done] * 3
-        oracle_conf = [confidence] * 3
-        oracle_v    = ["true" if confidence > 0.5 else "false"] * 3 if api_done else [None] * 3
-
-        cols = Columns(
-            [_oracle_panel(i, t, oracle_done[i], oracle_v[i], oracle_conf[i])
-             for i in range(3)],
-            equal=True, expand=True
-        )
-
-        if api_done:
-            v_color = "green" if confidence >= 0.75 else "yellow"
-            verdict_label = result.get("output", {}).get("verdict", "?")
-            ms      = result.get("duration_ms", 0)
-            audit   = result.get("audit_id", "?")
-            consensus_line = (
-                f"\n  CONSENSUS  [bold {v_color}]{verdict_label}[/bold {v_color}]"
-                f"  {confidence_bar(confidence, 28, v_color)}  [bold]{confidence:.0%}[/bold]"
-                f"   [dim]audit#{audit}  {ms}ms[/dim]"
-            )
-        else:
-            consensus_line = f"\n  [dim]{spin(t)} Awaiting consensus...  {wave(t, 28)}[/dim]"
-
-        pipeline = _pipeline_diagram(3 if api_done else 0)
-
-        body = Text.assemble(consensus_line, "\n\n")
-
-        return Panel(
-            Text.assemble(
-                Text("\n"),
-                Text.from_markup("  [bold dim]ORACLE PANELS[/bold dim]\n\n"),
-            ),
-            box=box.MINIMAL
-        ), cols, body, pipeline
-
     if IS_TTY:
         with Live(console=console, refresh_per_second=20, transient=False) as live:
             while not done.wait(0.05):

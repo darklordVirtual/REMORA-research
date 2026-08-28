@@ -22,12 +22,12 @@ class Store:
         self._data: dict = {}
         if self.path.exists():
             try: self._data = json.loads(self.path.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, OSError): pass
+            except (json.JSONDecodeError, OSError): pass  # an unreadable cache starts empty; a failed write loses only the cache
     def get(self, key: str) -> Optional[dict]: return self._data.get(key)
     def set(self, key: str, value: dict) -> None:
         self._data[key] = value
         try: self.path.write_text(json.dumps(self._data, ensure_ascii=False, indent=2), encoding="utf-8")
-        except OSError: pass
+        except OSError: pass  # an unreadable cache starts empty; a failed write loses only the cache
     def __len__(self) -> int: return len(self._data)
 
 class CachedOracle(Oracle):

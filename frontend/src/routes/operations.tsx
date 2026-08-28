@@ -11,7 +11,6 @@ import { OpTimeline } from "@/features/operations/components/OpTimeline";
 import { ProcedurePanel } from "@/features/operations/components/ProcedurePanel";
 import { AgentProposalCard } from "@/features/operations/components/AgentProposalCard";
 
-import { DecisionPanel } from "@/features/control-room/components/DecisionPanel";
 import { PipelinePanel } from "@/features/control-room/components/PipelinePanel";
 import { EscalationInbox } from "@/features/control-room/components/EscalationInbox";
 const ApprovalModal = lazy(() =>

@@ -262,7 +262,7 @@ class EpisodicStore:
                     data = json.loads(line)
                     loaded.append(Episode.from_dict(data))
                 except Exception:
-                    pass
+                    pass  # a malformed line is skipped, never allowed to poison the store
         # Keep only last max_loaded episodes in memory
         self._episodes = loaded[-self.max_loaded:]
         self._id_index = {e.episode_id: i for i, e in enumerate(self._episodes)}
@@ -299,7 +299,7 @@ class EpisodicStore:
                     found = True
                     continue
             except Exception:
-                pass
+                pass  # a malformed line is skipped, never allowed to poison the store
             out.append(line)
         if found:
             self.path.write_text("".join(out), encoding="utf-8")
@@ -326,7 +326,7 @@ class EpisodicStore:
                     found = True
                     continue
             except Exception:
-                pass
+                pass  # a malformed line is skipped, never allowed to poison the store
             out.append(line)
         if found:
             self.path.write_text("".join(out), encoding="utf-8")

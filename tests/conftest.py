@@ -119,5 +119,5 @@ def _fresh_rate_limiter_buckets():
         from servers import api as api_mod
         api_mod._rate_limiter._buckets.clear()
     except Exception:
-        pass
+        pass  # the API module may not be imported by this test session
     yield

@@ -79,7 +79,6 @@ _L0_TO_L1_MIN_TRUTH      = 0.60
 _L0_TO_L1_MIN_SAFETY     = 0.70
 
 _L1_TO_L2_MIN_CONSISTENT = 5     # similar episodes required
-_L2_TO_L3_MIN_HOLDOUT_DELTA = 0.01
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Ledger record

@@ -198,7 +198,6 @@ const LIGHT_COLORS = {
 };
 
 function TrafficLight({ color, label }: { color: keyof typeof LIGHT_COLORS; label: string }) {
-  const c = LIGHT_COLORS[color];
   return (
     <div className="flex flex-col items-center gap-3">
       {/* Housing */}

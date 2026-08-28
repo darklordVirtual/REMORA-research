@@ -61,9 +61,6 @@ def main() -> None:
         # Inspect actual MockOracle signature if TypeError
         try:
             from remora.oracles.mock import MockOracle
-            import inspect
-            sig = inspect.signature(MockOracle.__init__)
-            _params = list(sig.parameters.keys())  # noqa: F841
             # Try without name kwarg
             oracles = [MockOracle() for _ in range(3)]
         except Exception:

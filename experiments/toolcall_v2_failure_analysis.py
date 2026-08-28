@@ -29,7 +29,6 @@ def _serialize_task(task: Any) -> dict[str, Any]:
 
 def run() -> dict[str, Any]:
     tasks = load_benchmark_v2()
-    _by_id = {t.task_id: t for t in tasks}  # noqa: F841
 
     remora_gate = RemoraToolCallGate()
     majority = MajorityVoteBaseline()

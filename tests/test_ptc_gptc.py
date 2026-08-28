@@ -351,8 +351,7 @@ class TestGovernedBatch:
             assess_counts[call.tool_id] = assess_counts.get(call.tool_id, 0) + 1
             return {"decision": "ACCEPT"}
 
-        calls = [_make_call("read_sensor")] * 3  # same tool, 3 calls
-        # Build proper unique call_ids
+        # Three calls to the same tool, with proper unique call_ids
         import uuid
         calls = [
             ProposedCall(

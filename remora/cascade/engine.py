@@ -89,7 +89,7 @@ def _extract_oracle_probs(oracle_responses: list[OracleResponse]) -> list[float]
             try:
                 probs.append(float(val))
             except (TypeError, ValueError):
-                pass
+                pass  # non-numeric probability is ignored
     return probs
 
 

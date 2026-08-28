@@ -1464,8 +1464,8 @@ def handle_agent_execute_tool(args: dict) -> str:
 
     if result.get("approval_required"):
         lines += [
-            "⏳ **Venter på godkjenning** (en uavhengig menneskelig reviewer må godkjenne "
-            "audit_id ovenfor via kontrollplanets `POST /approvals`)",
+            ("⏳ **Venter på godkjenning** (en uavhengig menneskelig reviewer må godkjenne "
+            "audit_id ovenfor via kontrollplanets `POST /approvals`)"),
             "",
         ]
 

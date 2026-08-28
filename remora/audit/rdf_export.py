@@ -118,8 +118,6 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 _REMORA_ONTOLOGY = "https://remora.ai/ontology/"
-_REMORA_DECISIONS = "https://remora.ai/decisions/"
-_REMORA_AGENTS = "https://remora.ai/agents/"
 _XSD = "http://www.w3.org/2001/XMLSchema#"
 _RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 

@@ -196,5 +196,3 @@ def far_monitoring_report(
     return report
 
 
-# Kept out of __all__: verification helper, not public API.
-_CLOSED_FORM_K0 = closed_form_upper_k0

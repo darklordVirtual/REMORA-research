@@ -26,8 +26,6 @@ _SCENARIOS = _DATASET_ROOT / "scenarios" / "agent_action_scenarios.jsonl"
 _EXPECTED = _DATASET_ROOT / "expected_decisions" / "expected_gate_decisions.jsonl"
 _EVIDENCE = _DATASET_ROOT / "evidence_packs" / "evidence_objects.jsonl"
 _REPLAY = _DATASET_ROOT / "replay_logs" / "shadow_replay_demo.jsonl"
-_GATE_RULES = _DATASET_ROOT / "policies" / "remora_gate_rules.yaml"
-_RISK_TIER = _DATASET_ROOT / "policies" / "risk_tier_mapping.yaml"
 
 _DATASET_PRESENT = _SCENARIOS.exists() and _EXPECTED.exists() and _EVIDENCE.exists()
 

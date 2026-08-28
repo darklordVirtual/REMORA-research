@@ -346,8 +346,6 @@ class SQLiteTenantChain:
         self._conn().executescript(_SQLITE_DDL)
 
     def _conn(self) -> "sqlite3.Connection":
-        import sqlite3
-
         conn = getattr(self._local, "conn", None)
         if conn is None:
             conn = sqlite3.connect(self._db_path, timeout=30, isolation_level=None)

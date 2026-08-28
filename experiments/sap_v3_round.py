@@ -460,20 +460,20 @@ def analyze() -> int:
             "exceedance, not a proven assumption violation."
         ),
         "scope_caveats": [
-            "Corpus skew: ~93% BoolQ and ~93% easy-classified items, 2.2% "
+            ("Corpus skew: ~93% BoolQ and ~93% easy-classified items, 2.2% "
             "adversarial — evidence about selective QA on this "
             "distribution, NOT about tool execution, production writes, "
-            "irreversible operations or safety-critical false accepts.",
-            "'Fresh' means unused in REMORA's N544 corpus; BoolQ/TruthfulQA "
+            "irreversible operations or safety-critical false accepts."),
+            ("'Fresh' means unused in REMORA's N544 corpus; BoolQ/TruthfulQA "
             "are public datasets and may appear in model pretraining — "
-            "these are not necessarily model-unseen items.",
-            "A baseline arm's certification does not trigger SAP v3 §7 "
+            "these are not necessarily model-unseen items."),
+            ("A baseline arm's certification does not trigger SAP v3 §7 "
             "engine integration: the integration clause was written for "
             "the primary (temperature) arm, which failed. The successful "
             "hybrid arm is a promising pre-registered secondary that needs "
             "its own frozen confirmation round; see the "
             "sgr_family_wise_bonferroni3 rows for whether each arm also "
-            "survives selection-among-three.",
+            "survives selection-among-three."),
         ],
     }
     RESULTS_PATH.write_text(json.dumps(out, indent=2), encoding="utf-8")

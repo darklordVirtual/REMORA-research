@@ -244,7 +244,6 @@ def systemic_problem():
     ax.add_patch(mpatches.FancyBboxPatch((0.2, 0.2), 12.4, 2.4,
         boxstyle="round,pad=0.1", facecolor=PANEL, edgecolor=BLUE, lw=2))
     ax.text(6.4, 2.3, "Det felles monsteret:", ha="center", color=BLUE, fontsize=12, fontweight="bold")
-    _pattern_cols = [RED, ORANGE, RED]  # noqa: F841
     patterns = [
         ("AI genererer plausible\nmen falske kilder", 2.2),
         ("Ingen automatisk\nkildesjekk", 6.4),

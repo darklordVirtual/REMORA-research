@@ -154,7 +154,7 @@ def extract_answer(ds_type: str, raw: str) -> str | None:
             if val is True  or str(val).lower() == "true":  return "true"
             if val is False or str(val).lower() == "false": return "false"
         except Exception:
-            pass
+            pass  # unparseable answer falls through to the default
         r = raw.lower()
         if r.startswith("true"):  return "true"
         if r.startswith("false"): return "false"
@@ -416,21 +416,21 @@ def write_report(all_stats: list[dict], outfile: str):
     lines += [
         "\n## Known Limitations\n",
         "- Direct accuracy reflects oracle LLM capability, not REMORA governance quality.",
-        "- REMORA routes factual Q&A to `verify` by design (coverage=0%). "
-        "  The meaningful REMORA metric is latency overhead and audit completeness.",
+        ("- REMORA routes factual Q&A to `verify` by design (coverage=0%). "
+        "  The meaningful REMORA metric is latency overhead and audit completeness."),
         "- HotpotQA uses substring match, not token F1.",
         "- TruthfulQA accuracy is a substring match; it measures surface overlap, not hallucination rate.",
         "- MMLU accuracy uses letter matching (A/B/C/D); subject coverage reflects the selected configs.",
-        "- SQuAD-RAG coverage > 0% is **expected** (evidence supplied) — this is not inflated accuracy, "
-        "  it is governance coverage demonstrating the evidence-augmented accept path.",
+        ("- SQuAD-RAG coverage > 0% is **expected** (evidence supplied) — this is not inflated accuracy, "
+        "  it is governance coverage demonstrating the evidence-augmented accept path."),
         "- Results are non-deterministic; slight variation expected on rerun.",
         "\n## RAG Track Note\n",
-        "`squad-rag` injects the Wikipedia passage as evidence directly into the REMORA prompt. "
+        ("`squad-rag` injects the Wikipedia passage as evidence directly into the REMORA prompt. "
         "Unlike the knowledge-retrieval benchmarks (ARC, BoolQ, HotpotQA), REMORA is supplied "
         "with supporting context, so `accept` outcomes are the *correct* governance behavior for "
         "answerable items. Unanswerable SQuAD-v2 items (no gold answer) are scored against the "
         "string `\"unanswerable\"`. Coverage on `squad-rag` should be interpreted as: "
-        "*what fraction of evidence-grounded queries does REMORA approve without human review?*\n",
+        "*what fraction of evidence-grounded queries does REMORA approve without human review?*\n"),
         "\n## Reproduction\n",
         "```bash",
         "export $(grep -v '^#' .env.vars | xargs)",

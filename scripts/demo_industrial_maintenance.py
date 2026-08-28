@@ -370,7 +370,7 @@ def main() -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
     except Exception:
-        pass
+        pass  # stdout may not support reconfigure; ASCII fallback applies
 
     engine = RemoraDecisionEngine()
     actions = build_actions()

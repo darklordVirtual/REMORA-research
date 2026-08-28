@@ -271,7 +271,7 @@ class ToolResultScanner:
                     level=_logging.WARNING, error=type(exc).__name__,
                 )
             except Exception:
-                pass
+                pass  # telemetry failure must not mask the scan result
             return False, None
 
     def _verdict(

@@ -310,4 +310,4 @@ class AromerAdapterBridge:
                     self._bandit._alpha[oid] = payload["oracle_alpha"][oid]
                     self._bandit._beta[oid]  = payload["oracle_beta"].get(oid, 1.0)
         except Exception:
-            pass
+            pass  # a corrupt checkpoint falls back to the fresh prior

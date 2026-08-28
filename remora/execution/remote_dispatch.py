@@ -109,7 +109,7 @@ def _post(url: str, payload: dict[str, Any], timeout: float) -> dict[str, Any]:
 
         propagate.inject(headers)
     except Exception:
-        pass
+        pass  # OpenTelemetry is optional; no propagation without it
     token = os.environ.get(TOKEN_ENV, "").strip()
     if token:
         headers["Authorization"] = "Bearer " + token

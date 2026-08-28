@@ -76,5 +76,5 @@ class EntraIDAdapter(IdentityAdapter):
                     idp="entra", error=type(exc).__name__,
                 )
             except Exception:
-                pass
+                pass  # telemetry must never turn an auth failure into a crash
             return None

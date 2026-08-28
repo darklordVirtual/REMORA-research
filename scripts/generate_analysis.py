@@ -253,9 +253,9 @@ def fig2_etr_vs_accuracy(v2: dict, output_dir: Path) -> str:
 
     for ax, cond, label, color in zip(axes, conds_with_etr, labels, colors):
         cdata = v2.get("conditions", {}).get(cond, {})
-        _acc = cdata.get("accuracy", 0.0)  # noqa: F841
+        cdata.get("accuracy", 0.0)
         etr_data = cdata.get("etr", {})
-        _etr = etr_data.get("etr_rate", 0.0)  # noqa: F841
+        etr_data.get("etr_rate", 0.0)
         n = cdata.get("n", 125)
         n_correct = cdata.get("correct", 0)
         ev_gap = etr_data.get("n_evidence_gap", 0)
@@ -451,7 +451,7 @@ def fig4_reliability(v2: dict, output_dir: Path) -> str:
                         where=ba < bc, alpha=0.15, color=PALETTE["bad"], label="Over-confident")
 
         # Scatter with size proportional to bin count
-        _sc = ax.scatter(bc, ba, s=bcount * 8, c=[color]*len(bc), zorder=5,  # noqa: F841
+        ax.scatter(bc, ba, s=bcount * 8, c=[color]*len(bc), zorder=5,
                         edgecolors="#1e293b", linewidths=0.8)
         ax.plot(bc, ba, color=color, linewidth=2.0, zorder=4)
 
@@ -747,7 +747,6 @@ def fig8_scorecard(v1: dict, v2: dict, output_dir: Path) -> str:
                 txt = "-"
                 fcolor = "#94A3B8"
             elif metric_names[mi].startswith("API"):
-                _original_vals = [1.0, 1/3, 1/9.84, 1/3, 1/4.5]  # noqa: F841
                 # Show original: calls per item
                 calls = [1, 3, 9.84, 3, 4.5][ci]
                 txt = f"{calls:.1f}"

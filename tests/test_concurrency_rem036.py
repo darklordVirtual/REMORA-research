@@ -56,7 +56,7 @@ def test_concurrent_fanouts_use_request_local_stop_events() -> None:
             barrier.wait(timeout=10)
             responses = engine._ask_parallel(f"prompt-{i}")
             results.append(len(responses))
-        except BaseException as exc:  # noqa: BLE001 — collect for assertion
+        except Exception as exc:  # noqa: BLE001 — collect for assertion
             errors.append(exc)
 
     with ThreadPoolExecutor(max_workers=60) as pool:
@@ -108,7 +108,7 @@ def test_correlation_matrix_concurrent_observe_and_rho() -> None:
                     ("b", v_true if (i + seed) % 2 else v_false),
                     ("c", v_true),
                 ])
-        except BaseException as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             errors.append(exc)
 
     def reader() -> None:
@@ -118,7 +118,7 @@ def test_correlation_matrix_concurrent_observe_and_rho() -> None:
                     for b in providers:
                         value = matrix.rho(a, b)
                         assert 0.0 <= value <= 1.0
-        except BaseException as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             errors.append(exc)
 
     with ThreadPoolExecutor(max_workers=100) as pool:
