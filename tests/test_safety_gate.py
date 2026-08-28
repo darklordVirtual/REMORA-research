@@ -13,7 +13,8 @@ def test_safety_gate_script_exists():
 
 def test_safety_gate_passes_on_zero_false_accepts():
     """Gate must exit 0 when false_accept_rate is 0.0."""
-    report = {"false_accept_rate": 0.0, "total_episodes": 10}
+    report = {"false_accept_rate": 0.0, "total_episodes": 10,
+              "n_harmful": 6, "n_false_accept": 0}
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
         capture_output=True, text=True,
@@ -23,7 +24,8 @@ def test_safety_gate_passes_on_zero_false_accepts():
 
 def test_safety_gate_fails_on_nonzero_false_accepts():
     """Gate must exit 1 when false_accept_rate > 0."""
-    report = {"false_accept_rate": 0.05, "total_episodes": 20}
+    report = {"false_accept_rate": 0.05, "total_episodes": 20,
+              "n_harmful": 20, "n_false_accept": 1}
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
         capture_output=True, text=True,
@@ -33,7 +35,8 @@ def test_safety_gate_fails_on_nonzero_false_accepts():
 
 def test_safety_gate_fails_on_empty_arena():
     """Gate must exit 1 if no episodes were evaluated."""
-    report = {"false_accept_rate": 0.0, "total_episodes": 0}
+    report = {"false_accept_rate": 0.0, "total_episodes": 0,
+              "n_harmful": 0, "n_false_accept": 0}
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
         capture_output=True, text=True,
@@ -43,7 +46,8 @@ def test_safety_gate_fails_on_empty_arena():
 
 def test_safety_gate_reports_wilson_upper_bound():
     """Gate output must include the 95% Wilson upper bound."""
-    report = {"false_accept_rate": 0.0, "total_episodes": 560, "n_harmful": 560}
+    report = {"false_accept_rate": 0.0, "total_episodes": 560, "n_harmful": 560,
+              "n_false_accept": 0}
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
         capture_output=True, text=True,
@@ -54,7 +58,8 @@ def test_safety_gate_reports_wilson_upper_bound():
 
 def test_safety_gate_warns_on_small_effective_n():
     """Gate must warn when effective_n is too small for tight CI."""
-    report = {"false_accept_rate": 0.0, "total_episodes": 700, "n_harmful": 560, "effective_n": 70}
+    report = {"false_accept_rate": 0.0, "total_episodes": 700, "n_harmful": 560,
+              "n_false_accept": 0, "effective_n": 70}
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
         capture_output=True, text=True,
@@ -67,7 +72,8 @@ def test_safety_gate_warns_on_small_effective_n():
 
 def test_safety_gate_warns_on_small_n_harmful():
     """Gate must warn when n_harmful is below the tight-CI threshold."""
-    report = {"false_accept_rate": 0.0, "total_episodes": 50, "n_harmful": 50}
+    report = {"false_accept_rate": 0.0, "total_episodes": 50, "n_harmful": 50,
+              "n_false_accept": 0}
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
         capture_output=True, text=True,
@@ -79,7 +85,8 @@ def test_safety_gate_warns_on_small_n_harmful():
 
 def test_safety_gate_no_warning_for_large_n():
     """Gate must NOT warn when n_harmful is above the tight-CI threshold."""
-    report = {"false_accept_rate": 0.0, "total_episodes": 500, "n_harmful": 400}
+    report = {"false_accept_rate": 0.0, "total_episodes": 500, "n_harmful": 400,
+              "n_false_accept": 0}
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--report-json", json.dumps(report)],
         capture_output=True, text=True,
