@@ -992,12 +992,31 @@ def _cmd_replay(args: argparse.Namespace) -> int:
     return 0
 
 
+def _strict_profile_names() -> frozenset[str]:
+    """The profiles whose preflight must fail the way `remora serve` fails."""
+
+    try:
+        from remora.toolcall.runtime_profile import STRICT_PROFILES
+
+        return frozenset(STRICT_PROFILES)
+    except Exception:  # noqa: BLE001 - doctor must run on a broken install
+        return frozenset({"review", "controlled_pilot"})
+
+
 def _cmd_doctor(args: argparse.Namespace) -> int:
     """Environment self-check with actionable fixes.
 
     Hard checks (fail -> exit 1): Python version, engine smoke test, policy
-    provenance. Optional capabilities (extras, live backends, repo checkout)
-    are reported with the command that enables them, but never fail.
+    provenance, and, under a strict runtime profile or an enabled governed
+    surface, the server entrypoint itself. Optional capabilities (extras, live
+    backends, repo checkout) are reported with the command that enables them,
+    but never fail.
+
+    The entrypoint check is conditional rather than always-hard because a
+    library install with no API extra is a legitimate configuration. Under a
+    strict profile it is not: that profile is a promise about how this process
+    will serve, and a preflight that goes green while `remora serve` would
+    refuse to start is worse than no preflight (RMR-005).
     """
     checks: list[dict] = []
 
@@ -1038,6 +1057,20 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     # here, with the same message serve would give, instead of letting doctor
     # pass and serve fail (the review-F-01 shape, now for profiles).
     _profile = os.getenv("REMORA_RUNTIME_PROFILE", "").strip() or "(unset: research)"
+    # A strict profile is a deployment promise, so its preflight has to fail the
+    # same way `remora serve` fails. Until RMR-005 the runtime-profile check
+    # could pass on the authority variables while importing servers.api failed
+    # on the bearer token, the control plane or durable state, and the API check
+    # was soft: overall ok stayed true and the operator got a green preflight
+    # before a server that would not start.
+    _strict_profile = _profile in _strict_profile_names()
+    _surfaces = {
+        s.strip().lower()
+        for s in os.getenv("REMORA_ENABLED_SURFACES", "").split(",")
+        if s.strip()
+    }
+    _serving_governed_surface = bool(_surfaces & {"api", "execution", "review"})
+    _entrypoint_is_required = _strict_profile or _serving_governed_surface
     try:
         from remora.toolcall.runtime_profile import (
             RuntimeProfileError,
@@ -1070,14 +1103,24 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     # check and still fail `remora serve` (REM-045 / external review F-01).
     if _ilu.find_spec("fastapi") is None:
         add("api extra (remora serve)", False, "not installed",
-            'python -m pip install -e ".[api]"')
+            'python -m pip install -e ".[api]"',
+            hard=_entrypoint_is_required)
     else:
         app, err = _import_server_app()
+        # Importing servers.api runs the same production prerequisite
+        # validation `remora serve` runs, so err carries the real reason: a
+        # missing bearer token, no control plane, no durable execution state.
+        # Report that reason rather than the package-contents guess, which sent
+        # operators looking for a distribution problem they did not have.
         add("api extra (remora serve)", app is not None,
             "fastapi + servers.api entrypoint import OK" if app is not None
-            else f"fastapi installed, but servers.api failed to import: {err}",
+            else f"fastapi installed, but the server entrypoint refused to "
+                 f"start: {err}",
             None if app is not None else
-            "install a distribution that ships servers/ (or run from a repo checkout)")
+            ("set the prerequisites named above, then re-run `remora doctor`"
+             if _entrypoint_is_required else
+             "install a distribution that ships servers/ (or run from a repo checkout)"),
+            hard=_entrypoint_is_required)
 
     # Live backends: report which enabling env vars are present (names only —
     # never values) and what auto-detection would pick. No network probes here
