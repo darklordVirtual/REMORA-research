@@ -780,27 +780,63 @@ because the BFCL v4 confirmation contains no authoritative semantic bundle.
 
 ## 11. Ablations
 
-### 11.1 End-to-End Component Ablation
+### 11.1 Component Ablation: A Negative Identification Result
 
-To demonstrate that the combination of techniques gives better safety–utility balance than any component in isolation, we run a five-condition ablation on the full 700-task tool-call benchmark. Conditions A, B, and E are loaded from the pre-existing locked results (`results/toolcall_benchmark_v2_results.json`). Conditions C and D are computed deterministically from the task context flags (structural admission signals and proxy trust scores derived from authorization, evidence-completeness, and conflict flags). All five conditions operate on the same 700 tasks; metrics are therefore directly comparable. Source data: `results/toolcall_benchmark_v2_results.json`; additional ablation breakdowns: `results/toolcall_benchmark_v2_ablation.json`. A consolidated five-condition artifact has not been committed; conditions C and D are deterministic structural checks and do not require separate artifact files.
+An earlier version of this paper reported a five-condition ablation in which
+conditions A and B reached FAR = 0.300 and 0.100, and concluded that zero
+false-accept rate required both the structural gates and a probabilistic
+routing layer. That table is withdrawn. Its conditions A and B were attributed
+to `results/toolcall_benchmark_v2_results.json`, which records a false-accept
+rate of 0.0143 for every heuristic baseline in it; its condition E drew benign
+friction from a different 495-case holdout while the table declared a common
+N = 700; and its necessity conclusion is contradicted by the repository's own
+ablation output. CLAIM-007 is therefore superseded by CLAIM-020 in the claim
+register, and the withdrawal is recorded in `NEGATIVE_RESULTS.md` §57.
 
-**Table 8: Five-Condition Safety–Utility Ablation (N = 700, tool-call benchmark)**
+What the committed ablation supports is narrower and, we think, more useful to
+report. Running `experiments/toolcall_ablation_v2.py` produces
+`results/toolcall_benchmark_v2_ablation.json`, whose six conditions are:
 
-| Condition | FAR | Unsafe exec | Benign friction† | Utility‡ |
+**Table 8: Committed component ablation (700 rows, 70 template clusters)**
+
+| Condition | FAR | Unsafe exec | Accuracy | Benign friction† |
 |---|---|---|---|---|
-| A. Threshold guardrail (≈ LlamaGuard) | 0.300 | 0.200 | 0.000 | −0.25 |
-| B. Ensemble majority vote | 0.100 | 0.100 | 0.000 | 0.00 |
-| C. Structural gates only | 0.250 | 0.200 | 0.000 | 0.00 |
-| D. REMORA policy, no learning | **0.000** | **0.000** | 0.500 | 0.10 |
-| E. REMORA full (+ AROMER) | **0.000** | **0.000** | **0.170**§ | **0.62** |
+| REMORA full | 0.000 | 0.000 | 0.900 | 0.500 |
+| without temperature | 0.000 | 0.000 | 0.900 | 0.500 |
+| without phase | 0.000 | 0.000 | 0.871 | 0.643 |
+| without evidence | 0.000 | 0.000 | 0.900 | 0.500 |
+| without counterfactual | 0.000 | 0.000 | 0.900 | 0.500 |
+| without hard blocks | 0.000 | 0.000 | 0.300 | 0.500 |
 
-†Fraction of benign cases routed to human review (VERIFY). ‡Utility = (benign accepted − harmful accepted) / N. §Friction for E is from the 495-case balanced holdout (`artifacts/aromer_balanced_validation_v1.json`); the toolcall_benchmark_v2 artifact does not break down VERIFY routing by harm label.
+†Fraction of benign cases routed to human review.
 
-*Limitations.* All conditions use deterministic proxy or pre-existing heuristic signals, not live LLM oracle calls. External replication on a held-out production corpus is required before generalising beyond this benchmark.
+*Limitations.* Deterministic simulator benchmark with synthetic
+`PolicyObservation` features and no live oracle calls. Rows are clustered by
+template; the artifact records `effective_n = 7` clusters per condition, so
+row-level counts overstate independence.
 
-**Reading the table.** Conditions A and B (threshold and ensemble) achieve FAR > 0 because probabilistic methods alone cannot resolve cases where structural gate signals: prompt injection, fallback destructive execution, explicit human-approval requirements, and intent-argument conflicts, are the distinguishing factor; 30% and 10% of harmful actions slip through, respectively. Condition C (structural gates only) achieves zero false blocks of benign traffic but incurs FAR = 25%: the 140 cases from the `missing_context_high_risk` and `regulated_ambiguity` scenario families carry no hard structural flag, so they require a probabilistic routing signal (the temperature / dissensus observables) to route correctly. Only the combination (conditions D and E) reaches FAR = 0 for both failure modes simultaneously. Condition D achieves the same safety floor as E, but without AROMER's learned world model it routes 50% of benign actions to review; AROMER learning reduces this to 17%, raising mean utility from 0.10 to 0.62.
+**Reading the table.** The false-accept column is constant. Every condition,
+including the one with the hard blocks removed, records FAR = 0.000. An
+ablation whose conditions do not differ on a metric cannot identify any
+component as necessary for that metric, so this ablation attributes the
+zero-false-accept result to nothing at all.
 
-**Conclusion.** Zero false-accept rate requires *both* structural gates (catches injection/approval/conflict failures) *and* the probabilistic routing layer (the temperature / dissensus observables, which catch missing-context/regulated-ambiguity failures). Competitive utility requires additionally the AROMER learning layer to distinguish proven-safe contexts from genuinely uncertain ones. No single component achieves all three properties simultaneously.
+The `without hard blocks` row shows why that is not merely an inconclusive
+result but a warning about the metric. Removing the deterministic floor leaves
+FAR at zero while accuracy falls from 0.900 to 0.300: the condition reaches
+zero false accepts by declining almost every task rather than by judging it
+correctly. A refuse-all policy scores perfectly on false-accept rate. Any
+measure a degenerate policy also satisfies is not, on its own, evidence that a
+mechanism works.
+
+**Conclusion.** We can report no component attribution for the safety number
+from this ablation. What the conditions do separate is task accuracy and benign
+review friction, where the hard blocks account for the largest difference
+(0.900 → 0.300 accuracy). Establishing necessity would require an ablation
+whose conditions differ on false-accept rate at all, paired with a utility
+measure that a refuse-all condition fails. We have not run one, and until we
+do, the deterministic floor's contribution to the headline safety result rests
+on the mechanism-level argument in §17 rather than on a component ablation.
 
 ### 11.2 Oracle Count
 

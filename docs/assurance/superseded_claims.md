@@ -86,3 +86,16 @@ diffed in CI.
 
 **Artifacts (still on disk).** `results/routing_bench_bfcl_v4_results.json`, `data/routing_bench_bfcl_v4/manifest.json`
 
+## CLAIM-007 — Five-condition component ablation: REMORA full gate dominates
+
+**Superseded by:** CLAIM-020
+
+**Evidence level when archived:** `internal_benchmark`
+
+**Statement.** In a five-condition component ablation (N=700 toolcall_benchmark_v2), REMORA full gate (E) achieves FAR=0% and utility=0.62 versus FAR=30%/10%/25% for conditions A/B/C, and utility <= 0.10 for all ablated conditions. Within this proxy-signal ablation, zero FAR requires both structural gates AND the proxy thermodynamic policy: structural-only (C) leaves FAR=25%; D (structural + proxy thermodynamic) reaches FAR=0%.
+
+**Why it was withdrawn.** Three independent failures, each checkable from the commit that withdrew it. The FAR figures for A and B were attributed to `results/toolcall_benchmark_v2_results.json`, which records 0.0142857 for every heuristic baseline in it. The reproduce command, `experiments/toolcall_ablation_v2.py`, writes `results/toolcall_benchmark_v2_ablation.json` and `results/toolcall_ablation_v2_results.json`, never the artifact the claim named, so running it could not disagree with the claim. And the necessity half is contradicted by that same ablation, where `remora_without_temperature` records FAR=0.0.
+
+**Caveat.** The narrower CLAIM-001 result, zero observed unsafe authorizations under the deterministic hard guards, never rested on this ablation and is unaffected. What is withdrawn is the component attribution.
+
+**Artifacts (still on disk).** `artifacts/aromer/component_ablation_results.json`
