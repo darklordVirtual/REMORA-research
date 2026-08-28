@@ -266,33 +266,33 @@ claims:
   - id: CLAIM-007
     title: "Five-condition component ablation: REMORA full gate dominates"
     statement: >
-      In a five-condition component ablation (N=700 toolcall_benchmark_v2), REMORA
-      full gate (E) achieves FAR=0% and utility=0.62 versus FAR=30%/10%/25% for
-      conditions A/B/C, and utility ≤ 0.10 for all ablated conditions (A=-0.25,
-      B=0.0, C=0.0, D=0.10). Within this proxy-signal ablation, zero FAR requires
-      both structural gates AND the proxy thermodynamic policy: structural-only (C)
-      leaves FAR=25%; D (structural + proxy thermodynamic) reaches FAR=0%.
+      WITHDRAWN 2026-08-28. The claim asserted FAR=30%/10%/25% for conditions
+      A/B/C and that zero FAR requires both the structural gates and the proxy
+      thermodynamic policy. Both halves are contradicted by committed evidence
+      in this repository. See CLAIM-020 for what the ablation actually supports.
     evidence_level: internal_benchmark
-    status: active
+    status: superseded
+    superseded_by: CLAIM-020
     artifact:
       - "artifacts/aromer/component_ablation_results.json"
     n: 700
-    n_detail: "700 tasks from toolcall_benchmark_v2; deterministic proxy signals"
+    n_detail: "Historical record only; see NEGATIVE_RESULTS.md section 57."
+    metrics: {}
     caveat: >
-      Deterministic proxy computation. Condition C uses structural proxy signals
-      only (task context flags: injection, destructive, approval, conflict);
-      condition D adds the proxy thermodynamic policy. Neither has access to
-      is_unsafe_if_executed. Simulation-scoped; requires external replication.
-      This is the primary clean-signal safety claim; not the label-leakage-path result.
-      The "proxy thermodynamic policy" is the ablation's deterministic disagreement
-      signal — NOT the production consensus/temperature machinery, which lost its
-      pre-registered test against calibrated confidence (NEGATIVE_RESULTS.md §18)
-      and influences nothing in the runtime gate. The production safety floor is
-      produced by Stage 1 hard-block invariants (CLAIM-001); this proxy result does
-      not bear on that attribution.
+      Withdrawn for three independent reasons, each verifiable from this commit.
+      Sourcing: the statement attributed A=0.300 and B=0.100 to
+      results/toolcall_benchmark_v2_results.json, which records 0.0142857 for
+      every heuristic baseline. Reproducibility: the reproduce command
+      (experiments/toolcall_ablation_v2.py) writes
+      results/toolcall_benchmark_v2_ablation.json and
+      results/toolcall_ablation_v2_results.json, never the artifact this claim
+      names, which has not changed since 2026-07-02. Identification: the
+      necessity half is falsified by the repository's own ablation, where
+      remora_without_temperature reaches FAR=0.0.
     reproduce: >
+      Withdrawn; do not cite. To see the contradiction:
+      python -c "import json;d=json.load(open('results/toolcall_benchmark_v2_results.json'));print({k:v['false_accept_rate'] for k,v in d['baselines'].items()})"
       python experiments/toolcall_ablation_v2.py
-      Artifact: artifacts/aromer/component_ablation_results.json
 
   - id: CLAIM-008
     title: "Selective trust curve (N=302): 94.7% accuracy at 25% coverage"
@@ -735,3 +735,39 @@ claims:
       The sealed result must not be regenerated. Verify hashes and status in
       data/routing_bench_bfcl_v4_cext3/manifest.json; SAP:
       docs/assurance/statistical_analysis_plan_v5_bfcl_semantic.md.
+
+  - id: CLAIM-020
+    title: "Component ablation has no discriminating power on false-accept rate"
+    statement: >
+      On toolcall_benchmark_v2 (700 rows, 70 template clusters), all six
+      committed ablation conditions record false_accept_rate = 0.0, including
+      remora_without_hard_blocks. The ablation therefore identifies no component
+      as necessary for the zero-false-accept result. What it does separate is
+      task accuracy (0.90 full, 0.8714 without_phase, 0.30 without_hard_blocks)
+      and benign review friction (0.50 full, 0.6429 without_phase).
+    evidence_level: internal_benchmark
+    status: active
+    artifact:
+      - "results/toolcall_benchmark_v2_ablation.json"
+    n: 700
+    n_detail: >
+      700 rows over 70 template clusters (10 cosmetic variants each);
+      effective_n=7 clusters is recorded per condition in the artifact.
+      Cluster structure means row-level counts overstate independence.
+    metrics:
+      false_accept_rate_all_conditions: 0.0
+      accuracy_full: 0.90
+      accuracy_without_hard_blocks: 0.30
+      review_friction_benign_full: 0.50
+    caveat: >
+      This is a negative identification result, not a safety claim. FAR=0 under
+      remora_without_hard_blocks is reached by refusing almost everything:
+      accuracy collapses to 0.30, so the condition buys its zero by declining
+      the task rather than by judging it correctly. A metric that a degenerate
+      refuse-all policy also satisfies cannot attribute the outcome to any
+      component. Any future necessity claim requires an ablation whose
+      conditions differ on FAR at all, and a utility measure that a refuse-all
+      condition fails.
+    reproduce: >
+      python experiments/toolcall_ablation_v2.py
+      Artifact: results/toolcall_benchmark_v2_ablation.json
