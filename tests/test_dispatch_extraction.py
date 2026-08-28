@@ -3,6 +3,8 @@
 """Characterization for the #241 dispatch extraction (slice 4)."""
 from __future__ import annotations
 
+import json
+
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -56,7 +58,10 @@ def test_tool_exception_burns_nonce_and_reports_unknown_state() -> None:
     )
     assert result["executed"] is False
     assert result["refusal_reason"] == "tool_failed_nonce_burned"
-    assert "downstream exploded" in result["error"]
+    # The caller learns the class, never the message: a tool's exception text
+    # can carry hosts, paths or credentials (CodeQL #408).
+    assert result["error"] == "RuntimeError"
+    assert "downstream exploded" not in json.dumps(result)
 
 
 def test_api_wrapper_delegates_to_extracted_impl() -> None:

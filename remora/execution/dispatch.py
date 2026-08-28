@@ -105,7 +105,15 @@ def dispatch_under_lease(
             # falling back to HMAC would restore the custody defect. Failing as
             # a 500 is not: the operator learns nothing, and the audit chain
             # records no reason. It is a refusal with a name.
-            tool_execution["refusal_reason"] = f"lease_unavailable: {exc}"
+            # The exception text goes to the audit event, never to the caller:
+            # a signing failure can name key material and paths.
+            governance_event(
+                "dispatch.lease_unavailable", level=logging.ERROR,
+                tenant_id=tenant, tool_name=tool_call.tool_name,
+                proposal_id=proposal_id, detail=str(exc),
+            )
+            tool_execution["refusal_reason"] = "lease_unavailable"
+            tool_execution["error"] = type(exc).__name__
             return tool_execution
     # ── the custody boundary ────────────────────────────────────────────
     # When an execution domain is configured, THIS process is the authority:
@@ -133,7 +141,8 @@ def dispatch_under_lease(
             return {
                 "executed": False,
                 "refusal_reason": "execution_domain_unreachable",
-                "error": str(exc),
+                # Class only; the message is in the audit event above.
+                "error": type(exc).__name__,
                 "proposal_id": proposal_id,
                 "state_unknown": True,
             }
@@ -172,8 +181,15 @@ def dispatch_under_lease(
         # read this refusal_reason string and record a durable FAILED --
         # asserting no effect occurred on evidence that only shows the call
         # raised (NEGATIVE_RESULTS section 48).
+        governance_event(
+            "dispatch.tool_raised", level=logging.ERROR,
+            tenant_id=tenant, tool_name=tool_call.tool_name,
+            proposal_id=proposal_id, detail=str(exc),
+        )
         tool_execution["refusal_reason"] = "tool_failed_nonce_burned"
-        tool_execution["error"] = str(exc)
+        # The tool's own message stays server-side: a downstream client can
+        # embed hosts, paths or credentials in what it raises.
+        tool_execution["error"] = type(exc).__name__
         tool_execution["proposal_id"] = proposal_id
         tool_execution["dispatch_began"] = True
         tool_execution["state_unknown"] = True

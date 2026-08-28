@@ -249,7 +249,9 @@ class TestThermodynamicEvaluation:
     def test_false_claims_can_be_evaluated_without_error(self):
         """False-claim items (adversarial) should not break the evaluation pipeline."""
         false_items = load_false_claims()
-        for item in false_items:
+        # The body is a fixed pipeline smoke; it runs once per item to prove
+        # the count of adversarial items does not break it.
+        for _ in false_items:
             votes = {"False": 0.67, "True": 0.33}
             temp = estimate_temperature(votes, rho_bar=0.1, individual_confidences=[0.6, 0.55, 0.65])
             phase = classify_phase(temperature=temp, t_critical=1.0, eta=order_parameter(votes, k=2))
