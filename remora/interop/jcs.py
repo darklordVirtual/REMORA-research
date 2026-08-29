@@ -29,19 +29,23 @@ is the load-bearing one.
 meaning, and a conforming verifier and this module agree byte for byte.
 
 **Class 4 is not adopted, and the reason is a security property rather than a
-preference.** RFC 8785 serialises every number as binary64. Above 2^53-1
-distinct integers share a binary64 value, so under the JCS number model
-``{"n": 9007199254740993}`` and ``{"n": 9007199254740992}`` produce identical
-canonical bytes and therefore identical hashes. In a system whose entire
-premise is that an approval cannot be reused for different arguments, adopting
-a number model that aliases two different arguments onto one hash is an
+preference.** RFC 8785 serialises every number as binary64, and the APS vectors
+show what that costs directly: for the input ``{"value": 1152921504606846976}``
+the expected canonical form is ``{"value":1152921504606847000}``. The canonical
+bytes name a different integer than the one supplied, and every integer that
+rounds to the same double produces those same bytes.
+
+In a system whose premise is that an approval cannot be reused for different
+arguments, a number model that maps two different arguments onto one hash is an
 argument-substitution hole.
 
-So this module does not round. It serialises integers exactly where binary64
-can represent them exactly, which is byte-identical to JCS across that whole
-range, and it *refuses* a number outside it rather than emitting bytes that
-alias. Refusing is the fail-closed direction: a caller learns that its payload
-cannot be canonicalised for the wire, instead of receiving a hash that silently
+So this module does not round. It refuses exactly the integers whose binary64
+form is shared with a neighbour, and serialises every other integer exactly.
+That test is finer than a magnitude bound, which the same vectors also showed:
+``9007199254740994`` sits above 2^53 and is still the only integer mapping to
+its double, so the suite serialises it exactly and so does this module.
+Refusing is the fail-closed direction: a caller learns that its payload cannot
+be canonicalised for the wire, instead of receiving a hash that silently
 collides with a different payload.
 
 The feedback allows exactly this: classes "closed or explicitly declined". This
@@ -62,9 +66,32 @@ CANONICAL_FORMAT = "remora/jcs-rfc8785-v0"
 #: tell which rules a historical signature was produced under.
 LEGACY_CANONICAL_FORMAT = "remora/json-sorted-v1"
 
-#: Largest integer binary64 represents exactly. Above this, RFC 8785's number
-#: model maps distinct integers onto identical bytes.
+#: Largest integer below which every integer is uniquely representable. Kept as
+#: a documented constant, but the refusal test is :func:`aliases_another_integer`
+#: rather than this bound: running against the APS vectors showed the bound is
+#: too coarse. 2**53 + 2 is above it and is still the only integer that maps to
+#: its double, and the suite serialises it exactly.
 MAX_EXACT_INTEGER = 2**53 - 1
+
+
+def aliases_another_integer(value: int) -> bool:
+    """True when another integer shares this value's binary64 representation.
+
+    That is the condition under which RFC 8785's number model destroys
+    information: the canonical bytes no longer identify which integer produced
+    them, so two different payloads hash the same.
+
+    Checking the neighbours directly rather than testing a magnitude bound
+    matters. Above 2**53 the representable doubles are spaced by more than one,
+    but an even value such as 2**53 + 2 is still the only integer that rounds to
+    its double, and the APS fixtures serialise it exactly. A magnitude bound
+    would refuse it for no reason.
+    """
+
+    as_double = float(value)
+    if as_double != value:
+        return True  # the value itself does not survive the round trip
+    return float(value - 1) == as_double or float(value + 1) == as_double
 
 #: Escapes RFC 8785 requires. Everything else printable, including astral
 #: characters, is emitted as raw UTF-8.
@@ -100,12 +127,13 @@ def es_number(value: float | int) -> str:
         raise NotCanonicalisable("a boolean is not a number in JSON")
 
     if isinstance(value, int):
-        if abs(value) > MAX_EXACT_INTEGER:
+        if aliases_another_integer(value):
             raise NotCanonicalisable(
-                f"integer {value} exceeds the exactly representable range "
-                f"(|v| <= {MAX_EXACT_INTEGER}). RFC 8785 would serialise it as "
-                f"binary64, where it shares canonical bytes with a different "
-                f"integer. Refusing rather than emitting an aliasing hash."
+                f"integer {value} shares its binary64 representation with a "
+                f"neighbouring integer. RFC 8785 would serialise it as that "
+                f"double, so the canonical bytes would no longer identify which "
+                f"integer produced them. Refusing rather than emitting an "
+                f"aliasing hash."
             )
         return str(value)
 
@@ -220,6 +248,7 @@ __all__ = [
     "CANONICAL_FORMAT",
     "LEGACY_CANONICAL_FORMAT",
     "MAX_EXACT_INTEGER",
+    "aliases_another_integer",
     "NotCanonicalisable",
     "canonicalise",
     "es_number",
