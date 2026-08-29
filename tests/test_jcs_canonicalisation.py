@@ -179,6 +179,23 @@ class TestClassFourDeclined:
         assert a != b
         assert float(a) == float(b)
 
+    def test_floats_do_alias_and_this_module_does_not_prevent_it(self):
+        """The limit of the guarantee, pinned so nobody reads it as wider.
+
+        Refusing aliasing integers does not make canonical bytes injective over
+        payloads. Distinct float literals collapse in ``json.loads`` before this
+        module sees them, so two different JSON texts arrive as one value and
+        share bytes. The enforced property is about integers only. Raised by the
+        APS corpus maintainer in review of the interop record.
+        """
+
+        import json as _json
+
+        wide = _json.loads('{"v": 0.1000000000000000055511151231257827}')
+        narrow = _json.loads('{"v": 0.1}')
+        assert canonicalise(wide) == canonicalise(narrow) == b'{"v":0.1}'
+        assert canonicalise({"v": -0.0}) == canonicalise({"v": 0.0})
+
     def test_a_float_carrying_a_large_integer_value_is_still_formatted(self):
         """The refusal is about integer precision, not about magnitude."""
 

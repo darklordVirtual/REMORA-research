@@ -44,6 +44,14 @@ form is shared with a neighbour, and serialises every other integer exactly.
 That test is finer than a magnitude bound, which the same vectors also showed:
 ``9007199254740994`` sits above 2^53 and is still the only integer mapping to
 its double, so the suite serialises it exactly and so does this module.
+
+The guarantee is about integers and no wider. Refusing aliasing integers does
+not make canonical bytes injective over payloads: distinct float literals
+collapse in ``json.loads`` before this module sees them, so
+``0.1000000000000000055511151231257827`` and ``0.1`` arrive as one value and
+share bytes, and ``-0.0`` normalises to ``0``. An earlier version of this
+docstring claimed the wider property; the APS corpus maintainer caught it in
+review.
 Refusing is the fail-closed direction: a caller learns that its payload cannot
 be canonicalised for the wire, instead of receiving a hash that silently
 collides with a different payload.

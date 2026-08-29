@@ -109,12 +109,24 @@ expected  {"value":1152921504606847000}
 Every integer that rounds to the same double produces those same bytes, so the
 canonical form no longer identifies which integer produced it.
 
-REMORA's entire premise is that an approval cannot be reused for different
-arguments: `canonical_tool_call_hash` binds a decision to the exact arguments it
-was made about, and an enforcement point recomputes that hash immediately before
-execution. A number model under which two different argument sets hash
-identically is an argument-substitution hole, and adopting it to gain
-interoperability would trade a security property for a formatting property.
+RFC 8785 section 3.2.1 makes number data binary64 and recommends strings for
+integers outside that range. Appendix B lists `~2**68` as
+`295147905179352830000` and notes that extended precision is not considered. The
+integer is adapted to binary64, and its image there is not unique: other
+integers map to the same double and therefore to the same canonical bytes.
+
+REMORA binds a decision to the exact arguments it was made about and recomputes
+that binding immediately before execution. It therefore emits no canonical bytes
+for an integer whose binary64 image it cannot tell apart from a neighbour's.
+
+**The enforced property, stated exactly.** Integers whose binary64 image is not
+unique are refused. That is narrower than "REMORA prevents two argument sets
+from sharing canonical bytes", which this module does not do and which the first
+version of this document claimed. Distinct float literals collapse in
+`json.loads` before `canonicalise` runs, so `0.1000000000000000055511151231257827`
+and `0.1` reach it as one value and share bytes, and `-0.0` normalises to `0`.
+The integer rule is what the vectors test and what mutation confirms. The
+overclaim was caught in review of the interop record by the corpus maintainer.
 
 So `remora.interop.jcs` does not round. It refuses exactly the integers whose
 binary64 form is shared with a neighbour, and serialises every other integer
