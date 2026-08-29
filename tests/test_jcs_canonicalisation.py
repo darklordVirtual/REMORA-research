@@ -19,6 +19,7 @@ import pytest
 
 from remora.interop.jcs import (
     CANONICAL_FORMAT,
+    aliases_another_integer,
     LEGACY_CANONICAL_FORMAT,
     MAX_EXACT_INTEGER,
     NotCanonicalisable,
@@ -131,14 +132,37 @@ class TestClassThreeKeyOrder:
 class TestClassFourDeclined:
     """The number model we do not adopt, and the reason."""
 
-    def test_the_boundary_is_serialised_exactly(self):
+    def test_a_uniquely_representable_integer_is_serialised_exactly(self):
         assert canonicalise({"n": MAX_EXACT_INTEGER}).decode() == (
             f'{{"n":{MAX_EXACT_INTEGER}}}'
         )
 
-    def test_beyond_the_boundary_is_refused_rather_than_rounded(self):
+    def test_an_aliasing_integer_is_refused_rather_than_rounded(self):
         with pytest.raises(NotCanonicalisable, match="aliasing"):
-            canonicalise({"n": MAX_EXACT_INTEGER + 1})
+            canonicalise({"n": 2**53})
+
+    def test_the_test_is_uniqueness_not_magnitude(self):
+        """Found by running the APS vectors: a magnitude bound was too coarse.
+
+        2**53 + 2 sits above the largest all-integers-representable bound and is
+        still the only integer that maps to its double. The conformance suite
+        serialises it exactly, and refusing it would have been a false positive
+        against a vector that has no ambiguity in it.
+        """
+
+        assert aliases_another_integer(2**53) is True
+        assert aliases_another_integer(2**53 + 1) is True
+        assert aliases_another_integer(2**53 + 2) is False
+        assert canonicalise({"n": 2**53 + 2}).decode() == '{"n":9007199254740994}'
+
+    def test_powers_of_two_beyond_the_double_grid_alias(self):
+        """Exactly representable is not the same as uniquely representable."""
+
+        for value in (2**60, 2**68):
+            assert float(value) == value, "the value itself round-trips"
+            assert aliases_another_integer(value) is True
+            with pytest.raises(NotCanonicalisable):
+                canonicalise({"n": value})
 
     def test_the_reason_two_integers_would_share_canonical_bytes(self):
         """Why refusing beats rounding, stated as an executable fact.

@@ -98,13 +98,16 @@ RFC 8785 serialises every number as IEEE 754 binary64. The feedback calls
 adopting it "a deliberate decision, not a bug fix", and allows a class to be
 "closed or explicitly declined". This is declined.
 
-Above 2^53 binary64 represents only every second integer, so two different
-integers share one canonical form:
+The APS vectors show the cost directly. For this input the suite's own expected
+canonical form writes a different integer:
 
 ```
-2**53     -> 9007199254740992.0
-2**53 + 1 -> 9007199254740992.0
+input     {"value": 1152921504606846976}
+expected  {"value":1152921504606847000}
 ```
+
+Every integer that rounds to the same double produces those same bytes, so the
+canonical form no longer identifies which integer produced it.
 
 REMORA's entire premise is that an approval cannot be reused for different
 arguments: `canonical_tool_call_hash` binds a decision to the exact arguments it
@@ -113,17 +116,23 @@ execution. A number model under which two different argument sets hash
 identically is an argument-substitution hole, and adopting it to gain
 interoperability would trade a security property for a formatting property.
 
-So `remora.interop.jcs` does not round. Across the range binary64 represents
-exactly, it is byte-identical to a conforming implementation. Outside that range
-it raises rather than emitting bytes that alias. Refusing is the fail-closed
-direction: the caller learns its payload cannot be canonicalised for the wire,
-instead of receiving a hash that silently collides with a different payload.
+So `remora.interop.jcs` does not round. It refuses exactly the integers whose
+binary64 form is shared with a neighbour, and serialises every other integer
+exactly.
+
+That test is finer than a magnitude bound, and running against the real vectors
+is what showed the difference. `9007199254740994` sits above 2^53 and is still
+the only integer mapping to its double. The suite serialises it exactly. An
+implementation that refused everything above 2^53 would have failed a vector
+with no ambiguity in it, and the first version of this module did exactly that.
 
 **Consequence for the record.** A verifier that follows RFC 8785 exactly will
 accept every document this profile can produce. A document containing an integer
-outside the exactly-representable range cannot be produced under this profile at
-all. That is a real interoperability limit and belongs in the family record as
-one.
+that aliases a neighbour cannot be produced under this profile at all. Against
+the 18 canonical-bytes vectors at suite revision 2c3bdef, that is two of them,
+and both are cases where the suite's expected output writes a different integer
+than the input. This is a real interoperability limit and belongs in the family
+record as one.
 
 ### A fifth difference the feedback did not name
 
