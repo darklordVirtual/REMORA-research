@@ -2035,6 +2035,28 @@ documents:
   - operators
   - integrators
   verdict: current
+- id: DOC-331
+  path: docs/design/aps-authority-profile-v0.md
+  status: proposal
+  topic: docs_design_aps-authority-profile-v0_md
+  code_synced: verified
+  verdict: pending
+  last_reviewed: '2026-08-29'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
+- id: DOC-332
+  path: docs/assurance/claim_metric_binding_baseline.json
+  status: canonical
+  topic: docs_assurance_claim_metric_binding_baseline_json
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-08-29'
+  last_reviewed: '2026-08-29'
+  audience:
+  - researchers
+  - maintainers
 - id: DOC-319
   path: docs/design/cloudflare-mcp-gateway-v1.md
   status: proposal
@@ -2380,6 +2402,7 @@ documents:
   - evaluators
 topics:
 - docs_integrations_mcp-gateway_md
+- docs_design_aps-authority-profile-v0_md
 - docs_design_cloudflare-mcp-gateway-v1_md
 - docs_aromer_subproject_md
 - docs_architecture_adr_tainted_argument_approval_md
@@ -2608,6 +2631,7 @@ topics:
 - docs_benchmarks_toolcall_consensus_benchmark_v2_md
 - docs_governance_nist_ai_rmf_mapping_md
 - docs_research_causal_consequence_gating_md
+- docs_assurance_claim_metric_binding_baseline_json
 - docs_assurance_claim_provenance_baseline_json
 - docs_security_owasp_genai_mapping_md
 - docs_evidence_decision_envelope_audit_md
