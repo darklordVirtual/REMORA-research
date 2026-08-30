@@ -250,8 +250,9 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 4836aae1a2476fa2c0ecbab4375817d6d39810c2
+    verified_at_sha: 1fe933c8df703631e26b41a077d553da3d3b8e64
     verified_by: >-
+      re-audit 2026-08-30 for the NonceLedger docstring correction: the class docstring said the ledger had no durable adapter and attributed the work to REM-025. Both were wrong. DurableNonceStore exists and is wired by servers/execution_api.py::_lease_nonce_store, and REM-025 is 'Durable audit integrity', unrelated. Docstring-only: no executable line changed. Token issuance, the lease binding set, signature verification, nonce consumption and the dispatch route are unchanged and nothing is granted. The caveat is unchanged and still correct: the durable nonce store is opt-in per dispatcher and activation on any deployment is unclaimed. The correction narrows what the docs UNDERSTATE, not what the code permits. Bound to the rebased branch commit 1fe933c8; rebind to the squash commit after merge. Prior:
       rebound 2026-08-30 to the squash-merge commit of #506 (4836aae1a247); the
       branch commit dd1117e8 left the repository at squash. Verified
       content-identical on every cited implementation source with
