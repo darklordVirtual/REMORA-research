@@ -99,12 +99,16 @@ Before any production deployment, confirm all items below. Source:
 ### Rate limiting
 
 - [ ] Cloudflare Rate Limiting rules configured (100 req/min per IP minimum)
-  (the governance API limits `POST /v1/assess` per tenant in-process,
-  `servers/api.py:_InMemoryRateLimiter`, default 120 requests per 60-second
-  window via `REMORA_ASSESS_RATE_LIMIT_PER_MIN`, `0` disables it. That limiter
-  is per-process and not shared across replicas, and it does not cover the
-  workers, so edge/IP rate limiting is still required against DoS and cost
-  amplification on a leaked secret.)
+  (`servers/api.py:_InMemoryRateLimiter` limits two surfaces per tenant
+  in-process. `POST /v1/assess` at 120 requests per 60-second window
+  (`REMORA_ASSESS_RATE_LIMIT_PER_MIN`); the mutating `/v1/execution/*` routes
+  at 240 (`REMORA_EXECUTION_RATE_LIMIT_PER_MIN`). Separate budgets, so one
+  cannot starve the other. `0` disables either. The limiter is per-process.
+  With N replicas the effective per-tenant ceiling is N times the configured
+  value, and there is no global tenant cap. It does not cover the workers, so
+  edge/IP rate limiting is still required against DoS and cost amplification
+  on a leaked secret. Authorization is unaffected: tokens, leases and the
+  consumed-jti ledger are durable and shared.)
 
 ### Dependencies
 
@@ -130,6 +134,8 @@ Before any production deployment, confirm all items below. Source:
 | CORS wildcard | CSRF risk for browser-based callers | Restrict origins before browser-facing deploy |
 | No edge or per-replica-shared rate limiting (the API's in-process per-tenant limiter does not span replicas and does not cover the workers) | DoS / cost amplification | Add CF Rate Limiting rules |
 | Audit log `UPDATE` allowed | Approval records can be overwritten | WORM log for regulated deployments |
+| Outside `REMORA_ENV=production`, single-token mode lets the caller name its own tenant (`servers/api.py:_authenticate`). A shadow deployment left in that mode has no tenant isolation at the API boundary | Cross-tenant read/write in shadow mode | Set `REMORA_API_TOKENS` (the token table binds tenant and role to the credential); production already refuses to start without it |
+| The API token table is read from `REMORA_API_TOKENS` at import (`servers/api.py:_TOKEN_TABLE`), so rotating or revoking a token takes effect only on restart | A leaked token stays valid until the process is replaced | Roll the deployment as part of the rotation procedure; do not treat editing the variable as revocation |
 | No mTLS between workers | Service binding calls unencrypted in transit | Enable mTLS in Cloudflare Zero Trust if required |
 | No semantic injection detection | Sophisticated indirect injection not caught | NLI/semantic entailment model at retrieval layer |
 | No PII detection in free-form output | Model may leak PII in text responses | Dedicated NER/PII classifier at output layer |

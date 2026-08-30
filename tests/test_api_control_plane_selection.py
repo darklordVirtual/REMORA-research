@@ -96,19 +96,42 @@ def _production_env(monkeypatch) -> None:
         monkeypatch.delenv(var, raising=False)
 
 
-def test_production_prerequisites_accept_sqlite_storage(monkeypatch) -> None:
+def _durable_sqlite(monkeypatch, tmp_path, name: str) -> str:
+    """A SQLite path the durability guard accepts, on any developer machine.
+
+    The literal "/tmp/..." these tests used to pass made them depend on the
+    reviewer's filesystem: /tmp is tmpfs on many Linux installs and disk on
+    the GitHub runners, so the guard correctly refused the path locally while
+    CI stayed green (external review 2026-08-30, F2). The reproducibility
+    claim in docs/06-reproducibility.md is about exactly this.
+
+    What these tests are about is the PREREQUISITE POLICY -- which
+    combinations of variables production accepts -- not the filesystem probe,
+    which has its own coverage in tests/test_ephemeral_durable_state.py. So
+    the probe is stubbed to a durable answer and the path is a real temporary
+    file, rather than a path that happens to be durable where the suite runs.
+    """
+    monkeypatch.setattr(api, "filesystem_type_for", lambda _path: "ext4")
+    return str(tmp_path / name)
+
+
+def test_production_prerequisites_accept_sqlite_storage(monkeypatch, tmp_path) -> None:
     """A single-node SQLite trail is durable, so it satisfies the gate."""
     _production_env(monkeypatch)
 
     with pytest.raises(RuntimeError, match="REMORA_CONTROL_PLANE_DSN"):
         api._validate_production_prerequisites()
 
-    monkeypatch.setenv("REMORA_CONTROL_PLANE_DB", "/tmp/remora-cp.db")
-    monkeypatch.setenv("REMORA_CHAIN_DB", "/tmp/remora-chain.db")
+    monkeypatch.setenv(
+        "REMORA_CONTROL_PLANE_DB", _durable_sqlite(monkeypatch, tmp_path, "cp.db")
+    )
+    monkeypatch.setenv(
+        "REMORA_CHAIN_DB", _durable_sqlite(monkeypatch, tmp_path, "chain.db")
+    )
     api._validate_production_prerequisites()  # must not raise
 
 
-def test_production_refuses_volatile_execution_state(monkeypatch) -> None:
+def test_production_refuses_volatile_execution_state(monkeypatch, tmp_path) -> None:
     """A one-time execution grant must not survive a restart as reusable.
 
     With no durable execution store the PEP's consumed-jti ledger is a
@@ -117,7 +140,9 @@ def test_production_refuses_volatile_execution_state(monkeypatch) -> None:
     window open.
     """
     _production_env(monkeypatch)
-    monkeypatch.setenv("REMORA_CONTROL_PLANE_DB", "/tmp/remora-cp.db")
+    monkeypatch.setenv(
+        "REMORA_CONTROL_PLANE_DB", _durable_sqlite(monkeypatch, tmp_path, "cp.db")
+    )
 
     # The message names all three durable options. REMORA_STATE_ENDPOINT was
     # added for a container with no writable disk: it keeps state through a
@@ -125,7 +150,9 @@ def test_production_refuses_volatile_execution_state(monkeypatch) -> None:
     with pytest.raises(RuntimeError, match="REMORA_PG_DSN, REMORA_STATE_ENDPOINT"):
         api._validate_production_prerequisites()
 
-    monkeypatch.setenv("REMORA_CHAIN_DB", "/tmp/remora-chain.db")
+    monkeypatch.setenv(
+        "REMORA_CHAIN_DB", _durable_sqlite(monkeypatch, tmp_path, "chain.db")
+    )
     api._validate_production_prerequisites()  # must not raise
 
     monkeypatch.delenv("REMORA_CHAIN_DB")
@@ -133,12 +160,12 @@ def test_production_refuses_volatile_execution_state(monkeypatch) -> None:
     api._validate_production_prerequisites()  # also durable, also must not raise
 
 
-def test_execution_state_backend_is_reported(monkeypatch) -> None:
+def test_execution_state_backend_is_reported(monkeypatch, tmp_path) -> None:
     monkeypatch.delenv("REMORA_PG_DSN", raising=False)
     monkeypatch.delenv("REMORA_CHAIN_DB", raising=False)
     assert api._execution_state_backend() == "in_process"
 
-    monkeypatch.setenv("REMORA_CHAIN_DB", "/tmp/chain.db")
+    monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "chain.db"))
     assert api._execution_state_backend() == "sqlite"
 
     monkeypatch.setenv("REMORA_PG_DSN", "postgresql://localhost/db")
