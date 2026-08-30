@@ -83,7 +83,19 @@ postgres = ["psycopg[binary]>=3.3.4,<3.4", "psycopg2-binary>=2.9.12"]
 # ".[dev]"` + full-suite command failed collection in a fresh clone while
 # CI masked it by installing more extras. The fresh-install-contract CI
 # job now runs the exact documented command against a clean environment.
-dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.16.4", "sqlglot>=30.17.0", "mypy>=2.3.1", "pyyaml>=6.0", "types-PyYAML>=6.0.12.20260815", "httpx>=0.25", "hypothesis>=6.165.10", "fastapi>=0.141.1", "uvicorn[standard]>=0.52.4"]
+# cryptography joined dev 2026-08-30 (external review F4), for the same
+# reason and with a worse symptom. Without the 'security' extra, 64 tests
+# skip silently -- among them every Ed25519 case in
+# tests/test_lease_signing_contracts.py and tests/test_lease_authority_custody.py.
+# The reviewer followed the documented `pip install -e ".[dev]"`, measured
+# remora/enforcement/lease_signing.py at 52% branch coverage, and reported a
+# half-untested module. It is at 99% with the extra installed. The module
+# decides HMAC-versus-Ed25519 and downgrade protection, so a documented
+# install that makes it look untested is worse than a missing dependency:
+# it produces a false finding about the trusted computing base. CI sets
+# REMORA_REQUIRE_SECURITY_EXTRA=1 so the skip is fatal there; this makes the
+# documented local install agree with CI instead of relying on that.
+dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.16.4", "sqlglot>=30.17.0", "mypy>=2.3.1", "pyyaml>=6.0", "types-PyYAML>=6.0.12.20260815", "httpx>=0.25", "hypothesis>=6.165.10", "fastapi>=0.141.1", "uvicorn[standard]>=0.52.4", "cryptography>=41.0"]
 
 [project.urls]
 Homepage = "https://github.com/darklordVirtual/REMORA-research"

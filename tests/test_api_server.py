@@ -880,13 +880,24 @@ def test_production_mode_requires_api_tokens(monkeypatch: pytest.MonkeyPatch) ->
         importlib.reload(api)
 
 
-def test_production_mode_rejects_mock_oracle_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_production_mode_rejects_mock_oracle_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("REMORA_ENV", "production")
     monkeypatch.setenv("REMORA_API_BEARER_TOKEN", "token")
     monkeypatch.setenv("REMORA_CONTROL_PLANE_DSN", "postgresql://localhost/remora")
     # Durable execution state, so this test reaches the oracle check it is
     # actually about rather than stopping at the earlier prerequisite.
-    monkeypatch.setenv("REMORA_CHAIN_DB", "/tmp/remora-chain.db")
+    #
+    # A DSN rather than a SQLite path on purpose. The old value was
+    # "/tmp/remora-chain.db", which the durability guard correctly refuses
+    # wherever /tmp is tmpfs -- disk on the GitHub runners, memory on many
+    # Linux installs, so the test passed in CI and failed on a reviewer's
+    # machine (external review 2026-08-30, F2). Stubbing the filesystem probe
+    # would not help here: this test reloads servers.api, and the reload
+    # rebinds the real probe before the prerequisite check runs. A DSN never
+    # reaches the filesystem question at all.
+    monkeypatch.setenv("REMORA_PG_DSN", "postgresql://localhost/remora")
     monkeypatch.setenv("REMORA_ORACLE_BACKEND", "groq")
     monkeypatch.setenv("REMORA_API_TOKENS", '{"tok":{"tenant":"t","role":"operator"}}')
     # Signing keys are production prerequisites too; set them so this test

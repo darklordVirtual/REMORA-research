@@ -80,6 +80,18 @@ jobs:
       - name: Lint (ruff)
         run: ruff check .
 
+      - name: Makefile parses (the documented reviewer entry point)
+        # An external review found `make audit` dead since 2026-08-29: an
+        # @echo string carried a literal newline, so every target failed with
+        # "missing separator" before its first command. No workflow invoked
+        # make, so CI stayed green while the entry point the paper and the
+        # review protocols name was unusable. `make -n audit` parses the file
+        # and expands the recipe without running any gate, which is the part
+        # that broke; the gates themselves already run as their own steps.
+        run: |
+          make help
+          make -n audit > /dev/null
+
       - name: Type check (mypy)
         # servers/ joined the gate 2026-08-20: 4k lines of audit-chain
         # hashing, signing and both API surfaces had never been type-checked.
