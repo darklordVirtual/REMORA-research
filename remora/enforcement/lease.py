@@ -162,6 +162,14 @@ class ExecutionLease:
     #: execution. Signed for the same reason: a lease and the grant it was
     #: redeemed against must be joinable from either end.
     grant_jti: str = ""
+    #: ADR-D: the identity hash of the runtime this authorization was granted
+    #: under (see :mod:`remora.enforcement.runtime_identity`). Bound and
+    #: SIGNED, so the executing process can refuse a lease minted for a
+    #: different deployment, image or worker generation — the one case where
+    #: every other bound field can match and the action still ran against an
+    #: implementation nobody authorized. Empty string means the authorizing
+    #: side declared no runtime; it is carried, never invented here.
+    runtime_identity_hash: str = ""
 
     @classmethod
     def issue(
@@ -182,6 +190,7 @@ class ExecutionLease:
         toolspec_version: int = 0,
         proposal_id: str = "",
         grant_jti: str = "",
+        runtime_identity_hash: str = "",
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -228,6 +237,7 @@ class ExecutionLease:
             "toolspec_version": toolspec_version,
             "proposal_id": proposal_id,
             "grant_jti": grant_jti,
+            "runtime_identity_hash": runtime_identity_hash,
         }
         alg = _signing.issuer_algorithm()
         if alg:
@@ -305,6 +315,7 @@ class ExecutionLease:
             "toolspec_version": self.toolspec_version,
             "proposal_id": self.proposal_id,
             "grant_jti": self.grant_jti,
+            "runtime_identity_hash": self.runtime_identity_hash,
             "sig_alg": self.sig_alg,
             "kid": self.kid,
         }
@@ -444,7 +455,7 @@ class ExecutionLease:
         "expires_at", "signature", "is_signed",
         "tool_contract_bundle_hash", "intent_authority_hash",
         "toolspec_hash", "toolspec_version",
-        "proposal_id", "grant_jti", "sig_alg", "kid",
+        "proposal_id", "grant_jti", "runtime_identity_hash", "sig_alg", "kid",
     })
 
     @classmethod
@@ -593,6 +604,41 @@ class GovernedToolDispatcher:
         assert_may_hold_tool_callables()
         self._tools[tool_name] = fn
 
+    @staticmethod
+    def _runtime_refusal(lease: ExecutionLease) -> str | None:
+        """Name the reason this runtime may not execute this lease, or None.
+
+        Three cases, and the middle one is why the empty hash is a distinct
+        value rather than a hash over blanks:
+
+        - the lease names a runtime that is not this one: refuse under every
+          profile. This is the discriminating case ADR-D exists for.
+        - the lease names no runtime and the profile is strict: refuse, so the
+          binding cannot be dropped by simply not setting it.
+        - the lease names no runtime outside a strict profile: allow, and
+          record that the binding was absent. Library and research use are
+          unchanged, and the property is claimable only under strict.
+        """
+        from remora.enforcement.custody import custody_is_enforced
+        from remora.enforcement.runtime_identity import current_runtime_identity_hash
+
+        if lease.runtime_identity_hash:
+            if lease.runtime_identity_hash != current_runtime_identity_hash():
+                return "runtime_identity_mismatch"
+            return None
+        # The test is whether the LEASE carries a binding, not whether this
+        # process happens to declare one: a strict deployment whose executor is
+        # declared must still refuse an authorization that named no runtime,
+        # or the binding could be dropped by simply never setting it at issue.
+        if custody_is_enforced():
+            return "runtime_identity_undeclared"
+        governance_event(
+            "dispatch.runtime_unbound",
+            tenant_id=lease.tenant_id, tool_name=lease.tool_name,
+            proposal_id=lease.proposal_id, grant_jti=lease.grant_jti,
+        )
+        return None
+
     def dispatch(
         self,
         lease: ExecutionLease | None,
@@ -677,6 +723,24 @@ class GovernedToolDispatcher:
                 executed=False, refusal_reason=verdict.reason,
                 proposal_id=proposal_id,
             )
+        # ADR-D. The runtime binding is checked HERE rather than in verify():
+        # this is a property of the place the action is performed, and verify()
+        # may legitimately run anywhere. It is checked BEFORE the nonce is
+        # consumed, so a rejected runtime does not burn a single-use nonce and
+        # turn an authorization failure into an unknown-state incident.
+        runtime_refusal = self._runtime_refusal(lease)
+        if runtime_refusal is not None:
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason=runtime_refusal, tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason=runtime_refusal,
+                proposal_id=proposal_id,
+            )
+
         if self._nonce_store is not None:
             # Durable path. An unknown outcome must refuse WITHOUT burning the
             # nonce: the grant may still be unspent, and destroying it would
