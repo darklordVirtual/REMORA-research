@@ -348,7 +348,7 @@ _BANNER = r"""
 def _pkg_version() -> str:
     try:
         from importlib.metadata import version
-        return version("remora")
+        return version("remora-assurance")
     except Exception:
         return "0.10.0"
 

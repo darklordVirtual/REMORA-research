@@ -1,0 +1,28 @@
+{
+  "title": "REMORA: Governed Execution Assurance for Tool-Using AI Agents",
+  "description": "<p>REMORA decides whether an autonomous agent action is accepted, verified, abstained or escalated, based on uncertainty, evidence, policy, auditability and human review, and it enforces that decision at the point of execution. This archive holds the research artifacts, benchmarks, claim register and reproducibility tooling for the tagged release.</p><p>Claims resolve to committed evidence through the claim register; negative results and superseded findings are preserved rather than removed. The software is source-available under BUSL-1.1, not open source.</p>",
+  "upload_type": "software",
+  "license": "BUSL-1.1",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Skogbrott, Stian"
+    }
+  ],
+  "keywords": [
+    "AI governance",
+    "AI assurance",
+    "agent safety",
+    "selective prediction",
+    "conformal risk control",
+    "execution authority",
+    "audit trail"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/darklordVirtual/REMORA-research",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

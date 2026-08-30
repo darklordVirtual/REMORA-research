@@ -9,11 +9,23 @@ abstract: >-
 authors:
   - family-names: "Skogbrott"
     given-names: "Stian"
-    # orcid: pending — requires the author's ORCID iD (issue #390)
+    # orcid: pending — requires the author's ORCID iD (issue #390).
+    # Add as: orcid: "https://orcid.org/0000-0000-0000-0000"
+    # and put the same iD into .zenodo.json under creators[0].orcid.
 version: "0.11.0"
 date-released: "2026-08-25"
-# doi: pending — added when the Zenodo archive of the v0.11.0 tag exists
-# (issue #390, P2)
+# doi: pending — added when the Zenodo archive of the tagged release exists
+# (issue #390, P2). The metadata Zenodo reads is committed as .zenodo.json;
+# it needs no editing beyond the ORCID above. To mint the DOI:
+#   1. Log in to Zenodo with the GitHub account and enable archiving for
+#      darklordVirtual/REMORA-research (Zenodo -> GitHub -> toggle the repo).
+#   2. Publish a GitHub release for the tag. Zenodo archives that tag and
+#      mints both a version DOI and a concept DOI covering all versions.
+#   3. Add the CONCEPT DOI here as `doi:` — it is the one that keeps
+#      resolving as later versions are archived — and add the version DOI to
+#      the release notes.
+# Enabling archiving only affects releases created afterwards, so the toggle
+# has to be set before the release is published, not after.
 repository-code: "https://github.com/darklordVirtual/REMORA-research"
 license: BUSL-1.1
 type: software

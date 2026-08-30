@@ -20,7 +20,7 @@ omitted it would hide the fact instead of surfacing it.
 
 Usage::
 
-    python scripts/build_release_manifest.py --wheel dist/remora-0.10.0-*.whl
+    python scripts/build_release_manifest.py --wheel dist/remora_assurance-*.whl
 
 Stdlib only, so it runs in a clean release environment.
 """
