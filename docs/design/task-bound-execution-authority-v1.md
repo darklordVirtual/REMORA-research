@@ -34,24 +34,24 @@ Three independent lines arrived at the same change within two days of each
 other. That convergence, not any one of them, is the argument.
 
 **AGNTCY Identity WG, from the standards side.** Their 2026-08-25 analysis
-states that Identity + TBAC today grants *standing* authority, and that
-cryptographic binding to `taskId`, action/resource scope, lifetime,
-delegation constraints and proof-of-possession remains open work on a task
-authorization profile.
+states that Identity plus TBAC today grants *standing* authority. Binding to
+`taskId`, action and resource scope, lifetime, delegation constraints and
+proof-of-possession remains open work on a task authorization profile.
 
 **The crosswalk, from the code side.** A row-by-row comparison of AGNTCY
 against implemented REMORA produced `GAP` on exactly two rows: A2A `taskId`
 and A2A `contextId`.
 
-**Two papers, empirically.** *Do User-Authored Permission Policies Improve
-Protection Against AI Agent Overreach?* (113 human subjects) found that a
-reusable-policy setup blocked **less** overreach than either human-in-the-
-loop or automatic review, because users chose `ask` and then approved
-actions outside the original task. "The user approved" is measurably not
-the same as "the task authorised". *Safety Does Not Compose* shows the
-adjacent failure: safety signals distributed across agent iterations stay
-under threshold individually while risk accumulates, because the monitor
-resets each trajectory.
+**Two papers, empirically.** Yan (2026, arXiv:2608.27443) tested 113
+non-technical participants. A reusable user-authored policy blocked *fewer*
+overreach attempts than either real-time approval or automated review,
+because users chose `ask` and then approved actions outside the original
+task. "The user approved" is measurably not the same as "the task
+authorised". Wu et al. (2026, arXiv:2608.27141) show the adjacent failure.
+Safety signals spread across agent iterations stay under threshold
+individually while risk accumulates, because the monitor resets each
+trajectory. Both identifiers were checked against the arXiv record on
+2026-08-30.
 
 The two papers describe the same missing thing from opposite ends. One says
 authority must not outlive its task; the other says risk must not be
@@ -60,11 +60,11 @@ forgotten between iterations of one task. Both need a durable identity for
 
 ## Scope
 
-Three changes, one shared key. Explicitly **not** in scope: asymmetric
-cross-organisation trust (the fourth crosswalk gap, which needs key
-distribution and is better decided after we know whether we consume AGNTCY
-Agent Badge), and proof-of-possession (REMORA claims none today, and
-`grep` confirms it; the lease signature must never be presented as PoP).
+Three changes, one shared key. Two things are explicitly **not** in scope. Asymmetric cross-organisation
+trust is the fourth crosswalk gap: it needs key distribution, and it is
+better decided once we know whether we consume AGNTCY Agent Badge.
+Proof-of-possession is the other. REMORA claims none today, and the lease
+signature must never be presented as one.
 
 ### 1. Task identity in the three signed structures
 
@@ -97,10 +97,10 @@ what a single call cannot see: denied intents, authority probes, tool
 switches after a denial, and irreversible effects. Non-decaying within the
 context.
 
-This is the same shape as the revocation store shipped in #502, which is
-the third instance of the pattern in this codebase after the consumed-jti
-ledger and the lease nonce ledger. It reuses that pattern rather than
-introducing a fourth bespoke store.
+This is the same shape as the revocation store shipped in #502. That was
+the third instance of the pattern here, after the consumed-jti ledger and
+the lease nonce ledger. It reuses that pattern rather than introducing a
+fourth bespoke store.
 
 ## The load-bearing constraint: existing signatures
 
