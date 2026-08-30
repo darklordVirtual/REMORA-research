@@ -94,6 +94,10 @@ FILE_THRESHOLDS: dict[str, float] = {
     # a named conformance case (K1-K11), so a gap here means a configuration
     # the custody split no longer refuses
     "remora/enforcement/lease_signing.py": 98.0,
+    # ADR-D. Every branch is a named case in
+    # tests/test_runtime_trust_base_binding.py; a gap here means a runtime
+    # the binding no longer distinguishes.
+    "remora/enforcement/runtime_identity.py": 98.0,
 }
 
 #: Global floor over everything measured, including branches.
