@@ -45,8 +45,13 @@ dependencies = []
 llm = ["openai>=3.3.1", "groq>=1.6.0"]
 # Cloud provider SDKs for storage / secrets
 cloud = ["boto3>=1.26"]
-# Cryptography for ZKP and audit integrity features
-security = ["cryptography>=41.0"]
+# Cryptography for ZKP and audit integrity features.
+# Floor raised to 50.0.0 on 2026-08-30: pip-audit reports seven advisories
+# against 46.0.3 (PYSEC-2026-35/36/2141/3552/3553/3554, GHSA-537c-gmf6-5ccf),
+# the last of which is fixed in 50.0.0. They were present the whole time and
+# unaudited, because the supply-chain job installed a narrower extra set than
+# the test jobs. See the comment on that job.
+security = ["cryptography>=50.0.0"]
 # MCP server transport (httpx is the only hard dep for the MCP workers)
 mcp = ["httpx>=0.25"]
 # REST API gateway (servers/api.py) — FastAPI + ASGI server
@@ -95,7 +100,7 @@ postgres = ["psycopg[binary]>=3.3.4,<3.4", "psycopg2-binary>=2.9.12"]
 # it produces a false finding about the trusted computing base. CI sets
 # REMORA_REQUIRE_SECURITY_EXTRA=1 so the skip is fatal there; this makes the
 # documented local install agree with CI instead of relying on that.
-dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.16.4", "sqlglot>=30.17.0", "mypy>=2.3.1", "pyyaml>=6.0", "types-PyYAML>=6.0.12.20260815", "httpx>=0.25", "hypothesis>=6.165.10", "fastapi>=0.141.1", "uvicorn[standard]>=0.52.4", "cryptography>=41.0"]
+dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "ruff>=0.16.4", "sqlglot>=30.17.0", "mypy>=2.3.1", "pyyaml>=6.0", "types-PyYAML>=6.0.12.20260815", "httpx>=0.25", "hypothesis>=6.165.10", "fastapi>=0.141.1", "uvicorn[standard]>=0.52.4", "cryptography>=50.0.0"]
 
 [project.urls]
 Homepage = "https://github.com/darklordVirtual/REMORA-research"

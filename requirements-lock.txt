@@ -34,7 +34,7 @@ cohere==7.0.4
 colorama==0.4.6
 contourpy==1.3.3
 coverage==7.15.4
-cryptography==46.0.3
+cryptography==50.0.1
 cycler==0.12.1
 datasets==4.8.5
 debugpy==1.8.21
