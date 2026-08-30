@@ -11,7 +11,7 @@ The class that carries the change is
 ``TestContextsWithoutATaskHashExactlyAsBefore``. If it fails, tokens already
 issued stop verifying and the change is unshippable regardless of the rest.
 
-Design: docs/superpowers/specs/2026-08-30-task-bound-execution-authority-design.md
+Design: docs/design/task-bound-execution-authority-v1.md
 """
 from __future__ import annotations
 

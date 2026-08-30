@@ -2046,6 +2046,17 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-336
+  path: docs/design/task-bound-execution-authority-v1.md
+  status: proposal
+  topic: docs_design_task-bound-execution-authority-v1_md
+  code_synced: verified
+  verdict: pending
+  last_reviewed: '2026-08-30'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 - id: DOC-334
   path: docs/interop/REMORA-APS-PROFILE-v0.1.md
   status: proposal

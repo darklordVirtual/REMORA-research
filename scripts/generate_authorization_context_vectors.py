@@ -114,8 +114,7 @@ def build() -> dict:
         },
         "regenerate": "python scripts/generate_authorization_context_vectors.py",
         "design": (
-            "docs/superpowers/specs/"
-            "2026-08-30-task-bound-execution-authority-design.md"
+            "docs/design/task-bound-execution-authority-v1.md"
         ),
     }
 

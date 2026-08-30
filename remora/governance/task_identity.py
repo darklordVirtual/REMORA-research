@@ -56,7 +56,7 @@ structure this feeds already has issued signatures that a verifier
 recomputes, and a field appearing in the preimage would invalidate all of
 them. An envelope carrying no task identity must produce byte-identical
 bytes to one issued before this module existed. See
-``docs/superpowers/specs/2026-08-30-task-bound-execution-authority-design.md``.
+``docs/design/task-bound-execution-authority-v1.md``.
 """
 from __future__ import annotations
 
