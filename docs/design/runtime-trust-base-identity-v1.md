@@ -6,16 +6,22 @@ confirmed and **not implemented**.
 
 ## The gap
 
-`ExecutionLease` binds sixteen fields: tenant, actor, tool name, canonical
-argument hash, target environment, policy bundle hash, ToolSpec hash and
-version, intent authority hash, tool contract bundle hash, proposal id, grant
-jti, nonce, issue and expiry times, signature algorithm and key id. None of
-them names the runtime that executes the action.
+`ExecutionLease` binds sixteen fields:
 
-The discriminating case, walked against HEAD in the crosswalk: authorize under
-ToolSpec T1, policy P1, runtime R1, with no drift before authorization; execute
-with arguments unchanged, target unchanged, policy still P1, ToolSpec
-declaration still T1, but the runtime implementation is R2. Property C
+- who and where: tenant, actor, target environment;
+- what: tool name, canonical argument hash;
+- under what authority: policy bundle hash, ToolSpec hash and version, intent
+  authority hash, tool contract bundle hash;
+- joinable to what: proposal id, grant jti;
+- single-use and time-bounded: nonce, issue and expiry times;
+- how it is signed: signature algorithm, key id.
+
+None of them names the runtime that executes the action.
+
+The discriminating case, walked against HEAD in the crosswalk. Authorize under
+ToolSpec T1, policy P1 and runtime R1, with no drift before authorization. Then
+execute with arguments unchanged, target unchanged, policy still P1 and the
+ToolSpec declaration still T1, but against runtime R2. Property C
 (exact-call integrity) passes, F1 (internal authorization-state drift) passes,
 E and E2 (boundary traversal) pass. Every property reports success while the
 action ran against an implementation nobody authorized.
@@ -55,10 +61,9 @@ needs no numeric semantics.
 `REMORA_IMAGE_DIGEST`, `REMORA_EXECUTOR_INSTANCE_CLASS`,
 `REMORA_TOOL_RUNTIME_IDENTITY` and `REMORA_DEPLOYMENT_GENERATION`. Unset
 fields stay empty. Nothing is inferred, defaulted to a plausible value, or
-derived from the running process: an undeclared runtime is undeclared, and the
-identity hash of a wholly undeclared runtime is the empty string, never a hash
-over six empty strings. Declaring *some* fields is a declaration and hashes
-normally.
+derived from the running process. An undeclared runtime is undeclared, and its
+identity hash is the empty string rather than a hash over six empty strings.
+Declaring *some* fields is a declaration and hashes normally.
 
 `current_runtime_identity()` caches the result of `from_environment()` in a
 module-level slot behind a lock, so the value compared at dispatch cannot be
@@ -70,13 +75,9 @@ suite.
 `remora.policy.observation`, the same canonicalisation that feeds
 `canonical_tool_call_hash` and therefore every lease, token, receipt and audit
 entry in the repository. RFC 8785 / `remora.interop.jcs` is deliberately *not*
-used: that module's own docstring scopes it to wire interoperability and
+used. That module's own docstring scopes it to wire interoperability and
 forbids it replacing the internal canonicalisation, because the historical
 record must stay verifiable against the code that verifies it.
-
-`assert_runtime_declared()` raises under a strict runtime profile when the
-identity is undeclared, mirroring the signature and the no-op-outside-strict
-behaviour of `custody.assert_custody_split()`.
 
 ### Lease binding
 
@@ -94,16 +95,17 @@ same way `proposal_id` and `grant_jti` are carried.
 Enforcement lives in `GovernedToolDispatcher`, not in `verify()`. This is a
 property of the place the action is performed, and `verify()` may legitimately
 run anywhere. The check runs immediately before execution, after the argument
-hash is recomputed, and **before the nonce is consumed**, so a rejected runtime
-does not burn a single-use nonce and turn an authorization failure into
+hash is recomputed, and **before the nonce is consumed**. A rejected runtime
+must not burn a single-use nonce and turn an authorization failure into
 `ToolExecutionStateUnknown`.
 
 Three cases:
 
 - lease carries a hash that differs from this process's own: refuse, under
   every profile.
-- lease carries an empty hash under a strict profile: refuse, via
-  `assert_runtime_declared()`.
+- lease carries an empty hash under a strict profile: refuse. The test is on
+  the lease, not on the process, so a strict deployment cannot satisfy the
+  property while issuing unbound authorizations.
 - lease carries an empty hash outside a strict profile: allow, and emit a
   `governance_event` recording that the binding was absent. Property H is
   claimable only under a strict profile, and the register says so.
