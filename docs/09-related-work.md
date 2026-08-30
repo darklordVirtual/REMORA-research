@@ -402,6 +402,68 @@ Boundary:
 - REMORA does not adopt Agentic Autonomy Rate as an assurance metric; source
   lines-of-code do not establish correctness, authority, or verified effect.
 
+## 11. Task-Bound Execution Authority
+
+REMORA binds an authorization to the exact call it was granted for: tool
+name, full arguments, tenant and target, hashed canonically and recomputed
+immediately before dispatch. Until RES-012 it did not bind that
+authorization to the *task* the call was made under. An approval granted for
+task A therefore authorised the identical call under task B. Every binding
+REMORA checks still held. Nothing in the chain recorded that the approver
+had been answering a different question.
+
+Three independent lines arrived at this within two days of each other, and
+the convergence rather than any single one is the argument.
+
+**Yan (2026)** supplies the human evidence. Across 113 non-technical
+participants, a reusable user-authored permission policy blocked *fewer*
+overreach attempts than either real-time human approval or automated model
+review. Users chose "ask" and then approved actions outside the original
+task. The finding is uncomfortable for any system that treats a recorded
+approval as authority: "the user approved" is measurably not the same as
+"the task authorised". REMORA's response is not to distrust approvals but to
+scope them, so an approval carries the task it was given under and cannot be
+presented outside it.
+
+**Wu et al. (2026)** describe the adjacent failure from the other end.
+Trajectory-scoped safety monitors reset each iteration, so an adversary can
+hold every individual run under threshold while risk accumulates across the
+outer loop. Their LoopHarness keeps non-decaying safety state across that
+loop. REMORA does not implement LoopHarness. What it takes from the paper is
+structural. That state needs a key, and the key is the same context
+identifier this line introduces. The two designs therefore share one module
+rather than growing a second task identity beside the first.
+
+**The AGNTCY Identity working group** reached it from the standards side.
+Their August 2026 analysis states that Identity plus TBAC grants standing
+authority today. Cryptographic binding to `taskId`, action and resource
+scope, lifetime and delegation constraints remains open profile work. A
+row-by-row crosswalk of that work against implemented REMORA returned `GAP`
+on exactly two rows: A2A `taskId` and A2A `contextId`.
+
+### What REMORA takes and what it does not
+
+The binding is deliberately narrow. `context_id` and `task_id` are opaque
+strings that REMORA compares and never parses. They fold into the structures
+that are already signed. They are not a fifth signed artifact beside intent
+authority, proposal, grant and lease: one more thing to verify, revoke and
+keep fresh would have cost more than the property is worth.
+
+The constraint that shaped the implementation is that `AuthorizationContext`
+hashes into every policy decision token issued since RMR-001, and that hash
+is recomputed at redemption. Adding a field naively would have rewritten it
+for every context and stopped every existing token verifying. Absent task
+fields are therefore omitted from the preimage rather than defaulted to the
+empty string. The committed artifact
+`artifacts/task_authority/authorization_context_preimage_v1.json` records the
+pre-change preimages, so a replicator can check that guarantee without
+trusting the test suite.
+
+This is binding, not proof-of-possession. It ties an authorization to a task
+and does not prove the presenter holds a key. Nothing here should be read as
+closing the AGNTCY profile's PoP requirement, and REMORA claims no PoP at
+this revision.
+
 ## Positioning Statement
 
 REMORA is a nested governance control plane for long-running agentic AI:

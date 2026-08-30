@@ -23,6 +23,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | RES-009 | Enterprise AI governance and audit | `enterprise_rollout_reference` | `reference_design` |
 | RES-010 | Anytime-valid confidence sequences (optional-stopping-safe monitoring) | `continuous_far_monitoring` | `implemented_and_tested` |
 | RES-011 | SDAD-inspired content-bound specification intake | `signed_context_manifest`, `evidence_vector_spec_intake` | `conceptual_translation_implemented` |
+| RES-012 | Task-bound execution authority and non-decaying loop state | `task_identity_binding`, `authorization_context_task_fields` | `implemented_and_tested` |
 
 ## RES-001; Causal post-hoc explainability and concept interventions
 
@@ -182,11 +183,29 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §10
 - Landscape (local compendium): No anchor in the local compendium: SDAD v1 (August 2026) postdates the catalogue. REMORA adopts only the context/provenance and four-dimension intake decomposition, not the full SDLC framework or its proposed scalar metrics.
 
+## RES-012; Task-bound execution authority and non-decaying loop state
+
+- Source: Yan, T. (2026). Do User-Authored Permission Policies Improve Protection Against AI Agent Overreach? arXiv:2608.27443. (cited in code; anchor `2608.27443`; CI-verified)
+  - 113-participant comparison of real-time approval, automated review and pre-set consequence policies
+  - finding: user-authored policies blocked FEWER overreach attempts than either alternative
+  - builds on: Wu, C. et al. (2026). Safety Does Not Compose: Non-Decaying Loop State for Autonomous LLM Agents. arXiv:2608.27141 (LoopHarness; trajectory-scoped monitors reset each iteration).
+  - builds on: AGNTCY Identity WG (2026-08-25). Agent Identity, TBAC and A2A task authorization: standing authority today, task binding still open profile work.
+- Concepts: task_bound_authority, context_scoped_safety_state, approval_is_not_task_authority, signature_preserving_field_addition
+- REMORA controls: task_identity_binding, authorization_context_task_fields
+- Code: [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py), [`remora/enforcement/token.py`](../../remora/enforcement/token.py), [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py), [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json)
+- Tests: [`tests/test_task_identity.py`](../../tests/test_task_identity.py), [`tests/test_task_bound_authority.py`](../../tests/test_task_bound_authority.py)
+- Evidence: An approval bound to one task yields a different AuthorizationContext hash under another, while every binding REMORA already checked stays identical. The committed preimage artifact records that a context carrying no task identity hashes byte-identically to the pre-change implementation, so tokens issued since RMR-001 still verify; scripts/generate_authorization_context_vectors.py --check reproduces it exactly.
+- Maturity: `implemented_and_tested`
+- Scope boundary: Binding only. This is not proof-of-possession: it binds an authorization to a task and does not prove the presenter holds a key, and nothing here closes the AGNTCY profile's PoP requirement. The A2A envelope and ExecutionLease halves, the declared-operation subset check and the loop-safety store are designed but not implemented at this revision. LoopHarness itself is not implemented; only the context_id key its state would need.
+- Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §11
+- Landscape (local compendium): No anchor in the local compendium: both sources are from August 2026 and postdate the catalogue. Both arXiv identifiers were retrieved and checked against the arXiv record on 2026-08-30 before being entered here.
+
 ## Reverse index: code → research
 
 | Code file | Research line(s) |
 |-----------|------------------|
 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json) | RES-011 |
+| [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json) | RES-012 |
 | [`docs/enterprise/togaf-enterprise-rollout-plan.md`](../../docs/enterprise/togaf-enterprise-rollout-plan.md) | RES-009 |
 | [`examples/enterprise_demo.py`](../../examples/enterprise_demo.py) | RES-009 |
 | [`remora/cascade/stages.py`](../../remora/cascade/stages.py) | RES-004 |
@@ -194,10 +213,12 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | [`remora/causal/explanation.py`](../../remora/causal/explanation.py) | RES-001 |
 | [`remora/causal/schema.py`](../../remora/causal/schema.py) | RES-001 |
 | [`remora/causal/search.py`](../../remora/causal/search.py) | RES-001 |
+| [`remora/enforcement/token.py`](../../remora/enforcement/token.py) | RES-012 |
 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py) | RES-008 |
 | [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py) | RES-008 |
 | [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) | RES-008 |
 | [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py) | RES-011 |
+| [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py) | RES-012 |
 | [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py) | RES-004 |
 | [`remora/oracles/evidence_v3.py`](../../remora/oracles/evidence_v3.py) | RES-006 |
 | [`remora/oracles/evidence_verifier.py`](../../remora/oracles/evidence_verifier.py) | RES-006 |
@@ -215,12 +236,14 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | [`remora/toolcall/scoring.py`](../../remora/toolcall/scoring.py) | RES-005 |
 | [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py) | RES-004 |
 | [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) | RES-011 |
+| [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py) | RES-012 |
 
 ## Reverse index: control → research → code
 
 | Control | Research line(s) | Code |
 |---------|------------------|------|
 | `action_type_mapping` | RES-005 | [`remora/toolcall/remora_gate.py`](../../remora/toolcall/remora_gate.py), [`remora/toolcall/schema.py`](../../remora/toolcall/schema.py), [`remora/toolcall/scoring.py`](../../remora/toolcall/scoring.py) |
+| `authorization_context_task_fields` | RES-012 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json), [`remora/enforcement/token.py`](../../remora/enforcement/token.py), [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py), [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py) |
 | `causal_policy_explanation` | RES-001 | [`remora/causal/attribution.py`](../../remora/causal/attribution.py), [`remora/causal/explanation.py`](../../remora/causal/explanation.py), [`remora/causal/schema.py`](../../remora/causal/schema.py), [`remora/causal/search.py`](../../remora/causal/search.py) |
 | `conformal_thresholding` | RES-003 | [`remora/selective/binomial_bounds.py`](../../remora/selective/binomial_bounds.py), [`remora/selective/crc.py`](../../remora/selective/crc.py) |
 | `context_flow_governance` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
@@ -236,6 +259,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | `reviewed_policy_proposals` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
 | `selective_routing` | RES-002 | [`remora/selective/conformal.py`](../../remora/selective/conformal.py), [`remora/selective/guardrail.py`](../../remora/selective/guardrail.py), [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) |
 | `signed_context_manifest` | RES-011 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json), [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py), [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) |
+| `task_identity_binding` | RES-012 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json), [`remora/enforcement/token.py`](../../remora/enforcement/token.py), [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py), [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py) |
 | `thermodynamic_braking` | RES-007 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py), [`remora/research_attic/statphys/potts.py`](../../remora/research_attic/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py) |
 | `toolcall_gate` | RES-005 | [`remora/toolcall/remora_gate.py`](../../remora/toolcall/remora_gate.py), [`remora/toolcall/schema.py`](../../remora/toolcall/schema.py), [`remora/toolcall/scoring.py`](../../remora/toolcall/scoring.py) |
 
@@ -361,7 +385,7 @@ Compared against or used as framing in the paper. No code, no evaluation - and t
 | `zhan-2024-injecagent` | none | none | none | InjecAgent. |
 | `zhang-2024-calibrating` | arxiv:2404.02655 | none | none | Confidence elicitation by fidelity. |
 
-### Cited in code but not in the paper (3)
+### Cited in code but not in the paper (5)
 
 The reconciliation runs both ways. These sources ground code or a research line while the paper carries no reference to them; recorded so the asymmetry is visible instead of hidden.
 
@@ -370,6 +394,8 @@ The reconciliation runs both ways. These sources ground code or a research line 
 | `behrouz-2025-nested` | Nested Learning | RES-008 (narrative attribution) | Source of RES-008 and absent from the paper. Deliberately NOT cited in code: RES-008 carries in_code_citation false because REMORA implements the governance framing, not the architecture, so the attribution lives in docs/09-related-work.md rather than in a module docstring. |
 | `galhotra-2021-contrastive` | Contrastive explanations (SIGMOD) | [`remora/causal/search.py`](../../remora/causal/search.py) | builds_on source for RES-001. |
 | `wang-2024-moa` | Mixture-of-Agents | [`remora/cascade/stages.py`](../../remora/cascade/stages.py) | Single-stage aggregation inspired by MoA. The paper no longer discusses MoA (the multi-layer architecture is not implemented), so it carries no paper reference. |
+| `wu-2026-safety-does-not-compose` | Safety Does Not Compose: Non-Decaying Loop State for Autonomous LLM Agents (arXiv:2608.27141) | [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py) | builds_on source for RES-012, cited where it is load-bearing rather than where it is merely relevant: the non-decaying loop state it proposes needs a key, and that key is the context_id this module defines. LoopHarness itself is NOT implemented, which RES-012's scope boundary states. Identifier checked against the arXiv record on 2026-08-30. |
+| `yan-2026-permission-policies` | Do User-Authored Permission Policies Improve Protection Against AI Agent Overreach? (arXiv:2608.27443) | [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py) | Source of RES-012 and absent from the paper. Cited in the module the finding motivates: across 113 participants a reusable-policy setup blocked fewer overreach attempts than either real-time approval or automated review, because users approved actions outside the original task. That is the empirical case for binding an authorization to the task it was granted under. Identifier checked against the arXiv record on 2026-08-30. |
 
 ## Research landscape coverage
 

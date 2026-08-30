@@ -1,0 +1,48 @@
+{
+  "artifact": "authorization_context_preimage_v1",
+  "purpose": "AuthorizationContext.hash() is signed into every PolicyDecisionToken issued since RMR-001 and is recomputed at redemption. Task-bound execution authority adds context_id and task_id to that structure. These vectors record that a context carrying no task identity produces a byte-identical preimage, and therefore an identical hash, to what it produced before those fields existed.",
+  "rule": "Absent task fields are OMITTED from the preimage, never defaulted to the empty string. A key present with an empty value changes the preimage exactly as much as a populated one would.",
+  "vectors": [
+    {
+      "name": "empty_context",
+      "fields": {},
+      "pre_change_preimage": "{\"intent_authority_hash\":\"\",\"policy_bundle_hash\":\"\",\"principal\":\"\",\"target_environment\":\"\",\"tenant\":\"\",\"toolspec_hash\":\"\"}",
+      "pre_change_sha256": "a2fb178734a5a4f8fcb24633c8c653cf2fe84b41642030c160f3a3c04c32c26f",
+      "post_change_sha256": "a2fb178734a5a4f8fcb24633c8c653cf2fe84b41642030c160f3a3c04c32c26f",
+      "identical": true
+    },
+    {
+      "name": "fully_populated_context",
+      "fields": {
+        "tenant": "acme",
+        "principal": "alice",
+        "target_environment": "production",
+        "policy_bundle_hash": "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+        "toolspec_hash": "tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+        "intent_authority_hash": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+      },
+      "pre_change_preimage": "{\"intent_authority_hash\":\"iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\",\"policy_bundle_hash\":\"pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp\",\"principal\":\"alice\",\"target_environment\":\"production\",\"tenant\":\"acme\",\"toolspec_hash\":\"tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt\"}",
+      "pre_change_sha256": "c4a376c60f0ff51b682f0cd72356445ad496f45710a36c22219c95f2335742f1",
+      "post_change_sha256": "c4a376c60f0ff51b682f0cd72356445ad496f45710a36c22219c95f2335742f1",
+      "identical": true
+    },
+    {
+      "name": "tenant_only",
+      "fields": {
+        "tenant": "acme"
+      },
+      "pre_change_preimage": "{\"intent_authority_hash\":\"\",\"policy_bundle_hash\":\"\",\"principal\":\"\",\"target_environment\":\"\",\"tenant\":\"acme\",\"toolspec_hash\":\"\"}",
+      "pre_change_sha256": "44fe476f1d295b01cf2380027be147e146ad4e4dd75935967ff475d7633dede9",
+      "post_change_sha256": "44fe476f1d295b01cf2380027be147e146ad4e4dd75935967ff475d7633dede9",
+      "identical": true
+    }
+  ],
+  "a_bound_context_differs": {
+    "unbound_sha256": "44fe476f1d295b01cf2380027be147e146ad4e4dd75935967ff475d7633dede9",
+    "bound_sha256": "8fb3d47e798a6cbe0018208b4a54a6eb46034a3ef2517f5c3e943189a5b12ff8",
+    "differs": true,
+    "note": "It must differ: the bound context asserts something more."
+  },
+  "regenerate": "python scripts/generate_authorization_context_vectors.py",
+  "design": "docs/superpowers/specs/2026-08-30-task-bound-execution-authority-design.md"
+}
