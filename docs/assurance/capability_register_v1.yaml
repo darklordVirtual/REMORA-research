@@ -250,9 +250,13 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: dd1117e8d3b6aef792760ab3484c3f707588826e
+    verified_at_sha: 4836aae1a2476fa2c0ecbab4375817d6d39810c2
     verified_by: >-
-      re-audit 2026-08-30 for the runtime trust-base binding (ADR-D, #506):
+      rebound 2026-08-30 to the squash-merge commit of #506 (4836aae1a247); the
+      branch commit dd1117e8 left the repository at squash. Verified
+      content-identical on every cited implementation source with
+      `git diff dd1117e8 4836aae` (empty). No status, scope or caveat change.
+      Prior: re-audit 2026-08-30 for the runtime trust-base binding (ADR-D, #506):
       ExecutionLease gains runtime_identity_hash inside the signed payload and
       in the from_dict allowlist, and GovernedToolDispatcher._runtime_refusal
       compares it against this process's own cached identity from
