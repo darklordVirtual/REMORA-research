@@ -64,6 +64,11 @@ from remora.governance.lifecycle import (
 from remora.governance.review_queue import (
     ReviewQueue,
 )
+from remora.governance.revocation_store import (
+    DurableRevocationStore,
+    RevocationStore,
+    RevocationStoreUnavailable,
+)
 from remora.governance import audit_outbox as _audit_outbox
 from remora.governance.tenant_chain import TenantAuditChain
 from remora.policy.decision_engine import RemoraDecisionEngine
@@ -767,9 +772,38 @@ def _queue(tenant: str) -> ReviewQueue:
         with _LAZY_INIT_LOCK:
             queue = _QUEUES.get(tenant)
             if queue is None:
-                queue = ReviewQueue(engine=_ENGINE)
+                queue = ReviewQueue(
+                    engine=_ENGINE,
+                    tenant_id=tenant,
+                    revocation_store=_revocation_store(),
+                )
                 _QUEUES[tenant] = queue
     return queue
+
+
+def _revocation_store() -> RevocationStore | None:
+    """The durable revocation store when this deployment has one.
+
+    Same two switches as every other execution store, and the strict runtime
+    profile already requires one of them (``validate_runtime_profile_
+    prerequisites``). Returning None hands the queue its in-process default,
+    which is correct for the research profile and is the configuration whose
+    limitation is recorded in the store's module docstring: a revocation
+    that reaches one worker and does not survive a restart.
+    """
+    dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+    db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    if not (dsn or db_path):
+        return None
+    return DurableRevocationStore(
+        dsn=dsn,
+        db_path=db_path,
+        # The re-gate reads this store from inside the review-state
+        # transaction. A second connection to the same SQLite file would
+        # block on the writer already holding it, so the store joins that
+        # transaction when there is one and opens its own otherwise.
+        connection_provider=_ACTIVE_TX_CONNECTION.get,
+    )
 
 
 # ── Governed tool dispatch (issue #13) ─────────────────────────────────────
@@ -1349,8 +1383,20 @@ def revoke_principal(req: RevokePrincipalRequest, request: Request) -> dict[str,
     api_mod._require_tenant_capability(role, tenant, "review")
     if req.principal == revoker:
         raise HTTPException(status_code=409, detail="a principal cannot revoke themself")
-    with db_transaction_state(tenant) as q:
-        q.revoke_principal(req.principal, reason=req.reason or "")
+    try:
+        with db_transaction_state(tenant) as q:
+            q.revoke_principal(req.principal, reason=req.reason or "")
+    except RevocationStoreUnavailable as exc:
+        # 503, not 500, and emphatically not a success body. A caller told
+        # "revoked" by a route that could not record it would stop chasing a
+        # revocation that never took effect.
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "revocation store unavailable; the principal was NOT revoked "
+                "and this call must be retried"
+            ),
+        ) from exc
     _CHAIN.append(tenant, {
         "event": "principal_revoked",
         "principal": req.principal,

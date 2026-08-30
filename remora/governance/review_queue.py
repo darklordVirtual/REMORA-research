@@ -44,6 +44,10 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 
 from remora.governance.degradation import ChainedEvent, ChainedEventLog
+from remora.governance.revocation_store import (
+    InMemoryRevocationStore,
+    RevocationStore,
+)
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction
@@ -162,6 +166,8 @@ class ReviewQueue:
         sink: Callable[[ChainedEvent], None] | None = None,
         now_fn: Callable[[], datetime] | None = None,
         default_queue_ttl: timedelta = DEFAULT_QUEUE_TTL,
+        tenant_id: str = "default",
+        revocation_store: RevocationStore | None = None,
     ) -> None:
         self._engine = engine or RemoraDecisionEngine()
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
@@ -175,7 +181,17 @@ class ReviewQueue:
         # Principals whose authority was withdrawn after they acted. Checked
         # at the execution re-gate: an approval outlives its approver only
         # if nobody looks.
-        self._revoked: dict[str, str] = {}
+        #
+        # This was a dict on the instance until the AGNTCY crosswalk review.
+        # The server builds one queue per tenant per *process*, so a
+        # revocation reached the worker that served the call and no other,
+        # and did not survive a restart, while the chain recorded it either
+        # way. The default below keeps that behaviour for library and test
+        # use, and is exactly what a strict deployment must override.
+        self._tenant_id = tenant_id
+        self._revocations: RevocationStore = (
+            revocation_store or InMemoryRevocationStore()
+        )
 
     # ------------------------------------------------------------------
     # Introspection
@@ -296,16 +312,27 @@ class ReviewQueue:
         if not principal or not principal.strip():
             raise ValueError("revoke_principal requires a principal")
         with self._lock:
-            self._revoked[principal] = reason
+            # Store first, chain second. If the store cannot record the
+            # revocation the chain must not claim it happened: an audit
+            # entry for an unenforced revocation is the defect this
+            # ordering exists to prevent.
+            self._revocations.revoke(
+                principal, tenant_id=self._tenant_id, reason=reason
+            )
             self._log.append(
                 "principal_revoked", {"principal": principal, "reason": reason}
             )
 
     def is_revoked(self, principal: str | None) -> bool:
+        """Whether ``principal`` is revoked in this queue's tenant.
+
+        Propagates ``RevocationStoreUnavailable`` rather than answering
+        False. A store that cannot answer must not be read as "not
+        revoked", or an outage becomes a way around revocation.
+        """
         if not principal:
             return False
-        with self._lock:
-            return principal in self._revoked
+        return self._revocations.is_revoked(principal, tenant_id=self._tenant_id)
 
     def approve(
         self,
@@ -410,7 +437,10 @@ class ReviewQueue:
 
         # 4a'. Revoked approver: the approval was valid when issued and is
         # void now. Same decision as "world got riskier", because it did.
-        if approval.approver in self._revoked:
+        # Reads the durable store. An unreachable store raises rather than
+        # returning False, so the re-gate refuses instead of executing on an
+        # answer it does not have.
+        if self.is_revoked(approval.approver):
             item.status = ItemStatus.PENDING
             item.approval = None
             self._log.append(
