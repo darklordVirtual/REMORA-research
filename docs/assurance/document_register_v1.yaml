@@ -2068,6 +2068,17 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-335
+  path: docs/assurance/authority_state_topology.yaml
+  status: canonical
+  topic: docs_assurance_authority_state_topology_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-08-30'
+  last_reviewed: '2026-08-30'
+  audience:
+  - maintainers
+  - evaluators
 - id: DOC-332
   path: docs/assurance/claim_metric_binding_baseline.json
   status: canonical
@@ -2691,3 +2702,4 @@ topics:
 - docs_deployment_container-reference_md
 - docs_assurance_prose_style_baseline_json
 - docs_assurance_credential_topology_yaml
+- docs_assurance_authority_state_topology_yaml

@@ -497,6 +497,20 @@ items:
       real downstream credentials, and external interception validation
       (REM-030, REM-021).
 
+      CORRECTION 2026-08-30: the two REMAINING lists above name "durable
+      multi-process nonce/lease storage (REM-025)". Both halves were wrong
+      and are superseded, not deleted. The storage exists and is wired:
+      remora/enforcement/nonce_store.py::DurableNonceStore, constructed by
+      servers/execution_api.py::_lease_nonce_store from the same three
+      variables as the durability guard in servers/api.py and passed to the
+      dispatcher. And REM-025 is "Durable audit integrity", an unrelated
+      item that never covered nonce storage. What remains is narrower: a
+      deployment configuring no backend keeps a per-process guarantee, and
+      activation on any particular deployment is unclaimed (CAP-013 caveat).
+      Found while auditing whether the durability defect class had recurred
+      a fourth time; the same misattribution stood in the NonceLedger
+      docstring in remora/enforcement/lease.py and was corrected there too.
+
   - id: REM-025
     section: "security-audit B"
     title: "Durable audit integrity (transactional sequence + external anchoring)"
@@ -711,6 +725,20 @@ items:
       interception validation (REM-030/REM-021), and a governed dispatch
       path for direct-ACCEPT proposals (which currently receive a token
       but have no dispatch endpoint in this API).
+
+      CORRECTION 2026-08-30: the remaining-scope list above names a "durable
+      multi-process nonce ledger (REM-025)". Both halves were wrong and are
+      superseded, not deleted. The storage exists and is wired:
+      remora/enforcement/nonce_store.py::DurableNonceStore, constructed by
+      servers/execution_api.py::_lease_nonce_store from the same three
+      variables as the durability guard in servers/api.py and passed to the
+      dispatcher. And REM-025 is "Durable audit integrity", an unrelated
+      item that never covered nonce storage. What remains is narrower: a
+      deployment configuring no backend keeps a per-process guarantee, and
+      activation on any particular deployment is unclaimed (CAP-013 caveat).
+      Found while auditing whether the durability defect class had recurred
+      a fourth time; the same misattribution stood in the NonceLedger
+      docstring in remora/enforcement/lease.py and was corrected there too.
 
   - id: REM-036
     section: "review-2026-07-18 P2"
