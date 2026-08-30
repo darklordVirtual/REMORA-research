@@ -2046,6 +2046,17 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-333
+  path: docs/design/runtime-trust-base-identity-v1.md
+  status: proposal
+  topic: docs_design_runtime-trust-base-identity-v1_md
+  code_synced: verified
+  verdict: pending
+  last_reviewed: '2026-08-30'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 - id: DOC-332
   path: docs/assurance/claim_metric_binding_baseline.json
   status: canonical
@@ -2403,6 +2414,7 @@ documents:
 topics:
 - docs_integrations_mcp-gateway_md
 - docs_design_aps-authority-profile-v0_md
+- docs_design_runtime-trust-base-identity-v1_md
 - docs_design_cloudflare-mcp-gateway-v1_md
 - docs_aromer_subproject_md
 - docs_architecture_adr_tainted_argument_approval_md
