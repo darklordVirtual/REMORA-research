@@ -5,11 +5,11 @@ Written 2026-08-30, before any of the four families below was executed against
 REMORA.
 
 This document fixes the mapping between APS conformance vocabulary and REMORA
-vocabulary in advance. It exists because a mapping drawn after the expected
-answers are known is not evidence, a point the corpus maintainer made against
-the `aae-envelope` families in the
-[`remora-edd8a4e` record](https://github.com/Agent-Authority-Conformance/aps-conformance-suite/blob/main/interop/remora-edd8a4e/SOURCE.md)
-and which this profile takes as a rule rather than a remark.
+vocabulary in advance. It exists because a mapping drawn to fit the answers is
+not evidence. The corpus maintainer made that point against the `aae-envelope`
+families in the
+[`remora-edd8a4e` record](https://github.com/Agent-Authority-Conformance/aps-conformance-suite/blob/main/interop/remora-edd8a4e/SOURCE.md).
+This profile takes it as a rule.
 
 The canonicalisation rationale that precedes this profile is
 [docs/design/aps-authority-profile-v0.md](../design/aps-authority-profile-v0.md).
@@ -44,10 +44,10 @@ These bind every run performed under this profile.
 
 The `remora-edd8a4e` record is historical evidence and is not rewritten. It
 documents the canonical-bytes family at 16 of 18 vectors from
-`remora.interop.jcs`, 10 of 18 from the legacy `_canonical_bytes`, two declared
-refusals on the number model, and the eleven families with no REMORA
-counterpart. Its adapter hash, its pins and its author-produced label stay as
-recorded.
+`remora.interop.jcs`, 10 of 18 from the legacy `_canonical_bytes`, and two
+declared refusals on the number model. It also classifies fourteen other fixture
+families, and the six under `cross-stack/`, as having no REMORA counterpart. Its
+adapter hash, its pins and its author-produced label stay as recorded.
 
 Work under this profile adds records. It does not amend that one.
 
@@ -59,7 +59,7 @@ The five terms the rest of this document builds on.
 |---|---|---|
 | ActionRef | exact-call identity | `canonical_tool_call_hash(name, arguments, tenant, target)` in `remora/policy/observation.py` |
 | delegation | authority grant, then dispatch binding | `PolicyDecisionToken` (grant, HMAC, single-use `jti`), then `ExecutionLease` (dispatch, Ed25519 with `kid`) |
-| receipt | execution and effect evidence | `ResultEnvelope` in `remora/enforcement/result_envelope.py` and `EffectBlock` |
+| receipt | execution and effect evidence | `ToolResultEnvelope` in `remora/enforcement/result_envelope.py` and `EffectBlock` |
 | accountability record | decision plus audit entry | `DecisionEnvelope` in `remora/governance/envelope.py` and the tenant audit chain entry |
 | provenance | authority provenance | `toolspec_hash`, `toolspec_version`, `tool_contract_bundle_hash`, `intent_authority_hash`, `policy_bundle_hash`, all carried on the lease |
 
@@ -74,11 +74,10 @@ forbids using an APS `action_ref` anywhere REMORA requires exact-call identity,
 in either direction.
 
 APS delegation is one relation. REMORA splits it in two, and the split is the
-security property: the grant is issued by the authority domain and consumed
-once at the enforcement point, and the lease binds the consumed grant to a
-concrete call in the execution domain. A mapping that collapses the two loses
-the single-use consumption, so each family below names which of the two it
-maps.
+security property. The grant is issued by the authority domain and consumed once
+at the enforcement point. The lease binds the consumed grant to a concrete call
+in the execution domain. A mapping that collapses the two loses the single-use
+consumption, so each family below names which of the two it maps.
 
 ## 3. The four families
 
@@ -99,16 +98,16 @@ structure from deployment-owned REMORA fields:
 | `agentId` | lease `actor_identity` | not a DID; a REMORA principal identity string, recorded as such |
 | `actionType` | `ToolSpec.action_type` | the deployment-owned category, never `tool_id` and never an agent-supplied value |
 | `scopeRequired` | `ToolSpec.credential_scope` | the deployment-owned credential scope tuple |
-| `timestamp` | lease `issued_at` | RFC 3339 with millisecond precision, as the fixtures carry |
+| `timestamp` | lease `issued_at` | UTC, second precision, `Z` designator, as the fixtures carry; REMORA's own string is ISO-8601 UTC and the adapter reduces it |
 
 NFC normalisation and code-point ordering are performed by the adapter over
 those inputs, and the JCS bytes come from `remora.interop.jcs`.
 
 What this tests is whether REMORA's canonicalisation and ordering agree with
-the reference on a structure REMORA does not otherwise emit. That is a real
-result for the byte layer and the ordering rule, and it is not a claim that
-REMORA speaks ActionRef. The record says: agreement on the canonical form of an
-adapter-constructed ActionRef, computed with REMORA's canonicaliser.
+the reference on a structure REMORA does not otherwise emit. That result covers
+the byte layer and the ordering rule, and stops there. The record says:
+agreement on the canonical form of an adapter-constructed ActionRef, computed
+with REMORA's canonicaliser.
 
 Refuse when: `credential_scope` is empty, `action_type` is absent, or the
 ToolSpec bundle is unverified. An ActionRef over agent-supplied values would
@@ -141,9 +140,9 @@ records show a boundary violation.
 
 The mapping is not invertible: `deny` covers both ABSTAIN and a refused review,
 and `halt` covers both VERIFY and ESCALATE. The adapter therefore carries the
-REMORA verdict verbatim in a namespaced extension member, `remora_verdict`, and
-the record states that a consumer reading only the APS enum has lost the
-distinction between missing information and a required higher authority.
+REMORA verdict verbatim in a namespaced extension member, `remora_verdict`. A
+consumer reading only the APS enum has lost the distinction between missing
+information and a required higher authority, and the record says so.
 
 `action_digest` is computed by the adapter over the APS `action` object
 (`type`, `scope`, `timestamp`). It is not REMORA's `tool_args_hash` and does not
@@ -160,9 +159,13 @@ family's negatives turn on signature verification, and emitting a record signed
 by a shared registry key under a field named `signer_did` would misrepresent
 what a verifier can check.
 
-Declined: the four negatives that turn on schema validation and key resolution
-are run as adapter evidence only, since they test the record shape rather than
-REMORA behaviour, and the record labels them that way.
+Split within the family. The two signature negatives, `negative-tampered-payload`
+and `negative-wrong-key`, are REMORA evidence: the verification runs through the
+Ed25519 path in `remora/enforcement/lease_signing.py`. The three that turn on
+record shape, `negative-schema-decision`, `negative-type-relabel` and
+`negative-sig-alg-lowercase`, are adapter evidence, because REMORA has no APS
+schema validator and the adapter would be testing itself. The record labels
+each group separately and does not merge them into one count.
 
 ### 3.3 receipt-decision-relation
 
@@ -179,7 +182,7 @@ boundary needs care.
 
 | APS field | REMORA source |
 |---|---|
-| receipt | `ResultEnvelope` for the dispatch, plus its tenant audit-chain entry |
+| receipt | `ToolResultEnvelope` for the dispatch, plus its tenant audit-chain entry |
 | `receipt.issued_at` | lease `issued_at` |
 | decision evidence | the `DecisionEnvelope` fields covered by `envelope_hash()`, plus `policy_bundle_hash` and the grant `jti` |
 | `decision.valid_until` | the grant's `expires_at`, from `PolicyDecisionToken`, not the lease's |
@@ -324,7 +327,8 @@ Forbidden, and not conditionally:
 
 Also forbidden: aggregating families into a score, citing a family the adapter
 computed on REMORA's behalf, and citing any result whose adapter is not
-committed. The last one is the rule that retired the 2026-08-28 report.
+committed. The last one is why the 2026-08-28 report is not carried forward: its
+adapter could not be located, so its 51 of 60 does not exist as evidence.
 
 ## 8. Order of work
 
