@@ -3,6 +3,11 @@
 Status: draft, not claimed conformant. Written 2026-08-29 in response to the
 REMORA x APS conformance feedback of 2026-08-28.
 
+This document settles the byte layer. The semantic mapping for the four
+conformance families selected for the next run is
+[docs/interop/REMORA-APS-PROFILE-v0.1.md](../interop/REMORA-APS-PROFILE-v0.1.md),
+which builds on this one and does not replace it.
+
 ## What this profile is for
 
 The Agent Authority Conformance lab does not issue a project-level verdict. It

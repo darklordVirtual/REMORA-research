@@ -240,6 +240,7 @@ Design documents describe a proposal at the time it was written; whether it ship
 | [design/toolspec-signed-registry-v1.md](design/toolspec-signed-registry-v1.md) | Signed ToolSpec design (design history) |
 | [design/cloudflare-mcp-gateway-v1.md](design/cloudflare-mcp-gateway-v1.md) | Governed MCP gateway design for the Cloudflare deployment (open proposal) |
 | [design/aps-authority-profile-v0.md](design/aps-authority-profile-v0.md) | RFC 8785 canonicalisation for APS interop: three divergence classes closed, the number model declined with its reason (open proposal) |
+| [interop/REMORA-APS-PROFILE-v0.1.md](interop/REMORA-APS-PROFILE-v0.1.md) | APS interop profile v0.1: the term mapping for four conformance families, fixed before the run (open proposal) |
 | [methods/nested_governance.md](methods/nested_governance.md) | Nested governance model |
 | [methods/architecture_risk_register.md](methods/architecture_risk_register.md) | Architecture risk register |
 | [methods/theoretical_foundations_proposals_v1.md](methods/theoretical_foundations_proposals_v1.md) | Theoretical-foundation proposals |
