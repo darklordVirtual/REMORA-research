@@ -4,6 +4,21 @@ Reference note for ACS / cMCP / TRACE review.
 Repository state: `darklordVirtual/REMORA-research`, default branch at `2724fa0`.
 Status: reference implementation. The capability register states explicitly that nothing in the repository is `ENFORCED_PRODUCTION` or `EXTERNALLY_VERIFIED`; deployment status is shadow-only. This document describes implemented and tested mechanisms, not deployment assurance.
 
+## What you asked for, and where it is
+
+| your point | answered in | runnable evidence |
+|---|---|---|
+| canonical representation covered by the authorization signature | §1 | V-02, V-03 |
+| mutable and defaulted parameters | §2 | V-03 |
+| the exact point authorization is consumed | §3 | V-04, V-05, V-08 |
+| replay, substitution, concurrent dispatch | §3, §6 | V-02, V-04, V-05, V-08 |
+| revocation between evaluation and dispatch | §4 | V-11 |
+| attempted, accepted, committed, independently verified | §5 | V-13, V-14, V-15 |
+| negative tests for the five named cases | §6 | V-02, V-06, V-07, V-04/V-08, V-13 |
+| mapping to ACS, cMCP and TRACE without duplicate concepts | §7 | crosswalk table |
+
+The suite in this directory runs the vectors and writes a hash-bound record. Reproducing it is three commands, listed in `README.md`.
+
 ## 1. The binding chain covered by the authorization signature
 
 An external verifier can recompute the whole chain from the tool call alone:
@@ -62,9 +77,12 @@ Authorization is not treated as permanent because evaluation once succeeded. Cur
 |---|---|---|
 | authorized | enforcement authority existed for this exact call under this exact context | signed token plus context_hash |
 | attempted | the dispatcher crossed the execution boundary with a consumed lease | dispatch record |
-| accepted or committed | the callable returned, as the downstream system reported it | `DispatchOutcome.SUCCEEDED` / `FAILED` / `REFUSED` |
+| accepted | the downstream system took the request | not separated from committed; see the gap below |
+| committed | the downstream system reports a durable effect | `DispatchOutcome.SUCCEEDED` |
 | indeterminate | dispatch may have begun and the outcome cannot be established | `DispatchOutcome.UNKNOWN` |
 | independently verified | a read-back against a system of record confirms the authorized postcondition | `EffectStatus.VERIFIED` |
+
+Your four-state vocabulary exposes a real gap, and it is better named than glossed. REMORA distinguishes attempted from committed and committed from independently verified, but it does **not** separate accepted from committed. `SUCCEEDED` means the callable returned without raising, which for an asynchronous downstream system is acceptance rather than commitment. A system that returns 202 and commits later is recorded here as `SUCCEEDED`, and only the effect verification step can tell the two apart. If a profile needs that distinction, it belongs in the dispatch outcome rather than in a second evidence document.
 
 `UNKNOWN` is deliberate and durable: `asserts_no_effect` is true only for `REFUSED` and `FAILED`, so uncertainty is never converted into "it did not happen" and then retried. Effect verification is a separate step producing `EFFECT_VERIFIED`, `EFFECT_MISMATCH`, `EFFECT_UNOBSERVABLE`, `EFFECT_VERIFIER_FAILED` or `EFFECT_UNSUPPORTED` (`remora/governance/effect_verification.py`). An effect receipt is lineage-bound to an actual dispatch, so a proposal that was only authorized cannot acquire `EFFECT_VERIFIED`.
 
