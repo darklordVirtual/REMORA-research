@@ -21,7 +21,7 @@ The suite in this directory runs the vectors and writes a hash-bound record. Rep
 
 ## 1. The binding chain covered by the authorization signature
 
-An external verifier can recompute the whole chain from the tool call alone:
+An external verifier holding the invocation and the authorization context can recompute the complete binding chain. The call hash needs only the invocation; `context_hash` additionally needs tenant, principal, target, policy bundle, ToolSpec identity and intent authority, so the context is part of what must be conveyed, not derived from the call.
 
 ```
 full tool call {name, arguments, tenant, target}
@@ -82,7 +82,7 @@ Authorization is not treated as permanent because evaluation once succeeded. Cur
 | indeterminate | dispatch may have begun and the outcome cannot be established | `DispatchOutcome.UNKNOWN` |
 | independently verified | a read-back against a system of record confirms the authorized postcondition | `EffectStatus.VERIFIED` |
 
-Your four-state vocabulary exposes a real gap, and it is better named than glossed. REMORA distinguishes attempted from committed and committed from independently verified, but it does **not** separate accepted from committed. `SUCCEEDED` means the callable returned without raising, which for an asynchronous downstream system is acceptance rather than commitment. A system that returns 202 and commits later is recorded here as `SUCCEEDED`, and only the effect verification step can tell the two apart. If a profile needs that distinction, it belongs in the dispatch outcome rather than in a second evidence document.
+Your four-state vocabulary exposes a real gap, and it is better named than glossed. REMORA distinguishes attempted from committed and committed from independently verified, but it does **not** separate accepted from committed. `SUCCEEDED` means the callable returned without raising, which for an asynchronous downstream system is acceptance rather than commitment. A system that returns 202 and commits later is recorded here as `SUCCEEDED`, so commitment is not established by dispatch alone and only the effect verification step can settle it. If a profile needs that distinction, it belongs in the dispatch outcome rather than in a second evidence document.
 
 `UNKNOWN` is deliberate and durable: `asserts_no_effect` is true only for `REFUSED` and `FAILED`, so uncertainty is never converted into "it did not happen" and then retried. Effect verification is a separate step producing `EFFECT_VERIFIED`, `EFFECT_MISMATCH`, `EFFECT_UNOBSERVABLE`, `EFFECT_VERIFIER_FAILED` or `EFFECT_UNSUPPORTED` (`remora/governance/effect_verification.py`). An effect receipt is lineage-bound to an actual dispatch, so a proposal that was only authorized cannot acquire `EFFECT_VERIFIED`.
 
@@ -131,10 +131,10 @@ cMCP (`agentrust-io/cmcp`) and TRACE (`agentrust-io/trace-spec`, v0.2).
 | audit chain | tenant audit chain | `gateway.audit_chain` (root, tip, length) | no |
 | dispatch record | dispatch record and lifecycle | TRACE `tool_transcript` | no |
 | effect verification result | `EffectStatus`, lineage-bound receipt | TRACE `appraisal` and evidence reference | no |
-| single-use authority | token `jti`, consumed once | ACS specifies no single-use, replay, nonce or revocation mechanism | candidate |
-| bounded execution authority distinct from the decision | `ExecutionLease` (own nonce, own lifetime, binds `grant_jti` and `runtime_identity_hash`) | no equivalent in ACS; cMCP enforces per call rather than issuing a bounded authority | candidate |
-| revocation between evaluation and dispatch | durable revocation store, fails closed when unavailable | not specified in ACS | candidate |
-| indeterminate dispatch state | `DispatchOutcome.UNKNOWN`, `asserts_no_effect` false | TRACE records what happened; no explicit non-assertion state found | candidate |
+| single-use authority | token `jti`, consumed once | no single-use, replay or nonce mechanism identified in the reviewed public specification | candidate |
+| bounded execution authority distinct from the decision | `ExecutionLease` (own nonce, own lifetime, binds `grant_jti` and `runtime_identity_hash`) | no equivalent identified in the reviewed public specifications; cMCP enforces per call rather than issuing a bounded authority | candidate |
+| revocation between evaluation and dispatch | durable revocation store, fails closed when unavailable | none identified in the reviewed public specification | candidate |
+| indeterminate dispatch state | `DispatchOutcome.UNKNOWN`, `asserts_no_effect` false | TRACE records what happened; no explicit non-assertion state identified in the reviewed version | candidate |
 
 I have deliberately not introduced a REMORA synonym for anything ACS or TRACE already names. Where the concepts coincide, the ACS or TRACE name should win.
 
