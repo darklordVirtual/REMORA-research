@@ -63,14 +63,19 @@ evidence with no dispatch to belong to. Author-run: 15 of 15 match.
 | revocation before dispatch | not identified | | |
 | indeterminate dispatch state | | | not identified |
 
-The four rows with nothing named are candidates, and all four are about the
-lifetime of authority rather than about policy or evidence content. Everything
-above them should use the existing name.
+Four properties appear underspecified in the public documents reviewed:
+single-use authority, a bounded execution lease, revocation between evaluation
+and dispatch, and an explicit indeterminate state. The suite makes each one
+observable as a negative test. That is a claim about verifiability, not a claim
+that any of them must become a new concept. Everything above them should use the
+name it already has.
 
 ## What this is not
 
 REMORA's capability register claims neither `ENFORCED_PRODUCTION` nor
-`EXTERNALLY_VERIFIED`. The 15 of 15 is author-run and the record says so. cMCP's
+`EXTERNALLY_VERIFIED`. The 15 of 15 is author-run, on vectors written by the
+same author as the implementation, and the record is marked that way for that
+reason. An independent run is the only kind that carries weight. cMCP's
 hardware-measured boundary is stronger than REMORA's software custody split, so
 that is not a boundary being claimed here. Where a specification is called
 silent above, that is a reading of the public documents as of 1 September 2026
