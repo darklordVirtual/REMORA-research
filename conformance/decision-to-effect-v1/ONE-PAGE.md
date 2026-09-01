@@ -21,7 +21,8 @@ EXECUTION LEASE       narrower authority: exact call, executing runtime,
 DISPATCH              the dispatcher holds the callable and the credential
   |
 ATTEMPTED             the boundary was crossed under a spent authority
-  |  downstream evidence
+  |  downstream evidence. Dispatch success is acceptance, not commitment:
+  |  a durable effect is not established by dispatch alone
 ACCEPTED / UNKNOWN    UNKNOWN asserts nothing about occurrence
   |  independent read-back against a system of record
 EFFECT_VERIFIED / EFFECT_MISMATCH / EFFECT_UNOBSERVABLE
