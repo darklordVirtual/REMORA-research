@@ -1,0 +1,350 @@
+{
+  "suite": "decision-to-effect-v1",
+  "description": "Implementation-agnostic vectors for the seam between an authorization decision and the effect it authorizes. Each vector is a step programme an adapter replays against its own system. The expected value is a normalized outcome class, never an implementation reason string, so two systems can disagree on wording and still agree on behaviour.",
+  "outcome_classes": {
+    "EXECUTED": "the call ran with exactly the authorized arguments",
+    "CALL_BINDING_MISMATCH": "refused because the presented call is not the authorized call",
+    "AUTHORITY_ALREADY_CONSUMED": "refused because this authority was already spent",
+    "AUTHORITY_EXPIRED": "refused because the authority is outside its validity window",
+    "AUDIENCE_MISMATCH": "refused because the authority was issued for a different consumer",
+    "CONTEXT_CHANGED": "refused because a condition bound at evaluation no longer holds",
+    "PRINCIPAL_REVOKED": "refused because the acting principal lost authority after evaluation",
+    "RUNTIME_NOT_AUTHORIZED": "refused because this executing runtime is not the one bound",
+    "EFFECT_VERIFIED": "an independent read-back confirms the authorized postcondition",
+    "EFFECT_MISMATCH": "the observed effect differs from the authorized call",
+    "EFFECT_INDETERMINATE": "dispatch may have begun and occurrence cannot be established",
+    "EFFECT_UNLINKED": "refused to appraise effect evidence that is not bound to a dispatch"
+  },
+  "call": {
+    "name": "transfer_funds",
+    "arguments": {
+      "from": "acct-1",
+      "to": "acct-2",
+      "amount": 100
+    },
+    "tenant": "t-1",
+    "target": "prod"
+  },
+  "vectors": [
+    {
+      "id": "V-01",
+      "title": "authorized call executes",
+      "property": "baseline",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "dispatch"
+        }
+      ],
+      "expect": "EXECUTED",
+      "maps_to": {
+        "acs": "enforced_identity matches at pre_tool_call",
+        "trace": "tool_transcript entry"
+      }
+    },
+    {
+      "id": "V-02",
+      "title": "arguments mutated after evaluation",
+      "property": "C",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "dispatch",
+          "arguments": {
+            "from": "acct-1",
+            "to": "acct-99",
+            "amount": 100
+          }
+        }
+      ],
+      "expect": "CALL_BINDING_MISMATCH",
+      "maps_to": {
+        "acs": "SPECIFICATION.md 17.1 rederivation, approval_action_mismatch",
+        "trace": "no tool_transcript entry"
+      }
+    },
+    {
+      "id": "V-03",
+      "title": "argument added after evaluation",
+      "property": "C",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "dispatch",
+          "arguments": {
+            "from": "acct-1",
+            "to": "acct-2",
+            "amount": 100,
+            "memo": "x"
+          }
+        }
+      ],
+      "expect": "CALL_BINDING_MISMATCH",
+      "maps_to": {
+        "acs": "canonical policy input digest differs",
+        "trace": null
+      }
+    },
+    {
+      "id": "V-04",
+      "title": "same authority dispatched twice",
+      "property": "A",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "dispatch"
+        },
+        {
+          "op": "dispatch"
+        }
+      ],
+      "expect": "AUTHORITY_ALREADY_CONSUMED",
+      "maps_to": {
+        "acs": "not specified",
+        "trace": null
+      }
+    },
+    {
+      "id": "V-05",
+      "title": "concurrent dispatch of one authority",
+      "property": "A",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "dispatch_concurrent",
+          "workers": 8
+        }
+      ],
+      "expect": "EXACTLY_ONE_EXECUTED",
+      "maps_to": {
+        "acs": "not specified",
+        "trace": null
+      }
+    },
+    {
+      "id": "V-06",
+      "title": "authority presented after expiry",
+      "property": "A",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "advance_clock",
+          "seconds": 7200
+        },
+        {
+          "op": "dispatch"
+        }
+      ],
+      "expect": "AUTHORITY_EXPIRED",
+      "maps_to": {
+        "acs": "not specified",
+        "trace": null
+      }
+    },
+    {
+      "id": "V-07",
+      "title": "authority redeemed by the wrong consumer",
+      "property": "B",
+      "steps": [
+        {
+          "op": "authorize",
+          "audience": "pep-a"
+        },
+        {
+          "op": "redeem_grant",
+          "audience": "pep-b"
+        }
+      ],
+      "expect": "AUDIENCE_MISMATCH",
+      "maps_to": {
+        "acs": "not specified",
+        "trace": null
+      }
+    },
+    {
+      "id": "V-08",
+      "title": "grant redeemed twice at the enforcement point",
+      "property": "A",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "redeem_grant"
+        },
+        {
+          "op": "redeem_grant"
+        }
+      ],
+      "expect": "AUTHORITY_ALREADY_CONSUMED",
+      "maps_to": {
+        "acs": "not specified",
+        "trace": null
+      }
+    },
+    {
+      "id": "V-09",
+      "title": "tool contract changed between evaluation and dispatch",
+      "property": "F",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "change_toolspec"
+        },
+        {
+          "op": "dispatch"
+        }
+      ],
+      "expect": "CONTEXT_CHANGED",
+      "maps_to": {
+        "acs": "snapshot covered by enforced_identity",
+        "trace": "policy.bundle_hash / enforcement_mode"
+      }
+    },
+    {
+      "id": "V-10",
+      "title": "policy bundle changed between evaluation and dispatch",
+      "property": "F",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "change_policy_bundle"
+        },
+        {
+          "op": "dispatch"
+        }
+      ],
+      "expect": "CONTEXT_CHANGED",
+      "maps_to": {
+        "acs": "not specified at dispatch",
+        "trace": "policy.bundle_hash"
+      }
+    },
+    {
+      "id": "V-11",
+      "title": "principal revoked after evaluation",
+      "property": "B",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "revoke_principal"
+        },
+        {
+          "op": "redeem_grant"
+        }
+      ],
+      "expect": "PRINCIPAL_REVOKED",
+      "maps_to": {
+        "acs": "not specified",
+        "trace": null
+      }
+    },
+    {
+      "id": "V-12",
+      "title": "authority executed by a runtime it was not issued to",
+      "property": "E",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "change_runtime"
+        },
+        {
+          "op": "dispatch"
+        }
+      ],
+      "expect": "RUNTIME_NOT_AUTHORIZED",
+      "maps_to": {
+        "acs": "not specified",
+        "trace": "runtime.platform / runtime.measurement"
+      }
+    },
+    {
+      "id": "V-13",
+      "title": "effect evidence disagrees with the authorized call",
+      "property": "G",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "dispatch"
+        },
+        {
+          "op": "verify_effect",
+          "observed": {
+            "from": "acct-1",
+            "to": "acct-99",
+            "amount": 100
+          }
+        }
+      ],
+      "expect": "EFFECT_MISMATCH",
+      "maps_to": {
+        "acs": "out of scope",
+        "trace": "appraisal"
+      }
+    },
+    {
+      "id": "V-14",
+      "title": "dispatch outcome indeterminate",
+      "property": "G",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "dispatch_indeterminate"
+        }
+      ],
+      "expect": "EFFECT_INDETERMINATE",
+      "maps_to": {
+        "acs": "out of scope",
+        "trace": "no equivalent non-assertion state identified"
+      }
+    },
+    {
+      "id": "V-15",
+      "title": "effect receipt without a dispatch it belongs to",
+      "property": "G",
+      "steps": [
+        {
+          "op": "authorize"
+        },
+        {
+          "op": "verify_effect",
+          "observed": {
+            "from": "acct-1",
+            "to": "acct-2",
+            "amount": 100
+          }
+        }
+      ],
+      "expect": "EFFECT_UNLINKED",
+      "maps_to": {
+        "acs": "out of scope",
+        "trace": "appraisal must not accept unlinked evidence"
+      },
+      "note": "Expectation corrected after the first author-run: refusing to appraise unlinked evidence is a stronger result than classifying it as a mismatch, and the suite should ask for the stronger one."
+    }
+  ]
+}
