@@ -20,7 +20,7 @@ full tool call {name, arguments, tenant, target}
 
 `observation_hash` is set from `tool_call_hash` on the execution path (`remora/execution/service.py`), so the signature covers the exact invocation rather than a description of it. The hash preimage is the complete argument object, never a preview or a selected subset of security-relevant fields.
 
-`context_hash` is a second, independent SHA-256 over the `AuthorizationContext`: tenant, principal, target_environment, policy_bundle_hash, toolspec_hash, intent_authority_hash. Call identity and authorization conditions are therefore separate signed properties. A valid signature does not make a changed context valid; the PEP recomputes the context at redemption and refuses on `context_mismatch`, naming the differing fields.
+`context_hash` is a second, independent SHA-256 over the `AuthorizationContext`: tenant, principal, target_environment, policy_bundle_hash, toolspec_hash, intent_authority_hash. Call identity and authorization conditions are therefore separate signed properties. A signature that verifies says nothing about whether the context still holds; the PEP recomputes the context at redemption and refuses on `context_mismatch`, naming the differing fields.
 
 Two canonical formats exist and there is no migration between them:
 
@@ -29,7 +29,7 @@ Two canonical formats exist and there is no migration between them:
 | `remora/json-sorted-v1` | every internal binding: call hashes, tokens, leases, receipts, audit chain | never |
 | `remora/jcs-rfc8785-v0` | wire interoperability only (`remora/interop/jcs.py`) | this profile |
 
-A signature is not portable between the two and must never be re-derived across them. In the JCS path, RFC 8785 divergence classes 1 to 3 are closed. Class 4 (numbers as binary64) is deliberately declined: binary64 maps distinct large integers onto identical canonical bytes, which in a system whose premise is that an approval cannot be reused for different arguments is an argument-substitution hole. REMORA refuses exactly the integers whose binary64 form is shared with a neighbour and serialises every other integer exactly. Refusal is the fail-closed direction. This does not make canonical bytes injective over all payloads; distinct float literals collapse in `json.loads` before canonicalisation, and that limit is stated rather than papered over.
+A signature is not portable between the two and must never be re-derived across them. In the JCS path, RFC 8785 divergence classes 1 to 3 are closed. Class 4 (numbers as binary64) is deliberately declined. Binary64 maps distinct large integers onto identical canonical bytes. In a system whose premise is that an approval cannot be reused for different arguments, that is an argument-substitution hole. REMORA refuses exactly the integers whose binary64 form is shared with a neighbour and serialises every other integer exactly. Refusal is the fail-closed direction. Canonical bytes are still not injective over all payloads: distinct float literals collapse in `json.loads` before canonicalisation. That limit is stated here rather than left for a reader to find.
 
 ## 2. Mutable and defaulted parameters
 
