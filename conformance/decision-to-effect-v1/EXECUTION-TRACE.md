@@ -77,8 +77,8 @@ Authorization is not treated as permanent because evaluation once succeeded. Cur
 |---|---|---|
 | authorized | enforcement authority existed for this exact call under this exact context | signed token plus context_hash |
 | attempted | the dispatcher crossed the execution boundary with a consumed lease | dispatch record |
-| accepted | the downstream system took the request | not separated from committed; see the gap below |
-| committed | the downstream system reports a durable effect | `DispatchOutcome.SUCCEEDED` |
+| accepted | the downstream system took the request | `DispatchOutcome.SUCCEEDED`, which cannot separate this from committed |
+| committed | a durable downstream effect exists | not established by dispatch success alone; requires downstream evidence or read-back |
 | indeterminate | dispatch may have begun and the outcome cannot be established | `DispatchOutcome.UNKNOWN` |
 | independently verified | a read-back against a system of record confirms the authorized postcondition | `EffectStatus.VERIFIED` |
 
