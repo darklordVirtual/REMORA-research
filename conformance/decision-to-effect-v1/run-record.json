@@ -10,7 +10,7 @@
     "unsupported": 0
   },
   "python": "3.14.0",
-  "repo_commit": "2724fa05fcc889645457f368c324d7a6378cb050",
+  "repo_commit": "52ef4af83b97c18d13706ead39cf96f40ad7fb1e",
   "results": [
     {
       "expected": "EXECUTED",
@@ -133,7 +133,7 @@
       "title": "effect receipt without a dispatch it belongs to"
     }
   ],
-  "run_at": "2026-09-01T06:17:07.578042+00:00",
+  "run_at": "2026-09-01T06:43:02.882858+00:00",
   "run_kind": "author-run",
   "runner_sha256": "4f49db34e5a40df5f91c2e72d02f32eb9eb682422bab6ff4358226d01d4dd842",
   "suite": "decision-to-effect-v1",
