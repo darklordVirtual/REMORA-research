@@ -9,6 +9,8 @@ answers if the questions are asked in a form neither of them owns.
 
 | file | role |
 |---|---|
+| `ONE-PAGE.md` | the one-page trace: the path, five negative cases, the crosswalk in brief. |
+| `EXECUTION-TRACE.md` | the evidence note behind it. |
 | `vectors.json` | the vectors. Implementation-agnostic: a step programme and a normalized expected outcome class. No REMORA in it. |
 | `adapter.py` | the adapter contract. The only interface an implementation must satisfy. |
 | `adapter_remora.py` | the REMORA adapter, including the explicit map from REMORA refusal reasons to outcome classes. |
