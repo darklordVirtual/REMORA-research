@@ -3,7 +3,12 @@ requires = ["hatchling", "editables"]
 build-backend = "hatchling.build"
 
 [project]
-name = "remora"
+# Distribution name, NOT the import name. `remora` is taken on PyPI by an
+# unrelated project ("A replacement for NRPE", 0.0.1), so publishing under it
+# is impossible and `pip install remora` would install that instead. The
+# import package stays `remora`: `import remora` and the `remora` console
+# script are unchanged, and only the name pip resolves moves.
+name = "remora-assurance"
 version = "0.11.0"
 description = "Research-grade policy-gated execution assurance for agentic AI actions with signed tool authority, deterministic governance, verification routing, and audit controls"
 readme = "README.md"

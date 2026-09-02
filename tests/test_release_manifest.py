@@ -27,7 +27,7 @@ _spec.loader.exec_module(build_release_manifest)
 
 @pytest.fixture()
 def manifest(tmp_path):
-    wheel = tmp_path / "remora-0.10.0-py3-none-any.whl"
+    wheel = tmp_path / "remora_assurance-0.11.0-py3-none-any.whl"
     wheel.write_bytes(b"not a real wheel, only its identity is under test")
     return build_release_manifest.build_manifest(wheel)
 

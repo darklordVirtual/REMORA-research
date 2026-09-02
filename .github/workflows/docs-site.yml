@@ -1,0 +1,78 @@
+name: Documentation site
+
+# mkdocs.yml has existed since the docs-governance work, and nothing ever
+# published what it builds. Anyone wanting to read REMORA's documentation had
+# to clone the repository first, which is the same barrier that kept the CLI
+# demo (`remora demo`, eight offline scenarios) undiscoverable.
+#
+# Two locks, as with PyPI publication in release.yml. The build runs on every
+# push to master and on pull requests, so a broken docs tree fails here rather
+# than at deploy time. The DEPLOY runs only on master and only when the
+# repository variable PUBLISH_DOCS is "true", so nothing is published until
+# someone turns it on.
+#
+# SETUP, done once and outside this repository:
+#   a. Settings -> Pages -> Source: GitHub Actions;
+#   b. set the repository variable PUBLISH_DOCS to true.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build the documentation site
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install the docs extra, version-locked
+        run: |
+          python -m pip install --upgrade pip
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e ".[docs]" -c /tmp/constraints.txt
+
+      - name: Build
+        # --strict turns a broken internal link or a missing nav entry into a
+        # failure. The documentation register already guarantees every file is
+        # accounted for; this guarantees the built site agrees.
+        run: mkdocs build --strict
+
+      - name: Upload the built site
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages (opt-in)
+    needs: build
+    if: github.ref == 'refs/heads/master' && vars.PUBLISH_DOCS == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

@@ -24,8 +24,8 @@ Status per capability is recorded in
 python -m pip install -e ".[api,postgres]"
 
 # Or build a wheel first and install that:
-python -m build            # writes dist/remora-<version>-py3-none-any.whl
-python -m pip install "dist/remora-<version>-py3-none-any.whl[api,postgres]"
+python -m build            # writes dist/remora_assurance-<version>-py3-none-any.whl
+python -m pip install "dist/remora_assurance-<version>-py3-none-any.whl[api,postgres]"
 ```
 
 The package is not published to PyPI: REMORA is source-available under

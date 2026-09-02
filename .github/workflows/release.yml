@@ -7,7 +7,7 @@ name: Release Provenance
 # GPG-signed-tag acceptance criterion in #390: the attestation proves the
 # artifacts were built by this workflow at this SHA, which a detached GPG
 # signature on the tag object cannot. Verify with:
-#   gh attestation verify remora-<ver>-py3-none-any.whl --repo darklordVirtual/REMORA-research
+#   gh attestation verify remora_assurance-<ver>-py3-none-any.whl --repo darklordVirtual/REMORA-research
 # Release assets are uploaded to the GitHub release for the tag; the release
 # note is authored by hand and must state the run id of this workflow.
 
@@ -24,6 +24,9 @@ jobs:
   build-attest:
     name: Build, SBOM, checksums, Sigstore attestations
     runs-on: ubuntu-latest
+    outputs:
+      # Consumed by publish-pypi to name the artifact it downloads.
+      version: ${{ steps.ver.outputs.version }}
     permissions:
       contents: write      # upload release assets
       id-token: write      # Sigstore OIDC identity
@@ -61,27 +64,27 @@ jobs:
 
       - name: SHA256SUMS
         working-directory: dist
-        run: sha256sum remora-* sbom-python.cdx.json > SHA256SUMS.txt && cat SHA256SUMS.txt
+        run: sha256sum remora_assurance-* sbom-python.cdx.json > SHA256SUMS.txt && cat SHA256SUMS.txt
 
       - name: Attest build provenance (wheel, sdist, checksums)
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: |
-            dist/remora-*.whl
-            dist/remora-*.tar.gz
+            dist/*.whl
+            dist/*.tar.gz
             dist/SHA256SUMS.txt
 
       - name: Attest SBOM against the wheel
         uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
         with:
-          subject-path: dist/remora-*.whl
+          subject-path: dist/*.whl
           sbom-path: dist/sbom-python.cdx.json
 
       - name: Verify the attestation we just produced
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for f in dist/remora-*.whl dist/remora-*.tar.gz dist/SHA256SUMS.txt; do
+          for f in dist/*.whl dist/*.tar.gz dist/SHA256SUMS.txt; do
             gh attestation verify "$f" --repo "${GITHUB_REPOSITORY}"
           done
 
@@ -96,3 +99,50 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${GITHUB_REF_NAME}" dist/* --clobber
+
+  publish-pypi:
+    name: Publish to PyPI (opt-in, Trusted Publishing)
+    needs: build-attest
+    # Two independent locks, both of which must be open.
+    #
+    # 1. Only a tag push. A workflow_dispatch run builds and attests but
+    #    never publishes, so the workflow stays safe to exercise by hand.
+    # 2. The repository variable PUBLISH_TO_PYPI must equal "true". Until
+    #    someone sets it, this job is skipped and a tag produces exactly what
+    #    it produced before: artifacts, SBOM, checksums and attestations on
+    #    the GitHub release.
+    #
+    # The distribution name is remora-assurance. `remora` is taken on PyPI by
+    # an unrelated project, so it cannot be used and must not be assumed.
+    #
+    # SETUP, done once and outside this repository:
+    #   a. create the PyPI project remora-assurance;
+    #   b. add a Trusted Publisher for it: owner darklordVirtual, repository
+    #      REMORA-research, workflow release.yml, environment pypi;
+    #   c. create a GitHub environment named pypi (add required reviewers if
+    #      a second pair of eyes on each publish is wanted);
+    #   d. set the repository variable PUBLISH_TO_PYPI to true.
+    # No API token is stored anywhere: publication is authenticated by the
+    # OIDC identity of this job, which is why id-token: write is the only
+    # credential below.
+    if: github.ref_type == 'tag' && vars.PUBLISH_TO_PYPI == 'true'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download the artifacts this run attested
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-${{ needs.build-attest.outputs.version }}
+          path: dist/
+
+      - name: Publish only the distributions, never the SBOM or checksums
+        # twine would reject them, but removing them here makes the intent
+        # explicit rather than relying on an upload error.
+        run: rm -f dist/SHA256SUMS.txt dist/sbom-python.cdx.json
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          print-hash: true

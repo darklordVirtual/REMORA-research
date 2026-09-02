@@ -29,7 +29,7 @@ COPY --from=build /dist /dist
 # [sdk]  — the stable client surface
 # [postgres] — psycopg (gate) + psycopg2 (control plane/audit adapter):
 #              the documented durable storage for a locked pilot install.
-RUN pip install --no-cache-dir "$(ls /dist/remora-*.whl)[api,sdk,postgres]" \
+RUN pip install --no-cache-dir "$(ls /dist/remora_assurance-*.whl)[api,sdk,postgres]" \
     && rm -rf /dist
 
 # Non-root runtime: the API needs no filesystem privileges.

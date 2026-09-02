@@ -53,7 +53,7 @@ Shadow-mode replay::
 from importlib.metadata import PackageNotFoundError, version
 
 try:
-    __version__ = version("remora")
+    __version__ = version("remora-assurance")
 except PackageNotFoundError:
     __version__ = "0.11.0-dev"
 

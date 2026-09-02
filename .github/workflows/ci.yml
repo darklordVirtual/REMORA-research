@@ -437,7 +437,7 @@ jobs:
       - name: Install wheel with [api,sdk] into a clean venv
         run: |
           python -m venv "$RUNNER_TEMP/wheelenv"
-          "$RUNNER_TEMP/wheelenv/bin/pip" install --quiet "$(ls dist/remora-*.whl)[api,sdk]"
+          "$RUNNER_TEMP/wheelenv/bin/pip" install --quiet "$(ls dist/*.whl)[api,sdk]"
 
       - name: Contract smoke from an empty directory
         working-directory: ${{ runner.temp }}
