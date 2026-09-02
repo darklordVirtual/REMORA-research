@@ -51,7 +51,9 @@ def check(payload: dict, name: str) -> dict:
     for entry in payload["checks"]:
         if entry["check"] == name:
             return entry
-    pytest.fail(f"doctor emitted no {name!r} check: {[c['check'] for c in payload['checks']]}")
+    raise AssertionError(
+        f"doctor emitted no {name!r} check: {[c['check'] for c in payload['checks']]}"
+    )
 
 
 def pilot_env(base: dict[str, str], tmp_path: Path, drop: str | None = None) -> dict[str, str]:
