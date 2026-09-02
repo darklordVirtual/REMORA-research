@@ -62,6 +62,7 @@ is class 4 declined, with the collision as the reason.
 
 from __future__ import annotations
 
+import math
 from decimal import Decimal
 from typing import Any
 
@@ -146,7 +147,7 @@ def es_number(value: float | int) -> str:
         return str(value)
 
     number = float(value)
-    if number != number or number in (float("inf"), float("-inf")):
+    if math.isnan(number) or math.isinf(number):
         raise NotCanonicalisable(f"{value!r} has no JSON representation")
     if number == 0:
         return "0"  # also normalises -0.0, as ECMAScript does
