@@ -7,7 +7,7 @@ name: Release Provenance
 # GPG-signed-tag acceptance criterion in #390: the attestation proves the
 # artifacts were built by this workflow at this SHA, which a detached GPG
 # signature on the tag object cannot. Verify with:
-#   gh attestation verify remora-<ver>-py3-none-any.whl --repo darklordVirtual/REMORA-research
+#   gh attestation verify remora_assurance-<ver>-py3-none-any.whl --repo darklordVirtual/REMORA-research
 # Release assets are uploaded to the GitHub release for the tag; the release
 # note is authored by hand and must state the run id of this workflow.
 

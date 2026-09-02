@@ -7,7 +7,7 @@ REMORA from ``master`` or copy its internal modules. It consumes a
 *versioned, hash-identified* artifact set instead, and this script is what
 produces the identity half of that contract:
 
-    remora-<version>-py3-none-any.whl   the SDK + control plane
+    remora_assurance-<version>-py3-none-any.whl   the SDK + control plane
     schemas/openapi.json                the REST contract
     artifacts/sdk/public_api_v1.json    the public SDK surface
 

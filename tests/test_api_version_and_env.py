@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import importlib.metadata
 import os
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -23,12 +24,26 @@ import pytest
 pytest.importorskip("fastapi")
 
 
+def _distribution_name() -> str:
+    """The distribution name pip resolves, read from pyproject.toml.
+
+    It differs from the import name: the package imports as ``remora`` but is
+    distributed as ``remora-assurance`` (``remora`` is taken on PyPI). Reading
+    it from the packaging source of truth keeps this test from asserting a
+    stale distribution name after a rename.
+    """
+    import tomllib
+    pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    with pyproject.open("rb") as fh:
+        return tomllib.load(fh)["project"]["name"]
+
+
 class TestApiVersionMatchesPackage:
 
     def test_fastapi_app_version_matches_package_metadata(self):
-        """FastAPI app.version must equal importlib.metadata version for 'remora'."""
+        """FastAPI app.version must equal the installed distribution's version."""
         import servers.api as api_module
-        pkg_version = importlib.metadata.version("remora")
+        pkg_version = importlib.metadata.version(_distribution_name())
         assert api_module.app.version == pkg_version, (
             f"app.version={api_module.app.version!r} does not match "
             f"package version={pkg_version!r}"
@@ -41,7 +56,7 @@ class TestApiVersionMatchesPackage:
         client = TestClient(app)
         resp = client.get("/v1/health")
         assert resp.status_code == 200
-        pkg_version = importlib.metadata.version("remora")
+        pkg_version = importlib.metadata.version(_distribution_name())
         assert resp.json().get("version") == pkg_version, (
             f"health.version={resp.json().get('version')!r} != package {pkg_version!r}"
         )
