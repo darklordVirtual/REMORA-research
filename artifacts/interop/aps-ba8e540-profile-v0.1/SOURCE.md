@@ -12,6 +12,7 @@ Status: author-produced Mode B observation. This is not an APS compliance claim.
 | mode | B; REMORA implementations compute canonical bytes, hashes and signature verdicts |
 | environment | CPython 3.12.13, Node v24.19.0, Linux |
 | adapter SHA-256 | `5ff5ff396288b62421974009d4515ab789aa62e6ebd24ae5317efc9fec5018f9` |
+| committed adapter SHA-256 | `fe86543f62585dd04ccbea0651dd301c2e922afbf22072903569a4158ef24c8d`; differs from the run adapter only in how the fixture public key reaches the Ed25519 verifier (see note below) |
 | mappings SHA-256 | `aa35958af09ae1ca9f88faabff01ace1a88358c1380d59fd8f2a173c22b971bf` |
 | results SHA-256 | `dddef1103db39bb30c26c60918f344ee54ef834c5b79b11930b163547baa7d27` |
 
@@ -36,6 +37,17 @@ families at the named revisions. It does not support the statement “REMORA is
 APS compliant”. APS `action_ref` remains a correlation key and never replaces
 REMORA exact-call identity. Schema-only checks in `accountability-record` test
 adapter behaviour and are identified as such per profile rule 4.
+
+## Adapter revision after the run
+
+The adapter that produced `results.json` set the lease verification
+environment variable to the fixture public key for the duration of the run.
+The credential topology gate refuses that as an opaque environment write, so
+the committed adapter verifies Ed25519 signatures directly under the fixture
+key and never touches the process environment. A rerun of the committed
+adapter against the same corpus revision produced a `results.json` equal to
+the committed one under JSON comparison; the recorded run itself is not
+re-attributed to the new adapter hash.
 
 ## Reproduction
 

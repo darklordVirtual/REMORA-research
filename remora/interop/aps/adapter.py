@@ -7,11 +7,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path
 from typing import Any
 
-from remora.enforcement.lease_signing import ALG_ED25519, ENV_ED25519_PUBLIC, verify_payload
 from remora.interop.jcs import canonicalise
 
 from .mappings import (
@@ -67,54 +65,63 @@ def run_actionref_fixture(path: Path) -> dict[str, Any]:
     }
 
 
+def _verify_ed25519(payload: bytes, signature_hex: str, public_key_hex: str) -> bool:
+    """Verify an Ed25519 signature under a key supplied by the fixture.
+
+    The key comes from the fixture, not from the process environment: the
+    adapter must never write the lease verification variable, which would
+    both hide the credential topology from the static scanner and shadow a
+    real deployment key for the duration of the run.
+    """
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.primitives.asymmetric import ed25519
+
+    try:
+        public = ed25519.Ed25519PublicKey.from_public_bytes(bytes.fromhex(public_key_hex))
+        public.verify(bytes.fromhex(signature_hex), payload)
+    except (ValueError, InvalidSignature):
+        return False
+    return True
+
+
 def run_accountability_fixture(path: Path) -> dict[str, Any]:
     """Verify crypto/digest properties; keep APS-only schema evidence separate."""
 
     fixture = json.loads(path.read_text(encoding="utf-8"))
     public_key = fixture["keypair"]["publicKeyHex"]
-    prior = os.environ.get(ENV_ED25519_PUBLIC)
-    os.environ[ENV_ED25519_PUBLIC] = public_key
     results: list[dict[str, Any]] = []
-    try:
-        for vector in fixture["vectors"]:
-            record = vector["record"]
-            unsigned = {key: value for key, value in record.items() if key != "sig"}
-            signature_valid = verify_payload(
-                canonicalise(unsigned), record["sig"], alg=ALG_ED25519
+    for vector in fixture["vectors"]:
+        record = vector["record"]
+        unsigned = {key: value for key, value in record.items() if key != "sig"}
+        signature_valid = _verify_ed25519(canonicalise(unsigned), record["sig"], public_key)
+        digest_valid = True
+        if "action" in record:
+            digest_valid = (
+                hashlib.sha256(canonicalise(record["action"])).hexdigest()
+                == record["action_digest"]["sha256"]
             )
-            digest_valid = True
-            if "action" in record:
-                digest_valid = (
-                    hashlib.sha256(canonicalise(record["action"])).hexdigest()
-                    == record["action_digest"]["sha256"]
-                )
-            shape_valid = (
-                record.get("record_type") == "accountability_record"
-                and record.get("decision") in {"allow", "deny", "halt"}
-                and record.get("sig_alg") == "Ed25519"
-            )
-            observed_valid = signature_valid and digest_valid and shape_valid
-            expected_valid = vector["expected_verification"]
-            scope = (
-                "adapter-evidence"
-                if vector.get("rejection_kind") == "schema"
-                else "remora-crypto-evidence"
-            )
-            results.append({
-                "name": vector["name"],
-                "outcome": "PASS" if observed_valid == expected_valid else "DIVERGENCE",
-                "expected_verification": expected_valid,
-                "observed_verification": observed_valid,
-                "signature_valid": signature_valid,
-                "action_digest_valid": digest_valid,
-                "shape_valid": shape_valid,
-                "evidence_scope": scope,
-            })
-    finally:
-        if prior is None:
-            os.environ.pop(ENV_ED25519_PUBLIC, None)
-        else:
-            os.environ[ENV_ED25519_PUBLIC] = prior
+        shape_valid = (
+            record.get("record_type") == "accountability_record"
+            and record.get("decision") in {"allow", "deny", "halt"}
+            and record.get("sig_alg") == "Ed25519"
+        )
+        observed_valid = signature_valid and digest_valid and shape_valid
+        expected_valid = vector["expected_verification"]
+        scope = (
+            "adapter-evidence"
+            if vector.get("rejection_kind") == "schema"
+            else "remora-crypto-evidence"
+        )
+        results.append({
+            "name": vector["name"],
+            "outcome": "PASS" if observed_valid == expected_valid else "DIVERGENCE",
+            "expected_verification": expected_valid,
+            "observed_verification": observed_valid,
+            "signature_valid": signature_valid,
+            "action_digest_valid": digest_valid,
+            "shape_valid": shape_valid,
+            "evidence_scope": scope,
+        })
     report = _family_report("accountability-record", results)
     mapping_cases = [
         ("ACCEPT-executed", "ACCEPT", True, False, ("allow", True)),
