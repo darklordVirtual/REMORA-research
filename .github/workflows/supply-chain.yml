@@ -36,10 +36,18 @@ jobs:
           python-version: "3.12"
 
       - name: Install package exactly like the test jobs
+        # The step name was aspirational until 2026-08-30: the test jobs
+        # install ".[dev,causal,api,security,postgres]" and this one installed
+        # three of those five, so cryptography and psycopg were never audited.
+        # cryptography is the library the lease signing path depends on for
+        # Ed25519 and downgrade protection, and it was carrying seven
+        # advisories nobody had looked at. Adding an extra here is what closed
+        # them, not what caused them. Keep this list identical to the install
+        # in quality-gates.yml; a narrower one silently un-audits a dependency.
         run: |
           python -m pip install --upgrade pip pip-audit
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          pip install -e ".[dev,causal,api]" -c /tmp/constraints.txt
+          pip install -e ".[dev,causal,api,security,postgres]" -c /tmp/constraints.txt
 
       - name: Audit the installed environment against the committed baseline
         # New vulnerability IDs fail the job; the committed baseline

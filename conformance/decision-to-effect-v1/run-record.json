@@ -1,0 +1,141 @@
+{
+  "adapter": "remora",
+  "adapter_sha256": "e557e590d4afe9b53d0607e7188edd0c120d78f72a35ca9cac4c6d4d16a6dfa1",
+  "adapter_version": "0.11.0",
+  "counts": {
+    "divergent": 0,
+    "error": 0,
+    "match": 15,
+    "total": 15,
+    "unsupported": 0
+  },
+  "python": "3.14.0",
+  "repo_commit": "52ef4af83b97c18d13706ead39cf96f40ad7fb1e",
+  "results": [
+    {
+      "expected": "EXECUTED",
+      "id": "V-01",
+      "observed": "EXECUTED",
+      "property": "baseline",
+      "status": "MATCH",
+      "title": "authorized call executes"
+    },
+    {
+      "expected": "CALL_BINDING_MISMATCH",
+      "id": "V-02",
+      "observed": "CALL_BINDING_MISMATCH",
+      "property": "C",
+      "status": "MATCH",
+      "title": "arguments mutated after evaluation"
+    },
+    {
+      "expected": "CALL_BINDING_MISMATCH",
+      "id": "V-03",
+      "observed": "CALL_BINDING_MISMATCH",
+      "property": "C",
+      "status": "MATCH",
+      "title": "argument added after evaluation"
+    },
+    {
+      "expected": "AUTHORITY_ALREADY_CONSUMED",
+      "id": "V-04",
+      "observed": "AUTHORITY_ALREADY_CONSUMED",
+      "property": "A",
+      "status": "MATCH",
+      "title": "same authority dispatched twice"
+    },
+    {
+      "expected": "EXACTLY_ONE_EXECUTED",
+      "id": "V-05",
+      "observed": "EXACTLY_ONE_EXECUTED",
+      "property": "A",
+      "status": "MATCH",
+      "title": "concurrent dispatch of one authority"
+    },
+    {
+      "expected": "AUTHORITY_EXPIRED",
+      "id": "V-06",
+      "observed": "AUTHORITY_EXPIRED",
+      "property": "A",
+      "status": "MATCH",
+      "title": "authority presented after expiry"
+    },
+    {
+      "expected": "AUDIENCE_MISMATCH",
+      "id": "V-07",
+      "observed": "AUDIENCE_MISMATCH",
+      "property": "B",
+      "status": "MATCH",
+      "title": "authority redeemed by the wrong consumer"
+    },
+    {
+      "expected": "AUTHORITY_ALREADY_CONSUMED",
+      "id": "V-08",
+      "observed": "AUTHORITY_ALREADY_CONSUMED",
+      "property": "A",
+      "status": "MATCH",
+      "title": "grant redeemed twice at the enforcement point"
+    },
+    {
+      "expected": "CONTEXT_CHANGED",
+      "id": "V-09",
+      "observed": "CONTEXT_CHANGED",
+      "property": "F",
+      "status": "MATCH",
+      "title": "tool contract changed between evaluation and dispatch"
+    },
+    {
+      "expected": "CONTEXT_CHANGED",
+      "id": "V-10",
+      "observed": "CONTEXT_CHANGED",
+      "property": "F",
+      "status": "MATCH",
+      "title": "policy bundle changed between evaluation and dispatch"
+    },
+    {
+      "expected": "PRINCIPAL_REVOKED",
+      "id": "V-11",
+      "observed": "PRINCIPAL_REVOKED",
+      "property": "B",
+      "status": "MATCH",
+      "title": "principal revoked after evaluation"
+    },
+    {
+      "expected": "RUNTIME_NOT_AUTHORIZED",
+      "id": "V-12",
+      "observed": "RUNTIME_NOT_AUTHORIZED",
+      "property": "E",
+      "status": "MATCH",
+      "title": "authority executed by a runtime it was not issued to"
+    },
+    {
+      "expected": "EFFECT_MISMATCH",
+      "id": "V-13",
+      "observed": "EFFECT_MISMATCH",
+      "property": "G",
+      "status": "MATCH",
+      "title": "effect evidence disagrees with the authorized call"
+    },
+    {
+      "expected": "EFFECT_INDETERMINATE",
+      "id": "V-14",
+      "observed": "EFFECT_INDETERMINATE",
+      "property": "G",
+      "status": "MATCH",
+      "title": "dispatch outcome indeterminate"
+    },
+    {
+      "expected": "EFFECT_UNLINKED",
+      "id": "V-15",
+      "observed": "EFFECT_UNLINKED",
+      "property": "G",
+      "status": "MATCH",
+      "title": "effect receipt without a dispatch it belongs to"
+    }
+  ],
+  "run_at": "2026-09-01T06:43:02.882858+00:00",
+  "run_kind": "author-run",
+  "runner_sha256": "4f49db34e5a40df5f91c2e72d02f32eb9eb682422bab6ff4358226d01d4dd842",
+  "suite": "decision-to-effect-v1",
+  "suite_sha256": "f281a56de348444f94824c48b6eb19b9edfdeea093f8387927163b3a6b65ba2c"
+}

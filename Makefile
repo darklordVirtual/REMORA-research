@@ -90,8 +90,7 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_license_policy.py
 	@echo "\n-- Claim provenance (register, artifacts, anchors, supersession) --"
 	$(PYTHON) scripts/check_claim_provenance.py
-	@echo "
--- Claim metric bindings (every published number resolves to its artifact) --"
+	@echo "\n-- Claim metric bindings (every published number resolves to its artifact) --"
 	$(PYTHON) scripts/check_claim_metric_bindings.py
 	@echo "\n-- Research shelf (source verification, adoption evidence) --"
 	$(PYTHON) scripts/check_research_shelf.py

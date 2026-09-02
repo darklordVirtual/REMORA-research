@@ -4,6 +4,10 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "engines": {
+    "node": ">=22",
+    "npm": ">=11"
+  },
   "scripts": {
     "dev": "vite dev",
     "benchmarks:sync": "python ../scripts/build_frontend_benchmark_snapshot.py",

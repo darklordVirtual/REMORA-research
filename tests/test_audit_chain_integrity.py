@@ -111,12 +111,19 @@ def test_genesis_flag_is_excluded_from_the_hash_preimage() -> None:
      "REMORA_LEASE_SIGNING_KEY"],
 )
 def test_production_refuses_to_start_without_a_signing_key(
-    monkeypatch: pytest.MonkeyPatch, omitted: str
+    monkeypatch: pytest.MonkeyPatch, omitted: str, tmp_path
 ) -> None:
     monkeypatch.setenv("REMORA_ENV", "production")
     monkeypatch.setenv("REMORA_API_BEARER_TOKEN", "tok")
     monkeypatch.setenv("REMORA_CONTROL_PLANE_DSN", "postgresql://localhost/remora")
-    monkeypatch.setenv("REMORA_CHAIN_DB", "/tmp/remora-chain.db")
+    # A durable path the guard accepts on any machine: /tmp is tmpfs on many
+    # Linux installs and disk on the GitHub runners, so the old literal made
+    # this test pass in CI and fail locally (external review 2026-08-30, F2).
+    # The filesystem probe has its own coverage in
+    # tests/test_ephemeral_durable_state.py; this test is about a different
+    # prerequisite and only needs to get past the durability one.
+    monkeypatch.setattr(api, "filesystem_type_for", lambda _path: "ext4")
+    monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "chain.db"))
     monkeypatch.setenv("REMORA_ORACLE_BACKEND", "groq")
     monkeypatch.setenv("REMORA_API_TOKENS", '{"t":{"tenant":"t","role":"operator"}}')
     monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "envelope-key")
@@ -129,12 +136,19 @@ def test_production_refuses_to_start_without_a_signing_key(
 
 
 def test_production_starts_when_every_signing_key_is_present(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, tmp_path
 ) -> None:
     monkeypatch.setenv("REMORA_ENV", "production")
     monkeypatch.setenv("REMORA_API_BEARER_TOKEN", "tok")
     monkeypatch.setenv("REMORA_CONTROL_PLANE_DSN", "postgresql://localhost/remora")
-    monkeypatch.setenv("REMORA_CHAIN_DB", "/tmp/remora-chain.db")
+    # A durable path the guard accepts on any machine: /tmp is tmpfs on many
+    # Linux installs and disk on the GitHub runners, so the old literal made
+    # this test pass in CI and fail locally (external review 2026-08-30, F2).
+    # The filesystem probe has its own coverage in
+    # tests/test_ephemeral_durable_state.py; this test is about a different
+    # prerequisite and only needs to get past the durability one.
+    monkeypatch.setattr(api, "filesystem_type_for", lambda _path: "ext4")
+    monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "chain.db"))
     monkeypatch.setenv("REMORA_ORACLE_BACKEND", "groq")
     monkeypatch.setenv("REMORA_API_TOKENS", '{"t":{"tenant":"t","role":"operator"}}')
     monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "envelope-key")

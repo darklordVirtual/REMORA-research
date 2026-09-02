@@ -272,8 +272,9 @@ The conservative move is to record H as a **candidate with a discriminating
 test**, and to require an implemented `RuntimeTrustBaseIdentity` bound into the
 lease before either is claimed. Neither is claimed in this pass.
 
-**Proposal for `docs/benchmarks/agent-authority-conformance-v0.1.md`, not yet
-applied.** Vocabulary changes need review, not a silent edit:
+**Proposal for `docs/benchmarks/agent-authority-conformance-v0.1.md`.** Items 1
+and 3 were applied on 2026-08-30 once the condition in item 3 was met; item 2
+still awaits review. Vocabulary changes need review, not a silent edit:
 
 1. Record F with explicit scope: `F1` internal authorization-state drift,
    `F2` external implementation/runtime drift. Do not renumber A–G.
@@ -282,6 +283,23 @@ applied.** Vocabulary changes need review, not a silent edit:
    layer.
 3. Hold H as a candidate. Admit it only when the discriminating test above runs
    against an implementation and fails without it.
+
+**Condition met, 2026-08-30.** `remora/enforcement/runtime_identity.py` binds a
+`RuntimeTrustBaseIdentity` hash into `ExecutionLease`, signed, and
+`GovernedToolDispatcher` compares it against the executing process's own cached
+identity before the nonce is consumed.
+`tests/test_runtime_trust_base_binding.py` runs the case above. With the
+comparison removed, the mismatched-runtime call executes and four tests fail.
+With it in place, dispatch refuses on `runtime_identity_mismatch` while the
+lease itself still verifies. That is the non-reducibility claim asserted in
+code rather than in prose. H stays a candidate with a passing discriminating
+test; it is not promoted to an eighth property in v0.1.
+
+The binding is self-declared. The executor reads its identity from its own
+environment once at startup, so nothing in the call path can present a
+different one. A process that controls its environment can still misdeclare.
+That closes execution by the *wrong* runtime, not by a *lying* one. External
+attestation remains unimplemented and unclaimed.
 
 ---
 
@@ -293,7 +311,7 @@ Ranked by whether evidence supports acting now.
 |---|---|---|
 | PDP signing key held by the executing container | confirmed, `index.ts:76-77` | **ADR-A, implemented** |
 | `ExecutionLease` nonce ledger is in-process | confirmed, `lease.py:387-398`, self-documented, REM-025 | **ADR-B, implemented** |
-| F2 / runtime identity unbound | confirmed | ADR-D, **not implemented** |
+| F2 / runtime identity unbound | confirmed | ADR-D, **implemented 2026-08-30** |
 | Trajectory provenance not persisted; caller authoritative for taint | confirmed | ADR-C, **not implemented** |
 | External audit anchoring absent | confirmed, already correctly scoped by REMORA | ADR-E, **not implemented** |
 | ToolSpec not automatically authoritative on the cloud path | confirmed, `index.ts:137-146` documents the deliberate non-pinning | not implemented; the existing posture is honest, not a defect |

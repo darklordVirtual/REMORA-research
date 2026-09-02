@@ -108,6 +108,22 @@ demonstrates F only for the interval between T and the dispatch, and only for
 the concurrency scope the evidence actually exercised. Single-process evidence
 does not establish multiprocess behaviour.
 
+Recorded at two scopes, per the proposal in
+`docs/research/adjacent-systems-crosswalk-v2.md` §3. The letter is not
+renumbered and A-G are unchanged; an assessment written against the
+undifferentiated F remains valid and reads as F1.
+
+- **F1, internal authorization-state drift.** The approval, the policy, the
+  ToolSpec declaration or the target changed between authorization and
+  execution.
+- **F2, external implementation/runtime drift.** Every declared thing is
+  unchanged and the *implementation behind it* is not: a different deployment,
+  container image, worker generation or tool runtime performs the action.
+
+An F1 row says nothing about F2. Separating them was forced by a case in which
+C, F1 and E all pass while the action executes against an implementation nobody
+authorized; see the candidate property below.
+
 ### G. Effect Verification
 
 *Does the system verify the actual external effect after execution?*
@@ -323,8 +339,20 @@ untouched, and any assessment written against the original text remains valid.
 What §9 adds is an evidence requirement for one property, which raises the bar
 for a future E row rather than reinterpreting a past one.
 
-Two things §9 deliberately does not settle. It does not act on the proposal in
+§9 deliberately does not settle the proposal in
 `docs/research/adjacent-systems-crosswalk-v2.md` to record `E2` as a declared
-scope under E, or to split F into `F1` and `F2`; those are vocabulary changes
-and still await review. E also stays incommensurable with the other six
-properties, so §6 continues to apply in full.
+scope under E. E also stays incommensurable with the other six properties, so
+§6 continues to apply in full.
+
+The F1/F2 scope split in §1 was applied on 2026-08-30, on the crosswalk's own
+condition: it required an implemented runtime binding and a discriminating test
+that fails without it. `remora/enforcement/runtime_identity.py` and
+`tests/test_runtime_trust_base_binding.py` supply both. With the binding
+removed, the mismatched-runtime call executes; with it in place, dispatch
+refuses. Candidate property **H** is recorded there as the authority-side
+statement of the same fact and is not promoted to an eighth letter in v0.1.
+
+What the binding does not establish: the executing process declares its own
+identity, so the property holds against the wrong runtime and not against a
+compromised runtime that misdeclares itself. An externally attested identity is
+a separate trust anchor and is not claimed here.
