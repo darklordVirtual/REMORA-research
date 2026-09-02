@@ -83,6 +83,7 @@
     "StaticJsonlEvidenceProvider",
     "TargetScanProfile",
     "ToolCallAssessment",
+    "WhatIfReport",
     "__version__",
     "assert_invariants",
     "assess_tool_call",
@@ -92,6 +93,8 @@
     "get_remora_tracer",
     "infer_risk_and_type",
     "invariant_summary",
-    "replay_action_log"
+    "replay_action_log",
+    "what_if",
+    "what_if_tool_call"
   ]
 }

@@ -90,6 +90,7 @@ Replaced claims are kept in [superseded claims](docs/assurance/superseded_claims
 
 ```bash
 python -m remora assess drop_database
+python -m remora whatif drop_database   # what would it take to ACCEPT? nothing a model can say
 python -m pytest tests/ -q
 python scripts/demo_industrial_maintenance.py
 python -m remora doctor

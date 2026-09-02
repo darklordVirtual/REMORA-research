@@ -54,11 +54,14 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from remora.governance.envelope import DecisionEnvelope
 from remora.policy.decision_engine import PolicyTrace, RemoraDecisionEngine
-from remora.policy.report import DecisionReport
+from remora.policy.report import DecisionAction, DecisionReport
+
+if TYPE_CHECKING:
+    from remora.policy.whatif import WhatIfReport
 
 # ---------------------------------------------------------------------------
 # Name inference — transparent stand-in defaults from well-known name patterns
@@ -252,3 +255,47 @@ def assess_tool_call(
         decision=decision, trace=trace, envelope=envelope, inferred=inferred,
         floored=floored,
     )
+
+
+def what_if_tool_call(
+    name: str,
+    arguments: dict[str, Any] | None = None,
+    *,
+    risk_tier: str | None = None,
+    action_type: str | None = None,
+    target_environment: str = "prod",
+    trust_score: float | None = None,
+    phase: str | None = None,
+    infer: bool = False,
+    target: str = "accept",
+    max_depth: int = 4,
+    max_evaluations: int = 20_000,
+    engine: RemoraDecisionEngine | None = None,
+) -> tuple[ToolCallAssessment, WhatIfReport]:
+    """Assess one tool call, then ask what would have to change to reach *target*.
+
+    The library form of ``remora whatif``. Builds the observation exactly as
+    :func:`assess_tool_call` does (same inference, same raise-only clamp, same
+    admission firewall) and hands it to :func:`remora.policy.whatif.what_if`.
+    Returns the assessment and the what-if report together so the caller can
+    show the verdict and the path in one place.
+
+    *target* is ``"accept"`` (what autonomy would take) or ``"verify"`` (what
+    would put an ABSTAINed call in front of a person). The report is an
+    analysis, not a grant: it names facts, and only establishing them and
+    assessing again yields the verdict.
+    """
+    from remora.policy.whatif import what_if
+
+    assessment = assess_tool_call(
+        name, arguments,
+        risk_tier=risk_tier, action_type=action_type,
+        target_environment=target_environment, trust_score=trust_score,
+        phase=phase, infer=infer,
+    )
+    report = what_if(
+        assessment.decision.raw_observation, engine,
+        target=DecisionAction(target), max_depth=max_depth,
+        max_evaluations=max_evaluations,
+    )
+    return assessment, report

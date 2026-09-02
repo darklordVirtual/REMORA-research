@@ -4,6 +4,23 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Added
+
+- What-if decision-boundary analysis (`remora.policy.whatif`, `remora whatif`,
+  `remora.what_if_tool_call`). For any observation it searches every
+  combination of a fixed lever catalogue against the real engine and reports
+  whether model signals alone (trust, phase, evidence, quorum) can reach
+  ACCEPT, the smallest change sets that do, each tagged deployment fact,
+  proposal or model signal, and the hard guard in force. The model-signal
+  sub-space is always searched in full, so "cannot" is a proof over the
+  catalogue rather than a budget artefact. Read-only over the engine; an
+  analysis, not a grant. Tests assert soundness (every named path replays to
+  its verdict) and minimality (no proper subset reaches the target) over a
+  grid, plus the execution-profile invariant that no model signal produces
+  ACCEPT for any call. The five `try` presets are analysed in
+  `artifacts/demo/whatif_presets_v1.json`, regenerated and checked by
+  `scripts/generate_whatif_presets.py`.
+
 ### Roadmap
 
 - RF-12 (docs/13): database-enforced tenant isolation via Postgres row-level

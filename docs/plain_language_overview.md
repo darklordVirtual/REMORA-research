@@ -48,6 +48,17 @@ The result is one route:
 | `ABSTAIN` | Do not answer or act |
 | `ESCALATE` | Send to human review |
 
+## Asking What It Would Take
+
+A blocked action raises an obvious question: what would have to be different?
+The `whatif` command answers it by trying every combination of favourable
+signals against the real policy. For a critical production write the answer
+is that no amount of model confidence reaches ACCEPT. The only paths that do
+require the deployment to declare the tool low risk and read-only, which is
+to say a different tool. Each change in a path is labelled with who can make
+it: the deployment, the agent's own proposal, or a model. The answer is an
+analysis of the policy, never a grant.
+
 ## What Is Demonstrated
 
 REMORA has reproducible benchmark evidence for:
