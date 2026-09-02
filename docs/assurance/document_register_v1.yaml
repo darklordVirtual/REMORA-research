@@ -2046,6 +2046,17 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-334
+  path: docs/interop/REMORA-APS-PROFILE-v0.1.md
+  status: proposal
+  topic: docs_interop_REMORA-APS-PROFILE-v0-1_md
+  code_synced: verified
+  verdict: pending
+  last_reviewed: '2026-08-30'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 - id: DOC-333
   path: docs/design/runtime-trust-base-identity-v1.md
   status: proposal
