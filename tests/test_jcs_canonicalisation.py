@@ -164,6 +164,20 @@ class TestClassFourDeclined:
             with pytest.raises(NotCanonicalisable):
                 canonicalise({"n": value})
 
+    def test_integers_beyond_binary64_range_are_refused_not_overflowed(self):
+        """Issue #510: float(10**400) raises OverflowError before any check ran.
+
+        An integer too large for any double is the round-trip failure at its
+        limit, so it is refused the same way an aliasing integer is. A caller
+        catching NotCanonicalisable to record a refusal must not see a raw
+        OverflowError instead.
+        """
+
+        for value in (10**400, -(10**400), 2**1024):
+            assert aliases_another_integer(value) is True
+            with pytest.raises(NotCanonicalisable):
+                canonicalise({"value": value})
+
     def test_the_reason_two_integers_would_share_canonical_bytes(self):
         """Why refusing beats rounding, stated as an executable fact.
 

@@ -96,7 +96,13 @@ def aliases_another_integer(value: int) -> bool:
     would refuse it for no reason.
     """
 
-    as_double = float(value)
+    try:
+        as_double = float(value)
+    except OverflowError:
+        # Too large for any double: the round trip fails at its limit. RFC 8785
+        # would carry the value as an infinity, which is not JSON, so refuse it
+        # through the same path as an aliasing integer (issue #510).
+        return True
     if as_double != value:
         return True  # the value itself does not survive the round trip
     return float(value - 1) == as_double or float(value + 1) == as_double
