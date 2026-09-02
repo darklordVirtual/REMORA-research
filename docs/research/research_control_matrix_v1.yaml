@@ -404,6 +404,41 @@ entries:
     compendium_refs: []
     compendium_note: "No anchor in the local compendium: SDAD v1 (August 2026) postdates the catalogue. REMORA adopts only the context/provenance and four-dimension intake decomposition, not the full SDLC framework or its proposed scalar metrics."
 
+  - id: RES-012
+    title: "Task-bound execution authority and non-decaying loop state"
+    source:
+      citation: "Yan, T. (2026). Do User-Authored Permission Policies Improve Protection Against AI Agent Overreach? arXiv:2608.27443."
+      sections:
+        - "113-participant comparison of real-time approval, automated review and pre-set consequence policies"
+        - "finding: user-authored policies blocked FEWER overreach attempts than either alternative"
+      builds_on:
+        - "Wu, C. et al. (2026). Safety Does Not Compose: Non-Decaying Loop State for Autonomous LLM Agents. arXiv:2608.27141 (LoopHarness; trajectory-scoped monitors reset each iteration)."
+        - "AGNTCY Identity WG (2026-08-25). Agent Identity, TBAC and A2A task authorization: standing authority today, task binding still open profile work."
+    concepts:
+      - task_bound_authority
+      - context_scoped_safety_state
+      - approval_is_not_task_authority
+      - signature_preserving_field_addition
+    controls:
+      - task_identity_binding
+      - authorization_context_task_fields
+    code:
+      - remora/governance/task_identity.py
+      - remora/enforcement/token.py
+      - scripts/generate_authorization_context_vectors.py
+      - artifacts/task_authority/authorization_context_preimage_v1.json
+    tests:
+      - tests/test_task_identity.py
+      - tests/test_task_bound_authority.py
+    evidence: "An approval bound to one task yields a different AuthorizationContext hash under another, while every binding REMORA already checked stays identical. The committed preimage artifact records that a context carrying no task identity hashes byte-identically to the pre-change implementation, so tokens issued since RMR-001 still verify; scripts/generate_authorization_context_vectors.py --check reproduces it exactly."
+    maturity: implemented_and_tested
+    scope_boundary: "Binding only. This is not proof-of-possession: it binds an authorization to a task and does not prove the presenter holds a key, and nothing here closes the AGNTCY profile's PoP requirement. The A2A envelope and ExecutionLease halves, the declared-operation subset check and the loop-safety store are designed but not implemented at this revision. LoopHarness itself is not implemented; only the context_id key its state would need."
+    related_work_section: "docs/09-related-work.md §11"
+    in_code_citation: true
+    citation_anchor: "2608.27443"
+    compendium_refs: []
+    compendium_note: "No anchor in the local compendium: both sources are from August 2026 and postdate the catalogue. Both arXiv identifiers were retrieved and checked against the arXiv record on 2026-08-30 before being entered here."
+
 # ── Landscape coverage ──────────────────────────────────────────────────────
 # Whole areas of the local AI-assurance compendium that REMORA deliberately does
 # NOT implement as controls. Recording them here makes the scope boundary
@@ -666,6 +701,33 @@ bibliography:
       work: "Contrastive explanations (SIGMOD)"
       code: [remora/causal/search.py]
       note: "builds_on source for RES-001."
+    - id: yan-2026-permission-policies
+      surname: "Yan"
+      year: "2026"
+      work: "Do User-Authored Permission Policies Improve Protection Against AI Agent Overreach? (arXiv:2608.27443)"
+      code: [remora/governance/task_identity.py]
+      anchor: "2608.27443"
+      note: >-
+        Source of RES-012 and absent from the paper. Cited in the module the
+        finding motivates: across 113 participants a reusable-policy setup
+        blocked fewer overreach attempts than either real-time approval or
+        automated review, because users approved actions outside the original
+        task. That is the empirical case for binding an authorization to the
+        task it was granted under. Identifier checked against the arXiv record
+        on 2026-08-30.
+    - id: wu-2026-safety-does-not-compose
+      surname: "Wu"
+      year: "2026"
+      work: "Safety Does Not Compose: Non-Decaying Loop State for Autonomous LLM Agents (arXiv:2608.27141)"
+      code: [remora/governance/task_identity.py]
+      anchor: "2608.27141"
+      note: >-
+        builds_on source for RES-012, cited where it is load-bearing rather
+        than where it is merely relevant: the non-decaying loop state it
+        proposes needs a key, and that key is the context_id this module
+        defines. LoopHarness itself is NOT implemented, which RES-012's scope
+        boundary states. Identifier checked against the arXiv record on
+        2026-08-30.
     - id: behrouz-2025-nested
       surname: "Behrouz"
       year: "2025"

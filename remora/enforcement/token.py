@@ -36,7 +36,10 @@ import json
 import os
 from dataclasses import dataclass
 from datetime import UTC
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from remora.governance.task_identity import TaskIdentity
 
 _ENV_KEY = "REMORA_PDP_SIGNING_KEY"
 # Key lifecycle (Phase 6): a key id for the current signing key, a
@@ -115,21 +118,46 @@ class AuthorizationContext:
     policy_bundle_hash: str = ""
     toolspec_hash: str = ""
     intent_authority_hash: str = ""
+    #: The task this decision was made under. Absent by default, because a
+    #: context that carries no task identity must hash exactly as it did
+    #: before these fields existed, or every token issued under RMR-001
+    #: stops verifying. See remora/governance/task_identity.py.
+    context_id: str = ""
+    task_id: str = ""
 
     def hash(self) -> str:
-        canonical = json.dumps(
-            {
-                "intent_authority_hash": self.intent_authority_hash or "",
-                "policy_bundle_hash": self.policy_bundle_hash or "",
-                "principal": self.principal or "",
-                "target_environment": self.target_environment or "",
-                "tenant": self.tenant or "",
-                "toolspec_hash": self.toolspec_hash or "",
-            },
-            sort_keys=True,
-            separators=(",", ":"),
-        )
+        fields = {
+            "intent_authority_hash": self.intent_authority_hash or "",
+            "policy_bundle_hash": self.policy_bundle_hash or "",
+            "principal": self.principal or "",
+            "target_environment": self.target_environment or "",
+            "tenant": self.tenant or "",
+            "toolspec_hash": self.toolspec_hash or "",
+        }
+        # Omitted rather than defaulted to "": a key present with an empty
+        # value changes the preimage exactly as much as a populated one, so
+        # defaulting would rewrite the hash of every existing context.
+        if self.context_id:
+            fields["context_id"] = self.context_id
+        if self.task_id:
+            fields["task_id"] = self.task_id
+        canonical = json.dumps(fields, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical.encode()).hexdigest()
+
+    def task_identity(self) -> "TaskIdentity | None":
+        """The bound task, or None when this context carries none.
+
+        A context holding exactly one half is a caller error rather than a
+        partial binding, and ``TaskIdentity.from_fields`` refuses it.
+        """
+        from remora.governance.task_identity import TaskIdentity
+
+        return TaskIdentity.from_fields(
+            {
+                "context_id": self.context_id or None,
+                "task_id": self.task_id or None,
+            }
+        )
 
     def differences(self, other: "AuthorizationContext") -> list[str]:
         """Field names that differ, so a refusal can say which one moved."""
@@ -143,6 +171,8 @@ class AuthorizationContext:
                 "policy_bundle_hash",
                 "toolspec_hash",
                 "intent_authority_hash",
+                "context_id",
+                "task_id",
             )
             if (getattr(self, name) or "") != (getattr(other, name) or "")
         ]
