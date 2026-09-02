@@ -44,6 +44,15 @@ Machine-verifiable safety invariants::
     except InvariantViolationError as e:
         print("Safety invariant violated:", e)
 
+What would it take for a call to be accepted::
+
+    from remora import what_if_tool_call
+    assessment, report = what_if_tool_call(
+        "drop_database", {"db": "prod-main"},
+        risk_tier="critical", action_type="destructive_write")
+    print(report.confidence_can_lift)   # False: no model signal reaches ACCEPT
+    print(report.summary())
+
 Shadow-mode replay::
 
     from remora import replay_action_log
@@ -199,6 +208,7 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "StaticJsonlEvidenceProvider": ("remora.evidence", "StaticJsonlEvidenceProvider"),
     "TargetScanProfile": ("remora.evidence", "TargetScanProfile"),
     "ToolCallAssessment": ("remora.assess", "ToolCallAssessment"),
+    "WhatIfReport": ("remora.policy.whatif", "WhatIfReport"),
     "assert_invariants": ("remora.policy.invariants", "assert_invariants"),
     "assess_tool_call": ("remora.assess", "assess_tool_call"),
     "check_all_invariants": ("remora.policy.invariants", "check_all_invariants"),
@@ -208,6 +218,8 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "infer_risk_and_type": ("remora.assess", "infer_risk_and_type"),
     "invariant_summary": ("remora.policy.invariants", "invariant_summary"),
     "replay_action_log": ("remora.shadow.replay", "replay_action_log"),
+    "what_if": ("remora.policy.whatif", "what_if"),
+    "what_if_tool_call": ("remora.assess", "what_if_tool_call"),
 }
 
 
@@ -234,6 +246,8 @@ __all__ = [
     "Remora", "RemoraState", "Genome", "Oracle", "OracleResponse",
     # One-call assessment
     "ToolCallAssessment", "assess_tool_call", "infer_risk_and_type",
+    # What would it take: decision-boundary analysis
+    "WhatIfReport", "what_if", "what_if_tool_call",
     # Policy
     "RemoraDecisionEngine", "PolicyObservation",
     "DecisionAction", "DecisionReason", "DecisionReport",

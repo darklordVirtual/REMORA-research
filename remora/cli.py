@@ -10,6 +10,7 @@ Commands
     remora demo                 Eight-scenario governance walkthrough (offline)
     remora assess NAME ...      Assess one tool call (scriptable; --json for CI)
     remora explain NAME ...     Full rule-by-rule reasoning trace
+    remora whatif NAME ...      What would have to change to reach ACCEPT / VERIFY
     remora replay LOG.jsonl     Shadow-Mode counterfactual batch replay
     remora verify               Run all safety invariant checks
     remora verify --json        JSON output for CI integration
@@ -905,6 +906,182 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     return 0
 
 
+def _whatif_list_levers(args: argparse.Namespace) -> int:
+    from remora.policy.whatif import LEVERS
+
+    if getattr(args, "json", False):
+        print(json.dumps([lv.to_dict() for lv in LEVERS], indent=2))
+        return 0
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    kind_style = {"deployment_fact": "cyan", "proposal": "magenta", "model_signal": "yellow"}
+    print()
+    _header(ink, f"LEVER CATALOGUE  ({len(LEVERS)} levers)")
+    for lv in LEVERS:
+        fields = ", ".join(f"{k}={v!r}" for k, v in lv.assignments)
+        print(f"    {ink(lv.name, 'bold'):<40} "
+              + ink(f"[{lv.kind.value}]", kind_style.get(lv.kind.value, "dim")))
+        print("        " + ink(lv.description, "dim"))
+        print("        " + ink(_ascii(fields), "dim"))
+    print()
+    return 0
+
+
+def _whatif_log(args: argparse.Namespace) -> int:
+    from remora.policy import RemoraDecisionEngine
+    from remora.shadow.boundary import boundary_of_action_log
+
+    path = Path(args.log)
+    if not path.is_file():
+        print(f"remora whatif: action log not found: {path}", file=sys.stderr)
+        return 2
+    from remora.policy.report import DecisionAction
+
+    engine = RemoraDecisionEngine(execution_profile=bool(args.execution_profile))
+    # Logs default to depth 2: the questions a log answers (model alone,
+    # agent alone, deployment fact) come from the cheap sub-space searches.
+    depth = args.depth if args.depth is not None else 2
+    try:
+        report = boundary_of_action_log(
+            str(path), engine, target=DecisionAction(args.target), max_depth=depth)
+    except (json.JSONDecodeError, ValueError) as exc:
+        print(f"remora whatif: could not read {path}: {exc}", file=sys.stderr)
+        return 2
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "log": str(path), "execution_profile": bool(args.execution_profile),
+            "boundary": report.to_dict(),
+        }, indent=2, default=str))
+        return 0
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    print()
+    _header(ink, f"BOUNDARY REPORT  (target: {report.target.value.upper()})")
+    print("    " + ink(str(path), "white", "bold")
+          + ink("    profile: execution" if args.execution_profile else "", "dim"))
+    print()
+    for line in report.summary().splitlines():
+        style = ("red", "bold") if "policy finding" in line else ()
+        print("    " + ink(_ascii(line), *style))
+    print()
+    print("  " + ink("(an analysis of the policy, not a grant; default depth 2 for logs, "
+                     "raise with --depth)", "dim"))
+    print()
+    return 0
+
+
+def _cmd_whatif(args: argparse.Namespace) -> int:
+    """What would have to change for this call to reach the target verdict."""
+    if getattr(args, "list_levers", False):
+        return _whatif_list_levers(args)
+    if getattr(args, "log", None):
+        return _whatif_log(args)
+    if args.depth is not None and args.depth < 1:
+        print("remora whatif: --depth must be at least 1", file=sys.stderr)
+        return 2
+    name = _resolve_tool_name(args, "whatif")
+    if name is None:
+        return 2
+    try:
+        if getattr(args, "arguments_json", None):
+            arguments = json.loads(args.arguments_json)
+        else:
+            arguments = _parse_kv_args(getattr(args, "arg", None))
+        if not isinstance(arguments, dict):
+            raise ValueError("tool arguments must be a JSON object")
+    except (json.JSONDecodeError, ValueError) as exc:
+        print(f"remora whatif: invalid tool arguments: {exc}", file=sys.stderr)
+        return 2
+    inferred = _apply_name_inference(args, name)
+    from remora.assess import what_if_tool_call
+    from remora.policy import RemoraDecisionEngine
+
+    engine = RemoraDecisionEngine(execution_profile=bool(args.execution_profile))
+    assessment, report = what_if_tool_call(
+        name, arguments, risk_tier=args.risk, action_type=args.action_type,
+        target_environment=args.target_env, trust_score=args.trust, phase=args.phase,
+        target=args.target, max_depth=args.depth if args.depth is not None else 4,
+        engine=engine, prune=not args.no_prune,
+    )
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "tool": name,
+            "arguments": arguments,
+            "decision": _decision_dict(assessment.decision),
+            "inferred": inferred,
+            "execution_profile": bool(args.execution_profile),
+            "pruned": not args.no_prune,
+            "what_if": report.to_dict(),
+        }, indent=2, default=str))
+        return 0
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    target = report.target.value.upper()
+    print()
+    _header(ink, f"WHAT WOULD IT TAKE  (target: {target})")
+    risk_lbl = (args.risk or "unset") + (" (inferred)" if "risk_tier" in inferred else "")
+    type_lbl = (args.action_type or "unset") + (" (inferred)" if "action_type" in inferred else "")
+    print("    " + ink(_ascii(f"{name}({json.dumps(arguments, default=str)})"), "white", "bold"))
+    print("    " + ink(
+        f"risk: {risk_lbl}    type: {type_lbl}    env: {args.target_env}"
+        + ("    profile: execution" if args.execution_profile else ""), "dim"))
+    print()
+    print("    " + ink("verdict now: ", "dim") + _badge(ink, report.current_action.value)
+          + ink("  " + ", ".join(report.current_reasons), "dim"))
+    if report.hard_guard:
+        print("    " + ink("hard guard:  ", "dim")
+              + ink(report.hard_guard, "red", "bold")
+              + ink("  (no model signal can pass a hard guard)", "dim"))
+    print()
+    if report.already_at_target:
+        print("    " + ink(f"already {target}; nothing to change", "green", "bold"))
+        print()
+        return 0
+    if report.model_signals_alone is not None:
+        print("    " + ink("model signals alone: ", "dim")
+              + ink(f"reach {target}", "yellow", "bold")
+              + ink("  via " + " + ".join(report.model_signals_alone.levers), "dim"))
+    else:
+        print("    " + ink("model signals alone: ", "dim")
+              + ink(f"cannot reach {target}", "green", "bold")
+              + ink("  (trust, phase, evidence, quorum, temperature: every combination tried)", "dim"))
+    if report.without_deployment is not None:
+        print("    " + ink("agent alone:         ", "dim")
+              + ink(f"reach {target}", "yellow", "bold")
+              + ink("  via " + " + ".join(report.without_deployment.levers)
+                    + "  (proposal + model signals, no deployment fact)", "dim"))
+    else:
+        print("    " + ink("agent alone:         ", "dim")
+              + ink(f"cannot reach {target}", "green", "bold")
+              + ink(f"  (proposal + model signals, within {report.max_depth} changes)", "dim"))
+    moving = report.moving_levers
+    print("    " + ink("single levers that move the verdict: ", "dim")
+          + (ink(", ".join(moving), "bold") if moving else ink("none", "dim")))
+    print()
+    if not report.minimal_paths:
+        scope = ("up to the search bound" if report.exhausted
+                 else "within the evaluation budget")
+        print("    " + ink(f"no change set reaches {target} {scope} "
+                           f"(depth {report.max_depth}, {report.evaluations} evaluations)",
+                           "bold"))
+        print()
+        return 0
+    size = report.minimal_paths[0].size
+    print("    " + ink(f"smallest change sets reaching {target}: ", "dim")
+          + ink(f"{len(report.minimal_paths)} of size {size}", "bold")
+          + ink(f"  ({report.evaluations} evaluations)", "dim"))
+    kind_style = {"deployment_fact": "cyan", "proposal": "magenta", "model_signal": "yellow"}
+    for i, path in enumerate(report.minimal_paths, start=1):
+        print(f"      {ink(str(i) + '.', 'bold')}")
+        for c in path.changes:
+            print(f"         {ink(c.field, 'bold')}: {c.before!r} -> {c.after!r}  "
+                  + ink(f"[{c.kind.value}]", kind_style.get(c.kind.value, "dim"))
+                  + ink("  " + c.description, "dim"))
+    print()
+    if report.deployment_facts_required:
+        print("    " + ink("every path needs a fact only the deployment can declare", "green", "bold"))
+    print("  " + ink("(an analysis of the policy, not a grant: establish the facts, then assess again)", "dim"))
+    print()
+    return 0
+
+
 def _cmd_replay(args: argparse.Namespace) -> int:
     """Shadow-Mode counterfactual batch replay of an action-log JSONL."""
     from remora.shadow.replay import replay_action_log
@@ -1229,6 +1406,9 @@ examples:
   python -m remora assess drop_database --envelope-out env.json
   python -m remora assess drop_database --live             # real oracle consensus (API key in env)
   python -m remora explain deploy
+  python -m remora whatif drop_database        # what would it take to ACCEPT? (nothing a model can say)
+  python -m remora whatif read_file --target verify --json
+  python -m remora whatif --log artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
   python -m remora replay artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
   python -m remora provenance
   python -m remora verify --json
@@ -1237,7 +1417,7 @@ examples:
 full reference: docs/cli.md
 """
 
-_COMMANDS = ("try", "demo", "assess", "explain", "replay", "serve",
+_COMMANDS = ("try", "demo", "assess", "explain", "whatif", "replay", "serve",
              "provenance", "verify", "maturity", "doctor", "effect-verify", "init-review")
 
 
@@ -1332,6 +1512,50 @@ def main(argv: list[str] | None = None) -> int:
     explain_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
     explain_p.add_argument("--json", action="store_true", help="JSON output")
 
+
+    whatif_p = sub.add_parser(
+        "whatif",
+        help="What would have to change for this call to be ACCEPTed (or VERIFYed)")
+    whatif_p.add_argument(
+        "name_pos", nargs="?", default=None, metavar="NAME",
+        help="Tool / action name")
+    whatif_p.add_argument("--name", help="Tool / action name (flag form of the positional)")
+    wi_group = whatif_p.add_mutually_exclusive_group()
+    wi_group.add_argument(
+        "--arg", action="append", metavar="KEY=VALUE",
+        help="Tool argument (repeatable; values are JSON-decoded)")
+    wi_group.add_argument(
+        "--arguments-json", help="Full tool arguments as a JSON object string")
+    whatif_p.add_argument(
+        "--risk", choices=["low", "medium", "high", "critical"], help="Risk tier")
+    whatif_p.add_argument("--action-type", help="e.g. read / deploy / destructive_write")
+    whatif_p.add_argument("--target-env", default="prod", help="Target environment [prod]")
+    whatif_p.add_argument("--trust", type=_trust_arg, help="Stand-in oracle trust score 0..1")
+    whatif_p.add_argument(
+        "--phase", choices=["ordered", "critical", "disordered"],
+        help="Stand-in consensus phase")
+    whatif_p.add_argument(
+        "--target", choices=["accept", "verify"], default="accept",
+        help="Verdict to reach: accept (autonomy) or verify (a person decides) [accept]")
+    whatif_p.add_argument(
+        "--depth", type=int, default=None, metavar="N",
+        help="Most levers combined in one change set [4 for a call, 2 for --log]")
+    whatif_p.add_argument(
+        "--execution-profile", action="store_true",
+        help="Analyse the execution-profile engine, where no probabilistic "
+             "signal can produce ACCEPT directly")
+    whatif_p.add_argument(
+        "--log", metavar="JSONL",
+        help="Boundary report over a shadow-mode action log instead of one call")
+    whatif_p.add_argument(
+        "--list-levers", action="store_true",
+        help="Print the lever catalogue (what the search may change) and exit")
+    whatif_p.add_argument(
+        "--no-prune", action="store_true",
+        help="Disable hard-guard pruning (same answer, more evaluations)")
+    whatif_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
+    whatif_p.add_argument("--json", action="store_true", help="JSON output")
+
     replay_p = sub.add_parser(
         "replay", help="Shadow-Mode counterfactual batch replay of an action-log JSONL")
     replay_p.add_argument(
@@ -1410,6 +1634,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_assess(args)
     if args.command == "explain":
         return _cmd_explain(args)
+    if args.command == "whatif":
+        return _cmd_whatif(args)
     if args.command == "replay":
         return _cmd_replay(args)
     if args.command == "serve":

@@ -4,6 +4,33 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Added
+
+- What-if decision-boundary analysis (`remora.policy.whatif`, `remora whatif`,
+  `remora.what_if_tool_call`, `remora.shadow.boundary`). For any observation
+  it searches every combination of a fixed lever catalogue against the real
+  engine and reports whether model signals alone (trust, phase, evidence,
+  quorum, temperature) can reach ACCEPT, whether the agent alone (proposal
+  plus model signals, no deployment-declared fact) can, the smallest change
+  sets that do, each change tagged deployment fact, proposal or model
+  signal, what every single lever does on its own, and the hard guard in
+  force. The model-signal sub-space is always searched in full, so "cannot"
+  is a proof over the catalogue rather than a budget artefact. Read-only
+  over the engine; an analysis, not a grant. A memo keeps evaluations to
+  distinct combinations and hard-guard pruning skips combinations a firing
+  guard makes hopeless; tests assert pruned and unpruned searches return
+  identical paths. `remora whatif --log` aggregates over a shadow-mode
+  action log and lists any block liftable by model signals alone as a
+  policy finding. A completeness test fails when the engine starts reading
+  an observation field that is neither levered nor explained. Tests assert
+  soundness (every named path replays to its verdict) and minimality (no
+  proper subset reaches the target) over a grid, plus the execution-profile
+  invariant that no model signal produces ACCEPT for any call. The five
+  `try` presets and the sample shadow log are analysed in
+  `artifacts/demo/whatif_presets_v1.json` and
+  `artifacts/demo/whatif_boundary_sample_v1.json`, regenerated and checked
+  by `scripts/generate_whatif_presets.py`.
+
 ### Roadmap
 
 - RF-12 (docs/13): database-enforced tenant isolation via Postgres row-level

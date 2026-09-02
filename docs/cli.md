@@ -30,6 +30,7 @@ python -m remora assess drop_database        # zero flags: risk/type inferred fr
 | `demo` | Eight-scenario governance walkthrough (offline; needs a repo checkout). |
 | `assess NAME` | Assess one tool call. Scriptable: `--json`, `--exit-code`, `--envelope-out`. |
 | `explain NAME` | Every policy rule in order — triggered or not — for one tool call. |
+| `whatif NAME` | What would have to change for this call to reach ACCEPT (or, with `--target verify`, to reach a person). Proves by enumeration whether model signals alone, or the agent alone, can lift it. `--log` runs it over a shadow action log. |
 | `replay LOG.jsonl` | Shadow-Mode counterfactual batch replay of an action log. |
 | `serve` | Launch the governance REST API (needs the `api` extra). |
 | `provenance` | Policy bundle hash + per-file SHA-256 manifest + version. |
@@ -169,6 +170,72 @@ under an `ExecutionLease`. Worked registry-based loop:
 (OpenAI function-calling, LangGraph, CrewAI, AutoGen) live in
 [examples/](../examples/) as standalone scripts. (`remora.integrations`
 currently ships only the GO-STAR bridge.)
+
+## `whatif` — what would it take?
+
+`explain` says which rule fired. `whatif` answers the question that follows:
+what would have to change for the same call to be ACCEPTed? It searches every
+combination of a fixed catalogue of levers (each one an observation field set
+to the value the engine treats as most favourable) against the real engine,
+and reports five things.
+
+```bash
+python -m remora whatif drop_database                 # a critical production write
+python -m remora whatif read_file --target-env staging --target verify
+python -m remora whatif wire_transfer --execution-profile --json
+python -m remora whatif --log artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
+python -m remora whatif --list-levers                 # what the search may change
+```
+
+1. Whether model signals alone (trust, consensus phase, evidence confidence,
+   oracle quorum, temperature) reach the target. For `drop_database` they do
+   not, and the report says so after trying every combination.
+2. Whether the agent alone reaches it: model signals plus every property of
+   the proposal the agent controls (target environment, schema, payload),
+   with nothing the deployment declares. This is the statement a security
+   reviewer wants, because a persuasive agent controls both.
+3. The smallest change sets that do reach the target, each change tagged with
+   who can bring it about: `deployment_fact` (tool registry, Signed ToolSpec,
+   intent source, system of record), `proposal` (the call itself) or
+   `model_signal`. For `drop_database` every path re-declares the tool as low
+   or medium risk and read-only, which is to say it has to be a different
+   tool.
+4. What each single lever does on its own, so inert changes are shown as
+   inert.
+5. The hard guard currently blocking the call, if any. A hard guard is the
+   one class of block no softer signal can pass.
+
+| Option | Meaning |
+|--------|---------|
+| `--target accept` / `verify` | The verdict to reach. `verify` asks what would put an ABSTAINed call in front of a person. |
+| `--depth N` | Most levers combined in one change set (4 for a call, 2 for `--log`). |
+| `--execution-profile` | Analyse the execution-profile engine, where no probabilistic signal can produce ACCEPT directly. |
+| `--log JSONL` | Boundary report over a shadow-mode action log: of the blocked actions, how many model signals, the agent alone, or only a deployment fact could lift. A block liftable by model signals alone is listed record by record as a policy finding. |
+| `--list-levers` | Print the lever catalogue and exit. |
+| `--no-prune` | Disable hard-guard pruning. The answer is identical; only the evaluation count changes. |
+| `--json` | Machine-readable report: `what_if.confidence_can_lift`, `what_if.agent_alone_can_reach`, `what_if.minimal_paths`, `what_if.single_lever_effects`, `what_if.hard_guard`, search bounds. |
+
+The report is an analysis of the policy, not a grant. It names facts; the
+only way to obtain the verdict is to establish them and assess again. The
+search bounds are printed with the result, so "no path found" is never
+mistaken for "no path exists" when the budget ran out. Two devices keep the
+search cheap without changing its answer. A memo means a combination decided
+in a sub-space search is not decided again. Hard-guard pruning skips
+combinations that leave a firing guard's fields untouched. The test suite
+asserts pruned and unpruned searches return identical paths.
+
+Library form: `remora.what_if_tool_call(...)` returns the assessment and the
+report; `remora.policy.whatif.what_if(obs, engine)` analyses any observation
+under any configured engine; `remora.shadow.boundary.boundary_of_action_log`
+is the log form. The five `try` presets and the sample shadow log are
+analysed in [artifacts/demo/whatif_presets_v1.json](../artifacts/demo/whatif_presets_v1.json)
+and [artifacts/demo/whatif_boundary_sample_v1.json](../artifacts/demo/whatif_boundary_sample_v1.json),
+regenerated by `python scripts/generate_whatif_presets.py`.
+
+`remora.causal` answers a neighbouring question with hand-declared concept
+interventions; `whatif` searches raw observation fields automatically and
+includes the non-actionable signals on purpose, to show that they cannot
+carry a call past the deployment's declarations.
 
 ## `replay` — persist and prove a shadow-mode trail
 
