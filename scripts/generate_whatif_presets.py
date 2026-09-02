@@ -108,7 +108,7 @@ def build_boundary() -> dict[str, Any]:
         "schema_version": "1",
         "regenerate": "python scripts/generate_whatif_presets.py",
         "check": "python scripts/generate_whatif_presets.py --check",
-        "source_log": str(SAMPLE_LOG.relative_to(ROOT)),
+        "source_log": SAMPLE_LOG.relative_to(ROOT).as_posix(),
         "note": (
             "Boundary report over the shadow-mode sample log: for each blocked "
             "action, whether model signals alone, the agent alone (proposal + "

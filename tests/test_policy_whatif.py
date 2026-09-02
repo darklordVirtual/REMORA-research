@@ -531,7 +531,7 @@ def test_every_engine_read_field_is_levered_or_explained() -> None:
     import re
     from pathlib import Path
 
-    import remora.policy.decision_engine as engine_module
+    from remora.policy import decision_engine as engine_module
 
     source = Path(engine_module.__file__).read_text(encoding="utf-8")
     fields = {f.name for f in dataclasses.fields(PolicyObservation)}
