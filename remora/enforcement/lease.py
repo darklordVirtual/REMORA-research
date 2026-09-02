@@ -475,11 +475,27 @@ class NonceLedger:
     globally: with several workers, or after a restart, the same lease can be
     dispatched again.
 
-    Unlike ``EnforcementGate``'s consumed-jti ledger, which does persist to
-    ``pep_consumed`` when a DSN or SQLite path is supplied, this ledger has
-    no durable adapter. Deployments that run more than one dispatcher process
-    must not treat a lease nonce as a global single-use guarantee. Durable,
-    multi-process storage is REM-025 scope.
+    A durable adapter DOES exist and is wired: ``DurableNonceStore`` in
+    ``remora/enforcement/nonce_store.py``, constructed by
+    ``servers/execution_api.py::_lease_nonce_store`` from the same three
+    variables as the durability guard in ``servers/api.py`` and passed to the
+    dispatcher. This class is the library default for deployments that
+    configure none of them, and the control in the durability tests. It is
+    not a fallback: falling back to it when a configured backend fails would
+    silently reintroduce the replay window.
+
+    So the limitation is narrower than "no durable storage exists". It is
+    that a deployment which configures no backend keeps a per-process
+    guarantee, and that activation on any particular deployment is
+    unclaimed (CAP-013 caveat).
+
+    Corrected 2026-08-30: this docstring previously said the ledger had no
+    durable adapter and attributed the work to REM-025. Both were wrong.
+    ``nonce_store.py`` shipped before that text was last read, and REM-025 is
+    "Durable audit integrity", an unrelated item. Documentation that
+    understates the code is still a defect: it sends a reader looking for
+    something that is already there, and an auditor to the wrong register
+    entry.
     """
 
     def __init__(self) -> None:

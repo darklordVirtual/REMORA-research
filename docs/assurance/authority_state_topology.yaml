@@ -1,0 +1,157 @@
+# REMORA authority-state topology v1
+#
+# Every piece of in-process mutable state in `remora/` that is guarded by a
+# lock, and what happens to an authority decision when that state is lost.
+#
+# WHY THIS FILE EXISTS
+#
+# One defect class has now recurred three times in this repository:
+#
+#   1. the consumed-jti ledger (#350)
+#   2. the lease nonce ledger (remora/enforcement/nonce_store.py)
+#   3. principal revocation (#502)
+#
+# Each time the shape was identical: a durable backend the deployment
+# already runs, that one component learned to use and another did not. Each
+# time it was found by a reviewer or by an audit, never by a gate. The
+# second occurrence's own module docstring names the pattern, and the third
+# happened anyway.
+#
+# Fixing the fourth occurrence when it appears is not a fix. This register
+# plus scripts/check_authority_state_durability.py is the fix: the
+# population is enumerated, every member states what losing it does, and a
+# new member cannot be added without answering the same question.
+#
+# THE RULE
+#
+# `on_loss` has exactly two values, and they carry different obligations.
+#
+#   reauthorizes
+#       Losing the state lets something execute that would otherwise have
+#       been refused: a spent grant becomes unspent, a withdrawn approver
+#       becomes current. This is fail-OPEN and a durable adapter is
+#       REQUIRED. The gate refuses a member with `on_loss: reauthorizes`
+#       and `durable_adapter: none`.
+#   loses_evidence
+#       Losing the state destroys a record of what happened. Serious, and
+#       not the same failure: nothing new becomes executable. A durable
+#       adapter is not required, but a tracking item is, so the gap is a
+#       stated decision rather than an omission.
+#
+# `reference_implementation: true` marks the in-process control that exists
+# precisely so the durable one has something to be tested against. It is
+# never a fallback: falling back to it on an outage reintroduces the window
+# the durable store closes.
+
+schema_version: "1"
+updated: "2026-08-30"
+
+state:
+  - id: AST-001
+    symbol: "remora/enforcement/gate.py::EnforcementGate"
+    gates: "One-time consumption of a PDP grant's jti."
+    on_loss: reauthorizes
+    durable_adapter: "pep_consumed table (same module), on REMORA_PG_DSN or REMORA_CHAIN_DB"
+    note: >-
+      First occurrence of the defect class, closed in #350. A replayed token
+      re-executed after a restart because the ledger was a process-local set.
+
+  - id: AST-002
+    symbol: "remora/enforcement/lease.py::NonceLedger"
+    gates: "Single-use consumption of an ExecutionLease nonce."
+    on_loss: reauthorizes
+    durable_adapter: "remora/enforcement/nonce_store.py::DurableNonceStore"
+    wired_at: "servers/execution_api.py::_lease_nonce_store"
+    reference_implementation: true
+    note: >-
+      Second occurrence. This class is the library default and the control in
+      the durability tests, not a fallback. A deployment configuring no
+      backend keeps a per-process guarantee; activation on any particular
+      deployment is unclaimed (CAP-013 caveat).
+
+  - id: AST-003
+    symbol: "remora/governance/review_queue.py::ReviewQueue"
+    gates: "Pending review items, granted approvals, and the approval re-gate."
+    on_loss: reauthorizes
+    durable_adapter: "remora/persistence/execution_state.py for items and approvals; remora/governance/revocation_store.py::DurableRevocationStore for withdrawn principals"
+    wired_at: "servers/execution_api.py::_queue and ::_revocation_store"
+    note: >-
+      Third occurrence, closed in #502. Item and approval state was already
+      persisted; revoked principals were not, so a revocation reached the
+      worker that served the HTTP call and no other, and did not survive a
+      restart. The chain recorded principal_revoked either way, which made
+      an after-the-fact review of an affected deployment read correct.
+
+  - id: AST-004
+    symbol: "remora/enforcement/outbox.py::ExecutionOutbox"
+    gates: "Durable record of dispatch intent; the crash window in which a side effect may have happened with nothing written."
+    on_loss: reauthorizes
+    durable_adapter: "SqliteExecutionOutbox and PostgresExecutionOutbox (same module)"
+    note: >-
+      Losing the outbox does not re-run a call by itself, but it erases the
+      record that a dispatch was authorised and may be in flight, which is
+      what stops a retry from becoming a second execution.
+
+  - id: AST-005
+    symbol: "remora/enforcement/nonce_store.py::InMemoryNonceStore"
+    gates: "Nothing on its own. The in-process control for AST-002."
+    on_loss: reauthorizes
+    durable_adapter: "remora/enforcement/nonce_store.py::DurableNonceStore"
+    reference_implementation: true
+    note: >-
+      Declared rather than exempted. Its restart behaviour is the thing the
+      durable store's tests must differ from, so it has to be visible here.
+
+  - id: AST-006
+    symbol: "remora/governance/revocation_store.py::InMemoryRevocationStore"
+    gates: "Nothing on its own. The in-process control for AST-003."
+    on_loss: reauthorizes
+    durable_adapter: "remora/governance/revocation_store.py::DurableRevocationStore"
+    reference_implementation: true
+
+  - id: AST-007
+    symbol: "remora/governance/tenant_chain.py::TenantAuditChain"
+    gates: "Per-tenant tamper-evident decision history."
+    on_loss: loses_evidence
+    durable_adapter: "SQLite and Postgres adapters in the same module (REM-034)"
+    note: >-
+      Evidence, not authority: losing the chain destroys the record and makes
+      nothing newly executable.
+
+  - id: AST-008
+    symbol: "remora/audit/hash_chain.py::AuditHashChain"
+    gates: "In-process hash-chained audit entries."
+    on_loss: loses_evidence
+    durable_adapter: none
+    tracking: REM-025
+    note: >-
+      REM-025 "Durable audit integrity" is the correct item for this one, and
+      is NOT_STARTED. It needs a transactional per-tenant sequence with a
+      UNIQUE(tenant_id, sequence_no) constraint, WORM retention, KMS/HSM
+      keys, RFC 3161 timestamps and Merkle anchoring. The append() lock
+      closed the in-memory chain fork; durability is open and stated.
+
+  - id: AST-009
+    symbol: "remora/governance/degradation.py::ChainedEventLog"
+    gates: "Append-only governance event log with per-entry hash chaining."
+    on_loss: loses_evidence
+    durable_adapter: none
+    tracking: REM-025
+    note: >-
+      Same disposition as AST-008. The log takes an optional sink, so a
+      deployment can forward events to durable storage, but the chain itself
+      is per-process and this file does not claim otherwise.
+
+# What a PASS from this gate does NOT establish.
+#
+# That a deployment has actually configured a durable backend. Every adapter
+# here is selected by environment variables, and the strict runtime profile
+# requires one of them (remora/toolcall/runtime_profile.py), but this
+# register checks the code, not any particular deployment.
+#
+# That the durable adapters are correct. Their own tests do that. This file
+# checks that the question was asked for every member of the population.
+limits:
+  - "code-level only: says nothing about whether any deployment configured a backend"
+  - "does not verify adapter correctness, only that one is declared and exists"
+  - "the population is discovered by AST scan (lock + mutable container in __init__); state held some other way is not seen"

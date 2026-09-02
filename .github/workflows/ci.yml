@@ -309,6 +309,19 @@ jobs:
         # as both together, never this gate alone.
         run: python scripts/check_credential_topology.py
 
+      - name: Authority-state durability
+        # docs/assurance/authority_state_topology.yaml enumerates every
+        # in-process store whose loss changes an authority decision, and
+        # states for each whether losing it RE-AUTHORIZES something (fail
+        # open, a durable adapter is required) or only loses evidence (a
+        # tracking item is required). The population is discovered by AST,
+        # not hand-maintained, so a new store cannot be added without
+        # answering the question. This gate exists because one defect class
+        # recurred three times -- the consumed-jti ledger (#350), the lease
+        # nonce ledger and principal revocation (#502) -- and every time it
+        # was caught by a reviewer rather than by CI.
+        run: python scripts/check_authority_state_durability.py
+
       - name: Product-truth gate
         # docs/product/product_truth_contract.yaml classifies every advertised
         # capability (core/optional/experimental/legacy/demo); public docs and
