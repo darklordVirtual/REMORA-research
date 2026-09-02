@@ -1,0 +1,321 @@
+{
+  "profile": "remora-aps-profile-v0.1",
+  "mode": "B",
+  "families": [
+    {
+      "profile": "remora-aps-profile-v0.1",
+      "mode": "B",
+      "family": "actionref-canonical",
+      "mapping": "adapter-constructed ActionRef from deployment-owned REMORA fields",
+      "claim_boundary": "does not create or validate a REMORA exact-call identity",
+      "summary": {
+        "vectors": 6,
+        "passed": 6,
+        "divergences": 0,
+        "refused": 0
+      },
+      "results": [
+        {
+          "name": "plain-single-scope-ascii",
+          "outcome": "PASS",
+          "canonical_scope_order": [
+            "repo:write"
+          ],
+          "observed_action_ref": "c3828feae93209059a038cd3a39c088493a68e1099a6b4dba3cac0223f66c3bf"
+        },
+        {
+          "name": "unsorted-multi-scope-ascii",
+          "outcome": "PASS",
+          "canonical_scope_order": [
+            "admin:keys",
+            "commerce:read",
+            "repo:write"
+          ],
+          "observed_action_ref": "9f49b6ea908b45f428f554085f57e2f4ec462c87f393d8797d07c29152502c3c"
+        },
+        {
+          "name": "nfd-scope-normalizes-to-nfc",
+          "outcome": "PASS",
+          "canonical_scope_order": [
+            "café:read"
+          ],
+          "observed_action_ref": "8f89060853f7e50fbfaabc5277e025355eb274d7b3fd5e6ed5bb0aa02bb93f92"
+        },
+        {
+          "name": "astral-scope-orders-after-bmp-high",
+          "outcome": "PASS",
+          "canonical_scope_order": [
+            "scope:Ａ",
+            "scope:𐐀"
+          ],
+          "observed_action_ref": "2adf3d32f65a24aa65f29f595be88fbd91fccbb980e14ea36a2be2f61bdba433"
+        },
+        {
+          "name": "negative-duplicate-scope-raw",
+          "outcome": "PASS",
+          "reason": "credential_scope contains a duplicate after NFC"
+        },
+        {
+          "name": "negative-duplicate-scope-nfc-collision",
+          "outcome": "PASS",
+          "reason": "credential_scope contains a duplicate after NFC"
+        }
+      ]
+    },
+    {
+      "family": "accountability-record",
+      "summary": {
+        "vectors": 12,
+        "passed": 12,
+        "divergences": 0,
+        "mapping_checks": 5,
+        "mapping_divergences": 0
+      },
+      "results": [
+        {
+          "name": "allow-executed-settled",
+          "outcome": "PASS",
+          "expected_verification": true,
+          "observed_verification": true,
+          "signature_valid": true,
+          "action_digest_valid": true,
+          "shape_valid": true,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "deny-no-settlement",
+          "outcome": "PASS",
+          "expected_verification": true,
+          "observed_verification": true,
+          "signature_valid": true,
+          "action_digest_valid": true,
+          "shape_valid": true,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "halt",
+          "outcome": "PASS",
+          "expected_verification": true,
+          "observed_verification": true,
+          "signature_valid": true,
+          "action_digest_valid": true,
+          "shape_valid": true,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "detached-payload",
+          "outcome": "PASS",
+          "expected_verification": true,
+          "observed_verification": true,
+          "signature_valid": true,
+          "action_digest_valid": true,
+          "shape_valid": true,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "negative-tampered-payload",
+          "outcome": "PASS",
+          "expected_verification": false,
+          "observed_verification": false,
+          "signature_valid": true,
+          "action_digest_valid": false,
+          "shape_valid": true,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "negative-wrong-key",
+          "outcome": "PASS",
+          "expected_verification": false,
+          "observed_verification": false,
+          "signature_valid": false,
+          "action_digest_valid": true,
+          "shape_valid": true,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "negative-schema-decision",
+          "outcome": "PASS",
+          "expected_verification": false,
+          "observed_verification": false,
+          "signature_valid": true,
+          "action_digest_valid": true,
+          "shape_valid": false,
+          "evidence_scope": "adapter-evidence"
+        },
+        {
+          "name": "negative-type-relabel",
+          "outcome": "PASS",
+          "expected_verification": false,
+          "observed_verification": false,
+          "signature_valid": false,
+          "action_digest_valid": true,
+          "shape_valid": false,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "positive-deny-executed",
+          "outcome": "PASS",
+          "expected_verification": true,
+          "observed_verification": true,
+          "signature_valid": true,
+          "action_digest_valid": true,
+          "shape_valid": true,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "positive-collision-same-second-a",
+          "outcome": "PASS",
+          "expected_verification": true,
+          "observed_verification": true,
+          "signature_valid": true,
+          "action_digest_valid": true,
+          "shape_valid": true,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "positive-collision-same-second-b",
+          "outcome": "PASS",
+          "expected_verification": true,
+          "observed_verification": true,
+          "signature_valid": true,
+          "action_digest_valid": true,
+          "shape_valid": true,
+          "evidence_scope": "remora-crypto-evidence"
+        },
+        {
+          "name": "negative-sig-alg-lowercase",
+          "outcome": "PASS",
+          "expected_verification": false,
+          "observed_verification": false,
+          "signature_valid": true,
+          "action_digest_valid": true,
+          "shape_valid": false,
+          "evidence_scope": "adapter-evidence"
+        }
+      ],
+      "mapping_checks": [
+        {
+          "name": "ACCEPT-executed",
+          "outcome": "PASS",
+          "expected": [
+            "allow",
+            true
+          ]
+        },
+        {
+          "name": "ACCEPT-not-consumed",
+          "outcome": "PASS",
+          "expected": [
+            "allow",
+            false
+          ]
+        },
+        {
+          "name": "VERIFY-unresolved",
+          "outcome": "PASS",
+          "expected": [
+            "halt",
+            false
+          ]
+        },
+        {
+          "name": "ESCALATE-refused",
+          "outcome": "PASS",
+          "expected": [
+            "deny",
+            false
+          ]
+        },
+        {
+          "name": "ABSTAIN",
+          "outcome": "PASS",
+          "expected": [
+            "deny",
+            false
+          ]
+        }
+      ],
+      "claim_boundary": "schema-only negatives are adapter evidence; cryptographic and digest checks use REMORA implementations"
+    },
+    {
+      "family": "receipt-decision-relation",
+      "summary": {
+        "vectors": 7,
+        "passed": 7,
+        "divergences": 0
+      },
+      "results": [
+        {
+          "name": "pass",
+          "outcome": "PASS",
+          "expected_classification": "PASS",
+          "observed_classification": "PASS",
+          "evidence_scope": "profile-projection-evidence"
+        },
+        {
+          "name": "substitution.flipped",
+          "outcome": "PASS",
+          "expected_classification": "PASS",
+          "observed_classification": "PASS",
+          "evidence_scope": "profile-projection-evidence"
+        },
+        {
+          "name": "substitution",
+          "outcome": "PASS",
+          "expected_classification": "DECISION_REF_MISMATCH",
+          "observed_classification": "DECISION_REF_MISMATCH",
+          "evidence_scope": "profile-projection-evidence"
+        },
+        {
+          "name": "temporal-earlier.flipped",
+          "outcome": "PASS",
+          "expected_classification": "PASS",
+          "observed_classification": "PASS",
+          "evidence_scope": "profile-projection-evidence"
+        },
+        {
+          "name": "temporal-earlier",
+          "outcome": "PASS",
+          "expected_classification": "VALID_UNTIL_NOT_LATER",
+          "observed_classification": "VALID_UNTIL_NOT_LATER",
+          "evidence_scope": "profile-projection-evidence"
+        },
+        {
+          "name": "temporal-equal.flipped",
+          "outcome": "PASS",
+          "expected_classification": "PASS",
+          "observed_classification": "PASS",
+          "evidence_scope": "profile-projection-evidence"
+        },
+        {
+          "name": "temporal-equal",
+          "outcome": "PASS",
+          "expected_classification": "VALID_UNTIL_NOT_LATER",
+          "observed_classification": "VALID_UNTIL_NOT_LATER",
+          "evidence_scope": "profile-projection-evidence"
+        }
+      ]
+    },
+    {
+      "family": "instruction-provenance",
+      "summary": {
+        "vectors": 0,
+        "passed": 0,
+        "divergences": 0
+      },
+      "status": "NOT_RUN",
+      "reason": "The mapped envelope subset is not separable from the fixture's filesystem path rules. Profile v0.1 requires NOT_RUN rather than adapter-owned path handling.",
+      "declined_surface": "nine filesystem path-canonicalisation rules"
+    }
+  ],
+  "summary": {
+    "families_declared": 4,
+    "families_run": 3,
+    "families_not_run": 1,
+    "vectors_run": 25,
+    "passed": 25,
+    "divergences": 0,
+    "mapping_checks": 5,
+    "mapping_divergences": 0
+  }
+}
