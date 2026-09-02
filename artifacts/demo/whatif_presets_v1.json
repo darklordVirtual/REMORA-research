@@ -40,6 +40,14 @@
       "description": "2 valid oracle votes and no failures"
     },
     {
+      "name": "low_temperature",
+      "kind": "model_signal",
+      "assignments": {
+        "temperature": 0.0
+      },
+      "description": "oracle distribution temperature at 0.0 (only read by an engine configured with a temperature threshold)"
+    },
+    {
       "name": "non_production_target",
       "kind": "proposal",
       "assignments": {
@@ -321,19 +329,25 @@
           "already_at_target": true,
           "reachable": true,
           "confidence_can_lift": true,
+          "agent_alone_can_reach": true,
           "deployment_facts_required": false,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [],
           "minimal_path_size": null,
+          "single_lever_effects": [],
+          "moving_levers": [],
           "search": {
             "evaluations": 0,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": false,
             "levers_considered": [
               "high_trust",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "schema_valid",
               "risk_medium",
               "tool_available",
@@ -366,19 +380,246 @@
           "already_at_target": false,
           "reachable": false,
           "confidence_can_lift": false,
+          "agent_alone_can_reach": false,
           "deployment_facts_required": false,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [],
           "minimal_path_size": null,
+          "single_lever_effects": [
+            {
+              "lever": "high_trust",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "evidence_supports",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "evidence_supported",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "oracle_quorum",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "low_temperature",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "schema_valid",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_medium",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_authority",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_provenance",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_matches_goal",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "effect_matches",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_in_system_of_record",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_grounded",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "scope_valid",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "arguments_complete",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "rollback_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "environment_confirmed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "counterfactual_passed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "no_contradiction",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "classification_settled",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "session_within_bounds",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "fleet_local",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            }
+          ],
+          "moving_levers": [],
           "search": {
-            "evaluations": 7553,
+            "evaluations": 9108,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": false,
             "levers_considered": [
               "high_trust",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "schema_valid",
               "risk_medium",
               "tool_available",
@@ -431,8 +672,10 @@
           "already_at_target": false,
           "reachable": true,
           "confidence_can_lift": false,
+          "agent_alone_can_reach": false,
           "deployment_facts_required": true,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [
             {
               "levers": [
@@ -458,15 +701,229 @@
             }
           ],
           "minimal_path_size": 1,
+          "single_lever_effects": [
+            {
+              "lever": "high_trust",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "evidence_supports",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "oracle_quorum",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "low_temperature",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "schema_valid",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_low",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "read_only_action",
+              "kind": "deployment_fact",
+              "action": "accept",
+              "reasons": [
+                "ordered_high_trust"
+              ],
+              "moves": true
+            },
+            {
+              "lever": "tool_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_authority",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_provenance",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_matches_goal",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "effect_matches",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_in_system_of_record",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_grounded",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "scope_valid",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "arguments_complete",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "rollback_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "environment_confirmed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "counterfactual_passed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "no_contradiction",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "classification_settled",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "session_within_bounds",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "fleet_local",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            }
+          ],
+          "moving_levers": [
+            "read_only_action"
+          ],
           "search": {
-            "evaluations": 29,
+            "evaluations": 48,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": false,
             "levers_considered": [
               "high_trust",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "schema_valid",
               "risk_low",
               "read_only_action",
@@ -499,19 +956,234 @@
           "already_at_target": false,
           "reachable": false,
           "confidence_can_lift": false,
+          "agent_alone_can_reach": false,
           "deployment_facts_required": false,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [],
           "minimal_path_size": null,
+          "single_lever_effects": [
+            {
+              "lever": "high_trust",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "evidence_supports",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "oracle_quorum",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "low_temperature",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "schema_valid",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_low",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "read_only_action",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "ordered_high_trust",
+                "execution_profile_probabilistic_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_authority",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_provenance",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_matches_goal",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "effect_matches",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_in_system_of_record",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_grounded",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "scope_valid",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "arguments_complete",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "rollback_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "environment_confirmed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "counterfactual_passed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "no_contradiction",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "classification_settled",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "session_within_bounds",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "fleet_local",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            }
+          ],
+          "moving_levers": [],
           "search": {
-            "evaluations": 9115,
+            "evaluations": 10902,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": false,
             "levers_considered": [
               "high_trust",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "schema_valid",
               "risk_low",
               "read_only_action",
@@ -566,8 +1238,10 @@
           "already_at_target": false,
           "reachable": true,
           "confidence_can_lift": false,
+          "agent_alone_can_reach": false,
           "deployment_facts_required": true,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [
             {
               "levers": [
@@ -903,16 +1577,282 @@
             }
           ],
           "minimal_path_size": 4,
+          "single_lever_effects": [
+            {
+              "lever": "high_trust",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "ordered_phase",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "evidence_supports",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "oracle_quorum",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "low_temperature",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "non_production_target",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": true
+            },
+            {
+              "lever": "schema_valid",
+              "kind": "proposal",
+              "action": "escalate",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_low",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "trap_escalate"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_medium",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "trap_escalate"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "read_only_action",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": true
+            },
+            {
+              "lever": "tool_available",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_authority",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_provenance",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_matches_goal",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "effect_matches",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_in_system_of_record",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_grounded",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "scope_valid",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "arguments_complete",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "rollback_available",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "environment_confirmed",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "counterfactual_passed",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "no_contradiction",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "classification_settled",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "session_within_bounds",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "fleet_local",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            }
+          ],
+          "moving_levers": [
+            "non_production_target",
+            "read_only_action"
+          ],
           "search": {
-            "evaluations": 15013,
+            "evaluations": 17601,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": false,
             "levers_considered": [
               "high_trust",
               "ordered_phase",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "non_production_target",
               "schema_valid",
               "risk_low",
@@ -948,20 +1888,288 @@
           "already_at_target": false,
           "reachable": false,
           "confidence_can_lift": false,
+          "agent_alone_can_reach": false,
           "deployment_facts_required": false,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [],
           "minimal_path_size": null,
+          "single_lever_effects": [
+            {
+              "lever": "high_trust",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "ordered_phase",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "evidence_supports",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "oracle_quorum",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "low_temperature",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "non_production_target",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": true
+            },
+            {
+              "lever": "schema_valid",
+              "kind": "proposal",
+              "action": "escalate",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_low",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "trap_escalate"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_medium",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "trap_escalate"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "read_only_action",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": true
+            },
+            {
+              "lever": "tool_available",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_authority",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_provenance",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_matches_goal",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "effect_matches",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_in_system_of_record",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_grounded",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "scope_valid",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "arguments_complete",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "rollback_available",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "environment_confirmed",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "counterfactual_passed",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "no_contradiction",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "classification_settled",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "session_within_bounds",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "fleet_local",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "schema_unverified_verify",
+                "evidence_insufficient"
+              ],
+              "moves": false
+            }
+          ],
+          "moving_levers": [
+            "non_production_target",
+            "read_only_action"
+          ],
           "search": {
-            "evaluations": 15013,
+            "evaluations": 17601,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": false,
             "levers_considered": [
               "high_trust",
               "ordered_phase",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "non_production_target",
               "schema_valid",
               "risk_low",
@@ -1017,8 +2225,10 @@
           "already_at_target": false,
           "reachable": true,
           "confidence_can_lift": false,
+          "agent_alone_can_reach": false,
           "deployment_facts_required": true,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [
             {
               "levers": [
@@ -1470,16 +2680,255 @@
             }
           ],
           "minimal_path_size": 4,
+          "single_lever_effects": [
+            {
+              "lever": "high_trust",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "ordered_phase",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "evidence_supports",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "counterfactual_unknown_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "oracle_quorum",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "low_temperature",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "non_production_target",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "schema_valid",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_low",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_medium",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "read_only_action",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_authority",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_provenance",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_matches_goal",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "effect_matches",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_in_system_of_record",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_grounded",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "scope_valid",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "arguments_complete",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "rollback_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "environment_confirmed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "counterfactual_passed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "no_contradiction",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "classification_settled",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "session_within_bounds",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "fleet_local",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            }
+          ],
+          "moving_levers": [],
           "search": {
-            "evaluations": 15013,
+            "evaluations": 17601,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": false,
             "levers_considered": [
               "high_trust",
               "ordered_phase",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "non_production_target",
               "schema_valid",
               "risk_low",
@@ -1514,20 +2963,261 @@
           "already_at_target": false,
           "reachable": false,
           "confidence_can_lift": false,
+          "agent_alone_can_reach": false,
           "deployment_facts_required": false,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [],
           "minimal_path_size": null,
+          "single_lever_effects": [
+            {
+              "lever": "high_trust",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "ordered_phase",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "evidence_supports",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "counterfactual_unknown_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "oracle_quorum",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "low_temperature",
+              "kind": "model_signal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "non_production_target",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "schema_valid",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_low",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_medium",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "unknown_action_type_verify"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "read_only_action",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_authority",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_provenance",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_matches_goal",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "effect_matches",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_in_system_of_record",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_grounded",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "scope_valid",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "arguments_complete",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "rollback_available",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "environment_confirmed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "counterfactual_passed",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "no_contradiction",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "classification_settled",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "session_within_bounds",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "fleet_local",
+              "kind": "deployment_fact",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": false
+            }
+          ],
+          "moving_levers": [],
           "search": {
-            "evaluations": 15013,
+            "evaluations": 17601,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": false,
             "levers_considered": [
               "high_trust",
               "ordered_phase",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "non_production_target",
               "schema_valid",
               "risk_low",
@@ -1582,20 +3272,272 @@
           "already_at_target": false,
           "reachable": false,
           "confidence_can_lift": false,
+          "agent_alone_can_reach": false,
           "deployment_facts_required": false,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [],
           "minimal_path_size": null,
+          "single_lever_effects": [
+            {
+              "lever": "high_trust",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "ordered_phase",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "evidence_supports",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "oracle_quorum",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "low_temperature",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "non_production_target",
+              "kind": "proposal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "firewall_clear",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": true
+            },
+            {
+              "lever": "schema_valid",
+              "kind": "proposal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_low",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_medium",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "read_only_action",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_available",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_authority",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_provenance",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_matches_goal",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "effect_matches",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_in_system_of_record",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_grounded",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "scope_valid",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "arguments_complete",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "rollback_available",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "environment_confirmed",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "counterfactual_passed",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "no_contradiction",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "classification_settled",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "session_within_bounds",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "fleet_local",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            }
+          ],
+          "moving_levers": [
+            "firewall_clear"
+          ],
           "search": {
-            "evaluations": 17615,
+            "evaluations": 2953,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": true,
             "levers_considered": [
               "high_trust",
               "ordered_phase",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "non_production_target",
               "firewall_clear",
               "schema_valid",
@@ -1631,20 +3573,272 @@
           "already_at_target": false,
           "reachable": false,
           "confidence_can_lift": false,
+          "agent_alone_can_reach": false,
           "deployment_facts_required": false,
           "model_signals_alone": null,
+          "without_deployment": null,
           "minimal_paths": [],
           "minimal_path_size": null,
+          "single_lever_effects": [
+            {
+              "lever": "high_trust",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "ordered_phase",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "evidence_supports",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "oracle_quorum",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "low_temperature",
+              "kind": "model_signal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "non_production_target",
+              "kind": "proposal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "firewall_clear",
+              "kind": "proposal",
+              "action": "verify",
+              "reasons": [
+                "evidence_insufficient"
+              ],
+              "moves": true
+            },
+            {
+              "lever": "schema_valid",
+              "kind": "proposal",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_low",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "risk_medium",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "read_only_action",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_available",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_authority",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "intent_provenance",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "tool_matches_goal",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "effect_matches",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_in_system_of_record",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "values_grounded",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "scope_valid",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "arguments_complete",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "rollback_available",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "environment_confirmed",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "counterfactual_passed",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "no_contradiction",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "classification_settled",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "session_within_bounds",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            },
+            {
+              "lever": "fleet_local",
+              "kind": "deployment_fact",
+              "action": "escalate",
+              "reasons": [
+                "admission_firewall_blocked"
+              ],
+              "moves": false
+            }
+          ],
+          "moving_levers": [
+            "firewall_clear"
+          ],
           "search": {
-            "evaluations": 17615,
+            "evaluations": 2953,
             "max_depth": 4,
             "max_evaluations": 20000,
             "exhausted": true,
+            "pruned": true,
             "levers_considered": [
               "high_trust",
               "ordered_phase",
               "evidence_supports",
               "oracle_quorum",
+              "low_temperature",
               "non_production_target",
               "firewall_clear",
               "schema_valid",

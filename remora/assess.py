@@ -271,6 +271,7 @@ def what_if_tool_call(
     max_depth: int = 4,
     max_evaluations: int = 20_000,
     engine: RemoraDecisionEngine | None = None,
+    prune: bool = True,
 ) -> tuple[ToolCallAssessment, WhatIfReport]:
     """Assess one tool call, then ask what would have to change to reach *target*.
 
@@ -296,6 +297,6 @@ def what_if_tool_call(
     report = what_if(
         assessment.decision.raw_observation, engine,
         target=DecisionAction(target), max_depth=max_depth,
-        max_evaluations=max_evaluations,
+        max_evaluations=max_evaluations, prune=prune,
     )
     return assessment, report

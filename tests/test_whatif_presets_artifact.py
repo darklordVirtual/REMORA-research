@@ -36,3 +36,14 @@ def test_whatif_presets_artifact_states_the_boundary(repo_root):
     assert drop["execution_profile"]["reachable"] is False
     injection = by_name["run_command"]["what_if"]["default"]
     assert injection["hard_guard"] == "admission_firewall_blocked"
+
+
+def test_whatif_boundary_artifact_reports_no_model_liftable_block(repo_root):
+    data = json.loads((repo_root / "artifacts/demo/whatif_boundary_sample_v1.json").read_text())
+    assert data["regenerate"] == "python scripts/generate_whatif_presets.py"
+    for profile in ("default", "execution_profile"):
+        b = data["boundary"][profile]
+        assert b["total"] == 6
+        assert b["liftable_by_model_signals"] == []
+        assert b["blocked"] == len(b["liftable_by_agent_alone"]) + len(
+            b["needing_deployment_facts"]) + len(b["unreachable_within_bound"])

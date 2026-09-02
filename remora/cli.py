@@ -906,8 +906,77 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     return 0
 
 
+def _whatif_list_levers(args: argparse.Namespace) -> int:
+    from remora.policy.whatif import LEVERS
+
+    if getattr(args, "json", False):
+        print(json.dumps([lv.to_dict() for lv in LEVERS], indent=2))
+        return 0
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    kind_style = {"deployment_fact": "cyan", "proposal": "magenta", "model_signal": "yellow"}
+    print()
+    _header(ink, f"LEVER CATALOGUE  ({len(LEVERS)} levers)")
+    for lv in LEVERS:
+        fields = ", ".join(f"{k}={v!r}" for k, v in lv.assignments)
+        print(f"    {ink(lv.name, 'bold'):<40} "
+              + ink(f"[{lv.kind.value}]", kind_style.get(lv.kind.value, "dim")))
+        print("        " + ink(lv.description, "dim"))
+        print("        " + ink(_ascii(fields), "dim"))
+    print()
+    return 0
+
+
+def _whatif_log(args: argparse.Namespace) -> int:
+    from remora.policy import RemoraDecisionEngine
+    from remora.shadow.boundary import boundary_of_action_log
+
+    path = Path(args.log)
+    if not path.is_file():
+        print(f"remora whatif: action log not found: {path}", file=sys.stderr)
+        return 2
+    from remora.policy.report import DecisionAction
+
+    engine = RemoraDecisionEngine(execution_profile=bool(args.execution_profile))
+    # Logs default to depth 2: the questions a log answers (model alone,
+    # agent alone, deployment fact) come from the cheap sub-space searches.
+    depth = args.depth if args.depth is not None else 2
+    try:
+        report = boundary_of_action_log(
+            str(path), engine, target=DecisionAction(args.target), max_depth=depth)
+    except (json.JSONDecodeError, ValueError) as exc:
+        print(f"remora whatif: could not read {path}: {exc}", file=sys.stderr)
+        return 2
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "log": str(path), "execution_profile": bool(args.execution_profile),
+            "boundary": report.to_dict(),
+        }, indent=2, default=str))
+        return 0
+    ink = _make_ink(False if getattr(args, "no_color", False) else None)
+    print()
+    _header(ink, f"BOUNDARY REPORT  (target: {report.target.value.upper()})")
+    print("    " + ink(str(path), "white", "bold")
+          + ink("    profile: execution" if args.execution_profile else "", "dim"))
+    print()
+    for line in report.summary().splitlines():
+        style = ("red", "bold") if "policy finding" in line else ()
+        print("    " + ink(_ascii(line), *style))
+    print()
+    print("  " + ink("(an analysis of the policy, not a grant; default depth 2 for logs, "
+                     "raise with --depth)", "dim"))
+    print()
+    return 0
+
+
 def _cmd_whatif(args: argparse.Namespace) -> int:
     """What would have to change for this call to reach the target verdict."""
+    if getattr(args, "list_levers", False):
+        return _whatif_list_levers(args)
+    if getattr(args, "log", None):
+        return _whatif_log(args)
+    if args.depth is not None and args.depth < 1:
+        print("remora whatif: --depth must be at least 1", file=sys.stderr)
+        return 2
     name = _resolve_tool_name(args, "whatif")
     if name is None:
         return 2
@@ -929,7 +998,8 @@ def _cmd_whatif(args: argparse.Namespace) -> int:
     assessment, report = what_if_tool_call(
         name, arguments, risk_tier=args.risk, action_type=args.action_type,
         target_environment=args.target_env, trust_score=args.trust, phase=args.phase,
-        target=args.target, max_depth=args.depth, engine=engine,
+        target=args.target, max_depth=args.depth if args.depth is not None else 4,
+        engine=engine, prune=not args.no_prune,
     )
     if getattr(args, "json", False):
         print(json.dumps({
@@ -938,6 +1008,7 @@ def _cmd_whatif(args: argparse.Namespace) -> int:
             "decision": _decision_dict(assessment.decision),
             "inferred": inferred,
             "execution_profile": bool(args.execution_profile),
+            "pruned": not args.no_prune,
             "what_if": report.to_dict(),
         }, indent=2, default=str))
         return 0
@@ -970,7 +1041,19 @@ def _cmd_whatif(args: argparse.Namespace) -> int:
     else:
         print("    " + ink("model signals alone: ", "dim")
               + ink(f"cannot reach {target}", "green", "bold")
-              + ink("  (trust, phase, evidence, quorum: every combination tried)", "dim"))
+              + ink("  (trust, phase, evidence, quorum, temperature: every combination tried)", "dim"))
+    if report.without_deployment is not None:
+        print("    " + ink("agent alone:         ", "dim")
+              + ink(f"reach {target}", "yellow", "bold")
+              + ink("  via " + " + ".join(report.without_deployment.levers)
+                    + "  (proposal + model signals, no deployment fact)", "dim"))
+    else:
+        print("    " + ink("agent alone:         ", "dim")
+              + ink(f"cannot reach {target}", "green", "bold")
+              + ink(f"  (proposal + model signals, within {report.max_depth} changes)", "dim"))
+    moving = report.moving_levers
+    print("    " + ink("single levers that move the verdict: ", "dim")
+          + (ink(", ".join(moving), "bold") if moving else ink("none", "dim")))
     print()
     if not report.minimal_paths:
         scope = ("up to the search bound" if report.exhausted
@@ -1325,6 +1408,7 @@ examples:
   python -m remora explain deploy
   python -m remora whatif drop_database        # what would it take to ACCEPT? (nothing a model can say)
   python -m remora whatif read_file --target verify --json
+  python -m remora whatif --log artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
   python -m remora replay artifacts/demo/shadow_mode_sample_agent_action_log.jsonl
   python -m remora provenance
   python -m remora verify --json
@@ -1454,12 +1538,21 @@ def main(argv: list[str] | None = None) -> int:
         "--target", choices=["accept", "verify"], default="accept",
         help="Verdict to reach: accept (autonomy) or verify (a person decides) [accept]")
     whatif_p.add_argument(
-        "--depth", type=int, default=4, metavar="N",
-        help="Most levers combined in one change set [4]")
+        "--depth", type=int, default=None, metavar="N",
+        help="Most levers combined in one change set [4 for a call, 2 for --log]")
     whatif_p.add_argument(
         "--execution-profile", action="store_true",
         help="Analyse the execution-profile engine, where no probabilistic "
              "signal can produce ACCEPT directly")
+    whatif_p.add_argument(
+        "--log", metavar="JSONL",
+        help="Boundary report over a shadow-mode action log instead of one call")
+    whatif_p.add_argument(
+        "--list-levers", action="store_true",
+        help="Print the lever catalogue (what the search may change) and exit")
+    whatif_p.add_argument(
+        "--no-prune", action="store_true",
+        help="Disable hard-guard pruning (same answer, more evaluations)")
     whatif_p.add_argument("--no-color", action="store_true", help="Disable ANSI colour")
     whatif_p.add_argument("--json", action="store_true", help="JSON output")
 

@@ -404,3 +404,161 @@ def test_change_serialisation_flattens_tuples_and_enums() -> None:
     assert payload["before"] == ["id"]
     assert payload["after"] == []
     assert payload["kind"] == "deployment_fact"
+
+
+# ---------------------------------------------------------------------------
+# Round 2: agent-alone search, single-lever effects, pruning, memo
+# ---------------------------------------------------------------------------
+
+from remora.policy.whatif import AGENT_KINDS, UNLEVERED_ENGINE_FIELDS, LeverEffect  # noqa: E402
+
+
+def test_agent_alone_cannot_lift_a_critical_production_write() -> None:
+    """The stronger statement: proposal changes plus model signals, with no
+    deployment-declared fact, never reach ACCEPT within the bound."""
+    report = what_if(_obs(**CRITICAL_PROD_WRITE))
+    assert report.without_deployment is None
+    assert not report.agent_alone_can_reach
+    assert report.deployment_facts_required
+
+
+def test_agent_alone_lifts_a_staging_read_and_names_only_agent_kinds() -> None:
+    report = what_if(_obs(**STAGING_READ))
+    assert report.without_deployment is not None
+    assert report.without_deployment.kinds <= AGENT_KINDS
+    assert report.agent_alone_can_reach
+    assert not report.deployment_facts_required
+
+
+def test_moving_a_low_confidence_prod_write_to_staging_is_an_agent_change() -> None:
+    """A medium-risk prod write with high trust but low environment confidence
+    is held only by the env-confidence gate; the agent can lift it by
+    proposing a staging target, with no deployment fact changing."""
+    report = what_if(_obs(risk_tier="medium", action_type="write", target_environment="prod",
+                          trust_score=0.95, phase="ordered", schema_valid=True,
+                          environment_confidence=0.3), max_depth=2)
+    assert report.current_reasons == ("env_confidence_verify",)
+    assert report.model_signals_alone is None
+    assert report.without_deployment is not None
+    assert report.without_deployment.levers == ("non_production_target",)
+    assert report.without_deployment.kinds == {LeverKind.PROPOSAL}
+    assert report.agent_alone_can_reach
+    assert "environment_confirmed" in report.moving_levers
+
+
+def test_single_lever_effects_cover_every_applicable_lever() -> None:
+    report = what_if(_obs(**CRITICAL_PROD_WRITE), max_depth=1)
+    assert tuple(e.lever for e in report.single_lever_effects) == report.levers_considered
+    assert all(isinstance(e, LeverEffect) for e in report.single_lever_effects)
+    moving = set(report.moving_levers)
+    assert "non_production_target" in moving
+    assert "read_only_action" in moving
+    assert "high_trust" not in moving
+
+
+def test_single_lever_effects_replay_to_their_verdict() -> None:
+    engine = RemoraDecisionEngine()
+    obs = _obs(**CRITICAL_PROD_WRITE)
+    report = what_if(obs, engine, max_depth=1)
+    levers = _levers_by_name()
+    for effect in report.single_lever_effects:
+        replayed = engine.decide(levers[effect.lever].apply(obs))
+        assert replayed.action is effect.action
+        assert effect.moves == (effect.action is not report.current_action)
+
+
+@pytest.mark.parametrize("kwargs", [
+    dict(adversarial_detected=True, **STAGING_READ),
+    dict(tool_forbidden=True, **STAGING_READ),
+    dict(argument_tainted=True, risk_tier="critical", action_type="write",
+         target_environment="staging"),
+    dict(schema_valid=False, **STAGING_READ),
+    dict(evidence_contradictions=2, **STAGING_READ),
+])
+def test_hard_guard_pruning_changes_nothing_but_the_evaluation_count(kwargs) -> None:
+    obs = _obs(**kwargs)
+    pruned = what_if(obs, max_depth=3)
+    plain = what_if(obs, max_depth=3, prune=False)
+    assert pruned.pruned
+    assert not plain.pruned
+    assert pruned.evaluations < plain.evaluations
+    assert [p.to_dict() for p in pruned.minimal_paths] == [p.to_dict() for p in plain.minimal_paths]
+    assert (pruned.model_signals_alone is None) == (plain.model_signals_alone is None)
+    assert (pruned.without_deployment is None) == (plain.without_deployment is None)
+
+
+def test_pruning_is_not_applied_for_target_verify() -> None:
+    """A tainted floor yields VERIFY itself, so a VERIFY search cannot assume
+    the guard's fields must change."""
+    obs = _obs(argument_tainted=True, risk_tier="critical", action_type="write",
+               target_environment="staging")
+    report = what_if(obs, target=DecisionAction.VERIFY, max_depth=2)
+    assert not report.pruned
+    assert report.reachable
+    assert any(p.levers in {("risk_low",), ("risk_medium",)} for p in report.minimal_paths)
+
+
+def test_pruning_never_fires_without_a_hard_guard() -> None:
+    report = what_if(_obs(**CRITICAL_PROD_WRITE), max_depth=2)
+    assert report.hard_guard is None
+    assert not report.pruned
+
+
+def test_evaluations_count_distinct_engine_calls() -> None:
+    """The sub-space searches and the full search overlap; the memo makes
+    the count a count of distinct combinations."""
+    obs = _obs(**STAGING_READ)
+    report = what_if(obs, max_depth=2)
+    n = len(report.levers_considered)
+    max_distinct = n + n * (n - 1) // 2   # singles + pairs, before disjointness
+    assert report.evaluations <= max_distinct
+
+
+def test_temperature_lever_only_matters_with_a_threshold_engine() -> None:
+    obs = _obs(temperature=0.9, **STAGING_READ)
+    plain = what_if(obs, max_depth=1)
+    assert "low_temperature" not in plain.moving_levers
+    engine = RemoraDecisionEngine(temperature_threshold=0.2)
+    report = what_if(obs, engine, max_depth=1)
+    assert "low_temperature" in report.moving_levers
+    assert report.model_signals_alone is not None
+    assert report.model_signals_alone.levers == ("low_temperature",)
+
+
+def test_every_engine_read_field_is_levered_or_explained() -> None:
+    """Completeness gate: when the engine starts reading a new observation
+    field, it must get a lever or an entry in UNLEVERED_ENGINE_FIELDS."""
+    import re
+    from pathlib import Path
+
+    import remora.policy.decision_engine as engine_module
+
+    source = Path(engine_module.__file__).read_text(encoding="utf-8")
+    fields = {f.name for f in dataclasses.fields(PolicyObservation)}
+    read = {m for m in re.findall(r"\b(?:obs|o|raw_obs)\.([a-z_0-9]+)\b", source)} & fields
+    covered = set().union(*(lv.fields for lv in LEVERS))
+    unexplained = read - covered - set(UNLEVERED_ENGINE_FIELDS)
+    assert not unexplained, sorted(unexplained)
+    stale = set(UNLEVERED_ENGINE_FIELDS) - read
+    assert not stale, sorted(stale)
+
+
+def test_lever_to_dict_and_report_to_dict_carry_round_two_fields() -> None:
+    lever = _levers_by_name()["evidence_supports"]
+    assert lever.to_dict() == {
+        "name": "evidence_supports", "kind": "model_signal",
+        "assignments": {"evidence_action": "answer", "evidence_confidence": 0.95},
+        "description": lever.description,
+    }
+    payload = json.loads(json.dumps(what_if(_obs(**STAGING_READ), max_depth=2).to_dict()))
+    assert payload["agent_alone_can_reach"] is True
+    assert payload["without_deployment"]["kinds"] == ["model_signal"]
+    assert payload["moving_levers"]
+    assert {e["lever"] for e in payload["single_lever_effects"]} == set(payload["search"]["levers_considered"])
+    assert payload["search"]["pruned"] is False
+
+
+def test_summary_states_agent_alone_and_moving_levers() -> None:
+    text = what_if(_obs(**CRITICAL_PROD_WRITE), max_depth=2).summary()
+    assert "agent alone (proposal + model signals): cannot reach ACCEPT within 2 changes" in text
+    assert "single levers that move the verdict: non_production_target, read_only_action" in text
