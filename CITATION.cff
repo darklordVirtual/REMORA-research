@@ -14,6 +14,16 @@ authors:
     # and put the same iD into .zenodo.json under creators[0].orcid.
 version: "0.11.0"
 date-released: "2026-08-25"
+url: "https://github.com/darklordVirtual/REMORA-research/releases/tag/v0.11.0"
+preferred-citation:
+  type: software
+  authors:
+    - family-names: "Skogbrott"
+      given-names: "Stian"
+  title: "REMORA: Governed Execution Assurance for Tool-Using AI Agents"
+  version: "0.11.0"
+  date-released: "2026-08-25"
+  url: "https://github.com/darklordVirtual/REMORA-research/releases/tag/v0.11.0"
 # doi: pending — added when the Zenodo archive of the tagged release exists
 # (issue #390, P2). The metadata Zenodo reads is committed as .zenodo.json;
 # it needs no editing beyond the ORCID above. To mint the DOI:

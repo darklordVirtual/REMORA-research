@@ -94,7 +94,7 @@
       "long_sentence": 5
     },
     "docs/assurance/assurance_case_v1.md": {
-      "long_sentence": 6,
+      "long_sentence": 5,
       "meta_governance": 1
     },
     "docs/assurance/benchmark_audit_v1.md": {
@@ -326,7 +326,7 @@
       "long_sentence": 13
     },
     "paper/remora_paper.md": {
-      "long_sentence": 93,
+      "long_sentence": 91,
       "meta_governance": 1
     },
     "paper/remora_paper_template.md": {
