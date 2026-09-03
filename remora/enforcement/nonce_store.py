@@ -189,6 +189,14 @@ class DurableNonceStore:
             "INSERT INTO lease_nonce_consumed (tenant_id, nonce) VALUES "
             f"({self._placeholder()}, {self._placeholder()})"
         )
+        # Only the INSERT can mean "already consumed". _connect() and
+        # _ensure_table() failing tells us nothing about the row, and the
+        # message sniff is a message sniff: an I/O error whose text mentions
+        # a key or a constraint used to be read as a duplicate here, which
+        # returns False, which the dispatcher refuses permanently as
+        # nonce_already_consumed. That destroys an unspent grant on a
+        # transient fault, the exact outcome this handler exists to prevent.
+        duplicate = False
         try:
             with self._connect() as conn:
                 self._ensure_table(conn)
@@ -198,22 +206,26 @@ class DurableNonceStore:
                     if commit is not None:
                         commit()
                 except Exception as exc:  # noqa: BLE001 — re-raised below
-                    if self._is_duplicate(exc):
-                        return False
-                    raise
+                    if not self._is_duplicate(exc):
+                        raise
+                    duplicate = True
+                    # Leave the connection usable for the context manager's
+                    # exit: on psycopg the failed statement has aborted the
+                    # transaction, and committing an aborted one raises.
+                    rollback = getattr(conn, "rollback", None)
+                    if rollback is not None:
+                        rollback()
         except NonceStoreUnavailable:
             raise
         except Exception as exc:  # noqa: BLE001
-            # Everything that is not a recognised uniqueness violation is an
-            # unknown outcome. The caller must refuse WITHOUT burning the
-            # nonce: the grant may still be unspent, and destroying it would
-            # turn a transient fault into a permanently dead authorization.
-            if self._is_duplicate(exc):
-                return False
+            # Anything reaching here is an unknown outcome. The caller must
+            # refuse WITHOUT burning the nonce: the grant may still be
+            # unspent, and destroying it would turn a transient fault into a
+            # permanently dead authorization.
             raise NonceStoreUnavailable(
                 f"lease nonce store unreachable: {exc}"
             ) from exc
-        return True
+        return not duplicate
 
     def consumed_count(self, *, tenant_id: str) -> int:
         """Rows for one tenant. For operator verification, not for decisions."""
