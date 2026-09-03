@@ -53,7 +53,16 @@ STALE_PHRASES = (
      "the paper carries a live revision date, not a frozen June-2026 stamp"),
     ("unchanged content",
      "the .tex is kept in lockstep with the code, not declared unchanged"),
+    ("attributable entirely",
+     "the committed ablation attributes the zero-false-accept result to no "
+     "component at all (CLAIM-020, NEGATIVE_RESULTS.md section 57)"),
+    ("attributes that zero",
+     "the committed ablation attributes the zero-false-accept result to no "
+     "component at all (CLAIM-020, NEGATIVE_RESULTS.md section 57)"),
 )
+
+# Claim ids cited in the .md must reach the .tex, and therefore the PDF.
+_CLAIM_ID_RE = re.compile(r"CLAIM-\d{3}")
 
 # Anchors that must appear in BOTH files (case-sensitive substring).
 REQUIRED_IN_BOTH = (
@@ -178,6 +187,25 @@ def _citation_parity_errors(md: str, tex: str) -> list[str]:
     return errors
 
 
+def _claim_id_parity_errors(md: str, tex: str) -> list[str]:
+    """Every CLAIM id cited in the .md must also appear in the .tex.
+
+    The PDF is what reviewers cite, and it compiles from the .tex. A claim id
+    the .md carries but the .tex omits means the shipped PDF makes the
+    assertion without naming the register entry that governs it. The reverse
+    direction is deliberately not checked: the .tex may name additional claims
+    that only the PDF carries.
+    """
+    md_ids = set(_CLAIM_ID_RE.findall(md))
+    tex_ids = set(_CLAIM_ID_RE.findall(tex))
+    return [
+        f"{TEX.name}: {cid} is cited in {MD.name} but never appears in the "
+        ".tex, so the compiled PDF would ship the assertion without its "
+        "register id"
+        for cid in sorted(md_ids - tex_ids)
+    ]
+
+
 def main() -> int:
     md = MD.read_text(encoding="utf-8", errors="replace")
     tex = TEX.read_text(encoding="utf-8", errors="replace")
@@ -229,6 +257,16 @@ def main() -> int:
         n_refs = len(_md_references(md)[0])
         print(f"[OK]   citation parity: {n_refs} .md references <-> "
               f"{len(_tex_bib_entries(tex))} .tex bibitems, all cited")
+
+    # 5. Claim-id parity: every CLAIM id in the .md must reach the .tex.
+    claim_errors = _claim_id_parity_errors(md, tex)
+    for msg in claim_errors:
+        _fail(msg)
+    errors += len(claim_errors)
+    if not claim_errors:
+        n_ids = len(set(_CLAIM_ID_RE.findall(md)))
+        print(f"[OK]   claim-id parity: {n_ids} .md claim id(s) all present "
+              "in the .tex")
 
     if errors:
         print(f"\n[FAIL] paper sync: {errors} issue(s) — remora_paper.md, .tex and the "
