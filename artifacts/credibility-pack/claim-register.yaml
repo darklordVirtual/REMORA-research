@@ -77,15 +77,23 @@ claims:
       baseline_far_pct: 1.4
     metric_bindings:
       far_pct:
-        path: "results/toolcall_benchmark_v2_results.json#baselines.single_model_heuristic.false_block_rate"
+        path: "results/toolcall_benchmark_v2_results.json#baselines.remora_full_policy_gate.false_accept_rate"
+        scale: 100
+        path_rationale: >-
+          FAR is the false-accept rate of REMORA's own full policy gate, which the artifact stores as a fraction under that baseline key.
       far_ci_high_pct:
         unbound: >-
           Wilson upper bound, computed for the register from the counts in the artifact; the artifact stores the counts, not the interval.
       n_effective:
-        path: "results/toolcall_benchmark_v2_results.json#baselines.single_model_heuristic.n_safe_execute"
+        path: "results/toolcall_benchmark_v2_significance.json#n_template_clusters"
+        path_rationale: >-
+          the effective sample size is the number of template clusters, which the significance artifact stores under that name.
       baseline_far_pct:
-        path: "results/toolcall_benchmark_v2_results.json#baselines.single_model_heuristic.n_benign"
-        scale: 0.01
+        path: "results/toolcall_benchmark_v2_results.json#baselines.single_model_heuristic.false_accept_rate"
+        scale: 100
+        rounded_to: 1
+        path_rationale: >-
+          the heuristic baselines' false-accept rate, 10 of 700 tasks = 1.428...%, published to one decimal as 1.4% here and in the paper.
     caveat: >
       Simulator-scoped: no real shell, network, database, or file mutations execute.
       Benchmark is synthetic and adversarial patterns are designed in-distribution.
@@ -122,13 +130,18 @@ claims:
       fbr_pct: 100.0
     metric_bindings:
       far_pct:
-        path: "results/external_benchmark_agentharm_v1.json#n_harmful_false_accept"
+        path: "results/external_benchmark_agentharm_v1.json#false_accept_rate"
+        scale: 100
+        path_rationale: >-
+          FAR is the false-accept rate; the artifact stores it as a fraction under that key.
       far_ci_high_pct:
         unbound: >-
           Wilson upper bound, computed for the register from the counts in the artifact; the artifact stores the counts, not the interval.
       fbr_pct:
         path: "results/external_benchmark_agentharm_v1.json#false_block_rate"
         scale: 100
+        path_rationale: >-
+          FBR is the false-block rate; the artifact stores it as a fraction under that key.
     caveat: >
       Stage 1 hard-block policy invariants account for this result. The multi-oracle
       consensus machinery contributes VERIFY/ABSTAIN routing quality only; it does not
@@ -163,7 +176,10 @@ claims:
       far_pct: 0.0
     metric_bindings:
       far_pct:
-        path: "results/false_accept_regression_v1.json#n_false_accept"
+        path: "results/false_accept_regression_v1.json#false_accept_rate"
+        scale: 100
+        path_rationale: >-
+          FAR is the false-accept rate; the artifact stores it as a fraction under that key.
     caveat: >
       Corpus is internal — episodes authored within the project context (AROMER D1).
       2 exclusions documented with rationale in results/false_accept_regression_v1.json.
@@ -587,14 +603,14 @@ claims:
         unbound: >-
           count of targets in the study protocol, not a field in the results artifact.
       read_utility_without_validators:
-        path: "results/system_demonstration_v1.json#degradation_study.conditions.baseline.false_unsupported_on_valid"
+        path: "results/system_demonstration_v1.json#validator_study.read_utility_without_validators"
       read_utility_with_validators:
-        path: "results/system_demonstration_v1.json#degradation_study.conditions.baseline.identity_accept_read"
+        path: "results/system_demonstration_v1.json#validator_study.read_utility_with_validators"
       seeded_corruption_forms_n:
         unbound: >-
           count of seeded forms in the generator, not a field in the results artifact.
       corrupt_accept_rate:
-        path: "results/system_demonstration_v1.json#degradation_study.conditions.baseline.false_unsupported_on_valid"
+        path: "results/system_demonstration_v1.json#validator_study.targets.corrupt_id_accept_after_resolver.value"
     caveat: >
       Open (non-blind) mechanism study on the generated fleetops domain.
       All three sub-studies are mechanism studies, not blind holdout evaluations.
@@ -611,7 +627,7 @@ claims:
     title: "Superseded BFCL v3 development measurement"
     statement: >
       Historical post-hoc measurements on the spent BFCL v3 set are superseded
-      by the sealed BFCL v4 result in CLAIM-018.
+      by the sealed BFCL v4 result in CLAIM-019.
     evidence_level: internal_benchmark
     status: superseded
     superseded_by: CLAIM-019
@@ -626,7 +642,7 @@ claims:
       evidence. The active external result is CLAIM-019.
     reproduce: "Not rerunnable; the BFCL v3 set is spent."
   - id: CLAIM-016
-    title: "Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018"
+    title: "Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-019"
     statement: >
       Track C-ext was evaluated once, at locked commit cf02fa8, on sealed
       external data the system had never seen: BFCL v3 live categories
@@ -798,7 +814,8 @@ claims:
       n_clusters: 800
     metric_bindings:
       wrong_call_accept_pct:
-        path: "results/routing_bench_bfcl_v4_cext3_results.json#per_arm_metrics.A_structural.required_unknown_auto_accept.n"
+        path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.known_wrong_call_accept.value"
+        scale: 100
       wrong_call_wilson_upper_pct:
         path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.known_wrong_call_accept.wilson95[1]"
         scale: 100
@@ -809,7 +826,8 @@ claims:
         path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.irrelevance_abstain_recall.value"
         scale: 100
       required_unknown_accept_pct:
-        path: "results/routing_bench_bfcl_v4_cext3_results.json#per_arm_metrics.A_structural.required_unknown_auto_accept.n"
+        path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.required_unknown_auto_accept.value"
+        scale: 100
       legitimate_read_autonomy_pct:
         path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.legitimate_read_autonomy.value"
         scale: 100
