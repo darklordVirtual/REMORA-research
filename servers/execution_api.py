@@ -602,9 +602,14 @@ from remora.execution.authorization import (
     assessed_record as _authz_assessed_record,
     assessed_toolspec_for_proposal as _authz_assessed_toolspec_for_proposal,
     load_toolspec_bundle as _authz_load_bundle,
-    reset_toolspec_bundle_cache as _reset_toolspec_bundle,  # noqa: F401  (test hook name kept)
+    reset_toolspec_bundle_cache,
     resolve_toolspec as _authz_resolve_toolspec,
 )
+
+#: Re-exported under the name the tests reload this module for. An assignment
+#: rather than an import alias, so the binding is a use of the imported name and
+#: the re-export is visible to anything reading this module.
+_reset_toolspec_bundle = reset_toolspec_bundle_cache
 
 
 def _rebuild_tool_call(payload: dict[str, Any]) -> Any:

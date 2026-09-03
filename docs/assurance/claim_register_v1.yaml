@@ -296,9 +296,9 @@ claims:
       composite that reflects window composition, not a fixed safety metric. TRAINED
       threshold reached via organic recovery after seeding-induced regression; full
       §12->§13->recovery cycle documented in NEGATIVE_RESULTS.md. REM-020
-      (longitudinal stability) and REM-022 (RBAC audit) are DONE; one production
-      gate remains before any deployment relaxation: REM-021 (independent human
-      review). Do not cite AII as
+      (longitudinal stability) and REM-022 (RBAC audit) are DONE; two production
+      gates remain before any deployment relaxation: REM-021 (independent human
+      review) and REM-023, per release_profiles_v1.yaml CONTROLLED_PILOT. Do not cite AII as
       a safety proof. AROMER is NOT the core governance system; AII metrics do not
       imply safety for the REMORA decision engine.
     reproduce: >
