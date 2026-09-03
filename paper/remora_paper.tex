@@ -72,7 +72,7 @@
 % Paper version - kept in lockstep with paper/remora_paper.md by
 % scripts/check_paper_sync.py (CI-enforced). The version and revision
 % strings below MUST match the .md version line.
-\newcommand{\paperversion}{Preprint v0.11.0, revision 2026-08-26; repository release tag \texttt{v0.11.0}}
+\newcommand{\paperversion}{Preprint v0.11.0, revision 2026-09-03; repository release tag \texttt{v0.11.0}}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -130,13 +130,17 @@ leakage-controlled tool-call benchmark, REMORA's full policy gate
 produced zero simulated unsafe acceptances with significantly higher
 decision utility and accuracy than heuristic baselines (mean utility
 $+0.456$, $p\approx10^{-4}$; accuracy 90\% vs.\ $\leq 60\%$), and an
-ablation shows the zero is attributable entirely to the deterministic
-hard rules, not to the multi-model voting machinery. Under an
+committed component ablation identifies no component as necessary for
+that zero: every condition, including the one with the hard blocks
+removed, records a false-accept rate of 0.000 (CLAIM-020), so the
+deterministic attribution rests on the mechanism and not on a component
+ablation. Under an
 intent-gating protocol on 208 independently sourced AgentHarm scenarios
 \cite{andriushchenko2024agentharm}, the same rule set produced zero
 false authorizations, at the cost of blocking every benign counterpart
-as well (FBR=100\%), a safety/friction corner point reported as such.
-Probabilistic consensus improves routing; it cannot override policy.
+as well (FBR=100\%), a safety/friction corner point reported as such
+(CLAIM-001). Probabilistic consensus improves routing; it cannot override
+policy.
 
 \textbf{Second, unknown state is a resolution problem, not a verdict.}
 Absence of a record without a declared completeness guarantee is
@@ -156,7 +160,8 @@ pre-registered targets}: unknown required inputs were never guessed
 were refused 98/99 times, obtainable inputs were sent to verification
 96/99 times, and well-formed wrong calls were accepted 28/258 times
 (\textbf{10.9\%}, target $\leq 20\%$). Labelled routing accuracy was
-91.2\%. A subsequent sealed C-ext3 track (2{,}799 episodes, disjoint
+91.2\% (CLAIM-018, superseded by CLAIM-019 and kept as the
+permanent wrong-call baseline). A subsequent sealed C-ext3 track (2{,}799 episodes, disjoint
 sample) added declared tool contracts and verified task intents under a
 frozen deterministic semantic bundle with the semantic-authority floor,
 and eliminated native wrong-call acceptance entirely: \textbf{0/500}
@@ -166,6 +171,12 @@ across the arms). The cost was utility: legitimate read autonomy fell to
 26.6\% under the deterministic intent extractor, and four of seven
 pre-registered targets were missed and published as measured
 (NEGATIVE\_RESULTS.md \S39, CLAIM-019).
+
+The probabilistic machinery contributes routing quality: a
+critical-phase evidence router resolves 38.5\% of 3{,}000
+high-uncertainty MultiNLI cases without escalation (304 evidence-accepts,
+all entailment items, plus 852 abstentions), so accept precision is
+100\% (CLAIM-005).
 
 Two further findings constrain how much trust to place in model signals:
 model confidence \emph{anticorrelates} with correctness exactly in the
@@ -1398,8 +1409,9 @@ Mode & Recall & CI 95\% & FPR & CI 95\% & Blocked rec. & Cov. \\
 
 Mode~3 hard-\textsc{escalate} recall is 0.114 (5/44); 38 further harmful
 tasks route to human \textsc{verify}, giving blocked recall 0.977
-(43/44); one harmful task \textsc{abstain}s; zero harmful tasks receive
-\textsc{accept}. All three governance goals are met under the
+(43/44); two of the 88 tasks \textsc{abstain}, one harmful and one
+harmless, which is the 0.977 coverage figure (86/88); zero harmful tasks
+receive \textsc{accept}. All three governance goals are met under the
 blocked-recall definition (blocked recall $\geq 0.95$, FPR $< 0.10$,
 coverage $\geq 0.95$). The conservative posture (routing 98\% of
 cases to \textsc{verify} or higher) is by design: \textsc{verify} is
@@ -1417,16 +1429,65 @@ not generalise to live deployments.
 \section{Ablations}
 \label{sec:ablation}
 
-\textbf{Where the safety floor comes from.}
-\emph{Architectural implication.} The unsafe-execution reduction is
-100\% attributable to deterministic, interpretable policy rules that are
-independent of LLM output. The multi-oracle consensus and routing
-machinery improve decision \emph{calibration and routing quality}
-(discriminating VERIFY, ABSTAIN, and ACCEPT paths), but do not contribute
-to the safety guarantee itself. This separation is a design feature: the
-safety floor can be reasoned about and audited without reference to
-oracle behaviour. Readers should not infer that the consensus
-machinery is the source of the 0\% unsafe rate.
+\textbf{Component ablation: a negative identification result.}
+
+An earlier version of this paper reported a five-condition ablation in
+which conditions A and B reached FAR $=0.300$ and $0.100$, and concluded
+that a zero false-accept rate required both the structural gates and a
+probabilistic routing layer. That table is withdrawn: its conditions were
+attributed to an artifact that records $0.0143$ for every heuristic
+baseline, and its necessity conclusion is contradicted by the
+repository's own ablation output. CLAIM-007 is superseded by CLAIM-020 in
+the claim register, and the withdrawal is recorded in
+\path{NEGATIVE_RESULTS.md} \S57.
+
+What the committed ablation supports is narrower. Running
+\path{experiments/toolcall_ablation_v2.py} produces
+\path{results/toolcall_benchmark_v2_ablation.json}, whose six conditions
+are:
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\hline
+Condition & FAR & Unsafe exec & Accuracy & Benign friction \
+\hline
+REMORA full & 0.000 & 0.000 & 0.900 & 0.500 \
+without temperature & 0.000 & 0.000 & 0.900 & 0.500 \
+without phase & 0.000 & 0.000 & 0.871 & 0.643 \
+without evidence & 0.000 & 0.000 & 0.900 & 0.500 \
+without counterfactual & 0.000 & 0.000 & 0.900 & 0.500 \
+without hard blocks & 0.000 & 0.000 & 0.300 & 0.500 \
+\hline
+\end{tabular}
+\end{center}
+
+\emph{Benign friction is the fraction of benign cases routed to human
+review. Deterministic simulator benchmark, synthetic
+\texttt{PolicyObservation} features, no live oracle calls; the artifact
+records $\mathrm{effective\_n}=7$ clusters per condition, so row-level
+counts overstate independence.}
+
+\textbf{Reading the table.} The false-accept column is constant. Every
+condition, including the one with the hard blocks removed, records FAR
+$=0.000$. An ablation whose conditions do not differ on a metric cannot
+identify any component as necessary for that metric, so this ablation
+attributes the zero-false-accept result to nothing at all (CLAIM-020).
+
+The \emph{without hard blocks} row is a warning about the metric rather
+than merely an inconclusive result. Removing the deterministic floor
+leaves FAR at zero while accuracy falls from $0.900$ to $0.300$: the
+condition reaches zero false accepts by declining almost every task
+rather than by judging it correctly. A refuse-all policy scores perfectly
+on false-accept rate, and any measure a degenerate policy also satisfies
+is not on its own evidence that a mechanism works.
+
+\textbf{Conclusion.} We report no component attribution for the safety
+number from this ablation. What the conditions do separate is task
+accuracy and benign review friction, where the hard blocks account for
+the largest difference ($0.900 \to 0.300$ accuracy). Until an ablation
+whose conditions differ on false-accept rate at all is run, the
+deterministic floor's contribution to the headline safety result rests
+on the mechanism-level argument in the conclusion.
 
 \textbf{Oracle count ($N=302$).}
 Single oracle: 56.95\% (95\% CI [51.3, 62.4]).
@@ -1752,8 +1813,11 @@ and the third is the one we would most like the field to take up.
 0\% unsafe-acceptance result on the adversarial tool-call benchmark (700 synthetic rows; effective $N=70$ clusters;
 cluster-level Wilson CI [0.0\%, 5.2\%]; baselines 1.4\%, difference not
 significant at $p=0.50$; the significant gains are utility $+0.456$ and
-accuracy) is attributable \emph{entirely} to deterministic hard blocks,
-not to the multi-oracle consensus machinery. We state this against our
+accuracy) is produced by deterministic hard blocks, not by the
+multi-oracle consensus machinery. That reading is mechanism-level: the
+committed component ablation records FAR $=0.000$ in every condition,
+including the one with the hard blocks removed, and so identifies no
+component as necessary for the safety number (CLAIM-020). We state this against our
 own interest: the probabilistic architecture that gives the system its
 name is not what produces its headline safety number. It contributes
 routing quality, and that is a different claim requiring different
