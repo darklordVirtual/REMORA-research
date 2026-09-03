@@ -1,12 +1,27 @@
 # Execution Lifecycle + Crash-Consistent Outbox — Design v1
 
-**Status: DRAFT, for human review.** Every decision in this document is a
-**PROPOSAL**. Nothing described here is implemented; no code in this repo
-mints a `proposal_id`, writes an outbox row, or runs a reconciler today.
-Read "the design does X" as "the design proposes X" throughout. This file
-must be added to `docs/assurance/document_register_v1.yaml` before merge
-(no entry exists yet) with `status: draft`, since a design doc has nothing to
-sync against until something is built from it.
+> **Design snapshot as written, 2026-08-05.** Parts of it have since shipped.
+> Read this file for the reasoning, not for current state.
+
+> The lifecycle model is implemented in `remora/governance/lifecycle.py`, loaded
+> from `schemas/execution_lifecycle_v1.yaml` (FT-01).
+
+> The crash-consistent outbox is `remora/enforcement/outbox.py`, with
+> in-process, SQLite and Postgres adapters (FT-02).
+
+> ARCHITECTURE.md rates both **CORE**. This file is registered as DOC-298.
+
+> Banner added 2026-09-03. It replaces a "nothing described here is
+> implemented" line and an instruction to add a register entry that existed.
+
+> One caveat is still true. An audit on 2026-09-02 found that
+> `chain_append_transactional` (`servers/execution_api.py`) has no production
+> caller, only tests. Do not read this document, or the shipped modules, as
+> evidence that the transactional audit-append path is wired.
+
+**Status of the text below: DRAFT, as originally written.** Every decision in it
+was a **PROPOSAL** at the time. Read "the design does X" as "the design proposes
+X" throughout, and check the modules named in the banner for what was built.
 
 **Source issues:** #37 (bind `DecisionEnvelope` lifecycle to the execution
 path), #82 / F-02 (crash-consistent outbox, production blocker), #36

@@ -83,9 +83,9 @@ cites only `open` sections and that no `open` section is missing a theme.
    the write family; the M4 verbs are now in the inference table; the floor
    never fills unset fields, so fail-closed semantics are untouched). The
    full authority; a signed tool-schema registry on the advisory path
-   (FT-03 ToolSpec) remains open, so this theme stays open; it is also
-   tracked in
-   [remediation_register.yaml](docs/assurance/remediation_register.yaml).
+   (FT-03 ToolSpec) remains open, so this theme stays open; FT-03 is tracked in
+   [fasttrack_register_v1.yaml](docs/assurance/fasttrack_register_v1.yaml),
+   not in the remediation register (pointer corrected 2026-09-03).
 
 <!-- backlog-end -->
 
