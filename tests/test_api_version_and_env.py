@@ -51,9 +51,9 @@ class TestApiVersionMatchesPackage:
 
     def test_health_endpoint_returns_package_version(self):
         """GET /v1/health version field must equal package metadata version."""
+        import servers.api as api_module
         from fastapi.testclient import TestClient
-        from servers.api import app
-        client = TestClient(app)
+        client = TestClient(api_module.app)
         resp = client.get("/v1/health")
         assert resp.status_code == 200
         pkg_version = importlib.metadata.version(_distribution_name())
