@@ -600,6 +600,7 @@ from remora.execution.review_service import (
 )
 from remora.execution.authorization import (
     assessed_record as _authz_assessed_record,
+    assessed_toolspec_for_proposal as _authz_assessed_toolspec_for_proposal,
     load_toolspec_bundle as _authz_load_bundle,
     reset_toolspec_bundle_cache as _reset_toolspec_bundle,  # noqa: F401  (test hook name kept)
     resolve_toolspec as _authz_resolve_toolspec,
@@ -641,6 +642,7 @@ def dispatch_pending_intents(tenant: str, *, worker_id: str) -> list[dict[str, A
             token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
             resolve_toolspec=_resolve_toolspec,
             policy_coverage=_policy_coverage,
+            policy_bundle_hash=_current_policy_bundle_hash,
             rebuild_call=_rebuild_tool_call,
         )
         if result is not None:
@@ -671,6 +673,17 @@ def _resolve_toolspec(
 
 def _assessed_record(tenant: str, item_id: str) -> tuple[str, str]:
     return _authz_assessed_record(_CHAIN, tenant, item_id)
+
+
+def _assessed_toolspec_for_proposal(tenant: str, proposal_id: str) -> str:
+    """The ToolSpec hash recorded at assessment for a direct ACCEPT.
+
+    The review path keys the same lookup on the review item; a direct ACCEPT
+    never produces one, so the grant's canonical proposal identity is the key.
+    Read back from the chain, never from the request, or the comparison would
+    be against a value the caller chose.
+    """
+    return _authz_assessed_toolspec_for_proposal(_CHAIN, tenant, proposal_id)
 
 
 def _record_dispatch_intent(
@@ -1290,6 +1303,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         note_proposal_id=_note_proposal_id,
         token_audience=PEP_AUDIENCE,
         token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
+        policy_bundle_hash=_current_policy_bundle_hash,
     )
     api_mod.record_execution_assess(response["decision"])
 
@@ -1575,6 +1589,7 @@ def execute(req: ExecuteRequest, request: Request) -> "dict[str, Any] | JSONResp
             token_audience=PEP_AUDIENCE,
             token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
             policy_coverage=_policy_coverage,
+            policy_bundle_hash=_current_policy_bundle_hash,
             async_dispatch=async_mode,
         )
     except ToolSpecChanged as exc:
@@ -1656,7 +1671,13 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
             dispatch_under_lease=_dispatch_under_lease,
             lifecycle_guard=_lifecycle_guard,
             note_proposal_id=_note_proposal_id,
+            resolve_toolspec=_resolve_toolspec,
+            assessed_toolspec=_assessed_toolspec_for_proposal,
+            policy_bundle_hash=_current_policy_bundle_hash,
         )
+    except ToolSpecChanged as exc:
+        api_mod.record_execution_execute(executed=False, refusal=exc.reason)
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
     except TokenRefused as exc:
         api_mod.record_execution_execute(executed=False, refusal=exc.refusal)
         raise HTTPException(status_code=409, detail=exc.refusal) from exc

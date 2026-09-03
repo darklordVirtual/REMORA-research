@@ -121,6 +121,17 @@ def _claim_lost_response(
     return response
 
 
+def _policy_bundle_hash(provider: "Callable[[], str] | None") -> str:
+    """The composite policy-bundle hash in force, or "" if none is wired.
+
+    Deliberately not defaulted to a plausible-looking value: an authorization
+    context that could not learn which bundle it was decided under says so,
+    and the empty string is what an unbound field has always meant here.
+    """
+
+    return str(provider() or "") if provider is not None else ""
+
+
 def assess_proposal(
     *,
     tenant: str,
@@ -137,6 +148,7 @@ def assess_proposal(
     note_proposal_id: Callable[[Any], None],
     token_audience: str,
     token_ttl_seconds: int,
+    policy_bundle_hash: Callable[[], str] | None = None,
 ) -> dict[str, Any]:
     """Assess a proposed tool call — nothing executes here.
 
@@ -237,7 +249,10 @@ def assess_proposal(
             expires_at=(now + timedelta(seconds=token_ttl_seconds)).isoformat(),
             audience=token_audience,
             context=authorization_context(
-                tenant=tenant, principal=principal, semantic=semantic
+                tenant=tenant, principal=principal, semantic=semantic,
+                target_environment=proposal.target_environment or "",
+                policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
+                toolspec_hash=str(toolspec_identity["hash"]),
             ),
         )
         record["grant_jti"] = token.jti
@@ -306,6 +321,7 @@ def execute_approved_item(
     token_audience: str,
     token_ttl_seconds: int,
     policy_coverage: Callable[[], dict[str, Any]] | None = None,
+    policy_bundle_hash: Callable[[], str] | None = None,
     async_dispatch: bool = False,
 ) -> dict[str, Any]:
     """Execute a previously approved item under full re-gating.
@@ -440,7 +456,10 @@ def execute_approved_item(
     # after the dispatcher reports what actually happened.
     now = datetime.now(UTC)
     review_context = authorization_context(
-        tenant=tenant, principal=principal, semantic=fresh_semantic
+        tenant=tenant, principal=principal, semantic=fresh_semantic,
+        target_environment=tool_call.target_environment or "",
+        policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
+        toolspec_hash=str(toolspec_identity["hash"]),
     )
     token = PolicyDecisionToken.issue(
         action="accept",
@@ -728,6 +747,7 @@ def dispatch_pending_intent(
     token_ttl_seconds: int,
     resolve_toolspec: Callable[[str, dict[str, Any], str], dict[str, Any]] | None = None,
     policy_coverage: Callable[[], dict[str, Any]] | None = None,
+    policy_bundle_hash: Callable[[], str] | None = None,
     rebuild_call: Callable[[dict[str, Any]], Any] | None = None,
 ) -> dict[str, Any] | None:
     """Dispatch one DISPATCH_PENDING intent from a separate worker (issue #82).
@@ -862,7 +882,10 @@ def dispatch_pending_intent(
     if row.authorization_expires_at is not None:
         token_expiry = min(token_expiry, row.authorization_expires_at)
     honour_context = authorization_context(
-        tenant=tenant, principal=actor, semantic=fresh_semantic
+        tenant=tenant, principal=actor, semantic=fresh_semantic,
+        target_environment=getattr(tool_call, "target_environment", "") or "",
+        policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
+        toolspec_hash=str((toolspec_identity or {}).get("hash", "")),
     )
     token = PolicyDecisionToken.issue(
         action="accept",
@@ -973,21 +996,36 @@ class TokenRefused(RemoraError):
 
 
 def authorization_context(
-    *, tenant: str, principal: str, semantic: dict[str, Any]
+    *,
+    tenant: str,
+    principal: str,
+    semantic: dict[str, Any],
+    target_environment: str,
+    policy_bundle_hash: str,
+    toolspec_hash: str,
 ) -> AuthorizationContext:
     """The conditions a decision is made under, in one place.
 
     Built identically at issuance and at redemption, because the whole point is
     that the two comparisons cannot drift. Three call sites constructing the
     same six fields by hand is how they would (RMR-001).
+
+    Three of the six were read out of the semantic block, which never carries
+    them: ``target_environment`` and ``policy_bundle_hash`` were therefore
+    always the empty string, and ``toolspec_hash`` carried the tool-contract
+    BUNDLE hash rather than the identity of the signed spec the call was
+    decided against. A field bound to "" binds nothing, and the bundle hash
+    moves for reasons that have nothing to do with this tool's spec. They are
+    passed explicitly now, so a caller cannot leave one unbound by omission.
+    The contract-bundle hash keeps its own place in the audit record.
     """
 
     return AuthorizationContext(
         tenant=tenant,
         principal=principal,
-        target_environment=str(semantic.get("target_environment", "")),
-        policy_bundle_hash=str(semantic.get("policy_bundle_hash", "")),
-        toolspec_hash=str(semantic.get("tool_contract_bundle_hash", "")),
+        target_environment=target_environment,
+        policy_bundle_hash=policy_bundle_hash,
+        toolspec_hash=toolspec_hash,
         intent_authority_hash=str(semantic.get("intent_authority_hash", "")),
     )
 
@@ -1007,6 +1045,9 @@ def redeem_accept_token(
     dispatch_under_lease: Callable[..., dict[str, Any]],
     lifecycle_guard: Callable[..., None],
     note_proposal_id: Callable[[Any], None],
+    resolve_toolspec: Callable[[str, dict[str, Any], str], dict[str, Any]] | None = None,
+    assessed_toolspec: Callable[[str, str], str] | None = None,
+    policy_bundle_hash: Callable[[], str] | None = None,
 ) -> dict[str, Any]:
     """Execute a directly-ACCEPTed proposal under its single-use token.
 
@@ -1017,10 +1058,42 @@ def redeem_accept_token(
     (4) governed dispatch under the same lease discipline. Deliberately no
     engine re-run: the token IS the exactly-bound authorization and its
     TTL is the freshness.
+
+    The spec is resolved BEFORE any of that, for the same reason the review
+    path resolves it first: a call whose ToolSpec moved since assessment must
+    be refused without spending the grant. Resolving it late — or, as here,
+    not at all — left the locally minted lease binding an empty spec hash
+    while the dispatcher's resolver reported the live one, so every redemption
+    under a configured bundle refused with ``toolspec_hash_mismatch`` after
+    consumption had already made the token unusable (audit 2026-09-02).
     """
     obs, semantic = build_observation(tool_call, tenant)
     proposal_id = token.request_id or None
     note_proposal_id(proposal_id)
+
+    toolspec_identity: dict[str, Any] | None = None
+    if resolve_toolspec is not None:
+        toolspec_identity = resolve_toolspec(
+            tool_call.tool_name, tool_call.arguments,
+            tool_call.target_environment)
+        toolspec_identity.pop("argument_roles", None)
+        assessed_hash = (
+            assessed_toolspec(tenant, str(proposal_id or ""))
+            if assessed_toolspec is not None else "")
+        if (toolspec_identity["enforced"] and assessed_hash
+                and toolspec_identity["hash"] != assessed_hash):
+            chain.append(tenant, {
+                "event": "execution_toolspec_changed",
+                "proposal_id": proposal_id,
+                "actor": principal,
+                "item_id": f"accept:{token.jti}",
+                "assessed_toolspec_hash": assessed_hash,
+                "current_toolspec_hash": toolspec_identity["hash"],
+            })
+            raise ToolSpecChanged(
+                "toolspec_changed_between_assess_and_dispatch: the spec "
+                "in force is not the one this grant was issued under"
+            )
 
     if token.observation_hash != (obs.tool_call_hash or ""):
         chain.append(tenant, {
@@ -1048,7 +1121,10 @@ def redeem_accept_token(
     # binding above: a token presented under different conditions must not burn
     # the grant for the conditions it actually authorizes.
     current_context = authorization_context(
-        tenant=tenant, principal=principal, semantic=semantic
+        tenant=tenant, principal=principal, semantic=semantic,
+        target_environment=tool_call.target_environment or "",
+        policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
+        toolspec_hash=str((toolspec_identity or {}).get("hash", "")),
     )
     context_check = token.verify(obs.tool_call_hash, context=current_context)
     if not context_check.verified and context_check.reason in {
@@ -1130,6 +1206,7 @@ def redeem_accept_token(
         tool_call=tool_call,
         semantic=semantic,
         now=now,
+        toolspec=toolspec_identity,
         proposal_id=str(proposal_id or token.jti),
         grant_jti=token.jti,
     )

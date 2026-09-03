@@ -96,6 +96,25 @@ def resolve_toolspec(
     }
 
 
+def assessed_toolspec_for_proposal(
+    chain: Any, tenant: str, proposal_id: str
+) -> str:
+    """The ToolSpec hash recorded at assessment for one proposal.
+
+    The direct-ACCEPT path has no review item to key on, so the canonical
+    proposal identity the grant carries is the key. Same discipline as
+    :func:`assessed_record`: read back from the chain, and called BEFORE any
+    execute transaction opens.
+    """
+    if not proposal_id:
+        return ""
+    for entry in chain.entries(tenant):
+        payload = entry.payload
+        if payload.get("event") == "assessed" and                 payload.get("proposal_id") == proposal_id:
+            return str(payload.get("toolspec_hash") or "")
+    return ""
+
+
 def assessed_record(chain: Any, tenant: str, item_id: str) -> tuple[str, str]:
     """The (toolspec_hash, proposal_id) recorded at assessment.
 
