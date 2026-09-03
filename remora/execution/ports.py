@@ -53,6 +53,9 @@ __all__ = [
     "ReviewQueuePort",
     "ToolCallPort",
     "ToolDispatcherPort",
+    "TransactionalAppendPort",
+    "appender",
+    "audit_ref",
 ]
 
 
@@ -109,6 +112,65 @@ class AuditChainPort(Protocol):
     ) -> "ChainEntry | None": ...
 
     def entries(self, tenant_id: str) -> tuple["ChainEntry", ...]: ...
+
+
+class TransactionalAppendPort(Protocol):
+    """Append an audit event, joining the caller's state transaction if open.
+
+    Distinct from ``AuditChainPort.append`` because the return type is the
+    whole point: ``None`` means the event was enqueued on the open transaction
+    and has no chain index yet. The route layer binds this to
+    ``servers.execution_api.chain_append_transactional`` (REM-047).
+    """
+
+    def __call__(
+        self, tenant: str, payload: dict[str, Any], *, key: str
+    ) -> "ChainEntry | None": ...
+
+
+def audit_ref(entry: Any, *, key: str) -> dict[str, Any]:
+    """The response's ``audit`` block, for an entry that may not exist yet.
+
+    Lives here rather than in one of the two service modules because both
+    shape it and neither owns it. A deferred event is reported as deferred:
+    the chain has no index for it, and returning an invented one would make
+    the response the least trustworthy record in the system.
+    """
+
+    if entry is not None:
+        return {
+            "sequence_no": entry.sequence_no,
+            "entry_hash": entry.entry_hash,
+            "deferred": False,
+        }
+    return {
+        "sequence_no": None,
+        "entry_hash": None,
+        "deferred": True,
+        "idempotency_key": key,
+    }
+
+
+def appender(
+    chain: "AuditChainPort",
+    transactional_append: "TransactionalAppendPort | None",
+) -> "TransactionalAppendPort":
+    """The transactional append when the caller wired one, else the plain chain.
+
+    The fallback is not a weakening. A caller that wires no transactional
+    append has no state transaction for the event to join (library and
+    research use, and every test that drives these functions with fakes), so
+    there is nothing for it to be atomic with and the chain append is already
+    the whole write. The route layer always wires the real one.
+    """
+
+    if transactional_append is not None:
+        return transactional_append
+
+    def _direct(tenant: str, payload: dict[str, Any], *, key: str) -> Any:
+        return chain.append(tenant, payload)
+
+    return _direct
 
 
 class EnforcementGatePort(Protocol):

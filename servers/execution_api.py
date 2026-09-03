@@ -1364,6 +1364,7 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
             chain=_CHAIN, authorize_approval=_authorize_approval,
             lifecycle_guard=_lifecycle_guard,
             note_proposal_id=_note_proposal_id,
+            transactional_append=chain_append_transactional,
         )
     except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
@@ -1392,9 +1393,24 @@ def revoke_principal(req: RevokePrincipalRequest, request: Request) -> dict[str,
     api_mod._require_tenant_capability(role, tenant, "review")
     if req.principal == revoker:
         raise HTTPException(status_code=409, detail="a principal cannot revoke themself")
+    # REM-047: the revocation and the record of it commit together. This was
+    # the plainest case of the defect — the revocation committed inside the
+    # transaction and ``principal_revoked`` was appended after it, so a crash
+    # in that window left a principal revoked with nothing saying who did it
+    # or why. The reason is part of the key: a re-revocation carrying a
+    # different reason is a different event, and an identical repeat is the
+    # same one.
+    revocation_key = _audit_outbox.encode_key(
+        tenant, "principal_revoked", req.principal, revoker, req.reason or "")
     try:
         with db_transaction_state(tenant) as q:
             q.revoke_principal(req.principal, reason=req.reason or "")
+            chain_append_transactional(tenant, {
+                "event": "principal_revoked",
+                "principal": req.principal,
+                "revoked_by": revoker,
+                "reason": req.reason or "",
+            }, key=revocation_key)
     except RevocationStoreUnavailable as exc:
         # 503, not 500, and emphatically not a success body. A caller told
         # "revoked" by a route that could not record it would stop chasing a
@@ -1406,12 +1422,6 @@ def revoke_principal(req: RevokePrincipalRequest, request: Request) -> dict[str,
                 "and this call must be retried"
             ),
         ) from exc
-    _CHAIN.append(tenant, {
-        "event": "principal_revoked",
-        "principal": req.principal,
-        "revoked_by": revoker,
-        "reason": req.reason or "",
-    })
     return {"principal": req.principal, "revoked_by": revoker, "status": "revoked"}
 
 
@@ -1596,6 +1606,7 @@ def execute(req: ExecuteRequest, request: Request) -> "dict[str, Any] | JSONResp
             policy_coverage=_policy_coverage,
             policy_bundle_hash=_current_policy_bundle_hash,
             async_dispatch=async_mode,
+            transactional_append=chain_append_transactional,
         )
     except ToolSpecChanged as exc:
         raise HTTPException(status_code=409, detail=exc.reason) from exc
@@ -1796,6 +1807,7 @@ def reject(req: RejectRequest, request: Request) -> dict[str, Any]:
             transaction=db_transaction_state, item_tenant=_ITEM_TENANT,
             chain=_CHAIN, lifecycle_guard=_lifecycle_guard,
             note_proposal_id=_note_proposal_id,
+            transactional_append=chain_append_transactional,
         )
     except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc

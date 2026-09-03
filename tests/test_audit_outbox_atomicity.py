@@ -15,7 +15,9 @@ same event twice.
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
+import uuid
 
 import pytest
 
@@ -168,3 +170,115 @@ def test_the_chain_verifies_after_recovery(conn):
     drain(conn, chain)
     intact, problems = chain.verify(TENANT)
     assert intact is True, problems
+
+
+# ── Drain order is a property, not an accident ────────────────────────────
+#
+# ``pending`` ordered by ``rowid`` on SQLite and by nothing at all on
+# Postgres, so the order events reached the chain was undefined on the only
+# backend production uses. A monotonic sequence column makes the order the
+# same on both.
+
+def test_pending_is_ordered_by_arrival_not_by_key(conn):
+    """Keys deliberately sort against arrival order, so a key sort would show."""
+
+    chain = TenantAuditChain()
+    for item_id in ("zulu", "mike", "alpha"):
+        transition(conn, item_id, "APPROVED")
+
+    assert [row[2]["item_id"] for row in pending(conn)] == ["zulu", "mike", "alpha"]
+    drain(conn, chain)
+    assert [e["item_id"] for e in chain_events(chain)] == ["zulu", "mike", "alpha"]
+
+
+def test_the_sequence_is_monotonic_and_survives_projection(conn):
+    for index in range(3):
+        transition(conn, f"item-{index}", "APPROVED")
+    seqs = [row[0] for row in conn.execute(
+        "SELECT seq FROM audit_outbox ORDER BY seq").fetchall()]
+    assert seqs == sorted(seqs) and len(set(seqs)) == 3
+
+
+def test_a_table_written_before_the_sequence_existed_is_migrated(tmp_path):
+    """The module creates schema on demand; the added column follows the same rule."""
+
+    legacy = sqlite3.connect(tmp_path / "legacy.db")
+    try:
+        legacy.execute(
+            "CREATE TABLE audit_outbox ("
+            "  key TEXT PRIMARY KEY, tenant_id TEXT NOT NULL,"
+            "  payload_json TEXT NOT NULL, projected INTEGER NOT NULL DEFAULT 0)"
+        )
+        legacy.execute(
+            "INSERT INTO audit_outbox (key, tenant_id, payload_json) VALUES (?, ?, ?)",
+            ("old-key", TENANT, json.dumps(event("item-old", "APPROVED"))),
+        )
+        legacy.commit()
+
+        enqueue(legacy, tenant=TENANT, key="new-key", payload=event("item-new", "APPROVED"))
+        legacy.commit()
+        assert [row[0] for row in pending(legacy)] == ["old-key", "new-key"]
+
+        chain = TenantAuditChain()
+        assert drain(legacy, chain) == 2
+        assert [e["item_id"] for e in chain_events(chain)] == ["item-old", "item-new"]
+    finally:
+        legacy.close()
+
+
+def test_drain_refuses_a_connection_inside_an_open_transaction(conn):
+    """``drain`` commits unconditionally, so it must never be handed someone
+    else's open transaction: it would commit writes the caller had not
+    finished making."""
+
+    chain = TenantAuditChain()
+    transition(conn, "item-1", "APPROVED")
+    conn.execute(
+        "INSERT OR REPLACE INTO review_state (item_id, state) VALUES (?, ?)",
+        ("item-2", "PENDING"),
+    )
+    assert conn.in_transaction
+    with pytest.raises(RuntimeError, match="ambient transaction"):
+        drain(conn, chain)
+    conn.rollback()
+    assert chain_events(chain) == []
+
+
+# ── The same order on the backend production actually runs ────────────────
+#
+# Postgres has no rowid, so the old query had no ORDER BY at all there and
+# drain order was whatever the planner returned. Skipped without a server;
+# CI runs a Postgres job.
+
+pg_dsn = pytest.mark.skipif(
+    not os.environ.get("REMORA_PG_DSN", "").strip(),
+    reason="REMORA_PG_DSN not set (ordering on Postgres needs a real Postgres)",
+)
+
+
+@pg_dsn
+def test_postgres_drains_in_arrival_order() -> None:
+    import psycopg
+
+    tenant = f"order-{uuid.uuid4().hex[:8]}"
+    chain = TenantAuditChain()
+    with psycopg.connect(os.environ["REMORA_PG_DSN"]) as writer:
+        for item_id in ("zulu", "mike", "alpha"):
+            enqueue(writer, tenant=tenant, key=encode_key(tenant, item_id),
+                    payload=event(item_id, "APPROVED"))
+        writer.commit()
+
+    with psycopg.connect(os.environ["REMORA_PG_DSN"]) as reader:
+        assert [row[2]["item_id"] for row in pending(reader, tenant=tenant)] == [
+            "zulu", "mike", "alpha"]
+
+    # A connection of its own: drain commits, so it may not be handed one
+    # with a transaction already open.
+    with psycopg.connect(os.environ["REMORA_PG_DSN"]) as drainer:
+        assert drain(drainer, chain, tenant=tenant) == 3
+
+    projected = [
+        entry.payload if isinstance(entry.payload, dict) else json.loads(entry.payload)
+        for entry in chain.entries(tenant)
+    ]
+    assert [e["item_id"] for e in projected] == ["zulu", "mike", "alpha"]
