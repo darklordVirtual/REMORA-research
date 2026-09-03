@@ -12,7 +12,17 @@
 # (docs/09-related-work.md is the narrative companion, this file is the map).
 #
 # maturity vocabulary:
-#   implemented_and_tested - a REMORA module implements the idea, with tests
+#   implemented_and_tested - a REMORA module implements the idea, with tests,
+#     and the module is reachable on a governed path
+#   empirically_evaluated_adaptation - an adaptation of the source construct
+#     whose only quality evidence is empirical (no inherited guarantee)
+#   conceptual_translation_implemented - the governance translation of an idea
+#     is implemented, not the source architecture
+#   library_only - implemented and unit-tested, but NOT wired into any governed
+#     path, so the tests are evidence about the library and never about runtime
+#     behaviour. Added 2026-09-03: RES-007 carried implemented_and_tested while
+#     its own evidence field stated that no governed path populates its signals,
+#     which read as the same assurance level as a line that does run.
 #   reference_design       - documented/exemplified only (no dedicated module)
 #
 # Citation binding (keeps the mapping exact, not merely plausible):
@@ -46,12 +56,13 @@
 # is documented, not invisible.
 
 schema_version: "1"
-updated: "2026-08-24"
+updated: "2026-09-03"
 
 maturity_levels:
   - implemented_and_tested
   - empirically_evaluated_adaptation
   - conceptual_translation_implemented
+  - library_only
   - reference_design
 
 entries:
@@ -113,7 +124,19 @@ entries:
       - tests/test_guardrail.py
       - tests/test_selective_trust_curve.py
       - tests/test_selective_n500.py
-    evidence: "N302 and N500 selective-acceptance experiments; benchmark-scoped selective-trust results with Wilson CIs."
+    evidence: >-
+      Guardrail and risk-coverage behaviour is unit-tested directly
+      (tests/test_guardrail.py). The empirical arm is the N=500 selective
+      acceptance run, whose committed artifact now backs a NEGATIVE result:
+      on the critical-phase subset trust anti-correlates with correctness
+      (CLAIM-005), which is what PhaseAwareGuardrail routes around.
+      tests/test_selective_trust_curve.py is retained as an artifact lock on
+      a SUPERSEDED result, not as evidence for this line: it pins the N=302
+      neg_temperature 94.7%-at-25% figure (CLAIM-008, superseded by
+      CLAIM-013), and the temperature signal it rests on failed its
+      pre-registered fresh-data confirmation (CLAIM-012, "do not cite").
+      The lock exists so that number cannot drift silently; it must not be
+      quoted as a selective-acceptance result.
     maturity: implemented_and_tested
     scope_boundary: "Benchmark-scoped selective trust; no universal out-of-distribution safety guarantee."
     related_work_section: "docs/09-related-work.md §1"
@@ -151,38 +174,75 @@ entries:
       - conformal-risk-2022
       - ltt-2021
 
-  - id: RES-004
-    title: "Multi-oracle consensus and cross-model verification"
+  - id: RES-004a
+    title: "Multi-oracle consensus and aggregation"
     source:
-      citation: "Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents; Zheng et al. (2023), Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena; Cobbe et al. (2021), Training Verifiers to Solve Math Word Problems."
+      citation: "Wang et al. (2023), Self-Consistency Improves Chain-of-Thought Reasoning; Wang et al. (2024), Mixture-of-Agents."
       sections:
         - "cited at remora/cascade/stages.py (self-consistency; single-stage aggregation inspired by MoA, not the multi-layer architecture)"
-        - "cited at remora/verifier/llm_judge.py (LLM-as-judge verifier per Zheng et al. 2023; contrast with Cobbe et al. 2021 trained outcome verifiers)"
     concepts:
       - self_consistency_sampling
-      - verifier_model
       - cross_model_dissensus
       - multi_agent_debate
     controls:
       - multi_oracle_consensus
-      - independent_verifier_gate
     code:
       - remora/cascade/stages.py
-      - remora/verifier/llm_judge.py
       - remora/oracles/diversity.py
     tests:
       - tests/test_moa_synthesizer.py
-      - tests/test_llm_judge.py
       - tests/test_oracle_diversity.py
-    evidence: "Majority, self-consistency, verifier, and REMORA tool-call baselines; consensus combined with evidence, policy, risk, and audit."
+      - tests/test_toolcall_experiment_outputs.py
+      - tests/test_toolcall_benchmark_v2_results.py
+      - tests/test_rem010_llm_baselines.py
+    evidence: >-
+      Synthesizer thresholds and oracle-diversity behaviour are unit-tested.
+      The aggregation baselines the line is compared against (single model,
+      majority vote, self-consistency, verifier, REMORA gate) are pinned by
+      the tool-call benchmark tests, which re-run the experiment and assert
+      the full baseline set is present: tests/test_toolcall_experiment_outputs.py
+      (v1), tests/test_toolcall_benchmark_v2_results.py (adversarial v2) and
+      tests/test_rem010_llm_baselines.py (LLM-backed baselines, REM-010).
+      Consensus is combined with evidence, policy, risk and audit, never used
+      alone.
     maturity: implemented_and_tested
-    scope_boundary: "Consensus is not treated as truth; it is one input among evidence, policy, risk, and audit."
+    scope_boundary: "Consensus is not treated as truth; it is one input among evidence, policy, risk, and audit. Single-stage aggregation only: the multi-layer MoA architecture is not implemented."
     related_work_section: "docs/09-related-work.md §3"
     in_code_citation: true
     citation_anchor: "Wang et al."
     compendium_refs:
       - llm-uq-survey-2023
-    compendium_note: "Weak landscape anchor: the compendium treats cross-model consistency/verification only via the confidence-and-calibration survey (llm-uq-survey-2023); the specific self-consistency and mixture-of-agents sources this line cites are not catalogued there."
+    compendium_note: "Weak landscape anchor: the compendium treats cross-model consistency only via the confidence-and-calibration survey (llm-uq-survey-2023); the specific self-consistency and mixture-of-agents sources this line cites are not catalogued there."
+
+  - id: RES-004b
+    title: "LLM-as-judge cross-model verification"
+    source:
+      citation: "Zheng et al. (2023), Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena; Cobbe et al. (2021), Training Verifiers to Solve Math Word Problems."
+      sections:
+        - "cited at remora/verifier/llm_judge.py (LLM-as-judge verifier per Zheng et al. 2023; contrast with Cobbe et al. 2021 trained outcome verifiers)"
+    concepts:
+      - verifier_model
+      - llm_as_judge
+    controls:
+      - independent_verifier_gate
+    code:
+      - remora/verifier/llm_judge.py
+    tests:
+      - tests/test_llm_judge.py
+      - tests/test_toolcall_experiment_outputs.py
+      - tests/test_toolcall_benchmark_v2_results.py
+    evidence: >-
+      Judge verdict parsing, malformed-JSON handling and refusal behaviour are
+      unit-tested; the verifier baseline it stands against is asserted present
+      in the re-run tool-call benchmark results (v1 and adversarial v2).
+    maturity: implemented_and_tested
+    scope_boundary: "An untrained prompted judge, NOT a trained outcome verifier in the sense of Cobbe et al.; a judge verdict is an input to the gate, never the gate."
+    related_work_section: "docs/09-related-work.md §3"
+    in_code_citation: true
+    citation_anchor: "Zheng"
+    compendium_refs:
+      - llm-uq-survey-2023
+    compendium_note: "Weak landscape anchor: LLM-as-judge verification is catalogued in the compendium only through the confidence-and-calibration survey (llm-uq-survey-2023)."
 
   - id: RES-005
     title: "Tool-use safety and agent guardrails"
@@ -204,7 +264,21 @@ entries:
       - tests/test_remora_toolcall_gate.py
       - tests/test_remora_toolcall_gate_v2.py
       - tests/test_toolcall_scoring.py
-    evidence: "Deterministic tool-call benchmark v1 (ceiling effect, documented), adversarial v2 (effective N=70, cluster-level CIs)."
+      - tests/test_toolcall_benchmark_v2_results.py
+    evidence: >-
+      Gate behaviour on the observable task surface is unit-tested
+      (tests/test_remora_toolcall_gate*.py, tests/test_toolcall_scoring.py);
+      tests/test_toolcall_benchmark_v2_results.py re-runs the adversarial v2
+      evaluation and asserts the baseline set and the direction of the
+      unsafe-execution reduction. The benchmark result itself is CLAIM-001:
+      700 tasks are 70 template clusters x 10 cosmetic variants, and because
+      a deterministic gate decides identically within a template, all CIs and
+      p-values are computed by cluster-level resampling over those 70
+      clusters (results/toolcall_benchmark_v2_significance.json). The 70 is
+      n_template_clusters in that artifact; the per-baseline effective_n
+      field in results/toolcall_benchmark_v2_results.json is a different,
+      smaller quantity and is not this number. v1 is documented as showing a
+      ceiling effect.
     maturity: implemented_and_tested
     scope_boundary: "v2 provides deterministic adversarial evidence, not production proof; live validation is a separate requirement."
     related_work_section: "docs/09-related-work.md §4"
@@ -269,7 +343,7 @@ entries:
       servers/execution_api.py passes trust_score=None and phase=None, and
       build_full_observation leaves the fields at their None defaults, so the
       critical_phase_critical_risk rule cannot fire in production.
-    maturity: implemented_and_tested
+    maturity: library_only
     scope_boundary: >-
       Library-grade only, and the framing is withdrawn from the paper
       (2026-08-07). The physics vocabulary (structural temperature, free
@@ -363,7 +437,19 @@ entries:
       - remora/selective/confidence_sequence.py
     tests:
       - tests/test_confidence_sequence.py
-    evidence: "Used by REM-020 to monitor the operational false-accept rate continuously without inflating the coverage guarantee under optional stopping (peeking); supplementary anytime-valid FAR bound in results/far_confidence_sequence_v1.json (CLAIM-011)."
+    evidence: >-
+      An OFFLINE anytime-valid bound computed over the closed REM-020
+      longitudinal audit series, not a live monitor: k=0 events in n=168
+      adapt cycles gives a time-uniform upper bound of 4.72% on the
+      cycle-level false-accept rate (results/far_confidence_sequence_v1.json,
+      CLAIM-011), produced by scripts/compute_far_confidence_sequence.py.
+      Corrected 2026-09-03: this line and the module docstring previously said
+      the sequence is "used by REM-020 to monitor the operational false-accept
+      rate continuously". Nothing outside tests and that one script imports
+      the module, and REM-020 is a closed audit rather than a running gate,
+      so the continuous-monitoring wording claimed a deployment that does not
+      exist. What the construction buys is that the bound stays valid although
+      the series was inspected repeatedly while it accumulated.
     maturity: implemented_and_tested
     scope_boundary: "A time-uniform Bernoulli-rate bound, distinct from the CRC-inspired empirical selective routing of RES-003; conservative by construction and valid only under the stated Beta-binomial mixture assumptions."
     related_work_section: "docs/09-related-work.md §2"
@@ -413,7 +499,7 @@ entries:
         - "finding: user-authored policies blocked FEWER overreach attempts than either alternative"
       builds_on:
         - "Wu, C. et al. (2026). Safety Does Not Compose: Non-Decaying Loop State for Autonomous LLM Agents. arXiv:2608.27141 (LoopHarness; trajectory-scoped monitors reset each iteration)."
-        - "AGNTCY Identity WG (2026-08-25). Agent Identity, TBAC and A2A task authorization: standing authority today, task binding still open profile work."
+        - "AGNTCY Identity WG (2026-08-25). Agent Identity, TBAC and A2A task authorization: standing authority today, task binding still open profile work. Locator for the working group's published identity specification: https://spec.identity.agntcy.org/docs/intro (checked 2026-09-03; the dated analysis is a working-group document, and the record of it in this repository is docs/design/task-bound-execution-authority-v1.md)."
     concepts:
       - task_bound_authority
       - context_scoped_safety_state
@@ -472,9 +558,11 @@ landscape:
 # ── Bibliography reconciliation ─────────────────────────────────────────────
 # The `entries:` block above maps the research lines REMORA IMPLEMENTS, and its
 # rule is deliberately strict: a line requires real code and tests on disk. The
-# paper cites far more works than that (64 references against 11 lines), which
-# left an unanswered question raised in review 2026-08-07: if a source is not an
-# implemented line, what role does it actually play?
+# paper cites far more works than there are lines, which left an unanswered
+# question raised in review 2026-08-07: if a source is not an implemented line,
+# what role does it actually play? (The counts the rendered view shows are
+# computed by the generator; they were hard-coded here until 2026-09-03 and had
+# drifted from the file they describe.)
 #
 # This block answers it for EVERY reference in paper/remora_paper.md, so "not in
 # the matrix" becomes a stated role rather than an unexplained absence. It is
@@ -494,6 +582,23 @@ landscape:
 #   standard_or_regulation a standard, regulation or third-party tool REMORA
 #                          aligns with or integrates, not a research result
 #
+# implemented_line now also names `code` and is anchor-checked exactly like
+# grounds_implementation and evaluation_source (added 2026-09-03). Until then it
+# was the one code-claiming role the anchor check could not reach, so a work
+# could be declared implemented while nothing tied it to a file.
+#
+# Three further blocks keep the reconciliation honest in the other direction:
+#   code_only            sources in the codebase with no paper reference
+#   related_work_only    works discussed only in docs/09-related-work.md, with
+#                        no code and no paper reference. Before 2026-09-03 these
+#                        were invisible to every check, so the "bidirectional"
+#                        claim above was paper-to-matrix only
+#   code_identifiers     every arXiv/RFC identifier that appears in
+#                        remora/**/*.py, with the files carrying it. The
+#                        generator scans the package and fails on any
+#                        identifier not listed here, so a citation cannot enter
+#                        the code without entering the register
+#
 # Verified by scripts/generate_research_control_matrix.py --check and
 # tests/test_research_control_matrix.py: every paper reference must appear here
 # exactly once, every `entry` must exist, and every `code` path must exist and
@@ -506,14 +611,14 @@ bibliography:
     still be absent from the code; that is the normal case for related work.
   works:
     # ── Implemented research lines ──────────────────────────────────────────
-    - {id: bjru-2026-causal, surname: "Bjøru", year: "2026", isbn: "978-82-353-0022-5", role: implemented_line, entry: RES-001}
-    - {id: pearl-2009-causality, surname: "Pearl", year: "2009", role: implemented_line, entry: RES-001}
-    - {id: angelopoulos-2022-conformal, surname: "Angelopoulos", year: "2022", arxiv: "2208.02814", role: implemented_line, entry: RES-003}
-    - {id: wang-2023a-self, surname: "Wang", year: "2023a", role: implemented_line, entry: RES-004}
-    - {id: zheng-2023-judging, surname: "Zheng", year: "2023", role: implemented_line, entry: RES-004}
-    - {id: cobbe-2021-training, surname: "Cobbe", year: "2021", arxiv: "2110.14168", role: implemented_line, entry: RES-004}
-    - {id: howard-2021-time, surname: "Howard", year: "2021", role: implemented_line, entry: RES-010}
-    - {id: ramdas-2023-game, surname: "Ramdas", year: "2023", role: implemented_line, entry: RES-010}
+    - {id: bjru-2026-causal, surname: "Bjøru", year: "2026", isbn: "978-82-353-0022-5", role: implemented_line, entry: RES-001, code: [remora/causal/schema.py]}
+    - {id: pearl-2009-causality, surname: "Pearl", year: "2009", role: implemented_line, entry: RES-001, code: [remora/causal/attribution.py]}
+    - {id: angelopoulos-2022-conformal, surname: "Angelopoulos", year: "2022", arxiv: "2208.02814", role: implemented_line, entry: RES-003, code: [remora/selective/crc.py]}
+    - {id: wang-2023a-self, surname: "Wang", year: "2023a", role: implemented_line, entry: RES-004a, code: [remora/cascade/stages.py]}
+    - {id: zheng-2023-judging, surname: "Zheng", year: "2023", role: implemented_line, entry: RES-004b, code: [remora/verifier/llm_judge.py]}
+    - {id: cobbe-2021-training, surname: "Cobbe", year: "2021", arxiv: "2110.14168", role: implemented_line, entry: RES-004b, code: [remora/verifier/llm_judge.py]}
+    - {id: howard-2021-time, surname: "Howard", year: "2021", role: implemented_line, entry: RES-010, code: [remora/selective/confidence_sequence.py]}
+    - {id: ramdas-2023-game, surname: "Ramdas", year: "2023", role: implemented_line, entry: RES-010, code: [remora/selective/confidence_sequence.py]}
 
     # ── Grounds a module, but has no dedicated research line ────────────────
     - id: kuhn-2023-semantic
@@ -636,6 +741,7 @@ bibliography:
       surname: "Open"
       year: "2024"
       role: standard_or_regulation
+      url: "https://www.openpolicyagent.org/"
       code: [remora/policy/opa_adapter.py]
       anchor: "OPA"
       note: "OPA/Rego adapter, failing closed to the Python engine."
@@ -663,7 +769,7 @@ bibliography:
     - {id: mohri-2024-language, surname: "Mohri", year: "2024", role: positioning_only, note: "Conformal factuality; pre-empts the general LLM-abstention move."}
     - {id: michael-2026-permission, surname: "Michael", year: "2026", arxiv: "2607.13718", role: positioning_only, note: "Agent-permissions survey; names the open low-burden/formal/deterministic triad REMORA is positioned against. Survey size verified against the arXiv abstract 2026-08-26: '21 proposals for agent permissions systems' - the paper's count."}
     - {id: mu-2024-rule, surname: "Mu", year: "2024", role: positioning_only, note: "Rule-based rewards - safety rules in training, not enforcement."}
-    - {id: raji-2022-outsider, surname: "Raji", year: "2022", arxiv: "2206.04737", role: positioning_only, note: "Audit-ecosystem design; motivates the replay/transparency framing."}
+    - {id: raji-2022-outsider, surname: "Raji", year: "2022", arxiv: "2206.04737", doi: "10.48550/arXiv.2206.04737", role: positioning_only, note: "Audit-ecosystem design; motivates the replay/transparency framing."}
     - {id: qin-2026-airguard, surname: "Qin", year: "2026", arxiv: "2605.28914", role: positioning_only, note: "AIRGuard - authority confusion and action-time authorization; explicit non-claim: predates/parallels REMORA on pre-action checks."}
     - {id: rebedea-2023-nemo, surname: "Rebedea", year: "2023", role: positioning_only, note: "NeMo Guardrails."}
     - {id: rhodes-2026-poe, surname: "Rhodes", year: "2026", arxiv: "2607.05397", role: positioning_only, note: "Proof of Execution - certificate-first execution evidence; REMORA differs by growing evidence out of a deployed enforcement path."}
@@ -672,7 +778,7 @@ bibliography:
     - {id: sharma-2025-constitutional, surname: "Sharma", year: "2025", arxiv: "2501.18837", role: positioning_only, note: "Constitutional classifiers."}
     - {id: shi-2025-progent, surname: "Shi", year: "2025", arxiv: "2504.11703", role: positioning_only, note: "Progent; shelf SHELF-009. Defines the (safety, friction) frontier."}
     - {id: wang-2026-pcaa, surname: "Wang", year: "2026", arxiv: "2606.04104", role: positioning_only, note: "Proof-Carrying Agent Actions - runtime-portable action certificate; REMORA trades portability for exact-call binding to one kernel."}
-    - {id: wang-2023b-lora, surname: "Wang", year: "2023b", arxiv: "2310.00035", role: positioning_only, note: "LoRA ensembles; motivates but does not validate heterogeneous aggregation."}
+    - {id: wang-2023b-lora, surname: "Wang", year: "2023b", arxiv: "2310.00035", doi: "10.48550/arXiv.2310.00035", role: positioning_only, note: "LoRA ensembles; motivates but does not validate heterogeneous aggregation."}
     - {id: wang-2025-agentspec, surname: "Wang", year: "2025", arxiv: "2503.18666", role: positioning_only, note: "AgentSpec - DSL near-isomorphic to REMORA's policy invariants."}
     - {id: xiang-2025-guardagent, surname: "Xiang", year: "2025", role: positioning_only, note: "GuardAgent."}
     - {id: yadkori-2024-mitigating, surname: "Yadkori", year: "2024", arxiv: "2405.01563", role: positioning_only, note: "Conformal abstention for hallucination mitigation."}
@@ -686,6 +792,49 @@ bibliography:
   # Recorded so the reconciliation is bidirectional: a code citation with no
   # paper counterpart is a gap worth seeing rather than hiding.
   code_only:
+    - id: rfc-8785-jcs
+      surname: "IETF"
+      year: "2020"
+      work: "RFC 8785, JSON Canonicalization Scheme (JCS)"
+      role: standard_or_regulation
+      code: [remora/interop/jcs.py, remora/enforcement/runtime_identity.py]
+      anchor: "RFC 8785"
+      note: >-
+        Implemented for wire interoperability only, after the 2026-08-28
+        REMORA x APS conformance feedback. jcs.py states what it does NOT do:
+        it must not replace the internal canonicalisation behind
+        canonical_tool_call_hash, because rewriting those bytes would make the
+        historical audit record unverifiable. runtime_identity.py cites the
+        same RFC to record that it deliberately does not use it.
+    - id: rfc-3161-timestamping
+      surname: "IETF"
+      year: "2001"
+      work: "RFC 3161, Time-Stamp Protocol (TSP)"
+      role: standard_or_regulation
+      code: [remora/audit/hash_chain.py, remora/audit/merkle.py, remora/governance/envelope.py]
+      anchor: "RFC 3161"
+      note: >-
+        Named in the audit modules as an EXTERNAL trust anchor REMORA does not
+        provide: the hash chain detects tampering but cannot prevent it, so a
+        trusted timestamp authority is listed among the deployment-side
+        controls that must be combined with it. Not implemented here.
+    - id: agntcy-identity-wg
+      surname: "AGNTCY"
+      year: "2026"
+      work: "AGNTCY Identity working group: Agent Identity, TBAC and A2A task authorization (2026-08-25 analysis)"
+      role: standard_or_regulation
+      entry: RES-012
+      code: [remora/governance/task_identity.py]
+      anchor: "AGNTCY"
+      url: "https://spec.identity.agntcy.org/docs/intro"
+      note: >-
+        The standards-side source of RES-012, absent from the paper. The url
+        locates the working group's published identity specification (checked
+        2026-09-03); the dated analysis is a working-group document, and the
+        record of it in this repository is
+        docs/design/task-bound-execution-authority-v1.md. REMORA claims no
+        conformance: the profile's proof-of-possession requirement is
+        explicitly open, as RES-012's scope boundary states.
     - id: wang-2024-moa
       surname: "Wang"
       year: "2024"
@@ -738,3 +887,67 @@ bibliography:
         code: RES-008 carries in_code_citation false because REMORA implements
         the governance framing, not the architecture, so the attribution lives
         in docs/09-related-work.md rather than in a module docstring.
+
+  # Works discussed ONLY in the narrative companion docs/09-related-work.md:
+  # no code, no evaluation, and no reference in the paper. Recorded 2026-09-03
+  # after an audit found four such works (the §4a PTC source and the three §4b
+  # comparators) that no register could see, while the header above described
+  # the reconciliation as bidirectional. `section` must name a heading that
+  # exists in the related-work document, and every declared identifier must
+  # appear in that document's own text - the same anti-fabrication rule the
+  # paper's reference lines provide for `works`.
+  related_work_only:
+    - id: patel-2026-bitter-lesson
+      surname: "Patel"
+      year: "2026"
+      work: "The Bitter Lesson of Tool Calling (arXiv:2608.06370)"
+      arxiv: "2608.06370"
+      section: "docs/09-related-work.md §4a"
+      note: >-
+        The PTC source behind the GPTC planning layer (RF-11, SCOPED). It is
+        cited in remora/toolcall/ptc/__init__.py, so it also appears under
+        code_identifiers; it carries no REMORA number, because the ablation
+        that would produce one has not been run.
+    - id: kaptein-2026-policies-on-paths
+      surname: "Kaptein"
+      year: "2026"
+      work: "Runtime Governance for AI Agents: Policies on Paths (arXiv:2603.16586)"
+      arxiv: "2603.16586"
+      section: "docs/09-related-work.md §4b"
+      note: "Path-level comparator. REMORA binds authority per call and claims no trajectory-level enforcement."
+    - id: li-2026-vigil
+      surname: "Li"
+      year: "2026"
+      work: "VIGIL: Runtime Enforcement of Behavioral Specifications in AI Agent Skills (arXiv:2606.26524)"
+      arxiv: "2606.26524"
+      section: "docs/09-related-work.md §4b"
+      note: >-
+        Trace-level comparator. Distinct from the tool-stream injection paper
+        of the same name tracked in research_shelf_v1.yaml.
+    - id: microsoft-2026-agent-governance-toolkit
+      surname: "Microsoft"
+      year: "2026"
+      work: "Agent Governance Toolkit (announced 2026-04-02)"
+      section: "docs/09-related-work.md §4b"
+      note: "Broader-surface comparator; no identifier recorded because the source is a product announcement, not a paper."
+
+  # Reverse scan: every "arXiv:<id>" and "RFC <n>" string that appears anywhere
+  # in remora/**/*.py must be listed here with the files that carry it, and the
+  # generator fails if a file drops one. Added 2026-09-03: until then a citation
+  # could be added to a module without ever reaching this register, which is the
+  # exact drift the forward anchor checks were built to prevent.
+  code_identifiers:
+    - {identifier: "arXiv:2110.14168", work: "Cobbe et al. (2021), Training Verifiers", code: [remora/verifier/llm_judge.py], recorded_as: cobbe-2021-training}
+    - {identifier: "arXiv:2208.02814", work: "Angelopoulos et al. (2022), Conformal risk control", code: [remora/selective/crc.py], recorded_as: angelopoulos-2022-conformal}
+    - {identifier: "arXiv:2312.06942", work: "Greenblatt et al. (2024), AI control", code: [remora/governance/control_protocols.py], recorded_as: greenblatt-2024-control}
+    - {identifier: "arXiv:2407.13692", work: "Kirchner et al. (2024), Prover-verifier games", code: [remora/selective/pvd.py], recorded_as: kirchner-2024-prover}
+    - {identifier: "arXiv:2504.10374", work: "Bhatt et al. (2025), control-protocol interventions", code: [remora/governance/control_protocols.py], note: "Cited beside Greenblatt et al. as the source of the defer-to-trusted / trusted-editing / defer-to-resample strategies the module encodes. Not in the paper and not a matrix line: the module is library-only and flag-gated (RF-04 slice 1)."}
+    - {identifier: "arXiv:2506.02918", work: "Guo et al. (2025), learned post-action state prediction", code: [remora/toolcall/routing/effect_prediction.py], note: "Cited as DELIBERATELY NOT implemented: a model-predicted post-state must never be what establishes SUPPORTED, which the module derives from the declared delta only."}
+    - {identifier: "arXiv:2510.09462", work: "Suspiciousness-suppression pattern and monitor channel separation", code: [remora/governance/control_protocols.py], note: "Cited for the adaptive-attack guard and the agent-visible/audit channel split. No author line is recorded in the module, so none is asserted here."}
+    - {identifier: "arXiv:2605.26047", work: "Monitor channel separation (second source)", code: [remora/governance/control_protocols.py], note: "Cited alongside 2510.09462 for channel separation. No author line is recorded in the module, so none is asserted here."}
+    - {identifier: "arXiv:2608.06370", work: "Patel et al. (2026), The Bitter Lesson of Tool Calling", code: [remora/toolcall/ptc/__init__.py], recorded_as: patel-2026-bitter-lesson}
+    - {identifier: "arXiv:2608.20341", work: "Nguyen & Nguyen (2026), SDAD", code: [remora/governance/spec_intake.py], note: "Source of RES-011; the entry carries it as citation_anchor."}
+    - {identifier: "arXiv:2608.27141", work: "Wu et al. (2026), Safety Does Not Compose", code: [remora/governance/task_identity.py], recorded_as: wu-2026-safety-does-not-compose}
+    - {identifier: "arXiv:2608.27443", work: "Yan (2026), user-authored permission policies", code: [remora/governance/task_identity.py], recorded_as: yan-2026-permission-policies}
+    - {identifier: "RFC 3161", work: "Time-Stamp Protocol", code: [remora/audit/hash_chain.py, remora/audit/merkle.py, remora/governance/envelope.py], recorded_as: rfc-3161-timestamping}
+    - {identifier: "RFC 8785", work: "JSON Canonicalization Scheme", code: [remora/interop/jcs.py, remora/enforcement/runtime_identity.py], recorded_as: rfc-8785-jcs}

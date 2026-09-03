@@ -50,7 +50,7 @@ status in `capability_register_v1.yaml` for how far each one is actually wired.
 
 | Control area | Grade | REMORA evidence / caveat |
 |--------------|-------|--------------------------|
-| Multi-oracle consensus / cross-model verification | ✅ | RES-004 (`remora/cascade/stages.py`, verifier, diversity). |
+| Multi-oracle consensus / cross-model verification | ✅ | RES-004a/RES-004b (`remora/cascade/stages.py`, verifier, diversity). |
 | Governed context flow / memory layers | 🟡 | RES-008 governance framing only; REMORA does not implement the Nested Learning architecture. |
 | The agent itself (planning, tool loop, model) | ⚪ | REMORA governs a proposed action; it does not build or replace the agent. |
 | Mechanistic interpretability | ⚪ | `landscape.not_implemented`: model-internal feature/circuit analysis is out of scope; RES-001 is post-hoc *policy* causality. |
