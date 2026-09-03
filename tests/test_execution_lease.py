@@ -406,6 +406,66 @@ def test_replay_after_tool_failure_names_the_failed_execution() -> None:
     assert replay.refusal_reason == "nonce_consumed_by_failed_execution"
 
 
+def test_the_durable_path_also_names_the_failed_execution(tmp_path) -> None:
+    """The same distinction on the path a deployment actually runs.
+
+    ``fail_consume`` is recorded in the in-process ledger on both paths, but
+    the durable branch never consulted ``failure()``, so the refusal that
+    tells an operator "the previous attempt ran and its outcome is unknown"
+    was reachable only for a deployment with no durable nonce store. That is
+    backwards: the deployments with a durable store are the ones where the
+    retry arrives at a different worker.
+    """
+    from remora.enforcement.nonce_store import DurableNonceStore
+
+    lease = _issue()
+    store = DurableNonceStore(db_path=str(tmp_path / "nonces.sqlite3"))
+    dispatcher = GovernedToolDispatcher(
+        expected_policy_bundle_hash=BUNDLE, nonce_store=store
+    )
+
+    def exploding(arguments: dict) -> str:
+        raise RuntimeError("plc timeout")
+
+    dispatcher.register(TOOL, exploding)
+    with pytest.raises(RuntimeError):
+        dispatcher.dispatch(lease, TOOL, ARGS, tenant_id=TENANT,
+                            target_environment=TARGET, now=ISSUED_AT,
+                            actor_identity=ACTOR)
+
+    replay = dispatcher.dispatch(lease, TOOL, ARGS, tenant_id=TENANT,
+                                 target_environment=TARGET, now=ISSUED_AT,
+                                 actor_identity=ACTOR)
+    assert replay.executed is False
+    assert replay.refusal_reason == "nonce_consumed_by_failed_execution"
+
+
+def test_the_durable_path_still_reports_a_plain_replay_as_one(tmp_path) -> None:
+    """The narrower reason must not swallow the ordinary case.
+
+    A nonce spent by a SUCCESSFUL execution is a plain replay, and saying
+    the previous attempt failed would send an operator looking for damage
+    that is not there.
+    """
+    from remora.enforcement.nonce_store import DurableNonceStore
+
+    lease = _issue()
+    store = DurableNonceStore(db_path=str(tmp_path / "nonces.sqlite3"))
+    dispatcher = GovernedToolDispatcher(
+        expected_policy_bundle_hash=BUNDLE, nonce_store=store
+    )
+    dispatcher.register(TOOL, lambda arguments: "ok")
+
+    assert dispatcher.dispatch(
+        lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET,
+        now=ISSUED_AT, actor_identity=ACTOR).executed is True
+
+    replay = dispatcher.dispatch(lease, TOOL, ARGS, tenant_id=TENANT,
+                                 target_environment=TARGET, now=ISSUED_AT,
+                                 actor_identity=ACTOR)
+    assert replay.refusal_reason == "nonce_already_consumed"
+
+
 def test_nonce_ledger_is_atomic_single_use() -> None:
     ledger = NonceLedger()
     assert ledger.consume("n-1") is True

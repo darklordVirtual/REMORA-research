@@ -784,20 +784,28 @@ def _queue(tenant: str) -> ReviewQueue:
 def _revocation_store() -> RevocationStore | None:
     """The durable revocation store when this deployment has one.
 
-    Same two switches as every other execution store, and the strict runtime
-    profile already requires one of them (``validate_runtime_profile_
-    prerequisites``). Returning None hands the queue its in-process default,
-    which is correct for the research profile and is the configuration whose
-    limitation is recorded in the store's module docstring: a revocation
-    that reaches one worker and does not survive a restart.
+    Reads the same three switches as the durability guard in servers/api.py,
+    and the strict runtime profile already requires one of them
+    (``validate_runtime_profile_prerequisites``). It read only two of them
+    until the D1 deployment was audited: that deployment is admitted on
+    REMORA_STATE_ENDPOINT alone, so it passed the guard, kept the jti and
+    lease-nonce ledgers durable, and silently held revoked principals in a
+    per-process dict while the chain still recorded ``principal_revoked``.
+
+    Returning None hands the queue its in-process default, which is correct
+    for the research profile and is the configuration whose limitation is
+    recorded in the store's module docstring: a revocation that reaches one
+    worker and does not survive a restart.
     """
     dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
     db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
-    if not (dsn or db_path):
+    endpoint = _os.environ.get("REMORA_STATE_ENDPOINT", "").strip()
+    if not (dsn or db_path or endpoint):
         return None
     return DurableRevocationStore(
         dsn=dsn,
         db_path=db_path,
+        state_endpoint=endpoint,
         # The re-gate reads this store from inside the review-state
         # transaction. A second connection to the same SQLite file would
         # block on the writer already holding it, so the store joins that

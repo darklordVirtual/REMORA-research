@@ -777,14 +777,29 @@ class GovernedToolDispatcher:
                     proposal_id=proposal_id,
                 )
             if not consumed:
+                # Same distinction the in-process branch draws below. The
+                # burn is recorded in the in-process ledger on BOTH paths,
+                # and this branch did not read it, so the refusal that says
+                # "the previous attempt ran and its outcome is unknown" was
+                # reachable only where no durable store was configured. The
+                # ledger answers for this process only, so a retry landing
+                # on another worker still reads nonce_already_consumed; that
+                # is a weaker answer, not a wrong one.
+                failure = getattr(self._ledger, "failure", lambda _n: None)(
+                    lease.nonce)
+                reason = (
+                    "nonce_consumed_by_failed_execution"
+                    if failure is not None
+                    else "nonce_already_consumed"
+                )
                 governance_event(
                     "dispatch.refused", level=logging.WARNING,
-                    reason="nonce_already_consumed", tenant_id=tenant_id,
+                    reason=reason, tenant_id=tenant_id,
                     tool_name=tool_name, proposal_id=proposal_id,
                     grant_jti=lease.grant_jti,
                 )
                 return DispatchResult(
-                    executed=False, refusal_reason="nonce_already_consumed",
+                    executed=False, refusal_reason=reason,
                     proposal_id=proposal_id,
                 )
         elif not self._ledger.consume(lease.nonce):

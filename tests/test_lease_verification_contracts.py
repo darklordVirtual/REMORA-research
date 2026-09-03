@@ -188,20 +188,24 @@ def test_a_raising_tool_burns_the_nonce_on_the_durable_path():
         "the nonce must stay spent after a tool raised")
 
 
-def test_the_failed_execution_reason_is_lost_on_the_durable_path():
-    """A known asymmetry between the two nonce backends, pinned deliberately.
+def test_the_failed_execution_reason_is_lost_ACROSS_WORKERS():
+    """The narrowed remainder of an asymmetry that used to be total.
 
-    With the in-process NonceLedger, a retry after a raising tool is refused as
-    `nonce_consumed_by_failed_execution` -- which tells the caller the previous
-    attempt may have had an effect. With a durable NonceStore, the burn reason
-    is recorded in the in-process ledger while the CONSUMPTION lives in the
-    store, so the retry is refused as a plain `nonce_already_consumed` and the
-    state-unknown signal does not survive a container replacement.
+    With the in-process NonceLedger, a retry after a raising tool is refused
+    as `nonce_consumed_by_failed_execution`, which tells the caller the
+    previous attempt may have had an effect. The durable branch records the
+    burn reason in the in-process ledger, exactly as the other branch does,
+    and used not to read it back, so that signal was unreachable for every
+    deployment that configured a durable store. It is read back now, so the
+    same worker gives the same answer on both backends.
 
-    Both refuse, so this is not a safety gap: no double execution occurs either
-    way. It is a diagnosability gap, and it is recorded here rather than left
-    to be discovered during an incident. Carrying the burn reason into the
-    durable store would fix it and is not done in this change.
+    What is still asymmetric is the part that lives in memory. The
+    CONSUMPTION is in the store and the burn REASON is not, so a retry that
+    lands on a replacement container reads a plain `nonce_already_consumed`.
+    Both refuse, so this is not a safety gap: no double execution occurs
+    either way. It is a diagnosability gap, recorded here rather than left to
+    be discovered during an incident. Carrying the burn reason into the
+    durable store would close it and is not done in this change.
     """
     store = InMemoryNonceStore()
     dispatcher = GovernedToolDispatcher(
@@ -214,12 +218,22 @@ def test_the_failed_execution_reason_is_lost_on_the_durable_path():
         dispatcher.dispatch(lease, actor_identity="agent-1",
                             now=ISSUED.isoformat(), **CALL)
 
-    retry = dispatcher.dispatch(lease, actor_identity="agent-1",
-                                now=ISSUED.isoformat(), **CALL)
+    same_worker = dispatcher.dispatch(lease, actor_identity="agent-1",
+                                      now=ISSUED.isoformat(), **CALL)
+    assert same_worker.executed is False
+    assert same_worker.refusal_reason == "nonce_consumed_by_failed_execution"
+
+    # A replacement container: the shared store, a fresh in-process ledger.
+    replacement = GovernedToolDispatcher(
+        expected_policy_bundle_hash="b1", nonce_store=store)
+    replacement.register("wo_close", lambda _a: "unreached")
+
+    retry = replacement.dispatch(lease, actor_identity="agent-1",
+                                 now=ISSUED.isoformat(), **CALL)
     assert retry.executed is False
     assert retry.refusal_reason == "nonce_already_consumed", (
-        "documented asymmetry: the durable path reports a plain replay, not "
-        "nonce_consumed_by_failed_execution"
+        "remaining asymmetry: the burn reason is in-process, so another "
+        "worker reports a plain replay"
     )
 
 

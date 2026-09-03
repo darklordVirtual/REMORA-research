@@ -310,7 +310,7 @@ Ranked by whether evidence supports acting now.
 | Gap | Status at HEAD | Action this pass |
 |---|---|---|
 | PDP signing key held by the executing container | confirmed, `index.ts:76-77` | **ADR-A, implemented** |
-| `ExecutionLease` nonce ledger is in-process | confirmed, `lease.py:387-398`, self-documented, REM-025 | **ADR-B, implemented** |
+| `ExecutionLease` nonce ledger is per-process by default | confirmed, `lease.py::NonceLedger`, self-documented; tracked by REM-024, not REM-025 (audit integrity) | **ADR-B, implemented**: `DurableNonceStore` is wired at `servers/execution_api.py::_lease_nonce_store`; activation on any deployment is unclaimed |
 | F2 / runtime identity unbound | confirmed | ADR-D, **implemented 2026-08-30** |
 | Trajectory provenance not persisted; caller authoritative for taint | confirmed | ADR-C, **not implemented** |
 | External audit anchoring absent | confirmed, already correctly scoped by REMORA | ADR-E, **not implemented** |

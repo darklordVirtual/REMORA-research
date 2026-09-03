@@ -265,3 +265,81 @@ def test_no_durable_backend_leaves_the_in_process_ledger(monkeypatch):
     for name in ("REMORA_PG_DSN", "REMORA_CHAIN_DB", "REMORA_STATE_ENDPOINT"):
         monkeypatch.delenv(name, raising=False)
     assert execution_api._lease_nonce_store() is None
+
+
+# ── the outer handler must not classify connect/DDL failures ───────────────
+
+
+class TestOnlyTheInsertCanMeanAlreadyConsumed:
+    """A store that cannot be opened has not told us the nonce was spent.
+
+    ``try_consume`` returning False means one thing: the row was already
+    there, so this grant is a replay. The outer handler applied the same
+    message sniff to failures from ``_connect`` and ``_ensure_table``, where
+    it cannot mean that. An I/O error whose text happened to mention a key
+    or a constraint returned False, and the dispatcher refuses a False as
+    ``nonce_already_consumed`` and never retries: an unspent grant destroyed
+    by a transient fault, which is precisely the outcome the fail-closed
+    comment in that handler says it exists to prevent.
+    """
+
+    def _store(self, tmp_path):
+        return DurableNonceStore(db_path=str(tmp_path / "nonces.sqlite3"))
+
+    def test_a_connect_failure_mentioning_a_key_raises(self, tmp_path,
+                                                       monkeypatch):
+        store = self._store(tmp_path)
+
+        def boom():
+            raise OSError(
+                "could not reach the primary key-value volume: "
+                "unique host unavailable"
+            )
+
+        monkeypatch.setattr(store, "_connect", boom)
+
+        with pytest.raises(NonceStoreUnavailable):
+            store.try_consume("n-1", tenant_id="acme")
+
+    def test_a_schema_failure_mentioning_a_constraint_raises(self, tmp_path,
+                                                             monkeypatch):
+        store = self._store(tmp_path)
+
+        def boom(_conn):
+            raise sqlite3.OperationalError(
+                "CREATE TABLE failed: UNIQUE index already exists")
+
+        monkeypatch.setattr(store, "_ensure_table", boom)
+
+        with pytest.raises(NonceStoreUnavailable):
+            store.try_consume("n-1", tenant_id="acme")
+
+    def test_the_grant_is_not_burned_by_the_outage(self, tmp_path,
+                                                   monkeypatch):
+        """The consequence, not just the exception type.
+
+        After the fault clears, the same nonce must still be spendable. A
+        False would have made the dispatcher refuse it forever.
+        """
+        store = self._store(tmp_path)
+        real = store._connect
+        monkeypatch.setattr(
+            store, "_connect",
+            lambda: (_ for _ in ()).throw(
+                OSError("duplicate key route to the volume")),
+        )
+
+        with pytest.raises(NonceStoreUnavailable):
+            store.try_consume("n-1", tenant_id="acme")
+
+        monkeypatch.setattr(store, "_connect", real)
+        assert store.try_consume("n-1", tenant_id="acme") is True
+
+    def test_a_real_duplicate_insert_still_returns_false(self, tmp_path):
+        """The narrowing must not cost the property it protects."""
+        store = self._store(tmp_path)
+        assert store.try_consume("n-1", tenant_id="acme") is True
+        assert store.try_consume("n-1", tenant_id="acme") is False
+
+        restarted = DurableNonceStore(db_path=store._db_path)
+        assert restarted.try_consume("n-1", tenant_id="acme") is False

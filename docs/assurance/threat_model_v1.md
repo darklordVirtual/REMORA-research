@@ -232,7 +232,7 @@ doc (`docs/08-security.md`) document an `rag-oracle` worker with endpoints:
 | CORS wildcard | CSRF risk for browser callers | Restrict to allowlist before browser-facing deploy |
 | HF_TOKEN in Python heredoc in CI workflow | Secret may appear in runner logs if Python prints it | Rewrite step to pass token via environment variable, not string interpolation |
 | No expiry on the API *bearer* token (the `PolicyDecisionToken` gap is closed: `token.py:verify()` rejects a token with no `expires_at` as `missing_expiry`, and `issue()` applies a default TTL) | A leaked bearer token stays valid until the operator removes it and restarts | Add bearer-token expiry and hot revocation |
-| Lease nonce ledger is in-process (REM-025) | Replay semantics change across multiple API replicas | Durable multi-process nonce ledger |
+| Lease nonce ledger is per-process by default | Replay semantics change across multiple API replicas when no durable backend is configured | Configure one. `DurableNonceStore` (`remora/enforcement/nonce_store.py`) exists and is wired at `servers/execution_api.py::_lease_nonce_store` on `REMORA_PG_DSN`, `REMORA_CHAIN_DB` or `REMORA_STATE_ENDPOINT`; activation on any particular deployment is unclaimed. The tracking item is REM-024, not REM-025, which is audit integrity |
 
 ### Medium gaps (documented, accepted for research phase)
 
