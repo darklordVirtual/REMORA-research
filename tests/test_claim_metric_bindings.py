@@ -13,6 +13,7 @@ cannot fail on the case that motivated it is not a gate.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -78,7 +79,8 @@ def test_the_withdrawn_claim_would_turn_the_gate_red():
                     "path": (
                         "results/toolcall_benchmark_v2_results.json"
                         "#baselines.single_model_heuristic.false_accept_rate"
-                    )
+                    ),
+                    "path_rationale": "far is the false-accept rate.",
                 }
             },
             "caveat": "Fixture for the RMR-007 counterexample test.",
@@ -188,3 +190,144 @@ def test_every_active_numeric_metric_is_accounted_for():
         bindings = claim.get("metric_bindings") or {}
         missing = numeric - set(bindings)
         assert not missing, f"{claim['id']} publishes unaccounted numbers: {sorted(missing)}"
+
+
+def _fixture_claim(claim_id: str, metrics: dict, bindings: dict) -> dict:
+    return {
+        "id": claim_id,
+        "title": "fixture",
+        "statement": "fixture",
+        "evidence_level": "internal_benchmark",
+        "status": "active",
+        "artifact": ["results/toolcall_benchmark_v2_results.json"],
+        "n": 1,
+        "n_detail": "fixture",
+        "metrics": metrics,
+        "metric_bindings": bindings,
+        "caveat": "fixture",
+        "reproduce": "not applicable",
+    }
+
+
+def run_with_claim(claim: dict):
+    data = register_dict()
+    data["claims"].append(claim)
+    return run_gate(register_text=yaml.safe_dump(data, sort_keys=False, allow_unicode=True))
+
+
+FULL_GATE_FAR = (
+    "results/toolcall_benchmark_v2_results.json"
+    "#baselines.remora_full_policy_gate.false_accept_rate"
+)
+
+
+def test_two_metrics_of_one_claim_may_not_share_a_path():
+    """One field cannot be the evidence for two different quantities."""
+
+    result = run_with_claim(
+        _fixture_claim(
+            "CLAIM-904",
+            {"false_accept_rate_a": 0.0, "false_accept_rate_b": 0.0},
+            {
+                "false_accept_rate_a": {"path": FULL_GATE_FAR},
+                "false_accept_rate_b": {"path": FULL_GATE_FAR},
+            },
+        )
+    )
+    assert result.returncode == 1
+    assert "cannot be the evidence for two different numbers" in result.stdout
+
+
+def test_a_path_that_does_not_name_the_metric_fails_without_a_rationale():
+    """The right number at the wrong path is a coincidence, not provenance."""
+
+    result = run_with_claim(
+        _fixture_claim(
+            "CLAIM-905",
+            {"benign_review_friction": 0.0},
+            {"benign_review_friction": {"path": FULL_GATE_FAR}},
+        )
+    )
+    assert result.returncode == 1
+    assert "shares no word with the metric name" in result.stdout
+
+
+def test_a_stated_path_rationale_admits_a_mismatched_name():
+    result = run_with_claim(
+        _fixture_claim(
+            "CLAIM-906",
+            {"far_pct": 0.0},
+            {
+                "far_pct": {
+                    "path": FULL_GATE_FAR,
+                    "scale": 100,
+                    "path_rationale": "FAR is the false-accept rate.",
+                }
+            },
+        )
+    )
+    assert result.returncode == 0, result.stdout
+
+
+def test_a_rounded_claim_must_round_to_the_artifact_value():
+    """1.4% is 10/700 published to one decimal; 1.5% is not."""
+
+    binding = {
+        "path": (
+            "results/toolcall_benchmark_v2_results.json"
+            "#baselines.single_model_heuristic.false_accept_rate"
+        ),
+        "scale": 100,
+        "rounded_to": 1,
+        "path_rationale": "FAR is the false-accept rate.",
+    }
+    ok = run_with_claim(_fixture_claim("CLAIM-907", {"far_pct": 1.4}, {"far_pct": binding}))
+    assert ok.returncode == 0, ok.stdout
+
+    bad = run_with_claim(_fixture_claim("CLAIM-908", {"far_pct": 1.5}, {"far_pct": binding}))
+    assert bad.returncode == 1
+    assert "rounds to" in bad.stdout
+
+
+def test_the_audited_bindings_point_at_the_field_they_name():
+    """Regression: bindings that hit the right number at the wrong path."""
+
+    claims = {claim["id"]: claim for claim in register_dict()["claims"]}
+
+    bindings = claims["CLAIM-001"]["metric_bindings"]
+    assert bindings["far_pct"]["path"].endswith(
+        "#baselines.remora_full_policy_gate.false_accept_rate"
+    )
+    assert bindings["n_effective"]["path"].endswith("#n_template_clusters")
+    assert bindings["baseline_far_pct"]["path"].endswith(
+        "#baselines.single_model_heuristic.false_accept_rate"
+    )
+
+    bindings = claims["CLAIM-014"]["metric_bindings"]
+    for name in ("read_utility_without_validators", "read_utility_with_validators"):
+        assert bindings[name]["path"].endswith("#validator_study." + name)
+    assert bindings["corrupt_accept_rate"]["path"].endswith(
+        "#validator_study.targets.corrupt_id_accept_after_resolver.value"
+    )
+
+    bindings = claims["CLAIM-019"]["metric_bindings"]
+    assert bindings["wrong_call_accept_pct"]["path"].endswith(
+        "#targets.known_wrong_call_accept.value"
+    )
+    assert bindings["required_unknown_accept_pct"]["path"].endswith(
+        "#targets.required_unknown_auto_accept.value"
+    )
+
+
+def test_a_superseded_claim_names_only_the_claim_that_superseded_it():
+    for claim in register_dict()["claims"]:
+        target = claim.get("superseded_by")
+        if not target:
+            continue
+        mentioned = set(
+            re.findall(r"CLAIM-\d+", f"{claim.get('title', '')} {claim.get('statement', '')}")
+        )
+        assert mentioned <= {target}, (
+            f"{claim['id']} is superseded by {target} but its prose points at "
+            f"{sorted(mentioned - {target})}"
+        )

@@ -22,7 +22,7 @@ diffed in CI.
 | **CLAIM-007** | Five-condition component ablation: REMORA full gate dominates | [CLAIM-020](claim_register_v1.yaml) — Component ablation has no discriminating power on false-accept rate | see below |
 | **CLAIM-008** | Selective trust curve (N=302): 94.7% accuracy at 25% coverage | [CLAIM-013](claim_register_v1.yaml) — Calibrated confidence methods on fresh data: significant aggregation win; marginal per-arm certificates only | see below |
 | **CLAIM-015** | Superseded BFCL v3 development measurement | [CLAIM-019](claim_register_v1.yaml) — Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed | see below |
-| **CLAIM-016** | Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018 | [CLAIM-019](claim_register_v1.yaml) — Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed | see below |
+| **CLAIM-016** | Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-019 | [CLAIM-019](claim_register_v1.yaml) — Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed | see below |
 | **CLAIM-018** | Disjoint sealed BFCL v4 confirmation: all five pre-registered routing targets met | [CLAIM-019](claim_register_v1.yaml) — Sealed C-ext3: semantic authority eliminates native wrong-tool acceptance; four of seven targets missed | see below |
 
 ---
@@ -69,13 +69,13 @@ diffed in CI.
 
 **Evidence level when archived:** `internal_benchmark`
 
-**Statement.** Historical post-hoc measurements on the spent BFCL v3 set are superseded by the sealed BFCL v4 result in CLAIM-018.
+**Statement.** Historical post-hoc measurements on the spent BFCL v3 set are superseded by the sealed BFCL v4 result in CLAIM-019.
 
 **Caveat.** Do not cite or reproduce the spent-set development figures as current evidence. The active external result is CLAIM-019.
 
 **Artifacts (still on disk).** `NEGATIVE_RESULTS.md`
 
-## CLAIM-016 — Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-018
+## CLAIM-016 — Sealed BFCL v3 negative record: four of five targets met; superseded by CLAIM-019
 
 **Superseded by:** CLAIM-019
 
