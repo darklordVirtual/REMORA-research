@@ -43,8 +43,15 @@ items:
     completed: "2026-06-28"
     artifacts:
       - remora/policy/decision_engine.py
-      - tests/test_decision_monotonicity.py
-    notes: "M3a: EXECUTE < VERIFY < ABSTAIN < ESCALATE enforced in engine."
+      - tests/test_opa_parity.py
+    notes: >
+      M3a: EXECUTE < VERIFY < ABSTAIN < ESCALATE enforced in engine.
+      POINTER CORRECTED 2026-09-03: this entry cited
+      tests/test_decision_monotonicity.py, which does not exist in this
+      repository and has no commit history here. The monotonicity floor is
+      covered by tests/test_opa_parity.py (hard_guard_floor over every
+      hard-guard signal, "an OPA result can never downgrade below the
+      engine's floor"). The result is unchanged; only the pointer was wrong.
 
   - id: REM-004
     section: "§0"
@@ -234,11 +241,22 @@ items:
     release_blocker: true
     artifacts:
       - results/false_accept_regression_v1.json
-      - scripts/run_false_accept_regression.py
-      - tests/test_false_accept_regression.py
     notes: >
       Closed 2026-06-29. Final result: n=167, blocked=167, FAR=0.0%, gate=PASS.
-      All 11 regression_gate pytest tests pass.
+      EVIDENCE FORM (pointer corrected 2026-09-03, same pattern as CLAIM-002):
+        IMPORTED HISTORICAL RESULT. The producing script and its gate tests
+        (run_false_accept_regression.py, test_false_accept_regression.py) live
+        in the REMORA main implementation repository and were never committed
+        here; this entry previously cited them as if they were. It also claimed
+        "All 11 regression_gate pytest tests pass" — no regression_gate pytest
+        marker exists in this repository (pyproject registers rem014_gate,
+        opa_gate, docgate, slow, live, live_replay_heavy), so that count cannot
+        be checked from here and has been removed rather than restated.
+        The committed evidence in this repository is
+        results/false_accept_regression_v1.json alone. CI's "Verify zero
+        false-accept rate" job reads the stored false_accept_rate field of that
+        artifact and asserts it is 0.0; the job says so explicitly and is a
+        regression tripwire for a frozen snapshot, NOT a reproduction.
       Corpus: 167 episodes from WARMUP/LEARNING phase in AROMER D1
       (decision_quality='false_accept', corpus_excluded!=1).
       2 episodes excluded as corpus artifacts (corpus_excluded=1 set in D1 meta):
@@ -326,6 +344,9 @@ items:
       All P0 blockers are DONE as of 2026-06-29 (REM-014, REM-019).
       Remaining: REM-020/021/022 (P3, production deployment gates).
       (UPDATE 2026-07-30: REM-020 and REM-022 are DONE; only REM-021 remains.)
+      (CORRECTION 2026-09-03: two gates remain. REM-023, the follow-through on
+      REM-022's closure deviation, is IN_PROGRESS, and release_profiles_v1.yaml
+      requires REM-020/021/022/023 for CONTROLLED_PILOT.)
 
   - id: REM-020
     section: "§12"
@@ -341,7 +362,9 @@ items:
         by REVERTING to the original pre-registered 7-day definition (created
         2026-06-29; the 2026-06-30 "0.43d/7d" elevation row evidences it
         predates the 30-day variant of 2026-07-02) — not by lowering a target
-        post hoc. Closed by scripts/close_rem020.py --close (fail-closed):
+        post hoc. Closed by close_rem020.py --close (fail-closed; the closure
+        tool lives in the REMORA main implementation repository and is not
+        committed here — pointer corrected 2026-09-03):
         days_elapsed=19 of 7 required, n_operational_fa=0, AII=0.9914,
         artifact status=PASS.
       EVIDENCE FORM: the committed artifact attests the live worker's day
@@ -358,7 +381,7 @@ items:
         tooling briefly encoded a 30-day definition (2026-07-02); the conflict
         was recorded 2026-07-17 and resolved by owner decision the same day.
       Artifact: results/longitudinal_stability_v1.json, regenerated 2026-07-17
-        by scripts/run_longitudinal_stability.py (main repo). AII EMA
+        by run_longitudinal_stability.py (main repo; not committed here). AII EMA
         [0.9890, 0.9914], FAR=0.0%, 0 cycles below TRAINED in available history.
         Worker retains ~168 adapt cycles (~0.58 days), so the artifact documents
         the observable window only.
