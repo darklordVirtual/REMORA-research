@@ -116,7 +116,12 @@ def _mint_token(client, call=None, principal="agent-1"):
         expires_at=(now + timedelta(seconds=300)).isoformat(),
         audience=exec_mod.PEP_AUDIENCE,
         context=authorization_context(
-            tenant="acme", principal=principal, semantic=semantic
+            tenant="acme", principal=principal, semantic=semantic,
+            target_environment=payload.get("target_environment", "") or "",
+            policy_bundle_hash=exec_mod._current_policy_bundle_hash(),
+            toolspec_hash=str(exec_mod._resolve_toolspec(
+                payload["tool_name"], payload["arguments"],
+                payload.get("target_environment", "") or "")["hash"]),
         ),
     )
     return token.to_dict()

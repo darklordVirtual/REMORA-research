@@ -57,17 +57,30 @@ def client_and_mod(monkeypatch, tmp_path):
 
 
 def mint(exec_mod, *, principal: str, call: dict, tenant: str = "acme",
-         semantic_override: dict | None = None):
-    """Mint an ACCEPT token the way the assess ACCEPT branch does."""
+         context_override: dict | None = None):
+    """Mint an ACCEPT token the way the assess ACCEPT branch does.
+
+    ``context_override`` stands in for a condition that has since moved: the
+    token was issued under it, the redemption recomputes the current one.
+    """
+
+    import dataclasses
 
     from remora.enforcement.token import PolicyDecisionToken
     from remora.execution.service import authorization_context
 
-    _obs, semantic = exec_mod._observation_with_context(
-        exec_mod.ToolCallRequest(**call), tenant
+    tool_call = exec_mod.ToolCallRequest(**call)
+    _obs, semantic = exec_mod._observation_with_context(tool_call, tenant)
+    context = authorization_context(
+        tenant=tenant, principal=principal, semantic=semantic,
+        target_environment=tool_call.target_environment or "",
+        policy_bundle_hash=exec_mod._current_policy_bundle_hash(),
+        toolspec_hash=str(exec_mod._resolve_toolspec(
+            tool_call.tool_name, tool_call.arguments,
+            tool_call.target_environment)["hash"]),
     )
-    if semantic_override:
-        semantic = {**semantic, **semantic_override}
+    if context_override:
+        context = dataclasses.replace(context, **context_override)
     now = datetime.now(UTC)
     token = PolicyDecisionToken.issue(
         action="accept",
@@ -78,9 +91,7 @@ def mint(exec_mod, *, principal: str, call: dict, tenant: str = "acme",
         issued_at=now.isoformat(),
         expires_at=(now + timedelta(seconds=300)).isoformat(),
         audience=exec_mod.PEP_AUDIENCE,
-        context=authorization_context(
-            tenant=tenant, principal=principal, semantic=semantic
-        ),
+        context=context,
     )
     return token.to_dict()
 
@@ -208,7 +219,7 @@ class TestRedemption:
             exec_mod,
             principal="agent-1",
             call=call,
-            semantic_override={"policy_bundle_hash": "a-bundle-that-is-no-longer-current"},
+            context_override={"policy_bundle_hash": "a-bundle-that-is-no-longer-current"},
         )
         result = client.post(
             "/v1/execution/execute-accepted",
@@ -224,7 +235,7 @@ class TestRedemption:
             exec_mod,
             principal="agent-1",
             call=call,
-            semantic_override={"tool_contract_bundle_hash": "a-spec-that-was-redeployed"},
+            context_override={"toolspec_hash": "a-spec-that-was-redeployed"},
         )
         result = client.post(
             "/v1/execution/execute-accepted",
