@@ -102,6 +102,17 @@ class TestClassTwoStrings:
     def test_only_the_required_escapes_are_used(self, raw, expected):
         assert canonicalise(raw).decode() == expected
 
+    def test_a_lone_surrogate_is_refused(self):
+        """A lone surrogate cannot be encoded as UTF-8.
+
+        It passed through unescaped and the final ``.encode("utf-8")`` raised
+        UnicodeEncodeError, which is not the refusal class callers catch.
+        """
+
+        for value in ("\ud800", "\udfff", {"k": "\ud800"}):
+            with pytest.raises(NotCanonicalisable):
+                canonicalise(value)
+
     def test_delete_is_not_escaped(self):
         """0x7f is not a JSON control character, so it stays literal."""
 
@@ -123,6 +134,16 @@ class TestClassThreeKeyOrder:
 
     def test_ordinary_keys_are_unaffected(self):
         assert canonicalise({"b": 1, "a": 2, "C": 3}).decode() == '{"C":3,"a":2,"b":1}'
+
+    def test_a_lone_surrogate_member_name_is_refused(self):
+        """A surrogate has no UTF-8 form, so the sort key encoding raised.
+
+        The member name reaches ``_sort_key`` before anything else looks at it,
+        and its UTF-16 encoding raised UnicodeEncodeError.
+        """
+
+        with pytest.raises(NotCanonicalisable):
+            canonicalise({"\ud800": 1})
 
     def test_a_non_string_member_name_is_refused(self):
         with pytest.raises(NotCanonicalisable, match="not a string"):
@@ -177,6 +198,18 @@ class TestClassFourDeclined:
             assert aliases_another_integer(value) is True
             with pytest.raises(NotCanonicalisable):
                 canonicalise({"value": value})
+
+    def test_an_integer_too_long_to_print_is_refused_not_left_unprintable(self):
+        """The refusal message itself must not be what fails.
+
+        CPython caps int-to-str conversion at 4300 digits, so formatting the
+        offending value into the refusal text raised ValueError before the
+        NotCanonicalisable it was meant to carry. Same class as issue #510: a
+        caller catching NotCanonicalisable saw something else.
+        """
+
+        with pytest.raises(NotCanonicalisable):
+            canonicalise({"value": 10**5000})
 
     def test_the_reason_two_integers_would_share_canonical_bytes(self):
         """Why refusing beats rounding, stated as an executable fact.

@@ -143,8 +143,13 @@ def es_number(value: float | int) -> str:
 
     if isinstance(value, int):
         if aliases_another_integer(value):
+            # Name the value by its magnitude rather than its digits: CPython
+            # refuses to convert an integer of more than 4300 digits to a
+            # string, so formatting {value} here raised ValueError and the
+            # refusal never reached the caller.
             raise NotCanonicalisable(
-                f"integer {value} shares its binary64 representation with a "
+                f"an integer of {value.bit_length()} bits shares its binary64 "
+                f"representation with a "
                 f"neighbouring integer. RFC 8785 would serialise it as that "
                 f"double, so the canonical bytes would no longer identify which "
                 f"integer produced them. Refusing rather than emitting an "
@@ -183,6 +188,29 @@ def es_number(value: float | int) -> str:
     return f"{mantissa}e{sign}{abs(power)}"
 
 
+def _reject_surrogates(value: str, what: str) -> None:
+    """Refuse a string carrying an unpaired surrogate code point.
+
+    Python's ``str`` can hold code points in 0xD800-0xDFFF, which Unicode
+    reserves for UTF-16 surrogate pairs and which no UTF-8 or UTF-16 encoder
+    will emit. Such a string usually arrives from a decoder run with
+    ``surrogatepass`` or ``surrogateescape``, and it has no canonical form.
+
+    Both encoders in this module would otherwise raise UnicodeEncodeError: the
+    UTF-16 sort key in :func:`_sort_key`, and the final UTF-8 encode in
+    :func:`canonicalise`, one step removed from the string that caused it. The
+    check happens here so the caller learns which value it was and gets the
+    refusal class it catches everywhere else.
+    """
+
+    for char in value:
+        if 0xD800 <= ord(char) <= 0xDFFF:
+            raise NotCanonicalisable(
+                f"{what} contains the unpaired surrogate U+{ord(char):04X}, "
+                f"which has no UTF-8 encoding and therefore no canonical form"
+            )
+
+
 def _string(value: str) -> str:
     """Escape only what RFC 8785 requires; emit everything else as UTF-8.
 
@@ -191,6 +219,7 @@ def _string(value: str) -> str:
     character itself.
     """
 
+    _reject_surrogates(value, "string")
     out = ['"']
     for char in value:
         escape = _ESCAPES.get(char)
@@ -213,6 +242,7 @@ def _sort_key(key: str) -> bytes:
     by code point puts it after them instead.
     """
 
+    _reject_surrogates(key, "object member name")
     return key.encode("utf-16-be")
 
 
