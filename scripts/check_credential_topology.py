@@ -38,6 +38,7 @@ credential topology and claims nothing wider.
 """
 from __future__ import annotations
 
+import argparse
 import ast
 import re
 import sys
@@ -47,6 +48,16 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTER = ROOT / "docs" / "assurance" / "credential_topology.yaml"
+
+#: Relative location of the register under whichever root is scanned.
+REGISTER_REL = Path("docs") / "assurance" / "credential_topology.yaml"
+
+
+def set_root(root: Path) -> None:
+    """Point the gate at another tree (``--root``, and the meta-tests)."""
+    global ROOT, REGISTER
+    ROOT = root.resolve()
+    REGISTER = ROOT / REGISTER_REL
 
 #: A name matching this is treated as secret-bearing and MUST be declared.
 #: Widening it is safe (more declarations); narrowing it is a weakening of
@@ -84,14 +95,90 @@ def _module_consts(tree: ast.Module) -> dict[str, str]:
     return out
 
 
-def _is_environ_call(node: ast.Call) -> bool:
+def _environ_bindings(tree: ast.Module) -> tuple[set[str], set[str]]:
+    """Names bound to ``os.environ`` and to ``os.getenv`` in this module.
+
+    Before 2026-09 the scanner recognised only the attribute spellings
+    (``os.getenv(...)``, ``<x>.environ.get(...)``), so ``from os import
+    environ`` followed by ``environ.get("REMORA_SIGNING_KEY")`` was an
+    invisible read of a secret. Resolving the import aliases closes that
+    hole; it can only widen what the gate sees.
+    """
+    environ_names: set[str] = {"environ"}
+    getenv_names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module == "os":
+            for alias in node.names:
+                if alias.name == "environ":
+                    environ_names.add(alias.asname or alias.name)
+                elif alias.name == "getenv":
+                    getenv_names.add(alias.asname or alias.name)
+        elif isinstance(node, ast.Assign):
+            value = node.value
+            is_environ = (
+                isinstance(value, ast.Attribute) and value.attr == "environ"
+            ) or (isinstance(value, ast.Name) and value.id in environ_names)
+            if is_environ:
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        environ_names.add(target.id)
+    return environ_names, getenv_names
+
+
+def _injected_environ_args(tree: ast.Module) -> dict[str, set[str]]:
+    """Function parameters named ``environ``: the mapping is caller-supplied.
+
+    A dependency-injected mapping is opaque to a static scan by
+    construction: this scanner cannot know whether the caller passes
+    ``os.environ`` or a fixture. Reads through such a parameter are
+    therefore reported as dynamic read sites, which must be declared with a
+    reason, rather than being silently resolved or silently missed.
+    """
+    out: dict[str, set[str]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            args = node.args
+            names = {
+                a.arg
+                for a in (
+                    *args.posonlyargs,
+                    *args.args,
+                    *args.kwonlyargs,
+                    *([args.vararg] if args.vararg else []),
+                    *([args.kwarg] if args.kwarg else []),
+                )
+                if a.arg == "environ"
+            }
+            if names:
+                out.setdefault(node.name, set()).update(names)
+    return out
+
+
+def _is_environ_call(
+    node: ast.Call,
+    environ_names: frozenset[str] = frozenset({"environ"}),
+    getenv_names: frozenset[str] = frozenset(),
+) -> bool:
     func = node.func
+    if isinstance(func, ast.Name):
+        return func.id in getenv_names
     if not isinstance(func, ast.Attribute):
         return False
     if func.attr == "getenv":
         return True
-    if func.attr == "get" and isinstance(func.value, ast.Attribute):
-        return func.value.attr == "environ"
+    if func.attr == "get":
+        if isinstance(func.value, ast.Attribute):
+            return func.value.attr == "environ"
+        if isinstance(func.value, ast.Name):
+            return func.value.id in environ_names
+    return False
+
+
+def _is_environ_target(node: ast.expr, environ_names: set[str]) -> bool:
+    if isinstance(node, ast.Attribute):
+        return node.attr == "environ"
+    if isinstance(node, ast.Name):
+        return node.id in environ_names
     return False
 
 
@@ -106,30 +193,50 @@ def scan_env_reads(path: Path) -> tuple[dict[str, set[str]], list[str]]:
     found: dict[str, set[str]] = {}
     dynamic: list[str] = []
 
+    environ_names, getenv_names = _environ_bindings(tree)
+    injected = _injected_environ_args(tree)
+    # A parameter named ``environ`` shadows any module-level binding inside
+    # its function, and the mapping it carries is unknown to this scan.
+    injected_names = {n for names in injected.values() for n in names}
+
     def record(name: str) -> None:
         found.setdefault(name, set()).add(rel)
 
+    def read(node: ast.AST, key: ast.expr | None, opaque: bool) -> None:
+        if opaque:
+            # The key is statically visible, so the credential is still
+            # declarable and still subject to the drift check; what is
+            # opaque is WHICH mapping the caller passed in. Both facts are
+            # recorded: the reader, and the opacity of the site.
+            dynamic.append(f"{rel}:{node.lineno}")  # type: ignore[attr-defined]
+        if isinstance(key, ast.Constant) and isinstance(key.value, str):
+            record(key.value)
+        elif isinstance(key, ast.Name) and key.id in consts:
+            record(consts[key.id])
+        elif not opaque:
+            dynamic.append(f"{rel}:{node.lineno}")  # type: ignore[attr-defined]
+
     for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and _is_environ_call(node):
+        if isinstance(node, ast.Call) and _is_environ_call(
+            node, frozenset(environ_names), frozenset(getenv_names)
+        ):
             if not node.args:
                 continue
-            arg = node.args[0]
-            if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
-                record(arg.value)
-            elif isinstance(arg, ast.Name) and arg.id in consts:
-                record(consts[arg.id])
-            else:
-                dynamic.append(f"{rel}:{node.lineno}")
-        elif isinstance(node, ast.Subscript):
-            value = node.value
-            if isinstance(value, ast.Attribute) and value.attr == "environ":
-                if isinstance(node.slice, ast.Constant) and isinstance(
-                    node.slice.value, str
-                ):
-                    record(node.slice.value)
-                else:
-                    dynamic.append(f"{rel}:{node.lineno}")
-    return found, dynamic
+            opaque = (
+                isinstance(node.func, ast.Attribute)
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id in injected_names
+            )
+            read(node, node.args[0], opaque)
+        elif isinstance(node, ast.Subscript) and _is_environ_target(
+            node.value, environ_names | injected_names
+        ):
+            opaque = (
+                isinstance(node.value, ast.Name)
+                and node.value.id in injected_names
+            )
+            read(node, node.slice, opaque)
+    return found, sorted(set(dynamic))
 
 
 _IMPORT_MODULE = re.compile(
@@ -277,7 +384,18 @@ def check(register: dict) -> list[str]:
     return failures
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=None,
+        help="scan this tree instead of the repository root",
+    )
+    args = parser.parse_args(argv)
+    if args.root is not None:
+        set_root(args.root)
+
     if not REGISTER.exists():
         print(f"[FAIL] credential topology: missing {_rel(REGISTER)}", file=sys.stderr)
         return 1

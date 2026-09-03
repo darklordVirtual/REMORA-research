@@ -13,19 +13,33 @@ locked dependency set first) and compares the found vulnerability IDs against
 - ``{"bootstrap": true}`` in the baseline makes the gate print the full
   generated baseline and exit 0 with a loud warning — used exactly once to
   capture the initial known set from CI, then replaced with the real data.
+  It is REFUSED on a pull request or a push (2026-09-03): as an unguarded
+  escape hatch it turned the whole gate off in one line, in the same commit
+  that introduced whatever it was hiding.
+
+Because the accepted set lives in the branch, a pull request could also
+accept a new vulnerability by adding its id to the baseline in the same
+commit. In CI the accepted set is therefore taken from ``origin/master``:
+widening it is a change to the base branch, made and reviewed on its own,
+not a side effect of the change that needs it.
 
 The baseline is the machine-readable record that the listed vulnerabilities
 are KNOWN and tracked, never silently accepted.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _baseline_ratchet import base_blob, is_gated_ci, skip_note  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE_PATH = ROOT / ".github" / "pip_audit_baseline.json"
+BASELINE_REL = ".github/pip_audit_baseline.json"
+BASELINE_PATH = ROOT / BASELINE_REL
 
 
 def run_audit() -> dict[str, list[str]]:
@@ -48,16 +62,38 @@ def run_audit() -> dict[str, list[str]]:
     return found
 
 
-def main() -> int:
-    found = run_audit()
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="pip-audit baseline gate")
+    parser.add_argument(
+        "--root", type=Path, default=None,
+        help="use this tree's baseline instead of the repository's",
+    )
+    parser.add_argument(
+        "--skip-audit", action="store_true",
+        help="do not run pip-audit; check baseline hygiene only",
+    )
+    args = parser.parse_args(argv)
+
+    global ROOT, BASELINE_PATH
+    if args.root is not None:
+        ROOT = args.root.resolve()
+        BASELINE_PATH = ROOT / BASELINE_REL
+
+    found: dict[str, list[str]] = {} if args.skip_audit else run_audit()
 
     if not BASELINE_PATH.exists():
-        print("[FAIL] missing .github/pip_audit_baseline.json — generated baseline:")
+        print("[FAIL] missing .github/pip_audit_baseline.json - generated baseline:")
         print(json.dumps({"packages": found}, indent=2, sort_keys=True))
         return 1
 
     baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
     if baseline.get("bootstrap"):
+        if is_gated_ci():
+            print("[FAIL] the pip-audit baseline is in BOOTSTRAP mode, which "
+                  "disables this gate entirely. Bootstrap is refused on a "
+                  "pull request or a push: commit the real baseline.",
+                  file=sys.stderr)
+            return 1
         print("[WARN] pip-audit baseline is in BOOTSTRAP mode: known set below "
               "is NOT yet gated. Commit it as the real baseline.")
         print(json.dumps({"packages": found}, indent=2, sort_keys=True))
@@ -65,6 +101,38 @@ def main() -> int:
 
     known: dict[str, list[str]] = baseline.get("packages", {})
     known_ids = {i for ids in known.values() for i in ids}
+
+    # In CI the accepted set is the base branch's, so this pull request
+    # cannot accept a vulnerability by adding its id to its own baseline.
+    blob = base_blob(BASELINE_REL, ROOT)
+    if blob is None:
+        print(skip_note(BASELINE_REL))
+        if is_gated_ci():
+            print("[FAIL] cannot read the base baseline in CI", file=sys.stderr)
+            return 1
+    else:
+        try:
+            base = json.loads(blob)
+        except json.JSONDecodeError:
+            base = {}
+        if base.get("bootstrap") and is_gated_ci():
+            print("[FAIL] the base branch's pip-audit baseline is in bootstrap "
+                  "mode; this gate has never been armed.", file=sys.stderr)
+            return 1
+        base_ids = {i for ids in base.get("packages", {}).values() for i in ids}
+        widened = sorted(known_ids - base_ids)
+        if widened:
+            print("[FAIL] this branch accepts vulnerability id(s) that "
+                  f"origin/master does not: {', '.join(widened)}. Widening the "
+                  "accepted set is a change to the base branch, reviewed on "
+                  "its own.", file=sys.stderr)
+            return 1
+        known_ids = base_ids
+
+    if args.skip_audit:
+        print("[OK]   pip-audit baseline hygiene checked (audit skipped)")
+        return 0
+
     found_ids = {i for ids in found.values() for i in ids}
 
     new = sorted(found_ids - known_ids)
