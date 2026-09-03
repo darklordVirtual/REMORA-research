@@ -288,6 +288,14 @@ jobs:
         # the distinction possible; the two settings must move together.
         run: python scripts/check_capability_freshness.py --strict
 
+      - name: Capability bindings are reachable from this commit
+        # The freshness gate asks whether the cited sources changed. It cannot
+        # ask whether verified_at_sha still exists anywhere but the machine
+        # running it, and a local clone keeps the objects of a branch that was
+        # rebased or squash-merged. So a binding that left the repository passes
+        # for the author and fails here. This gate names it before that happens.
+        run: python scripts/check_capability_sha_reachable.py --ref HEAD
+
       - name: Capability semantics (register vs runtime wiring)
         # Issue #84 residual 2: a structurally valid register must not claim
         # a surface is wired when the runtime path is absent or weaker.
