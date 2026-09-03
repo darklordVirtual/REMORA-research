@@ -4,6 +4,8 @@
   "upload_type": "software",
   "license": "BUSL-1.1",
   "access_right": "open",
+  "version": "0.11.0",
+  "publication_date": "2026-08-25",
   "creators": [
     {
       "name": "Skogbrott, Stian"

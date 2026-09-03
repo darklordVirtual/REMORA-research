@@ -1,7 +1,7 @@
 # REMORA Reproducibility Scorecard v1
 
 **Date:** 2026-06-30 (original audit baseline, commit `2cd573d6a7c98e87c1781fd599469d9d46e132e2`)
-**Revised:** 2026-07-20 (see Revision note below)
+**Revised:** 2026-07-20, 2026-09-02 (see Revision notes below)
 **Python runtime:** 3.14.0 (local development); CI matrix: 3.11, 3.12, 3.13, 3.14 (3.11 added 2026-08-26 so the `requires-python >=3.11` contract is tested, not asserted)
 **Auditor:** Agent C (CI, reproducibility, supply chain, artifact integrity)
 
@@ -13,7 +13,18 @@
 > `ci.yml` scope (OPA conformance + zero-false-accept gates), workflow
 > supply-chain hardening (all action refs SHA-pinned, OPA binary
 > SHA-256-verified, telemetry moved off master), and test-suite status.
-> Still open and unchanged: no `uv.lock`, no SBOM, no Docker digest pinning.
+> Still open and unchanged: no `uv.lock` and no Docker digest pinning.
+>
+> **Revision note (2026-09-02):** this pass corrects stale release-hygiene
+> text after the post-`v0.11.0` supply-chain and release workflow work. The
+> repository now generates CycloneDX SBOMs in CI from the committed lockfiles:
+> Python, the frontend, and all five deployable Workers. `release.yml` also
+> exists for future tags and can attach a Python SBOM, SHA256SUMS, and Sigstore
+> attestations to the release built from that exact tag. The frozen `v0.11.0`
+> release predates that workflow, so its GitHub release carries the wheel,
+> sdist, and SHA256SUMS assets, but not workflow-generated attestations or a
+> release-uploaded SBOM. Still open and unchanged: no `uv.lock`, no Docker
+> digest pinning, no Zenodo DOI yet, and no ORCID recorded in `CITATION.cff`.
 
 ---
 
@@ -22,14 +33,14 @@
 | Dimension | Score | Status |
 |-----------|-------|--------|
 | CI coverage | Partial → Remediated | Existing `quality-gates.yml`; new `ci.yml` added |
-| Lockfile / dependency pinning | Partial → Enforced (2026-07-20) | `requirements-lock.txt` enforced as pip constraints in CI; still no `uv.lock` or SBOM |
+| Lockfile / dependency pinning | Partial → Enforced (2026-07-20) | `requirements-lock.txt` enforced as pip constraints in CI; still no `uv.lock` |
 | Supply-chain pinning | Remediated (2026-07-20); re-verified (2026-08-26) | All workflow action refs SHA-pinned and enforced by `scripts/check_action_pins.py` in CI (external review 2026-08-26 found 6 floating refs in codeql/mutation/supply-chain workflows that had drifted after the 2026-07-20 remediation); OPA binary SHA-256-verified; third-party scripts ref-pinned |
 | Artifact provenance | Good | Result JSON files carry commit hash, timestamp, protocol fields |
 | Claim–artifact traceability | Good | `remediation_register.yaml` maps each claim to artifacts |
 | Test suite reproducibility | Good | Fully deterministic; no network, no API keys for `make test` |
 | Secret hygiene | Good | No secrets in committed files; `.gitignore` covers `.env`, `*.key` |
 | CI secret isolation | Good | Secrets-requiring workflows are `workflow_dispatch` only |
-| SBOM / Docker digests | Missing | Not yet generated (acknowledged in REM-015) |
+| SBOM / Docker digests | Partial | CycloneDX SBOMs are generated in CI from the committed Python/frontend/Worker lockfiles; Docker image digests are still not pinned |
 
 ---
 
@@ -39,7 +50,7 @@
 
 | Workflow | Trigger | Requires Secrets | Purpose |
 |----------|---------|-----------------|---------|
-| `quality-gates.yml` | push/PR to main | No | Lint, pytest with coverage, claim checks, frontend build |
+| `quality-gates.yml` | push/PR to master | No | Lint, pytest with coverage, claim checks, frontend build |
 | `shadow-replay-smoke.yml` | push/PR | No | Shadow replay on bundled demo log |
 | `compile-paper.yml` | push (paper paths) | No (uses GITHUB_TOKEN) | LaTeX → PDF |
 | `agentharm-experiment.yml` | `workflow_dispatch` | Yes (HF_TOKEN, CF keys) | External AgentHarm benchmark |
@@ -48,13 +59,13 @@
 | `deploy-aromer-worker.yml` | dispatch | Yes | CF Worker deployment |
 | `deploy-frontend.yml` | dispatch | Yes | CF Pages deployment |
 | `sync-papers-to-r2.yml` | dispatch | Yes | R2 storage sync |
-| `release.yml` | tag `v*.*.*` + dispatch | No (GITHUB_TOKEN, OIDC id-token) | Wheel/sdist built from the tagged commit, CycloneDX SBOM, SHA256SUMS, Sigstore build-provenance + SBOM attestations (public transparency log), self-verified with `gh attestation verify`, assets uploaded to the tag's release. Added 2026-08-26 for #390; supersedes the GPG-signed-tag criterion. v0.11.0 predates it and remains unattested. |
+| `release.yml` | tag `v*.*.*` + dispatch | No (GITHUB_TOKEN, OIDC id-token) | Wheel/sdist built from the tagged commit, CycloneDX SBOM, SHA256SUMS, Sigstore build-provenance + SBOM attestations (public transparency log), self-verified with `gh attestation verify`, assets uploaded to the tag's release. Added after `v0.11.0` for #390; future tags can carry this attested release bundle. |
 | `update-aromer-status.yml` | cron (6 h) + dispatch | No (GITHUB_TOKEN) | AROMER telemetry → dedicated `telemetry` branch, never master (workflow reworked 2026-07-20; the branch is created by its first post-merge run) |
 | **`ci.yml`** | **every push/PR** | **No** | **Deterministic tests (3.11/3.12/3.13/3.14), zero-false-accept gate, mandatory OPA/Rego conformance (checksum-verified binary), lockfile + artifact integrity** |
 
 ### Gap filled by `ci.yml`
 
-`quality-gates.yml` ran on push to `main` and on pull requests, but only against `main`. Branch pushes on non-main branches were not covered. `ci.yml` runs `pytest tests/` on every push to every branch, plus a lockfile check and artifact-integrity check. No secrets required.
+`quality-gates.yml` ran on push to `master` and on pull requests, but only against `master`. Branch pushes on non-master branches were not covered. `ci.yml` runs `pytest tests/` on every push to every branch, plus a lockfile check and artifact-integrity check. No secrets required.
 
 ---
 
@@ -65,7 +76,7 @@
 - `requirements-lock.txt`: committed, 269 lines, generated by `pip freeze`. Re-encoded to plain ASCII (2026-07-20 revision; the original UTF-16 LE encoding issue is resolved). Since 2026-07-20 it is enforced in CI as a pip constraints file (`-c`), so every CI install resolves to exactly these versions.
 - `pyproject.toml`: all runtime dependencies are declared as optional extras (`[llm]`, `[dev]`, etc.). The core `dependencies = []` entry means `pip install remora` installs nothing: all runtime deps are opt-in. This is intentional for a research library.
 - **`uv.lock`**, not present. REM-015 explicitly notes this as out of scope for research-grade reproducibility.
-- **SPDX/CycloneDX SBOM**, not present.
+- **SPDX/CycloneDX SBOMs**, generated as workflow artifacts rather than committed files: `supply-chain.yml` emits Python, frontend, and Worker SBOMs on every guarded branch/PR run; `release.yml` can attach a Python SBOM to future tagged releases.
 - **Docker image digests**, not pinned in `Dockerfile` or `docker-compose.yml`.
 
 ### Risk
@@ -117,7 +128,7 @@ Gaps: `thermodynamic_eval_n500_calibrated_results.json` (349 KB, 2026-06-09) doe
 
 ## 5. Test Suite Reproducibility
 
-- **3,500+ tests collected** (2026-07-20 revision; the exact commit-bound count, pass/skip/deselect split, and environment live in the `test-attestation.json` produced by the `Review Attestation` workflow on each `review-*` tag; see `artifacts/credibility-pack/ATTESTATION.md`; it is regenerated per commit, not committed).
+- The exact commit-bound test count, pass/skip/deselect split, and environment live in the `test-attestation.json` produced by the `Review Attestation` workflow on each `review-*` tag; see `artifacts/credibility-pack/ATTESTATION.md`. It is regenerated per commit and not committed.
 - **`make test`** (`pytest tests/ -q`) requires no API keys, no network access.
 - Determinism: random seeds are pinned (`seed=42`) in all benchmark scripts.
 - **`live` and `live_replay_heavy` markers** gate network-dependent tests; excluded by default in `pyproject.toml` `addopts`.
@@ -141,13 +152,13 @@ Gaps: `thermodynamic_eval_n500_calibrated_results.json` (349 KB, 2026-06-09) doe
 
 5. **Add artifact checksums to CI.** The `artifact_manifest_v1.md` in this directory provides a baseline. A CI step that verifies checksums of the immutable historical artifacts (those not regenerated on each run) would catch accidental mutations.
 
-6. **Generate a minimal SBOM** using `pip-licenses` or `cyclonedx-bom` for the `[dev]` extra. This is low effort and satisfies external review requirements.
+6. **Attach the release-provenance bundle to the next frozen tag** using `release.yml`, then update `CITATION.cff` with the Zenodo DOI once the archive exists.
 
 7. **Pin base Docker image by digest** in `artifacts/docker/Dockerfile` (e.g., `python:3.12-slim@sha256:...`).
 
 ### P3: Low priority (research-grade, future work)
 
-8. Full SPDX/CycloneDX SBOM with transitive dependency tree (out of scope per REM-015).
+8. Commit or externally retain a reviewer-stable pointer to the generated SBOM artifacts if release consumers need them without browsing CI artifacts.
 9. HSM/KMS for `REMORA_PDP_SIGNING_KEY` (out of scope per REM-022).
 
 ---

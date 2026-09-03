@@ -83,18 +83,26 @@ def test_the_matrix_names_nothing_that_does_not_exist():
     assert not stale, f"audited directories that do not exist: {sorted(stale)}"
 
 
-def test_the_gateway_sbom_is_generated():
-    """The SBOM covered the Python package and the frontend, and no worker.
-
-    Only the gateway is added here. The other four workers remain uncovered
-    and this test deliberately does not assert otherwise -- claiming complete
-    worker coverage while generating one of five is the kind of prose this
-    repository keeps having to retract.
-    """
+def test_every_shipped_worker_sbom_is_generated() -> None:
+    """Every deployable Worker should appear in the SBOM upload set."""
     text = WORKFLOW.read_text(encoding="utf-8")
-    assert "sbom-mcp-gateway.cdx.json" in text
+    for name in (
+        "sbom-mcp-gateway.cdx.json",
+        "sbom-worker-agent-control.cdx.json",
+        "sbom-worker-aromer.cdx.json",
+        "sbom-worker-law-search.cdx.json",
+        "sbom-worker-rag-oracle.cdx.json",
+    ):
+        assert name in text
     # Generated AND uploaded. Generating it and dropping it on the floor would
     # pass a substring check on the filename alone.
     upload = text.split("Upload SBOM artifacts", 1)
     assert len(upload) == 2, "the upload step was renamed or removed"
-    assert "sbom-mcp-gateway.cdx.json" in upload[1]
+    for name in (
+        "sbom-mcp-gateway.cdx.json",
+        "sbom-worker-agent-control.cdx.json",
+        "sbom-worker-aromer.cdx.json",
+        "sbom-worker-law-search.cdx.json",
+        "sbom-worker-rag-oracle.cdx.json",
+    ):
+        assert name in upload[1]
