@@ -9,10 +9,12 @@ is a liability: see `CLAUDE.md` and `docs/05-claim-hygiene.md`.
 number, or do not quote the number.
 
 **Paper versions:** `paper/remora_paper.md` is the canonical, continuously
-corrected paper. The PDF (`remora_paper.pdf`, built 2026-06-10 from the .tex)
-is a dated snapshot that predates the AgentHarm trimode results, the AROMER
-ceiling milestone, and NEGATIVE_RESULTS §15–§16. Where a section reference
-below names the PDF, verify against the .md, which supersedes it.
+corrected paper. `remora_paper.pdf` is compiled from the LaTeX source in CI
+(most recently 2026-08-26), and `scripts/check_paper_sync.py` gates coherence
+between the sources. The .md still wins on any disagreement, so cite .md
+sections. Corrected 2026-09-03: this note previously described the PDF as a
+2026-06-10 snapshot predating several results, which stopped being true when CI
+took over the compile.
 
 ---
 
@@ -80,7 +82,7 @@ below names the PDF, verify against the .md, which supersedes it.
 - Evidence: measured on real-oracle critical items; naive conformal at a 5%
   risk target collapses to 100% observed risk / 0 coverage in this regime. REMORA
   routes around it by inverting the selection score (`PhaseAwareGuardrail`).
-- Artifact: `paper/remora_paper.pdf` §6.1, §13; `NEGATIVE_RESULTS.md`.
+- Artifact: `paper/remora_paper.md` §7.2 (conformal risk control under covariate shift), §13 (limitations and negative results); `NEGATIVE_RESULTS.md`.
 - Caveat: small sample (N=32 critical items total). Published as a **negative
   result**, reported as a directional finding with its N attached, not a constant.
 - Reproduce: see the selective-prediction experiments above and
@@ -95,7 +97,7 @@ below names the PDF, verify against the .md, which supersedes it.
 - Evidence: `remora/governance/audit_chain.py`, `remora/governance/tenant_chain.py`
   (atomic per-tenant chain); `remora/audit/hash_chain.py` (hash primitive); replay
   reconstructs the chain.
-- Artifact: `paper/remora_paper.pdf` §7.2; shadow-replay produces output
+- Artifact: `paper/remora_paper.md` §8.2 (audit hash-chain); shadow-replay produces output
   on demand via `make shadow-replay` (output directory not committed).
 - Caveat: tamper-**evident**, not tamper-**proof**. Preventing tampering needs
   external append-only (WORM) storage as a deployment dependency.
@@ -104,7 +106,7 @@ below names the PDF, verify against the .md, which supersedes it.
 ### 5. Ordered-phase conformal coverage
 - Claim: 99.9% coverage at a 15% risk target on ordered-phase items, 0 of 20
   calibration seeds failing.
-- Artifact: `paper/remora_paper.pdf` §9.3 (Mondrian table);
+- Artifact: `paper/remora_paper.md` §10.5 (Mondrian table);
   `results/mondrian_v2_repeated_splits.json` (v2, 2161 items: 99.85% ordered-phase
   coverage, 0 of 20 seeds failing at the 15% risk target).
 - Caveat: holds for the **ordered** phase only; critical and disordered phases
@@ -113,12 +115,14 @@ below names the PDF, verify against the .md, which supersedes it.
 - Reproduce: the Mondrian conformal experiment in `remora/selective/`.
 
 ### 6. AROMER learning loop (experimental)
-- Claim: AROMER, the closed-loop learning layer, runs 24/7 and holds 0%
-  false-accepts on its replay arena while learning (87.1% overall accuracy on the
-  93-case arena, untuned; `replay_accuracy=0.871`, `replay_cases=93` per artifact).
-- Artifact: `scripts/aromer_publish_replay.py`,
-  `artifacts/aromer/replay_arena_report.json`; live AII at
-  `https://aromer.razorsharp.workers.dev/intelligence`.
+- Claim (dated snapshot, not an operational statement): on the committed replay
+  arena report, AROMER held 0% false-accepts at 87.1% overall accuracy over 93
+  cases, untuned (`replay_accuracy=0.871`, `replay_cases=93` per artifact).
+- Artifact: `artifacts/aromer/replay_arena_report.json`, produced by
+  `scripts/aromer_publish_replay.py`. Corrected 2026-09-03: this entry claimed
+  the loop "runs 24/7" and pointed at a live endpoint. No claim in the register
+  carries a 24/7 operational statement, and ARCHITECTURE.md §5.5 makes AROMER
+  shadow-only (issue #297); read the numbers as the artifact's, on its date.
 - Caveat: **EXPERIMENTAL.** Episode labels are partly self-labeled (benign-bias
   possible); the world model defaults to shadow mode; the learning loop is **not
   externally validated**. Do not cite AROMER numbers as production evidence.
@@ -130,10 +134,12 @@ below names the PDF, verify against the .md, which supersedes it.
 
 The six headline claims above are the narrative highlights, **not** the complete
 governed set. The authoritative, machine-checked list is
-[`docs/assurance/claim_register_v1.yaml`](assurance/claim_register_v1.yaml)
-(19 claims, CLAIM-001 … CLAIM-019; CLAIM-004 is superseded by CLAIM-012,
-and CLAIM-016/CLAIM-018 by CLAIM-019),
-verified by `scripts/check_claim_provenance.py`. The claims not expanded above,
+[`docs/assurance/claim_register_v1.yaml`](assurance/claim_register_v1.yaml),
+verified by `scripts/check_claim_provenance.py`. Which claims have been replaced,
+and by what, is generated from that register into
+[`superseded_claims.md`](assurance/superseded_claims.md). Read it there. A
+hand-kept list lived here until 2026-09-03, and by then it said 19 claims and
+three supersessions while the register had moved on. The claims not expanded above,
 with their artifacts:
 
 | ID | Claim | Evidence level | Artifact |
@@ -161,10 +167,9 @@ is N=302 items, where one model alone scores 57.0% and plain vote-counting
 that ceiling; the full risk–coverage curve is in
 [03-experiments.md](03-experiments.md).
 
-Numbers here mirror the register; the register is the source of truth. When a
-section above references `paper/remora_paper.pdf`, treat it as a dated snapshot
-and verify against `paper/remora_paper.md` (the reading rule at the top of this
-document).
+Numbers here mirror the register; the register is the source of truth. Section
+references above name `paper/remora_paper.md`, the canonical paper. The PDF is
+compiled from the LaTeX source and numbers its sections differently.
 
 ---
 

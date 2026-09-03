@@ -93,9 +93,13 @@ architectural property of the policy layer, not of the consensus machinery: see
 allowed to supply them. The lookup cannot switch tools or write anything outside its
 plan, and if no lookup exists at all the answer is ABSTAIN instead: promising a check
 that cannot happen is worse than stopping. When the answer comes back, step 4 runs
-again from scratch on a fresh view. In today's execution API, VERIFY still means "queue
-for a person"; the automatic-lookup mechanism demonstrated by CLAIM-014 is not
-yet wired into that path.
+again from scratch on a fresh view. In today's execution API a VERIFY is enqueued for a
+person **and** the plan is returned to the caller. `/v1/execution/*` surfaces a
+`machine_resolution` plan verbatim when the engine produced one, and a `human_approval`
+plan otherwise (`servers/execution_api.py:_resolution_plan_for`, wired through
+`remora/execution/service.py`). What is still not wired is the *execution* of that plan:
+REMORA does not run the named lookup itself, so the caller performs it and resubmits.
+Corrected 2026-09-03; this paragraph previously said the mechanism was not wired at all.
 
 **What running it means.** `/v1/execution/execute` spends a single-use grant and calls
 the tool through `GovernedToolDispatcher`. Permission is welded to the exact call it
@@ -121,7 +125,7 @@ calibrated-confidence baseline (`NEGATIVE_RESULTS.md` §18). They influence noth
 | `remora/reporting.py` | Assembles the decision report + `DecisionEnvelope` (dependency-injected) | `build_report()` |
 | `remora/state.py` | Engine session-state contract (re-exported via `remora.engine`) | `RemoraState` |
 | `remora/policy/decision_engine.py` | Hard-block invariants + routing logic | `RemoraDecisionEngine.decide()` |
-| `remora/policy/invariants.py` | Deterministic safety rules | `CORE_INVARIANTS`, `assert_invariants()` |
+| `remora/policy/invariants.py` | Deterministic safety rules | `CORE_INVARIANTS`, `check_all_invariants()`, `assert_invariants()` |
 | `remora/cascade/` | Multi-oracle cascade + consensus | `remora/cascade/stages.py` |
 | `remora/selective/guardrail.py` | Phase-aware trust routing | `PhaseAwareGuardrail` |
 | `remora/selective/conformal.py` | Split-conformal threshold calibration | `conformal_threshold()` |
@@ -197,8 +201,12 @@ an agent begins ignoring `ABSTAIN` / `ESCALATE`, is detected by
 | Hard-blocks-only | Policy invariants only, no oracle calls | Low-cost fallback; degraded mode |
 | Shadow mode | Full pipeline but no enforcement, decisions logged only | Parallel observation without intervention |
 
-Mode degradation from full REMORA to hard-blocks-only must always be recorded
-in `results/agentharm/mode_metadata.jsonl` and is never hidden from scoring.
+Mode degradation from full REMORA to hard-blocks-only must always be recorded and is
+never hidden from scoring. The AgentHarm harness writes that record at run time:
+`write_mode_metadata()` in `experiments/agentharm/remora_mediated_solver.py` appends to
+`results/agentharm/mode_metadata.jsonl`. That log is produced by a run, not committed to
+this repository (`paper/remora_paper.md` records it as `status:skipped`), so do not cite
+it as a file on disk here.
 
 ---
 

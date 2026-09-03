@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Verify that every artifact path referenced in docs/claim_register.md exists.
+"""Verify that every artifact path claimed as evidence resolves to a real file.
+
+Two sources are checked:
+
+1. ``docs/claim_register.md`` (backtick-quoted paths in the prose table);
+2. ``docs/assurance/remediation_register.yaml`` (the ``artifacts:`` list of each
+   REM entry). Added 2026-09-03 after a documentation audit found REM-019, a P0
+   release blocker, citing a script and a test file that have never existed in
+   this repository. An evidence pointer nobody checks is how a register drifts
+   from being evidence into being a story about evidence.
 
 The claim register is the human-readable companion to the YAML claim ledger.
 It contains rows like:
@@ -24,9 +33,12 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 ROOT = Path(__file__).resolve().parent.parent
 CLAIM_REGISTER = ROOT / "docs" / "claim_register.md"
 CLAIM_LEDGER_YAML = ROOT / "docs" / "thermodynamics" / "claim_ledger.yaml"
+REMEDIATION_REGISTER = ROOT / "docs" / "assurance" / "remediation_register.yaml"
 
 # Patterns for file-like references (relative path with extension)
 _FILE_PATTERN = re.compile(
@@ -65,6 +77,53 @@ def extract_file_refs(text: str) -> list[str]:
     return _FILE_PATTERN.findall(text)
 
 
+def remediation_artifact_refs() -> list[tuple[str, str]]:
+    """Return ``(rem_id, path)`` for every artifact listed in the REM register.
+
+    Entries that are plainly not repository paths (a bare URL, an endpoint) are
+    skipped; everything that looks like a path is required to exist.
+    """
+    if not REMEDIATION_REGISTER.exists():
+        return []
+    data = yaml.safe_load(read(REMEDIATION_REGISTER)) or {}
+    refs: list[tuple[str, str]] = []
+    for entry in data.get("items", []) or []:
+        if not isinstance(entry, dict):
+            continue
+        rem_id = str(entry.get("id", "<unknown>"))
+        for ref in entry.get("artifacts") or []:
+            if not isinstance(ref, str):
+                continue
+            ref = ref.strip()
+            if not ref or "://" in ref:
+                continue
+            refs.append((rem_id, ref))
+    return refs
+
+
+def check_remediation_register() -> None:
+    refs = remediation_artifact_refs()
+    if not refs:
+        warn(f"No remediation artifacts found in {REMEDIATION_REGISTER.name}")
+        return
+    missing = [(rem_id, ref) for rem_id, ref in refs if not (ROOT / ref).exists()]
+    if missing:
+        print(
+            f"\n[FAIL] {len(missing)} artifact(s) cited in "
+            f"remediation_register.yaml do not exist:"
+        )
+        for rem_id, ref in missing:
+            print(f"       {rem_id}: {ref}")
+        print(
+            "\nFix: point the entry at evidence that is committed here, or "
+            "say plainly in its notes that the evidence is imported and where "
+            "it lives (the pattern CLAIM-002 uses). Do not cite a file this "
+            "repository does not have."
+        )
+        raise SystemExit(1)
+    ok(f"All {len(refs)} artifact reference(s) in remediation_register.yaml exist")
+
+
 def main() -> None:
     if not CLAIM_REGISTER.exists():
         fail(f"Claim register not found: {CLAIM_REGISTER}")
@@ -100,6 +159,9 @@ def main() -> None:
         raise SystemExit(1)
 
     ok(f"All {found} artifact reference(s) in claim_register.md exist")
+
+    # -- Artifact paths in remediation_register.yaml ---------------------------
+    check_remediation_register()
 
     # -- Claim ledger YAML (basic presence check) ------------------------------
     if CLAIM_LEDGER_YAML.exists():

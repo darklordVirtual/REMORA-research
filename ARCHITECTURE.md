@@ -270,6 +270,7 @@ an external append-only (WORM) store as a deployment dependency.
 | `crc.py` | conformal risk control with the weight-corrected slack term |
 | `pvd.py` | Prover-Verifier Deliberation, semantic-entropy clustering of oracle responses blended with a verifier confidence signal (no LLM calls; deliberation rounds are simulated) |
 | `binomial_bounds.py` | Clopper–Pearson / binomial upper confidence bounds on empirical risk |
+| `confidence_sequence.py` | Anytime-valid (time-uniform) FA-rate bounds over a growing cycle stream (CLAIM-011) |
 
 ### 5.4 Interfaces: API, MCP, and edge workers
 
@@ -286,6 +287,7 @@ an external append-only (WORM) store as a deployment dependency.
   | `rag-oracle` | `workers/rag-oracle/` | `POST /query`, `POST /ingest` (auth) |
   | `law-search` | `workers/law-search/` | `POST /search` |
   | `aromer` | `workers/aromer/` | AROMER learning-loop endpoints (`/decide`, `/adapt`, `/outcome`, `/log`, `/intelligence`) |
+  | `mcp-gateway` | `workers/mcp-gateway/` | Governed MCP gateway in front of the execution path ([mcp-gateway.md](docs/integrations/mcp-gateway.md)) |
 
   Worker URLs are configurable at runtime (`REMORA_WORKER_URL`, `RAG_WORKER_URL`,
   `LAW_SEARCH_WORKER_URL`); hardcoded URLs are not used in production paths.
@@ -432,9 +434,9 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/enforcement/outbox.py` | **CORE** | Crash-consistent dispatch-intent store, in-process + SQLite + Postgres adapters (FT-02). Same stability caveat as above |
 | `remora/selective/` | **CORE** | Conformal / CRC / PhaseAwareGuardrail |
 | `remora/persistence/` | **CORE** | Oracle response cache (package root) + `execution_state.py` review-state transaction adapter (issue #241 slice 2) |
-| `remora/execution/` | **CORE** | `authorization.py`: ToolSpec bundle verification + assessed-record read-back (issue #241 slice 3; no HTTP knowledge) |
+| `remora/execution/` | **CORE** | The decomposed execution core (issue #241, closed 2026-08-19; no HTTP knowledge): `authorization.py` (ToolSpec bundle verification + assessed-record read-back), `dispatch.py`, `remote_dispatch.py`, `outcome.py`, `ports.py`, `ports_conformance.py`, `projections.py`, `review_service.py`, `service.py` |
 | `remora/legal/` | **CORE** | `CitationExistence`: citation existence is an authoritative-registry fact; model consensus is advisory only |
-| `servers/execution_api.py` | **CORE** | `/v1/execution/*` routes + orchestration (decomposition in progress, issue #241) |
+| `servers/execution_api.py` | **CORE** | `/v1/execution/*` routes + ambient bindings. The decomposition is complete (issue #241, closed 2026-08-19); orchestration lives in `remora/execution/` and route thinness is pinned by tests |
 | `servers/execution_contracts.py` | **CORE** | Pydantic wire models for `/v1/execution/*` (issue #241 slice 1) |
 | `remora/lyapunov.py` | **EXPERIMENTAL** | Session-stability observable over consensus iteration (legacy module name; the thermodynamic framing is withdrawn, NEGATIVE_RESULTS §38) |
 | `remora/thermodynamics.py` | **EXPERIMENTAL** | Uncertainty-routing proxy (legacy naming; framing withdrawn, NEGATIVE_RESULTS §38; the field names are wire format and stay) |
@@ -457,7 +459,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/credal.py` | **CORE** | Credal risk envelope consumed by the decision engine |
 | `remora/calibration/`, `remora/confidence/` | **EXPERIMENTAL** | Trust calibration and confidence scoring |
 | `remora/verifier/`, `remora/oracles/` | **EXPERIMENTAL** | Oracle backends and verification stages for the `/v1/assess` surface |
-| `remora/cli.py`, `remora/__main__.py` | **CORE** | The `remora` command: assess, doctor, verify, demo |
+| `remora/cli.py`, `remora/__main__.py` | **CORE** | The `remora` command: try, demo, assess, explain, whatif, replay, serve, provenance, verify, maturity, init-review, effect-verify, doctor (`python -m remora --help`) |
 | `remora/canonical.py`, `remora/action_semantics.py` | **CORE** | Canonical hashing and action-semantics vocabulary used by the binding hashes |
 | `remora/provenance.py` | **CORE** | Build/commit provenance stamped into result artifacts |
 | `remora/agent_hook/` | **EXPERIMENTAL** | Cross-call session tracking for the agent hook and MCP surface |
@@ -495,11 +497,14 @@ not a guarantee of safety, and not a replacement for domain authority.
   criterion; self-reported values pending independent verification).
   `REM-022` (RBAC audit) is **DONE** (2026-06-30, with a recorded deviation
   whose follow-through is tracked as `REM-023`, still **IN_PROGRESS**).
-  `REM-021` (independent human review) is **NOT_STARTED** and blocks exit from
-  shadow mode. Statuses are held in
+  `REM-021` (independent human review) is **NOT_STARTED**. **Two gates remain,
+  `REM-021` and `REM-023`.** `release_profiles_v1.yaml` requires REM-020,
+  REM-021, REM-022 and REM-023 for `CONTROLLED_PILOT`. REM-023's one open step,
+  external confirmation of the RBAC design, is folded into REM-021.
+  Statuses are held in
   [`remediation_register.yaml`](docs/assurance/remediation_register.yaml), which
   is what CI recomputes the README's deployment profile from.
-  Deployment status cannot advance past SHADOW_ONLY until REM-021 is cleared.
+  Deployment status cannot advance past SHADOW_ONLY until both are cleared.
 - **External replication is pending.** All benchmarks are internally run; no
   external live-agent validation has been conducted.
 - Result scope: reported results are simulator-scoped or post-hoc over

@@ -118,8 +118,10 @@ And as ADVISORY warnings (printed, never failing the build):
    allowlist (unregistered files, ghost entries, duplicates warn only).
 6. Per-entry `id`/`version`/`code_synced`/`verdict` presence and
    `last_reviewed` consistency.
-7. The `README.md` 300-line budget (a printed hint, not an enforced cost;
-   detail still belongs in `docs/`).
+7. The `README.md` line budget: 160 lines advisory (`README_LINE_SOFT_CAP`),
+   200 lines hard (`README_LINE_HARD_CAP`). Corrected 2026-09-03; this entry
+   said "300-line budget", a figure the script has never used. Detail still
+   belongs in `docs/`.
 
 A **generated-doc drift** step then regenerates every text generator and fails
 on any diff: `research_control_matrix.generated.md`

@@ -45,15 +45,20 @@ external validity gate.
 
 ### REM-019: Regression proof
 
+The producing script and its gate tests live in the REMORA main
+implementation repository, not here; `results/false_accept_regression_v1.json`
+is the imported artifact (same evidence form as CLAIM-002). Corrected
+2026-09-03: this section previously printed a
+`scripts/run_false_accept_regression.py` command and a `-m regression_gate`
+pytest invocation, neither of which exists in this repository.
+
+What this repository can check:
+
 ```bash
-# 1. Ensure AROMER worker is deployed (workers/aromer)
-# 2. Run:
-python scripts/run_false_accept_regression.py \
-    --worker https://aromer.razorsharp.workers.dev \
-    --output results/false_accept_regression_v1.json
-# 3. Verify artifact (regression_gate tests are excluded from normal runs):
-python -m pytest tests/test_false_accept_regression.py -m regression_gate -v
-# 4. Commit artifact + test pass
+# CI job "Verify zero false-accept rate": reads the stored false_accept_rate
+# field of the committed artifact and asserts it is 0.0. It is a regression
+# tripwire for a frozen snapshot, not a reproduction.
+python -c "import json; print(json.load(open('results/false_accept_regression_v1.json'))['false_accept_rate'])"
 ```
 
 **Current state (2026-06-29):** FAR=0.0% (167/167 blocked). Gate PASS.
@@ -110,11 +115,18 @@ Only FAR > 0 is an unconditional stop.
 The system holds `deployment_status = SHADOW_ONLY`. Leaving shadow-only mode requires every
 production deployment gate below to be DONE in addition to the P0 safety gates above.
 
+**Two gates remain: REM-021 and REM-023.** `release_profiles_v1.yaml` requires
+REM-020, REM-021, REM-022 and REM-023 for `CONTROLLED_PILOT`. REM-020 and
+REM-022 are DONE; REM-021 is NOT_STARTED and REM-023 is IN_PROGRESS (its one
+open step, external confirmation of the RBAC design, is folded into REM-021).
+Corrected 2026-09-03: this document previously implied REM-021 was the only
+remaining gate.
+
 | ID | Gate | Status | What "DONE" means |
 |----|------|--------|-------------------|
-| REM-020 | Longitudinal stability audit | **DONE (internally attested, REM-021 verification required)** | Criterion: AII (EMA-smoothed) ≥ 0.80 with FAR = 0.0% for 7 consecutive days from gate opening 2026-06-28; eligible close no earlier than 2026-07-05. **Why 7 days is the criterion:** it is the original pre-registered definition (created 2026-06-29; the 2026-06-30 elevation row "0.43d/7d" evidences it predates the 30-day variant, which appeared in a 2026-07-02 consolidation). The 2026-07-17 owner decision *reverted to the pre-registered criterion*; it did not lower a target after the fact. Closed 2026-07-17 by `scripts/close_rem020.py --close` (fail-closed): days_elapsed=19 of 7 required, n_operational_fa=0, AII=0.9914. **Evidence form (stated plainly):** the committed artifact (`results/longitudinal_stability_v1.json`, status=PASS) attests the live worker's day counter and current values; it does NOT contain the full 7-day time series, the worker retains ~168 adapt cycles (~0.58 days) in its queryable history, and the complete series lives in the worker's D1 longitudinal store. Independent reproduction of the 7-day window from that store is in scope for REM-021, which is why the status is *internally attested*, not independently verified. Supplementary anytime-valid bound (2026-07-02): 0/168 cycles → 95% time-uniform upper bound 4.72% (`results/far_confidence_sequence_v1.json`, CLAIM-011). 15/15 rem020_gate tests pass. |
+| REM-020 | Longitudinal stability audit | **DONE (internally attested, REM-021 verification required)** | Criterion: AII (EMA-smoothed) ≥ 0.80 with FAR = 0.0% for 7 consecutive days from gate opening 2026-06-28; eligible close no earlier than 2026-07-05. **Why 7 days is the criterion:** it is the original pre-registered definition (created 2026-06-29; the 2026-06-30 elevation row "0.43d/7d" evidences it predates the 30-day variant, which appeared in a 2026-07-02 consolidation). The 2026-07-17 owner decision *reverted to the pre-registered criterion*; it did not lower a target after the fact. Closed 2026-07-17 by `close_rem020.py --close` (fail-closed; the closure tool lives in the main implementation repository and is not committed here): days_elapsed=19 of 7 required, n_operational_fa=0, AII=0.9914. **Evidence form (stated plainly):** the committed artifact (`results/longitudinal_stability_v1.json`, status=PASS) attests the live worker's day counter and current values; it does NOT contain the full 7-day time series, the worker retains ~168 adapt cycles (~0.58 days) in its queryable history, and the complete series lives in the worker's D1 longitudinal store. Independent reproduction of the 7-day window from that store is in scope for REM-021, which is why the status is *internally attested*, not independently verified. Supplementary anytime-valid bound (2026-07-02): 0/168 cycles → 95% time-uniform upper bound 4.72% (`results/far_confidence_sequence_v1.json`, CLAIM-011). *(Corrected 2026-09-03: this cell claimed "15/15 rem020_gate tests pass". No `rem020_gate` pytest marker exists in this repository, so the count cannot be checked from here and is withdrawn rather than restated.)* |
 | REM-021 | Independent human review | **NOT STARTED** | Reviewer not on REMORA team reviews: decision engine logic, PDP/PEP separation, REM-019 regression proof, REM-014 AgentHarm benchmark, claim hygiene. Written report committed: `docs/assurance/independent_review_v1.md`. |
-| REM-022 | RBAC access control audit | **DONE** (with recorded deviation) | Policy v1 committed: `docs/assurance/rbac_policy_v1.md`. Covers asset inventory, 8-role matrix, key management, D1 access controls, rotation policy, audit log retention. Acknowledged gaps in §8 (KMS/HSM, RFC 3161, CI/CD-only deploy), consistent with TRL 3–4. Completed 2026-06-30. **Closure deviation (2026-07-02):** rbac_design_v1.md's own DONE criteria (isolation test, admin-wildcard removal, external confirmation) were not met at closure, the unmet steps are tracked as **REM-023 (NOT_STARTED)** in the remediation register. |
+| REM-022 | RBAC access control audit | **DONE** (with recorded deviation) | Policy v1 committed: `docs/assurance/rbac_policy_v1.md`. Covers asset inventory, 8-role matrix, key management, D1 access controls, rotation policy, audit log retention. Acknowledged gaps in §8 (KMS/HSM, RFC 3161, CI/CD-only deploy), consistent with TRL 3–4. Completed 2026-06-30. **Closure deviation (2026-07-02):** rbac_design_v1.md's own DONE criteria (isolation test, admin-wildcard removal, external confirmation) were not met at closure, the unmet steps are tracked as **REM-023** in the remediation register, now **IN_PROGRESS** (the REM-023 row below is authoritative). |
 | REM-023 | RBAC follow-through | **IN_PROGRESS** | The three REM-022 design criteria unmet at closure. Steps 8–9 DONE 2026-07-03: `tests/test_rbac_isolation.py` (no cross-tenant leakage) and admin-wildcard removal in `servers/api.py`. Remaining: external confirmation of the RBAC design (folded into REM-021). See remediation register REM-023 for detail. |
 
 ## Record of gate elevation
