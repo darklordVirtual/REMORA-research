@@ -172,3 +172,80 @@ def test_every_issued_token_carries_a_minted_jti() -> None:
     assert _tuple(replay) == (
         False, "accept", True, "token_already_consumed", True,
     )
+
+
+# ── non-strict mode still binds the token to the request ───────────────────
+#
+# strict=False waives the SIGNATURE requirement, and nothing else. The
+# unsigned path used to return before the observation-hash, context and
+# expiry comparisons ran, so a development gate accepted a token minted for
+# a different observation, under a different context, hours after it
+# expired, and reported token_verified=True for a signature it had never
+# checked. These pin each binding separately.
+
+
+def _unsigned(monkeypatch, action: str = "accept", *, issued: datetime = NOW,
+              ttl: int = 300, obs_hash: str = "c" * 64,
+              context=None) -> PolicyDecisionToken:
+    monkeypatch.delenv("REMORA_PDP_SIGNING_KEY", raising=False)
+    token = PolicyDecisionToken.issue(
+        action=action, observation_hash=obs_hash, request_id="req-gate-ns",
+        issued_at=_iso(issued), expires_at=_iso(issued + timedelta(seconds=ttl)),
+        context=context,
+    )
+    assert token.is_signed is False
+    return token
+
+
+def test_non_strict_unsigned_refuses_a_foreign_observation_hash(monkeypatch) -> None:
+    token = _unsigned(monkeypatch, obs_hash="a" * 64)
+    r = EnforcementGate(strict=False).check(
+        token, expected_observation_hash="b" * 64, now=_iso(NOW))
+    assert _tuple(r) == (
+        False, "accept", False,
+        "token_verification_failed:observation_hash_mismatch", False,
+    )
+
+
+def test_non_strict_unsigned_refuses_a_foreign_context(monkeypatch) -> None:
+    from remora.enforcement.token import AuthorizationContext
+
+    token = _unsigned(monkeypatch, context=AuthorizationContext(
+        tenant="t1", principal="alice"))
+    r = EnforcementGate(strict=False).check(
+        token, now=_iso(NOW),
+        context=AuthorizationContext(tenant="t1", principal="mallory"))
+    assert _tuple(r) == (
+        False, "accept", False,
+        "token_verification_failed:context_mismatch", False,
+    )
+
+
+def test_non_strict_unsigned_refuses_an_expired_token(monkeypatch) -> None:
+    token = _unsigned(monkeypatch, issued=NOW - timedelta(seconds=600), ttl=300)
+    r = EnforcementGate(strict=False).check(token, now=_iso(NOW))
+    assert _tuple(r) == (
+        False, "accept", False, "token_verification_failed:token_expired", False,
+    )
+
+
+def test_non_strict_unsigned_refuses_a_not_yet_valid_token(monkeypatch) -> None:
+    token = _unsigned(monkeypatch, issued=NOW + timedelta(seconds=120))
+    r = EnforcementGate(strict=False).check(token, now=_iso(NOW))
+    assert _tuple(r) == (
+        False, "accept", False,
+        "token_verification_failed:token_not_yet_valid", False,
+    )
+
+
+def test_non_strict_unsigned_allows_a_bound_token_but_never_claims_verified(
+        monkeypatch) -> None:
+    """The development affordance survives: bindings that hold, allowed.
+    token_verified stays False because no signature was ever checked."""
+    from remora.enforcement.token import AuthorizationContext
+
+    ctx = AuthorizationContext(tenant="t1", principal="alice")
+    token = _unsigned(monkeypatch, obs_hash="a" * 64, context=ctx)
+    r = EnforcementGate(strict=False).check(
+        token, expected_observation_hash="a" * 64, now=_iso(NOW), context=ctx)
+    assert _tuple(r) == (True, "accept", False, "accept", False)

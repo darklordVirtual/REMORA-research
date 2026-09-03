@@ -437,27 +437,50 @@ class PolicyDecisionToken:
                 is_signed=True,
             )
 
+        return self.check_bindings(observation_hash, now=now, context=context)
+
+    def check_bindings(
+        self,
+        observation_hash: str | None = None,
+        now: str | None = None,
+        context: "AuthorizationContext | None" = None,
+        require_expiry: bool = True,
+    ) -> TokenVerificationResult:
+        """Every check that binds this token to the request it is redeemed on.
+
+        Split out of :meth:`verify` so the two questions stay separable:
+        the signature answers *who minted this*, these answer *was it minted
+        for this request*. The signature checks return early on an unsigned
+        token, which silently skipped all of this for a non-strict gate --
+        a token bound to one observation authorised another. The gate now
+        runs these on the unsigned path too, so ``strict=False`` waives the
+        signature and nothing else.
+
+        ``require_expiry`` is relaxed only on that unsigned development
+        path, where a hand-built legacy token carries no expiry and the
+        gate's own maximum-age bound stands in for it.
+        """
         if context is not None:
             if not self.context_hash:
                 return TokenVerificationResult(
                     verified=False,
                     reason="context_unbound",
-                    is_signed=True,
+                    is_signed=self.is_signed,
                 )
             if self.context_hash != context.hash():
                 return TokenVerificationResult(
                     verified=False,
                     reason="context_mismatch",
-                    is_signed=True,
+                    is_signed=self.is_signed,
                 )
 
-        if self.expires_at is None:
+        if self.expires_at is None and require_expiry:
             # Mandatory-expiry policy: legacy no-expiry tokens are rejected
             # outright (audit finding F-2 / replay review finding).
             return TokenVerificationResult(
                 verified=False,
                 reason="missing_expiry",
-                is_signed=True,
+                is_signed=self.is_signed,
             )
         if self.expires_at is not None:
             from datetime import datetime
@@ -484,7 +507,7 @@ class PolicyDecisionToken:
                 return TokenVerificationResult(
                     verified=False,
                     reason="expiry_unparseable",
-                    is_signed=True,
+                    is_signed=self.is_signed,
                 )
             # Not-before: a future-dated issued_at must not mint a token whose
             # real usable lifetime exceeds the TTL cap (clock-skewed or
@@ -495,26 +518,26 @@ class PolicyDecisionToken:
                 return TokenVerificationResult(
                     verified=False,
                     reason="token_not_yet_valid",
-                    is_signed=True,
+                    is_signed=self.is_signed,
                 )
             if current >= expiry:
                 return TokenVerificationResult(
                     verified=False,
                     reason="token_expired",
-                    is_signed=True,
+                    is_signed=self.is_signed,
                 )
 
         if observation_hash is not None and observation_hash != self.observation_hash:
             return TokenVerificationResult(
                 verified=False,
                 reason="observation_hash_mismatch",
-                is_signed=True,
+                is_signed=self.is_signed,
             )
 
         return TokenVerificationResult(
             verified=True,
             reason="ok",
-            is_signed=True,
+            is_signed=self.is_signed,
         )
 
     def to_dict(self) -> dict[str, Any]:
