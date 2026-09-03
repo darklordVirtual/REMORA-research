@@ -24,9 +24,31 @@ def _run(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def _is_shallow() -> bool:
+    return (
+        subprocess.run(
+            ["git", "rev-parse", "--is-shallow-repository"],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        == "true"
+    )
+
+
 def test_the_committed_register_is_reachable_from_head() -> None:
+    """On full history this is a real assertion; on a shallow clone it is not.
+
+    Most CI jobs check out shallow, where every commit below the fetched depth
+    is unreachable and the gate declines to answer. The gate says so, and this
+    asserts it exits cleanly either way rather than reporting a false stale
+    binding.
+    """
+
     result = _run()
     assert result.returncode == 0, result.stdout + result.stderr
+    expected = "[SKIP]" if _is_shallow() else "[PASS]"
+    assert expected in result.stdout, result.stdout
 
 
 def test_an_unreachable_binding_fails(tmp_path: Path) -> None:

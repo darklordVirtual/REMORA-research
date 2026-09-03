@@ -13,6 +13,12 @@ This gate closes that gap: it fails when a `verified_at_sha` is not an ancestor
 of the branch under test. Run it after a rebase and after a squash merge, and
 pass `--rebind <sha>` to move the unreachable bindings onto the commit that
 replaced them.
+
+It needs full history for the same reason `check_capability_freshness --strict`
+does: in a shallow clone every commit below the fetched depth is equally
+unreachable, so the gate would refuse correct bindings. It declines to render a
+verdict there rather than render a false one, which is why it runs in the
+documentation-governance job, the one checked out with `fetch-depth: 0`.
 """
 
 from __future__ import annotations
@@ -25,6 +31,16 @@ from pathlib import Path
 
 REGISTER = Path(__file__).resolve().parents[1] / "docs/assurance/capability_register_v1.yaml"
 SHA_PATTERN = re.compile(r"verified_at_sha: ([0-9a-f]{7,40})")
+
+
+def _is_shallow(root: Path) -> bool:
+    result = subprocess.run(
+        ["git", "rev-parse", "--is-shallow-repository"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip() == "true"
 
 
 def _is_ancestor(sha: str, ref: str, root: Path) -> bool:
@@ -52,6 +68,14 @@ def main() -> int:
         help="rewrite every unreachable binding onto this commit instead of failing",
     )
     args = parser.parse_args()
+
+    if _is_shallow(args.root):
+        print(
+            "[SKIP] shallow clone: every commit below the fetched depth is "
+            "unreachable here, so this gate cannot tell a stale binding from an "
+            "old one. Run it on a checkout with fetch-depth: 0."
+        )
+        return 0
 
     register = args.root / "docs/assurance/capability_register_v1.yaml"
     text = register.read_text(encoding="utf-8")
