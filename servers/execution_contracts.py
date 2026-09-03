@@ -25,8 +25,28 @@ class ErrorDetail(BaseModel):
 
 
 class AuditRef(BaseModel):
-    sequence_no: int
-    entry_hash: str
+    """Where this response's audit event is, or where it will be.
+
+    A state-transition event is enqueued on the SAME transaction as the
+    transition (REM-047), so at response time it is durable but not yet
+    projected into the chain and has no index. That case is stated rather than
+    papered over: ``deferred`` is true, ``sequence_no`` and ``entry_hash`` are
+    null, and ``idempotency_key`` is the key the event will be appended under.
+    Inventing an index the chain does not contain would be worse than saying
+    the index does not exist yet.
+    """
+
+    sequence_no: int | None = Field(
+        None, description="Chain index; null when deferred is true.")
+    entry_hash: str | None = Field(
+        None, description="Chain entry hash; null when deferred is true.")
+    deferred: bool = Field(
+        False, description="True when the event is enqueued on the state "
+                           "transaction and awaits projection by the drain.")
+    idempotency_key: str | None = Field(
+        None, description="Present only when deferred: the key the event will "
+                          "be appended under, and the join to the chain entry "
+                          "once projected.")
 
 
 class SemanticAssessment(BaseModel):

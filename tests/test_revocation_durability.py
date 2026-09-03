@@ -359,3 +359,81 @@ class TestTheDeployedWiring:
         for name in _SWITCHES:
             monkeypatch.delenv(name, raising=False)
         assert execution_api._revocation_store() is None
+
+
+class TestTheAuditEventCommitsWithTheRevocation:
+    """REM-047 at the route that shows it most plainly.
+
+    The revocation committed inside ``db_transaction_state`` and
+    ``principal_revoked`` was appended after it. A crash in that window left a
+    revoked principal with no audit event; a failure the other way would have
+    left an audit event for a revocation that never took effect.
+    """
+
+    @pytest.fixture()
+    def client(self, monkeypatch, tmp_path):
+        pytest.importorskip("fastapi")
+        from fastapi.testclient import TestClient
+
+        monkeypatch.setenv("REMORA_ENV", "development")
+        monkeypatch.setenv(
+            "REMORA_TOOL_REGISTRY_MODULE", "servers.tool_registry_research")
+        monkeypatch.setenv("REMORA_EXECUTION_ARTIFACT_DIR", str(tmp_path / "art"))
+        monkeypatch.delenv("REMORA_PG_DSN", raising=False)
+        monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "state.db"))
+        import servers.api as api_mod
+        import servers.execution_api as exec_mod
+
+        from remora.governance.tenant_chain import TenantAuditChain
+
+        monkeypatch.setattr(api_mod, "_authenticate",
+                            lambda request: ("acme", "reviewer"))
+        monkeypatch.setattr(api_mod, "_authenticated_principal",
+                            lambda request: "reviewer-1")
+        monkeypatch.setattr(api_mod, "_require_tenant_capability",
+                            lambda role, tenant, cap: None)
+        exec_mod._QUEUES.clear()
+        exec_mod._ITEM_TENANT.clear()
+        exec_mod._CHAIN = TenantAuditChain()
+        exec_mod._reset_outbox()
+        return TestClient(api_mod.app), exec_mod
+
+    def _events(self, exec_mod):
+        return [e.payload.get("event") for e in exec_mod._CHAIN.entries("acme")]
+
+    def test_the_event_is_enqueued_on_the_revocation_transaction(self, client):
+        api_client, exec_mod = client
+        response = api_client.post(
+            "/v1/execution/revoke-principal",
+            json={"principal": "alice", "reason": "left the org"},
+        )
+        assert response.status_code == 200, response.text
+
+        # Durable, and not yet projected: the append no longer trails the
+        # commit it describes.
+        assert "principal_revoked" not in self._events(exec_mod)
+        assert exec_mod.drain_audit_outbox("acme") == 1
+        assert "principal_revoked" in self._events(exec_mod)
+
+    def test_a_failed_revocation_leaves_no_audit_event(self, client, monkeypatch):
+        """503 means NOT revoked, so nothing may claim otherwise, ever."""
+
+        api_client, exec_mod = client
+
+        class Unavailable:
+            def revoke(self, *args, **kwargs):
+                raise RevocationStoreUnavailable("store down")
+
+            def is_revoked(self, *args, **kwargs):
+                return False
+
+        monkeypatch.setattr(exec_mod, "_revocation_store", lambda: Unavailable())
+        exec_mod._QUEUES.clear()
+
+        response = api_client.post(
+            "/v1/execution/revoke-principal",
+            json={"principal": "alice", "reason": "left the org"},
+        )
+        assert response.status_code == 503, response.text
+        assert self._events(exec_mod) == []
+        assert exec_mod.drain_audit_outbox("acme") == 0
