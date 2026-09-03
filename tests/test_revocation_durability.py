@@ -306,3 +306,56 @@ class TestJoiningAnAmbientTransaction:
         assert DurableRevocationStore(db_path=db_path).is_revoked(
             "alice", tenant_id="acme"
         ) is True
+
+
+# --------------------------------------------------------------------------
+# The deployed wiring. The store above is only worth having if the server
+# builds it for every backend the durability guard admits.
+# --------------------------------------------------------------------------
+
+
+_SWITCHES = ("REMORA_PG_DSN", "REMORA_CHAIN_DB", "REMORA_STATE_ENDPOINT")
+
+
+class TestTheDeployedWiring:
+    """The fourth occurrence of the #350 defect class, pinned at the wiring.
+
+    ``servers/api.py`` admits three backends, and the D1 deployment is
+    admitted on ``REMORA_STATE_ENDPOINT`` alone. The lease nonce store and
+    the jti ledger both learned that switch; the revocation store read only
+    two of them, so on that deployment the queue silently kept revoked
+    principals in a per-process dict while the chain still recorded
+    ``principal_revoked`` — the same audit-reads-correct failure #502 closed
+    for the restart case.
+    """
+
+    @pytest.mark.parametrize("switch,attribute", [
+        ("REMORA_PG_DSN", "_dsn"),
+        ("REMORA_CHAIN_DB", "_db_path"),
+        ("REMORA_STATE_ENDPOINT", "_state_endpoint"),
+    ])
+    def test_every_admitted_backend_produces_a_durable_store(
+        self, monkeypatch, switch, attribute
+    ):
+        from servers import execution_api
+
+        for name in _SWITCHES:
+            monkeypatch.delenv(name, raising=False)
+        monkeypatch.setenv(switch, "configured-value")
+
+        store = execution_api._revocation_store()
+        assert store is not None, (
+            f"{switch} is admitted by the durability guard but produced no "
+            f"revocation store; the review queue would fall back to the "
+            f"in-process InMemoryRevocationStore while the chain still "
+            f"records principal_revoked"
+        )
+        assert getattr(store, attribute) == "configured-value"
+
+    def test_no_durable_backend_leaves_the_in_process_store(self, monkeypatch):
+        """Library and research use keeps the honest in-process default."""
+        from servers import execution_api
+
+        for name in _SWITCHES:
+            monkeypatch.delenv(name, raising=False)
+        assert execution_api._revocation_store() is None

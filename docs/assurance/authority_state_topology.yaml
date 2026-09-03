@@ -5,11 +5,12 @@
 #
 # WHY THIS FILE EXISTS
 #
-# One defect class has now recurred three times in this repository:
+# One defect class has now recurred four times in this repository:
 #
 #   1. the consumed-jti ledger (#350)
 #   2. the lease nonce ledger (remora/enforcement/nonce_store.py)
 #   3. principal revocation (#502)
+#   4. the revocation store's own wiring, on the D1 backend
 #
 # Each time the shape was identical: a durable backend the deployment
 # already runs, that one component learned to use and another did not. Each
@@ -17,10 +18,23 @@
 # second occurrence's own module docstring names the pattern, and the third
 # happened anyway.
 #
-# Fixing the fourth occurrence when it appears is not a fix. This register
-# plus scripts/check_authority_state_durability.py is the fix: the
-# population is enumerated, every member states what losing it does, and a
-# new member cannot be added without answering the same question.
+# The fourth arrived after this register did, and the register as first
+# written could not see it: the revocation store WAS declared, WITH a
+# durable adapter, and the adapter existed. What was wrong was one level
+# down. `servers/execution_api.py::_revocation_store` read two of the three
+# switches the durability guard admits. The Cloudflare deployment is
+# admitted on REMORA_STATE_ENDPOINT alone, so it passed the guard, kept the
+# jti and lease-nonce ledgers durable, and silently fell back to
+# InMemoryRevocationStore while the chain still recorded principal_revoked.
+#
+# So the register now carries a second population: the WIRING points, and
+# the switches each one must read. Declaring an adapter is not enough; the
+# selection code has to be able to reach it.
+#
+# Fixing an occurrence when it appears is not a fix. This register plus
+# scripts/check_authority_state_durability.py is the fix: both populations
+# are enumerated, every member states what losing it does, and a new member
+# cannot be added without answering the same question.
 #
 # THE RULE
 #
@@ -44,7 +58,7 @@
 # the durable store closes.
 
 schema_version: "1"
-updated: "2026-08-30"
+updated: "2026-09-03"
 
 state:
   - id: AST-001
@@ -142,6 +156,40 @@ state:
       deployment can forward events to durable storage, but the chain itself
       is per-process and this file does not claim otherwise.
 
+# THE SWITCHES
+#
+# `switches` names the environment variables the durability guard in
+# servers/api.py admits. A wiring point that omits one of them is the fourth
+# occurrence: the deployment configured on that switch passes the guard and
+# gets an in-process store anyway. The gate reads the named symbol and fails
+# when a declared switch does not appear in it.
+
+wiring:
+  - id: ASW-001
+    for: AST-001
+    symbol: "servers/execution_api.py::_GATE"
+    selects: "the PEP consumed-jti ledger"
+    switches: [REMORA_PG_DSN, REMORA_CHAIN_DB, REMORA_STATE_ENDPOINT]
+    note: >-
+      Occurrence one for the restart case (#350) and again for the endpoint;
+      tests/test_gate_d1_ledger.py pins the store, this pins the selection.
+
+  - id: ASW-002
+    for: AST-002
+    symbol: "servers/execution_api.py::_lease_nonce_store"
+    selects: "the lease nonce ledger"
+    switches: [REMORA_PG_DSN, REMORA_CHAIN_DB, REMORA_STATE_ENDPOINT]
+
+  - id: ASW-003
+    for: AST-003
+    symbol: "servers/execution_api.py::_revocation_store"
+    selects: "the principal revocation store read by the approval re-gate"
+    switches: [REMORA_PG_DSN, REMORA_CHAIN_DB, REMORA_STATE_ENDPOINT]
+    note: >-
+      The fourth occurrence. REMORA_STATE_ENDPOINT was missing here while
+      ASW-001 and ASW-002 had it, which is the whole defect class in one
+      diff.
+
 # What a PASS from this gate does NOT establish.
 #
 # That a deployment has actually configured a durable backend. Every adapter
@@ -155,3 +203,5 @@ limits:
   - "code-level only: says nothing about whether any deployment configured a backend"
   - "does not verify adapter correctness, only that one is declared and exists"
   - "the population is discovered by AST scan (lock + mutable container in __init__); state held some other way is not seen"
+  - "the wiring population is hand-declared, not discovered: a durable store selected somewhere this file does not name is not checked"
+  - "a switch counts as read when its name appears in the wiring symbol; the gate does not prove the value is then passed to the adapter"

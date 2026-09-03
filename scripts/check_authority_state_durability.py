@@ -3,16 +3,18 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Every in-process authority store must say what losing it does.
 
-One defect class has recurred three times here: the consumed-jti ledger
-(#350), the lease nonce ledger, and principal revocation (#502). Each time a
-durable backend the deployment already ran was used by one component and not
-by another. Each time it was found by a reviewer or an audit, never by a
-gate. The second occurrence's own docstring names the pattern, and the third
-happened anyway.
+One defect class has recurred four times here: the consumed-jti ledger
+(#350), the lease nonce ledger, principal revocation (#502), and the
+revocation store's wiring on the D1 backend. Each time a durable backend the
+deployment already ran was used by one component and not by another. Each
+time it was found by a reviewer or an audit, never by a gate. The second
+occurrence's own docstring names the pattern, and the rest happened anyway.
 
-This is the gate. It discovers the population by AST rather than trusting a
-hand-maintained list, so a new store cannot be added without answering the
-same question the previous three failed to answer:
+This is the gate. It checks two populations.
+
+The STORES are discovered by AST rather than trusted to a hand-maintained
+list, so a new store cannot be added without answering the same question the
+previous occurrences failed to answer:
 
     when this state is lost, does something become executable that was
     refused before?
@@ -20,6 +22,11 @@ same question the previous three failed to answer:
 If yes (``on_loss: reauthorizes``) a durable adapter is required. If no
 (``on_loss: loses_evidence``) a tracking item is required, so the gap is a
 stated decision rather than an omission.
+
+The WIRING points are declared, and each must read every switch the
+durability guard in servers/api.py admits. That is the check the fourth
+occurrence needed: its adapter was declared and worked, and the selection
+code simply never looked at REMORA_STATE_ENDPOINT.
 
     python scripts/check_authority_state_durability.py
 
@@ -94,6 +101,88 @@ def discover() -> set[str]:
     return found
 
 
+def _symbol_source(module: Path, name: str) -> str | None:
+    """The source of the top-level function or assignment called ``name``.
+
+    A durable store is selected either by a factory function
+    (``_revocation_store``) or by a module-level construction (``_GATE``), so
+    both shapes have to be readable. Returns None when the name is absent,
+    which the caller reports as a stale declaration rather than a pass.
+    """
+    tree = ast.parse(module.read_text(encoding="utf-8"))
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if node.name == name:
+                return ast.unparse(node)
+        elif isinstance(node, ast.Assign):
+            targets = [t.id for t in node.targets if isinstance(t, ast.Name)]
+            if name in targets:
+                return ast.unparse(node)
+        elif isinstance(node, ast.AnnAssign):
+            target = node.target
+            if isinstance(target, ast.Name) and target.id == name:
+                return ast.unparse(node)
+    return None
+
+
+def _check_wiring(entries: list[dict], declared: dict[str, dict]) -> list[str]:
+    """Every wiring point must reach every backend the guard admits.
+
+    The register's first version checked only that a durable adapter was
+    DECLARED. The fourth occurrence of the defect class had a declared
+    adapter and a working one; what was missing was a switch in the
+    selection code, one level below anything the register looked at.
+    """
+    errors: list[str] = []
+    seen: set[str] = set()
+    for entry in entries:
+        wid = entry.get("id", "?")
+        symbol = entry.get("symbol")
+        if not symbol or "::" not in symbol:
+            errors.append(f"{wid}: wiring needs a 'file.py::name' symbol")
+            continue
+        if symbol in seen:
+            errors.append(f"{wid}: duplicate wiring symbol {symbol}")
+        seen.add(symbol)
+
+        for_id = entry.get("for")
+        known = {e.get("id") for e in declared.values()}
+        if for_id not in known:
+            errors.append(
+                f"{wid}: 'for' names {for_id!r}, which is not a declared "
+                f"authority-state id"
+            )
+
+        module_name, _, name = symbol.partition("::")
+        module = ROOT / module_name
+        if not module.exists():
+            errors.append(f"{wid}: {module_name} does not exist")
+            continue
+
+        source = _symbol_source(module, name)
+        if source is None:
+            errors.append(
+                f"{wid}: {symbol} was not found. Correct the symbol if the "
+                f"wiring moved; do not delete the entry while the store it "
+                f"selects still exists."
+            )
+            continue
+
+        switches = entry.get("switches") or []
+        if not switches:
+            errors.append(f"{wid}: no switches declared for {symbol}")
+        for switch in switches:
+            if switch not in source:
+                errors.append(
+                    f"{wid} ({symbol}): does not read {switch}, which the "
+                    f"durability guard in servers/api.py admits. A "
+                    f"deployment configured on {switch} alone passes the "
+                    f"guard and then gets the in-process store, which is "
+                    f"the defect this register exists to stop."
+                )
+    return errors
+
+
 def check() -> list[str]:
     errors: list[str] = []
     data = yaml.safe_load(REGISTER.read_text(encoding="utf-8"))
@@ -159,6 +248,8 @@ def check() -> list[str]:
             if not (ROOT / cand).exists():
                 errors.append(f"{eid}: wired_at path {cand} does not exist")
 
+    errors.extend(_check_wiring(data.get("wiring") or [], declared))
+
     discovered = discover()
     for symbol in sorted(discovered - set(declared)):
         errors.append(
@@ -185,6 +276,7 @@ def main() -> int:
         for e in errors:
             print(f"  - {e}")
         return 1
+    wiring = data.get("wiring") or []
     reauth = sum(1 for e in entries if e.get("on_loss") == "reauthorizes")
     evidence = len(entries) - reauth
     open_gaps = [
@@ -196,6 +288,10 @@ def main() -> int:
         f"[PASS] {len(entries)} authority-state stores declared: "
         f"{reauth} fail open on loss and every one has a durable adapter; "
         f"{evidence} lose evidence only."
+    )
+    print(
+        f"       {len(wiring)} wiring points reach every backend the "
+        f"durability guard admits."
     )
     if open_gaps:
         # Named, not counted. A gap that only appears as a number in a PASS
