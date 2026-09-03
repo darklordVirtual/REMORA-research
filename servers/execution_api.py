@@ -669,11 +669,6 @@ def _resolve_toolspec(
         raise HTTPException(status_code=409, detail=exc.reason_code) from exc
 
 
-def _assessed_toolspec(tenant: str, item_id: str) -> str:
-    """The ToolSpec hash recorded at assessment for this review item."""
-    return _assessed_record(tenant, item_id)[0]
-
-
 def _assessed_record(tenant: str, item_id: str) -> tuple[str, str]:
     return _authz_assessed_record(_CHAIN, tenant, item_id)
 
@@ -963,19 +958,6 @@ def _reset_semantic_bundle() -> None:
     """Test hook: drop the cached bundle (e.g. after env changes)."""
     global _SEMANTIC
     _SEMANTIC = None
-
-
-def _jsonable(value: Any) -> Any:
-    """Best-effort JSON projection of a tool result for response/audit.
-
-    Kept for callers that want the raw projection. The governed dispatch path
-    uses :func:`capture_tool_result` instead, which bounds what is retained
-    while still hashing the full result.
-    """
-    try:
-        return json.loads(json.dumps(value, default=str))
-    except (TypeError, ValueError):
-        return repr(value)
 
 
 # ── OpenAPI contract models (documentation-only) ───────────────────────────

@@ -50,6 +50,7 @@ import importlib.metadata
 import json
 import logging
 import os
+import threading
 import time
 import uuid
 from copy import deepcopy
@@ -119,6 +120,12 @@ class _InMemoryRateLimiter:
 
     def __init__(self) -> None:
         self._buckets: dict[str, list[float]] = {}
+        # Sync handlers run in a threadpool, so the read-filter-append-store
+        # below is a lost-update race on a shared dict: two threads read the
+        # same bucket, each appends its own timestamp and the second store
+        # discards the first. That loses requests from the count and makes the
+        # limiter permissive under exactly the concurrency it exists to bound.
+        self._lock = threading.Lock()
 
     def is_allowed(
         self, key: str, *,
@@ -140,13 +147,14 @@ class _InMemoryRateLimiter:
 
         window_s = 60.0
         now = time.time()
-        bucket = self._buckets.get(key, [])
-        bucket = [t for t in bucket if now - t < window_s]
-        if len(bucket) >= limit:
-            return False
-        bucket.append(now)
-        self._buckets[key] = bucket
-        return True
+        with self._lock:
+            bucket = [t for t in self._buckets.get(key, []) if now - t < window_s]
+            if len(bucket) >= limit:
+                self._buckets[key] = bucket
+                return False
+            bucket.append(now)
+            self._buckets[key] = bucket
+            return True
 
 
 _rate_limiter = _InMemoryRateLimiter()
@@ -1608,32 +1616,6 @@ def _tenant_access_policy(tenant_id: str) -> dict[str, Any]:
     return _deep_merge_dict(base, override)
 
 
-def _role_from_request(request: Request) -> str:
-    """DEPRECATED for authorization (P0-A, 2026-07-03).
-
-    Reading the role from ``X-Remora-Role`` for a capability decision is a
-    privilege-escalation vector (a low-privilege token could assert ``admin``).
-    Authorization now flows the authenticated role from ``_authenticate()``
-    into ``_require_tenant_capability()``. This helper is no longer called on
-    any authorization path.
-    """
-    role = request.headers.get("X-Remora-Role", "").strip().lower()
-    if role:
-        return role
-    access_defaults = _RISK_PROFILE_CONFIG.get("access_defaults", {})
-    default_role = ""   # explicit role required — empty = no permissions
-    if isinstance(access_defaults, dict):
-        raw = str(access_defaults.get("default_role", "")).strip().lower()
-        if raw:
-            default_role = raw
-    role = default_role
-    # Never silently promote an unset/empty role to something with permissions.
-    # Known-bad values (empty string, whitespace) resolve to no-access.
-    # Tenant-specific roles (e.g. "reviewer", "domain_expert") are accepted;
-    # _require_tenant_capability validates them against the permissions map.
-    return role.strip() or ""
-
-
 def _require_tenant_capability(role: str, tenant_id: str, capability: str) -> str:
     """Authorize a capability from the AUTHENTICATED role (P0-A fix, 2026-07-03).
 
@@ -2035,11 +2017,6 @@ def _authenticate(request: Request) -> tuple[str, str]:
         return tenant, "operator"
     role   = request.headers.get("X-Remora-Role", "operator").strip().lower() or "operator"
     return tenant, role
-
-
-def _tenant_id_from_request(request: Request) -> str:
-    tenant = request.headers.get("X-Remora-Tenant", "default").strip()
-    return tenant or "default"
 
 
 def _record_artifacts(

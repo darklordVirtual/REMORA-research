@@ -14,7 +14,11 @@ cannot be bypassed by re-using a stale token or forging a decision.
 
 Enforcement levels:
     strict=True  — reject unsigned tokens (production mode)
-    strict=False — allow unsigned tokens with warning (development mode)
+    strict=False — allow unsigned tokens with a warning (development mode).
+        Only the signature requirement is waived: the observation hash,
+        the authorization context and the expiry window are still enforced,
+        and the result reports token_verified=False because no signature
+        was checked.
 """
 from __future__ import annotations
 
@@ -56,7 +60,8 @@ class EnforcementGate:
     """Policy Enforcement Point — verifies signed PDP tokens before execution.
 
     In strict mode (production), unsigned tokens are rejected.
-    In non-strict mode (development), unsigned tokens are allowed with a warning.
+    In non-strict mode (development), unsigned tokens are allowed with a
+    warning, but every non-signature binding still has to hold.
 
     Usage::
 
@@ -335,13 +340,34 @@ class EnforcementGate:
 
         if not vr.verified:
             if not token.is_signed and not self.strict:
-                # Development mode: allow unsigned tokens with warning
+                # Development mode: the SIGNATURE requirement is waived, and
+                # nothing else. verify() returns as soon as it finds no
+                # signature, so this path used to skip the observation-hash,
+                # context and expiry comparisons entirely: a token minted for
+                # observation A authorised a call on observation B, under a
+                # foreign context, past its expiry. Re-run those bindings
+                # here. The expiry is not REQUIRED on this path -- a
+                # hand-built legacy token carries none, and the maximum-age
+                # bound below stands in for it -- but an expiry that IS
+                # present is enforced.
                 warnings.warn(
                     f"EnforcementGate: unsigned token accepted in non-strict mode "
                     f"(reason: {vr.reason}). Set REMORA_PDP_SIGNING_KEY for production.",
                     stacklevel=2,
                 )
-            elif not vr.verified:
+                br = token.check_bindings(
+                    expected_observation_hash, now=now, context=context,
+                    require_expiry=False,
+                )
+                if not br.verified:
+                    return EnforcementResult(
+                        allowed=False,
+                        action=token.action,
+                        token_verified=False,
+                        reason=f"token_verification_failed:{br.reason}",
+                        strict_mode=self.strict,
+                    )
+            else:
                 return EnforcementResult(
                     allowed=False,
                     action=token.action,
@@ -356,7 +382,7 @@ class EnforcementGate:
             return EnforcementResult(
                 allowed=False,
                 action=token.action,
-                token_verified=True,
+                token_verified=vr.verified,
                 reason="audience_mismatch",
                 strict_mode=self.strict,
             )
@@ -382,7 +408,7 @@ class EnforcementGate:
             return EnforcementResult(
                 allowed=False,
                 action=token.action,
-                token_verified=True,
+                token_verified=vr.verified,
                 reason="issued_at_unparseable",
                 strict_mode=self.strict,
             )
@@ -394,7 +420,7 @@ class EnforcementGate:
             return EnforcementResult(
                 allowed=False,
                 action=token.action,
-                token_verified=True,
+                token_verified=vr.verified,
                 reason="token_issued_in_future",
                 strict_mode=self.strict,
             )
@@ -402,7 +428,7 @@ class EnforcementGate:
             return EnforcementResult(
                 allowed=False,
                 action=token.action,
-                token_verified=True,
+                token_verified=vr.verified,
                 reason="token_too_old",
                 strict_mode=self.strict,
             )
@@ -429,7 +455,7 @@ class EnforcementGate:
                     return EnforcementResult(
                         allowed=False,
                         action=token.action,
-                        token_verified=True,
+                        token_verified=vr.verified,
                         reason="token_already_consumed",
                         strict_mode=self.strict,
                     )
@@ -449,7 +475,7 @@ class EnforcementGate:
                     return EnforcementResult(
                         allowed=False,
                         action=token.action,
-                        token_verified=True,
+                        token_verified=vr.verified,
                         reason="token_already_consumed",
                         strict_mode=self.strict,
                     )
@@ -477,7 +503,7 @@ class EnforcementGate:
                                 return EnforcementResult(
                                     allowed=False,
                                     action=token.action,
-                                    token_verified=True,
+                                    token_verified=vr.verified,
                                     reason="token_already_consumed",
                                     strict_mode=self.strict,
                                 )
@@ -486,7 +512,7 @@ class EnforcementGate:
                         return EnforcementResult(
                             allowed=False,
                             action=token.action,
-                            token_verified=True,
+                            token_verified=vr.verified,
                             reason="token_already_consumed",
                             strict_mode=self.strict,
                         )
@@ -496,7 +522,7 @@ class EnforcementGate:
                     return EnforcementResult(
                         allowed=False,
                         action=token.action,
-                        token_verified=True,
+                        token_verified=vr.verified,
                         reason="consumed_ledger_unavailable",
                         strict_mode=self.strict,
                     )
@@ -506,7 +532,7 @@ class EnforcementGate:
                         return EnforcementResult(
                             allowed=False,
                             action=token.action,
-                            token_verified=True,
+                            token_verified=vr.verified,
                             reason="token_already_consumed",
                             strict_mode=self.strict,
                         )
@@ -516,7 +542,7 @@ class EnforcementGate:
         result = EnforcementResult(
             allowed=allowed,
             action=token.action,
-            token_verified=vr.verified or (not token.is_signed and not self.strict),
+            token_verified=vr.verified,
             reason=reason,
             strict_mode=self.strict,
         )
