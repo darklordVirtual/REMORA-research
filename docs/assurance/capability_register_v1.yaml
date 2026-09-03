@@ -142,7 +142,7 @@ capabilities:
       - remora/governance/tenant_chain.py
       - servers/execution_api.py
       - tests/test_execution_api.py
-    caveat: "PERSISTED_ATOMIC when REMORA_CHAIN_DB (SQLite, restart-proven) or REMORA_PG_DSN (Postgres FOR UPDATE) is configured; default in-process. Queue and jti gained durable stores under the same env switches (see CAP-007/CAP-003); the nonce ledger and the assess idempotency cache remain in-process; legacy /v1/assess unmigrated."
+    caveat: "PERSISTED_ATOMIC when REMORA_CHAIN_DB (SQLite, restart-proven) or REMORA_PG_DSN (Postgres FOR UPDATE) is configured; default in-process. Queue, jti, lease nonce and principal revocation all have durable stores selected from REMORA_PG_DSN / REMORA_CHAIN_DB / REMORA_STATE_ENDPOINT (see CAP-007/CAP-003/CAP-013 and docs/assurance/authority_state_topology.yaml); activation on any particular deployment is unclaimed. The assess idempotency cache remains in-process; legacy /v1/assess unmigrated."
 
   - id: CAP-006
     name: "A2A delegation envelope (principal-bound keys, attenuation, replay, payload binding)"
