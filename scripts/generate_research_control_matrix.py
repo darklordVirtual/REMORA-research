@@ -29,7 +29,19 @@ OUTPUT = ROOT / "docs" / "research" / "research_control_matrix.generated.md"
 # against it WHEN PRESENT and skipped where it is absent (CI), so the check is
 # a local drift-guard, never a hard CI dependency on an unpublished file.
 COMPENDIUM = ROOT / "docs" / "researchpapers" / "kompendium_ai_assurance_3utgave.md"
+PACKAGE = ROOT / "remora"
+RELATED_WORK = ROOT / "docs" / "09-related-work.md"
 _REF_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
+#: Citation identifiers a module may carry in its docstring or comments. Every
+#: hit in remora/**/*.py must be declared under bibliography.code_identifiers,
+#: so a source cannot enter the code without entering this register.
+_CODE_IDENT_RE = re.compile(r"arXiv:\d{4}\.\d{4,5}|RFC \d{3,5}")
+#: Dates the register records about itself. `updated` may not be older than the
+#: newest of them; a stale `updated` made the file look unrevised when its own
+#: content said otherwise (audit 2026-09-02). Git commit dates are deliberately
+#: NOT used: a squash merge rewrites them, which would fail this gate on master
+#: for a file nobody touched.
+_CONTENT_DATE_RE = re.compile(r"\b(20\d\d-[01]\d-[0-3]\d)\b")
 
 REQUIRED_FIELDS = (
     "id", "title", "source", "concepts", "controls", "code", "tests",
@@ -83,9 +95,28 @@ def validate(data: dict) -> list[str]:
             errors.append(f"{eid}: citation_anchor set but in_code_citation is false")
     for dup in sorted({i for i in ids if ids.count(i) > 1}):
         errors.append(f"duplicate entry id: {dup}")
+    errors.extend(_validate_updated_date(data))
     errors.extend(_validate_landscape(data))
     errors.extend(_validate_bibliography(data, set(ids)))
     return errors
+
+
+def _validate_updated_date(data: dict) -> list[str]:
+    """`updated` must not predate the newest date the register itself records."""
+    updated = str(data.get("updated", ""))
+    if not REGISTER.exists():
+        return []
+    dates = set(_CONTENT_DATE_RE.findall(REGISTER.read_text(encoding="utf-8")))
+    dates.discard(updated)
+    if not dates:
+        return []
+    newest = max(dates)
+    if updated < newest:
+        return [
+            f"updated is {updated!r} but the register records a later date "
+            f"({newest}); the file has changed since it claims to have"
+        ]
+    return []
 
 
 # ── Bibliography reconciliation ─────────────────────────────────────────────
@@ -98,7 +129,7 @@ BIBLIOGRAPHY_ROLES = {
 }
 #: Roles whose claim is "this source is present in the codebase" and therefore
 #: must name a code path. positioning_only asserts the opposite and must not.
-ROLES_REQUIRING_CODE = {"grounds_implementation"}
+ROLES_REQUIRING_CODE = {"implemented_line", "grounds_implementation"}
 _PAPER_YEAR_RE = re.compile(r"\((\d{4}[ab]?)\)")
 
 
@@ -106,7 +137,7 @@ _ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)+$")
 #: Identifier fields a work may carry. A value here is a factual claim about
 #: an external record, so it is only accepted when the paper's own reference
 #: line already carries it; an identifier can never be introduced here alone.
-IDENTIFIER_FIELDS = ("arxiv", "doi", "isbn")
+IDENTIFIER_FIELDS = ("arxiv", "doi", "isbn", "url")
 
 
 def _paper_reference_lines(paper: Path) -> dict[tuple[str, str], str]:
@@ -254,6 +285,9 @@ def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
             errors.append(f"{where}: must name either a code path or an entry")
         if entry and entry not in entry_ids:
             errors.append(f"{where}: entry {entry!r} is not a research line")
+        role = w.get("role")
+        if role is not None and role not in BIBLIOGRAPHY_ROLES:
+            errors.append(f"{where}: unknown role {role!r}")
         anchor = w.get("anchor", surname)
         for path in code:
             p = ROOT / path
@@ -261,6 +295,9 @@ def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
                 errors.append(f"{where}: referenced path does not exist: {path}")
             elif anchor not in p.read_text(encoding="utf-8", errors="ignore"):
                 errors.append(f"{where}: {anchor!r} not found in {path}")
+
+    errors.extend(_validate_related_work_only(bib))
+    errors.extend(_validate_code_identifiers(bib))
 
     paper = ROOT / str(bib.get("paper", "paper/remora_paper.md"))
     refs = _paper_references(paper)
@@ -276,6 +313,97 @@ def _validate_bibliography(data: dict, entry_ids: set[str]) -> list[str]:
             errors.append(
                 f"bibliography: declared work {key[0]} {key[1]} is not a "
                 f"reference in {bib.get('paper')}; stale entry")
+    return errors
+
+
+def _validate_related_work_only(bib: dict) -> list[str]:
+    """Works that live only in the narrative companion. Each must name a section
+    that exists there, and any identifier it declares must appear in that
+    document - the counterpart of the paper-corroboration rule for `works`."""
+    errors: list[str] = []
+    rows = bib.get("related_work_only") or []
+    if not rows:
+        return errors
+    if not RELATED_WORK.exists():
+        return [f"related_work_only: {RELATED_WORK} does not exist"]
+    text = RELATED_WORK.read_text(encoding="utf-8")
+    headings = set(_related_work_sections(text))
+    for w in rows:
+        where = f"related_work_only {w.get('id', '?')}"
+        wid = w.get("id")
+        if not wid or not _ID_RE.match(str(wid)):
+            errors.append(f"{where}: id must be lowercase-hyphenated ASCII")
+        section = str(w.get("section", ""))
+        m = re.search(r"§([0-9]+[a-z]?)", section)
+        if not m:
+            errors.append(f"{where}: section must name a §N heading")
+        elif m.group(1) not in headings:
+            errors.append(
+                f"{where}: section §{m.group(1)} is not a heading in "
+                f"docs/09-related-work.md")
+        if w.get("code"):
+            errors.append(
+                f"{where}: related_work_only must not name code; a source "
+                f"present in the codebase is not narrative-only")
+        for field in IDENTIFIER_FIELDS:
+            val = w.get(field)
+            if val is not None and str(val) not in text:
+                errors.append(
+                    f"{where}: {field} {val!r} does not appear in "
+                    f"docs/09-related-work.md; an identifier may not be "
+                    f"introduced here alone")
+    return errors
+
+
+def _related_work_sections(text: str) -> list[str]:
+    """Section numbers of the related-work document, including `### 4a`-style
+    subsections. Matching only `## N.` hid the subsections from every check."""
+    return re.findall(r"^#{2,3} (\d+[a-z]?)\.", text, flags=re.MULTILINE)
+
+
+def _scan_code_identifiers() -> dict[str, set[str]]:
+    """identifier -> the remora/**/*.py files that carry it."""
+    found: dict[str, set[str]] = {}
+    for path in sorted(PACKAGE.rglob("*.py")):
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for ident in set(_CODE_IDENT_RE.findall(text)):
+            found.setdefault(ident, set()).add(
+                path.relative_to(ROOT).as_posix())
+    return found
+
+
+def _validate_code_identifiers(bib: dict) -> list[str]:
+    """Reverse scan. Every arXiv/RFC identifier in the package must be declared,
+    and every declared identifier must still be in the files it names."""
+    errors: list[str] = []
+    rows = bib.get("code_identifiers")
+    if rows is None:
+        return ["bibliography: code_identifiers block is missing"]
+    declared = {str(r.get("identifier")): r for r in rows}
+    found = _scan_code_identifiers()
+    for ident in sorted(set(found) - set(declared)):
+        errors.append(
+            f"code_identifiers: {ident} is cited in "
+            f"{', '.join(sorted(found[ident]))} but is not declared; a source "
+            f"may not enter the code without entering this register")
+    for ident in sorted(set(declared) - set(found)):
+        errors.append(
+            f"code_identifiers: {ident} is declared but appears in no "
+            f"remora/**/*.py file; stale entry")
+    known_ids = {w.get("id") for w in (bib.get("works") or [])}
+    known_ids |= {w.get("id") for w in (bib.get("code_only") or [])}
+    known_ids |= {w.get("id") for w in (bib.get("related_work_only") or [])}
+    for ident, row in sorted(declared.items()):
+        where = f"code_identifiers {ident}"
+        if not row.get("work"):
+            errors.append(f"{where}: missing work")
+        for path in row.get("code") or []:
+            if path not in found.get(ident, set()):
+                errors.append(
+                    f"{where}: declared in {path}, which does not contain it")
+        rec = row.get("recorded_as")
+        if rec is not None and rec not in known_ids:
+            errors.append(f"{where}: recorded_as {rec!r} is not a declared work")
     return errors
 
 
@@ -561,6 +689,56 @@ def _bibliography_section(data: dict) -> list[str]:
             lines.append(
                 f"| `{w.get('id', '?')}` | {w.get('work', 'none')} | "
                 f"{code} | {note} |")
+        lines.append("")
+
+    narrative = bib.get("related_work_only") or []
+    if narrative:
+        lines.append(f"### Discussed in related work only ({len(narrative)})")
+        lines.append("")
+        lines.append(
+            "Works that appear only in "
+            "[docs/09-related-work.md](../09-related-work.md): no code, no "
+            "evaluation and no reference in the paper. They were invisible to "
+            "every check until 2026-09-03, which is what made the "
+            "reconciliation paper-to-matrix rather than bidirectional. A "
+            "declared identifier must appear in that document."
+        )
+        lines.append("")
+        lines.append("| Source id | Identifier | Section | Work | Note |")
+        lines.append("|-----------|------------|---------|------|------|")
+        for w in sorted(narrative, key=lambda x: str(x.get("id", ""))):
+            ident = next(
+                (f"{f}:{w[f]}" for f in IDENTIFIER_FIELDS if w.get(f)), "none")
+            note = (w.get("note", "") or "none").strip().replace("\n", " ")
+            lines.append(
+                f"| `{w.get('id', '?')}` | {ident} | "
+                f"{_lit_link(str(w.get('section', 'none')))} | "
+                f"{w.get('work', 'none')} | {note} |")
+        lines.append("")
+
+    idents = bib.get("code_identifiers") or []
+    if idents:
+        lines.append(f"### Citation identifiers found in the package ({len(idents)})")
+        lines.append("")
+        lines.append(
+            "Reverse scan: every `arXiv:` and `RFC` identifier appearing in "
+            "`remora/**/*.py`, with the files that carry it. The generator "
+            "fails on an identifier that is in the code but not here, and on "
+            "one that is here but no longer in the code. Presence is a "
+            "citation, never an implementation claim - several of these are "
+            "cited precisely to record what REMORA does **not** do."
+        )
+        lines.append("")
+        lines.append("| Identifier | Work | Code | Recorded as | Note |")
+        lines.append("|------------|------|------|-------------|------|")
+        for w in sorted(idents, key=lambda x: str(x.get("identifier", ""))):
+            code = ", ".join(_code_link(c) for c in (w.get("code") or [])) or "none"
+            note = (w.get("note", "") or "none").strip().replace("\n", " ")
+            rec = w.get("recorded_as")
+            rec_s = f"`{rec}`" if rec else "none"
+            lines.append(
+                f"| {w.get('identifier', '?')} | {w.get('work', 'none')} | "
+                f"{code} | {rec_s} | {note} |")
         lines.append("")
     return lines
 

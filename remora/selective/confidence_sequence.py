@@ -2,17 +2,29 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Time-uniform (anytime-valid) confidence sequences for a Bernoulli rate.
 
+Scope
+-----
+**Offline, and not wired into any governed path.** Nothing outside the tests
+imports this module except ``scripts/compute_far_confidence_sequence.py``,
+which computes a bound over the REM-020 longitudinal audit series after the
+fact and writes ``results/far_confidence_sequence_v1.json`` (CLAIM-011).
+REM-020 is a closed audit, not a running monitor. Until 2026-09-03 this
+docstring said the module is "used by REM-020 to monitor the operational
+false-accept rate continuously", and the research-control matrix repeated it;
+that described a deployment which does not exist, and it is corrected here.
+
 Motivation
 ----------
-REM-020 monitors the operational false-accept rate continuously and closes
-the day its criterion holds. Fixed-sample intervals (Wilson,
-Clopper-Pearson — used elsewhere in this repo) are valid only at a single,
-pre-committed sample size; inspecting them after every observation and
-acting when a threshold is crossed is *optional stopping*, which invalidates
-their coverage guarantee (the "peeking" problem). A confidence sequence is
-valid *uniformly over time*: P(for all n: p ∈ CS_n) ≥ 1 − α, so a
-monitoring gate may look after every observation and act at any
-data-dependent stopping time without breaking the guarantee.
+The REM-020 series was inspected repeatedly while it accumulated, and the
+criterion was applied at a data-dependent stopping time. Fixed-sample
+intervals (Wilson, Clopper-Pearson — used elsewhere in this repo) are valid
+only at a single, pre-committed sample size; inspecting them after every
+observation and acting when a threshold is crossed is *optional stopping*,
+which invalidates their coverage guarantee (the "peeking" problem). A
+confidence sequence is valid *uniformly over time*: P(for all n: p ∈ CS_n)
+≥ 1 − α, so the bound survives that inspection pattern. Should a live FAR
+gate ever be built, this is the interval it would need; today the guarantee
+is what makes the offline number quotable, not evidence of a monitor.
 
 Construction
 ------------
@@ -162,7 +174,8 @@ def far_monitoring_report(
     alpha: float = 0.05,
     threshold: float | None = None,
 ) -> dict:
-    """Gate-ready summary of the anytime-valid FA-rate bound.
+    """Summary of the anytime-valid FA-rate bound, in the shape a gate would
+    need. No gate consumes it today; see the module scope note.
 
     Args:
         k, n: event and trial counts so far.

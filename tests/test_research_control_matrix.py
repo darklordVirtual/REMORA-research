@@ -145,16 +145,102 @@ def test_compendium_ref_drift_is_rejected_when_landscape_present() -> None:
     assert any("no-such-work-9999" in e and "drifted" in e for e in mod.validate(data))
 
 
-def test_covers_related_work_sections() -> None:
-    """One matrix entry per numbered section of the related-work doc."""
+def _related_work_sections() -> set[str]:
+    """Every section of the related-work doc, `### 4a` subsections included.
+
+    The earlier version of this helper matched only `## N.`, so the `### 4a`
+    and `### 4b` subsections were invisible to the coverage check and the four
+    works discussed only there went unregistered (audit 2026-09-02).
+    """
+    mod = _load_module()
     related = (ROOT / "docs" / "09-related-work.md").read_text(encoding="utf-8")
-    section_nums = set(re.findall(r"^## (\d+)\.", related, flags=re.MULTILINE))
-    cited = set()
+    return set(mod._related_work_sections(related))
+
+
+def _sections_cited_by_the_register() -> dict[str, str]:
+    """section number -> what cites it (a matrix entry or a narrative work)."""
+    cited: dict[str, str] = {}
     for e in _data()["entries"]:
-        m = re.search(r"§(\d+)", e["related_work_section"])
+        m = re.search(r"§(\d+[a-z]?)", e["related_work_section"])
         if m:
-            cited.add(m.group(1))
-    assert section_nums <= cited, f"related-work sections not in matrix: {section_nums - cited}"
+            cited[m.group(1)] = e["id"]
+    for w in _bib().get("related_work_only") or []:
+        m = re.search(r"§(\d+[a-z]?)", str(w.get("section", "")))
+        if m:
+            cited[m.group(1)] = str(w.get("id"))
+    return cited
+
+
+def test_subsections_of_related_work_are_seen() -> None:
+    """Guard on the helper itself: `### 4a`/`### 4b` must be picked up."""
+    sections = _related_work_sections()
+    assert {"4a", "4b"} <= sections, sections
+
+
+def test_covers_related_work_sections() -> None:
+    """Every section of the related-work doc is accounted for: by a matrix
+    entry, or by a work declared narrative-only."""
+    missing = _related_work_sections() - set(_sections_cited_by_the_register())
+    assert not missing, f"related-work sections nothing in the register cites: {missing}"
+
+
+def test_no_register_entry_cites_a_missing_section() -> None:
+    """The reverse direction, which was never checked: a matrix entry (or a
+    narrative-only work) may not point at a section that does not exist."""
+    sections = _related_work_sections()
+    dangling = {num: who for num, who in _sections_cited_by_the_register().items()
+                if num not in sections}
+    assert not dangling, f"register points at absent related-work sections: {dangling}"
+
+
+def test_related_work_only_works_are_narrative_and_anchored() -> None:
+    """A narrative-only work names no code, and any identifier it declares must
+    appear in the document that anchors it."""
+    related = (ROOT / "docs" / "09-related-work.md").read_text(encoding="utf-8")
+    mod = _load_module()
+    offenders: list[str] = []
+    for w in _bib().get("related_work_only") or []:
+        if w.get("code"):
+            offenders.append(f"{w['id']}: narrative-only work names code")
+        for field in mod.IDENTIFIER_FIELDS:
+            val = w.get(field)
+            if val and str(val) not in related:
+                offenders.append(f"{w['id']}: {field}={val} absent from the document")
+    assert not offenders, "\n".join(offenders)
+
+
+def test_every_code_citation_identifier_is_registered() -> None:
+    """Reverse scan: an arXiv/RFC identifier may not be added to a module
+    without being declared in the register."""
+    mod = _load_module()
+    found = mod._scan_code_identifiers()
+    declared = {str(r["identifier"])
+                for r in _bib().get("code_identifiers") or []}
+    undeclared = {i: sorted(f) for i, f in found.items() if i not in declared}
+    assert not undeclared, f"citations in code with no register entry: {undeclared}"
+    stale = declared - set(found)
+    assert not stale, f"declared identifiers no longer in the code: {sorted(stale)}"
+
+
+def test_unregistered_code_identifier_is_rejected() -> None:
+    """The reverse scan must actually fail, otherwise it is decoration."""
+    mod = _load_module()
+    data = _data()
+    data["bibliography"]["code_identifiers"] = [
+        r for r in data["bibliography"]["code_identifiers"]
+        if r["identifier"] != "RFC 8785"
+    ]
+    assert any("RFC 8785" in e for e in mod.validate(data))
+
+
+def test_updated_is_not_older_than_the_registers_own_dates() -> None:
+    """`updated` said 2026-08-24 while the file recorded a 2026-08-26
+    verification (audit 2026-09-02). The gate must catch that."""
+    mod = _load_module()
+    assert mod.validate(_data()) == []
+    stale = _data()
+    stale["updated"] = "2020-01-01"
+    assert any("updated is" in e for e in mod.validate(stale))
 
 
 def test_res003_does_not_claim_crc_implementation() -> None:
@@ -185,9 +271,10 @@ def test_res001_scope_names_deterministic_psn_operationalisation() -> None:
 
 
 # ── Bibliography reconciliation (added 2026-08-07) ──────────────────────────
-# The matrix maps 10 implemented research lines while the paper cites 64 works.
-# Review asked the obvious question: where are the rest used? These tests bind
-# the answer so it cannot rot into an unexplained gap again.
+# The matrix maps far fewer implemented research lines than the paper cites
+# works. Review asked the obvious question: where are the rest used? These tests
+# bind the answer so it cannot rot into an unexplained gap again. (The counts
+# were spelled out here and had drifted; the generator renders them instead.)
 
 
 def _bib() -> dict:
@@ -245,6 +332,18 @@ def test_positioning_only_claims_no_code() -> None:
     bad = [w["surname"] for w in _bib()["works"]
            if w.get("role") == "positioning_only" and w.get("code")]
     assert not bad, f"positioning_only works naming code: {bad}"
+
+
+def test_implemented_line_names_anchored_code() -> None:
+    """implemented_line is a code-presence claim and must be anchor-checked like
+    the other code-claiming roles. Until 2026-09-03 it was the one such role the
+    check could not reach, so a work could be declared implemented with nothing
+    tying it to a file."""
+    mod = _load_module()
+    assert "implemented_line" in mod.ROLES_REQUIRING_CODE
+    for w in _bib()["works"]:
+        if w.get("role") == "implemented_line":
+            assert w.get("code"), f"{w['id']}: implemented_line names no code"
 
 
 def test_implemented_line_points_at_a_real_entry() -> None:
