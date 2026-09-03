@@ -300,6 +300,55 @@ def test_pip_audit_bootstrap_refused_in_ci(tmp_path: Path) -> None:
     assert "bootstrap" in (proc.stdout + proc.stderr).lower()
 
 
+def _load(name: str):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_gated_events_include_pull_request_and_push(monkeypatch) -> None:
+    ratchet = _load("_baseline_ratchet")
+    for event in ("pull_request", "push"):
+        monkeypatch.setenv("GITHUB_EVENT_NAME", event)
+        assert ratchet.is_gated_ci()
+    monkeypatch.delenv("GITHUB_EVENT_NAME", raising=False)
+    assert not ratchet.is_gated_ci()
+
+
+def test_prose_ratchet_compares_against_the_base_baseline() -> None:
+    """A count the branch's own baseline blesses must still fail vs master."""
+    prose = _load("check_prose_style")
+    current = {"docs/x.md": {"emdash": 5}}
+    branch_baseline = {"docs/x.md": {"emdash": 5}}  # rewritten by this PR
+    base_baseline = {"docs/x.md": {"emdash": 1}}  # what origin/master holds
+
+    assert prose.compare(current, branch_baseline)[0] == []
+    regressions, _ = prose.compare(current, base_baseline)
+    assert regressions == ["docs/x.md: emdash 1 -> 5"]
+
+
+def test_coverage_floor_drop_is_detected_against_the_base_source() -> None:
+    cov = _load("check_coverage_thresholds")
+    base_source = (
+        "THRESHOLDS = {'remora/policy': 99.0}\n"
+        "FILE_THRESHOLDS = {}\n"
+        "GLOBAL_THRESHOLD = 99.0\n"
+    )
+    dropped = cov.lowered_floors(base_source)
+    assert any("remora/policy" in line for line in dropped)
+    assert any("TOTAL" in line for line in dropped)
+
+
+def test_coverage_floors_are_not_lowered_against_themselves() -> None:
+    cov = _load("check_coverage_thresholds")
+    own = (SCRIPTS / "check_coverage_thresholds.py").read_text(encoding="utf-8")
+    assert cov.lowered_floors(own) == []
+
+
 def test_pip_audit_bootstrap_allowed_locally(tmp_path: Path) -> None:
     tree = _baseline_tree(tmp_path, {"bootstrap": True})
     env = {k: v for k, v in os.environ.items() if k != "GITHUB_EVENT_NAME"}
