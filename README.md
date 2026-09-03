@@ -76,10 +76,8 @@ Headline values are governed by the [claim register](docs/assurance/claim_regist
 <details>
 <summary>How to read those numbers</summary>
 
-- AgentHarm also blocks the harmless twin set, so the result does not establish fine-grained harmful/harmless discrimination.
 - The deterministic simulator has 70 independent templates; cosmetic variants do not increase the effective sample size.
 - BFCL v4 C-ext3 measures the safety axis only: declared semantic authority takes native wrong-call acceptance from 24/500 to 6 to **0** across the ablation arms. The utility side of the same run (read autonomy, argument routing) missed its pre-registered targets; those findings and the permanent 10.9% baseline live in NEGATIVE_RESULTS §39 and CLAIM-019's caveat, not here.
-- Historical regression shows that known failures stay fixed; it does not bound unseen failures.
 - Internal reproducibility is not external replication or field validation.
 
 Replaced claims are kept in [superseded claims](docs/assurance/superseded_claims.md). Failed hypotheses and limitations are kept in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
@@ -138,7 +136,7 @@ It cannot enforce against a credential path that bypasses its dispatcher. Deploy
 
 Research modules, AROMER, the older statistical-physics work and historical design documents stay in the repository for reproducibility and audit history. Their presence does not make them part of the enforcing runtime path; the capability register says what is wired.
 
-The `servers/execution_api.py` decomposition is complete (issue #241, closed): contracts, persistence, authorization, dispatch, projections and all use-case orchestration live under `remora/execution/` and `remora/persistence/`, verified against a byte-identical OpenAPI schema at every step. Dispatch runs inside the API process by default. A decoupled dispatch worker exists behind `REMORA_ASYNC_DISPATCH` (issue #82, closed: 202 after durable authorization, exclusive claim before grant, persisted authorization expiry, idempotent terminal projection), but it is not enabled in any reference profile; activation waits on the operational hardening tracked in issue #423.
+The state of the `servers/execution_api.py` decomposition (issue #241, closed) and of the decoupled dispatch worker behind `REMORA_ASYNC_DISPATCH` (issue #82, closed; not enabled in any reference profile) is stated once, in [DEVELOPER_OVERVIEW.md](DEVELOPER_OVERVIEW.md#known-boundary).
 
 For product-oriented integration see [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution), which consumes pinned REMORA artifacts rather than copying the governance core.
 
@@ -150,20 +148,7 @@ The research-to-control mapping lives in [docs/research/research_control_matrix.
 
 Generative-AI tools were used during development. AI-generated text or code is not evidence by itself; claims must resolve to committed artifacts, tests or verified sources. Disclosure: [docs/AI_USE.md](docs/AI_USE.md).
 
-<details>
-<summary>BibTeX</summary>
-
-```bibtex
-@misc{remora2026,
-  title  = {REMORA: Governed Execution Assurance for Tool-Using AI Agents},
-  author = {Skogbrott, Stian},
-  year   = {2026},
-  url    = {https://github.com/darklordVirtual/REMORA-research},
-  note   = {Research-grade reference architecture; external replication pending.}
-}
-```
-
-</details>
+Citation metadata is in [CITATION.cff](CITATION.cff); GitHub renders it as BibTeX from the "Cite this repository" panel.
 
 ## License and contributions
 

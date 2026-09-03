@@ -83,6 +83,7 @@ GOVERNED_SUFFIXES = {".md", ".html", ".yaml", ".yml", ".json"}
 # text are intentionally excluded — they are not narrative knowledge documents.
 ROOT_DOCS = (
     "README.md",
+    "DEVELOPER_OVERVIEW.md",
     "ARCHITECTURE.md",
     "NEGATIVE_RESULTS.md",
     "SECURITY.md",

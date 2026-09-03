@@ -2046,6 +2046,17 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-337
+  path: DEVELOPER_OVERVIEW.md
+  status: canonical
+  topic: DEVELOPER_OVERVIEW_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-03'
+  last_reviewed: '2026-09-03'
+  audience:
+  - maintainers
+  - integrators
 - id: DOC-336
   path: docs/design/task-bound-execution-authority-v1.md
   status: proposal
@@ -2488,6 +2499,7 @@ topics:
 - ARCHITECTURE_md
 - EVIDENCE_OF_CAPABILITY_md
 - README_md
+- DEVELOPER_OVERVIEW_md
 - CONTRIBUTORS_md
 - CLAUDE_md
 - remora_README_md
