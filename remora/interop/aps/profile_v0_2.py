@@ -5,8 +5,8 @@
 v0.2 is additive. It inherits the v0.1 mappings unchanged, adds an explicit
 APS accountability schema-layer parity observation, and maps only P1 (scope
 monotonicity) from token-exchange-attenuation-v0 to a genuine REMORA property.
-P2 and P3 remain NOT_RUN because REMORA has no RFC 8693 upstream-claim policy
-evaluator and the adapter must not invent one.
+P2 and P3 remain NOT_RUN because REMORA has no upstream-claim policy evaluator
+for the external token-exchange family and the adapter must not invent one.
 """
 
 PROFILE_ID = "remora-aps-profile-v0.2"
