@@ -10,8 +10,8 @@ The v0.1 mapping and evidence remain frozen. v0.2 adds two observations:
    same decisive/non-decisive rule as APS' Python parity implementation.
 2. token-exchange-attenuation-v0 P1 only. Scope monotonicity is projected onto
    REMORA's existing delegation-chain verifier. P2 and P3 are NOT_RUN because
-   REMORA has no RFC 8693 upstream-claim/actor attribute evaluator and the
-   adapter must not manufacture a passing implementation of an external rule.
+   REMORA has no upstream-claim/actor attribute evaluator for this external
+   family and the adapter must not manufacture a passing implementation.
 """
 
 from __future__ import annotations
@@ -355,9 +355,9 @@ def run_token_exchange_attenuation_p1(path: Path) -> dict[str, Any]:
         "not_run": {
             "properties": list(NOT_RUN_PROPERTIES["token-exchange-attenuation-v0"]),
             "reason": (
-                "REMORA has no RFC 8693 upstream_claims/act attribute-policy "
-                "evaluator. Implementing P2/P3 in this adapter would be adapter "
-                "evidence rather than a REMORA property."
+                "REMORA has no upstream_claims/act attribute-policy evaluator "
+                "for this external token-exchange family. Implementing P2/P3 "
+                "here would be adapter evidence rather than a REMORA property."
             ),
         },
         "summary": {
