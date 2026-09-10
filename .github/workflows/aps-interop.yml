@@ -1,0 +1,135 @@
+name: APS Interop
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "remora/interop/**"
+      - "remora/governance/a2a_envelope.py"
+      - "tests/test_aps_profile_v0_2.py"
+      - "artifacts/interop/**"
+      - ".github/workflows/aps-interop.yml"
+  push:
+    branches: [master]
+    paths:
+      - "remora/interop/**"
+      - "remora/governance/a2a_envelope.py"
+      - "tests/test_aps_profile_v0_2.py"
+      - "artifacts/interop/**"
+      - ".github/workflows/aps-interop.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aps-interop-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  APS_REPOSITORY: Agent-Authority-Conformance/aps-conformance-suite
+  APS_COMMIT: b46568e8947291e553c6392403226e8d05be31d2
+
+jobs:
+  interop:
+    name: REMORA v0.1 + v0.2 against pinned APS
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout REMORA
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          persist-credentials: false
+
+      - name: Checkout pinned APS corpus
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          repository: ${{ env.APS_REPOSITORY }}
+          ref: ${{ env.APS_COMMIT }}
+          path: aps-suite
+          persist-credentials: false
+
+      - name: Assert APS pin
+        run: |
+          test "$(git -C aps-suite rev-parse HEAD)" = "$APS_COMMIT"
+          echo "APS corpus: $(git -C aps-suite rev-parse HEAD)"
+          mkdir -p ci-artifacts/aps-interop
+          cat > ci-artifacts/aps-interop/PINS.txt <<EOF
+          REMORA=$(git rev-parse HEAD)
+          APS=$APS_COMMIT
+          EOF
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: aps-suite/package-lock.json
+
+      - name: Install REMORA interop dependencies
+        run: |
+          python -m pip install --upgrade pip
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e . pytest jsonschema cryptography -c /tmp/constraints.txt
+
+      - name: Unit-test v0.2 mapping boundaries
+        run: python -m pytest tests/test_aps_profile_v0_2.py -q
+
+      - name: Verify APS accountability and receipt gates
+        working-directory: aps-suite
+        run: |
+          npm ci
+          npm run verify:accountability-record
+          npm run verify:receipt-decision-relation
+          npm run verify:receipt-decision-relation:flip
+
+      - name: Run frozen REMORA APS profile v0.1 on current corpus
+        run: |
+          PYTHONPATH=. python -m remora.interop.aps.adapter \
+            --aps-suite aps-suite \
+            --output ci-artifacts/aps-interop/profile-v0.1-current.json
+          cmp \
+            artifacts/interop/aps-ba8e540-profile-v0.1/results.json \
+            ci-artifacts/aps-interop/profile-v0.1-current.json
+
+      - name: Run REMORA APS profile v0.2
+        run: |
+          PYTHONPATH=. python -m remora.interop.aps.adapter_v0_2 \
+            --aps-suite aps-suite \
+            --output ci-artifacts/aps-interop/profile-v0.2.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(
+              Path("ci-artifacts/aps-interop/profile-v0.2.json").read_text()
+          )
+          summary = report["summary"]
+          assert summary["v0_1_divergences"] == 0, summary
+          assert summary["v0_1_mapping_divergences"] == 0, summary
+          assert summary["schema_status"] == "RUN", summary
+          assert summary["schema_divergences"] == 0, summary
+          assert summary["token_exchange_p1_cases"] > 0, summary
+          assert summary["token_exchange_p1_divergences"] == 0, summary
+          assert summary["token_exchange_not_run"] == ["P2", "P3"], summary
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Run APS cross-stack gate
+        working-directory: aps-suite
+        run: npm run verify:cross-stack
+
+      - name: Upload APS interop evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: aps-interop-${{ github.sha }}
+          path: ci-artifacts/aps-interop
+          if-no-files-found: error
