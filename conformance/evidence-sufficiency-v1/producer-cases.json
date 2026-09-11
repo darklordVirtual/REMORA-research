@@ -1,0 +1,102 @@
+{
+  "artifact_kind": "synthetic-fixtures",
+  "cases": [
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "absence_supported_by_bounded_producer_coverage", "status": "established"},
+      "id": "PNE-01",
+      "metadata": {"provenance": [], "role": "synthetic baseline"},
+      "observations": {"collection_closed": true, "declaration_state": "PRESENT", "declared_capabilities": ["read_delegation"], "delegation_observed": false, "delivery_integrity": true, "effective_access": true, "mandatory_emission": true, "suppression_gap_absent": true},
+      "property": "no_delegation_in_window",
+      "title": "bounded producer coverage supports narrow absence claim"
+    },
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "emission_obligation_unestablished", "status": "not_established"},
+      "id": "PNE-02",
+      "metadata": {"provenance": []},
+      "observations": {"collection_closed": true, "declaration_state": "PRESENT", "declared_capabilities": ["read_delegation"], "delegation_observed": false, "delivery_integrity": true, "effective_access": true, "mandatory_emission": false, "suppression_gap_absent": true},
+      "property": "no_delegation_in_window",
+      "title": "capability does not imply emission obligation"
+    },
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "effective_access_unestablished", "status": "not_established"},
+      "id": "PNE-03",
+      "metadata": {"provenance": []},
+      "observations": {"collection_closed": true, "declaration_state": "PRESENT", "declared_capabilities": ["read_delegation"], "delegation_observed": false, "delivery_integrity": true, "effective_access": false, "mandatory_emission": true, "suppression_gap_absent": true},
+      "property": "no_delegation_in_window",
+      "title": "declared capability without effective access is insufficient"
+    },
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "delivery_integrity_unestablished", "status": "not_established"},
+      "id": "PNE-04",
+      "metadata": {"provenance": []},
+      "observations": {"collection_closed": true, "declaration_state": "PRESENT", "declared_capabilities": ["read_delegation"], "delegation_observed": false, "delivery_integrity": false, "effective_access": true, "mandatory_emission": true, "suppression_gap_absent": true},
+      "property": "no_delegation_in_window",
+      "title": "delivery integrity is independent from producer capability"
+    },
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "producer_capability_not_declared", "status": "not_established"},
+      "id": "PNE-05",
+      "metadata": {"provenance": []},
+      "observations": {"collection_closed": true, "declaration_state": "PRESENT", "declared_capabilities": [], "delegation_observed": false, "delivery_integrity": true, "effective_access": false, "mandatory_emission": false, "suppression_gap_absent": true},
+      "property": "no_delegation_in_window",
+      "title": "known empty capability declaration stays distinct"
+    },
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "producer_declaration_unavailable", "status": "not_established"},
+      "id": "PNE-06",
+      "metadata": {"provenance": []},
+      "observations": {"declaration_state": "UNAVAILABLE", "delegation_observed": false},
+      "property": "no_delegation_in_window",
+      "title": "unavailable declaration is not normalized to empty"
+    },
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "accepted_delegation_observed_in_bounded_scope", "status": "violated"},
+      "id": "PNE-07",
+      "metadata": {"provenance": []},
+      "observations": {"declaration_state": "UNAVAILABLE", "delegation_evidence_accepted": true, "delegation_observed": true},
+      "property": "no_delegation_in_window",
+      "title": "direct accepted event witness refutes absence without global coverage"
+    },
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "event_presence_unknown", "status": "not_established"},
+      "id": "PNE-08",
+      "metadata": {"provenance": []},
+      "observations": {"declaration_state": "PRESENT", "declared_capabilities": ["read_delegation"], "delegation_observed": null},
+      "property": "no_delegation_in_window",
+      "title": "unknown event presence does not become absence"
+    },
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "suppression_gap_unexcluded", "status": "not_established"},
+      "id": "PNE-09",
+      "metadata": {"provenance": []},
+      "observations": {"collection_closed": true, "declaration_state": "PRESENT", "declared_capabilities": ["read_delegation"], "delegation_observed": false, "delivery_integrity": true, "effective_access": true, "mandatory_emission": true, "suppression_gap_absent": false},
+      "property": "no_delegation_in_window",
+      "title": "suppression gap must be excluded"
+    },
+    {
+      "context": {"scope": {"configuration": "cfg-1", "interval": "w-1", "subject": "agent-a", "tenant": "t-1"}, "scope_accepted": true},
+      "expect": {"reason": "collection_not_closed", "status": "not_established"},
+      "id": "PNE-10",
+      "metadata": {"provenance": []},
+      "observations": {"collection_closed": false, "declaration_state": "PRESENT", "declared_capabilities": ["read_delegation"], "delegation_observed": false, "delivery_integrity": true, "effective_access": true, "mandatory_emission": true, "suppression_gap_absent": true},
+      "property": "no_delegation_in_window",
+      "title": "open collection cannot support absence"
+    }
+  ],
+  "inference_contract": {
+    "checker_inputs": ["property", "observations", "context"],
+    "harness_only": ["id", "expect", "metadata"],
+    "note": "Harness expectations and metadata are not checker inputs."
+  },
+  "property": "no_delegation_in_window",
+  "suite": "evidence-sufficiency-v1/producer-negative-evidence"
+}
