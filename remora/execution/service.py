@@ -15,7 +15,9 @@ from remora.errors import RemoraError
 from remora.execution.ports import (AuditChainPort, DispatchOutboxPort,
                                     EnforcementGatePort,
                                     PolicyDecisionTokenPort,
-                                    PolicyEnginePort, ToolCallPort)
+                                    PolicyEnginePort, ToolCallPort,
+                                    TransactionalAppendPort, appender,
+                                    audit_ref)
 
 import dataclasses
 import json
@@ -28,6 +30,7 @@ from uuid import uuid4
 from remora.execution.outcome import DispatchOutcome, classify_outcome
 from remora.enforcement.outbox import OutboxState
 from remora.enforcement.token import AuthorizationContext, PolicyDecisionToken
+from remora.governance.audit_outbox import encode_key
 from remora.governance.review_queue import ExecutionDecision
 from remora.governance.proposal_lineage import derive_lineage, lineage_key_for
 from remora.policy.report import DecisionAction
@@ -323,6 +326,7 @@ def execute_approved_item(
     policy_coverage: Callable[[], dict[str, Any]] | None = None,
     policy_bundle_hash: Callable[[], str] | None = None,
     async_dispatch: bool = False,
+    transactional_append: TransactionalAppendPort | None = None,
 ) -> dict[str, Any]:
     """Execute a previously approved item under full re-gating.
 
@@ -364,6 +368,9 @@ def execute_approved_item(
         )
 
     fresh_obs, fresh_semantic = build_observation(tool_call, tenant)
+    append = appender(chain, transactional_append)
+    refusal_entry: Any = None
+    refusal_key = ""
     try:
         # Tenant binding inside the transaction (review finding 2a); the
         # canonical proposal identity rides the QUEUED observation - the
@@ -376,6 +383,21 @@ def execute_approved_item(
                                   "proposal_id", None)
             note_proposal_id(proposal_id)
             outcome = q.execute(item_id, fresh_obs)
+            if outcome.decision is not ExecutionDecision.EXECUTE:
+                # REM-047: a re-gate refusal is a terminal state transition,
+                # and its audit event now commits with it. Appended after the
+                # commit, a crash in between left an item refused with no
+                # record of the refusal.
+                refusal_key = encode_key(
+                    tenant, f"execution_{outcome.decision.value}", item_id)
+                refusal_entry = append(tenant, {
+                    "event": f"execution_{outcome.decision.value}",
+                    "proposal_id": proposal_id,
+                    "actor": principal,
+                    "item_id": item_id,
+                    "tool_call_hash": fresh_obs.tool_call_hash,
+                    "detail": outcome.detail,
+                }, key=refusal_key)
             # FT-02: the dispatch intent is recorded in THIS transaction -
             # the one that authorizes the call. A refusal never gets here,
             # so a refused re-gate records no intent.
@@ -427,18 +449,7 @@ def execute_approved_item(
     if outcome.decision is not ExecutionDecision.EXECUTE:
         # FT-01: every re-gate refusal is a declared move from AUTHORIZED.
         lifecycle_guard("AUTHORIZED", "regate_binding_or_freshness_refusal")
-        refusal_entry = chain.append(tenant, {
-            "event": f"execution_{outcome.decision.value}",
-            "proposal_id": proposal_id,
-            "actor": principal,
-            "item_id": item_id,
-            "tool_call_hash": fresh_obs.tool_call_hash,
-            "detail": outcome.detail,
-        })
-        response["audit"] = {
-            "sequence_no": refusal_entry.sequence_no,
-            "entry_hash": refusal_entry.entry_hash,
-        }
+        response["audit"] = audit_ref(refusal_entry, key=refusal_key)
         return response
 
     if async_dispatch:

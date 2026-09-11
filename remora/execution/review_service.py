@@ -19,11 +19,16 @@ from remora.errors import RemoraError
 
 from contextlib import AbstractContextManager
 
-from remora.execution.ports import AuditChainPort, ReviewQueuePort
+from remora.execution.ports import (AuditChainPort, ReviewQueuePort,
+                                    TransactionalAppendPort, appender,
+                                    audit_ref)
+
+from remora.governance.audit_outbox import encode_key
 
 from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
+
 
 
 class ReviewNotFound(RemoraError):
@@ -64,6 +69,7 @@ def approve_item(
     authorize_approval: Callable[[Any], None],
     lifecycle_guard: Callable[..., None],
     note_proposal_id: Callable[[Any], None],
+    transactional_append: TransactionalAppendPort | None = None,
 ) -> dict[str, Any]:
     """Record an approval by the authenticated reviewer.
 
@@ -87,6 +93,12 @@ def approve_item(
     # deployment's policy decides who may approve at this risk tier.
     authorize_approval(item)
 
+    proposal_id = getattr(item.observation, "proposal_id", None)
+    # Deterministic, and once per item: an approval is terminal for the
+    # pending state, so the same key can never name two different events.
+    key = encode_key(tenant, "approved", item_id)
+    append = appender(chain, transactional_append)
+    entry: Any = None
     try:
         with transaction(tenant) as q:
             # REM-032 lazy sweep; an expired target then fails q.approve
@@ -96,6 +108,18 @@ def approve_item(
                 item_id, approver=principal,
                 approval_ttl=timedelta(seconds=approval_ttl_seconds),
             )
+            # REM-047: INSIDE the transaction that records the approval. It
+            # used to be appended after the commit, so a crash in between left
+            # an approved item with no audit event and a verifier unable to
+            # tell that from a chain nobody had written to.
+            entry = append(tenant, {
+                "event": "approved",
+                "proposal_id": proposal_id,
+                "actor": principal,
+                "on_behalf_of": on_behalf_of,
+                "item_id": item_id,
+                "expires_at": approval.expires_at.isoformat(),
+            }, key=key)
     except (KeyError, ValueError) as exc:
         # The queue's own message is not repeated to the caller: it is raised
         # from internal state handling and can name item keys and internal
@@ -111,22 +135,13 @@ def approve_item(
     # performed (pending → approved) must be one the declared machine allows.
     lifecycle_guard("REVIEW_PENDING", "human_approval")
 
-    proposal_id = getattr(item.observation, "proposal_id", None)
     note_proposal_id(proposal_id)
-    entry = chain.append(tenant, {
-        "event": "approved",
-        "proposal_id": proposal_id,
-        "actor": principal,
-        "on_behalf_of": on_behalf_of,
-        "item_id": item_id,
-        "expires_at": approval.expires_at.isoformat(),
-    })
     return {
         "status": "approved",
         "proposal_id": proposal_id,
         "item_id": item_id,
         "expires_at": approval.expires_at.isoformat(),
-        "audit": {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash},
+        "audit": audit_ref(entry, key=key),
     }
 
 
@@ -141,6 +156,7 @@ def reject_item(
     chain: AuditChainPort,
     lifecycle_guard: Callable[..., None],
     note_proposal_id: Callable[[Any], None],
+    transactional_append: TransactionalAppendPort | None = None,
 ) -> dict[str, Any]:
     """Refuse a pending review item, terminally.
 
@@ -148,12 +164,25 @@ def reject_item(
     queue refuses any later transition, so a refusal cannot be worked
     around by calling approve again.
     """
+    key = encode_key(tenant, "rejected", item_id)
+    append = appender(chain, transactional_append)
+    entry: Any = None
     try:
         with transaction(tenant) as q:
             if item_tenant.get(item_id) != tenant:
                 raise KeyError(item_id)
             q.expire_due()
             item = q.reject(item_id, reviewer=principal, reason=reason)
+            # REM-047: the refusal and its audit event commit together. A
+            # rejection is terminal, so a lost audit post could never be
+            # inferred from a later transition.
+            entry = append(tenant, {
+                "event": "rejected",
+                "proposal_id": getattr(item.observation, "proposal_id", None),
+                "actor": principal,
+                "item_id": item_id,
+                "reason": reason,
+            }, key=key)
     except KeyError as exc:
         raise ReviewNotFound(item_id) from exc
     except ValueError as exc:
@@ -165,17 +194,10 @@ def reject_item(
     lifecycle_guard("REVIEW_PENDING", "human_rejection")
     proposal_id = getattr(item.observation, "proposal_id", None)
     note_proposal_id(proposal_id)
-    entry = chain.append(tenant, {
-        "event": "rejected",
-        "proposal_id": proposal_id,
-        "actor": principal,
-        "item_id": item_id,
-        "reason": reason,
-    })
     return {
         "status": "rejected",
         "proposal_id": proposal_id,
         "item_id": item_id,
         "reason": reason,
-        "audit": {"sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash},
+        "audit": audit_ref(entry, key=key),
     }

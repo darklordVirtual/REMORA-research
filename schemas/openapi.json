@@ -285,20 +285,51 @@
         "type": "object"
       },
       "AuditRef": {
+        "description": "Where this response's audit event is, or where it will be.\n\nA state-transition event is enqueued on the SAME transaction as the\ntransition (REM-047), so at response time it is durable but not yet\nprojected into the chain and has no index. That case is stated rather than\npapered over: ``deferred`` is true, ``sequence_no`` and ``entry_hash`` are\nnull, and ``idempotency_key`` is the key the event will be appended under.\nInventing an index the chain does not contain would be worse than saying\nthe index does not exist yet.",
         "properties": {
+          "deferred": {
+            "default": false,
+            "description": "True when the event is enqueued on the state transaction and awaits projection by the drain.",
+            "title": "Deferred",
+            "type": "boolean"
+          },
           "entry_hash": {
-            "title": "Entry Hash",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chain entry hash; null when deferred is true.",
+            "title": "Entry Hash"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present only when deferred: the key the event will be appended under, and the join to the chain entry once projected.",
+            "title": "Idempotency Key"
           },
           "sequence_no": {
-            "title": "Sequence No",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chain index; null when deferred is true.",
+            "title": "Sequence No"
           }
         },
-        "required": [
-          "sequence_no",
-          "entry_hash"
-        ],
         "title": "AuditRef",
         "type": "object"
       },

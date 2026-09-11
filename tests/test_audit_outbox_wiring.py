@@ -135,3 +135,159 @@ def test_the_postgres_branch_is_selected_when_a_dsn_is_configured(exec_mod, monk
     # Unreachable is not unused: the drain returns 0 and the row waits.
     assert exec_mod.drain_audit_outbox("acme") == 0
     assert calls == ["postgresql://nobody@127.0.0.1:1/none"]
+
+
+# ── The routes, not just the helper ───────────────────────────────────────
+#
+# The mechanism above existed and nothing in production called it: every
+# state-transition audit event was still appended AFTER its transaction had
+# committed (audit 2026-09-02). These bind the routes to the transactional
+# path, so a regression that moves an append back outside the transaction
+# fails here rather than in a post-mortem.
+
+from fastapi.testclient import TestClient  # noqa: E402
+
+CALL = {
+    "tool_name": "store_artifact",
+    "arguments": {"artifact_id": "wiring-1", "content": {"n": 1}},
+    "target_environment": "prod",
+    "schema_valid": True,
+}
+
+
+@pytest.fixture()
+def durable_client(monkeypatch, tmp_path):
+    """A client with a real state store, which is what makes the outbox live."""
+
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "wiring-key")
+    monkeypatch.setenv("REMORA_ENV", "development")
+    monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "servers.tool_registry_research")
+    monkeypatch.setenv("REMORA_EXECUTION_ARTIFACT_DIR", str(tmp_path / "art"))
+    monkeypatch.delenv("REMORA_SEMANTIC_BUNDLE_MODULE", raising=False)
+    monkeypatch.delenv("REMORA_PG_DSN", raising=False)
+    monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "state.db"))
+    import servers.api as api_mod
+    import servers.execution_api as exec_mod
+
+    from remora.governance.tenant_chain import TenantAuditChain
+
+    monkeypatch.setattr(api_mod, "_authenticate", lambda request: ("acme", "reviewer"))
+    monkeypatch.setattr(api_mod, "_authenticated_principal",
+                        lambda request: "reviewer-1")
+    monkeypatch.setattr(api_mod, "_require_tenant_capability",
+                        lambda role, tenant, cap: None)
+    monkeypatch.setattr(api_mod, "_enforce_review_approval_role",
+                        lambda **kwargs: None)
+    exec_mod._QUEUES.clear()
+    exec_mod._ITEM_TENANT.clear()
+    exec_mod._CHAIN = TenantAuditChain()
+    exec_mod._reset_semantic_bundle()
+    exec_mod._reset_tool_dispatcher()
+    exec_mod._reset_outbox()
+    return TestClient(api_mod.app), exec_mod
+
+
+def _pending_item(client):
+    r = client.post("/v1/execution/assess", json=CALL)
+    assert r.status_code == 200, r.text
+    item_id = r.json()["review_item_id"]
+    assert item_id
+    return item_id
+
+
+def _events(exec_mod, tenant="acme"):
+    return [e.payload.get("event") for e in exec_mod._CHAIN.entries(tenant)]
+
+
+def test_approve_enqueues_its_audit_event_on_the_state_transaction(durable_client):
+    client, exec_mod = durable_client
+    item_id = _pending_item(client)
+
+    r = client.post("/v1/execution/approve",
+                    json={"item_id": item_id, "approval_ttl_seconds": 300})
+    assert r.status_code == 200, r.text
+
+    # Not yet in the chain: it is durable in the outbox, on the same
+    # transaction as the approval itself.
+    assert "approved" not in _events(exec_mod)
+    audit = r.json()["audit"]
+    assert audit["deferred"] is True
+    assert audit["sequence_no"] is None, "no chain index exists yet; inventing one lies"
+    assert audit["idempotency_key"]
+
+    assert exec_mod.drain_audit_outbox("acme") == 1
+    assert "approved" in _events(exec_mod)
+
+
+def test_reject_enqueues_its_audit_event_on_the_state_transaction(durable_client):
+    client, exec_mod = durable_client
+    item_id = _pending_item(client)
+
+    r = client.post("/v1/execution/reject",
+                    json={"item_id": item_id, "reason": "not this one"})
+    assert r.status_code == 200, r.text
+    assert "rejected" not in _events(exec_mod)
+    assert r.json()["audit"]["deferred"] is True
+
+    assert exec_mod.drain_audit_outbox("acme") == 1
+    assert "rejected" in _events(exec_mod)
+
+
+def test_revocation_and_its_audit_event_commit_together(durable_client):
+    """The clearest case: the revocation committed, the audit post did not."""
+
+    client, exec_mod = durable_client
+    r = client.post("/v1/execution/revoke-principal",
+                    json={"principal": "operator-9", "reason": "left the team"})
+    assert r.status_code == 200, r.text
+    assert "principal_revoked" not in _events(exec_mod)
+
+    assert exec_mod.drain_audit_outbox("acme") == 1
+    assert "principal_revoked" in _events(exec_mod)
+
+
+def test_the_deferred_event_is_projected_exactly_once(durable_client):
+    client, exec_mod = durable_client
+    item_id = _pending_item(client)
+    client.post("/v1/execution/approve",
+                json={"item_id": item_id, "approval_ttl_seconds": 300})
+
+    exec_mod.drain_audit_outbox("acme")
+    exec_mod.drain_audit_outbox("acme")
+    assert _events(exec_mod).count("approved") == 1
+
+
+def test_without_a_durable_store_the_audit_block_still_carries_an_index(
+    monkeypatch, tmp_path
+):
+    """No state store means no transaction to join, so nothing is deferred."""
+
+    monkeypatch.delenv("REMORA_CHAIN_DB", raising=False)
+    monkeypatch.delenv("REMORA_PG_DSN", raising=False)
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "wiring-key")
+    monkeypatch.setenv("REMORA_ENV", "development")
+    monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "servers.tool_registry_research")
+    monkeypatch.setenv("REMORA_EXECUTION_ARTIFACT_DIR", str(tmp_path / "art"))
+    import servers.api as api_mod
+    import servers.execution_api as exec_mod
+
+    from remora.governance.tenant_chain import TenantAuditChain
+
+    monkeypatch.setattr(api_mod, "_authenticate", lambda request: ("acme", "reviewer"))
+    monkeypatch.setattr(api_mod, "_authenticated_principal",
+                        lambda request: "reviewer-1")
+    monkeypatch.setattr(api_mod, "_require_tenant_capability",
+                        lambda role, tenant, cap: None)
+    monkeypatch.setattr(api_mod, "_enforce_review_approval_role",
+                        lambda **kwargs: None)
+    exec_mod._QUEUES.clear()
+    exec_mod._ITEM_TENANT.clear()
+    exec_mod._CHAIN = TenantAuditChain()
+    exec_mod._reset_outbox()
+    client = TestClient(api_mod.app)
+
+    item_id = _pending_item(client)
+    body = client.post("/v1/execution/approve",
+                       json={"item_id": item_id, "approval_ttl_seconds": 300}).json()
+    assert body["audit"]["deferred"] is False
+    assert isinstance(body["audit"]["sequence_no"], int)
