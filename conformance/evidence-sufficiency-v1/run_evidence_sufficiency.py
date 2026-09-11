@@ -152,7 +152,7 @@ def build_record() -> dict:
         "purpose": "regression evidence for claim-sufficiency inference rules, not system conformance",
         "inputs_sha256": {
             name: sha256_file(HERE / name)
-            for name in ("checker.py", "cases.json", "run_evidence_sufficiency.py")
+            for name in ("checker.py", "cases.json")
         },
         "legacy_provenance": {
             "decision_to_effect_v1_vectors_blob_sha": "0dd98172541c7f93fbb2d2d6e0f13112209504c5",

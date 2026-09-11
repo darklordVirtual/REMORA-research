@@ -12,9 +12,9 @@ The existing `decision-to-effect-v1` suite remains unchanged. That suite has ext
 
 The runner records three different answers:
 
-1. **Runtime outcome**: what the implementation/runtime reported, such as `EFFECT_INDETERMINATE`.
-2. **Case result**: whether the synthetic checker matched the authored fixture expectation.
-3. **Evidence verdict**: whether the accepted observations establish, violate or fail to establish one bounded property.
+1. Runtime outcome: what the implementation/runtime reported, such as `EFFECT_INDETERMINATE`.
+2. Case result: whether the synthetic checker matched the authored fixture expectation.
+3. Evidence verdict: whether the accepted observations establish, violate or fail to establish one bounded property.
 
 A case can correctly match an expected `not_established` result without establishing the underlying property.
 

@@ -99,8 +99,7 @@
   ],
   "inputs_sha256": {
     "cases.json": "a0048cc021ab7cd7f7d1b09a93e13c7dbdee9f7a685ea617a112da8af3c88d7e",
-    "checker.py": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0",
-    "run_evidence_sufficiency.py": "bfb4e41643b8af4dfc00bb00f84bcf8705823ff179ecdbe7900004257c3482dd"
+    "checker.py": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0"
   },
   "legacy_provenance": {
     "decision_to_effect_v1_base_commit": "850220687994455fae7f4d76497a3e9885c4b404",

@@ -4,8 +4,7 @@ Status: synthetic REMORA research/conformance artifact.
 
 This profile implements one narrow inference boundary:
 
-> A producer's declared capability does not imply a mandatory emission
-> obligation, and neither implies complete bounded observation.
+> Declared capability, mandatory emission, and complete bounded observation are separate premises.
 
 The supported property is `no_delegation_in_window`. It is intentionally a
 historical, bounded claim. It is **not** architectural `non_bypassability`.
