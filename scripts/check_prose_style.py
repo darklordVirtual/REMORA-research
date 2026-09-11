@@ -46,6 +46,7 @@ Usage::
 """
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import subprocess
@@ -53,8 +54,12 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _baseline_ratchet import base_blob, is_gated_ci, skip_note  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE = ROOT / "docs" / "assurance" / "prose_style_baseline.json"
+BASELINE_REL = "docs/assurance/prose_style_baseline.json"
+BASELINE = ROOT / BASELINE_REL
 
 #: Text preserved verbatim by policy (history, third-party, superseded).
 EXCLUDE_PREFIXES = (
@@ -241,6 +246,22 @@ def load_baseline() -> dict[str, dict[str, int]]:
     return json.loads(BASELINE.read_text(encoding="utf-8")).get("files", {})
 
 
+def load_base_baseline() -> dict[str, dict[str, int]] | None:
+    """The baseline as it stands on origin/master, or None if unavailable.
+
+    Reading the baseline from the working tree made this a ratchet a pull
+    request could reset in the same commit: raise a count, regenerate the
+    baseline, ship. The gate is measured against the base branch instead.
+    """
+    blob = base_blob(BASELINE_REL, ROOT)
+    if blob is None:
+        return None
+    try:
+        return json.loads(blob).get("files", {})
+    except json.JSONDecodeError:
+        return None
+
+
 def compare(current: dict[str, dict[str, int]],
             baseline: dict[str, dict[str, int]]) -> tuple[list[str], list[str]]:
     """Return (regressions, improvements) as printable lines."""
@@ -264,20 +285,32 @@ def totals(data: dict[str, dict[str, int]]) -> Counter:
 
 
 def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(description="prose-style ratchet")
+    parser.add_argument("--root", type=Path, default=None,
+                        help="scan this tree instead of the repository root")
+    parser.add_argument("--report", action="store_true")
+    parser.add_argument("--update-baseline", action="store_true")
+    args = parser.parse_args(argv)
+
+    global ROOT, BASELINE
+    if args.root is not None:
+        ROOT = args.root.resolve()
+        BASELINE = ROOT / BASELINE_REL
+
     current = scan_repo()
     tot = totals(current)
     print("prose-style tells (tracked Markdown, prose lines only):")
     for t in TELLS:
         print(f"  {t:<13} {tot[t]:5d}")
 
-    if "--report" in argv:
+    if args.report:
         worst = sorted(current.items(), key=lambda kv: -sum(kv[1].values()))[:15]
         print("\nworst files:")
         for f, c in worst:
             print(f"  {sum(c.values()):4d}  {f}")
         return 0
 
-    if "--update-baseline" in argv:
+    if args.update_baseline:
         BASELINE.write_text(
             json.dumps({"_note": "shrink-only; regenerate with "
                         "scripts/check_prose_style.py --update-baseline "
@@ -295,11 +328,27 @@ def main(argv: list[str]) -> int:
         print(f"[FAIL] {line}")
     if improvements and not regressions:
         print("\nbaseline can be lowered: run with --update-baseline")
-    if regressions:
-        print(f"\n[FAIL] {len(regressions)} prose-style regression(s) above baseline",
+
+    # The branch's own baseline is advisory; the gate is the base branch's.
+    base = load_base_baseline()
+    base_regressions: list[str] = []
+    if base is None:
+        print(skip_note(BASELINE_REL))
+        if is_gated_ci():
+            print("\n[FAIL] cannot read the base baseline in CI", file=sys.stderr)
+            return 1
+    else:
+        base_regressions, _ = compare(current, base)
+        for line in base_regressions:
+            print(f"[FAIL] above origin/master baseline: {line}")
+
+    if regressions or base_regressions:
+        n = len(regressions) + len(base_regressions)
+        print(f"\n[FAIL] {n} prose-style regression(s) above baseline",
               file=sys.stderr)
         return 1
-    print("\n[OK] no prose-style regressions above baseline")
+    print("\n[OK] no prose-style regressions above baseline "
+          "(working tree and origin/master)")
     return 0
 
 
