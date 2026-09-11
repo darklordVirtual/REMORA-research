@@ -1,0 +1,146 @@
+{
+  "authored_expectations": {
+    "matched": 26,
+    "note": "expectation matches are regression checks, not a conformance score",
+    "total": 26
+  },
+  "case_results": {
+    "A01": "MATCH",
+    "A02": "MATCH",
+    "A03": "MATCH",
+    "A04": "MATCH",
+    "A05": "MATCH",
+    "A06": "MATCH",
+    "A07": "MATCH",
+    "A08": "MATCH",
+    "B01": "MATCH",
+    "B02": "MATCH",
+    "B03": "MATCH",
+    "B04": "MATCH",
+    "B05": "MATCH",
+    "B06": "MATCH",
+    "B07": "MATCH",
+    "B08": "MATCH",
+    "E01": "MATCH",
+    "E02": "MATCH",
+    "E03": "MATCH",
+    "E04": "MATCH",
+    "E05": "MATCH",
+    "E06": "MATCH",
+    "E07": "MATCH",
+    "E08": "MATCH",
+    "E09": "MATCH",
+    "E10": "MATCH"
+  },
+  "empty_observations": {
+    "admission_accounting": {
+      "claim": "admission_accounting",
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ],
+      "reason": "execution_observation_unaccepted_or_missing",
+      "scope": {
+        "bounded": true,
+        "kind": "synthetic_fixture",
+        "suite": "evidence-sufficiency-v1"
+      },
+      "status": "not_established"
+    },
+    "postcondition_observed": {
+      "claim": "postcondition_observed",
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ],
+      "reason": "readback_unavailable",
+      "scope": {
+        "bounded": true,
+        "kind": "synthetic_fixture",
+        "suite": "evidence-sufficiency-v1"
+      },
+      "status": "not_established"
+    },
+    "tested_route_enforcement": {
+      "claim": "tested_route_enforcement",
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ],
+      "reason": "route_observation_unaccepted_or_missing",
+      "scope": {
+        "bounded": true,
+        "kind": "synthetic_fixture",
+        "suite": "evidence-sufficiency-v1"
+      },
+      "status": "not_established"
+    }
+  },
+  "evidence_erasure_checks": {
+    "decisive_single_field_removals": 66,
+    "inconclusive_single_field_removals": 150,
+    "inconclusive_strengthening_failures": [],
+    "polarity_flip_failures": []
+  },
+  "failures": [],
+  "indistinguishable_world_pairs": [
+    {
+      "distinct_hidden_truth": true,
+      "id": "W01",
+      "identical_visible_input": true,
+      "same_nondecisive_verdict": true
+    },
+    {
+      "distinct_hidden_truth": true,
+      "id": "W02",
+      "identical_visible_input": true,
+      "same_nondecisive_verdict": true
+    }
+  ],
+  "inputs_sha256": {
+    "cases.json": "a0048cc021ab7cd7f7d1b09a93e13c7dbdee9f7a685ea617a112da8af3c88d7e",
+    "checker.py": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0"
+  },
+  "legacy_provenance": {
+    "decision_to_effect_v1_base_commit": "850220687994455fae7f4d76497a3e9885c4b404",
+    "decision_to_effect_v1_vectors_blob_sha": "0dd98172541c7f93fbb2d2d6e0f13112209504c5",
+    "legacy_suite_modified": false
+  },
+  "limits": [
+    "No external implementation was run.",
+    "Evidence acceptance, scope and completeness are synthetic fixture premises.",
+    "No production, cryptographic, APS or CoSAI conformance claim is made.",
+    "No causal effect attribution is implemented.",
+    "ESTABLISHED and VIOLATED are bounded property verdicts, not whole-system grades."
+  ],
+  "property_verdict_distribution": {
+    "established": 4,
+    "not_established": 18,
+    "violated": 4
+  },
+  "purpose": "regression evidence for claim-sufficiency inference rules, not system conformance",
+  "record_kind": "synthetic-author-run",
+  "suite": "evidence-sufficiency-v1",
+  "wrong_shortcuts": {
+    "absence_always_means_violation": {
+      "rejected": true,
+      "witness": "A02"
+    },
+    "matching_state_always_means_verified": {
+      "rejected": true,
+      "witness": "E04"
+    },
+    "refusal_always_means_enforced": {
+      "rejected": true,
+      "witness": "B03"
+    },
+    "tool_ack_means_postcondition": {
+      "rejected": true,
+      "witness": "E02"
+    },
+    "unknown_means_success": {
+      "rejected": true,
+      "witness": "E03"
+    }
+  }
+}

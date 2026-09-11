@@ -1,0 +1,33 @@
+{
+  "artifact_kind": "synthetic-author-run",
+  "base_commit": "f10ca2a493755f64df9225a8ccb5636aa344a43a",
+  "case_count": 10,
+  "matched_count": 10,
+  "nonclaims": ["not production evidence", "not independent validation", "not OASIS or CoSAI conformance", "does not establish architectural non-bypassability"],
+  "regressions": {
+    "harness_expectation_isolation": true,
+    "premise_erasure_checks": [
+      {"reason": "producer_capability_not_declared", "removed": "declared_capabilities", "status": "not_established"},
+      {"reason": "effective_access_unestablished", "removed": "effective_access", "status": "not_established"},
+      {"reason": "emission_obligation_unestablished", "removed": "mandatory_emission", "status": "not_established"},
+      {"reason": "collection_not_closed", "removed": "collection_closed", "status": "not_established"},
+      {"reason": "delivery_integrity_unestablished", "removed": "delivery_integrity", "status": "not_established"},
+      {"reason": "suppression_gap_unexcluded", "removed": "suppression_gap_absent", "status": "not_established"}
+    ],
+    "premise_erasure_false_establishments": 0
+  },
+  "results": [
+    {"expected": {"reason": "absence_supported_by_bounded_producer_coverage", "status": "established"}, "id": "PNE-01", "input_sha256": "9f8515894e255ad7813356467e746ac230f1a62d17b2fa21316e0f4de102bf57", "matched": true, "observed": {"missing_evidence": [], "reason": "absence_supported_by_bounded_producer_coverage", "status": "established"}},
+    {"expected": {"reason": "emission_obligation_unestablished", "status": "not_established"}, "id": "PNE-02", "input_sha256": "6a8b97d97ca202420a9113a09c86306565a11c2ce317624e42bdc797886682d5", "matched": true, "observed": {"missing_evidence": ["mandatory emission obligation"], "reason": "emission_obligation_unestablished", "status": "not_established"}},
+    {"expected": {"reason": "effective_access_unestablished", "status": "not_established"}, "id": "PNE-03", "input_sha256": "c6862965e95e8b05d04576396956c580cc6266eeb7b839bbe54e581ca27cfafe", "matched": true, "observed": {"missing_evidence": ["effective producer access"], "reason": "effective_access_unestablished", "status": "not_established"}},
+    {"expected": {"reason": "delivery_integrity_unestablished", "status": "not_established"}, "id": "PNE-04", "input_sha256": "9023f1ee3360774c5445c9715c7f18d4a1ff37ca4a7a1218e72a47917325789e", "matched": true, "observed": {"missing_evidence": ["delivery integrity"], "reason": "delivery_integrity_unestablished", "status": "not_established"}},
+    {"expected": {"reason": "producer_capability_not_declared", "status": "not_established"}, "id": "PNE-05", "input_sha256": "204f0891d442d283848d9aaae99109c1194f45089c52f708d196e5a5069db266", "matched": true, "observed": {"missing_evidence": ["declared producer capability: read_delegation"], "reason": "producer_capability_not_declared", "status": "not_established"}},
+    {"expected": {"reason": "producer_declaration_unavailable", "status": "not_established"}, "id": "PNE-06", "input_sha256": "e27466d454f8b645886fb118e399c0e31bca1337bb86115bc7cb5b7dff503e19", "matched": true, "observed": {"missing_evidence": ["producer capability declaration"], "reason": "producer_declaration_unavailable", "status": "not_established"}},
+    {"expected": {"reason": "accepted_delegation_observed_in_bounded_scope", "status": "violated"}, "id": "PNE-07", "input_sha256": "611007c7baf502571fd6944446b54ee3a920993b9544fe1a93289905298ae636", "matched": true, "observed": {"missing_evidence": [], "reason": "accepted_delegation_observed_in_bounded_scope", "status": "violated"}},
+    {"expected": {"reason": "event_presence_unknown", "status": "not_established"}, "id": "PNE-08", "input_sha256": "256443db8baedd693aee4cae743a55befd529957824bf95e94ac5ee81d603fc0", "matched": true, "observed": {"missing_evidence": ["decisive event presence/absence observation"], "reason": "event_presence_unknown", "status": "not_established"}},
+    {"expected": {"reason": "suppression_gap_unexcluded", "status": "not_established"}, "id": "PNE-09", "input_sha256": "2e18fbd2be055ebaf0ed218460497f32c85301ca730cfa4d7e28205c73ee40ae", "matched": true, "observed": {"missing_evidence": ["absence of relevant suppression gaps"], "reason": "suppression_gap_unexcluded", "status": "not_established"}},
+    {"expected": {"reason": "collection_not_closed", "status": "not_established"}, "id": "PNE-10", "input_sha256": "1a86f984737c1bf77dde0b5cba6094e4feb99f4de59f94e509d2c90c05f9957b", "matched": true, "observed": {"missing_evidence": ["closed observation collection"], "reason": "collection_not_closed", "status": "not_established"}}
+  ],
+  "status_counts": {"established": 1, "not_established": 8, "violated": 1},
+  "suite": "evidence-sufficiency-v1/producer-negative-evidence"
+}
