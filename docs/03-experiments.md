@@ -297,6 +297,56 @@ as production evidence. See `04-negative-results-detail.md` §2.
 
 ---
 
+## Bounded read-back adapter (experimental, opt-in)
+
+`experiments/bounded_readback.py` explores accepting source observations before
+inferring `postcondition_observed`. It is not connected to the execution API,
+SDK or existing effect verifier. The frozen `conformance/evidence-sufficiency-v1`
+and `conformance/decision-to-effect-v1` artifacts remain unchanged.
+
+The deployment supplies a `SourcePolicy` (source ID, key ID and HMAC key), a
+`ReadbackContract` and a read-only acquisition callback. Neither agent prose nor
+the envelope chooses the trusted source, expected delta or observation window.
+`request_id` is a fresh deployment-issued observation challenge bound to the
+tenant, target, operation and attempt. The clock is sampled after acquisition.
+
+The local experimental envelope has `payload` and `mac` fields. Its payload
+contains `schema: remora.readback-experiment.v1`, `source_id`, `key_id`,
+`tenant`, `target`, `operation`, `attempt`, `request_id`, `observed_at` (UTC epoch
+seconds) and `state` (a JSON object). The lowercase hexadecimal MAC is HMAC-SHA256
+over the UTF-8 payload encoded with sorted keys, no insignificant whitespace and
+unescaped Unicode. This is not RFC 8785 or an interoperability contract. Floats,
+duplicate keys, excessive size/nesting and unknown envelope fields are rejected.
+
+Processing and property results remain separate:
+
+- Acquisition exceptions: `acquisition_failed`, no property verdict.
+- Malformed, unauthenticated or incorrectly bound evidence: `rejected_evidence`,
+  no property verdict.
+- Unexpected verifier/clock exceptions: `verifier_failed`, no property verdict.
+- Completed evaluation: `established`, `violated` or `not_established`.
+
+Only declared fields are compared. Missing fields do not establish a mismatch;
+an observed contradictory field can refute the declared conjunction even when
+other fields are missing. Stale, future or pre-settlement observations do not
+establish the property. The result references accepted evidence by SHA-256.
+Verification is repeatable and never issues an execution grant or retries a
+write. The acquisition callback must enforce its own timeout and read-only
+access; the prototype cannot constrain arbitrary callback code.
+
+Trust boundary: HMAC authenticates a key holder's statement, not the truth of the
+underlying state. Source and verifier share the key and can both forge records.
+This experiment supplies no independent attestation, source discovery, key
+rotation, complete logging, causal attribution or production validation. It does
+not alter release maturity or claim CoSAI/APS conformance. Tests use local signed
+observations only; no customer endpoint or external test suite is contacted.
+
+Reproduce the adapter regressions without regenerating existing artifacts:
+
+```bash
+python -m pytest tests/test_bounded_readback.py -q -p no:cacheprovider
+```
+
 ## Canonical committed metrics (machine-checked)
 
 These headline numbers are bound to their committed artifacts by
