@@ -11,7 +11,7 @@ aiosignal==1.4.0
 alembic==1.18.5
 annotated-types==0.7.0
 anthropic==0.112.0
-anyio==4.14.2
+anyio==4.15.1
 attrs==25.4.0
 babel==2.17.0
 backoff==2.2.1
@@ -169,7 +169,7 @@ pyasn1==0.6.3
 pyasn1_modules==0.4.2
 pycparser==2.23
 pycryptodome==3.23.0
-pydantic==2.13.4
+pydantic==2.13.5
 pydantic-settings==2.15.0
 pydantic_core==2.46.4
 pydot==4.0.1
@@ -253,7 +253,7 @@ uc-micro-py==2.0.0
 universal_pathlib==0.3.10
 urllib3==2.5.0
 uuid_utils==0.16.2
-uvicorn==0.52.4
+uvicorn==0.53.0
 watchdog==6.0.0
 watchfiles==1.1.1
 wcmatch==8.5.2
