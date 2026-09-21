@@ -1,0 +1,25 @@
+
+> aps-conformance-suite@0.1.0 verify:action-result-binding
+> tsx fixtures/action-result-binding/verify.ts
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+node:net:2145
+      const error = new UVExceptionWithHostPort(rval, 'listen', address, port);
+                    ^
+
+Error: listen EPERM: operation not permitted /tmp/tsx-0/20.pipe
+    at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+    at listenInCluster (node:net:2224:12)
+    at Server.listen (node:net:2361:5)
+    at file:///workspace/scratch/537e03af59f2/aps-conformance-suite/node_modules/tsx/dist/cli.mjs:53:31472
+    at new Promise (<anonymous>)
+    at createIpcServer (file:///workspace/scratch/537e03af59f2/aps-conformance-suite/node_modules/tsx/dist/cli.mjs:53:31450)
+    at async file:///workspace/scratch/537e03af59f2/aps-conformance-suite/node_modules/tsx/dist/cli.mjs:55:542 {
+  code: 'EPERM',
+  errno: -1,
+  syscall: 'listen',
+  address: '/tmp/tsx-0/20.pipe',
+  port: -1
+}
+
+Node.js v24.19.0

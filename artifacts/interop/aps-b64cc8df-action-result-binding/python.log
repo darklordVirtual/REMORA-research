@@ -1,0 +1,55 @@
+MATCH means observed SDK behavior equals the recorded expectation. It is not a conformance verdict.
+MATCH chain receipt intent
+MATCH chain receipt decision_permit
+MATCH chain receipt decision_deny
+action-result-binding Python chain receipts: 3/3 matched
+MATCH ARB-01-positive
+  draft03                              satisfies  [5.1 lines 979-999; 5.3.1 lines 1052-1058; 5.3.2 lines 1071-1091; 5.3.3 lines 1103-1130]
+  sdk_py validate_receipt_stage_v1     status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_py composite verifier            not_implemented in agent-passport-system 4.0.0 for Python
+  decision_ref binding (harness, not SDK verdict) evidence=permit recomputed=12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771 equals_record_decision_ref=True
+  sdk_ts                               run npm run verify:action-result-binding separately; two TypeScript surfaces are recorded there
+  replay_policy (derived from stated rules, not run) fully bound
+  classification                       aps_conformance
+MATCH ARB-02-subject-agent-absent
+  draft03                              invalid  [5.1 lines 957-989; 5.6 lines 1213-1225]
+  sdk_py validate_receipt_stage_v1     status=invalid boundary_identity=not_applicable stage=null failures=["SCHEMA_INVALID"]
+  sdk_py composite verifier            not_implemented in agent-passport-system 4.0.0 for Python
+  decision_ref binding (harness, not SDK verdict) evidence=permit recomputed=12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771 equals_record_decision_ref=True
+  sdk_ts                               run npm run verify:action-result-binding separately; two TypeScript surfaces are recorded there
+  replay_policy (derived from stated rules, not run) unresolved_until_run
+  classification                       aps_conformance
+MATCH ARB-03-prev-not-the-decision
+  draft03                              stated_relation_not_met  [5.3.3 lines 1104-1105; 5.6 line 1219; 1.1 lines 175-179]
+  sdk_py validate_receipt_stage_v1     status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_py composite verifier            not_implemented in agent-passport-system 4.0.0 for Python
+  decision_ref binding (harness, not SDK verdict) evidence=permit recomputed=12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771 equals_record_decision_ref=True
+  sdk_ts                               run npm run verify:action-result-binding separately; two TypeScript surfaces are recorded there
+  replay_policy (derived from stated rules, not run) partially bound
+  classification                       draft03_stated_relation_not_enforced
+MATCH ARB-04-decision-ref-mismatch
+  draft03                              invalid  [5.3.3 lines 1104-1106; 5.6 line 1218]
+  sdk_py validate_receipt_stage_v1     status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_py composite verifier            not_implemented in agent-passport-system 4.0.0 for Python
+  decision_ref binding (harness, not SDK verdict) evidence=permit recomputed=12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771 equals_record_decision_ref=False
+  sdk_ts                               run npm run verify:action-result-binding separately; two TypeScript surfaces are recorded there
+  replay_policy (derived from stated rules, not run) partially bound
+  classification                       aps_conformance
+MATCH ARB-05-action-ref-mismatch
+  draft03                              invalid  [5.3.2 lines 1093-1094; 5.4 lines 1155-1168; 5.6 lines 1216-1218]
+  sdk_py validate_receipt_stage_v1     status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_py composite verifier            not_implemented in agent-passport-system 4.0.0 for Python
+  decision_ref binding (harness, not SDK verdict) evidence=permit recomputed=911ece7f7ed1dea3b8f1c8f9932c4caecb479f6612ec3ab87c64754ad6f6e703 equals_record_decision_ref=False
+  sdk_ts                               run npm run verify:action-result-binding separately; two TypeScript surfaces are recorded there
+  replay_policy (derived from stated rules, not run) unbound
+  classification                       aps_conformance
+MATCH ARB-06-subject-agent-changed
+  draft03                              semantic_conflict_no_explicit_rule  [4.1 line 789; 5.1 line 981; 5.6 lines 1213-1221]
+  sdk_py validate_receipt_stage_v1     status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_py composite verifier            not_implemented in agent-passport-system 4.0.0 for Python
+  decision_ref binding (harness, not SDK verdict) evidence=permit recomputed=12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771 equals_record_decision_ref=True
+  sdk_ts                               run npm run verify:action-result-binding separately; two TypeScript surfaces are recorded there
+  replay_policy (derived from stated rules, not run) unresolved_until_run
+  classification                       draft03_semantic_relation_not_explicitly_enforced
+MATCH composite-verifier-absence: no callable in the installed agent_passport package names a receipt and a decision together with verify or check
+action-result-binding Python: 10/10 matched

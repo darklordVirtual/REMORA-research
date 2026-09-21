@@ -1,0 +1,19 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: /workspace/scratch/537e03af59f2/REMORA-research
+configfile: pyproject.toml
+collected 1 item
+
+tests/test_aps_action_result_binding.py F                                [100%]
+
+=================================== FAILURES ===================================
+___ test_positive_result_fails_closed_when_only_decision_evidence_is_swapped ___
+tests/test_aps_action_result_binding.py:81: in test_positive_result_fails_closed_when_only_decision_evidence_is_swapped
+    assert classify_receipt_decision_relation(
+E   AssertionError: assert 'PASS' == 'DECISION_REF_MISMATCH'
+E     
+E     - DECISION_REF_MISMATCH
+E     + PASS
+=========================== short test summary info ============================
+FAILED tests/test_aps_action_result_binding.py::test_positive_result_fails_closed_when_only_decision_evidence_is_swapped
+============================== 1 failed in 0.07s ===============================

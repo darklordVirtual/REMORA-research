@@ -1,0 +1,78 @@
+{
+  "repository_full_name": "Agent-Authority-Conformance/aps-conformance-suite",
+  "base": "e604e755",
+  "head": "b64cc8dfa889b493bbf285fbb115a988ac54566b",
+  "status": "ahead",
+  "ahead_by": 3,
+  "behind_by": 0,
+  "total_commits": 3,
+  "too_large": null,
+  "base_commit": {
+    "sha": "e604e7550ef95eed4b612aeccd28a6924f4450f5",
+    "url": "https://api.github.com/repos/Agent-Authority-Conformance/aps-conformance-suite/commits/e604e7550ef95eed4b612aeccd28a6924f4450f5",
+    "html_url": "https://github.com/Agent-Authority-Conformance/aps-conformance-suite/commit/e604e7550ef95eed4b612aeccd28a6924f4450f5"
+  },
+  "merge_base_commit": {
+    "sha": "e604e7550ef95eed4b612aeccd28a6924f4450f5",
+    "url": "https://api.github.com/repos/Agent-Authority-Conformance/aps-conformance-suite/commits/e604e7550ef95eed4b612aeccd28a6924f4450f5",
+    "html_url": "https://github.com/Agent-Authority-Conformance/aps-conformance-suite/commit/e604e7550ef95eed4b612aeccd28a6924f4450f5"
+  },
+  "files": [
+    {
+      "filename": "fixtures/action-result-binding/README.md",
+      "status": "added",
+      "additions": 333,
+      "deletions": 0,
+      "changes": 333,
+      "previous_filename": null
+    },
+    {
+      "filename": "fixtures/action-result-binding/chain.json",
+      "status": "added",
+      "additions": 375,
+      "deletions": 0,
+      "changes": 375,
+      "previous_filename": null
+    },
+    {
+      "filename": "fixtures/action-result-binding/mint.ts",
+      "status": "added",
+      "additions": 500,
+      "deletions": 0,
+      "changes": 500,
+      "previous_filename": null
+    },
+    {
+      "filename": "fixtures/action-result-binding/validate.py",
+      "status": "added",
+      "additions": 371,
+      "deletions": 0,
+      "changes": 371,
+      "previous_filename": null
+    },
+    {
+      "filename": "fixtures/action-result-binding/vectors.json",
+      "status": "added",
+      "additions": 500,
+      "deletions": 0,
+      "changes": 500,
+      "previous_filename": null
+    },
+    {
+      "filename": "fixtures/action-result-binding/verify.ts",
+      "status": "added",
+      "additions": 383,
+      "deletions": 0,
+      "changes": 383,
+      "previous_filename": null
+    },
+    {
+      "filename": "package.json",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "changes": 3,
+      "previous_filename": null
+    }
+  ]
+}

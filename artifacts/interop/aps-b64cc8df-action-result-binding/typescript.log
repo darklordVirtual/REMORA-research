@@ -1,0 +1,49 @@
+MATCH means observed SDK behavior equals the recorded expectation. It is not a conformance verdict.
+MATCH chain receipt intent
+MATCH chain receipt decision_permit
+MATCH chain receipt decision_deny
+action-result-binding TypeScript chain receipts: 3/3 matched
+MATCH ARB-01-positive
+  draft03                              satisfies  [5.1 lines 979-999; 5.3.1 lines 1052-1058; 5.3.2 lines 1071-1091; 5.3.3 lines 1103-1130]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=valid decision_ref_bound=true errors=[]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) fully bound
+  classification                       aps_conformance
+MATCH ARB-02-subject-agent-absent
+  draft03                              invalid  [5.1 lines 957-989; 5.6 lines 1213-1225]
+  sdk_ts validateReceiptStageV1        status=invalid boundary_identity=not_applicable stage=null failures=["SCHEMA_INVALID"]
+  sdk_ts verifyReceiptWithDecisionV1   status=invalid decision_ref_bound=false errors=["receipt_invalid","ReceiptV1: missing field subject_agent"]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) unresolved_until_run
+  classification                       aps_conformance
+MATCH ARB-03-prev-not-the-decision
+  draft03                              stated_relation_not_met  [5.3.3 lines 1104-1105; 5.6 line 1219; 1.1 lines 175-179]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=valid decision_ref_bound=true errors=[]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) partially bound
+  classification                       draft03_stated_relation_not_enforced
+  draft03 text check (harness, not SDK) prev_is_not_the_consumed_decision
+MATCH ARB-04-decision-ref-mismatch
+  draft03                              invalid  [5.3.3 lines 1104-1106; 5.6 line 1218]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=invalid decision_ref_bound=false errors=["decision_ref_mismatch"]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) partially bound
+  classification                       aps_conformance
+MATCH ARB-05-action-ref-mismatch
+  draft03                              invalid  [5.3.2 lines 1093-1094; 5.4 lines 1155-1168; 5.6 lines 1216-1218]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=invalid decision_ref_bound=false errors=["decision_ref_mismatch"]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) unbound
+  classification                       aps_conformance
+MATCH ARB-06-subject-agent-changed
+  draft03                              semantic_conflict_no_explicit_rule  [4.1 line 789; 5.1 line 981; 5.6 lines 1213-1221]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=valid decision_ref_bound=true errors=[]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) unresolved_until_run
+  classification                       draft03_semantic_relation_not_explicitly_enforced
+action-result-binding TypeScript: 9/9 matched
