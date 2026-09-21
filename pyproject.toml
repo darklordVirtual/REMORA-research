@@ -287,6 +287,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_lease_authority_custody.py",
     "tests/test_lease_nonce_durability.py",
     "tests/test_lease_signing_contracts.py",
+    "tests/test_lease_verification_completeness.py",
     "tests/test_lease_verification_contracts.py",
     "tests/test_policy_engine_audit_v1.py",
     "tests/test_rem013_pdp_pep_boundary.py",
