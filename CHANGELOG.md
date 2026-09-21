@@ -55,6 +55,37 @@ This file lists externally relevant changes by release. Fine-grained development
   No adapter code changed. Scope stated in the module docstring: backend
   and transaction faults, not OS process kills or network partitions.
 
+### Verification and CI
+
+- Repaired `requirements-lock.txt`, which had stopped being resolvable. The
+  lock is applied as pip *constraints*, so a pin is only checked when pip is
+  asked to install that distribution: two pins can contradict each other for
+  months while every pull request stays green. The weekly NLI parity run hit
+  the first contradiction on 2026-09-21 (`click==8.1.8` against
+  `huggingface_hub==1.28.0`, which requires `click>=8.4.2`), and resolving
+  each install set in turn uncovered five more, every one introduced by a
+  single-line dependency bump: `setuptools` against torch, `tokenizers`
+  against transformers (via a version that has no files on PyPI),
+  `agent-client-protocol` and `jiter` against inspect-ai and openai, and
+  `botocore` against aiobotocore. Eight pins moved; no source changed.
+- `scripts/check_lock_resolvable.py` and the `lock-resolvable` leg of the
+  Supply Chain workflow now resolve every declared install set against the
+  lock with `pip install --dry-run` on pull requests, master pushes and
+  daily, so the next contradiction fails in review rather than in a weekly
+  job. The gate is part of the `supply-chain-required` aggregate context.
+  Scope is stated in the script docstring: resolvability of the declared
+  sets, not that the resolved versions are the pinned ones.
+- The scheduled mutation sweep uninstalled `remora`, a distribution name that
+  has not existed since the project became `remora-assurance`. pip skipped it
+  silently, the installed package kept shadowing the mutated sources, and the
+  workflow's own guard correctly refused to run a sweep that would have
+  reported every mutant as surviving.
+- `tests/test_ci_dependency_pinning.py` and `tests/test_lock_resolvable_gate.py`
+  hold both defects in place: the sweep must uninstall the distribution name
+  `pyproject.toml` actually declares, the two pins that collided must stay
+  mutually satisfiable, and an install set a workflow uses under the lock must
+  be one the resolvability gate declares.
+
 ### Documentation
 
 - Prose-style scanner (`scripts/check_prose_style.py`) gained two

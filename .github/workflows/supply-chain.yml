@@ -190,6 +190,33 @@ jobs:
             sbom-worker-rag-oracle.cdx.json
           retention-days: 90
 
+  lock-resolvable:
+    name: Lock resolvability (every declared install set)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Resolve every declared install set against the lock
+        # requirements-lock.txt is applied as pip CONSTRAINTS, and a constraint
+        # line is only checked when pip is asked to install that distribution.
+        # Two pins can therefore contradict each other for months while every
+        # PR stays green, until one workflow installs the pair together and
+        # dies in its install step. That is what happened on 2026-09-21: the
+        # weekly NLI run failed on click==8.1.8 against huggingface_hub==1.28.0
+        # (click>=8.4.2), and repairing that pin uncovered five more
+        # contradictions in the same file. This job resolves instead of
+        # reading. --dry-run runs the full resolver and downloads no wheels.
+        run: |
+          python -m pip install --upgrade pip
+          python scripts/check_lock_resolvable.py
+
   supply-chain-required:
     # RMR-007: branch protection can only require named contexts, and the
     # npm-audit leg has a matrix-expanded name that drifts as packages come
@@ -199,7 +226,7 @@ jobs:
     # reported success. A leg that errors before it starts (runner lost,
     # queue timeout) reads as failure here, not as absence.
     if: always()
-    needs: [pip-audit, npm-audit, secret-scan, sbom]
+    needs: [pip-audit, npm-audit, secret-scan, sbom, lock-resolvable]
     runs-on: ubuntu-latest
     steps:
       - name: Fail unless every aggregated leg succeeded
