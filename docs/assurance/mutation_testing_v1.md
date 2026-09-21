@@ -71,6 +71,7 @@ References:
 | Covered lines, after the dispatcher-contract round | 811 | **518** | **293** | 0 | **63.9%** |
 | Baseline sweep for the scheduled job (config committed) | 816 | 525 | **291** | 0 | 64.3% |
 | After the governance-event contract round | 826 | **658** | **168** | 0 | **79.7%** |
+| After the selection repair and the 2026-09-21 rounds | 1,909 | **1,615** | **294** | 0 | **84.6%** |
 
 Round three (`tests/test_dispatcher_contract.py`) is the instructive one to
 read carefully: the headline `dispatch` cluster went 157 → **159** while
@@ -124,6 +125,46 @@ coverage gate already documents as contract-tested elsewhere). The
 covered-lines rate is the honest test-quality signal for this runner: on
 lines these suites do execute, roughly half of small semantic changes go
 unnoticed.
+
+## The 2026-09-21 re-measurement
+
+The sweep had not executed since the project was renamed to
+`remora-assurance`. Its install step uninstalled a distribution name that no
+longer existed, so the installed package kept shadowing the mutated sources.
+The guard described in caveat 1 then refused to run. The first sweep after
+that fix reported 226 survivors absent from the baseline, which reads as a
+collapse and is not one.
+
+Read the pool, not the count. The mutant pool went 826 to 1,909: the four
+modules acquired task binding, runtime trust identity, toolspec binding and
+proposal binding in the intervening month, and `mutate_only_covered_lines`
+grows the pool as coverage grows. The kill rate went 79.7% to 84.6% across the
+same interval. 145 of the new survivors sat in 13 functions with no baseline
+entry at all, which is new code, not regressed code.
+
+Two repairs and two kill rounds, each re-measured on the runner:
+
+| Step | New survivors vs the old baseline |
+|---|---|
+| Install defect fixed, sweep executes again | 226 |
+| Test selection extended from 17 to 38 modules | 229 |
+| Context/observation golden vectors + `check_bindings` contract | 194 |
+| Lease verification completeness + signed-preimage invariants | 181 |
+
+The selection repair is the instructive one because it did **not** help. The
+frozen 17-file runner was missing 21 modules that import the mutated code.
+Handing them to the mutants moved the count by +3. The hypothesis that the
+survivors were a measurement artefact was wrong, and the measurement says so.
+What did work was the technique this document already recorded. Freeze the
+bytes (`AuthorizationContext.hash`, `_hash_observation`, the lease preimage).
+Assert the exact refusal literal per branch, not the fact of refusal. 48 mutants died across the two rounds, and the clusters they came
+from went to zero or near it.
+
+The residue is the shape described above: governance-event payload literals,
+default parameters callers always override, and exception-message content. The
+baseline now records 294 named survivors rather than 168. That is a larger set
+over a pool more than twice the size, not an accepted regression. The
+per-function breakdown is in the baseline file itself.
 
 ## Survivors on covered lines, by function (pre-#405 baseline, 64.3 %)
 
