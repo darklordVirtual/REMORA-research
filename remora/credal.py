@@ -35,7 +35,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from remora.action_semantics import IRREVERSIBLE_ACTION_TYPES
+from remora.action_semantics import IRREVERSIBLE_ACTION_TYPES, irreversibility_weight
 
 if TYPE_CHECKING:
     from remora.policy.observation import PolicyObservation
@@ -207,8 +207,10 @@ def compute_from_obs(obs: PolicyObservation) -> CredalEnvelope:
     utility_lower = max(0.0, 1.0 - p_harm_upper - severity)
 
     # ── 5. Worst-case loss ───────────────────────────────────────────────────
-    action = (obs.action_type or "").strip().lower()
-    irreversibility = 1.0 if action in _IRREVERSIBLE_ACTIONS else 0.30
+    # Fail closed: an action type the classification does not declare takes the
+    # irreversible weight. Membership in a list of spellings decided this until
+    # 2026-09-22, and worst_case_loss reaches the minimax escalation gate.
+    irreversibility = irreversibility_weight(obs.action_type)
     worst_case_loss = min(1.0, p_harm_upper * (1.0 + irreversibility * severity * 2.0))
 
     # ── 6. Adjusted trust ────────────────────────────────────────────────────

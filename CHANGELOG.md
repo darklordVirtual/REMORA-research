@@ -55,6 +55,29 @@ This file lists externally relevant changes by release. Fine-grained development
   No adapter code changed. Scope stated in the module docstring: backend
   and transaction faults, not OS process kills or network partitions.
 
+### Fixed
+
+- Reversibility classification in the risk model is now total and fails
+  closed. `remora.credal` weighed worst-case loss by membership in a frozen
+  set of eleven `action_type` spellings, and every other string, including
+  every string nobody had anticipated, took the reversible weight of 0.30.
+  That weight reaches a decision: `worst_case_loss` drives the minimax
+  escalation gate at 0.8. Of the 20 distinct `action_type` values in
+  committed corpora, 18 sat outside the set, among them
+  `financial_transaction`, `approve_payment`, `db_migration`,
+  `schema_change`, `security_change` and `configuration_change`, each a
+  near-synonym of a string that was inside it. Measured over a uniform grid
+  of (p_harm_upper, severity), 40 of 231 points changed the gate's verdict on
+  the spelling alone. End to end at `risk_tier="critical"`:
+  `config_overwrite` escalated at 1.0 while `configuration_change` did not at
+  0.71. `remora.action_semantics` now classifies three ways (irreversible,
+  declared reversible, unknown) and unknown carries the irreversible weight,
+  so only explicitly declared non-mutating actions keep the discount. The
+  full suite passes unchanged, so no committed result artifact depended on
+  the previous weighting. `tests/test_reversibility_fail_closed.py` holds the
+  contract, including a guard against widening the reversible set to recover
+  utility.
+
 ### Verification and CI
 
 - Repaired `requirements-lock.txt`, which had stopped being resolvable. The
