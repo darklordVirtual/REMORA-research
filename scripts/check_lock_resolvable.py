@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Author: Stian Skogbrott
+# SPDX-License-Identifier: BUSL-1.1
 """Check that requirements-lock.txt can actually resolve every install set CI uses.
 
 The lock is a flat list of ``name==version`` pins applied as a pip *constraints*
