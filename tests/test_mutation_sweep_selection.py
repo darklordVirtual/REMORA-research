@@ -85,3 +85,45 @@ def test_the_guard_would_notice_a_missing_file() -> None:
         "tests/test_execution_lease.py must be detected as an importer of a mutated "
         "module; if it was renamed, this guard's pattern needs the same update"
     )
+
+
+def _deselected_node_ids() -> list[str]:
+    args = _mutmut_config()["pytest_add_cli_args"]
+    return [value for flag, value in zip(args, args[1:]) if flag == "--deselect"]
+
+
+def test_every_deselected_node_id_still_exists() -> None:
+    """A --deselect for a renamed test is a silent no-op that reds the sweep later."""
+    import subprocess
+    import sys
+
+    missing = []
+    for node_id in _deselected_node_ids():
+        path, _, selector = node_id.partition("::")
+        if not (REPO_ROOT / path).is_file():
+            missing.append(f"{node_id} (file absent)")
+            continue
+        collected = subprocess.run(  # noqa: S603 - fixed argv, no shell
+            [sys.executable, "-m", "pytest", node_id, "--collect-only", "-q", "--no-header"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if collected.returncode != 0 or selector not in collected.stdout:
+            missing.append(node_id)
+    assert not missing, (
+        "the mutation sweep deselects node ids that no longer collect, so the tests it "
+        f"meant to skip are not the tests it skips: {missing}"
+    )
+
+
+def test_the_deselections_are_confined_to_selected_modules() -> None:
+    selected = _selected_test_files()
+    stray = sorted(
+        node_id
+        for node_id in _deselected_node_ids()
+        if Path(node_id.partition("::")[0]).name not in selected
+    )
+    assert not stray, (
+        f"deselecting a test the sweep never runs is dead configuration: {stray}"
+    )

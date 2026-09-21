@@ -9,6 +9,57 @@
   runner = the thirteen remora-only enforcement suites (~10 s). Runs on
   Linux/WSL (`mutmut run`); mutmut has no native Windows support.
 
+## Why this metric, and what it cannot say
+
+Mutation testing dates to DeMillo, Lipton and Sayward (1978), who proposed
+seeding small faults into a program and asking whether the existing tests
+notice. Two assumptions carry the method. Competent programmers write code that is
+close to correct, so realistic faults are small edits. Simple faults couple to
+complex ones, so a suite that catches the small edits tends to catch the larger
+ones. Jia and Harman (2011) survey the four decades
+between that paper and modern tooling, including the cost controls this
+configuration relies on (a scoped mutant pool, a selected runner).
+
+Two limits bound what the numbers in this document mean, and both are
+load-bearing for how the gate is written:
+
+- **Equivalent mutants are undecidable in general** (Budd and Angluin, 1982).
+  A mutant that changes no observable behaviour can never be killed, so a
+  100% kill rate is not the target and a surviving mutant is not by itself a
+  defect. This is why the gate ratchets against a committed baseline of named
+  survivors instead of enforcing a score. A number would force the equivalent
+  mutants to be argued away. A named set can simply carry them.
+- **The kill rate is a proxy for fault detection, not a measurement of it.**
+  Just et al. (2014) found mutant detection correlated with real fault
+  detection more strongly than coverage did. Papadakis et al. (2018) then
+  showed that much of that correlation is explained by test-suite size, so the
+  residual signal is weaker than the headline suggests. The honest reading of the tables above is comparative: this suite against
+  itself over time, on one scoped set of modules. It is not a defect-density
+  estimate, and no claim in the claim register derives a guarantee from it.
+
+A third limit is specific to this setup rather than to the method, and it has
+now produced two separate false readings: **the measurement describes the
+runner, not the suite**. A kill test the runner never executes kills nothing
+(round three above), and a test module missing from
+`pytest_add_cli_args_test_selection` makes every mutant it would have killed
+report as a survivor. `tests/test_mutation_sweep_selection.py` turns that
+from a lesson into a gate.
+
+References:
+
+- R. A. DeMillo, R. J. Lipton, F. G. Sayward. "Hints on Test Data Selection:
+  Help for the Practicing Programmer." *IEEE Computer* 11(4):34-41, 1978.
+- T. A. Budd, D. Angluin. "Two notions of correctness and their relation to
+  testing." *Acta Informatica* 18(1):31-45, 1982.
+- Y. Jia, M. Harman. "An Analysis and Survey of the Development of Mutation
+  Testing." *IEEE Transactions on Software Engineering* 37(5):649-678, 2011.
+- R. Just, D. Jalali, L. Inozemtseva, M. D. Ernst, R. Holmes, G. Fraser. "Are
+  mutants a valid substitute for real faults in software testing?" *FSE*,
+  2014.
+- M. Papadakis, D. Shin, S. Yoo, D.-H. Bae. "Are mutation scores correlated
+  with real fault detection? A large scale empirical study on the
+  relationship between mutants and real faults." *ICSE*, 2018.
+
 ## Measured results (2026-08-25)
 
 | Run | Mutants | Killed | Survived | No tests | Kill rate |

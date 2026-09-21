@@ -234,7 +234,27 @@ also_copy = ["servers/", "schemas/", "deploy/"]
 # numbers conflate untested behaviour with uncovered adapter branches the
 # coverage gate already documents (docs/assurance/mutation_testing_v1.md).
 mutate_only_covered_lines = true
-pytest_add_cli_args = ["-q", "-p", "no:cacheprovider"]
+# Five tests in the selected modules assert facts about the REPOSITORY, not
+# about the mutated code, and cannot hold inside the mutants sandbox: three
+# regenerate a committed artifact through scripts/ (absent from the sandbox by
+# design -- copying scripts/ and artifacts/ in would weigh every mutant down
+# for no measurement value), and two assert that a callable has no non-test
+# caller by scanning the source tree, which mutmut has duplicated and mutated.
+# They are deselected by node id rather than by dropping their module, so the
+# rest of each module still kills mutants.
+# tests/test_mutation_sweep_selection.py fails if a deselected node id stops
+# existing, so a rename cannot turn one of these into a silent no-op.
+pytest_add_cli_args = [
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--deselect",
+    "tests/test_task_bound_authority.py::TestTheCommittedArtifactReproduces",
+    "--deselect",
+    "tests/test_toolspec_bound_at_dispatch.py::test_verify_callable_still_has_no_non_test_caller",
+    "--deselect",
+    "tests/test_toolspec_bound_at_dispatch.py::test_verify_credential_scope_still_has_no_non_test_caller",
+]
 # The sweep is only as strong as the tests it runs. This list was frozen at 17
 # files while the four mutated modules kept growing, so the 2026-09-21 sweep --
 # the first to execute since the distribution rename broke its install step --
