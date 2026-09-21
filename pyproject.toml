@@ -296,6 +296,8 @@ pytest_add_cli_args_test_selection = [
     "tests/test_sqlite_memory_refused.py",
     "tests/test_task_bound_authority.py",
     "tests/test_tcb_edge_contracts.py",
+    "tests/test_authorization_context_golden_vectors.py",
+    "tests/test_token_binding_contract.py",
     "tests/test_token_golden_vectors.py",
     "tests/test_token_hardening.py",
     "tests/test_token_key_lifecycle.py",
