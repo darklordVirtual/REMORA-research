@@ -107,10 +107,10 @@ a general claim: the unexercised paths are where the defects are.
 
 ### G-6. The trusted computing base is large
 
-Assessed. The code that must be correct for the safety argument to hold
-includes the policy engine, the enforcement gate, lease issuance and
-verification, the nonce store, the signing path, the dispatcher, and the API
-surface around them.
+Assessed. The code that must be correct for the safety argument to hold is
+large. It includes the policy engine, the enforcement gate, lease issuance
+and verification, the nonce store, the signing path, the dispatcher, and the
+API surface around them.
 
 The 2026-09-21 mutation sweep measured 294 named surviving mutants across
 four of those modules, at an 84.6 % kill rate on covered lines. That is
@@ -166,9 +166,9 @@ unit is the call and its guarantee is that a decision was made and recorded.
 
 The proposed thesis concerns authority as a consumable resource.
 
-> An agent's authority to affect the world should be a finite, attenuating,
-> revocable resource that it spends, rather than a permission it is
-> repeatedly granted.
+> An agent's authority to affect the world should be a finite, attenuating
+> and revocable resource. The agent spends it. It is not a permission the
+> agent is repeatedly granted.
 >
 > A minimal kernel decides nothing about intent. It enforces four
 > invariants: no effect without an unspent capability; no capability beyond
@@ -230,11 +230,13 @@ that is the authority rather than an index into an access-control table. The
 `ExecutionLease` already supplies most of this. Derivation, attenuation and
 budget are missing.
 
-A capability carries a unique identifier, the identifier of the capability
-it was derived from, the exact effect class permitted, the resolved call
-identity, a counted budget, a half-open validity interval, the issuer and
-the distinct executor permitted to redeem it, and whether the effect has a
-compensating action.
+A capability carries:
+
+- a unique identifier, and the identifier of the capability it derives from
+- the exact effect class permitted, and the resolved call identity
+- a counted budget and a half-open validity interval
+- the issuer, and the distinct executor permitted to redeem it
+- whether the effect has a compensating action
 
 The attenuation rule is the load-bearing invariant. A derived capability has
 a scope that is a subset, a budget that is a sub-budget, a validity that is
@@ -347,9 +349,8 @@ and time-of-day rules are proposers that narrow. Clock-dependent invariants
 are where distributed-systems proofs fail, so the counted form is preferred
 over the timed form wherever both would serve.
 
-Real deployments observe part of the path. The rule is that the budget is
-authoritative over the mediated path, and the unmediated path must be
-declared as unmediated. A deployment that cannot say which effects are
+Real deployments observe part of the path. Budgets bind the mediated path only. A deployment must
+declare which effects fall outside mediation. A deployment that cannot say which effects are
 outside mediation cannot make a trajectory claim, and the system should
 refuse to issue a root capability in that configuration.
 
@@ -493,9 +494,13 @@ seen. A human approves, and the approval is itself a governed, signed and
 logged action. The delta then activates with a staged rollout and an
 automatic revert bound to a pre-declared threshold.
 
-Each learned parameter carries, in the register, the corpus it was fit on by
-hash, held-out performance with an interval, the date of last validation,
-the blast radius if wrong, and the human who approved it. A parameter whose
+Each learned parameter carries five fields in the register:
+
+- the corpus it was fit on, by hash
+- held-out performance with an interval
+- the date of last validation
+- the blast radius if the parameter is wrong
+- the human who approved it A parameter whose
 validation has expired reverts to its conservative default rather than
 continuing on stale evidence.
 
@@ -560,11 +565,11 @@ Every phase carries a kill criterion. The kill criteria are the part to take
 seriously, because a roadmap without them is a wish list.
 
 Phase 0 runs for roughly four months and formalises and shrinks the kernel,
-with no new features. It delivers the five invariants written precisely, an
-Alloy model of the capability algebra, a TLA+ specification of issue,
-derive, redeem and revoke under crash and concurrency, the kernel extracted
-into a module without input or output, and a conformance suite generating
-traces from the specification. It succeeds when the model checker finds no
+with no new features. It delivers the five invariants written precisely and an
+Alloy model of the capability algebra. It also delivers a TLA+ specification
+of issue, derive, redeem and revoke under crash and concurrency, the kernel
+extracted into a module without input or output, and a conformance suite
+generating traces from that specification. It succeeds when the model checker finds no
 counterexample at stated bounds, the kernel is under 1,500 lines, and the
 conformance suite fails CI on drift. It is killed if the kernel cannot be
 reduced below roughly 3,000 lines without losing required behaviour, in
@@ -594,19 +599,20 @@ corpus measurements said. This phase is where the project becomes real or
 stays a paper.
 
 Phase 3 runs to about month twenty and delivers verification and external
-replication: full specification coverage including multi-agent derivation,
-model-based conformance in CI, an independent party reproducing the headline
-results from published artifacts alone, and an adaptive-adversary evaluation
-against a red team that sees the policy bundle. The strongest possible
+replication. It covers the full specification including multi-agent
+derivation, and puts model-based conformance in CI. It adds an independent
+party reproducing the headline results from published artifacts alone, and
+an adaptive-adversary evaluation against a red team that sees the policy
+bundle. The strongest possible
 outcome is the adversary defeating intent matching while failing to exceed
 the budget bound. It is killed, as a stop-everything finding, if an adaptive
 adversary can exceed a root budget.
 
 Phase 4 runs to about month twenty-four and delivers a production profile
-with stated operational requirements, a stable SDK with a versioned
-capability format, a migration path from shadow mode, a documented threat
-model naming residual risks, and a security review by people who did not
-build the system. It succeeds with a deployment run by an external party. It
+with stated operational requirements. It adds a stable SDK with a versioned
+capability format, a migration path from shadow mode, and a documented
+threat model naming residual risks. It closes with a security review by
+people who did not build the system. It succeeds with a deployment run by an external party. It
 is killed if no external party will run it, in which case the thesis may be
 right and the product is not viable. Both outcomes are worth publishing.
 
