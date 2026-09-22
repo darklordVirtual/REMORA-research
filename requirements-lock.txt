@@ -171,7 +171,7 @@ pycparser==2.23
 pycryptodome==3.23.0
 pydantic==2.13.5
 pydantic-settings==2.15.0
-pydantic_core==2.46.4
+pydantic_core==2.46.5
 pydot==4.0.1
 pyee==13.0.1
 PyGithub==2.8.1
@@ -247,7 +247,7 @@ typer==0.20.0
 types-PyYAML==6.0.12.20260815
 types-requests==2.33.0.20260712
 typing-inspection==0.4.2
-typing_extensions==4.15.0
+typing_extensions==4.16.0
 tzdata==2025.2
 uc-micro-py==2.0.0
 universal_pathlib==0.3.10
