@@ -45,6 +45,9 @@ directions; interface stubs only), `docs/11-benchmark-validation-plan.md`
 (external-validation protocol this roadmap's benchmark WPs extend),
 `docs/methods/theoretical_foundations_proposals_v1.md` (registered proposals
 that RF-05 partially restates; cross-referenced there).
+`docs/14-remora-prime-architecture.md` argues that several work packages here
+share one root cause. It sketches an architecture that would subsume them. It
+is registered as a proposal, and nothing in it is implemented.
 
 ## 0. Coverage assessment
 
