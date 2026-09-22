@@ -744,12 +744,40 @@ export interface components {
             /** Untrusted Context */
             untrusted_context?: string | null;
         };
-        /** AuditRef */
+        /**
+         * AuditRef
+         * @description Where this response's audit event is, or where it will be.
+         *
+         *     A state-transition event is enqueued on the SAME transaction as the
+         *     transition (REM-047), so at response time it is durable but not yet
+         *     projected into the chain and has no index. That case is stated rather than
+         *     papered over: ``deferred`` is true, ``sequence_no`` and ``entry_hash`` are
+         *     null, and ``idempotency_key`` is the key the event will be appended under.
+         *     Inventing an index the chain does not contain would be worse than saying
+         *     the index does not exist yet.
+         */
         AuditRef: {
-            /** Entry Hash */
-            entry_hash: string;
-            /** Sequence No */
-            sequence_no: number;
+            /**
+             * Deferred
+             * @description True when the event is enqueued on the state transaction and awaits projection by the drain.
+             * @default false
+             */
+            deferred: boolean;
+            /**
+             * Entry Hash
+             * @description Chain entry hash; null when deferred is true.
+             */
+            entry_hash?: string | null;
+            /**
+             * Idempotency Key
+             * @description Present only when deferred: the key the event will be appended under, and the join to the chain entry once projected.
+             */
+            idempotency_key?: string | null;
+            /**
+             * Sequence No
+             * @description Chain index; null when deferred is true.
+             */
+            sequence_no?: number | null;
         };
         /**
          * DerivationProposal
