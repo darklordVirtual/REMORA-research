@@ -249,8 +249,11 @@ H_fp, clusters_fp = compute_semantic_entropy(oracle_responses, backend=TokenFing
 
 **Local execution status:** Blocked in the current environment by a Windows
 application-control policy on `torch/lib/shm.dll` (`OSError: [WinError 4551]`).
-The code is production-ready and falls back to `TokenFingerprintBackend`
-automatically when the NLI model is unavailable. External replicators with a
+The code degrades rather than failing: it falls back to
+`TokenFingerprintBackend` automatically when the NLI model is unavailable,
+which the test suite exercises. Whether it is ready for production is a
+separate question this environment could not answer, because the comparison
+itself never ran here. External replicators with a
 torch-enabled Python environment (Linux/macOS or Windows without DLL restrictions)
 can run the comparison immediately. Expected comparison artifact: run
 `experiments/selective_n500.py` after re-generating oracle-response JSON with
