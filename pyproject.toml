@@ -225,28 +225,84 @@ only_mutate = [
 ]
 # The refusal tests import servers.api inside test functions, and api.py
 # hashes schemas/ files at import; both must exist in the mutants sandbox.
-also_copy = ["servers/", "schemas/"]
+# deploy/ joined 2026-09-22: tests/test_remote_dispatch_boundary.py asserts the
+# pilot image installs the security extra, which is a Dockerfile fact. Without
+# the directory in the sandbox that test errors and mutmut cannot even take a
+# clean baseline. 136 KB, copied once per sandbox.
+also_copy = ["servers/", "schemas/", "deploy/"]
 # The meaningful metric: mutants on lines the runner executes. All-lines
 # numbers conflate untested behaviour with uncovered adapter branches the
 # coverage gate already documents (docs/assurance/mutation_testing_v1.md).
 mutate_only_covered_lines = true
-pytest_add_cli_args = ["-q", "-p", "no:cacheprovider"]
+# Five tests in the selected modules assert facts about the REPOSITORY, not
+# about the mutated code, and cannot hold inside the mutants sandbox: three
+# regenerate a committed artifact through scripts/ (absent from the sandbox by
+# design -- copying scripts/ and artifacts/ in would weigh every mutant down
+# for no measurement value), and two assert that a callable has no non-test
+# caller by scanning the source tree, which mutmut has duplicated and mutated.
+# They are deselected by node id rather than by dropping their module, so the
+# rest of each module still kills mutants.
+# tests/test_mutation_sweep_selection.py fails if a deselected node id stops
+# existing, so a rename cannot turn one of these into a silent no-op.
+pytest_add_cli_args = [
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "--deselect",
+    "tests/test_task_bound_authority.py::TestTheCommittedArtifactReproduces",
+    "--deselect",
+    "tests/test_toolspec_bound_at_dispatch.py::test_verify_callable_still_has_no_non_test_caller",
+    "--deselect",
+    "tests/test_toolspec_bound_at_dispatch.py::test_verify_credential_scope_still_has_no_non_test_caller",
+]
+# The sweep is only as strong as the tests it runs. This list was frozen at 17
+# files while the four mutated modules kept growing, so the 2026-09-21 sweep --
+# the first to execute since the distribution rename broke its install step --
+# reported 226 new survivors that were mostly a measurement artefact: 21 test
+# modules exercising these modules were never given to the mutants.
+# tests/test_mutation_sweep_selection.py now fails when a test module imports
+# one of the mutated modules and is missing here. Cost of the full set: the
+# selection runs in 4.2 s against 2.8 s for the frozen 17.
 pytest_add_cli_args_test_selection = [
-    "tests/test_governance_event_contract.py",
+    "tests/test_custody_split_dispatch.py",
+    "tests/test_decision_execution_correlation.py",
+    "tests/test_direct_accept_authority_binding.py",
+    "tests/test_dispatch_clock_consistency.py",
+    "tests/test_dispatch_leased_endpoint.py",
     "tests/test_dispatcher_contract.py",
     "tests/test_enforcement_gate_contract.py",
-    "tests/test_token_golden_vectors.py",
-    "tests/test_token_key_lifecycle.py",
-    "tests/test_execution_lease.py",
-    "tests/test_lease_signing_contracts.py",
-    "tests/test_lease_verification_contracts.py",
-    "tests/test_lease_authority_custody.py",
-    "tests/test_lease_nonce_durability.py",
-    "tests/test_custody_split_dispatch.py",
     "tests/test_enforcement_gate_timestamps.py",
     "tests/test_enforcement_ledger_sqlite.py",
     "tests/test_enforcement_properties.py",
+    "tests/test_error_taxonomy.py",
+    "tests/test_execute_accepted.py",
+    "tests/test_execute_accepted_toolspec.py",
+    "tests/test_execution_lease.py",
+    "tests/test_fail_closed_hardening.py",
+    "tests/test_gate_d1_endpoint_arg.py",
+    "tests/test_gate_d1_ledger.py",
     "tests/test_gate_replay_properties.py",
-    "tests/test_dispatch_clock_consistency.py",
+    "tests/test_governance_event_contract.py",
+    "tests/test_grant_ledger_tamper_evidence.py",
+    "tests/test_lease_authority_custody.py",
+    "tests/test_lease_nonce_durability.py",
+    "tests/test_lease_signing_contracts.py",
+    "tests/test_lease_verification_completeness.py",
+    "tests/test_lease_verification_contracts.py",
+    "tests/test_policy_engine_audit_v1.py",
+    "tests/test_rem013_pdp_pep_boundary.py",
+    "tests/test_remote_dispatch_boundary.py",
+    "tests/test_review_path_custody_split.py",
+    "tests/test_runtime_trust_base_binding.py",
     "tests/test_sqlite_memory_refused.py",
+    "tests/test_task_bound_authority.py",
+    "tests/test_tcb_edge_contracts.py",
+    "tests/test_authorization_context_golden_vectors.py",
+    "tests/test_token_binding_contract.py",
+    "tests/test_token_golden_vectors.py",
+    "tests/test_token_hardening.py",
+    "tests/test_token_key_lifecycle.py",
+    "tests/test_toolspec_binding_chain.py",
+    "tests/test_toolspec_bound_at_dispatch.py",
+    "tests/test_unsigned_issuance_family.py",
 ]
