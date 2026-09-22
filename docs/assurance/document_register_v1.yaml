@@ -2455,6 +2455,15 @@ documents:
   audience:
   - maintainers
   - evaluators
+- id: DOC-338
+  path: docs/14-remora-prime-architecture.md
+  status: proposal
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: '2026-09-22'
+  audience:
+  - researchers
+  - maintainers
 topics:
 - docs_integrations_mcp-gateway_md
 - docs_design_aps-authority-profile-v0_md

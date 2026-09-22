@@ -48,6 +48,7 @@ Several topics have more than one document. This table says which to open.
 | [11-benchmark-validation-plan.md](11-benchmark-validation-plan.md) | External benchmark validation plan |
 | [12-agentharm-validation.md](12-agentharm-validation.md) | AgentHarm validation |
 | [13-research-frontier-roadmap.md](13-research-frontier-roadmap.md) | Research work packages |
+| [14-remora-prime-architecture.md](14-remora-prime-architecture.md) | Gap analysis and proposed next-generation architecture (proposal) |
 | [AI_USE.md](AI_USE.md) | AI-assisted development disclosure |
 
 </details>
