@@ -57,6 +57,30 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Fixed
 
+- The REM-047 transactional audit outbox is wired to production writes. It
+  was implemented and had no caller outside its own test, so every
+  state-transition audit event was appended after the transaction recording
+  the transition had already committed. Two atomic writes are not one atomic
+  write: a crash in between left a transition with no audit event, which a
+  verifier holding the chain cannot distinguish from a chain nobody wrote to.
+  `revoke-principal` was the plainest case, committing the revocation inside
+  the state transaction and appending `principal_revoked` outside it. Four
+  appends now issue inside the state transaction under a deterministic
+  idempotency key and are projected by the existing lazy drain. The API
+  contract states the consequence rather than hiding it: an `AuditRef` for a
+  deferred event carries `deferred: true`, null `sequence_no` and
+  `entry_hash`, and the `idempotency_key` the event will be appended under.
+  Inventing an index the chain does not yet contain would be worse than
+  saying the index does not exist yet.
+- Seven CI review scripts could be made to pass on input they exist to
+  refuse. A 2026-09-02 audit imported each script's own regex and ran bypass
+  strings through it. Each fix is test-first, with a seeded-bypass meta-test
+  in `tests/meta/test_check_script_bypasses.py` that writes the evading
+  string into a temporary tree, runs the gate against it, and asserts
+  failure. No gate was weakened, and where a repaired scanner surfaced
+  something real in the repository the finding is recorded rather than
+  scanned around.
+
 - Reversibility classification in the risk model is now total and fails
   closed. `remora.credal` weighed worst-case loss by membership in a frozen
   set of eleven `action_type` spellings, and every other string, including
