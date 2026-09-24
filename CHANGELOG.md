@@ -6,6 +6,34 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- `remora.decision_providers`: the contract through which an external source
+  of typed semantic judgment is admitted as evidence, and only as evidence.
+  A provider answers narrow typed questions (choice, score, boolean) with
+  calibrated probabilities; `DecisionEvidence` records the answers together
+  with the question-set version, the model alias, the separately-recorded
+  resolved model, and hashes of both the state shown and the response. The
+  alias and the resolved model are separate fields because an alias can be
+  repointed at a new model without a code change, which moves every threshold
+  calibrated against the old one.
+  `project()` is the only supported route from evidence to an observation, and
+  it writes model-signal fields exclusively. That confinement is what makes a
+  provider inherit the existing execution-profile invariant that no
+  combination of model signals reaches ACCEPT. The projectable set is pinned
+  against the model-signal class of the `whatif` lever catalogue rather than
+  copied from it, so the two cannot drift apart.
+  The danger this guards is specific. The questions such a model answers best
+  are intent match, target match and scope drift, and the observation fields
+  that look like the place for those answers are `tool_matches_goal`,
+  `expected_effect_matches` and `argument_values_grounded`. All three are
+  deployment facts, which can reach ACCEPT. `project()` refuses them rather
+  than dropping them silently.
+  Ships a deterministic reference provider and no network adapter. A hosted
+  provider is an adapter implementing the protocol, and the properties above
+  hold for any adapter because they are properties of the projection.
+  `tests/test_decision_providers.py` records a declared limit alongside the
+  guarantee: the ACCEPT bound is a property of the execution profile, and the
+  same favourable signals do reach ACCEPT on an engine configured without it.
+
 - What-if decision-boundary analysis (`remora.policy.whatif`, `remora whatif`,
   `remora.what_if_tool_call`, `remora.shadow.boundary`). For any observation
   it searches every combination of a fixed lever catalogue against the real

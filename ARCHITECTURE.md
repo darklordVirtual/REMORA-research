@@ -416,6 +416,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | Module | Stability | Notes |
 |--------|-----------|-------|
 | `remora/core.py` | **CORE** | Oracle ABC + OracleResponse |
+| `remora/decision_providers.py` | **EXPERIMENTAL** | Contract for typed semantic judgment from an external model, admitted as evidence only. `project()` writes model-signal observation fields exclusively, so a provider inherits the execution-profile invariant that no model signal reaches ACCEPT; the projectable set is pinned against the `whatif` lever catalogue. Ships no network adapter |
 | `remora/errors.py` | **CORE** | Runtime exception taxonomy root: `RemoraError` with machine-readable `code`/`category` (issue #45 gap 4). Separate from the SDK's client-side hierarchy by design |
 | `remora/scaffold.py` | **CORE** | `remora init-review`: writes a strict-profile configuration (keys, signed demo ToolSpec bundle, registry, intents, one env file per custody half). Automates ceremony; the result must still pass the unchanged prerequisites, which `tests/test_init_review_scaffold.py` asserts |
 | `remora/profiles.py` | **CORE** | Runtime profile name resolution, deliberately a leaf: it imports nothing from `remora`, so the enforcement layer and the tool-call layer can both ask which profile is active without importing each other. `remora/toolcall/runtime_profile.py` owns the prerequisites a strict profile imposes and re-exports this module's names |
