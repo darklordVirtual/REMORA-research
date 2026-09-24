@@ -85,6 +85,15 @@ This file lists externally relevant changes by release. Fine-grained development
   balance. The integration guide records the prerequisite and the three
   steps that clear it. No answer from the model has been observed yet; the
   claim boundary is unchanged.
+- A second live prerequisite, learned once a unified-billing gateway existed
+  (`remora-jev`, created 2026-09-24 with authentication on): `/ai/run`
+  answers 403 code 2049 unless the bearer token carries the AI Gateway Run
+  permission, which an account token with Workers AI and gateway read and
+  edit rights does not. The adapter takes `gateway_token`
+  (`CLOUDFLARE_AI_GATEWAY_TOKEN`) and uses it in place of the account token
+  for the run call. The token is declared in the credential topology with
+  the note that Cloudflare scopes Run to the whole account. Still no answer
+  from the model observed; both remaining steps are dashboard actions.
 
 - What-if decision-boundary analysis (`remora.policy.whatif`, `remora whatif`,
   `remora.what_if_tool_call`, `remora.shadow.boundary`). For any observation

@@ -122,6 +122,17 @@ Three steps make the call billable.
 3. Name that gateway in `CLOUDFLARE_AI_GATEWAY_ID`. The adapter sends it as
    the documented `cf-aig-gateway-id` header, which is what routes the spend
    to the credit balance and gives the request analytics and rate limiting.
+4. Mint a token with the AI Gateway Run permission from the gateway's
+   settings ("Create authentication token") and set it as
+   `CLOUDFLARE_AI_GATEWAY_TOKEN`. Unified Billing refuses the run call
+   without it, with `HTTP 403` code `2049`. An account token with Workers AI
+   and AI Gateway read and edit rights does not carry Run. Cloudflare scopes
+   Run to the whole account, not to one gateway, so treat the token as able
+   to send through every gateway you own.
+
+The gateway `remora-jev` was created on 2026-09-24 with Unified billing and
+authentication on, so steps two and three are done for this account. Steps
+one and four are dashboard actions.
 
 The alternative is BYOK: store a TypeSafe API key on the gateway, and the
 request is billed by TypeSafe directly.

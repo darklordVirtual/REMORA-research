@@ -229,7 +229,7 @@ def test_the_evidence_is_still_not_authoritative() -> None:
     "missing", [{"account_id": None}, {"api_token": None}]
 )
 def test_missing_credentials_refuse_rather_than_answer(monkeypatch, missing) -> None:
-    for name in ("CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN"):
+    for name in ("CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_AI_GATEWAY_TOKEN"):
         monkeypatch.delenv(name, raising=False)
     provider = CloudflareJevProvider(
         question_set_version="v1",
@@ -273,6 +273,40 @@ def test_a_gateway_id_is_sent_as_the_documented_header() -> None:
         state=STATE, questions=QUESTIONS, timeout_s=5.0
     )
     assert recorder.calls[0][2]["cf-aig-gateway-id"] == "r-e-m-o-r-a"
+
+
+def test_a_gateway_run_token_replaces_the_account_token_on_the_run_call(monkeypatch) -> None:
+    """Unified Billing refuses the call unless the bearer carries AI Gateway Run."""
+    monkeypatch.delenv("CLOUDFLARE_AI_GATEWAY_TOKEN", raising=False)
+    recorder = _Recorder()
+    _provider(recorder, gateway_id="remora-jev", gateway_token="run-scoped").evaluate(
+        state=STATE, questions=QUESTIONS, timeout_s=5.0
+    )
+    assert recorder.calls[0][2]["Authorization"] == "Bearer run-scoped"
+
+
+def test_the_account_token_is_used_when_no_gateway_token_is_set(monkeypatch) -> None:
+    monkeypatch.delenv("CLOUDFLARE_AI_GATEWAY_TOKEN", raising=False)
+    recorder = _Recorder()
+    _provider(recorder).evaluate(state=STATE, questions=QUESTIONS, timeout_s=5.0)
+    assert recorder.calls[0][2]["Authorization"] == "Bearer token-abc"
+
+
+def test_the_unified_billing_auth_refusal_surfaces_its_code(monkeypatch) -> None:
+    """The verbatim live body from 2026-09-24, once a unified-billing gateway existed."""
+    import io
+
+    body = json.dumps({
+        "errors": [{"message": "Gateway authentication is required to use unified billing. "
+                               "Enable authentication on your gateway or provide your own API key (BYOK).",
+                    "code": 2049}],
+        "success": False, "result": {}, "messages": [],
+    }).encode()
+    failure = urllib.error.HTTPError("u", 403, "Forbidden", {}, io.BytesIO(body))  # type: ignore[arg-type]
+    provider = _provider(_Recorder(raises=failure), max_attempts=1)
+    with pytest.raises(DecisionProviderError) as caught:
+        provider.evaluate(state=STATE, questions=QUESTIONS, timeout_s=5.0)
+    assert "HTTP 403" in str(caught.value) and "code 2049" in str(caught.value)
 
 
 def test_no_gateway_header_without_a_gateway_id(monkeypatch) -> None:

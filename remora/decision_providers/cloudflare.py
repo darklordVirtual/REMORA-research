@@ -18,6 +18,17 @@ same endpoint answered ``200``. Credits are loaded in the dashboard (AI
 Gateway, Credits Available, Manage), and the gateway named by ``gateway_id``
 must have its Workers AI billing set to Unified billing.
 
+A second prerequisite surfaced once a unified-billing gateway existed: the
+service answers ``HTTP 403`` with code ``2049``, "Gateway authentication is
+required to use unified billing", unless the token in the ``Authorization``
+header carries the ``AI Gateway - Run`` permission. An account token with
+Workers AI and AI Gateway read/edit rights is not enough, and the
+``cf-aig-authorization`` header is not consulted on this endpoint (it belongs
+to ``gateway.ai.cloudflare.com``). The dashboard mints such a token from the
+gateway's settings ("Create authentication token"); supply it as
+``gateway_token`` or ``CLOUDFLARE_AI_GATEWAY_TOKEN`` and it is used for the
+run call in place of the account token.
+
 Three shape differences between this API and the contract in
 :mod:`remora.decision_providers` are handled here rather than pushed onto
 callers, and each one is a place where a quieter adapter would lose
@@ -128,12 +139,17 @@ class CloudflareJevProvider:
         api_token: str | None = None,
         model: str = JEV_MODEL_ID,
         gateway_id: str | None = None,
+        gateway_token: str | None = None,
         max_attempts: int = 3,
         transport: Transport | None = None,
     ) -> None:
         self._question_set_version = question_set_version
         self._account_id = account_id or os.environ.get("CLOUDFLARE_ACCOUNT_ID")
         self._api_token = api_token or os.environ.get("CLOUDFLARE_API_TOKEN")
+        #: A token minted from the gateway settings with AI Gateway Run
+        #: permission. Unified Billing refuses the run call without it. Used
+        #: in the Authorization header in place of the account token.
+        self._gateway_token = gateway_token or os.environ.get("CLOUDFLARE_AI_GATEWAY_TOKEN")
         self._model = model
         #: The AI Gateway to route and bill through, sent as the documented
         #: ``cf-aig-gateway-id`` header. Required to spend Unified Billing
@@ -234,16 +250,17 @@ class CloudflareJevProvider:
                 "CLOUDFLARE_ACCOUNT_ID is not set; refusing to answer rather than "
                 "returning a default"
             )
-        if not self._api_token:
+        bearer = self._gateway_token or self._api_token
+        if not bearer:
             raise DecisionProviderError(
-                "CLOUDFLARE_API_TOKEN is not set; refusing to answer rather than "
-                "returning a default"
+                "neither CLOUDFLARE_AI_GATEWAY_TOKEN nor CLOUDFLARE_API_TOKEN is set; "
+                "refusing to answer rather than returning a default"
             )
 
         url = f"https://api.cloudflare.com/client/v4/accounts/{self._account_id}/ai/run"
         payload = json.dumps(self._body(state, questions)).encode()
         headers = {
-            "Authorization": f"Bearer {self._api_token}",
+            "Authorization": f"Bearer {bearer}",
             "Content-Type": "application/json",
         }
         if self._gateway_id:
