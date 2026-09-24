@@ -2464,7 +2464,19 @@ documents:
   audience:
   - researchers
   - maintainers
+- id: DOC-339
+  path: docs/integrations/jev_decision_provider.md
+  status: canonical
+  topic: docs_integrations_jev_decision_provider_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-24'
+  last_reviewed: '2026-09-24'
+  audience:
+  - integrators
+  - maintainers
 topics:
+- docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
 - docs_design_aps-authority-profile-v0_md
 - docs_design_runtime-trust-base-identity-v1_md
