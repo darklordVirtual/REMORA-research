@@ -280,7 +280,10 @@ def test_a_non_choice_question_may_not_declare_options() -> None:
 def test_answers_are_addressable_by_question_id() -> None:
     evidence = DeterministicDecisionProvider({"a": True, "b": 0.5}).evaluate(
         state=STATE,
-        questions=[_question("a"), _question("b", QuestionKind.SCORE)],
+        questions=[
+            _question("a"),
+            _question("b", QuestionKind.SCORE, legend=("low", "high")),
+        ],
         timeout_s=1.0,
     )
     assert isinstance(evidence.answer("a"), DecisionAnswer)

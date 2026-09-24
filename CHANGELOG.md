@@ -33,6 +33,23 @@ This file lists externally relevant changes by release. Fine-grained development
   `tests/test_decision_providers.py` records a declared limit alongside the
   guarantee: the ACCEPT bound is a property of the execution profile, and the
   same favourable signals do reach ACCEPT on an engine configured without it.
+- `remora.decision_providers.cloudflare`: an adapter for the `typesafe/jev`
+  model served through Cloudflare Workers AI, reached at
+  `POST /accounts/{account}/ai/run`. Routing through the Cloudflare account
+  means no separate vendor key. Writing the adapter corrected two things in
+  the contract above, which is why it ships with it rather than after it. A
+  `noul` answer is a probability rather than a boolean, so the answer value
+  stays a probability and `as_bool` demands an explicit threshold instead of
+  assuming one; a 0.51 and a 0.99 must not become the same record. A `score`
+  answer indexes a legend in the legend's own units rather than [0, 1], so the
+  value and its labels travel together and neither is normalised away. The
+  adapter records the resolved version from the response rather than the alias
+  from the request, refuses a choice outside the declared options, refuses a
+  response that names no model version, and maps every transport failure to a
+  refusal rather than a favourable default. It is exercised against the
+  documented response shape through an injected transport and has not been run
+  against the live service, so it is evidence about parsing and about nothing
+  else.
 
 - What-if decision-boundary analysis (`remora.policy.whatif`, `remora whatif`,
   `remora.what_if_tool_call`, `remora.shadow.boundary`). For any observation

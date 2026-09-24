@@ -84,9 +84,9 @@ class QuestionKind(Enum):
 
     #: One option from a declared, closed set.
     CHOICE = "choice"
-    #: A bounded scalar in [0, 1].
+    #: A position on a declared ordered legend, in the legend's own units.
     SCORE = "score"
-    #: True or false.
+    #: The probability that a proposition holds. See :class:`DecisionAnswer`.
     BOOLEAN = "boolean"
 
 
@@ -108,24 +108,71 @@ class DecisionQuestion:
     instructions: str
     #: Required for CHOICE, ignored otherwise.
     options: tuple[str, ...] = ()
+    #: Ordered labels for SCORE, defining the scale the answer indexes into.
+    legend: tuple[str, ...] = ()
+    #: Per-option guidance a provider may be given. Keys must be the options
+    #: for CHOICE, and "true"/"false" for BOOLEAN.
+    criteria: Mapping[str, str] | None = None
 
     def __post_init__(self) -> None:
         if self.kind is QuestionKind.CHOICE and len(self.options) < 2:
             raise ValueError(f"choice question {self.id!r} needs at least two options")
         if self.kind is not QuestionKind.CHOICE and self.options:
             raise ValueError(f"question {self.id!r} declares options but is not a choice")
+        if self.kind is QuestionKind.SCORE and len(self.legend) < 2:
+            raise ValueError(f"score question {self.id!r} needs a legend of at least two labels")
+        if self.kind is not QuestionKind.SCORE and self.legend:
+            raise ValueError(f"question {self.id!r} declares a legend but is not a score")
 
 
 @dataclass(frozen=True, slots=True)
 class DecisionAnswer:
-    """One provider answer, with whatever uncertainty the provider reports."""
+    """One provider answer, with whatever uncertainty the provider reports.
+
+    ``value`` is read according to the question kind, and two of the three are
+    not what a first reading suggests:
+
+    CHOICE
+        the chosen option, a member of the question's declared options.
+
+    BOOLEAN
+        **the probability that the answer is true**, not a bool. Providers of
+        this shape return a probability, and deciding where to cut it is a
+        policy question with a threshold that belongs in a reviewed
+        configuration. :meth:`as_bool` therefore demands the threshold rather
+        than assuming one, so a 0.51 and a 0.99 cannot silently become the
+        same answer.
+
+    SCORE
+        a position on ``legend``, in the legend's own units, not normalised to
+        [0, 1]. A provider returning 1.04 against a three-point legend means
+        slightly past the middle label. Normalising it here would discard the
+        labels that give the number its meaning.
+    """
 
     question_id: str
     value: str | float | bool
-    #: Per-option probabilities for CHOICE, or None when the provider reports none.
+    #: Per-option or per-position probabilities, or None when none is reported.
     probabilities: Mapping[str, float] | None = None
     #: Provider-reported confidence in [0, 1], or None.
     confidence: float | None = None
+    #: The ordered labels a SCORE value indexes into, when the provider reports them.
+    legend: tuple[str, ...] | None = None
+
+    def as_bool(self, *, threshold: float) -> bool:
+        """Cut a BOOLEAN probability at an explicitly supplied threshold.
+
+        There is no default. A threshold is a policy decision, and a default
+        here would make it invisible in exactly the records meant to show it.
+        """
+        if not 0.0 <= threshold <= 1.0:
+            raise ValueError(f"threshold must be in [0, 1], got {threshold}")
+        if not isinstance(self.value, (int, float)) or isinstance(self.value, bool):
+            raise TypeError(
+                f"answer {self.question_id!r} is not a probability; as_bool applies to "
+                "BOOLEAN answers only"
+            )
+        return float(self.value) >= threshold
 
 
 @dataclass(frozen=True, slots=True)
