@@ -6,6 +6,51 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- `remora.decision_providers`: the contract through which an external source
+  of typed semantic judgment is admitted as evidence, and only as evidence.
+  A provider answers narrow typed questions (choice, score, boolean) with
+  calibrated probabilities; `DecisionEvidence` records the answers together
+  with the question-set version, the model alias, the separately-recorded
+  resolved model, and hashes of both the state shown and the response. The
+  alias and the resolved model are separate fields because an alias can be
+  repointed at a new model without a code change, which moves every threshold
+  calibrated against the old one.
+  `project()` is the only supported route from evidence to an observation, and
+  it writes model-signal fields exclusively. That confinement is what makes a
+  provider inherit the existing execution-profile invariant that no
+  combination of model signals reaches ACCEPT. The projectable set is pinned
+  against the model-signal class of the `whatif` lever catalogue rather than
+  copied from it, so the two cannot drift apart.
+  The danger this guards is specific. The questions such a model answers best
+  are intent match, target match and scope drift, and the observation fields
+  that look like the place for those answers are `tool_matches_goal`,
+  `expected_effect_matches` and `argument_values_grounded`. All three are
+  deployment facts, which can reach ACCEPT. `project()` refuses them rather
+  than dropping them silently.
+  Ships a deterministic reference provider and no network adapter. A hosted
+  provider is an adapter implementing the protocol, and the properties above
+  hold for any adapter because they are properties of the projection.
+  `tests/test_decision_providers.py` records a declared limit alongside the
+  guarantee: the ACCEPT bound is a property of the execution profile, and the
+  same favourable signals do reach ACCEPT on an engine configured without it.
+- `remora.decision_providers.cloudflare`: an adapter for the `typesafe/jev`
+  model served through Cloudflare Workers AI, reached at
+  `POST /accounts/{account}/ai/run`. Routing through the Cloudflare account
+  means no separate vendor key. Writing the adapter corrected two things in
+  the contract above, which is why it ships with it rather than after it. A
+  `noul` answer is a probability rather than a boolean, so the answer value
+  stays a probability and `as_bool` demands an explicit threshold instead of
+  assuming one; a 0.51 and a 0.99 must not become the same record. A `score`
+  answer indexes a legend in the legend's own units rather than [0, 1], so the
+  value and its labels travel together and neither is normalised away. The
+  adapter records the resolved version from the response rather than the alias
+  from the request, refuses a choice outside the declared options, refuses a
+  response that names no model version, and maps every transport failure to a
+  refusal rather than a favourable default. It is exercised against the
+  documented response shape through an injected transport and has not been run
+  against the live service, so it is evidence about parsing and about nothing
+  else.
+
 - What-if decision-boundary analysis (`remora.policy.whatif`, `remora whatif`,
   `remora.what_if_tool_call`, `remora.shadow.boundary`). For any observation
   it searches every combination of a fixed lever catalogue against the real
