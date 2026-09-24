@@ -89,11 +89,46 @@ safety boundary.
 at `POST /accounts/{account}/ai/run` with model id `typesafe/jev`. Routing
 through the Cloudflare account means no separate vendor key.
 
-Environment: `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`. The token is
-registered in `docs/assurance/credential_topology.yaml` as an oracle
-credential, because the adapter dispatches no governed tool. If a governed
-tool ever dispatches through that token, the entry must move to
-`effect_credential`, as its own note states.
+Environment: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_AI_GATEWAY_ID`. The token is registered in
+`docs/assurance/credential_topology.yaml` as an oracle credential, because
+the adapter dispatches no governed tool. If a governed tool ever dispatches
+through that token, the entry must move to `effect_credential`, as its own
+note states.
+
+## Billing is the one operational prerequisite
+
+Learned by running the adapter against the live service on 2026-09-24, and
+recorded here so nobody rediscovers it at 402. `typesafe/jev` is a partner
+model. It is paid for from prepaid AI Gateway credits (Unified Billing), not
+from the Workers AI standard plan. Without credits the service answers
+`HTTP 402` with code `2021`: "Insufficient balance; add money to your
+gateway or use BYOK".
+
+In the same session the account token, the endpoint and the request shape
+were all confirmed correct: a native Workers AI model on the same `/ai/run`
+endpoint answered `200`. The adapter surfaces the Cloudflare message in
+`DecisionProviderError`, so the operational cause is visible in the refusal
+rather than hidden behind a status code.
+
+Three steps make the call billable.
+
+1. Load credits in the dashboard: AI Gateway, Credits Available, Manage,
+   Top-up credits. A payment method is required and Cloudflare adds a 5 %
+   fee to purchased credits. There is no API for this step.
+2. Set the gateway's Workers AI billing to Unified billing, in the gateway
+   settings or by a `PUT` on the gateway with
+   `workers_ai_billing_mode: "unified"`.
+3. Name that gateway in `CLOUDFLARE_AI_GATEWAY_ID`. The adapter sends it as
+   the documented `cf-aig-gateway-id` header, which is what routes the spend
+   to the credit balance and gives the request analytics and rate limiting.
+
+The alternative is BYOK: store a TypeSafe API key on the gateway, and the
+request is billed by TypeSafe directly.
+
+At the published price of $0.042 per million input tokens, a state of two
+thousand tokens costs about $0.00008 per decision. Ten dollars of credit is
+more than a hundred thousand decisions.
 
 Three response details are preserved rather than simplified. A `noul` answer
 is a probability and stays one; `DecisionAnswer.as_bool` demands an explicit

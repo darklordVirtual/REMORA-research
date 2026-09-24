@@ -7,6 +7,17 @@ Reaches the model at ``POST /accounts/{account}/ai/run`` with a body of
 Routing through the Cloudflare binding means no separate vendor key: the
 account's token and unified billing cover it.
 
+Billing is the one operational prerequisite, and it was learned by running
+this adapter against the live service on 2026-09-24. ``typesafe/jev`` is a
+partner model and is paid for from prepaid AI Gateway credits (Unified
+Billing), not from the Workers AI standard plan. Without credits the service
+answers ``HTTP 402`` with code ``2021``, "Insufficient balance; add money to
+your gateway or use BYOK". The account token, the endpoint and the request
+shape were all confirmed correct in the same session: a native model on the
+same endpoint answered ``200``. Credits are loaded in the dashboard (AI
+Gateway, Credits Available, Manage), and the gateway named by ``gateway_id``
+must have its Workers AI billing set to Unified billing.
+
 Three shape differences between this API and the contract in
 :mod:`remora.decision_providers` are handled here rather than pushed onto
 callers, and each one is a place where a quieter adapter would lose
@@ -81,6 +92,29 @@ def _https_transport(
         return json.loads(response.read())
 
 
+def _error_detail(exc: urllib.error.HTTPError) -> str:
+    """Cloudflare's own error message, which is the part worth reading.
+
+    A bare status code hides the operational cause. ``402`` alone says
+    nothing; ``402: Insufficient balance; add money to your gateway or use
+    BYOK (code 2021)`` says exactly what to do.
+    """
+    try:
+        body = json.loads(exc.read())
+    except (ValueError, OSError):
+        return exc.reason if isinstance(exc.reason, str) else "no detail"
+    errors = body.get("errors") if isinstance(body, dict) else None
+    if not errors:
+        return "no detail"
+    parts = []
+    for error in errors:
+        if isinstance(error, dict):
+            message = error.get("message", "")
+            code = error.get("code")
+            parts.append(f"{message} (code {code})" if code is not None else str(message))
+    return "; ".join(parts) or "no detail"
+
+
 class CloudflareJevProvider:
     """A :class:`~remora.decision_providers.DecisionProvider` over Workers AI."""
 
@@ -93,6 +127,7 @@ class CloudflareJevProvider:
         account_id: str | None = None,
         api_token: str | None = None,
         model: str = JEV_MODEL_ID,
+        gateway_id: str | None = None,
         max_attempts: int = 3,
         transport: Transport | None = None,
     ) -> None:
@@ -100,6 +135,10 @@ class CloudflareJevProvider:
         self._account_id = account_id or os.environ.get("CLOUDFLARE_ACCOUNT_ID")
         self._api_token = api_token or os.environ.get("CLOUDFLARE_API_TOKEN")
         self._model = model
+        #: The AI Gateway to route and bill through, sent as the documented
+        #: ``cf-aig-gateway-id`` header. Required to spend Unified Billing
+        #: credits; also what gives the request analytics and rate limiting.
+        self._gateway_id = gateway_id or os.environ.get("CLOUDFLARE_AI_GATEWAY_ID")
         self._max_attempts = max(1, max_attempts)
         self._transport = transport or _https_transport
 
@@ -207,6 +246,8 @@ class CloudflareJevProvider:
             "Authorization": f"Bearer {self._api_token}",
             "Content-Type": "application/json",
         }
+        if self._gateway_id:
+            headers["cf-aig-gateway-id"] = self._gateway_id
 
         started = time.perf_counter()
         document = self._fetch(url, payload, headers, timeout_s)
@@ -255,7 +296,7 @@ class CloudflareJevProvider:
                     time.sleep(2**attempt)
                     continue
                 raise DecisionProviderError(
-                    f"Workers AI returned HTTP {exc.code}"
+                    f"Workers AI returned HTTP {exc.code}: {_error_detail(exc)}"
                 ) from exc
             except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
                 last = exc
