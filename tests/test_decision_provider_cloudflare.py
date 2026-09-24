@@ -248,6 +248,40 @@ def test_an_http_error_becomes_a_provider_error() -> None:
         provider.evaluate(state=STATE, questions=QUESTIONS, timeout_s=5.0)
 
 
+def test_the_billing_refusal_surfaces_cloudflare_s_own_message() -> None:
+    """The exact body the live service returned on 2026-09-24. A bare 402 hides the fix."""
+    import io
+
+    body = json.dumps({
+        "errors": [{"message": "Insufficient balance; add money to your gateway or use BYOK",
+                    "code": 2021}],
+        "success": False, "result": {}, "messages": [],
+    }).encode()
+    failure = urllib.error.HTTPError("u", 402, "Payment Required", {}, io.BytesIO(body))  # type: ignore[arg-type]
+    provider = _provider(_Recorder(raises=failure), max_attempts=1)
+    with pytest.raises(DecisionProviderError) as caught:
+        provider.evaluate(state=STATE, questions=QUESTIONS, timeout_s=5.0)
+    assert "HTTP 402" in str(caught.value)
+    assert "Insufficient balance" in str(caught.value)
+    assert "code 2021" in str(caught.value)
+
+
+def test_a_gateway_id_is_sent_as_the_documented_header() -> None:
+    """Unified Billing credits are spent only through a named gateway."""
+    recorder = _Recorder()
+    _provider(recorder, gateway_id="r-e-m-o-r-a").evaluate(
+        state=STATE, questions=QUESTIONS, timeout_s=5.0
+    )
+    assert recorder.calls[0][2]["cf-aig-gateway-id"] == "r-e-m-o-r-a"
+
+
+def test_no_gateway_header_without_a_gateway_id(monkeypatch) -> None:
+    monkeypatch.delenv("CLOUDFLARE_AI_GATEWAY_ID", raising=False)
+    recorder = _Recorder()
+    _provider(recorder).evaluate(state=STATE, questions=QUESTIONS, timeout_s=5.0)
+    assert "cf-aig-gateway-id" not in recorder.calls[0][2]
+
+
 def test_a_timeout_becomes_a_provider_error() -> None:
     provider = _provider(_Recorder(raises=TimeoutError("slow")), max_attempts=1)
     with pytest.raises(DecisionProviderError):

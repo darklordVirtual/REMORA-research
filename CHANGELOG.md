@@ -72,6 +72,19 @@ This file lists externally relevant changes by release. Fine-grained development
   is the integration guide. Nothing in the shipped execution path calls
   `enrich`; wiring it into governed dispatch is a separate change that should
   follow a calibration study in the deployment's language.
+- The Cloudflare adapter was run against the live service on 2026-09-24. The
+  account token, the endpoint and the request shape are confirmed correct: a
+  native model on the same endpoint answered 200. `typesafe/jev` itself
+  answered 402 with Cloudflare code 2021, "Insufficient balance", because a
+  partner model is paid for from prepaid AI Gateway credits rather than the
+  standard plan. Two changes follow. `DecisionProviderError` now carries
+  Cloudflare's own error message, so the refusal names the operational cause
+  instead of a bare status. The adapter takes a `gateway_id`
+  (`CLOUDFLARE_AI_GATEWAY_ID`) and sends it as the documented
+  `cf-aig-gateway-id` header, which is what routes the spend to the credit
+  balance. The integration guide records the prerequisite and the three
+  steps that clear it. No answer from the model has been observed yet; the
+  claim boundary is unchanged.
 
 - What-if decision-boundary analysis (`remora.policy.whatif`, `remora whatif`,
   `remora.what_if_tool_call`, `remora.shadow.boundary`). For any observation
