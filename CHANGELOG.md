@@ -50,6 +50,28 @@ This file lists externally relevant changes by release. Fine-grained development
   documented response shape through an injected transport and has not been run
   against the live service, so it is evidence about parsing and about nothing
   else.
+- `remora.decision_providers.questions` and `remora.decision_providers.enrich`
+  complete the provider integration end to end. The question set is versioned
+  (`remora-semantic-v1`) because thresholds are calibrated against a specific
+  wording, and it deliberately carries no `recommended_route` question: a model
+  that names a route starts to look like the thing that decides. `enrich` is
+  the one place provider answers meet an observation, and it can do two things
+  only. Favourable `intent_match` and `target_matches_request` answers, with
+  `scope_drift` below its threshold, become the engine's evidence signal, which
+  under the execution profile stops at VERIFY. A likely `possible_injection`
+  raises `adversarial_detected` through the new `project_narrowing`, which can
+  raise a declared safety flag and never clear one. Reversibility and risk
+  scores are recorded in the evidence and never projected, because the fields
+  that look right for them are deployment facts. Thresholds have no defaults;
+  a threshold is a calibrated policy decision and belongs in reviewed
+  configuration. `semantic_state` refuses credential-shaped keys rather than
+  redacting them. Failure is structural: a provider that cannot answer leaves
+  the observation untouched, and a test holds that the decision without the
+  provider is never more permissive than the decision with it, which is why
+  no per-tier failure table is offered. `docs/integrations/jev_decision_provider.md`
+  is the integration guide. Nothing in the shipped execution path calls
+  `enrich`; wiring it into governed dispatch is a separate change that should
+  follow a calibration study in the deployment's language.
 
 - What-if decision-boundary analysis (`remora.policy.whatif`, `remora whatif`,
   `remora.what_if_tool_call`, `remora.shadow.boundary`). For any observation

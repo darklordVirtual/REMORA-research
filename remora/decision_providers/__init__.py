@@ -62,6 +62,7 @@ from enum import Enum
 from typing import Any, Literal, Mapping, Protocol, Sequence, runtime_checkable
 
 __all__ = [
+    "NARROWING_FLAGS",
     "PROJECTABLE_FIELDS",
     "DecisionAnswer",
     "DecisionEvidence",
@@ -72,6 +73,7 @@ __all__ = [
     "QuestionKind",
     "evidence_fingerprint",
     "project",
+    "project_narrowing",
 ]
 
 
@@ -285,6 +287,36 @@ def project(observation: Any, assignments: Mapping[str, Any]) -> Any:
     if unknown:
         raise ValueError(f"observation has no such field: {unknown}")
     return replace(observation, **dict(assignments))
+
+
+#: Proposal-class flags a provider may set, and only ever to True.
+#:
+#: These are read by the deterministic hard block, so setting one can only
+#: make the decision stricter. That direction is the one a provider is allowed
+#: to move in; the reverse would let model output clear a safety concern.
+NARROWING_FLAGS: frozenset[str] = frozenset({"adversarial_detected"})
+
+
+def project_narrowing(observation: Any, flags: Mapping[str, bool]) -> Any:
+    """Raise declared safety flags from provider output. Never lower them.
+
+    A provider that judges the state adversarial may say so, and the hard
+    block will escalate. A provider may not say the state is clean: ``False``
+    is refused, and a flag already raised stays raised regardless of what the
+    provider reports. Returns a new observation.
+    """
+    stray = sorted(set(flags) - NARROWING_FLAGS)
+    if stray:
+        raise ValueError(
+            f"a decision provider may raise only {sorted(NARROWING_FLAGS)}; refusing {stray}"
+        )
+    lowering = sorted(name for name, value in flags.items() if value is not True)
+    if lowering:
+        raise ValueError(
+            "a decision provider may only raise a safety flag, never clear one; "
+            f"refusing to write False to {lowering}"
+        )
+    return replace(observation, **{name: True for name in flags})
 
 
 class DeterministicDecisionProvider:
