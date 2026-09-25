@@ -140,6 +140,8 @@ The state of the `servers/execution_api.py` decomposition (issue #241, closed) a
 
 For product-oriented integration see [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution), which consumes pinned REMORA artifacts rather than copying the governance core.
 
+Jev as an external decision provider is under trial (experimental, evidence only, never authority): see [integrations/jev_decision_provider.md](docs/integrations/jev_decision_provider.md).
+
 </details>
 
 ## Research, AI use and citation
