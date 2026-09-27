@@ -220,3 +220,14 @@ Only fields an entry declares volatile are ignored. The 11 round outputs stay
 byte-compared by the round itself, so all 46 regenerable results are now
 checked on every CI run.
 
+**2026-09-28, generator repair and manifest precision.** Two broken
+generators are handled. `experiments/chi_perturbation_study.py` imported two
+helpers that never existed in this repository and now starts.
+`scripts/compute_far_confidence_sequence.py` lost its input when the REM-020
+record moved to the 7-day criterion. It now reads the archived cycle-level
+window, and CLAIM-011's bound reproduces unchanged (4.72 %). A static test
+checks every local import of every generator. Writer attributions that came
+from a reference heuristic are replaced by the scripts that write each file.
+The manifest now has 48 regenerable, 18 live, 14 unverified, 31 frozen and
+21 sidecar entries.
+
