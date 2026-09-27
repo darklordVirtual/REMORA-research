@@ -2475,6 +2475,17 @@ documents:
   audience:
   - integrators
   - maintainers
+- id: DOC-340
+  path: docs/design/remora-quality-program-v1.md
+  status: proposal
+  topic: docs_design_remora-quality-program-v1_md
+  code_synced: verified
+  verdict: pending
+  last_reviewed: '2026-09-27'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 topics:
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
@@ -2747,3 +2758,4 @@ topics:
 - docs_assurance_prose_style_baseline_json
 - docs_assurance_credential_topology_yaml
 - docs_assurance_authority_state_topology_yaml
+- docs_design_remora-quality-program-v1_md
