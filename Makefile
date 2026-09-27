@@ -11,7 +11,7 @@
 #   make report            Generate results snapshot + claim consistency check
 #   make credibility-pack  Generate full credibility pack for external review
 
-.PHONY: install test test-fast test-core curated-test stress-toolcalls lint audit benchmark benchmark-package claim-check claim-sync demo report credibility-pack external-review shadow-replay shadow-verify shadow-audit-smoke shadow-replay-smoke holdout cyber-evidence cyber-vector-payload cyber-threat-feeds thermo-ablation tsf-synthetic typecheck replay safety-check clean help domain-benchmark ai-governance-evidence finance-evidence up down logs docker-build docker-test
+.PHONY: reproduce-results install test test-fast test-core curated-test stress-toolcalls lint audit benchmark benchmark-package claim-check claim-sync demo report credibility-pack external-review shadow-replay shadow-verify shadow-audit-smoke shadow-replay-smoke holdout cyber-evidence cyber-vector-payload cyber-threat-feeds thermo-ablation tsf-synthetic typecheck replay safety-check clean help domain-benchmark ai-governance-evidence finance-evidence up down logs docker-build docker-test
 
 PYTHON ?= python
 PYTEST ?= $(PYTHON) -m pytest
@@ -273,6 +273,9 @@ report:  ## Generate results snapshot and verify claim consistency
 	@echo "\nReport generated. See artifacts/benchmark_summary.json and docs/results_snapshot.md"
 
 # Credibility pack
+
+reproduce-results:  ## Regenerate every regenerable result and compare with the commit (run in a clean worktree; rewrites results/)
+	$(PYTHON) scripts/reproduce_results.py
 
 credibility-pack:  ## Refresh the curated credibility pack's generated companions
 	@echo "Refreshing REMORA credibility pack (generated companions)..."

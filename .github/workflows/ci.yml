@@ -649,6 +649,14 @@ jobs:
           print(f"sidecar self-consistency OK for {len(changed)} sidecars")
           PY
 
+      - name: Every other regenerable result reproduces (quality program Q1.2)
+        # Runs last: it rewrites result files in this throwaway checkout, and
+        # the byte-determinism step above must see only the round's writes.
+        # Reads docs/assurance/results_manifest_v1.yaml, runs each generator
+        # of a `regenerable` entry once, and fails on any difference outside
+        # the fields that entry declares volatile.
+        run: python scripts/reproduce_results.py
+
   artifact-integrity:
     name: Key artifact integrity
     runs-on: ubuntu-latest
