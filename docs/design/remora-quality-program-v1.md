@@ -206,3 +206,10 @@ measured: every generator was run offline in a clean worktree of `85b4c97`.
 Outcome: 41 regenerable, 5 drifted, 12 live, 25 unverified, 22 frozen,
 21 sidecars. `toolcall_benchmark_v1_results.json` no longer reproduces the
 baseline numbers three claim-ledger entries cite; that review is Q1.3.
+
+**2026-09-28, Q1.3.** All five drifted results are regenerated and archived.
+Four were tool-call artifacts that predated the label-leakage fixes
+(`NEGATIVE_RESULTS.md` §58). The fifth was a trust-calibration run made with
+an older temperature ceiling. No claim status changed; the wording of three
+claim-ledger entries now cites the regenerated numbers.
+

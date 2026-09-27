@@ -242,12 +242,16 @@ claims:
       score on held-out data. The first calibration run on a thermodynamic eval
       artifact (N≈300) found best_temperature=4.0 (hitting the t_max=4.0 ceiling
       of the search range), which indicates structural overconfidence in raw trust
-      scores. After extending t_max to 8.0, a valid temperature needs to be
-      re-measured on a larger calibration set.
+      scores. Re-measured 2026-09-28 with t_max=8.0 on the same input: the
+      fitted temperature is 8.0, again at the ceiling. Holdout Brier falls
+      from 0.641 to 0.317 and ECE from 0.685 to 0.408, so scaling helps but
+      does not find an interior optimum. A valid temperature still needs a
+      larger calibration set or a different calibrator.
     artifact: results/trust_calibration_report.json
     test: tests/test_trust_calibrator.py
     limitations: |
-      - First calibration run hit t_max ceiling (temperature=4.0).
+      - Both calibration runs hit the search ceiling (4.0, then 8.0); the
+        4.0 run is archived in results/superseded_t_max_4_2026-05-31/.
         Trust scores appear bimodal (near 0 or 1) while most items are simply
         correct, making temperature scaling alone insufficient.
       - Calibration holdout set is small (N≈60). Reliable ECE measurement
@@ -606,36 +610,41 @@ claims:
     status: not_demonstrated
     wording: |
       Unsafe-execution reduction is not demonstrated on toolcall_benchmark_v1.
-      All evaluated heuristic baselines have unsafe_execution_rate = 0.0000:
-      single_model_heuristic, majority_vote_heuristic, self_consistency_heuristic,
-      verifier_heuristic, remora_temperature_gate_heuristic, and
-      remora_full_policy_gate. Because the comparison baselines already avoid
-      unsafe execution under this simulator, REMORA does not materially reduce
-      unsafe execution versus all baselines.
+      Regenerated 2026-09-28 without label leakage, remora_full_policy_gate
+      records unsafe_execution_rate = 0.0000 and the heuristic baselines
+      0.0238 (majority_vote, self_consistency, remora_temperature_gate) to
+      0.1429 (single_model, verifier). The gap is descriptive: it has not been
+      tested at the template-cluster level, and the analogous v2 comparison
+      was withdrawn as not significant (p = 0.50, NEGATIVE_RESULTS.md §17).
     artifact: results/toolcall_benchmark_v1_results.json
     test: tests/test_toolcall_experiment_outputs.py
     limitations: |
-      - Benchmark is currently too easy for conservative heuristic safety rules.
-      - No live model/tool-call behavior measured.
-      - Negative result should be preserved until a harder validated benchmark
-        or live-mode evaluation changes it.
+      - No cluster-level significance test on v1.
+      - Heuristic baselines in a deterministic simulator; no live model/tool-call behavior measured.
+      - The 2026-05-25 wording (every strategy at 0.0000) was read from a
+        leakage-era artifact, archived in
+        results/superseded_label_leakage_2026-06-25/ (NEGATIVE_RESULTS.md §58).
     date: 2026-05-25
+    revised: 2026-09-28
 
   toolcall_critical_error_intercept:
     status: supported
     wording: |
       Critical unsafe task interception is measured on toolcall_benchmark_v1.
-      All evaluated heuristic baselines, including remora_full_policy_gate,
-      report critical_error_intercept_rate = 1.0000 under the deterministic
-      simulator.
+      Regenerated 2026-09-28 without label leakage, remora_full_policy_gate
+      reports critical_error_intercept_rate = 1.0000 and the heuristic
+      baselines 0.8571 to 0.9286 under the deterministic simulator.
     artifact: results/toolcall_benchmark_v1_results.json
     test: tests/test_toolcall_experiment_outputs.py
     limitations: |
       - Deterministic simulator.
       - Heuristic baselines only.
-      - Equal 1.0000 intercept across baselines means this does not demonstrate
-        REMORA superiority.
+      - Supported means measured, not superior: the difference has no
+        cluster-level significance test.
+      - The 2026-05-25 wording (1.0000 for every strategy) was read from a
+        leakage-era artifact (NEGATIVE_RESULTS.md §58).
     date: 2026-05-25
+    revised: 2026-09-28
 
   toolcall_benchmark_v2:
     status: supported
