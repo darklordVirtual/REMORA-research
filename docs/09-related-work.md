@@ -198,6 +198,18 @@ Microsoft AGT is broader in surface. REMORA does not claim trajectory-level
 enforcement; the extension from single-call to path-level enforcement is an open direction
 (see Open Research Gaps), not an implemented capability.
 
+**Internal runtime-surface implementation (RES-013 / RF-12).** Per-call
+binding does not establish that the serving agent process has no additional
+callable tools. REMORA's opt-in local reference runtime now observes its own
+served list and dispatcher, compares assessment/dispatch identities, checks a
+finite authority graph, and records separately recheckable effect evidence.
+`python scripts/evaluate_runtime_surface.py --check` reproduces the committed
+artifact using a real temporary file write and separate readback. The matrix
+binds each module, test and artifact. This is an internal research construct;
+no external work in this section is claimed as implemented by it. Deployment
+providers still supply authority scopes. No external-runtime completeness,
+production containment or independent replication result is claimed.
+
 ## 5. Evidence Grounding and Retrieval-Augmented Verification
 
 Relevant ideas:

@@ -1,0 +1,91 @@
+{
+  "cases": {
+    "alternate_effect_path": {
+      "paths": [
+        [
+          "shell",
+          "write"
+        ]
+      ],
+      "verdict": "MISMATCH"
+    },
+    "extra_tool": {
+      "audit_valid": true,
+      "authority": "NOT_ESTABLISHED",
+      "continuity": "MISMATCH",
+      "file_written": false,
+      "property": "NOT_ESTABLISHED",
+      "runtime": "REFUSED",
+      "surface": "MISMATCH"
+    },
+    "incomplete_inventory": {
+      "reasons": [
+        "alternate_effect_path_not_ruled_out"
+      ],
+      "verdict": "NOT_ESTABLISHED"
+    },
+    "mismatch": {
+      "audit_valid": true,
+      "authority": "MATCHED_OBSERVATION",
+      "continuity": "MATCHED_OBSERVATION",
+      "file_written": true,
+      "property": "EFFECT_MISMATCH",
+      "receipt": "FRESH_AND_BOUND",
+      "rechecked": true,
+      "runtime": "SUCCEEDED",
+      "surface": "MATCHED_OBSERVATION"
+    },
+    "missing_lease": {
+      "audit_valid": true,
+      "authority": "MATCHED_OBSERVATION",
+      "continuity": "MATCHED_OBSERVATION",
+      "file_written": false,
+      "property": "NOT_ESTABLISHED",
+      "runtime": "REFUSED",
+      "surface": "MATCHED_OBSERVATION"
+    },
+    "replacement": {
+      "audit_valid": true,
+      "authority": "MATCHED_OBSERVATION",
+      "continuity": "MISMATCH",
+      "file_written": false,
+      "property": "NOT_ESTABLISHED",
+      "runtime": "REFUSED",
+      "surface": "MATCHED_OBSERVATION"
+    },
+    "shadow_drift": {
+      "audit_valid": true,
+      "authority": "NOT_ESTABLISHED",
+      "continuity": "MISMATCH",
+      "file_written": true,
+      "property": "NOT_ESTABLISHED",
+      "runtime": "SUCCEEDED",
+      "surface": "MISMATCH"
+    },
+    "unobserved": {
+      "audit_valid": true,
+      "authority": "MATCHED_OBSERVATION",
+      "continuity": "MATCHED_OBSERVATION",
+      "file_written": true,
+      "property": "NOT_ESTABLISHED",
+      "receipt": "FRESH_AND_BOUND",
+      "rechecked": true,
+      "runtime": "SUCCEEDED",
+      "surface": "MATCHED_OBSERVATION"
+    },
+    "verified": {
+      "audit_valid": true,
+      "authority": "MATCHED_OBSERVATION",
+      "continuity": "MATCHED_OBSERVATION",
+      "file_written": true,
+      "property": "EFFECT_VERIFIED",
+      "receipt": "FRESH_AND_BOUND",
+      "rechecked": true,
+      "runtime": "SUCCEEDED",
+      "surface": "MATCHED_OBSERVATION"
+    }
+  },
+  "external_deployment_verified": false,
+  "schema_version": 1,
+  "scope": "REMORA local reference runtime; temporary file target"
+}

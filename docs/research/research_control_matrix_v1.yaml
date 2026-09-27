@@ -56,7 +56,7 @@
 # is documented, not invisible.
 
 schema_version: "1"
-updated: "2026-09-03"
+updated: "2026-09-27"
 
 maturity_levels:
   - implemented_and_tested
@@ -524,6 +524,67 @@ entries:
     citation_anchor: "2608.27443"
     compendium_refs: []
     compendium_note: "No anchor in the local compendium: both sources are from August 2026 and postdate the catalogue. Both arXiv identifiers were retrieved and checked against the arXiv record on 2026-08-30 before being entered here."
+
+  - id: RES-013
+    title: "Observed runtime surface, authority paths and recheckable effect evidence"
+    source:
+      citation: "REMORA internal research question (2026-09-27): discussion-derived requirements, not an adopted external publication."
+      sections:
+        - "docs/13-research-frontier-roadmap.md RF-12"
+        - "artifacts/runtime_surface/negative_cases_v1.json"
+        - "artifacts/runtime_surface/reference_runtime_v1.json"
+    concepts:
+      - runtime_tool_surface
+      - serving_process_observation
+      - evidence_sufficiency
+      - authority_effect_separation
+      - content_addressed_evidence
+    controls:
+      - surface_completeness_comparison
+      - assessment_dispatch_continuity
+      - bounded_authority_path_analysis
+      - independent_effect_recheck
+    code:
+      - remora/toolcall/runtime_surface.py
+      - remora/toolcall/surface_runtime.py
+      - remora/toolcall/signed_surface_runtime.py
+      - remora/toolcall/surface_authority.py
+      - remora/toolcall/surface_effect_evidence.py
+      - remora/toolcall/surface_evaluation.py
+      - remora/enforcement/lease.py
+      - scripts/evaluate_runtime_surface.py
+      - artifacts/runtime_surface/negative_cases_v1.json
+      - artifacts/runtime_surface/reference_runtime_v1.json
+    tests:
+      - tests/test_runtime_surface.py
+      - tests/test_runtime_surface_continuity.py
+      - tests/test_surface_runtime.py
+      - tests/test_surface_authority.py
+      - tests/test_surface_effect_evidence.py
+      - tests/test_surface_reference_integration.py
+    evidence: >-
+      Reproduce with python scripts/evaluate_runtime_surface.py --check.
+      The REMORA reference runtime loads a signed ToolSpec, serves its actual
+      offered list, observes dispatcher registration generations, binds a
+      one-use assessment to an exact action and principal, requires the existing
+      signed lease, writes a temporary file and separately reads its effect.
+      The artifact distinguishes runtime, surface, continuity, authority,
+      receipt and property verdicts. Tests recheck full evidence against the
+      retained contract and dispatch, reject tampering and cross-tenant access,
+      and exercise scope drift, replacement, unknown outcomes and concurrency.
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      Opt-in WIRED_REFERENCE_PATH, not the default HTTP API or production.
+      Authority scopes are finite deployment-provider assertions. Source-span
+      hashes do not measure closures, dependencies or credential custody.
+      Trusted host code, in-memory state and process-local locks; no external
+      runtime attestation, durable retention, OS containment or universal proof
+      that an alternative effect path is absent. MATCHED_OBSERVATION is bounded
+      to the observed inventory. No new benchmark or external-literature result.
+    related_work_section: "docs/09-related-work.md §4"
+    in_code_citation: false
+    compendium_refs: []
+    compendium_note: "Internal implementation from discussion-derived requirements; external thread claims are not treated as verified literature."
 
 # ── Landscape coverage ──────────────────────────────────────────────────────
 # Whole areas of the local AI-assurance compendium that REMORA deliberately does

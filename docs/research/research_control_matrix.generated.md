@@ -6,7 +6,7 @@
 
 The machine-checked chain from research source to tested code, one row per research line. Every code and test path below is verified to exist on disk by CI; the literature narrative lives in [docs/09-related-work.md](../09-related-work.md).
 
-Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, updated 2026-09-03).
+Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, updated 2026-09-27).
 
 ## Summary
 
@@ -25,6 +25,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | RES-010 | Anytime-valid confidence sequences (optional-stopping-safe monitoring) | `continuous_far_monitoring` | `implemented_and_tested` |
 | RES-011 | SDAD-inspired content-bound specification intake | `signed_context_manifest`, `evidence_vector_spec_intake` | `conceptual_translation_implemented` |
 | RES-012 | Task-bound execution authority and non-decaying loop state | `task_identity_binding`, `authorization_context_task_fields` | `implemented_and_tested` |
+| RES-013 | Observed runtime surface, authority paths and recheckable effect evidence | `surface_completeness_comparison`, `assessment_dispatch_continuity`, `bounded_authority_path_analysis`, `independent_effect_recheck` | `implemented_and_tested` |
 
 ## RES-001; Causal post-hoc explainability and concept interventions
 
@@ -214,10 +215,28 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §11
 - Landscape (local compendium): No anchor in the local compendium: both sources are from August 2026 and postdate the catalogue. Both arXiv identifiers were retrieved and checked against the arXiv record on 2026-08-30 before being entered here.
 
+## RES-013; Observed runtime surface, authority paths and recheckable effect evidence
+
+- Source: REMORA internal research question (2026-09-27): discussion-derived requirements, not an adopted external publication. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
+  - docs/13-research-frontier-roadmap.md RF-12
+  - artifacts/runtime_surface/negative_cases_v1.json
+  - artifacts/runtime_surface/reference_runtime_v1.json
+- Concepts: runtime_tool_surface, serving_process_observation, evidence_sufficiency, authority_effect_separation, content_addressed_evidence
+- REMORA controls: surface_completeness_comparison, assessment_dispatch_continuity, bounded_authority_path_analysis, independent_effect_recheck
+- Code: [`remora/toolcall/runtime_surface.py`](../../remora/toolcall/runtime_surface.py), [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py), [`remora/toolcall/signed_surface_runtime.py`](../../remora/toolcall/signed_surface_runtime.py), [`remora/toolcall/surface_authority.py`](../../remora/toolcall/surface_authority.py), [`remora/toolcall/surface_effect_evidence.py`](../../remora/toolcall/surface_effect_evidence.py), [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py), [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json), [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json)
+- Tests: [`tests/test_runtime_surface.py`](../../tests/test_runtime_surface.py), [`tests/test_runtime_surface_continuity.py`](../../tests/test_runtime_surface_continuity.py), [`tests/test_surface_runtime.py`](../../tests/test_surface_runtime.py), [`tests/test_surface_authority.py`](../../tests/test_surface_authority.py), [`tests/test_surface_effect_evidence.py`](../../tests/test_surface_effect_evidence.py), [`tests/test_surface_reference_integration.py`](../../tests/test_surface_reference_integration.py)
+- Evidence: Reproduce with python scripts/evaluate_runtime_surface.py --check. The REMORA reference runtime loads a signed ToolSpec, serves its actual offered list, observes dispatcher registration generations, binds a one-use assessment to an exact action and principal, requires the existing signed lease, writes a temporary file and separately reads its effect. The artifact distinguishes runtime, surface, continuity, authority, receipt and property verdicts. Tests recheck full evidence against the retained contract and dispatch, reject tampering and cross-tenant access, and exercise scope drift, replacement, unknown outcomes and concurrency.
+- Maturity: `implemented_and_tested`
+- Scope boundary: Opt-in WIRED_REFERENCE_PATH, not the default HTTP API or production. Authority scopes are finite deployment-provider assertions. Source-span hashes do not measure closures, dependencies or credential custody. Trusted host code, in-memory state and process-local locks; no external runtime attestation, durable retention, OS containment or universal proof that an alternative effect path is absent. MATCHED_OBSERVATION is bounded to the observed inventory. No new benchmark or external-literature result.
+- Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §4
+- Landscape (local compendium): Internal implementation from discussion-derived requirements; external thread claims are not treated as verified literature.
+
 ## Reverse index: code → research
 
 | Code file | Research line(s) |
 |-----------|------------------|
+| [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json) | RES-013 |
+| [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json) | RES-013 |
 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json) | RES-011 |
 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json) | RES-012 |
 | [`docs/enterprise/togaf-enterprise-rollout-plan.md`](../../docs/enterprise/togaf-enterprise-rollout-plan.md) | RES-009 |
@@ -227,6 +246,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | [`remora/causal/explanation.py`](../../remora/causal/explanation.py) | RES-001 |
 | [`remora/causal/schema.py`](../../remora/causal/schema.py) | RES-001 |
 | [`remora/causal/search.py`](../../remora/causal/search.py) | RES-001 |
+| [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py) | RES-013 |
 | [`remora/enforcement/token.py`](../../remora/enforcement/token.py) | RES-012 |
 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py) | RES-008 |
 | [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py) | RES-008 |
@@ -246,10 +266,17 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) | RES-002 |
 | [`remora/thermodynamics.py`](../../remora/thermodynamics.py) | RES-007 |
 | [`remora/toolcall/remora_gate.py`](../../remora/toolcall/remora_gate.py) | RES-005 |
+| [`remora/toolcall/runtime_surface.py`](../../remora/toolcall/runtime_surface.py) | RES-013 |
 | [`remora/toolcall/schema.py`](../../remora/toolcall/schema.py) | RES-005 |
 | [`remora/toolcall/scoring.py`](../../remora/toolcall/scoring.py) | RES-005 |
+| [`remora/toolcall/signed_surface_runtime.py`](../../remora/toolcall/signed_surface_runtime.py) | RES-013 |
+| [`remora/toolcall/surface_authority.py`](../../remora/toolcall/surface_authority.py) | RES-013 |
+| [`remora/toolcall/surface_effect_evidence.py`](../../remora/toolcall/surface_effect_evidence.py) | RES-013 |
+| [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py) | RES-013 |
+| [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py) | RES-013 |
 | [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py) | RES-004b |
 | [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) | RES-011 |
+| [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py) | RES-013 |
 | [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py) | RES-012 |
 
 ## Reverse index: control → research → code
@@ -257,7 +284,9 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | Control | Research line(s) | Code |
 |---------|------------------|------|
 | `action_type_mapping` | RES-005 | [`remora/toolcall/remora_gate.py`](../../remora/toolcall/remora_gate.py), [`remora/toolcall/schema.py`](../../remora/toolcall/schema.py), [`remora/toolcall/scoring.py`](../../remora/toolcall/scoring.py) |
+| `assessment_dispatch_continuity` | RES-013 | [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json), [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/toolcall/runtime_surface.py`](../../remora/toolcall/runtime_surface.py), [`remora/toolcall/signed_surface_runtime.py`](../../remora/toolcall/signed_surface_runtime.py), [`remora/toolcall/surface_authority.py`](../../remora/toolcall/surface_authority.py), [`remora/toolcall/surface_effect_evidence.py`](../../remora/toolcall/surface_effect_evidence.py), [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py), [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py), [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py) |
 | `authorization_context_task_fields` | RES-012 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json), [`remora/enforcement/token.py`](../../remora/enforcement/token.py), [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py), [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py) |
+| `bounded_authority_path_analysis` | RES-013 | [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json), [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/toolcall/runtime_surface.py`](../../remora/toolcall/runtime_surface.py), [`remora/toolcall/signed_surface_runtime.py`](../../remora/toolcall/signed_surface_runtime.py), [`remora/toolcall/surface_authority.py`](../../remora/toolcall/surface_authority.py), [`remora/toolcall/surface_effect_evidence.py`](../../remora/toolcall/surface_effect_evidence.py), [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py), [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py), [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py) |
 | `causal_policy_explanation` | RES-001 | [`remora/causal/attribution.py`](../../remora/causal/attribution.py), [`remora/causal/explanation.py`](../../remora/causal/explanation.py), [`remora/causal/schema.py`](../../remora/causal/schema.py), [`remora/causal/search.py`](../../remora/causal/search.py) |
 | `conformal_thresholding` | RES-003 | [`remora/selective/binomial_bounds.py`](../../remora/selective/binomial_bounds.py), [`remora/selective/crc.py`](../../remora/selective/crc.py) |
 | `context_flow_governance` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
@@ -266,6 +295,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | `evidence_vector_spec_intake` | RES-011 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json), [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py), [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) |
 | `evidence_verifier` | RES-006 | [`remora/oracles/evidence_v3.py`](../../remora/oracles/evidence_v3.py), [`remora/oracles/evidence_verifier.py`](../../remora/oracles/evidence_verifier.py) |
 | `governed_memory_layers` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
+| `independent_effect_recheck` | RES-013 | [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json), [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/toolcall/runtime_surface.py`](../../remora/toolcall/runtime_surface.py), [`remora/toolcall/signed_surface_runtime.py`](../../remora/toolcall/signed_surface_runtime.py), [`remora/toolcall/surface_authority.py`](../../remora/toolcall/surface_authority.py), [`remora/toolcall/surface_effect_evidence.py`](../../remora/toolcall/surface_effect_evidence.py), [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py), [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py), [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py) |
 | `independent_verifier_gate` | RES-004b | [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py) |
 | `multi_oracle_consensus` | RES-004a | [`remora/cascade/stages.py`](../../remora/cascade/stages.py), [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py) |
 | `phase_aware_guardrail` | RES-002 | [`remora/selective/conformal.py`](../../remora/selective/conformal.py), [`remora/selective/guardrail.py`](../../remora/selective/guardrail.py), [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) |
@@ -273,6 +303,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | `reviewed_policy_proposals` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
 | `selective_routing` | RES-002 | [`remora/selective/conformal.py`](../../remora/selective/conformal.py), [`remora/selective/guardrail.py`](../../remora/selective/guardrail.py), [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) |
 | `signed_context_manifest` | RES-011 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json), [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py), [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) |
+| `surface_completeness_comparison` | RES-013 | [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json), [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/toolcall/runtime_surface.py`](../../remora/toolcall/runtime_surface.py), [`remora/toolcall/signed_surface_runtime.py`](../../remora/toolcall/signed_surface_runtime.py), [`remora/toolcall/surface_authority.py`](../../remora/toolcall/surface_authority.py), [`remora/toolcall/surface_effect_evidence.py`](../../remora/toolcall/surface_effect_evidence.py), [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py), [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py), [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py) |
 | `task_identity_binding` | RES-012 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json), [`remora/enforcement/token.py`](../../remora/enforcement/token.py), [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py), [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py) |
 | `thermodynamic_braking` | RES-007 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py), [`remora/research_attic/statphys/potts.py`](../../remora/research_attic/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py) |
 | `toolcall_gate` | RES-005 | [`remora/toolcall/remora_gate.py`](../../remora/toolcall/remora_gate.py), [`remora/toolcall/schema.py`](../../remora/toolcall/schema.py), [`remora/toolcall/scoring.py`](../../remora/toolcall/scoring.py) |
